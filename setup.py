@@ -4,7 +4,7 @@ import sys
 from setuptools import setup
 from setuptools.command.install import install
 
-VERSION = "0.3.2"
+VERSION = "0.3.2a1"
 
 class VerifyVersionCommand(install):
     """Custom command to verify that the git tag matches our version"""
@@ -22,18 +22,18 @@ class VerifyVersionCommand(install):
 setup(
     name='evohomeclient',
     version=VERSION,
-    description='Python client for connecting to the Evohome webservice',
-    url='https://github.com/watchforstock/evohome-client/',
-    download_url='https://github.com/watchforstock/evohome-client/tarball/' + VERSION,
-    author='Andrew Stock',
-    author_email='evohome@andrew-stock.com',
+    description='An async Python client for connecting to the Evohome webservice',
+    url='https://github.com/zxdavb/evohome-async/',
+    download_url='https://github.com/zxdavb/evohome-async/tarball/' + VERSION,
+    author='Andrew Stock & David Bonnes',
+    author_email='zxdavb@bonnes.me',
     license='Apache 2',
     classifiers=[
         'Development Status :: 3 - Alpha',
     ],
     keywords=['evohome'],
     packages=['evohomeclient', 'evohomeclient2'],
-    install_requires=['requests'],
+    install_requires=['aiohttp', 'requests'],
     cmdclass={
         'verify': VerifyVersionCommand,
     }
