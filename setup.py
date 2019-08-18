@@ -4,7 +4,7 @@ import sys
 from setuptools import setup
 from setuptools.command.install import install
 
-VERSION = "0.3.3b1"
+VERSION = "0.3.3b2"
 
 class VerifyVersionCommand(install):
     """Custom command to verify that the git tag matches our version"""
@@ -29,7 +29,7 @@ setup(
     author_email='zxdavb@bonnes.me',
     license='Apache 2',
     classifiers=[
-        'Development Status :: 2 - Beta',
+        'Development Status :: 4 - Beta',
     ],
     keywords=['evohome', 'total connect comfort', 'round thermostat'],
     packages=['evohomeclient', 'evohomeclient2'],
