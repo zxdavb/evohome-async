@@ -4,7 +4,10 @@ import sys
 from setuptools import setup
 from setuptools.command.install import install
 
-VERSION = "0.3.3b2"
+VERSION = "0.3.3b3"
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 class VerifyVersionCommand(install):
     """Custom command to verify that the git tag matches our version"""
@@ -20,9 +23,11 @@ class VerifyVersionCommand(install):
             sys.exit(info)
 
 setup(
-    name='evohomeasync',
+    name='evohome-async',
     version=VERSION,
     description='An async Python client for connecting to the Evohome webservice',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     url='https://github.com/zxdavb/evohome-async/',
     download_url='https://github.com/zxdavb/evohome-async/tarball/' + VERSION,
     author='Andrew Stock & David Bonnes',
