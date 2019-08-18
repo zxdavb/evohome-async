@@ -1,5 +1,6 @@
 """Provides handling of a location."""
-import requests
+import asyncio
+import logging
 
 from .gateway import Gateway
 
@@ -21,18 +22,17 @@ class Location(object):                                                         
                 self._gateways.append(gateway)
                 self.gateways[gateway.gatewayId] = gateway                       # pylint: disable=no-member
 
-            self.status()
-
-    def status(self):
+    async def status(self):
         """Retrieves the location status."""
-        response = requests.get(
-            "https://tccna.honeywell.com/WebAPI/emea/api/v1/"
-            "location/%s/status?includeTemperatureControlSystems=True" %
-            self.locationId,
-            headers=self.client._headers()                                       # pylint: disable=protected-access
-        )
-        response.raise_for_status()
-        data = response.json()
+        url = ("https://tccna.honeywell.com/WebAPI/emea/api/v1/"
+               "location/%s/status?includeTemperatureControlSystems=True" %
+               self.locationId)
+
+        async with self.client._session.get(
+            url, headers=await self.client._headers()                            # pylint: disable=protected-access
+        ) as response:
+            response.raise_for_status()
+            data = await response.json()
 
         # Now feed into other elements
         for gw_data in data['gateways']:

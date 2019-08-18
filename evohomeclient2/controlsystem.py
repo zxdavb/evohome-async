@@ -1,8 +1,7 @@
 """Provides handling of a control system."""
+import asyncio
 import json
 import logging
-
-import requests
 
 from .zone import Zone
 from .hotwater import HotWater
@@ -38,8 +37,8 @@ class ControlSystem(object):                                                    
             if 'dhw' in data:
                 self.hotwater = HotWater(client, data['dhw'])
 
-    def _set_status(self, mode, until=None):
-        headers = dict(self.client._headers())                                   # pylint: disable=protected-access
+    async def _set_status(self, mode, until=None):
+        headers = dict(await self.client._headers())                             # pylint: disable=protected-access
         headers['Content-Type'] = 'application/json'
 
         if until is None:
@@ -51,47 +50,48 @@ class ControlSystem(object):                                                    
                 "Permanent": False
             }
 
-        response = requests.put(
-            "https://tccna.honeywell.com/WebAPI/emea/api/v1"
-            "/temperatureControlSystem/%s/mode" % self.systemId,
-            data=json.dumps(data), headers=headers
-        )
-        response.raise_for_status()
+        url = ("https://tccna.honeywell.com/WebAPI/emea/api/v1"
+               "/temperatureControlSystem/%s/mode" % self.systemId)
 
-    def set_status_normal(self):
+        async with self.client._session.put(
+            url, json=data, headers=await self.client._headers()
+        ) as response:
+            response.raise_for_status()
+
+    async def set_status_normal(self):
         """Set the system into normal mode."""
-        self._set_status("Auto")
+        await self._set_status("Auto")
 
-    def set_status_reset(self):
+    async def set_status_reset(self):
         """Reset the system into normal mode.
 
         This will also set all the zones to FollowSchedule mode.
         """
-        self._set_status("AutoWithReset")
+        await self._set_status("AutoWithReset")
 
-    def set_status_custom(self, until=None):
+    async def set_status_custom(self, until=None):
         """Set the system into custom mode."""
-        self._set_status("Custom", until)
+        await self._set_status("Custom", until)
 
-    def set_status_eco(self, until=None):
+    async def set_status_eco(self, until=None):
         """Set the system into eco mode."""
-        self._set_status("AutoWithEco", until)
+        await self._set_status("AutoWithEco", until)
 
-    def set_status_away(self, until=None):
+    async def set_status_away(self, until=None):
         """Set the system into away mode."""
-        self._set_status("Away", until)
+        await self._set_status("Away", until)
 
-    def set_status_dayoff(self, until=None):
+    async def set_status_dayoff(self, until=None):
         """Set the system into dayoff mode."""
-        self._set_status("DayOff", until)
+        await self._set_status("DayOff", until)
 
-    def set_status_heatingoff(self, until=None):
+    async def set_status_heatingoff(self, until=None):
         """Set the system into heating off mode."""
-        self._set_status("HeatingOff", until)
+        await self._set_status("HeatingOff", until)
 
-    def temperatures(self):
+    async def temperatures(self):
         """Return a generator with the details of each zone."""
-        self.location.status()
+        await self.location.status()
 
         if self.hotwater:
             yield {

@@ -1,17 +1,14 @@
-"""evohomeclient2 provides a client for the updated Evohome API.
+"""evohomeclient2 provides an async client for the updated Evohome API.
+
+It is a faithful async port of https://github.com/watchforstock/evohome-client
 
 Further information at: https://evohome-client.readthedocs.io
 """
+import asyncio
 from datetime import datetime, timedelta
 import logging
 
-import requests
-
-try:
-    import http.client as http_client
-except ImportError:
-    # Python 2
-    import httplib as http_client
+import aiohttp
 
 from .location import Location
 
@@ -45,18 +42,11 @@ class AuthenticationError(Exception):
 class EvohomeClient(object):                                                     # pylint: disable=too-many-instance-attributes,useless-object-inheritance
     """Provides access to the v2 Evohome API."""
 
-    def __init__(self, username, password, debug=False, refresh_token=None,      # pylint: disable=too-many-arguments
-                 access_token=None, access_token_expires=None):
+    def __init__(self, username, password, **kwargs):
         """Construct the EvohomeClient object."""
-        if debug is True:
+        if kwargs.get('debug') is True:
             _LOGGER.setLevel(logging.DEBUG)
             _LOGGER.debug("Debug mode is explicitly enabled.")
-
-            requests_logger = logging.getLogger("requests.packages.urllib3")
-            requests_logger.setLevel(logging.DEBUG)
-            requests_logger.propagate = True
-
-            http_client.HTTPConnection.debuglevel = 1
         else:
             _LOGGER.debug(
                 "Debug mode is not explicitly enabled "
@@ -66,33 +56,35 @@ class EvohomeClient(object):                                                    
         self.username = username
         self.password = password
 
-        self.refresh_token = refresh_token
-        self.access_token = access_token
-        self.access_token_expires = access_token_expires
+        self.refresh_token = kwargs.get('refresh_token')
+        self.access_token = kwargs.get('access_token')
+        self.access_token_expires = kwargs.get('access_token_expires')
 
         self.account_info = None
         self.locations = None
         self.installation_info = None
         self.system_id = None
 
-        self._login()
+        self._session = kwargs.get('session', aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=30)
+        ))
 
-    def _login(self):
-        self.user_account()
-        self.installation()
+    async def login(self):
+        await self.user_account()
+        await self.installation()
 
-    def _headers(self):
+    async def _headers(self):
         """Ensure the Authorization Header has a valid Access Token."""
         if not self.access_token or not self.access_token_expires:
-            self._basic_login()
+            await self._basic_login()
 
         elif datetime.now() > self.access_token_expires - timedelta(seconds=30):
-            self._basic_login()
+            await self._basic_login()
 
         return {'Accept': HEADER_ACCEPT,
                 'Authorization': 'bearer ' + self.access_token}
 
-    def _basic_login(self):
+    async def _basic_login(self):
         """Obtain a new access token from the vendor.
 
         First, try using the refresh_token, if one is available, otherwise
@@ -108,7 +100,7 @@ class EvohomeClient(object):                                                    
                            'refresh_token': self.refresh_token}
 
             try:
-                self._obtain_access_token(credentials)
+                await self._obtain_access_token(credentials)
             except AuthenticationError:
                 _LOGGER.warning(
                     "Invalid refresh_token (will try user credentials).")
@@ -122,14 +114,14 @@ class EvohomeClient(object):                                                    
                            'Username': self.username,
                            'Password': self.password}
 
-            self._obtain_access_token(credentials)
+            await self._obtain_access_token(credentials)
 
         _LOGGER.debug("refresh_token = %s", self.refresh_token)
         _LOGGER.debug("access_token = %s", self.access_token)
         _LOGGER.debug("access_token_expires = %s",
                       self.access_token_expires.strftime("%Y-%m-%d %H:%M:%S"))
 
-    def _obtain_access_token(self, credentials):
+    async def _obtain_access_token(self, credentials):
         url = 'https://tccna.honeywell.com/Auth/OAuth/Token'
         payload = {
             'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
@@ -140,36 +132,39 @@ class EvohomeClient(object):                                                    
         }
         payload.update(credentials)  # merge the credentials into the payload
 
-        response = requests.post(url, data=payload, headers=HEADER_BASIC_AUTH)
+        async with self._session.post(
+            url, data=payload, headers=HEADER_BASIC_AUTH,
+        ) as response:
+            try:
+                response_text = await response.text()
+                response.raise_for_status()
 
-        try:
-            response.raise_for_status()
+            except aiohttp.ClientResponseError:
+                msg = "Unable to obtain an Access Token"
 
-        except requests.HTTPError:
-            msg = "Unable to obtain an Access Token"
-            if response.text:  # if there is a message, then raise with it
-                msg = msg + ", hint: " + response.text
-            raise AuthenticationError(msg)
+                if response_text:  # if there is a message, then raise with it
+                    msg = msg + ", hint: " + response_text
+                raise AuthenticationError(msg)
 
-        try:  # the access token _should_ be valid...
-            # this may cause a ValueError
-            response_json = response.json()
+            try:  # the access token _should_ be valid...
+                # this may cause a ValueError
+                response_json = await response.json()
 
-            # these may cause a KeyError
-            self.access_token = response_json['access_token']
-            self.access_token_expires = (
-                datetime.now() +
-                timedelta(seconds=response_json['expires_in'])
-            )
-            self.refresh_token = response_json['refresh_token']
+                # these may cause a KeyError
+                self.access_token = response_json['access_token']
+                self.access_token_expires = (
+                    datetime.now() +
+                    timedelta(seconds=response_json['expires_in'])
+                )
+                self.refresh_token = response_json['refresh_token']
 
-        except KeyError:
-            raise AuthenticationError("Unable to obtain an Access Token, "
-                                      "hint: " + response_json)
+            except KeyError:
+                raise AuthenticationError("Unable to obtain an Access Token, "
+                                          "hint: " + response_json)
 
-        except ValueError:
-            raise AuthenticationError("Unable to obtain an Access Token, "
-                                      "hint: " + response.text)
+            except ValueError:
+                raise AuthenticationError("Unable to obtain an Access Token, "
+                                          "hint: " + response_text)
 
     def _get_location(self, location):
         if location is None:
@@ -189,19 +184,21 @@ class EvohomeClient(object):                                                    
 
         return self.locations[0]._gateways[0]._control_systems[0]                # pylint: disable=protected-access
 
-    def user_account(self):
+    async def user_account(self):
         """Return the user account information."""
         self.account_info = None
 
         url = 'https://tccna.honeywell.com/WebAPI/emea/api/v1/userAccount'
 
-        response = requests.get(url, headers=self._headers())
-        response.raise_for_status()
+        async with self._session.get(
+            url, headers=await self._headers()
+        ) as response:
+            response.raise_for_status()
 
-        self.account_info = response.json()
-        return self.account_info
+            self.account_info = await response.json()
+            return self.account_info
 
-    def installation(self):
+    async def installation(self):
         """Return the details of the installation."""
         self.locations = []
 
@@ -210,67 +207,76 @@ class EvohomeClient(object):                                                    
                "&includeTemperatureControlSystems=True"
                % self.account_info['userId'])
 
-        response = requests.get(url, headers=self._headers())
-        response.raise_for_status()
+        async with self._session.get(
+            url, headers=await self._headers()
+        ) as response:
+            response.raise_for_status()
 
-        self.installation_info = response.json()
+            self.installation_info = await response.json()
+
         self.system_id = (self.installation_info[0]['gateways'][0]
                           ['temperatureControlSystems'][0]['systemId'])
 
         for loc_data in self.installation_info:
-            self.locations.append(Location(self, loc_data))
+            location = Location(self, loc_data)
+            await location.status()
+            self.locations.append(location)
 
         return self.installation_info
 
-    def full_installation(self, location=None):
+    async def full_installation(self, location=None):
         """Return the full details of the installation."""
         url = ("https://tccna.honeywell.com/WebAPI/emea/api/v1/location"
                "/%s/installationInfo?includeTemperatureControlSystems=True"
                % self._get_location(location))
 
-        response = requests.get(url, headers=self._headers())
-        response.raise_for_status()
+        async with self._session.get(
+            url, headers=await self._headers()
+        ) as response:
+            response.raise_for_status()
 
-        return response.json()
+            return await response.json()
 
-    def gateway(self):
+    async def gateway(self):
         """Return the detail of the gateway."""
         url = 'https://tccna.honeywell.com/WebAPI/emea/api/v1/gateway'
 
-        response = requests.get(url, headers=self._headers())
-        response.raise_for_status()
+        async with self._session.get(
+            url, headers=await self._headers()
+        ) as response:
+            response.raise_for_status()
 
-        return response.json()
+            return await response.json()
 
-    def set_status_normal(self):
+    async def set_status_normal(self):
         """Set the system into normal heating mode."""
         return self._get_single_heating_system().set_status_normal()
 
-    def set_status_reset(self):
+    async def set_status_reset(self):
         """Reset the system mode."""
         return self._get_single_heating_system().set_status_reset()
 
-    def set_status_custom(self, until=None):
+    async def set_status_custom(self, until=None):
         """Set the system into custom heating mode."""
         return self._get_single_heating_system().set_status_custom(until)
 
-    def set_status_eco(self, until=None):
+    async def set_status_eco(self, until=None):
         """Set the system into eco heating mode."""
         return self._get_single_heating_system().set_status_eco(until)
 
-    def set_status_away(self, until=None):
+    async def set_status_away(self, until=None):
         """Set the system into away heating mode."""
         return self._get_single_heating_system().set_status_away(until)
 
-    def set_status_dayoff(self, until=None):
+    async def set_status_dayoff(self, until=None):
         """Set the system into day off heating mode."""
         return self._get_single_heating_system().set_status_dayoff(until)
 
-    def set_status_heatingoff(self, until=None):
+    async def set_status_heatingoff(self, until=None):
         """Set the system into heating off heating mode."""
         return self._get_single_heating_system().set_status_heatingoff(until)
 
-    def temperatures(self):
+    async def temperatures(self):
         """Return the current zone temperatures and set points."""
         return self._get_single_heating_system().temperatures()
 
