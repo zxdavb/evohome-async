@@ -37,7 +37,7 @@ setup(
         'Development Status :: 4 - Beta',
     ],
     keywords=['evohome', 'total connect comfort', 'round thermostat'],
-    packages=['evohomeclient', 'evohomeclient2'],
+    packages=['evohomeasync', 'evohomeasync2'],
     install_requires=['aiohttp', 'requests'],
     cmdclass={
         'verify': VerifyVersionCommand,
