@@ -1,6 +1,4 @@
 """Provides handling of the hot water zone."""
-import asyncio
-
 from .zone import ZoneBase
 
 

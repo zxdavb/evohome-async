@@ -1,5 +1,4 @@
 """Provides handling of a control system."""
-import asyncio
 import json
 import logging
 

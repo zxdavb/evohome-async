@@ -1,5 +1,4 @@
 """Provides handling of individual zones"""
-import asyncio
 import json
 
 

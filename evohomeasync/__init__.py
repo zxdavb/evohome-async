@@ -4,7 +4,6 @@ It is a faithful async port of https://github.com/watchforstock/evohome-client
 
 Further information at: https://evohome-client.readthedocs.io
 """
-# import asyncio
 import codecs
 import json
 import logging
@@ -119,13 +118,15 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
             else:
                 status = device['thermostat']['changeableValues']['status']
             result.append(
-                {'thermostat': device['thermostatModelType'],
-                   'id': device['deviceID'],
-                   'name': device['name'],
-                   'temp': float(device['thermostat']['indoorTemperature']),
-                   'setpoint': set_point,
-                   'status': status,
-                   'mode': device['thermostat']['changeableValues']['mode']}
+                {
+                    'thermostat': device['thermostatModelType'],
+                    'id': device['deviceID'],
+                    'name': device['name'],
+                    'temp': float(device['thermostat']['indoorTemperature']),
+                    'setpoint': set_point,
+                    'status': status,
+                    'mode': device['thermostat']['changeableValues']['mode']
+                }
             )
 
         return result
@@ -197,9 +198,12 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
             # display error message if the vendor provided one
             if response.status != HTTP_OK:
                 if 'code' in response_text:  # don't use response.json()!
-                    message = ("HTTP Status = " + str(response.status) +
-                               ", Response = " + response_text)
-                    raise aiohttp.ClientResponseError(message)
+                    _LOGGER.error(
+                        "HTTP Status = %s, Response = %s",
+                        response.status,
+                        response_text,
+                        exc_info=True
+                    )
 
             response.raise_for_status()
 

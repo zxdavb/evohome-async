@@ -1,7 +1,4 @@
 """Provides handling of a location."""
-import asyncio
-import logging
-
 from .gateway import Gateway
 
 

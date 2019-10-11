@@ -4,7 +4,6 @@ It is a faithful async port of https://github.com/watchforstock/evohome-client
 
 Further information at: https://evohome-client.readthedocs.io
 """
-# import asyncio
 from datetime import datetime, timedelta
 import logging
 
