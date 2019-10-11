@@ -4,7 +4,7 @@ import sys
 from setuptools import setup
 from setuptools.command.install import install
 
-VERSION = "0.3.3b4"
+VERSION = "0.3.3b5"
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -38,7 +38,7 @@ setup(
     ],
     keywords=['evohome', 'total connect comfort', 'round thermostat'],
     packages=['evohomeasync', 'evohomeasync2'],
-    install_requires=['aiohttp', 'requests'],
+    install_requires=['aiohttp'],
     cmdclass={
         'verify': VerifyVersionCommand,
     }
