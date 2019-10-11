@@ -4,13 +4,16 @@ It is a faithful async port of https://github.com/watchforstock/evohome-client
 
 Further information at: https://evohome-client.readthedocs.io
 """
-import asyncio
+# import asyncio
 import codecs
 import json
 import logging
 import time
 
 import aiohttp
+
+HTTP_UNAUTHORIZED = 401
+HTTP_OK = 200
 
 logging.basicConfig()
 _LOGGER = logging.getLogger(__name__)
@@ -56,9 +59,9 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
         self.postdata = {}
         self.headers = {}
 
-    def _convert(self, content):
-        return json.loads(content[0])
-        return json.loads(self.reader(content)[0])
+    # def _convert(self, content):  # TODO: deleteme
+    #     return json.loads(content[0])
+    #     return json.loads(self.reader(content)[0])
 
     async def _populate_full_data(self, force_refresh=False):
         if self.full_data is None or force_refresh:
@@ -96,7 +99,8 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
             response = await self._do_request(
                 'post', url, data=json.dumps(self.postdata), retry=False)
 
-            self.user_data = self._convert(response.content)
+            # lf.user_data = self._convert(response.content)  # TODO: deleteme
+            self.user_data = await response.json()
 
         return self.user_data
 
@@ -146,10 +150,12 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
 
         response = await self._do_request('get', url)
 
-        return self._convert(response.content)['state']
+        # turn self._convert(response.content)['state']  # TODO: deleteme
+        return dict(await response.json())['state']
 
-    def _get_task_id(self, response):
-        ret = self._convert(response.content)
+    async def _get_task_id(self, response):
+        # t = self._convert(response.content)  # TODO: deleteme
+        ret = await response.json()
 
         if isinstance(ret, list):
             task_id = ret[0]['id']
@@ -158,9 +164,6 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
         return task_id
 
     async def _do_request(self, method, url, data=None, retry=True):
-        HTTP_UNAUTHORIZED = 401
-        HTTP_OK = 200
-
         if method == 'get':
             func = self._session.get
         elif method == 'put':
@@ -242,7 +245,7 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
 
         response = await self._do_request('put', url, json.dumps(data))
 
-        task_id = self._get_task_id(response)
+        task_id = await self._get_task_id(response)
 
         while await self._get_task_status(task_id) != 'Succeeded':
             time.sleep(1)
@@ -285,7 +288,7 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
 
         response = await self._do_request('put', url, json.dumps(data))
 
-        task_id = self._get_task_id(response)
+        task_id = await self._get_task_id(response)
 
         while await self._get_task_status(task_id) != 'Succeeded':
             time.sleep(1)
@@ -332,7 +335,7 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
 
         response = await self._do_request('put', url, json.dumps(data))
 
-        task_id = self._get_task_id(response)
+        task_id = await self._get_task_id(response)
 
         while await self._get_task_status(task_id) != 'Succeeded':
             time.sleep(1)

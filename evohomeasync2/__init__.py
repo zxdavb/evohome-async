@@ -4,7 +4,7 @@ It is a faithful async port of https://github.com/watchforstock/evohome-client
 
 Further information at: https://evohome-client.readthedocs.io
 """
-import asyncio
+# import asyncio
 from datetime import datetime, timedelta
 import logging
 
@@ -75,7 +75,7 @@ class EvohomeClient(object):                                                    
         try:  # it's possible the cached access_token is valid, but not authorized
             await self.user_account()
         except aiohttp.ClientResponseError as err:
-            if err.response.status == HTTP_UNAUTHORIZED and self.access_token:
+            if err.status == HTTP_UNAUTHORIZED and self.access_token:
                 _LOGGER.warning(
                     "Unauthorized access_token (will try re-authenticating)."
                 )
