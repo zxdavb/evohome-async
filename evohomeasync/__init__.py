@@ -58,10 +58,6 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
         self.postdata = {}
         self.headers = {}
 
-    # def _convert(self, content):  # TODO: deleteme
-    #     return json.loads(content[0])
-    #     return json.loads(self.reader(content)[0])
-
     async def _populate_full_data(self, force_refresh=False):
         if self.full_data is None or force_refresh:
             await self._populate_user_info()
@@ -98,7 +94,6 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
             response = await self._do_request(
                 'post', url, data=json.dumps(self.postdata), retry=False)
 
-            # lf.user_data = self._convert(response.content)  # TODO: deleteme
             self.user_data = await response.json()
 
         return self.user_data
@@ -138,7 +133,7 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
         return device['thermostat']['allowedModes']
 
     def _get_device(self, zone):
-        if isinstance(zone, str):  # or (IS_PY2 and isinstance(zone, basestring)):
+        if isinstance(zone, str):
             device = self.named_devices[zone]
         else:
             device = self.devices[zone]
@@ -151,11 +146,9 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
 
         response = await self._do_request('get', url)
 
-        # turn self._convert(response.content)['state']  # TODO: deleteme
         return dict(await response.json())['state']
 
     async def _get_task_id(self, response):
-        # t = self._convert(response.content)  # TODO: deleteme
         ret = await response.json()
 
         if isinstance(ret, list):
@@ -172,7 +165,6 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
         elif method == 'post':
             func = self._session.post
 
-        # response = func(url, data=data, headers=self.headers)
         async with func(
             url, data=data, headers=self.headers,
         ) as response:
@@ -206,31 +198,6 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
                     )
 
             response.raise_for_status()
-
-        # # catch 401/unauthorized since we may retry
-        # if response.status_code == requests.codes.unauthorized and retry:
-        #     # Attempt to refresh sessionId if it has expired
-        #     if 'code' in response.text:  # don't use response.json() here!
-        #         if response.json()[0]['code'] == "Unauthorized":
-        #             _LOGGER.debug("Session expired, re-authenticating...")
-        #             # Get a new sessionId
-        #             self.user_data = None
-        #             await self._populate_user_info()
-        #             # Set headers with new sessionId
-        #             session_id = self.user_data['sessionId']
-        #             self.headers['sessionId'] = session_id
-        #             _LOGGER.debug("sessionId = %s", session_id)
-
-        #             response = func(url, data=data, headers=self.headers)
-
-        # # display error message if the vendor provided one
-        # if response.status_code != requests.codes.ok:
-        #     if 'code' in response.text:  # don't use response.json()!
-        #         message = ("HTTP Status = " + str(response.status_code) +
-        #                    ", Response = " + response.text)
-        #         raise requests.HTTPError(message)
-
-        # response.raise_for_status()
 
         return response
 
