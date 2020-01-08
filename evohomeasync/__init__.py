@@ -211,7 +211,7 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
         else:
             data = {
                 "QuickAction": status,
-                "QuickActionNextTime": until.strftime('%Y-%m-%dT%H:%M:00Z')
+                "QuickActionNextTime": until.strftime('%Y-%m-%dT%H:%M:%SZ')
             }
 
         response = await self._do_request('put', url, json.dumps(data))
