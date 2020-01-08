@@ -3,24 +3,32 @@ evohome-async
 
 Build status: [![CircleCI](https://circleci.com/gh/zxdavb/evohome-async.svg?style=svg)](https://circleci.com/gh/zxdavb/evohome-async)
 
-Python client to access the Evohome web service _asynchronously_.  It is a faithful port of https://github.com/watchforstock/evohome-client.  
+Python client to _asynchronously_ access the [Total Connect Comfort](https://international.mytotalconnectcomfort.com/Account/Login) RESTful API.
 
-Note that this library does not (and will not) expose more functionality than it's non-async cousin, other than asyncio.
+It is a faithful port of https://github.com/watchforstock/evohome-client, which is not async-aware.
+
+It provides support for **Evohome** and the **Round Thermostat**. It supports only EU/EMEA-based systems, please use [somecomfort](https://github.com/kk7ds/somecomfort) for US-based systems.
+
+This client uses the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer an async-friendly client, [evohome-async](https://github.com/zxdavb/evohome-async) has been ported to use [aiohttp](https://pypi.org/project/aiohttp/) instead.
+
+Provides Evohome support for Home Assistant (and other automation platforms), see http://home-assistant.io/components/evohome/
+
+Documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
+
+### Differences from non-async version
+Note that this library is not intended to expose more functionality than it's non-async cousin, other than asyncio.
 
 The difference between the **evohomeasync** and **evohomeclient** libraries have been keep to the minimum, and it is planned for exisiting docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
-
-Such documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
 
 Currently, only `evohomeclient2` has been fully tested, and `evohomeclient` (the older API) is a WIP has not been fully tested.
 
 This library is used by Home Assistant, see: http://home-assistant.io/components/evohome/
 
-### Differences between sync and async version (WIP)
-
+### Technical differences
 In both cases (`evohomeclient2` and `evohomeclient`):
  - uses **aiohttp** instead of **requests**:
  - most instantiation arguments (except for username, password) are now kwargs
- - added a new instantiation argument, `session` to allow the client to utilize teh consumer's session
+ - added a new instantiation argument, `session` to allow the client to utilize the consumer's session
  ```python
     self._session = kwargs.get('session', aiohttp.ClientSession(
         timeout=aiohttp.ClientTimeout(total=30)
