@@ -9,7 +9,8 @@ tokens*.*
 *.old
 *.out
 *.txt
-.vscode/*
+.secrets/
+.vscode/
 
 
 ### github's default .gitignore file

@@ -193,8 +193,7 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
                     _LOGGER.error(
                         "HTTP Status = %s, Response = %s",
                         response.status,
-                        response_text,
-                        exc_info=True
+                        response_text
                     )
 
             response.raise_for_status()
