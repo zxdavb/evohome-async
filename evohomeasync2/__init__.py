@@ -34,7 +34,8 @@ HEADER_BASIC_AUTH = {
 class AuthenticationError(Exception):
     """Exception raised when unable to get an access_token."""
 
-    def __init__(self, message):
+    def __init__(self,
+    message):
         """Construct the AuthenticationError object."""
         self.message = message
         super(AuthenticationError, self).__init__(message)
