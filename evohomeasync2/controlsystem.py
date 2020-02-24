@@ -2,8 +2,8 @@
 import json
 import logging
 
-from .zone import Zone
 from .hotwater import HotWater
+from .zone import Zone
 
 _LOGGER = logging.getLogger(__name__)
 

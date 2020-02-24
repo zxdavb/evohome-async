@@ -4,8 +4,8 @@ It is a faithful async port of https://github.com/watchforstock/evohome-client
 
 Further information at: https://evohome-client.readthedocs.io
 """
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
 
 import aiohttp
 
@@ -73,7 +73,7 @@ class EvohomeClient(
         self.system_id = None
 
     async def login(self):
-        try:  # it's possible the cached access_token is valid, but not authorized
+        try:  # the cached access_token may be valid, but is not authorized
             await self.user_account()
         except aiohttp.ClientResponseError as err:
             if err.status == HTTP_UNAUTHORIZED and self.access_token:
@@ -159,9 +159,9 @@ class EvohomeClient(
 
             except aiohttp.ClientResponseError:
                 msg = "Unable to obtain an Access Token"
-
                 if response_text:  # if there is a message, then raise with it
                     msg = msg + ", hint: " + response_text
+
                 raise AuthenticationError(msg)
 
             try:  # the access token _should_ be valid...
@@ -269,35 +269,35 @@ class EvohomeClient(
 
     async def set_status_normal(self):
         """Set the system into normal heating mode."""
-        return self._get_single_heating_system().set_status_normal()
+        return await self._get_single_heating_system().set_status_normal()
 
     async def set_status_reset(self):
         """Reset the system mode."""
-        return self._get_single_heating_system().set_status_reset()
+        return await self._get_single_heating_system().set_status_reset()
 
     async def set_status_custom(self, until=None):
         """Set the system into custom heating mode."""
-        return self._get_single_heating_system().set_status_custom(until)
+        return await self._get_single_heating_system().set_status_custom(until)
 
     async def set_status_eco(self, until=None):
         """Set the system into eco heating mode."""
-        return self._get_single_heating_system().set_status_eco(until)
+        return await self._get_single_heating_system().set_status_eco(until)
 
     async def set_status_away(self, until=None):
         """Set the system into away heating mode."""
-        return self._get_single_heating_system().set_status_away(until)
+        return await self._get_single_heating_system().set_status_away(until)
 
     async def set_status_dayoff(self, until=None):
         """Set the system into day off heating mode."""
-        return self._get_single_heating_system().set_status_dayoff(until)
+        return await self._get_single_heating_system().set_status_dayoff(until)
 
     async def set_status_heatingoff(self, until=None):
         """Set the system into heating off heating mode."""
-        return self._get_single_heating_system().set_status_heatingoff(until)
+        return await self._get_single_heating_system().set_status_heatingoff(until)
 
     async def temperatures(self):
         """Return the current zone temperatures and set points."""
-        return self._get_single_heating_system().temperatures()
+        return await self._get_single_heating_system().temperatures()
 
     def zone_schedules_backup(self, filename):
         """Back up the current system configuration to the given file."""
