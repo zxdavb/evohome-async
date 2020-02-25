@@ -22,8 +22,6 @@ The difference between the **evohomeasync** and **evohomeclient** libraries have
 
 Currently, only `evohomeclient2` has been fully tested, and `evohomeclient` (the older API) is a WIP has not been fully tested.
 
-This library is used by Home Assistant, see: http://home-assistant.io/components/evohome/
-
 ### Technical differences
 In both cases (`evohomeclient2` and `evohomeclient`):
  - uses **aiohttp** instead of **requests**:
