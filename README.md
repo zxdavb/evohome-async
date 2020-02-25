@@ -9,9 +9,9 @@ It is a faithful port of https://github.com/watchforstock/evohome-client, which 
 
 It provides support for **Evohome** and the **Round Thermostat**. It supports only EU/EMEA-based systems, please use [somecomfort](https://github.com/kk7ds/somecomfort) for US-based systems.
 
-This client uses the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer an async-friendly client, [evohome-async](https://github.com/zxdavb/evohome-async) has been ported to use [aiohttp](https://pypi.org/project/aiohttp/) instead.
+This client uses the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead.
 
-Provides Evohome support for Home Assistant (and other automation platforms), see http://home-assistant.io/components/evohome/
+Provides Evohome support for Home Assistant (and other automation platforms), see https://www.home-assistant.io/integrations/evohome
 
 Documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
 
