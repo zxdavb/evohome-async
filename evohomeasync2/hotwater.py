@@ -1,9 +1,9 @@
-"""Provides handling of the hot water zone."""
+"""Provide handling of the hot water zone."""
 from .zone import ZoneBase
 
 
 class HotWater(ZoneBase):
-    """Provides handling of the hot water zone."""
+    """Provide handling of the hot water zone."""
 
     def __init__(self, client, data):
         """Initialise the class."""
@@ -18,7 +18,8 @@ class HotWater(ZoneBase):
         self.zone_type = "domesticHotWater"
 
     async def _set_dhw(self, data):
-        headers = dict(await self.client._headers())  # pylint: disable=protected-access
+        # pylint: disable=protected-access
+        headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
 
         url = (
