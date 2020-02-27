@@ -1,11 +1,11 @@
-"""Provides handling of a location."""
+"""Provide handling of a location."""
 from .gateway import Gateway
 
 
 class Location(
     object
 ):  # pylint: disable=too-few-public-methods,useless-object-inheritance
-    """Provides handling of a location."""
+    """Provide handling of a location."""
 
     def __init__(self, client, data=None):
         """Initialise the class."""
@@ -24,6 +24,7 @@ class Location(
 
     async def status(self):
         """Retrieve the location status."""
+        # pylint: disable=protected-access
         url = (
             "https://tccna.honeywell.com/WebAPI/emea/api/v1/"
             "location/%s/status?includeTemperatureControlSystems=True" % self.locationId
