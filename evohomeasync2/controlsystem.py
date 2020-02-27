@@ -14,6 +14,7 @@ class ControlSystem(
     """Provides handling of a control system."""
 
     def __init__(self, client, location, gateway, data=None):
+        """Initialise the class."""
         self.client = client
         self.location = location
         self.gateway = gateway

@@ -8,6 +8,7 @@ class Location(
     """Provides handling of a location."""
 
     def __init__(self, client, data=None):
+        """Initialise the class."""
         self.client = client
         self._gateways = []
         self.gateways = {}
@@ -22,7 +23,7 @@ class Location(
                 self.gateways[gateway.gatewayId] = gateway  # pylint: disable=no-member
 
     async def status(self):
-        """Retrieves the location status."""
+        """Retrieve the location status."""
         url = (
             "https://tccna.honeywell.com/WebAPI/emea/api/v1/"
             "location/%s/status?includeTemperatureControlSystems=True" % self.locationId

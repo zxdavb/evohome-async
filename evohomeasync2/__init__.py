@@ -73,6 +73,7 @@ class EvohomeClient(
         self.system_id = None
 
     async def login(self):
+        """Authenticate with the server."""
         try:  # the cached access_token may be valid, but is not authorized
             await self.user_account()
         except aiohttp.ClientResponseError as err:
