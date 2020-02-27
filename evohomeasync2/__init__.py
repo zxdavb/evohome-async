@@ -43,7 +43,7 @@ class AuthenticationError(Exception):
 class EvohomeClient(
     object
 ):  # pylint: disable=too-many-instance-attributes,useless-object-inheritance
-    """Provides access to the v2 Evohome API."""
+    """Provide access to the v2 Evohome API."""
 
     def __init__(self, username, password, **kwargs):
         """Construct the EvohomeClient object."""
@@ -52,8 +52,7 @@ class EvohomeClient(
             _LOGGER.debug("Debug mode is explicitly enabled.")
         else:
             _LOGGER.debug(
-                "Debug mode is not explicitly enabled "
-                "(but may be enabled elsewhere)."
+                "Debug mode is not explicitly enabled (but may be enabled elsewhere)."
             )
 
         self.username = username
@@ -193,20 +192,17 @@ class EvohomeClient(
 
     def _get_single_heating_system(self):
         # This allows a shortcut for some systems
+        # pylint: disable=protected-access
         if len(self.locations) != 1:
             raise Exception("More (or less) than one location available")
 
-        if len(self.locations[0]._gateways) != 1:  # pylint: disable=protected-access
+        if len(self.locations[0]._gateways) != 1:
             raise Exception("More (or less) than one gateway available")
 
-        if (
-            len(self.locations[0]._gateways[0]._control_systems) != 1
-        ):  # pylint: disable=protected-access
+        if len(self.locations[0]._gateways[0]._control_systems) != 1:
             raise Exception("More (or less) than one control system available")
 
-        return (
-            self.locations[0]._gateways[0]._control_systems[0]
-        )  # pylint: disable=protected-access
+        return self.locations[0]._gateways[0]._control_systems[0]
 
     async def user_account(self):
         """Return the user account information."""
@@ -226,8 +222,8 @@ class EvohomeClient(
 
         url = (
             "https://tccna.honeywell.com/WebAPI/emea/api/v1/location"
-            "/installationInfo?userId=%s"
-            "&includeTemperatureControlSystems=True" % self.account_info["userId"]
+            "/installationInfo?userId=%s&includeTemperatureControlSystems=True"
+            % self.account_info["userId"]
         )
 
         async with self._session.get(url, headers=await self._headers()) as response:
@@ -260,7 +256,7 @@ class EvohomeClient(
             return await response.json()
 
     async def gateway(self):
-        """Return the detail of the gateway."""
+        """Return the details of the gateway."""
         url = "https://tccna.honeywell.com/WebAPI/emea/api/v1/gateway"
 
         async with self._session.get(url, headers=await self._headers()) as response:
