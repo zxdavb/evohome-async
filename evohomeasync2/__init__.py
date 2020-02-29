@@ -177,12 +177,12 @@ class EvohomeClient(
 
             except KeyError:
                 raise AuthenticationError(
-                    "Unable to obtain an Access Token, " "hint: " + response_json
+                    "Unable to obtain an Access Token, hint: " + response_json
                 )
 
             except ValueError:
                 raise AuthenticationError(
-                    "Unable to obtain an Access Token, " "hint: " + response_text
+                    "Unable to obtain an Access Token, hint: " + response_text
                 )
 
     def _get_location(self, location):
