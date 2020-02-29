@@ -312,8 +312,8 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
         if dhw_zone is None:
             raise Exception("No DHW zone reported from API")
         url = (
-            self.hostname + "/WebAPI/api/devices"
-            "/%s/thermostat/changeableValues" % dhw_zone
+            self.hostname
+            + "/WebAPI/api/devices/%s/thermostat/changeableValues" % dhw_zone
         )
 
         response = await self._do_request("put", url, json.dumps(data))
