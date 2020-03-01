@@ -2,19 +2,18 @@
 import json
 
 
-class ZoneBase(object):  # pylint: disable=useless-object-inheritance
+class ZoneBase(object):
     """Provide the base for Zones."""
 
     def __init__(self, client):
         """Initialise the class."""
         self.client = client
         self.name = None
-        self.zoneId = None  # pylint: disable=invalid-name
+        self.zoneId = None
         self.zone_type = None
 
     async def schedule(self):
         """Get the schedule for the given zone."""
-        # pylint: disable=protected-access
         url = "https://tccna.honeywell.com/WebAPI/emea/api/v1/%s/%s/schedule" % (
             self.zone_type,
             self.zoneId,
@@ -47,7 +46,6 @@ class ZoneBase(object):  # pylint: disable=useless-object-inheritance
     async def set_schedule(self, zone_info):
         """Set the schedule for this zone."""
         # must only POST json, otherwise server API handler raises exceptions
-        # pylint: disable=protected-access
         try:
             json.loads(zone_info)
 
@@ -99,7 +97,6 @@ class Zone(ZoneBase):
         await self._set_heat_setpoint(data)
 
     async def _set_heat_setpoint(self, data):
-        # pylint: disable=protected-access
         headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
 

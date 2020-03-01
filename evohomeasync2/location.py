@@ -2,9 +2,7 @@
 from .gateway import Gateway
 
 
-class Location(
-    object
-):  # pylint: disable=too-few-public-methods,useless-object-inheritance
+class Location(object):
     """Provide handling of a location."""
 
     def __init__(self, client, data=None):
@@ -12,7 +10,7 @@ class Location(
         self.client = client
         self._gateways = []
         self.gateways = {}
-        self.locationId = None  # pylint: disable=invalid-name
+        self.locationId = None
 
         if data is not None:
             self.__dict__.update(data["locationInfo"])
@@ -20,19 +18,17 @@ class Location(
             for gw_data in data["gateways"]:
                 gateway = Gateway(client, self, gw_data)
                 self._gateways.append(gateway)
-                self.gateways[gateway.gatewayId] = gateway  # pylint: disable=no-member
+                self.gateways[gateway.gatewayId] = gateway
 
     async def status(self):
         """Retrieve the location status."""
-        # pylint: disable=protected-access
         url = (
             "https://tccna.honeywell.com/WebAPI/emea/api/v1/"
             "location/%s/status?includeTemperatureControlSystems=True" % self.locationId
         )
 
         async with self.client._session.get(
-            url,
-            headers=await self.client._headers(),  # pylint: disable=protected-access
+            url, headers=await self.client._headers(),
         ) as response:
             response.raise_for_status()
             data = await response.json()

@@ -1,4 +1,4 @@
-"""evohomeasync2 provides an async client for the oiginal Evohome API.
+"""evohomeasync provides an async client for the oiginal Evohome API.
 
 It is a faithful async port of https://github.com/watchforstock/evohome-client
 
@@ -17,15 +17,11 @@ logging.basicConfig()
 _LOGGER = logging.getLogger(__name__)
 
 
-class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
-    """Provides a client to access the Honeywell Evohome system."""
-
-    # pylint: disable=too-many-instance-attributes,too-many-arguments
+class EvohomeClient(object):
+    """Provide a client to access the Honeywell Evohome system."""
 
     def __init__(self, username, password, user_data=None, **kwargs):
-        """Initialise the class.
-
-        Takes the username and password for the service.
+        """Take the username and password for the service.
 
         If user_data is given then this will be used to try and reduce the number of
         calls to the authentication service which is known to be rate limited.
@@ -327,7 +323,7 @@ class EvohomeClient(object):  # pylint: disable=useless-object-inheritance
         """Set DHW to on, either indefinitely, or until a specified time.
 
         When On, the DHW controller will work to keep its target temperature at/above
-        its target temperature.  After the specified time, it willrevert to its
+        its target temperature.  After the specified time, it will revert to its
         scheduled behaviour.
         """
         time_until = None if until is None else until.strftime("%Y-%m-%dT%H:%M:%SZ")
