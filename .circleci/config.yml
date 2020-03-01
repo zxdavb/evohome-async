@@ -28,7 +28,7 @@ jobs: # A basic unit of work in a run
       - run:
           command: |
             mkdir test-results
-            pip install aiohttp
+            # pip install aiohttp
       - run:
           name: Test
           command: |
@@ -48,9 +48,9 @@ jobs: # A basic unit of work in a run
       - run:
           command: |
             sudo pip install nose coverage twine
-      - run:
-          command: |
-            pip install aiohttp
+      # - run:
+      #     command: |
+      #       pip install aiohttp
       - run:
           name: verify git tag vs. version
           command: |
