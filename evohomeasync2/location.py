@@ -28,7 +28,8 @@ class Location(object):
         )
 
         async with self.client._session.get(
-            url, headers=await self.client._headers(),
+            url,
+            headers=await self.client._headers(),
         ) as response:
             response.raise_for_status()
             data = await response.json()

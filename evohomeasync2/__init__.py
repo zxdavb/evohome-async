@@ -149,7 +149,9 @@ class EvohomeClient(object):
         payload.update(credentials)  # merge the credentials into the payload
 
         async with self._session.post(
-            url, data=payload, headers=HEADER_BASIC_AUTH,
+            url,
+            data=payload,
+            headers=HEADER_BASIC_AUTH,
         ) as response:
             try:
                 response_text = await response.text()
