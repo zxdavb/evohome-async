@@ -1,6 +1,10 @@
-version: 2 # use CircleCI 2.0
+# CircleCI 2.1 configuration file for https://github.com/zxdavb/geniushub-client
+# Check https://circleci.com/docs/2.0/language-python/ for more details
 
-jobs: # A basic unit of work in a run
+version: 2.1
+
+
+jobs: 
   build: # runs not using Workflows must have a `build` job as entry point
     # directory where steps are run
     working_directory: ~/circleci-evohome
@@ -18,7 +22,7 @@ jobs: # A basic unit of work in a run
           command: |
             mkdir test-results
             pip install aiohttp
-            
+
   test:
     docker:
       - image: circleci/python:3.7.5
