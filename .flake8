@@ -1,5 +1,7 @@
-[flake8]
-# ignore = E226,E302,E41
+# .flake8 file for https://github.com/zxdavb
 
-    # max-line-length as used by black
-    max-line-length = 88
+[flake8]
+  # max-line-length as used by black
+  max-line-length = 88
+  select = C, E, F, W, B, B950
+  ignore = E203, E501, W503

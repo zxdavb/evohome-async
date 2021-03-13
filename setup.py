@@ -9,6 +9,13 @@ import sys
 from setuptools import find_packages, setup
 from setuptools.command.install import install
 
+VERSION = "0.3.8"
+
+URL = "https://github.com/zxdavb/evohome-async"
+
+with open("README.md", "r") as fh:
+    LONG_DESCRIPTION = fh.read()
+
 
 class VerifyVersionCommand(install):
     """Custom command to verify that the git tag matches our VERSION."""
@@ -20,21 +27,14 @@ class VerifyVersionCommand(install):
             sys.exit(info)
 
 
-VERSION = "0.3.8"
-
-
-with open("README.md", "r") as fh:
-    LONG_DESCRIPTION = fh.read()
-
-
 setup(
     name="evohome-async",
     description="An async client for connecting to Honeywell's TCC RESTful API.",
     keywords=["evohome", "total connect comfort", "round thermostat"],
     author="Andrew Stock & David Bonnes",
-    author_email="zxdavb@bonnes.me",
-    url="https://github.com/zxdavb/evohome-async",
-    download_url="{url}/archive/{VERSION}.tar.gz",
+    author_email="zxdavb@gmail.com",
+    url=URL,
+    download_url=f"{URL}/archive/{VERSION}.tar.gz",
     install_requires=[list(val.strip() for val in open("requirements.txt"))],
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
