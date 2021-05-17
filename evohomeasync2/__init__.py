@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
 """evohomeasync2 provides an async client for the updated Evohome API.
 
 It is a faithful async port of https://github.com/watchforstock/evohome-client
@@ -74,14 +77,12 @@ class EvohomeClient(object):
         try:  # the cached access_token may be valid, but is not authorized
             await self.user_account()
         except aiohttp.ClientResponseError as err:
-            if err.status == HTTP_UNAUTHORIZED and self.access_token:
-                _LOGGER.warning(
-                    "Unauthorized access_token (will try re-authenticating)."
-                )
-                self.access_token = None
-                await self.user_account()
-            else:
+            if err.status != HTTP_UNAUTHORIZED or not self.access_token:
                 raise
+
+            _LOGGER.warning("Unauthorized access_token (will try re-authenticating).")
+            self.access_token = None
+            await self.user_account()
 
         await self.installation()
 

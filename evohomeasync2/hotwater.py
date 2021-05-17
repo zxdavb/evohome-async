@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
 """Provide handling of the hot water zone."""
 from .zone import ZoneBase
 
@@ -17,12 +20,16 @@ class HotWater(ZoneBase):
         self.zoneId = self.dhwId
         self.zone_type = "domesticHotWater"
 
-    async def _set_dhw(self, data):
+    async def _set_dhw(self, data):  # TODO: deprecate
+        return await self._set_dhw_state(data)
+
+    async def _set_dhw_state(self, data):
+        """Get the DHW state."""
         headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
 
         url = (
-            "https://tccna.honeywell.com/WebAPI/emea/api/v1 /domesticHotWater/%s/state"
+            "https://tccna.honeywell.com/WebAPI/emea/api/v1/domesticHotWater/%s/state"
             % self.dhwId
         )
 
@@ -42,7 +49,7 @@ class HotWater(ZoneBase):
                 "UntilTime": until.strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
 
-        await self._set_dhw(data)
+        await self._set_dhw_state(data)
 
     async def set_dhw_off(self, until=None):
         """Set the DHW off until a given time, or permanently."""
@@ -55,10 +62,25 @@ class HotWater(ZoneBase):
                 "UntilTime": until.strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
 
-        await self._set_dhw(data)
+        await self._set_dhw_state(data)
 
     async def set_dhw_auto(self):
         """Set the DHW to follow the schedule."""
         data = {"Mode": "FollowSchedule", "State": "", "UntilTime": None}
 
-        await self._set_dhw(data)
+        await self._set_dhw_state(data)
+
+    async def get_dhw_state(self):
+        """Get the DHW state."""
+        headers = dict(await self.client._headers())
+        headers["Content-Type"] = "application/json"
+
+        url = (
+            "https://tccna.honeywell.com/WebAPI/emea/api/v1/domesticHotWater/%s/status?"
+            % self.dhwId
+        )
+
+        async with self.client._session.get(url, headers=headers) as response:
+            response.raise_for_status()
+            data = await response.json()
+        return data

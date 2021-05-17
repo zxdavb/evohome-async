@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
 """Provide handling of a gateway."""
 from .controlsystem import ControlSystem
 

@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
 """evohomeasync provides an async client for the oiginal Evohome API.
 
 It is a faithful async port of https://github.com/watchforstock/evohome-client
@@ -136,10 +139,8 @@ class EvohomeClient(object):
 
     def _get_device(self, zone):
         if isinstance(zone, str):
-            device = self.named_devices[zone]
-        else:
-            device = self.devices[zone]
-        return device
+            return self.named_devices[zone]
+        return self.devices[zone]
 
     async def _get_task_status(self, task_id):
         await self._populate_full_data()
@@ -151,12 +152,7 @@ class EvohomeClient(object):
 
     async def _get_task_id(self, response):
         ret = await response.json()
-
-        if isinstance(ret, list):
-            task_id = ret[0]["id"]
-        else:
-            task_id = ret["id"]
-        return task_id
+        return ret[0]["id"] if isinstance(ret, list) else ret["id"]
 
     async def _do_request(self, method, url, data=None, retry=True):
         if method == "get":
