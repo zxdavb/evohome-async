@@ -9,7 +9,7 @@ import sys
 from setuptools import find_packages, setup
 from setuptools.command.install import install
 
-VERSION = "0.3.8"
+VERSION = "0.3.9"
 
 URL = "https://github.com/zxdavb/evohome-async"
 
@@ -35,7 +35,7 @@ setup(
     author_email="zxdavb@gmail.com",
     url=URL,
     download_url=f"{URL}/archive/{VERSION}.tar.gz",
-    install_requires=[list(val.strip() for val in open("requirements.txt"))],
+    install_requires=[val.strip() for val in open("requirements.txt")],
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=["test", "docs"]),
