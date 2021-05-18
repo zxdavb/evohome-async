@@ -35,7 +35,7 @@ setup(
     author_email="zxdavb@gmail.com",
     url=URL,
     download_url=f"{URL}/archive/{VERSION}.tar.gz",
-    install_requires=["aiohttp>=3.7.4"],
+    install_requires=[val.strip() for val in open("requirements.txt")],
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     packages=find_packages(exclude=["test", "docs"]),

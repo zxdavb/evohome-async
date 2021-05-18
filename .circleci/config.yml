@@ -58,7 +58,7 @@ jobs:
             sudo pip install nose coverage twine
       - run:
           name: Verify git tag vs. package version
-          command: python setup.py verify
+          command: sudo python setup.py verify
       - run:
           name: Build the package
           command: |
