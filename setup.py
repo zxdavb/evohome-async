@@ -9,7 +9,7 @@ import sys
 from setuptools import find_packages, setup
 from setuptools.command.install import install
 
-VERSION = "0.3.14"
+VERSION = "0.3.15"
 
 URL = "https://github.com/zxdavb/evohome-async"
 
@@ -23,7 +23,7 @@ class VerifyVersionCommand(install):
     def run(self):
         tag = os.getenv("CIRCLE_TAG")
         if tag != VERSION:
-            info = f"Git tag: '{tag}'' does not match the package version: '{VERSION}'"
+            info = f"The git tag: '{tag}' does not match the package ver: '{VERSION}'"
             sys.exit(info)
 
 

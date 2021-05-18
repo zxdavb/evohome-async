@@ -58,7 +58,7 @@ jobs:
             sudo pip install nose coverage twine
       - run:
           name: Verify git tag vs. package version
-          command: python setup.py verify  # CIRCLE_TAG no available to su
+          command: python setup.py verify  # NOTE: $CIRCLE_TAG is not available to su
       - run:
           name: Build the package
           command: |
