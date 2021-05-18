@@ -63,8 +63,8 @@ class EvohomeClient(object):
         self.access_token = kwargs.get("access_token")
         self.access_token_expires = kwargs.get("access_token_expires")
 
-        self._session = kwargs.get(
-            "session", aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        self._session = kwargs.get("session") or aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=30)
         )
 
         self.account_info = None

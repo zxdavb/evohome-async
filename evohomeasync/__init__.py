@@ -43,8 +43,8 @@ class EvohomeClient(object):
         self.user_data = user_data
         self.hostname = kwargs.get("hostname", "https://tccna.honeywell.com")
 
-        self._session = kwargs.get(
-            "session", aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        self._session = kwargs.get("session") or aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=30)
         )
 
         self.full_data = None
