@@ -5,14 +5,13 @@ version: 2.1
 
 jobs:
   build: # runs not using Workflows must have a `build` job as entry point
-    # directory where steps are run
     docker:  # see: at: https://hub.docker.com/r/circleci/python/
       - image: circleci/python:3.8.9
     working_directory: ~/circleci-evohome
     steps: # steps that comprise the `build` job
       - checkout # check out source code to working directory
       # - run: sudo chown -R circleci:circleci /usr/local/bin
-      # - run: sudo chown -R circleci:circleci /usr/local/lib/python3.7/site-packages
+      # - run: sudo chown -R circleci:circleci /usr/local/lib/python*/site-packages
       - run:
           command: |
             sudo pip install nose coverage pylint
@@ -57,9 +56,9 @@ jobs:
           command: |
             sudo pip install -r requirements.txt
             sudo pip install nose coverage twine
-      # - run:
-      #     name: Verify git tag vs. package version
-      #     command: sudo python setup.py verify
+      - run:
+          name: Verify git tag vs. package version
+          command: sudo python setup.py verify
       - run:
           name: Build the package
           command: |
