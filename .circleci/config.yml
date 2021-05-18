@@ -56,14 +56,14 @@ jobs:
           command: |
             sudo pip install -r requirements.txt
             sudo pip install nose coverage twine
-      - run:
-          name: Verify git tag vs. package version
-          command: sudo python setup.py verify
+      # - run:
+      #     name: Verify git tag vs. package version
+      #     command: sudo python setup.py verify
       - run:
           name: Build the package
           command: |
-            python setup.py sdist        # create a source distribution
-            python setup.py bdist_wheel  # create a wheel
+            sudo python setup.py sdist        # create a source distribution
+            sudo python setup.py bdist_wheel  # create a wheel
       - run:
           name: Create .pypirc
           command: |
@@ -92,13 +92,13 @@ workflows:
   build-and-deploy:
     jobs:
       - build:
-          filters: # required since `deploy` has tag filters AND requires `build`
+          filters: # required since `check_lint` has tag filters AND requires `build`
             tags:
               only: /.*/
       - check_lint:
           requires:
             - build
-          filters: # required since `deploy` has tag filters AND requires `build`
+          filters: # required since `deploy` has tag filters AND requires `check_lint`
             tags:
               only: /.*/
       - deploy:
