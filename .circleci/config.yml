@@ -21,7 +21,7 @@ jobs:
       - run:
           command: |
             mkdir test-results
-            pip install aiohttp
+            sudo pip install aiohttp
 
   check_lint:
     docker:
@@ -34,7 +34,7 @@ jobs:
       - run:
           command: |
             mkdir test-results
-            # pip install aiohttp
+            # sudo pip install aiohttp
       - run:
           name: Test
           command: |
@@ -57,9 +57,9 @@ jobs:
           command: |
             sudo pip install -r requirements.txt
             sudo pip install nose coverage twine
-      - run:
-          name: Verify git tag vs. package version
-          command: python setup.py verify
+      # - run:
+      #     name: Verify git tag vs. package version
+      #     command: python setup.py verify
       - run:
           name: Build the package
           command: |
