@@ -130,11 +130,11 @@ SCH_SCHEDULE_CAPABILITIES = SCH_SCHEDULE_CAPABILITIES_RESPONSE.extend(
 SCH_ZONE = vol.Schema(
     {
         vol.Required(SZ_ZONE_ID): str,
-        vol.Required(SZ_MODEL_TYPE): str,  # , default=SZ_HEATING_ZONE): str,  # ["HeatingZone", "RoundWireless", "Unknown"]
+        vol.Required(SZ_MODEL_TYPE): str,  # ["HeatingZone", "RoundWireless", "Unknown"]
         vol.Required(SZ_SETPOINT_CAPABILITIES): SCH_SETPOINT_CAPABILITIES,
         vol.Required(SZ_SCHEDULE_CAPABILITIES): SCH_SCHEDULE_CAPABILITIES,
         vol.Required(SZ_NAME): str,
-        vol.Required(SZ_ZONE_TYPE): str,  # , default=SZ_RADIATOR_ZONE): str,  # ["RadiatorZone", "Thermostat", "Unknown"]
+        vol.Required(SZ_ZONE_TYPE): str,  # ["RadiatorZone", "Thermostat", "Unknown"]
     },
     extra=vol.PREVENT_EXTRA,
 )
