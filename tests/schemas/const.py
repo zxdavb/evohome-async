@@ -4,7 +4,9 @@
 """evohomeasync2 - Constants."""
 
 SZ_ACTIVE_FAULTS = "activeFaults"
+SZ_ALLOWED_MODES = "allowedModes"
 SZ_ALLOWED_SETPOINT_MODES = "allowedSetpointModes"
+SZ_ALLOWED_STATES = "allowedStates"
 SZ_ALLOWED_SYSTEM_ZONES = "allowedSystemModes"
 
 SZ_CAN_BE_PERMANENT = "canBePermanent"
@@ -15,6 +17,7 @@ SZ_CURRENT_OFFSET_MINUTES = "currentOffsetMinutes"
 
 SZ_DHW = "dhw"
 SZ_DHW_ID = "dhwId"
+SZ_DHW_STATE_CAPABILITIES_RESPONSE = "dhwStateCapabilitiesResponse"
 SZ_DISPLAY_NAME = "displayName"
 
 SZ_FAULT_TYPE = "faultType"
@@ -45,6 +48,7 @@ SZ_OFFSET_MINUTES = "offsetMinutes"
 SZ_RADIATOR_ZONE = "RadiatorZone"
 
 SZ_SCHEDULE_CAPABILITIES = "scheduleCapabilities"
+SZ_SCHEDULE_CAPABILITIES_RESPONSE = "scheduleCapabilitiesResponse"
 SZ_SETPOINT_CAPABILITIES = "setpointCapabilities"
 SZ_SETPOINT_MODE = "setpointMode"
 SZ_SETPOINT_STATUS = "setpointStatus"

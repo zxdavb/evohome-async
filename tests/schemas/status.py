@@ -33,6 +33,7 @@ from .const import (
     SZ_ZONES,
 )
 
+
 SCH_ACTIVE_FAULT = vol.Schema(
     {
         vol.Required(SZ_FAULT_TYPE): str,
