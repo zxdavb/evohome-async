@@ -2,69 +2,80 @@
 # -*- coding: utf-8 -*-
 #
 """Provide handling of individual zones."""
+from datetime import datetime as dt
 import json
+from typing import TYPE_CHECKING
+
+from . import exceptions
+from .const import API_STRFTIME, URL_BASE
+
+if TYPE_CHECKING:
+    from . import EvohomeClient
+    from .typing import _ZoneIdT
 
 
-class ZoneBase(object):
-    """Provide the base for Zones."""
+MAPPING = [
+    ("dailySchedules", "DailySchedules"),
+    ("dayOfWeek", "DayOfWeek"),
+    ("temperature", "TargetTemperature"),
+    ("timeOfDay", "TimeOfDay"),
+    ("switchpoints", "Switchpoints"),
+    ("dhwState", "DhwState"),
+]
 
-    def __init__(self, client):
-        """Initialise the class."""
+
+class ZoneBase:
+    """Provide the base for temperatureZone / domesticHotWater Zones."""
+
+    zoneId: _ZoneIdT
+    name: str = ""  # TODO: check if is OK here
+    temperatureStatus: dict  # TODO
+
+    zone_type: str
+
+    def __init__(self, client: EvohomeClient, config: dict):
         self.client = client
-        self.name = None
-        self.zoneId = None
-        self.zone_type = None
 
-    async def schedule(self):
+        self.__dict__.update(config)
+
+    async def schedule(self) -> dict:
         """Get the schedule for the given zone."""
-        url = "https://tccna.honeywell.com/WebAPI/emea/api/v1/%s/%s/schedule" % (
-            self.zone_type,
-            self.zoneId,
-        )
 
         async with self.client._session.get(
-            url, headers=await self.client._headers()
+            f"{URL_BASE}/{self.zone_type}/{self.zoneId}/schedule",
+            headers=await self.client._headers(),
         ) as response:
             response.raise_for_status()
-            response_data = await response.text()
 
-        mapping = [
-            ("dailySchedules", "DailySchedules"),
-            ("dayOfWeek", "DayOfWeek"),
-            ("temperature", "TargetTemperature"),
-            ("timeOfDay", "TimeOfDay"),
-            ("switchpoints", "Switchpoints"),
-            ("dhwState", "DhwState"),
-        ]
+            response_text = await response.text()
 
-        for from_val, to_val in mapping:
-            response_data = response_data.replace(from_val, to_val)
+        for from_val, to_val in MAPPING:
+            response_text = response_text.replace(from_val, to_val)
 
-        data = json.loads(response_data)
+        result: dict = json.loads(response_text)
         # change the day name string to a number offset (0 = Monday)
-        for day_of_week, schedule in enumerate(data["DailySchedules"]):
+        for day_of_week, schedule in enumerate(result["DailySchedules"]):
             schedule["DayOfWeek"] = day_of_week
-        return data
 
-    async def set_schedule(self, zone_info):
+        return result
+
+    async def set_schedule(self, zone_schedule: str) -> dict:
         """Set the schedule for this zone."""
         # must only POST json, otherwise server API handler raises exceptions
-        try:
-            json.loads(zone_info)
 
-        except ValueError as error:
-            raise ValueError("zone_info must be valid JSON: ", error)
+        try:
+            json.loads(zone_schedule)
+
+        except ValueError as exc:
+            raise exceptions.InvalidSchedule(f"zone_info must be valid JSON: {exc}")
 
         headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
 
-        url = "https://tccna.honeywell.com/WebAPI/emea/api/v1/%s/%s/schedule" % (
-            self.zone_type,
-            self.zoneId,
-        )
-
         async with self.client._session.put(
-            url, data=zone_info, headers=headers
+            f"{URL_BASE}/{self.zone_type}/{self.zoneId}/schedule",
+            data=zone_schedule,
+            headers=headers,
         ) as response:
             response.raise_for_status()
 
@@ -74,15 +85,16 @@ class ZoneBase(object):
 class Zone(ZoneBase):
     """Provide the access to an individual zone."""
 
-    def __init__(self, client, data):
-        """Initialise the class."""
-        super(Zone, self).__init__(client)
+    setpointStatus: dict  # TODO
+    zone_type = "temperatureZone"  # TODO: was at end of init, OK here?
 
-        self.__dict__.update(data)
+    def __init__(self, client: EvohomeClient, config: dict) -> None:
+        super().__init__(client, config)
+        assert self.zoneId, "Invalid config dict"
 
-        self.zone_type = "temperatureZone"
-
-    async def set_temperature(self, temperature, until=None):
+    async def set_temperature(
+        self, temperature: float, /, *, until: None | dt = None
+    ) -> None:
         """Set the temperature of the given zone."""
         if until is None:
             data = {
@@ -94,27 +106,25 @@ class Zone(ZoneBase):
             data = {
                 "SetpointMode": "TemporaryOverride",
                 "HeatSetpointValue": temperature,
-                "TimeUntil": until.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "TimeUntil": until.strftime(API_STRFTIME),
             }
 
         await self._set_heat_setpoint(data)
 
-    async def _set_heat_setpoint(self, data):
+    async def _set_heat_setpoint(self, data: dict) -> None:
         headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
 
-        url = (
-            "https://tccna.honeywell.com/WebAPI/emea/api/v1"
-            "/temperatureZone/%s/heatSetpoint" % self.zoneId
-        )
+        url = f"{URL_BASE}/temperatureZone/{self.zoneId}/heatSetpoint"
 
         async with self.client._session.put(
             url, json=data, headers=headers
         ) as response:
             response.raise_for_status()
 
-    async def cancel_temp_override(self):
+    async def cancel_temp_override(self) -> None:
         """Cancel an override to the zone temperature."""
+
         data = {
             "SetpointMode": "FollowSchedule",
             "HeatSetpointValue": 0.0,

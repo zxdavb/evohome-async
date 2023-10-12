@@ -1,33 +1,51 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""Provide handling of a location."""
+"""Provide handling of a TCC location."""
+from typing import TYPE_CHECKING
+
+from .const import URL_BASE
 from .gateway import Gateway
 
+if TYPE_CHECKING:
+    from . import EvohomeClient
+    from .typing import _LocationIdT
 
-class Location(object):
-    """Provide handling of a location."""
 
-    def __init__(self, client, data=None):
-        """Initialise the class."""
+# _LOGGER = logging.getLogger(__name__)
+
+
+class Location:
+    """Instance of an account's Location."""
+
+    locationId: _LocationIdT
+    name: str
+
+    def __init__(self, client: EvohomeClient, config: dict) -> None:
         self.client = client
-        self._gateways = []
-        self.gateways = {}
-        self.locationId = None
+        #
+        #
 
-        if data is not None:
-            self.__dict__.update(data["locationInfo"])
+        self._gateways: list[Gateway] = []
+        self.gateways: dict[str, Gateway] = {}  # gwy by id
+        #
+        #
 
-            for gw_data in data["gateways"]:
-                gateway = Gateway(client, self, gw_data)
-                self._gateways.append(gateway)
-                self.gateways[gateway.gatewayId] = gateway
+        self.__dict__.update(config["locationInfo"])
+        assert self.locationId, "Invalid config dict"
 
-    async def status(self):
+        for gwy_config in config["gateways"]:
+            gwy = Gateway(client, self, gwy_config)
+
+            self._gateways.append(gwy)
+            self.gateways[gwy.gatewayId] = gwy
+
+    async def status(self) -> dict:
         """Retrieve the location status."""
+
         url = (
-            "https://tccna.honeywell.com/WebAPI/emea/api/v1/"
-            "location/%s/status?includeTemperatureControlSystems=True" % self.locationId
+            f"{URL_BASE}location/{self.locationId}/status?"
+            "includeTemperatureControlSystems=True"
         )
 
         async with self.client._session.get(
@@ -35,27 +53,29 @@ class Location(object):
             headers=await self.client._headers(),
         ) as response:
             response.raise_for_status()
-            data = await response.json()
+            loc_status = await response.json()
 
-        # Now feed into other elements
-        for gw_data in data["gateways"]:
-            gateway = self.gateways[gw_data["gatewayId"]]
+        # Now update other elements
+        for gwy_status in loc_status["gateways"]:
+            gateway = self.gateways[gwy_status["gatewayId"]]
 
-            for sys in gw_data["temperatureControlSystems"]:
-                system = gateway.control_systems[sys["systemId"]]
+            tcs_status: dict  # mypy
 
-                system.__dict__.update(
+            for tcs_status in gwy_status["temperatureControlSystems"]:
+                tcs = gateway.control_systems[tcs_status["systemId"]]
+
+                tcs.__dict__.update(
                     {
-                        "systemModeStatus": sys["systemModeStatus"],
-                        "activeFaults": sys["activeFaults"],
+                        "systemModeStatus": tcs_status["systemModeStatus"],
+                        "activeFaults": tcs_status["activeFaults"],
                     }
                 )
 
-                if "dhw" in sys:
-                    system.hotwater.__dict__.update(sys["dhw"])
+                if dhw_status := tcs_status.get("dhw"):
+                    tcs.hotwater.__dict__.update(dhw_status)
 
-                for zone_data in sys["zones"]:
-                    zone = system.zones[zone_data["name"]]
-                    zone.__dict__.update(zone_data)
+                for zone_status in tcs_status["zones"]:
+                    zone = tcs.zones_by_id[zone_status["zoneId"]]
+                    zone.__dict__.update(zone_status)
 
-        return data
+        return loc_status

@@ -8,47 +8,59 @@ It is a faithful async port of https://github.com/watchforstock/evohome-client
 Further information at: https://evohome-client.readthedocs.io
 """
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime as dt
+from datetime import timedelta as td
+from typing import TYPE_CHECKING
 
 import aiohttp
 
+from . import exceptions
+from .const import (
+    AUTH_HEADER_ACCEPT,
+    AUTH_HEADER,
+    AUTH_URL,
+    URL_BASE,
+    AUTH_PAYLOAD,
+    CREDS_REFRESH_TOKEN,
+    CREDS_USER_PASSWORD,
+)
+from .controlsystem import ControlSystem
+from .gateway import Gateway  # noqa: F401
+from .hotwater import HotWater  # noqa: F401
 from .location import Location
+from .zone import ZoneBase, Zone  # noqa: F401
+
+
+if TYPE_CHECKING:
+    from .typing import _FilePathT, _LocationIdT
+
 
 HTTP_UNAUTHORIZED = 401
 
 logging.basicConfig()
 _LOGGER = logging.getLogger(__name__)
 
-HEADER_ACCEPT = (
-    "application/json, application/xml, text/json, text/x-json, "
-    "text/javascript, text/xml"
-)
-HEADER_AUTHORIZATION_BASIC = (
-    "Basic "
-    "NGEyMzEwODktZDJiNi00MWJkLWE1ZWItMTZhMGE0MjJiOTk5OjFhMTVjZGI4LTQyZGUtNDA3Y"
-    "i1hZGQwLTA1OWY5MmM1MzBjYg=="
-)
-HEADER_BASIC_AUTH = {
-    "Accept": HEADER_ACCEPT,
-    "Authorization": HEADER_AUTHORIZATION_BASIC,
-}
 
-
-class AuthenticationError(Exception):
-    """Exception raised when unable to get an access_token."""
-
-    def __init__(self, message):
-        """Construct the AuthenticationError object."""
-        self.message = message
-        super(AuthenticationError, self).__init__(message)
-
-
-class EvohomeClient(object):
+class EvohomeClient:
     """Provide access to the v2 Evohome API."""
 
-    def __init__(self, username, password, **kwargs):
+    system_id: str = None  # type: ignore[assignment]
+
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        /,
+        *,
+        debug: bool = False,
+        refresh_token: None | str = None,
+        access_token: None | str = None,
+        access_token_expires: None | dt = None,
+        session: None | aiohttp.ClientSession = None,
+    ) -> None:
         """Construct the EvohomeClient object."""
-        if kwargs.get("debug") is True:
+
+        if debug:
             _LOGGER.setLevel(logging.DEBUG)
             _LOGGER.debug("Debug mode is explicitly enabled.")
         else:
@@ -59,26 +71,26 @@ class EvohomeClient(object):
         self.username = username
         self.password = password
 
-        self.refresh_token = kwargs.get("refresh_token")
-        self.access_token = kwargs.get("access_token")
-        self.access_token_expires = kwargs.get("access_token_expires")
+        self.refresh_token = refresh_token
+        self.access_token = access_token
+        self.access_token_expires = access_token_expires
 
-        self._session = kwargs.get("session") or aiohttp.ClientSession(
+        self._session = session or aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=30)
         )
 
-        self.account_info = None
-        self.locations = None
-        self.installation_info = None
-        self.system_id = None
+        self.account_info: dict = None  # type: ignore[assignment]
+        self.locations: list[Location] = []
+        self.installation_info: dict = None  # type: ignore[assignment]
 
-    async def login(self):
+    async def login(self) -> None:
         """Authenticate with the server."""
+
         try:  # the cached access_token may be valid, but is not authorized
             await self.user_account()
-        except aiohttp.ClientResponseError as err:
-            if err.status != HTTP_UNAUTHORIZED or not self.access_token:
-                raise
+        except aiohttp.ClientResponseError as exc:
+            if exc.status != HTTP_UNAUTHORIZED or not self.access_token:
+                raise exceptions.AuthenticationError(str(exc))
 
             _LOGGER.warning("Unauthorized access_token (will try re-authenticating).")
             self.access_token = None
@@ -86,73 +98,62 @@ class EvohomeClient(object):
 
         await self.installation()
 
-    async def _headers(self):
+    async def _headers(self) -> dict:
         """Ensure the Authorization Header has a valid Access Token."""
+
         if not self.access_token or not self.access_token_expires:
             await self._basic_login()
 
-        elif datetime.now() > self.access_token_expires - timedelta(seconds=30):
+        elif dt.now() > self.access_token_expires - td(seconds=30):
             await self._basic_login()
 
-        return {"Accept": HEADER_ACCEPT, "Authorization": "bearer " + self.access_token}
+        assert isinstance(self.access_token, str)  # mypy
 
-    async def _basic_login(self):
+        return {
+            "Accept": AUTH_HEADER_ACCEPT,
+            "Authorization": "bearer " + self.access_token,
+        }
+
+    async def _basic_login(self) -> None:
         """Obtain a new access token from the vendor.
 
         First, try using the refresh_token, if one is available, otherwise
         authenticate using the user credentials.
         """
+
         _LOGGER.debug("No/Expired/Invalid access_token, re-authenticating.")
         self.access_token = self.access_token_expires = None
 
         if self.refresh_token:
             _LOGGER.debug("Authenticating with the refresh_token...")
-            credentials = {
-                "grant_type": "refresh_token",
-                "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
+            credentials = CREDS_REFRESH_TOKEN | {
                 "refresh_token": self.refresh_token,
             }
 
             try:
                 await self._obtain_access_token(credentials)
-            except AuthenticationError:
+            except exceptions.AuthenticationError:
                 _LOGGER.warning("Invalid refresh_token (will try user credentials).")
                 self.refresh_token = None
 
         if not self.refresh_token:
             _LOGGER.debug("Authenticating with the user credentials...")
-            credentials = {
-                "grant_type": "password",
-                "scope": "EMEA-V1-Basic EMEA-V1-Anonymous "
-                "EMEA-V1-Get-Current-User-Account",
+            credentials = CREDS_USER_PASSWORD | {
                 "Username": self.username,
                 "Password": self.password,
             }
 
             await self._obtain_access_token(credentials)
 
-        _LOGGER.debug("refresh_token = %s", self.refresh_token)
-        _LOGGER.debug("access_token = %s", self.access_token)
-        _LOGGER.debug(
-            "access_token_expires = %s",
-            self.access_token_expires.strftime("%Y-%m-%d %H:%M:%S"),
-        )
+        _LOGGER.debug(f"refresh_token = {self.refresh_token}")
+        _LOGGER.debug(f"access_token = {self.access_token}")
+        _LOGGER.debug(f"access_token_expires = {self.access_token_expires}")
 
-    async def _obtain_access_token(self, credentials):
-        url = "https://tccna.honeywell.com/Auth/OAuth/Token"
-        payload = {
-            "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-            "Host": "rs.alarmnet.com/",
-            "Cache-Control": "no-store no-cache",
-            "Pragma": "no-cache",
-            "Connection": "Keep-Alive",
-        }
-        payload.update(credentials)  # merge the credentials into the payload
-
+    async def _obtain_access_token(self, credentials: dict) -> None:
         async with self._session.post(
-            url,
-            data=payload,
-            headers=HEADER_BASIC_AUTH,
+            AUTH_URL,
+            data=AUTH_PAYLOAD | credentials,
+            headers=AUTH_HEADER,
         ) as response:
             try:
                 response_text = await response.text()
@@ -161,9 +162,9 @@ class EvohomeClient(object):
             except aiohttp.ClientResponseError:
                 msg = "Unable to obtain an Access Token"
                 if response_text:  # if there is a message, then raise with it
-                    msg = msg + ", hint: " + response_text
+                    msg += ", hint: " + response_text
 
-                raise AuthenticationError(msg)
+                raise exceptions.AuthenticationError(msg)
 
             try:  # the access token _should_ be valid...
                 # this may cause a ValueError
@@ -171,59 +172,46 @@ class EvohomeClient(object):
 
                 # these may cause a KeyError
                 self.access_token = response_json["access_token"]
-                self.access_token_expires = datetime.now() + timedelta(
+                self.access_token_expires = dt.now() + td(
                     seconds=response_json["expires_in"]
                 )
                 self.refresh_token = response_json["refresh_token"]
 
             except KeyError:
-                raise AuthenticationError(
+                raise exceptions.AuthenticationError(
                     "Unable to obtain an Access Token, hint: " + response_json
                 )
 
             except ValueError:
-                raise AuthenticationError(
+                raise exceptions.AuthenticationError(
                     "Unable to obtain an Access Token, hint: " + response_text
                 )
 
-    def _get_location(self, location):
-        if location is None:
-            return self.installation_info[0]["locationInfo"]["locationId"]
-        return location
-
-    def _get_single_heating_system(self):
-        # This allows a shortcut for some systems
-        if len(self.locations) != 1:
-            raise Exception("More (or less) than one location available")
-
-        if len(self.locations[0]._gateways) != 1:
-            raise Exception("More (or less) than one gateway available")
-
-        if len(self.locations[0]._gateways[0]._control_systems) != 1:
-            raise Exception("More (or less) than one control system available")
-
-        return self.locations[0]._gateways[0]._control_systems[0]
-
-    async def user_account(self):
+    async def user_account(self) -> dict:
         """Return the user account information."""
-        self.account_info = None
 
-        url = "https://tccna.honeywell.com/WebAPI/emea/api/v1/userAccount"
+        self.account_info = None  # type: ignore[assignment]
 
-        async with self._session.get(url, headers=await self._headers()) as response:
+        async with self._session.get(
+            f"{URL_BASE}/userAccount", headers=await self._headers()
+        ) as response:
             response.raise_for_status()
 
             self.account_info = await response.json()
-            return self.account_info
 
-    async def installation(self):
+        assert isinstance(self.account_info, dict)  # mypy
+        return self.account_info
+
+    async def installation(self) -> dict:
         """Return the details of the installation."""
+
         self.locations = []
 
+        assert isinstance(self.account_info, dict)  # mypy
+
         url = (
-            "https://tccna.honeywell.com/WebAPI/emea/api/v1/location"
-            "/installationInfo?userId=%s&includeTemperatureControlSystems=True"
-            % self.account_info["userId"]
+            f"{URL_BASE}/location/installationInfo?userId={self.account_info['userId']}"
+            "&includeTemperatureControlSystems=True"
         )
 
         async with self._session.get(url, headers=await self._headers()) as response:
@@ -233,21 +221,29 @@ class EvohomeClient(object):
 
         self.system_id = self.installation_info[0]["gateways"][0][
             "temperatureControlSystems"
-        ][0]["systemId"]
+        ][0][
+            "systemId"
+        ]  # type: ignore[index]
 
         for loc_data in self.installation_info:
-            location = Location(self, loc_data)
-            await location.status()
-            self.locations.append(location)
+            loc = Location(self, loc_data)
+            await loc.status()
+            self.locations.append(loc)
 
         return self.installation_info
 
-    async def full_installation(self, location=None):
-        """Return the full details of the installation."""
+    # TODO: rename location to location_id
+    async def full_installation(self, location_id: None | _LocationIdT = None) -> dict:
+        """Return the full details of the specified Location."""
+
+        def get_location(location_id: None | _LocationIdT) -> _LocationIdT:
+            if location_id is None:
+                return self.installation_info[0]["locationInfo"]["locationId"]
+            return location_id
+
         url = (
-            "https://tccna.honeywell.com/WebAPI/emea/api/v1/location"
-            "/%s/installationInfo?includeTemperatureControlSystems=True"
-            % self._get_location(location)
+            f"{URL_BASE}/location/{get_location(location_id)}/installationInfo?"
+            "includeTemperatureControlSystems=True"
         )
 
         async with self._session.get(url, headers=await self._headers()) as response:
@@ -255,51 +251,73 @@ class EvohomeClient(object):
 
             return await response.json()
 
-    async def gateway(self):
+    async def gateway(self) -> dict:
         """Return the details of the gateway."""
-        url = "https://tccna.honeywell.com/WebAPI/emea/api/v1/gateway"
 
-        async with self._session.get(url, headers=await self._headers()) as response:
+        async with self._session.get(
+            f"{URL_BASE}/gateway", headers=await self._headers()
+        ) as response:
             response.raise_for_status()
 
             return await response.json()
 
-    async def set_status_normal(self):
-        """Set the system into normal heating mode."""
-        return await self._get_single_heating_system().set_status_normal()
+    def _get_single_heating_system(self) -> ControlSystem:
+        # This allows a shortcut for some systems
 
-    async def set_status_reset(self):
-        """Reset the system mode."""
-        return await self._get_single_heating_system().set_status_reset()
+        if self.locations and len(self.locations) != 1:
+            raise exceptions.SingleTcsError(
+                "There is more (or less) than one location available"
+            )
 
-    async def set_status_custom(self, until=None):
-        """Set the system into custom heating mode."""
-        return await self._get_single_heating_system().set_status_custom(until)
+        if len(self.locations[0]._gateways) != 1:  # type: ignore[index]
+            raise exceptions.SingleTcsError(
+                "There is more (or less) than one gateway available"
+            )
 
-    async def set_status_eco(self, until=None):
-        """Set the system into eco heating mode."""
-        return await self._get_single_heating_system().set_status_eco(until)
+        if len(self.locations[0]._gateways[0]._control_systems) != 1:  # type: ignore[index]
+            raise exceptions.SingleTcsError(
+                "There is more (or less) than one control system available"
+            )
 
-    async def set_status_away(self, until=None):
-        """Set the system into away heating mode."""
-        return await self._get_single_heating_system().set_status_away(until)
+        return self.locations[0]._gateways[0]._control_systems[0]  # type: ignore[index]
 
-    async def set_status_dayoff(self, until=None):
-        """Set the system into day off heating mode."""
-        return await self._get_single_heating_system().set_status_dayoff(until)
+    async def set_status_reset(self) -> None:
+        """Reset the mode of the default TCS and its zones."""
+        await self._get_single_heating_system().set_status_reset()
 
-    async def set_status_heatingoff(self, until=None):
-        """Set the system into heating off heating mode."""
-        return await self._get_single_heating_system().set_status_heatingoff(until)
+    async def set_status_normal(self) -> None:
+        """Set the default TCS into auto mode."""
+        await self._get_single_heating_system().set_status_normal()
 
-    async def temperatures(self):
-        """Return the current zone temperatures and set points."""
+    async def set_status_custom(self, /, *, until: None | dt = None) -> None:
+        """Set the default TCS into custom mode."""
+        await self._get_single_heating_system().set_status_custom(until=until)
+
+    async def set_status_eco(self, /, *, until: None | dt = None) -> None:
+        """Set the default TCS into eco mode."""
+        await self._get_single_heating_system().set_status_eco(until=until)
+
+    async def set_status_away(self, /, *, until: None | dt = None) -> None:
+        """Set the default TCS into away mode."""
+        await self._get_single_heating_system().set_status_away(until=until)
+
+    async def set_status_dayoff(self, /, *, until: None | dt = None) -> None:
+        """Set the default TCS into day off mode."""
+        await self._get_single_heating_system().set_status_dayoff(until=until)
+
+    async def set_status_heatingoff(self, /, *, until: None | dt = None) -> None:
+        """Set the default TCS into heating off mode."""
+        await self._get_single_heating_system().set_status_heatingoff(until=until)
+
+    async def temperatures(self) -> list[dict]:
+        """Return the current temperatures and setpoints of the default TCS."""
         return await self._get_single_heating_system().temperatures()
 
-    def zone_schedules_backup(self, filename):
-        """Back up the current system configuration to the given file."""
-        return self._get_single_heating_system().zone_schedules_backup(filename)
+    async def zone_schedules_backup(self, filename: _FilePathT) -> None:
+        """Back up the schedule of the default TCS to the specified file."""
+        await self._get_single_heating_system().zone_schedules_backup(filename)
 
-    def zone_schedules_restore(self, filename):
-        """Restore the current system configuration from the given file."""
-        return self._get_single_heating_system().zone_schedules_restore(filename)
+    async def zone_schedules_restore(self, filename: _FilePathT) -> None:
+        """Restore the schedule to the default TCS from the specified file."""
+
+        await self._get_single_heating_system().zone_schedules_restore(filename)

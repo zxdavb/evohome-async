@@ -1,46 +1,62 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""Provides handling of a control system."""
+"""Provides handling of a TCC Temperature Control System."""
+from datetime import datetime as dt
 import json
 import logging
+from typing import TYPE_CHECKING
 
+from .const import API_STRFTIME, URL_BASE
 from .hotwater import HotWater
 from .zone import Zone
+
+if TYPE_CHECKING:
+    from . import EvohomeClient, Gateway, Location
+    from .typing import _FilePathT, _ModeT, _SystemIdT
+
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class ControlSystem(object):
-    """Provides handling of a control system."""
+class ControlSystem:
+    """Instance of a gateway's Temperature Control System."""
 
-    def __init__(self, client, location, gateway, data=None):
-        """Initialise the class."""
+    systemId: _SystemIdT
+    #
+
+    def __init__(
+        self,
+        client: EvohomeClient,
+        location: Location,
+        gateway: Gateway,
+        config: dict,
+    ) -> None:
         self.client = client
         self.location = location
         self.gateway = gateway
 
-        self._zones = []
-        self.zones = {}
-        self.zones_by_id = {}
-        self.hotwater = None
-        self.systemId = None
+        self._zones: list[Zone] = []
+        self.zones: dict[str, Zone] = {}  # zone by name
+        self.zones_by_id: dict[str, Zone] = {}
+        self.hotwater: None | HotWater = None
 
-        if data is not None:
-            local_data = dict(data)
-            del local_data["zones"]
-            self.__dict__.update(local_data)
+        self.__dict__.update({k: v for k, v in config.items() if k != "zones"})
+        assert self.systemId, "Invalid config dict"
 
-            for z_data in data["zones"]:
-                zone = Zone(client, z_data)
-                self._zones.append(zone)
-                self.zones[zone.name] = zone
-                self.zones_by_id[zone.zoneId] = zone
+        for zone_config in config["zones"]:
+            zone = Zone(client, zone_config)
 
-            if "dhw" in data:
-                self.hotwater = HotWater(client, data["dhw"])
+            self._zones.append(zone)
+            self.zones[zone.name] = zone
+            self.zones_by_id[zone.zoneId] = zone
 
-    async def _set_status(self, mode, until=None):
+        if dhw_config := config.get("dhw"):
+            self.hotwater = HotWater(client, dhw_config)
+
+    async def _set_status(self, mode: _ModeT, /, *, until: None | dt = None) -> None:
+        """TODO"""
+
         headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
 
@@ -49,61 +65,58 @@ class ControlSystem(object):
         else:
             data = {
                 "SystemMode": mode,
-                "TimeUntil": until.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "TimeUntil": until.strftime(API_STRFTIME),
                 "Permanent": False,
             }
 
-        url = (
-            "https://tccna.honeywell.com/WebAPI/emea/api/v1"
-            "/temperatureControlSystem/%s/mode" % self.systemId
-        )
+        url = f"{URL_BASE}/temperatureControlSystem/{self.systemId}/mode"
 
         async with self.client._session.put(
             url, json=data, headers=await self.client._headers()
         ) as response:
             response.raise_for_status()
 
-    async def set_status(self, mode, until=None):
+    async def set_status(self, mode: _ModeT, /, *, until: None | dt = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
-        await self._set_status(mode, until)
+        await self._set_status(mode, until=until)
 
-    async def set_status_normal(self):
+    async def set_status_normal(self) -> None:
         """Set the system into normal mode."""
         await self._set_status("Auto")
 
-    async def set_status_reset(self):
-        """Reset the system into normal mode.
-
-        This will also set all the zones to FollowSchedule mode.
-        """
+    async def set_status_reset(self) -> None:
+        """Reset the system into normal mode (and all zones to FollowSchedule mode)."""
         await self._set_status("AutoWithReset")
 
-    async def set_status_custom(self, until=None):
+    async def set_status_custom(self, /, *, until: None | dt = None) -> None:
         """Set the system into custom mode."""
-        await self._set_status("Custom", until)
+        await self._set_status("Custom", until=until)
 
-    async def set_status_eco(self, until=None):
+    async def set_status_eco(self, /, *, until: None | dt = None) -> None:
         """Set the system into eco mode."""
-        await self._set_status("AutoWithEco", until)
+        await self._set_status("AutoWithEco", until=until)
 
-    async def set_status_away(self, until=None):
+    async def set_status_away(self, /, *, until: None | dt = None) -> None:
         """Set the system into away mode."""
-        await self._set_status("Away", until)
+        await self._set_status("Away", until=until)
 
-    async def set_status_dayoff(self, until=None):
+    async def set_status_dayoff(self, /, *, until: None | dt = None) -> None:
         """Set the system into dayoff mode."""
-        await self._set_status("DayOff", until)
+        await self._set_status("DayOff", until=until)
 
-    async def set_status_heatingoff(self, until=None):
+    async def set_status_heatingoff(self, /, *, until: None | dt = None) -> None:
         """Set the system into heating off mode."""
-        await self._set_status("HeatingOff", until)
+        await self._set_status("HeatingOff", until=until)
 
-    async def temperatures(self):
-        """Return a generator with the details of each zone."""
+    async def temperatures(self) -> list[dict]:
+        """Return the current zone temperatures and setpoints."""
+
         await self.location.status()
 
+        result = []
+
         if self.hotwater:
-            yield {
+            dhw_status = {
                 "thermostat": "DOMESTIC_HOT_WATER",
                 "id": self.hotwater.dhwId,
                 "name": "",
@@ -111,8 +124,10 @@ class ControlSystem(object):
                 "setpoint": "",
             }
 
+            result.append(dhw_status)
+
         for zone in self._zones:
-            zone_info = {
+            zone_status = {
                 "thermostat": "EMEA_ZONE",
                 "id": zone.zoneId,
                 "name": zone.name,
@@ -121,23 +136,25 @@ class ControlSystem(object):
             }
 
             if zone.temperatureStatus["isAvailable"]:
-                zone_info["temp"] = zone.temperatureStatus["temperature"]
-            yield zone_info
+                zone_status["temp"] = zone.temperatureStatus["temperature"]
 
-    def zone_schedules_backup(self, filename):
+            result.append(zone_status)
+
+        return result
+
+    async def zone_schedules_backup(self, filename: _FilePathT) -> None:
         """Backup all zones on control system to the given file."""
+
         _LOGGER.info(
-            "Backing up schedules from ControlSystem: %s (%s)...",
-            self.systemId,
-            self.location.name,
+            f"Backing up schedules from {self.systemId} ({self.location.name})..."
         )
 
         schedules = {}
 
         if self.hotwater:
-            _LOGGER.info("Retrieving DHW schedule: %s...", self.hotwater.zoneId)
+            _LOGGER.info(f"Retrieving DHW schedule: {self.hotwater.zoneId}...")
 
-            schedule = self.hotwater.schedule()
+            schedule = await self.hotwater.schedule()
             schedules[self.hotwater.zoneId] = {
                 "name": "Domestic Hot Water",
                 "schedule": schedule,
@@ -147,28 +164,23 @@ class ControlSystem(object):
             zone_id = zone.zoneId
             name = zone.name
 
-            _LOGGER.info("Retrieving Zone schedule: %s - %s", zone_id, name)
+            _LOGGER.info(f"Retrieving Zone schedule: {zone_id} - {name}")
 
-            schedule = zone.schedule()
+            schedule = await zone.schedule()
             schedules[zone_id] = {"name": name, "schedule": schedule}
 
-        schedule_db = json.dumps(schedules, indent=4)
-
-        _LOGGER.info("Writing to backup file: %s...", filename)
+        _LOGGER.info(f"Writing to backup file: {filename}...")
         with open(filename, "w") as file_output:
-            file_output.write(schedule_db)
+            file_output.write(json.dumps(schedules, indent=4))
 
         _LOGGER.info("Backup completed.")
 
-    def zone_schedules_restore(self, filename):
+    async def zone_schedules_restore(self, filename: _FilePathT) -> None:
         """Restore all zones on control system from the given file."""
-        _LOGGER.info(
-            "Restoring schedules to ControlSystem %s (%s)...",
-            self.systemId,
-            self.location,
-        )
 
-        _LOGGER.info("Reading from backup file: %s...", filename)
+        _LOGGER.info(f"Restoring schedules to {self.systemId} ({self.location})...")
+
+        _LOGGER.info(f"Reading from backup file: {filename}...")
         with open(filename, "r") as file_input:
             schedule_db = file_input.read()
             schedules = json.loads(schedule_db)
@@ -177,11 +189,11 @@ class ControlSystem(object):
                 name = zone_schedule["name"]
                 zone_info = zone_schedule["schedule"]
 
-                _LOGGER.info("Restoring schedule for: %s - %s...", zone_id, name)
+                _LOGGER.info(f"Restoring schedule for: {zone_id} - {name}...")
 
                 if self.hotwater and self.hotwater.zoneId == zone_id:
-                    self.hotwater.set_schedule(json.dumps(zone_info))
+                    await self.hotwater.set_schedule(json.dumps(zone_info))
                 else:
-                    self.zones_by_id[zone_id].set_schedule(json.dumps(zone_info))
+                    await self.zones_by_id[zone_id].set_schedule(json.dumps(zone_info))
 
         _LOGGER.info("Restore completed.")
