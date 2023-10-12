@@ -9,7 +9,7 @@ import sys
 from setuptools import find_packages, setup
 from setuptools.command.install import install
 
-VERSION = "0.3.15"
+VERSION = "0.4.0"
 
 URL = "https://github.com/zxdavb/evohome-async"
 
@@ -41,12 +41,12 @@ setup(
     packages=find_packages(exclude=["test", "docs"]),
     version=VERSION,
     license="Apache 2",
-    python_requires=">=3.7",
+    python_requires=">=3.11",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Home Automation",
     ],
     cmdclass={
