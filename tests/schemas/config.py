@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""evohomeasync2 - Schema for RESTful API JSON."""
+"""evohomeasync2 - Schema for RESTful API Config JSON."""
 from __future__ import annotations
 
 import voluptuous as vol  # type: ignore[import]
