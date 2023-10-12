@@ -1,0 +1,132 @@
+{
+  "locationId": "2738909",
+  "gateways": [
+    {
+      "gatewayId": "2499896",
+      "temperatureControlSystems": [
+        {
+          "systemId": "3432522",
+          "zones": [
+            {
+              "zoneId": "3432521",
+              "temperatureStatus": { "isAvailable": false },
+              "activeFaults": [
+                {
+                  "faultType": "TempZoneSensorCommunicationLost",
+                  "since": "2023-10-09T01:45:00"
+                }
+              ],
+              "setpointStatus": {
+                "targetHeatTemperature": 5.0,
+                "setpointMode": "PermanentOverride"
+              },
+              "name": "Dead Zone"
+            },
+            {
+              "zoneId": "3432576",
+              "temperatureStatus": { "temperature": 21.5, "isAvailable": true },
+              "activeFaults": [],
+              "setpointStatus": {
+                "targetHeatTemperature": 5.0,
+                "setpointMode": "FollowSchedule"
+              },
+              "name": "Main Room"
+            },
+            {
+              "zoneId": "3432577",
+              "temperatureStatus": { "temperature": 19.5, "isAvailable": true },
+              "activeFaults": [],
+              "setpointStatus": {
+                "targetHeatTemperature": 5.0,
+                "setpointMode": "PermanentOverride"
+              },
+              "name": "Front Room"
+            },
+            {
+              "zoneId": "3432578",
+              "temperatureStatus": { "isAvailable": false },
+              "activeFaults": [
+                {
+                  "faultType": "TempZoneSensorLowBattery",
+                  "since": "2023-06-03T21:05:32"
+                },
+                {
+                  "faultType": "TempZoneSensorCommunicationLost",
+                  "since": "2023-09-02T12:34:46"
+                }
+              ],
+              "setpointStatus": {
+                "targetHeatTemperature": 5.0,
+                "setpointMode": "FollowSchedule"
+              },
+              "name": "Kitchen"
+            },
+            {
+              "zoneId": "3432579",
+              "temperatureStatus": { "isAvailable": false },
+              "activeFaults": [
+                {
+                  "faultType": "TempZoneSensorCommunicationLost",
+                  "since": "2023-10-09T01:45:04"
+                }
+              ],
+              "setpointStatus": {
+                "targetHeatTemperature": 5.0,
+                "setpointMode": "FollowSchedule"
+              },
+              "name": "Bathroom Dn"
+            },
+            {
+              "zoneId": "3432580",
+              "temperatureStatus": { "temperature": 22.5, "isAvailable": true },
+              "activeFaults": [],
+              "setpointStatus": {
+                "targetHeatTemperature": 5.0,
+                "setpointMode": "PermanentOverride"
+              },
+              "name": "Main Bedroom"
+            },
+            {
+              "zoneId": "3449703",
+              "temperatureStatus": { "temperature": 20.0, "isAvailable": true },
+              "activeFaults": [],
+              "setpointStatus": {
+                "targetHeatTemperature": 5.0,
+                "setpointMode": "PermanentOverride"
+              },
+              "name": "Spare Room"
+            },
+            {
+              "zoneId": "3449740",
+              "temperatureStatus": { "temperature": 20.0, "isAvailable": true },
+              "activeFaults": [],
+              "setpointStatus": {
+                "targetHeatTemperature": 5.0,
+                "setpointMode": "FollowSchedule"
+              },
+              "name": "Bathroom Up"
+            },
+            {
+              "zoneId": "3450733",
+              "temperatureStatus": { "temperature": 20.5, "isAvailable": true },
+              "activeFaults": [
+                {
+                  "faultType": "TempZoneActuatorCommunicationLost",
+                  "since": "2023-09-18T22:54:17"
+                }
+              ],
+              "setpointStatus": {
+                "targetHeatTemperature": 5.0,
+                "setpointMode": "PermanentOverride"
+              },
+              "name": "Kids Room"
+            }
+          ],
+          "activeFaults": [],
+          "systemModeStatus": { "mode": "HeatingOff", "isPermanent": true }
+        }
+      ],
+      "activeFaults": []
+    }
+  ]
+}
