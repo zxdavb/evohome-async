@@ -86,9 +86,9 @@ SCH_DHW_STATE_CAPABILITIES_RESPONSE = vol.Schema(
 
 SCH_SCHEDULE_CAPABILITIES_RESPONSE = vol.Schema(
     {
-        vol.Required(SZ_MAX_SWITCHPOINTS_PER_DAY, default=6): int,
-        vol.Required(SZ_MIN_SWITCHPOINTS_PER_DAY, default=1): int,
-        vol.Required(SZ_TIMING_RESOLUTION, default="00:10:00"): str,
+        vol.Required(SZ_MAX_SWITCHPOINTS_PER_DAY): int,  # 6
+        vol.Required(SZ_MIN_SWITCHPOINTS_PER_DAY): int,  # 1
+        vol.Required(SZ_TIMING_RESOLUTION): str,  # "00:10:00"
     },
     extra=vol.PREVENT_EXTRA,
 )
@@ -108,14 +108,14 @@ SCH_DHW = vol.Schema(
 
 SCH_SETPOINT_CAPABILITIES = vol.Schema(
     {
-        vol.Required(SZ_MAX_HEAT_SETPOINT, default=35.0): float,
-        vol.Required(SZ_MIN_HEAT_SETPOINT, default=5.0): float,
-        vol.Required(SZ_VALUE_RESOLUTION, default=0.5): float,
-        vol.Required(SZ_CAN_CONTROL_HEAT, default=True): bool,
-        vol.Required(SZ_CAN_CONTROL_COOL, default=False): bool,
-        vol.Required(SZ_ALLOWED_SETPOINT_MODES, default=DEFAULT_SETPOINT_MODES): [str],
-        vol.Required(SZ_MAX_DURATION, default="1.00:00:00"): str,
-        vol.Required(SZ_TIMING_RESOLUTION, default="00:10:00"): str,
+        vol.Required(SZ_MAX_HEAT_SETPOINT): float,  # 35.0
+        vol.Required(SZ_MIN_HEAT_SETPOINT): float,  # 5.0
+        vol.Required(SZ_VALUE_RESOLUTION): float,  # 0.5
+        vol.Required(SZ_CAN_CONTROL_HEAT): bool,
+        vol.Required(SZ_CAN_CONTROL_COOL): bool,
+        vol.Required(SZ_ALLOWED_SETPOINT_MODES): [str],
+        vol.Required(SZ_MAX_DURATION): str,  # "1.00:00:00"
+        vol.Required(SZ_TIMING_RESOLUTION): str,  # "00:10:00"
     },
     extra=vol.PREVENT_EXTRA,
 )
