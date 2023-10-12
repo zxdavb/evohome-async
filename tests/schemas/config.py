@@ -6,57 +6,55 @@ from __future__ import annotations
 
 import voluptuous as vol  # type: ignore[import]
 
-# constants
+from .const import (
+    SZ_SYSTEM_MODE,
+    SZ_CAN_BE_PERMANENT,
+    SZ_CAN_BE_TEMPORARY,
+    SZ_MAX_DURATION,
+    SZ_TIMING_RESOLUTION,
+    SZ_TIMING_MODE,
 
-SZ_SYSTEM_MODE = "systemMode"
-SZ_CAN_BE_PERMANENT = "canBePermanent"
-SZ_CAN_BE_TEMPORARY = "canBeTemporary"
-SZ_MAX_DURATION = "maxDuration"
-SZ_TIMING_RESOLUTION = "timingResolution"
-SZ_TIMING_MODE = "timingMode"
+    SZ_ALLOWED_SETPOINT_MODES,
+    SZ_CAN_CONTROL_COOL,
+    SZ_CAN_CONTROL_HEAT,
+    SZ_MAX_HEAT_SETPOINT,
+    SZ_MIN_HEAT_SETPOINT,
+    SZ_VALUE_RESOLUTION,
 
-SZ_ALLOWED_SETPOINT_MODES = "allowedSetpointModes"
-SZ_CAN_CONTROL_COOL = "canControlCool"
-SZ_CAN_CONTROL_HEAT = "canControlHeat"
-SZ_MAX_HEAT_SETPOINT = "maxHeatSetpoint"
-SZ_MIN_HEAT_SETPOINT = "minHeatSetpoint"
-SZ_VALUE_RESOLUTION = "valueResolution"
+    SZ_MAX_SWITCHPOINTS_PER_DAY,
+    SZ_MIN_SWITCHPOINTS_PER_DAY,
+    SZ_SETPOINT_VALUE_RESOLUTION,
+
+    # SZ_HEATING_ZONE,
+    # SZ_RADIATOR_ZONE,
+
+    SZ_ZONE_ID,
+    SZ_MODEL_TYPE,
+    SZ_SETPOINT_CAPABILITIES,
+    SZ_SCHEDULE_CAPABILITIES,
+    SZ_NAME,
+    SZ_ZONE_TYPE,
+
+    SZ_ALLOWED_SYSTEM_ZONES,
+    SZ_SYSTEM_ID,
+    SZ_ZONES,
+
+    SZ_TEMPERATURE_CONTROL_SYSTEMS,
+
+    SZ_TIME_ZONE_ID,
+    SZ_DISPLAY_NAME,
+    SZ_OFFSET_MINUTES,
+    SZ_CURRENT_OFFSET_MINUTES,
+    SZ_SUPPORTS_DAYLIGHT_SAVING,
+
+    SZ_TIME_ZONE,
+
+    SZ_LOCATION_INFO,
+    SZ_GATEWAYS,
+)
+
 
 DEFAULT_SETPOINT_MODES = ["PermanentOverride", "FollowSchedule", "TemporaryOverride"]
-
-SZ_MAX_SWITCHPOINTS_PER_DAY = "maxSwitchpointsPerDay"
-SZ_MIN_SWITCHPOINTS_PER_DAY = "minSwitchpointsPerDay"
-SZ_SETPOINT_VALUE_RESOLUTION = "setpointValueResolution"
-
-SZ_HEATING_ZONE = "HeatingZone"
-SZ_RADIATOR_ZONE = "RadiatorZone"
-
-SZ_ZONE_ID = "zoneId"
-SZ_MODEL_TYPE = "modelType"
-SZ_SETPONT_CAPABILITIES = "setpointCapabilities"
-SZ_SCHEDULE_CAPABILITIES = "scheduleCapabilities"
-SZ_NAME = "name"
-SZ_ZONE_TYPE = "zoneType"
-
-SZ_ALLOWED_SYSTEM_ZONES = "allowedSystemModes"
-SZ_MODEL_TYPE = "modelType"
-SZ_SYSTEM_ID = "systemId"
-SZ_ZONES = "zones"
-
-SZ_TEMPERATURE_CONTROL_SYSTEMS = "temperatureControlSystems"
-
-SZ_TIME_ZONE_ID = "timeZoneId"
-SZ_DISPLAY_NAME = "displayName"
-SZ_OFFSET_MINUTES = "offsetMinutes"
-SZ_CURRENT_OFFSET_MINUTES = "currentOffsetMinutes"
-SZ_SUPPORTS_DAYLIGHT_SAVING = "supportsDaylightSaving"
-
-SZ_TIME_ZONE = "timeZone"
-
-SZ_LOCATION_INFO = "locationInfo"
-SZ_GATEWAYS = "gateways"
-
-# schemas
 
 SCH_SYSTEM_MODE_PERM = vol.Schema(
     {
@@ -108,11 +106,11 @@ SCH_SCHEDULE_CAPABILITIES = vol.Schema(
 SCH_ZONE = vol.Schema(
     {
         vol.Required(SZ_ZONE_ID): str,
-        vol.Required(SZ_MODEL_TYPE): str,  # , default=SZ_HEATING_ZONE): str,
-        vol.Required(SZ_SETPONT_CAPABILITIES): SCH_SETPOINT_CAPABILITIES,
+        vol.Required(SZ_MODEL_TYPE): str,  # , default=SZ_HEATING_ZONE): str,  # ["HeatingZone", "RoundWireless", "Unknown"]
+        vol.Required(SZ_SETPOINT_CAPABILITIES): SCH_SETPOINT_CAPABILITIES,
         vol.Required(SZ_SCHEDULE_CAPABILITIES): SCH_SCHEDULE_CAPABILITIES,
         vol.Required(SZ_NAME): str,
-        vol.Required(SZ_ZONE_TYPE): str,  # , default=SZ_RADIATOR_ZONE): str,
+        vol.Required(SZ_ZONE_TYPE): str,  # , default=SZ_RADIATOR_ZONE): str,  # ["RadiatorZone", "Thermostat", "Unknown"]
     },
     extra=vol.PREVENT_EXTRA,
 )  # TODO: does this apply to DHW?
