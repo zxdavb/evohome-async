@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""Provide handling of a TCC gateway."""
+"""Provides handling of a TCC gateway."""
+
+from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .controlsystem import ControlSystem

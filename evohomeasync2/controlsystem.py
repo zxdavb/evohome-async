@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 """Provides handling of a TCC Temperature Control System."""
+from __future__ import annotations
+
 from datetime import datetime as dt
 import json
 import logging

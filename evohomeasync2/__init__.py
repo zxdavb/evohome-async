@@ -7,6 +7,8 @@ It is a faithful async port of https://github.com/watchforstock/evohome-client
 
 Further information at: https://evohome-client.readthedocs.io
 """
+from __future__ import annotations
+
 import logging
 from datetime import datetime as dt
 from datetime import timedelta as td
@@ -29,7 +31,6 @@ from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401
 from .location import Location
 from .zone import ZoneBase, Zone  # noqa: F401
-
 
 if TYPE_CHECKING:
     from .typing import _FilePathT, _LocationIdT

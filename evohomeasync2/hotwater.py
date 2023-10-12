@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""Provide handling of the hot water zone."""
+"""Provides handling of the hot water zone."""
+from __future__ import annotations
+
 from datetime import datetime as dt
 from typing import TYPE_CHECKING
 
