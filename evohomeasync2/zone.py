@@ -94,43 +94,43 @@ class Zone(ZoneBase):
         super().__init__(client, config)
         assert self.zoneId, "Invalid config dict"
 
+    async def _set_heat_setpoint(self, heat_setpoint: dict) -> None:
+        headers = dict(await self.client._headers())
+        headers["Content-Type"] = "application/json"
+
+        url = f"temperatureZone/{self.zoneId}/heatSetpoint"
+
+        async with self.client._session.put(
+            f"{URL_BASE}/{url}", json=heat_setpoint, headers=headers
+        ) as response:
+            response.raise_for_status()
+
     async def set_temperature(
         self, temperature: float, /, *, until: None | dt = None
     ) -> None:
         """Set the temperature of the given zone."""
         if until is None:
-            data = {
+            mode = {
                 "SetpointMode": "PermanentOverride",
                 "HeatSetpointValue": temperature,
                 "TimeUntil": None,
             }
         else:
-            data = {
+            mode = {
                 "SetpointMode": "TemporaryOverride",
                 "HeatSetpointValue": temperature,
                 "TimeUntil": until.strftime(API_STRFTIME),
             }
 
-        await self._set_heat_setpoint(data)
-
-    async def _set_heat_setpoint(self, data: dict) -> None:
-        headers = dict(await self.client._headers())
-        headers["Content-Type"] = "application/json"
-
-        url = f"{URL_BASE}/temperatureZone/{self.zoneId}/heatSetpoint"
-
-        async with self.client._session.put(
-            url, json=data, headers=headers
-        ) as response:
-            response.raise_for_status()
+        await self._set_heat_setpoint(mode)
 
     async def cancel_temp_override(self) -> None:
         """Cancel an override to the zone temperature."""
 
-        data = {
+        mode = {
             "SetpointMode": "FollowSchedule",
             "HeatSetpointValue": 0.0,
             "TimeUntil": None,
         }
 
-        await self._set_heat_setpoint(data)
+        await self._set_heat_setpoint(mode)

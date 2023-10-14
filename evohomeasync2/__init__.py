@@ -157,7 +157,7 @@ class EvohomeClient:
             headers=AUTH_HEADER,
         ) as response:
             try:
-                response_text = await response.text()
+                response_text = await response.text()  # before raise_for_status()
                 response.raise_for_status()
 
             except aiohttp.ClientResponseError:
@@ -211,11 +211,13 @@ class EvohomeClient:
         assert isinstance(self.account_info, dict)  # mypy
 
         url = (
-            f"{URL_BASE}/location/installationInfo?userId={self.account_info['userId']}"
+            f"location/installationInfo?userId={self.account_info['userId']}"
             "&includeTemperatureControlSystems=True"
         )
 
-        async with self._session.get(url, headers=await self._headers()) as response:
+        async with self._session.get(
+            f"{URL_BASE}/{url}", headers=await self._headers()
+        ) as response:
             response.raise_for_status()
 
             self.installation_info = await response.json()
@@ -233,7 +235,6 @@ class EvohomeClient:
 
         return self.installation_info
 
-    # TODO: rename location to location_id
     async def full_installation(self, location_id: None | _LocationIdT = None) -> dict:
         """Return the full details of the specified Location."""
 
@@ -243,11 +244,13 @@ class EvohomeClient:
             return location_id
 
         url = (
-            f"{URL_BASE}/location/{get_location(location_id)}/installationInfo?"
+            f"location/{get_location(location_id)}/installationInfo?"
             "includeTemperatureControlSystems=True"
         )
 
-        async with self._session.get(url, headers=await self._headers()) as response:
+        async with self._session.get(
+            f"{URL_BASE}/{url}", headers=await self._headers()
+        ) as response:
             response.raise_for_status()
 
             return await response.json()

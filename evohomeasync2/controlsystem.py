@@ -56,59 +56,62 @@ class ControlSystem:
         if dhw_config := config.get("dhw"):
             self.hotwater = HotWater(client, dhw_config)
 
-    async def _set_status(self, mode: _ModeT, /, *, until: None | dt = None) -> None:
+    async def _set_mode(self, mode: dict) -> None:
         """TODO"""
 
         headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
 
+        url = f"temperatureControlSystem/{self.systemId}/mode"
+
+        async with self.client._session.put(
+            f"{URL_BASE}/{url}", json=mode, headers=await self.client._headers()
+        ) as response:
+            response.raise_for_status()
+
+    # TODO: should be called set_mode()
+    async def set_status(self, mode: _ModeT, /, *, until: None | dt = None) -> None:
+        """Set the system to a mode, either indefinitely, or for a set time."""
+
         if until is None:
-            data = {"SystemMode": mode, "TimeUntil": None, "Permanent": True}
+            status = {"SystemMode": mode, "TimeUntil": None, "Permanent": True}
         else:
-            data = {
+            status = {
                 "SystemMode": mode,
                 "TimeUntil": until.strftime(API_STRFTIME),
                 "Permanent": False,
             }
 
-        url = f"{URL_BASE}/temperatureControlSystem/{self.systemId}/mode"
+        await self._set_mode(status)
 
-        async with self.client._session.put(
-            url, json=data, headers=await self.client._headers()
-        ) as response:
-            response.raise_for_status()
-
-    async def set_status(self, mode: _ModeT, /, *, until: None | dt = None) -> None:
-        """Set the system to a mode, either indefinitely, or for a set time."""
-        await self._set_status(mode, until=until)
-
+    # TODO: should be called set_mode_normal() or set_auto()
     async def set_status_normal(self) -> None:
         """Set the system into normal mode."""
-        await self._set_status("Auto")
+        await self.set_status("Auto")
 
     async def set_status_reset(self) -> None:
         """Reset the system into normal mode (and all zones to FollowSchedule mode)."""
-        await self._set_status("AutoWithReset")
+        await self.set_status("AutoWithReset")
 
     async def set_status_custom(self, /, *, until: None | dt = None) -> None:
         """Set the system into custom mode."""
-        await self._set_status("Custom", until=until)
+        await self.set_status("Custom", until=until)
 
     async def set_status_eco(self, /, *, until: None | dt = None) -> None:
         """Set the system into eco mode."""
-        await self._set_status("AutoWithEco", until=until)
+        await self.set_status("AutoWithEco", until=until)
 
     async def set_status_away(self, /, *, until: None | dt = None) -> None:
         """Set the system into away mode."""
-        await self._set_status("Away", until=until)
+        await self.set_status("Away", until=until)
 
     async def set_status_dayoff(self, /, *, until: None | dt = None) -> None:
         """Set the system into dayoff mode."""
-        await self._set_status("DayOff", until=until)
+        await self.set_status("DayOff", until=until)
 
     async def set_status_heatingoff(self, /, *, until: None | dt = None) -> None:
         """Set the system into heating off mode."""
-        await self._set_status("HeatingOff", until=until)
+        await self.set_status("HeatingOff", until=until)
 
     async def temperatures(self) -> list[dict]:
         """Return the current zone temperatures and setpoints."""
@@ -144,6 +147,7 @@ class ControlSystem:
 
         return result
 
+    # TODO: should be called backup_zone_schedules()
     async def zone_schedules_backup(self, filename: _FilePathT) -> None:
         """Backup all zones on control system to the given file."""
 
@@ -177,6 +181,7 @@ class ControlSystem:
 
         _LOGGER.info("Backup completed.")
 
+    # TODO: should be called restore_zone_schedules()
     async def zone_schedules_restore(self, filename: _FilePathT) -> None:
         """Restore all zones on control system from the given file."""
 

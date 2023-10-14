@@ -25,13 +25,9 @@ class Location:
 
     def __init__(self, client: EvohomeClient, config: dict) -> None:
         self.client = client
-        #
-        #
 
         self._gateways: list[Gateway] = []
         self.gateways: dict[str, Gateway] = {}  # gwy by id
-        #
-        #
 
         self.__dict__.update(config["locationInfo"])
         assert self.locationId, "Invalid config dict"
@@ -45,13 +41,10 @@ class Location:
     async def status(self) -> dict:
         """Retrieve the location status."""
 
-        url = (
-            f"{URL_BASE}location/{self.locationId}/status?"
-            "includeTemperatureControlSystems=True"
-        )
+        url = f"location/{self.locationId}/status?includeTemperatureControlSystems=True"
 
         async with self.client._session.get(
-            url,
+            f"{URL_BASE}/{url}",
             headers=await self.client._headers(),
         ) as response:
             response.raise_for_status()
