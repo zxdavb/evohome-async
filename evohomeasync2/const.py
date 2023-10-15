@@ -6,7 +6,7 @@
 URL_HOST = "https://tccna.honeywell.com"
 
 AUTH_URL = f"{URL_HOST}/Auth/OAuth/Token"
-URL_BASE = f"{URL_HOST}/WebAPI/emea/api/v1/"
+URL_BASE = f"{URL_HOST}/WebAPI/emea/api/v1"
 
 HDR_STRFTIME = "%Y-%m-%d %H:%M:%S"  # used by HTTP headers
 API_STRFTIME = "%Y-%m-%dT%H:%M:%SZ"  # used by API
@@ -16,11 +16,13 @@ AUTH_HEADER_ACCEPT = (
     "text/json, text/x-json, "
     "text/javascript, text/xml"
 )
+
 _AUTH_HEADER_BASIC = (
     "Basic "
     "NGEyMzEwODktZDJiNi00MWJkLWE1ZWItMTZhMGE0MjJiOTk5OjFhMTVjZGI4LTQyZGUtNDA3Y"
     "i1hZGQwLTA1OWY5MmM1MzBjYg=="
 )
+
 AUTH_HEADER = {
     "Accept": AUTH_HEADER_ACCEPT,
     "Authorization": _AUTH_HEADER_BASIC,

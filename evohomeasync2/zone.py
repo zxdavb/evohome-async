@@ -43,9 +43,10 @@ class ZoneBase:
     async def schedule(self) -> dict:
         """Get the schedule for the given zone."""
 
+        url = f"{self.zone_type}/{self.zoneId}/schedule"
+
         async with self.client._session.get(
-            f"{URL_BASE}/{self.zone_type}/{self.zoneId}/schedule",
-            headers=await self.client._headers(),
+            f"{URL_BASE}/{url}", headers=await self.client._headers()
         ) as response:
             response.raise_for_status()
 
@@ -74,8 +75,10 @@ class ZoneBase:
         headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
 
+        url = f"{self.zone_type}/{self.zoneId}/schedule"
+
         async with self.client._session.put(
-            f"{URL_BASE}/{self.zone_type}/{self.zoneId}/schedule",
+            f"{URL_BASE}/{url}",
             data=zone_schedule,
             headers=headers,
         ) as response:

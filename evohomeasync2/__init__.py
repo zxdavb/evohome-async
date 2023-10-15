@@ -16,7 +16,8 @@ from typing import TYPE_CHECKING
 
 import aiohttp
 
-from . import exceptions
+from .exceptions import AuthenticationError, SingleTcsError
+from .exceptions import InvalidSchedule  # noqa: F401
 from .const import (
     AUTH_HEADER_ACCEPT,
     AUTH_HEADER,
@@ -91,7 +92,7 @@ class EvohomeClient:
             await self.user_account()
         except aiohttp.ClientResponseError as exc:
             if exc.status != HTTP_UNAUTHORIZED or not self.access_token:
-                raise exceptions.AuthenticationError(str(exc))
+                raise AuthenticationError(str(exc))
 
             _LOGGER.warning("Unauthorized access_token (will try re-authenticating).")
             self.access_token = None
@@ -133,7 +134,7 @@ class EvohomeClient:
 
             try:
                 await self._obtain_access_token(credentials)
-            except exceptions.AuthenticationError:
+            except AuthenticationError:
                 _LOGGER.warning("Invalid refresh_token (will try user credentials).")
                 self.refresh_token = None
 
@@ -152,9 +153,7 @@ class EvohomeClient:
 
     async def _obtain_access_token(self, credentials: dict) -> None:
         async with self._session.post(
-            AUTH_URL,
-            data=AUTH_PAYLOAD | credentials,
-            headers=AUTH_HEADER,
+            AUTH_URL, data=AUTH_PAYLOAD | credentials, headers=AUTH_HEADER
         ) as response:
             try:
                 response_text = await response.text()  # before raise_for_status()
@@ -165,7 +164,7 @@ class EvohomeClient:
                 if response_text:  # if there is a message, then raise with it
                     msg += ", hint: " + response_text
 
-                raise exceptions.AuthenticationError(msg)
+                raise AuthenticationError(msg)
 
             try:  # the access token _should_ be valid...
                 # this may cause a ValueError
@@ -179,12 +178,12 @@ class EvohomeClient:
                 self.refresh_token = response_json["refresh_token"]
 
             except KeyError:
-                raise exceptions.AuthenticationError(
+                raise AuthenticationError(
                     "Unable to obtain an Access Token, hint: " + response_json
                 )
 
             except ValueError:
-                raise exceptions.AuthenticationError(
+                raise AuthenticationError(
                     "Unable to obtain an Access Token, hint: " + response_text
                 )
 
@@ -269,17 +268,13 @@ class EvohomeClient:
         # This allows a shortcut for some systems
 
         if self.locations and len(self.locations) != 1:
-            raise exceptions.SingleTcsError(
-                "There is more (or less) than one location available"
-            )
+            raise SingleTcsError("There is more (or less) than one location available")
 
         if len(self.locations[0]._gateways) != 1:  # type: ignore[index]
-            raise exceptions.SingleTcsError(
-                "There is more (or less) than one gateway available"
-            )
+            raise SingleTcsError("There is more (or less) than one gateway available")
 
         if len(self.locations[0]._gateways[0]._control_systems) != 1:  # type: ignore[index]
-            raise exceptions.SingleTcsError(
+            raise SingleTcsError(
                 "There is more (or less) than one control system available"
             )
 

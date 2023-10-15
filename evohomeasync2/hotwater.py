@@ -89,5 +89,5 @@ class HotWater(ZoneBase):
             f"{URL_BASE}/{url}", headers=headers
         ) as response:
             response.raise_for_status()
-            state = await response.json()
-        return state
+
+            return await response.json()
