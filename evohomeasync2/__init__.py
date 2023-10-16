@@ -255,21 +255,19 @@ class EvohomeClient:
             return await response.json()
 
     def _get_single_heating_system(self) -> ControlSystem:
-        """If there is a single location/gatewat/TCS, return it (or raise an exception).
+        """If there is a single location/gateway/TCS, return it, or raise an exception.
 
         This provides a shortcut for most systems.
         """
 
         if self.locations and len(self.locations) != 1:
-            raise SingleTcsError("There is more (or less) than one location available")
+            raise SingleTcsError("There is not a single location for this account")
 
         if len(self.locations[0]._gateways) != 1:  # type: ignore[index]
-            raise SingleTcsError("There is more (or less) than one gateway available")
+            raise SingleTcsError("There is not a single gateway for this location")
 
         if len(self.locations[0]._gateways[0]._control_systems) != 1:  # type: ignore[index]
-            raise SingleTcsError(
-                "There is more (or less) than one control system available"
-            )
+            raise SingleTcsError("There is not a single TCS for this location/gateway")
 
         return self.locations[0]._gateways[0]._control_systems[0]  # type: ignore[index]
 
