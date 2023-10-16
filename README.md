@@ -18,7 +18,7 @@ It provides Evohome support for Home Assistant (and other automation platforms),
 Documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
 
 ### Differences from non-async version
-Note that this library is not intended to expose more functionality than it's non-async cousin, other than asyncio.
+Note that this library is not able to expose more functionality than it's non-async cousin, other than asyncio (they both use the same vendor API).
 
 The difference between the **evohomeasync** and **evohomeclient** libraries have been keep to the minimum, and it is planned for exisiting docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
 
