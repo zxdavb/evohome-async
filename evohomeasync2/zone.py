@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime as dt
 import json
+import logging
 from typing import TYPE_CHECKING, NoReturn
 
 from .exceptions import InvalidSchedule
@@ -24,6 +25,8 @@ MAPPING = [
     ("switchpoints", "Switchpoints"),
     ("dhwState", "DhwState"),
 ]
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class ZoneBase:
@@ -48,6 +51,8 @@ class ZoneBase:
     async def get_schedule(self) -> dict:
         """Get the schedule for this dhw/zone object."""
 
+        _LOGGER.debug(f"Getting schedule of {self._id} ({self._type})...")
+
         url = f"{self._type}/{self._id}/schedule"
 
         async with self.client._session.get(
@@ -57,8 +62,7 @@ class ZoneBase:
         ) as response:
             response_text = await response.text()
 
-        # this is an anachronism from evohome-client
-        for from_val, to_val in MAPPING:
+        for from_val, to_val in MAPPING:  # an anachronism from evohome-client
             response_text = response_text.replace(from_val, to_val)
 
         result: dict = json.loads(response_text)
@@ -71,6 +75,8 @@ class ZoneBase:
     async def set_schedule(self, zone_schedule: str) -> None:
         """Set the schedule for this dhw/zone object."""
         # must only POST json, otherwise server API handler raises exceptions
+
+        _LOGGER.debug(f"Setting schedule of {self._id} ({self._type})...")
 
         try:
             json.loads(zone_schedule)

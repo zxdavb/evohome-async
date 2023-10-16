@@ -33,6 +33,10 @@ class HotWater(ZoneBase):
         self._id = self.dhwId
 
     @property
+    def name(self) -> str:
+        return "Domestic Hot Water"
+
+    @property
     def zoneId(self) -> NoReturn:
         raise NotImplementedError("HotWater.zoneId is deprecated, use .dhwId (or ._id)")
 

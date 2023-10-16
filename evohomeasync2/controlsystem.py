@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime as dt
 import json
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 from .const import API_STRFTIME, URL_BASE
 from .hotwater import HotWater
@@ -15,8 +15,7 @@ from .zone import Zone
 
 if TYPE_CHECKING:
     from . import Gateway
-    from .typing import _FilePathT, _ModeT, _SystemIdT
-
+    from .typing import _DhwIdT, _FilePathT, _ModeT, _SystemIdT, _ZoneIdT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +24,6 @@ class ControlSystem:
     """Instance of a gateway's Temperature Control System."""
 
     systemId: _SystemIdT
-    #
 
     def __init__(self, gateway: Gateway, config: dict) -> None:
         self.gateway = gateway  # parent
@@ -63,7 +61,7 @@ class ControlSystem:
         ) as response:
             response.raise_for_status()
 
-    # TODO: should be called set_mode()
+    # TODO: should be called set_mode() - same for all set_status_*()
     async def set_status(self, mode: _ModeT, /, *, until: None | dt = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
 
@@ -141,57 +139,112 @@ class ControlSystem:
 
         return result
 
-    # TODO: should be called backup_zone_schedules()
-    async def zone_schedules_backup(self, filename: _FilePathT) -> None:
-        """Backup all zones on control system to the given file."""
+    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "TCS.zone_schedules_backup() is deprecated, use backup_schedules()"
+        )
+
+    async def backup_schedules(self, filename: _FilePathT) -> None:
+        """Backup all schedules from the control system to the file."""
 
         _LOGGER.info(
-            f"Backing up schedules from {self.systemId} ({self.location.name})..."
+            f"Backing up schedules from {self.systemId} ({self.location.name})"
+            f", to {filename}"
         )
 
         schedules = {}
 
-        if self.hotwater:
-            _LOGGER.info(f"Retrieving DHW schedule: {self.hotwater.dhwId}...")
-
-            schedule = await self.hotwater.get_schedule()
-            schedules[self.hotwater.dhwId] = {
-                "name": "Domestic Hot Water",
-                "schedule": schedule,
-            }
-
         for zone in self._zones:
-            _LOGGER.info(f"Retrieving Zone schedule: {zone.zoneId} - {zone.name}")
-
             schedule = await zone.get_schedule()
             schedules[zone.zoneId] = {"name": zone.name, "schedule": schedule}
 
-        _LOGGER.info(f"Writing to backup file: {filename}...")
+        if self.hotwater:
+            schedule = await self.hotwater.get_schedule()
+            schedules[self.hotwater.dhwId] = {
+                "name": self.hotwater.name,
+                "schedule": schedule,
+            }
+
         with open(filename, "w") as file_output:
             file_output.write(json.dumps(schedules, indent=4))
 
         _LOGGER.info("Backup completed.")
 
-    # TODO: should be called restore_zone_schedules()
-    async def zone_schedules_restore(self, filename: _FilePathT) -> None:
-        """Restore all zones on control system from the given file."""
+    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "TCS.zone_schedules_restore() is deprecated, use restore_schedules()"
+        )
 
-        _LOGGER.info(f"Restoring schedules to {self.systemId} ({self.location})...")
+    async def restore_schedules(
+        self, filename: _FilePathT, match_by_name: bool = False
+    ) -> None:
+        """Restore all schedules from the file to the TCS.
 
-        _LOGGER.info(f"Reading from backup file: {filename}...")
+        The default is to match a schedule to its zone/dhw by id.
+        """
+
+        async def restore_by_id(id: _ZoneIdT | _DhwIdT, schedule: dict) -> bool:
+            """Restore schedule by id and return False if there was no match."""
+
+            name = schedule.get("name")
+
+            if self.hotwater and self.hotwater.dhwId == id:
+                await self.hotwater.set_schedule(json.dumps(schedule["schedule"]))
+
+            elif zone := self.zones_by_id.get(id):
+                await zone.set_schedule(json.dumps(schedule["schedule"]))
+
+            else:
+                _LOGGER.warning(
+                    f"Ignoring schedule of {id} ({name}): unknown id"
+                    ", consider matching by name rather than by id"
+                )
+                return False
+
+            return True
+
+        async def restore_by_name(id: _ZoneIdT | _DhwIdT, schedule: dict) -> bool:
+            """Restore schedule by name and return False if there was no match."""
+
+            name = schedule["name"]  # don't use .get()
+
+            if self.hotwater and name == self.hotwater.name:
+                await self.hotwater.set_schedule(json.dumps(schedule["schedule"]))
+
+            elif zone := self.zones.get(name):
+                await zone.set_schedule(json.dumps(schedule["schedule"]))
+
+            else:
+                _LOGGER.warning(
+                    f"Ignoring schedule of {id} ({name}): unknown name"
+                    ", consider matching by id rather than by name"
+                )
+                return False
+
+            return True
+
+        _LOGGER.info(
+            f"Restoring schedules (matched by {'name' if match_by_name else 'id'}) to "
+            f"{self.systemId} ({self.location.name}), from {filename}"
+        )
+
         with open(filename, "r") as file_input:
             schedule_db = file_input.read()
-            schedules = json.loads(schedule_db)
+            schedules: dict = json.loads(schedule_db)
 
-            for zone_id, zone_schedule in schedules.items():
-                name = zone_schedule["name"]
-                zone_info = zone_schedule["schedule"]
+        with_errors = False
 
-                _LOGGER.info(f"Restoring schedule for: {zone_id} - {name}...")
+        for id, schedule in schedules.items():
+            assert isinstance(schedule, dict)  # mypy
 
-                if self.hotwater and self.hotwater.dhwId == zone_id:
-                    await self.hotwater.set_schedule(json.dumps(zone_info))
-                else:
-                    await self.zones_by_id[zone_id].set_schedule(json.dumps(zone_info))
+            if match_by_name:
+                matched = await restore_by_name(id, schedule)
+            else:
+                matched = await restore_by_id(id, schedule)
 
-        _LOGGER.info("Restore completed.")
+            with_errors = with_errors and not matched
+
+        if with_errors or len(schedules) != len(self.zones) + 1 if self.hotwater else 0:
+            _LOGGER.warning("Restore completed, but with unmatched schedules.")
+        else:
+            _LOGGER.info("Restore completed.")

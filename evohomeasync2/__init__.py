@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime as dt
 from datetime import timedelta as td
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 import aiohttp
 
@@ -212,9 +212,10 @@ class EvohomeClient:
     async def installation(self) -> dict:
         """Return the details of the installation and update the status."""
 
-        self.locations = []
-
         assert isinstance(self.account_info, dict)  # mypy
+
+        # FIXME: shouldn't really be starting again with new objects?
+        self.locations = []  # for now, need to clear this before GET
 
         url = (
             f"location/installationInfo?userId={self.account_info['userId']}"
@@ -246,8 +247,8 @@ class EvohomeClient:
         ) as response:
             return await response.json()
 
-    async def gateway(self) -> dict:
-        """Return the details of the gateway."""
+    async def gateway(self) -> dict:  # TODO: check me
+        """Update the gateway status and return the details."""
 
         async with self._session.get(
             f"{URL_BASE}/gateway", headers=await self._headers(), raise_for_status=True
@@ -308,10 +309,28 @@ class EvohomeClient:
         """Return the current temperatures and setpoints of the default TCS."""
         return await self._get_single_heating_system().temperatures()
 
-    async def zone_schedules_backup(self, filename: _FilePathT) -> None:
-        """Back up the schedule of the default TCS to the specified file."""
-        await self._get_single_heating_system().zone_schedules_backup(filename)
+    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "zone_schedules_backup() is deprecated, use backup_schedules()"
+        )
 
-    async def zone_schedules_restore(self, filename: _FilePathT) -> None:
-        """Restore the schedule to the default TCS from the specified file."""
-        await self._get_single_heating_system().zone_schedules_restore(filename)
+    async def backup_schedules(self, filename: _FilePathT) -> None:
+        """Backup all schedules from the default control system to the file."""
+        await self._get_single_heating_system().backup_schedules(filename)
+
+    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "zone_schedules_restore() is deprecated, use restore_schedules()"
+        )
+
+    async def restore_schedules(
+        self, filename: _FilePathT, match_by_name: bool = False
+    ) -> None:
+        """Restore all schedules from the file to the control system.
+
+        There is the option to match schedules to their zone/dhw by name rather than id.
+        """
+
+        await self._get_single_heating_system().restore_schedules(
+            filename, match_by_name=match_by_name
+        )
