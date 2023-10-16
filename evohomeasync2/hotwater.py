@@ -18,16 +18,17 @@ if TYPE_CHECKING:
 class HotWater(ZoneBase):
     """Provide handling of the hot water zone."""
 
-    dhwId: _DhwIdT = ""
+    dhwId: _DhwIdT
+
     temperatureStatus: dict  # TODO
 
-    zone_type = "domesticHotWater"  # TODO: was at end of init, OK here?
+    _type = "domesticHotWater"
 
     def __init__(self, client: EvohomeClient, config: dict) -> None:
         super().__init__(client, config)
         assert self.dhwId, "Invalid config dict"
 
-        self.zoneId = self.dhwId
+        self._id = self.dhwId
 
     async def _set_dhw_state(self, state: dict) -> None:
         """Set the DHW state."""
@@ -86,8 +87,6 @@ class HotWater(ZoneBase):
         url = f"domesticHotWater/{self.dhwId}/status?"
 
         async with self.client._session.get(
-            f"{URL_BASE}/{url}", headers=headers
+            f"{URL_BASE}/{url}", headers=headers, raise_for_status=True
         ) as response:
-            response.raise_for_status()
-
             return await response.json()

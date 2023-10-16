@@ -26,11 +26,11 @@ class Location:
     def __init__(self, client: EvohomeClient, config: dict) -> None:
         self.client = client
 
-        self._gateways: list[Gateway] = []
-        self.gateways: dict[str, Gateway] = {}  # gwy by id
-
         self.__dict__.update(config["locationInfo"])
         assert self.locationId, "Invalid config dict"
+
+        self._gateways: list[Gateway] = []
+        self.gateways: dict[str, Gateway] = {}  # gwy by id
 
         for gwy_config in config["gateways"]:
             gwy = Gateway(client, self, gwy_config)
@@ -46,8 +46,8 @@ class Location:
         async with self.client._session.get(
             f"{URL_BASE}/{url}",
             headers=await self.client._headers(),
+            raise_for_status=True,
         ) as response:
-            response.raise_for_status()
             loc_status = await response.json()
 
         # Now update other elements

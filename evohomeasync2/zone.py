@@ -29,29 +29,27 @@ MAPPING = [
 class ZoneBase:
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    zoneId: _ZoneIdT
-    name: str = ""  # TODO: check if is OK here
-    temperatureStatus: dict  # TODO
-
-    zone_type: str
+    _id: str
+    _type: str  # temperatureZone or domesticHotWater
 
     def __init__(self, client: EvohomeClient, config: dict):
         self.client = client
 
         self.__dict__.update(config)
 
-    async def schedule(self) -> dict:
-        """Get the schedule for the given zone."""
+    async def get_schedule(self) -> dict:
+        """Get the schedule for this dhw/zone object."""
 
-        url = f"{self.zone_type}/{self.zoneId}/schedule"
+        url = f"{self._type}/{self._id}/schedule"
 
         async with self.client._session.get(
-            f"{URL_BASE}/{url}", headers=await self.client._headers()
+            f"{URL_BASE}/{url}",
+            headers=await self.client._headers(),
+            raise_for_status=True,
         ) as response:
-            response.raise_for_status()
-
             response_text = await response.text()
 
+        # this is an anachronism from evohome-client
         for from_val, to_val in MAPPING:
             response_text = response_text.replace(from_val, to_val)
 
@@ -63,7 +61,7 @@ class ZoneBase:
         return result
 
     async def set_schedule(self, zone_schedule: str) -> dict:
-        """Set the schedule for this zone."""
+        """Set the schedule for this dhw/zone object."""
         # must only POST json, otherwise server API handler raises exceptions
 
         try:
@@ -75,7 +73,7 @@ class ZoneBase:
         headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
 
-        url = f"{self.zone_type}/{self.zoneId}/schedule"
+        url = f"{self._type}/{self._id}/schedule"
 
         async with self.client._session.put(
             f"{URL_BASE}/{url}",
@@ -84,18 +82,23 @@ class ZoneBase:
         ) as response:
             response.raise_for_status()
 
-            return await response.json()
-
 
 class Zone(ZoneBase):
     """Provide the access to an individual zone."""
 
+    zoneId: _ZoneIdT
+
+    name: str  # TODO: check if is OK here
     setpointStatus: dict  # TODO
-    zone_type = "temperatureZone"  # TODO: was at end of init, OK here?
+    temperatureStatus: dict  # TODO
+
+    _type = "temperatureZone"
 
     def __init__(self, client: EvohomeClient, config: dict) -> None:
         super().__init__(client, config)
         assert self.zoneId, "Invalid config dict"
+
+        self._id = self.zoneId
 
     async def _set_heat_setpoint(self, heat_setpoint: dict) -> None:
         headers = dict(await self.client._headers())

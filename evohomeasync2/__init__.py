@@ -16,6 +16,8 @@ from typing import TYPE_CHECKING
 
 import aiohttp
 
+# from .tests.mock import aiohttp
+
 from .exceptions import AuthenticationError, SingleTcsError
 from .exceptions import InvalidSchedule  # noqa: F401
 from .const import (
@@ -80,6 +82,10 @@ class EvohomeClient:
         self._session = session or aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=30)
         )
+        # self._session = aiohttp.ClientSession(
+        #     timeout=aiohttp.ClientTimeout(total=30),
+        #     mocked_server=aiohttp.MockedServer(None, None)
+        # )
 
         self.account_info: dict = None  # type: ignore[assignment]
         self.locations: list[Location] = []
@@ -170,6 +176,9 @@ class EvohomeClient:
                 # this may cause a ValueError
                 response_json = await response.json()
 
+                # TODO: remove
+                _LOGGER.error(f"POST {AUTH_URL} = {await response.json()}")
+
                 # these may cause a KeyError
                 self.access_token = response_json["access_token"]
                 self.access_token_expires = dt.now() + td(
@@ -193,10 +202,10 @@ class EvohomeClient:
         self.account_info = None  # type: ignore[assignment]
 
         async with self._session.get(
-            f"{URL_BASE}/userAccount", headers=await self._headers()
+            f"{URL_BASE}/userAccount",
+            headers=await self._headers(),
+            raise_for_status=True,
         ) as response:
-            response.raise_for_status()
-
             self.account_info = await response.json()
 
         assert isinstance(self.account_info, dict)  # mypy
@@ -215,10 +224,8 @@ class EvohomeClient:
         )
 
         async with self._session.get(
-            f"{URL_BASE}/{url}", headers=await self._headers()
+            f"{URL_BASE}/{url}", headers=await self._headers(), raise_for_status=True
         ) as response:
-            response.raise_for_status()
-
             self.installation_info = await response.json()
 
         self.system_id = self.installation_info[0]["gateways"][0][
@@ -248,20 +255,16 @@ class EvohomeClient:
         )
 
         async with self._session.get(
-            f"{URL_BASE}/{url}", headers=await self._headers()
+            f"{URL_BASE}/{url}", headers=await self._headers(), raise_for_status=True
         ) as response:
-            response.raise_for_status()
-
             return await response.json()
 
     async def gateway(self) -> dict:
         """Return the details of the gateway."""
 
         async with self._session.get(
-            f"{URL_BASE}/gateway", headers=await self._headers()
+            f"{URL_BASE}/gateway", headers=await self._headers(), raise_for_status=True
         ) as response:
-            response.raise_for_status()
-
             return await response.json()
 
     def _get_single_heating_system(self) -> ControlSystem:

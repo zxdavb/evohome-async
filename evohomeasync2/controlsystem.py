@@ -38,13 +38,13 @@ class ControlSystem:
         self.location = location
         self.gateway = gateway
 
+        self.__dict__.update({k: v for k, v in config.items() if k != "zones"})
+        assert self.systemId, "Invalid config dict"
+
         self._zones: list[Zone] = []
         self.zones: dict[str, Zone] = {}  # zone by name
         self.zones_by_id: dict[str, Zone] = {}
         self.hotwater: None | HotWater = None
-
-        self.__dict__.update({k: v for k, v in config.items() if k != "zones"})
-        assert self.systemId, "Invalid config dict"
 
         for zone_config in config["zones"]:
             zone = Zone(client, zone_config)

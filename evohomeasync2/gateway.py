@@ -27,15 +27,12 @@ class Gateway:
     ) -> None:
         self.client = client
         self.location = location
-        #
-
-        self._control_systems: list[ControlSystem] = []
-        self.control_systems: dict[str, ControlSystem] = {}  # tcs by id
-        #
-        #
 
         self.__dict__.update(gwy_config["gatewayInfo"])
         assert self.gatewayId, "Invalid config dict"
+
+        self._control_systems: list[ControlSystem] = []
+        self.control_systems: dict[str, ControlSystem] = {}  # tcs by id
 
         for tcs_config in gwy_config["temperatureControlSystems"]:
             tcs = ControlSystem(client, location, self, tcs_config)
