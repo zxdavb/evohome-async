@@ -272,7 +272,7 @@ class EvohomeClient:
         return self.locations[0]._gateways[0]._control_systems[0]  # type: ignore[index]
 
     @property
-    def system_id(self) -> _SystemIdT:  # an evohome-client anachronism
+    def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?
         """Return the ID of the 'default' TCS (assumes only one loc/gwy/TCS)."""
         return self._get_single_heating_system().systemId
 
