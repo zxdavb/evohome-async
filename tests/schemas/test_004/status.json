@@ -1,0 +1,57 @@
+{
+    "locationId": "3184115",
+    "gateways": [
+        {
+            "gatewayId": "2937956",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "4187037",
+                    "zones": [
+                        {
+                            "zoneId": "4187036",
+                            "temperatureStatus": {
+                                "temperature": 22.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 21.0,
+                                "setpointMode": "TemporaryOverride",
+                                "until": "2022-03-07T19:00:00Z"
+                            },
+                            "name": "Living Room"
+                        },
+                        {"zoneId": "4217766", "temperatureStatus": {"temperature": 23.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 23.0, "setpointMode": "FollowSchedule"}, "name": "Dining Room"},
+                        {"zoneId": "4217767", "temperatureStatus": {"temperature": 21.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 21.0, "setpointMode": "FollowSchedule"}, "name": "Entrance"},
+                        {"zoneId": "4217768", "temperatureStatus": {"temperature": 22.0, "isAvailable": true}, "activeFaults": [{"faultType": "TempZoneActuatorCommunicationLost", "since": "2022-03-02T15:56:01"}], "setpointStatus": {"targetHeatTemperature": 22.0, "setpointMode": "FollowSchedule"}, "name": "Laundry room"},
+                        {"zoneId": "4217769", "temperatureStatus": {"temperature": 21.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 21.0, "setpointMode": "FollowSchedule"}, "name": "Sebastians Room"},
+                        {"zoneId": "4217770", "temperatureStatus": {"temperature": 23.0, "isAvailable": true}, "activeFaults": [{"faultType": "TempZoneActuatorLowBattery", "since": "2022-03-02T04:50:20"}], "setpointStatus": {"targetHeatTemperature": 23.0, "setpointMode": "FollowSchedule"}, "name": "Sophies Room"},
+                        {"zoneId": "4217771", "temperatureStatus": {"temperature": 21.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 21.0, "setpointMode": "FollowSchedule"}, "name": "Guest Bedroom"},
+                        {"zoneId": "4217772", "temperatureStatus": {"temperature": 23.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 23.0, "setpointMode": "FollowSchedule"}, "name": "Master Closet"},
+                        {"zoneId": "4217773", "temperatureStatus": {"temperature": 20.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 12.0, "setpointMode": "FollowSchedule"}, "name": "Master Bedroom"},
+                        {"zoneId": "4217774", "temperatureStatus": {"temperature": 18.5, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 18.0, "setpointMode": "FollowSchedule"}, "name": "Garage"},
+                        {"zoneId": "4217775", "temperatureStatus": {"temperature": 21.5, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 23.0, "setpointMode": "FollowSchedule"}, "name": "Office & Library"},
+                        {"zoneId": "4217776", "temperatureStatus": {"temperature": 22.5, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 22.0, "setpointMode": "FollowSchedule"}, "name": "Master Bath"}
+                    ],
+                    "dhw": {
+                        "dhwId": "6329746",
+                        "temperatureStatus": {
+                            "temperature": 44.0,
+                            "isAvailable": true
+                        },
+                        "stateStatus": {
+                            "state": "On",
+                            "mode": "FollowSchedule"
+                        },
+                        "activeFaults": []
+                    },
+                    "activeFaults": [],
+                    "systemModeStatus": {
+                        "mode": "Auto", "isPermanent": true
+                    }
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}
