@@ -255,7 +255,10 @@ class EvohomeClient:
             return await response.json()
 
     def _get_single_heating_system(self) -> ControlSystem:
-        # This allows a shortcut for some systems - an evohome anachronism
+        """If there is a single location/gatewat/TCS, return it (or raise an exception).
+
+        This provides a shortcut for most systems.
+        """
 
         if self.locations and len(self.locations) != 1:
             raise SingleTcsError("There is more (or less) than one location available")
