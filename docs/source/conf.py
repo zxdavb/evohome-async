@@ -45,8 +45,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"Evohome Client"
-copyright = u"2014, Andrew Stock"
+project = "Evohome Client"
+copyright = "2014, Andrew Stock"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -199,8 +199,8 @@ latex_documents = [
     (
         "index",
         "EvohomeClient.tex",
-        u"Evohome Client Documentation",
-        u"Andrew Stock",
+        "Evohome Client Documentation",
+        "Andrew Stock",
         "manual",
     ),
 ]
@@ -231,7 +231,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ("index", "evohomeclient", u"Evohome Client Documentation", [u"Andrew Stock"], 1)
+    ("index", "evohomeclient", "Evohome Client Documentation", ["Andrew Stock"], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -247,8 +247,8 @@ texinfo_documents = [
     (
         "index",
         "EvohomeClient",
-        u"Evohome Client Documentation",
-        u"Andrew Stock",
+        "Evohome Client Documentation",
+        "Andrew Stock",
         "EvohomeClient",
         "One line description of project.",
         "Miscellaneous",
