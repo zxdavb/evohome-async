@@ -36,7 +36,7 @@ from .location import Location
 from .zone import ZoneBase, Zone  # noqa: F401
 
 if TYPE_CHECKING:
-    from .typing import _FilePathT, _LocationIdT
+    from .typing import _FilePathT, _LocationIdT, _SystemIdT
 
 
 HTTP_UNAUTHORIZED = 401
@@ -47,8 +47,6 @@ _LOGGER = logging.getLogger(__name__)
 
 class EvohomeClient:
     """Provide access to the v2 Evohome API."""
-
-    system_id: str = None  # type: ignore[assignment]
 
     def __init__(
         self,
@@ -212,7 +210,7 @@ class EvohomeClient:
         return self.account_info
 
     async def installation(self) -> dict:
-        """Return the details of the installation."""
+        """Return the details of the installation and update the status."""
 
         self.locations = []
 
@@ -228,12 +226,6 @@ class EvohomeClient:
         ) as response:
             self.installation_info = await response.json()
 
-        self.system_id = self.installation_info[0]["gateways"][0][
-            "temperatureControlSystems"
-        ][0][
-            "systemId"
-        ]  # type: ignore[index]
-
         for loc_data in self.installation_info:
             loc = Location(self, loc_data)
             await loc.status()
@@ -244,15 +236,10 @@ class EvohomeClient:
     async def full_installation(self, location_id: None | _LocationIdT = None) -> dict:
         """Return the full details of the specified Location."""
 
-        def get_location(location_id: None | _LocationIdT) -> _LocationIdT:
-            if location_id is None:
-                return self.installation_info[0]["locationInfo"]["locationId"]
-            return location_id
+        if location_id is None:
+            location_id = self.installation_info[0]["locationInfo"]["locationId"]
 
-        url = (
-            f"location/{get_location(location_id)}/installationInfo?"
-            "includeTemperatureControlSystems=True"
-        )
+        url = f"location/{location_id}/installationInfo?includeTemperatureControlSystems=True"
 
         async with self._session.get(
             f"{URL_BASE}/{url}", headers=await self._headers(), raise_for_status=True
@@ -268,7 +255,7 @@ class EvohomeClient:
             return await response.json()
 
     def _get_single_heating_system(self) -> ControlSystem:
-        # This allows a shortcut for some systems
+        # This allows a shortcut for some systems - an evohome anachronism
 
         if self.locations and len(self.locations) != 1:
             raise SingleTcsError("There is more (or less) than one location available")
@@ -282,6 +269,11 @@ class EvohomeClient:
             )
 
         return self.locations[0]._gateways[0]._control_systems[0]  # type: ignore[index]
+
+    @property
+    def system_id(self) -> _SystemIdT:  # an evohome-client anachronism
+        """Return the ID of the 'default' TCS (assumes only one loc/gwy/TCS)."""
+        return self._get_single_heating_system().systemId
 
     async def set_status_reset(self) -> None:
         """Reset the mode of the default TCS and its zones."""
@@ -321,5 +313,4 @@ class EvohomeClient:
 
     async def zone_schedules_restore(self, filename: _FilePathT) -> None:
         """Restore the schedule to the default TCS from the specified file."""
-
         await self._get_single_heating_system().zone_schedules_restore(filename)

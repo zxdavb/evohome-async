@@ -6,13 +6,13 @@ from __future__ import annotations
 
 from datetime import datetime as dt
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
-from . import exceptions
+from .exceptions import InvalidSchedule
 from .const import API_STRFTIME, URL_BASE
 
 if TYPE_CHECKING:
-    from . import EvohomeClient
+    from .controlsystem import ControlSystem
     from .typing import _ZoneIdT
 
 
@@ -29,13 +29,21 @@ MAPPING = [
 class ZoneBase:
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    _id: str
+    _id: str  # zoneId or dhwId
     _type: str  # temperatureZone or domesticHotWater
 
-    def __init__(self, client: EvohomeClient, config: dict):
-        self.client = client
+    def __init__(self, tcs: ControlSystem, config: dict):
+        self.tcs = tcs  # parent
+        self.client = tcs.gateway.location.client
 
-        self.__dict__.update(config)
+    @property
+    def zone_type(self) -> NoReturn:
+        raise NotImplementedError("ZoneBase.zone_type is deprecated, use ._type")
+
+    async def schedule(self) -> NoReturn:
+        raise NotImplementedError(
+            "ZoneBase.schedule() is deprecrated, use .get_schedule()"
+        )
 
     async def get_schedule(self) -> dict:
         """Get the schedule for this dhw/zone object."""
@@ -60,7 +68,7 @@ class ZoneBase:
 
         return result
 
-    async def set_schedule(self, zone_schedule: str) -> dict:
+    async def set_schedule(self, zone_schedule: str) -> None:
         """Set the schedule for this dhw/zone object."""
         # must only POST json, otherwise server API handler raises exceptions
 
@@ -68,7 +76,7 @@ class ZoneBase:
             json.loads(zone_schedule)
 
         except ValueError as exc:
-            raise exceptions.InvalidSchedule(f"zone_info must be valid JSON: {exc}")
+            raise InvalidSchedule(f"zone_schedule must be valid JSON: {exc}")
 
         headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
@@ -76,9 +84,7 @@ class ZoneBase:
         url = f"{self._type}/{self._id}/schedule"
 
         async with self.client._session.put(
-            f"{URL_BASE}/{url}",
-            data=zone_schedule,
-            headers=headers,
+            f"{URL_BASE}/{url}", data=zone_schedule, headers=headers
         ) as response:
             response.raise_for_status()
 
@@ -94,8 +100,10 @@ class Zone(ZoneBase):
 
     _type = "temperatureZone"
 
-    def __init__(self, client: EvohomeClient, config: dict) -> None:
-        super().__init__(client, config)
+    def __init__(self, tcs: ControlSystem, config: dict) -> None:
+        super().__init__(tcs, config)
+
+        self.__dict__.update(config)
         assert self.zoneId, "Invalid config dict"
 
         self._id = self.zoneId
@@ -104,7 +112,7 @@ class Zone(ZoneBase):
         headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
 
-        url = f"temperatureZone/{self.zoneId}/heatSetpoint"
+        url = f"temperatureZone/{self.zoneId}/heatSetpoint"  # f"{_type}/{_id}/heatS..."
 
         async with self.client._session.put(
             f"{URL_BASE}/{url}", json=heat_setpoint, headers=headers
@@ -115,6 +123,7 @@ class Zone(ZoneBase):
         self, temperature: float, /, *, until: None | dt = None
     ) -> None:
         """Set the temperature of the given zone."""
+
         if until is None:
             mode = {
                 "SetpointMode": "PermanentOverride",

@@ -14,7 +14,7 @@ from .hotwater import HotWater
 from .zone import Zone
 
 if TYPE_CHECKING:
-    from . import EvohomeClient, Gateway, Location
+    from . import Gateway
     from .typing import _FilePathT, _ModeT, _SystemIdT
 
 
@@ -27,34 +27,28 @@ class ControlSystem:
     systemId: _SystemIdT
     #
 
-    def __init__(
-        self,
-        client: EvohomeClient,
-        location: Location,
-        gateway: Gateway,
-        config: dict,
-    ) -> None:
-        self.client = client
-        self.location = location
-        self.gateway = gateway
+    def __init__(self, gateway: Gateway, config: dict) -> None:
+        self.gateway = gateway  # parent
+        self.location = gateway.location
+        self.client = gateway.location.client
 
         self.__dict__.update({k: v for k, v in config.items() if k != "zones"})
         assert self.systemId, "Invalid config dict"
 
         self._zones: list[Zone] = []
-        self.zones: dict[str, Zone] = {}  # zone by name
+        self.zones: dict[str, Zone] = {}  # zone by name! what to do if name changed?
         self.zones_by_id: dict[str, Zone] = {}
         self.hotwater: None | HotWater = None
 
         for zone_config in config["zones"]:
-            zone = Zone(client, zone_config)
+            zone = Zone(self, zone_config)
 
             self._zones.append(zone)
             self.zones[zone.name] = zone
             self.zones_by_id[zone.zoneId] = zone
 
         if dhw_config := config.get("dhw"):
-            self.hotwater = HotWater(client, dhw_config)
+            self.hotwater = HotWater(self, dhw_config)
 
     async def _set_mode(self, mode: dict) -> None:
         """TODO"""
@@ -158,22 +152,19 @@ class ControlSystem:
         schedules = {}
 
         if self.hotwater:
-            _LOGGER.info(f"Retrieving DHW schedule: {self.hotwater.zoneId}...")
+            _LOGGER.info(f"Retrieving DHW schedule: {self.hotwater.dhwId}...")
 
-            schedule = await self.hotwater.schedule()
-            schedules[self.hotwater.zoneId] = {
+            schedule = await self.hotwater.get_schedule()
+            schedules[self.hotwater.dhwId] = {
                 "name": "Domestic Hot Water",
                 "schedule": schedule,
             }
 
         for zone in self._zones:
-            zone_id = zone.zoneId
-            name = zone.name
+            _LOGGER.info(f"Retrieving Zone schedule: {zone.zoneId} - {zone.name}")
 
-            _LOGGER.info(f"Retrieving Zone schedule: {zone_id} - {name}")
-
-            schedule = await zone.schedule()
-            schedules[zone_id] = {"name": name, "schedule": schedule}
+            schedule = await zone.get_schedule()
+            schedules[zone.zoneId] = {"name": zone.name, "schedule": schedule}
 
         _LOGGER.info(f"Writing to backup file: {filename}...")
         with open(filename, "w") as file_output:
@@ -198,7 +189,7 @@ class ControlSystem:
 
                 _LOGGER.info(f"Restoring schedule for: {zone_id} - {name}...")
 
-                if self.hotwater and self.hotwater.zoneId == zone_id:
+                if self.hotwater and self.hotwater.dhwId == zone_id:
                     await self.hotwater.set_schedule(json.dumps(zone_info))
                 else:
                     await self.zones_by_id[zone_id].set_schedule(json.dumps(zone_info))

@@ -33,7 +33,7 @@ class Location:
         self.gateways: dict[str, Gateway] = {}  # gwy by id
 
         for gwy_config in config["gateways"]:
-            gwy = Gateway(client, self, gwy_config)
+            gwy = Gateway(self, gwy_config)
 
             self._gateways.append(gwy)
             self.gateways[gwy.gatewayId] = gwy

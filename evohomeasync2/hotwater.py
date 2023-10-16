@@ -5,13 +5,13 @@
 from __future__ import annotations
 
 from datetime import datetime as dt
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 from .const import API_STRFTIME, URL_BASE
+from .controlsystem import ControlSystem
 from .zone import ZoneBase
 
 if TYPE_CHECKING:
-    from . import EvohomeClient
     from .typing import _DhwIdT
 
 
@@ -24,11 +24,17 @@ class HotWater(ZoneBase):
 
     _type = "domesticHotWater"
 
-    def __init__(self, client: EvohomeClient, config: dict) -> None:
-        super().__init__(client, config)
+    def __init__(self, tcs: ControlSystem, config: dict) -> None:
+        super().__init__(tcs, config)
+
+        self.__dict__.update(config)
         assert self.dhwId, "Invalid config dict"
 
         self._id = self.dhwId
+
+    @property
+    def zoneId(self) -> NoReturn:
+        raise NotImplementedError("HotWater.zoneId is deprecated, use .dhwId (or ._id)")
 
     async def _set_dhw_state(self, state: dict) -> None:
         """Set the DHW state."""
@@ -36,7 +42,7 @@ class HotWater(ZoneBase):
         headers = dict(await self.client._headers())
         headers["Content-Type"] = "application/json"
 
-        url = f"domesticHotWater/{self.dhwId}/state"
+        url = f"domesticHotWater/{self.dhwId}/state"  # f"{_type}/{_id}/state"
 
         async with self.client._session.put(
             f"{URL_BASE}/{url}", json=state, headers=headers
