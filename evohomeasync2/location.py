@@ -46,8 +46,8 @@ class Location:
         async with self.client._session.get(
             f"{URL_BASE}/{url}",
             headers=await self.client._headers(),
-            raise_for_status=True,
         ) as response:
+            response.raise_for_status()
             loc_status = await response.json()
 
         # Now update other elements

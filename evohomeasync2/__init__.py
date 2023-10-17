@@ -202,14 +202,14 @@ class EvohomeClient:
         async with self._session.get(
             f"{URL_BASE}/userAccount",
             headers=await self._headers(),
-            raise_for_status=True,
         ) as response:
+            response.raise_for_status()
             self.account_info = await response.json()
 
         assert isinstance(self.account_info, dict)  # mypy
         return self.account_info
 
-    async def installation(self) -> dict:
+    async def installation(self) -> dict:  # installation_info
         """Return the details of the installation and update the status."""
 
         assert isinstance(self.account_info, dict)  # mypy
@@ -223,8 +223,9 @@ class EvohomeClient:
         )
 
         async with self._session.get(
-            f"{URL_BASE}/{url}", headers=await self._headers(), raise_for_status=True
+            f"{URL_BASE}/{url}", headers=await self._headers()
         ) as response:
+            response.raise_for_status()
             self.installation_info = await response.json()
 
         for loc_data in self.installation_info:
@@ -243,16 +244,18 @@ class EvohomeClient:
         url = f"location/{location_id}/installationInfo?includeTemperatureControlSystems=True"
 
         async with self._session.get(
-            f"{URL_BASE}/{url}", headers=await self._headers(), raise_for_status=True
+            f"{URL_BASE}/{url}", headers=await self._headers()
         ) as response:
+            response.raise_for_status()
             return await response.json()
 
     async def gateway(self) -> dict:  # TODO: check me
         """Update the gateway status and return the details."""
 
         async with self._session.get(
-            f"{URL_BASE}/gateway", headers=await self._headers(), raise_for_status=True
+            f"{URL_BASE}/gateway", headers=await self._headers()
         ) as response:
+            response.raise_for_status()
             return await response.json()
 
     def _get_single_heating_system(self) -> ControlSystem:
@@ -261,14 +264,20 @@ class EvohomeClient:
         This provides a shortcut for most systems.
         """
 
-        if self.locations and len(self.locations) != 1:
-            raise SingleTcsError("There is not a single location for this account")
+        if not self.locations or len(self.locations) != 1:
+            raise SingleTcsError(
+                "There is not a single location (only) for this account"
+            )
 
         if len(self.locations[0]._gateways) != 1:  # type: ignore[index]
-            raise SingleTcsError("There is not a single gateway for this location")
+            raise SingleTcsError(
+                "There is not a single gateway (only) for this account/location"
+            )
 
         if len(self.locations[0]._gateways[0]._control_systems) != 1:  # type: ignore[index]
-            raise SingleTcsError("There is not a single TCS for this location/gateway")
+            raise SingleTcsError(
+                "There is not a single TCS (only) for this account/location/gateway"
+            )
 
         return self.locations[0]._gateways[0]._control_systems[0]  # type: ignore[index]
 

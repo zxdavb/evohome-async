@@ -8,10 +8,10 @@ from datetime import datetime as dt
 from typing import TYPE_CHECKING, NoReturn
 
 from .const import API_STRFTIME, URL_BASE
-from .controlsystem import ControlSystem
 from .zone import ZoneBase
 
 if TYPE_CHECKING:
+    from .controlsystem import ControlSystem
     from .typing import _DhwIdT
 
 
@@ -97,6 +97,7 @@ class HotWater(ZoneBase):
         url = f"domesticHotWater/{self.dhwId}/status?"
 
         async with self.client._session.get(
-            f"{URL_BASE}/{url}", headers=headers, raise_for_status=True
+            f"{URL_BASE}/{url}", headers=headers
         ) as response:
+            response.raise_for_status()
             return await response.json()

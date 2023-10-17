@@ -58,8 +58,8 @@ class ZoneBase:
         async with self.client._session.get(
             f"{URL_BASE}/{url}",
             headers=await self.client._headers(),
-            raise_for_status=True,
         ) as response:
+            response.raise_for_status()
             response_text = await response.text()
 
         for from_val, to_val in MAPPING:  # an anachronism from evohome-client
