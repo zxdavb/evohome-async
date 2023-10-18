@@ -90,10 +90,10 @@ class ControlSystem(ControlSystemDeprecated):
         self.client = gateway.location.client
         self._client = gateway.location.client._client
 
+        self._status: dict = {}
         self._config: Final[dict] = {
             k: v for k, v in tcs_config.items() if k not in (SZ_DHW, SZ_ZONES)
         }
-        self._status = {}
         assert self.systemId, "Invalid config dict"
 
         self._zones: list[Zone] = []

@@ -12,6 +12,7 @@ from .const import API_STRFTIME, URL_BASE
 from .schema.const import (
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
+    SZ_DOMESTIC_HOT_WATER,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_STATE_STATUS,
 )
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
 class HotWater(_ZoneBase):
     """Provide handling of the hot water zone."""
 
-    _type = "domesticHotWater"
+    _type = SZ_DOMESTIC_HOT_WATER
 
     def __init__(self, tcs: ControlSystem, dhw_config: dict) -> None:
         super().__init__(tcs)

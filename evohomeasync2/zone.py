@@ -21,6 +21,7 @@ from .schema.const import (
     SZ_SETPOINT_CAPABILITIES,
     SZ_SETPOINT_STATUS,
     SZ_TEMPERATURE_STATUS,
+    SZ_TEMPERATURE_ZONE,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
@@ -46,14 +47,14 @@ class _ZoneBase:
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     _id: str  # .zoneId or .dhwId
-    _type: str  # "temperatureZone" or "domesticHotWater"
+    _type: str  # Literal["temperatureZone", "domesticHotWater"]
 
     def __init__(self, tcs: ControlSystem):
         self.tcs = tcs  # parent
         self.client = tcs.gateway.location.client
         self._client = tcs.gateway.location.client._client
 
-        self._status = {}
+        self._status: dict = {}
 
     @property
     def zone_type(self) -> NoReturn:
@@ -67,7 +68,7 @@ class _ZoneBase:
 
         url = f"{self._type}/{self._id}/status"
         response = await self._client("GET", f"{URL_BASE}/{url}")
-        if self._type == "temperatureZone":
+        if self._type == SZ_TEMPERATURE_ZONE:
             status = SCH_ZONE_STATUS(response)
         else:
             status = SCH_DHW_STATUS(response)
@@ -129,7 +130,7 @@ class _ZoneBase:
 class Zone(_ZoneBase):
     """Provide the access to an individual zone."""
 
-    _type = "temperatureZone"
+    _type = SZ_TEMPERATURE_ZONE
 
     def __init__(self, tcs: ControlSystem, zone_config: dict) -> None:
         super().__init__(tcs)
