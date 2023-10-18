@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from datetime import datetime as dt
+import logging
 from typing import TYPE_CHECKING, NoReturn
 
 from .const import API_STRFTIME, URL_BASE
@@ -13,6 +14,9 @@ from .zone import ZoneBase
 if TYPE_CHECKING:
     from .controlsystem import ControlSystem
     from .typing import _DhwIdT
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class HotWater(ZoneBase):
@@ -43,15 +47,8 @@ class HotWater(ZoneBase):
     async def _set_dhw_state(self, state: dict) -> None:
         """Set the DHW state."""
 
-        headers = dict(await self.client._headers())
-        headers["Content-Type"] = "application/json"
-
         url = f"domesticHotWater/{self.dhwId}/state"  # f"{_type}/{_id}/state"
-
-        async with self.client._session.put(
-            f"{URL_BASE}/{url}", json=state, headers=headers
-        ) as response:
-            response.raise_for_status()
+        await self._client("PUT", f"{URL_BASE}/{url}", json=state)
 
     async def set_dhw_on(self, /, *, until: None | dt = None) -> None:
         """Set the DHW on until a given time, or permanently."""
@@ -91,13 +88,5 @@ class HotWater(ZoneBase):
     async def get_dhw_state(self) -> dict:
         """Get the DHW state."""
 
-        headers = dict(await self.client._headers())
-        headers["Content-Type"] = "application/json"
-
         url = f"domesticHotWater/{self.dhwId}/status?"
-
-        async with self.client._session.get(
-            f"{URL_BASE}/{url}", headers=headers
-        ) as response:
-            response.raise_for_status()
-            return await response.json()
+        return await self._client("GET", f"{URL_BASE}/{url}")

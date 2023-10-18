@@ -9,6 +9,7 @@ Further information at: https://evohome-client.readthedocs.io
 """
 from __future__ import annotations
 
+from json.decoder import JSONDecodeError
 import logging
 from datetime import datetime as dt
 from datetime import timedelta as td
@@ -19,6 +20,7 @@ import aiohttp
 # from .tests.mock import aiohttp
 
 from .exceptions import AuthenticationError, SingleTcsError
+from .exceptions import volErrorInvalid as _volErrorInvalid
 from .exceptions import InvalidSchedule  # noqa: F401
 from .const import (
     AUTH_HEADER_ACCEPT,
@@ -33,7 +35,14 @@ from .controlsystem import ControlSystem
 from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401
 from .location import Location
+from .schema import SCH_FULL_CONFIG, SCH_OAUTH_TOKEN, SCH_USER_ACCOUNT
 from .zone import ZoneBase, Zone  # noqa: F401
+
+try:  # voluptuous is an optional module...
+    from voluptuous.error import Invalid as SchemaInvalid
+except ModuleNotFoundError:  # No module named 'voluptuous'
+    SchemaInvalid = _volErrorInvalid
+
 
 if TYPE_CHECKING:
     from .typing import _FilePathT, _LocationIdT, _SystemIdT
@@ -47,6 +56,9 @@ _LOGGER = logging.getLogger(__name__)
 
 class EvohomeClient:
     """Provide access to the v2 Evohome API."""
+
+    _full_config: dict = None  # installation_info (all locations of user)
+    _user_account: dict = None  # account_info
 
     def __init__(
         self,
@@ -70,8 +82,7 @@ class EvohomeClient:
                 "Debug mode is not explicitly enabled (but may be enabled elsewhere)."
             )
 
-        self.username = username
-        self.password = password
+        self._credentials = {"Username": username, "Password": password}
 
         self.refresh_token = refresh_token
         self.access_token = access_token
@@ -80,17 +91,14 @@ class EvohomeClient:
         self._session = session or aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=30)
         )
-        # self._session = aiohttp.ClientSession(
-        #     timeout=aiohttp.ClientTimeout(total=30),
-        #     mocked_server=aiohttp.MockedServer(None, None)
-        # )
 
-        self.account_info: dict = None  # type: ignore[assignment]
-        self.locations: list[Location] = []
-        self.installation_info: dict = None  # type: ignore[assignment]
+        self.locations: list[Location] = None
 
     async def login(self) -> None:
-        """Authenticate with the server."""
+        """Retreive the user account and installation details.
+
+        Will authenticate as required.
+        """
 
         try:  # the cached access_token may be valid, but is not authorized
             await self.user_account()
@@ -100,9 +108,47 @@ class EvohomeClient:
 
             _LOGGER.warning("Unauthorized access_token (will try re-authenticating).")
             self.access_token = None
-            await self.user_account()
+            await self.user_account(force_update=True)
 
         await self.installation()
+
+    async def _client(self, method, url, data=None, json=None, headers=None) -> None:
+        """Wrapper for aiohttp.ClientSession()."""
+
+        if headers is None:
+            headers = await self._headers()
+
+        if method == "GET":
+            _session_method = self._session.get
+            kwargs = {"headers": headers}
+
+        elif method == "POST":
+            _session_method = self._session.post
+            kwargs = {"data": data, "headers": headers}
+
+        elif method == "PUT":
+            _session_method = self._session.put
+            # headers["Content-Type"] = "application/json"
+            kwargs = {"data": data, "json": json, "headers": headers}
+
+        async with _session_method(url, **kwargs) as response:
+            response.raise_for_status()
+
+            try:
+                result = await response.json()
+            except JSONDecodeError:
+                pass
+            else:
+                _LOGGER.info(f"{method} {url} (JSON) = {result}")
+                return result
+
+            try:
+                result = await response.text()
+            except UnicodeError:
+                pass
+            else:
+                _LOGGER.info(f"{method} {url} (TEXT) = {result}")
+                return result
 
     async def _headers(self) -> dict:
         """Ensure the Authorization Header has a valid Access Token."""
@@ -118,150 +164,160 @@ class EvohomeClient:
         return {
             "Accept": AUTH_HEADER_ACCEPT,
             "Authorization": "bearer " + self.access_token,
+            "Content-Type": "application/json",
         }
 
     async def _basic_login(self) -> None:
-        """Obtain a new access token from the vendor.
+        """Obtain a new access token from the vendor (as it is invalid, or expired).
 
-        First, try using the refresh_token, if one is available, otherwise
-        authenticate using the user credentials.
+        First, try using the refresh token, if one is available, otherwise authenticate
+        using the user credentials.
         """
+
+        # assert (
+        #     not self.access_token
+        #     or not self.access_token_expires
+        #     or dt.now() > self.access_token_expires - td(seconds=30)
+        # )
 
         _LOGGER.debug("No/Expired/Invalid access_token, re-authenticating.")
         self.access_token = self.access_token_expires = None
 
         if self.refresh_token:
             _LOGGER.debug("Authenticating with the refresh_token...")
-            credentials = CREDS_REFRESH_TOKEN | {
-                "refresh_token": self.refresh_token,
-            }
+            credentials = {"refresh_token": self.refresh_token}
 
             try:
-                await self._obtain_access_token(credentials)
+                await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)
             except AuthenticationError:
                 _LOGGER.warning("Invalid refresh_token (will try user credentials).")
                 self.refresh_token = None
 
         if not self.refresh_token:
             _LOGGER.debug("Authenticating with the user credentials...")
-            credentials = CREDS_USER_PASSWORD | {
-                "Username": self.username,
-                "Password": self.password,
-            }
-
-            await self._obtain_access_token(credentials)
+            await self._obtain_access_token(CREDS_USER_PASSWORD | self._credentials)
 
         _LOGGER.debug(f"refresh_token = {self.refresh_token}")
         _LOGGER.debug(f"access_token = {self.access_token}")
         _LOGGER.debug(f"access_token_expires = {self.access_token_expires}")
 
     async def _obtain_access_token(self, credentials: dict) -> None:
-        async with self._session.post(
-            AUTH_URL, data=AUTH_PAYLOAD | credentials, headers=AUTH_HEADER
-        ) as response:
-            try:
-                response_text = await response.text()  # before raise_for_status()
-                response.raise_for_status()
+        """Obtain an access token using either the refresh token or user credentials."""
 
-            except aiohttp.ClientResponseError:
-                msg = "Unable to obtain an Access Token"
-                if response_text:  # if there is a message, then raise with it
-                    msg += ", hint: " + response_text
+        try:
+            response = await self._client(
+                "POST", AUTH_URL, data=AUTH_PAYLOAD | credentials, headers=AUTH_HEADER
+            )
 
-                raise AuthenticationError(msg)
+            SCH_OAUTH_TOKEN(response)  # validate the response
 
-            try:  # the access token _should_ be valid...
-                # this may cause a ValueError
-                response_json = await response.json()
+        except aiohttp.ClientResponseError as exc:
+            # These have been seen / have been common
+            # 429 Too Many Requests: exceed authentication/api rate limits
+            # 503 Service Unavailable
 
-                # TODO: remove
-                _LOGGER.error(f"POST {AUTH_URL} = {await response.json()}")
+            # can't use response.text() as may raise another error
+            raise AuthenticationError(f"Unable to obtain an Access Token: {exc}")
 
-                # these may cause a KeyError
-                self.access_token = response_json["access_token"]
-                self.access_token_expires = dt.now() + td(
-                    seconds=response_json["expires_in"]
-                )
-                self.refresh_token = response_json["refresh_token"]
+        try:  # the access token _should_ be valid...
+            self.access_token = response["access_token"]
+            self.access_token_expires = dt.now() + td(seconds=response["expires_in"])
+            self.refresh_token = response["refresh_token"]
 
-            except KeyError:
-                raise AuthenticationError(
-                    "Unable to obtain an Access Token, hint: " + response_json
-                )
+        except SchemaInvalid as exc:  # TODO: only if voluptuous is installed
+            raise AuthenticationError(f"Unable to obtain an Access Token, hint: {exc}")
 
-            except ValueError:
-                raise AuthenticationError(
-                    "Unable to obtain an Access Token, hint: " + response_text
-                )
+        except KeyError:
+            raise AuthenticationError(
+                f"Unable to obtain an Access Token, hint: {response}"
+            )
 
-    async def user_account(self) -> dict:
-        """Return the user account information."""
+        except TypeError:  # response was str or None, not dict
+            raise AuthenticationError(
+                f"Unable to obtain an Access Token, hint: {response}"
+            )
 
-        self.account_info = None  # type: ignore[assignment]
+    @property  # user_account
+    def account_info(self) -> dict:  # from the original evohomeclient namespace
+        """Return the information of the user account."""
+        return self._user_account
 
-        async with self._session.get(
-            f"{URL_BASE}/userAccount",
-            headers=await self._headers(),
-        ) as response:
-            response.raise_for_status()
-            self.account_info = await response.json()
+    async def user_account(self, force_update: bool = False) -> dict:
+        """Return the user account information.
 
-        assert isinstance(self.account_info, dict)  # mypy
-        return self.account_info
+        If required/forced, retreive that data from the vendor's API.
+        """
 
-    async def installation(self) -> dict:  # installation_info
-        """Return the details of the installation and update the status."""
+        # There is usually no need to refresh this data
+        if self._user_account and not force_update:
+            return self._user_account
+
+        reponse = await self._client("GET", f"{URL_BASE}/userAccount")
+        self._user_account = SCH_USER_ACCOUNT(reponse)
+        return self._user_account
+
+    @property  # full_config (all locations of user)
+    def installation_info(self) -> dict:  # from the original evohomeclient namespace
+        """Return the installation info (config) of all the user's locations."""
+        return self._full_config
+
+    async def installation(self, force_update: bool = False) -> dict:
+        """Return the configuration of the user's locations their status.
+
+        If required/forced, retreive that data from the vendor's API.
+        """
+
+        # There is usually no need to refresh this data
+        if self._full_config and not force_update:
+            return self._full_config
+        return await self._installation()  # aka self.installation_info
+
+    async def _installation(self, update_status: bool = True) -> dict:
+        """Return the configuration of the user's locations their status.
+
+        The _update_status flag is used for dev/test.
+        """
 
         assert isinstance(self.account_info, dict)  # mypy
 
         # FIXME: shouldn't really be starting again with new objects?
         self.locations = []  # for now, need to clear this before GET
 
-        url = (
-            f"location/installationInfo?userId={self.account_info['userId']}"
-            "&includeTemperatureControlSystems=True"
+        url = f"location/installationInfo?userId={self.account_info['userId']}&"
+        url += "includeTemperatureControlSystems=True"
+
+        response = await self._client("GET", f"{URL_BASE}/{url}")
+        self._full_config = SCH_FULL_CONFIG(response)
+        # populate each freshly instantiated location with its initial status
+        for loc_data in self._full_config:
+            loc = Location(self, loc_data)
+            self.locations.append(loc)
+            if update_status:
+                await loc.status()
+
+        return self._full_config
+
+    async def full_installation(location_id: None | _LocationIdT = None) -> NoReturn:
+        # if location_id is None:
+        #     location_id = self.installation_info[0]["locationInfo"]["locationId"]
+        # url = f"location/{location_id}/installationInfo?"  # Specific location
+
+        raise NotImplementedError(
+            "EvohomeClient.full_installation() is deprecated, use .installation()"
         )
 
-        async with self._session.get(
-            f"{URL_BASE}/{url}", headers=await self._headers()
-        ) as response:
-            response.raise_for_status()
-            self.installation_info = await response.json()
+    async def gateway(self, *args, **kwargs) -> NoReturn:  # deprecated
+        raise NotImplementedError("EvohomeClient.gateway() is deprecated")
 
-        for loc_data in self.installation_info:
-            loc = Location(self, loc_data)
-            await loc.status()
-            self.locations.append(loc)
-
-        return self.installation_info
-
-    async def full_installation(self, location_id: None | _LocationIdT = None) -> dict:
-        """Return the full details of the specified Location."""
-
-        if location_id is None:
-            location_id = self.installation_info[0]["locationInfo"]["locationId"]
-
-        url = f"location/{location_id}/installationInfo?includeTemperatureControlSystems=True"
-
-        async with self._session.get(
-            f"{URL_BASE}/{url}", headers=await self._headers()
-        ) as response:
-            response.raise_for_status()
-            return await response.json()
-
-    async def gateway(self) -> dict:  # TODO: check me
-        """Update the gateway status and return the details."""
-
-        async with self._session.get(
-            f"{URL_BASE}/gateway", headers=await self._headers()
-        ) as response:
-            response.raise_for_status()
-            return await response.json()
+    @property
+    def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?
+        """Return the ID of the 'default' TCS (assumes only one loc/gwy/TCS)."""
+        return self._get_single_heating_system().systemId
 
     def _get_single_heating_system(self) -> ControlSystem:
         """If there is a single location/gateway/TCS, return it, or raise an exception.
 
-        This provides a shortcut for most systems.
+        Most systems will have only one TCS.
         """
 
         if not self.locations or len(self.locations) != 1:
@@ -280,11 +336,6 @@ class EvohomeClient:
             )
 
         return self.locations[0]._gateways[0]._control_systems[0]  # type: ignore[index]
-
-    @property
-    def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?
-        """Return the ID of the 'default' TCS (assumes only one loc/gwy/TCS)."""
-        return self._get_single_heating_system().systemId
 
     async def set_status_reset(self) -> None:
         """Reset the mode of the default TCS and its zones."""
@@ -318,18 +369,18 @@ class EvohomeClient:
         """Return the current temperatures and setpoints of the default TCS."""
         return await self._get_single_heating_system().temperatures()
 
-    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
+    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:  # deprecated
         raise NotImplementedError(
-            "zone_schedules_backup() is deprecated, use backup_schedules()"
+            "ZoneBase.zone_schedules_backup() is deprecated, use .backup_schedules()"
         )
 
     async def backup_schedules(self, filename: _FilePathT) -> None:
         """Backup all schedules from the default control system to the file."""
         await self._get_single_heating_system().backup_schedules(filename)
 
-    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:
+    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:  # deprecated
         raise NotImplementedError(
-            "zone_schedules_restore() is deprecated, use restore_schedules()"
+            "ZoneBase.zone_schedules_restore() is deprecated, use .restore_schedules()"
         )
 
     async def restore_schedules(

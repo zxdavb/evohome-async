@@ -4,6 +4,7 @@
 """Provides handling of a TCC location."""
 
 from __future__ import annotations
+import logging
 from typing import TYPE_CHECKING
 
 from .const import URL_BASE
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from .typing import _LocationIdT
 
 
-# _LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 class Location:
@@ -25,6 +26,7 @@ class Location:
 
     def __init__(self, client: EvohomeClient, config: dict) -> None:
         self.client = client
+        self._client = client._client
 
         self.__dict__.update(config["locationInfo"])
         assert self.locationId, "Invalid config dict"
@@ -42,13 +44,7 @@ class Location:
         """Retrieve the location status."""
 
         url = f"location/{self.locationId}/status?includeTemperatureControlSystems=True"
-
-        async with self.client._session.get(
-            f"{URL_BASE}/{url}",
-            headers=await self.client._headers(),
-        ) as response:
-            response.raise_for_status()
-            loc_status = await response.json()
+        loc_status = await self._client("GET", f"{URL_BASE}/{url}")
 
         # Now update other elements
         for gwy_status in loc_status["gateways"]:

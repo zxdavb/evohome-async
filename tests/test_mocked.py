@@ -91,7 +91,6 @@ async def _test_vendor_api_calls(
 
 @pytest.mark.asyncio
 async def test_vendor_api_calls():
-
     username = os.getenv("PYTEST_USERNAME") or "user@gmail.com"
     password = os.getenv("PYTEST_PASSWORD") or "P@ssw0rd!23"
 

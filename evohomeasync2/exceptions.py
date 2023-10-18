@@ -3,6 +3,10 @@
 #
 
 
+class volErrorInvalid(Exception):  # used as a proxy for vol.error.Invalid
+    pass
+
+
 class EvoBaseError(Exception):
     pass
 

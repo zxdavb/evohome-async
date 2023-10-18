@@ -51,15 +51,8 @@ class ControlSystem:
     async def _set_mode(self, mode: dict) -> None:
         """TODO"""
 
-        headers = dict(await self.client._headers())
-        headers["Content-Type"] = "application/json"
-
         url = f"temperatureControlSystem/{self.systemId}/mode"
-
-        async with self.client._session.put(
-            f"{URL_BASE}/{url}", json=mode, headers=await self.client._headers()
-        ) as response:
-            response.raise_for_status()
+        await self._client("PUT", f"{URL_BASE}/{url}", json=mode)
 
     # TODO: should be called set_mode() - same for all set_status_*()
     async def set_status(self, mode: _ModeT, /, *, until: None | dt = None) -> None:
@@ -141,7 +134,7 @@ class ControlSystem:
 
     async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
-            "TCS.zone_schedules_backup() is deprecated, use backup_schedules()"
+            "TCS.zone_schedules_backup() is deprecated, use .backup_schedules()"
         )
 
     async def backup_schedules(self, filename: _FilePathT) -> None:
@@ -172,7 +165,7 @@ class ControlSystem:
 
     async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
-            "TCS.zone_schedules_restore() is deprecated, use restore_schedules()"
+            "TCS.zone_schedules_restore() is deprecated, use .restore_schedules()"
         )
 
     async def restore_schedules(

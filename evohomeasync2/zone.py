@@ -38,6 +38,7 @@ class ZoneBase:
     def __init__(self, tcs: ControlSystem, config: dict):
         self.tcs = tcs  # parent
         self.client = tcs.gateway.location.client
+        self._client = tcs.gateway.location.client._client
 
     @property
     def zone_type(self) -> NoReturn:
@@ -54,14 +55,9 @@ class ZoneBase:
         _LOGGER.debug(f"Getting schedule of {self._id} ({self._type})...")
 
         url = f"{self._type}/{self._id}/schedule"
+        response_json = await self._client("GET", f"{URL_BASE}/{url}")
 
-        async with self.client._session.get(
-            f"{URL_BASE}/{url}",
-            headers=await self.client._headers(),
-        ) as response:
-            response.raise_for_status()
-            response_text = await response.text()
-
+        response_text = await json.dumps(response_json)  # FIXME
         for from_val, to_val in MAPPING:  # an anachronism from evohome-client
             response_text = response_text.replace(from_val, to_val)
 
@@ -74,7 +70,6 @@ class ZoneBase:
 
     async def set_schedule(self, zone_schedule: str) -> None:
         """Set the schedule for this dhw/zone object."""
-        # must only POST json, otherwise server API handler raises exceptions
 
         _LOGGER.debug(f"Setting schedule of {self._id} ({self._type})...")
 
@@ -84,15 +79,8 @@ class ZoneBase:
         except ValueError as exc:
             raise InvalidSchedule(f"zone_schedule must be valid JSON: {exc}")
 
-        headers = dict(await self.client._headers())
-        headers["Content-Type"] = "application/json"
-
         url = f"{self._type}/{self._id}/schedule"
-
-        async with self.client._session.put(
-            f"{URL_BASE}/{url}", data=zone_schedule, headers=headers
-        ) as response:
-            response.raise_for_status()
+        await self._client("PUT", f"{URL_BASE}/{url}", json=zone_schedule)
 
 
 class Zone(ZoneBase):
@@ -115,15 +103,10 @@ class Zone(ZoneBase):
         self._id = self.zoneId
 
     async def _set_heat_setpoint(self, heat_setpoint: dict) -> None:
-        headers = dict(await self.client._headers())
-        headers["Content-Type"] = "application/json"
+        """TODO"""
 
         url = f"temperatureZone/{self.zoneId}/heatSetpoint"  # f"{_type}/{_id}/heatS..."
-
-        async with self.client._session.put(
-            f"{URL_BASE}/{url}", json=heat_setpoint, headers=headers
-        ) as response:
-            response.raise_for_status()
+        await self._client("PUT", f"{URL_BASE}/{url}", json=heat_setpoint)
 
     async def set_temperature(
         self, temperature: float, /, *, until: None | dt = None

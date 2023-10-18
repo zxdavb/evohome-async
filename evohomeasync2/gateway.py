@@ -24,6 +24,7 @@ class Gateway:
     def __init__(self, location: Location, gwy_config: dict) -> None:
         self.location = location  # parent
         self.client = location.client
+        # self._client = self.client._client
 
         self.__dict__.update(gwy_config["gatewayInfo"])
         assert self.gatewayId, "Invalid config dict"
