@@ -35,8 +35,8 @@ def _test_schema(folder: Path, schema: str, file_name: str):
 
 
 def test_schemas_config(folder: Path):
-    _test_schema(folder, SCH_FULL_CONFIG, "config.json")
+    _test_schema(folder, SCH_FULL_CONFIG, "locn_config.json")
 
 
 def test_schemas_status(folder: Path):
-    _test_schema(folder, SCH_LOCN_STATUS, "status.json")
+    _test_schema(folder, SCH_LOCN_STATUS, "locn_status.json")
