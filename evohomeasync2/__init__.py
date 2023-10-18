@@ -211,7 +211,7 @@ class EvohomeClient:
         try:
             response = await self._client(
                 "POST", AUTH_URL, data=AUTH_PAYLOAD | credentials, headers=AUTH_HEADER
-            )
+            )  # 429, 503
             oauth_token: dict = SCH_OAUTH_TOKEN(response)
 
         except aiohttp.ClientResponseError as exc:
@@ -255,7 +255,7 @@ class EvohomeClient:
         if self._user_account and not force_update:
             return self._user_account
 
-        reponse = await self._client("GET", f"{URL_BASE}/userAccount")
+        reponse = await self._client("GET", f"{URL_BASE}/userAccount")  # 401
         self._user_account: dict = SCH_USER_ACCOUNT(reponse)
 
         return self._user_account
