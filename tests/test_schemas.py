@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import pytest
 
-from schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS
+from schema import SCH_LOCN_CONFIG, SCH_LOCN_STATUS
 
 
 TEST_DIR = Path(__file__).resolve().parent
@@ -35,7 +35,7 @@ def _test_schema(folder: Path, schema: str, file_name: str):
 
 
 def test_schemas_config(folder: Path):
-    _test_schema(folder, SCH_FULL_CONFIG, "locn_config.json")
+    _test_schema(folder, SCH_LOCN_CONFIG, "locn_config.json")
 
 
 def test_schemas_status(folder: Path):
