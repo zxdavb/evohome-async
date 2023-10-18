@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Final, NoReturn
 from .const import API_STRFTIME, URL_BASE
 from .hotwater import HotWater
 from .schema.const import (
+    SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_DHW,
     SZ_IS_PERMANENT,
@@ -123,10 +124,14 @@ class ControlSystem(_ControlSystemDeprecated):
     def systemId(self) -> _SystemIdT:
         return self._config[SZ_SYSTEM_ID]
 
-    def _update_state(self, state: dict) -> None:
-        self._status = state
+    def _update_status(self, tcs_status: dict) -> None:
+        self._status = tcs_status
 
     # status attrs...
+    @property
+    def activeFaults(self) -> None | list:
+        return self._status.get(SZ_ACTIVE_FAULTS)
+
     @property
     def isPermanent(self) -> None | bool:
         return self._status.get(SZ_IS_PERMANENT)
@@ -198,7 +203,10 @@ class ControlSystem(_ControlSystemDeprecated):
                 "temp": None,
             }
 
-            if dhw.temperatureStatus["isAvailable"]:
+            if (
+                isinstance(dhw.temperatureStatus, dict)
+                and dhw.temperatureStatus["isAvailable"]
+            ):
                 dhw_status["temp"] = dhw.temperatureStatus["temperature"]
 
             result.append(dhw_status)
@@ -208,11 +216,17 @@ class ControlSystem(_ControlSystemDeprecated):
                 "thermostat": "EMEA_ZONE",
                 "id": zone.zoneId,
                 "name": zone.name,
+                "setpoint": None,
                 "temp": None,
-                "setpoint": zone.setpointStatus["targetHeatTemperature"],
             }
 
-            if zone.temperatureStatus["isAvailable"]:
+            if isinstance(zone.setpointStatus, dict):
+                zone_status["setpoint"] = zone.setpointStatus["targetHeatTemperature"]
+
+            if (
+                isinstance(zone.temperatureStatus, dict)
+                and zone.temperatureStatus["isAvailable"]
+            ):
                 zone_status["temp"] = zone.temperatureStatus["temperature"]
 
             result.append(zone_status)

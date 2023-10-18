@@ -88,29 +88,26 @@ class Location(_LocationDeprecated):
 
         url = f"location/{self.locationId}/status?includeTemperatureControlSystems=True"
         response = await self._client("GET", f"{URL_BASE}/{url}")
-        loc_status: dict = SCH_LOCN_STATUS(response)
-        self._update_state(loc_status)
-        return loc_status
 
-    def _update_state(self, state: dict) -> None:
+        status: dict = SCH_LOCN_STATUS(response)
+        self._update_status(status)
+
+        return status
+
+    def _update_status(self, loc_status: dict) -> None:
         tcs: ControlSystem  # mypy
         tcs_status: dict  # mypy
 
-        for gwy_status in state["gateways"]:
-            gateway = self.gateways[gwy_status["gatewayId"]]
+        for gwy_status in loc_status["gateways"]:
+            gwy = self.gateways[gwy_status["gatewayId"]]
+            gwy._update_status(gwy_status)
 
             for tcs_status in gwy_status["temperatureControlSystems"]:
-                tcs = gateway.control_systems[tcs_status["systemId"]]
-
-                tcs._update_state(
-                    {
-                        "systemModeStatus": tcs_status["systemModeStatus"],
-                        "activeFaults": tcs_status["activeFaults"],
-                    }
-                )
+                tcs = gwy.control_systems[tcs_status["systemId"]]
+                tcs._update_status(tcs_status)
 
                 if dhw_status := tcs_status.get("dhw"):
-                    tcs.hotwater._update_state(dhw_status)  # type: ignore[union-attr]
+                    tcs.hotwater._update_status(dhw_status)  # type: ignore[union-attr]
 
                 for zone_status in tcs_status["zones"]:
-                    tcs.zones_by_id[zone_status["zoneId"]]._update_state(zone_status)
+                    tcs.zones_by_id[zone_status["zoneId"]]._update_status(zone_status)

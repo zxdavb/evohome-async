@@ -28,6 +28,7 @@ class Gateway:
     def __init__(self, location: Location, gwy_config: dict) -> None:
         self.location = location  # parent
 
+        self._status: dict = {}
         self._config: Final[dict] = gwy_config[SZ_GATEWAY_INFO]
         assert self.gatewayId, "Invalid config dict"
 
@@ -52,3 +53,6 @@ class Gateway:
     @property
     def isWiFi(self) -> bool:
         return self._config[SZ_IS_WI_FI]
+
+    def _update_status(self, gwy_status: dict) -> None:
+        self._status = gwy_status

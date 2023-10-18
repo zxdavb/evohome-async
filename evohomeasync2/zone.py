@@ -79,7 +79,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
 
         self._status: dict = {}
 
-    async def refresh_status(self) -> dict:
+    async def _refresh_status(self) -> dict:
         """Update the dhw/zone with its latest status (also returns the status).
 
         It will be more efficient to call Location.refresh_status().
@@ -87,16 +87,17 @@ class _ZoneBase(_ZoneBaseDeprecated):
 
         url = f"{self._type}/{self._id}/status"
         response = await self._client("GET", f"{URL_BASE}/{url}")
+
         if self._type == SZ_TEMPERATURE_ZONE:
             status = SCH_ZONE_STATUS(response)
         else:
             status = SCH_DHW_STATUS(response)
 
-        self._update_state(status)
+        self._update_status(status)
         return status
 
-    def _update_state(self, state: dict) -> None:
-        self._status = state
+    def _update_status(self, status: dict) -> None:
+        self._status = status
 
     # status attrs...
     @property
