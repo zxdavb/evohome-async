@@ -103,13 +103,13 @@ async def _test_vendor_api_calls(
     #
     # STEP 6: Status, GET /domesticHotWater/{dhwId}/status?
     if dhw := client._get_single_heating_system().hotwater:
-        dhw_status = await dhw.refresh_status()
+        dhw_status = await dhw._refresh_status()
         assert SCH_DHW_STATUS(dhw_status)
 
     #
     # STEP 5: Status, GET /temperatureZone/{ZoneId}/status?
     if zone := client._get_single_heating_system()._zones[0]:
-        zone_status = await zone.refresh_status()
+        zone_status = await zone._refresh_status()
         assert SCH_ZONE_STATUS(zone_status)
 
 
