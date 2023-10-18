@@ -7,10 +7,17 @@ from __future__ import annotations
 from datetime import datetime as dt
 import json
 import logging
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME, URL_BASE
 from .hotwater import HotWater
+from .schema.const import (
+    SZ_ALLOWED_SYSTEM_MODES,
+    SZ_DHW,
+    SZ_MODEL_TYPE,
+    SZ_SYSTEM_ID,
+    SZ_ZONES,
+)
 from .zone import Zone
 
 if TYPE_CHECKING:
@@ -83,7 +90,9 @@ class ControlSystem(ControlSystemDeprecated):
         self.client = gateway.location.client
         self._client = gateway.location.client._client
 
-        self.__dict__.update({k: v for k, v in tcs_config.items() if k != "zones"})
+        self._config: Final[dict] = {
+            k: v for k, v in tcs_config.items() if k not in (SZ_DHW, SZ_ZONES)
+        }
         assert self.systemId, "Invalid config dict"
 
         self._zones: list[Zone] = []
@@ -91,15 +100,27 @@ class ControlSystem(ControlSystemDeprecated):
         self.zones_by_id: dict[str, Zone] = {}
         self.hotwater: None | HotWater = None
 
-        for zone_config in tcs_config["zones"]:
+        for zone_config in tcs_config[SZ_ZONES]:
             zone = Zone(self, zone_config)
 
             self._zones.append(zone)
             self.zones[zone.name] = zone
             self.zones_by_id[zone.zoneId] = zone
 
-        if dhw_config := tcs_config.get("dhw"):
+        if dhw_config := tcs_config.get(SZ_DHW):
             self.hotwater = HotWater(self, dhw_config)
+
+    @property
+    def allowedSystemModes(self) -> str:
+        return self._config[SZ_ALLOWED_SYSTEM_MODES]
+
+    @property
+    def modelType(self) -> str:
+        return self._config[SZ_MODEL_TYPE]
+
+    @property
+    def systemId(self) -> _SystemIdT:
+        return self._config[SZ_SYSTEM_ID]
 
     def _update_state(self, state: dict) -> None:
         self.__dict__.update(state)

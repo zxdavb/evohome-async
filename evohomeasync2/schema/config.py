@@ -195,7 +195,7 @@ SCH_TEMPERATURE_CONTROL_SYSTEM = vol.Schema(
 SCH_GATEWAY_INFO = vol.Schema(
     {
         vol.Required(SZ_GATEWAY_ID): str,
-        vol.Required(SZ_MAC): vol.All(str, _obfuscate),
+        vol.Required(SZ_MAC): str,
         vol.Required(SZ_CRC): vol.All(str, _obfuscate),
         vol.Required(SZ_IS_WI_FI): bool,
     },
@@ -234,7 +234,7 @@ SCH_LOCATION_OWNER = vol.Schema(
 SCH_LOCATION_INFO = vol.Schema(
     {
         vol.Required(SZ_LOCATION_ID): str,
-        vol.Required(SZ_NAME): vol.All(str, _obfuscate),
+        vol.Required(SZ_NAME): str,  # e.g. "My Home"
         vol.Required(SZ_STREET_ADDRESS): vol.All(str, _obfuscate),
         vol.Required(SZ_CITY): vol.All(str, _obfuscate),
         vol.Required(SZ_COUNTRY): str,
