@@ -1,8 +1,8 @@
 MOCK_AUTH_RESPONSE = {  # can use this for all
-    "access_token": "-- REDACTED --",
+    "access_token": "ncWMqPh2yGgAqc...",
     "token_type": "bearer",
     "expires_in": 1800,
-    "refresh_token": "-- REDACTED --",
+    "refresh_token": "Ryx9fL34Z5GcNV...",
     "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
 }
 

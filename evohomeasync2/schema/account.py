@@ -22,16 +22,7 @@ from .const import (
     SZ_USER_ID,
     SZ_USERNAME,
 )
-
-
-# all debug flags should be False for published code
-_DEBUG_DONT_OBSFUCATE = False  # used for pytest scripts
-
-
-def _obfuscate(value: bool | int | str):
-    if _DEBUG_DONT_OBSFUCATE:
-        return value
-    return "********"
+from .const import obfuscate as _obfuscate
 
 
 SCH_OAUTH_TOKEN = vol.Schema(

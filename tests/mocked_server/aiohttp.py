@@ -4,10 +4,11 @@
 """Mocked webserver server via a hacked aiohttp.ClientSession."""
 from __future__ import annotations
 
+import asyncio
 from enum import EnumCheck, StrEnum, verify
 import re
 from types import TracebackType
-from typing import Any, Final, Literal, Type
+from typing import Any, Final, Literal, Self, Type
 
 import json
 
@@ -32,6 +33,43 @@ _bodyT = dict | str
 _methodT = Literal[hdrs.METH_GET, hdrs.METH_POST, hdrs.METH_PUT]
 _statusT = int
 _urlT = str
+
+
+_DEFAULT_LIMIT = 2**16  # 64 KiB
+
+
+class StreamReader(asyncio.StreamReader):
+    _buffer: bytearray = b""
+
+    def __init__(self, limit=_DEFAULT_LIMIT, loop=None):
+        pass
+
+    async def read(self, n: int = -1) -> bytes:
+        """Read up to `n` bytes from the stream."""
+        raise NotImplementedError
+
+    async def readline(self) -> bytes:
+        """Read chunk of data from the stream until newline (b'\n') is found."""
+        return await self.readuntil(b"\n")
+
+    async def readexactly(self, n: int) -> bytes:
+        """Read exactly `n` bytes."""
+        raise NotImplementedError
+
+    async def readuntil(self, separator: bytes = b"\n") -> bytes:
+        """Read data from the stream until ``separator`` is found."""
+        raise NotImplementedError
+
+    async def __aenter__(self, *args, **kwargs) -> Self:
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: None | Type[BaseException],
+        exc_val: None | BaseException,
+        exc_tb: None | TracebackType,
+    ) -> None:
+        pass
 
 
 class MockedServer:
@@ -231,6 +269,8 @@ class ClientSession:
 class ClientResponse:
     """"""
 
+    charset: str = "utf-8"
+
     def __init__(
         self,
         method: _methodT,
@@ -251,6 +291,9 @@ class ClientResponse:
         self.status: _statusT = None
         self._body: None | _bodyT = None
 
+        # self.content = StreamReader(
+        #     self._mocked_server.request(method, url, data=data or json)
+        # )
         self._body = self._mocked_server.request(method, url, data=data or json)
         self.status = self._mocked_server.status
 
@@ -270,7 +313,7 @@ class ClientResponse:
             return self._body
         return json.loads(self._body)
 
-    async def __aenter__(self, *args, **kwargs):
+    async def __aenter__(self, *args, **kwargs) -> Self:
         return self
 
     async def __aexit__(

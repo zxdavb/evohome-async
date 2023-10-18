@@ -4,10 +4,16 @@
 """evohomeasync2 - Constants."""
 
 from enum import EnumCheck, StrEnum, verify
+import re
 from typing import Final
 
 
+# all debug flags should be False for published code
+_DEBUG_DONT_OBSFUCATE = False  # used for pytest scripts
+
+
 REGEX_DHW_ID = r"[0-9]*"
+REGEX_EMAIL_ADDRESS = r"^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$"
 REGEX_GATEWAY_ID = r"[0-9]*"
 REGEX_LOCATION_ID = r"[0-9]*"
 REGEX_SYSTEM_ID = r"[0-9]*"
@@ -165,3 +171,17 @@ class ZoneType(StrEnum):
     THERMOSTAT: Final[str] = "Thermostat"  # ZoneValves
     ZONE_VALVES: Final[str] = "ZoneValves"
     UNKNOWN: Final[str] = "Unknown"
+
+
+def obfuscate(value: bool | int | str):
+    if _DEBUG_DONT_OBSFUCATE:
+        return value
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return 0
+    if not isinstance(value, str):
+        raise TypeError(f"obfuscate() expects bool | int | str, got {type(value)}")
+    if re.match(REGEX_EMAIL_ADDRESS, value):
+        return "nobody@nowhere.com"
+    return "********"

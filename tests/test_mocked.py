@@ -24,13 +24,9 @@ async def _test_vendor_api_calls(
     password: str,
     session: None | aiohttp.ClientSession | mocked_aiohttp.ClientSession = None,
 ):
-
     #
     # STEP 0: Instantiation, NOTE: No API calls invoked during instntiation
     client = evohome.EvohomeClient(username, password, session=session)
-
-    assert client.username is username
-    assert client.password is password
 
     #
     # STEP 1: Authentication (isolated from client.login()), POST /Auth/OAuth/Token

@@ -75,15 +75,7 @@ from .const import (
     ZoneModelType,
     ZoneType,
 )
-
-# all debug flags should be False for published code
-_DEBUG_DONT_OBSFUCATE = False  # used for pytest scripts
-
-
-def _obfuscate(value: bool | int | str):
-    if _DEBUG_DONT_OBSFUCATE:
-        return value
-    return "********"
+from .const import obfuscate as _obfuscate
 
 
 SCH_SYSTEM_MODE_PERM = vol.Schema(
