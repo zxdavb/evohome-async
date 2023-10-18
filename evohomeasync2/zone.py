@@ -7,11 +7,19 @@ from __future__ import annotations
 from datetime import datetime as dt
 import json
 import logging
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME, URL_BASE
 from .exceptions import InvalidSchedule
 from .schema import SCH_DHW_STATUS, SCH_ZONE_STATUS
+from .schema.const import (
+    SZ_MODEL_TYPE,
+    SZ_NAME,
+    SZ_SCHEDULE_CAPABILITIES,
+    SZ_SETPOINT_CAPABILITIES,
+    SZ_ZONE_ID,
+    SZ_ZONE_TYPE,
+)
 
 if TYPE_CHECKING:
     from .controlsystem import ControlSystem
@@ -33,8 +41,8 @@ _LOGGER = logging.getLogger(__name__)
 class ZoneBase:
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    _id: str  # zoneId or dhwId
-    _type: str  # temperatureZone or domesticHotWater
+    _id: str  # .zoneId or .dhwId
+    _type: str  # "temperatureZone" or "domesticHotWater"
 
     def __init__(self, tcs: ControlSystem):
         self.tcs = tcs  # parent
@@ -54,9 +62,9 @@ class ZoneBase:
         url = f"{self._type}/{self._id}/status"
         response = await self._client("GET", f"{URL_BASE}/{url}")
         if self._type == "temperatureZone":
-            status = SCH_DHW_STATUS(response)
-        else:
             status = SCH_ZONE_STATUS(response)
+        else:
+            status = SCH_DHW_STATUS(response)
 
         self._update_state(status)
         return status
@@ -106,8 +114,6 @@ class ZoneBase:
 class Zone(ZoneBase):
     """Provide the access to an individual zone."""
 
-    zoneId: _ZoneIdT
-
     name: str  # TODO: check if is OK here
     setpointStatus: dict  # TODO
     temperatureStatus: dict  # TODO
@@ -117,10 +123,34 @@ class Zone(ZoneBase):
     def __init__(self, tcs: ControlSystem, zone_config: dict) -> None:
         super().__init__(tcs)
 
-        self.__dict__.update(zone_config)
+        self._config: Final[dict] = zone_config
         assert self.zoneId, "Invalid config dict"
 
         self._id = self.zoneId
+
+    @property
+    def zoneId(self) -> _ZoneIdT:
+        return self._config[SZ_ZONE_ID]
+
+    @property
+    def modelType(self) -> str:
+        return self._config[SZ_MODEL_TYPE]
+
+    @property
+    def name(self) -> str:
+        return self._config[SZ_NAME]
+
+    @property
+    def setpointCapabilities(self) -> dict:
+        return self._config[SZ_SETPOINT_CAPABILITIES]
+
+    @property
+    def scheduleCapabilities(self) -> dict:
+        return self._config[SZ_SCHEDULE_CAPABILITIES]
+
+    @property
+    def zoneType(self) -> str:
+        return self._config[SZ_ZONE_TYPE]
 
     async def _set_mode(self, heat_setpoint: dict) -> None:
         """TODO"""

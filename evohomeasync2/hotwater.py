@@ -6,9 +6,14 @@ from __future__ import annotations
 
 from datetime import datetime as dt
 import logging
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME, URL_BASE
+from .schema.const import (
+    SZ_DHW_ID,
+    SZ_DHW_STATE_CAPABILITIES_RESPONSE,
+    SZ_SCHEDULE_CAPABILITIES_RESPONSE,
+)
 from .zone import ZoneBase
 
 if TYPE_CHECKING:
@@ -22,8 +27,6 @@ _LOGGER = logging.getLogger(__name__)
 class HotWater(ZoneBase):
     """Provide handling of the hot water zone."""
 
-    dhwId: _DhwIdT
-
     temperatureStatus: dict  # TODO
 
     _type = "domesticHotWater"
@@ -31,10 +34,22 @@ class HotWater(ZoneBase):
     def __init__(self, tcs: ControlSystem, dhw_config: dict) -> None:
         super().__init__(tcs)
 
-        self.__dict__.update(dhw_config)
+        self._config: Final[dict] = dhw_config
         assert self.dhwId, "Invalid config dict"
 
         self._id = self.dhwId
+
+    @property
+    def dhwId(self) -> _DhwIdT:
+        return self._config[SZ_DHW_ID]
+
+    @property
+    def dhwStateCapabilitiesResponse(self) -> dict:
+        return self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
+
+    @property
+    def scheduleCapabilitiesResponse(self) -> dict:
+        return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
 
     @property
     def name(self) -> str:
