@@ -212,7 +212,7 @@ class EvohomeClient:
             response = await self._client(
                 "POST", AUTH_URL, data=AUTH_PAYLOAD | credentials, headers=AUTH_HEADER
             )  # 429, 503
-            oauth_token: dict = SCH_OAUTH_TOKEN(response)
+            SCH_OAUTH_TOKEN(response)  # can't use this, due to obsfucatied values
 
         except aiohttp.ClientResponseError as exc:
             # These have been seen / have been common:
@@ -224,9 +224,9 @@ class EvohomeClient:
             raise AuthenticationError(f"Unable to obtain an Access Token: {exc}")
 
         try:  # the access token _should_ be valid...
-            self.access_token = oauth_token["access_token"]
-            self.access_token_expires = dt.now() + td(seconds=oauth_token["expires_in"])
-            self.refresh_token = oauth_token["refresh_token"]
+            self.access_token = response["access_token"]
+            self.access_token_expires = dt.now() + td(seconds=response["expires_in"])
+            self.refresh_token = response["refresh_token"]
 
         except SchemaInvalid as exc:  # TODO: only if voluptuous is installed
             raise AuthenticationError(f"Unable to obtain an Access Token, hint: {exc}")
