@@ -9,8 +9,9 @@ import json
 import logging
 from typing import TYPE_CHECKING, NoReturn
 
-from .exceptions import InvalidSchedule
 from .const import API_STRFTIME, URL_BASE
+from .exceptions import InvalidSchedule
+from .schema import SCH_DHW_STATUS, SCH_ZONE_STATUS
 
 if TYPE_CHECKING:
     from .controlsystem import ControlSystem
@@ -35,7 +36,7 @@ class ZoneBase:
     _id: str  # zoneId or dhwId
     _type: str  # temperatureZone or domesticHotWater
 
-    def __init__(self, tcs: ControlSystem, config: dict):
+    def __init__(self, tcs: ControlSystem):
         self.tcs = tcs  # parent
         self.client = tcs.gateway.location.client
         self._client = tcs.gateway.location.client._client
@@ -44,14 +45,24 @@ class ZoneBase:
     def zone_type(self) -> NoReturn:
         raise NotImplementedError("ZoneBase.zone_type is deprecated, use ._type")
 
-    async def update_state(self) -> dict:
-        """Update the dhw/zone state with its latest status (returns the state)."""
+    async def refresh_status(self) -> dict:
+        """Update the dhw/zone with its latest status (also returns the status).
 
-        url = f"{self._type}/{self._id}/status?"  # TODO: why ? at end?
+        It will be more efficient to call Location.refresh_status().
+        """
+
+        url = f"{self._type}/{self._id}/status"
         response = await self._client("GET", f"{URL_BASE}/{url}")
-        status: dict = dict(response)  # type: ignore[arg-type]
+        if self._type == "temperatureZone":
+            status = SCH_DHW_STATUS(response)
+        else:
+            status = SCH_ZONE_STATUS(response)
 
+        self._update_state(status)
         return status
+
+    def _update_state(self, state: dict) -> None:
+        self.__dict__.update(state)
 
     async def schedule(self) -> NoReturn:
         raise NotImplementedError(
@@ -103,15 +114,15 @@ class Zone(ZoneBase):
 
     _type = "temperatureZone"
 
-    def __init__(self, tcs: ControlSystem, config: dict) -> None:
-        super().__init__(tcs, config)
+    def __init__(self, tcs: ControlSystem, zone_config: dict) -> None:
+        super().__init__(tcs)
 
-        self.__dict__.update(config)
+        self.__dict__.update(zone_config)
         assert self.zoneId, "Invalid config dict"
 
         self._id = self.zoneId
 
-    async def _set_heat_setpoint(self, heat_setpoint: dict) -> None:
+    async def _set_mode(self, heat_setpoint: dict) -> None:
         """TODO"""
 
         url = f"temperatureZone/{self.zoneId}/heatSetpoint"  # f"{_type}/{_id}/heatS..."
@@ -135,7 +146,7 @@ class Zone(ZoneBase):
                 "TimeUntil": until.strftime(API_STRFTIME),
             }
 
-        await self._set_heat_setpoint(mode)
+        await self._set_mode(mode)
 
     async def cancel_temp_override(self) -> None:
         """Cancel an override to the zone temperature."""
@@ -146,4 +157,4 @@ class Zone(ZoneBase):
             "TimeUntil": None,
         }
 
-        await self._set_heat_setpoint(mode)
+        await self._set_mode(mode)

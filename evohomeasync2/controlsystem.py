@@ -20,18 +20,70 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class ControlSystem:
+class ControlSystemDeprecated:
+    async def set_status(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "ControlSystem.set_status() is deprecrated, use .set_mode()"
+        )
+
+    async def set_status_normal(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "ControlSystem.set_status_normal() is deprecrated, use .set_mode_auto()"
+        )
+
+    async def set_status_reset(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "ControlSystem.set_status_reset() is deprecrated, use .reset_mode()"
+        )
+
+    async def set_status_custom(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "ControlSystem.set_status_custom() is deprecrated, use .set_mode_custom()"
+        )
+
+    async def set_status_eco(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "ControlSystem.set_status_eco() is deprecrated, use .set_mode_eco()"
+        )
+
+    async def set_status_away(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "ControlSystem.set_status_away() is deprecrated, use .set_mode_away()"
+        )
+
+    async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "ControlSystem.set_status_dayoff() is deprecrated, use .set_mode_dayoff()"
+        )
+
+    async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "ControlSystem.set_status_heatingoff() is deprecrated, use .set_mode_heatingoff()"
+        )
+
+    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "TCS.zone_schedules_backup() is deprecated, use .backup_schedules()"
+        )
+
+    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "TCS.zone_schedules_restore() is deprecated, use .restore_schedules()"
+        )
+
+
+class ControlSystem(ControlSystemDeprecated):
     """Instance of a gateway's Temperature Control System."""
 
     systemId: _SystemIdT
 
-    def __init__(self, gateway: Gateway, config: dict) -> None:
+    def __init__(self, gateway: Gateway, tcs_config: dict) -> None:
         self.gateway = gateway  # parent
         self.location = gateway.location
         self.client = gateway.location.client
         self._client = gateway.location.client._client
 
-        self.__dict__.update({k: v for k, v in config.items() if k != "zones"})
+        self.__dict__.update({k: v for k, v in tcs_config.items() if k != "zones"})
         assert self.systemId, "Invalid config dict"
 
         self._zones: list[Zone] = []
@@ -39,15 +91,18 @@ class ControlSystem:
         self.zones_by_id: dict[str, Zone] = {}
         self.hotwater: None | HotWater = None
 
-        for zone_config in config["zones"]:
+        for zone_config in tcs_config["zones"]:
             zone = Zone(self, zone_config)
 
             self._zones.append(zone)
             self.zones[zone.name] = zone
             self.zones_by_id[zone.zoneId] = zone
 
-        if dhw_config := config.get("dhw"):
+        if dhw_config := tcs_config.get("dhw"):
             self.hotwater = HotWater(self, dhw_config)
+
+    def _update_state(self, state: dict) -> None:
+        self.__dict__.update(state)
 
     async def _set_mode(self, mode: dict) -> None:
         """TODO"""
@@ -55,8 +110,11 @@ class ControlSystem:
         url = f"temperatureControlSystem/{self.systemId}/mode"
         await self._client("PUT", f"{URL_BASE}/{url}", json=mode)
 
-    # TODO: should be called set_mode() - same for all set_status_*()
-    async def set_status(self, mode: _ModeT, /, *, until: None | dt = None) -> None:
+    async def reset_mode(self) -> None:
+        """Reset the system into normal mode (and all zones to FollowSchedule mode)."""
+        await self.set_status("AutoWithReset")
+
+    async def set_mode(self, mode: _ModeT, /, *, until: None | dt = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
 
         if until is None:
@@ -70,50 +128,47 @@ class ControlSystem:
 
         await self._set_mode(status)
 
-    # TODO: should be called set_mode_normal() or set_auto()
-    async def set_status_normal(self) -> None:
+    async def set_mode_auto(self) -> None:
         """Set the system into normal mode."""
         await self.set_status("Auto")
 
-    async def set_status_reset(self) -> None:
-        """Reset the system into normal mode (and all zones to FollowSchedule mode)."""
-        await self.set_status("AutoWithReset")
-
-    async def set_status_custom(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_custom(self, /, *, until: None | dt = None) -> None:
         """Set the system into custom mode."""
         await self.set_status("Custom", until=until)
 
-    async def set_status_eco(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_eco(self, /, *, until: None | dt = None) -> None:
         """Set the system into eco mode."""
         await self.set_status("AutoWithEco", until=until)
 
-    async def set_status_away(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_away(self, /, *, until: None | dt = None) -> None:
         """Set the system into away mode."""
         await self.set_status("Away", until=until)
 
-    async def set_status_dayoff(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_dayoff(self, /, *, until: None | dt = None) -> None:
         """Set the system into dayoff mode."""
         await self.set_status("DayOff", until=until)
 
-    async def set_status_heatingoff(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_heatingoff(self, /, *, until: None | dt = None) -> None:
         """Set the system into heating off mode."""
         await self.set_status("HeatingOff", until=until)
 
     async def temperatures(self) -> list[dict]:
-        """Return the current zone temperatures and setpoints."""
+        """A convienience function to return the latest temperatures and setpoints."""
 
-        await self.location.status()
+        await self.location.refresh_status()
 
         result = []
 
-        if self.hotwater:
+        if dhw := self.hotwater:
             dhw_status = {
                 "thermostat": "DOMESTIC_HOT_WATER",
-                "id": self.hotwater.dhwId,
-                "name": "",
-                "temp": self.hotwater.temperatureStatus["temperature"],
-                "setpoint": "",
+                "id": dhw.dhwId,
+                "name": dhw.name,
+                "temp": None,
             }
+
+            if dhw.temperatureStatus["isAvailable"]:
+                dhw_status["temp"] = dhw.temperatureStatus["temperature"]
 
             result.append(dhw_status)
 
@@ -132,11 +187,6 @@ class ControlSystem:
             result.append(zone_status)
 
         return result
-
-    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "TCS.zone_schedules_backup() is deprecated, use .backup_schedules()"
-        )
 
     async def backup_schedules(self, filename: _FilePathT) -> None:
         """Backup all schedules from the control system to the file."""
@@ -163,11 +213,6 @@ class ControlSystem:
             file_output.write(json.dumps(schedules, indent=4))
 
         _LOGGER.info("Backup completed.")
-
-    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "TCS.zone_schedules_restore() is deprecated, use .restore_schedules()"
-        )
 
     async def restore_schedules(
         self, filename: _FilePathT, match_by_name: bool = False

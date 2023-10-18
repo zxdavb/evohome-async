@@ -28,10 +28,10 @@ class HotWater(ZoneBase):
 
     _type = "domesticHotWater"
 
-    def __init__(self, tcs: ControlSystem, config: dict) -> None:
-        super().__init__(tcs, config)
+    def __init__(self, tcs: ControlSystem, dhw_config: dict) -> None:
+        super().__init__(tcs)
 
-        self.__dict__.update(config)
+        self.__dict__.update(dhw_config)
         assert self.dhwId, "Invalid config dict"
 
         self._id = self.dhwId
@@ -44,7 +44,12 @@ class HotWater(ZoneBase):
     def zoneId(self) -> NoReturn:
         raise NotImplementedError("HotWater.zoneId is deprecated, use .dhwId (or ._id)")
 
-    async def _set_dhw_state(self, state: dict) -> None:
+    async def get_dhw_state(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "HotWater.get_dhw_state() is deprecated, use .update_status()"
+        )
+
+    async def _set_mode(self, state: dict) -> None:
         """Set the DHW state."""
 
         url = f"domesticHotWater/{self.dhwId}/state"  # f"{_type}/{_id}/state"
@@ -62,7 +67,7 @@ class HotWater(ZoneBase):
                 "UntilTime": until.strftime(API_STRFTIME),
             }
 
-        await self._set_dhw_state(mode)
+        await self._set_mode(mode)
 
     async def set_dhw_off(self, /, *, until: None | dt = None) -> None:
         """Set the DHW off until a given time, or permanently."""
@@ -76,20 +81,11 @@ class HotWater(ZoneBase):
                 "UntilTime": until.strftime(API_STRFTIME),
             }
 
-        await self._set_dhw_state(mode)
+        await self._set_mode(mode)
 
     async def set_dhw_auto(self) -> None:
         """Set the DHW to follow the schedule."""
 
         mode = {"Mode": "FollowSchedule", "State": "", "UntilTime": None}
 
-        await self._set_dhw_state(mode)
-
-    async def get_dhw_state(self) -> dict:
-        """Get the DHW state."""
-
-        url = f"domesticHotWater/{self.dhwId}/status?"
-        response = await self._client("GET", f"{URL_BASE}/{url}")
-        state: dict = dict(response)  # type: ignore[arg-type]  # TODO: use SCH_DHW_STATUS
-
-        return state
+        await self._set_mode(mode)

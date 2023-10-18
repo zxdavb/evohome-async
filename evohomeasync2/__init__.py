@@ -224,9 +224,9 @@ class EvohomeClient:
             raise AuthenticationError(f"Unable to obtain an Access Token: {exc}")
 
         try:  # the access token _should_ be valid...
-            self.access_token = response["access_token"]
-            self.access_token_expires = dt.now() + td(seconds=response["expires_in"])
-            self.refresh_token = response["refresh_token"]
+            self.access_token = response["access_token"]  # type: ignore[index]
+            self.access_token_expires = dt.now() + td(seconds=response["expires_in"])  # type: ignore[index, arg-type]
+            self.refresh_token = response["refresh_token"]  # type: ignore[index]
 
         except SchemaInvalid as exc:  # TODO: only if voluptuous is installed
             raise AuthenticationError(f"Unable to obtain an Access Token, hint: {exc}")
@@ -285,10 +285,10 @@ class EvohomeClient:
             return self._full_config
         return await self._installation()  # aka self.installation_info
 
-    async def _installation(self, update_status: bool = True) -> dict:
+    async def _installation(self, refresh_status: bool = True) -> dict:
         """Return the configuration of the user's locations their status.
 
-        The _update_status flag is used for dev/test.
+        The refresh_status flag is used for dev/test.
         """
 
         assert isinstance(self.account_info, dict)  # mypy
@@ -310,8 +310,8 @@ class EvohomeClient:
         for loc_data in self._full_config:
             loc = Location(self, loc_data)
             self.locations.append(loc)
-            if update_status:
-                await loc.status()
+            if refresh_status:
+                await loc.refresh_status()
 
         return self._full_config
 
