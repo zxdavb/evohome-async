@@ -85,10 +85,9 @@ class ControlSystem(_ControlSystemDeprecated):
     """Instance of a gateway's Temperature Control System."""
 
     def __init__(self, gateway: Gateway, tcs_config: dict) -> None:
-        self.gateway = gateway  # parent
+        self.gateway = gateway
         self.location = gateway.location
-        # self.client = gateway.location.client
-        self._client = gateway.location.client._client
+        self._client = gateway.location._client
 
         self._status: dict = {}
         self._config: Final[dict] = {

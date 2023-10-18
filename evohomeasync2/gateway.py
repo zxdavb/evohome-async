@@ -27,8 +27,6 @@ class Gateway:
 
     def __init__(self, location: Location, gwy_config: dict) -> None:
         self.location = location  # parent
-        # self.client = location.client
-        # self._client = self.client._client
 
         self._config: Final[dict] = gwy_config[SZ_GATEWAY_INFO]
         assert self.gatewayId, "Invalid config dict"

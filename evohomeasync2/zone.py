@@ -73,10 +73,9 @@ class _ZoneBase(_ZoneBaseDeprecated):
     _type: str  # Literal["temperatureZone", "domesticHotWater"]
 
     def __init__(self, tcs: ControlSystem) -> None:
-        self.tcs = tcs  # parent
+        self.tcs = tcs
 
-        # self.client = tcs.gateway.location.client
-        self._client = tcs.gateway.location.client._client
+        self._client = tcs.gateway.location._client
 
         self._status: dict = {}
 

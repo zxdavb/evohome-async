@@ -39,7 +39,7 @@ class Location(_LocationDeprecated):
     """Instance of an account's Location."""
 
     def __init__(self, client: EvohomeClient, loc_config: dict) -> None:
-        # self.client = client
+        self.client = client
         self._client = client._client
 
         self._config: Final[dict] = loc_config[SZ_LOCATION_INFO]
