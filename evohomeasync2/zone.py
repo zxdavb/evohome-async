@@ -51,7 +51,7 @@ class _ZoneBase:
 
     def __init__(self, tcs: ControlSystem):
         self.tcs = tcs  # parent
-        self.client = tcs.gateway.location.client
+        # self.client = tcs.gateway.location.client
         self._client = tcs.gateway.location.client._client
 
         self._status: dict = {}

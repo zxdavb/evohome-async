@@ -87,7 +87,7 @@ class ControlSystem(ControlSystemDeprecated):
     def __init__(self, gateway: Gateway, tcs_config: dict) -> None:
         self.gateway = gateway  # parent
         self.location = gateway.location
-        self.client = gateway.location.client
+        # self.client = gateway.location.client
         self._client = gateway.location.client._client
 
         self._status: dict = {}
