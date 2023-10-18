@@ -19,7 +19,7 @@ import aiohttp
 
 # from .tests.mock import aiohttp
 
-from .exceptions import AuthenticationError, SingleTcsError
+from .exceptions import AuthenticationError, InvalidResponse, SingleTcsError
 from .exceptions import volErrorInvalid as _volErrorInvalid
 from .exceptions import InvalidSchedule  # noqa: F401
 from .const import (
@@ -215,9 +215,10 @@ class EvohomeClient:
             oauth_token: dict = SCH_OAUTH_TOKEN(response)
 
         except aiohttp.ClientResponseError as exc:
-            # These have been seen / have been common
-            # 429 Too Many Requests: exceed authentication/api rate limits
-            # 503 Service Unavailable
+            # These have been seen / have been common:
+            #  - 400 Bad Request: unknown username/password?
+            #  - 429 Too Many Requests: exceeded authentication/api rate limits
+            #  - 503 Service Unavailable
 
             # can't use response.text() as may raise another error
             raise AuthenticationError(f"Unable to obtain an Access Token: {exc}")
@@ -255,8 +256,16 @@ class EvohomeClient:
         if self._user_account and not force_update:
             return self._user_account
 
-        reponse = await self._client("GET", f"{URL_BASE}/userAccount")  # 401
-        self._user_account: dict = SCH_USER_ACCOUNT(reponse)
+        try:
+            response = await self._client("GET", f"{URL_BASE}/userAccount")
+
+        except aiohttp.ClientResponseError as exc:
+            # These have been seen / have been common:
+            # - 401 Unauthorized
+
+            raise InvalidResponse(f"Unable to obtain Account details: {exc}")
+
+        self._user_account: dict = SCH_USER_ACCOUNT(response)
 
         return self._user_account
 
@@ -290,7 +299,11 @@ class EvohomeClient:
         url = f"location/installationInfo?userId={self.account_info['userId']}&"
         url += "includeTemperatureControlSystems=True"
 
-        response = await self._client("GET", f"{URL_BASE}/{url}")
+        try:
+            response = await self._client("GET", f"{URL_BASE}/{url}")
+        except aiohttp.ClientResponseError as exc:
+            raise InvalidResponse(f"Unable to obtain Installation details: {exc}")
+
         self._full_config: dict = SCH_FULL_CONFIG(response)
 
         # populate each freshly instantiated location with its initial status
