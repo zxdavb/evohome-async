@@ -54,7 +54,57 @@ _LOGGER = logging.getLogger(__name__)
 HTTP_UNAUTHORIZED = 401
 
 
-class EvohomeClient:
+class EvohomeClientDeprecated:
+    async def gateway(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError("EvohomeClient.gateway() is deprecated")
+
+    async def set_status_reset(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.set_status_reset() is deprecated, use .reset_mode()"
+        )
+
+    async def set_status_normal(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
+        )
+
+    async def set_status_custom(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.set_status_custom() is deprecated, use .set_mode_custom()"
+        )
+
+    async def set_status_eco(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.set_status_eco() is deprecated, use .set_mode_eco()"
+        )
+
+    async def set_status_away(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.set_status_away() is deprecated, use .set_mode_away()"
+        )
+
+    async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.set_status_dayoff() is deprecated, use .set_mode_dayoff()"
+        )
+
+    async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.set_status_heatingoff() is deprecated, use .set_mode_heatingoff()"
+        )
+
+    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.zone_schedules_backup() is deprecated, use .backup_schedules()"
+        )
+
+    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.zone_schedules_restore() is deprecated, use .restore_schedules()"
+        )
+
+
+class EvohomeClient(EvohomeClientDeprecated):
     """Provide access to the v2 Evohome API."""
 
     _full_config: dict = None  # type: ignore[assignment]  # installation_info (all locations of user)
@@ -326,9 +376,6 @@ class EvohomeClient:
             "EvohomeClient.full_installation() is deprecated, use .installation()"
         )
 
-    async def gateway(self, *args, **kwargs) -> NoReturn:  # deprecated
-        raise NotImplementedError("EvohomeClient.gateway() is deprecated")
-
     @property
     def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?
         """Return the ID of the 'default' TCS (assumes only one loc/gwy/TCS)."""
@@ -357,51 +404,41 @@ class EvohomeClient:
 
         return self.locations[0]._gateways[0]._control_systems[0]  # type: ignore[index]
 
-    async def set_status_reset(self) -> None:
+    async def reset_mode(self) -> None:
         """Reset the mode of the default TCS and its zones."""
-        await self._get_single_heating_system().set_status_reset()
+        await self._get_single_heating_system().reset_mode()
 
-    async def set_status_normal(self) -> None:
+    async def set_mode_auto(self) -> None:
         """Set the default TCS into auto mode."""
-        await self._get_single_heating_system().set_status_normal()
+        await self._get_single_heating_system().set_mode_auto()
 
-    async def set_status_custom(self, /, *, until: None | dt = None) -> None:
-        """Set the default TCS into custom mode."""
-        await self._get_single_heating_system().set_status_custom(until=until)
-
-    async def set_status_eco(self, /, *, until: None | dt = None) -> None:
-        """Set the default TCS into eco mode."""
-        await self._get_single_heating_system().set_status_eco(until=until)
-
-    async def set_status_away(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_away(self, /, *, until: None | dt = None) -> None:
         """Set the default TCS into away mode."""
-        await self._get_single_heating_system().set_status_away(until=until)
+        await self._get_single_heating_system().set_mode_away(until=until)
 
-    async def set_status_dayoff(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_custom(self, /, *, until: None | dt = None) -> None:
+        """Set the default TCS into custom mode."""
+        await self._get_single_heating_system().set_mode_custom(until=until)
+
+    async def set_mode_dayoff(self, /, *, until: None | dt = None) -> None:
         """Set the default TCS into day off mode."""
-        await self._get_single_heating_system().set_status_dayoff(until=until)
+        await self._get_single_heating_system().set_mode_dayoff(until=until)
 
-    async def set_status_heatingoff(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_eco(self, /, *, until: None | dt = None) -> None:
+        """Set the default TCS into eco mode."""
+        await self._get_single_heating_system().set_mode_eco(until=until)
+
+    async def set_mode_heatingoff(self, /, *, until: None | dt = None) -> None:
         """Set the default TCS into heating off mode."""
-        await self._get_single_heating_system().set_status_heatingoff(until=until)
+        await self._get_single_heating_system().set_mode_heatingoff(until=until)
 
     async def temperatures(self) -> list[dict]:
         """Return the current temperatures and setpoints of the default TCS."""
         return await self._get_single_heating_system().temperatures()
 
-    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:  # deprecated
-        raise NotImplementedError(
-            "ZoneBase.zone_schedules_backup() is deprecated, use .backup_schedules()"
-        )
-
     async def backup_schedules(self, filename: _FilePathT) -> None:
         """Backup all schedules from the default control system to the file."""
         await self._get_single_heating_system().backup_schedules(filename)
-
-    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:  # deprecated
-        raise NotImplementedError(
-            "ZoneBase.zone_schedules_restore() is deprecated, use .restore_schedules()"
-        )
 
     async def restore_schedules(
         self, filename: _FilePathT, match_by_name: bool = False
