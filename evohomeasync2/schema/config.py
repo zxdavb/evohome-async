@@ -77,6 +77,9 @@ from .const import (
 )
 from .const import obfuscate as _obfuscate
 
+SZ_DURATION = "Duration"
+SZ_PERIOD = "Period"
+
 
 SCH_SYSTEM_MODE_PERM = vol.Schema(
     {
@@ -103,7 +106,7 @@ SCH_SYSTEM_MODE_TEMP = vol.Schema(
         vol.Required(SZ_CAN_BE_TEMPORARY): True,
         vol.Required(SZ_MAX_DURATION): str,  # "99.00:00:00"
         vol.Required(SZ_TIMING_RESOLUTION): str,  # "1.00:00:00"
-        vol.Required(SZ_TIMING_MODE): vol.Any("Duration", "Period"),  # Duration, Period
+        vol.Required(SZ_TIMING_MODE): vol.Any(SZ_DURATION, SZ_PERIOD),
     },
     extra=vol.PREVENT_EXTRA,
 )

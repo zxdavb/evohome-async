@@ -34,6 +34,7 @@ from .const import (
     SZ_TEMPERATURE,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TEMPERATURE_STATUS,
+    SZ_TIME_UNTIL,
     SZ_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONES,
@@ -104,11 +105,25 @@ SCH_DHW = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_SYSTEM_MODE_STATUS = vol.Schema(
-    {
-        vol.Required(SZ_MODE): vol.Any(*[m.value for m in SystemMode]),
-        vol.Required(SZ_IS_PERMANENT): bool,
-    },
+SCH_SYSTEM_MODE_STATUS = vol.Any(
+    vol.Schema(
+        {
+            vol.Required(SZ_MODE): vol.Any(*[m.value for m in SystemMode]),
+            vol.Required(SZ_IS_PERMANENT): True,
+        }
+    ),
+    vol.Schema(
+        {
+            vol.Required(SZ_MODE): vol.Any(
+                str(SystemMode.AUTO_WITH_ECO),
+                str(SystemMode.AWAY),
+                str(SystemMode.CUSTOM),
+                str(SystemMode.DAY_OFF),
+            ),
+            vol.Required(SZ_TIME_UNTIL): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
+            vol.Required(SZ_IS_PERMANENT): False,
+        }
+    ),
     extra=vol.PREVENT_EXTRA,
 )
 
