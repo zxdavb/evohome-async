@@ -3,6 +3,7 @@ MOCK_AUTH_RESPONSE = {  # can use this for all
     "token_type": "bearer",
     "expires_in": 1800,
     "refresh_token": "-- REDACTED --",
+    "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
 }
 
 
@@ -558,3 +559,22 @@ MOCK_SCHEDULE_ZONE = {  # of any zone (no zoneId)
 
 
 MOCK_SCHEDULE_DHW = {}  # TODO
+
+
+def user_config_from_full_config(full_config: dict) -> dict:
+    """Create a valid MOCK_USER_CONFIG from a MOCK_FULL_CONFIG."""
+
+    # assert schema
+    loc_idx = 0
+    return (
+        full_config[loc_idx]["locationInfo"]["locationOwner"]
+        | {
+            k: v
+            for k, v in full_config[loc_idx]["locationInfo"].items()
+            if k in ("streetAddress", "city", "postcode", "country")
+        }
+        | {"language": "enGB"}
+    )
+
+
+MOCK_USER_CONFIG = user_config_from_full_config(MOCK_FULL_CONFIG)

@@ -18,13 +18,25 @@ from .const import (
     SZ_CAN_BE_TEMPORARY,
     SZ_CAN_CONTROL_COOL,
     SZ_CAN_CONTROL_HEAT,
+    SZ_CITY,
     SZ_CURRENT_OFFSET_MINUTES,
+    SZ_COUNTRY,
+    SZ_CRC,
     SZ_DHW,
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
+    SZ_FIRSTNAME,
     SZ_DISPLAY_NAME,
+    SZ_GATEWAY_ID,
+    SZ_GATEWAY_INFO,
     SZ_GATEWAYS,
+    SZ_IS_WI_FI,
+    SZ_LASTNAME,
+    SZ_LOCATION_ID,
     SZ_LOCATION_INFO,
+    SZ_LOCATION_TYPE,
+    SZ_LOCATION_OWNER,
+    SZ_MAC,
     SZ_MAX_DURATION,
     SZ_MAX_HEAT_SETPOINT,
     SZ_SETPOINT_VALUE_RESOLUTION,
@@ -34,9 +46,11 @@ from .const import (
     SZ_MODEL_TYPE,
     SZ_NAME,
     SZ_OFFSET_MINUTES,
+    SZ_POSTCODE,
     SZ_SCHEDULE_CAPABILITIES,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_SETPOINT_CAPABILITIES,
+    SZ_STREET_ADDRESS,
     SZ_SUPPORTS_DAYLIGHT_SAVING,
     SZ_SYSTEM_ID,
     SZ_SYSTEM_MODE,
@@ -45,6 +59,9 @@ from .const import (
     SZ_TIME_ZONE_ID,
     SZ_TIMING_MODE,
     SZ_TIMING_RESOLUTION,
+    SZ_USE_DAYLIGHT_SAVE_SWITCHING,
+    SZ_USER_ID,
+    SZ_USERNAME,
     SZ_VALUE_RESOLUTION,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
@@ -173,8 +190,21 @@ SCH_TEMPERATURE_CONTROL_SYSTEM = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
+SCH_GATEWAY_INFO = vol.Schema(
+    {
+        vol.Required(SZ_GATEWAY_ID): str,
+        vol.Required(SZ_MAC): str,
+        vol.Required(SZ_CRC): str,
+        vol.Required(SZ_IS_WI_FI): str,
+    },
+    extra=vol.PREVENT_EXTRA,
+)
+
 SCH_GATEWAY = vol.Schema(
-    {vol.Required(SZ_TEMPERATURE_CONTROL_SYSTEMS): [SCH_TEMPERATURE_CONTROL_SYSTEM]},
+    {
+        vol.Required(SZ_GATEWAY_INFO): dict,
+        vol.Required(SZ_TEMPERATURE_CONTROL_SYSTEMS): [SCH_TEMPERATURE_CONTROL_SYSTEM],
+    },
     extra=vol.PREVENT_EXTRA,
 )
 
@@ -189,17 +219,43 @@ SCH_TIME_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_LOCATION_INFO = vol.Schema(
+SCH_LOCATION_OWNER = vol.Schema(
     {
-        vol.Required(SZ_TIME_ZONE): SCH_TIME_ZONE,
+        vol.Required(SZ_USER_ID): str,
+        vol.Required(SZ_USERNAME): vol.Email(),
+        vol.Required(SZ_FIRSTNAME): str,
+        vol.Required(SZ_LASTNAME): str,
     },
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_CONFIG = vol.Schema(
+SCH_LOCATION_INFO = vol.Schema(
+    {
+        vol.Required(SZ_LOCATION_ID): str,
+        vol.Required(SZ_NAME): str,
+        vol.Required(SZ_STREET_ADDRESS): str,
+        vol.Required(SZ_CITY): str,
+        vol.Required(SZ_COUNTRY): str,
+        vol.Required(SZ_POSTCODE): str,
+        vol.Required(SZ_LOCATION_TYPE): str,  # "Residential"
+        vol.Required(SZ_USE_DAYLIGHT_SAVE_SWITCHING): bool,
+        vol.Required(SZ_TIME_ZONE): SCH_TIME_ZONE,
+        vol.Required(SZ_LOCATION_OWNER): dict,
+    },
+    extra=vol.PREVENT_EXTRA,
+)
+
+# /location/{location_id}/installationInfo?includeTemperatureControlSystems=True
+SCH_LOCATION_INSTALLATION_INFO = vol.Schema(
     {
         vol.Required(SZ_LOCATION_INFO): SCH_LOCATION_INFO,
         vol.Required(SZ_GATEWAYS): [SCH_GATEWAY],
     },
+    extra=vol.PREVENT_EXTRA,
+)
+
+# /location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True
+SCH_USER_LOCATIONS_INSTALLATION_INFO = vol.Schema(
+    [SCH_LOCATION_INSTALLATION_INFO],
     extra=vol.PREVENT_EXTRA,
 )

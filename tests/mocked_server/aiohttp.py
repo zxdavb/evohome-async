@@ -18,6 +18,7 @@ from .const import (
     MOCK_SCHEDULE_DHW,
     MOCK_SCHEDULE_ZONE,
 )
+from .const import user_config_from_full_config as _user_config_from_full_config
 
 
 @verify(EnumCheck.UNIQUE)
@@ -58,18 +59,7 @@ class MockedServer:
     @staticmethod
     def _user_config_from_full_config(full_config: dict) -> dict:
         """Create a valid MOCK_USER_CONFIG from a MOCK_FULL_CONFIG."""
-
-        # assert schema
-        loc_idx = 0
-        return (
-            full_config[loc_idx]["locationInfo"]["locationOwner"]
-            | {
-                k: v
-                for k, v in full_config[loc_idx]["locationInfo"].items()
-                if k in ("streetAddress", "city", "postcode", "country")
-            }
-            | {"language": "enGB"}
-        )
+        return _user_config_from_full_config(full_config)
 
     def request(
         self, method: _methodT, url: _urlT, data: None | dict | str = None
@@ -233,6 +223,9 @@ class ClientSession:
 
     def post(self, url, /, *, data: Any = None, headers: None | str = None):
         return ClientResponse(hdrs.METH_POST, url, data=data, session=self)
+
+    async def close(self) -> None:
+        pass
 
 
 class ClientResponse:

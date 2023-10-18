@@ -103,7 +103,7 @@ SCH_DHW = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_SYSTEM_MODE_STATUS = vol.Schema(  # TODO: also do isTemporary?
+SCH_SYSTEM_MODE_STATUS = vol.Schema(
     {
         vol.Required(SZ_MODE): vol.Any(*[m.value for m in SystemMode]),
         vol.Required(SZ_IS_PERMANENT): bool,
@@ -131,7 +131,8 @@ SCH_GATEWAY = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_STATUS = vol.Schema(
+# location/{location_id}/status?includeTemperatureControlSystems=True
+SCH_LOCATION_STATUS = vol.Schema(
     {
         vol.Required(SZ_LOCATION_ID): vol.Match(REGEX_LOCATION_ID),
         vol.Required(SZ_GATEWAYS): [SCH_GATEWAY],
