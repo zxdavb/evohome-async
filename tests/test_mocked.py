@@ -13,7 +13,11 @@ import evohomeasync2 as evohome
 
 from mocked_server import aiohttp as mocked_aiohttp
 from evohomeasync2.schema import (
-    SCH_DHW_STATUS, SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT, SCH_ZONE_STATUS
+    SCH_DHW_STATUS,
+    SCH_FULL_CONFIG,
+    SCH_LOCN_STATUS,
+    SCH_USER_ACCOUNT,
+    SCH_ZONE_STATUS,
 )
 
 
@@ -79,7 +83,7 @@ async def _test_vendor_api_calls(
     assert client.locations == []
     assert client.installation_info is None
 
-    await client._installation(update_status=False)
+    await client._installation(refresh_status=False)
 
     assert SCH_FULL_CONFIG(client._full_config)  # an array of locations
     assert client.installation_info == client._full_config
@@ -90,19 +94,19 @@ async def _test_vendor_api_calls(
     #
     # STEP 4: Status, GET /location/{locationId}/status
     for loc in client.locations:
-        loc_status = await loc.status()
+        loc_status = await loc.refresh_status()
         assert SCH_LOCN_STATUS(loc_status)
 
     #
     # STEP 6: Status, GET /domesticHotWater/{dhwId}/status?
     if dhw := client._get_single_heating_system().hotwater:
-        dhw_status = await dhw.get_dhw_state()
+        dhw_status = await dhw.refresh_status()
         assert SCH_DHW_STATUS(dhw_status)
 
     #
     # STEP 5: Status, GET /temperatureZone/{ZoneId}/status?
     if zone := client._get_single_heating_system()._zones[0]:
-        zone_status = await zone.update_state()
+        zone_status = await zone.refresh_status()
         assert SCH_ZONE_STATUS(zone_status)
 
 

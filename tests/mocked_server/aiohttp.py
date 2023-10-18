@@ -8,8 +8,16 @@ import asyncio
 from enum import EnumCheck, StrEnum, verify
 import re
 from types import TracebackType
-from typing import Any, Final, Literal, Self, Type
+from typing import TYPE_CHECKING, Any, Final, Literal, Self, Type
 
+from evohomeasync2.schema.const import (
+    SZ_DHW,
+    SZ_DHW_ID,
+    SZ_GATEWAYS,
+    SZ_TEMPERATURE_CONTROL_SYSTEMS,
+    SZ_ZONE_ID,
+    SZ_ZONES,
+)
 import json
 
 from .const import (
@@ -20,6 +28,9 @@ from .const import (
     MOCK_SCHEDULE_ZONE,
 )
 from .const import user_config_from_full_config as _user_config_from_full_config
+
+if TYPE_CHECKING:
+    from evohomeasync2.typing import _DhwIdT, _ZoneIdT
 
 
 @verify(EnumCheck.UNIQUE)
@@ -167,10 +178,17 @@ class MockedServer:
     def _response_for_zone_request(self) -> None | _bodyT:
         """"""
 
+        def zone_id() -> _ZoneIdT:
+            return self._url.split("temperatureZone/")[1].split("/")[0]
+
         if self._method == hdrs.METH_GET:
             if re.search(r"temperatureZone/.*/schedule", self._url):
                 # GET /temperatureZone/{zoneId}/schedule  # /{zone_type}/{zoneId}/schedule
-                return self.zone_schedule(zone_id=None)
+                return self.zone_schedule(zone_id=zone_id())
+
+            if re.search(r"temperatureZone/.*/status", self._url):
+                # GET /temperatureZone/{zoneId}/status  # /{zone_type}/{zoneId}/schedule
+                return self.zone_status(zone_id=zone_id())
 
         elif self._method == hdrs.METH_PUT:
             if re.search(r"temperatureZone/.*/schedule", self._url):
@@ -184,14 +202,17 @@ class MockedServer:
     def _response_for_dhw_request(self) -> None | _bodyT:
         """"""
 
+        def dhw_id() -> _DhwIdT:
+            return self._url.split("domesticHotWater/")[1].split("/")[0]
+
         if self._method == hdrs.METH_GET:
             if re.search(r"domesticHotWater/.*/schedule", self._url):
                 # GET /domesticHotWater/{dhwId}/schedule  # /{zone_type}/{zoneId}/schedule
-                return self.dhw_schedule(dhw_id=None)
+                return self.dhw_schedule(dhw_id=dhw_id())
 
             if re.search(r"domesticHotWater/.*/status", self._url):
                 # GET /domesticHotWater/{dhwId}/status
-                raise NotImplementedError
+                return self.dhw_status(dhw_id=dhw_id())
 
         elif self._method == hdrs.METH_PUT:
             if re.search(r"domesticHotWater/.*/schedule", self._url):
@@ -217,11 +238,28 @@ class MockedServer:
     def locn_status(self, location_id: None | str) -> dict:
         return self._locn_status
 
-    def zone_schedule(self, zone_id: None | str = None) -> dict:
-        return self._zone_schedule
-
-    def dhw_schedule(self, dhw_id: None | str = None) -> dict:
+    def dhw_schedule(self, dhw_id: _DhwIdT) -> dict:
         return self._dhw_schedule
+
+    def dhw_status(self, dhw_id: _DhwIdT) -> None | dict:
+        for gwy in self._locn_status[SZ_GATEWAYS]:
+            for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+                if (dhw := tcs.get(SZ_DHW)) and dhw[SZ_DHW_ID] == dhw_id:
+                    return dhw
+
+        self.status = 404
+
+    def zone_status(self, zone_id: _ZoneIdT) -> None | dict:
+        for gwy in self._locn_status[SZ_GATEWAYS]:
+            for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+                for zone in tcs[SZ_ZONES]:
+                    if zone[SZ_ZONE_ID] == zone_id:
+                        return zone
+
+        self.status = 404
+
+    def zone_schedule(self, zone_id: _ZoneIdT) -> dict:
+        return self._zone_schedule
 
 
 class ClientError(Exception):
@@ -231,7 +269,8 @@ class ClientError(Exception):
 class ClientResponseError(ClientError):
     """Base class for exceptions that occur after getting a response."""
 
-    def __init__(self, /, *, status: None | int = None, **kwargs) -> None:
+    def __init__(self, msg, /, *, status: None | int = None, **kwargs) -> None:
+        super().__init__(msg)
         self.status: int = status or 404
 
 
@@ -299,7 +338,9 @@ class ClientResponse:
 
     def raise_for_status(self) -> None:
         if self.status >= 300:
-            raise ClientResponseError(status=self.status)
+            raise ClientResponseError(
+                f"{self.method} {self.url}: {self.status}", status=self.status
+            )
 
     async def text(self, /, **kwargs) -> str:  # TODO: if no body...
         """Return the response body as text."""
