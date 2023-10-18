@@ -44,6 +44,15 @@ class ZoneBase:
     def zone_type(self) -> NoReturn:
         raise NotImplementedError("ZoneBase.zone_type is deprecated, use ._type")
 
+    async def update_state(self) -> dict:
+        """Update the dhw/zone state with its latest status (returns the state)."""
+
+        url = f"{self._type}/{self._id}/status?"  # TODO: why ? at end?
+        response = await self._client("GET", f"{URL_BASE}/{url}")
+        status: dict = dict(response)  # type: ignore[arg-type]
+
+        return status
+
     async def schedule(self) -> NoReturn:
         raise NotImplementedError(
             "ZoneBase.schedule() is deprecrated, use .get_schedule()"
