@@ -11,7 +11,7 @@ import pytest
 import evohomeasync2 as evohome
 
 from mocked_server import aiohttp as mocked_aiohttp
-from schema import SCH_CONFIG, SCH_STATUS, SCH_USER_ACCOUNT
+from schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
 
 
 TEST_DIR = Path(__file__).resolve().parent
@@ -46,28 +46,30 @@ async def _test_vendor_api_calls(
     await client._basic_login()  # re-authenticate using refresh_token
 
     #
-    # STEP 1A: User account,  GET /userAccount...
+    # STEP 2: User account,  GET /userAccount...
     assert client.account_info is None
     await client.user_account(force_update=False)  # will update as no access_token
     assert SCH_USER_ACCOUNT(client.account_info)
 
     await client.user_account()  # wont update as access_token is valid
-    await client.user_account(force_update=True)
+    await client.user_account(force_update=True)  # will update as forced
 
     #
-    # STEP 1B: installation, GET /location/installationInfo?userId={userId}
+    # STEP 3: Installation, GET /location/installationInfo?userId={userId}
     assert client.locations is None
     assert client.installation_info is None
 
-    await client.installation(update_status=False)
+    await client._installation(update_status=False)
 
     assert isinstance(client.system_id, str)
-    assert SCH_CONFIG(client.installation_info)  # an array of locations
+    assert SCH_FULL_CONFIG(client.installation_info)  # an array of locations
     assert client.locations
 
+    #
+    # STEP 4: Status, GET /location/{locationId}/status
     for loc in client.locations:
         loc_status = await loc.status()
-        assert SCH_STATUS(loc_status)
+        assert SCH_LOCN_STATUS(loc_status)
 
 
 @pytest.mark.asyncio

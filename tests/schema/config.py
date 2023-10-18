@@ -195,14 +195,14 @@ SCH_GATEWAY_INFO = vol.Schema(
         vol.Required(SZ_GATEWAY_ID): str,
         vol.Required(SZ_MAC): str,
         vol.Required(SZ_CRC): str,
-        vol.Required(SZ_IS_WI_FI): str,
+        vol.Required(SZ_IS_WI_FI): bool,
     },
     extra=vol.PREVENT_EXTRA,
 )
 
 SCH_GATEWAY = vol.Schema(
     {
-        vol.Required(SZ_GATEWAY_INFO): dict,
+        vol.Required(SZ_GATEWAY_INFO): SCH_GATEWAY_INFO,
         vol.Required(SZ_TEMPERATURE_CONTROL_SYSTEMS): [SCH_TEMPERATURE_CONTROL_SYSTEM],
     },
     extra=vol.PREVENT_EXTRA,
@@ -240,7 +240,7 @@ SCH_LOCATION_INFO = vol.Schema(
         vol.Required(SZ_LOCATION_TYPE): str,  # "Residential"
         vol.Required(SZ_USE_DAYLIGHT_SAVE_SWITCHING): bool,
         vol.Required(SZ_TIME_ZONE): SCH_TIME_ZONE,
-        vol.Required(SZ_LOCATION_OWNER): dict,
+        vol.Required(SZ_LOCATION_OWNER): SCH_LOCATION_OWNER,
     },
     extra=vol.PREVENT_EXTRA,
 )
