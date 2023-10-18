@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from . import Location
     from .typing import _GatewayIdT
 
-
 # _LOGGER = logging.getLogger(__name__)
 
 

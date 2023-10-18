@@ -4,7 +4,6 @@
 """Provides handling of a TCC location."""
 
 from __future__ import annotations
-import logging
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import URL_BASE
@@ -26,8 +25,7 @@ if TYPE_CHECKING:
     from . import EvohomeClient, ControlSystem
     from .typing import _LocationIdT
 
-
-_LOGGER = logging.getLogger(__name__)
+# _LOGGER = logging.getLogger(__name__)
 
 
 class Location:

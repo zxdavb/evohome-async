@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""Provides handling of individual zones."""
+"""Provides handling of heatings zones."""
+
 from __future__ import annotations
 
 from datetime import datetime as dt
@@ -25,6 +26,8 @@ if TYPE_CHECKING:
     from .controlsystem import ControlSystem
     from .typing import _ZoneIdT
 
+_LOGGER = logging.getLogger(__name__)
+
 
 MAPPING = [
     ("dailySchedules", "DailySchedules"),
@@ -35,10 +38,8 @@ MAPPING = [
     ("dhwState", "DhwState"),
 ]
 
-_LOGGER = logging.getLogger(__name__)
 
-
-class ZoneBase:
+class _ZoneBase:
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     _id: str  # .zoneId or .dhwId
@@ -111,7 +112,7 @@ class ZoneBase:
         await self._client("PUT", f"{URL_BASE}/{url}", json=zone_schedule)
 
 
-class Zone(ZoneBase):
+class Zone(_ZoneBase):
     """Provide the access to an individual zone."""
 
     name: str  # TODO: check if is OK here

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 """Provides handling of the hot water zone."""
+
 from __future__ import annotations
 
 from datetime import datetime as dt
-import logging
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME, URL_BASE
@@ -14,17 +14,17 @@ from .schema.const import (
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
 )
-from .zone import ZoneBase
+from .zone import _ZoneBase
+
 
 if TYPE_CHECKING:
     from .controlsystem import ControlSystem
     from .typing import _DhwIdT
 
+# _LOGGER = logging.getLogger(__name__)
 
-_LOGGER = logging.getLogger(__name__)
 
-
-class HotWater(ZoneBase):
+class HotWater(_ZoneBase):
     """Provide handling of the hot water zone."""
 
     temperatureStatus: dict  # TODO

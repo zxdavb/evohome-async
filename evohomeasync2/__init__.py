@@ -36,7 +36,7 @@ from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401
 from .location import Location
 from .schema import SCH_FULL_CONFIG, SCH_OAUTH_TOKEN, SCH_USER_ACCOUNT
-from .zone import ZoneBase, Zone  # noqa: F401
+from .zone import _ZoneBase, Zone  # noqa: F401
 
 try:  # voluptuous is an optional module...
     from voluptuous.error import Invalid as SchemaInvalid  # type: ignore[import-untyped]
@@ -47,11 +47,11 @@ except ModuleNotFoundError:  # No module named 'voluptuous'
 if TYPE_CHECKING:
     from .typing import _FilePathT, _LocationIdT, _SystemIdT
 
+# logging.basicConfig()
+_LOGGER = logging.getLogger(__name__)
+
 
 HTTP_UNAUTHORIZED = 401
-
-logging.basicConfig()
-_LOGGER = logging.getLogger(__name__)
 
 
 class EvohomeClient:
