@@ -14,10 +14,13 @@ from .const import API_STRFTIME, URL_BASE
 from .exceptions import InvalidSchedule
 from .schema import SCH_DHW_STATUS, SCH_ZONE_STATUS
 from .schema.const import (
+    SZ_ACTIVE_FAULTS,
     SZ_MODEL_TYPE,
     SZ_NAME,
     SZ_SCHEDULE_CAPABILITIES,
     SZ_SETPOINT_CAPABILITIES,
+    SZ_SETPOINT_STATUS,
+    SZ_TEMPERATURE_STATUS,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
@@ -50,6 +53,8 @@ class _ZoneBase:
         self.client = tcs.gateway.location.client
         self._client = tcs.gateway.location.client._client
 
+        self._status = {}
+
     @property
     def zone_type(self) -> NoReturn:
         raise NotImplementedError("ZoneBase.zone_type is deprecated, use ._type")
@@ -71,7 +76,16 @@ class _ZoneBase:
         return status
 
     def _update_state(self, state: dict) -> None:
-        self.__dict__.update(state)
+        self._status = state
+
+    # status attrs...
+    @property
+    def activeFaults(self) -> list:
+        return self._status[SZ_ACTIVE_FAULTS]
+
+    @property
+    def temperatureStatus(self) -> dict:
+        return self._status[SZ_TEMPERATURE_STATUS]
 
     async def schedule(self) -> NoReturn:
         raise NotImplementedError(
@@ -129,6 +143,7 @@ class Zone(_ZoneBase):
 
         self._id = self.zoneId
 
+    # config attrs...
     @property
     def zoneId(self) -> _ZoneIdT:
         return self._config[SZ_ZONE_ID]
@@ -136,10 +151,6 @@ class Zone(_ZoneBase):
     @property
     def modelType(self) -> str:
         return self._config[SZ_MODEL_TYPE]
-
-    @property
-    def name(self) -> str:
-        return self._config[SZ_NAME]
 
     @property
     def setpointCapabilities(self) -> dict:
@@ -152,6 +163,15 @@ class Zone(_ZoneBase):
     @property
     def zoneType(self) -> str:
         return self._config[SZ_ZONE_TYPE]
+
+    # status attrs...
+    @property
+    def name(self) -> str:
+        return self._config.get(SZ_NAME) or self._config[SZ_NAME]
+
+    @property
+    def setpointStatus(self) -> dict:
+        return self._status[SZ_SETPOINT_STATUS]
 
     async def _set_mode(self, heat_setpoint: dict) -> None:
         """TODO"""

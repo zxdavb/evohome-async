@@ -13,6 +13,7 @@ from .schema.const import (
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
+    SZ_STATE_STATUS,
 )
 from .zone import _ZoneBase
 
@@ -39,6 +40,7 @@ class HotWater(_ZoneBase):
 
         self._id = self.dhwId
 
+    # config attrs...
     @property
     def dhwId(self) -> _DhwIdT:
         return self._config[SZ_DHW_ID]
@@ -52,12 +54,17 @@ class HotWater(_ZoneBase):
         return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
 
     @property
+    def zoneId(self) -> NoReturn:
+        raise NotImplementedError("HotWater.zoneId is deprecated, use .dhwId (or ._id)")
+
+    # status attrs...
+    @property
     def name(self) -> str:
         return "Domestic Hot Water"
 
     @property
-    def zoneId(self) -> NoReturn:
-        raise NotImplementedError("HotWater.zoneId is deprecated, use .dhwId (or ._id)")
+    def stateStatus(self) -> dict:
+        return self._status[SZ_STATE_STATUS]
 
     async def get_dhw_state(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(

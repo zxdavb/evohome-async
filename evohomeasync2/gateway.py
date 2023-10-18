@@ -44,6 +44,7 @@ class Gateway:
             self._control_systems.append(tcs)
             self.control_systems[tcs.systemId] = tcs
 
+    # config attrs...
     @property
     def gatewayId(self) -> _GatewayIdT:
         return self._config[SZ_GATEWAY_ID]

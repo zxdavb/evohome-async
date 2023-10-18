@@ -47,6 +47,7 @@ class Location:
             self._gateways.append(gwy)
             self.gateways[gwy.gatewayId] = gwy
 
+    # config attrs...
     @property
     def country(self) -> str:
         return self._config[SZ_COUNTRY]

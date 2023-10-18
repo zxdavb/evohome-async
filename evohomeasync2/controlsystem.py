@@ -14,6 +14,8 @@ from .hotwater import HotWater
 from .schema.const import (
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_DHW,
+    SZ_IS_PERMANENT,
+    SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_SYSTEM_ID,
     SZ_ZONES,
@@ -82,8 +84,6 @@ class ControlSystemDeprecated:
 class ControlSystem(ControlSystemDeprecated):
     """Instance of a gateway's Temperature Control System."""
 
-    systemId: _SystemIdT
-
     def __init__(self, gateway: Gateway, tcs_config: dict) -> None:
         self.gateway = gateway  # parent
         self.location = gateway.location
@@ -93,6 +93,7 @@ class ControlSystem(ControlSystemDeprecated):
         self._config: Final[dict] = {
             k: v for k, v in tcs_config.items() if k not in (SZ_DHW, SZ_ZONES)
         }
+        self._status = {}
         assert self.systemId, "Invalid config dict"
 
         self._zones: list[Zone] = []
@@ -110,6 +111,7 @@ class ControlSystem(ControlSystemDeprecated):
         if dhw_config := tcs_config.get(SZ_DHW):
             self.hotwater = HotWater(self, dhw_config)
 
+    # config attrs...
     @property
     def allowedSystemModes(self) -> str:
         return self._config[SZ_ALLOWED_SYSTEM_MODES]
@@ -123,7 +125,16 @@ class ControlSystem(ControlSystemDeprecated):
         return self._config[SZ_SYSTEM_ID]
 
     def _update_state(self, state: dict) -> None:
-        self.__dict__.update(state)
+        self._status = state
+
+    # status attrs...
+    @property
+    def isPermanent(self) -> bool:
+        return self._status[SZ_IS_PERMANENT]
+
+    @property
+    def mode(self) -> _SystemIdT:
+        return self._status[SZ_MODE]
 
     async def _set_mode(self, mode: dict) -> None:
         """TODO"""
