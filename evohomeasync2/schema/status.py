@@ -45,6 +45,7 @@ from .const import (
     FaultType,
 )
 
+
 SCH_ACTIVE_FAULT = vol.Schema(
     {
         vol.Required(SZ_FAULT_TYPE): vol.Any(*[f.value for f in FaultType]),

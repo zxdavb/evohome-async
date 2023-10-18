@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import pytest
 
-from schema import SCH_LOCN_CONFIG, SCH_LOCN_STATUS
+from evohomeasync2.schema import SCH_LOCN_CONFIG, SCH_LOCN_STATUS
 
 
 TEST_DIR = Path(__file__).resolve().parent

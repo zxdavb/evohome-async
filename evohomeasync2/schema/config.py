@@ -76,6 +76,16 @@ from .const import (
     ZoneType,
 )
 
+# all debug flags should be False for published code
+_DEBUG_DONT_OBSFUCATE = False  # used for pytest scripts
+
+
+def _obfuscate(value: bool | int | str):
+    if _DEBUG_DONT_OBSFUCATE:
+        return value
+    return "********"
+
+
 SCH_SYSTEM_MODE_PERM = vol.Schema(
     {
         vol.Required(SZ_SYSTEM_MODE): vol.Any(
@@ -193,8 +203,8 @@ SCH_TEMPERATURE_CONTROL_SYSTEM = vol.Schema(
 SCH_GATEWAY_INFO = vol.Schema(
     {
         vol.Required(SZ_GATEWAY_ID): str,
-        vol.Required(SZ_MAC): str,
-        vol.Required(SZ_CRC): str,
+        vol.Required(SZ_MAC): vol.All(str, _obfuscate),
+        vol.Required(SZ_CRC): vol.All(str, _obfuscate),
         vol.Required(SZ_IS_WI_FI): bool,
     },
     extra=vol.PREVENT_EXTRA,
@@ -222,9 +232,9 @@ SCH_TIME_ZONE = vol.Schema(
 SCH_LOCATION_OWNER = vol.Schema(
     {
         vol.Required(SZ_USER_ID): str,
-        vol.Required(SZ_USERNAME): vol.Email(),
+        vol.Required(SZ_USERNAME): vol.All(vol.Email(), _obfuscate),
         vol.Required(SZ_FIRSTNAME): str,
-        vol.Required(SZ_LASTNAME): str,
+        vol.Required(SZ_LASTNAME): vol.All(str, _obfuscate),
     },
     extra=vol.PREVENT_EXTRA,
 )
@@ -232,11 +242,11 @@ SCH_LOCATION_OWNER = vol.Schema(
 SCH_LOCATION_INFO = vol.Schema(
     {
         vol.Required(SZ_LOCATION_ID): str,
-        vol.Required(SZ_NAME): str,
-        vol.Required(SZ_STREET_ADDRESS): str,
-        vol.Required(SZ_CITY): str,
+        vol.Required(SZ_NAME): vol.All(str, _obfuscate),
+        vol.Required(SZ_STREET_ADDRESS): vol.All(str, _obfuscate),
+        vol.Required(SZ_CITY): vol.All(str, _obfuscate),
         vol.Required(SZ_COUNTRY): str,
-        vol.Required(SZ_POSTCODE): str,
+        vol.Required(SZ_POSTCODE): vol.All(str, _obfuscate),
         vol.Required(SZ_LOCATION_TYPE): str,  # "Residential"
         vol.Required(SZ_USE_DAYLIGHT_SAVE_SWITCHING): bool,
         vol.Required(SZ_TIME_ZONE): SCH_TIME_ZONE,

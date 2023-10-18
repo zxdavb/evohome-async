@@ -11,7 +11,7 @@ import pytest
 import evohomeasync2 as evohome
 
 from mocked_server import aiohttp as mocked_aiohttp
-from schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
+from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
 
 
 TEST_DIR = Path(__file__).resolve().parent
@@ -43,13 +43,31 @@ async def _test_vendor_api_calls(
     assert isinstance(client.access_token_expires, dt)
     assert isinstance(client.refresh_token, str)
 
-    await client._basic_login()  # re-authenticate using refresh_token
+    access_token = client.access_token
+    refresh_token = client.refresh_token
+
+    await client._headers()
+
+    assert client.access_token == access_token
+    assert client.refresh_token == refresh_token
+
+    if isinstance(session, aiohttp.ClientSession):
+        access_token = client.access_token
+        refresh_token = client.refresh_token
+
+        await client._basic_login()  # re-authenticate using refresh_token
+
+        assert client.access_token != access_token  # TODO: mocked_server wont do this
+        assert client.refresh_token != refresh_token  # TODO: mocked_server wont do this
 
     #
     # STEP 2: User account,  GET /userAccount...
     assert client.account_info is None
+
     await client.user_account(force_update=False)  # will update as no access_token
-    assert SCH_USER_ACCOUNT(client.account_info)
+
+    assert SCH_USER_ACCOUNT(client._user_account)
+    assert client.account_info == client._user_account
 
     await client.user_account()  # wont update as access_token is valid
     await client.user_account(force_update=True)  # will update as forced
@@ -61,8 +79,10 @@ async def _test_vendor_api_calls(
 
     await client._installation(update_status=False)
 
+    assert SCH_FULL_CONFIG(client._full_config)  # an array of locations
+    assert client.installation_info == client._full_config
+
     assert isinstance(client.system_id, str)
-    assert SCH_FULL_CONFIG(client.installation_info)  # an array of locations
     assert client.locations
 
     #
@@ -77,8 +97,9 @@ async def test_vendor_api_calls():
     mocked_server = mocked_aiohttp.MockedServer(None, None)
     session = mocked_aiohttp.ClientSession(mocked_server=mocked_server)
 
-    # session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
 
-    await _test_vendor_api_calls(session=session)
-
-    await session.close()
+    try:
+        await _test_vendor_api_calls(session=session)
+    finally:
+        await session.close()
