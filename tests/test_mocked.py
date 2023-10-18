@@ -76,20 +76,23 @@ async def _test_vendor_api_calls(
     assert client.account_info == client._user_account
 
     await client.user_account()  # wont update as access_token is valid
-    await client.user_account(force_update=True)  # will update as forced
+    # await client.user_account(force_update=True)  # will update as forced
 
     #
     # STEP 3: Installation, GET /location/installationInfo?userId={userId}
     assert client.locations == []
     assert client.installation_info is None
 
-    await client._installation(refresh_status=False)
+    await client._installation(refresh_status=False)  # not client.installation()
 
     assert SCH_FULL_CONFIG(client._full_config)  # an array of locations
     assert client.installation_info == client._full_config
 
     assert isinstance(client.system_id, str)
     assert client.locations
+
+    await client.installation()  # not client._installation()
+    # await client.installation(force_update=True)  # will update as forced
 
     #
     # STEP 4: Status, GET /location/{locationId}/status
