@@ -28,8 +28,6 @@ if TYPE_CHECKING:
 class HotWater(_ZoneBase):
     """Provide handling of the hot water zone."""
 
-    temperatureStatus: dict  # TODO
-
     _type = "domesticHotWater"
 
     def __init__(self, tcs: ControlSystem, dhw_config: dict) -> None:

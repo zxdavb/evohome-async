@@ -129,10 +129,6 @@ class _ZoneBase:
 class Zone(_ZoneBase):
     """Provide the access to an individual zone."""
 
-    name: str  # TODO: check if is OK here
-    setpointStatus: dict  # TODO
-    temperatureStatus: dict  # TODO
-
     _type = "temperatureZone"
 
     def __init__(self, tcs: ControlSystem, zone_config: dict) -> None:

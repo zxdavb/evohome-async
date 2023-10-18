@@ -25,8 +25,6 @@ if TYPE_CHECKING:
 class Gateway:
     """Instance of a location's Gateway."""
 
-    gatewayId: _GatewayIdT
-
     def __init__(self, location: Location, gwy_config: dict) -> None:
         self.location = location  # parent
         self.client = location.client
