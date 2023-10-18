@@ -89,4 +89,7 @@ class HotWater(ZoneBase):
         """Get the DHW state."""
 
         url = f"domesticHotWater/{self.dhwId}/status?"
-        return await self._client("GET", f"{URL_BASE}/{url}")
+        response = await self._client("GET", f"{URL_BASE}/{url}")
+        state: dict = dict(response)  # type: ignore[arg-type]  # TODO: use SCH_DHW_STATUS
+
+        return state

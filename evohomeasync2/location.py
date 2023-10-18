@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from .const import URL_BASE
 from .gateway import Gateway
+from .schema import SCH_LOCN_STATUS
 
 if TYPE_CHECKING:
     from . import EvohomeClient
@@ -44,7 +45,8 @@ class Location:
         """Retrieve the location status."""
 
         url = f"location/{self.locationId}/status?includeTemperatureControlSystems=True"
-        loc_status = await self._client("GET", f"{URL_BASE}/{url}")
+        response = await self._client("GET", f"{URL_BASE}/{url}")
+        loc_status: dict = SCH_LOCN_STATUS(response)
 
         # Now update other elements
         for gwy_status in loc_status["gateways"]:

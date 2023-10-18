@@ -39,7 +39,7 @@ from .schema import SCH_FULL_CONFIG, SCH_OAUTH_TOKEN, SCH_USER_ACCOUNT
 from .zone import ZoneBase, Zone  # noqa: F401
 
 try:  # voluptuous is an optional module...
-    from voluptuous.error import Invalid as SchemaInvalid
+    from voluptuous.error import Invalid as SchemaInvalid  # type: ignore[import-untyped]
 except ModuleNotFoundError:  # No module named 'voluptuous'
     SchemaInvalid = _volErrorInvalid
 
@@ -57,8 +57,8 @@ _LOGGER = logging.getLogger(__name__)
 class EvohomeClient:
     """Provide access to the v2 Evohome API."""
 
-    _full_config: dict = None  # installation_info (all locations of user)
-    _user_account: dict = None  # account_info
+    _full_config: dict = None  # type: ignore[assignment]  # installation_info (all locations of user)
+    _user_account: dict = None  # type: ignore[assignment]  # account_info
 
     def __init__(
         self,
@@ -92,7 +92,7 @@ class EvohomeClient:
             timeout=aiohttp.ClientTimeout(total=30)
         )
 
-        self.locations: list[Location] = None
+        self.locations: list[Location] = []
 
     async def login(self) -> None:
         """Retreive the user account and installation details.
@@ -112,7 +112,9 @@ class EvohomeClient:
 
         await self.installation()
 
-    async def _client(self, method, url, data=None, json=None, headers=None) -> None:
+    async def _client(
+        self, method, url, data=None, json=None, headers=None
+    ) -> None | dict | str:
         """Wrapper for aiohttp.ClientSession()."""
 
         if headers is None:
@@ -149,6 +151,8 @@ class EvohomeClient:
             else:
                 _LOGGER.info(f"{method} {url} (TEXT) = {result}")
                 return result
+
+            return None
 
     async def _headers(self) -> dict:
         """Ensure the Authorization Header has a valid Access Token."""
@@ -208,8 +212,7 @@ class EvohomeClient:
             response = await self._client(
                 "POST", AUTH_URL, data=AUTH_PAYLOAD | credentials, headers=AUTH_HEADER
             )
-
-            SCH_OAUTH_TOKEN(response)  # validate the response
+            oauth_token: dict = SCH_OAUTH_TOKEN(response)
 
         except aiohttp.ClientResponseError as exc:
             # These have been seen / have been common
@@ -220,9 +223,9 @@ class EvohomeClient:
             raise AuthenticationError(f"Unable to obtain an Access Token: {exc}")
 
         try:  # the access token _should_ be valid...
-            self.access_token = response["access_token"]
-            self.access_token_expires = dt.now() + td(seconds=response["expires_in"])
-            self.refresh_token = response["refresh_token"]
+            self.access_token = oauth_token["access_token"]
+            self.access_token_expires = dt.now() + td(seconds=oauth_token["expires_in"])
+            self.refresh_token = oauth_token["refresh_token"]
 
         except SchemaInvalid as exc:  # TODO: only if voluptuous is installed
             raise AuthenticationError(f"Unable to obtain an Access Token, hint: {exc}")
@@ -253,7 +256,8 @@ class EvohomeClient:
             return self._user_account
 
         reponse = await self._client("GET", f"{URL_BASE}/userAccount")
-        self._user_account = SCH_USER_ACCOUNT(reponse)
+        self._user_account: dict = SCH_USER_ACCOUNT(reponse)
+
         return self._user_account
 
     @property  # full_config (all locations of user)
@@ -287,7 +291,8 @@ class EvohomeClient:
         url += "includeTemperatureControlSystems=True"
 
         response = await self._client("GET", f"{URL_BASE}/{url}")
-        self._full_config = SCH_FULL_CONFIG(response)
+        self._full_config: dict = SCH_FULL_CONFIG(response)
+
         # populate each freshly instantiated location with its initial status
         for loc_data in self._full_config:
             loc = Location(self, loc_data)
@@ -297,7 +302,9 @@ class EvohomeClient:
 
         return self._full_config
 
-    async def full_installation(location_id: None | _LocationIdT = None) -> NoReturn:
+    async def full_installation(
+        self, location_id: None | _LocationIdT = None
+    ) -> NoReturn:
         # if location_id is None:
         #     location_id = self.installation_info[0]["locationInfo"]["locationId"]
         # url = f"location/{location_id}/installationInfo?"  # Specific location

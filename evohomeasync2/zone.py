@@ -57,7 +57,7 @@ class ZoneBase:
         url = f"{self._type}/{self._id}/schedule"
         response_json = await self._client("GET", f"{URL_BASE}/{url}")
 
-        response_text = await json.dumps(response_json)  # FIXME
+        response_text = json.dumps(response_json)  # FIXME
         for from_val, to_val in MAPPING:  # an anachronism from evohome-client
             response_text = response_text.replace(from_val, to_val)
 

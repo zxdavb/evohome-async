@@ -29,6 +29,7 @@ class ControlSystem:
         self.gateway = gateway  # parent
         self.location = gateway.location
         self.client = gateway.location.client
+        self._client = gateway.location.client._client
 
         self.__dict__.update({k: v for k, v in config.items() if k != "zones"})
         assert self.systemId, "Invalid config dict"
