@@ -5,6 +5,7 @@
 
 import aiohttp
 from datetime import datetime as dt
+import os
 from pathlib import Path
 import pytest
 
@@ -19,10 +20,10 @@ WORK_DIR = f"{TEST_DIR}/mocked"
 
 
 async def _test_vendor_api_calls(
+    username: str,
+    password: str,
     session: None | aiohttp.ClientSession | mocked_aiohttp.ClientSession = None,
 ):
-    username = "spotty.blackcat@gmail.com"
-    password = "zT9@5KmWELYeqasdf99"
 
     #
     # STEP 0: Instantiation, NOTE: No API calls invoked during instntiation
@@ -94,12 +95,16 @@ async def _test_vendor_api_calls(
 
 @pytest.mark.asyncio
 async def test_vendor_api_calls():
+
+    username = os.getenv("PYTEST_USERNAME") or "user@gmail.com"
+    password = os.getenv("PYTEST_PASSWORD") or "P@ssw0rd!23"
+
     mocked_server = mocked_aiohttp.MockedServer(None, None)
     session = mocked_aiohttp.ClientSession(mocked_server=mocked_server)
 
-    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+    # session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
 
     try:
-        await _test_vendor_api_calls(session=session)
+        await _test_vendor_api_calls(username, password, session=session)
     finally:
         await session.close()
