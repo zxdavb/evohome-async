@@ -195,17 +195,17 @@ class Zone(_ZoneBase):
     ) -> None:
         """Set the temperature of the given zone."""
 
-        if until is None:
+        if until is None:  # NOTE: beware that these may be case-sensitive
             mode = {
                 SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
                 SZ_HEAT_SETPOINT_VALUE: temperature,
-                "TimeUntil": None,
+                SZ_TIME_UNTIL: None,
             }
         else:
             mode = {
                 SZ_SETPOINT_MODE: SZ_TEMPORARY_OVERRIDE,
                 SZ_HEAT_SETPOINT_VALUE: temperature,
-                "TimeUntil": until.strftime(API_STRFTIME),
+                SZ_TIME_UNTIL: until.strftime(API_STRFTIME),
             }
 
         await self._set_mode(mode)
