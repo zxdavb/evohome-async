@@ -28,11 +28,18 @@ if TYPE_CHECKING:
 # _LOGGER = logging.getLogger(__name__)
 
 
-class Location:
+class _LocationDeprecated:
+    async def status(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "Location.status() is deprecated, use .refresh_status()"
+        )
+
+
+class Location(_LocationDeprecated):
     """Instance of an account's Location."""
 
     def __init__(self, client: EvohomeClient, loc_config: dict) -> None:
-        self.client = client
+        # self.client = client
         self._client = client._client
 
         self._config: Final[dict] = loc_config[SZ_LOCATION_INFO]
@@ -75,11 +82,6 @@ class Location:
     @property
     def useDaylightSaveSwitching(self) -> bool:
         return self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
-
-    async def status(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "Location.status() is deprecated, use .refresh_status()"
-        )
 
     async def refresh_status(self) -> dict:
         """Update the Location with its latest status (also returns the status)."""

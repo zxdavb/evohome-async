@@ -26,7 +26,31 @@ if TYPE_CHECKING:
 # _LOGGER = logging.getLogger(__name__)
 
 
-class HotWater(_ZoneBase):
+class HotWaterDeprecated:
+    @property
+    def zoneId(self) -> NoReturn:
+        raise NotImplementedError("HotWater.zoneId is deprecated, use .dhwId (or ._id)")
+
+    async def get_dhw_state(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "HotWater.get_dhw_state() is deprecated, use .update_status()"
+        )
+
+    async def set_dhw_on(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError("HotWater.set_dhw_on() is deprecated, use .set_on()")
+
+    async def set_dhw_off(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "HotWater.set_dhw_off() is deprecated, use .set_off()"
+        )
+
+    async def set_dhw_auto(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "HotWater.set_dhw_auto() is deprecated, use .set_auto()"
+        )
+
+
+class HotWater(HotWaterDeprecated, _ZoneBase):
     """Provide handling of the hot water zone."""
 
     _type = SZ_DOMESTIC_HOT_WATER
@@ -52,23 +76,14 @@ class HotWater(_ZoneBase):
     def scheduleCapabilitiesResponse(self) -> dict:
         return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
 
-    @property
-    def zoneId(self) -> NoReturn:
-        raise NotImplementedError("HotWater.zoneId is deprecated, use .dhwId (or ._id)")
-
     # status attrs...
     @property
     def name(self) -> str:
         return "Domestic Hot Water"
 
     @property
-    def stateStatus(self) -> dict:
-        return self._status[SZ_STATE_STATUS]
-
-    async def get_dhw_state(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "HotWater.get_dhw_state() is deprecated, use .update_status()"
-        )
+    def stateStatus(self) -> None | dict:
+        return self._status.get(SZ_STATE_STATUS)
 
     async def _set_mode(self, state: dict) -> None:
         """Set the DHW state."""
@@ -76,7 +91,7 @@ class HotWater(_ZoneBase):
         url = f"domesticHotWater/{self.dhwId}/state"  # f"{_type}/{_id}/state"
         await self._client("PUT", f"{URL_BASE}/{url}", json=state)
 
-    async def set_dhw_on(self, /, *, until: None | dt = None) -> None:
+    async def set_on(self, /, *, until: None | dt = None) -> None:
         """Set the DHW on until a given time, or permanently."""
 
         if until is None:
@@ -90,7 +105,7 @@ class HotWater(_ZoneBase):
 
         await self._set_mode(mode)
 
-    async def set_dhw_off(self, /, *, until: None | dt = None) -> None:
+    async def set_off(self, /, *, until: None | dt = None) -> None:
         """Set the DHW off until a given time, or permanently."""
 
         if until is None:
@@ -104,7 +119,7 @@ class HotWater(_ZoneBase):
 
         await self._set_mode(mode)
 
-    async def set_dhw_auto(self) -> None:
+    async def set_auto(self) -> None:
         """Set the DHW to follow the schedule."""
 
         mode = {"Mode": "FollowSchedule", "State": "", "UntilTime": None}

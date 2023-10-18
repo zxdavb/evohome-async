@@ -15,13 +15,25 @@ from .exceptions import InvalidSchedule
 from .schema import SCH_DHW_STATUS, SCH_ZONE_STATUS
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
+    SZ_DAILY_SCHEDULES,
+    SZ_DAY_OF_WEEK,
+    SZ_DHW_STATE,
+    SZ_FOLLOW_SCHEDULE,
+    SZ_HEAT_SETPOINT_VALUE,
     SZ_MODEL_TYPE,
     SZ_NAME,
+    SZ_PERMANENT_OVERRIDE,
     SZ_SCHEDULE_CAPABILITIES,
     SZ_SETPOINT_CAPABILITIES,
+    SZ_SETPOINT_MODE,
     SZ_SETPOINT_STATUS,
+    SZ_SWITCHPOINTS,
+    SZ_TEMPERATURE,
     SZ_TEMPERATURE_STATUS,
     SZ_TEMPERATURE_ZONE,
+    SZ_TEMPORARY_OVERRIDE,
+    SZ_TIME_OF_DAY,
+    SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
@@ -34,31 +46,39 @@ _LOGGER = logging.getLogger(__name__)
 
 
 MAPPING = [
-    ("dailySchedules", "DailySchedules"),
-    ("dayOfWeek", "DayOfWeek"),
-    ("temperature", "TargetTemperature"),
-    ("timeOfDay", "TimeOfDay"),
-    ("switchpoints", "Switchpoints"),
-    ("dhwState", "DhwState"),
+    (SZ_DAILY_SCHEDULES, "DailySchedules"),
+    (SZ_DAY_OF_WEEK, "DayOfWeek"),
+    (SZ_DHW_STATE, "DhwState"),
+    (SZ_SWITCHPOINTS, "Switchpoints"),
+    (SZ_TEMPERATURE, "TargetTemperature"),
+    (SZ_TIME_OF_DAY, "TimeOfDay"),
 ]
 
 
-class _ZoneBase:
+class _ZoneBaseDeprecated:
+    @property
+    def zone_type(self) -> NoReturn:
+        raise NotImplementedError("ZoneBase.zone_type is deprecated, use ._type")
+
+    async def schedule(self) -> NoReturn:
+        raise NotImplementedError(
+            "ZoneBase.schedule() is deprecrated, use .get_schedule()"
+        )
+
+
+class _ZoneBase(_ZoneBaseDeprecated):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     _id: str  # .zoneId or .dhwId
     _type: str  # Literal["temperatureZone", "domesticHotWater"]
 
-    def __init__(self, tcs: ControlSystem):
+    def __init__(self, tcs: ControlSystem) -> None:
         self.tcs = tcs  # parent
+
         # self.client = tcs.gateway.location.client
         self._client = tcs.gateway.location.client._client
 
         self._status: dict = {}
-
-    @property
-    def zone_type(self) -> NoReturn:
-        raise NotImplementedError("ZoneBase.zone_type is deprecated, use ._type")
 
     async def refresh_status(self) -> dict:
         """Update the dhw/zone with its latest status (also returns the status).
@@ -81,17 +101,12 @@ class _ZoneBase:
 
     # status attrs...
     @property
-    def activeFaults(self) -> list:
-        return self._status[SZ_ACTIVE_FAULTS]
+    def activeFaults(self) -> None | list:
+        return self._status.get(SZ_ACTIVE_FAULTS)
 
     @property
-    def temperatureStatus(self) -> dict:
-        return self._status[SZ_TEMPERATURE_STATUS]
-
-    async def schedule(self) -> NoReturn:
-        raise NotImplementedError(
-            "ZoneBase.schedule() is deprecrated, use .get_schedule()"
-        )
+    def temperatureStatus(self) -> None | dict:
+        return self._status.get(SZ_TEMPERATURE_STATUS)
 
     async def get_schedule(self) -> dict:
         """Get the schedule for this dhw/zone object."""
@@ -167,8 +182,8 @@ class Zone(_ZoneBase):
         return self._config.get(SZ_NAME) or self._config[SZ_NAME]
 
     @property
-    def setpointStatus(self) -> dict:
-        return self._status[SZ_SETPOINT_STATUS]
+    def setpointStatus(self) -> None | dict:
+        return self._status.get(SZ_SETPOINT_STATUS)
 
     async def _set_mode(self, heat_setpoint: dict) -> None:
         """TODO"""
@@ -183,14 +198,14 @@ class Zone(_ZoneBase):
 
         if until is None:
             mode = {
-                "SetpointMode": "PermanentOverride",
-                "HeatSetpointValue": temperature,
+                SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
+                SZ_HEAT_SETPOINT_VALUE: temperature,
                 "TimeUntil": None,
             }
         else:
             mode = {
-                "SetpointMode": "TemporaryOverride",
-                "HeatSetpointValue": temperature,
+                SZ_SETPOINT_MODE: SZ_TEMPORARY_OVERRIDE,
+                SZ_HEAT_SETPOINT_VALUE: temperature,
                 "TimeUntil": until.strftime(API_STRFTIME),
             }
 
@@ -200,9 +215,9 @@ class Zone(_ZoneBase):
         """Cancel an override to the zone temperature."""
 
         mode = {
-            "SetpointMode": "FollowSchedule",
-            "HeatSetpointValue": 0.0,
-            "TimeUntil": None,
+            SZ_SETPOINT_MODE: SZ_FOLLOW_SCHEDULE,
+            SZ_HEAT_SETPOINT_VALUE: 0.0,
+            SZ_TIME_UNTIL: None,
         }
 
         await self._set_mode(mode)

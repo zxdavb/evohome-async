@@ -55,6 +55,17 @@ HTTP_UNAUTHORIZED = 401
 
 
 class EvohomeClientDeprecated:
+    async def full_installation(
+        self, location_id: None | _LocationIdT = None
+    ) -> NoReturn:
+        # if location_id is None:
+        #     location_id = self.installation_info[0]["locationInfo"]["locationId"]
+        # url = f"location/{location_id}/installationInfo?"  # Specific location
+
+        raise NotImplementedError(
+            "EvohomeClient.full_installation() is deprecated, use .installation()"
+        )
+
     async def gateway(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError("EvohomeClient.gateway() is deprecated")
 
@@ -364,17 +375,6 @@ class EvohomeClient(EvohomeClientDeprecated):
                 await loc.refresh_status()
 
         return self._full_config
-
-    async def full_installation(
-        self, location_id: None | _LocationIdT = None
-    ) -> NoReturn:
-        # if location_id is None:
-        #     location_id = self.installation_info[0]["locationInfo"]["locationId"]
-        # url = f"location/{location_id}/installationInfo?"  # Specific location
-
-        raise NotImplementedError(
-            "EvohomeClient.full_installation() is deprecated, use .installation()"
-        )
 
     @property
     def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?

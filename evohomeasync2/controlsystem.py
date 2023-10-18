@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class ControlSystemDeprecated:
+class _ControlSystemDeprecated:
     async def set_status(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
             "ControlSystem.set_status() is deprecrated, use .set_mode()"
@@ -81,7 +81,7 @@ class ControlSystemDeprecated:
         )
 
 
-class ControlSystem(ControlSystemDeprecated):
+class ControlSystem(_ControlSystemDeprecated):
     """Instance of a gateway's Temperature Control System."""
 
     def __init__(self, gateway: Gateway, tcs_config: dict) -> None:
@@ -129,12 +129,12 @@ class ControlSystem(ControlSystemDeprecated):
 
     # status attrs...
     @property
-    def isPermanent(self) -> bool:
-        return self._status[SZ_IS_PERMANENT]
+    def isPermanent(self) -> None | bool:
+        return self._status.get(SZ_IS_PERMANENT)
 
     @property
-    def mode(self) -> _SystemIdT:
-        return self._status[SZ_MODE]
+    def mode(self) -> None | str:
+        return self._status.get(SZ_MODE)
 
     async def _set_mode(self, mode: dict) -> None:
         """TODO"""
