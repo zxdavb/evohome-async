@@ -168,6 +168,7 @@ class SystemMode(StrEnum):
 
 @verify(EnumCheck.UNIQUE)
 class FaultType(StrEnum):
+    GCL__: Final[str] = "GatewayCommunicationLost"
     TZACL: Final[str] = "TempZoneActuatorCommunicationLost"
     TZALB: Final[str] = "TempZoneActuatorLowBattery"
     TZSCL: Final[str] = "TempZoneSensorCommunicationLost"
@@ -182,6 +183,7 @@ class TcsModelType(StrEnum):
 @verify(EnumCheck.UNIQUE)
 class ZoneModelType(StrEnum):
     HEATING_ZONE: Final[str] = "HeatingZone"
+    ROUND_MODULATION: Final[str] = "RoundModulation"
     ROUND_WIRELESS: Final[str] = "RoundWireless"
     UNKNOWN: Final[str] = "Unknown"
 

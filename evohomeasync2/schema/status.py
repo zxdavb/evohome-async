@@ -50,7 +50,11 @@ from .const import (
 SCH_ACTIVE_FAULT = vol.Schema(
     {
         vol.Required(SZ_FAULT_TYPE): vol.Any(*[f.value for f in FaultType]),
-        vol.Required(SZ_SINCE): vol.Datetime(format="%Y-%m-%dT%H:%M:%S"),
+        vol.Required(SZ_SINCE): vol.Any(
+            vol.Datetime(format="%Y-%m-%dT%H:%M:%S"),  # faults for zones
+            vol.Datetime(format="%Y-%m-%dT%H:%M:%S.%f"),
+            str,  # HACK: "2023-05-04T18:47:36.7727046"  faults for gateways
+        )
     },
     extra=vol.PREVENT_EXTRA,
 )
