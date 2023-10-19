@@ -193,7 +193,7 @@ class MockedServer:
         elif self._method == hdrs.METH_PUT:
             if re.search(r"temperatureZone/.*/schedule", self._url):
                 # PUT /temperatureZone/{zoneId}/schedule
-                raise NotImplementedError
+                return {"id": "123456789"}
 
             if re.search(r"temperatureZone/.*/heatSetpoint", self._url):  # aka mode
                 # PUT /temperatureZone/{zoneId}/heatSetpoint
@@ -217,7 +217,7 @@ class MockedServer:
         elif self._method == hdrs.METH_PUT:
             if re.search(r"domesticHotWater/.*/schedule", self._url):
                 # PUT /domesticHotWater/{dhwId}/schedule
-                raise NotImplementedError
+                return {"id": "123456789"}
 
             if re.search(r"domesticHotWater/.*/state", self._url):  # aka mode
                 # PUT /domesticHotWater/{dhwId}/state

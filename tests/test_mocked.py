@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""evohome-async - validate the config & status schemas."""
+"""evohome-async - validate the config, status & schedule schemas."""
 
 import aiohttp
 from datetime import datetime as dt
 import os
 from pathlib import Path
 import pytest
+import pytest_asyncio
 
 import evohomeasync2 as evohome
 
@@ -19,28 +20,74 @@ from evohomeasync2.schema import (
     SCH_USER_ACCOUNT,
     SCH_ZONE_STATUS,
 )
-
+from evohomeasync2.schema.schedule import SCH_SCHEDULE_PUT
 
 TEST_DIR = Path(__file__).resolve().parent
 WORK_DIR = f"{TEST_DIR}/mocked"
 
 
-async def _test_vendor_api_calls(
+_global_oauth_tokens: None | tuple[str, str, dt] = None
+
+
+@pytest.fixture()
+def credentials():
+    username = os.getenv("PYTEST_USERNAME")
+    password = os.getenv("PYTEST_PASSWORD")
+
+    return username, password
+
+
+@pytest_asyncio.fixture
+async def session():
+    mocked_server = mocked_aiohttp.MockedServer(None, None)
+    session = mocked_aiohttp.ClientSession(mocked_server=mocked_server)
+
+    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+
+    try:
+        yield session
+    finally:
+        await session.close()
+
+
+def load_oauth_tokens() -> tuple[str, str, dt]:
+    global _global_oauth_tokens
+    if _global_oauth_tokens is None:
+        return None, None, None
+    return _global_oauth_tokens[0], _global_oauth_tokens[1], _global_oauth_tokens[2]
+
+
+def save_oauth_tokens(client: evohome.EvohomeClient):
+    global _global_oauth_tokens
+    _global_oauth_tokens = (
+        client.refresh_token,
+        client.access_token,
+        client.access_token_expires,
+    )
+
+
+async def _test_vendor_api_basics(
     username: str,
     password: str,
     session: None | aiohttp.ClientSession | mocked_aiohttp.ClientSession = None,
 ):
+    refresh_token, access_token, access_token_expires = load_oauth_tokens()
+
     #
-    # STEP 0: Instantiation, NOTE: No API calls invoked during instntiation
-    client = evohome.EvohomeClient(username, password, session=session)
+    # STEP 0: Instantiation, NOTE: No API calls invoked during instantiation
+    client = evohome.EvohomeClient(
+        username,
+        password,
+        session=session,
+        refresh_token=refresh_token,
+        access_token=access_token,
+        access_token_expires=access_token_expires,
+    )
 
     #
     # STEP 1: Authentication (isolated from client.login()), POST /Auth/OAuth/Token
-    assert client.access_token is None
-    assert client.access_token_expires is None
-    assert client.refresh_token is None
-
     await client._basic_login()
+    save_oauth_tokens(client)
 
     assert isinstance(client.access_token, str)
     assert isinstance(client.access_token_expires, dt)
@@ -100,30 +147,108 @@ async def _test_vendor_api_calls(
         loc_status = await loc.refresh_status()
         assert SCH_LOCN_STATUS(loc_status)
 
+    pass
+
+
+async def _test_vendor_api_sched_(
+    username: str,
+    password: str,
+    session: None | aiohttp.ClientSession | mocked_aiohttp.ClientSession = None,
+):
+    refresh_token, access_token, access_token_expires = load_oauth_tokens()
+
     #
-    # STEP 6: Status, GET /domesticHotWater/{dhwId}/status?
+    # STEP 0: Instantiation...
+    client = evohome.EvohomeClient(
+        username,
+        password,
+        session=session,
+        refresh_token=refresh_token,
+        access_token=access_token,
+        access_token_expires=access_token_expires,
+    )
+
+    #
+    # STEP 1: Initial authentication, retrieve config & status
+    await client.login()  # invokes await client.installation()
+    save_oauth_tokens(client)
+
+    #
+    # STEP 2: GET & PUT /{_type}/{_id}/schedule
+    if dhw := client._get_single_heating_system().hotwater:
+        schedule = await dhw.get_schedule()
+        assert SCH_SCHEDULE_PUT(schedule)
+        await dhw.set_schedule(schedule)
+
+    if zone := client._get_single_heating_system()._zones[0]:
+        schedule = await zone.get_schedule()
+        assert SCH_SCHEDULE_PUT(schedule)
+        await zone.set_schedule(schedule)
+
+    pass
+
+
+async def _test_vendor_api_status(
+    username: str,
+    password: str,
+    session: None | aiohttp.ClientSession | mocked_aiohttp.ClientSession = None,
+):
+    refresh_token, access_token, access_token_expires = load_oauth_tokens()
+
+    #
+    # STEP 0: Instantiation...
+    client = evohome.EvohomeClient(
+        username,
+        password,
+        session=session,
+        refresh_token=refresh_token,
+        access_token=access_token,
+        access_token_expires=access_token_expires,
+    )
+
+    #
+    # STEP 1: Initial authentication, retrieve config & status
+    await client.login()  # invokes await client.installation()
+    save_oauth_tokens(client)
+
+    #
+    # STEP 2: GET /{_type}/{_id}/status
     if dhw := client._get_single_heating_system().hotwater:
         dhw_status = await dhw._refresh_status()
         assert SCH_DHW_STATUS(dhw_status)
 
-    #
-    # STEP 5: Status, GET /temperatureZone/{ZoneId}/status?
     if zone := client._get_single_heating_system()._zones[0]:
         zone_status = await zone._refresh_status()
         assert SCH_ZONE_STATUS(zone_status)
 
+    pass
+
 
 @pytest.mark.asyncio
-async def test_vendor_api_calls():
-    username = os.getenv("PYTEST_USERNAME") or "user@gmail.com"
-    password = os.getenv("PYTEST_PASSWORD") or "P@ssw0rd!23"
+async def test_vendor_api_basics(
+    credentials: tuple[str, str],
+    session: aiohttp.ClientSession | mocked_aiohttp.ClientSession,
+):
+    username, password = credentials
 
-    mocked_server = mocked_aiohttp.MockedServer(None, None)
-    session = mocked_aiohttp.ClientSession(mocked_server=mocked_server)
+    await _test_vendor_api_basics(username, password, session=session)
 
-    # session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
 
-    try:
-        await _test_vendor_api_calls(username, password, session=session)
-    finally:
-        await session.close()
+@pytest.mark.asyncio
+async def test_vendor_api_sched_(
+    credentials: tuple[str, str],
+    session: aiohttp.ClientSession | mocked_aiohttp.ClientSession,
+):
+    username, password = credentials
+
+    await _test_vendor_api_sched_(username, password, session=session)
+
+
+@pytest.mark.asyncio
+async def test_vendor_api_status(
+    credentials: tuple[str, str],
+    session: aiohttp.ClientSession | mocked_aiohttp.ClientSession,
+):
+    username, password = credentials
+
+    await _test_vendor_api_status(username, password, session=session)
