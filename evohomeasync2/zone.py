@@ -10,9 +10,11 @@ import json
 import logging
 from typing import TYPE_CHECKING, Final, NoReturn
 
+from aiohttp.client_exceptions import ClientResponseError
+
 from .const import API_STRFTIME, URL_BASE
 from .exceptions import InvalidSchedule
-from .schema import SCH_DHW_STATUS, SCH_ZONE_STATUS
+from .schema import SCH_DHW_STATUS, SCH_ZONE_STATUS, SCH_SCHEDULE
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
     SZ_DAILY_SCHEDULES,
@@ -45,14 +47,14 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-MAPPING = [
-    (SZ_DAILY_SCHEDULES, "DailySchedules"),
-    (SZ_DAY_OF_WEEK, "DayOfWeek"),
-    (SZ_DHW_STATE, "DhwState"),
-    (SZ_SWITCHPOINTS, "Switchpoints"),
-    (SZ_TEMPERATURE, "TargetTemperature"),
-    (SZ_TIME_OF_DAY, "TimeOfDay"),
-]
+CAPITALIZED_KEYS = (
+    SZ_DAILY_SCHEDULES,  #
+    SZ_DAY_OF_WEEK,  #
+    SZ_DHW_STATE,
+    SZ_SWITCHPOINTS,  #
+    SZ_TEMPERATURE,  # should be SZ_HEAT_SETPOINT?
+    SZ_TIME_OF_DAY,  #
+)
 
 
 class _ZoneBaseDeprecated:
@@ -116,30 +118,45 @@ class _ZoneBase(_ZoneBaseDeprecated):
         url = f"{self._type}/{self._id}/schedule"
         response_json = await self._client("GET", f"{URL_BASE}/{url}")
 
+        assert SCH_SCHEDULE(response_json)
+
         response_text = json.dumps(response_json)  # FIXME
-        for from_val, to_val in MAPPING:  # an anachronism from evohome-client
-            response_text = response_text.replace(from_val, to_val)
+        for key_name in CAPITALIZED_KEYS:  # an anachronism from evohome-client
+            response_text = response_text.replace(key_name, key_name.capitalize())
 
         result: dict = json.loads(response_text)
-        # change the day name string to a number offset (0 = Monday)
-        for day_of_week, schedule in enumerate(result["DailySchedules"]):
-            schedule["DayOfWeek"] = day_of_week
+        # change the day name string to an ordinal (Monday = 0)
+        for day_of_week, schedule in enumerate(result[SZ_DAILY_SCHEDULES.capitalize()]):
+            schedule[SZ_DAY_OF_WEEK.capitalize()] = day_of_week
 
         return result
 
-    async def set_schedule(self, zone_schedule: str) -> None:
+    async def set_schedule(self, zone_schedule: dict | str) -> None:
         """Set the schedule for this dhw/zone object."""
 
         _LOGGER.debug(f"Setting schedule of {self._id} ({self._type})...")
 
-        try:
-            json.loads(zone_schedule)
+        if isinstance(zone_schedule, dict):
+            json_schedule: str = json.dumps(zone_schedule)
+        else:
+            try:
+                json.loads(zone_schedule)
+            except ValueError as exc:
+                raise InvalidSchedule(f"Invalid JSON: {zone_schedule}") from exc
 
-        except ValueError as exc:
-            raise InvalidSchedule(f"zone_schedule must be valid JSON: {exc}")
+            json_schedule = zone_schedule
 
         url = f"{self._type}/{self._id}/schedule"
-        await self._client("PUT", f"{URL_BASE}/{url}", json=zone_schedule)
+        try:
+            await self._client("PUT", f"{URL_BASE}/{url}", data=json_schedule)
+        except ClientResponseError as exc:
+            if exc.status == 400:  # Bad Request
+                raise InvalidSchedule(f"Invalid schedule: {zone_schedule}")
+            if exc.status == 401:  # Unauthorized
+                raise InvalidSchedule(f"Unknown Zone/DHW Id: {self._id}")
+            if exc.status == 404:  # Not Found
+                raise InvalidSchedule(f"Unknown Zone/DHW Type: {self._type}")
+            raise
 
 
 class Zone(_ZoneBase):

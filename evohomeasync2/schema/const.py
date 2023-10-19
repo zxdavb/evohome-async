@@ -54,6 +54,7 @@ SZ_GATEWAY_ID = "gatewayId"
 SZ_GATEWAY_INFO = "gatewayInfo"
 SZ_GATEWAYS = "gateways"
 
+SZ_HEAT_SETPOINT = "heatSetpoint"
 SZ_HEAT_SETPOINT_VALUE = "HeatSetpointValue"
 SZ_HEATING_ZONE = "HeatingZone"
 
@@ -79,7 +80,9 @@ SZ_MODEL_TYPE = "modelType"
 
 SZ_NAME = "name"
 
+SZ_OFF = "Off"
 SZ_OFFSET_MINUTES = "offsetMinutes"
+SZ_ON = "On"
 
 SZ_PERMANENT_OVERRIDE = "PermanentOverride"
 SZ_POSTCODE = "postcode"
@@ -128,6 +131,15 @@ SZ_VALUE_RESOLUTION = "valueResolution"
 SZ_ZONE_ID = "zoneId"
 SZ_ZONE_TYPE = "zoneType"
 SZ_ZONES = "zones"
+
+
+SZ_MONDAY = "Monday"
+SZ_TUESDAY = "Tuesday"
+SZ_WEDNESDAY = "Wednesday"
+SZ_THURSDAY = "Thursday"
+SZ_FRIDAY = "Friday"
+SZ_SATURDAY = "Saturday"
+SZ_SUNDAY = "Sunday"
 
 
 @verify(EnumCheck.UNIQUE)

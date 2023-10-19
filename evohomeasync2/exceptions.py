@@ -3,8 +3,9 @@
 #
 
 
-class volErrorInvalid(Exception):  # used as a proxy for vol.error.Invalid
-    pass
+class FakedVoluptuous:  # voluptuous is an optional dependency
+    class Invalid(Exception):  # used as a proxy for vol.error.Invalid
+        pass
 
 
 class EvoBaseError(Exception):
@@ -14,7 +15,12 @@ class EvoBaseError(Exception):
 
 
 class AuthenticationError(EvoBaseError):
-    """Exception raised when unable to get an access_token."""
+    """Exception raised when unable to authenticate."""
+
+    def __init__(self, message: str, status: None | int = None) -> None:
+        self.message = f"Unable to obtain an Access Token: {message}"
+        super().__init__(message)
+        self.status = status
 
 
 class InvalidSchedule(EvoBaseError):
@@ -26,4 +32,8 @@ class SingleTcsError(EvoBaseError):
 
 
 class InvalidResponse(EvoBaseError):
+    """Request failed for some reason."""
+
+
+class RateLimitExceeded(EvoBaseError):
     """Request failed for some reason."""

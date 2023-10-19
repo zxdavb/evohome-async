@@ -20,7 +20,7 @@ import aiohttp
 # from .tests.mock import aiohttp
 
 from .exceptions import AuthenticationError, InvalidResponse, SingleTcsError
-from .exceptions import volErrorInvalid as _volErrorInvalid
+
 from .exceptions import InvalidSchedule  # noqa: F401
 from .const import (
     AUTH_HEADER_ACCEPT,
@@ -39,9 +39,9 @@ from .schema import SCH_FULL_CONFIG, SCH_OAUTH_TOKEN, SCH_USER_ACCOUNT
 from .zone import _ZoneBase, Zone  # noqa: F401
 
 try:  # voluptuous is an optional module...
-    from voluptuous.error import Invalid as SchemaInvalid  # type: ignore[import-untyped]
+    import voluptuous as vol  # type: ignore[import-untyped]
 except ModuleNotFoundError:  # No module named 'voluptuous'
-    SchemaInvalid = _volErrorInvalid
+    from .exceptions import FakedVoluptuous as vol
 
 
 if TYPE_CHECKING:
@@ -156,16 +156,17 @@ class EvohomeClient(EvohomeClientDeprecated):
         self.locations: list[Location] = []
 
     async def login(self) -> None:
-        """Retreive the user account and installation details.
+        """Retrieve the user account and installation details.
 
         Will authenticate as required.
         """
 
         try:  # the cached access_token may be valid, but is not authorized
             await self.user_account()
-        except aiohttp.ClientResponseError as exc:
-            if exc.status != HTTP_UNAUTHORIZED or not self.access_token:
-                raise AuthenticationError(str(exc))
+
+        except AuthenticationError as exc:
+            if exc.status != 401 or not self.access_token:
+                raise
 
             _LOGGER.warning("Unauthorized access_token (will try re-authenticating).")
             self.access_token = None
@@ -254,12 +255,16 @@ class EvohomeClient(EvohomeClientDeprecated):
 
             try:
                 await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)
-            except AuthenticationError:
-                _LOGGER.warning("Invalid refresh_token (will try user credentials).")
+
+            except AuthenticationError as exc:
+                if exc.status != 400:  # Bad Request
+                    raise
+
+                _LOGGER.warning("Invalid refresh_token (will try username/password)")
                 self.refresh_token = None
 
         if not self.refresh_token:
-            _LOGGER.debug("Authenticating with the user credentials...")
+            _LOGGER.debug("Authenticating with username/password...")
             await self._obtain_access_token(CREDS_USER_PASSWORD | self._credentials)
 
         _LOGGER.debug(f"refresh_token = {self.refresh_token}")
@@ -272,35 +277,36 @@ class EvohomeClient(EvohomeClientDeprecated):
         try:
             response = await self._client(
                 "POST", AUTH_URL, data=AUTH_PAYLOAD | credentials, headers=AUTH_HEADER
-            )  # 429, 503
-            SCH_OAUTH_TOKEN(response)  # can't use this, due to obsfucatied values
+            )
 
-        except aiohttp.ClientResponseError as exc:
-            # These have been seen / have been common:
-            #  - 400 Bad Request: unknown username/password?
-            #  - 429 Too Many Requests: exceeded authentication/api rate limits
-            #  - 503 Service Unavailable
-
-            # can't use response.text() as may raise another error
+        except aiohttp.ClientConnectionError as exc:
             raise AuthenticationError(f"Unable to obtain an Access Token: {exc}")
 
+        except aiohttp.ClientResponseError as exc:
+            if exc.status == 400:  # Bad Request
+                # invalid user credentials, or invalid refresh token
+                msg = "Unknown/invalid credentials (check your username/password)"
+            if exc.status == 401:  # Unauthorized
+                msg = "Invalid access token (user shouldn't see this message)"
+            elif exc.status == 429:  # Too Many Requests
+                msg = "Vendor's API rate limit has been exceeded (wait a while)"
+            elif exc.status == 503:  # Service Unavailable
+                msg = "Unable to reach vendor's webservers (check their status page)"
+            else:
+                msg = f"Unexpected HTTP error: {exc} "
+
+            # can't use response.text() here as may raise another error
+            raise AuthenticationError(msg, status=exc.status)
+
         try:  # the access token _should_ be valid...
+            _ = SCH_OAUTH_TOKEN(response)  # can't use result, due to obsfucated values
+
             self.access_token = response["access_token"]  # type: ignore[index]
             self.access_token_expires = dt.now() + td(seconds=response["expires_in"])  # type: ignore[index, arg-type]
             self.refresh_token = response["refresh_token"]  # type: ignore[index]
 
-        except SchemaInvalid as exc:  # TODO: only if voluptuous is installed
-            raise AuthenticationError(f"Unable to obtain an Access Token, hint: {exc}")
-
-        except KeyError:
-            raise AuthenticationError(
-                f"Unable to obtain an Access Token, hint: {response}"
-            )
-
-        except TypeError:  # response was str or None, not dict
-            raise AuthenticationError(
-                f"Unable to obtain an Access Token, hint: {response}"
-            )
+        except (vol.Invalid, KeyError, TypeError) as exc:
+            raise AuthenticationError(f"Invalid response from server: {exc}")
 
     @property  # user_account
     def account_info(self) -> dict:  # from the original evohomeclient namespace
@@ -310,7 +316,7 @@ class EvohomeClient(EvohomeClientDeprecated):
     async def user_account(self, force_update: bool = False) -> dict:
         """Return the user account information.
 
-        If required/forced, retreive that data from the vendor's API.
+        If required/forced, retrieve that data from the vendor's API.
         """
 
         # There is usually no need to refresh this data
@@ -338,7 +344,7 @@ class EvohomeClient(EvohomeClientDeprecated):
     async def installation(self, force_update: bool = False) -> dict:
         """Return the configuration of the user's locations their status.
 
-        If required/forced, retreive that data from the vendor's API.
+        If required/forced, retrieve that data from the vendor's API.
         """
 
         # There is usually no need to refresh this data
