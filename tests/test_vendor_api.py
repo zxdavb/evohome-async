@@ -112,16 +112,16 @@ async def _test_all_config(
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     response.raise_for_status()
 
+    url += "&includeTemperatureControlSystems=True"
+    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    response.raise_for_status()
+
     response, content = await client._client("PUT", f"{URL_BASE}/{url}")
     try:
         response.raise_for_status()
     except aiohttp.ClientResponseError as exc:  # 405: Method Not Allowed
         assert exc.status == HTTPStatus.METHOD_NOT_ALLOWED
         # assert content["message"].startswith("The requested resource does not")
-
-    url += "&includeTemperatureControlSystems=True"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
-    response.raise_for_status()
 
     url = "location/installationInfo"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
@@ -131,7 +131,7 @@ async def _test_all_config(
         assert exc.status == HTTPStatus.NOT_FOUND
         # assert content["message"].startswith("No HTTP resource was found")
 
-    url = "location/installationInfo?userId=123"
+    url = "location/installationInfo?userId=1230000"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
         response.raise_for_status()
@@ -139,7 +139,7 @@ async def _test_all_config(
         assert exc.status == HTTPStatus.UNAUTHORIZED
         # assert content["message"].startswith("You are not allowed")
 
-    url = "location/installationInfo?userId=xxx"
+    url = "location/installationInfo?userId=xxxxxxx"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
         response.raise_for_status()
@@ -147,7 +147,7 @@ async def _test_all_config(
         assert exc.status == HTTPStatus.BAD_REQUEST
         # assert content["message"].startswith("Request was bad formatted")
 
-    url = "location/installationInfo?xxxxXx=xxx"
+    url = "location/installationInfo?xxxxXx=xxxxxxx"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
         response.raise_for_status()
@@ -177,6 +177,10 @@ async def _test_loc_status(
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     response.raise_for_status()
 
+    url += "?includeTemperatureControlSystems=True"
+    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    response.raise_for_status()
+
     response, content = await client._client("PUT", f"{URL_BASE}/{url}")
     try:
         response.raise_for_status()
@@ -184,19 +188,15 @@ async def _test_loc_status(
         assert exc.status == HTTPStatus.METHOD_NOT_ALLOWED
         # assert content["message"].startswith("The requested resource does not")
 
-    url += "?includeTemperatureControlSystems=True"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
-    response.raise_for_status()
-
     url = f"location/{loc.locationId}"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
         response.raise_for_status()
     except aiohttp.ClientResponseError as exc:  # 404: Not Found
         assert exc.status == HTTPStatus.NOT_FOUND
-        # assert response.content_type == "text/html"
+        assert response.content_type == "text/html"
 
-    url = "location/123/status"
+    url = "location/1230000/status"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
         response.raise_for_status()
@@ -204,7 +204,7 @@ async def _test_loc_status(
         assert exc.status == HTTPStatus.UNAUTHORIZED
         # assert content["message"].startswith("You are not allowed")
 
-    url = "location/xxx/status"
+    url = "location/xxxxxxx/status"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
         response.raise_for_status()
@@ -212,20 +212,20 @@ async def _test_loc_status(
         assert exc.status == HTTPStatus.BAD_REQUEST
         # assert content["message"].startswith("Request was bad formatted")
 
-    url = f"location/{loc.locationId}/xxx"
+    url = f"location/{loc.locationId}/xxxxxxx"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
         response.raise_for_status()
     except aiohttp.ClientResponseError as exc:  # 404: Not Found
         assert exc.status == HTTPStatus.NOT_FOUND
-        # assert response.content_type == "text/html"
+        assert response.content_type == "text/html"
 
 
-# TODO: trap 429
+# TODO: test_oauth_token(
 
 
 @pytest.mark.asyncio
-async def test_usr_account(
+async def test_get_usr_account(
     credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test /userAccount"""
@@ -234,7 +234,7 @@ async def test_usr_account(
 
 
 @pytest.mark.asyncio
-async def test_all_config(
+async def test_get_all_config(
     credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test /location/installationInfo"""
@@ -243,9 +243,18 @@ async def test_all_config(
 
 
 @pytest.mark.asyncio
-async def test_loc_status(
+async def test_get_loc_status(
     credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test location/{locationId}/status"""
 
     await _test_loc_status(*credentials, session=session)
+
+
+# TODO: test_put_dhw_state(
+# TODO: test_get_dhw_status(
+# TODO: test_get_schedule(
+# TODO: test_put_schedule(
+# TODO: test_set_tcs_mode(
+# TODO: test_put_zon_mode(
+# TODO: test_get_zon_status(
