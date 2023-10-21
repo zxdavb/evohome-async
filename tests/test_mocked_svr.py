@@ -51,7 +51,7 @@ async def session():
         await _session.close()
 
 
-async def _test_vendor_api_basics(
+async def _test_basics_apis(
     username: str,
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
@@ -137,7 +137,7 @@ async def _test_vendor_api_basics(
     pass
 
 
-async def _test_vendor_api_sched_(
+async def _test_sched__apis(
     username: str,
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
@@ -177,7 +177,7 @@ async def _test_vendor_api_sched_(
     pass
 
 
-async def _test_vendor_api_status(
+async def _test_status_apis(
     username: str,
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
@@ -215,7 +215,7 @@ async def _test_vendor_api_status(
     pass
 
 
-async def _test_vendor_api_system(
+async def _test_system_apis(
     username: str,
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
@@ -259,40 +259,40 @@ async def _test_vendor_api_system(
 
 
 @pytest.mark.asyncio
-async def test_vendor_api_basics(
+async def test_basics(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
     username, password = credentials
 
-    await _test_vendor_api_basics(username, password, session=session)
+    await _test_basics_apis(username, password, session=session)
 
 
 @pytest.mark.asyncio
-async def test_vendor_api_sched_(
+async def test_sched_(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
     username, password = credentials
 
-    await _test_vendor_api_sched_(username, password, session=session)
+    await _test_sched__apis(username, password, session=session)
 
 
 @pytest.mark.asyncio
-async def test_vendor_api_status(
+async def test_status(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
     username, password = credentials
 
-    await _test_vendor_api_status(username, password, session=session)
+    await _test_status_apis(username, password, session=session)
 
 
 @pytest.mark.asyncio
-async def test_vendor_api_system(
+async def test_system(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
     username, password = credentials
 
-    await _test_vendor_api_system(username, password, session=session)
+    await _test_system_apis(username, password, session=session)
