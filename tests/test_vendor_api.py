@@ -13,8 +13,6 @@ import pytest_asyncio
 import evohomeasync2 as evo
 from evohomeasync2 import URL_BASE
 
-from . import mocked_server as mock
-
 from .helpers import aiohttp, extract_oauth_tokens  # aiohttp may be mocked
 from .helpers import credentials as _credentials
 from .helpers import session as _session
@@ -39,7 +37,7 @@ async def session():
 async def instantiate_client(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession | mock.ClientSession = None,
+    session: None | aiohttp.ClientSession = None,
 ):
     """Instantiate a client, and logon to the vendor API."""
 
@@ -73,7 +71,12 @@ async def _test_usr_account(
 
     url = "userAccount"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except aiohttp.ClientResponseError as exc:
+        if exc.status == HTTPStatus.TOO_MANY_REQUESTS:
+            pytest.skip("429: Too many requests")
+        raise
 
     response, content = await client._client("PUT", f"{URL_BASE}/{url}")
     try:
@@ -91,18 +94,21 @@ async def _test_usr_account(
         # assert content["message"].startswith("The requested resource does not")
 
 
-async def _test_usr_location(
+async def _test_all_config(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession | mock.ClientSession = None,
+    session: None | aiohttp.ClientSession = None,
 ) -> None:
     """Test location/installationInfo?userId={userId}"""
 
     client = await instantiate_client(username, password, session=session)
-    _ = await client.user_account()
+    try:
+        _ = await client.user_account()
+    except aiohttp.ClientResponseError as exc:
+        if exc.status == HTTPStatus.TOO_MANY_REQUESTS:
+            pytest.skip("429: Too many requests")
 
     url = f"location/installationInfo?userId={client.account_info['userId']}"
-    # url += "&includeTemperatureControlSystems=True"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     response.raise_for_status()
 
@@ -125,15 +131,15 @@ async def _test_usr_location(
         assert exc.status == HTTPStatus.NOT_FOUND
         # assert content["message"].startswith("No HTTP resource was found")
 
-    url = "location/installationInfo?xxxxXx=xxxxxxx"
+    url = "location/installationInfo?userId=123"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
         response.raise_for_status()
-    except aiohttp.ClientResponseError as exc:  # 404: Not Found
-        assert exc.status == HTTPStatus.NOT_FOUND
-        # assert content["message"].startswith("No HTTP resource was found")
+    except aiohttp.ClientResponseError as exc:  # 401: Unauthorized
+        assert exc.status == HTTPStatus.UNAUTHORIZED
+        # assert content["message"].startswith("You are not allowed")
 
-    url = "location/installationInfo?userId=xxxxxxx"
+    url = "location/installationInfo?userId=xxx"
     response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
         response.raise_for_status()
@@ -141,10 +147,86 @@ async def _test_usr_location(
         assert exc.status == HTTPStatus.BAD_REQUEST
         # assert content["message"].startswith("Request was bad formatted")
 
+    url = "location/installationInfo?xxxxXx=xxx"
+    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    try:
+        response.raise_for_status()
+    except aiohttp.ClientResponseError as exc:  # 404: Not Found
+        assert exc.status == HTTPStatus.NOT_FOUND
+        # assert content["message"].startswith("No HTTP resource was found")
+
+
+async def _test_loc_status(
+    username: str,
+    password: str,
+    session: None | aiohttp.ClientSession = None,
+) -> None:
+    """Test location/{locationId}/status"""
+
+    client = await instantiate_client(username, password, session=session)
+    try:
+        _ = await client.user_account()
+    except aiohttp.ClientResponseError as exc:
+        if exc.status == HTTPStatus.TOO_MANY_REQUESTS:
+            pytest.skip("429: Too many requests")
+
+    _ = await client._installation(refresh_status=False)
+    loc = client.locations[0]
+
+    url = f"location/{loc.locationId}/status"
+    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    response.raise_for_status()
+
+    response, content = await client._client("PUT", f"{URL_BASE}/{url}")
+    try:
+        response.raise_for_status()
+    except aiohttp.ClientResponseError as exc:  # 405: Method Not Allowed
+        assert exc.status == HTTPStatus.METHOD_NOT_ALLOWED
+        # assert content["message"].startswith("The requested resource does not")
+
+    url += "?includeTemperatureControlSystems=True"
+    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    response.raise_for_status()
+
+    url = f"location/{loc.locationId}"
+    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    try:
+        response.raise_for_status()
+    except aiohttp.ClientResponseError as exc:  # 404: Not Found
+        assert exc.status == HTTPStatus.NOT_FOUND
+        # assert response.content_type == "text/html"
+
+    url = "location/123/status"
+    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    try:
+        response.raise_for_status()
+    except aiohttp.ClientResponseError as exc:  # 401: Unauthorized
+        assert exc.status == HTTPStatus.UNAUTHORIZED
+        # assert content["message"].startswith("You are not allowed")
+
+    url = "location/xxx/status"
+    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    try:
+        response.raise_for_status()
+    except aiohttp.ClientResponseError as exc:  # 400: Bad Request
+        assert exc.status == HTTPStatus.BAD_REQUEST
+        # assert content["message"].startswith("Request was bad formatted")
+
+    url = f"location/{loc.locationId}/xxx"
+    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    try:
+        response.raise_for_status()
+    except aiohttp.ClientResponseError as exc:  # 404: Not Found
+        assert exc.status == HTTPStatus.NOT_FOUND
+        # assert response.content_type == "text/html"
+
+
+# TODO: trap 429
+
 
 @pytest.mark.asyncio
 async def test_usr_account(
-    credentials: tuple[str, str], session: aiohttp.ClientSession | mock.ClientSession
+    credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test /userAccount"""
 
@@ -152,9 +234,18 @@ async def test_usr_account(
 
 
 @pytest.mark.asyncio
-async def test_usr_location(
-    credentials: tuple[str, str], session: aiohttp.ClientSession | mock.ClientSession
+async def test_all_config(
+    credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test /location/installationInfo"""
 
-    await _test_usr_location(*credentials, session=session)
+    await _test_all_config(*credentials, session=session)
+
+
+@pytest.mark.asyncio
+async def test_loc_status(
+    credentials: tuple[str, str], session: aiohttp.ClientSession
+) -> None:
+    """Test location/{locationId}/status"""
+
+    await _test_loc_status(*credentials, session=session)
