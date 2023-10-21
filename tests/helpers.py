@@ -8,20 +8,34 @@ import os
 
 import evohomeasync2 as evo
 
-import mocked_server as mock
+from . import mocked_server as mock
+
+
+_DEBUG_USE_MOCK_AIOHTTP = False
+
+
+if _DEBUG_USE_MOCK_AIOHTTP:
+    from .mocked_server import aiohttp
+else:
+    import aiohttp
 
 
 def credentials():
     username = os.getenv("PYTEST_USERNAME")
     password = os.getenv("PYTEST_PASSWORD")
 
+    # with open() as f:
+    #     lines = f.readlines()
+    # username = lines[0].strip()
+    # password = lines[1].strip()
+
     return username, password
 
 
 def session():
-    session = mock.ClientSession(mocked_server=mock.MockedServer(None, None))
-    # session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-    return session
+    if not _DEBUG_USE_MOCK_AIOHTTP:
+        return aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+    return aiohttp.ClientSession(mocked_server=mock.MockedServer(None, None))
 
 
 def extract_oauth_tokens(client: evo.EvohomeClient):

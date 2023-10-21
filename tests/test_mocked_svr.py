@@ -11,7 +11,7 @@ import pytest_asyncio
 
 import evohomeasync2 as evo
 
-import mocked_server as mock
+from . import mocked_server as mock
 from evohomeasync2.schema import (
     SCH_DHW_STATUS,
     SCH_FULL_CONFIG,
@@ -46,9 +46,9 @@ def credentials():
 @pytest_asyncio.fixture
 async def session():
     try:
-        yield _session
+        yield _session()
     finally:
-        await _session.close()
+        await _session().close()
 
 
 async def _test_basics_apis(

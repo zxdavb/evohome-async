@@ -64,7 +64,7 @@ class ClientResponseError(ClientError):
 
     def __init__(self, msg, /, *, status: None | int = None, **kwargs) -> None:
         super().__init__(msg)
-        self.status: int = status or 404
+        self.status: int = status
 
 
 class ClientTimeout:
@@ -135,15 +135,30 @@ class ClientResponse:
                 f"{self.method} {self.url}: {self.status}", status=self.status
             )
 
-    async def text(self, /, **kwargs) -> str:  # TODO: if no body...
-        """Return the response body as text."""
+    @property
+    def content_length(self) -> None | int:
+        if self._body:
+            return len(self._body)
+
+    @property
+    def content_type(self) -> None | str:
+        """Return the Content-Type header of the response."""
+        # if isinstance(self._body, bytes):
+        #     return "application/octet-stream"
+        if isinstance(self._body, (dict, list)):
+            return "application/json"
         if isinstance(self._body, str):
+            return "text/plain"
+
+    async def text(self, /, **kwargs) -> str:  # assumes is JSON or plaintext
+        """Return the response body as text."""
+        if self.content_type == "text/plain":
             return self._body
         return json.dumps(self._body)
 
-    async def json(self, /, **kwargs) -> dict | list:  # TODO: if no body...
+    async def json(self, /, **kwargs) -> dict | list:  # assumes is JSON or plaintext
         """Return the response body as json (a dict)."""
-        if isinstance(self._body, (dict, list)):
+        if self.content_type == "application/json":
             return self._body
         return json.loads(self._body)
 

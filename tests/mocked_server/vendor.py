@@ -4,12 +4,11 @@
 """Mocked vendor server for provision via a hacked aiohttp."""
 from __future__ import annotations
 
+from http import HTTPStatus
 import re
 from typing import TYPE_CHECKING
 
-import voluptuous as vol
-
-from evohomeasync2.schema import SCH_OAUTH_TOKEN
+from evohomeasync2.const import AUTH_URL, URL_BASE
 from evohomeasync2.schema.const import (
     SZ_DHW,
     SZ_DHW_ID,
@@ -65,39 +64,45 @@ class MockedServer:
         self._url = url
         self._data = data
 
-        self.status = None
-
         # 400: Bad Request  - assume invalid data / JSON
         # 401: Unauthorized - assume no access (to UserId, LocationId, ZoneId, etc.)
         # 404: Not Found    - assume bad url
 
-        if method := REQUEST_MAP.get(url):
-            self.body: None | _bodyT = method(self, method, url, data=data)
+        self.body, self.status = None, None
+        for pattern, method in REQUEST_MAP.items():
+            if re.search(pattern, url):
+                self.body: None | _bodyT = method(self)
+                break
         else:
-            self.status = 404  # Page Not Found
+            self.status = HTTPStatus.NOT_FOUND
 
-        if self.status is None:
-            self.status = 200 if self.body else 401  # OK, or Unauthorized
-
+        if not self.status:
+            self.status = HTTPStatus.OK if self.body else HTTPStatus.NOT_FOUND
         return self.body
 
     def oauth_token(self) -> None | _bodyT:
         if self._method != hdrs.METH_POST:
-            return
-        try:
-            SCH_OAUTH_TOKEN(self._data)
-        except vol.Invalid as exc:
-            self._status = 400  # Bad Request (to check)
-        else:
-            return MOCK_AUTH_RESPONSE  # TODO: consider status = 401
+            self.status = HTTPStatus.METHOD_NOT_ALLOWED
+        elif self._url == AUTH_URL:
+            return MOCK_AUTH_RESPONSE
 
     def usr_account(self) -> None | _bodyT:
-        pass
+        if self._method != hdrs.METH_GET:
+            self.status = HTTPStatus.METHOD_NOT_ALLOWED
+        elif self._url == f"{URL_BASE}/userAccount":
+            return self._user_config
+        else:
+            self.status = HTTPStatus.NOT_FOUND
 
-    def all_info(self) -> None | _bodyT:
-        pass
+    def all_config(self) -> None | _bodyT:  # full_locn
+        if self._method != hdrs.METH_GET:
+            self.status = HTTPStatus.METHOD_NOT_ALLOWED
+        elif self._url == f"{URL_BASE}/location/installationInfo":
+            self.status = HTTPStatus.NOT_FOUND
+        else:
+            return self._full_config
 
-    def loc_info(self) -> None | _bodyT:
+    def loc_config(self) -> None | _bodyT:
         pass
 
     def loc_status(self) -> None | _bodyT:
@@ -295,10 +300,10 @@ REQUEST_MAP = {
     #
     r"/Auth/OAuth/Token": MockedServer.oauth_token,
     #
-    r"/userAccount": MockedServer.usr_account,
-    r"/location/installationInfo": MockedServer.all_info,
+    r"/userAccount$": MockedServer.usr_account,
+    r"/location/installationInfo": MockedServer.all_config,
     #
-    r"/location/.*/installationInfo": MockedServer.loc_info,
+    r"/location/.*/installationInfo": MockedServer.loc_config,
     r"/location/.*/status": MockedServer.loc_status,
     #
     r"/temperatureControlSystem/.*/mode": MockedServer.tcs_mode,
