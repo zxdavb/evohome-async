@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 """Mocked vendor RESTful API via a hacked aiohttp."""
+from __future__ import annotations
+
+from enum import EnumCheck, StrEnum, verify
+from typing import Final, Literal
 
 
 # Sample responses from evohome-client
@@ -585,3 +589,17 @@ def user_config_from_full_config(full_config: dict) -> dict:
 
 
 MOCK_USER_CONFIG = user_config_from_full_config(MOCK_FULL_CONFIG)
+
+
+# from aiohttp
+@verify(EnumCheck.UNIQUE)
+class hdrs(StrEnum):
+    METH_GET: Final[str] = "get"
+    METH_POST: Final[str] = "post"
+    METH_PUT: Final[str] = "put"
+
+
+_bodyT = dict | str
+_methodT = Literal[hdrs.METH_GET, hdrs.METH_POST, hdrs.METH_PUT]
+_statusT = int
+_urlT = str

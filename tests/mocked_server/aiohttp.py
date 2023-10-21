@@ -5,26 +5,17 @@
 from __future__ import annotations
 
 import asyncio
-from enum import EnumCheck, StrEnum, verify
 from types import TracebackType
-from typing import Any, Final, Literal, Self, Type
+from typing import TYPE_CHECKING, Any, Self, Type
 
 import json
 
+from .const import hdrs
 from .vendor import MockedServer
 
 
-@verify(EnumCheck.UNIQUE)
-class hdrs(StrEnum):
-    METH_GET: Final[str] = "get"
-    METH_POST: Final[str] = "post"
-    METH_PUT: Final[str] = "put"
-
-
-_bodyT = dict | str
-_methodT = Literal[hdrs.METH_GET, hdrs.METH_POST, hdrs.METH_PUT]
-_statusT = int
-_urlT = str
+if TYPE_CHECKING:
+    from .const import _bodyT, _methodT, _statusT, _urlT
 
 
 _DEFAULT_LIMIT = 2**16  # 64 KiB

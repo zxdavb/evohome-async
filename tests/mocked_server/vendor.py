@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 from evohomeasync2.schema.const import (
     SZ_DHW,
@@ -23,18 +23,12 @@ from .const import (
     MOCK_SCHEDULE_DHW,
     MOCK_SCHEDULE_ZONE,
 )
-from .const import user_config_from_full_config as _user_config_from_full_config
-from .aiohttp import hdrs
+from .const import hdrs, user_config_from_full_config as _user_config_from_full_config
 
 
 if TYPE_CHECKING:
     from evohomeasync2.typing import _DhwIdT, _ZoneIdT
-
-
-_bodyT = dict | str
-_methodT = Literal[hdrs.METH_GET, hdrs.METH_POST, hdrs.METH_PUT]
-_statusT = int
-_urlT = str
+    from .const import _bodyT, _methodT, _statusT, _urlT
 
 
 class MockedServer:
