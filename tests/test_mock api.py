@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 """evohome-async - validate the config, status & schedule schemas."""
+from __future__ import annotations
 
 import aiohttp
 from datetime import datetime as dt
-import os
-from pathlib import Path
 import pytest
 import pytest_asyncio
 
@@ -31,48 +30,25 @@ from evohomeasync2.schema import (  # noqa: F401
 from evohomeasync2.schema.const import SZ_MODE
 from evohomeasync2.schema.schedule import SCH_SCHEDULE_PUT
 
-TEST_DIR = Path(__file__).resolve().parent
-WORK_DIR = f"{TEST_DIR}/mocked"
+from .helpers import credentials as _credentials
+from .helpers import session as _session
+from .helpers import extract_oauth_tokens
 
 
-_global_oauth_tokens: None | tuple[str, str, dt] = None
+_global_oauth_tokens: tuple[str, str, dt] = None, None, None
 
 
 @pytest.fixture()
 def credentials():
-    username = os.getenv("PYTEST_USERNAME")
-    password = os.getenv("PYTEST_PASSWORD")
-
-    return username, password
+    return _credentials()
 
 
 @pytest_asyncio.fixture
 async def session():
-    server = mock.MockedServer(None, None)
-    session = mock.ClientSession(mocked_server=server)
-
-    # session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-
     try:
-        yield session
+        yield _session
     finally:
-        await session.close()
-
-
-def load_oauth_tokens() -> tuple[str, str, dt]:
-    global _global_oauth_tokens
-    if _global_oauth_tokens is None:
-        return None, None, None
-    return _global_oauth_tokens[0], _global_oauth_tokens[1], _global_oauth_tokens[2]
-
-
-def save_oauth_tokens(client: evo.EvohomeClient):
-    global _global_oauth_tokens
-    _global_oauth_tokens = (
-        client.refresh_token,
-        client.access_token,
-        client.access_token_expires,
-    )
+        await _session.close()
 
 
 async def _test_vendor_api_basics(
@@ -80,7 +56,9 @@ async def _test_vendor_api_basics(
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
 ):
-    refresh_token, access_token, access_token_expires = load_oauth_tokens()
+    global _global_oauth_tokens
+
+    refresh_token, access_token, access_token_expires = _global_oauth_tokens
 
     #
     # STEP 0: Instantiation, NOTE: No API calls invoked during instantiation
@@ -96,7 +74,7 @@ async def _test_vendor_api_basics(
     #
     # STEP 1: Authentication (isolated from client.login()), POST /Auth/OAuth/Token
     await client._basic_login()
-    save_oauth_tokens(client)
+    _global_oauth_tokens = extract_oauth_tokens(client)
 
     assert isinstance(client.access_token, str)
     assert isinstance(client.access_token_expires, dt)
@@ -164,7 +142,9 @@ async def _test_vendor_api_sched_(
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
 ):
-    refresh_token, access_token, access_token_expires = load_oauth_tokens()
+    global _global_oauth_tokens
+
+    refresh_token, access_token, access_token_expires = _global_oauth_tokens
 
     #
     # STEP 0: Instantiation...
@@ -180,7 +160,7 @@ async def _test_vendor_api_sched_(
     #
     # STEP 1: Initial authentication, retrieve config & status
     await client.login()  # invokes await client.installation()
-    save_oauth_tokens(client)
+    _global_oauth_tokens = extract_oauth_tokens(client)
 
     #
     # STEP 2: GET & PUT /{_type}/{_id}/schedule
@@ -202,7 +182,9 @@ async def _test_vendor_api_status(
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
 ):
-    refresh_token, access_token, access_token_expires = load_oauth_tokens()
+    global _global_oauth_tokens
+
+    refresh_token, access_token, access_token_expires = _global_oauth_tokens
 
     #
     # STEP 0: Instantiation...
@@ -218,7 +200,7 @@ async def _test_vendor_api_status(
     #
     # STEP 1: Initial authentication, retrieve config & status
     await client.login()  # invokes await client.installation()
-    save_oauth_tokens(client)
+    _global_oauth_tokens = extract_oauth_tokens(client)
 
     #
     # STEP 2: GET /{_type}/{_id}/status
@@ -238,7 +220,9 @@ async def _test_vendor_api_system(
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
 ):
-    refresh_token, access_token, access_token_expires = load_oauth_tokens()
+    global _global_oauth_tokens
+
+    refresh_token, access_token, access_token_expires = _global_oauth_tokens
 
     #
     # STEP 0: Instantiation...
@@ -254,7 +238,7 @@ async def _test_vendor_api_system(
     #
     # STEP 1: Initial authentication, retrieve config & status
     await client.login()  # invokes await client.installation()
-    save_oauth_tokens(client)
+    _global_oauth_tokens = extract_oauth_tokens(client)
 
     #
     # STEP 2: GET /{_type}/{_id}/status

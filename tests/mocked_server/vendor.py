@@ -7,6 +7,9 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+import voluptuous as vol
+
+from evohomeasync2.schema import SCH_OAUTH_TOKEN
 from evohomeasync2.schema.const import (
     SZ_DHW,
     SZ_DHW_ID,
@@ -27,11 +30,13 @@ from .const import hdrs, user_config_from_full_config as _user_config_from_full_
 
 
 if TYPE_CHECKING:
-    from evohomeasync2.typing import _DhwIdT, _ZoneIdT
+    from evohomeasync2.typing import _DhwIdT, _LocationIdT, _SystemIdT, _ZoneIdT
     from .const import _bodyT, _methodT, _statusT, _urlT
 
 
 class MockedServer:
+    """Mocked vendor server for provision via a hacked aiohttp."""
+
     def __init__(
         self,
         full_config: dict,
@@ -53,25 +58,73 @@ class MockedServer:
         self.status: None | _statusT = None
         self._url: None | _urlT = None
 
-    @staticmethod
-    def _user_config_from_full_config(full_config: dict) -> dict:
-        """Create a valid MOCK_USER_CONFIG from a MOCK_FULL_CONFIG."""
-        return _user_config_from_full_config(full_config)
-
     def request(
         self, method: _methodT, url: _urlT, data: None | dict | str = None
     ) -> _bodyT:
         self._method = method
         self._url = url
+        self._data = data
 
         self.status = None
 
-        self.body = self._response_for_request()  # TODO: handle data
+        # 400: Bad Request  - assume invalid data / JSON
+        # 401: Unauthorized - assume no access (to UserId, LocationId, ZoneId, etc.)
+        # 404: Not Found    - assume bad url
+
+        if method := REQUEST_MAP.get(url):
+            self.body: None | _bodyT = method(self, method, url, data=data)
+        else:
+            self.status = 404  # Page Not Found
 
         if self.status is None:
-            self.status = 200 if self.body else 404
+            self.status = 200 if self.body else 401  # OK, or Unauthorized
 
         return self.body
+
+    def oauth_token(self) -> None | _bodyT:
+        if self._method != hdrs.METH_POST:
+            return
+        try:
+            SCH_OAUTH_TOKEN(self._data)
+        except vol.Invalid as exc:
+            self._status = 400  # Bad Request (to check)
+        else:
+            return MOCK_AUTH_RESPONSE  # TODO: consider status = 401
+
+    def usr_account(self) -> None | _bodyT:
+        pass
+
+    def all_info(self) -> None | _bodyT:
+        pass
+
+    def loc_info(self) -> None | _bodyT:
+        pass
+
+    def loc_status(self) -> None | _bodyT:
+        pass
+
+    def tcs_mode(self) -> None | _bodyT:
+        pass
+
+    def zon_schedule(self) -> None | _bodyT:
+        pass
+
+    def zon_mode(self) -> None | _bodyT:
+        pass
+
+    def zon_status(self) -> None | _bodyT:
+        pass
+
+    def dhw_schedule(self) -> None | _bodyT:
+        pass
+
+    def dhw_status(self) -> None | _bodyT:
+        pass
+
+    def dhw_mode(self) -> None | _bodyT:
+        pass
+
+    #
 
     def _response_for_request(self) -> None | _bodyT:
         """Set the response body (and status) according to the request."""
@@ -177,9 +230,6 @@ class MockedServer:
                 # PUT /domesticHotWater/{dhwId}/state
                 raise NotImplementedError
 
-    def auth_response(self) -> dict:
-        return MOCK_AUTH_RESPONSE  # TODO: consider status = 401
-
     def user_config(self) -> dict:
         return self._user_config
 
@@ -192,10 +242,10 @@ class MockedServer:
     def locn_status(self, location_id: None | str) -> dict:
         return self._locn_status
 
-    def dhw_schedule(self, dhw_id: _DhwIdT) -> dict:
+    def dhw_schedule_old(self, dhw_id: _DhwIdT) -> dict:
         return self._dhw_schedule
 
-    def dhw_status(self, dhw_id: _DhwIdT) -> None | dict:
+    def dhw_status_old(self, dhw_id: _DhwIdT) -> None | dict:
         for gwy in self._locn_status[SZ_GATEWAYS]:
             for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
                 if (dhw := tcs.get(SZ_DHW)) and dhw[SZ_DHW_ID] == dhw_id:
@@ -214,3 +264,50 @@ class MockedServer:
 
     def zone_schedule(self, zone_id: _ZoneIdT) -> dict:
         return self._zone_schedule
+
+    @staticmethod
+    def _user_config_from_full_config(full_config: dict) -> dict:
+        """Create a valid MOCK_USER_CONFIG from a MOCK_FULL_CONFIG."""
+        return _user_config_from_full_config(full_config)
+
+    @staticmethod
+    def _dhw_id(url) -> _DhwIdT:
+        """Extract a DHW ID from a URL."""
+        return url.split("temperatureZone/")[1].split("/")[0]
+
+    @staticmethod
+    def _loc_id(url) -> _LocationIdT:
+        """Extract a Location ID from a URL."""
+        return url.split("location/")[1].split("/")[0]
+
+    @staticmethod
+    def _tcs_id(url) -> _SystemIdT:
+        """Extract a TCS ID from a URL."""
+        return url.split("temperatureControlSystem/")[1].split("/")[0]
+
+    @staticmethod
+    def _zon_id(url) -> _ZoneIdT:
+        """Extract a Zone ID from a URL."""
+        return url.split("domesticHotWater/")[1].split("/")[0]
+
+
+REQUEST_MAP = {
+    #
+    r"/Auth/OAuth/Token": MockedServer.oauth_token,
+    #
+    r"/userAccount": MockedServer.usr_account,
+    r"/location/installationInfo": MockedServer.all_info,
+    #
+    r"/location/.*/installationInfo": MockedServer.loc_info,
+    r"/location/.*/status": MockedServer.loc_status,
+    #
+    r"/temperatureControlSystem/.*/mode": MockedServer.tcs_mode,
+    #
+    r"/temperatureZone/.*/status": MockedServer.zon_status,
+    r"/temperatureZone/.*/heatSetpoint": MockedServer.zon_mode,
+    r"/temperatureZone/.*/schedule": MockedServer.zon_schedule,
+    #
+    r"/domesticHotWater/.*/status": MockedServer.dhw_status,
+    r"/domesticHotWater/.*/state": MockedServer.dhw_mode,
+    r"/domesticHotWater/.*/schedule": MockedServer.dhw_schedule,
+}
