@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+"""Mocked vendor RESTful API via a hacked aiohttp."""
+
+
+# Sample responses from evohome-client
 MOCK_AUTH_RESPONSE = {  # can use this for all
     "access_token": "ncWMqPh2yGgAqc...",
     "token_type": "bearer",
