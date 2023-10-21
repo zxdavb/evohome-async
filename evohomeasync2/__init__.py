@@ -3,7 +3,7 @@
 #
 """evohomeasync2 provides an async client for the updated Evohome API.
 
-It is a faithful async port of https://github.com/watchforstock/evohome-client
+It is (largely) a faithful port of https://github.com/watchforstock/evohome-client
 
 Further information at: https://evohome-client.readthedocs.io
 """
@@ -13,7 +13,7 @@ from json.decoder import JSONDecodeError
 import logging
 from datetime import datetime as dt
 from datetime import timedelta as td
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import aiohttp
 
@@ -47,6 +47,7 @@ except ModuleNotFoundError:  # No module named 'voluptuous'
 if TYPE_CHECKING:
     from .typing import _FilePathT, _LocationIdT, _SystemIdT
 
+
 # logging.basicConfig()
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,6 +56,8 @@ HTTP_UNAUTHORIZED = 401
 
 
 class EvohomeClientDeprecated:
+    """These are deprecated attributes/methods from the original namespace."""
+
     async def full_installation(
         self, location_id: None | _LocationIdT = None
     ) -> NoReturn:
@@ -118,8 +121,8 @@ class EvohomeClientDeprecated:
 class EvohomeClient(EvohomeClientDeprecated):
     """Provide access to the v2 Evohome API."""
 
-    _full_config: dict = None  # type: ignore[assignment]  # installation_info (all locations of user)
-    _user_account: dict = None  # type: ignore[assignment]  # account_info
+    _full_config: dict[str, Any] = None  # type: ignore[assignment]  # installation_info (all locations of user)
+    _user_account: dict[str, Any] = None  # type: ignore[assignment]  # account_info
 
     def __init__(
         self,
@@ -300,12 +303,15 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         try:  # the access token _should_ be valid...
             _ = SCH_OAUTH_TOKEN(response)  # can't use result, due to obsfucated values
+        except vol.Invalid as exc:
+            _LOGGER.warning(f"Response from server is possibly invalid: {exc}")
 
+        try:  # the access token _should_ be valid...
             self.access_token = response["access_token"]  # type: ignore[index]
             self.access_token_expires = dt.now() + td(seconds=response["expires_in"])  # type: ignore[index, arg-type]
             self.refresh_token = response["refresh_token"]  # type: ignore[index]
 
-        except (vol.Invalid, KeyError, TypeError) as exc:
+        except (KeyError, TypeError) as exc:
             raise AuthenticationError(f"Invalid response from server: {exc}")
 
     @property  # user_account
@@ -332,7 +338,11 @@ class EvohomeClient(EvohomeClientDeprecated):
 
             raise InvalidResponse(f"Unable to obtain Account details: {exc}")
 
-        self._user_account: dict = SCH_USER_ACCOUNT(response)
+        try:
+            self._user_account = SCH_USER_ACCOUNT(response)
+        except vol.Invalid as exc:
+            _LOGGER.warning(f"Response from server is possibly invalid: {exc}")
+            self._user_account = response
 
         return self._user_account
 
@@ -371,7 +381,11 @@ class EvohomeClient(EvohomeClientDeprecated):
         except aiohttp.ClientResponseError as exc:
             raise InvalidResponse(f"Unable to obtain Installation details: {exc}")
 
-        self._full_config: dict = SCH_FULL_CONFIG(response)
+        try:
+            self._full_config: dict = SCH_FULL_CONFIG(response)
+        except vol.Invalid as exc:
+            _LOGGER.warning(f"Response from server is possibly invalid: {exc}")
+            self._full_config: dict = response
 
         # populate each freshly instantiated location with its initial status
         for loc_data in self._full_config:
@@ -381,11 +395,6 @@ class EvohomeClient(EvohomeClientDeprecated):
                 await loc.refresh_status()
 
         return self._full_config
-
-    @property
-    def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?
-        """Return the ID of the 'default' TCS (assumes only one loc/gwy/TCS)."""
-        return self._get_single_heating_system().systemId
 
     def _get_single_heating_system(self) -> ControlSystem:
         """If there is a single location/gateway/TCS, return it, or raise an exception.
@@ -409,6 +418,11 @@ class EvohomeClient(EvohomeClientDeprecated):
             )
 
         return self.locations[0]._gateways[0]._control_systems[0]  # type: ignore[index]
+
+    @property
+    def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?
+        """Return the ID of the 'default' TCS (assumes only one loc/gwy/TCS)."""
+        return self._get_single_heating_system().systemId
 
     async def reset_mode(self) -> None:
         """Reset the mode of the default TCS and its zones."""

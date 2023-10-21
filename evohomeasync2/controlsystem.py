@@ -9,23 +9,25 @@ import json
 import logging
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from .const import API_STRFTIME, URL_BASE
+from .const import API_STRFTIME, URL_BASE, SystemMode
 from .hotwater import HotWater
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_DHW,
-    SZ_IS_PERMANENT,
-    SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_SYSTEM_ID,
+    SZ_SYSTEM_MODE_STATUS,
     SZ_ZONES,
 )
+from .schema.const import SYSTEM_MODES
 from .zone import Zone
+
 
 if TYPE_CHECKING:
     from . import Gateway
-    from .typing import _DhwIdT, _FilePathT, _ModeT, _SystemIdT, _ZoneIdT
+    from .typing import _DhwIdT, _FilePathT, _SystemIdT, _ZoneIdT
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -133,60 +135,57 @@ class ControlSystem(_ControlSystemDeprecated):
         return self._status.get(SZ_ACTIVE_FAULTS)
 
     @property
-    def isPermanent(self) -> None | bool:
-        return self._status.get(SZ_IS_PERMANENT)
+    def systemModeStatus(self) -> None | dict:
+        return self._status.get(SZ_SYSTEM_MODE_STATUS)
 
-    @property
-    def mode(self) -> None | str:
-        return self._status.get(SZ_MODE)
-
-    async def _set_mode(self, mode: dict) -> None:
-        """TODO"""
-
+    async def _set_mode(self, request: dict) -> None:
         url = f"temperatureControlSystem/{self.systemId}/mode"
-        await self._client("PUT", f"{URL_BASE}/{url}", json=mode)
+        await self._client("PUT", f"{URL_BASE}/{url}", json=request)
 
-    async def reset_mode(self) -> None:
-        """Reset the system into normal mode (and all zones to FollowSchedule mode)."""
-        await self.set_status("AutoWithReset")
-
-    async def set_mode(self, mode: _ModeT, /, *, until: None | dt = None) -> None:
+    async def set_mode(self, mode: SystemMode, /, *, until: None | dt = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
 
+        if mode not in SYSTEM_MODES:
+            raise ValueError(f"Invalid mode: {mode}")
+
         if until is None:
-            status = {"SystemMode": mode, "TimeUntil": None, "Permanent": True}
+            request = {"SystemMode": mode, "TimeUntil": None, "Permanent": True}
         else:
-            status = {
+            request = {
                 "SystemMode": mode,
                 "TimeUntil": until.strftime(API_STRFTIME),
                 "Permanent": False,
             }
 
-        await self._set_mode(status)
+        await self._set_mode(request)
+
+    async def reset_mode(self) -> None:
+        """Reset the system into normal mode (and all zones to FollowSchedule mode)."""
+        await self.set_status(SystemMode.AUTO_WITH_RESET)
 
     async def set_mode_auto(self) -> None:
         """Set the system into normal mode."""
-        await self.set_status("Auto")
+        await self.set_status(SystemMode.AUTO)
 
     async def set_mode_custom(self, /, *, until: None | dt = None) -> None:
         """Set the system into custom mode."""
-        await self.set_status("Custom", until=until)
+        await self.set_status(SystemMode.CUSTOM, until=until)
 
     async def set_mode_eco(self, /, *, until: None | dt = None) -> None:
         """Set the system into eco mode."""
-        await self.set_status("AutoWithEco", until=until)
+        await self.set_status(SystemMode.AUTO_WITH_ECO, until=until)
 
     async def set_mode_away(self, /, *, until: None | dt = None) -> None:
         """Set the system into away mode."""
-        await self.set_status("Away", until=until)
+        await self.set_status(SystemMode.AWAY, until=until)
 
     async def set_mode_dayoff(self, /, *, until: None | dt = None) -> None:
         """Set the system into dayoff mode."""
-        await self.set_status("DayOff", until=until)
+        await self.set_status(SystemMode.DAY_OFF, until=until)
 
     async def set_mode_heatingoff(self, /, *, until: None | dt = None) -> None:
         """Set the system into heating off mode."""
-        await self.set_status("HeatingOff", until=until)
+        await self.set_status(SystemMode.HEATING_OFF, until=until)
 
     async def temperatures(self) -> list[dict]:
         """A convienience function to return the latest temperatures and setpoints."""

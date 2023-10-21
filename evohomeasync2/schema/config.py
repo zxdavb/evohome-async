@@ -68,12 +68,12 @@ from .const import (
     SZ_ZONES,
 )
 from .const import (
-    ZoneMode,
-    DhwState,
     SystemMode,
-    TcsModelType,
-    ZoneModelType,
-    ZoneType,
+    DHW_STATES,
+    TCS_MODEL_TYPES,
+    ZONE_MODEL_TYPES,
+    ZONE_MODES,
+    ZONE_TYPES,
 )
 from .const import obfuscate as _obfuscate
 
@@ -115,12 +115,10 @@ SCH_ALLOWED_SYSTEM_MODE = vol.Any(SCH_SYSTEM_MODE_PERM, SCH_SYSTEM_MODE_TEMP)
 
 SCH_DHW_STATE_CAPABILITIES_RESPONSE = vol.Schema(
     {
-        vol.Required(SZ_ALLOWED_STATES): [m.value for m in DhwState],
-        vol.Required(SZ_ALLOWED_MODES): [m.value for m in ZoneMode],
-        vol.Required(SZ_MAX_DURATION): str,  # "1.00:00:00"
-        vol.Required(SZ_TIMING_RESOLUTION): vol.Datetime(
-            format="00:%M:00"
-        ),  # "00:10:00"
+        vol.Required(SZ_ALLOWED_STATES): list(DHW_STATES),
+        vol.Required(SZ_ALLOWED_MODES): list(ZONE_MODES),
+        vol.Required(SZ_MAX_DURATION): str,
+        vol.Required(SZ_TIMING_RESOLUTION): vol.Datetime(format="00:%M:00"),
     },
     extra=vol.PREVENT_EXTRA,
 )
@@ -156,7 +154,7 @@ SCH_SETPOINT_CAPABILITIES = vol.Schema(
         vol.Required(SZ_VALUE_RESOLUTION): float,  # 0.5
         vol.Required(SZ_CAN_CONTROL_HEAT): bool,
         vol.Required(SZ_CAN_CONTROL_COOL): bool,
-        vol.Required(SZ_ALLOWED_SETPOINT_MODES): [m.value for m in ZoneMode],
+        vol.Required(SZ_ALLOWED_SETPOINT_MODES): list(ZONE_MODES),
         vol.Required(SZ_MAX_DURATION): str,  # "1.00:00:00"
         vol.Required(SZ_TIMING_RESOLUTION): vol.Datetime(
             format="00:%M:00"
@@ -175,11 +173,11 @@ SCH_SCHEDULE_CAPABILITIES = SCH_SCHEDULE_CAPABILITIES_RESPONSE.extend(
 SCH_ZONE = vol.Schema(
     {
         vol.Required(SZ_ZONE_ID): vol.Match(REGEX_ZONE_ID),
-        vol.Required(SZ_MODEL_TYPE): vol.Any(*[m.value for m in ZoneModelType]),
+        vol.Required(SZ_MODEL_TYPE): vol.Any(*ZONE_MODEL_TYPES),
         vol.Required(SZ_NAME): str,
         vol.Required(SZ_SETPOINT_CAPABILITIES): SCH_SETPOINT_CAPABILITIES,
         vol.Required(SZ_SCHEDULE_CAPABILITIES): SCH_SCHEDULE_CAPABILITIES,
-        vol.Required(SZ_ZONE_TYPE): vol.Any(*[m.value for m in ZoneType]),
+        vol.Required(SZ_ZONE_TYPE): vol.Any(*ZONE_TYPES),
     },
     extra=vol.PREVENT_EXTRA,
 )
@@ -187,7 +185,7 @@ SCH_ZONE = vol.Schema(
 SCH_TEMPERATURE_CONTROL_SYSTEM = vol.Schema(
     {
         vol.Required(SZ_SYSTEM_ID): vol.Match(REGEX_SYSTEM_ID),
-        vol.Required(SZ_MODEL_TYPE): vol.Any(*[m.value for m in TcsModelType]),
+        vol.Required(SZ_MODEL_TYPE): vol.Any(*TCS_MODEL_TYPES),
         vol.Required(SZ_ALLOWED_SYSTEM_MODES): [SCH_ALLOWED_SYSTEM_MODE],
         vol.Required(SZ_ZONES): vol.All([SCH_ZONE], vol.Length(min=1, max=12)),
         vol.Optional(SZ_DHW): SCH_DHW,

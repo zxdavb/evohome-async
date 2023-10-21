@@ -4,7 +4,13 @@
 """Provides handling of a TCC location."""
 
 from __future__ import annotations
+import logging
 from typing import TYPE_CHECKING, Final, NoReturn
+
+try:  # voluptuous is an optional module...
+    import voluptuous as vol  # type: ignore[import-untyped]
+except ModuleNotFoundError:  # No module named 'voluptuous'
+    from .exceptions import FakedVoluptuous as vol
 
 from .const import URL_BASE
 from .gateway import Gateway
@@ -21,11 +27,13 @@ from .schema.const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 
+
 if TYPE_CHECKING:
     from . import EvohomeClient, ControlSystem
     from .typing import _LocationIdT
 
-# _LOGGER = logging.getLogger(__name__)
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class _LocationDeprecated:
@@ -89,7 +97,12 @@ class Location(_LocationDeprecated):
         url = f"location/{self.locationId}/status?includeTemperatureControlSystems=True"
         response = await self._client("GET", f"{URL_BASE}/{url}")
 
-        status: dict = SCH_LOCN_STATUS(response)
+        try:
+            status: dict = SCH_LOCN_STATUS(response)
+        except vol.Invalid as exc:
+            _LOGGER.warning(f"Response from server is possibly invalid: {exc}")
+            status: dict = response
+
         self._update_status(status)
 
         return status

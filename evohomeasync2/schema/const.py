@@ -143,16 +143,18 @@ SZ_SUNDAY = "Sunday"
 
 
 @verify(EnumCheck.UNIQUE)
-class ZoneMode(StrEnum):
-    FOLLOW_SCHEDULE: Final[str] = SZ_FOLLOW_SCHEDULE
-    PERMANENT_OVERRIDE: Final[str] = SZ_PERMANENT_OVERRIDE
-    TEMORARY_OVERRIDE: Final[str] = SZ_TEMPORARY_OVERRIDE
-
-
-@verify(EnumCheck.UNIQUE)
 class DhwState(StrEnum):
     OFF: Final[str] = "On"
     ON: Final[str] = "Off"
+
+
+@verify(EnumCheck.UNIQUE)
+class FaultType(StrEnum):
+    GCL__: Final[str] = "GatewayCommunicationLost"
+    TZACL: Final[str] = "TempZoneActuatorCommunicationLost"
+    TZALB: Final[str] = "TempZoneActuatorLowBattery"
+    TZSCL: Final[str] = "TempZoneSensorCommunicationLost"
+    TZSLB: Final[str] = "TempZoneSensorLowBattery"
 
 
 @verify(EnumCheck.UNIQUE)
@@ -164,15 +166,6 @@ class SystemMode(StrEnum):
     CUSTOM: Final[str] = "Custom"
     DAY_OFF: Final[str] = "DayOff"
     HEATING_OFF: Final[str] = "HeatingOff"
-
-
-@verify(EnumCheck.UNIQUE)
-class FaultType(StrEnum):
-    GCL__: Final[str] = "GatewayCommunicationLost"
-    TZACL: Final[str] = "TempZoneActuatorCommunicationLost"
-    TZALB: Final[str] = "TempZoneActuatorLowBattery"
-    TZSCL: Final[str] = "TempZoneSensorCommunicationLost"
-    TZSLB: Final[str] = "TempZoneSensorLowBattery"
 
 
 @verify(EnumCheck.UNIQUE)
@@ -189,11 +182,28 @@ class ZoneModelType(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
+class ZoneMode(StrEnum):
+    FOLLOW_SCHEDULE: Final[str] = SZ_FOLLOW_SCHEDULE
+    PERMANENT_OVERRIDE: Final[str] = SZ_PERMANENT_OVERRIDE
+    TEMORARY_OVERRIDE: Final[str] = SZ_TEMPORARY_OVERRIDE
+
+
+@verify(EnumCheck.UNIQUE)
 class ZoneType(StrEnum):
     RADIATOR_ZONE: Final[str] = "RadiatorZone"
     THERMOSTAT: Final[str] = "Thermostat"  # ZoneValves
     ZONE_VALVES: Final[str] = "ZoneValves"
     UNKNOWN: Final[str] = "Unknown"
+
+
+# these may not be required with Python 3.12+ (if mode in ZONE_MODES...)
+DHW_STATES = tuple(x.value for x in DhwState)
+FAULT_TYPES = tuple(x.value for x in FaultType)
+SYSTEM_MODES = tuple(x.value for x in SystemMode)
+TCS_MODEL_TYPES = tuple(x.value for x in TcsModelType)
+ZONE_MODEL_TYPES = tuple(x.value for x in ZoneModelType)
+ZONE_MODES = tuple(x.value for x in ZoneMode)
+ZONE_TYPES = tuple(x.value for x in ZoneType)
 
 
 def obfuscate(value: bool | int | str):

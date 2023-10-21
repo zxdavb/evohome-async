@@ -40,21 +40,23 @@ from .const import (
     SZ_ZONES,
 )
 from .const import (
-    ZoneMode,
-    DhwState,
     SystemMode,
-    FaultType,
+    ZoneMode,
+    DHW_STATES,
+    FAULT_TYPES,
+    SYSTEM_MODES,
+    ZONE_MODES,
 )
 
 
 SCH_ACTIVE_FAULT = vol.Schema(
     {
-        vol.Required(SZ_FAULT_TYPE): vol.Any(*[f.value for f in FaultType]),
+        vol.Required(SZ_FAULT_TYPE): vol.Any(*FAULT_TYPES),
         vol.Required(SZ_SINCE): vol.Any(
             vol.Datetime(format="%Y-%m-%dT%H:%M:%S"),  # faults for zones
             vol.Datetime(format="%Y-%m-%dT%H:%M:%S.%f"),
             str,  # HACK: "2023-05-04T18:47:36.7727046"  faults for gateways
-        )
+        ),
     },
     extra=vol.PREVENT_EXTRA,
 )
@@ -93,8 +95,8 @@ SCH_ZONE = vol.Schema(
 
 SCH_STATE_STATUS = vol.Schema(
     {
-        vol.Required(SZ_STATE): vol.Any(*[s.value for s in DhwState]),
-        vol.Required(SZ_MODE): vol.Any(*[m.value for m in ZoneMode]),
+        vol.Required(SZ_STATE): vol.Any(*DHW_STATES),
+        vol.Required(SZ_MODE): vol.Any(*ZONE_MODES),
     },
     extra=vol.PREVENT_EXTRA,
 )
@@ -112,7 +114,7 @@ SCH_DHW = vol.Schema(
 SCH_SYSTEM_MODE_STATUS = vol.Any(
     vol.Schema(
         {
-            vol.Required(SZ_MODE): vol.Any(*[m.value for m in SystemMode]),
+            vol.Required(SZ_MODE): vol.Any(*SYSTEM_MODES),
             vol.Required(SZ_IS_PERMANENT): True,
         }
     ),

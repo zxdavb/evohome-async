@@ -25,3 +25,12 @@ except ModuleNotFoundError:  # No module named 'voluptuous'
     SCH_USER_ACCOUNT = dict
     SCH_SCHEDULE = dict
     SCH_ZONE_STATUS = dict
+
+from .const import (  # noqa: F401
+    DHW_STATES,
+    SYSTEM_MODES,
+    ZONE_MODES,
+    DhwState,
+    SystemMode,
+    ZoneMode,
+)

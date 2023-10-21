@@ -3,6 +3,12 @@
 #
 """evohomeasync2 provides an async client for the updated Evohome API."""
 
+from .schema import (  # noqa: F401
+    DhwState,
+    SystemMode,
+    ZoneMode,
+)
+
 URL_HOST = "https://tccna.honeywell.com"
 
 AUTH_URL = f"{URL_HOST}/Auth/OAuth/Token"

@@ -151,11 +151,11 @@ class _ZoneBase(_ZoneBaseDeprecated):
             await self._client("PUT", f"{URL_BASE}/{url}", data=json_schedule)
         except ClientResponseError as exc:
             if exc.status == 400:  # Bad Request
-                raise InvalidSchedule(f"Invalid schedule: {zone_schedule}")
+                raise InvalidSchedule(f"Invalid schedule: {zone_schedule}")  # 400
             if exc.status == 401:  # Unauthorized
-                raise InvalidSchedule(f"Unknown Zone/DHW Id: {self._id}")
+                raise InvalidSchedule(f"Unknown Zone/DHW Id: {self._id}")  # 401
             if exc.status == 404:  # Not Found
-                raise InvalidSchedule(f"Unknown Zone/DHW Type: {self._type}")
+                raise InvalidSchedule(f"Unknown Zone/DHW Type: {self._type}")  # 404
             raise
 
 
