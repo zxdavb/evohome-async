@@ -10,9 +10,9 @@ from pathlib import Path
 import pytest
 import pytest_asyncio
 
-import evohomeasync2 as evohome
+import evohomeasync2 as evo
 
-from mocked_server import aiohttp as mocked_aiohttp
+import mocked_server as mock
 from evohomeasync2.schema import (
     SCH_DHW_STATUS,
     SCH_FULL_CONFIG,
@@ -20,6 +20,15 @@ from evohomeasync2.schema import (
     SCH_USER_ACCOUNT,
     SCH_ZONE_STATUS,
 )
+from evohomeasync2.schema import (  # noqa: F401
+    DhwState,
+    SystemMode,
+    ZoneMode,
+    DHW_STATES,
+    SYSTEM_MODES,
+    ZONE_MODES,
+)
+from evohomeasync2.schema.const import SZ_MODE
 from evohomeasync2.schema.schedule import SCH_SCHEDULE_PUT
 
 TEST_DIR = Path(__file__).resolve().parent
@@ -39,10 +48,10 @@ def credentials():
 
 @pytest_asyncio.fixture
 async def session():
-    mocked_server = mocked_aiohttp.MockedServer(None, None)
-    session = mocked_aiohttp.ClientSession(mocked_server=mocked_server)
+    server = mock.MockedServer(None, None)
+    session = mock.ClientSession(mocked_server=server)
 
-    session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+    # session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
 
     try:
         yield session
@@ -57,7 +66,7 @@ def load_oauth_tokens() -> tuple[str, str, dt]:
     return _global_oauth_tokens[0], _global_oauth_tokens[1], _global_oauth_tokens[2]
 
 
-def save_oauth_tokens(client: evohome.EvohomeClient):
+def save_oauth_tokens(client: evo.EvohomeClient):
     global _global_oauth_tokens
     _global_oauth_tokens = (
         client.refresh_token,
@@ -69,13 +78,13 @@ def save_oauth_tokens(client: evohome.EvohomeClient):
 async def _test_vendor_api_basics(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession | mocked_aiohttp.ClientSession = None,
+    session: None | aiohttp.ClientSession | mock.ClientSession = None,
 ):
     refresh_token, access_token, access_token_expires = load_oauth_tokens()
 
     #
     # STEP 0: Instantiation, NOTE: No API calls invoked during instantiation
-    client = evohome.EvohomeClient(
+    client = evo.EvohomeClient(
         username,
         password,
         session=session,
@@ -135,7 +144,7 @@ async def _test_vendor_api_basics(
     assert SCH_FULL_CONFIG(client._full_config)  # an array of locations
     assert client.installation_info == client._full_config
 
-    assert isinstance(client.system_id, str)
+    # assert isinstance(client.system_id, str)  # only if one TCS
     assert client.locations
 
     await client.installation()  # not client._installation()
@@ -153,13 +162,13 @@ async def _test_vendor_api_basics(
 async def _test_vendor_api_sched_(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession | mocked_aiohttp.ClientSession = None,
+    session: None | aiohttp.ClientSession | mock.ClientSession = None,
 ):
     refresh_token, access_token, access_token_expires = load_oauth_tokens()
 
     #
     # STEP 0: Instantiation...
-    client = evohome.EvohomeClient(
+    client = evo.EvohomeClient(
         username,
         password,
         session=session,
@@ -191,13 +200,13 @@ async def _test_vendor_api_sched_(
 async def _test_vendor_api_status(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession | mocked_aiohttp.ClientSession = None,
+    session: None | aiohttp.ClientSession | mock.ClientSession = None,
 ):
     refresh_token, access_token, access_token_expires = load_oauth_tokens()
 
     #
     # STEP 0: Instantiation...
-    client = evohome.EvohomeClient(
+    client = evo.EvohomeClient(
         username,
         password,
         session=session,
@@ -224,10 +233,51 @@ async def _test_vendor_api_status(
     pass
 
 
+async def _test_vendor_api_system(
+    username: str,
+    password: str,
+    session: None | aiohttp.ClientSession | mock.ClientSession = None,
+):
+    refresh_token, access_token, access_token_expires = load_oauth_tokens()
+
+    #
+    # STEP 0: Instantiation...
+    client = evo.EvohomeClient(
+        username,
+        password,
+        session=session,
+        refresh_token=refresh_token,
+        access_token=access_token,
+        access_token_expires=access_token_expires,
+    )
+
+    #
+    # STEP 1: Initial authentication, retrieve config & status
+    await client.login()  # invokes await client.installation()
+    save_oauth_tokens(client)
+
+    #
+    # STEP 2: GET /{_type}/{_id}/status
+    try:
+        tcs = client._get_single_heating_system()
+    except evo.SingleTcsError:
+        tcs = client.locations[0].gateways[0].control_systems[0]
+
+    mode = tcs.systemModeStatus[SZ_MODE]
+    assert mode in SYSTEM_MODES
+
+    await tcs.set_mode(SystemMode.AWAY)
+    await client._installation(refresh_status=True)
+
+    await tcs.set_mode(mode)
+
+    pass
+
+
 @pytest.mark.asyncio
 async def test_vendor_api_basics(
     credentials: tuple[str, str],
-    session: aiohttp.ClientSession | mocked_aiohttp.ClientSession,
+    session: aiohttp.ClientSession | mock.ClientSession,
 ):
     username, password = credentials
 
@@ -237,7 +287,7 @@ async def test_vendor_api_basics(
 @pytest.mark.asyncio
 async def test_vendor_api_sched_(
     credentials: tuple[str, str],
-    session: aiohttp.ClientSession | mocked_aiohttp.ClientSession,
+    session: aiohttp.ClientSession | mock.ClientSession,
 ):
     username, password = credentials
 
@@ -247,8 +297,18 @@ async def test_vendor_api_sched_(
 @pytest.mark.asyncio
 async def test_vendor_api_status(
     credentials: tuple[str, str],
-    session: aiohttp.ClientSession | mocked_aiohttp.ClientSession,
+    session: aiohttp.ClientSession | mock.ClientSession,
 ):
     username, password = credentials
 
     await _test_vendor_api_status(username, password, session=session)
+
+
+@pytest.mark.asyncio
+async def test_vendor_api_system(
+    credentials: tuple[str, str],
+    session: aiohttp.ClientSession | mock.ClientSession,
+):
+    username, password = credentials
+
+    await _test_vendor_api_system(username, password, session=session)
