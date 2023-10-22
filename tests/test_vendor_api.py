@@ -12,6 +12,14 @@ import pytest_asyncio
 
 import evohomeasync2 as evo
 from evohomeasync2 import URL_BASE
+from evohomeasync2.schema.const import (
+    SZ_HEAT_SETPOINT_VALUE,
+    SZ_IS_AVAILABLE,
+    SZ_PERMANENT_OVERRIDE,
+    SZ_SETPOINT_MODE,
+    SZ_TEMPERATURE,
+    SZ_TIME_UNTIL,
+)
 
 from .helpers import aiohttp, extract_oauth_tokens  # aiohttp may be mocked
 from .helpers import credentials as _credentials
@@ -223,7 +231,80 @@ async def _test_loc_status(
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "text/html"
 
 
-# TODO: test_oauth_token(
+async def _test_zone_mode(
+    username: str,
+    password: str,
+    session: None | aiohttp.ClientSession = None,
+) -> None:
+    """Test location/{locationId}/status"""
+
+    client = await instantiate_client(username, password, session=session)
+    _ = await client.user_account()
+    _ = await client._installation(refresh_status=False)
+
+    for zone in client.locations[0]._gateways[0]._control_systems[0]._zones:
+        _ = await zone._refresh_status()
+        if zone.temperatureStatus[SZ_IS_AVAILABLE]:
+            break
+
+    url = f"{zone._type}/{zone._id}/status"
+    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    response.raise_for_status()
+    assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
+
+    heat_setpoint = {
+        SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
+        SZ_HEAT_SETPOINT_VALUE: zone.temperatureStatus[SZ_TEMPERATURE],
+        SZ_TIME_UNTIL: None,
+    }
+
+    url = f"{zone._type}/{zone._id}/heatSetpoint"
+    response, content = await client._client(
+        "PUT", f"{URL_BASE}/{url}", json=heat_setpoint
+    )
+    response.raise_for_status()  # content = {'id': '824948817'}
+    assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
+
+    heat_setpoint = {
+        SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
+        SZ_HEAT_SETPOINT_VALUE: 99,
+        SZ_TIME_UNTIL: None,
+    }
+
+    url = f"{zone._type}/{zone._id}/heatSetpoint"
+    response, content = await client._client(
+        "PUT", f"{URL_BASE}/{url}", json=heat_setpoint
+    )
+    response.raise_for_status()
+    assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
+
+    heat_setpoint = {
+        SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
+        SZ_HEAT_SETPOINT_VALUE: 19.5,
+    }
+
+    url = f"{zone._type}/{zone._id}/heatSetpoint"
+    response, content = await client._client(
+        "PUT", f"{URL_BASE}/{url}", json=heat_setpoint
+    )
+    response.raise_for_status()
+    assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
+
+    heat_setpoint = {
+        SZ_SETPOINT_MODE: "xxxxxxx",
+        SZ_HEAT_SETPOINT_VALUE: 19.5,
+    }
+
+    url = f"{zone._type}/{zone._id}/heatSetpoint"
+    response, content = await client._client(
+        "PUT", f"{URL_BASE}/{url}", json=heat_setpoint
+    )
+    try:
+        response.raise_for_status()
+    except aiohttp.ClientResponseError as exc:
+        assert exc.status == HTTPStatus.BAD_REQUEST
+        assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
+        # assert content["message"].startswith("Error converting value")
 
 
 @pytest.mark.asyncio
@@ -262,6 +343,20 @@ async def test_get_loc_status(
         pytest.skip("Unable to authenticate")
 
 
+# TODO: test_put_zon_mode(
+@pytest.mark.asyncio
+async def test_put_zone_mode(
+    credentials: tuple[str, str], session: aiohttp.ClientSession
+) -> None:
+    """Test location/{locationId}/status"""
+
+    try:
+        await _test_zone_mode(*credentials, session=session)
+    except evo.AuthenticationError:
+        pytest.skip("Unable to authenticate")
+
+
+# TODO: test_oauth_token(
 # TODO: test_put_dhw_state(
 # TODO: test_get_dhw_status(
 # TODO: test_get_schedule(
