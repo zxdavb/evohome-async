@@ -332,7 +332,7 @@ async def _test_schedule(
 
 
 @pytest.mark.asyncio
-async def test_get_usr_account(
+async def test_usr_account(
     credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test /userAccount"""
@@ -344,7 +344,7 @@ async def test_get_usr_account(
 
 
 @pytest.mark.asyncio
-async def test_get_all_config(
+async def test_all_config(
     credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test /location/installationInfo"""
@@ -356,7 +356,7 @@ async def test_get_all_config(
 
 
 @pytest.mark.asyncio
-async def test_get_loc_status(
+async def test_loc_status(
     credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test location/{locationId}/status"""
@@ -368,7 +368,7 @@ async def test_get_loc_status(
 
 
 @pytest.mark.asyncio
-async def test_put_zone_mode(
+async def test_zone_mode(
     credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test location/{locationId}/status"""
