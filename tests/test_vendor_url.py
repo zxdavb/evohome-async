@@ -98,7 +98,7 @@ async def should_work(
     response: aiohttp.ClientResponse
 
     response, content = await client._broker._client(
-        HTTPMethod.GET, f"{URL_BASE}/{url}", json=json
+        method, f"{URL_BASE}/{url}", json=json
     )
 
     response.raise_for_status()
@@ -326,7 +326,9 @@ async def _test_schedule(
     schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp
 
-    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    await should_fail(
+        client, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST
+    )  # NOTE: json=None
 
 
 @pytest.mark.asyncio
