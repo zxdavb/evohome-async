@@ -16,9 +16,15 @@ from typing import TYPE_CHECKING, Any, NoReturn
 
 import aiohttp
 
-from . import exceptions
 from .broker import Broker
 from .controlsystem import ControlSystem
+from .exceptions import (  # noqa: F401
+    AuthenticationError,
+    InvalidSchedule,
+    FailedRequest,
+    NoDefaultTcsError,
+    RateLimitExceeded,
+)
 from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401
 from .location import Location
@@ -154,7 +160,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         try:  # the cached access_token may be valid, but is not authorized
             await self.user_account()
 
-        except exceptions.AuthenticationError as exc:
+        except AuthenticationError as exc:
             if exc.status != HTTPStatus.UNAUTHORIZED or not self.access_token:
                 raise
 
@@ -241,17 +247,17 @@ class EvohomeClient(EvohomeClientDeprecated):
         """
 
         if not self.locations or len(self.locations) != 1:
-            raise exceptions.NoDefaultTcsError(
+            raise NoDefaultTcsError(
                 "There is not a single location (only) for this account"
             )
 
         if len(self.locations[0]._gateways) != 1:  # type: ignore[index]
-            raise exceptions.NoDefaultTcsError(
+            raise NoDefaultTcsError(
                 "There is not a single gateway (only) for this account/location"
             )
 
         if len(self.locations[0]._gateways[0]._control_systems) != 1:  # type: ignore[index]
-            raise exceptions.NoDefaultTcsError(
+            raise NoDefaultTcsError(
                 "There is not a single TCS (only) for this account/location/gateway"
             )
 
