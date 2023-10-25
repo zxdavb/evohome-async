@@ -6,7 +6,6 @@ from __future__ import annotations
 
 try:
     from .account import SCH_USER_ACCOUNT as SCH_USER_ACCOUNT
-    from .account import SCH_OAUTH_TOKEN
     from .config import SCH_LOCATION_INSTALLATION_INFO as SCH_LOCN_CONFIG
     from .config import SCH_USER_LOCATIONS_INSTALLATION_INFO as SCH_FULL_CONFIG
     from .schedule import SCH_SCHEDULE_GET as SCH_SCHEDULE

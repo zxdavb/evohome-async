@@ -37,10 +37,11 @@ from .const import (
     SZ_LOCATION_TYPE,
     SZ_LOCATION_OWNER,
     SZ_MAC,
+    SZ_MAX_COOL_SETPOINT,
     SZ_MAX_DURATION,
     SZ_MAX_HEAT_SETPOINT,
-    SZ_SETPOINT_VALUE_RESOLUTION,
     SZ_MAX_SWITCHPOINTS_PER_DAY,
+    SZ_MIN_COOL_SETPOINT,
     SZ_MIN_HEAT_SETPOINT,
     SZ_MIN_SWITCHPOINTS_PER_DAY,
     SZ_MODEL_TYPE,
@@ -50,6 +51,7 @@ from .const import (
     SZ_SCHEDULE_CAPABILITIES,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_SETPOINT_CAPABILITIES,
+    SZ_SETPOINT_VALUE_RESOLUTION,
     SZ_STREET_ADDRESS,
     SZ_SUPPORTS_DAYLIGHT_SAVING,
     SZ_SYSTEM_ID,
@@ -149,16 +151,24 @@ SCH_DHW = vol.Schema(
 
 SCH_SETPOINT_CAPABILITIES = vol.Schema(
     {
+        vol.Required(SZ_CAN_CONTROL_HEAT): bool,
         vol.Required(SZ_MAX_HEAT_SETPOINT): float,  # 35.0
         vol.Required(SZ_MIN_HEAT_SETPOINT): float,  # 5.0
-        vol.Required(SZ_VALUE_RESOLUTION): float,  # 0.5
-        vol.Required(SZ_CAN_CONTROL_HEAT): bool,
+
         vol.Required(SZ_CAN_CONTROL_COOL): bool,
+        vol.Optional(SZ_MAX_COOL_SETPOINT): float,  #
+        vol.Optional(SZ_MIN_COOL_SETPOINT): float,  #
+
         vol.Required(SZ_ALLOWED_SETPOINT_MODES): list(ZONE_MODES),
+
+        vol.Required(SZ_VALUE_RESOLUTION): float,  # 0.5
         vol.Required(SZ_MAX_DURATION): str,  # "1.00:00:00"
         vol.Required(SZ_TIMING_RESOLUTION): vol.Datetime(
             format="00:%M:00"
         ),  # "00:10:00"
+
+        # vol.Optional(SZ_VACATION_HOLD_CAPABILITIES): dict,  # TODO: non-evohome
+        # vol.Optional(SZ_ALLOWED_FAN_MODES): dict,  # TODO: non-evohome
     },
     extra=vol.PREVENT_EXTRA,
 )
