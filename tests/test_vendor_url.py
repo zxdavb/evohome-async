@@ -90,6 +90,7 @@ async def should_work(
     method: HTTPMethod,
     url: str,
     json: dict | None = None,
+    content_type: str | None = "application/json",
     schema: vol.Schema | None = None,
 ) -> dict | list:
     """Make a request that is expected to succeed."""
@@ -102,7 +103,7 @@ async def should_work(
 
     response.raise_for_status()
 
-    assert response.content_type == "application/json"
+    assert response.content_type == content_type
 
     if schema:
         return schema(content)
@@ -114,6 +115,7 @@ async def should_fail(
     method: HTTPMethod,
     url: str,
     json: dict | None = None,
+    content_type: str | None = "application/json",
     status: HTTPStatus | None = None,
 ) -> None:
     """Make a request that is expected to fail."""
@@ -131,8 +133,14 @@ async def should_fail(
     else:
         assert False
 
-    assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
-    assert _DISABLE_STRICT_ASSERTS or "message" in content
+    if _DISABLE_STRICT_ASSERTS:
+        return
+
+    assert response.content_type == content_type
+    if isinstance(content, dict):
+        assert "message" in content
+    elif isinstance(content, list):
+        assert "message" in content[0]
 
 
 async def _test_usr_account(
@@ -148,7 +156,13 @@ async def _test_usr_account(
     await should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED)
 
     url = "userXxxxxxx"  # NOTE: is a general test, and not a test specific to this URL
-    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    await should_fail(
+        client,
+        HTTPMethod.GET,
+        url,
+        status=HTTPStatus.NOT_FOUND,
+        content_type="text/html",  # exception to usual content-type
+    )
 
 
 async def _test_all_config(
@@ -204,7 +218,13 @@ async def _test_loc_status(
     await should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED)
 
     url = f"location/{loc.locationId}"
-    await should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
+    await should_fail(
+        client,
+        HTTPMethod.GET,
+        url,
+        status=HTTPStatus.NOT_FOUND,
+        content_type="text/html",  # exception to usual content-type
+    )
 
     url = "location/1230000/status"
     await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
@@ -213,7 +233,13 @@ async def _test_loc_status(
     await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
 
     url = f"location/{loc.locationId}/xxxxxxx"
-    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    await should_fail(
+        client,
+        HTTPMethod.GET,
+        url,
+        status=HTTPStatus.NOT_FOUND,
+        content_type="text/html",  # exception to usual content-type
+    )
 
 
 async def _test_zone_mode(
