@@ -133,6 +133,7 @@ SZ_TOKEN_TYPE = "token_type"
 
 SZ_UNTIL = "until"
 SZ_USE_DAYLIGHT_SAVE_SWITCHING = "useDaylightSaveSwitching"
+SZ_USER_ACCOUNT = "userAccount"
 SZ_USER_ID = "userId"
 SZ_USERNAME = "username"
 
