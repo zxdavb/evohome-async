@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""Provides handling of a TCC location."""
+"""Provides handling of TCC locations."""
 
 from __future__ import annotations
-import logging
 from typing import TYPE_CHECKING, Final, NoReturn
 
-try:  # voluptuous is an optional module...
-    import voluptuous as vol  # type: ignore[import-untyped]
-except ModuleNotFoundError:  # No module named 'voluptuous'
-    from .exceptions import FakedVoluptuous as vol
+import aiohttp
 
-from .const import URL_BASE
+from .broker import vol
+from .exceptions import FailedRequest
 from .gateway import Gateway
 from .schema import SCH_LOCN_STATUS
 from .schema.const import (
     SZ_COUNTRY,
     SZ_GATEWAYS,
+    SZ_LOCATION,
     SZ_LOCATION_ID,
     SZ_LOCATION_INFO,
     SZ_LOCATION_OWNER,
@@ -33,10 +31,9 @@ if TYPE_CHECKING:
     from .typing import _LocationIdT
 
 
-_LOGGER = logging.getLogger(__name__)
-
-
 class _LocationDeprecated:
+    """Deprecated attributes and methods removed from the evohome-client namespace."""
+
     async def status(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
             "Location.status() is deprecated, use .refresh_status()"
@@ -44,23 +41,33 @@ class _LocationDeprecated:
 
 
 class Location(_LocationDeprecated):
-    """Instance of an account's Location."""
+    """Instance of an account's location."""
 
-    def __init__(self, client: EvohomeClient, loc_config: dict) -> None:
+    STATUS_SCHEMA = SCH_LOCN_STATUS
+    _type = SZ_LOCATION
+
+    def __init__(self, client: EvohomeClient, config: dict) -> None:
         self.client = client
-        self._client = client._client
 
-        self._config: Final[dict] = loc_config[SZ_LOCATION_INFO]
+        self._broker = client._broker
+        self._logger = client._logger
+
+        self._config: Final[dict] = config[SZ_LOCATION_INFO]
+
         assert self.locationId, "Invalid config dict"
+        self._id = self.locationId
 
         self._gateways: list[Gateway] = []
         self.gateways: dict[str, Gateway] = {}  # gwy by id
 
-        for gwy_config in loc_config[SZ_GATEWAYS]:
+        for gwy_config in config[SZ_GATEWAYS]:
             gwy = Gateway(self, gwy_config)
 
             self._gateways.append(gwy)
             self.gateways[gwy.gatewayId] = gwy
+
+    def __str__(self) -> str:
+        return f"{self._id} ({self._type})"
 
     # config attrs...
     @property
@@ -94,17 +101,15 @@ class Location(_LocationDeprecated):
     async def refresh_status(self) -> dict:
         """Update the Location with its latest status (also returns the status)."""
 
-        url = f"location/{self.locationId}/status?includeTemperatureControlSystems=True"
-        response = await self._client("GET", f"{URL_BASE}/{url}")
-
         try:
-            status: dict = SCH_LOCN_STATUS(response)
-        except vol.Invalid as exc:
-            _LOGGER.warning(f"Response from server is possibly invalid: {exc}")
-            status: dict = response
+            status = await self._broker.get(
+                f"{self._type}/{self._id}/status?includeTemperatureControlSystems=True",
+                schema=self.STATUS_SCHEMA
+            )
+        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
+            raise FailedRequest(f"Unable to get the Location state: {exc}")
 
         self._update_status(status)
-
         return status
 
     def _update_status(self, loc_status: dict) -> None:

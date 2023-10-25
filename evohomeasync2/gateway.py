@@ -1,45 +1,56 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""Provides handling of a TCC gateway."""
+"""Provides handling of TCC gateways."""
 
 from __future__ import annotations
 from typing import TYPE_CHECKING, Final
 
 from .controlsystem import ControlSystem
 from .schema.const import (
+    SZ_GATEWAY,
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
     SZ_IS_WI_FI,
     SZ_MAC,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
+from .schema.status import SCH_GATEWAY
 
 if TYPE_CHECKING:
     from . import Location
     from .typing import _GatewayIdT
 
-# _LOGGER = logging.getLogger(__name__)
-
 
 class Gateway:
-    """Instance of a location's Gateway."""
+    """Instance of a location's gateway."""
 
-    def __init__(self, location: Location, gwy_config: dict) -> None:
+    STATUS_SCHEMA = SCH_GATEWAY
+    _type = SZ_GATEWAY
+
+    def __init__(self, location: Location, config: dict) -> None:
         self.location = location  # parent
 
+        self._broker = location._broker
+        self._logger = location._logger
+
         self._status: dict = {}
-        self._config: Final[dict] = gwy_config[SZ_GATEWAY_INFO]
+        self._config: Final[dict] = config[SZ_GATEWAY_INFO]
+
         assert self.gatewayId, "Invalid config dict"
+        self._id = self.gatewayId
 
         self._control_systems: list[ControlSystem] = []
         self.control_systems: dict[str, ControlSystem] = {}  # tcs by id
 
-        for tcs_config in gwy_config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+        for tcs_config in config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             tcs = ControlSystem(self, tcs_config)
 
             self._control_systems.append(tcs)
             self.control_systems[tcs.systemId] = tcs
+
+    def __str__(self) -> str:
+        return f"{self._id} ({self._type})"
 
     # config attrs...
     @property

@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""Provides handling of heatings zones."""
+"""Provides handling of TCC zones (heating and DHW)."""
 
 from __future__ import annotations
 
 from datetime import datetime as dt
 import json
-import logging
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from aiohttp.client_exceptions import ClientResponseError
+import aiohttp
 
-from .const import API_STRFTIME, URL_BASE
-from .exceptions import InvalidSchedule
-from .schema import SCH_DHW_STATUS, SCH_ZONE_STATUS, SCH_SCHEDULE
+from .broker import vol
+from .const import API_STRFTIME
+from .exceptions import FailedRequest, InvalidSchedule
+from .schema import SCH_ZONE_STATUS, SCH_SCHEDULE
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
     SZ_DAILY_SCHEDULES,
@@ -44,8 +44,6 @@ if TYPE_CHECKING:
     from .controlsystem import ControlSystem
     from .typing import _ZoneIdT
 
-_LOGGER = logging.getLogger(__name__)
-
 
 CAPITALIZED_KEYS = (
     SZ_DAILY_SCHEDULES,  #
@@ -58,6 +56,8 @@ CAPITALIZED_KEYS = (
 
 
 class _ZoneBaseDeprecated:
+    """Deprecated attributes and methods removed from the evohome-client namespace."""
+
     @property
     def zone_type(self) -> NoReturn:
         raise NotImplementedError("ZoneBase.zone_type is deprecated, use ._type")
@@ -71,15 +71,21 @@ class _ZoneBaseDeprecated:
 class _ZoneBase(_ZoneBaseDeprecated):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
+    STATUS_SCHEMA = dict
+
     _id: str  # .zoneId or .dhwId
     _type: str  # Literal["temperatureZone", "domesticHotWater"]
 
     def __init__(self, tcs: ControlSystem) -> None:
         self.tcs = tcs
 
-        self._client = tcs.gateway.location._client
+        self._broker = tcs._broker
+        self._logger = tcs._logger
 
         self._status: dict = {}
+
+    def __str__(self) -> str:
+        return f"{self._id} ({self._type})"
 
     async def _refresh_status(self) -> dict:
         """Update the dhw/zone with its latest status (also returns the status).
@@ -87,13 +93,12 @@ class _ZoneBase(_ZoneBaseDeprecated):
         It will be more efficient to call Location.refresh_status().
         """
 
-        url = f"{self._type}/{self._id}/status"
-        response = await self._client("GET", f"{URL_BASE}/{url}")
-
-        if self._type == SZ_TEMPERATURE_ZONE:
-            status = SCH_ZONE_STATUS(response)
-        else:
-            status = SCH_DHW_STATUS(response)
+        try:
+            status = await self._broker.get(
+                f"{self._type}/{self._id}/status", schema=self.STATUS_SCHEMA
+            )
+        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
+            raise FailedRequest(f"Unable to get the {self._type} State: {exc}")
 
         self._update_status(status)
         return status
@@ -113,14 +118,16 @@ class _ZoneBase(_ZoneBaseDeprecated):
     async def get_schedule(self) -> dict:
         """Get the schedule for this dhw/zone object."""
 
-        _LOGGER.debug(f"Getting schedule of {self._id} ({self._type})...")
+        self._logger.debug(f"Getting schedule of {self._id} ({self._type})...")
 
-        url = f"{self._type}/{self._id}/schedule"
-        response_json = await self._client("GET", f"{URL_BASE}/{url}")
+        try:
+            content = await self._broker.get(
+                f"{self._type}/{self._id}/schedule", schema=SCH_SCHEDULE
+            )
+        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
+            raise FailedRequest(f"Unable to get the {self._type} Schedule: {exc}")
 
-        assert SCH_SCHEDULE(response_json)
-
-        response_text = json.dumps(response_json)  # FIXME
+        response_text = json.dumps(content)  # FIXME
         for key_name in CAPITALIZED_KEYS:  # an anachronism from evohome-client
             response_text = response_text.replace(key_name, key_name.capitalize())
 
@@ -134,7 +141,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
     async def set_schedule(self, zone_schedule: dict | str) -> None:
         """Set the schedule for this dhw/zone object."""
 
-        _LOGGER.debug(f"Setting schedule of {self._id} ({self._type})...")
+        self._logger.debug(f"Setting schedule of {self._id} ({self._type})...")
 
         if isinstance(zone_schedule, dict):
             json_schedule: str = json.dumps(zone_schedule)
@@ -146,30 +153,26 @@ class _ZoneBase(_ZoneBaseDeprecated):
 
             json_schedule = zone_schedule
 
-        url = f"{self._type}/{self._id}/schedule"
         try:
-            await self._client("PUT", f"{URL_BASE}/{url}", data=json_schedule)
-        except ClientResponseError as exc:
-            if exc.status == 400:  # Bad Request
-                raise InvalidSchedule(f"Invalid schedule: {zone_schedule}")  # 400
-            if exc.status == 401:  # Unauthorized
-                raise InvalidSchedule(f"Unknown Zone/DHW Id: {self._id}")  # 401
-            if exc.status == 404:  # Not Found
-                raise InvalidSchedule(f"Unknown Zone/DHW Type: {self._type}")  # 404
-            raise
+            _ = await self._broker.put(
+                f"{self._type}/{self._id}/schedule", data=json_schedule  # schema=
+            )
+        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
+            raise FailedRequest(f"Unable to set the {self._type} Schedule: {exc}")
 
 
 class Zone(_ZoneBase):
-    """Provide the access to an individual zone."""
+    """Instance of a TCS's heating zone (temperatureZone)."""
 
+    STATUS_SCHEMA = SCH_ZONE_STATUS
     _type = SZ_TEMPERATURE_ZONE
 
-    def __init__(self, tcs: ControlSystem, zone_config: dict) -> None:
+    def __init__(self, tcs: ControlSystem, config: dict) -> None:
         super().__init__(tcs)
 
-        self._config: Final[dict] = zone_config
-        assert self.zoneId, "Invalid config dict"
+        self._config: Final[dict] = config
 
+        assert self.zoneId, "Invalid config dict"
         self._id = self.zoneId
 
     # config attrs...
@@ -205,8 +208,12 @@ class Zone(_ZoneBase):
     async def _set_mode(self, heat_setpoint: dict) -> None:
         """TODO"""
 
-        url = f"temperatureZone/{self.zoneId}/heatSetpoint"  # f"{_type}/{_id}/heatS..."
-        await self._client("PUT", f"{URL_BASE}/{url}", json=heat_setpoint)
+        try:
+            _ = await self._broker.put(
+                f"{self._type}/{self._id}/heatSetpoint", json=heat_setpoint  # schema=
+            )
+        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
+            raise FailedRequest(f"Unable to set the {self._type} mode: {exc}")
 
     async def set_temperature(
         self, temperature: float, /, *, until: None | dt = None

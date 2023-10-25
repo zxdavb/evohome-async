@@ -9,54 +9,33 @@ Further information at: https://evohome-client.readthedocs.io
 """
 from __future__ import annotations
 
-from json.decoder import JSONDecodeError
 import logging
 from datetime import datetime as dt
-from datetime import timedelta as td
 from typing import TYPE_CHECKING, Any, NoReturn
 
 import aiohttp
 
-# from .tests.mock import aiohttp
-
-from .exceptions import AuthenticationError, InvalidResponse, SingleTcsError
-
-from .exceptions import InvalidSchedule  # noqa: F401
-from .const import (
-    AUTH_HEADER_ACCEPT,
-    AUTH_HEADER,
-    AUTH_URL,
-    URL_BASE,
-    AUTH_PAYLOAD,
-    CREDS_REFRESH_TOKEN,
-    CREDS_USER_PASSWORD,
+from .exceptions import (  # noqa: F401
+    AuthenticationError, FailedRequest, InvalidSchedule, NoDefaultTcsError
 )
+from .broker import Broker, vol
 from .controlsystem import ControlSystem
 from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401
 from .location import Location
-from .schema import SCH_FULL_CONFIG, SCH_OAUTH_TOKEN, SCH_USER_ACCOUNT
-from .zone import _ZoneBase, Zone  # noqa: F401
-
-try:  # voluptuous is an optional module...
-    import voluptuous as vol  # type: ignore[import-untyped]
-except ModuleNotFoundError:  # No module named 'voluptuous'
-    from .exceptions import FakedVoluptuous as vol
+from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
+from .zone import Zone  # noqa: F401
 
 
 if TYPE_CHECKING:
     from .typing import _FilePathT, _LocationIdT, _SystemIdT
 
 
-# logging.basicConfig()
 _LOGGER = logging.getLogger(__name__)
 
 
-HTTP_UNAUTHORIZED = 401
-
-
 class EvohomeClientDeprecated:
-    """These are deprecated attributes/methods from the original namespace."""
+    """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     async def full_installation(
         self, location_id: None | _LocationIdT = None
@@ -141,22 +120,31 @@ class EvohomeClient(EvohomeClientDeprecated):
         if debug:
             _LOGGER.setLevel(logging.DEBUG)
             _LOGGER.debug("Debug mode is explicitly enabled.")
-        else:
-            _LOGGER.debug(
-                "Debug mode is not explicitly enabled (but may be enabled elsewhere)."
-            )
 
-        self._credentials = {"Username": username, "Password": password}
-
-        self.refresh_token = refresh_token
-        self.access_token = access_token
-        self.access_token_expires = access_token_expires
-
-        self._session = session or aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30)
+        self._broker = Broker(
+            username,
+            password,
+            refresh_token=refresh_token,
+            access_token=access_token,
+            access_token_expires=access_token_expires,
+            session=session,
+            logger=_LOGGER,
         )
+        self._logger = _LOGGER
 
         self.locations: list[Location] = []
+
+    @property
+    def refresh_token(self) -> str:
+        return self._broker.refresh_token
+
+    @property
+    def access_token(self) -> str:
+        return self._broker.access_token
+
+    @property
+    def access_token_expires(self) -> dt:
+        return self._broker.access_token_expires
 
     async def login(self) -> None:
         """Retrieve the user account and installation details.
@@ -171,148 +159,13 @@ class EvohomeClient(EvohomeClientDeprecated):
             if exc.status != 401 or not self.access_token:
                 raise
 
-            _LOGGER.warning("Unauthorized access_token (will try re-authenticating).")
+            self._logger.warning(
+                "Unauthorized access_token (will try re-authenticating)."
+            )
             self.access_token = None
             await self.user_account(force_update=True)
 
         await self.installation()
-
-    async def _client(
-        self, method, url, data=None, json=None, headers=None
-    ) -> None | dict | str:
-        """Wrapper for aiohttp.ClientSession()."""
-
-        if headers is None:
-            headers = await self._headers()
-
-        if method == "GET":
-            _session_method = self._session.get
-            kwargs = {"headers": headers}
-
-        elif method == "POST":
-            _session_method = self._session.post
-            kwargs = {"data": data, "headers": headers}
-
-        elif method == "PUT":
-            _session_method = self._session.put
-            # headers["Content-Type"] = "application/json"
-            kwargs = {"data": data, "json": json, "headers": headers}
-
-        async with _session_method(url, **kwargs) as response:
-            response.raise_for_status()
-
-            try:
-                result = await response.json()
-            except JSONDecodeError:
-                pass
-            else:
-                _LOGGER.info(f"{method} {url} (JSON) = {result}")
-                return result
-
-            try:
-                result = await response.text()
-            except UnicodeError:
-                pass
-            else:
-                _LOGGER.info(f"{method} {url} (TEXT) = {result}")
-                return result
-
-            return None
-
-    async def _headers(self) -> dict:
-        """Ensure the Authorization Header has a valid Access Token."""
-
-        if not self.access_token or not self.access_token_expires:
-            await self._basic_login()
-
-        elif dt.now() > self.access_token_expires - td(seconds=30):
-            await self._basic_login()
-
-        assert isinstance(self.access_token, str)  # mypy
-
-        return {
-            "Accept": AUTH_HEADER_ACCEPT,
-            "Authorization": "bearer " + self.access_token,
-            "Content-Type": "application/json",
-        }
-
-    async def _basic_login(self) -> None:
-        """Obtain a new access token from the vendor (as it is invalid, or expired).
-
-        First, try using the refresh token, if one is available, otherwise authenticate
-        using the user credentials.
-        """
-
-        # assert (
-        #     not self.access_token
-        #     or not self.access_token_expires
-        #     or dt.now() > self.access_token_expires - td(seconds=30)
-        # )
-
-        _LOGGER.debug("No/Expired/Invalid access_token, re-authenticating.")
-        self.access_token = self.access_token_expires = None
-
-        if self.refresh_token:
-            _LOGGER.debug("Authenticating with the refresh_token...")
-            credentials = {"refresh_token": self.refresh_token}
-
-            try:
-                await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)
-
-            except AuthenticationError as exc:
-                if exc.status != 400:  # Bad Request
-                    raise
-
-                _LOGGER.warning("Invalid refresh_token (will try username/password)")
-                self.refresh_token = None
-
-        if not self.refresh_token:
-            _LOGGER.debug("Authenticating with username/password...")
-            await self._obtain_access_token(CREDS_USER_PASSWORD | self._credentials)
-
-        _LOGGER.debug(f"refresh_token = {self.refresh_token}")
-        _LOGGER.debug(f"access_token = {self.access_token}")
-        _LOGGER.debug(f"access_token_expires = {self.access_token_expires}")
-
-    async def _obtain_access_token(self, credentials: dict) -> None:
-        """Obtain an access token using either the refresh token or user credentials."""
-
-        try:
-            response = await self._client(
-                "POST", AUTH_URL, data=AUTH_PAYLOAD | credentials, headers=AUTH_HEADER
-            )
-
-        except aiohttp.ClientConnectionError as exc:
-            raise AuthenticationError(f"Unable to obtain an Access Token: {exc}")
-
-        except aiohttp.ClientResponseError as exc:
-            if exc.status == 400:  # Bad Request
-                # invalid user credentials, or invalid refresh token
-                msg = "Unknown/invalid credentials (check your username/password)"
-            if exc.status == 401:  # Unauthorized
-                msg = "Invalid access token (user shouldn't see this message)"
-            elif exc.status == 429:  # Too Many Requests
-                msg = "Vendor's API rate limit has been exceeded (wait a while)"
-            elif exc.status == 503:  # Service Unavailable
-                msg = "Unable to reach vendor's webservers (check their status page)"
-            else:
-                msg = f"Unexpected HTTP error: {exc} "
-
-            # can't use response.text() here as may raise another error
-            raise AuthenticationError(msg, status=exc.status)
-
-        try:  # the access token _should_ be valid...
-            _ = SCH_OAUTH_TOKEN(response)  # can't use result, due to obsfucated values
-        except vol.Invalid as exc:
-            _LOGGER.warning(f"Response from server is possibly invalid: {exc}")
-
-        try:  # the access token _should_ be valid...
-            self.access_token = response["access_token"]  # type: ignore[index]
-            self.access_token_expires = dt.now() + td(seconds=response["expires_in"])  # type: ignore[index, arg-type]
-            self.refresh_token = response["refresh_token"]  # type: ignore[index]
-
-        except (KeyError, TypeError) as exc:
-            raise AuthenticationError(f"Invalid response from server: {exc}")
 
     @property  # user_account
     def account_info(self) -> dict:  # from the original evohomeclient namespace
@@ -325,24 +178,16 @@ class EvohomeClient(EvohomeClientDeprecated):
         If required/forced, retrieve that data from the vendor's API.
         """
 
-        # There is usually no need to refresh this data
+        # There is usually no need to refresh this data (it is config, not state)
         if self._user_account and not force_update:
             return self._user_account
 
         try:
-            response = await self._client("GET", f"{URL_BASE}/userAccount")
-
-        except aiohttp.ClientResponseError as exc:
-            # These have been seen / have been common:
-            # - 401 Unauthorized
-
-            raise InvalidResponse(f"Unable to obtain Account details: {exc}")
-
-        try:
-            self._user_account = SCH_USER_ACCOUNT(response)
-        except vol.Invalid as exc:
-            _LOGGER.warning(f"Response from server is possibly invalid: {exc}")
-            self._user_account = response
+            self._user_account = await self._broker.get(
+                "userAccount", schema=SCH_USER_ACCOUNT
+            )
+        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
+            raise FailedRequest(f"Unable to get the user's Account config: {exc}")
 
         return self._user_account
 
@@ -355,17 +200,21 @@ class EvohomeClient(EvohomeClientDeprecated):
         """Return the configuration of the user's locations their status.
 
         If required/forced, retrieve that data from the vendor's API.
+        Note that the force_update flag will create new location entities (it includes
+        `self.locations = []`).
         """
 
-        # There is usually no need to refresh this data
+        # There is usually no need to refresh this data (it is config, not state)
         if self._full_config and not force_update:
             return self._full_config
+
         return await self._installation()  # aka self.installation_info
 
     async def _installation(self, refresh_status: bool = True) -> dict:
         """Return the configuration of the user's locations their status.
 
-        The refresh_status flag is used for dev/test.
+        The refresh_status flag is used for dev/test to disable retreiving the initial
+        status of each location (and its child entities).
         """
 
         assert isinstance(self.account_info, dict)  # mypy
@@ -373,19 +222,17 @@ class EvohomeClient(EvohomeClientDeprecated):
         # FIXME: shouldn't really be starting again with new objects?
         self.locations = []  # for now, need to clear this before GET
 
-        url = f"location/installationInfo?userId={self.account_info['userId']}&"
-        url += "includeTemperatureControlSystems=True"
+        url = f"location/installationInfo?userId={self.account_info['userId']}"
+        url += "&includeTemperatureControlSystems=True"
 
         try:
-            response = await self._client("GET", f"{URL_BASE}/{url}")
-        except aiohttp.ClientResponseError as exc:
-            raise InvalidResponse(f"Unable to obtain Installation details: {exc}")
-
-        try:
-            self._full_config: dict = SCH_FULL_CONFIG(response)
-        except vol.Invalid as exc:
-            _LOGGER.warning(f"Response from server is possibly invalid: {exc}")
-            self._full_config: dict = response
+            self._full_config: list = await self._broker.get(
+                url, schema=SCH_FULL_CONFIG
+            )
+        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
+            raise FailedRequest(
+                f"Unable to get the user's Installation config: {exc}"
+            )
 
         # populate each freshly instantiated location with its initial status
         for loc_data in self._full_config:
@@ -403,17 +250,17 @@ class EvohomeClient(EvohomeClientDeprecated):
         """
 
         if not self.locations or len(self.locations) != 1:
-            raise SingleTcsError(
+            raise NoDefaultTcsError(
                 "There is not a single location (only) for this account"
             )
 
         if len(self.locations[0]._gateways) != 1:  # type: ignore[index]
-            raise SingleTcsError(
+            raise NoDefaultTcsError(
                 "There is not a single gateway (only) for this account/location"
             )
 
         if len(self.locations[0]._gateways[0]._control_systems) != 1:  # type: ignore[index]
-            raise SingleTcsError(
+            raise NoDefaultTcsError(
                 "There is not a single TCS (only) for this account/location/gateway"
             )
 

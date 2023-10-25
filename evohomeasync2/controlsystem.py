@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""Provides handling of a TCC Temperature Control System."""
+"""Provides handling of TCC temperature control systems."""
+
 from __future__ import annotations
 
 from datetime import datetime as dt
 import json
-import logging
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from .const import API_STRFTIME, URL_BASE, SystemMode
+import aiohttp
+
+from .broker import vol
+from .const import API_STRFTIME, SystemMode
+from .exceptions import FailedRequest
 from .hotwater import HotWater
+from .schema import SCH_TCS_STATUS
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
@@ -18,6 +23,7 @@ from .schema.const import (
     SZ_MODEL_TYPE,
     SZ_SYSTEM_ID,
     SZ_SYSTEM_MODE_STATUS,
+    SZ_TEMPERATURE_CONTROL_SYSTEM,
     SZ_ZONES,
 )
 from .schema.const import SYSTEM_MODES
@@ -29,10 +35,9 @@ if TYPE_CHECKING:
     from .typing import _DhwIdT, _FilePathT, _SystemIdT, _ZoneIdT
 
 
-_LOGGER = logging.getLogger(__name__)
-
-
 class _ControlSystemDeprecated:
+    """Deprecated attributes and methods removed from the evohome-client namespace."""
+
     async def set_status(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
             "ControlSystem.set_status() is deprecrated, use .set_mode()"
@@ -85,33 +90,43 @@ class _ControlSystemDeprecated:
 
 
 class ControlSystem(_ControlSystemDeprecated):
-    """Instance of a gateway's Temperature Control System."""
+    """Instance of a gateway's TCS (temperatureControlSystem)."""
 
-    def __init__(self, gateway: Gateway, tcs_config: dict) -> None:
+    STATUS_SCHEMA = SCH_TCS_STATUS
+    _type = SZ_TEMPERATURE_CONTROL_SYSTEM
+
+    def __init__(self, gateway: Gateway, config: dict) -> None:
         self.gateway = gateway
         self.location = gateway.location
-        self._client = gateway.location._client
+
+        self._broker = gateway._broker
+        self._logger = gateway._logger
 
         self._status: dict = {}
         self._config: Final[dict] = {
-            k: v for k, v in tcs_config.items() if k not in (SZ_DHW, SZ_ZONES)
+            k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
         }
+
         assert self.systemId, "Invalid config dict"
+        self._id = self.systemId
 
         self._zones: list[Zone] = []
         self.zones: dict[str, Zone] = {}  # zone by name! what to do if name changed?
         self.zones_by_id: dict[str, Zone] = {}
         self.hotwater: None | HotWater = None
 
-        for zone_config in tcs_config[SZ_ZONES]:
+        for zone_config in config[SZ_ZONES]:
             zone = Zone(self, zone_config)
 
             self._zones.append(zone)
             self.zones[zone.name] = zone
             self.zones_by_id[zone.zoneId] = zone
 
-        if dhw_config := tcs_config.get(SZ_DHW):
+        if dhw_config := config.get(SZ_DHW):
             self.hotwater = HotWater(self, dhw_config)
+
+    def __str__(self) -> str:
+        return f"{self._id} ({self._type})"
 
     # config attrs...
     @property
@@ -138,9 +153,13 @@ class ControlSystem(_ControlSystemDeprecated):
     def systemModeStatus(self) -> None | dict:
         return self._status.get(SZ_SYSTEM_MODE_STATUS)
 
-    async def _set_mode(self, request: dict) -> None:
-        url = f"temperatureControlSystem/{self.systemId}/mode"
-        await self._client("PUT", f"{URL_BASE}/{url}", json=request)
+    async def _set_mode(self, system_mode: dict) -> None:
+        try:
+            _ = await self._broker.put(
+                f"{self._type}/{self._id}/mode", json=system_mode  # schema=
+            )
+        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
+            raise FailedRequest(f"Unable to set the {self._type} state: {exc}")
 
     async def set_mode(self, mode: SystemMode, /, *, until: None | dt = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
@@ -235,7 +254,7 @@ class ControlSystem(_ControlSystemDeprecated):
     async def backup_schedules(self, filename: _FilePathT) -> None:
         """Backup all schedules from the control system to the file."""
 
-        _LOGGER.info(
+        self._logger.info(
             f"Backing up schedules from {self.systemId} ({self.location.name})"
             f", to {filename}"
         )
@@ -256,7 +275,7 @@ class ControlSystem(_ControlSystemDeprecated):
         with open(filename, "w") as file_output:
             file_output.write(json.dumps(schedules, indent=4))
 
-        _LOGGER.info("Backup completed.")
+        self._logger.info("Backup completed.")
 
     async def restore_schedules(
         self, filename: _FilePathT, match_by_name: bool = False
@@ -278,7 +297,7 @@ class ControlSystem(_ControlSystemDeprecated):
                 await zone.set_schedule(json.dumps(schedule["schedule"]))
 
             else:
-                _LOGGER.warning(
+                self._logger.warning(
                     f"Ignoring schedule of {id} ({name}): unknown id"
                     ", consider matching by name rather than by id"
                 )
@@ -298,7 +317,7 @@ class ControlSystem(_ControlSystemDeprecated):
                 await zone.set_schedule(json.dumps(schedule["schedule"]))
 
             else:
-                _LOGGER.warning(
+                self._logger.warning(
                     f"Ignoring schedule of {id} ({name}): unknown name"
                     ", consider matching by id rather than by name"
                 )
@@ -306,7 +325,7 @@ class ControlSystem(_ControlSystemDeprecated):
 
             return True
 
-        _LOGGER.info(
+        self._logger.info(
             f"Restoring schedules (matched by {'name' if match_by_name else 'id'}) to "
             f"{self.systemId} ({self.location.name}), from {filename}"
         )
@@ -328,6 +347,6 @@ class ControlSystem(_ControlSystemDeprecated):
             with_errors = with_errors and not matched
 
         if with_errors or len(schedules) != len(self.zones) + 1 if self.hotwater else 0:
-            _LOGGER.warning("Restore completed, but with unmatched schedules.")
+            self._logger.warning("Restore completed, but with unmatched schedules.")
         else:
-            _LOGGER.info("Restore completed.")
+            self._logger.info("Restore completed.")

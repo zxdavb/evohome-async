@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""Provides handling of the hot water zone."""
+"""Provides handling of TCC DHW zones."""
 
 from __future__ import annotations
+
+import aiohttp
 
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from .const import API_STRFTIME, URL_BASE
+from .broker import vol
+from .const import API_STRFTIME
+from .exceptions import FailedRequest
+from .schema import SCH_DHW_STATUS
 from .schema.const import (
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
@@ -23,10 +28,10 @@ if TYPE_CHECKING:
     from .controlsystem import ControlSystem
     from .typing import _DhwIdT
 
-# _LOGGER = logging.getLogger(__name__)
-
 
 class HotWaterDeprecated:
+    """Deprecated attributes and methods removed from the evohome-client namespace."""
+
     @property
     def zoneId(self) -> NoReturn:
         raise NotImplementedError("HotWater.zoneId is deprecated, use .dhwId (or ._id)")
@@ -51,16 +56,17 @@ class HotWaterDeprecated:
 
 
 class HotWater(HotWaterDeprecated, _ZoneBase):
-    """Provide handling of the hot water zone."""
+    """Instance of a TCS's DHW zone (domesticHotWater)."""
 
+    STATUS_SCHEMA = SCH_DHW_STATUS
     _type = SZ_DOMESTIC_HOT_WATER
 
-    def __init__(self, tcs: ControlSystem, dhw_config: dict) -> None:
+    def __init__(self, tcs: ControlSystem, config: dict) -> None:
         super().__init__(tcs)
 
-        self._config: Final[dict] = dhw_config
-        assert self.dhwId, "Invalid config dict"
+        self._config: Final[dict] = config
 
+        assert self.dhwId, "Invalid config dict"
         self._id = self.dhwId
 
     # config attrs...
@@ -88,8 +94,10 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     async def _set_mode(self, state: dict) -> None:
         """Set the DHW state."""
 
-        url = f"domesticHotWater/{self.dhwId}/state"  # f"{_type}/{_id}/state"
-        await self._client("PUT", f"{URL_BASE}/{url}", json=state)
+        try:
+            _ = await self._broker.put(f"{self._type}/{self._id}/state", json=state)
+        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
+            raise FailedRequest(f"Unable to get the DHW mode: {exc}")
 
     async def set_on(self, /, *, until: None | dt = None) -> None:
         """Set the DHW on until a given time, or permanently."""
