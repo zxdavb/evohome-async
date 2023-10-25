@@ -13,8 +13,12 @@ class EvohomeError(Exception):
         super().__init__(message)
 
 
-class AuthenticationError(EvohomeError):
-    """Unable to authenticate (unable to obtain an access token)."""
+class InvalidSchedule(EvohomeError):
+    """The supplied schedule schema is invalid."""
+
+
+class NoDefaultTcsError(EvohomeError):
+    """There is not exactly one TCS in the user's installation."""
 
 
 class FailedRequest(EvohomeError):
@@ -30,13 +34,9 @@ class FailedRequest(EvohomeError):
         self.status = status  # if cause was aiohttp.ClientResponseError
 
 
+class AuthenticationError(FailedRequest):
+    """Unable to authenticate (unable to obtain an access token)."""
+
+
 class RateLimitExceeded(FailedRequest):
     """API request failed because the vendor's API rate limit was exceeded."""
-
-
-class InvalidSchedule(FailedRequest):
-    """The supplied schedule schema is invalid."""
-
-
-class NoDefaultTcsError(EvohomeError):
-    """There is not exactly one TCS in the user's installation."""

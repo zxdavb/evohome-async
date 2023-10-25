@@ -145,7 +145,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
             json_schedule = zone_schedule
 
         _ = await self._broker.put(  # TODO
-            f"{self._type}/{self._id}/schedule", data=json_schedule  # schema=
+            f"{self._type}/{self._id}/schedule", json=json_schedule  # schema=
         )  # except exceptions.InvalidSchedule, exceptions.FailedRequest
 
 
