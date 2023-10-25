@@ -73,7 +73,7 @@ async def _test_basics_apis(
 
     #
     # STEP 1: Authentication (isolated from client.login()), POST /Auth/OAuth/Token
-    await client._basic_login()
+    await client._broker._basic_login()
     _global_oauth_tokens = extract_oauth_tokens(client)
 
     assert isinstance(client.access_token, str)
@@ -83,7 +83,7 @@ async def _test_basics_apis(
     access_token = client.access_token
     refresh_token = client.refresh_token
 
-    await client._headers()
+    await client._broker._headers()
 
     # The above should not cause a re-authentication, so...
     assert client.access_token == access_token
@@ -244,7 +244,7 @@ async def _test_system_apis(
     # STEP 2: GET /{_type}/{_id}/status
     try:
         tcs = client._get_single_heating_system()
-    except evo.SingleTcsError:
+    except evo.NoDefaultTcsError:
         tcs = client.locations[0].gateways[0].control_systems[0]
 
     mode = tcs.systemModeStatus[SZ_MODE]

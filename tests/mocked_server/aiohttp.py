@@ -137,8 +137,11 @@ class ClientResponse:
 
     @property
     def content_length(self) -> None | int:
-        if self._body:
+        if self._body is None:
+            return None
+        if self.content_type == "text/plain":
             return len(self._body)
+        return len(str(self._body))
 
     @property
     def content_type(self) -> None | str:

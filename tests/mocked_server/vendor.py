@@ -12,8 +12,11 @@ from evohomeasync2.const import AUTH_URL, URL_BASE
 from evohomeasync2.schema.const import (
     SZ_DHW,
     SZ_DHW_ID,
+    SZ_DOMESTIC_HOT_WATER,
     SZ_GATEWAYS,
+    SZ_LOCATION,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
+    SZ_TEMPERATURE_ZONE,
     SZ_ZONE_ID,
     SZ_ZONES,
 )
@@ -103,31 +106,40 @@ class MockedServer:
             return self._full_config
 
     def loc_config(self) -> None | _bodyT:
-        pass
+        raise NotImplementedError
 
     def loc_status(self) -> None | _bodyT:
-        pass
+        return self._locn_status
+        return self.locn_status(location_id=self._loc_id(self._url))
 
     def tcs_mode(self) -> None | _bodyT:
-        pass
+        raise NotImplementedError
 
     def zon_schedule(self) -> None | _bodyT:
-        pass
+        return self._zone_schedule
 
     def zon_mode(self) -> None | _bodyT:
-        pass
+        raise NotImplementedError
 
     def zon_status(self) -> None | _bodyT:
-        pass
+        zone_id = self._zon_id(self._url)
+
+        for gwy in self._locn_status[SZ_GATEWAYS]:
+            for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+                for zone in tcs[SZ_ZONES]:
+                    if zone[SZ_ZONE_ID] == zone_id:
+                        return zone
+
+        self.status = 404
 
     def dhw_schedule(self) -> None | _bodyT:
-        pass
+        return self._dhw_schedule
 
     def dhw_status(self) -> None | _bodyT:
-        pass
+        raise NotImplementedError
 
     def dhw_mode(self) -> None | _bodyT:
-        pass
+        raise NotImplementedError
 
     #
 
@@ -278,22 +290,22 @@ class MockedServer:
     @staticmethod
     def _dhw_id(url) -> _DhwIdT:
         """Extract a DHW ID from a URL."""
-        return url.split("temperatureZone/")[1].split("/")[0]
+        return url.split(f"{SZ_DOMESTIC_HOT_WATER}/")[1].split("/")[0]
 
     @staticmethod
     def _loc_id(url) -> _LocationIdT:
         """Extract a Location ID from a URL."""
-        return url.split("location/")[1].split("/")[0]
+        return url.split(f"{SZ_LOCATION}/")[1].split("/")[0]
 
     @staticmethod
     def _tcs_id(url) -> _SystemIdT:
         """Extract a TCS ID from a URL."""
-        return url.split("temperatureControlSystem/")[1].split("/")[0]
+        return url.split(f"{SZ_TEMPERATURE_CONTROL_SYSTEMS}/")[1].split("/")[0]
 
     @staticmethod
     def _zon_id(url) -> _ZoneIdT:
         """Extract a Zone ID from a URL."""
-        return url.split("domesticHotWater/")[1].split("/")[0]
+        return url.split(f"{SZ_TEMPERATURE_ZONE}/")[1].split("/")[0]
 
 
 REQUEST_MAP = {

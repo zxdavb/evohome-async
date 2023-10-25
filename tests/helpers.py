@@ -8,10 +8,8 @@ import os
 
 import evohomeasync2 as evo
 
+from . import _DEBUG_USE_MOCK_AIOHTTP
 from . import mocked_server as mock
-
-
-_DEBUG_USE_MOCK_AIOHTTP = False
 
 
 if _DEBUG_USE_MOCK_AIOHTTP:

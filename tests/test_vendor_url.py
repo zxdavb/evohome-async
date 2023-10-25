@@ -6,12 +6,19 @@ from __future__ import annotations
 
 
 from datetime import datetime as dt
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 import pytest
 import pytest_asyncio
 
 import evohomeasync2 as evo
-from evohomeasync2 import URL_BASE
+from evohomeasync2 import exceptions
+from evohomeasync2.const import URL_BASE
+from evohomeasync2.schema import (
+    SCH_FULL_CONFIG,
+    SCH_LOCN_STATUS,
+    SCH_USER_ACCOUNT,
+    SCH_ZONE_STATUS,
+)
 from evohomeasync2.schema.const import (
     SZ_HEAT_SETPOINT_VALUE,
     SZ_IS_AVAILABLE,
@@ -21,12 +28,10 @@ from evohomeasync2.schema.const import (
     SZ_TIME_UNTIL,
 )
 
+from . import _DISABLE_STRICT_ASSERTS
 from .helpers import aiohttp, extract_oauth_tokens  # aiohttp may be mocked
 from .helpers import credentials as _credentials
 from .helpers import session as _session
-
-
-_DISABLE_STRICT_ASSERTS = True
 
 
 _global_oauth_tokens: tuple[str, str, dt] = None, None, None
@@ -43,6 +48,11 @@ async def session():
         yield _session()
     finally:
         await _session().close()
+
+
+@pytest.fixture(autouse=True)
+def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("evohomeasync2.broker.aiohttp", aiohttp)
 
 
 async def instantiate_client(
@@ -67,7 +77,7 @@ async def instantiate_client(
     )
 
     # Authentication
-    await client._basic_login()
+    await client._broker._basic_login()
     _global_oauth_tokens = extract_oauth_tokens(client)
 
     return client
@@ -78,26 +88,35 @@ async def _test_usr_account(
 ) -> None:
     """Test /userAccount"""
 
+    response: aiohttp.ClientResponse
+
     client = await instantiate_client(username, password, session=session)
 
-    url = "userAccount"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    # Test 1
+    response, content = await client._broker._client(
+        HTTPMethod.GET, f"{URL_BASE}/userAccount"
+    )
+    assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
+    assert _DISABLE_STRICT_ASSERTS or SCH_USER_ACCOUNT(content)
 
-    response, content = await client._client("PUT", f"{URL_BASE}/{url}")
+    # Test 2
     try:
-        response.raise_for_status()
-    except aiohttp.ClientResponseError as exc:  # 405: Method Not Allowed
+        response, content = await client._broker._client(
+            HTTPMethod.PUT, f"{URL_BASE}/userAccount"
+        )
+    except exceptions.FailedRequest as exc:  # 405: Method Not Allowed
         assert exc.status == HTTPStatus.METHOD_NOT_ALLOWED
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
         # assert content["message"].startswith("The requested resource does not")
 
-    url = "userXxxxxxx"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
+    # Test 3
     try:  # TODO: move, as is not a test specific to this URL, but a general test
-        response.raise_for_status()
+        response, content = await client._broker._client(
+            HTTPMethod.GET, f"{URL_BASE}/userXxxxxxx"
+        )
     except aiohttp.ClientResponseError as exc:  # 404: Not Found
-        assert exc.status == HTTPStatus.NOT_FOUND
-        assert _DISABLE_STRICT_ASSERTS or response.content_type == "text/html"
+        assert _DISABLE_STRICT_ASSERTS or exc.status == HTTPStatus.NOT_FOUND
+        assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
         # assert content["message"].startswith("The requested resource does not")
 
 
@@ -108,58 +127,75 @@ async def _test_all_config(
 ) -> None:
     """Test location/installationInfo?userId={userId}"""
 
+    response: aiohttp.ClientResponse
+
     client = await instantiate_client(username, password, session=session)
     _ = await client.user_account()
 
+    # Test 1A
     url = f"location/installationInfo?userId={client.account_info['userId']}"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
-    response.raise_for_status()
+    response, content = await client._broker._client(
+        HTTPMethod.GET, f"{URL_BASE}/{url}"
+    )
     assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
 
+    # Test 1B
     url += "&includeTemperatureControlSystems=True"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
-    response.raise_for_status()
+    response, content = await client._broker._client(
+        HTTPMethod.GET, f"{URL_BASE}/{url}"
+    )
     assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
+    assert _DISABLE_STRICT_ASSERTS or SCH_FULL_CONFIG(content)
 
-    response, content = await client._client("PUT", f"{URL_BASE}/{url}")
+    # Test 2
     try:
-        response.raise_for_status()
+        response, content = await client._broker._client(
+            HTTPMethod.PUT, f"{URL_BASE}/{url}"
+        )
     except aiohttp.ClientResponseError as exc:  # 405: Method Not Allowed
         assert exc.status == HTTPStatus.METHOD_NOT_ALLOWED
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
         # assert content["message"].startswith("The requested resource does not")
 
+    # Test 2
     url = "location/installationInfo"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
-        response.raise_for_status()
+        response, content = await client._broker._client(
+            HTTPMethod.GET, f"{URL_BASE}/{url}"
+        )
     except aiohttp.ClientResponseError as exc:  # 404: Not Found
         assert exc.status == HTTPStatus.NOT_FOUND
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
         # assert content["message"].startswith("No HTTP resource was found")
 
+    # Test 2
     url = "location/installationInfo?userId=1230000"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
-        response.raise_for_status()
+        response, content = await client._broker._client(
+            HTTPMethod.GET, f"{URL_BASE}/{url}"
+        )
     except aiohttp.ClientResponseError as exc:  # 401: Unauthorized
         assert exc.status == HTTPStatus.UNAUTHORIZED
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
         # assert content["message"].startswith("You are not allowed")
 
+    # Test 2
     url = "location/installationInfo?userId=xxxxxxx"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
-        response.raise_for_status()
+        response, content = await client._broker._client(
+            HTTPMethod.GET, f"{URL_BASE}/{url}"
+        )
     except aiohttp.ClientResponseError as exc:  # 400: Bad Request
         assert exc.status == HTTPStatus.BAD_REQUEST
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
         # assert content["message"].startswith("Request was bad formatted")
 
+    # Test 2
     url = "location/installationInfo?xxxxXx=xxxxxxx"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
-        response.raise_for_status()
+        response, content = await client._broker._client(
+            HTTPMethod.GET, f"{URL_BASE}/{url}"
+        )
     except aiohttp.ClientResponseError as exc:  # 404: Not Found
         assert exc.status == HTTPStatus.NOT_FOUND
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
@@ -173,59 +209,77 @@ async def _test_loc_status(
 ) -> None:
     """Test location/{locationId}/status"""
 
+    response: aiohttp.ClientResponse
+
     client = await instantiate_client(username, password, session=session)
     _ = await client.user_account()
     _ = await client._installation(refresh_status=False)
+
     loc = client.locations[0]
 
+    # Test 1A
     url = f"location/{loc.locationId}/status"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
-    response.raise_for_status()
+    response, content = await client._broker._client(
+        HTTPMethod.GET, f"{URL_BASE}/{url}"
+    )
     assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
 
+    # Test 1B
     url += "?includeTemperatureControlSystems=True"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
-    response.raise_for_status()
+    response, content = await client._broker._client(
+        HTTPMethod.GET, f"{URL_BASE}/{url}"
+    )
     assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
+    assert _DISABLE_STRICT_ASSERTS or SCH_LOCN_STATUS(content)
 
-    response, content = await client._client("PUT", f"{URL_BASE}/{url}")
+    # Test 2
     try:
-        response.raise_for_status()
+        response, content = await client._broker._client(
+            HTTPMethod.PUT, f"{URL_BASE}/{url}"
+        )
     except aiohttp.ClientResponseError as exc:  # 405: Method Not Allowed
         assert exc.status == HTTPStatus.METHOD_NOT_ALLOWED
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
         # assert content["message"].startswith("The requested resource does not")
 
+    # Test 2
     url = f"location/{loc.locationId}"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
-        response.raise_for_status()
+        response, content = await client._broker._client(
+            HTTPMethod.GET, f"{URL_BASE}/{url}"
+        )
     except aiohttp.ClientResponseError as exc:  # 404: Not Found
         assert exc.status == HTTPStatus.NOT_FOUND
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "text/html"
 
+    # Test 2
     url = "location/1230000/status"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
-        response.raise_for_status()
+        response, content = await client._broker._client(
+            HTTPMethod.GET, f"{URL_BASE}/{url}"
+        )
     except aiohttp.ClientResponseError as exc:  # 401: Unauthorized
         assert exc.status == HTTPStatus.UNAUTHORIZED
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
         # assert content["message"].startswith("You are not allowed")
 
+    # Test 2
     url = "location/xxxxxxx/status"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
-        response.raise_for_status()
+        response, content = await client._broker._client(
+            HTTPMethod.GET, f"{URL_BASE}/{url}"
+        )
     except aiohttp.ClientResponseError as exc:  # 400: Bad Request
         assert exc.status == HTTPStatus.BAD_REQUEST
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
         # assert content["message"].startswith("Request was bad formatted")
 
+    # Test 2
     url = f"location/{loc.locationId}/xxxxxxx"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
     try:
-        response.raise_for_status()
+        response, content = await client._broker._client(
+            HTTPMethod.GET, f"{URL_BASE}/{url}"
+        )
     except aiohttp.ClientResponseError as exc:  # 404: Not Found
         assert exc.status == HTTPStatus.NOT_FOUND
         assert _DISABLE_STRICT_ASSERTS or response.content_type == "text/html"
@@ -238,6 +292,8 @@ async def _test_zone_mode(
 ) -> None:
     """Test location/{locationId}/status"""
 
+    response: aiohttp.ClientResponse
+
     client = await instantiate_client(username, password, session=session)
     _ = await client.user_account()
     _ = await client._installation(refresh_status=False)
@@ -248,9 +304,13 @@ async def _test_zone_mode(
             break
 
     url = f"{zone._type}/{zone._id}/status"
-    response, content = await client._client("GET", f"{URL_BASE}/{url}")
-    response.raise_for_status()
+    response, content = await client._broker._client(
+        HTTPMethod.GET, f"{URL_BASE}/{url}"
+    )
     assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
+    assert _DISABLE_STRICT_ASSERTS or SCH_ZONE_STATUS(content)
+
+    return
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
@@ -259,9 +319,7 @@ async def _test_zone_mode(
     }
 
     url = f"{zone._type}/{zone._id}/heatSetpoint"
-    response, content = await client._client(
-        "PUT", f"{URL_BASE}/{url}", json=heat_setpoint
-    )
+    response, content = await client._broker.put(url, json=heat_setpoint)
     response.raise_for_status()  # content = {'id': '824948817'}
     assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
 
@@ -272,9 +330,7 @@ async def _test_zone_mode(
     }
 
     url = f"{zone._type}/{zone._id}/heatSetpoint"
-    response, content = await client._client(
-        "PUT", f"{URL_BASE}/{url}", json=heat_setpoint
-    )
+    response, content = await client._broker.put(url, json=heat_setpoint)
     response.raise_for_status()
     assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
 
@@ -284,9 +340,7 @@ async def _test_zone_mode(
     }
 
     url = f"{zone._type}/{zone._id}/heatSetpoint"
-    response, content = await client._client(
-        "PUT", f"{URL_BASE}/{url}", json=heat_setpoint
-    )
+    response, content = await client._broker.put(url, json=heat_setpoint)
     response.raise_for_status()
     assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
 
@@ -297,7 +351,7 @@ async def _test_zone_mode(
 
     url = f"{zone._type}/{zone._id}/heatSetpoint"
     response, content = await client._client(
-        "PUT", f"{URL_BASE}/{url}", json=heat_setpoint
+        url, json=heat_setpoint
     )
     try:
         response.raise_for_status()

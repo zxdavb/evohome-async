@@ -569,7 +569,87 @@ MOCK_SCHEDULE_ZONE = {  # of any zone (no zoneId)
 }
 
 
-MOCK_SCHEDULE_DHW = {}  # TODO
+MOCK_SCHEDULE_DHW = {  # of any zone (no dhwId)
+    "dailySchedules": [
+        {
+            "dayOfWeek": "Monday",
+            "switchpoints": [
+                {"dhwState": "On", "timeOfDay": "06:30:00"},
+                {"dhwState": "Off", "timeOfDay": "08:30:00"},
+                {"dhwState": "On", "timeOfDay": "12:00:00"},
+                {"dhwState": "Off", "timeOfDay": "13:00:00"},
+                {"dhwState": "On", "timeOfDay": "16:30:00"},
+                {"dhwState": "Off", "timeOfDay": "22:30:00"},
+            ],
+        },
+        {
+            "dayOfWeek": "Tuesday",
+            "switchpoints": [
+                {"dhwState": "On", "timeOfDay": "06:30:00"},
+                {"dhwState": "Off", "timeOfDay": "08:30:00"},
+                {"dhwState": "On", "timeOfDay": "12:00:00"},
+                {"dhwState": "Off", "timeOfDay": "13:00:00"},
+                {"dhwState": "On", "timeOfDay": "16:30:00"},
+                {"dhwState": "Off", "timeOfDay": "22:30:00"},
+            ],
+        },
+        {
+            "dayOfWeek": "Wednesday",
+            "switchpoints": [
+                {"dhwState": "On", "timeOfDay": "06:30:00"},
+                {"dhwState": "Off", "timeOfDay": "08:30:00"},
+                {"dhwState": "On", "timeOfDay": "12:00:00"},
+                {"dhwState": "Off", "timeOfDay": "13:00:00"},
+                {"dhwState": "On", "timeOfDay": "16:30:00"},
+                {"dhwState": "Off", "timeOfDay": "22:30:00"},
+            ],
+        },
+        {
+            "dayOfWeek": "Thursday",
+            "switchpoints": [
+                {"dhwState": "On", "timeOfDay": "06:30:00"},
+                {"dhwState": "Off", "timeOfDay": "08:30:00"},
+                {"dhwState": "On", "timeOfDay": "12:00:00"},
+                {"dhwState": "Off", "timeOfDay": "13:00:00"},
+                {"dhwState": "On", "timeOfDay": "16:30:00"},
+                {"dhwState": "Off", "timeOfDay": "22:30:00"},
+            ],
+        },
+        {
+            "dayOfWeek": "Friday",
+            "switchpoints": [
+                {"dhwState": "On", "timeOfDay": "06:30:00"},
+                {"dhwState": "Off", "timeOfDay": "08:30:00"},
+                {"dhwState": "On", "timeOfDay": "12:00:00"},
+                {"dhwState": "Off", "timeOfDay": "13:00:00"},
+                {"dhwState": "On", "timeOfDay": "16:30:00"},
+                {"dhwState": "Off", "timeOfDay": "22:30:00"},
+            ],
+        },
+        {
+            "dayOfWeek": "Saturday",
+            "switchpoints": [
+                {"dhwState": "On", "timeOfDay": "06:30:00"},
+                {"dhwState": "Off", "timeOfDay": "09:30:00"},
+                {"dhwState": "On", "timeOfDay": "12:00:00"},
+                {"dhwState": "Off", "timeOfDay": "13:00:00"},
+                {"dhwState": "On", "timeOfDay": "16:30:00"},
+                {"dhwState": "Off", "timeOfDay": "23:00:00"},
+            ],
+        },
+        {
+            "dayOfWeek": "Sunday",
+            "switchpoints": [
+                {"dhwState": "On", "timeOfDay": "06:30:00"},
+                {"dhwState": "Off", "timeOfDay": "09:30:00"},
+                {"dhwState": "On", "timeOfDay": "12:00:00"},
+                {"dhwState": "Off", "timeOfDay": "13:00:00"},
+                {"dhwState": "On", "timeOfDay": "16:30:00"},
+                {"dhwState": "Off", "timeOfDay": "23:00:00"},
+            ],
+        },
+    ]
+}
 
 
 def user_config_from_full_config(full_config: dict) -> dict:
@@ -591,9 +671,8 @@ def user_config_from_full_config(full_config: dict) -> dict:
 MOCK_USER_CONFIG = user_config_from_full_config(MOCK_FULL_CONFIG)
 
 
-# from aiohttp
 @verify(EnumCheck.UNIQUE)
-class hdrs(StrEnum):
+class hdrs(StrEnum):  # from aiohttp
     METH_GET: Final[str] = "get"
     METH_POST: Final[str] = "post"
     METH_PUT: Final[str] = "put"
