@@ -9,11 +9,8 @@ from datetime import datetime as dt
 import json
 from typing import TYPE_CHECKING, Final, NoReturn
 
-import aiohttp
-
-from .broker import vol
 from .const import API_STRFTIME
-from .exceptions import FailedRequest, InvalidSchedule
+from .exceptions import InvalidSchedule
 from .schema import SCH_ZONE_STATUS, SCH_SCHEDULE
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
@@ -93,12 +90,9 @@ class _ZoneBase(_ZoneBaseDeprecated):
         It will be more efficient to call Location.refresh_status().
         """
 
-        try:
-            status = await self._broker.get(
-                f"{self._type}/{self._id}/status", schema=self.STATUS_SCHEMA
-            )
-        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
-            raise FailedRequest(f"Unable to get the {self._type} State: {exc}")
+        status = await self._broker.get(
+            f"{self._type}/{self._id}/status", schema=self.STATUS_SCHEMA
+        )  # except exceptions.FaileRequest
 
         self._update_status(status)
         return status
@@ -120,12 +114,9 @@ class _ZoneBase(_ZoneBaseDeprecated):
 
         self._logger.debug(f"Getting schedule of {self._id} ({self._type})...")
 
-        try:
-            content = await self._broker.get(
-                f"{self._type}/{self._id}/schedule", schema=SCH_SCHEDULE
-            )
-        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
-            raise FailedRequest(f"Unable to get the {self._type} Schedule: {exc}")
+        content = await self._broker.get(
+            f"{self._type}/{self._id}/schedule", schema=SCH_SCHEDULE
+        )  # except exceptions.FailedRequest
 
         response_text = json.dumps(content)  # FIXME
         for key_name in CAPITALIZED_KEYS:  # an anachronism from evohome-client
@@ -153,12 +144,9 @@ class _ZoneBase(_ZoneBaseDeprecated):
 
             json_schedule = zone_schedule
 
-        try:
-            _ = await self._broker.put(
-                f"{self._type}/{self._id}/schedule", data=json_schedule  # schema=
-            )
-        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
-            raise FailedRequest(f"Unable to set the {self._type} Schedule: {exc}")
+        _ = await self._broker.put(  # TODO
+            f"{self._type}/{self._id}/schedule", data=json_schedule  # schema=
+        )  # except exceptions.InvalidSchedule, exceptions.FailedRequest
 
 
 class Zone(_ZoneBase):
@@ -208,12 +196,9 @@ class Zone(_ZoneBase):
     async def _set_mode(self, heat_setpoint: dict) -> None:
         """TODO"""
 
-        try:
-            _ = await self._broker.put(
-                f"{self._type}/{self._id}/heatSetpoint", json=heat_setpoint  # schema=
-            )
-        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
-            raise FailedRequest(f"Unable to set the {self._type} mode: {exc}")
+        _ = await self._broker.put(
+            f"{self._type}/{self._id}/heatSetpoint", json=heat_setpoint  # schema=
+        )  # except exceptions.FailedRequest
 
     async def set_temperature(
         self, temperature: float, /, *, until: None | dt = None

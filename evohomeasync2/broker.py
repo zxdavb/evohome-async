@@ -223,14 +223,14 @@ class Broker:
 
         response, content = await self._client(HTTPMethod.GET, f"{URL_BASE}/{url}")
         try:
-            response.raise_for_status()  # may raise exceptions.FailedRequest
+            response.raise_for_status()
 
         except aiohttp.ClientResponseError as exc:
             if hint := _ERR_MSG_LOOKUP_BASE.get(exc.status):
                 raise exceptions.FailedRequest(hint, status=exc.status)
             raise exceptions.FailedRequest(exc, status=exc.status)
 
-        except aiohttp.ClientError as exc:  # ClientConnectionError/ClientResponseError
+        except aiohttp.ClientError as exc:  # incl. ClientConnectionError
             raise exceptions.FailedRequest(exc)
 
         if schema:
@@ -266,7 +266,7 @@ class Broker:
                 raise exceptions.FailedRequest(hint, status=exc.status)
             raise exceptions.FailedRequest(exc, status=exc.status)
 
-        except aiohttp.ClientError as exc:
+        except aiohttp.ClientError as exc:  # incl. ClientConnectionError
             raise exceptions.FailedRequest(exc)
 
         return content

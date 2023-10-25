@@ -6,10 +6,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Final, NoReturn
 
-import aiohttp
-
-from .broker import vol
-from .exceptions import FailedRequest
 from .gateway import Gateway
 from .schema import SCH_LOCN_STATUS
 from .schema.const import (
@@ -101,13 +97,10 @@ class Location(_LocationDeprecated):
     async def refresh_status(self) -> dict:
         """Update the Location with its latest status (also returns the status)."""
 
-        try:
-            status = await self._broker.get(
-                f"{self._type}/{self._id}/status?includeTemperatureControlSystems=True",
-                schema=self.STATUS_SCHEMA
-            )
-        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
-            raise FailedRequest(f"Unable to get the Location state: {exc}")
+        status = await self._broker.get(
+            f"{self._type}/{self._id}/status?includeTemperatureControlSystems=True",
+            schema=self.STATUS_SCHEMA,
+        )  # except exceptions.FailedRequest
 
         self._update_status(status)
         return status

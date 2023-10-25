@@ -9,16 +9,15 @@ Further information at: https://evohome-client.readthedocs.io
 """
 from __future__ import annotations
 
+from http import HTTPStatus
 import logging
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Any, NoReturn
 
 import aiohttp
 
-from .exceptions import (  # noqa: F401
-    AuthenticationError, FailedRequest, InvalidSchedule, NoDefaultTcsError
-)
-from .broker import Broker, vol
+from . import exceptions
+from .broker import Broker
 from .controlsystem import ControlSystem
 from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401
@@ -155,8 +154,8 @@ class EvohomeClient(EvohomeClientDeprecated):
         try:  # the cached access_token may be valid, but is not authorized
             await self.user_account()
 
-        except AuthenticationError as exc:
-            if exc.status != 401 or not self.access_token:
+        except exceptions.AuthenticationError as exc:
+            if exc.status != HTTPStatus.UNAUTHORIZED or not self.access_token:
                 raise
 
             self._logger.warning(
@@ -182,12 +181,9 @@ class EvohomeClient(EvohomeClientDeprecated):
         if self._user_account and not force_update:
             return self._user_account
 
-        try:
-            self._user_account = await self._broker.get(
-                "userAccount", schema=SCH_USER_ACCOUNT
-            )
-        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
-            raise FailedRequest(f"Unable to get the user's Account config: {exc}")
+        self._user_account = await self._broker.get(
+            "userAccount", schema=SCH_USER_ACCOUNT
+        )  # except exceptions.FailedRequest
 
         return self._user_account
 
@@ -225,14 +221,9 @@ class EvohomeClient(EvohomeClientDeprecated):
         url = f"location/installationInfo?userId={self.account_info['userId']}"
         url += "&includeTemperatureControlSystems=True"
 
-        try:
-            self._full_config: list = await self._broker.get(
-                url, schema=SCH_FULL_CONFIG
-            )
-        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
-            raise FailedRequest(
-                f"Unable to get the user's Installation config: {exc}"
-            )
+        self._full_config: list = await self._broker.get(
+            url, schema=SCH_FULL_CONFIG
+        )  # except exceptions.FailedRequest
 
         # populate each freshly instantiated location with its initial status
         for loc_data in self._full_config:
@@ -250,17 +241,17 @@ class EvohomeClient(EvohomeClientDeprecated):
         """
 
         if not self.locations or len(self.locations) != 1:
-            raise NoDefaultTcsError(
+            raise exceptions.NoDefaultTcsError(
                 "There is not a single location (only) for this account"
             )
 
         if len(self.locations[0]._gateways) != 1:  # type: ignore[index]
-            raise NoDefaultTcsError(
+            raise exceptions.NoDefaultTcsError(
                 "There is not a single gateway (only) for this account/location"
             )
 
         if len(self.locations[0]._gateways[0]._control_systems) != 1:  # type: ignore[index]
-            raise NoDefaultTcsError(
+            raise exceptions.NoDefaultTcsError(
                 "There is not a single TCS (only) for this account/location/gateway"
             )
 

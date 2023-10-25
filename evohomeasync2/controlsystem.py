@@ -9,11 +9,7 @@ from datetime import datetime as dt
 import json
 from typing import TYPE_CHECKING, Final, NoReturn
 
-import aiohttp
-
-from .broker import vol
 from .const import API_STRFTIME, SystemMode
-from .exceptions import FailedRequest
 from .hotwater import HotWater
 from .schema import SCH_TCS_STATUS
 from .schema.const import (
@@ -154,12 +150,9 @@ class ControlSystem(_ControlSystemDeprecated):
         return self._status.get(SZ_SYSTEM_MODE_STATUS)
 
     async def _set_mode(self, system_mode: dict) -> None:
-        try:
-            _ = await self._broker.put(
-                f"{self._type}/{self._id}/mode", json=system_mode  # schema=
-            )
-        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
-            raise FailedRequest(f"Unable to set the {self._type} state: {exc}")
+        _ = await self._broker.put(
+            f"{self._type}/{self._id}/mode", json=system_mode  # schema=
+        )  # except exceptions.FailedRequest
 
     async def set_mode(self, mode: SystemMode, /, *, until: None | dt = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""

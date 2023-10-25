@@ -5,14 +5,10 @@
 
 from __future__ import annotations
 
-import aiohttp
-
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from .broker import vol
 from .const import API_STRFTIME
-from .exceptions import FailedRequest
 from .schema import SCH_DHW_STATUS
 from .schema.const import (
     SZ_DHW_ID,
@@ -94,10 +90,9 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     async def _set_mode(self, state: dict) -> None:
         """Set the DHW state."""
 
-        try:
-            _ = await self._broker.put(f"{self._type}/{self._id}/state", json=state)
-        except (aiohttp.ClientConnectionError, vol.Invalid) as exc:
-            raise FailedRequest(f"Unable to get the DHW mode: {exc}")
+        _ = await self._broker.put(
+            f"{self._type}/{self._id}/state", json=state
+        )  # except exceptions.FailedRequests
 
     async def set_on(self, /, *, until: None | dt = None) -> None:
         """Set the DHW on until a given time, or permanently."""

@@ -319,7 +319,9 @@ async def _test_zone_mode(
     }
 
     url = f"{zone._type}/{zone._id}/heatSetpoint"
-    response, content = await client._broker.put(url, json=heat_setpoint)
+    response, content = await client._broker.put(
+        url, json=heat_setpoint
+    )
     response.raise_for_status()  # content = {'id': '824948817'}
     assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
 
@@ -330,7 +332,9 @@ async def _test_zone_mode(
     }
 
     url = f"{zone._type}/{zone._id}/heatSetpoint"
-    response, content = await client._broker.put(url, json=heat_setpoint)
+    response, content = await client._broker.put(
+        url, json=heat_setpoint
+    )
     response.raise_for_status()
     assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
 
@@ -340,7 +344,9 @@ async def _test_zone_mode(
     }
 
     url = f"{zone._type}/{zone._id}/heatSetpoint"
-    response, content = await client._broker.put(url, json=heat_setpoint)
+    response, content = await client._broker.put(
+        url, json=heat_setpoint
+    )
     response.raise_for_status()
     assert _DISABLE_STRICT_ASSERTS or response.content_type == "application/json"
 
@@ -350,7 +356,7 @@ async def _test_zone_mode(
     }
 
     url = f"{zone._type}/{zone._id}/heatSetpoint"
-    response, content = await client._client(
+    response, content = await client._client._broker.put(
         url, json=heat_setpoint
     )
     try:
