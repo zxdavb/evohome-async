@@ -15,6 +15,7 @@ from evohomeasync2.schema.const import (
     SZ_DOMESTIC_HOT_WATER,
     SZ_GATEWAYS,
     SZ_LOCATION,
+    SZ_LOCATION_ID,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TEMPERATURE_ZONE,
     SZ_ZONE_ID,
@@ -98,10 +99,17 @@ class MockedServer:
             self.status = HTTPStatus.NOT_FOUND
 
     def all_config(self) -> None | _bodyT:  # full_locn
+        def user_id(url) -> str:
+            return url.split("?userId=")[1].split("&")[0]
+
         if self._method != hdrs.METH_GET:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
-        elif self._url == f"{URL_BASE}/location/installationInfo":
+        elif "?userId=" not in self._url:
             self.status = HTTPStatus.NOT_FOUND
+        elif not user_id(self._url).isdigit():
+            self.status = HTTPStatus.BAD_REQUEST
+        elif user_id(self._url) != self._user_config["userId"]:
+            self.status = HTTPStatus.UNAUTHORIZED
         else:
             return self._full_config
 
@@ -109,8 +117,14 @@ class MockedServer:
         raise NotImplementedError
 
     def loc_status(self) -> None | _bodyT:
-        return self._locn_status
-        return self.locn_status(location_id=self._loc_id(self._url))
+        if self._method != hdrs.METH_GET:
+            self.status = HTTPStatus.METHOD_NOT_ALLOWED
+        elif not self._loc_id(self._url).isdigit():
+            self.status = HTTPStatus.BAD_REQUEST
+        elif self._loc_id(self._url) != self._locn_status[SZ_LOCATION_ID]:
+            self.status = HTTPStatus.UNAUTHORIZED
+        else:
+            return self._locn_status
 
     def tcs_mode(self) -> None | _bodyT:
         raise NotImplementedError

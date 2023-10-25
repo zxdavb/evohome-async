@@ -21,6 +21,7 @@ from evohomeasync2.schema import (
     SCH_ZONE_STATUS,
 )
 from evohomeasync2.schema.const import (
+    SZ_FOLLOW_SCHEDULE,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_IS_AVAILABLE,
     SZ_PERMANENT_OVERRIDE,
@@ -293,6 +294,13 @@ async def _test_zone_mode(
     await should_fail(
         client, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
     )
+
+    heat_setpoint = {
+        SZ_SETPOINT_MODE: SZ_FOLLOW_SCHEDULE,
+        SZ_HEAT_SETPOINT_VALUE: 0.0,
+        SZ_TIME_UNTIL: None,
+    }
+    await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
 
 async def _test_schedule(
