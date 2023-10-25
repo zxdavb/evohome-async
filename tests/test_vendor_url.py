@@ -11,7 +11,6 @@ import pytest
 import pytest_asyncio
 
 import evohomeasync2 as evo
-from evohomeasync2 import exceptions
 from evohomeasync2.broker import vol
 from evohomeasync2.const import URL_BASE
 from evohomeasync2.schema import (
@@ -86,7 +85,7 @@ async def instantiate_client(
     return client
 
 
-async def req_should_work(
+async def should_work(
     client: evo.EvohomeClient,
     method: HTTPMethod,
     url: str,
@@ -110,7 +109,7 @@ async def req_should_work(
     return content
 
 
-async def req_should_fail(
+async def should_fail(
     client: evo.EvohomeClient,
     method: HTTPMethod,
     url: str,
@@ -122,12 +121,12 @@ async def req_should_fail(
     response: aiohttp.ClientResponse
 
     response, content = await client._broker._client(
-        HTTPMethod.GET, f"{URL_BASE}/{url}", json=json
+        method, f"{URL_BASE}/{url}", json=json
     )
 
     try:
         response.raise_for_status()
-    except exceptions.FailedRequest as exc:
+    except aiohttp.ClientResponseError as exc:
         assert exc.status == status
     else:
         assert False
@@ -145,11 +144,11 @@ async def _test_usr_account(
     #
 
     url = "userAccount"
-    req_should_work(client, HTTPMethod.GET, url, schema=SCH_USER_ACCOUNT)
-    req_should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED)
+    await should_work(client, HTTPMethod.GET, url, schema=SCH_USER_ACCOUNT)
+    await should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED)
 
     url = "userXxxxxxx"  # NOTE: is a general test, and not a test specific to this URL
-    req_should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
 
 async def _test_all_config(
@@ -164,23 +163,23 @@ async def _test_all_config(
     #
 
     url = f"location/installationInfo?userId={client.account_info['userId']}"
-    req_should_work(client, HTTPMethod.GET, url)
+    await should_work(client, HTTPMethod.GET, url)
 
     url += "&includeTemperatureControlSystems=True"
-    req_should_work(client, HTTPMethod.GET, url, schema=SCH_FULL_CONFIG)
-    req_should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED)
+    await should_work(client, HTTPMethod.GET, url, schema=SCH_FULL_CONFIG)
+    await should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED)
 
     url = "location/installationInfo"
-    req_should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
     url = "location/installationInfo?userId=1230000"
-    req_should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
+    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
 
     url = "location/installationInfo?userId=xxxxxxx"
-    req_should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
 
     url = "location/installationInfo?xxxxXx=xxxxxxx"
-    req_should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
 
 async def _test_loc_status(
@@ -198,23 +197,23 @@ async def _test_loc_status(
     #
 
     url = f"location/{loc.locationId}/status"
-    req_should_work(client, HTTPMethod.GET, url)
+    await should_work(client, HTTPMethod.GET, url)
 
     url += "?includeTemperatureControlSystems=True"
-    req_should_work(client, HTTPMethod.GET, url, schema=SCH_LOCN_STATUS)
-    req_should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED)
+    await should_work(client, HTTPMethod.GET, url, schema=SCH_LOCN_STATUS)
+    await should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED)
 
     url = f"location/{loc.locationId}"
-    req_should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
+    await should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
 
     url = "location/1230000/status"
-    req_should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
+    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
 
     url = "location/xxxxxxx/status"
-    req_should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
 
     url = f"location/{loc.locationId}/xxxxxxx"
-    req_should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
 
 async def _test_zone_mode(
@@ -237,7 +236,7 @@ async def _test_zone_mode(
     #
 
     url = f"{zone._type}/{zone._id}/status"
-    req_should_work(client, HTTPMethod.GET, url, schema=SCH_ZONE_STATUS)
+    await should_work(client, HTTPMethod.GET, url, schema=SCH_ZONE_STATUS)
 
     url = f"{zone._type}/{zone._id}/heatSetpoint"
 
@@ -246,26 +245,26 @@ async def _test_zone_mode(
         SZ_HEAT_SETPOINT_VALUE: zone.temperatureStatus[SZ_TEMPERATURE],
         SZ_TIME_UNTIL: None,
     }
-    req_should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
+    await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
         SZ_HEAT_SETPOINT_VALUE: 99,
         SZ_TIME_UNTIL: None,
     }
-    req_should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
+    await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
         SZ_HEAT_SETPOINT_VALUE: 19.5,
     }
-    req_should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
+    await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: "xxxxxxx",
         SZ_HEAT_SETPOINT_VALUE: 19.5,
     }
-    req_should_fail(
+    await should_fail(
         client, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
     )
 
@@ -285,23 +284,23 @@ async def _test_schedule(
     #
 
     url = f"{zone._type}/{zone._id}/schedule"
-    schedule = req_should_work(client, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
+    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
 
     temp = schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]
 
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp + 1
-    req_should_work(client, HTTPMethod.PUT, url, json=schedule)
+    await should_work(client, HTTPMethod.PUT, url, json=schedule)
 
-    schedule = req_should_work(client, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
+    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp + 1
 
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp
-    req_should_work(client, HTTPMethod.PUT, url, json=schedule)
+    await should_work(client, HTTPMethod.PUT, url, json=schedule)
 
-    schedule = req_should_work(client, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
+    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp
 
-    req_should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
 
 
 @pytest.mark.asyncio
