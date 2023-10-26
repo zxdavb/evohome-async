@@ -38,8 +38,10 @@ from .schema.const import (
 )
 
 if TYPE_CHECKING:
-    from .controlsystem import ControlSystem
-    from .typing import _ZoneIdT
+    import logging
+
+    from . import Broker, ControlSystem
+    from .typing import _EvoDictT, _EvoListT, _ZoneIdT
 
 
 CAPITALIZED_KEYS = (
@@ -76,76 +78,81 @@ class _ZoneBase(_ZoneBaseDeprecated):
     def __init__(self, tcs: ControlSystem) -> None:
         self.tcs = tcs
 
-        self._broker = tcs._broker
-        self._logger = tcs._logger
+        self._broker: Broker = tcs._broker
+        self._logger: logging.Logger = tcs._logger
 
-        self._status: dict = {}
+        self._status: _EvoDictT = {}
 
     def __str__(self) -> str:
         return f"{self._id} ({self._type})"
 
-    async def _refresh_status(self) -> dict:
+    async def _refresh_status(self) -> _EvoDictT:
         """Update the dhw/zone with its latest status (also returns the status).
 
         It will be more efficient to call Location.refresh_status().
         """
 
-        status = await self._broker.get(
+        status: _EvoDictT = await self._broker.get(
             f"{self._type}/{self._id}/status", schema=self.STATUS_SCHEMA
-        )  # except exceptions.FaileRequest
+        )  # type: ignore[assignment]
 
         self._update_status(status)
         return status
 
-    def _update_status(self, status: dict) -> None:
+    def _update_status(self, status: _EvoDictT) -> None:
         self._status = status
 
     # status attrs...
     @property
-    def activeFaults(self) -> None | list:
+    def activeFaults(self) -> None | _EvoListT:
         return self._status.get(SZ_ACTIVE_FAULTS)
 
     @property
-    def temperatureStatus(self) -> None | dict:
+    def temperatureStatus(self) -> None | _EvoDictT:
         return self._status.get(SZ_TEMPERATURE_STATUS)
 
-    async def get_schedule(self) -> dict:
+    async def get_schedule(self) -> _EvoDictT:
         """Get the schedule for this dhw/zone object."""
 
         self._logger.debug(f"Getting schedule of {self._id} ({self._type})...")
 
-        content = await self._broker.get(
+        schedule = await self._broker.get(
             f"{self._type}/{self._id}/schedule", schema=SCH_SCHEDULE
-        )  # except exceptions.FailedRequest
+        )
 
-        response_text = json.dumps(content)  # FIXME
+        response_text = json.dumps(schedule)  # FIXME
         for key_name in CAPITALIZED_KEYS:  # an anachronism from evohome-client
             response_text = response_text.replace(key_name, key_name.capitalize())
 
-        result: dict = json.loads(response_text)
+        result: _EvoDictT = json.loads(response_text)
         # change the day name string to an ordinal (Monday = 0)
-        for day_of_week, schedule in enumerate(result[SZ_DAILY_SCHEDULES.capitalize()]):
-            schedule[SZ_DAY_OF_WEEK.capitalize()] = day_of_week
+        for day_of_week, setpoints in enumerate(result[SZ_DAILY_SCHEDULES.capitalize()]):
+            setpoints[SZ_DAY_OF_WEEK.capitalize()] = day_of_week
 
         return result
 
-    async def set_schedule(self, zone_schedule: dict | str) -> None:
+    async def set_schedule(self, schedule: _EvoDictT | str) -> None:
         """Set the schedule for this dhw/zone object."""
 
         self._logger.debug(f"Setting schedule of {self._id} ({self._type})...")
 
-        if isinstance(zone_schedule, dict):
-            json_schedule: str = json.dumps(zone_schedule)
-        else:
+        if isinstance(schedule, dict):
             try:
-                json.loads(zone_schedule)
-            except ValueError as exc:
-                raise InvalidSchedule(f"Invalid JSON: {zone_schedule}") from exc
+                json.dumps(schedule)
+            except (OverflowError, TypeError, ValueError) as exc:
+                raise InvalidSchedule(f"Invalid schedule: {exc}")
 
-            json_schedule = zone_schedule
+        elif isinstance(schedule, str):
+            try:
+                schedule = json.loads(schedule)
+            except json.JSONDecodeError as exc:
+                raise InvalidSchedule(f"Invalid schedule: {exc}")
 
-        _ = await self._broker.put(  # TODO
-            f"{self._type}/{self._id}/schedule", json=json_schedule  # schema=
+        else:
+            raise InvalidSchedule(f"Invalid schedule type: {type(schedule)}")
+
+        _ = await self._broker.put(
+            f"{self._type}/{self._id}/schedule", json=schedule, schema=SCH_SCHEDULE
         )  # except exceptions.InvalidSchedule, exceptions.FailedRequest
 
 
@@ -155,10 +162,10 @@ class Zone(_ZoneBase):
     STATUS_SCHEMA = SCH_ZONE_STATUS
     _type = SZ_TEMPERATURE_ZONE
 
-    def __init__(self, tcs: ControlSystem, config: dict) -> None:
+    def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(tcs)
 
-        self._config: Final[dict] = config
+        self._config: Final[_EvoDictT] = config
 
         assert self.zoneId, "Invalid config dict"
         self._id = self.zoneId

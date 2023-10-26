@@ -4,6 +4,7 @@
 """Provides handling of TCC gateways."""
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Final
 
 from .controlsystem import ControlSystem
@@ -18,8 +19,10 @@ from .schema.const import (
 from .schema.status import SCH_GATEWAY
 
 if TYPE_CHECKING:
-    from . import Location
-    from .typing import _GatewayIdT
+    import logging
+
+    from . import Broker, Location
+    from .typing import _EvoDictT, _GatewayIdT
 
 
 class Gateway:
@@ -28,20 +31,22 @@ class Gateway:
     STATUS_SCHEMA = SCH_GATEWAY
     _type = SZ_GATEWAY
 
-    def __init__(self, location: Location, config: dict) -> None:
+    def __init__(self, location: Location, config: _EvoDictT) -> None:
         self.location = location  # parent
 
-        self._broker = location._broker
-        self._logger = location._logger
+        self._broker: Broker = location._broker
+        self._logger: logging.Logger = location._logger
 
-        self._status: dict = {}
-        self._config: Final[dict] = config[SZ_GATEWAY_INFO]
+        self._status: _EvoDictT = {}
+        self._config: Final[_EvoDictT] = config[SZ_GATEWAY_INFO]
 
         assert self.gatewayId, "Invalid config dict"
         self._id = self.gatewayId
 
         self._control_systems: list[ControlSystem] = []
         self.control_systems: dict[str, ControlSystem] = {}  # tcs by id
+
+        tcs_config: _EvoDictT
 
         for tcs_config in config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             tcs = ControlSystem(self, tcs_config)
@@ -65,5 +70,5 @@ class Gateway:
     def isWiFi(self) -> bool:
         return self._config[SZ_IS_WI_FI]
 
-    def _update_status(self, gwy_status: dict) -> None:
-        self._status = gwy_status
+    def _update_status(self, status: _EvoDictT) -> None:
+        self._status = status

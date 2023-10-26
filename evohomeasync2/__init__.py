@@ -12,7 +12,7 @@ from __future__ import annotations
 from http import HTTPStatus
 import logging
 from datetime import datetime as dt
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, NoReturn
 
 import aiohttp
 
@@ -33,10 +33,9 @@ from .zone import Zone  # noqa: F401
 
 
 if TYPE_CHECKING:
-    from .typing import _FilePathT, _LocationIdT, _SystemIdT
-
-
-_LOGGER = logging.getLogger(__name__)
+    from .typing import (
+        _FilePathT, _LocationIdT, _SystemIdT, _EvoDictT, _EvoListT, _EvoSchemaT
+    )
 
 
 class EvohomeClientDeprecated:
@@ -105,8 +104,8 @@ class EvohomeClientDeprecated:
 class EvohomeClient(EvohomeClientDeprecated):
     """Provide access to the v2 Evohome API."""
 
-    _full_config: dict[str, Any] = None  # type: ignore[assignment]  # installation_info (all locations of user)
-    _user_account: dict[str, Any] = None  # type: ignore[assignment]  # account_info
+    _full_config: _EvoListT = None  # type: ignore[assignment]  # installation_info (all locations of user)
+    _user_account: _EvoDictT = None  # type: ignore[assignment]  # account_info
 
     def __init__(
         self,
@@ -122,9 +121,11 @@ class EvohomeClient(EvohomeClientDeprecated):
     ) -> None:
         """Construct the EvohomeClient object."""
 
+        self._logger = logging.getLogger(__name__)
+
         if debug:
-            _LOGGER.setLevel(logging.DEBUG)
-            _LOGGER.debug("Debug mode is explicitly enabled.")
+            self._logger.setLevel(logging.DEBUG)
+            self._logger.debug("Debug mode is explicitly enabled.")
 
         self._broker = Broker(
             username,
@@ -133,9 +134,8 @@ class EvohomeClient(EvohomeClientDeprecated):
             access_token=access_token,
             access_token_expires=access_token_expires,
             session=session,
-            logger=_LOGGER,
+            logger=self._logger,
         )
-        self._logger = _LOGGER
 
         self.locations: list[Location] = []
 
@@ -173,11 +173,11 @@ class EvohomeClient(EvohomeClientDeprecated):
         await self.installation()
 
     @property  # user_account
-    def account_info(self) -> dict:  # from the original evohomeclient namespace
+    def account_info(self) -> _EvoSchemaT:  # from original evohomeclient namespace
         """Return the information of the user account."""
         return self._user_account
 
-    async def user_account(self, force_update: bool = False) -> dict:
+    async def user_account(self, force_update: bool = False) -> _EvoDictT:
         """Return the user account information.
 
         If required/forced, retrieve that data from the vendor's API.
@@ -189,16 +189,16 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         self._user_account = await self._broker.get(
             "userAccount", schema=SCH_USER_ACCOUNT
-        )  # except exceptions.FailedRequest
+        )  # type: ignore[assignment]
 
         return self._user_account
 
     @property  # full_config (all locations of user)
-    def installation_info(self) -> dict:  # from the original evohomeclient namespace
+    def installation_info(self) -> _EvoListT:  # from original evohomeclient namespace
         """Return the installation info (config) of all the user's locations."""
         return self._full_config
 
-    async def installation(self, force_update: bool = False) -> dict:
+    async def installation(self, force_update: bool = False) -> _EvoListT:
         """Return the configuration of the user's locations their status.
 
         If required/forced, retrieve that data from the vendor's API.
@@ -212,7 +212,7 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         return await self._installation()  # aka self.installation_info
 
-    async def _installation(self, refresh_status: bool = True) -> dict:
+    async def _installation(self, refresh_status: bool = True) -> _EvoListT:
         """Return the configuration of the user's locations their status.
 
         The refresh_status flag is used for dev/test to disable retreiving the initial
@@ -227,13 +227,15 @@ class EvohomeClient(EvohomeClientDeprecated):
         url = f"location/installationInfo?userId={self.account_info['userId']}"
         url += "&includeTemperatureControlSystems=True"
 
-        self._full_config: list = await self._broker.get(
+        self._full_config = await self._broker.get(
             url, schema=SCH_FULL_CONFIG
-        )  # except exceptions.FailedRequest
+        )  # type: ignore[assignment]
 
         # populate each freshly instantiated location with its initial status
-        for loc_data in self._full_config:
-            loc = Location(self, loc_data)
+        loc_config: _EvoDictT
+
+        for loc_config in self._full_config:
+            loc = Location(self, loc_config)
             self.locations.append(loc)
             if refresh_status:
                 await loc.refresh_status()
@@ -296,7 +298,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         """Set the default TCS into heating off mode."""
         await self._get_single_heating_system().set_mode_heatingoff(until=until)
 
-    async def temperatures(self) -> list[dict]:
+    async def temperatures(self) -> _EvoListT:
         """Return the current temperatures and setpoints of the default TCS."""
         return await self._get_single_heating_system().temperatures()
 

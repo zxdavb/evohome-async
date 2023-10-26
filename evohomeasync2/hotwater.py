@@ -21,8 +21,8 @@ from .zone import _ZoneBase
 
 
 if TYPE_CHECKING:
-    from .controlsystem import ControlSystem
-    from .typing import _DhwIdT
+    from . import ControlSystem
+    from .typing import _DhwIdT, _EvoDictT
 
 
 class HotWaterDeprecated:
@@ -57,10 +57,10 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     STATUS_SCHEMA = SCH_DHW_STATUS
     _type = SZ_DOMESTIC_HOT_WATER
 
-    def __init__(self, tcs: ControlSystem, config: dict) -> None:
+    def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(tcs)
 
-        self._config: Final[dict] = config
+        self._config: Final[_EvoDictT] = config
 
         assert self.dhwId, "Invalid config dict"
         self._id = self.dhwId

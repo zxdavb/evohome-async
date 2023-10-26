@@ -10,9 +10,9 @@ Further information at: https://evohome-client.readthedocs.io
 from __future__ import annotations
 
 from http import HTTPMethod, HTTPStatus
-import logging
 from datetime import datetime as dt
 from datetime import timedelta as td
+from typing import TYPE_CHECKING
 
 import aiohttp
 
@@ -21,11 +21,17 @@ try:  # voluptuous is an optional module...
 
 except ModuleNotFoundError:  # No module named 'voluptuous'
 
-    class vol:  # voluptuous is an optional dependency
-        class Invalid(Exception):  # used as a proxy for vol.Invalid
+    class vol:  # type: ignore[no-redef]
+        class Invalid(Exception):
             pass
 
         Schema = dict | list
+
+
+if TYPE_CHECKING:
+    import logging
+
+    from .typing import _EvoDictT, _EvoSchemaT
 
 
 from . import exceptions
@@ -41,20 +47,20 @@ from .const import (
 from .schema.account import SCH_OAUTH_TOKEN
 
 
-_ERR_MSG_LOOKUP_BOTH = {  # common to both OAUTH_URL & URL_BASE
+_ERR_MSG_LOOKUP_BOTH: dict[int, str] = {  # common to both OAUTH_URL & URL_BASE
     HTTPStatus.INTERNAL_SERVER_ERROR: "Can't reach server (check vendor's status page)",
     HTTPStatus.METHOD_NOT_ALLOWED: "Method not allowed (dev/test?)",
     HTTPStatus.SERVICE_UNAVAILABLE: "Can't reach server (check vendor's status page)",
     HTTPStatus.TOO_MANY_REQUESTS: "Vendor's API rate limit exceeded (wait a while)",
 }
 
-_ERR_MSG_LOOKUP_AUTH = _ERR_MSG_LOOKUP_BOTH | {  # POST OAUTH_URL
+_ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # POST OAUTH_URL
     HTTPStatus.BAD_REQUEST: "Invalid user credentials (check the username/password)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid URL?)",
     HTTPStatus.UNAUTHORIZED: "Invalid access token (dev/test only)",
 }
 
-_ERR_MSG_LOOKUP_BASE = _ERR_MSG_LOOKUP_BOTH | {  # GET/PUT URL_BASE
+_ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # GET/PUT URL_BASE
     HTTPStatus.BAD_REQUEST: "Bad request (invalid data/json?)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
     HTTPStatus.UNAUTHORIZED: "Unauthorized (unknown entity id?)",
@@ -91,7 +97,7 @@ class Broker:
 
     async def _client(
         self, method, url, data=None, json=None, headers=None
-    ) -> tuple[aiohttp.ClientSession, None | dict | list | str]:
+    ) -> tuple[aiohttp.ClientResponse, None | dict | list | str]:
         """Wrapper for aiohttp.ClientSession()."""
 
         if headers is None:
@@ -108,7 +114,7 @@ class Broker:
         elif method == HTTPMethod.PUT:
             _session_method = self._session.put
             # headers["Content-Type"] = "application/json"
-            kwargs = {"data": data, "json": json, "headers": headers}
+            kwargs = {"json": json, "headers": headers}
 
         async with _session_method(url, **kwargs) as response:
 
@@ -120,13 +126,13 @@ class Broker:
                 content = await response.json()
                 self._logger.info(f"{method} {url} ({response.status}) = {content}")
 
-            else:
+            else:  # assume "text/plain" or "text/html"
                 content = await response.text()
                 self._logger.debug(f"{method} {url} ({response.status}) = {content}")
 
             return response, content  # FIXME: is messy to return response
 
-    async def _headers(self) -> dict:
+    async def _headers(self) -> dict[str, str]:
         """Ensure the Authorization Header has a valid Access Token."""
 
         if not self.access_token or not self.access_token_expires:
@@ -164,7 +170,7 @@ class Broker:
             credentials = {"refresh_token": self.refresh_token}
 
             try:
-                await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)
+                await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)  # type: ignore[arg-type]
 
             except exceptions.AuthenticationError as exc:
                 if exc.status != 400:  # Bad Request
@@ -177,13 +183,13 @@ class Broker:
 
         if not self.refresh_token:
             self._logger.debug("Authenticating with username/password...")
-            await self._obtain_access_token(CREDS_USER_PASSWORD | self._credentials)
+            await self._obtain_access_token(CREDS_USER_PASSWORD | self._credentials)  # type: ignore[arg-type]
 
         self._logger.debug(f"refresh_token = {self.refresh_token}")
         self._logger.debug(f"access_token = {self.access_token}")
         self._logger.debug(f"access_token_expires = {self.access_token_expires}")
 
-    async def _obtain_access_token(self, credentials: dict) -> None:
+    async def _obtain_access_token(self, credentials: dict[str, str]) -> None:
         """Obtain an access token using either the refresh token or user credentials."""
 
         response, content = await self._client(
@@ -198,10 +204,10 @@ class Broker:
         except aiohttp.ClientResponseError as exc:
             if hint := _ERR_MSG_LOOKUP_AUTH.get(exc.status):
                 raise exceptions.AuthenticationError(hint, status=exc.status)
-            raise exceptions.AuthenticationError(exc, status=exc.status)
+            raise exceptions.AuthenticationError(str(exc), status=exc.status)
 
         except aiohttp.ClientError as exc:  # ClientConnectionError/ClientResponseError
-            raise exceptions.AuthenticationError(exc)
+            raise exceptions.AuthenticationError(str(exc))
 
         try:  # the access token _should_ be valid...
             _ = SCH_OAUTH_TOKEN(content)  # can't use result, due to obsfucated values
@@ -210,15 +216,19 @@ class Broker:
                 f"Response may be invalid (bad schema): POST {AUTH_URL}: {exc}"
             )
 
+        assert isinstance(content, dict)  # mypy
+
         try:  # the access token _should_ be valid...
-            self.access_token = content["access_token"]  # type: ignore[index]
-            self.access_token_expires = dt.now() + td(seconds=content["expires_in"])  # type: ignore[index, arg-type]
-            self.refresh_token = content["refresh_token"]  # type: ignore[index]
+            self.access_token = content["access_token"]
+            self.access_token_expires = dt.now() + td(seconds=content["expires_in"])
+            self.refresh_token = content["refresh_token"]
 
         except (KeyError, TypeError) as exc:
             raise exceptions.AuthenticationError(f"Invalid response from server: {exc}")
 
-    async def get(self, url: str, schema: vol.Schema | None = None) -> dict | list:
+    async def get(
+        self, url: str, schema: vol.Schema | None = None
+    ) -> _EvoSchemaT:
         """"""
 
         response, content = await self._client(HTTPMethod.GET, f"{URL_BASE}/{url}")
@@ -228,10 +238,10 @@ class Broker:
         except aiohttp.ClientResponseError as exc:
             if hint := _ERR_MSG_LOOKUP_BASE.get(exc.status):
                 raise exceptions.FailedRequest(hint, status=exc.status)
-            raise exceptions.FailedRequest(exc, status=exc.status)
+            raise exceptions.FailedRequest(str(exc), status=exc.status)
 
         except aiohttp.ClientError as exc:  # incl. ClientConnectionError
-            raise exceptions.FailedRequest(exc)
+            raise exceptions.FailedRequest(str(exc))
 
         if schema:
             try:
@@ -241,18 +251,21 @@ class Broker:
                     f"Response may be invalid (bad schema): GET {url}: {exc}"
                 )
 
+        assert isinstance(content, (dict, list))  # mypy
         return content
 
-    async def put(self, url: str, json: dict, schema: vol.Schema | None = None) -> dict:
+    async def put(
+        self, url: str, json: _EvoDictT | str, schema: vol.Schema | None = None
+    ) -> _EvoSchemaT:
         """"""
 
-        # if schema:
-        #     try:
-        #         _ = schema(json)
-        #     except vol.Invalid as exc:
-        #         self._logger.warning(
-        #             f"Data may be invalid (bad schema): PUT {url}: {exc}"
-        #         )
+        if schema:
+            try:
+                _ = schema(json)
+            except vol.Invalid as exc:
+                self._logger.warning(
+                    f"JSON may be invalid (bad schema): PUT {url}: {exc}"
+                )
 
         response, content = await self._client(
             HTTPMethod.PUT, f"{URL_BASE}/{url}", json=json
@@ -264,9 +277,10 @@ class Broker:
         except aiohttp.ClientResponseError as exc:
             if hint := _ERR_MSG_LOOKUP_BASE.get(exc.status):
                 raise exceptions.FailedRequest(hint, status=exc.status)
-            raise exceptions.FailedRequest(exc, status=exc.status)
+            raise exceptions.FailedRequest(str(exc), status=exc.status)
 
         except aiohttp.ClientError as exc:  # incl. ClientConnectionError
-            raise exceptions.FailedRequest(exc)
+            raise exceptions.FailedRequest(str(exc))
 
+        assert isinstance(content, (dict, list))  # mypy
         return content

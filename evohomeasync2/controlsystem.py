@@ -27,8 +27,12 @@ from .zone import Zone
 
 
 if TYPE_CHECKING:
-    from . import Gateway
-    from .typing import _DhwIdT, _FilePathT, _SystemIdT, _ZoneIdT
+    import logging
+
+    from . import Broker, Gateway, Location
+    from .typing import (
+        _DhwIdT, _EvoDictT, _EvoListT, _FilePathT, _SystemIdT, _ZoneIdT
+    )
 
 
 class _ControlSystemDeprecated:
@@ -91,15 +95,15 @@ class ControlSystem(_ControlSystemDeprecated):
     STATUS_SCHEMA = SCH_TCS_STATUS
     _type = SZ_TEMPERATURE_CONTROL_SYSTEM
 
-    def __init__(self, gateway: Gateway, config: dict) -> None:
+    def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
         self.gateway = gateway
-        self.location = gateway.location
+        self.location: Location = gateway.location
 
-        self._broker = gateway._broker
-        self._logger = gateway._logger
+        self._broker: Broker = gateway._broker
+        self._logger: logging.Logger = gateway._logger
 
-        self._status: dict = {}
-        self._config: Final[dict] = {
+        self._status: _EvoDictT = {}
+        self._config: Final[_EvoDictT] = {
             k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
         }
 
@@ -111,14 +115,17 @@ class ControlSystem(_ControlSystemDeprecated):
         self.zones_by_id: dict[str, Zone] = {}
         self.hotwater: None | HotWater = None
 
-        for zone_config in config[SZ_ZONES]:
-            zone = Zone(self, zone_config)
+        dhw_config: _EvoDictT
+        zon_config: _EvoDictT
+
+        for zon_config in config[SZ_ZONES]:
+            zone = Zone(self, zon_config)
 
             self._zones.append(zone)
             self.zones[zone.name] = zone
             self.zones_by_id[zone.zoneId] = zone
 
-        if dhw_config := config.get(SZ_DHW):
+        if dhw_config := config.get(SZ_DHW):  # type: ignore[assignment]
             self.hotwater = HotWater(self, dhw_config)
 
     def __str__(self) -> str:
@@ -137,16 +144,16 @@ class ControlSystem(_ControlSystemDeprecated):
     def systemId(self) -> _SystemIdT:
         return self._config[SZ_SYSTEM_ID]
 
-    def _update_status(self, tcs_status: dict) -> None:
+    def _update_status(self, tcs_status: _EvoDictT) -> None:
         self._status = tcs_status
 
     # status attrs...
     @property
-    def activeFaults(self) -> None | list:
+    def activeFaults(self) -> None | _EvoListT:
         return self._status.get(SZ_ACTIVE_FAULTS)
 
     @property
-    def systemModeStatus(self) -> None | dict:
+    def systemModeStatus(self) -> None | _EvoDictT:
         return self._status.get(SZ_SYSTEM_MODE_STATUS)
 
     async def _set_mode(self, system_mode: dict) -> None:
@@ -156,6 +163,8 @@ class ControlSystem(_ControlSystemDeprecated):
 
     async def set_mode(self, mode: SystemMode, /, *, until: None | dt = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
+
+        request: _EvoDictT
 
         if mode not in SYSTEM_MODES:
             raise ValueError(f"Invalid mode: {mode}")
@@ -199,7 +208,7 @@ class ControlSystem(_ControlSystemDeprecated):
         """Set the system into heating off mode."""
         await self.set_status(SystemMode.HEATING_OFF, until=until)
 
-    async def temperatures(self) -> list[dict]:
+    async def temperatures(self) -> _EvoListT:
         """A convienience function to return the latest temperatures and setpoints."""
 
         await self.location.refresh_status()

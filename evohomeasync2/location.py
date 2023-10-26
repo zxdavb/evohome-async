@@ -4,6 +4,7 @@
 """Provides handling of TCC locations."""
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .gateway import Gateway
@@ -23,8 +24,10 @@ from .schema.const import (
 
 
 if TYPE_CHECKING:
-    from . import EvohomeClient, ControlSystem
-    from .typing import _LocationIdT
+    import logging
+
+    from . import Broker, ControlSystem, EvohomeClient
+    from .typing import _EvoDictT, _LocationIdT
 
 
 class _LocationDeprecated:
@@ -42,13 +45,13 @@ class Location(_LocationDeprecated):
     STATUS_SCHEMA = SCH_LOCN_STATUS
     _type = SZ_LOCATION
 
-    def __init__(self, client: EvohomeClient, config: dict) -> None:
+    def __init__(self, client: EvohomeClient, config: _EvoDictT) -> None:
         self.client = client
 
-        self._broker = client._broker
-        self._logger = client._logger
+        self._broker: Broker = client._broker
+        self._logger: logging.Logger = client._logger
 
-        self._config: Final[dict] = config[SZ_LOCATION_INFO]
+        self._config: Final[_EvoDictT] = config[SZ_LOCATION_INFO]
 
         assert self.locationId, "Invalid config dict"
         self._id = self.locationId
@@ -71,7 +74,7 @@ class Location(_LocationDeprecated):
         return self._config[SZ_COUNTRY]
 
     @property
-    def locationOwner(self) -> dict:
+    def locationOwner(self) -> _EvoDictT:
         return self._config[SZ_LOCATION_OWNER]
 
     @property
@@ -87,27 +90,30 @@ class Location(_LocationDeprecated):
         return self._config[SZ_NAME]
 
     @property
-    def timeZone(self) -> dict:
+    def timeZone(self) -> _EvoDictT:
         return self._config[SZ_TIME_ZONE]
 
     @property
     def useDaylightSaveSwitching(self) -> bool:
         return self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
 
-    async def refresh_status(self) -> dict:
+    async def refresh_status(self) -> _EvoDictT:
         """Update the Location with its latest status (also returns the status)."""
 
-        status = await self._broker.get(
+        status: _EvoDictT = await self._broker.get(
             f"{self._type}/{self._id}/status?includeTemperatureControlSystems=True",
             schema=self.STATUS_SCHEMA,
-        )  # except exceptions.FailedRequest
+        )  # type: ignore[assignment]
 
         self._update_status(status)
         return status
 
-    def _update_status(self, loc_status: dict) -> None:
-        tcs: ControlSystem  # mypy
-        tcs_status: dict  # mypy
+    def _update_status(self, loc_status: _EvoDictT) -> None:
+        tcs: ControlSystem
+        gwy_status: _EvoDictT
+        dhw_status: _EvoDictT
+        tcs_status: _EvoDictT
+        zon_status: _EvoDictT
 
         for gwy_status in loc_status["gateways"]:
             gwy = self.gateways[gwy_status["gatewayId"]]
@@ -117,8 +123,8 @@ class Location(_LocationDeprecated):
                 tcs = gwy.control_systems[tcs_status["systemId"]]
                 tcs._update_status(tcs_status)
 
-                if dhw_status := tcs_status.get("dhw"):
+                if dhw_status := tcs_status.get("dhw"):  # type: ignore[assignment]
                     tcs.hotwater._update_status(dhw_status)  # type: ignore[union-attr]
 
-                for zone_status in tcs_status["zones"]:
-                    tcs.zones_by_id[zone_status["zoneId"]]._update_status(zone_status)
+                for zon_status in tcs_status["zones"]:
+                    tcs.zones_by_id[zon_status["zoneId"]]._update_status(zon_status)
