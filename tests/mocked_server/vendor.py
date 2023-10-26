@@ -4,7 +4,7 @@
 """Mocked vendor server for provision via a hacked aiohttp."""
 from __future__ import annotations
 
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 import re
 from typing import TYPE_CHECKING
 
@@ -29,7 +29,7 @@ from .const import (
     MOCK_SCHEDULE_DHW,
     MOCK_SCHEDULE_ZONE,
 )
-from .const import hdrs, user_config_from_full_config as _user_config_from_full_config
+from .const import user_config_from_full_config as _user_config_from_full_config
 
 
 if TYPE_CHECKING:
@@ -85,13 +85,13 @@ class MockedServer:
         return self.body
 
     def oauth_token(self) -> None | _bodyT:
-        if self._method != hdrs.METH_POST:
+        if self._method != HTTPMethod.POST:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
         elif self._url == AUTH_URL:
             return MOCK_AUTH_RESPONSE
 
     def usr_account(self) -> None | _bodyT:
-        if self._method != hdrs.METH_GET:
+        if self._method != HTTPMethod.GET:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
         elif self._url == f"{URL_BASE}/userAccount":
             return self._user_config
@@ -102,7 +102,7 @@ class MockedServer:
         def user_id(url) -> str:
             return url.split("?userId=")[1].split("&")[0]
 
-        if self._method != hdrs.METH_GET:
+        if self._method != HTTPMethod.GET:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
         elif "?userId=" not in self._url:
             self.status = HTTPStatus.NOT_FOUND
@@ -117,7 +117,7 @@ class MockedServer:
         raise NotImplementedError
 
     def loc_status(self) -> None | _bodyT:
-        if self._method != hdrs.METH_GET:
+        if self._method != HTTPMethod.GET:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
         elif not self._loc_id(self._url).isdigit():
             self.status = HTTPStatus.BAD_REQUEST
@@ -130,7 +130,12 @@ class MockedServer:
         raise NotImplementedError
 
     def zon_schedule(self) -> None | _bodyT:
-        return self._zone_schedule
+        zon_id = self._zon_id(self._url)
+
+        if self._method == HTTPMethod.GET:
+            return self._zone_schedule
+        if self._method == HTTPMethod.GET:
+            self._dhw_schedule = self._data
 
     def zon_mode(self) -> None | _bodyT:
         raise NotImplementedError
@@ -147,7 +152,12 @@ class MockedServer:
         self.status = 404
 
     def dhw_schedule(self) -> None | _bodyT:
-        return self._dhw_schedule
+        dhw_id = self._dhw_id(self._url)
+
+        if self._method == HTTPMethod.GET:
+            return self._dhw_schedule
+        if self._method == HTTPMethod.GET:
+            self._dhw_schedule = self._data
 
     def dhw_status(self) -> None | _bodyT:
         raise NotImplementedError
@@ -160,19 +170,19 @@ class MockedServer:
     def _response_for_request(self) -> None | _bodyT:
         """Set the response body (and status) according to the request."""
 
-        if "/Auth" in self._url and self._method == hdrs.METH_POST:
+        if "/Auth" in self._url and self._method == HTTPMethod.POST:
             # POST /Auth/OAuth/Token
             return self.auth_response()
 
-        if "/userAccount" in self._url and self._method == hdrs.METH_GET:
+        if "/userAccount" in self._url and self._method == HTTPMethod.GET:
             # GET /userAccount
             return self.user_config()
 
-        if "/location" in self._url and self._method == hdrs.METH_GET:
+        if "/location" in self._url and self._method == HTTPMethod.GET:
             return self._response_for_location_request()
 
-        if "/temperatureControlSystem" in self._url and self._method == hdrs.METH_PUT:
-            if self._method != hdrs.METH_PUT:
+        if "/temperatureControlSystem" in self._url and self._method == HTTPMethod.PUT:
+            if self._method != HTTPMethod.PUT:
                 pass
 
             elif re.search(r"temperatureControlSystem/.*/mode", self._url):
@@ -180,25 +190,25 @@ class MockedServer:
                 return self.full_config()
 
         if "/temperatureZone" in self._url and self._method in (
-            hdrs.METH_GET,
-            hdrs.METH_PUT,
+            HTTPMethod.GET,
+            HTTPMethod.PUT,
         ):
             return self._response_for_zone_request()
 
         if "/domesticHotWater" in self._url and self._method in (
-            hdrs.METH_GET,
-            hdrs.METH_PUT,
+            HTTPMethod.GET,
+            HTTPMethod.PUT,
         ):
             return self._response_for_dhw_request()
 
     def _handle_user_account_request(self) -> None | _bodyT:
-        if self._method == hdrs.METH_POST:
+        if self._method == HTTPMethod.POST:
             return self.auth_response()
 
     def _response_for_location_request(self) -> None | _bodyT:
         """"""
 
-        if self._method != hdrs.METH_GET:
+        if self._method != HTTPMethod.GET:
             pass
 
         elif re.search(r"location/installationInfo", self._url):
@@ -219,7 +229,7 @@ class MockedServer:
         def zone_id() -> _ZoneIdT:
             return self._url.split("temperatureZone/")[1].split("/")[0]
 
-        if self._method == hdrs.METH_GET:
+        if self._method == HTTPMethod.GET:
             if re.search(r"temperatureZone/.*/schedule", self._url):
                 # GET /temperatureZone/{zoneId}/schedule  # /{zone_type}/{zoneId}/schedule
                 return self.zone_schedule(zone_id=zone_id())
@@ -228,7 +238,7 @@ class MockedServer:
                 # GET /temperatureZone/{zoneId}/status  # /{zone_type}/{zoneId}/schedule
                 return self.zone_status(zone_id=zone_id())
 
-        elif self._method == hdrs.METH_PUT:
+        elif self._method == HTTPMethod.PUT:
             if re.search(r"temperatureZone/.*/schedule", self._url):
                 # PUT /temperatureZone/{zoneId}/schedule
                 return {"id": "123456789"}
@@ -243,7 +253,7 @@ class MockedServer:
         def dhw_id() -> _DhwIdT:
             return self._url.split("domesticHotWater/")[1].split("/")[0]
 
-        if self._method == hdrs.METH_GET:
+        if self._method == HTTPMethod.GET:
             if re.search(r"domesticHotWater/.*/schedule", self._url):
                 # GET /domesticHotWater/{dhwId}/schedule  # /{zone_type}/{zoneId}/schedule
                 return self.dhw_schedule(dhw_id=dhw_id())
@@ -252,7 +262,7 @@ class MockedServer:
                 # GET /domesticHotWater/{dhwId}/status
                 return self.dhw_status(dhw_id=dhw_id())
 
-        elif self._method == hdrs.METH_PUT:
+        elif self._method == HTTPMethod.PUT:
             if re.search(r"domesticHotWater/.*/schedule", self._url):
                 # PUT /domesticHotWater/{dhwId}/schedule
                 return {"id": "123456789"}
