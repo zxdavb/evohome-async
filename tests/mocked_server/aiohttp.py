@@ -153,18 +153,24 @@ class ClientResponse:
     @property
     def content_type(self) -> None | str:
         """Return the Content-Type header of the response."""
+
         # if isinstance(self._body, bytes):
         #     return "application/octet-stream"
         if isinstance(self._body, (dict, list)):
             return "application/json"
-        if isinstance(self._body, str):
-            return "text/plain"
+        if not isinstance(self._body, str):
+            raise NotImplementedError
+        if self._body.strip().startswith("<html>"):
+            return "text/html"
+        return "text/plain"
 
     async def text(self, /, **kwargs) -> str:  # assumes is JSON or plaintext
         """Return the response body as text."""
-        if self.content_type == "text/plain":
+        if self.content_type == "application/json":
+            return json.dumps(self._body)
+        if self.content_type in ("text/html", "text/plain"):
             return self._body
-        return json.dumps(self._body)
+        raise NotImplementedError
 
     async def json(self, /, **kwargs) -> dict | list:  # assumes is JSON or plaintext
         """Return the response body as json (a dict)."""

@@ -80,6 +80,12 @@ class MockedServer:
                 break
         else:
             self.status = HTTPStatus.NOT_FOUND
+            return """
+                <html>
+                    <head><title>Error</title></head>
+                    <body><h1>Not Found</h1></body>
+                </html>
+            """
 
         if not self.status:
             self.status = HTTPStatus.OK if self.body else HTTPStatus.NOT_FOUND
@@ -94,10 +100,14 @@ class MockedServer:
     def usr_account(self) -> None | _bodyT:
         if self._method != HTTPMethod.GET:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
+            return {"message": "Method not allowed"}
+
         elif self._url == f"{URL_BASE}/userAccount":
             return self._user_config
+
         else:
             self.status = HTTPStatus.NOT_FOUND
+            return {"message": "Not found"}
 
     def all_config(self) -> None | _bodyT:  # full_locn
         def user_id(url) -> str:
@@ -105,12 +115,20 @@ class MockedServer:
 
         if self._method != HTTPMethod.GET:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
+            return {"message": "Method not allowed"}
+
         elif "?userId=" not in self._url:
             self.status = HTTPStatus.NOT_FOUND
+            return {"message": "Not Found"}
+
         elif not user_id(self._url).isdigit():
             self.status = HTTPStatus.BAD_REQUEST
+            return {"message": "Bad request"}
+
         elif user_id(self._url) != self._user_config["userId"]:
             self.status = HTTPStatus.UNAUTHORIZED
+            return {"message": "Unauthorized"}
+
         else:
             return self._full_config
 
@@ -120,10 +138,16 @@ class MockedServer:
     def loc_status(self) -> None | _bodyT:
         if self._method != HTTPMethod.GET:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
+            return {"message": "Method not allowed"}
+
         elif not self._loc_id(self._url).isdigit():
             self.status = HTTPStatus.BAD_REQUEST
+            return {"message": "Bad request"}
+
         elif self._loc_id(self._url) != self._locn_status[SZ_LOCATION_ID]:
             self.status = HTTPStatus.UNAUTHORIZED
+            return {"message": "Unauthorized"}
+
         else:
             return self._locn_status
 
@@ -138,7 +162,7 @@ class MockedServer:
 
         elif self._method != HTTPMethod.PUT:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
-            return {"message": "Method not allowes"}
+            return {"message": "Method not allowed"}
 
         elif not isinstance(self._data, dict):  # TODO: use a vol.Schema
             self.status = HTTPStatus.BAD_REQUEST
@@ -160,7 +184,8 @@ class MockedServer:
                     if zone[SZ_ZONE_ID] == zone_id:
                         return zone
 
-        self.status = 404
+        self.status = HTTPStatus.NOT_FOUND
+        return {"message": "Not found"}
 
     def dhw_schedule(self) -> None | _bodyT:
         dhw_id = self._dhw_id(self._url)
