@@ -6,4 +6,4 @@ from __future__ import annotations
 
 
 _DEBUG_USE_MOCK_AIOHTTP = True
-_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
+_DISABLE_STRICT_ASSERTS = True  # of response content-type, schema

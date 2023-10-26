@@ -51,9 +51,10 @@ class MockedServer:
     ) -> None:
         self._full_config = full_config or MOCK_FULL_CONFIG
         self._locn_status = locn_status or MOCK_LOCN_STATUS
-        self._zone_schedule = zone_schedule or MOCK_SCHEDULE_ZONE
+        self._zon_schedule = zone_schedule or MOCK_SCHEDULE_ZONE
         self._dhw_schedule = dhw_schedule or MOCK_SCHEDULE_DHW
 
+        self._schedules = {}
         self._user_config = self._user_config_from_full_config(self._full_config)
 
         self.body: None | _bodyT = None
@@ -133,9 +134,19 @@ class MockedServer:
         zon_id = self._zon_id(self._url)
 
         if self._method == HTTPMethod.GET:
-            return self._zone_schedule
-        if self._method == HTTPMethod.GET:
-            self._dhw_schedule = self._data
+            return self._schedules.get(zon_id, self._zon_schedule)
+
+        elif self._method != HTTPMethod.PUT:
+            self.status = HTTPStatus.METHOD_NOT_ALLOWED
+            return {"message": "Method not allowes"}
+
+        elif not isinstance(self._data, dict):  # TODO: use a vol.Schema
+            self.status = HTTPStatus.BAD_REQUEST
+            return {"message": "Bad Request (invalid schedule)"}
+
+        else:
+            self._schedules[zon_id] = self._data
+            return {"id": "1234567890"}
 
     def zon_mode(self) -> None | _bodyT:
         raise NotImplementedError
@@ -155,9 +166,19 @@ class MockedServer:
         dhw_id = self._dhw_id(self._url)
 
         if self._method == HTTPMethod.GET:
-            return self._dhw_schedule
-        if self._method == HTTPMethod.GET:
-            self._dhw_schedule = self._data
+            return self._schedules.get(dhw_id, self._dhw_schedule)
+
+        elif self._method != HTTPMethod.PUT:
+            self.status = HTTPStatus.METHOD_NOT_ALLOWED
+            return {"message": "Method not allowes"}
+
+        elif not isinstance(self._data, dict):  # TODO: use a vol.Schema
+            self.status = HTTPStatus.BAD_REQUEST
+            return {"message": "Bad Request (invalid schedule)"}
+
+        else:
+            self._schedules[dhw_id] = self._data
+            return {"id": "1234567890"}
 
     def dhw_status(self) -> None | _bodyT:
         raise NotImplementedError
@@ -304,7 +325,7 @@ class MockedServer:
         self.status = 404
 
     def zone_schedule(self, zone_id: _ZoneIdT) -> dict:
-        return self._zone_schedule
+        return self._zon_schedule
 
     @staticmethod
     def _user_config_from_full_config(full_config: dict) -> dict:
