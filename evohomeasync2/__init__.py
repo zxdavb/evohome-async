@@ -140,15 +140,15 @@ class EvohomeClient(EvohomeClientDeprecated):
         self.locations: list[Location] = []
 
     @property
-    def refresh_token(self) -> str:
+    def refresh_token(self) -> None | str:
         return self._broker.refresh_token
 
     @property
-    def access_token(self) -> str:
+    def access_token(self) -> None | str:
         return self._broker.access_token
 
     @property
-    def access_token_expires(self) -> dt:
+    def access_token_expires(self) -> None | dt:
         return self._broker.access_token_expires
 
     async def login(self) -> None:
@@ -167,7 +167,7 @@ class EvohomeClient(EvohomeClientDeprecated):
             self._logger.warning(
                 "Unauthorized access_token (will try re-authenticating)."
             )
-            self.access_token = None
+            self._broker.access_token = None  # FIXME: this is a hack
             await self.user_account(force_update=True)
 
         await self.installation()
