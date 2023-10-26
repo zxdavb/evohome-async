@@ -5,12 +5,12 @@
 from __future__ import annotations
 
 import asyncio
+from enum import EnumCheck, StrEnum, verify
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Self, Type
+from typing import TYPE_CHECKING, Any, Final, Self, Type
 
 import json
 
-from .const import hdrs
 from .vendor import MockedServer
 
 
@@ -19,6 +19,13 @@ if TYPE_CHECKING:
 
 
 _DEFAULT_LIMIT = 2**16  # 64 KiB
+
+
+@verify(EnumCheck.UNIQUE)
+class hdrs(StrEnum):  # from aiohttp
+    METH_GET: Final[str] = "GET"
+    METH_POST: Final[str] = "POST"
+    METH_PUT: Final[str] = "PUT"
 
 
 class StreamReader(asyncio.StreamReader):
