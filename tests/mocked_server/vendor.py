@@ -69,10 +69,6 @@ class MockedServer:
         self._url = url
         self._data = data
 
-        # 400: Bad Request  - assume invalid data / JSON
-        # 401: Unauthorized - assume no access (to UserId, LocationId, ZoneId, etc.)
-        # 404: Not Found    - assume bad url
-
         self.body, self.status = None, None
         for pattern, method in REQUEST_MAP.items():
             if re.search(pattern, url):

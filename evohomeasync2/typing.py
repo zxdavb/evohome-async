@@ -20,7 +20,7 @@ _ModeT = str
 # _EvoListT = list[_EvoDictT]
 # _EvoSchemaT = _EvoDictT | _EvoListT
 
-_EvoLeafT = Any
+_EvoLeafT = bool | float | int | str | list[str]  # Any
 _EvoDictT = dict[str, Any]
-_EvoListT = list[Any]
+_EvoListT = list[_EvoDictT]
 _EvoSchemaT = _EvoDictT | _EvoListT
