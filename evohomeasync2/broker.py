@@ -12,7 +12,7 @@ from __future__ import annotations
 from http import HTTPMethod, HTTPStatus
 from datetime import datetime as dt
 from datetime import timedelta as td
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
@@ -31,7 +31,7 @@ except ModuleNotFoundError:  # No module named 'voluptuous'
 if TYPE_CHECKING:
     import logging
 
-    from .typing import _EvoDictT, _EvoSchemaT
+    from .typing import _EvoDictT, _EvoListT, _EvoSchemaT
 
 
 from . import exceptions
@@ -97,7 +97,7 @@ class Broker:
 
     async def _client(
         self, method, url, data=None, json=None, headers=None
-    ) -> tuple[aiohttp.ClientResponse, None | dict | list | str]:
+    ) -> tuple[aiohttp.ClientResponse, None | str | _EvoDictT | _EvoListT]:
         """Wrapper for aiohttp.ClientSession()."""
 
         if headers is None:
@@ -189,10 +189,13 @@ class Broker:
         self._logger.debug(f"access_token = {self.access_token}")
         self._logger.debug(f"access_token_expires = {self.access_token_expires}")
 
-    async def _obtain_access_token(self, credentials: dict[str, str]) -> None:
+    async def _obtain_access_token(self, credentials: dict[str, int | str]) -> None:
         """Obtain an access token using either the refresh token or user credentials."""
 
-        response, content = await self._client(
+        response: aiohttp.ClientResponse
+        content: dict[str, int | str]
+
+        response, content = await self._client(  # type: ignore[assignment]
             HTTPMethod.POST,
             AUTH_URL,
             data=AUTH_PAYLOAD | credentials,
@@ -216,12 +219,10 @@ class Broker:
                 f"Response may be invalid (bad schema): POST {AUTH_URL}: {exc}"
             )
 
-        assert isinstance(content, dict)  # mypy
-
-        try:  # the access token _should_ be valid...
-            self.access_token = content["access_token"]
-            self.access_token_expires = dt.now() + td(seconds=content["expires_in"])
-            self.refresh_token = content["refresh_token"]
+        try:
+            self.access_token = content["access_token"]  # type: ignore[assignment]
+            self.access_token_expires = dt.now() + td(seconds=content["expires_in"])  # type: ignore[arg-type]
+            self.refresh_token = content["refresh_token"]  # type: ignore[assignment]
 
         except (KeyError, TypeError) as exc:
             raise exceptions.AuthenticationError(f"Invalid response from server: {exc}")
@@ -231,7 +232,12 @@ class Broker:
     ) -> _EvoSchemaT:
         """"""
 
-        response, content = await self._client(HTTPMethod.GET, f"{URL_BASE}/{url}")
+        response: aiohttp.ClientResponse
+        content: _EvoSchemaT
+
+        response, content = await self._client(  # type: ignore[assignment]
+            HTTPMethod.GET, f"{URL_BASE}/{url}"
+        )
         try:
             response.raise_for_status()
 
@@ -251,13 +257,15 @@ class Broker:
                     f"Response may be invalid (bad schema): GET {url}: {exc}"
                 )
 
-        assert isinstance(content, (dict, list))  # mypy
         return content
 
-    async def put(
+    async def put(  # Test sending bad schedule
         self, url: str, json: _EvoDictT | str, schema: vol.Schema | None = None
-    ) -> _EvoSchemaT:
+    ) -> dict | list[dict]:  # NOTE: not _EvoSchemaT
         """"""
+
+        response: aiohttp.ClientResponse
+        content: dict[str, Any] | list[dict[str, Any]]
 
         if schema:
             try:
@@ -267,7 +275,7 @@ class Broker:
                     f"JSON may be invalid (bad schema): PUT {url}: {exc}"
                 )
 
-        response, content = await self._client(
+        response, content = await self._client(  # type: ignore[assignment]
             HTTPMethod.PUT, f"{URL_BASE}/{url}", json=json
         )
 
@@ -282,5 +290,4 @@ class Broker:
         except aiohttp.ClientError as exc:  # incl. ClientConnectionError
             raise exceptions.FailedRequest(str(exc))
 
-        assert isinstance(content, (dict, list))  # mypy
         return content
