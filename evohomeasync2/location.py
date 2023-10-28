@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     import logging
 
     from . import Broker, ControlSystem, EvohomeClient
-    from .typing import _EvoDictT, _LocationIdT
+    from .schema import _EvoDictT, _LocationIdT
 
 
 class _LocationDeprecated:

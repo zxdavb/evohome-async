@@ -17,7 +17,7 @@ from evohomeasync2.schema import (
     SCH_FULL_CONFIG,
     SCH_LOCN_STATUS,
     SCH_USER_ACCOUNT,
-    SCH_SCHEDULE,
+    SCH_GET_SCHEDULE,
     SCH_ZONE_STATUS,
 )
 from evohomeasync2.schema.const import (
@@ -318,20 +318,20 @@ async def _test_schedule(
     #
 
     url = f"{zone._type}/{zone._id}/schedule"
-    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
+    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
 
     temp = schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]
 
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp + 1
     await should_work(client, HTTPMethod.PUT, url, json=schedule)
 
-    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
+    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp + 1
 
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp
     await should_work(client, HTTPMethod.PUT, url, json=schedule)
 
-    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
+    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp
 
     await should_fail(

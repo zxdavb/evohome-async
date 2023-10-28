@@ -17,12 +17,13 @@ from .schema.const import (
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_STATE_STATUS,
 )
+from .schema.schedule import SCH_GET_SCHEDULE_DHW, SCH_PUT_SCHEDULE_DHW
 from .zone import _ZoneBase
 
 
 if TYPE_CHECKING:
     from . import ControlSystem
-    from .typing import _DhwIdT, _EvoDictT
+    from .schema import _DhwIdT, _EvoDictT
 
 
 class HotWaterDeprecated:
@@ -56,6 +57,9 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
 
     STATUS_SCHEMA = SCH_DHW_STATUS
     _type = SZ_DOMESTIC_HOT_WATER
+
+    SCH_SCHEDULE_GET = SCH_GET_SCHEDULE_DHW
+    SCH_SCHEDULE_PUT = SCH_PUT_SCHEDULE_DHW
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(tcs)

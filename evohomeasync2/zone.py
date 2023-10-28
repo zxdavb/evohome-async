@@ -11,7 +11,10 @@ from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME
 from .exceptions import InvalidSchedule
-from .schema import SCH_ZONE_STATUS, SCH_SCHEDULE
+from .schema import SCH_ZONE_STATUS
+from .schema.schedule import (
+    SCH_GET_SCHEDULE, SCH_GET_SCHEDULE_ZONE, SCH_PUT_SCHEDULE, SCH_PUT_SCHEDULE_ZONE
+)
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
     SZ_DAILY_SCHEDULES,
@@ -41,7 +44,7 @@ if TYPE_CHECKING:
     import logging
 
     from . import Broker, ControlSystem
-    from .typing import _EvoDictT, _EvoListT, _ZoneIdT
+    from .schema import _EvoDictT, _EvoListT, _ZoneIdT
 
 
 CAPITALIZED_KEYS = (
@@ -71,6 +74,9 @@ class _ZoneBase(_ZoneBaseDeprecated):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     STATUS_SCHEMA = dict
+
+    SCH_SCHEDULE_GET = SCH_GET_SCHEDULE
+    SCH_SCHEDULE_PUT = SCH_PUT_SCHEDULE
 
     _id: str  # .zoneId or .dhwId
     _type: str  # Literal["temperatureZone", "domesticHotWater"]
@@ -117,7 +123,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
         self._logger.debug(f"Getting schedule of {self._id} ({self._type})...")
 
         schedule = await self._broker.get(
-            f"{self._type}/{self._id}/schedule", schema=SCH_SCHEDULE
+            f"{self._type}/{self._id}/schedule", schema=self.SCH_SCHEDULE_GET
         )
 
         response_text = json.dumps(schedule)  # FIXME
@@ -152,7 +158,9 @@ class _ZoneBase(_ZoneBaseDeprecated):
             raise InvalidSchedule(f"Invalid schedule type: {type(schedule)}")
 
         _ = await self._broker.put(
-            f"{self._type}/{self._id}/schedule", json=schedule, schema=SCH_SCHEDULE
+            f"{self._type}/{self._id}/schedule",
+            json=schedule,
+            schema=self.SCH_SCHEDULE_PUT
         )  # except exceptions.InvalidSchedule, exceptions.FailedRequest
 
 
@@ -161,6 +169,9 @@ class Zone(_ZoneBase):
 
     STATUS_SCHEMA = SCH_ZONE_STATUS
     _type = SZ_TEMPERATURE_ZONE
+
+    SCH_SCHEDULE_GET = SCH_GET_SCHEDULE_ZONE
+    SCH_SCHEDULE_PUT = SCH_PUT_SCHEDULE_ZONE
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(tcs)

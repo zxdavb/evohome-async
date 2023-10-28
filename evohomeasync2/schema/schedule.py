@@ -84,6 +84,7 @@ SCH_GET_SCHEDULE_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
+# This is as returned from vendor's API (GET)
 SCH_GET_SCHEDULE = vol.Schema(  # PUT /{self._type}/{self._id}/schedule
     vol.Any(SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE),
     extra=vol.PREVENT_EXTRA,
@@ -91,7 +92,7 @@ SCH_GET_SCHEDULE = vol.Schema(  # PUT /{self._type}/{self._id}/schedule
 
 
 #
-# This is after modified by evohome-client (PUT), and evohome-client anachronism?
+# This is after modified by evohome-client (PUT), an evohome-client anachronism?
 SCH_PUT_SWITCHPOINT_DHW = vol.Schema(  # TODO: checkme
     {
         vol.Required(SZ_DHW_STATE.capitalize()): vol.Any(SZ_ON, SZ_OFF),
@@ -142,6 +143,7 @@ SCH_PUT_SCHEDULE_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
+# This is as provided to the vendor's API (PUT)
 SCH_PUT_SCHEDULE = vol.Schema(  # PUT /{self._type}/{self._id}/schedule
     vol.Any(SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE),
     extra=vol.PREVENT_EXTRA,

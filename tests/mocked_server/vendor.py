@@ -33,7 +33,7 @@ from .const import user_config_from_full_config as _user_config_from_full_config
 
 
 if TYPE_CHECKING:
-    from evohomeasync2.typing import _DhwIdT, _LocationIdT, _SystemIdT, _ZoneIdT
+    from evohomeasync2.schema import _DhwIdT, _LocationIdT, _SystemIdT, _ZoneIdT
     from .const import _bodyT, _methodT, _statusT, _urlT
 
 

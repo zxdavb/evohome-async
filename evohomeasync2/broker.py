@@ -31,7 +31,7 @@ except ModuleNotFoundError:  # No module named 'voluptuous'
 if TYPE_CHECKING:
     import logging
 
-    from .typing import _EvoDictT, _EvoListT, _EvoSchemaT
+    from .schema import _EvoDictT, _EvoListT, _EvoSchemaT
 
 
 from . import exceptions

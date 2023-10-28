@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import logging
 
     from . import Broker, Location
-    from .typing import _EvoDictT, _GatewayIdT
+    from .schema import _EvoDictT, _GatewayIdT
 
 
 class Gateway:
