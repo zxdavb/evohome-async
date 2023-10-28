@@ -1,0 +1,26 @@
+{
+  "DailySchedules": [
+    {
+      "DayOfWeek": 0,
+      "Switchpoints": [{"heatSetpoint": 18.1, "TimeOfDay": "07:00:00"}, {"heatSetpoint": 16.0, "TimeOfDay": "08:00:00"}, {"heatSetpoint": 18.6, "TimeOfDay": "22:10:00"}, {"heatSetpoint": 15.9, "TimeOfDay": "23:00:00"}]
+    }, {
+      "DayOfWeek": 1,
+      "Switchpoints": [{"heatSetpoint": 18.1, "TimeOfDay": "07:00:00"}, {"heatSetpoint": 16.0, "TimeOfDay": "08:00:00"}, {"heatSetpoint": 18.6, "TimeOfDay": "22:10:00"}, {"heatSetpoint": 15.9, "TimeOfDay": "23:00:00"}]
+    }, {
+      "DayOfWeek": 2,
+      "Switchpoints": [{"heatSetpoint": 18.1, "TimeOfDay": "07:00:00"}, {"heatSetpoint": 16.0, "TimeOfDay": "08:00:00"}, {"heatSetpoint": 18.6, "TimeOfDay": "22:10:00"}, {"heatSetpoint": 15.9, "TimeOfDay": "23:00:00"}]
+    }, {
+      "DayOfWeek": 3,
+      "Switchpoints": [{"heatSetpoint": 18.1, "TimeOfDay": "07:00:00"}, {"heatSetpoint": 16.0, "TimeOfDay": "08:00:00"}, {"heatSetpoint": 18.6, "TimeOfDay": "22:10:00"}, {"heatSetpoint": 15.9, "TimeOfDay": "23:00:00"}]
+    }, {
+      "DayOfWeek": 4,
+      "Switchpoints": [{"heatSetpoint": 18.1, "TimeOfDay": "07:00:00"}, {"heatSetpoint": 16.0, "TimeOfDay": "08:00:00"}, {"heatSetpoint": 18.6, "TimeOfDay": "22:10:00"}, {"heatSetpoint": 15.9, "TimeOfDay": "23:00:00"}]
+    }, {
+      "DayOfWeek": 5,
+      "Switchpoints": [{"heatSetpoint": 18.5, "TimeOfDay": "07:00:00"}, {"heatSetpoint": 16.0, "TimeOfDay": "08:30:00"}, {"heatSetpoint": 18.6, "TimeOfDay": "22:10:00"}, {"heatSetpoint": 15.9, "TimeOfDay": "23:00:00"}]
+    }, {
+      "DayOfWeek": 6,
+      "Switchpoints": [{"heatSetpoint": 18.5, "TimeOfDay": "07:00:00"}, {"heatSetpoint": 16.0, "TimeOfDay": "08:30:00"}, {"heatSetpoint": 18.6, "TimeOfDay": "22:10:00"}, {"heatSetpoint": 15.9, "TimeOfDay": "23:00:00"}]
+    }
+  ]
+}

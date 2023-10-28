@@ -1,0 +1,26 @@
+{
+  "DailySchedules": [
+    {
+      "DayOfWeek": 0,
+      "Switchpoints": [{"DhwState": "On", "TimeOfDay": "06:30:00"}, {"DhwState": "Off", "TimeOfDay": "08:30:00"}, {"DhwState": "On", "TimeOfDay": "16:30:00"}, {"DhwState": "Off", "TimeOfDay": "22:30:00"}]
+    }, {
+      "DayOfWeek": 1,
+      "Switchpoints": [{"DhwState": "On", "TimeOfDay": "06:30:00"}, {"DhwState": "Off", "TimeOfDay": "08:30:00"}, {"DhwState": "On", "TimeOfDay": "16:30:00"}, {"DhwState": "Off", "TimeOfDay": "22:30:00"}]
+    }, {
+      "DayOfWeek": 2,
+      "Switchpoints": [{"DhwState": "On", "TimeOfDay": "06:30:00"}, {"DhwState": "Off", "TimeOfDay": "08:30:00"}, {"DhwState": "On", "TimeOfDay": "16:30:00"}, {"DhwState": "Off", "TimeOfDay": "22:30:00"}]
+    }, {
+      "DayOfWeek": 3,
+      "Switchpoints": [{"DhwState": "On", "TimeOfDay": "06:30:00"}, {"DhwState": "Off", "TimeOfDay": "08:30:00"}, {"DhwState": "On", "TimeOfDay": "16:30:00"}, {"DhwState": "Off", "TimeOfDay": "22:30:00"}]
+    }, {
+      "DayOfWeek": 4,
+      "Switchpoints": [{"DhwState": "On", "TimeOfDay": "06:30:00"}, {"DhwState": "Off", "TimeOfDay": "08:30:00"}, {"DhwState": "On", "TimeOfDay": "16:30:00"}, {"DhwState": "Off", "TimeOfDay": "22:30:00"}]
+    }, {
+      "DayOfWeek": 5,
+      "Switchpoints": [{"DhwState": "On", "TimeOfDay": "06:30:00"}, {"DhwState": "Off", "TimeOfDay": "09:30:00"}, {"DhwState": "On", "TimeOfDay": "16:30:00"}, {"DhwState": "Off", "TimeOfDay": "23:00:00"}]
+    }, {
+      "DayOfWeek": 6,
+      "Switchpoints": [{"DhwState": "On", "TimeOfDay": "06:30:00"}, {"DhwState": "Off", "TimeOfDay": "09:30:00"}, {"DhwState": "On", "TimeOfDay": "16:30:00"}, {"DhwState": "Off", "TimeOfDay": "23:00:00"}]
+    }
+  ]
+}

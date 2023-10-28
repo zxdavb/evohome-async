@@ -12,6 +12,8 @@ from evohomeasync2.schema.schedule import (
     SCH_GET_SCHEDULE_ZONE,
     SCH_PUT_SCHEDULE_DHW,
     SCH_PUT_SCHEDULE_ZONE,
+    convert_to_put_schedule,
+    convert_to_get_schedule,
 )
 
 
@@ -30,18 +32,18 @@ def _test_schedule_schema(file_name: str, schema) -> dict:
 
 def _test_schema_schedule_dhw() -> None:
     get_sched = _test_schedule_schema("schedule_dhw_get.json", SCH_GET_SCHEDULE_DHW)
-    # put_sched = _test_schedule_schema("schedule_dhw_put.json", SCH_PUT_SCHEDULE_DHW)
+    put_sched = _test_schedule_schema("schedule_dhw_put.json", SCH_PUT_SCHEDULE_DHW)
 
-    # assert get_sched == convert_schedule_from_put(put_sched)
-    # assert put_sched == convert_schedule_from_get(get_sched)
+    assert put_sched == convert_to_put_schedule(get_sched)
+    assert get_sched == convert_to_get_schedule(put_sched)
 
 
 def _test_schema_schedule_zone() -> None:
     get_sched = _test_schedule_schema("schedule_zone_get.json", SCH_GET_SCHEDULE_ZONE)
-    # put_sched = _test_schedule_schema("schedule_zone_put.json", SCH_PUT_SCHEDULE_ZONE)
+    put_sched = _test_schedule_schema("schedule_zone_put.json", SCH_PUT_SCHEDULE_ZONE)
 
-    # assert get_sched == convert_schedule_from_put(put_sched)
-    # assert put_sched == convert_schedule_from_get(get_sched)
+    assert put_sched == convert_to_put_schedule(get_sched)
+    assert get_sched == convert_to_get_schedule(put_sched)
 
 
 def test_schema_schedule_dhw() -> None:

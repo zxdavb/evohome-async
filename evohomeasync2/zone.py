@@ -13,13 +13,14 @@ from .const import API_STRFTIME
 from .exceptions import InvalidSchedule
 from .schema import SCH_ZONE_STATUS
 from .schema.schedule import (
-    SCH_GET_SCHEDULE, SCH_GET_SCHEDULE_ZONE, SCH_PUT_SCHEDULE, SCH_PUT_SCHEDULE_ZONE
+    SCH_GET_SCHEDULE,
+    SCH_GET_SCHEDULE_ZONE,
+    SCH_PUT_SCHEDULE,
+    SCH_PUT_SCHEDULE_ZONE,
+    convert_to_put_schedule,
 )
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
-    SZ_DAILY_SCHEDULES,
-    SZ_DAY_OF_WEEK,
-    SZ_DHW_STATE,
     SZ_FOLLOW_SCHEDULE,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_MODEL_TYPE,
@@ -29,12 +30,9 @@ from .schema.const import (
     SZ_SETPOINT_CAPABILITIES,
     SZ_SETPOINT_MODE,
     SZ_SETPOINT_STATUS,
-    SZ_SWITCHPOINTS,
-    SZ_TEMPERATURE,
     SZ_TEMPERATURE_STATUS,
     SZ_TEMPERATURE_ZONE,
     SZ_TEMPORARY_OVERRIDE,
-    SZ_TIME_OF_DAY,
     SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
@@ -45,16 +43,6 @@ if TYPE_CHECKING:
 
     from . import Broker, ControlSystem
     from .schema import _EvoDictT, _EvoListT, _ZoneIdT
-
-
-CAPITALIZED_KEYS = (
-    SZ_DAILY_SCHEDULES,  #
-    SZ_DAY_OF_WEEK,  #
-    SZ_DHW_STATE,
-    SZ_SWITCHPOINTS,  #
-    SZ_TEMPERATURE,  # should be SZ_HEAT_SETPOINT?
-    SZ_TIME_OF_DAY,  #
-)
 
 
 class _ZoneBaseDeprecated:
@@ -126,16 +114,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
             f"{self._type}/{self._id}/schedule", schema=self.SCH_SCHEDULE_GET
         )
 
-        response_text = json.dumps(schedule)  # FIXME
-        for key_name in CAPITALIZED_KEYS:  # an anachronism from evohome-client
-            response_text = response_text.replace(key_name, key_name.capitalize())
-
-        result: _EvoDictT = json.loads(response_text)
-        # change the day name string to an ordinal (Monday = 0)
-        for day_of_week, setpoints in enumerate(result[SZ_DAILY_SCHEDULES.capitalize()]):
-            setpoints[SZ_DAY_OF_WEEK.capitalize()] = day_of_week
-
-        return result
+        return convert_to_put_schedule(schedule)
 
     async def set_schedule(self, schedule: _EvoDictT | str) -> None:
         """Set the schedule for this dhw/zone object."""
@@ -160,7 +139,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
         _ = await self._broker.put(
             f"{self._type}/{self._id}/schedule",
             json=schedule,
-            schema=self.SCH_SCHEDULE_PUT
+            schema=self.SCH_SCHEDULE_PUT,
         )  # except exceptions.InvalidSchedule, exceptions.FailedRequest
 
 
