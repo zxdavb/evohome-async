@@ -154,19 +154,15 @@ SCH_SETPOINT_CAPABILITIES = vol.Schema(
         vol.Required(SZ_CAN_CONTROL_HEAT): bool,
         vol.Required(SZ_MAX_HEAT_SETPOINT): float,  # 35.0
         vol.Required(SZ_MIN_HEAT_SETPOINT): float,  # 5.0
-
         vol.Required(SZ_CAN_CONTROL_COOL): bool,
         vol.Optional(SZ_MAX_COOL_SETPOINT): float,  #
         vol.Optional(SZ_MIN_COOL_SETPOINT): float,  #
-
         vol.Required(SZ_ALLOWED_SETPOINT_MODES): list(ZONE_MODES),
-
         vol.Required(SZ_VALUE_RESOLUTION): float,  # 0.5
         vol.Required(SZ_MAX_DURATION): str,  # "1.00:00:00"
         vol.Required(SZ_TIMING_RESOLUTION): vol.Datetime(
             format="00:%M:00"
         ),  # "00:10:00"
-
         # vol.Optional(SZ_VACATION_HOLD_CAPABILITIES): dict,  # TODO: non-evohome
         # vol.Optional(SZ_ALLOWED_FAN_MODES): dict,  # TODO: non-evohome
     },

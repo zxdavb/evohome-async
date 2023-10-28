@@ -110,9 +110,9 @@ class _ZoneBase(_ZoneBaseDeprecated):
 
         self._logger.debug(f"Getting schedule of {self._id} ({self._type})...")
 
-        schedule = await self._broker.get(
+        schedule: _EvoDictT = await self._broker.get(
             f"{self._type}/{self._id}/schedule", schema=self.SCH_SCHEDULE_GET
-        )
+        )  # type: ignore[assignment]
 
         return convert_to_put_schedule(schedule)
 

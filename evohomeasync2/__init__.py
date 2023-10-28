@@ -34,7 +34,12 @@ from .zone import Zone  # noqa: F401
 
 if TYPE_CHECKING:
     from .schema import (
-        _FilePathT, _LocationIdT, _SystemIdT, _EvoDictT, _EvoListT, _EvoSchemaT
+        _FilePathT,
+        _LocationIdT,
+        _SystemIdT,
+        _EvoDictT,
+        _EvoListT,
+        _EvoSchemaT,
     )
 
 

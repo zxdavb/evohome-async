@@ -28,7 +28,7 @@ from evohomeasync2.schema import (  # noqa: F401
     ZONE_MODES,
 )
 from evohomeasync2.schema.const import SZ_MODE
-from evohomeasync2.schema.schedule import SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE
+from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 
 from . import _DEBUG_USE_MOCK_AIOHTTP
 from .helpers import credentials as _credentials
@@ -167,12 +167,12 @@ async def _test_sched__apis(
     # STEP 2: GET & PUT /{_type}/{_id}/schedule
     if dhw := client._get_single_heating_system().hotwater:
         schedule = await dhw.get_schedule()
-        assert SCH_GET_SCHEDULE_DHW(schedule)
+        assert SCH_PUT_SCHEDULE_DHW(schedule)
         await dhw.set_schedule(schedule)
 
     if zone := client._get_single_heating_system()._zones[0]:
         schedule = await zone.get_schedule()
-        assert SCH_GET_SCHEDULE_ZONE(schedule)
+        assert SCH_PUT_SCHEDULE_ZONE(schedule)
         await zone.set_schedule(schedule)
 
     pass

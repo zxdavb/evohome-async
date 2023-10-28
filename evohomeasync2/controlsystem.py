@@ -30,9 +30,7 @@ if TYPE_CHECKING:
     import logging
 
     from . import Broker, Gateway, Location
-    from .schema import (
-        _DhwIdT, _EvoDictT, _EvoListT, _FilePathT, _SystemIdT, _ZoneIdT
-    )
+    from .schema import _DhwIdT, _EvoDictT, _EvoListT, _FilePathT, _SystemIdT, _ZoneIdT
 
 
 class _ControlSystemDeprecated:

@@ -117,7 +117,6 @@ class Broker:
             kwargs = {"json": json, "headers": headers}
 
         async with _session_method(url, **kwargs) as response:
-
             if not response.content_length:
                 content = None
                 self._logger.info(f"{method} {url} ({response.status}) = {content}")
@@ -227,9 +226,7 @@ class Broker:
         except (KeyError, TypeError) as exc:
             raise exceptions.AuthenticationError(f"Invalid response from server: {exc}")
 
-    async def get(
-        self, url: str, schema: vol.Schema | None = None
-    ) -> _EvoSchemaT:
+    async def get(self, url: str, schema: vol.Schema | None = None) -> _EvoSchemaT:
         """"""
 
         response: aiohttp.ClientResponse

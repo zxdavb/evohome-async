@@ -18,7 +18,7 @@ from .const import (
     SZ_TIME_OF_DAY,
 )
 from .const import DAYS_OF_WEEK
-from .typing import _EvoDictT
+from .typing import _EvoDictT, _EvoListT
 
 
 #
@@ -175,12 +175,12 @@ def convert_to_put_schedule(get_schedule: _EvoDictT) -> _EvoDictT:
     The 'raw' schedule format is the one returned by the vendor's RESTful API (GET).
     """
 
-    put_schedule: dict[str, list] = {}
+    put_schedule: dict[str, _EvoListT] = {}
     put_schedule[pascal_case(SZ_DAILY_SCHEDULES)] = []
 
     for day_of_week, get_schedule in enumerate(get_schedule[SZ_DAILY_SCHEDULES]):
-        put_day_schedule = {pascal_case(SZ_DAY_OF_WEEK): day_of_week}
-        put_switchpoints = []
+        put_day_schedule: _EvoDictT = {pascal_case(SZ_DAY_OF_WEEK): day_of_week}
+        put_switchpoints: _EvoListT = []
 
         for get_sp in get_schedule[SZ_SWITCHPOINTS]:
             if SZ_HEAT_SETPOINT in get_sp:
@@ -201,13 +201,13 @@ def convert_to_put_schedule(get_schedule: _EvoDictT) -> _EvoDictT:
 def convert_to_get_schedule(put_schedule: _EvoDictT) -> _EvoDictT:
     """Convert a schedule from the format used by our get/set_schedule() methods."""
 
-    get_schedule: dict[str, list] = {}
+    get_schedule: dict[str, _EvoListT] = {}
     get_schedule[SZ_DAILY_SCHEDULES] = []
 
     for put_day_schedule in put_schedule[pascal_case(SZ_DAILY_SCHEDULES)]:
         day_of_week = put_day_schedule[pascal_case(SZ_DAY_OF_WEEK)]
-        get_day_schedule = {SZ_DAY_OF_WEEK: DAYS_OF_WEEK[day_of_week]}
-        get_switchpoints = []
+        get_day_schedule: _EvoDictT = {SZ_DAY_OF_WEEK: DAYS_OF_WEEK[day_of_week]}
+        get_switchpoints: _EvoListT = []
 
         for put_sp in put_day_schedule[pascal_case(SZ_SWITCHPOINTS)]:
             if SZ_HEAT_SETPOINT in put_sp:
