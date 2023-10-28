@@ -393,6 +393,10 @@ async def test_zone_mode(
         if _DEBUG_USE_MOCK_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
+    except NotImplementedError:  # TODO: implement
+        if not _DEBUG_USE_MOCK_AIOHTTP:
+            raise
+        pytest.skip("Mocked server API not implemented")
 
 
 @pytest.mark.asyncio

@@ -22,7 +22,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc):
     folders = [
         p for p in Path(WORK_DIR).glob("*") if p.is_dir() and not p.name.startswith("_")
     ]
-    metafunc.parametrize("folder", folders, ids=id_fnc)
+    metafunc.parametrize("folder", sorted(folders), ids=id_fnc)
 
 
 def _test_schema(folder: Path, schema: str, file_name: str):

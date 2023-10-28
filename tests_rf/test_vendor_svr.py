@@ -30,6 +30,7 @@ from evohomeasync2.schema import (  # noqa: F401
 from evohomeasync2.schema.const import SZ_MODE
 from evohomeasync2.schema.schedule import SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE
 
+from . import _DEBUG_USE_MOCK_AIOHTTP
 from .helpers import credentials as _credentials
 from .helpers import session as _session
 from .helpers import extract_oauth_tokens
@@ -295,4 +296,9 @@ async def test_system(
 ):
     username, password = credentials
 
-    await _test_system_apis(username, password, session=session)
+    try:  # TODO: implement
+        await _test_system_apis(username, password, session=session)
+    except NotImplementedError:  # TODO: implement
+        if not _DEBUG_USE_MOCK_AIOHTTP:
+            raise
+        pytest.skip("Mocked server API not implemented")
