@@ -16,28 +16,10 @@ from .const import (
     SZ_SWITCHPOINTS,
     SZ_TIME_OF_DAY,
 )
-from .const import (
-    SZ_MONDAY,
-    SZ_TUESDAY,
-    SZ_WEDNESDAY,
-    SZ_THURSDAY,
-    SZ_FRIDAY,
-    SZ_SATURDAY,
-    SZ_SUNDAY,
-)
+from .const import DAYS_OF_WEEK
 
 #
-# This is as returned from vendor's API (GET)
-DAYS_OF_WEEK = (
-    SZ_MONDAY,
-    SZ_TUESDAY,
-    SZ_WEDNESDAY,
-    SZ_THURSDAY,
-    SZ_FRIDAY,
-    SZ_SATURDAY,
-    SZ_SUNDAY,
-)
-
+# These are returned from vendor's API (GET)...
 SCH_GET_SWITCHPOINT_DHW = vol.Schema(  # TODO: checkme
     {
         vol.Required(SZ_DHW_STATE): vol.Any(SZ_ON, SZ_OFF),
@@ -56,7 +38,7 @@ SCH_GET_SWITCHPOINT_ZONE = vol.Schema(
 
 SCH_GET_DAY_OF_WEEK_DHW = vol.Schema(
     {
-        vol.Required(SZ_DAY_OF_WEEK): vol.Any(list(DAYS_OF_WEEK)),
+        vol.Required(SZ_DAY_OF_WEEK): vol.Any(*DAYS_OF_WEEK),
         vol.Required(SZ_SWITCHPOINTS): [SCH_GET_SWITCHPOINT_DHW],
     },
     extra=vol.PREVENT_EXTRA,
@@ -64,7 +46,7 @@ SCH_GET_DAY_OF_WEEK_DHW = vol.Schema(
 
 SCH_GET_DAY_OF_WEEK_ZONE = vol.Schema(
     {
-        vol.Required(SZ_DAY_OF_WEEK): vol.Any(list(DAYS_OF_WEEK)),
+        vol.Required(SZ_DAY_OF_WEEK): vol.Any(*DAYS_OF_WEEK),
         vol.Required(SZ_SWITCHPOINTS): [SCH_GET_SWITCHPOINT_ZONE],
     },
     extra=vol.PREVENT_EXTRA,
@@ -84,7 +66,6 @@ SCH_GET_SCHEDULE_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-# This is as returned from vendor's API (GET)
 SCH_GET_SCHEDULE = vol.Schema(  # PUT /{self._type}/{self._id}/schedule
     vol.Any(SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE),
     extra=vol.PREVENT_EXTRA,
@@ -92,6 +73,7 @@ SCH_GET_SCHEDULE = vol.Schema(  # PUT /{self._type}/{self._id}/schedule
 
 
 #
+# These are as to be provided to the vendor's API (PUT)...
 # This is after modified by evohome-client (PUT), an evohome-client anachronism?
 SCH_PUT_SWITCHPOINT_DHW = vol.Schema(  # TODO: checkme
     {
@@ -143,7 +125,6 @@ SCH_PUT_SCHEDULE_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-# This is as provided to the vendor's API (PUT)
 SCH_PUT_SCHEDULE = vol.Schema(  # PUT /{self._type}/{self._id}/schedule
     vol.Any(SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE),
     extra=vol.PREVENT_EXTRA,

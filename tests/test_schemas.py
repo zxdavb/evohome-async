@@ -36,8 +36,10 @@ def _test_schema(folder: Path, schema: str, file_name: str):
 
 
 def test_schemas_config(folder: Path):
+    """Test the config schema for a location."""
     _test_schema(folder, SCH_LOCN_CONFIG, "locn_config.json")
 
 
 def test_schemas_status(folder: Path):
+    """Test the status schema for a location."""
     _test_schema(folder, SCH_LOCN_STATUS, "locn_status.json")

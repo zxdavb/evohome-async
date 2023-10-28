@@ -154,6 +154,16 @@ SZ_FRIDAY = "Friday"
 SZ_SATURDAY = "Saturday"
 SZ_SUNDAY = "Sunday"
 
+DAYS_OF_WEEK = (
+    SZ_MONDAY,
+    SZ_TUESDAY,
+    SZ_WEDNESDAY,
+    SZ_THURSDAY,
+    SZ_FRIDAY,
+    SZ_SATURDAY,
+    SZ_SUNDAY,
+)
+
 
 @verify(EnumCheck.UNIQUE)
 class DhwState(StrEnum):
