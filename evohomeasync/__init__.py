@@ -19,6 +19,13 @@ from typing import TYPE_CHECKING, Any, NoReturn
 
 import aiohttp
 
+from .exceptions import (
+    AuthenticationFailed,
+    InvalidSchema,
+    RateLimitExceeded,
+    RequestFailed,
+)
+
 
 if TYPE_CHECKING:
     from .schema import (
@@ -153,6 +160,8 @@ class EvohomeClient(EvohomeClientDeprecated):
         data: str | None = None,
         retry: bool = True,
     ) -> aiohttp.ClientResponse:
+        """Perform an HTTP request, with optional retry (usu. for authentication)."""
+
         if method == HTTPMethod.GET:
             func = self._session.get
         elif method == HTTPMethod.PUT:
@@ -163,36 +172,42 @@ class EvohomeClient(EvohomeClientDeprecated):
         async with func(url, data=data, headers=self.headers) as response:
             response_text = await response.text()
 
-            # catch 401/unauthorized since we may retry
+            # if 401/unauthorized, attempt to refresh sessionId if it has expired
             if response.status == HTTPStatus.UNAUTHORIZED and retry is True:
-                # Attempt to refresh sessionId if it has expired
-                if "code" in response_text:  # don't use response.json() here!
+                if "code" in response_text:  # don't use .json() yet: may be plain text
                     response_json = await response.json()
+
                     if response_json[0]["code"] == "Unauthorized":
                         _LOGGER.debug("Session expired, re-authenticating...")
 
-                        # Get a fresh sessionId
+                        # Get a fresh (= None) sessionId (self.user_data)
                         self.user_data = None
                         await self._populate_user_info()
-                        assert isinstance(self.user_data, dict)  # mypy
 
-                        # Set headers with new sessionId
-                        session_id = self.user_data["sessionId"]
+                        # Set headers with the new sessionId
+                        session_id = self.user_data["sessionId"]  # type: ignore[index]
                         self.headers["sessionId"] = session_id
                         _LOGGER.debug(f"sessionId = {session_id}")
 
                         response = await self._do_request(
                             method, url, data=data, retry=False
-                        )
+                        )  # NOTE: this is a recursive call
 
-            # display error message if the vendor provided one
+            # if not 200/OK, display (useful?) error message if the vendor provided one
             if response.status != HTTPStatus.OK:
-                if "code" in response_text:  # don't use response.json()!
-                    _LOGGER.error(
+                if "code" in response_text:  # don't use .json(): may be plain text
+                    _LOGGER.warning(
                         f"HTTP Status = {response.status}, Response = {response_text}",
                     )
 
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except aiohttp.ClientResponseError as exc:
+                if method == HTTPMethod.POST:
+                    raise AuthenticationFailed(str(exc))
+                if response.status != HTTPStatus.TOO_MANY_REQUESTS:
+                    raise RateLimitExceeded(str(exc))
+                raise RequestFailed(str(exc))
 
         return response
 
@@ -201,10 +216,9 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         if self.full_data is None or force_refresh:
             await self._populate_user_info()
-            assert isinstance(self.user_data, dict)  # mypy
 
             user_id = self.user_data["userInfo"]["userID"]  # type: ignore[index]
-            session_id = self.user_data["sessionId"]
+            session_id = self.user_data["sessionId"]  # type: ignore[index]
 
             url = self.hostname + f"/WebAPI/api/locations?userId={user_id}&allData=True"
             self.headers["sessionId"] = session_id
@@ -224,6 +238,8 @@ class EvohomeClient(EvohomeClientDeprecated):
                 self.named_devices[device["name"]] = device
 
     async def _populate_user_info(self) -> dict[str, Any]:
+        """"""
+
         if self.user_data is None:
             url = self.hostname + "/WebAPI/api/Session"
             self.postdata = {
@@ -236,9 +252,9 @@ class EvohomeClient(EvohomeClientDeprecated):
             response = await self._do_request(
                 HTTPMethod.POST, url, data=json.dumps(self.postdata), retry=False
             )
-
             self.user_data = await response.json()
 
+        assert isinstance(self.user_data, dict)  # mypy
         return self.user_data
 
     async def temperatures(self, force_refresh: bool = False) -> _EvoListT:
@@ -401,7 +417,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         dhw_id = self._get_dhw_zone()
 
         if dhw_id is None:
-            raise Exception("No DHW zone reported from API")
+            raise InvalidSchema("No DHW zone reported from API")
         url = (
             self.hostname + f"/WebAPI/api/devices/{dhw_id}/thermostat/changeableValues"
         )
