@@ -57,6 +57,8 @@ async def _test_basics_apis(
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
 ):
+    """Test authentication, `user_account()` and `installation()`."""
+
     global _global_oauth_tokens
 
     refresh_token, access_token, access_token_expires = _global_oauth_tokens
@@ -143,6 +145,8 @@ async def _test_sched__apis(
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
 ):
+    """Test `get_schedule()` and `get_schedule()`."""
+
     global _global_oauth_tokens
 
     refresh_token, access_token, access_token_expires = _global_oauth_tokens
@@ -183,6 +187,8 @@ async def _test_status_apis(
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
 ):
+    """Test `_refresh_status()` for DHW/zone."""
+
     global _global_oauth_tokens
 
     refresh_token, access_token, access_token_expires = _global_oauth_tokens
@@ -221,6 +227,7 @@ async def _test_system_apis(
     password: str,
     session: None | aiohttp.ClientSession | mock.ClientSession = None,
 ):
+    """Test `set_mode()` for TCS."""
     global _global_oauth_tokens
 
     refresh_token, access_token, access_token_expires = _global_oauth_tokens
@@ -264,6 +271,7 @@ async def test_basics(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
+
     username, password = credentials
 
     await _test_basics_apis(username, password, session=session)
@@ -274,6 +282,7 @@ async def test_sched_(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
+
     username, password = credentials
 
     await _test_sched__apis(username, password, session=session)
@@ -284,6 +293,7 @@ async def test_status(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
+
     username, password = credentials
 
     await _test_status_apis(username, password, session=session)
@@ -294,6 +304,7 @@ async def test_system(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
+
     username, password = credentials
 
     try:  # TODO: implement
