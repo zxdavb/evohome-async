@@ -175,7 +175,7 @@ async def _test_all_config(
     password: str,
     session: None | aiohttp.ClientSession = None,
 ) -> None:
-    """Test location/installationInfo?userId={userId}"""
+    """Test /location/installationInfo?userId={userId}"""
 
     client = await instantiate_client(username, password, session=session)
     _ = await client.user_account()
@@ -206,7 +206,7 @@ async def _test_loc_status(
     password: str,
     session: None | aiohttp.ClientSession = None,
 ) -> None:
-    """Test location/{locationId}/status"""
+    """Test /location/{locationId}/status"""
 
     client = await instantiate_client(username, password, session=session)
     _ = await client.user_account()
@@ -252,7 +252,7 @@ async def _test_zone_mode(
     password: str,
     session: None | aiohttp.ClientSession = None,
 ) -> None:
-    """Test location/{locationId}/status"""
+    """Test /location/{locationId}/status"""
 
     client = await instantiate_client(username, password, session=session)
     _ = await client.user_account()
@@ -314,7 +314,7 @@ async def _test_schedule(
     password: str,
     session: None | aiohttp.ClientSession = None,
 ) -> None:
-    """Test location/{locationId}/status"""
+    """Test /{_type}/{_id}/schedule (of a zone)"""
 
     client = await instantiate_client(username, password, session=session)
     _ = await client.user_account()
@@ -381,7 +381,7 @@ async def test_all_config(
 async def test_loc_status(
     credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
-    """Test location/{locationId}/status"""
+    """Test /location/{locationId}/status"""
 
     try:
         await _test_loc_status(*credentials, session=session)
@@ -395,7 +395,7 @@ async def test_loc_status(
 async def test_zone_mode(
     credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
-    """Test location/{locationId}/status"""
+    """Test /location/{locationId}/status"""
 
     try:
         await _test_zone_mode(*credentials, session=session)
@@ -413,7 +413,7 @@ async def test_zone_mode(
 async def test_schedule(
     credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
-    """Test location/{locationId}/status"""
+    """Test /{_type}/{_id}/schedule"""
 
     try:
         await _test_schedule(*credentials, session=session)
