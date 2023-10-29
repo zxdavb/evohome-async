@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""evohome-async - validate the config, status & schedule schemas."""
+"""evohome-async - validate the evohome-async APIs (methods)."""
 from __future__ import annotations
 
 import aiohttp

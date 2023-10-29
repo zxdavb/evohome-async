@@ -11,6 +11,8 @@ from .gateway import Gateway
 from .schema import SCH_LOCN_STATUS
 from .schema.const import (
     SZ_COUNTRY,
+    SZ_DHW,
+    SZ_GATEWAY_ID,
     SZ_GATEWAYS,
     SZ_LOCATION,
     SZ_LOCATION_ID,
@@ -18,8 +20,12 @@ from .schema.const import (
     SZ_LOCATION_OWNER,
     SZ_LOCATION_TYPE,
     SZ_NAME,
+    SZ_SYSTEM_ID,
+    SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TIME_ZONE,
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
+    SZ_ZONE_ID,
+    SZ_ZONES,
 )
 
 
@@ -115,16 +121,16 @@ class Location(_LocationDeprecated):
         tcs_status: _EvoDictT
         zon_status: _EvoDictT
 
-        for gwy_status in loc_status["gateways"]:
-            gwy = self.gateways[gwy_status["gatewayId"]]
+        for gwy_status in loc_status[SZ_GATEWAYS]:
+            gwy = self.gateways[gwy_status[SZ_GATEWAY_ID]]
             gwy._update_status(gwy_status)
 
-            for tcs_status in gwy_status["temperatureControlSystems"]:
-                tcs = gwy.control_systems[tcs_status["systemId"]]
+            for tcs_status in gwy_status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+                tcs = gwy.control_systems[tcs_status[SZ_SYSTEM_ID]]
                 tcs._update_status(tcs_status)
 
-                if dhw_status := tcs_status.get("dhw"):  # type: ignore[assignment]
+                if dhw_status := tcs_status.get(SZ_DHW):  # type: ignore[assignment]
                     tcs.hotwater._update_status(dhw_status)  # type: ignore[union-attr]
 
-                for zon_status in tcs_status["zones"]:
-                    tcs.zones_by_id[zon_status["zoneId"]]._update_status(zon_status)
+                for zon_status in tcs_status[SZ_ZONES]:
+                    tcs.zones_by_id[zon_status[SZ_ZONE_ID]]._update_status(zon_status)
