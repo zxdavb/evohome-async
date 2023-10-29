@@ -334,7 +334,10 @@ async def _test_schedule(
     )
 
     schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
-    assert schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] == temp + 1
+    assert (
+        schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]
+        == temp + 1
+    )
 
     schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp
     await should_work(

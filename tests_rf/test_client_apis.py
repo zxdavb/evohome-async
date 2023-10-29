@@ -271,7 +271,6 @@ async def test_basics(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
-
     username, password = credentials
 
     await _test_basics_apis(username, password, session=session)
@@ -282,7 +281,6 @@ async def test_sched_(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
-
     username, password = credentials
 
     await _test_sched__apis(username, password, session=session)
@@ -293,7 +291,6 @@ async def test_status(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
-
     username, password = credentials
 
     await _test_status_apis(username, password, session=session)
@@ -304,7 +301,6 @@ async def test_system(
     credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
-
     username, password = credentials
 
     try:  # TODO: implement
