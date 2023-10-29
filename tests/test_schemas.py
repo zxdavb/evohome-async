@@ -40,12 +40,12 @@ def _test_schema(folder: Path, schema: str, file_name: str):
 def test_schemas_config(folder: Path):
     """Test the config schema for a location."""
 
-    file_name = "locn_config.json"
+    FILE_NAME = "config.json"
 
-    if not Path(folder).joinpath(file_name).is_file():
-        pytest.skip(f"No {file_name} in: {folder.name}")
+    if not Path(folder).joinpath(FILE_NAME).is_file():
+        pytest.skip(f"No {FILE_NAME} in: {folder.name}")
 
-    with open(Path(folder).joinpath(file_name)) as f:
+    with open(Path(folder).joinpath(FILE_NAME)) as f:
         data: dict = json.load(f)
 
     _ = SCH_TIME_ZONE(data["locationInfo"]["timeZone"])
@@ -57,12 +57,12 @@ def test_schemas_config(folder: Path):
 def test_schemas_status(folder: Path):
     """Test the status schema for a location."""
 
-    file_name = "locn_status.json"
+    FILE_NAME = "status.json"
 
-    if not Path(folder).joinpath(file_name).is_file():
-        pytest.skip(f"No {file_name} in: {folder.name}")
+    if not Path(folder).joinpath(FILE_NAME).is_file():
+        pytest.skip(f"No {FILE_NAME} in: {folder.name}")
 
-    with open(Path(folder).joinpath(file_name)) as f:
+    with open(Path(folder).joinpath(FILE_NAME)) as f:
         data: dict = json.load(f)
 
     _ = SCH_LOCN_STATUS(data)
