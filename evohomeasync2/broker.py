@@ -105,26 +105,20 @@ class Broker:
             # headers["Content-Type"] = "application/json"
             kwargs = {"json": json, "headers": headers}
 
-        try:
-            async with _session_method(url, **kwargs) as response:
-                if not response.content_length:
-                    content = None
-                    self._logger.info(f"{method} {url} ({response.status}) = {content}")
+        async with _session_method(url, **kwargs) as response:
+            if not response.content_length:
+                content = None
+                self._logger.info(f"{method} {url} ({response.status}) = {content}")
 
-                elif response.content_type == "application/json":
-                    content = await response.json()
-                    self._logger.info(f"{method} {url} ({response.status}) = {content}")
+            elif response.content_type == "application/json":
+                content = await response.json()
+                self._logger.info(f"{method} {url} ({response.status}) = {content}")
 
-                else:  # assume "text/plain" or "text/html"
-                    content = await response.text()
-                    self._logger.debug(
-                        f"{method} {url} ({response.status}) = {content}"
-                    )
+            else:  # assume "text/plain" or "text/html"
+                content = await response.text()
+                self._logger.debug(f"{method} {url} ({response.status}) = {content}")
 
-                return response, content  # FIXME: is messy to return response
-
-        except aiohttp.ClientError as exc:  # ClientConnectorError
-            raise exceptions.FailedRequest(str(exc))
+            return response, content  # FIXME: is messy to return response
 
     async def _headers(self) -> dict[str, str]:
         """Ensure the Authorization Header has a valid Access Token."""
@@ -189,12 +183,16 @@ class Broker:
         response: aiohttp.ClientResponse
         content: dict[str, int | str]
 
-        response, content = await self._client(  # type: ignore[assignment]
-            HTTPMethod.POST,
-            AUTH_URL,
-            data=AUTH_PAYLOAD | credentials,
-            headers=AUTH_HEADER,
-        )
+        try:
+            response, content = await self._client(  # type: ignore[assignment]
+                HTTPMethod.POST,
+                AUTH_URL,
+                data=AUTH_PAYLOAD | credentials,
+                headers=AUTH_HEADER,
+            )
+        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
+            raise exceptions.AuthenticationError(str(exc))
+
         try:
             response.raise_for_status()
 
@@ -203,7 +201,7 @@ class Broker:
                 raise exceptions.AuthenticationError(hint, status=exc.status)
             raise exceptions.AuthenticationError(str(exc), status=exc.status)
 
-        except aiohttp.ClientError as exc:  # ClientConnectionError/ClientResponseError
+        except aiohttp.ClientError as exc:
             raise exceptions.AuthenticationError(str(exc))
 
         try:  # the access token _should_ be valid...
@@ -227,9 +225,13 @@ class Broker:
         response: aiohttp.ClientResponse
         content: _EvoSchemaT
 
-        response, content = await self._client(  # type: ignore[assignment]
-            HTTPMethod.GET, f"{URL_BASE}/{url}"
-        )
+        try:
+            response, content = await self._client(  # type: ignore[assignment]
+                HTTPMethod.GET, f"{URL_BASE}/{url}"
+            )
+        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
+            raise exceptions.FailedRequest(str(exc))
+
         try:
             response.raise_for_status()
 
@@ -238,7 +240,7 @@ class Broker:
                 raise exceptions.FailedRequest(hint, status=exc.status)
             raise exceptions.FailedRequest(str(exc), status=exc.status)
 
-        except aiohttp.ClientError as exc:  # incl. ClientConnectionError
+        except aiohttp.ClientError as exc:
             raise exceptions.FailedRequest(str(exc))
 
         if schema:
@@ -251,7 +253,7 @@ class Broker:
 
         return content
 
-    async def put(  # Test sending bad schedule
+    async def put(
         self, url: str, json: _EvoDictT | str, schema: vol.Schema | None = None
     ) -> dict | list[dict]:  # NOTE: not _EvoSchemaT
         """"""
@@ -267,9 +269,12 @@ class Broker:
                     f"JSON may be invalid (bad schema): PUT {url}: {exc}"
                 )
 
-        response, content = await self._client(  # type: ignore[assignment]
-            HTTPMethod.PUT, f"{URL_BASE}/{url}", json=json
-        )
+        try:
+            response, content = await self._client(  # type: ignore[assignment]
+                HTTPMethod.PUT, f"{URL_BASE}/{url}", json=json
+            )
+        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
+            raise exceptions.FailedRequest(str(exc))
 
         try:
             response.raise_for_status()
@@ -279,7 +284,7 @@ class Broker:
                 raise exceptions.FailedRequest(hint, status=exc.status)
             raise exceptions.FailedRequest(str(exc), status=exc.status)
 
-        except aiohttp.ClientError as exc:  # incl. ClientConnectionError
+        except aiohttp.ClientError as exc:
             raise exceptions.FailedRequest(str(exc))
 
         return content

@@ -303,7 +303,7 @@ async def _test_zone_mode(
     await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
 
-async def _test_schedule(
+async def _test_schedule(  # TODO: Test sending bad schedule
     username: str,
     password: str,
     session: None | aiohttp.ClientSession = None,
