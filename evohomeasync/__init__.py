@@ -237,7 +237,7 @@ class EvohomeClient(EvohomeClientDeprecated):
                 self.devices[device["deviceID"]] = device
                 self.named_devices[device["name"]] = device
 
-    async def _populate_user_info(self) -> dict[str, Any]:
+    async def _populate_user_info(self) -> _EvoDictT:
         """"""
 
         if self.user_data is None:
@@ -260,34 +260,43 @@ class EvohomeClient(EvohomeClientDeprecated):
     async def temperatures(self, force_refresh: bool = False) -> _EvoListT:
         """Retrieve the current details for each zone."""
 
+        set_point: float
+        status: str
+
         await self._populate_full_data(force_refresh)
 
         result = []
-        for device in self.full_data["devices"]:
-            set_point: float = 0
-            status = ""
-            if "heatSetpoint" in device["thermostat"]["changeableValues"]:
-                set_point = float(
-                    device["thermostat"]["changeableValues"]["heatSetpoint"]["value"]
+
+        try:
+            for device in self.full_data["devices"]:
+                if "heatSetpoint" in device["thermostat"]["changeableValues"]:
+                    set_point = float(
+                        device["thermostat"]["changeableValues"]["heatSetpoint"][
+                            "value"
+                        ]
+                    )
+                    status = device["thermostat"]["changeableValues"]["heatSetpoint"][
+                        "status"
+                    ]
+
+                else:
+                    set_point = 0
+                    status = device["thermostat"]["changeableValues"]["status"]
+                result.append(
+                    {
+                        "thermostat": device["thermostatModelType"],
+                        "id": device["deviceID"],
+                        "name": device["name"],
+                        "temp": float(device["thermostat"]["indoorTemperature"]),
+                        "setpoint": set_point,
+                        "status": status,
+                        "mode": device["thermostat"]["changeableValues"]["mode"],
+                    }
                 )
-                status = device["thermostat"]["changeableValues"]["heatSetpoint"][
-                    "status"
-                ]
 
-            else:
-                status = device["thermostat"]["changeableValues"]["status"]
-            result.append(
-                {
-                    "thermostat": device["thermostatModelType"],
-                    "id": device["deviceID"],
-                    "name": device["name"],
-                    "temp": float(device["thermostat"]["indoorTemperature"]),
-                    "setpoint": set_point,
-                    "status": status,
-                    "mode": device["thermostat"]["changeableValues"]["mode"],
-                }
-            )
-
+        # harden code against unexpected schema (JSON structure)
+        except (LookupError, TypeError, ValueError) as exc:
+            raise InvalidSchema(str(exc))
         return result
 
     async def get_system_modes(self) -> NoReturn:
@@ -344,12 +353,12 @@ class EvohomeClient(EvohomeClientDeprecated):
         device = self._get_device(zone)
         return device["thermostat"]["allowedModes"]
 
-    def _get_device(self, zone) -> Any:
+    def _get_device(self, zone: str) -> _EvoDictT:
         """"""
 
         if isinstance(zone, str):
             return self.named_devices[zone]
-        return self.devices[zone]
+        return self.devices[zone]  # TODO: no need for str.isnumeric() check?
 
     def _get_device_id(self, device_id: _DeviceIdT) -> _DeviceIdT:
         """"""
@@ -357,7 +366,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         device = self._get_device(device_id)
         return device["deviceID"]
 
-    async def _set_heat_setpoint(self, zone, data: dict[str, Any]) -> None:
+    async def _set_heat_setpoint(self, zone, data: _EvoDictT) -> None:
         """"""
 
         await self._populate_full_data()
