@@ -98,6 +98,7 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
             f"{self._type}/{self._id}/state", json=state
         )  # except exceptions.FailedRequests
 
+    # TODO: can we use camelCase strings?
     async def set_on(self, /, *, until: None | dt = None) -> None:
         """Set the DHW on until a given time, or permanently."""
 

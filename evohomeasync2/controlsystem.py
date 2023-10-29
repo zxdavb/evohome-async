@@ -159,6 +159,7 @@ class ControlSystem(_ControlSystemDeprecated):
             f"{self._type}/{self._id}/mode", json=system_mode  # schema=
         )  # except exceptions.FailedRequest
 
+    # TODO: can we use camelCase strings?
     async def set_mode(self, mode: SystemMode, /, *, until: None | dt = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
 
