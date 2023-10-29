@@ -168,13 +168,13 @@ class MockedServer:
 
         if not isinstance(self._data, dict):
             self.status = HTTPStatus.BAD_REQUEST
-            return {"message": "Bad Request (invalid schedule)"}
+            return {"message": "Bad Request (invalid schedule: not a dict)"}
 
         try:
             SCH_PUT_SCHEDULE_ZONE(self._data)
         except vol.Invalid:
             self.status = HTTPStatus.BAD_REQUEST
-            return {"message": "Bad Request (invalid schedule)"}
+            return {"message": "Bad Request (invalid schedule: invalid schema)"}
 
         self._schedules[zon_id] = convert_to_get_schedule(self._data)
         return {"id": "1234567890"}
@@ -206,13 +206,13 @@ class MockedServer:
 
         if not isinstance(self._data, dict):
             self.status = HTTPStatus.BAD_REQUEST
-            return {"message": "Bad Request (invalid schedule)"}
+            return {"message": "Bad Request (invalid schedule: not a dict)"}
 
         try:
             SCH_PUT_SCHEDULE_DHW(self._data)
         except vol.Invalid:
             self.status = HTTPStatus.BAD_REQUEST
-            return {"message": "Bad Request (invalid schedule)"}
+            return {"message": "Bad Request (invalid schedule: invalid schema)"}
 
         self._schedules[dhw_id] = convert_to_get_schedule(self._data)
         return {"id": "1234567890"}

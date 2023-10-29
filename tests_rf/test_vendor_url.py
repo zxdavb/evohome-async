@@ -21,14 +21,18 @@ from evohomeasync2.schema import (
     SCH_ZONE_STATUS,
 )
 from evohomeasync2.schema.const import (
+    SZ_DAILY_SCHEDULES,
     SZ_FOLLOW_SCHEDULE,
+    SZ_HEAT_SETPOINT,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_IS_AVAILABLE,
     SZ_PERMANENT_OVERRIDE,
     SZ_SETPOINT_MODE,
+    SZ_SWITCHPOINTS,
     SZ_TEMPERATURE,
     SZ_TIME_UNTIL,
 )
+from evohomeasync2.schema.schedule import convert_to_put_schedule
 
 from . import _DISABLE_STRICT_ASSERTS, _DEBUG_USE_MOCK_AIOHTTP
 from .helpers import aiohttp, extract_oauth_tokens  # aiohttp may be mocked
@@ -303,7 +307,9 @@ async def _test_zone_mode(
     await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
 
-async def _test_schedule(  # TODO: Test sending bad schedule
+# TODO: Test sending bad schedule
+# TODO: Try with/without convert_to_put_schedule()
+async def _test_schedule(
     username: str,
     password: str,
     session: None | aiohttp.ClientSession = None,
@@ -320,19 +326,23 @@ async def _test_schedule(  # TODO: Test sending bad schedule
     url = f"{zone._type}/{zone._id}/schedule"
     schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
 
-    temp = schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]
+    temp = schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]
 
-    schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp + 1
-    await should_work(client, HTTPMethod.PUT, url, json=schedule)
-
-    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
-    assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp + 1
-
-    schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp
-    await should_work(client, HTTPMethod.PUT, url, json=schedule)
+    schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp + 1
+    await should_work(
+        client, HTTPMethod.PUT, url, json=convert_to_put_schedule(schedule)
+    )
 
     schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
-    assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp
+    assert schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] == temp + 1
+
+    schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp
+    await should_work(
+        client, HTTPMethod.PUT, url, json=convert_to_put_schedule(schedule)
+    )
+
+    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
+    assert schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] == temp
 
     await should_fail(
         client, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST
