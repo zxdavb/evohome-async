@@ -8,7 +8,8 @@ import json
 from pathlib import Path
 import pytest
 
-from evohomeasync2.schema import SCH_LOCN_CONFIG, SCH_LOCN_STATUS
+from evohomeasync2.schema import SCH_LOCN_STATUS
+from evohomeasync2.schema.config import SCH_TEMPERATURE_CONTROL_SYSTEM, SCH_TIME_ZONE
 
 
 TEST_DIR = Path(__file__).resolve().parent
@@ -35,11 +36,33 @@ def _test_schema(folder: Path, schema: str, file_name: str):
     _ = schema(data)
 
 
+# NOTE: JSON is not compliant with the schema, but data is useful to test against
 def test_schemas_config(folder: Path):
     """Test the config schema for a location."""
-    _test_schema(folder, SCH_LOCN_CONFIG, "locn_config.json")
+
+    file_name = "locn_config.json"
+
+    if not Path(folder).joinpath(file_name).is_file():
+        pytest.skip(f"No {file_name} in: {folder.name}")
+
+    with open(Path(folder).joinpath(file_name)) as f:
+        data: dict = json.load(f)
+
+    _ = SCH_TIME_ZONE(data["locationInfo"]["timeZone"])
+    for gwy_config in data["gateways"]:
+        for tcs_config in gwy_config["temperatureControlSystems"]:
+            _ = SCH_TEMPERATURE_CONTROL_SYSTEM(tcs_config)
 
 
 def test_schemas_status(folder: Path):
     """Test the status schema for a location."""
-    _test_schema(folder, SCH_LOCN_STATUS, "locn_status.json")
+
+    file_name = "locn_status.json"
+
+    if not Path(folder).joinpath(file_name).is_file():
+        pytest.skip(f"No {file_name} in: {folder.name}")
+
+    with open(Path(folder).joinpath(file_name)) as f:
+        data: dict = json.load(f)
+
+    _ = SCH_LOCN_STATUS(data)

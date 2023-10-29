@@ -194,7 +194,7 @@ class SystemMode(StrEnum):
 @verify(EnumCheck.UNIQUE)
 class TcsModelType(StrEnum):
     EVO_TOUCH: Final[str] = "EvoTouch"
-    # "FocusProWifiRetail"
+    FOCUS_PRO_WIFI_RETAIL: Final[str] = "FocusProWifiRetail"
 
 
 @verify(EnumCheck.UNIQUE)
@@ -203,7 +203,7 @@ class ZoneModelType(StrEnum):
     ROUND_MODULATION: Final[str] = "RoundModulation"
     ROUND_WIRELESS: Final[str] = "RoundWireless"
     UNKNOWN: Final[str] = "Unknown"
-    # "FocusProWifiRetail"
+    FOCUS_PRO_WIFI_RETAIL: Final[str] = "FocusProWifiRetail"
 
 
 @verify(EnumCheck.UNIQUE)
