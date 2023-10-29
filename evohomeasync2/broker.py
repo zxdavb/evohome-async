@@ -160,7 +160,7 @@ class Broker:
             try:
                 await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)  # type: ignore[arg-type]
 
-            except exceptions.AuthenticationError as exc:
+            except exceptions.AuthenticationFailed as exc:
                 if exc.status != 400:  # Bad Request
                     raise
 
@@ -191,18 +191,18 @@ class Broker:
                 headers=AUTH_HEADER,
             )
         except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise exceptions.AuthenticationError(str(exc))
+            raise exceptions.AuthenticationFailed(str(exc))
 
         try:
             response.raise_for_status()
 
         except aiohttp.ClientResponseError as exc:
             if hint := _ERR_MSG_LOOKUP_AUTH.get(exc.status):
-                raise exceptions.AuthenticationError(hint, status=exc.status)
-            raise exceptions.AuthenticationError(str(exc), status=exc.status)
+                raise exceptions.AuthenticationFailed(hint, status=exc.status)
+            raise exceptions.AuthenticationFailed(str(exc), status=exc.status)
 
         except aiohttp.ClientError as exc:
-            raise exceptions.AuthenticationError(str(exc))
+            raise exceptions.AuthenticationFailed(str(exc))
 
         try:  # the access token _should_ be valid...
             _ = SCH_OAUTH_TOKEN(content)  # can't use result, due to obsfucated values
@@ -217,7 +217,9 @@ class Broker:
             self.refresh_token = content["refresh_token"]  # type: ignore[assignment]
 
         except (KeyError, TypeError) as exc:
-            raise exceptions.AuthenticationError(f"Invalid response from server: {exc}")
+            raise exceptions.AuthenticationFailed(
+                f"Invalid response from server: {exc}"
+            )
 
     async def get(self, url: str, schema: vol.Schema | None = None) -> _EvoSchemaT:
         """"""
@@ -230,18 +232,18 @@ class Broker:
                 HTTPMethod.GET, f"{URL_BASE}/{url}"
             )
         except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise exceptions.FailedRequest(str(exc))
+            raise exceptions.RequestFailed(str(exc))
 
         try:
             response.raise_for_status()
 
         except aiohttp.ClientResponseError as exc:
             if hint := _ERR_MSG_LOOKUP_BASE.get(exc.status):
-                raise exceptions.FailedRequest(hint, status=exc.status)
-            raise exceptions.FailedRequest(str(exc), status=exc.status)
+                raise exceptions.RequestFailed(hint, status=exc.status)
+            raise exceptions.RequestFailed(str(exc), status=exc.status)
 
         except aiohttp.ClientError as exc:
-            raise exceptions.FailedRequest(str(exc))
+            raise exceptions.RequestFailed(str(exc))
 
         if schema:
             try:
@@ -274,17 +276,17 @@ class Broker:
                 HTTPMethod.PUT, f"{URL_BASE}/{url}", json=json
             )
         except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise exceptions.FailedRequest(str(exc))
+            raise exceptions.RequestFailed(str(exc))
 
         try:
             response.raise_for_status()
 
         except aiohttp.ClientResponseError as exc:
             if hint := _ERR_MSG_LOOKUP_BASE.get(exc.status):
-                raise exceptions.FailedRequest(hint, status=exc.status)
-            raise exceptions.FailedRequest(str(exc), status=exc.status)
+                raise exceptions.RequestFailed(hint, status=exc.status)
+            raise exceptions.RequestFailed(str(exc), status=exc.status)
 
         except aiohttp.ClientError as exc:
-            raise exceptions.FailedRequest(str(exc))
+            raise exceptions.RequestFailed(str(exc))
 
         return content

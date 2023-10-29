@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-"""evohomeasync2 provides an async client for the updated Evohome API.
+"""evohomeasync2 provides an async client for the *updated* Evohome API.
 
 It is (largely) a faithful port of https://github.com/watchforstock/evohome-client
 
 Further information at: https://evohome-client.readthedocs.io
 """
+
 from __future__ import annotations
 
 from http import HTTPStatus
@@ -19,10 +20,10 @@ import aiohttp
 from .broker import Broker
 from .controlsystem import ControlSystem
 from .exceptions import (  # noqa: F401
-    AuthenticationError,
+    AuthenticationFailed,
     InvalidSchedule,
     InvalidSchema,
-    FailedRequest,
+    RequestFailed,
     NoDefaultTcsError,
     RateLimitExceeded,
 )
@@ -44,6 +45,9 @@ if TYPE_CHECKING:
     )
 
 
+_LOGGER = logging.getLogger(__name__)
+
+
 class EvohomeClientDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
@@ -61,14 +65,9 @@ class EvohomeClientDeprecated:
     async def gateway(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError("EvohomeClient.gateway() is deprecated")
 
-    async def set_status_reset(self, *args, **kwargs) -> NoReturn:
+    async def set_status_away(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
-            "EvohomeClient.set_status_reset() is deprecated, use .reset_mode()"
-        )
-
-    async def set_status_normal(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
+            "EvohomeClient.set_status_away() is deprecated, use .set_mode_away()"
         )
 
     async def set_status_custom(self, *args, **kwargs) -> NoReturn:
@@ -76,24 +75,29 @@ class EvohomeClientDeprecated:
             "EvohomeClient.set_status_custom() is deprecated, use .set_mode_custom()"
         )
 
-    async def set_status_eco(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "EvohomeClient.set_status_eco() is deprecated, use .set_mode_eco()"
-        )
-
-    async def set_status_away(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "EvohomeClient.set_status_away() is deprecated, use .set_mode_away()"
-        )
-
     async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
             "EvohomeClient.set_status_dayoff() is deprecated, use .set_mode_dayoff()"
         )
 
+    async def set_status_eco(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.set_status_eco() is deprecated, use .set_mode_eco()"
+        )
+
     async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
             "EvohomeClient.set_status_heatingoff() is deprecated, use .set_mode_heatingoff()"
+        )
+
+    async def set_status_normal(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
+        )
+
+    async def set_status_reset(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "EvohomeClient.set_status_reset() is deprecated, use .reset_mode()"
         )
 
     async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
@@ -108,7 +112,7 @@ class EvohomeClientDeprecated:
 
 
 class EvohomeClient(EvohomeClientDeprecated):
-    """Provide access to the v2 Evohome API."""
+    """Provide a client to access the Honeywell TCC API."""
 
     _full_config: _EvoListT = None  # type: ignore[assignment]  # installation_info (all locations of user)
     _user_account: _EvoDictT = None  # type: ignore[assignment]  # account_info
@@ -125,9 +129,13 @@ class EvohomeClient(EvohomeClientDeprecated):
         access_token_expires: None | dt = None,
         session: None | aiohttp.ClientSession = None,
     ) -> None:
-        """Construct the EvohomeClient object."""
+        """Construct the v2 EvohomeClient object.
 
-        self._logger = logging.getLogger(__name__)
+        If tokens are given then this will be used to try and reduce the number of
+        calls to the authentication service which is known to be rate limited.
+        """
+
+        self._logger = _LOGGER
 
         if debug:
             self._logger.setLevel(logging.DEBUG)
@@ -166,7 +174,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         try:  # the cached access_token may be valid, but is not authorized
             await self.user_account()
 
-        except AuthenticationError as exc:
+        except AuthenticationFailed as exc:
             if exc.status != HTTPStatus.UNAUTHORIZED or not self.access_token:
                 raise
 
@@ -233,9 +241,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         url = f"location/installationInfo?userId={self.account_info['userId']}"
         url += "&includeTemperatureControlSystems=True"
 
-        self._full_config = await self._broker.get(
-            url, schema=SCH_FULL_CONFIG
-        )  # type: ignore[assignment]
+        self._full_config = await self._broker.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
 
         # populate each freshly instantiated location with its initial status
         loc_config: _EvoDictT

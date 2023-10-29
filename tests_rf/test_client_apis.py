@@ -46,10 +46,11 @@ def credentials():
 
 @pytest_asyncio.fixture
 async def session():
+    session = _session()
     try:
-        yield _session()
+        yield session
     finally:
-        await _session().close()
+        await session.close()
 
 
 async def _test_basics_apis(

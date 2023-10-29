@@ -161,7 +161,7 @@ class ControlSystem(_ControlSystemDeprecated):
     async def _set_mode(self, system_mode: dict) -> None:
         _ = await self._broker.put(
             f"{self._type}/{self._id}/mode", json=system_mode  # schema=
-        )  # except exceptions.FailedRequest
+        )
 
     # TODO: can we use camelCase strings?
     async def set_mode(self, mode: SystemMode, /, *, until: None | dt = None) -> None:

@@ -193,12 +193,12 @@ class Zone(_ZoneBase):
     def setpointStatus(self) -> None | dict:
         return self._status.get(SZ_SETPOINT_STATUS)
 
-    async def _set_mode(self, heat_setpoint: dict) -> None:
+    async def _set_heat_setpoint(self, heat_setpoint: dict) -> None:
         """TODO"""
 
         _ = await self._broker.put(
             f"{self._type}/{self._id}/heatSetpoint", json=heat_setpoint  # schema=
-        )  # except exceptions.FailedRequest
+        )
 
     async def set_temperature(
         self, temperature: float, /, *, until: None | dt = None
@@ -218,7 +218,7 @@ class Zone(_ZoneBase):
                 SZ_TIME_UNTIL: until.strftime(API_STRFTIME),
             }
 
-        await self._set_mode(mode)
+        await self._set_heat_setpoint(mode)
 
     async def cancel_temp_override(self) -> None:
         """Cancel an override to the zone temperature."""
@@ -229,4 +229,4 @@ class Zone(_ZoneBase):
             SZ_TIME_UNTIL: None,
         }
 
-        await self._set_mode(mode)
+        await self._set_heat_setpoint(mode)

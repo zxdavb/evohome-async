@@ -360,7 +360,7 @@ async def test_usr_account(
 
     try:
         await _test_usr_account(*credentials, session=session)
-    except evo.AuthenticationError:
+    except evo.AuthenticationFailed:
         if _DEBUG_USE_MOCK_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
@@ -374,7 +374,7 @@ async def test_all_config(
 
     try:
         await _test_all_config(*credentials, session=session)
-    except evo.AuthenticationError:
+    except evo.AuthenticationFailed:
         if _DEBUG_USE_MOCK_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
@@ -388,7 +388,7 @@ async def test_loc_status(
 
     try:
         await _test_loc_status(*credentials, session=session)
-    except evo.AuthenticationError:
+    except evo.AuthenticationFailed:
         if _DEBUG_USE_MOCK_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
@@ -402,7 +402,7 @@ async def test_zone_mode(
 
     try:
         await _test_zone_mode(*credentials, session=session)
-    except evo.AuthenticationError:
+    except evo.AuthenticationFailed:
         if _DEBUG_USE_MOCK_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
@@ -420,7 +420,7 @@ async def test_schedule(
 
     try:
         await _test_schedule(*credentials, session=session)
-    except evo.AuthenticationError:
+    except evo.AuthenticationFailed:
         if _DEBUG_USE_MOCK_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")

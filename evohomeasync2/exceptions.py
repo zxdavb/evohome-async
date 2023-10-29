@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 
-class EvohomeError(Exception):
+class EvohomeBaseError(Exception):
     """The base exception class for evohome-async."""
 
     def __init__(self, message: str) -> None:
@@ -13,7 +13,7 @@ class EvohomeError(Exception):
         self.message = message
 
 
-class InvalidSchema(EvohomeError):
+class InvalidSchema(EvohomeBaseError):
     """The supplied config/status JSON is invalid (e.g. no Id)."""
 
 
@@ -21,11 +21,11 @@ class InvalidSchedule(InvalidSchema):
     """The supplied schedule has an invalid schema."""
 
 
-class NoDefaultTcsError(EvohomeError):
+class NoDefaultTcsError(EvohomeBaseError):
     """There is not exactly one TCS in the user's installation."""
 
 
-class FailedRequest(EvohomeError):
+class RequestFailed(EvohomeBaseError):
     """The API request failed for some reason (no/invalid/unexpected response).
 
     Could be caused by any aiohttp.ClientError, for example: ConnectionError.  If the
@@ -37,11 +37,11 @@ class FailedRequest(EvohomeError):
         self.status = status  # iff cause was aiohttp.ClientResponseError
 
 
-class RateLimitExceeded(FailedRequest):
+class RateLimitExceeded(RequestFailed):
     """API request failed because the vendor's API rate limit was exceeded."""
 
 
-class AuthenticationError(FailedRequest):
+class AuthenticationFailed(RequestFailed):
     """Unable to authenticate (unable to obtain an access token).
 
     The cause could be any FailedRequest, including RateLimitExceeded.
