@@ -4,8 +4,6 @@
 """evohomeasync2 - Schema for RESTful API Config JSON."""
 from __future__ import annotations
 
-import voluptuous as vol  # type: ignore[import]
-
 from .const import (
     REGEX_DHW_ID,
     REGEX_GATEWAY_ID,
@@ -47,6 +45,7 @@ from .const import (
     SYSTEM_MODES,
     ZONE_MODES,
 )
+from .helpers import vol  # voluptuous
 
 
 SCH_ACTIVE_FAULT = vol.Schema(

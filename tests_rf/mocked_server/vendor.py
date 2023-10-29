@@ -9,6 +9,8 @@ import re
 from typing import TYPE_CHECKING
 
 from evohomeasync2.const import AUTH_URL, URL_BASE
+from evohomeasync2.schema import vol  # voluptuous
+from evohomeasync2.schema import convert_to_get_schedule
 from evohomeasync2.schema.const import (
     SZ_DHW,
     SZ_DHW_ID,
@@ -20,6 +22,10 @@ from evohomeasync2.schema.const import (
     SZ_TEMPERATURE_ZONE,
     SZ_ZONE_ID,
     SZ_ZONES,
+)
+from evohomeasync2.schema.schedule import (
+    SCH_PUT_SCHEDULE_DHW,
+    SCH_PUT_SCHEDULE_ZONE,
 )
 
 from .const import (
@@ -156,17 +162,22 @@ class MockedServer:
         if self._method == HTTPMethod.GET:
             return self._schedules.get(zon_id, self._zon_schedule)
 
-        elif self._method != HTTPMethod.PUT:
+        if self._method != HTTPMethod.PUT:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
             return {"message": "Method not allowed"}
 
-        elif not isinstance(self._data, dict):  # TODO: use a vol.Schema
+        if not isinstance(self._data, dict):
             self.status = HTTPStatus.BAD_REQUEST
             return {"message": "Bad Request (invalid schedule)"}
 
-        else:
-            self._schedules[zon_id] = self._data
-            return {"id": "1234567890"}
+        try:
+            SCH_PUT_SCHEDULE_ZONE(self._data)
+        except vol.Invalid:
+            self.status = HTTPStatus.BAD_REQUEST
+            return {"message": "Bad Request (invalid schedule)"}
+
+        self._schedules[zon_id] = convert_to_get_schedule(self._data)
+        return {"id": "1234567890"}
 
     def zon_mode(self) -> None | _bodyT:
         raise NotImplementedError
@@ -189,17 +200,22 @@ class MockedServer:
         if self._method == HTTPMethod.GET:
             return self._schedules.get(dhw_id, self._dhw_schedule)
 
-        elif self._method != HTTPMethod.PUT:
+        if self._method != HTTPMethod.PUT:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
             return {"message": "Method not allowes"}
 
-        elif not isinstance(self._data, dict):  # TODO: use a vol.Schema
+        if not isinstance(self._data, dict):
             self.status = HTTPStatus.BAD_REQUEST
             return {"message": "Bad Request (invalid schedule)"}
 
-        else:
-            self._schedules[dhw_id] = self._data
-            return {"id": "1234567890"}
+        try:
+            SCH_PUT_SCHEDULE_DHW(self._data)
+        except vol.Invalid:
+            self.status = HTTPStatus.BAD_REQUEST
+            return {"message": "Bad Request (invalid schedule)"}
+
+        self._schedules[dhw_id] = convert_to_get_schedule(self._data)
+        return {"id": "1234567890"}
 
     def dhw_status(self) -> None | _bodyT:
         raise NotImplementedError

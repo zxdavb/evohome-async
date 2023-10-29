@@ -4,8 +4,6 @@
 """evohomeasync2 - Schema for RESTful API Account JSON."""
 from __future__ import annotations
 
-import voluptuous as vol  # type: ignore[import]
-
 from .const import (
     SZ_ACCESS_TOKEN,
     SZ_CITY,
@@ -23,6 +21,7 @@ from .const import (
     SZ_USERNAME,
 )
 from .const import obfuscate as _obfuscate
+from .helpers import vol  # voluptuous
 
 
 SCH_OAUTH_TOKEN = vol.Schema(

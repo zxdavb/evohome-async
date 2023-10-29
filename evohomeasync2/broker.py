@@ -16,24 +16,6 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
-try:  # voluptuous is an optional module...
-    import voluptuous as vol  # type: ignore[import-untyped]
-
-except ModuleNotFoundError:  # No module named 'voluptuous'
-
-    class vol:  # type: ignore[no-redef]
-        class Invalid(Exception):
-            pass
-
-        Schema = dict | list
-
-
-if TYPE_CHECKING:
-    import logging
-
-    from .schema import _EvoDictT, _EvoListT, _EvoSchemaT
-
-
 from . import exceptions
 from .const import (
     AUTH_HEADER_ACCEPT,
@@ -44,7 +26,14 @@ from .const import (
     CREDS_REFRESH_TOKEN,
     CREDS_USER_PASSWORD,
 )
+from .schema import vol  # voluptuous
 from .schema.account import SCH_OAUTH_TOKEN
+
+
+if TYPE_CHECKING:
+    import logging
+
+    from .schema import _EvoDictT, _EvoListT, _EvoSchemaT
 
 
 _ERR_MSG_LOOKUP_BOTH: dict[int, str] = {  # common to both OAUTH_URL & URL_BASE
@@ -116,20 +105,26 @@ class Broker:
             # headers["Content-Type"] = "application/json"
             kwargs = {"json": json, "headers": headers}
 
-        async with _session_method(url, **kwargs) as response:
-            if not response.content_length:
-                content = None
-                self._logger.info(f"{method} {url} ({response.status}) = {content}")
+        try:
+            async with _session_method(url, **kwargs) as response:
+                if not response.content_length:
+                    content = None
+                    self._logger.info(f"{method} {url} ({response.status}) = {content}")
 
-            elif response.content_type == "application/json":
-                content = await response.json()
-                self._logger.info(f"{method} {url} ({response.status}) = {content}")
+                elif response.content_type == "application/json":
+                    content = await response.json()
+                    self._logger.info(f"{method} {url} ({response.status}) = {content}")
 
-            else:  # assume "text/plain" or "text/html"
-                content = await response.text()
-                self._logger.debug(f"{method} {url} ({response.status}) = {content}")
+                else:  # assume "text/plain" or "text/html"
+                    content = await response.text()
+                    self._logger.debug(
+                        f"{method} {url} ({response.status}) = {content}"
+                    )
 
-            return response, content  # FIXME: is messy to return response
+                return response, content  # FIXME: is messy to return response
+
+        except aiohttp.ClientError as exc:  # ClientConnectorError
+            raise exceptions.FailedRequest(str(exc))
 
     async def _headers(self) -> dict[str, str]:
         """Ensure the Authorization Header has a valid Access Token."""

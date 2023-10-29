@@ -4,8 +4,6 @@
 """evohomeasync2 - Schema for RESTful API Account JSON."""
 from __future__ import annotations
 
-import voluptuous as vol  # type: ignore[import]
-
 from .const import (
     SZ_DAILY_SCHEDULES,
     SZ_DAY_OF_WEEK,
@@ -18,6 +16,7 @@ from .const import (
     SZ_TIME_OF_DAY,
 )
 from .const import DAYS_OF_WEEK
+from .helpers import vol  # voluptuous
 from .typing import _EvoDictT, _EvoListT
 
 
@@ -170,7 +169,7 @@ def _convert_to_put_schedule_classic(raw_schedule: _EvoDictT) -> _EvoDictT:
 
 
 def convert_to_put_schedule(get_schedule: _EvoDictT) -> _EvoDictT:
-    """Convert a raw schedule to the format used by the get/set_schedule() methods.
+    """Convert a schedule to the format used by our get/set_schedule() methods.
 
     The 'raw' schedule format is the one returned by the vendor's RESTful API (GET).
     """
@@ -199,7 +198,7 @@ def convert_to_put_schedule(get_schedule: _EvoDictT) -> _EvoDictT:
 
 
 def convert_to_get_schedule(put_schedule: _EvoDictT) -> _EvoDictT:
-    """Convert a schedule from the format used by our get/set_schedule() methods."""
+    """Convert a schedule to the format returned by the vendor's RESTful API (GET)."""
 
     get_schedule: dict[str, _EvoListT] = {}
     get_schedule[SZ_DAILY_SCHEDULES] = []

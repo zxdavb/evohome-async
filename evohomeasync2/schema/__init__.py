@@ -34,7 +34,8 @@ from .const import (  # noqa: F401
     SystemMode,
     ZoneMode,
 )
-
+from .helpers import vol  # voluptuous  # noqa: F401
+from .schedule import convert_to_get_schedule  # noqa: F401
 from .typing import _FilePathT, _ModeT  # noqa: F401
 from .typing import (  # noqa: F401
     _DhwIdT,

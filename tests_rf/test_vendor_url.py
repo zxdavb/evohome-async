@@ -11,8 +11,8 @@ import pytest
 import pytest_asyncio
 
 import evohomeasync2 as evo
-from evohomeasync2.broker import vol
 from evohomeasync2.const import URL_BASE
+from evohomeasync2.schema import vol  # voluptuous
 from evohomeasync2.schema import (
     SCH_FULL_CONFIG,
     SCH_LOCN_STATUS,
