@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final, NoReturn
 
+from .exceptions import InvalidSchema
 from .gateway import Gateway
 from .schema import SCH_LOCN_STATUS
 from .schema.const import (
@@ -59,7 +60,10 @@ class Location(_LocationDeprecated):
 
         self._config: Final[_EvoDictT] = config[SZ_LOCATION_INFO]
 
-        assert self.locationId, "Invalid config dict"
+        try:
+            assert self.locationId, "Invalid config dict"
+        except AssertionError as exc:
+            raise InvalidSchema(str(exc))
         self._id = self.locationId
 
         self._gateways: list[Gateway] = []

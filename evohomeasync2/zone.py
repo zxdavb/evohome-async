@@ -10,7 +10,7 @@ import json
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME
-from .exceptions import InvalidSchedule
+from .exceptions import InvalidSchedule, InvalidSchema
 from .schema import SCH_ZONE_STATUS
 from .schema.schedule import (
     SCH_GET_SCHEDULE,
@@ -157,7 +157,10 @@ class Zone(_ZoneBase):
 
         self._config: Final[_EvoDictT] = config
 
-        assert self.zoneId, "Invalid config dict"
+        try:
+            assert self.zoneId, "Invalid config dict"
+        except AssertionError as exc:
+            raise InvalidSchema(str(exc))
         self._id = self.zoneId
 
     # config attrs...

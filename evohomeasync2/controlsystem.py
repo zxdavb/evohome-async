@@ -10,6 +10,7 @@ import json
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME, SystemMode
+from .exceptions import InvalidSchema
 from .hotwater import HotWater
 from .schema import SCH_TCS_STATUS
 from .schema.const import (
@@ -105,7 +106,10 @@ class ControlSystem(_ControlSystemDeprecated):
             k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
         }
 
-        assert self.systemId, "Invalid config dict"
+        try:
+            assert self.systemId, "Invalid config dict"
+        except AssertionError as exc:
+            raise InvalidSchema(str(exc))
         self._id = self.systemId
 
         self._zones: list[Zone] = []

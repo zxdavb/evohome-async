@@ -9,6 +9,7 @@ from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME
+from .exceptions import InvalidSchema
 from .schema import SCH_DHW_STATUS
 from .schema.const import (
     SZ_DHW_ID,
@@ -66,7 +67,10 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
 
         self._config: Final[_EvoDictT] = config
 
-        assert self.dhwId, "Invalid config dict"
+        try:
+            assert self.dhwId, "Invalid config dict"
+        except AssertionError as exc:
+            raise InvalidSchema(str(exc))
         self._id = self.dhwId
 
     # config attrs...
