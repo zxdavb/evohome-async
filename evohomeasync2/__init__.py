@@ -21,6 +21,7 @@ from .controlsystem import ControlSystem
 from .exceptions import (  # noqa: F401
     AuthenticationError,
     InvalidSchedule,
+    InvalidSchema,
     FailedRequest,
     NoDefaultTcsError,
     RateLimitExceeded,

@@ -13,7 +13,11 @@ class EvohomeError(Exception):
         self.message = message
 
 
-class InvalidSchedule(EvohomeError):
+class InvalidSchema(EvohomeError):
+    """The supplied config/status JSON is invalid (e.g. no Id)."""
+
+
+class InvalidSchedule(InvalidSchema):
     """The supplied schedule has an invalid schema."""
 
 
@@ -24,9 +28,8 @@ class NoDefaultTcsError(EvohomeError):
 class FailedRequest(EvohomeError):
     """The API request failed for some reason (no/invalid/unexpected response).
 
-    Could be caused by other than aiohttp.ClientResponseError, for example:
-    aiohttp.ConnectionError.  If the cause was a ClientResponseError, then the
-    `status` attr will not be None.
+    Could be caused by any aiohttp.ClientError, for example: ConnectionError.  If the
+    cause was a ClientResponseError, then the `status` attr will not be None.
     """
 
     def __init__(self, message: str, status: None | int = None) -> None:
