@@ -199,11 +199,11 @@ class TcsModelType(StrEnum):
 
 @verify(EnumCheck.UNIQUE)
 class ZoneModelType(StrEnum):
+    FOCUS_PRO_WIFI_RETAIL: Final[str] = "FocusProWifiRetail"
     HEATING_ZONE: Final[str] = "HeatingZone"
     ROUND_MODULATION: Final[str] = "RoundModulation"
     ROUND_WIRELESS: Final[str] = "RoundWireless"
     UNKNOWN: Final[str] = "Unknown"
-    FOCUS_PRO_WIFI_RETAIL: Final[str] = "FocusProWifiRetail"
 
 
 @verify(EnumCheck.UNIQUE)
@@ -211,15 +211,15 @@ class ZoneMode(StrEnum):
     FOLLOW_SCHEDULE: Final[str] = SZ_FOLLOW_SCHEDULE
     PERMANENT_OVERRIDE: Final[str] = SZ_PERMANENT_OVERRIDE
     TEMORARY_OVERRIDE: Final[str] = SZ_TEMPORARY_OVERRIDE
-    # "VacationHold"
+    # VACATION_HOLD: Final[str] = SZ_VACATION_HOLD  # TODO: any consequences of adding?
 
 
 @verify(EnumCheck.UNIQUE)
 class ZoneType(StrEnum):
     RADIATOR_ZONE: Final[str] = "RadiatorZone"
     THERMOSTAT: Final[str] = "Thermostat"
-    ZONE_VALVES: Final[str] = "ZoneValves"
     UNKNOWN: Final[str] = "Unknown"
+    ZONE_VALVES: Final[str] = "ZoneValves"
 
 
 # these may not be required with Python 3.12+ (if mode in ZONE_MODES...)
