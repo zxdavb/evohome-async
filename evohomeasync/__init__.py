@@ -19,8 +19,9 @@ from typing import TYPE_CHECKING, Any, NoReturn
 
 import aiohttp
 
-from .exceptions import (
+from .exceptions import (  # noqa: F401
     AuthenticationFailed,
+    EvohomeError,
     InvalidSchema,
     RateLimitExceeded,
     RequestFailed,

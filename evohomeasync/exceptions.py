@@ -13,15 +13,19 @@ class EvohomeBaseError(Exception):
         self.message = message
 
 
-class InvalidSchema(EvohomeBaseError):
+class EvohomeError(EvohomeBaseError):
+    """The base exception class for evohome-async."""
+
+
+class InvalidSchema(EvohomeError):
     """The supplied config/status JSON is invalid (e.g. no Id)."""
 
 
-class RequestFailed(EvohomeBaseError):
+class RequestFailed(EvohomeError):
     """The API request failed for some reason (no/invalid/unexpected response).
 
     Could be caused by any aiohttp.ClientError, for example: ConnectionError.  If the
-    cause was a ClientResponseError, then the `status` attr will not be None.
+    cause was a ClientResponseError, then the `status` attr will have an integer value.
     """
 
     def __init__(self, message: str, status: None | int = None) -> None:

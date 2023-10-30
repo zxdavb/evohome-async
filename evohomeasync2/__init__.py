@@ -21,6 +21,7 @@ from .broker import Broker
 from .controlsystem import ControlSystem
 from .exceptions import (  # noqa: F401
     AuthenticationFailed,
+    EvohomeError,
     InvalidSchedule,
     InvalidSchema,
     RequestFailed,
