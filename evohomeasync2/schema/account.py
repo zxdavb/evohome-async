@@ -5,23 +5,26 @@
 from __future__ import annotations
 
 from .const import (
-    SZ_ACCESS_TOKEN,
     SZ_CITY,
     SZ_COUNTRY,
-    SZ_EXPIRES_IN,
     SZ_FIRSTNAME,
     SZ_LANGUAGE,
     SZ_LASTNAME,
     SZ_POSTCODE,
-    SZ_REFRESH_TOKEN,
-    SZ_SCOPE,
     SZ_STREET_ADDRESS,
-    SZ_TOKEN_TYPE,
     SZ_USER_ID,
     SZ_USERNAME,
 )
 from .const import obfuscate as _obfuscate
 from .helpers import vol  # voluptuous
+
+
+# These are vendor-specific constants, used for authentication
+SZ_ACCESS_TOKEN = "access_token"
+SZ_EXPIRES_IN = "expires_in"
+SZ_REFRESH_TOKEN = "refresh_token"
+SZ_SCOPE = "scope"
+SZ_TOKEN_TYPE = "token_type"
 
 
 SCH_OAUTH_TOKEN = vol.Schema(

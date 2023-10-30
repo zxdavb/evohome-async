@@ -37,20 +37,13 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONES,
 )
-from .const import (
-    SystemMode,
-    ZoneMode,
-    DHW_STATES,
-    FAULT_TYPES,
-    SYSTEM_MODES,
-    ZONE_MODES,
-)
+from .const import DhwState, FaultType, SystemMode, ZoneMode
 from .helpers import vol  # voluptuous
 
 
 SCH_ACTIVE_FAULT = vol.Schema(
     {
-        vol.Required(SZ_FAULT_TYPE): vol.Any(*FAULT_TYPES),
+        vol.Required(SZ_FAULT_TYPE): vol.Any(*(m.value for m in FaultType)),
         vol.Required(SZ_SINCE): vol.Any(
             vol.Datetime(format="%Y-%m-%dT%H:%M:%S"),  # faults for zones
             vol.Datetime(format="%Y-%m-%dT%H:%M:%S.%f"),
@@ -75,11 +68,11 @@ SCH_TEMPERATURE_STATUS = vol.Any(
 SCH_SETPOINT_STATUS = vol.Schema(
     {
         vol.Required(SZ_TARGET_HEAT_TEMPERATURE): float,
-        vol.Required(SZ_SETPOINT_MODE): vol.Any(*[m.value for m in ZoneMode]),
+        vol.Required(SZ_SETPOINT_MODE): vol.Any(*(m.value for m in ZoneMode)),
         vol.Optional(SZ_UNTIL): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
     },
     extra=vol.PREVENT_EXTRA,
-)
+)  # NOTE: SZ_UNTIL is present only for some modes
 
 SCH_ZONE = vol.Schema(
     {
@@ -94,11 +87,12 @@ SCH_ZONE = vol.Schema(
 
 SCH_STATE_STATUS = vol.Schema(
     {
-        vol.Required(SZ_STATE): vol.Any(*DHW_STATES),
-        vol.Required(SZ_MODE): vol.Any(*ZONE_MODES),
+        vol.Required(SZ_STATE): vol.Any(*(m.value for m in DhwState)),
+        vol.Required(SZ_MODE): vol.Any(*(m.value for m in ZoneMode)),
+        vol.Optional(SZ_UNTIL): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
     },
     extra=vol.PREVENT_EXTRA,
-)
+)  # NOTE: SZ_UNTIL is present only for some modes
 
 SCH_DHW = vol.Schema(
     {
@@ -113,7 +107,7 @@ SCH_DHW = vol.Schema(
 SCH_SYSTEM_MODE_STATUS = vol.Any(
     vol.Schema(
         {
-            vol.Required(SZ_MODE): vol.Any(*SYSTEM_MODES),
+            vol.Required(SZ_MODE): vol.Any(*(m.value for m in SystemMode)),
             vol.Required(SZ_IS_PERMANENT): True,
         }
     ),

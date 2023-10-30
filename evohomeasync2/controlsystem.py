@@ -285,12 +285,16 @@ class ControlSystem(_ControlSystemDeprecated):
 
         for zone in self._zones:
             schedule = await zone.get_schedule()
-            schedules[zone.zoneId] = {SZ_NAME: zone.name, SZ_SCHEDULE: schedule}
+            schedules[zone.zoneId] = {
+                SZ_NAME: zone.name,
+                SZ_SCHEDULE: schedule,
+            }
 
         if self.hotwater:
             schedule = await self.hotwater.get_schedule()
             schedules[self.hotwater.dhwId] = {
-                SZ_NAME: self.hotwater.name, SZ_SCHEDULE: schedule
+                SZ_NAME: self.hotwater.name,
+                SZ_SCHEDULE: schedule,
             }
 
         with open(filename, "w") as file_output:

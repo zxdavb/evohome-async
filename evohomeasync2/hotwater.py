@@ -112,7 +112,11 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
         """Set the DHW on until a given time, or permanently."""
 
         if until is None:
-            mode = {SZ_MODE: SZ_PERMANENT_OVERRIDE, SZ_STATE: SZ_ON, SZ_UNTIL_TIME: None}
+            mode = {
+                SZ_MODE: SZ_PERMANENT_OVERRIDE,
+                SZ_STATE: SZ_ON,
+                SZ_UNTIL_TIME: None,
+            }
         else:
             mode = {
                 SZ_MODE: SZ_TEMPORARY_OVERRIDE,
@@ -126,7 +130,11 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
         """Set the DHW off until a given time, or permanently."""
 
         if until is None:
-            mode = {SZ_MODE: SZ_PERMANENT_OVERRIDE, SZ_STATE: SZ_OFF, SZ_UNTIL_TIME: None}
+            mode = {
+                SZ_MODE: SZ_PERMANENT_OVERRIDE,
+                SZ_STATE: SZ_OFF,
+                SZ_UNTIL_TIME: None,
+            }
         else:
             mode = {
                 SZ_MODE: SZ_TEMPORARY_OVERRIDE,

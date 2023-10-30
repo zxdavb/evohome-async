@@ -76,7 +76,10 @@ class Broker:
     ) -> None:
         """A class for interacting with the Evohome API."""
 
-        self._credentials = {"Username": username, "Password": password}
+        self._credentials = {
+            "Username": username,
+            "Password": password,
+        }  # NOTE: must be Uppercase keys
         self._logger = logger or logging.getLogger(__name__)
 
         self.refresh_token = refresh_token
