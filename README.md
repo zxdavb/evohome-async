@@ -51,3 +51,5 @@ Other minor changes:
  - some methods have been renamed (invoking the old name will advise the new name)
  - `Hotwater.zoneId` is deprecated
  - `ZoneBase.zone_type` is deprecated
+ - some sentinel values are now `None`
+
