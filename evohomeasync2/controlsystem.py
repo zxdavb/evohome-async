@@ -40,6 +40,15 @@ if TYPE_CHECKING:
     from .schema import _DhwIdT, _EvoDictT, _EvoListT, _FilePathT, _SystemIdT, _ZoneIdT
 
 
+# used by temperatures() and *_schedules()...
+SZ_ID = "id"
+SZ_NAME = "name"
+SZ_TEMP = "temp"
+SZ_THERMOSTAT = "thermostat"
+SZ_SCHEDULE = "schedule"
+SZ_SETPOINT = "setpoint"
+
+
 class _ControlSystemDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
@@ -226,31 +235,31 @@ class ControlSystem(_ControlSystemDeprecated):
 
         if dhw := self.hotwater:
             dhw_status = {
-                "thermostat": "DOMESTIC_HOT_WATER",
-                "id": dhw.dhwId,
-                "name": dhw.name,
-                "temp": None,
+                SZ_THERMOSTAT: "DOMESTIC_HOT_WATER",
+                SZ_ID: dhw.dhwId,
+                SZ_NAME: dhw.name,
+                SZ_TEMP: None,
             }
 
             if (
                 isinstance(dhw.temperatureStatus, dict)
                 and dhw.temperatureStatus[SZ_IS_AVAILABLE]
             ):
-                dhw_status["temp"] = dhw.temperatureStatus[SZ_TEMPERATURE]
+                dhw_status[SZ_TEMP] = dhw.temperatureStatus[SZ_TEMPERATURE]
 
             result.append(dhw_status)
 
         for zone in self._zones:
             zone_status = {
-                "thermostat": "EMEA_ZONE",
-                "id": zone.zoneId,
-                "name": zone.name,
-                "setpoint": None,
-                "temp": None,
+                SZ_THERMOSTAT: "EMEA_ZONE",
+                SZ_ID: zone.zoneId,
+                SZ_NAME: zone.name,
+                SZ_SETPOINT: None,
+                SZ_TEMP: None,
             }
 
             if isinstance(zone.setpointStatus, dict):
-                zone_status["setpoint"] = zone.setpointStatus[
+                zone_status[SZ_SETPOINT] = zone.setpointStatus[
                     SZ_TARGET_HEAT_TEMPERATURE
                 ]
 
@@ -258,7 +267,7 @@ class ControlSystem(_ControlSystemDeprecated):
                 isinstance(zone.temperatureStatus, dict)
                 and zone.temperatureStatus[SZ_IS_AVAILABLE]
             ):
-                zone_status["temp"] = zone.temperatureStatus[SZ_TEMPERATURE]
+                zone_status[SZ_TEMP] = zone.temperatureStatus[SZ_TEMPERATURE]
 
             result.append(zone_status)
 
@@ -276,13 +285,12 @@ class ControlSystem(_ControlSystemDeprecated):
 
         for zone in self._zones:
             schedule = await zone.get_schedule()
-            schedules[zone.zoneId] = {"name": zone.name, "schedule": schedule}
+            schedules[zone.zoneId] = {SZ_NAME: zone.name, SZ_SCHEDULE: schedule}
 
         if self.hotwater:
             schedule = await self.hotwater.get_schedule()
             schedules[self.hotwater.dhwId] = {
-                "name": self.hotwater.name,
-                "schedule": schedule,
+                SZ_NAME: self.hotwater.name, SZ_SCHEDULE: schedule
             }
 
         with open(filename, "w") as file_output:
@@ -301,13 +309,13 @@ class ControlSystem(_ControlSystemDeprecated):
         async def restore_by_id(id: _ZoneIdT | _DhwIdT, schedule: dict) -> bool:
             """Restore schedule by id and return False if there was no match."""
 
-            name = schedule.get("name")
+            name = schedule.get(SZ_NAME)
 
             if self.hotwater and self.hotwater.dhwId == id:
-                await self.hotwater.set_schedule(json.dumps(schedule["schedule"]))
+                await self.hotwater.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
 
             elif zone := self.zones_by_id.get(id):
-                await zone.set_schedule(json.dumps(schedule["schedule"]))
+                await zone.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
 
             else:
                 self._logger.warning(
@@ -321,13 +329,13 @@ class ControlSystem(_ControlSystemDeprecated):
         async def restore_by_name(id: _ZoneIdT | _DhwIdT, schedule: dict) -> bool:
             """Restore schedule by name and return False if there was no match."""
 
-            name = schedule["name"]  # don't use .get()
+            name = schedule[SZ_NAME]  # don't use .get()
 
             if self.hotwater and name == self.hotwater.name:
-                await self.hotwater.set_schedule(json.dumps(schedule["schedule"]))
+                await self.hotwater.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
 
             elif zone := self.zones.get(name):
-                await zone.set_schedule(json.dumps(schedule["schedule"]))
+                await zone.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
 
             else:
                 self._logger.warning(
