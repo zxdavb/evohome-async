@@ -47,7 +47,7 @@ For the older evohome API (evohomeclient):
  - Exceptions change similar to the above
 
 Other minor changes:
- - raises parochial exceptions when appropriate (e.g. **AuthenticationError**)
- - some methods have been renamed (invoking the old name will advise the new name) 
+ - raises parochial exceptions when appropriate (e.g. **AuthenticationFailed**)
+ - some methods have been renamed (invoking the old name will advise the new name)
  - `Hotwater.zoneId` is deprecated
  - `ZoneBase.zone_type` is deprecated
