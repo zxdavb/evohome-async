@@ -14,7 +14,7 @@ import asyncio
 from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
 import logging
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, Any, Callable, NoReturn
 
 import aiohttp
 
@@ -165,7 +165,8 @@ class EvohomeClient(EvohomeClientDeprecated):
     ) -> aiohttp.ClientResponse:
         """Perform an HTTP request, with optional retry (usu. for authentication)."""
 
-        url = self.hostname + "/WebAPI/api" + url
+        if self.hostname not in url:  # TODO: HACK: FIXME: workaround
+            url = self.hostname + "/WebAPI/api" + url
 
         if method == HTTPMethod.GET:
             func = self._session.get
@@ -173,6 +174,31 @@ class EvohomeClient(EvohomeClientDeprecated):
             func = self._session.put
         elif method == HTTPMethod.POST:
             func = self._session.post
+
+        response = await self._do_request_base(func, url, data=data, retry=retry)
+
+        try:
+            response.raise_for_status()
+
+        except aiohttp.ClientResponseError as exc:
+            if response.method == HTTPMethod.POST:
+                raise AuthenticationFailed(str(exc))
+            if response.status != HTTPStatus.TOO_MANY_REQUESTS:
+                raise RateLimitExceeded(str(exc))
+            raise RequestFailed(str(exc))
+
+        return response
+
+    async def _do_request_base(
+        self,
+        func: Callable,
+        url: str,
+        /,
+        *,
+        data: dict | None = None,
+        retry: bool = True,
+    ) -> aiohttp.ClientResponse:
+        """Perform an HTTP request, with optional retry (usu. for authentication)."""
 
         async with func(url, json=data, headers=self.headers) as response:  # NB: json=
             response_text = await response.text()
@@ -188,15 +214,15 @@ class EvohomeClient(EvohomeClientDeprecated):
                         _LOGGER.debug("Session expired, re-authenticating...")
 
                         self.user_data = None  # Get a fresh (= None) sessionId
-                        await self._populate_user_info()
+                        await self._populate_user_data()
 
                         # Set headers with the new sessionId
                         session_id = self.user_data["sessionId"]  # type: ignore[index]
                         self.headers["sessionId"] = session_id
                         _LOGGER.debug(f"... Success: sessionId = {session_id}")
 
-                        response = await self._do_request(
-                            method, url, data=data, retry=False
+                        response = await self._do_request_base(
+                            func, url, data=data, retry=False
                         )
 
             # if not 200/OK, display (useful?) error message if the vendor provided one
@@ -205,15 +231,6 @@ class EvohomeClient(EvohomeClientDeprecated):
                     _LOGGER.warning(
                         f"HTTP Status = {response.status}, Response = {response_text}",
                     )
-
-            try:
-                response.raise_for_status()
-            except aiohttp.ClientResponseError as exc:
-                if method == HTTPMethod.POST:
-                    raise AuthenticationFailed(str(exc))
-                if response.status != HTTPStatus.TOO_MANY_REQUESTS:
-                    raise RateLimitExceeded(str(exc))
-                raise RequestFailed(str(exc))
 
         return response
 
@@ -232,7 +249,9 @@ class EvohomeClient(EvohomeClientDeprecated):
             response = await self._do_request(
                 HTTPMethod.POST, url, data=self.postdata, retry=False
             )
-            self.user_data = await response.json()  # aiohttp.ClientConnectionError: Connection closed
+            self.user_data = (
+                await response.json()
+            )  # aiohttp.ClientConnectionError: Connection closed
 
         assert isinstance(self.user_data, dict)  # mypy
         return self.user_data
