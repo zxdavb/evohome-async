@@ -177,24 +177,24 @@ class EvohomeClient(EvohomeClientDeprecated):
         async with func(url, json=data, headers=self.headers) as response:  # NB: json=
             response_text = await response.text()
 
-            # if 401/unauthorized, attempt to refresh sessionId if it has expired
+            # if 401/unauthorized, may need to refresh sessionId
             if response.status == HTTPStatus.UNAUTHORIZED and retry is True:
+                # NOTE: this is a recursive call, used only for authentication
+
                 if "code" in response_text:  # don't use .json() yet: may be plain text
                     response_json = await response.json()
 
                     if response_json[0]["code"] == "Unauthorized":
                         _LOGGER.debug("Session expired, re-authenticating...")
 
-                        # Get a fresh (= None) sessionId (self.user_data)
-                        self.user_data = None
+                        self.user_data = None  # Get a fresh (= None) sessionId
                         await self._populate_user_info()
 
                         # Set headers with the new sessionId
                         session_id = self.user_data["sessionId"]  # type: ignore[index]
                         self.headers["sessionId"] = session_id
-                        _LOGGER.debug(f"sessionId = {session_id}")
+                        _LOGGER.debug(f"... Success: sessionId = {session_id}")
 
-                        # NOTE: this is a recursive call, used only for authentication
                         response = await self._do_request(
                             method, url, data=data, retry=False
                         )
