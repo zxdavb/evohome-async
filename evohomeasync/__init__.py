@@ -217,11 +217,31 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         return response
 
+    async def _populate_user_data(self) -> _EvoDictT:
+        """Retrieve all the user data from the web."""
+
+        if self.user_data is None:
+            self.postdata = {
+                "Username": self.username,
+                "Password": self.password,
+                "ApplicationId": "91db1612-73fd-4500-91b2-e63b069b185c",
+            }
+            self.headers = {"content-type": "application/json"}
+
+            url = "/Session"
+            response = await self._do_request(
+                HTTPMethod.POST, url, data=self.postdata, retry=False
+            )
+            self.user_data = await response.json()  # aiohttp.ClientConnectionError: Connection closed
+
+        assert isinstance(self.user_data, dict)  # mypy
+        return self.user_data
+
     async def _populate_full_data(self, force_refresh: bool = False) -> None:
-        """"""
+        """Retrieve all the system data from the web."""
 
         if self.full_data is None or force_refresh:
-            await self._populate_user_info()
+            await self._populate_user_data()
 
             self.headers["sessionId"] = self.user_data["sessionId"]  # type: ignore[index]
             user_id = self.user_data["userInfo"]["userID"]  # type: ignore[index]
@@ -239,33 +259,13 @@ class EvohomeClient(EvohomeClientDeprecated):
                 self.devices[device["deviceID"]] = device
                 self.named_devices[device["name"]] = device
 
-    async def _populate_user_info(self) -> _EvoDictT:
-        """"""
-
-        if self.user_data is None:
-            self.postdata = {
-                "Username": self.username,
-                "Password": self.password,
-                "ApplicationId": "91db1612-73fd-4500-91b2-e63b069b185c",
-            }
-            self.headers = {"content-type": "application/json"}
-
-            url = "/Session"
-            response = await self._do_request(
-                HTTPMethod.POST, url, data=self.postdata, retry=False
-            )
-            self.user_data = await response.json()
-
-        assert isinstance(self.user_data, dict)  # mypy
-        return self.user_data
-
     async def temperatures(self, force_refresh: bool = False) -> _EvoListT:
         """Retrieve the current details for each zone."""
 
         set_point: float
         status: str
 
-        await self._populate_full_data(force_refresh)
+        await self._populate_full_data(force_refresh=force_refresh)
 
         result = []
 
