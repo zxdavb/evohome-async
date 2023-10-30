@@ -86,6 +86,8 @@ class _ZoneBase(_ZoneBaseDeprecated):
         It will be more efficient to call Location.refresh_status().
         """
 
+        self._logger.debug(f"Getting status of {self._id} ({self.TYPE})...")
+
         status: _EvoDictT = await self._broker.get(
             f"{self.TYPE}/{self._id}/status", schema=self.STATUS_SCHEMA
         )  # type: ignore[assignment]

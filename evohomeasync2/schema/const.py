@@ -93,6 +93,7 @@ SZ_OFF = "Off"
 SZ_OFFSET_MINUTES = "offsetMinutes"
 SZ_ON = "On"
 
+SZ_PERMANENT = "permanent"
 SZ_PERMANENT_OVERRIDE = "PermanentOverride"
 SZ_POSTCODE = "postcode"
 
@@ -132,6 +133,7 @@ SZ_TIMING_RESOLUTION = "timingResolution"
 SZ_TOKEN_TYPE = "token_type"
 
 SZ_UNTIL = "until"
+SZ_UNTIL_TIME = "untilTime"
 SZ_USE_DAYLIGHT_SAVE_SWITCHING = "useDaylightSaveSwitching"
 SZ_USER_ACCOUNT = "userAccount"
 SZ_USER_ID = "userId"

@@ -17,10 +17,16 @@ from .schema.const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_DHW,
+    SZ_IS_AVAILABLE,
     SZ_MODEL_TYPE,
+    SZ_PERMANENT,
     SZ_SYSTEM_ID,
+    SZ_SYSTEM_MODE,
     SZ_SYSTEM_MODE_STATUS,
+    SZ_TARGET_HEAT_TEMPERATURE,
+    SZ_TEMPERATURE,
     SZ_TEMPERATURE_CONTROL_SYSTEM,
+    SZ_TIME_UNTIL,
     SZ_ZONES,
 )
 from .schema.const import SYSTEM_MODES
@@ -173,12 +179,12 @@ class ControlSystem(_ControlSystemDeprecated):
             raise ValueError(f"Invalid mode: {mode}")
 
         if until is None:
-            request = {"SystemMode": mode, "TimeUntil": None, "Permanent": True}
+            request = {SZ_SYSTEM_MODE: mode, SZ_PERMANENT: True, SZ_TIME_UNTIL: None}
         else:
             request = {
-                "SystemMode": mode,
-                "TimeUntil": until.strftime(API_STRFTIME),
-                "Permanent": False,
+                SZ_SYSTEM_MODE: mode,
+                SZ_PERMANENT: False,
+                SZ_TIME_UNTIL: until.strftime(API_STRFTIME),
             }
 
         await self._set_mode(request)
@@ -228,9 +234,9 @@ class ControlSystem(_ControlSystemDeprecated):
 
             if (
                 isinstance(dhw.temperatureStatus, dict)
-                and dhw.temperatureStatus["isAvailable"]
+                and dhw.temperatureStatus[SZ_IS_AVAILABLE]
             ):
-                dhw_status["temp"] = dhw.temperatureStatus["temperature"]
+                dhw_status["temp"] = dhw.temperatureStatus[SZ_TEMPERATURE]
 
             result.append(dhw_status)
 
@@ -244,13 +250,15 @@ class ControlSystem(_ControlSystemDeprecated):
             }
 
             if isinstance(zone.setpointStatus, dict):
-                zone_status["setpoint"] = zone.setpointStatus["targetHeatTemperature"]
+                zone_status["setpoint"] = zone.setpointStatus[
+                    SZ_TARGET_HEAT_TEMPERATURE
+                ]
 
             if (
                 isinstance(zone.temperatureStatus, dict)
-                and zone.temperatureStatus["isAvailable"]
+                and zone.temperatureStatus[SZ_IS_AVAILABLE]
             ):
-                zone_status["temp"] = zone.temperatureStatus["temperature"]
+                zone_status["temp"] = zone.temperatureStatus[SZ_TEMPERATURE]
 
             result.append(zone_status)
 

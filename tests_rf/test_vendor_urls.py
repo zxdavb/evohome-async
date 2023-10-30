@@ -11,8 +11,6 @@ import pytest
 import pytest_asyncio
 
 import evohomeasync2 as evo
-from evohomeasync2.const import URL_BASE
-from evohomeasync2.schema import vol  # voluptuous
 from evohomeasync2.schema import (
     SCH_FULL_CONFIG,
     SCH_LOCN_STATUS,
@@ -34,10 +32,11 @@ from evohomeasync2.schema.const import (
 )
 from evohomeasync2.schema.schedule import convert_to_put_schedule
 
-from . import _DISABLE_STRICT_ASSERTS, _DEBUG_USE_MOCK_AIOHTTP
+from . import _DEBUG_USE_MOCK_AIOHTTP
 from .helpers import aiohttp, extract_oauth_tokens  # aiohttp may be mocked
 from .helpers import credentials as _credentials
 from .helpers import session as _session
+from .helpers import should_work, should_fail
 
 
 _global_oauth_tokens: tuple[str, str, dt] = None, None, None
@@ -88,64 +87,6 @@ async def instantiate_client(
     _global_oauth_tokens = extract_oauth_tokens(client)
 
     return client
-
-
-async def should_work(
-    client: evo.EvohomeClient,
-    method: HTTPMethod,
-    url: str,
-    json: dict | None = None,
-    content_type: str | None = "application/json",
-    schema: vol.Schema | None = None,
-) -> dict | list:
-    """Make a request that is expected to succeed."""
-
-    response: aiohttp.ClientResponse
-
-    response, content = await client._broker._client(
-        method, f"{URL_BASE}/{url}", json=json
-    )
-
-    response.raise_for_status()
-
-    assert response.content_type == content_type
-
-    if schema:
-        return schema(content)
-    return content
-
-
-async def should_fail(
-    client: evo.EvohomeClient,
-    method: HTTPMethod,
-    url: str,
-    json: dict | None = None,
-    content_type: str | None = "application/json",
-    status: HTTPStatus | None = None,
-) -> None:
-    """Make a request that is expected to fail."""
-
-    response: aiohttp.ClientResponse
-
-    response, content = await client._broker._client(
-        method, f"{URL_BASE}/{url}", json=json
-    )
-
-    try:
-        response.raise_for_status()
-    except aiohttp.ClientResponseError as exc:
-        assert exc.status == status
-    else:
-        assert False
-
-    if _DISABLE_STRICT_ASSERTS:
-        return
-
-    assert response.content_type == content_type
-    if isinstance(content, dict):
-        assert "message" in content
-    elif isinstance(content, list):
-        assert "message" in content[0]
 
 
 async def _test_usr_account(

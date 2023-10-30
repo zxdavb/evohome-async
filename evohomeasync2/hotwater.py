@@ -15,8 +15,11 @@ from .schema.const import (
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
     SZ_DOMESTIC_HOT_WATER,
+    SZ_MODE,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
+    SZ_STATE,
     SZ_STATE_STATUS,
+    SZ_UNTIL_TIME,
 )
 from .schema.schedule import SCH_GET_SCHEDULE_DHW, SCH_PUT_SCHEDULE_DHW
 from .zone import _ZoneBase
@@ -104,12 +107,12 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
         """Set the DHW on until a given time, or permanently."""
 
         if until is None:
-            mode = {"Mode": "PermanentOverride", "State": "On", "UntilTime": None}
+            mode = {SZ_MODE: "PermanentOverride", SZ_STATE: "On", SZ_UNTIL_TIME: None}
         else:
             mode = {
-                "Mode": "TemporaryOverride",
-                "State": "On",
-                "UntilTime": until.strftime(API_STRFTIME),
+                SZ_MODE: "TemporaryOverride",
+                SZ_STATE: "On",
+                SZ_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
 
         await self._set_mode(mode)
@@ -118,12 +121,12 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
         """Set the DHW off until a given time, or permanently."""
 
         if until is None:
-            mode = {"Mode": "PermanentOverride", "State": "Off", "UntilTime": None}
+            mode = {SZ_MODE: "PermanentOverride", SZ_STATE: "Off", SZ_UNTIL_TIME: None}
         else:
             mode = {
-                "Mode": "TemporaryOverride",
-                "State": "Off",
-                "UntilTime": until.strftime(API_STRFTIME),
+                SZ_MODE: "TemporaryOverride",
+                SZ_STATE: "Off",
+                SZ_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
 
         await self._set_mode(mode)
@@ -131,6 +134,7 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     async def set_auto(self) -> None:
         """Set the DHW to follow the schedule."""
 
-        mode = {"Mode": "FollowSchedule", "State": "", "UntilTime": None}
+        # NOTE: SZ_STATE was ""
+        mode = {SZ_MODE: "FollowSchedule", SZ_STATE: None, SZ_UNTIL_TIME: None}
 
         await self._set_mode(mode)
