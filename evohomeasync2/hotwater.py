@@ -15,10 +15,15 @@ from .schema.const import (
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
     SZ_DOMESTIC_HOT_WATER,
+    SZ_FOLLOW_SCHEDULE,
     SZ_MODE,
+    SZ_OFF,
+    SZ_ON,
+    SZ_PERMANENT_OVERRIDE,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_STATE,
     SZ_STATE_STATUS,
+    SZ_TEMPORARY_OVERRIDE,
     SZ_UNTIL_TIME,
 )
 from .schema.schedule import SCH_GET_SCHEDULE_DHW, SCH_PUT_SCHEDULE_DHW
@@ -107,11 +112,11 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
         """Set the DHW on until a given time, or permanently."""
 
         if until is None:
-            mode = {SZ_MODE: "PermanentOverride", SZ_STATE: "On", SZ_UNTIL_TIME: None}
+            mode = {SZ_MODE: SZ_PERMANENT_OVERRIDE, SZ_STATE: SZ_ON, SZ_UNTIL_TIME: None}
         else:
             mode = {
-                SZ_MODE: "TemporaryOverride",
-                SZ_STATE: "On",
+                SZ_MODE: SZ_TEMPORARY_OVERRIDE,
+                SZ_STATE: SZ_ON,
                 SZ_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
 
@@ -121,11 +126,11 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
         """Set the DHW off until a given time, or permanently."""
 
         if until is None:
-            mode = {SZ_MODE: "PermanentOverride", SZ_STATE: "Off", SZ_UNTIL_TIME: None}
+            mode = {SZ_MODE: SZ_PERMANENT_OVERRIDE, SZ_STATE: SZ_OFF, SZ_UNTIL_TIME: None}
         else:
             mode = {
-                SZ_MODE: "TemporaryOverride",
-                SZ_STATE: "Off",
+                SZ_MODE: SZ_TEMPORARY_OVERRIDE,
+                SZ_STATE: SZ_OFF,
                 SZ_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
 
@@ -135,6 +140,6 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
         """Set the DHW to follow the schedule."""
 
         # NOTE: SZ_STATE was ""
-        mode = {SZ_MODE: "FollowSchedule", SZ_STATE: None, SZ_UNTIL_TIME: None}
+        mode = {SZ_MODE: SZ_FOLLOW_SCHEDULE, SZ_STATE: None, SZ_UNTIL_TIME: None}
 
         await self._set_mode(mode)

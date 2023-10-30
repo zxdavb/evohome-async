@@ -16,8 +16,11 @@ from evohomeasync2 import Location, Gateway, ControlSystem
 from evohomeasync2.const import API_STRFTIME
 from evohomeasync2.schema.const import (
     SZ_MODE,
+    SZ_OFF,
+    SZ_ON,
     SZ_STATE,
     SZ_STATE_STATUS,
+    SZ_TEMPORARY_OVERRIDE,
     SZ_UNTIL,
     SZ_UNTIL_TIME,
 )
@@ -140,10 +143,10 @@ async def _test_task_id(
 
     #
     # PART 1: Try the basic functionality...
-    # new_mode = {SZ_MODE: "PermanentOverride", SZ_STATE: "Off", SZ_UNTIL_TIME: None}
+    # new_mode = {SZ_MODE: SZ_PERMANENT_OVERRIDE, SZ_STATE: SZ_OFF, SZ_UNTIL_TIME: None}
     new_mode = {
-        SZ_MODE: "TemporaryOverride",
-        SZ_STATE: "On",
+        SZ_MODE: SZ_TEMPORARY_OVERRIDE,
+        SZ_STATE: SZ_ON,
         SZ_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
 
@@ -164,8 +167,8 @@ async def _test_task_id(
     #
     # PART 2A: Try different capitalisations of the JSON keys...
     new_mode = {
-        SZ_MODE: "TemporaryOverride",
-        SZ_STATE: "On",
+        SZ_MODE: SZ_TEMPORARY_OVERRIDE,
+        SZ_STATE: SZ_ON,
         SZ_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
     _ = await should_work(client, HTTPMethod.PUT, PUT_URL, json=new_mode)  # HTTP 201
@@ -173,8 +176,8 @@ async def _test_task_id(
     status = await should_work(client, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time
-        pascal_case(SZ_MODE): "TemporaryOverride",
-        pascal_case(SZ_STATE): "On",
+        pascal_case(SZ_MODE): SZ_TEMPORARY_OVERRIDE,
+        pascal_case(SZ_STATE): SZ_ON,
         pascal_case(SZ_UNTIL_TIME): (dt.now() + td(hours=2)).strftime(API_STRFTIME),
     }
     _ = await should_work(client, HTTPMethod.PUT, PUT_URL, json=new_mode)
@@ -191,7 +194,7 @@ async def _test_task_id(
 
     #
     # PART 4A: Try bad JSON...
-    bad_mode = {SZ_STATE: "TemporaryOverride", SZ_MODE: "Off", SZ_UNTIL_TIME: None}
+    bad_mode = {SZ_STATE: SZ_TEMPORARY_OVERRIDE, SZ_MODE: SZ_OFF, SZ_UNTIL_TIME: None}
     _ = await should_fail(
         client, HTTPMethod.PUT, PUT_URL, json=bad_mode, status=HTTPStatus.BAD_REQUEST
     )  #

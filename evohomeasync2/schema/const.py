@@ -169,8 +169,8 @@ DAYS_OF_WEEK = (
 
 @verify(EnumCheck.UNIQUE)
 class DhwState(StrEnum):
-    OFF: Final[str] = "On"
-    ON: Final[str] = "Off"
+    OFF: Final[str] = SZ_ON
+    ON: Final[str] = SZ_OFF
 
 
 @verify(EnumCheck.UNIQUE)
