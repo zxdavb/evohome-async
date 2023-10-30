@@ -68,7 +68,7 @@ SCH_GET_SCHEDULE_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_GET_SCHEDULE = vol.Schema(  # PUT /{self._type}/{self._id}/schedule
+SCH_GET_SCHEDULE = vol.Schema(  # PUT /{self.TYPE}/{self._id}/schedule
     vol.Any(SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE),
     extra=vol.PREVENT_EXTRA,
 )
@@ -127,7 +127,7 @@ SCH_PUT_SCHEDULE_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_PUT_SCHEDULE = vol.Schema(  # PUT /{self._type}/{self._id}/schedule
+SCH_PUT_SCHEDULE = vol.Schema(  # PUT /{self.TYPE}/{self._id}/schedule
     vol.Any(SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE),
     extra=vol.PREVENT_EXTRA,
 )

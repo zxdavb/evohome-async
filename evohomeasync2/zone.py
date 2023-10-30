@@ -47,7 +47,7 @@ class _ZoneBaseDeprecated:
 
     @property
     def zone_type(self) -> NoReturn:
-        raise NotImplementedError("ZoneBase.zone_type is deprecated, use ._type")
+        raise NotImplementedError("ZoneBase.zone_type is deprecated, use .TYPE")
 
     async def schedule(self) -> NoReturn:
         raise NotImplementedError(
@@ -196,13 +196,15 @@ class Zone(_ZoneBase):
         """TODO"""
 
         _ = await self._broker.put(
-            f"{self._type}/{self._id}/heatSetpoint", json=heat_setpoint  # schema=
+            f"{self.TYPE}/{self._id}/heatSetpoint", json=heat_setpoint  # schema=
         )
 
     async def set_temperature(
-        self, temperature: float, /, *, until: None | dt = None
+        self, temperature: float, /, *, until: dt | None = None
     ) -> None:
         """Set the temperature of the given zone."""
+
+        mode: dict[str, str | float | None]
 
         if until is None:  # NOTE: beware that these may be case-sensitive
             mode = {
@@ -222,7 +224,7 @@ class Zone(_ZoneBase):
     async def cancel_temp_override(self) -> None:
         """Cancel an override to the zone temperature."""
 
-        mode = {
+        mode: dict[str, str | float | None] = {
             SZ_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
             SZ_HEAT_SETPOINT_VALUE: 0.0,
             SZ_TIME_UNTIL: None,

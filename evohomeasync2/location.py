@@ -49,8 +49,8 @@ class _LocationDeprecated:
 class Location(_LocationDeprecated):
     """Instance of an account's location."""
 
-    STATUS_SCHEMA = SCH_LOCN_STATUS
-    _type = SZ_LOCATION
+    STATUS_SCHEMA: Final = SCH_LOCN_STATUS
+    TYPE: Final[str] = SZ_LOCATION
 
     def __init__(self, client: EvohomeClient, config: _EvoDictT) -> None:
         self.client = client
@@ -76,7 +76,7 @@ class Location(_LocationDeprecated):
             self.gateways[gwy.gatewayId] = gwy
 
     def __str__(self) -> str:
-        return f"{self._id} ({self._type})"
+        return f"{self._id} ({self.TYPE})"
 
     # config attrs...
     @property
@@ -111,7 +111,7 @@ class Location(_LocationDeprecated):
         """Update the Location with its latest status (also returns the status)."""
 
         status: _EvoDictT = await self._broker.get(
-            f"{self._type}/{self._id}/status?includeTemperatureControlSystems=True",
+            f"{self.TYPE}/{self._id}/status?includeTemperatureControlSystems=True",
             schema=self.STATUS_SCHEMA,
         )  # type: ignore[assignment]
 

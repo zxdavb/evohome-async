@@ -28,8 +28,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def credentials():
-    username = os.getenv("PYTEST_USERNAME")
-    password = os.getenv("PYTEST_PASSWORD")
+    username = os.getenv("PYTEST_USERNAME") or "spotty.blackcat@gmail.com"
+    password = os.getenv("PYTEST_PASSWORD") or "zT9@5KmWELYeqasdf99"
 
     # with open() as f:
     #     lines = f.readlines()

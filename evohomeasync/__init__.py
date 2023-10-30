@@ -13,7 +13,6 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
-import json
 import logging
 from typing import TYPE_CHECKING, Any, NoReturn
 
@@ -53,9 +52,10 @@ class EvohomeClientDeprecated:  # NOTE: incl. _wait_for_put_task()
 
         async def get_task_status(task_id: _TaskIdT) -> str:
             await self._populate_full_data()
-            url = self.hostname + f"/WebAPI/api/commTasks?commTaskId={task_id}"
 
+            url = f"/commTasks?commTaskId={task_id}"
             response = await self._do_request(HTTPMethod.GET, url)
+
             return dict(await response.json())["state"]
 
         task_id: _TaskIdT
@@ -69,9 +69,11 @@ class EvohomeClientDeprecated:  # NOTE: incl. _wait_for_put_task()
         while await get_task_status(task_id) != "Succeeded":
             await asyncio.sleep(1)
 
+    # Note deprecated, just a placeholder for self.get_task_status()
     async def _do_request(self, *args, **kwargs) -> aiohttp.ClientResponse:
         raise NotImplementedError
 
+    # Note deprecated, just a placeholder for self.get_task_status()
     async def _populate_full_data(self, *args, **kwargs) -> None:
         raise NotImplementedError
 
@@ -158,10 +160,12 @@ class EvohomeClient(EvohomeClientDeprecated):
         url: str,
         /,
         *,
-        data: str | None = None,
+        data: dict | None = None,
         retry: bool = True,
     ) -> aiohttp.ClientResponse:
         """Perform an HTTP request, with optional retry (usu. for authentication)."""
+
+        url = self.hostname + "/WebAPI/api" + url
 
         if method == HTTPMethod.GET:
             func = self._session.get
@@ -170,7 +174,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         elif method == HTTPMethod.POST:
             func = self._session.post
 
-        async with func(url, data=data, headers=self.headers) as response:
+        async with func(url, json=data, headers=self.headers) as response:  # NB: json=
             response_text = await response.text()
 
             # if 401/unauthorized, attempt to refresh sessionId if it has expired
@@ -190,9 +194,10 @@ class EvohomeClient(EvohomeClientDeprecated):
                         self.headers["sessionId"] = session_id
                         _LOGGER.debug(f"sessionId = {session_id}")
 
+                        # NOTE: this is a recursive call, used only for authentication
                         response = await self._do_request(
                             method, url, data=data, retry=False
-                        )  # NOTE: this is a recursive call
+                        )
 
             # if not 200/OK, display (useful?) error message if the vendor provided one
             if response.status != HTTPStatus.OK:
@@ -218,15 +223,11 @@ class EvohomeClient(EvohomeClientDeprecated):
         if self.full_data is None or force_refresh:
             await self._populate_user_info()
 
+            self.headers["sessionId"] = self.user_data["sessionId"]  # type: ignore[index]
             user_id = self.user_data["userInfo"]["userID"]  # type: ignore[index]
-            session_id = self.user_data["sessionId"]  # type: ignore[index]
 
-            url = self.hostname + f"/WebAPI/api/locations?userId={user_id}&allData=True"
-            self.headers["sessionId"] = session_id
-
-            response = await self._do_request(
-                HTTPMethod.GET, url, data=json.dumps(self.postdata)
-            )
+            url = f"/locations?userId={user_id}&allData=True"
+            response = await self._do_request(HTTPMethod.GET, url, data=self.postdata)
 
             self.full_data = list(await response.json())[0]
             self.location_id = self.full_data["locationID"]
@@ -242,7 +243,6 @@ class EvohomeClient(EvohomeClientDeprecated):
         """"""
 
         if self.user_data is None:
-            url = self.hostname + "/WebAPI/api/Session"
             self.postdata = {
                 "Username": self.username,
                 "Password": self.password,
@@ -250,8 +250,9 @@ class EvohomeClient(EvohomeClientDeprecated):
             }
             self.headers = {"content-type": "application/json"}
 
+            url = "/Session"
             response = await self._do_request(
-                HTTPMethod.POST, url, data=json.dumps(self.postdata), retry=False
+                HTTPMethod.POST, url, data=self.postdata, retry=False
             )
             self.user_data = await response.json()
 
@@ -270,28 +271,25 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         try:
             for device in self.full_data["devices"]:
-                if "heatSetpoint" in device["thermostat"]["changeableValues"]:
-                    set_point = float(
-                        device["thermostat"]["changeableValues"]["heatSetpoint"][
-                            "value"
-                        ]
-                    )
-                    status = device["thermostat"]["changeableValues"]["heatSetpoint"][
-                        "status"
-                    ]
+                temp = float(device["thermostat"]["indoorTemperature"])
+                values = device["thermostat"]["changeableValues"]
 
+                if "heatSetpoint" in values:
+                    set_point = float(values["heatSetpoint"]["value"])
+                    status = values["heatSetpoint"]["status"]
                 else:
                     set_point = 0
-                    status = device["thermostat"]["changeableValues"]["status"]
+                    status = values["status"]
+
                 result.append(
                     {
                         "thermostat": device["thermostatModelType"],
                         "id": device["deviceID"],
                         "name": device["name"],
-                        "temp": float(device["thermostat"]["indoorTemperature"]),
+                        "temp": None if temp == 128 else temp,
                         "setpoint": set_point,
                         "status": status,
-                        "mode": device["thermostat"]["changeableValues"]["mode"],
+                        "mode": values["mode"],
                     }
                 )
 
@@ -305,52 +303,50 @@ class EvohomeClient(EvohomeClientDeprecated):
         raise NotImplementedError
 
     async def _set_system_mode(
-        self, status: _SystemModeT, until: None | dt = None
+        self, status: _SystemModeT, until: dt | None = None
     ) -> None:
         """Set the system mode."""
 
         await self._populate_full_data()
-        url = (
-            self.hostname + f"/WebAPI/api/evoTouchSystems?locationId={self.location_id}"
-        )
 
+        data: dict[str, str | None] = {"QuickAction": status}
         if until is None:
-            data = {"QuickAction": status, "QuickActionNextTime": None}
+            data |= {"QuickActionNextTime": None}
         else:
-            data = {
-                "QuickAction": status,
-                "QuickActionNextTime": until.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            }
+            data |= {"QuickActionNextTime": until.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
-        await self._do_request(HTTPMethod.PUT, url, data=json.dumps(data))
+        url = f"/evoTouchSystems?locationId={self.location_id}"
+        await self._do_request(HTTPMethod.PUT, url, data=data)
 
     async def set_mode_auto(self) -> None:
         """Set the system to normal operation."""
         await self._set_system_mode("Auto")
 
-    async def set_mode_away(self, until: None | dt = None) -> None:
+    async def set_mode_away(self, until: dt | None = None) -> None:
         """Set the system to the away mode."""
         await self._set_system_mode("Away", until)
 
-    async def set_mode_custom(self, until: None | dt = None) -> None:
+    async def set_mode_custom(self, until: dt | None = None) -> None:
         """Set the system to the custom programme."""
         await self._set_system_mode("Custom", until)
 
-    async def set_mode_dayoff(self, until: None | dt = None) -> None:
+    async def set_mode_dayoff(self, until: dt | None = None) -> None:
         """Set the system to the day off mode."""
         await self._set_system_mode("DayOff", until)
 
-    async def set_mode_eco(self, until: None | dt = None) -> None:
+    async def set_mode_eco(self, until: dt | None = None) -> None:
         """Set the system to the eco mode."""
         await self._set_system_mode("AutoWithEco", until)
 
-    async def set_mode_heatingoff(self, until: None | dt = None) -> None:
+    async def set_mode_heatingoff(self, until: dt | None = None) -> None:
         """Set the system to the heating off mode."""
         await self._set_system_mode("HeatingOff", until)
 
     async def get_zone_modes(self, zone) -> list[str]:
         """Return the set of modes the zone can be assigned."""
+
         await self._populate_full_data()
+
         device = self._get_device(zone)
         return device["thermostat"]["allowedModes"]
 
@@ -371,16 +367,13 @@ class EvohomeClient(EvohomeClientDeprecated):
         """"""
 
         await self._populate_full_data()
+
         zone_id: _ZoneIdT = self._get_device_id(zone)
 
-        url = (
-            self.hostname
-            + f"/WebAPI/api/devices/{zone_id}/thermostat/changeableValues/heatSetpoint"
-        )
+        url = f"/devices/{zone_id}/thermostat/changeableValues/heatSetpoint"
+        await self._do_request(HTTPMethod.PUT, url, data=data)
 
-        await self._do_request(HTTPMethod.PUT, url, data=json.dumps(data))
-
-    async def set_temperature(self, zone, temperature, until: None | dt = None) -> None:
+    async def set_temperature(self, zone, temperature, until: dt | None = None) -> None:
         """Set the temperature of the given zone."""
 
         if until is None:
@@ -414,6 +407,12 @@ class EvohomeClient(EvohomeClientDeprecated):
     ) -> None:
         """Set DHW to On, Off or Auto, either indefinitely, or until a set time."""
 
+        await self._populate_full_data()
+
+        dhw_id = self._get_dhw_zone()
+        if dhw_id is None:
+            raise InvalidSchema("No DHW zone reported from API")
+
         data = {
             "Status": status,
             "Mode": mode,
@@ -423,18 +422,10 @@ class EvohomeClient(EvohomeClientDeprecated):
             "CoolSetpoint": None,
         }
 
-        await self._populate_full_data()
-        dhw_id = self._get_dhw_zone()
+        url = f"/devices/{dhw_id}/thermostat/changeableValues"
+        await self._do_request(HTTPMethod.PUT, url, data=data)
 
-        if dhw_id is None:
-            raise InvalidSchema("No DHW zone reported from API")
-        url = (
-            self.hostname + f"/WebAPI/api/devices/{dhw_id}/thermostat/changeableValues"
-        )
-
-        await self._do_request(HTTPMethod.PUT, url, data=json.dumps(data))
-
-    async def set_dhw_on(self, until: None | dt = None) -> None:
+    async def set_dhw_on(self, until: dt | None = None) -> None:
         """Set DHW to on, either indefinitely, or until a specified time.
 
         When On, the DHW controller will work to keep its target temperature at/above
@@ -446,7 +437,7 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         await self._set_dhw(status="Hold", mode="DHWOn", next_time=time_until)
 
-    async def set_dhw_off(self, until: None | dt = None) -> None:
+    async def set_dhw_off(self, until: dt | None = None) -> None:
         """Set DHW to on, either indefinitely, or until a specified time.
 
         When Off, the DHW controller will ignore its target temperature. After the

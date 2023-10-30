@@ -55,7 +55,7 @@ def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
 async def instantiate_client(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession = None,
+    session: aiohttp.ClientSession | None = None,
 ):
     """Instantiate a client, and logon to the vendor API."""
 

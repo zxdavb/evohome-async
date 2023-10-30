@@ -125,9 +125,9 @@ class EvohomeClient(EvohomeClientDeprecated):
         /,
         *,
         debug: bool = False,
-        refresh_token: None | str = None,
-        access_token: None | str = None,
-        access_token_expires: None | dt = None,
+        refresh_token: str | None = None,
+        access_token: str | None = None,
+        access_token_expires: dt | None = None,
         session: None | aiohttp.ClientSession = None,
     ) -> None:
         """Construct the v2 EvohomeClient object.
@@ -155,15 +155,23 @@ class EvohomeClient(EvohomeClientDeprecated):
         self.locations: list[Location] = []
 
     @property
-    def refresh_token(self) -> None | str:
+    def username(self) -> str | None:  # TODO: deprecate? or use config JSON?
+        return self._broker._credentials.get("Username")
+
+    @property
+    def password(self) -> str | None:  # TODO: deprecate
+        return self._broker._credentials.get("Password")
+
+    @property
+    def refresh_token(self) -> str | None:  # TODO: deprecate
         return self._broker.refresh_token
 
     @property
-    def access_token(self) -> None | str:
+    def access_token(self) -> str | None:  # TODO: deprecate
         return self._broker.access_token
 
     @property
-    def access_token_expires(self) -> None | dt:
+    def access_token_expires(self) -> dt | None:  # TODO: deprecate
         return self._broker.access_token_expires
 
     async def login(self) -> None:

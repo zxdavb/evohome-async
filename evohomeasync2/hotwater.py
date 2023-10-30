@@ -104,8 +104,10 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
         _ = await self._broker.put(f"{self.TYPE}/{self._id}/state", json=state)
 
     # TODO: can we use camelCase strings?
-    async def set_on(self, /, *, until: None | dt = None) -> None:
+    async def set_on(self, /, *, until: dt | None = None) -> None:
         """Set the DHW on until a given time, or permanently."""
+
+        mode: dict[str, str | None]
 
         if until is None:
             mode = {
@@ -122,8 +124,10 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
 
         await self._set_mode(mode)
 
-    async def set_off(self, /, *, until: None | dt = None) -> None:
+    async def set_off(self, /, *, until: dt | None = None) -> None:
         """Set the DHW off until a given time, or permanently."""
+
+        mode: dict[str, str | None]
 
         if until is None:
             mode = {
@@ -143,8 +147,7 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     async def set_auto(self) -> None:
         """Set the DHW to follow the schedule."""
 
-        # NOTE: SZ_STATE was ""
-        mode = {
+        mode: dict[str, str | None] = {  # NOTE: SZ_STATE was previously ""
             SZ_MODE: ZoneMode.FOLLOW_SCHEDULE,
             SZ_STATE: None,
             SZ_UNTIL_TIME: None,

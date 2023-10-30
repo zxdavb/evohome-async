@@ -29,8 +29,8 @@ if TYPE_CHECKING:
 class Gateway:
     """Instance of a location's gateway."""
 
-    STATUS_SCHEMA = SCH_GATEWAY
-    _type = SZ_GATEWAY
+    STATUS_SCHEMA: Final = SCH_GATEWAY
+    TYPE: Final[str] = SZ_GATEWAY
 
     def __init__(self, location: Location, config: _EvoDictT) -> None:
         self.location = location  # parent
@@ -59,7 +59,7 @@ class Gateway:
             self.control_systems[tcs.systemId] = tcs
 
     def __str__(self) -> str:
-        return f"{self._id} ({self._type})"
+        return f"{self._id} ({self.TYPE})"
 
     # config attrs...
     @property

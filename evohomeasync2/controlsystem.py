@@ -106,8 +106,8 @@ class _ControlSystemDeprecated:
 class ControlSystem(_ControlSystemDeprecated):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
-    STATUS_SCHEMA = SCH_TCS_STATUS
-    _type = SZ_TEMPERATURE_CONTROL_SYSTEM
+    STATUS_SCHEMA: Final = SCH_TCS_STATUS
+    TYPE: Final[str] = SZ_TEMPERATURE_CONTROL_SYSTEM
 
     def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
         self.gateway = gateway
@@ -146,7 +146,7 @@ class ControlSystem(_ControlSystemDeprecated):
             self.hotwater = HotWater(self, dhw_config)
 
     def __str__(self) -> str:
-        return f"{self._id} ({self._type})"
+        return f"{self._id} ({self.TYPE})"
 
     # config attrs...
     @property
@@ -175,11 +175,11 @@ class ControlSystem(_ControlSystemDeprecated):
 
     async def _set_mode(self, system_mode: dict) -> None:
         _ = await self._broker.put(
-            f"{self._type}/{self._id}/mode", json=system_mode  # schema=
+            f"{self.TYPE}/{self._id}/mode", json=system_mode  # schema=
         )
 
     # TODO: can we use camelCase strings?
-    async def set_mode(self, mode: SystemMode, /, *, until: None | dt = None) -> None:
+    async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
 
         request: _EvoDictT
@@ -206,23 +206,23 @@ class ControlSystem(_ControlSystemDeprecated):
         """Set the system into normal mode."""
         await self.set_status(SystemMode.AUTO)
 
-    async def set_mode_custom(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_custom(self, /, *, until: dt | None = None) -> None:
         """Set the system into custom mode."""
         await self.set_status(SystemMode.CUSTOM, until=until)
 
-    async def set_mode_eco(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_eco(self, /, *, until: dt | None = None) -> None:
         """Set the system into eco mode."""
         await self.set_status(SystemMode.AUTO_WITH_ECO, until=until)
 
-    async def set_mode_away(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_away(self, /, *, until: dt | None = None) -> None:
         """Set the system into away mode."""
         await self.set_status(SystemMode.AWAY, until=until)
 
-    async def set_mode_dayoff(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_dayoff(self, /, *, until: dt | None = None) -> None:
         """Set the system into dayoff mode."""
         await self.set_status(SystemMode.DAY_OFF, until=until)
 
-    async def set_mode_heatingoff(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_heatingoff(self, /, *, until: dt | None = None) -> None:
         """Set the system into heating off mode."""
         await self.set_status(SystemMode.HEATING_OFF, until=until)
 

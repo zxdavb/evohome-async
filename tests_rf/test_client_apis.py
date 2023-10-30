@@ -49,7 +49,7 @@ async def session():
 async def _test_basics_apis(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession | mock.ClientSession = None,
+    session: aiohttp.ClientSession | mock.ClientSession | None = None,
 ):
     """Test authentication, `user_account()` and `installation()`."""
 
@@ -137,7 +137,7 @@ async def _test_basics_apis(
 async def _test_sched__apis(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession | mock.ClientSession = None,
+    session: aiohttp.ClientSession | mock.ClientSession | None = None,
 ):
     """Test `get_schedule()` and `get_schedule()`."""
 
@@ -179,7 +179,7 @@ async def _test_sched__apis(
 async def _test_status_apis(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession | mock.ClientSession = None,
+    session: aiohttp.ClientSession | mock.ClientSession | None = None,
 ):
     """Test `_refresh_status()` for DHW/zone."""
 
@@ -219,7 +219,7 @@ async def _test_status_apis(
 async def _test_system_apis(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession | mock.ClientSession = None,
+    session: aiohttp.ClientSession | mock.ClientSession | None = None,
 ):
     """Test `set_mode()` for TCS."""
     global _global_oauth_tokens

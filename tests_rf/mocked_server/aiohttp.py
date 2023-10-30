@@ -55,9 +55,9 @@ class StreamReader(asyncio.StreamReader):
 
     async def __aexit__(
         self,
-        exc_type: None | Type[BaseException],
-        exc_val: None | BaseException,
-        exc_tb: None | TracebackType,
+        exc_type: Type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         pass
 
@@ -69,7 +69,7 @@ class ClientError(Exception):
 class ClientResponseError(ClientError):
     """Base class for exceptions that occur after getting a response."""
 
-    def __init__(self, msg, /, *, status: None | int = None, **kwargs) -> None:
+    def __init__(self, msg, /, *, status: int | None = None, **kwargs) -> None:
         super().__init__(msg)
         self.status: int = status
 
@@ -77,28 +77,28 @@ class ClientResponseError(ClientError):
 class ClientTimeout:
     """"""
 
-    def __init__(self, /, *, total: None | float = None, **kwargs) -> None:
+    def __init__(self, /, *, total: float | None = None, **kwargs) -> None:
         self.total: float = total or 30
 
 
 class ClientSession:
     """First-class interface for making HTTP requests."""
 
-    def __init__(self, /, *, timeout: None | ClientTimeout = None, **kwargs) -> None:
+    def __init__(self, /, *, timeout: ClientTimeout | None = None, **kwargs) -> None:
         self._timeout = timeout or ClientTimeout()
 
         # this is required, so no .get()
         self._mocked_server: MockedServer = kwargs["mocked_server"]
 
-    def get(self, url, /, headers: None | str = None):
+    def get(self, url, /, headers: str | None = None):
         return ClientResponse(hdrs.METH_GET, url, session=self)
 
     def put(
-        self, url, /, *, data: Any = None, json: Any = None, headers: None | str = None
+        self, url, /, *, data: Any = None, json: Any = None, headers: str | None = None
     ):
         return ClientResponse(hdrs.METH_PUT, url, data=data or json, session=self)
 
-    def post(self, url, /, *, data: Any = None, headers: None | str = None):
+    def post(self, url, /, *, data: Any = None, headers: str | None = None):
         return ClientResponse(hdrs.METH_POST, url, data=data, session=self)
 
     async def close(self) -> None:
@@ -116,9 +116,9 @@ class ClientResponse:
         url: _urlT,
         /,
         *,
-        data: None | str = None,
-        json: None | str = None,
-        session: None | ClientSession = None,
+        data: str | None = None,
+        json: dict | None = None,
+        session: ClientSession | None = None,
         **kwargs,
     ) -> None:
         self.method = method
@@ -128,7 +128,7 @@ class ClientResponse:
         self._mocked_server = self.session._mocked_server
 
         self.status: _statusT = None
-        self._body: None | _bodyT = None
+        self._body: _bodyT | None = None
 
         # self.content = StreamReader(
         #     self._mocked_server.request(method, url, data=data or json)
@@ -143,7 +143,7 @@ class ClientResponse:
             )
 
     @property
-    def content_length(self) -> None | int:
+    def content_length(self) -> int | None:
         if self._body is None:
             return None
         if self.content_type == "text/plain":
@@ -151,7 +151,7 @@ class ClientResponse:
         return len(str(self._body))
 
     @property
-    def content_type(self) -> None | str:
+    def content_type(self) -> str | None:
         """Return the Content-Type header of the response."""
 
         # if isinstance(self._body, bytes):
@@ -183,8 +183,8 @@ class ClientResponse:
 
     async def __aexit__(
         self,
-        exc_type: None | Type[BaseException],
-        exc_val: None | BaseException,
-        exc_tb: None | TracebackType,
+        exc_type: Type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         pass

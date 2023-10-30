@@ -63,7 +63,7 @@ def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
 async def instantiate_client(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession = None,
+    session: aiohttp.ClientSession | None = None,
 ):
     """Instantiate a client, and logon to the vendor API."""
 
@@ -89,7 +89,7 @@ async def instantiate_client(
 
 
 async def _test_usr_account(
-    username: str, password: str, session: None | aiohttp.ClientSession = None
+    username: str, password: str, session: aiohttp.ClientSession | None = None
 ) -> None:
     """Test /userAccount"""
 
@@ -113,7 +113,7 @@ async def _test_usr_account(
 async def _test_all_config(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession = None,
+    session: aiohttp.ClientSession | None = None,
 ) -> None:
     """Test /location/installationInfo?userId={userId}"""
 
@@ -144,7 +144,7 @@ async def _test_all_config(
 async def _test_loc_status(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession = None,
+    session: aiohttp.ClientSession | None = None,
 ) -> None:
     """Test /location/{locationId}/status"""
 
@@ -190,7 +190,7 @@ async def _test_loc_status(
 async def _test_zone_mode(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession = None,
+    session: aiohttp.ClientSession | None = None,
 ) -> None:
     """Test /location/{locationId}/status"""
 
@@ -252,7 +252,7 @@ async def _test_zone_mode(
 async def _test_schedule(
     username: str,
     password: str,
-    session: None | aiohttp.ClientSession = None,
+    session: aiohttp.ClientSession | None = None,
 ) -> None:
     """Test /{_type}/{_id}/schedule (of a zone)"""
 
