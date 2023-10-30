@@ -9,7 +9,7 @@ from datetime import datetime as dt
 import pytest
 import pytest_asyncio
 
-import evohomeasync2 as evo
+import evohomeasync2 as evohomeasync2
 
 from . import mocked_server as mock
 from evohomeasync2.schema import (
@@ -66,7 +66,7 @@ async def _test_basics_apis(
 
     #
     # STEP 0: Instantiation, NOTE: No API calls invoked during instantiation
-    client = evo.EvohomeClient(
+    client = evohomeasync2.EvohomeClient(
         username,
         password,
         session=session,
@@ -154,7 +154,7 @@ async def _test_sched__apis(
 
     #
     # STEP 0: Instantiation...
-    client = evo.EvohomeClient(
+    client = evohomeasync2.EvohomeClient(
         username,
         password,
         session=session,
@@ -196,7 +196,7 @@ async def _test_status_apis(
 
     #
     # STEP 0: Instantiation...
-    client = evo.EvohomeClient(
+    client = evohomeasync2.EvohomeClient(
         username,
         password,
         session=session,
@@ -235,7 +235,7 @@ async def _test_system_apis(
 
     #
     # STEP 0: Instantiation...
-    client = evo.EvohomeClient(
+    client = evohomeasync2.EvohomeClient(
         username,
         password,
         session=session,
@@ -253,7 +253,7 @@ async def _test_system_apis(
     # STEP 2: GET /{_type}/{_id}/status
     try:
         tcs = client._get_single_heating_system()
-    except evo.NoDefaultTcsError:
+    except evohomeasync2.NoDefaultTcsError:
         tcs = client.locations[0].gateways[0].control_systems[0]
 
     mode = tcs.systemModeStatus[SZ_MODE]

@@ -266,10 +266,10 @@ async def _test_zone_mode(
         pytest.skip("No available zones found")
     #
 
-    url = f"{zone._type}/{zone._id}/status"
+    url = f"{zone.TYPE}/{zone._id}/status"
     await should_work(client, HTTPMethod.GET, url, schema=SCH_ZONE_STATUS)
 
-    url = f"{zone._type}/{zone._id}/heatSetpoint"
+    url = f"{zone.TYPE}/{zone._id}/heatSetpoint"
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
@@ -323,7 +323,7 @@ async def _test_schedule(
     zone = client.locations[0]._gateways[0]._control_systems[0]._zones[0]
     #
 
-    url = f"{zone._type}/{zone._id}/schedule"
+    url = f"{zone.TYPE}/{zone._id}/schedule"
     schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
 
     temp = schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]

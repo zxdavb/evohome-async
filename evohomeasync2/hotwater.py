@@ -57,7 +57,7 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
     STATUS_SCHEMA = SCH_DHW_STATUS
-    _type = SZ_DOMESTIC_HOT_WATER
+    TYPE: Final[str] = SZ_DOMESTIC_HOT_WATER  # type: ignore[misc]
 
     SCH_SCHEDULE_GET = SCH_GET_SCHEDULE_DHW
     SCH_SCHEDULE_PUT = SCH_PUT_SCHEDULE_DHW
@@ -97,10 +97,7 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
 
     async def _set_mode(self, state: dict) -> None:
         """Set the DHW state."""
-
-        _ = await self._broker.put(
-            f"{self._type}/{self._id}/state", json=state
-        )  # except exceptions.FailedRequests
+        _ = await self._broker.put(f"{self.TYPE}/{self._id}/state", json=state)
 
     # TODO: can we use camelCase strings?
     async def set_on(self, /, *, until: None | dt = None) -> None:

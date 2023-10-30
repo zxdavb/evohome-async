@@ -67,7 +67,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
     SCH_SCHEDULE_PUT = SCH_PUT_SCHEDULE
 
     _id: str  # .zoneId or .dhwId
-    _type: str  # Literal["temperatureZone", "domesticHotWater"]
+    TYPE: str  # "temperatureZone", "domesticHotWater"
 
     def __init__(self, tcs: ControlSystem) -> None:
         self.tcs = tcs
@@ -78,7 +78,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
         self._status: _EvoDictT = {}
 
     def __str__(self) -> str:
-        return f"{self._id} ({self._type})"
+        return f"{self._id} ({self.TYPE})"
 
     async def _refresh_status(self) -> _EvoDictT:
         """Update the dhw/zone with its latest status (also returns the status).
@@ -87,7 +87,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
         """
 
         status: _EvoDictT = await self._broker.get(
-            f"{self._type}/{self._id}/status", schema=self.STATUS_SCHEMA
+            f"{self.TYPE}/{self._id}/status", schema=self.STATUS_SCHEMA
         )  # type: ignore[assignment]
 
         self._update_status(status)
@@ -108,10 +108,10 @@ class _ZoneBase(_ZoneBaseDeprecated):
     async def get_schedule(self) -> _EvoDictT:
         """Get the schedule for this dhw/zone object."""
 
-        self._logger.debug(f"Getting schedule of {self._id} ({self._type})...")
+        self._logger.debug(f"Getting schedule of {self._id} ({self.TYPE})...")
 
         schedule: _EvoDictT = await self._broker.get(
-            f"{self._type}/{self._id}/schedule", schema=self.SCH_SCHEDULE_GET
+            f"{self.TYPE}/{self._id}/schedule", schema=self.SCH_SCHEDULE_GET
         )  # type: ignore[assignment]
 
         return convert_to_put_schedule(schedule)
@@ -119,7 +119,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
     async def set_schedule(self, schedule: _EvoDictT | str) -> None:
         """Set the schedule for this dhw/zone object."""
 
-        self._logger.debug(f"Setting schedule of {self._id} ({self._type})...")
+        self._logger.debug(f"Setting schedule of {self._id} ({self.TYPE})...")
 
         if isinstance(schedule, dict):
             try:
@@ -137,17 +137,17 @@ class _ZoneBase(_ZoneBaseDeprecated):
             raise InvalidSchedule(f"Invalid schedule type: {type(schedule)}")
 
         _ = await self._broker.put(
-            f"{self._type}/{self._id}/schedule",
+            f"{self.TYPE}/{self._id}/schedule",
             json=schedule,
             schema=self.SCH_SCHEDULE_PUT,
-        )  # except exceptions.InvalidSchedule, exceptions.FailedRequest
+        )
 
 
 class Zone(_ZoneBase):
     """Instance of a TCS's heating zone (temperatureZone)."""
 
     STATUS_SCHEMA = SCH_ZONE_STATUS
-    _type = SZ_TEMPERATURE_ZONE
+    TYPE: Final[str] = SZ_TEMPERATURE_ZONE  # type: ignore[misc]
 
     SCH_SCHEDULE_GET = SCH_GET_SCHEDULE_ZONE
     SCH_SCHEDULE_PUT = SCH_PUT_SCHEDULE_ZONE
