@@ -16,7 +16,7 @@ from .const import (
     SZ_TIME_OF_DAY,
 )
 from .const import DAYS_OF_WEEK
-from .helpers import vol  # voluptuous
+from .helpers import vol, pascal_case  # voluptuous
 from .typing import _EvoDictT, _EvoListT
 
 
@@ -77,11 +77,6 @@ SCH_GET_SCHEDULE = vol.Schema(  # PUT /{self._type}/{self._id}/schedule
 #
 # These are as to be provided to the vendor's API (PUT)...
 # This is after modified by evohome-client (PUT), an evohome-client anachronism?
-def pascal_case(s: str) -> str:
-    """Convert a string from camelCase to PascalCase."""
-    return s[:1].upper() + s[1:]
-
-
 SCH_PUT_SWITCHPOINT_DHW = vol.Schema(  # TODO: checkme
     {
         vol.Required(pascal_case(SZ_DHW_STATE)): vol.Any(SZ_ON, SZ_OFF),

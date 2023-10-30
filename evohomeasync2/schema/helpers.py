@@ -14,3 +14,13 @@ except ModuleNotFoundError:  # No module named 'voluptuous'
             pass
 
         Schema = dict | list
+
+
+def camel_case(s: str) -> str:
+    """Convert a PascalCase string to camelCase."""
+    return s[:1].lower() + s[1:]
+
+
+def pascal_case(s: str) -> str:
+    """Convert a camelCase string to PascalCase."""
+    return s[:1].upper() + s[1:]
