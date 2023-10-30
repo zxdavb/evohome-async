@@ -104,12 +104,12 @@ class Broker:
 
         elif method == HTTPMethod.POST:
             _session_method = self._session.post
-            kwargs = {"data": data, "headers": headers}
+            kwargs = {"headers": headers, "data": data}
 
         elif method == HTTPMethod.PUT:
             _session_method = self._session.put
             # headers["Content-Type"] = "application/json"
-            kwargs = {"json": json, "headers": headers}
+            kwargs = {"headers": headers, "json": json}
 
         async with _session_method(url, **kwargs) as response:
             if not response.content_length:
