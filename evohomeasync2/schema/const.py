@@ -211,7 +211,7 @@ SZ_VACATION_HOLD = "VacationHold"
 class ZoneMode(StrEnum):
     FOLLOW_SCHEDULE: Final[str] = SZ_FOLLOW_SCHEDULE
     PERMANENT_OVERRIDE: Final[str] = SZ_PERMANENT_OVERRIDE
-    TEMORARY_OVERRIDE: Final[str] = SZ_TEMPORARY_OVERRIDE
+    TEMPORARY_OVERRIDE: Final[str] = SZ_TEMPORARY_OVERRIDE
     # VACATION_HOLD: Final[str] = SZ_VACATION_HOLD  # TODO: any consequences of adding?
 
 

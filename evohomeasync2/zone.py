@@ -9,7 +9,7 @@ from datetime import datetime as dt
 import json
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from .const import API_STRFTIME
+from .const import API_STRFTIME, ZoneMode
 from .exceptions import InvalidSchedule, InvalidSchema
 from .schema import SCH_ZONE_STATUS
 from .schema.schedule import (
@@ -21,18 +21,15 @@ from .schema.schedule import (
 )
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
-    SZ_FOLLOW_SCHEDULE,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_MODEL_TYPE,
     SZ_NAME,
-    SZ_PERMANENT_OVERRIDE,
     SZ_SCHEDULE_CAPABILITIES,
     SZ_SETPOINT_CAPABILITIES,
     SZ_SETPOINT_MODE,
     SZ_SETPOINT_STATUS,
     SZ_TEMPERATURE_STATUS,
     SZ_TEMPERATURE_ZONE,
-    SZ_TEMPORARY_OVERRIDE,
     SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
@@ -209,13 +206,13 @@ class Zone(_ZoneBase):
 
         if until is None:  # NOTE: beware that these may be case-sensitive
             mode = {
-                SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
+                SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
                 SZ_HEAT_SETPOINT_VALUE: temperature,
                 SZ_TIME_UNTIL: None,
             }
         else:
             mode = {
-                SZ_SETPOINT_MODE: SZ_TEMPORARY_OVERRIDE,
+                SZ_SETPOINT_MODE: ZoneMode.TEMPORARY_OVERRIDE,
                 SZ_HEAT_SETPOINT_VALUE: temperature,
                 SZ_TIME_UNTIL: until.strftime(API_STRFTIME),
             }
@@ -226,7 +223,7 @@ class Zone(_ZoneBase):
         """Cancel an override to the zone temperature."""
 
         mode = {
-            SZ_SETPOINT_MODE: SZ_FOLLOW_SCHEDULE,
+            SZ_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
             SZ_HEAT_SETPOINT_VALUE: 0.0,
             SZ_TIME_UNTIL: None,
         }

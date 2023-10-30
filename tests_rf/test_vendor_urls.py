@@ -11,6 +11,7 @@ import pytest
 import pytest_asyncio
 
 import evohomeasync2 as evo
+from evohomeasync2.const import ZoneMode
 from evohomeasync2.schema import (
     SCH_FULL_CONFIG,
     SCH_LOCN_STATUS,
@@ -20,11 +21,9 @@ from evohomeasync2.schema import (
 )
 from evohomeasync2.schema.const import (
     SZ_DAILY_SCHEDULES,
-    SZ_FOLLOW_SCHEDULE,
     SZ_HEAT_SETPOINT,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_IS_AVAILABLE,
-    SZ_PERMANENT_OVERRIDE,
     SZ_SETPOINT_MODE,
     SZ_SWITCHPOINTS,
     SZ_TEMPERATURE,
@@ -213,21 +212,21 @@ async def _test_zone_mode(
     url = f"{zone.TYPE}/{zone._id}/heatSetpoint"
 
     heat_setpoint = {
-        SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
+        SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
         SZ_HEAT_SETPOINT_VALUE: zone.temperatureStatus[SZ_TEMPERATURE],
         SZ_TIME_UNTIL: None,
     }
     await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
-        SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
+        SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
         SZ_HEAT_SETPOINT_VALUE: 99,
         SZ_TIME_UNTIL: None,
     }
     await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
-        SZ_SETPOINT_MODE: SZ_PERMANENT_OVERRIDE,
+        SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
         SZ_HEAT_SETPOINT_VALUE: 19.5,
     }
     await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
@@ -241,7 +240,7 @@ async def _test_zone_mode(
     )
 
     heat_setpoint = {
-        SZ_SETPOINT_MODE: SZ_FOLLOW_SCHEDULE,
+        SZ_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
         SZ_HEAT_SETPOINT_VALUE: 0.0,
         SZ_TIME_UNTIL: None,
     }

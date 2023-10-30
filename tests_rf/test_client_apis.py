@@ -19,14 +19,7 @@ from evohomeasync2.schema import (
     SCH_USER_ACCOUNT,
     SCH_ZONE_STATUS,
 )
-from evohomeasync2.schema import (  # noqa: F401
-    DhwState,
-    SystemMode,
-    ZoneMode,
-    DHW_STATES,
-    SYSTEM_MODES,
-    ZONE_MODES,
-)
+from evohomeasync2.schema import SystemMode, SYSTEM_MODES
 from evohomeasync2.schema.const import SZ_MODE
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 
