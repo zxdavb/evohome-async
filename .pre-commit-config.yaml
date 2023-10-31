@@ -2,7 +2,7 @@
 
 repos:
   - repo: https://github.com/psf/black
-    rev: 21.5b1
+    rev: 23.10.0
     hooks:
       - id: black
         args:
@@ -11,7 +11,7 @@ repos:
         files: ^(evohome.*/.+)?[^/]+\.py$
 
   - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.9.2
+    rev: 6.1.0
     hooks:
       - id: flake8
         additional_dependencies:
@@ -21,7 +21,7 @@ repos:
         exclude: ^evohome.*/tests\.py$
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.8.0
+    rev: 5.12.0
     hooks:
       - id: isort
         args: ["--profile", "black", "--filter-files"]
