@@ -30,8 +30,12 @@ from .exceptions import (
     RequestFailed,
 )
 from .schema import vol  # voluptuous
-from .schema.account import SCH_OAUTH_TOKEN
-
+from .schema.account import (
+    SCH_OAUTH_TOKEN,
+    SZ_ACCESS_TOKEN,
+    SZ_EXPIRES_IN,
+    SZ_REFRESH_TOKEN,
+)
 
 if TYPE_CHECKING:
     import logging
@@ -55,7 +59,7 @@ _ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # POST OAUTH_UR
 _ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # GET/PUT URL_BASE
     HTTPStatus.BAD_REQUEST: "Bad request (invalid data/json?)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
-    HTTPStatus.UNAUTHORIZED: "Unauthorized (unknown entity id?)",
+    HTTPStatus.UNAUTHORIZED: "Unauthorized (expired access token/unknown entity id?)",
 }
 
 
@@ -132,7 +136,7 @@ class Broker:
         if not self.access_token or not self.access_token_expires:
             await self._basic_login()
 
-        elif dt.now() > self.access_token_expires - td(seconds=30):
+        elif dt.now() > self.access_token_expires:
             await self._basic_login()
 
         assert isinstance(self.access_token, str)  # mypy
@@ -161,7 +165,7 @@ class Broker:
 
         if self.refresh_token:
             self._logger.debug("Authenticating with the refresh_token...")
-            credentials = {"refresh_token": self.refresh_token}
+            credentials = {SZ_REFRESH_TOKEN: self.refresh_token}
 
             try:
                 await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)  # type: ignore[arg-type]
@@ -196,10 +200,6 @@ class Broker:
                 data=AUTH_PAYLOAD | credentials,
                 headers=AUTH_HEADER,
             )
-        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise AuthenticationFailed(str(exc))
-
-        try:
             response.raise_for_status()
 
         except aiohttp.ClientResponseError as exc:
@@ -207,7 +207,7 @@ class Broker:
                 raise AuthenticationFailed(hint, status=exc.status)
             raise AuthenticationFailed(str(exc), status=exc.status)
 
-        except aiohttp.ClientError as exc:
+        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
             raise AuthenticationFailed(str(exc))
 
         try:  # the access token _should_ be valid...
@@ -218,9 +218,11 @@ class Broker:
             )
 
         try:
-            self.access_token = content["access_token"]  # type: ignore[assignment]
-            self.access_token_expires = dt.now() + td(seconds=content["expires_in"])  # type: ignore[arg-type]
-            self.refresh_token = content["refresh_token"]  # type: ignore[assignment]
+            self.access_token = content[SZ_ACCESS_TOKEN]  # type: ignore[assignment]
+            self.access_token_expires = (
+                dt.now() + td(seconds=content[SZ_EXPIRES_IN] - 15)  # type: ignore[operator]
+            )
+            self.refresh_token = content[SZ_REFRESH_TOKEN]  # type: ignore[assignment]
 
         except (KeyError, TypeError) as exc:
             raise AuthenticationFailed(f"Invalid response from server: {exc}")
@@ -235,10 +237,6 @@ class Broker:
             response, content = await self._client(  # type: ignore[assignment]
                 HTTPMethod.GET, f"{URL_BASE}/{url}"
             )
-        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise RequestFailed(str(exc))
-
-        try:
             response.raise_for_status()
 
         except aiohttp.ClientResponseError as exc:
@@ -246,7 +244,7 @@ class Broker:
                 raise RequestFailed(hint, status=exc.status)
             raise RequestFailed(str(exc), status=exc.status)
 
-        except aiohttp.ClientError as exc:
+        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
             raise RequestFailed(str(exc))
 
         if schema:
@@ -279,10 +277,6 @@ class Broker:
             response, content = await self._client(  # type: ignore[assignment]
                 HTTPMethod.PUT, f"{URL_BASE}/{url}", json=json
             )
-        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise RequestFailed(str(exc))  # TODO: extract message from response body
-
-        try:
             response.raise_for_status()
 
         except aiohttp.ClientResponseError as exc:
@@ -290,7 +284,7 @@ class Broker:
                 raise RequestFailed(hint, status=exc.status)
             raise RequestFailed(str(exc), status=exc.status)
 
-        except aiohttp.ClientError as exc:
+        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
             raise RequestFailed(str(exc))
 
         return content
