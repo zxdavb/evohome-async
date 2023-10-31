@@ -6,15 +6,14 @@ version: 2.1
 jobs:
   build: # runs not using Workflows must have a `build` job as entry point
     docker:  # see: at: https://hub.docker.com/r/circleci/python/
-      - image: circleci/python:3.8.9
-    working_directory: ~/circleci-evohome
+      - image: circleci/python:3.11.6
+    working_directory: ~/working_directory
     steps: # steps that comprise the `build` job
       - checkout # check out source code to working directory
-      # - run: sudo chown -R circleci:circleci /usr/local/bin
-      # - run: sudo chown -R circleci:circleci /usr/local/lib/python*/site-packages
       - run:
           command: |
-            sudo pip install nose coverage pylint
+            pip install -r requirements.txt
+            pip install -r requirements-dev.txt
       - run:
           command: |
             mkdir test-results
@@ -22,7 +21,7 @@ jobs:
 
   check_lint:
     docker:
-      - image: circleci/python:3.8.9
+      - image: circleci/python:3.11.6
     steps:
       - checkout
       - run:
@@ -31,13 +30,16 @@ jobs:
       - run:
           command: |
             mkdir test-results
-            # sudo pip install aiohttp
       - run:
-          name: Test
+          name: Lint
           command: |
             black --safe --quiet evohomeasync
             black --safe --quiet evohomeasync2
-            # nosetests --xunit-file=test-results/junit.xml
+      - run:
+          name: Test
+          command: |
+            pytest --log-cli-level=INFO tests
+            pytest --log-cli-level=INFO tests_rf
       - store_test_results: # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
           path: test-results
       - store_artifacts: # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
@@ -46,19 +48,17 @@ jobs:
 
   deploy:
     docker:
-      - image: circleci/python:3.8.9
+      - image: circleci/python:3.11.6
     steps:
       - checkout
-      # - run: sudo chown -R circleci:circleci /usr/local/bin
-      # - run: sudo chown -R circleci:circleci /usr/local/lib/python*/site-packages
       - run:
           name: Install dependencies
           command: |
             sudo pip install -r requirements.txt
-            sudo pip install nose coverage twine
+            sudo pip install -r requirements-dev.txt
       - run:
           name: Verify git tag vs. package version
-          command: python setup.py verify  # NOTE: $CIRCLE_TAG is not available to su
+          command: python setup.py verify
       - run:
           name: Build the package
           command: |
