@@ -165,8 +165,7 @@ class EvohomeClient(EvohomeClientDeprecated):
     ) -> aiohttp.ClientResponse:
         """Perform an HTTP request, with optional retry (usu. for authentication)."""
 
-        if self.hostname not in url:  # TODO: HACK: FIXME: workaround
-            url = self.hostname + "/WebAPI/api" + url
+        url = self.hostname + "/WebAPI/api" + url
 
         if method == HTTPMethod.GET:
             func = self._session.get
@@ -175,16 +174,27 @@ class EvohomeClient(EvohomeClientDeprecated):
         elif method == HTTPMethod.POST:
             func = self._session.post
 
-        response = await self._do_request_base(func, url, data=data, retry=retry)
+        try:
+            response = await self._do_request_base(func, url, data=data, retry=retry)
+
+        except aiohttp.ClientError as exc:
+            if method == HTTPMethod.POST:  # using response will cause UnboundLocalError
+                raise AuthenticationFailed(str(exc))
+            raise RequestFailed(str(exc))
 
         try:
             response.raise_for_status()
 
         except aiohttp.ClientResponseError as exc:
-            if response.method == HTTPMethod.POST:
-                raise AuthenticationFailed(str(exc))
+            if response.method == HTTPMethod.POST:  # POST only used when authenticating
+                raise AuthenticationFailed(str(exc), status=exc.status)
             if response.status != HTTPStatus.TOO_MANY_REQUESTS:
-                raise RateLimitExceeded(str(exc))
+                raise RateLimitExceeded(str(exc), status=exc.status)
+            raise RequestFailed(str(exc), status=exc.status)
+
+        except aiohttp.ClientError as exc:
+            if response.method == HTTPMethod.POST:  # POST only used when authenticating
+                raise AuthenticationFailed(str(exc))
             raise RequestFailed(str(exc))
 
         return response
@@ -201,36 +211,30 @@ class EvohomeClient(EvohomeClientDeprecated):
         """Perform an HTTP request, with optional retry (usu. for authentication)."""
 
         async with func(url, json=data, headers=self.headers) as response:  # NB: json=
-            response_text = await response.text()
+            response_text = await response.text()  # why cant I move this below the if?
 
             # if 401/unauthorized, may need to refresh sessionId
-            if response.status == HTTPStatus.UNAUTHORIZED and retry is True:
-                # NOTE: this is a recursive call, used only for authentication
+            if response.status != HTTPStatus.UNAUTHORIZED or not retry:
+                return response
 
-                if "code" in response_text:  # don't use .json() yet: may be plain text
-                    response_json = await response.json()
+            # TODO: use response.content_type to determine whether to use .json()
+            if "code" not in response_text:  # don't use .json() yet: may be plain text
+                return response
 
-                    if response_json[0]["code"] == "Unauthorized":
-                        _LOGGER.debug("Session expired, re-authenticating...")
+            response_json = await response.json()
+            if response_json[0]["code"] != "Unauthorized":
+                return response
 
-                        self.user_data = None  # Get a fresh (= None) sessionId
-                        await self._populate_user_data()
+            _LOGGER.debug("Session expired/invalid, re-authenticating...")
+            self.user_data = None  # Get a fresh (= None) sessionId
+            await self._populate_user_data()
 
-                        # Set headers with the new sessionId
-                        session_id = self.user_data["sessionId"]  # type: ignore[index]
-                        self.headers["sessionId"] = session_id
-                        _LOGGER.debug(f"... Success: sessionId = {session_id}")
+            session_id = self.user_data["sessionId"]  # type: ignore[index]
+            self.headers["sessionId"] = session_id
+            _LOGGER.debug(f"... Success: sessionId = {session_id}")
 
-                        response = await self._do_request_base(
-                            func, url, data=data, retry=False
-                        )
-
-            # if not 200/OK, display (useful?) error message if the vendor provided one
-            if response.status != HTTPStatus.OK:
-                if "code" in response_text:  # don't use .json(): may be plain text
-                    _LOGGER.warning(
-                        f"HTTP Status = {response.status}, Response = {response_text}",
-                    )
+            # NOTE: this is a recursive call, used only after re-authenticating
+            response = await self._do_request_base(func, url, data=data, retry=False)
 
         return response
 
@@ -249,9 +253,8 @@ class EvohomeClient(EvohomeClientDeprecated):
             response = await self._do_request(
                 HTTPMethod.POST, url, data=self.postdata, retry=False
             )
-            self.user_data = (
-                await response.json()
-            )  # aiohttp.ClientConnectionError: Connection closed
+
+            self.user_data = await response.json()
 
         assert isinstance(self.user_data, dict)  # mypy
         return self.user_data
@@ -279,7 +282,7 @@ class EvohomeClient(EvohomeClientDeprecated):
                 self.named_devices[device["name"]] = device
 
     async def temperatures(self, force_refresh: bool = False) -> _EvoListT:
-        """Retrieve the current details for each zone."""
+        """Retrieve the current details for each zone (incl. DHW)."""
 
         set_point: float
         status: str
