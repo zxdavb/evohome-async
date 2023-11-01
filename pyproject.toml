@@ -1,28 +1,54 @@
+#
+### project ##########################################################################
+
 [project]
   name = "evohome-async"
+  dynamic = ["readme"]
   version = "0.4.0"
   description = "An async client for connecting to Honeywell's TCC RESTful API."
   authors = [
     {name = "David Bonnes", email = "zxdavb@bonnes.me"},
     {name = "Andrew Stock", email = "evohome@andrew-stock.com"},
   ]
+  maintainers = [
+    {name = "David Bonnes", email = "zxdavb@bonnes.me"},
+  ]
   dependencies = [
     "aiohttp==3.9.0b0; python_version >= '3.12'",
     "aiohttp==3.8.5; python_version < '3.12'",
+    "voluptuous>=0.12.2",
   ]
   requires-python = ">=3.11"
-  readme = "README.md"
-  license = {text = "MIT"}
+  license = "Apache-2.0"
+  # project-url = "https://github.com/zxdavb/evohome-async"
+
+  keywords = ["evohome", "honeywell", "resideo", "tcc", "round thermostat"]
+  classifiers = [
+    "Topic :: Home Automation",
+  ]
+
+[tool.setuptools.dynamic]
+  version = {attr = "evohome-async.VERSION"}
+  readme = {file = ["README.md"], content-type = "text/markdown"}
+
+
+
+#
+### isort ############################################################################
 
 [tool.isort]
   profile = "black"
   multi_line_output = 3
 
+
+#
+### pylint ###########################################################################
+
 [tool.pylint.format]
   max-line-length = 120
 
 [tool.pylint.MASTER]
-  ignore="tests"
+  ignore="docs"  # "docs,tests,tests_rf"
 
 [tool.pylint.BASIC]
   good-names="i,j,k,ex,Run,_,fp"
@@ -81,8 +107,10 @@
 [tool.pylint.EXCEPTIONS]
   overgeneral-exceptions = "Exception"
 
+
+
 #
-## ruff
+## ruff ##############################################################################
 
 [tool.ruff]
   # Assume Python 3.11
@@ -114,14 +142,15 @@
   # ]
 
 [tool.ruff.lint]
-  # ZXDAVB: TODO: Allow unused variables when underscore-prefixed.
+  # ZXDAVB: TODO: disable this feature
+  # Allow unused variables when underscore-prefixed.
   dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 #   # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 #   # Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
 #   # McCabe complexity (`C901`) by default.
 #   select = ["E4", "E7", "E9", "F"]
-#   ignore = []
+#   ignore = []  # [E203, E501, W503]
 
 #   # Allow fix for all enabled rules (when `--fix`) is provided.
 #   fixable = ["ALL"]
