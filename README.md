@@ -5,11 +5,11 @@ evohome-async
 
 Python client to _asynchronously_ access the [Total Connect Comfort](https://international.mytotalconnectcomfort.com/Account/Login) RESTful API.
 
-It is largely a faithful port of https://github.com/watchforstock/evohome-client, which is not async-aware.  That is, it has the same schema (same namespace, same JSON).
+It is largely a faithful port of https://github.com/watchforstock/evohome-client, which is not async-aware.  That is, it exposes the same schema (same namespace, same JSON).
 
 Some additional functionality has been added (e.g. restore schedules by name, as an alternative to by id).
 
-It provides support for **Evohome** and the **Round Thermostat**. It supports only EU/EMEA-based systems, please use [somecomfort](https://github.com/kk7ds/somecomfort) for US-based systems.
+It provides support for **Evohome**, the **Round Thermostat** and some others. It supports only EU/EMEA-based systems, please use [somecomfort](https://github.com/kk7ds/somecomfort) for US-based systems.
 
 This client uses the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead.
 
@@ -20,7 +20,7 @@ Documentation (from **evohomeclient**) is available at http://evohome-client.rea
 ### Differences from non-async version
 Note that this library is not able to expose more functionality than it's non-async cousin, other than asyncio (they both use the same vendor API).
 
-The difference between the **evohomeasync** and **evohomeclient** libraries have been keep to the minimum, and it is planned for exisiting docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
+The difference between the **evohomeasync** and **evohomeclient** libraries have been kept to the minimum, and it is planned for exisiting docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
 
 Currently, only `evohomeclient2` has been fully tested, and `evohomeclient` (the older API) is a WIP has not been fully tested.
 
