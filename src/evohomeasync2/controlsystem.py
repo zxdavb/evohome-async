@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 #
 """Provides handling of TCC temperature control systems."""
-
 from __future__ import annotations
 
 from datetime import datetime as dt
@@ -175,7 +174,8 @@ class ControlSystem(_ControlSystemDeprecated):
 
     async def _set_mode(self, system_mode: dict) -> None:
         _ = await self._broker.put(
-            f"{self.TYPE}/{self._id}/mode", json=system_mode  # schema=
+            f"{self.TYPE}/{self._id}/mode",
+            json=system_mode,  # schema=
         )
 
     # TODO: can we use camelCase strings?

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 #
 """Provides handling of TCC zones (heating and DHW)."""
-
 from __future__ import annotations
 
 from datetime import datetime as dt
@@ -196,7 +195,8 @@ class Zone(_ZoneBase):
         """TODO"""
 
         _ = await self._broker.put(
-            f"{self.TYPE}/{self._id}/heatSetpoint", json=heat_setpoint  # schema=
+            f"{self.TYPE}/{self._id}/heatSetpoint",
+            json=heat_setpoint,  # schema=
         )
 
     async def set_temperature(

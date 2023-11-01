@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 #
 """Provides handling of TCC DHW zones."""
-
 from __future__ import annotations
 
 from datetime import datetime as dt
