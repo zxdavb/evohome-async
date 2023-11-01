@@ -39,6 +39,9 @@ if TYPE_CHECKING:
     )
 
 
+__version__ = "0.4.0"
+
+
 _LOGGER = logging.getLogger(__name__)
 
 

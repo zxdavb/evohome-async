@@ -1,10 +1,14 @@
 #
 ### project ##########################################################################
 
+[build-system]
+  requires = ["setuptools>=65.5"]  # , "setuptools_scm>=8"]
+  build-backend = "setuptools.build_meta"
+
+
 [project]
   name = "evohome-async"
-  dynamic = ["readme"]
-  version = "0.4.0"
+  dynamic = ["readme", "version"]
   description = "An async client for connecting to Honeywell's TCC RESTful API."
   authors = [
     {name = "David Bonnes", email = "zxdavb@bonnes.me"},
@@ -19,18 +23,31 @@
     "voluptuous>=0.12.2",
   ]
   requires-python = ">=3.11"
-  license = "Apache-2.0"
-  # project-url = "https://github.com/zxdavb/evohome-async"
+  license = {file = "LICENSE"}
 
-  keywords = ["evohome", "honeywell", "resideo", "tcc", "round thermostat"]
+  keywords = ["evohome", "honeywell", "resideo", "round thermostat", "tcc"]
   classifiers = [
     "Topic :: Home Automation",
   ]
 
-[tool.setuptools.dynamic]
-  version = {attr = "evohome-async.VERSION"}
-  readme = {file = ["README.md"], content-type = "text/markdown"}
 
+[project.urls]
+"Homepage" = "https://github.com/zxdavb/evohome-async"
+"Bug Tracker" = "https://github.com/zxdavb/evohome-async/issues"
+"Wiki" = "https://github.com/zxdavb/evohome-async/wiki"
+
+
+[tool.setuptools]
+  packages = ["evohomeasync", "evohomeasync2"]
+  package-dir = {"" = "src"}
+
+
+[tool.setuptools.dynamic]
+  readme = {file = ["README.md"], content-type = "text/markdown"}
+  version = {attr = "evohomeasync2.__version__"}  # {file = "VERSION"}
+
+# [tool.setuptools_scm]
+#   version_file = "VERSION"
 
 
 #
