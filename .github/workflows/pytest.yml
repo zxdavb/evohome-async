@@ -42,7 +42,7 @@ jobs:
 
     - name: Check with mypy
         run: pip install mypy
-        run: mypy .
+        run: mypy evohomeasync/ evohomeasync2/
 
 
     - name: Install the package
