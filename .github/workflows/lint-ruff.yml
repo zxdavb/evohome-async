@@ -1,7 +1,7 @@
 #
 # https://docs.astral.sh/ruff/integrations/#github-actions
 
-name: Lint with ruff
+name: Linting with ruff
 
 on: [push, pull_request]
 
