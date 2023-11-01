@@ -40,18 +40,14 @@
   requires = ["hatchling"]
   build-backend = "hatchling.build"
 
-
 [tool.hatch.build]
   sources = ["src"]
 
-
 [tool.hatch.build.targets.wheel]
-  packages = ["evohomeasync", "evohomeasync2"]
-
+  packages = ["src/evohomeasync", "src/evohomeasync2"]
 
 [tool.hatch.version]
   path = "src/evohomeasync2/__init__.py"
-
 
 # [tool.hatch.publish.index.repos.main]
 #   url = "https://upload.pypi.org/legacy/"
@@ -60,22 +56,23 @@
 #   url = "https://test.pypi.org/legacy/"
 
 
+#
+### build-system #####################################################################
+
 # [build-system]
 #   requires = ["setuptools>=65.5"]  # , "setuptools_scm>=8"]
 #   build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+  packages = ["evohomeasync", "evohomeasync2"]
+  package-dir = {"" = "src"}
 
-# [tool.setuptools]
-#   packages = ["evohomeasync", "evohomeasync2"]
-#   package-dir = {"" = "src"}
+[tool.setuptools.dynamic]
+  readme = {file = ["README.md"], content-type = "text/markdown"}
+  version = {attr = "evohomeasync2.__version__"}  # {file = "VERSION"}
 
-
-# [tool.setuptools.dynamic]
-#   readme = {file = ["README.md"], content-type = "text/markdown"}
-#   version = {attr = "evohomeasync2.__version__"}  # {file = "VERSION"}
-
-# # [tool.setuptools_scm]
-# #   version_file = "VERSION"
+# [tool.setuptools_scm]
+#   version_file = "VERSION"
 
 
 #
