@@ -6,9 +6,9 @@ name: Testing with pytest
 on:
   workflow_dispatch:
   push:
-    branches: [ "master" ]
+    branches: [ "stable" ]
   # pull_request:
-  #   branches: [ "master" ]
+  #   branches: [ "stable" ]
 
 jobs:
   test:
