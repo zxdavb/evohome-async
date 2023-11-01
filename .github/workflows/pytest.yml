@@ -21,17 +21,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Lint with ruff
-      uses: chartboost/ruff-action@v1
-      # run: |
-      #   pip install ruff
-      #   ruff --output-format=github .
-      continue-on-error: true
 
     - name: Install dependencies
       run: |
@@ -39,10 +34,32 @@ jobs:
         if [ -f requirements.txt ];     then pip install -r requirements.txt;     fi
         if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
 
+
+    - name: Lint with ruff
+      # https://docs.astral.sh/ruff/integrations/#github-actions
+      uses: chartboost/ruff-action@v1
+
+
+    - name: Check with mypy
+        run: pip install mypy
+        run: mypy .
+
+
     - name: Install the package
       run: |
         pip install -e .
 
+
     - name: Test with pytest
       run: |
         pytest
+
+
+    - name: Test with without voluptuous
+      run: |
+        pip uninstall -y voluptuous
+        pytest
+      continue-on-error: true
+
+
+    - run: echo "🍏 This job's status is ${{ job.status }}."
