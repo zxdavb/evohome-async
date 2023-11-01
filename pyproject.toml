@@ -1,11 +1,7 @@
 #
 ### project ##########################################################################
 
-[build-system]
-  requires = ["setuptools>=65.5"]  # , "setuptools_scm>=8"]
-  build-backend = "setuptools.build_meta"
-
-
+#
 [project]
   name = "evohome-async"
   dynamic = ["readme", "version"]
@@ -30,24 +26,56 @@
     "Topic :: Home Automation",
   ]
 
-
+#
 [project.urls]
-"Homepage" = "https://github.com/zxdavb/evohome-async"
-"Bug Tracker" = "https://github.com/zxdavb/evohome-async/issues"
-"Wiki" = "https://github.com/zxdavb/evohome-async/wiki"
+  "Homepage" = "https://github.com/zxdavb/evohome-async"
+  "Bug Tracker" = "https://github.com/zxdavb/evohome-async/issues"
+  "Wiki" = "https://github.com/zxdavb/evohome-async/wiki"
 
 
-[tool.setuptools]
+#
+### build-system #####################################################################
+
+[build-system]
+  requires = ["hatchling"]
+  build-backend = "hatchling.build"
+
+
+[tool.hatch.build]
+  sources = ["src"]
+
+
+[tool.hatch.build.targets.wheel]
   packages = ["evohomeasync", "evohomeasync2"]
-  package-dir = {"" = "src"}
 
 
-[tool.setuptools.dynamic]
-  readme = {file = ["README.md"], content-type = "text/markdown"}
-  version = {attr = "evohomeasync2.__version__"}  # {file = "VERSION"}
+[tool.hatch.version]
+  path = "src/evohomeasync2/__init__.py"
 
-# [tool.setuptools_scm]
-#   version_file = "VERSION"
+
+# [tool.hatch.publish.index.repos.main]
+#   url = "https://upload.pypi.org/legacy/"
+
+# [tool.hatch.publish.index.repos.test]
+#   url = "https://test.pypi.org/legacy/"
+
+
+# [build-system]
+#   requires = ["setuptools>=65.5"]  # , "setuptools_scm>=8"]
+#   build-backend = "setuptools.build_meta"
+
+
+# [tool.setuptools]
+#   packages = ["evohomeasync", "evohomeasync2"]
+#   package-dir = {"" = "src"}
+
+
+# [tool.setuptools.dynamic]
+#   readme = {file = ["README.md"], content-type = "text/markdown"}
+#   version = {attr = "evohomeasync2.__version__"}  # {file = "VERSION"}
+
+# # [tool.setuptools_scm]
+# #   version_file = "VERSION"
 
 
 #
