@@ -50,7 +50,7 @@ class _ZoneBaseDeprecated:
 
     async def schedule(self) -> NoReturn:
         raise NotImplementedError(
-            "ZoneBase.schedule() is deprecrated, use .get_schedule()"
+            "_ZoneBase.schedule() is deprecrated, use .get_schedule()"
         )
 
 
@@ -77,7 +77,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
         return f"{self._id} ({self.TYPE})"
 
     async def _refresh_status(self) -> _EvoDictT:
-        """Update the dhw/zone with its latest status (also returns the status).
+        """Update the DHW/zone with its latest status (also returns the status).
 
         It will be more efficient to call Location.refresh_status().
         """
@@ -94,7 +94,6 @@ class _ZoneBase(_ZoneBaseDeprecated):
     def _update_status(self, status: _EvoDictT) -> None:
         self._status = status
 
-    # status attrs...
     @property
     def activeFaults(self) -> None | _EvoListT:
         return self._status.get(SZ_ACTIVE_FAULTS)
@@ -104,7 +103,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
         return self._status.get(SZ_TEMPERATURE_STATUS)
 
     async def get_schedule(self) -> _EvoDictT:
-        """Get the schedule for this dhw/zone object."""
+        """Get the schedule for this DHW/zone object."""
 
         self._logger.debug(f"Getting schedule of {self._id} ({self.TYPE})...")
 
@@ -115,7 +114,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
         return convert_to_put_schedule(schedule)
 
     async def set_schedule(self, schedule: _EvoDictT | str) -> None:
-        """Set the schedule for this dhw/zone object."""
+        """Set the schedule for this DHW/zone object."""
 
         self._logger.debug(f"Setting schedule of {self._id} ({self.TYPE})...")
 
@@ -141,7 +140,16 @@ class _ZoneBase(_ZoneBaseDeprecated):
         )
 
 
-class Zone(_ZoneBase):
+class _ZoneDeprecated:
+    """Deprecated attributes and methods removed from the evohome-client namespace."""
+
+    async def cancel_temp_override(self) -> None:
+        raise NotImplementedError(
+            "Zone.cancel_temp_override() is deprecrated, use .reset_mode()"
+        )
+
+
+class Zone(_ZoneDeprecated, _ZoneBase):
     """Instance of a TCS's heating zone (temperatureZone)."""
 
     STATUS_SCHEMA = SCH_ZONE_STATUS
@@ -182,7 +190,6 @@ class Zone(_ZoneBase):
     def zoneType(self) -> str:
         return self._config[SZ_ZONE_TYPE]
 
-    # status attrs...
     @property
     def name(self) -> str:
         return self._config.get(SZ_NAME) or self._config[SZ_NAME]
@@ -191,18 +198,25 @@ class Zone(_ZoneBase):
     def setpointStatus(self) -> None | dict:
         return self._status.get(SZ_SETPOINT_STATUS)
 
-    async def _set_heat_setpoint(self, heat_setpoint: dict) -> None:
-        """TODO"""
+    async def _set_mode(self, mode: dict) -> None:  # NOTE: no provision for cooling
+        """Set the zone mode (heat_setpoint, cooling is TBD)."""
+        _ = await self._broker.put(f"{self.TYPE}/{self._id}/heatSetpoint", json=mode)
 
-        _ = await self._broker.put(
-            f"{self.TYPE}/{self._id}/heatSetpoint",
-            json=heat_setpoint,  # schema=
-        )
+    async def reset_mode(self) -> None:
+        """Cancel any override and allow the zone to follow its schedule"""
 
-    async def set_temperature(
+        mode: dict[str, str | float | None] = {
+            SZ_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
+            SZ_HEAT_SETPOINT_VALUE: 0.0,
+            SZ_TIME_UNTIL: None,
+        }
+
+        await self._set_mode(mode)
+
+    async def set_temperature(  # NOTE: no provision for cooling
         self, temperature: float, /, *, until: dt | None = None
     ) -> None:
-        """Set the temperature of the given zone."""
+        """Set the temperature of the given zone (no provision for cooling)."""
 
         mode: dict[str, str | float | None]
 
@@ -219,15 +233,4 @@ class Zone(_ZoneBase):
                 SZ_TIME_UNTIL: until.strftime(API_STRFTIME),
             }
 
-        await self._set_heat_setpoint(mode)
-
-    async def cancel_temp_override(self) -> None:
-        """Cancel an override to the zone temperature."""
-
-        mode: dict[str, str | float | None] = {
-            SZ_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
-            SZ_HEAT_SETPOINT_VALUE: 0.0,
-            SZ_TIME_UNTIL: None,
-        }
-
-        await self._set_heat_setpoint(mode)
+        await self._set_mode(mode)

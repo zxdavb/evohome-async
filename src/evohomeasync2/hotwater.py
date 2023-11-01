@@ -39,21 +39,21 @@ class HotWaterDeprecated:
 
     async def get_dhw_state(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
-            "HotWater.get_dhw_state() is deprecated, use .update_status()"
+            "HotWater.get_dhw_state() is deprecated, use Location.refresh_status()"
         )
 
-    async def set_dhw_on(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError("HotWater.set_dhw_on() is deprecated, use .set_on()")
+    async def set_dhw_auto(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "HotWater.set_dhw_auto() is deprecated, use .reset_mode()"
+        )
 
     async def set_dhw_off(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
             "HotWater.set_dhw_off() is deprecated, use .set_off()"
         )
 
-    async def set_dhw_auto(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "HotWater.set_dhw_auto() is deprecated, use .set_auto()"
-        )
+    async def set_dhw_on(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError("HotWater.set_dhw_on() is deprecated, use .set_on()")
 
 
 class HotWater(HotWaterDeprecated, _ZoneBase):
@@ -89,7 +89,6 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     def scheduleCapabilitiesResponse(self) -> dict:
         return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
 
-    # status attrs...
     @property
     def name(self) -> str:
         return "Domestic Hot Water"
@@ -98,11 +97,21 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     def stateStatus(self) -> None | dict:
         return self._status.get(SZ_STATE_STATUS)
 
-    async def _set_mode(self, state: dict) -> None:
-        """Set the DHW state."""
-        _ = await self._broker.put(f"{self.TYPE}/{self._id}/state", json=state)
+    async def _set_mode(self, mode: dict) -> None:
+        """Set the DHW mode (state)."""
+        _ = await self._broker.put(f"{self.TYPE}/{self._id}/state", json=mode)
 
-    # TODO: can we use camelCase strings?
+    async def reset_mode(self) -> None:
+        """Cancel any override and allow the DHW to follow its schedule."""
+
+        mode: dict[str, str | None] = {  # NOTE: SZ_STATE was previously ""
+            SZ_MODE: ZoneMode.FOLLOW_SCHEDULE,
+            SZ_STATE: None,
+            SZ_UNTIL_TIME: None,
+        }
+
+        await self._set_mode(mode)
+
     async def set_on(self, /, *, until: dt | None = None) -> None:
         """Set the DHW on until a given time, or permanently."""
 
@@ -140,16 +149,5 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
                 SZ_STATE: DhwState.OFF,
                 SZ_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
-
-        await self._set_mode(mode)
-
-    async def set_auto(self) -> None:
-        """Set the DHW to follow the schedule."""
-
-        mode: dict[str, str | None] = {  # NOTE: SZ_STATE was previously ""
-            SZ_MODE: ZoneMode.FOLLOW_SCHEDULE,
-            SZ_STATE: None,
-            SZ_UNTIL_TIME: None,
-        }
 
         await self._set_mode(mode)

@@ -51,6 +51,11 @@ SZ_SETPOINT = "setpoint"
 class _ControlSystemDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
+    async def set_status_reset(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "ControlSystem.set_status_reset() is deprecrated, use .reset_mode()"
+        )
+
     async def set_status(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
             "ControlSystem.set_status() is deprecrated, use .set_mode()"
@@ -58,37 +63,32 @@ class _ControlSystemDeprecated:
 
     async def set_status_normal(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
-            "ControlSystem.set_status_normal() is deprecrated, use .set_mode_auto()"
-        )
-
-    async def set_status_reset(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "ControlSystem.set_status_reset() is deprecrated, use .reset_mode()"
-        )
-
-    async def set_status_custom(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "ControlSystem.set_status_custom() is deprecrated, use .set_mode_custom()"
-        )
-
-    async def set_status_eco(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "ControlSystem.set_status_eco() is deprecrated, use .set_mode_eco()"
+            "ControlSystem.set_status_normal() is deprecrated, use .set_auto()"
         )
 
     async def set_status_away(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
-            "ControlSystem.set_status_away() is deprecrated, use .set_mode_away()"
+            "ControlSystem.set_status_away() is deprecrated, use .set_away()"
+        )
+
+    async def set_status_custom(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "ControlSystem.set_status_custom() is deprecrated, use .set_custom()"
         )
 
     async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
-            "ControlSystem.set_status_dayoff() is deprecrated, use .set_mode_dayoff()"
+            "ControlSystem.set_status_dayoff() is deprecrated, use .set_dayoff()"
+        )
+
+    async def set_status_eco(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError(
+            "ControlSystem.set_status_eco() is deprecrated, use .set_eco()"
         )
 
     async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:
         raise NotImplementedError(
-            "ControlSystem.set_status_heatingoff() is deprecrated, use .set_mode_heatingoff()"
+            "ControlSystem.set_status_heatingoff() is deprecrated, use .set_heatingoff()"
         )
 
     async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
@@ -163,7 +163,6 @@ class ControlSystem(_ControlSystemDeprecated):
     def _update_status(self, tcs_status: _EvoDictT) -> None:
         self._status = tcs_status
 
-    # status attrs...
     @property
     def activeFaults(self) -> None | _EvoListT:
         return self._status.get(SZ_ACTIVE_FAULTS)
@@ -172,13 +171,14 @@ class ControlSystem(_ControlSystemDeprecated):
     def systemModeStatus(self) -> None | _EvoDictT:
         return self._status.get(SZ_SYSTEM_MODE_STATUS)
 
-    async def _set_mode(self, system_mode: dict) -> None:
-        _ = await self._broker.put(
-            f"{self.TYPE}/{self._id}/mode",
-            json=system_mode,  # schema=
-        )
+    async def _set_mode(self, mode: dict) -> None:
+        """Set the TCS mode."""
+        _ = await self._broker.put(f"{self.TYPE}/{self._id}/mode", json=mode)
 
-    # TODO: can we use camelCase strings?
+    async def reset_mode(self) -> None:
+        """Set the TCS into auto mode (and DHW/all zones to FollowSchedule mode)."""
+        await self.set_status(SystemMode.AUTO_WITH_RESET)
+
     async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
 
@@ -198,31 +198,27 @@ class ControlSystem(_ControlSystemDeprecated):
 
         await self._set_mode(request)
 
-    async def reset_mode(self) -> None:
-        """Reset the system into normal mode (and all zones to FollowSchedule mode)."""
-        await self.set_status(SystemMode.AUTO_WITH_RESET)
-
-    async def set_mode_auto(self) -> None:
+    async def set_auto(self) -> None:
         """Set the system into normal mode."""
         await self.set_status(SystemMode.AUTO)
 
-    async def set_mode_custom(self, /, *, until: dt | None = None) -> None:
-        """Set the system into custom mode."""
-        await self.set_status(SystemMode.CUSTOM, until=until)
-
-    async def set_mode_eco(self, /, *, until: dt | None = None) -> None:
-        """Set the system into eco mode."""
-        await self.set_status(SystemMode.AUTO_WITH_ECO, until=until)
-
-    async def set_mode_away(self, /, *, until: dt | None = None) -> None:
+    async def set_away(self, /, *, until: dt | None = None) -> None:
         """Set the system into away mode."""
         await self.set_status(SystemMode.AWAY, until=until)
 
-    async def set_mode_dayoff(self, /, *, until: dt | None = None) -> None:
+    async def set_custom(self, /, *, until: dt | None = None) -> None:
+        """Set the system into custom mode."""
+        await self.set_status(SystemMode.CUSTOM, until=until)
+
+    async def set_dayoff(self, /, *, until: dt | None = None) -> None:
         """Set the system into dayoff mode."""
         await self.set_status(SystemMode.DAY_OFF, until=until)
 
-    async def set_mode_heatingoff(self, /, *, until: dt | None = None) -> None:
+    async def set_eco(self, /, *, until: dt | None = None) -> None:
+        """Set the system into eco mode."""
+        await self.set_status(SystemMode.AUTO_WITH_ECO, until=until)
+
+    async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
         """Set the system into heating off mode."""
         await self.set_status(SystemMode.HEATING_OFF, until=until)
 

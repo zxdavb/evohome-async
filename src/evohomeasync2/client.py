@@ -280,27 +280,27 @@ class EvohomeClient(EvohomeClientDeprecated):
 
     async def set_mode_auto(self) -> None:
         """Set the default TCS into auto mode."""
-        await self._get_single_heating_system().set_mode_auto()
+        await self._get_single_heating_system().set_auto()
 
     async def set_mode_away(self, /, *, until: None | dt = None) -> None:
         """Set the default TCS into away mode."""
-        await self._get_single_heating_system().set_mode_away(until=until)
+        await self._get_single_heating_system().set_away(until=until)
 
     async def set_mode_custom(self, /, *, until: None | dt = None) -> None:
         """Set the default TCS into custom mode."""
-        await self._get_single_heating_system().set_mode_custom(until=until)
+        await self._get_single_heating_system().set_custom(until=until)
 
     async def set_mode_dayoff(self, /, *, until: None | dt = None) -> None:
         """Set the default TCS into day off mode."""
-        await self._get_single_heating_system().set_mode_dayoff(until=until)
+        await self._get_single_heating_system().set_dayoff(until=until)
 
     async def set_mode_eco(self, /, *, until: None | dt = None) -> None:
         """Set the default TCS into eco mode."""
-        await self._get_single_heating_system().set_mode_eco(until=until)
+        await self._get_single_heating_system().set_eco(until=until)
 
     async def set_mode_heatingoff(self, /, *, until: None | dt = None) -> None:
         """Set the default TCS into heating off mode."""
-        await self._get_single_heating_system().set_mode_heatingoff(until=until)
+        await self._get_single_heating_system().set_heatingoff(until=until)
 
     async def temperatures(self) -> _EvoListT:
         """Return the current temperatures and setpoints of the default TCS."""
