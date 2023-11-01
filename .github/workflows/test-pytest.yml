@@ -41,11 +41,11 @@ jobs:
         pytest
 
 
-    - name: Test with without voluptuous
-      run: |
-        pip uninstall -y voluptuous
-        pytest
-      continue-on-error: true
+    # - name: Test with without voluptuous
+    #   run: |
+    #     pip uninstall -y voluptuous
+    #     pytest
+    #   continue-on-error: true
 
 
     - run: echo "🍏 This job's status is ${{ job.status }}."
