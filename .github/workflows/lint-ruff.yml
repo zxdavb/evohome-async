@@ -6,7 +6,7 @@ name: Linting with ruff
 on: workflow_dispatch  # [push, pull_request]
 
 jobs:
-  ruff:
+  lint:
     runs-on: ubuntu-latest
 
     strategy:

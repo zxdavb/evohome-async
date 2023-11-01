@@ -10,7 +10,7 @@ on: workflow_dispatch
   #   branches: [ "master" ]
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
