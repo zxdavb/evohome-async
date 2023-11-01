@@ -14,7 +14,9 @@ try:
     from .status import SCH_TEMPERATURE_CONTROL_SYSTEM as SCH_TCS_STATUS
     from .status import SCH_ZONE as SCH_ZONE_STATUS
 
-except ModuleNotFoundError:  # No module named 'voluptuous'
+except (AttributeError, ModuleNotFoundError):
+    # No module named 'voluptuous'
+    # type object 'vol' has no attribute 'Required'
     SCH_DHW_STATUS = dict
     SCH_FULL_CONFIG = list
     SCH_LOCN_CONFIG = dict
