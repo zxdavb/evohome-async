@@ -1,8 +1,6 @@
 evohome-async
 ==============
 
-[![CircleCI](https://circleci.com/gh/zxdavb/evohome-async.svg?style=svg)](https://circleci.com/gh/zxdavb/evohome-async)
-
 Python client to _asynchronously_ access the [Total Connect Comfort](https://international.mytotalconnectcomfort.com/Account/Login) RESTful API.
 
 It is largely a faithful port of https://github.com/watchforstock/evohome-client, which is not async-aware.  That is, it exposes the same schema (same namespace, same JSON).
