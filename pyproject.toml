@@ -57,25 +57,6 @@
 
 
 #
-### build-system #####################################################################
-
-# [build-system]
-#   requires = ["setuptools>=65.5"]  # , "setuptools_scm>=8"]
-#   build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-  packages = ["evohomeasync", "evohomeasync2"]
-  package-dir = {"" = "src"}
-
-[tool.setuptools.dynamic]
-  readme = {file = ["README.md"], content-type = "text/markdown"}
-  version = {attr = "evohomeasync2.__version__"}  # {file = "VERSION"}
-
-# [tool.setuptools_scm]
-#   version_file = "VERSION"
-
-
-#
 ### isort ############################################################################
 
 [tool.isort]
