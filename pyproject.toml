@@ -61,12 +61,18 @@
 [tool.pytest.ini_options]
   asyncio_mode = "auto"
 
+
+#
+###  mypy ############################################################################
+
 [tool.mypy]
-  # follow_imports = "skip"
   exclude = "docs"
+  files = ["src/evohomeasync", "src/evohomeasync2"]
+  # follow_imports = "skip"
+
 
 [tool.mypy-tests]
-  # ignore_errors = true
+  ignore_errors = true
 
 
 #
