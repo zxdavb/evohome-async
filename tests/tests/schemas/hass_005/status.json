@@ -1,0 +1,102 @@
+{
+    "locationId": "678433",
+    "gateways": [
+        {
+            "gatewayId": "689757",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "745047",
+                    "zones": [
+                        {
+                            "zoneId": "745059",
+                            "temperatureStatus": {"temperature": 16.0, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 16.0, "setpointMode": "FollowSchedule"},
+                            "name": "Landing"
+                        },
+                        {
+                            "zoneId": "745060",
+                            "temperatureStatus": {"temperature": 19.0, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 19.0, "setpointMode": "FollowSchedule"},
+                            "name": "Kitchen"
+                        },
+                        {
+                            "zoneId": "745061",
+                            "temperatureStatus": {"temperature": 18.0, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 16.0, "setpointMode": "FollowSchedule"},
+                            "name": "Matts bedroom"
+                        },
+                        {
+                            "zoneId": "745062",
+                            "temperatureStatus": {"temperature": 16.0, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 14.0, "setpointMode": "FollowSchedule"},
+                            "name": "Guest Bedroom"
+                        },
+                        {
+                            "zoneId": "745063",
+                            "temperatureStatus": {"temperature": 19.0, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 19.0, "setpointMode": "FollowSchedule"},
+                            "name": "Bathroom"
+                        },
+                        {
+                            "zoneId": "770656",
+                            "temperatureStatus": {"temperature": 15.5, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 14.0, "setpointMode": "FollowSchedule"},
+                            "name": "Sues Bedroom"
+                        },
+                        {
+                            "zoneId": "786904",
+                            "temperatureStatus": {"temperature": 18.0, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 16.0, "setpointMode": "FollowSchedule"},
+                            "name": "Basement One"
+                        },
+                        {
+                            "zoneId": "790431",
+                            "temperatureStatus": {"temperature": 19.0, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 19.0, "setpointMode": "FollowSchedule"},
+                            "name": "Sitting Room"
+                        },
+                        {
+                            "zoneId": "2136063",
+                            "temperatureStatus": {"temperature": 17.0, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 16.0, "setpointMode": "FollowSchedule"},
+                            "name": "Basement Two"
+                        },
+                        {
+                            "zoneId": "2136064",
+                            "temperatureStatus": {"temperature": 19.0, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 19.0, "setpointMode": "FollowSchedule"},
+                            "name": "Dining room"
+                        },
+                        {
+                            "zoneId": "2136171",
+                            "temperatureStatus": {"temperature": 16.5, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 16.0, "setpointMode": "FollowSchedule"},
+                            "name": "Hall"
+                        },
+                        {
+                            "zoneId": "8573729",
+                            "temperatureStatus": {"temperature": 16.0, "isAvailable": true},
+                            "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 16.0, "setpointMode": "FollowSchedule"},
+                            "name": "Dressing Room"
+                        }
+                    ],
+                    "activeFaults": [],
+                    "systemModeStatus": {"mode": "DayOff", "isPermanent": true}
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}
