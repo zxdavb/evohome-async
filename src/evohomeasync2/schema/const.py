@@ -153,9 +153,6 @@ DAYS_OF_WEEK = (
 )
 
 
-SZ_COOL = "Cool"
-SZ_HEAT = "Heat"
-
 SZ_OFF = "Off"
 SZ_ON = "On"
 
@@ -183,6 +180,9 @@ SZ_CUSTOM = "Custom"
 SZ_DAY_OFF = "DayOff"
 SZ_HEATING_OFF = "HeatingOff"
 
+SZ_COOL = "Cool"
+SZ_HEAT = "Heat"
+
 
 @verify(EnumCheck.UNIQUE)
 class SystemMode(StrEnum):
@@ -193,12 +193,15 @@ class SystemMode(StrEnum):
     CUSTOM: Final[str] = SZ_CUSTOM
     DAY_OFF: Final[str] = SZ_DAY_OFF
     HEATING_OFF: Final[str] = SZ_HEATING_OFF
+    OFF: Final[str] = SZ_OFF  # not evohome (VisionProWifiRetail)
+    HEAT: Final[str] = SZ_HEAT  # not evohome (VisionProWifiRetail)
 
 
 @verify(EnumCheck.UNIQUE)
 class TcsModelType(StrEnum):
     EVO_TOUCH: Final[str] = "EvoTouch"
     FOCUS_PRO_WIFI_RETAIL: Final[str] = "FocusProWifiRetail"
+    VISION_PRO_WIFI_RETAIL: Final[str] = "VisionProWifiRetail"
 
 
 SZ_FOLLOW_SCHEDULE = "FollowSchedule"
@@ -212,7 +215,7 @@ class ZoneMode(StrEnum):
     FOLLOW_SCHEDULE: Final[str] = SZ_FOLLOW_SCHEDULE
     PERMANENT_OVERRIDE: Final[str] = SZ_PERMANENT_OVERRIDE
     TEMPORARY_OVERRIDE: Final[str] = SZ_TEMPORARY_OVERRIDE
-    # VACATION_HOLD: Final[str] = SZ_VACATION_HOLD  # TODO: any consequences of adding?
+    VACATION_HOLD: Final[str] = SZ_VACATION_HOLD  # not evohome (VisionProWifiRetail)
 
 
 @verify(EnumCheck.UNIQUE)
@@ -222,18 +225,24 @@ class ZoneModelType(StrEnum):
     ROUND_MODULATION: Final[str] = "RoundModulation"
     ROUND_WIRELESS: Final[str] = "RoundWireless"
     UNKNOWN: Final[str] = "Unknown"
+    VISION_PRO_WIFI_RETAIL: Final[str] = "VisionProWifiRetail"
 
 
+SZ_ELECTRIC_HEAT = "ElectricHeat"  # TODO: needs confirming
+SZ_MIXING_VALVE = "MixingValve"
 SZ_RADIATOR_ZONE = "RadiatorZone"
 SZ_THERMOSTAT = "Thermostat"
+SZ_UNDERFLOOR_HEATING = "UnderfloorHeating"
 SZ_UNKNOWN = "Unknown"
-SZ_ZONE_VALVES = "ZoneValves"
+SZ_ZONE_VALVES = "ZoneValves"  # is not ZoneValve
 
 
 @verify(EnumCheck.UNIQUE)
 class ZoneType(StrEnum):
+    MIXING_VALVE: Final[str] = SZ_MIXING_VALVE
     RADIATOR_ZONE: Final[str] = SZ_RADIATOR_ZONE
     THERMOSTAT: Final[str] = SZ_THERMOSTAT
+    UNDERFLOOR_HEATING: Final[str] = SZ_UNDERFLOOR_HEATING
     UNKNOWN: Final[str] = SZ_UNKNOWN
     ZONE_VALVES: Final[str] = SZ_ZONE_VALVES
 

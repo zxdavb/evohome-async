@@ -62,6 +62,7 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
     SZ_USER_ID,
     SZ_USERNAME,
+    SZ_VACATION_HOLD_CAPABILITIES,
     SZ_VALUE_RESOLUTION,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
@@ -81,6 +82,8 @@ SCH_SYSTEM_MODE_PERM = vol.Schema(
             str(SystemMode.AUTO),
             str(SystemMode.AUTO_WITH_RESET),
             str(SystemMode.HEATING_OFF),
+            str(SystemMode.OFF),  # not evohome
+            str(SystemMode.HEAT),  # not evohome
         ),
         vol.Required(SZ_CAN_BE_PERMANENT): True,
         vol.Required(SZ_CAN_BE_TEMPORARY): False,
@@ -106,6 +109,7 @@ SCH_SYSTEM_MODE_TEMP = vol.Schema(
 )
 
 SCH_ALLOWED_SYSTEM_MODE = vol.Any(SCH_SYSTEM_MODE_PERM, SCH_SYSTEM_MODE_TEMP)
+
 
 SCH_DHW_STATE_CAPABILITIES_RESPONSE = vol.Schema(
     {
@@ -155,10 +159,10 @@ SCH_SETPOINT_CAPABILITIES = vol.Schema(
         vol.Required(SZ_TIMING_RESOLUTION): vol.Datetime(
             format="00:%M:00"
         ),  # "00:10:00"
-        # vol.Optional(SZ_VACATION_HOLD_CAPABILITIES): dict,  # TODO: non-evohome
+        vol.Optional(SZ_VACATION_HOLD_CAPABILITIES): dict,  # TODO: non-evohome
         # vol.Optional(SZ_ALLOWED_FAN_MODES): dict,  # TODO: non-evohome
     },
-    # extra=vol.PREVENT_EXTRA,
+    extra=vol.PREVENT_EXTRA,
 )
 
 SCH_SCHEDULE_CAPABILITIES = SCH_SCHEDULE_CAPABILITIES_RESPONSE.extend(
