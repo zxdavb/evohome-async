@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 """Provides handling of TCC temperature control systems."""
+
+# TODO: add provision for cooling
+# TODO: add set_mode() for non-evohome modes (e.g. "Heat", "Off")
+
 from __future__ import annotations
 
 from datetime import datetime as dt
@@ -9,7 +13,7 @@ import json
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME, SystemMode
-from .exceptions import InvalidSchema
+from .exceptions import DeprecationError, InvalidParameter, InvalidSchema
 from .hotwater import HotWater
 from .schema import SCH_TCS_STATUS
 from .schema.const import (
@@ -28,7 +32,6 @@ from .schema.const import (
     SZ_TIME_UNTIL,
     SZ_ZONES,
 )
-from .schema.const import SYSTEM_MODES
 from .zone import Zone
 
 
@@ -52,52 +55,52 @@ class _ControlSystemDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     async def set_status_reset(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "ControlSystem.set_status_reset() is deprecrated, use .reset_mode()"
         )
 
     async def set_status(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "ControlSystem.set_status() is deprecrated, use .set_mode()"
         )
 
     async def set_status_normal(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "ControlSystem.set_status_normal() is deprecrated, use .set_auto()"
         )
 
     async def set_status_away(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "ControlSystem.set_status_away() is deprecrated, use .set_away()"
         )
 
     async def set_status_custom(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "ControlSystem.set_status_custom() is deprecrated, use .set_custom()"
         )
 
     async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "ControlSystem.set_status_dayoff() is deprecrated, use .set_dayoff()"
         )
 
     async def set_status_eco(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "ControlSystem.set_status_eco() is deprecrated, use .set_eco()"
         )
 
     async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "ControlSystem.set_status_heatingoff() is deprecrated, use .set_heatingoff()"
         )
 
     async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "TCS.zone_schedules_backup() is deprecated, use .backup_schedules()"
         )
 
     async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "TCS.zone_schedules_restore() is deprecated, use .restore_schedules()"
         )
 
@@ -147,9 +150,8 @@ class ControlSystem(_ControlSystemDeprecated):
     def __str__(self) -> str:
         return f"{self._id} ({self.TYPE})"
 
-    # config attrs...
     @property
-    def allowedSystemModes(self) -> str:
+    def allowedSystemModes(self) -> _EvoListT:
         return self._config[SZ_ALLOWED_SYSTEM_MODES]
 
     @property
@@ -164,11 +166,11 @@ class ControlSystem(_ControlSystemDeprecated):
         self._status = tcs_status
 
     @property
-    def activeFaults(self) -> None | _EvoListT:
+    def activeFaults(self) -> _EvoListT | None:
         return self._status.get(SZ_ACTIVE_FAULTS)
 
     @property
-    def systemModeStatus(self) -> None | _EvoDictT:
+    def systemModeStatus(self) -> _EvoDictT | None:
         return self._status.get(SZ_SYSTEM_MODE_STATUS)
 
     async def _set_mode(self, mode: dict) -> None:
@@ -176,7 +178,7 @@ class ControlSystem(_ControlSystemDeprecated):
         _ = await self._broker.put(f"{self.TYPE}/{self._id}/mode", json=mode)
 
     async def reset_mode(self) -> None:
-        """Set the TCS into auto mode (and DHW/all zones to FollowSchedule mode)."""
+        """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
         await self.set_status(SystemMode.AUTO_WITH_RESET)
 
     async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
@@ -184,11 +186,15 @@ class ControlSystem(_ControlSystemDeprecated):
 
         request: _EvoDictT
 
-        if mode not in SYSTEM_MODES:
-            raise ValueError(f"Invalid mode: {mode}")
+        if mode not in [m[SZ_SYSTEM_MODE] for m in self.allowedSystemModes]:
+            raise InvalidParameter(f"Unsupported/unknown mode: {mode}")
 
         if until is None:
-            request = {SZ_SYSTEM_MODE: mode, SZ_PERMANENT: True, SZ_TIME_UNTIL: None}
+            request = {
+                SZ_SYSTEM_MODE: mode,
+                SZ_PERMANENT: True,
+                SZ_TIME_UNTIL: None,
+            }
         else:
             request = {
                 SZ_SYSTEM_MODE: mode,

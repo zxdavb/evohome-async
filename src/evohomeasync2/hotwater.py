@@ -2,16 +2,20 @@
 # -*- coding: utf-8 -*-
 #
 """Provides handling of TCC DHW zones."""
+
+# TODO: add set_mode() for non-evohome modes
+
 from __future__ import annotations
 
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME
-from .exceptions import InvalidSchema
+from .exceptions import DeprecationError, InvalidSchema
 from .schema import SCH_DHW_STATUS
 from .schema.const import DhwState, ZoneMode
 from .schema.const import (
+    SZ_ALLOWED_MODES,
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
     SZ_DOMESTIC_HOT_WATER,
@@ -27,7 +31,7 @@ from .zone import _ZoneBase
 
 if TYPE_CHECKING:
     from . import ControlSystem
-    from .schema import _DhwIdT, _EvoDictT
+    from .schema import _DhwIdT, _EvoDictT, _EvoListT
 
 
 class HotWaterDeprecated:
@@ -35,25 +39,23 @@ class HotWaterDeprecated:
 
     @property
     def zoneId(self) -> NoReturn:
-        raise NotImplementedError("HotWater.zoneId is deprecated, use .dhwId (or ._id)")
+        raise DeprecationError("HotWater.zoneId is deprecated, use .dhwId (or ._id)")
 
     async def get_dhw_state(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "HotWater.get_dhw_state() is deprecated, use Location.refresh_status()"
         )
 
     async def set_dhw_auto(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "HotWater.set_dhw_auto() is deprecated, use .reset_mode()"
         )
 
     async def set_dhw_off(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "HotWater.set_dhw_off() is deprecated, use .set_off()"
-        )
+        raise DeprecationError("HotWater.set_dhw_off() is deprecated, use .set_off()")
 
     async def set_dhw_on(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError("HotWater.set_dhw_on() is deprecated, use .set_on()")
+        raise DeprecationError("HotWater.set_dhw_on() is deprecated, use .set_on()")
 
 
 class HotWater(HotWaterDeprecated, _ZoneBase):
@@ -76,25 +78,28 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
             raise InvalidSchema(str(exc))
         self._id = self.dhwId
 
-    # config attrs...
     @property
     def dhwId(self) -> _DhwIdT:
         return self._config[SZ_DHW_ID]
 
     @property
-    def dhwStateCapabilitiesResponse(self) -> dict:
+    def dhwStateCapabilitiesResponse(self) -> _EvoDictT:
         return self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
 
     @property
-    def scheduleCapabilitiesResponse(self) -> dict:
+    def scheduleCapabilitiesResponse(self) -> _EvoDictT:
         return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
+
+    @property  # for convenience (is not a top-level config attribute)
+    def allowedModes(self) -> _EvoListT:
+        return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE][SZ_ALLOWED_MODES]
 
     @property
     def name(self) -> str:
         return "Domestic Hot Water"
 
     @property
-    def stateStatus(self) -> None | dict:
+    def stateStatus(self) -> _EvoDictT | None:
         return self._status.get(SZ_STATE_STATUS)
 
     async def _set_mode(self, mode: dict) -> None:

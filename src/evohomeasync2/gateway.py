@@ -60,7 +60,6 @@ class Gateway:
     def __str__(self) -> str:
         return f"{self._id} ({self.TYPE})"
 
-    # config attrs...
     @property
     def gatewayId(self) -> _GatewayIdT:
         return self._config[SZ_GATEWAY_ID]

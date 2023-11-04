@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from .exceptions import InvalidSchema
+from .exceptions import DeprecationError, InvalidSchema
 from .gateway import Gateway
 from .schema import SCH_LOCN_STATUS
 from .schema.const import (
@@ -40,9 +40,7 @@ class _LocationDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     async def status(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
-            "Location.status() is deprecated, use .refresh_status()"
-        )
+        raise DeprecationError("Location.status() is deprecated, use .refresh_status()")
 
 
 class Location(_LocationDeprecated):
@@ -77,7 +75,6 @@ class Location(_LocationDeprecated):
     def __str__(self) -> str:
         return f"{self._id} ({self.TYPE})"
 
-    # config attrs...
     @property
     def country(self) -> str:
         return self._config[SZ_COUNTRY]

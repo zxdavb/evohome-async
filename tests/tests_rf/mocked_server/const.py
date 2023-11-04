@@ -344,7 +344,7 @@ MOCK_FULL_CONFIG = [  # of a specific user account
             }
         ],
     }
-]  # NOTE: no activeFaults as is config
+]
 
 
 MOCK_LOCN_STATUS = {  # of a specific location
@@ -651,7 +651,7 @@ MOCK_SCHEDULE_DHW = {  # of any zone (no dhwId)
 }
 
 
-def user_config_from_full_config(full_config: dict) -> dict:
+def user_config_from_full_config(full_config: list) -> dict:
     """Create a valid MOCK_USER_CONFIG from a MOCK_FULL_CONFIG."""
 
     # assert schema

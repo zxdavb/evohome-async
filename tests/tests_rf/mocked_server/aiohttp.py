@@ -29,7 +29,7 @@ class hdrs(StrEnum):  # from aiohttp
 
 
 class StreamReader(asyncio.StreamReader):
-    _buffer: bytearray = b""
+    _buffer = bytearray()
 
     def __init__(self, limit=_DEFAULT_LIMIT, loop=None):
         pass
@@ -71,7 +71,7 @@ class ClientResponseError(ClientError):
 
     def __init__(self, msg, /, *, status: int | None = None, **kwargs) -> None:
         super().__init__(msg)
-        self.status: int = status
+        self.status = status
 
 
 class ClientTimeout:
@@ -91,15 +91,15 @@ class ClientSession:
         self._mocked_server: MockedServer = kwargs["mocked_server"]
 
     def get(self, url, /, headers: str | None = None):
-        return ClientResponse(hdrs.METH_GET, url, session=self)
+        return ClientResponse(hdrs.METH_GET, url, session=self)  # type: ignore[arg-type]
 
     def put(
         self, url, /, *, data: Any = None, json: Any = None, headers: str | None = None
     ):
-        return ClientResponse(hdrs.METH_PUT, url, data=data or json, session=self)
+        return ClientResponse(hdrs.METH_PUT, url, data=data or json, session=self)  # type: ignore[arg-type]
 
     def post(self, url, /, *, data: Any = None, headers: str | None = None):
-        return ClientResponse(hdrs.METH_POST, url, data=data, session=self)
+        return ClientResponse(hdrs.METH_POST, url, data=data, session=self)  # type: ignore[arg-type]
 
     async def close(self) -> None:
         pass
@@ -176,6 +176,7 @@ class ClientResponse:
         """Return the response body as json (a dict)."""
         if self.content_type == "application/json":
             return self._body
+        assert not isinstance(self._body, (dict, list))  # mypy
         return json.loads(self._body)
 
     async def __aenter__(self, *args, **kwargs) -> Self:

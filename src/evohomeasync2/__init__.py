@@ -13,11 +13,13 @@ from .client import EvohomeClient  # noqa: F401
 from .controlsystem import ControlSystem  # noqa: F401
 from .exceptions import (  # noqa: F401
     AuthenticationFailed,
+    DeprecationError,
     EvohomeError,
+    InvalidParameter,
     InvalidSchedule,
     InvalidSchema,
     RequestFailed,
-    NoDefaultTcsError,
+    NoSingleTcsError,
     RateLimitExceeded,
 )
 from .gateway import Gateway  # noqa: F401

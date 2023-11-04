@@ -237,4 +237,7 @@ async def test_task_id(
     if _DEBUG_USE_MOCK_AIOHTTP:
         pytest.skip("Test is only valid with a real server")
 
-    await _test_task_id(*credentials, session)
+    try:
+        await _test_task_id(*credentials, session)
+    except evo.AuthenticationFailed:
+        pytest.skip("Unable to authenticate")

@@ -17,15 +17,23 @@ class EvohomeError(EvohomeBaseError):
     """The base exception class for evohome-async."""
 
 
+class DeprecationError(EvohomeBaseError):
+    """The method or property has changed, or is otherwise deprecated."""
+
+
 class InvalidSchema(EvohomeError):
-    """The supplied config/status JSON is invalid (e.g. no Id)."""
+    """The supplied config/status JSON is invalid (e.g. missing an Id)."""
+
+
+class InvalidParameter(EvohomeError):
+    """The supplied parameter(s) is/are invalid (e.g. unknown/unsupported mode)."""
 
 
 class InvalidSchedule(InvalidSchema):
     """The supplied schedule has an invalid schema."""
 
 
-class NoDefaultTcsError(EvohomeError):
+class NoSingleTcsError(EvohomeError):
     """There is not exactly one TCS in the user's installation."""
 
 

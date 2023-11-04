@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 """Provides handling of TCC zones (heating and DHW)."""
+
+# TODO: add provision for cooling zones
+# TODO: add set_mode() for non-evohome modes (e.g. "VacationHold")
+
 from __future__ import annotations
 
 from datetime import datetime as dt
@@ -9,7 +13,7 @@ import json
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME, ZoneMode
-from .exceptions import InvalidSchedule, InvalidSchema
+from .exceptions import DeprecationError, InvalidSchedule, InvalidSchema
 from .schema import SCH_ZONE_STATUS
 from .schema.schedule import (
     SCH_GET_SCHEDULE,
@@ -19,6 +23,7 @@ from .schema.schedule import (
     convert_to_put_schedule,
 )
 from .schema.const import (
+    SZ_ALLOWED_SETPOINT_MODES,
     SZ_ACTIVE_FAULTS,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_MODEL_TYPE,
@@ -46,10 +51,10 @@ class _ZoneBaseDeprecated:
 
     @property
     def zone_type(self) -> NoReturn:
-        raise NotImplementedError("ZoneBase.zone_type is deprecated, use .TYPE")
+        raise DeprecationError("ZoneBase.zone_type is deprecated, use .TYPE")
 
     async def schedule(self) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "_ZoneBase.schedule() is deprecrated, use .get_schedule()"
         )
 
@@ -95,11 +100,11 @@ class _ZoneBase(_ZoneBaseDeprecated):
         self._status = status
 
     @property
-    def activeFaults(self) -> None | _EvoListT:
+    def activeFaults(self) -> _EvoListT | None:
         return self._status.get(SZ_ACTIVE_FAULTS)
 
     @property
-    def temperatureStatus(self) -> None | _EvoDictT:
+    def temperatureStatus(self) -> _EvoDictT | None:
         return self._status.get(SZ_TEMPERATURE_STATUS)
 
     async def get_schedule(self) -> _EvoDictT:
@@ -144,7 +149,7 @@ class _ZoneDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     async def cancel_temp_override(self) -> None:
-        raise NotImplementedError(
+        raise DeprecationError(
             "Zone.cancel_temp_override() is deprecrated, use .reset_mode()"
         )
 
@@ -169,7 +174,6 @@ class Zone(_ZoneDeprecated, _ZoneBase):
             raise InvalidSchema(str(exc))
         self._id = self.zoneId
 
-    # config attrs...
     @property
     def zoneId(self) -> _ZoneIdT:
         return self._config[SZ_ZONE_ID]
@@ -179,11 +183,15 @@ class Zone(_ZoneDeprecated, _ZoneBase):
         return self._config[SZ_MODEL_TYPE]
 
     @property
-    def setpointCapabilities(self) -> dict:
+    def setpointCapabilities(self) -> _EvoDictT:
         return self._config[SZ_SETPOINT_CAPABILITIES]
 
+    @property  # for convenience (is not a top-level config attribute)
+    def allowedSetpointModes(self) -> _EvoListT:
+        return self._config[SZ_SETPOINT_CAPABILITIES][SZ_ALLOWED_SETPOINT_MODES]
+
     @property
-    def scheduleCapabilities(self) -> dict:
+    def scheduleCapabilities(self) -> _EvoDictT:
         return self._config[SZ_SCHEDULE_CAPABILITIES]
 
     @property
@@ -195,7 +203,7 @@ class Zone(_ZoneDeprecated, _ZoneBase):
         return self._config.get(SZ_NAME) or self._config[SZ_NAME]
 
     @property
-    def setpointStatus(self) -> None | dict:
+    def setpointStatus(self) -> _EvoDictT | None:
         return self._status.get(SZ_SETPOINT_STATUS)
 
     async def _set_mode(self, mode: dict) -> None:  # NOTE: no provision for cooling

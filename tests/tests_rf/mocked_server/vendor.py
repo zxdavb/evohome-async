@@ -112,7 +112,7 @@ class MockedServer:
             return {"message": "Not found"}
 
     def all_config(self) -> _bodyT | None:  # full_locn
-        def user_id(url) -> str:
+        def user_id(url: str) -> str:
             return url.split("?userId=")[1].split("&")[0]
 
         if self._method != HTTPMethod.GET:
@@ -225,7 +225,7 @@ class MockedServer:
 
     #
 
-    def _response_for_request(self) -> _bodyT | None:
+    def OUT__response_for_request(self) -> _bodyT | None:
         """Set the response body (and status) according to the request."""
 
         if "/Auth" in self._url and self._method == HTTPMethod.POST:
@@ -259,11 +259,11 @@ class MockedServer:
         ):
             return self._response_for_dhw_request()
 
-    def _handle_user_account_request(self) -> _bodyT | None:
+    def OUT_handle_user_account_request(self) -> _bodyT | None:
         if self._method == HTTPMethod.POST:
             return self.auth_response()
 
-    def _response_for_location_request(self) -> _bodyT | None:
+    def OUT_response_for_location_request(self) -> _bodyT | None:
         """"""
 
         if self._method != HTTPMethod.GET:
@@ -281,7 +281,7 @@ class MockedServer:
             # GET /location/{locationId}/status
             return self.locn_status(location_id=None)
 
-    def _response_for_zone_request(self) -> _bodyT | None:
+    def OUT_response_for_zone_request(self) -> _bodyT | None:
         """"""
 
         def zone_id() -> _ZoneIdT:
@@ -305,7 +305,7 @@ class MockedServer:
                 # PUT /temperatureZone/{zoneId}/heatSetpoint
                 raise NotImplementedError
 
-    def _response_for_dhw_request(self) -> _bodyT | None:
+    def OUT_response_for_dhw_request(self) -> _bodyT | None:
         """"""
 
         def dhw_id() -> _DhwIdT:
@@ -329,22 +329,22 @@ class MockedServer:
                 # PUT /domesticHotWater/{dhwId}/state
                 raise NotImplementedError
 
-    def user_config(self) -> dict:
+    def OUT_user_config(self) -> dict:
         return self._user_config
 
-    def full_config(self) -> dict:
+    def OUT_full_config(self) -> dict:
         return self._full_config
 
-    def locn_config(self, location_id: str | None) -> dict:
+    def OUT_locn_config(self, location_id: str | None) -> dict:
         raise NotImplementedError
 
-    def locn_status(self, location_id: str | None) -> dict:
+    def OUT_locn_status(self, location_id: str | None) -> dict:
         return self._locn_status
 
-    def dhw_schedule_old(self, dhw_id: _DhwIdT) -> dict:
+    def OLD_dhw_schedule_old(self, dhw_id: _DhwIdT) -> dict:
         return self._dhw_schedule
 
-    def dhw_status_old(self, dhw_id: _DhwIdT) -> dict | None:
+    def OLD_dhw_status_old(self, dhw_id: _DhwIdT) -> dict | None:
         for gwy in self._locn_status[SZ_GATEWAYS]:
             for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
                 if (dhw := tcs.get(SZ_DHW)) and dhw[SZ_DHW_ID] == dhw_id:
@@ -352,7 +352,7 @@ class MockedServer:
 
         self.status = 404
 
-    def zone_status(self, zone_id: _ZoneIdT) -> dict | None:
+    def OUT_zone_status(self, zone_id: _ZoneIdT) -> dict | None:
         for gwy in self._locn_status[SZ_GATEWAYS]:
             for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
                 for zone in tcs[SZ_ZONES]:
@@ -361,11 +361,13 @@ class MockedServer:
 
         self.status = 404
 
-    def zone_schedule(self, zone_id: _ZoneIdT) -> dict:
+    def OUT_zone_schedule(self, zone_id: _ZoneIdT) -> dict:
         return self._zon_schedule
 
+    #
+
     @staticmethod
-    def _user_config_from_full_config(full_config: dict) -> dict:
+    def _user_config_from_full_config(full_config: list) -> dict:
         """Create a valid MOCK_USER_CONFIG from a MOCK_FULL_CONFIG."""
         return _user_config_from_full_config(full_config)
 

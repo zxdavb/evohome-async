@@ -163,12 +163,12 @@ async def _test_sched__apis(
 
     #
     # STEP 2: GET & PUT /{_type}/{_id}/schedule
-    if dhw := client._get_single_heating_system().hotwater:
+    if dhw := client._get_single_tcs().hotwater:
         schedule = await dhw.get_schedule()
         assert SCH_PUT_SCHEDULE_DHW(schedule)
         await dhw.set_schedule(schedule)
 
-    if zone := client._get_single_heating_system()._zones[0]:
+    if zone := client._get_single_tcs()._zones[0]:
         schedule = await zone.get_schedule()
         assert SCH_PUT_SCHEDULE_ZONE(schedule)
         await zone.set_schedule(schedule)
@@ -205,11 +205,11 @@ async def _test_status_apis(
 
     #
     # STEP 2: GET /{_type}/{_id}/status
-    if dhw := client._get_single_heating_system().hotwater:
+    if dhw := client._get_single_tcs().hotwater:
         dhw_status = await dhw._refresh_status()
         assert SCH_DHW_STATUS(dhw_status)
 
-    if zone := client._get_single_heating_system()._zones[0]:
+    if zone := client._get_single_tcs()._zones[0]:
         zone_status = await zone._refresh_status()
         assert SCH_ZONE_STATUS(zone_status)
 
@@ -245,8 +245,8 @@ async def _test_system_apis(
     #
     # STEP 2: GET /{_type}/{_id}/status
     try:
-        tcs = client._get_single_heating_system()
-    except evo.NoDefaultTcsError:
+        tcs = client._get_single_tcs()
+    except evo.NoSingleTcsError:
         tcs = client.locations[0].gateways[0].control_systems[0]
 
     mode = tcs.systemModeStatus[SZ_MODE]
@@ -267,7 +267,12 @@ async def test_basics(
 ):
     username, password = credentials
 
-    await _test_basics_apis(username, password, session=session)
+    try:
+        await _test_basics_apis(username, password, session=session)
+    except evo.AuthenticationFailed:
+        if _DEBUG_USE_MOCK_AIOHTTP:
+            raise
+        pytest.skip("Unable to authenticate")
 
 
 @pytest.mark.asyncio
@@ -277,7 +282,12 @@ async def test_sched_(
 ):
     username, password = credentials
 
-    await _test_sched__apis(username, password, session=session)
+    try:
+        await _test_sched__apis(username, password, session=session)
+    except evo.AuthenticationFailed:
+        if _DEBUG_USE_MOCK_AIOHTTP:
+            raise
+        pytest.skip("Unable to authenticate")
 
 
 @pytest.mark.asyncio
@@ -287,7 +297,12 @@ async def test_status(
 ):
     username, password = credentials
 
-    await _test_status_apis(username, password, session=session)
+    try:
+        await _test_status_apis(username, password, session=session)
+    except evo.AuthenticationFailed:
+        if _DEBUG_USE_MOCK_AIOHTTP:
+            raise
+        pytest.skip("Unable to authenticate")
 
 
 @pytest.mark.asyncio
@@ -297,9 +312,13 @@ async def test_system(
 ):
     username, password = credentials
 
-    try:  # TODO: implement
+    try:
         await _test_system_apis(username, password, session=session)
     except NotImplementedError:  # TODO: implement
         if not _DEBUG_USE_MOCK_AIOHTTP:
             raise
         pytest.skip("Mocked server API not implemented")
+    except evo.AuthenticationFailed:
+        if _DEBUG_USE_MOCK_AIOHTTP:
+            raise
+        pytest.skip("Unable to authenticate")

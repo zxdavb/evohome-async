@@ -13,7 +13,7 @@ import aiohttp
 
 from .broker import Broker
 from .controlsystem import ControlSystem
-from .exceptions import AuthenticationFailed, NoDefaultTcsError
+from .exceptions import AuthenticationFailed, DeprecationError, NoSingleTcsError
 from .location import Location
 from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
 
@@ -42,55 +42,55 @@ class EvohomeClientDeprecated:
         #     location_id = self.installation_info[0]["locationInfo"]["locationId"]
         # url = f"location/{location_id}/installationInfo?"  # Specific location
 
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.full_installation() is deprecated, use .installation()"
         )
 
     async def gateway(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError("EvohomeClient.gateway() is deprecated")
+        raise DeprecationError("EvohomeClient.gateway() is deprecated")
 
     async def set_status_away(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_away() is deprecated, use .set_mode_away()"
         )
 
     async def set_status_custom(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_custom() is deprecated, use .set_mode_custom()"
         )
 
     async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_dayoff() is deprecated, use .set_mode_dayoff()"
         )
 
     async def set_status_eco(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_eco() is deprecated, use .set_mode_eco()"
         )
 
     async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_heatingoff() is deprecated, use .set_mode_heatingoff()"
         )
 
     async def set_status_normal(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
         )
 
     async def set_status_reset(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_reset() is deprecated, use .reset_mode()"
         )
 
     async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.zone_schedules_backup() is deprecated, use .backup_schedules()"
         )
 
     async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.zone_schedules_restore() is deprecated, use .restore_schedules()"
         )
 
@@ -246,24 +246,24 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         return self._full_config
 
-    def _get_single_heating_system(self) -> ControlSystem:
+    def _get_single_tcs(self) -> ControlSystem:
         """If there is a single location/gateway/TCS, return it, or raise an exception.
 
-        Most systems will have only one TCS.
+        Most users will have only one TCS.
         """
 
         if not self.locations or len(self.locations) != 1:
-            raise NoDefaultTcsError(
+            raise NoSingleTcsError(
                 "There is not a single location (only) for this account"
             )
 
         if len(self.locations[0]._gateways) != 1:  # type: ignore[index]
-            raise NoDefaultTcsError(
+            raise NoSingleTcsError(
                 "There is not a single gateway (only) for this account/location"
             )
 
         if len(self.locations[0]._gateways[0]._control_systems) != 1:  # type: ignore[index]
-            raise NoDefaultTcsError(
+            raise NoSingleTcsError(
                 "There is not a single TCS (only) for this account/location/gateway"
             )
 
@@ -272,43 +272,43 @@ class EvohomeClient(EvohomeClientDeprecated):
     @property
     def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?
         """Return the ID of the 'default' TCS (assumes only one loc/gwy/TCS)."""
-        return self._get_single_heating_system().systemId
+        return self._get_single_tcs().systemId
 
     async def reset_mode(self) -> None:
         """Reset the mode of the default TCS and its zones."""
-        await self._get_single_heating_system().reset_mode()
+        await self._get_single_tcs().reset_mode()
 
     async def set_mode_auto(self) -> None:
         """Set the default TCS into auto mode."""
-        await self._get_single_heating_system().set_auto()
+        await self._get_single_tcs().set_auto()
 
-    async def set_mode_away(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_away(self, /, *, until: dt | None = None) -> None:
         """Set the default TCS into away mode."""
-        await self._get_single_heating_system().set_away(until=until)
+        await self._get_single_tcs().set_away(until=until)
 
-    async def set_mode_custom(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_custom(self, /, *, until: dt | None = None) -> None:
         """Set the default TCS into custom mode."""
-        await self._get_single_heating_system().set_custom(until=until)
+        await self._get_single_tcs().set_custom(until=until)
 
-    async def set_mode_dayoff(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_dayoff(self, /, *, until: dt | None = None) -> None:
         """Set the default TCS into day off mode."""
-        await self._get_single_heating_system().set_dayoff(until=until)
+        await self._get_single_tcs().set_dayoff(until=until)
 
-    async def set_mode_eco(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_eco(self, /, *, until: dt | None = None) -> None:
         """Set the default TCS into eco mode."""
-        await self._get_single_heating_system().set_eco(until=until)
+        await self._get_single_tcs().set_eco(until=until)
 
-    async def set_mode_heatingoff(self, /, *, until: None | dt = None) -> None:
+    async def set_mode_heatingoff(self, /, *, until: dt | None = None) -> None:
         """Set the default TCS into heating off mode."""
-        await self._get_single_heating_system().set_heatingoff(until=until)
+        await self._get_single_tcs().set_heatingoff(until=until)
 
     async def temperatures(self) -> _EvoListT:
         """Return the current temperatures and setpoints of the default TCS."""
-        return await self._get_single_heating_system().temperatures()
+        return await self._get_single_tcs().temperatures()
 
     async def backup_schedules(self, filename: _FilePathT) -> None:
         """Backup all schedules from the default control system to the file."""
-        await self._get_single_heating_system().backup_schedules(filename)
+        await self._get_single_tcs().backup_schedules(filename)
 
     async def restore_schedules(
         self, filename: _FilePathT, match_by_name: bool = False
@@ -318,6 +318,6 @@ class EvohomeClient(EvohomeClientDeprecated):
         There is the option to match schedules to their zone/dhw by name rather than id.
         """
 
-        await self._get_single_heating_system().restore_schedules(
+        await self._get_single_tcs().restore_schedules(
             filename, match_by_name=match_by_name
         )
