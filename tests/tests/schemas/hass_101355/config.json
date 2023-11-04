@@ -1,0 +1,98 @@
+{
+    "locationInfo": {
+        "timeZone": {
+            "timeZoneId": "GMTStandardTime",
+            "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+            "offsetMinutes": 0,
+            "currentOffsetMinutes": 60,
+            "supportsDaylightSaving": true
+        }
+    },
+    "gateways": [
+        {
+            "temperatureControlSystems": [
+                {
+                    "systemId": "3333333",
+                    "modelType": "EvoTouch",
+                    "zones": [
+                        {
+                            "zoneId": "7820586",
+                            "modelType": "Unknown",
+                            "setpointCapabilities": {
+                                "maxHeatSetpoint": 30.0,
+                                "minHeatSetpoint": 5.0,
+                                "valueResolution": 0.5,
+                                "canControlHeat": true,
+                                "canControlCool": false,
+                                "allowedSetpointModes": [
+                                    "PermanentOverride",
+                                    "FollowSchedule",
+                                    "TemporaryOverride"
+                                ],
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "00:10:00"
+                            },
+                            "scheduleCapabilities": {
+                                "maxSwitchpointsPerDay": 6,
+                                "minSwitchpointsPerDay": 1,
+                                "timingResolution": "00:10:00",
+                                "setpointValueResolution": 0.5
+                            },
+                            "name": "",
+                            "zoneType": "Unknown"
+                        }
+                    ],
+                    "allowedSystemModes": [
+                        {
+                            "systemMode": "Auto",
+                            "canBePermanent": true,
+                            "canBeTemporary": false
+                        },
+                        {
+                            "systemMode": "AutoWithEco",
+                            "canBePermanent": true,
+                            "canBeTemporary": true,
+                            "maxDuration": "1.00:00:00",
+                            "timingResolution": "01:00:00",
+                            "timingMode": "Duration"
+                        },
+                        {
+                            "systemMode": "AutoWithReset",
+                            "canBePermanent": true,
+                            "canBeTemporary": false
+                        },
+                        {
+                            "systemMode": "Away",
+                            "canBePermanent": true,
+                            "canBeTemporary": true,
+                            "maxDuration": "99.00:00:00",
+                            "timingResolution": "1.00:00:00",
+                            "timingMode": "Period"
+                        },
+                        {
+                            "systemMode": "DayOff",
+                            "canBePermanent": true,
+                            "canBeTemporary": true,
+                            "maxDuration": "99.00:00:00",
+                            "timingResolution": "1.00:00:00",
+                            "timingMode": "Period"
+                        },
+                        {
+                            "systemMode": "HeatingOff",
+                            "canBePermanent": true,
+                            "canBeTemporary": false
+                        },
+                        {
+                            "systemMode": "Custom",
+                            "canBePermanent": true,
+                            "canBeTemporary": true,
+                            "maxDuration": "99.00:00:00",
+                            "timingResolution": "1.00:00:00",
+                            "timingMode": "Period"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,23 @@
+{  # actual JSON - HA issue #102505
+    "DailySchedules": [
+        {
+            "DayOfWeek": 0,
+            "Switchpoints": [{"heatSetpoint": 16.0, "TimeOfDay": "00:00:00"}]
+        }, {
+            "DayOfWeek": 1,
+            "Switchpoints": [{"heatSetpoint": 16.0, "TimeOfDay": "00:00:00"}]
+        }, {
+            "DayOfWeek": 2,
+            "Switchpoints": [{"heatSetpoint": 16.0, "TimeOfDay": "00:00:00"}]
+        }, {
+            "DayOfWeek": 3,
+            "Switchpoints": [{"heatSetpoint": 16.0, "TimeOfDay": "00:00:00"}, {"heatSetpoint": 21.0, "TimeOfDay": "06:30:00"}, {"heatSetpoint": 18.0, "TimeOfDay": "08:00:00"}, {"heatSetpoint": 21.0, "TimeOfDay": "18:00:00"}, {"heatSetpoint": 16.0, "TimeOfDay": "22:30:00"}]
+        }, {
+            "DayOfWeek": 4,
+            "Switchpoints": [{"heatSetpoint": 16.0, "TimeOfDay": "00:00:00"}]
+        }, {
+            "DayOfWeek": 5,
+            "Switchpoints": [{"heatSetpoint": 16.0, "TimeOfDay": "00:00:00"}]
+        }
+    ]
+}

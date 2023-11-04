@@ -1,0 +1,43 @@
+{
+    "locationId": "1111111",
+    "gateways": [
+        {
+            "gatewayId": "2222222",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "3333333",
+                    "zones": [
+                        {
+                            "zoneId": "7820586",
+                            "temperatureStatus": {
+                                "isAvailable": false
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 62.0,
+                                "setpointMode": "PermanentOverride"
+                            },
+                            "name": ""
+                        },
+                        {
+                            "zoneId": "7866233",
+                            "temperatureStatus": { "temperature": 21.5, "isAvailable": true },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                              "targetHeatTemperature": 5.0,
+                              "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Main Room"
+                          }
+                                  ],
+                    "activeFaults": [],
+                    "systemModeStatus": {
+                        "mode": "Auto",
+                        "isPermanent": true
+                    }
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}
