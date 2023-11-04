@@ -7,7 +7,7 @@ It is largely a faithful port of https://github.com/watchforstock/evohome-client
 
 Some additional functionality has been added (e.g. restore schedules by name, as an alternative to by id).
 
-It provides support for **Evohome**, the **Round Thermostat** and some others. It supports only EU/EMEA-based systems, please use [somecomfort](https://github.com/kk7ds/somecomfort) for US-based systems.
+It provides support for **Evohome**, the **Round Thermostat** and some others. It supports only EU/EMEA-based systems, please use [somecomfort](https://github.com/mkmer/AIOSomecomfort) for US-based systems.
 
 This client uses the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead.
 
