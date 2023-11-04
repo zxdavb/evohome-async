@@ -206,6 +206,8 @@ class EvohomeClient(EvohomeClientDeprecated):
     ) -> aiohttp.ClientResponse:
         """Perform an HTTP request, with optional retry (usu. for authentication)."""
 
+        response: aiohttp.ClientResponse
+
         async with func(url, json=data, headers=self.headers) as response:  # NB: json=
             response_text = await response.text()  # why cant I move this below the if?
 
