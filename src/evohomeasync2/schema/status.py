@@ -104,6 +104,7 @@ SCH_DHW = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
+
 SCH_SYSTEM_MODE_STATUS = vol.Any(
     vol.Schema(
         {
