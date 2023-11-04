@@ -14,6 +14,7 @@ import aiohttp
 
 from .exceptions import (
     AuthenticationFailed,
+    DeprecationError,
     InvalidSchema,
     RateLimitExceeded,
     RequestFailed,
@@ -30,9 +31,6 @@ if TYPE_CHECKING:
         _TaskIdT,
         _ZoneIdT,
     )
-
-
-__version__ = "0.4.0"
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,45 +65,45 @@ class EvohomeClientDeprecated:  # NOTE: incl. _wait_for_put_task()
 
     # Note deprecated, just a placeholder for self.get_task_status()
     async def _do_request(self, *args, **kwargs) -> aiohttp.ClientResponse:
-        raise NotImplementedError
+        raise DeprecationError
 
     # Note deprecated, just a placeholder for self.get_task_status()
     async def _populate_full_data(self, *args, **kwargs) -> None:
-        raise NotImplementedError
+        raise DeprecationError
 
     async def get_system_modes(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.get_modes() is deprecated, "
             "use .get_system_modes() or .get_zone_modes()"
         )
 
     async def set_status_away(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_away() is deprecated, use .set_mode_away()"
         )
 
     async def set_status_custom(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_custom() is deprecated, use .set_mode_custom()"
         )
 
     async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_dayoff() is deprecated, use .set_mode_dayoff()"
         )
 
     async def set_status_eco(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_eco() is deprecated, use .set_mode_eco()"
         )
 
     async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_heatingoff() is deprecated, use .set_mode_heatingoff()"
         )
 
     async def set_status_normal(self, *args, **kwargs) -> NoReturn:
-        raise NotImplementedError(
+        raise DeprecationError(
             "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
         )
 

@@ -22,7 +22,7 @@ class DeprecationError(EvohomeBaseError):
 
 
 class InvalidSchema(EvohomeError):
-    """The supplied config/status JSON is invalid (e.g. missing an Id)."""
+    """The config/status JSON is invalid (e.g. missing an entity Id)."""
 
 
 class InvalidParameter(EvohomeError):
@@ -30,7 +30,7 @@ class InvalidParameter(EvohomeError):
 
 
 class InvalidSchedule(InvalidSchema):
-    """The supplied schedule has an invalid schema."""
+    """The schedule has an invalid schema."""
 
 
 class NoSingleTcsError(EvohomeError):
