@@ -23,7 +23,7 @@ from evohomeasync2.schema.const import (
 )
 from evohomeasync2.schema.helpers import pascal_case
 
-from . import _DEBUG_USE_MOCK_AIOHTTP
+from . import _DEBUG_USE_REAL_AIOHTTP
 from .helpers import aiohttp, extract_oauth_tokens  # aiohttp may be mocked
 from .helpers import user_credentials as _user_credentials
 from .helpers import client_session as _client_session
@@ -234,7 +234,7 @@ async def test_task_id(
 ) -> None:
     """Test /location/{locationId}/status"""
 
-    if _DEBUG_USE_MOCK_AIOHTTP:
+    if not _DEBUG_USE_REAL_AIOHTTP:
         pytest.skip("Test is only valid with a real server")
 
     try:

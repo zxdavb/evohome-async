@@ -5,5 +5,6 @@
 from __future__ import annotations
 
 
-_DEBUG_USE_MOCK_AIOHTTP = True
+# normally, we want these flags to be False
+_DEBUG_USE_REAL_AIOHTTP = False
 _DISABLE_STRICT_ASSERTS = False  # of response content-type, schema

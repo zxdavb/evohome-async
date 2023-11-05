@@ -18,6 +18,8 @@ from evohomeasync2.schema.const import (
     SZ_GATEWAYS,
     SZ_LOCATION,
     SZ_LOCATION_ID,
+    SZ_SYSTEM_ID,
+    SZ_TEMPERATURE_CONTROL_SYSTEM,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TEMPERATURE_ZONE,
     SZ_ZONE_ID,
@@ -39,8 +41,69 @@ from .const import user_config_from_full_config as _user_config_from_full_config
 
 
 if TYPE_CHECKING:
-    from evohomeasync2.schema import _DhwIdT, _LocationIdT, _SystemIdT, _ZoneIdT
+    from evohomeasync2.schema import (
+        _DhwIdT,
+        _LocationIdT,
+        _SystemIdT,
+        _UserIdT,
+        _ZoneIdT,
+    )
     from .const import _bodyT, _methodT, _statusT, _urlT
+
+
+def _dhw_id(url: _urlT) -> _DhwIdT:
+    """Extract a DHW ID from a URL."""
+    return url.split(f"{SZ_DOMESTIC_HOT_WATER}/")[1].split("/")[0]
+
+
+def _loc_id(url: _urlT) -> _LocationIdT:
+    """Extract a Location ID from a URL."""
+    return url.split(f"{SZ_LOCATION}/")[1].split("/")[0]
+
+
+def _tcs_id(url: _urlT) -> _SystemIdT:
+    """Extract a TCS ID from a URL."""
+    return url.split(f"{SZ_TEMPERATURE_CONTROL_SYSTEM}/")[1].split("/")[0]
+
+
+def _usr_id(url: _urlT) -> _UserIdT:
+    """Extract a TCS ID from a URL."""
+    return url.split("?userId=")[1].split("&")[0]
+
+
+def _zon_id(url: _urlT) -> _ZoneIdT:
+    """Extract a Zone ID from a URL."""
+    return url.split(f"{SZ_TEMPERATURE_ZONE}/")[1].split("/")[0]
+
+
+def validate_id_of_url(id_fnc):
+    """Validate the ID in the URL and set the status accordingly."""
+
+    def decorator(func):
+        def wrapper(self: MockedServer) -> _bodyT:
+            if self._method != HTTPMethod.GET:
+                self.status = HTTPStatus.METHOD_NOT_ALLOWED
+                return {"message": "Method not allowed"}
+
+            try:
+                id: str = id_fnc(self._url)
+            except IndexError:
+                self.status = HTTPStatus.NOT_FOUND
+                return {"message": "Not Found"}
+
+            if not id.isdigit():
+                self.status = HTTPStatus.BAD_REQUEST
+                return [{"message": "Bad request"}]
+
+            if result := func(self):
+                return result
+
+            self.status = HTTPStatus.UNAUTHORIZED
+            return [{"message": "Unauthorized"}]
+
+        return wrapper
+
+    return decorator
 
 
 class MockedServer:
@@ -111,53 +174,37 @@ class MockedServer:
             self.status = HTTPStatus.NOT_FOUND
             return {"message": "Not found"}
 
+    @validate_id_of_url(_usr_id)
     def all_config(self) -> _bodyT | None:  # full_locn
-        def user_id(url: str) -> str:
-            return url.split("?userId=")[1].split("&")[0]
+        usr_id = _usr_id(self._url)
 
-        if self._method != HTTPMethod.GET:
-            self.status = HTTPStatus.METHOD_NOT_ALLOWED
-            return {"message": "Method not allowed"}
-
-        elif "?userId=" not in self._url:
-            self.status = HTTPStatus.NOT_FOUND
-            return {"message": "Not Found"}
-
-        elif not user_id(self._url).isdigit():
-            self.status = HTTPStatus.BAD_REQUEST
-            return {"message": "Bad request"}
-
-        elif user_id(self._url) != self._user_config["userId"]:
-            self.status = HTTPStatus.UNAUTHORIZED
-            return {"message": "Unauthorized"}
-
-        else:
+        if self._user_config["userId"] == usr_id:
             return self._full_config
 
     def loc_config(self) -> _bodyT | None:
         raise NotImplementedError
 
-    def loc_status(self) -> _bodyT | None:
-        if self._method != HTTPMethod.GET:
-            self.status = HTTPStatus.METHOD_NOT_ALLOWED
-            return {"message": "Method not allowed"}
+    @validate_id_of_url(_loc_id)
+    def loc_status(self) -> _bodyT:
+        loc_id = _loc_id(self._url)
 
-        elif not self._loc_id(self._url).isdigit():
-            self.status = HTTPStatus.BAD_REQUEST
-            return {"message": "Bad request"}
-
-        elif self._loc_id(self._url) != self._locn_status[SZ_LOCATION_ID]:
-            self.status = HTTPStatus.UNAUTHORIZED
-            return {"message": "Unauthorized"}
-
-        else:
+        if self._locn_status[SZ_LOCATION_ID] == loc_id:
             return self._locn_status
 
     def tcs_mode(self) -> _bodyT | None:
         raise NotImplementedError
 
+    @validate_id_of_url(_tcs_id)
+    def tcs_status(self) -> _bodyT:
+        tcs_id = _tcs_id(self._url)
+
+        for gwy in self._locn_status[SZ_GATEWAYS]:
+            for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+                if tcs[SZ_SYSTEM_ID] == tcs_id:
+                    return tcs
+
     def zon_schedule(self) -> _bodyT | None:
-        zon_id = self._zon_id(self._url)
+        zon_id = _zon_id(self._url)
 
         if self._method == HTTPMethod.GET:
             return self._schedules.get(zon_id, self._zon_schedule)
@@ -168,7 +215,7 @@ class MockedServer:
 
         if not isinstance(self._data, dict):
             self.status = HTTPStatus.BAD_REQUEST
-            return {"message": "Bad Request (invalid schedule: not a dict)"}
+            return [{"message": "Bad Request (invalid schedule: not a dict)"}]
 
         try:
             SCH_PUT_SCHEDULE_ZONE(self._data)
@@ -182,20 +229,18 @@ class MockedServer:
     def zon_mode(self) -> _bodyT | None:
         raise NotImplementedError
 
-    def zon_status(self) -> _bodyT | None:
-        zone_id = self._zon_id(self._url)
+    @validate_id_of_url(_zon_id)
+    def zon_status(self) -> _bodyT:
+        zon_id = _zon_id(self._url)
 
         for gwy in self._locn_status[SZ_GATEWAYS]:
             for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
                 for zone in tcs[SZ_ZONES]:
-                    if zone[SZ_ZONE_ID] == zone_id:
+                    if zone[SZ_ZONE_ID] == zon_id:
                         return zone
 
-        self.status = HTTPStatus.NOT_FOUND
-        return {"message": "Not found"}
-
     def dhw_schedule(self) -> _bodyT | None:
-        dhw_id = self._dhw_id(self._url)
+        dhw_id = _dhw_id(self._url)
 
         if self._method == HTTPMethod.GET:
             return self._schedules.get(dhw_id, self._dhw_schedule)
@@ -206,7 +251,7 @@ class MockedServer:
 
         if not isinstance(self._data, dict):
             self.status = HTTPStatus.BAD_REQUEST
-            return {"message": "Bad Request (invalid schedule: not a dict)"}
+            return [{"message": "Bad Request (invalid schedule: not a dict)"}]
 
         try:
             SCH_PUT_SCHEDULE_DHW(self._data)
@@ -217,8 +262,15 @@ class MockedServer:
         self._schedules[dhw_id] = convert_to_get_schedule(self._data)
         return {"id": "1234567890"}
 
-    def dhw_status(self) -> _bodyT | None:
-        raise NotImplementedError
+    @validate_id_of_url(_dhw_id)
+    def dhw_status(self) -> _bodyT:
+        dhw_id = _dhw_id(self._url)
+
+        for gwy in self._locn_status[SZ_GATEWAYS]:
+            for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+                if dhw := tcs.get(SZ_DHW):
+                    if dhw[SZ_DHW_ID] == dhw_id:
+                        return dhw
 
     def dhw_mode(self) -> _bodyT | None:
         raise NotImplementedError
@@ -258,10 +310,6 @@ class MockedServer:
             HTTPMethod.PUT,
         ):
             return self._response_for_dhw_request()
-
-    def OUT_handle_user_account_request(self) -> _bodyT | None:
-        if self._method == HTTPMethod.POST:
-            return self.auth_response()
 
     def OUT_response_for_location_request(self) -> _bodyT | None:
         """"""
@@ -329,21 +377,6 @@ class MockedServer:
                 # PUT /domesticHotWater/{dhwId}/state
                 raise NotImplementedError
 
-    def OUT_user_config(self) -> dict:
-        return self._user_config
-
-    def OUT_full_config(self) -> dict:
-        return self._full_config
-
-    def OUT_locn_config(self, location_id: str | None) -> dict:
-        raise NotImplementedError
-
-    def OUT_locn_status(self, location_id: str | None) -> dict:
-        return self._locn_status
-
-    def OLD_dhw_schedule_old(self, dhw_id: _DhwIdT) -> dict:
-        return self._dhw_schedule
-
     def OLD_dhw_status_old(self, dhw_id: _DhwIdT) -> dict | None:
         for gwy in self._locn_status[SZ_GATEWAYS]:
             for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
@@ -361,35 +394,12 @@ class MockedServer:
 
         self.status = 404
 
-    def OUT_zone_schedule(self, zone_id: _ZoneIdT) -> dict:
-        return self._zon_schedule
-
     #
 
     @staticmethod
     def _user_config_from_full_config(full_config: list) -> dict:
         """Create a valid MOCK_USER_CONFIG from a MOCK_FULL_CONFIG."""
         return _user_config_from_full_config(full_config)
-
-    @staticmethod
-    def _dhw_id(url) -> _DhwIdT:
-        """Extract a DHW ID from a URL."""
-        return url.split(f"{SZ_DOMESTIC_HOT_WATER}/")[1].split("/")[0]
-
-    @staticmethod
-    def _loc_id(url) -> _LocationIdT:
-        """Extract a Location ID from a URL."""
-        return url.split(f"{SZ_LOCATION}/")[1].split("/")[0]
-
-    @staticmethod
-    def _tcs_id(url) -> _SystemIdT:
-        """Extract a TCS ID from a URL."""
-        return url.split(f"{SZ_TEMPERATURE_CONTROL_SYSTEMS}/")[1].split("/")[0]
-
-    @staticmethod
-    def _zon_id(url) -> _ZoneIdT:
-        """Extract a Zone ID from a URL."""
-        return url.split(f"{SZ_TEMPERATURE_ZONE}/")[1].split("/")[0]
 
 
 REQUEST_MAP = {
@@ -403,6 +413,7 @@ REQUEST_MAP = {
     r"/location/.*/status": MockedServer.loc_status,
     #
     r"/temperatureControlSystem/.*/mode": MockedServer.tcs_mode,
+    r"/temperatureControlSystem/.*/status": MockedServer.tcs_status,
     #
     r"/temperatureZone/.*/status": MockedServer.zon_status,
     r"/temperatureZone/.*/heatSetpoint": MockedServer.zon_mode,

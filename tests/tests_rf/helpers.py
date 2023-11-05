@@ -14,14 +14,14 @@ import evohomeasync2 as evo
 from evohomeasync2.const import URL_BASE
 from evohomeasync2.schema import vol  # voluptuous
 
-from . import _DISABLE_STRICT_ASSERTS, _DEBUG_USE_MOCK_AIOHTTP
+from . import _DISABLE_STRICT_ASSERTS, _DEBUG_USE_REAL_AIOHTTP
 from . import mocked_server as mock
 
 
-if _DEBUG_USE_MOCK_AIOHTTP:
-    from .mocked_server import aiohttp
-else:
+if _DEBUG_USE_REAL_AIOHTTP:
     import aiohttp
+else:
+    from .mocked_server import aiohttp
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ def user_credentials():
 
 
 def client_session():
-    if not _DEBUG_USE_MOCK_AIOHTTP:
+    if _DEBUG_USE_REAL_AIOHTTP:
         return aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
     return aiohttp.ClientSession(mocked_server=mock.MockedServer(None, None))
 

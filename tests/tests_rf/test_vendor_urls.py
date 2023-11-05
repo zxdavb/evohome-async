@@ -36,7 +36,7 @@ from evohomeasync2.schema.const import (
 )
 from evohomeasync2.schema.schedule import convert_to_put_schedule
 
-from . import _DEBUG_USE_MOCK_AIOHTTP
+from . import _DEBUG_USE_REAL_AIOHTTP
 from .helpers import aiohttp, extract_oauth_tokens  # aiohttp may be mocked
 from .helpers import user_credentials as _user_credentials
 from .helpers import client_session as _client_session
@@ -380,7 +380,7 @@ async def test_usr_account(
     try:
         await _test_usr_account(*user_credentials, session=session)
     except evo.AuthenticationFailed:
-        if _DEBUG_USE_MOCK_AIOHTTP:
+        if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
@@ -394,7 +394,7 @@ async def test_all_config(
     try:
         await _test_all_config(*user_credentials, session=session)
     except evo.AuthenticationFailed:
-        if _DEBUG_USE_MOCK_AIOHTTP:
+        if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
@@ -408,7 +408,7 @@ async def test_loc_status(
     try:
         await _test_loc_status(*user_credentials, session=session)
     except evo.AuthenticationFailed:
-        if _DEBUG_USE_MOCK_AIOHTTP:
+        if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
@@ -422,11 +422,11 @@ async def test_tcs_mode(
     try:
         await _test_tcs_mode(*user_credentials, session=session)
     except evo.AuthenticationFailed:
-        if _DEBUG_USE_MOCK_AIOHTTP:
+        if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
     except NotImplementedError:  # TODO: implement
-        if not _DEBUG_USE_MOCK_AIOHTTP:
+        if _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Mocked server API not implemented")
 
@@ -440,11 +440,11 @@ async def test_zone_mode(
     try:
         await _test_zone_mode(*user_credentials, session=session)
     except evo.AuthenticationFailed:
-        if _DEBUG_USE_MOCK_AIOHTTP:
+        if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
     except NotImplementedError:  # TODO: implement
-        if not _DEBUG_USE_MOCK_AIOHTTP:
+        if _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Mocked server API not implemented")
 
@@ -458,7 +458,7 @@ async def test_schedule(
     try:
         await _test_schedule(*user_credentials, session=session)
     except evo.AuthenticationFailed:
-        if _DEBUG_USE_MOCK_AIOHTTP:
+        if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 

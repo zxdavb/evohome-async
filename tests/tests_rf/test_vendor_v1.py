@@ -13,7 +13,7 @@ import evohomeasync as evo
 from evohomeasync.client import URL_HOST
 from evohomeasync2.schema import vol  # FIXME: need v1 schemas
 
-from . import _DEBUG_USE_MOCK_AIOHTTP, _DISABLE_STRICT_ASSERTS
+from . import _DEBUG_USE_REAL_AIOHTTP, _DISABLE_STRICT_ASSERTS
 from .helpers import aiohttp  # aiohttp may be mocked
 from .helpers import user_credentials as _user_credentials
 from .helpers import client_session as _client_session
@@ -205,7 +205,7 @@ async def _test_locations(
 ) -> None:
     """Test /locations"""
 
-    if _DEBUG_USE_MOCK_AIOHTTP:
+    if not _DEBUG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented")
 
     try:
@@ -220,7 +220,7 @@ async def test_client_apis(
 ) -> None:
     """Test _populate_user_data() & _populate_full_data()"""
 
-    if _DEBUG_USE_MOCK_AIOHTTP:
+    if not _DEBUG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented")
 
     try:
