@@ -44,6 +44,7 @@ from .typing import (  # noqa: F401
     _GatewayIdT,
     _LocationIdT,
     _SystemIdT,
+    _UserIdT,
     _ZoneIdT,
 )
 from .typing import _EvoLeafT, _EvoDictT, _EvoListT, _EvoSchemaT  # noqa: F401
