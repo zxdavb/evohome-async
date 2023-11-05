@@ -24,8 +24,8 @@ from evohomeasync2.schema.const import SZ_MODE
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 
 from . import _DEBUG_USE_MOCK_AIOHTTP
-from .helpers import credentials as _credentials
-from .helpers import session as _session
+from .helpers import user_credentials as _user_credentials
+from .helpers import client_session as _client_session
 from .helpers import extract_oauth_tokens
 
 
@@ -33,17 +33,17 @@ _global_oauth_tokens: tuple[str, str, dt] = None, None, None
 
 
 @pytest.fixture()
-def credentials():
-    return _credentials()
+def user_credentials():
+    return _user_credentials()
 
 
 @pytest_asyncio.fixture
 async def session():
-    session = _session()
+    client_session = _client_session()
     try:
-        yield session
+        yield client_session
     finally:
-        await session.close()
+        await client_session.close()
 
 
 async def _test_basics_apis(
@@ -262,10 +262,10 @@ async def _test_system_apis(
 
 @pytest.mark.asyncio
 async def test_basics(
-    credentials: tuple[str, str],
+    user_credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
-    username, password = credentials
+    username, password = user_credentials
 
     try:
         await _test_basics_apis(username, password, session=session)
@@ -277,10 +277,10 @@ async def test_basics(
 
 @pytest.mark.asyncio
 async def test_sched_(
-    credentials: tuple[str, str],
+    user_credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
-    username, password = credentials
+    username, password = user_credentials
 
     try:
         await _test_sched__apis(username, password, session=session)
@@ -292,10 +292,10 @@ async def test_sched_(
 
 @pytest.mark.asyncio
 async def test_status(
-    credentials: tuple[str, str],
+    user_credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
-    username, password = credentials
+    username, password = user_credentials
 
     try:
         await _test_status_apis(username, password, session=session)
@@ -307,10 +307,10 @@ async def test_status(
 
 @pytest.mark.asyncio
 async def test_system(
-    credentials: tuple[str, str],
+    user_credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
 ):
-    username, password = credentials
+    username, password = user_credentials
 
     try:
         await _test_system_apis(username, password, session=session)

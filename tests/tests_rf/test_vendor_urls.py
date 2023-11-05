@@ -5,18 +5,19 @@
 from __future__ import annotations
 
 
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 import pytest
 import pytest_asyncio
 
 import evohomeasync2 as evo
-from evohomeasync2.const import ZoneMode
+from evohomeasync2.const import API_STRFTIME, SystemMode, ZoneMode
 from evohomeasync2.schema import (
     SCH_FULL_CONFIG,
     SCH_LOCN_STATUS,
     SCH_USER_ACCOUNT,
     SCH_GET_SCHEDULE,
+    SCH_TCS_STATUS,
     SCH_ZONE_STATUS,
 )
 from evohomeasync2.schema.const import (
@@ -24,6 +25,10 @@ from evohomeasync2.schema.const import (
     SZ_HEAT_SETPOINT,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_IS_AVAILABLE,
+    SZ_IS_PERMANENT,
+    SZ_MODE,
+    SZ_PERMANENT,
+    SZ_SYSTEM_MODE,
     SZ_SETPOINT_MODE,
     SZ_SWITCHPOINTS,
     SZ_TEMPERATURE,
@@ -33,8 +38,8 @@ from evohomeasync2.schema.schedule import convert_to_put_schedule
 
 from . import _DEBUG_USE_MOCK_AIOHTTP
 from .helpers import aiohttp, extract_oauth_tokens  # aiohttp may be mocked
-from .helpers import credentials as _credentials
-from .helpers import session as _session
+from .helpers import user_credentials as _user_credentials
+from .helpers import client_session as _client_session
 from .helpers import should_work, should_fail
 
 
@@ -42,17 +47,17 @@ _global_oauth_tokens: tuple[str, str, dt] = None, None, None
 
 
 @pytest.fixture()
-def credentials():
-    return _credentials()
+def user_credentials():
+    return _user_credentials()
 
 
 @pytest_asyncio.fixture
 async def session():
-    session = _session()
+    client_session = _client_session()
     try:
-        yield session
+        yield client_session
     finally:
-        await session.close()
+        await client_session.close()
 
 
 @pytest.fixture(autouse=True)
@@ -97,11 +102,13 @@ async def _test_usr_account(
     #
 
     url = "userAccount"
-    await should_work(client, HTTPMethod.GET, url, schema=SCH_USER_ACCOUNT)
-    await should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED)
+    _ = await should_work(client, HTTPMethod.GET, url, schema=SCH_USER_ACCOUNT)
+    _ = await should_fail(
+        client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
+    )
 
     url = "userXxxxxxx"  # NOTE: is a general test, and not a test specific to this URL
-    await should_fail(
+    _ = await should_fail(
         client,
         HTTPMethod.GET,
         url,
@@ -125,20 +132,22 @@ async def _test_all_config(
     await should_work(client, HTTPMethod.GET, url)
 
     url += "&includeTemperatureControlSystems=True"
-    await should_work(client, HTTPMethod.GET, url, schema=SCH_FULL_CONFIG)
-    await should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED)
+    _ = await should_work(client, HTTPMethod.GET, url, schema=SCH_FULL_CONFIG)
+    _ = await should_fail(
+        client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
+    )
 
     url = "location/installationInfo"
-    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
     url = "location/installationInfo?userId=1230000"
-    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
+    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
 
     url = "location/installationInfo?userId=xxxxxxx"
-    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
 
     url = "location/installationInfo?xxxxXx=xxxxxxx"
-    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
 
 async def _test_loc_status(
@@ -156,11 +165,13 @@ async def _test_loc_status(
     #
 
     url = f"location/{loc.locationId}/status"
-    await should_work(client, HTTPMethod.GET, url)
+    _ = await should_work(client, HTTPMethod.GET, url)
 
     url += "?includeTemperatureControlSystems=True"
-    await should_work(client, HTTPMethod.GET, url, schema=SCH_LOCN_STATUS)
-    await should_fail(client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED)
+    _ = await should_work(client, HTTPMethod.GET, url, schema=SCH_LOCN_STATUS)
+    _ = await should_fail(
+        client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
+    )
 
     url = f"location/{loc.locationId}"
     await should_fail(
@@ -172,13 +183,13 @@ async def _test_loc_status(
     )
 
     url = "location/1230000/status"
-    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
+    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
 
     url = "location/xxxxxxx/status"
-    await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
 
     url = f"location/{loc.locationId}/xxxxxxx"
-    await should_fail(
+    _ = await should_fail(
         client,
         HTTPMethod.GET,
         url,
@@ -187,12 +198,80 @@ async def _test_loc_status(
     )
 
 
+async def _test_tcs_mode(
+    username: str,
+    password: str,
+    session: aiohttp.ClientSession | None = None,
+) -> None:
+    """Test /temperatureControlSystem/{systemId}/mode"""
+
+    client = await instantiate_client(username, password, session=session)
+    _ = await client.user_account()
+    _ = await client._installation(refresh_status=False)
+
+    tcs: evo.ControlSystem
+
+    if not (tcs := client.locations[0]._gateways[0]._control_systems[0]):
+        pytest.skip("No available zones found")
+
+    _ = await tcs._refresh_status()
+    old_mode = tcs.systemModeStatus
+
+    url = f"{tcs.TYPE}/{tcs._id}/status"
+    _ = await should_work(client, HTTPMethod.GET, url, schema=SCH_TCS_STATUS)
+
+    url = f"{tcs.TYPE}/{tcs._id}/mode"
+    _ = await should_fail(
+        client, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
+    )
+    _ = await should_fail(
+        client, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.BAD_REQUEST
+    )
+
+    old_mode[SZ_SYSTEM_MODE] = old_mode.pop(SZ_MODE)
+    old_mode[SZ_PERMANENT] = old_mode.pop(SZ_IS_PERMANENT)
+
+    assert SystemMode.AUTO in [m[SZ_SYSTEM_MODE] for m in tcs.allowedSystemModes]
+    new_mode = {
+        SZ_SYSTEM_MODE: SystemMode.AUTO,
+        SZ_PERMANENT: True,
+    }
+    _ = await should_work(client, HTTPMethod.PUT, url, json=new_mode)
+
+    assert SystemMode.AWAY in [m[SZ_SYSTEM_MODE] for m in tcs.allowedSystemModes]
+    new_mode = {
+        SZ_SYSTEM_MODE: SystemMode.AWAY,
+        SZ_PERMANENT: True,
+        SZ_TIME_UNTIL: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
+    }
+    _ = await should_work(client, HTTPMethod.PUT, url, json=new_mode)
+
+    _ = await should_work(client, HTTPMethod.PUT, url, json=old_mode)
+
+    url = f"{tcs.TYPE}/1234567/mode"
+    _ = await should_fail(
+        client, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.UNAUTHORIZED
+    )
+
+    url = f"{tcs.TYPE}/{tcs._id}/systemMode"
+    _ = await should_fail(
+        client,
+        HTTPMethod.PUT,
+        url,
+        json=old_mode,
+        status=HTTPStatus.NOT_FOUND,
+        content_type="text/html",  # exception to usual content-type
+    )
+
+    pass
+
+
 async def _test_zone_mode(
     username: str,
     password: str,
     session: aiohttp.ClientSession | None = None,
 ) -> None:
-    """Test /location/{locationId}/status"""
+    """Test /temperatureZone/{zoneId}/heatSetpoint"""
 
     client = await instantiate_client(username, password, session=session)
     _ = await client.user_account()
@@ -207,35 +286,35 @@ async def _test_zone_mode(
     #
 
     url = f"{zone.TYPE}/{zone._id}/status"
-    await should_work(client, HTTPMethod.GET, url, schema=SCH_ZONE_STATUS)
+    _ = await should_work(client, HTTPMethod.GET, url, schema=SCH_ZONE_STATUS)
 
     url = f"{zone.TYPE}/{zone._id}/heatSetpoint"
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
         SZ_HEAT_SETPOINT_VALUE: zone.temperatureStatus[SZ_TEMPERATURE],
-        SZ_TIME_UNTIL: None,
+        # SZ_TIME_UNTIL: None,
     }
-    await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
         SZ_HEAT_SETPOINT_VALUE: 99,
         SZ_TIME_UNTIL: None,
     }
-    await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
         SZ_HEAT_SETPOINT_VALUE: 19.5,
     }
-    await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: "xxxxxxx",
         SZ_HEAT_SETPOINT_VALUE: 19.5,
     }
-    await should_fail(
+    _ = await should_fail(
         client, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
     )
 
@@ -244,7 +323,7 @@ async def _test_zone_mode(
         SZ_HEAT_SETPOINT_VALUE: 0.0,
         SZ_TIME_UNTIL: None,
     }
-    await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
 
 
 # TODO: Test sending bad schedule
@@ -254,7 +333,7 @@ async def _test_schedule(
     password: str,
     session: aiohttp.ClientSession | None = None,
 ) -> None:
-    """Test /{_type}/{_id}/schedule (of a zone)"""
+    """Test /{x.TYPE}/{x._id}/schedule (of a zone)"""
 
     client = await instantiate_client(username, password, session=session)
     _ = await client.user_account()
@@ -269,7 +348,7 @@ async def _test_schedule(
     temp = schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]
 
     schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp + 1
-    await should_work(
+    _ = await should_work(
         client, HTTPMethod.PUT, url, json=convert_to_put_schedule(schedule)
     )
 
@@ -280,26 +359,26 @@ async def _test_schedule(
     )
 
     schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp
-    await should_work(
+    _ = await should_work(
         client, HTTPMethod.PUT, url, json=convert_to_put_schedule(schedule)
     )
 
     schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
     assert schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] == temp
 
-    await should_fail(
+    _ = await should_fail(
         client, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST
     )  # NOTE: json=None
 
 
 @pytest.mark.asyncio
 async def test_usr_account(
-    credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test /userAccount"""
 
     try:
-        await _test_usr_account(*credentials, session=session)
+        await _test_usr_account(*user_credentials, session=session)
     except evo.AuthenticationFailed:
         if _DEBUG_USE_MOCK_AIOHTTP:
             raise
@@ -308,12 +387,12 @@ async def test_usr_account(
 
 @pytest.mark.asyncio
 async def test_all_config(
-    credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test /location/installationInfo"""
 
     try:
-        await _test_all_config(*credentials, session=session)
+        await _test_all_config(*user_credentials, session=session)
     except evo.AuthenticationFailed:
         if _DEBUG_USE_MOCK_AIOHTTP:
             raise
@@ -322,12 +401,12 @@ async def test_all_config(
 
 @pytest.mark.asyncio
 async def test_loc_status(
-    credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test /location/{locationId}/status"""
 
     try:
-        await _test_loc_status(*credentials, session=session)
+        await _test_loc_status(*user_credentials, session=session)
     except evo.AuthenticationFailed:
         if _DEBUG_USE_MOCK_AIOHTTP:
             raise
@@ -335,13 +414,31 @@ async def test_loc_status(
 
 
 @pytest.mark.asyncio
-async def test_zone_mode(
-    credentials: tuple[str, str], session: aiohttp.ClientSession
+async def test_tcs_mode(
+    user_credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
-    """Test /location/{locationId}/status"""
+    """Test /temperatureControlSystem/{systemId}/mode"""
 
     try:
-        await _test_zone_mode(*credentials, session=session)
+        await _test_tcs_mode(*user_credentials, session=session)
+    except evo.AuthenticationFailed:
+        if _DEBUG_USE_MOCK_AIOHTTP:
+            raise
+        pytest.skip("Unable to authenticate")
+    except NotImplementedError:  # TODO: implement
+        if not _DEBUG_USE_MOCK_AIOHTTP:
+            raise
+        pytest.skip("Mocked server API not implemented")
+
+
+@pytest.mark.asyncio
+async def test_zone_mode(
+    user_credentials: tuple[str, str], session: aiohttp.ClientSession
+) -> None:
+    """Test /temperatureZone/{zoneId}/heatSetpoint"""
+
+    try:
+        await _test_zone_mode(*user_credentials, session=session)
     except evo.AuthenticationFailed:
         if _DEBUG_USE_MOCK_AIOHTTP:
             raise
@@ -354,12 +451,12 @@ async def test_zone_mode(
 
 @pytest.mark.asyncio
 async def test_schedule(
-    credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
-    """Test /{_type}/{_id}/schedule"""
+    """Test /{x.TYPE}/{x_id}/schedule"""
 
     try:
-        await _test_schedule(*credentials, session=session)
+        await _test_schedule(*user_credentials, session=session)
     except evo.AuthenticationFailed:
         if _DEBUG_USE_MOCK_AIOHTTP:
             raise

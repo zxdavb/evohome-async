@@ -162,6 +162,9 @@ class ControlSystem(_ControlSystemDeprecated):
     def systemId(self) -> _SystemIdT:
         return self._config[SZ_SYSTEM_ID]
 
+    async def _refresh_status(self) -> None:
+        await self.location.refresh_status()
+
     def _update_status(self, tcs_status: _EvoDictT) -> None:
         self._status = tcs_status
 
@@ -174,7 +177,7 @@ class ControlSystem(_ControlSystemDeprecated):
         return self._status.get(SZ_SYSTEM_MODE_STATUS)
 
     async def _set_mode(self, mode: dict) -> None:
-        """Set the TCS mode."""
+        """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
         _ = await self._broker.put(f"{self.TYPE}/{self._id}/mode", json=mode)
 
     async def reset_mode(self) -> None:

@@ -25,8 +25,8 @@ from evohomeasync2.schema.helpers import pascal_case
 
 from . import _DEBUG_USE_MOCK_AIOHTTP
 from .helpers import aiohttp, extract_oauth_tokens  # aiohttp may be mocked
-from .helpers import credentials as _credentials
-from .helpers import session as _session
+from .helpers import user_credentials as _user_credentials
+from .helpers import client_session as _client_session
 from .helpers import should_work, should_fail, wait_for_comm_task
 
 
@@ -34,17 +34,17 @@ _global_oauth_tokens: tuple[str, str, dt] = None, None, None
 
 
 @pytest.fixture()
-def credentials():
-    return _credentials()
+def user_credentials():
+    return _user_credentials()
 
 
 @pytest_asyncio.fixture
 async def session():
-    session = _session()
+    client_session = _client_session()
     try:
-        yield session
+        yield client_session
     finally:
-        await session.close()
+        await client_session.close()
 
 
 @pytest.fixture(autouse=True)
@@ -230,7 +230,7 @@ async def _test_task_id(
 
 @pytest.mark.asyncio
 async def test_task_id(
-    credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str], session: aiohttp.ClientSession
 ) -> None:
     """Test /location/{locationId}/status"""
 
@@ -238,6 +238,6 @@ async def test_task_id(
         pytest.skip("Test is only valid with a real server")
 
     try:
-        await _test_task_id(*credentials, session)
+        await _test_task_id(*user_credentials, session)
     except evo.AuthenticationFailed:
         pytest.skip("Unable to authenticate")

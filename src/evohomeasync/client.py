@@ -33,6 +33,9 @@ if TYPE_CHECKING:
     )
 
 
+URL_HOST = "https://tccna.honeywell.com"
+
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -133,7 +136,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         self.password = password
 
         self.user_data: dict[str, str] | None = user_data
-        self.hostname: str = kwargs.get("hostname", "https://tccna.honeywell.com")
+        self.hostname: str = kwargs.get("hostname", URL_HOST)
 
         self._session = kwargs.get("session") or aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=30)
@@ -245,7 +248,7 @@ class EvohomeClient(EvohomeClientDeprecated):
             }
             self.headers = {"content-type": "application/json"}
 
-            url = "/Session"
+            url = "/session"
             response = await self._do_request(
                 HTTPMethod.POST, url, data=self.postdata, retry=False
             )

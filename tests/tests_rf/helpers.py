@@ -27,7 +27,7 @@ else:
 _LOGGER = logging.getLogger(__name__)
 
 
-def credentials():
+def user_credentials():
     username = os.getenv("PYTEST_USERNAME")
     password = os.getenv("PYTEST_PASSWORD")
 
@@ -39,7 +39,7 @@ def credentials():
     return username, password
 
 
-def session():
+def client_session():
     if not _DEBUG_USE_MOCK_AIOHTTP:
         return aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
     return aiohttp.ClientSession(mocked_server=mock.MockedServer(None, None))
@@ -99,16 +99,32 @@ async def should_fail(
     except aiohttp.ClientResponseError as exc:
         assert exc.status == status
     else:
-        assert False
+        assert False, response.status
 
     if _DISABLE_STRICT_ASSERTS:
         return response
 
     assert response.content_type == content_type
-    if isinstance(content, dict):
-        assert "message" in content
-    elif isinstance(content, list):
-        assert "message" in content[0]
+
+    if isinstance(content, list):
+        assert status in (
+            HTTPStatus.BAD_REQUEST,
+            HTTPStatus.UNAUTHORIZED,
+        ), response.status
+        assert "message" in content[0]  # sometimes "code" too
+
+    elif isinstance(content, dict):
+        assert status in (
+            HTTPStatus.NOT_FOUND,
+            HTTPStatus.METHOD_NOT_ALLOWED,
+        ), response.status
+        assert "message" in content  # sometimes "code" too
+
+    elif isinstance(content, str):  # 404
+        assert status in (HTTPStatus.NOT_FOUND,), response.status
+
+    else:
+        assert False, response.status
 
     return response
 
