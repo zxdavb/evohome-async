@@ -1,6 +1,4 @@
 # Last updated: 2023/11/01 (HA 2023.9.3
 
-aiohttp>=3.9.0b0;python_version>='3.12'
-aiohttp>=3.8.5;python_version<'3.12'
-
+aiohttp>=3.8.5
 voluptuous>=0.13.1
