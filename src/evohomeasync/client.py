@@ -66,11 +66,11 @@ class EvohomeClientDeprecated:  # NOTE: incl. _wait_for_put_task()
         while await get_task_status(task_id) != "Succeeded":
             await asyncio.sleep(1)
 
-    # Note deprecated, just a placeholder for self.get_task_status()
+    # Not deprecated, just a placeholder for self._wait_for_put_task()
     async def _do_request(self, *args, **kwargs) -> aiohttp.ClientResponse:
         raise NotImplementedError
 
-    # Note deprecated, just a placeholder for self.get_task_status()
+    # Not deprecated, just a placeholder for self._wait_for_put_task()
     async def _populate_full_data(self, *args, **kwargs) -> None:
         raise NotImplementedError
 
