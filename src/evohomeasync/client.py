@@ -68,11 +68,11 @@ class EvohomeClientDeprecated:  # NOTE: incl. _wait_for_put_task()
 
     # Note deprecated, just a placeholder for self.get_task_status()
     async def _do_request(self, *args, **kwargs) -> aiohttp.ClientResponse:
-        raise DeprecationError
+        raise NotImplementedError
 
     # Note deprecated, just a placeholder for self.get_task_status()
     async def _populate_full_data(self, *args, **kwargs) -> None:
-        raise DeprecationError
+        raise NotImplementedError
 
     async def get_system_modes(self, *args, **kwargs) -> NoReturn:
         raise DeprecationError(
