@@ -138,12 +138,12 @@ class EvohomeClient(EvohomeClientDeprecated):
         self.locations: list[Location] = []
 
     @property
-    def username(self) -> str | None:  # TODO: deprecate? or use config JSON?
-        return self._broker._credentials.get("Username")
+    def username(self) -> str:  # TODO: deprecate? or use config JSON?
+        return self._broker._credentials["Username"]
 
     @property
-    def password(self) -> str | None:  # TODO: deprecate
-        return self._broker._credentials.get("Password")
+    def password(self) -> str:  # TODO: deprecate
+        return self._broker._credentials["Password"]
 
     @property
     def refresh_token(self) -> str | None:  # TODO: deprecate
