@@ -176,6 +176,10 @@ class ControlSystem(_ControlSystemDeprecated):
     def systemModeStatus(self) -> _EvoDictT | None:
         return self._status.get(SZ_SYSTEM_MODE_STATUS)
 
+    @property  # status attr for convenience (new)
+    def system_mode(self) -> str | None:
+        return self.systemModeStatus[SZ_SYSTEM_MODE] if self.systemModeStatus else None
+
     async def _set_mode(self, mode: dict) -> None:
         """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
         _ = await self._broker.put(f"{self.TYPE}/{self._id}/mode", json=mode)
