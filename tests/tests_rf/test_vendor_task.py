@@ -136,9 +136,9 @@ async def _test_task_id(
     # }  # HTTP 200
 
     old_mode = {
-        SZ_MODE: old_status[SZ_STATE_STATUS][SZ_MODE],
-        SZ_STATE: old_status[SZ_STATE_STATUS][SZ_STATE],
-        SZ_UNTIL_TIME: old_status[SZ_STATE_STATUS].get(SZ_UNTIL),
+        SZ_MODE: old_status[SZ_STATE_STATUS][SZ_MODE],  # type: ignore[call-overload]
+        SZ_STATE: old_status[SZ_STATE_STATUS][SZ_STATE],  # type: ignore[call-overload]
+        SZ_UNTIL_TIME: old_status[SZ_STATE_STATUS].get(SZ_UNTIL),  # type: ignore[call-overload]
     }  # NOTE: untilTime/until
 
     #

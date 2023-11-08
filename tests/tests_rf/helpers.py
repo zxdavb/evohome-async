@@ -141,13 +141,13 @@ async def wait_for_comm_task(
     start_time = dt.now()
     while True:
         response = await should_work(client, HTTPMethod.GET, url)
-        if response["state"] == "Succeeded":
+        if response["state"] == "Succeeded":  # type: ignore[call-overload]
             return True
         if (dt.now() - start_time).total_seconds() > timeout:
             return False
-        if response["state"] in ("Created", "Running"):
+        if response["state"] in ("Created", "Running"):  # type: ignore[call-overload]
             await asyncio.sleep(0.3)
             continue
         else:
             # raise RuntimeError(f"Unexpected state: {response['state']}")
-            _LOGGER.warning(f"Unexpected state: {response['state']}")
+            _LOGGER.warning(f"Unexpected state: {response['state']}")  # type: ignore[call-overload]

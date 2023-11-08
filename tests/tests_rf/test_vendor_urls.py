@@ -46,7 +46,7 @@ from .helpers import (  # aiohttp may be mocked
     user_credentials as _user_credentials,
 )
 
-_global_oauth_tokens: tuple[str, str, dt] = None, None, None
+_global_oauth_tokens: tuple[str, str, dt] = None, None, None  # type: ignore[assignment]
 
 
 @pytest.fixture()
@@ -348,26 +348,26 @@ async def _test_schedule(
     url = f"{zone.TYPE}/{zone._id}/schedule"
     schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
 
-    temp = schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]
+    temp = schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]  # type: ignore[call-overload]
 
-    schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp + 1
+    schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp + 1  # type: ignore[call-overload]
     _ = await should_work(
         client, HTTPMethod.PUT, url, json=convert_to_put_schedule(schedule)
     )
 
     schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
     assert (
-        schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]
+        schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]  # type: ignore[call-overload]
         == temp + 1
     )
 
-    schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp
+    schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp  # type: ignore[call-overload]
     _ = await should_work(
         client, HTTPMethod.PUT, url, json=convert_to_put_schedule(schedule)
     )
 
     schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
-    assert schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] == temp
+    assert schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] == temp  # type: ignore[call-overload]
 
     _ = await should_fail(
         client, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST

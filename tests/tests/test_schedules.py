@@ -16,7 +16,8 @@ from evohomeasync2.schema.schedule import (
     convert_to_put_schedule,
 )
 
-TEST_DIR = Path(__file__).resolve().parent
+from .helpers import TEST_DIR
+
 WORK_DIR = Path(f"{TEST_DIR}/schedules")
 
 

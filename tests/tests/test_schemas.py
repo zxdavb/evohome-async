@@ -12,7 +12,8 @@ import pytest
 from evohomeasync2.schema import SCH_LOCN_STATUS
 from evohomeasync2.schema.config import SCH_TEMPERATURE_CONTROL_SYSTEM, SCH_TIME_ZONE
 
-TEST_DIR = Path(__file__).resolve().parent
+from .helpers import TEST_DIR
+
 WORK_DIR = f"{TEST_DIR}/schemas"
 
 
@@ -24,16 +25,6 @@ def pytest_generate_tests(metafunc: pytest.Metafunc):
         p for p in Path(WORK_DIR).glob("*") if p.is_dir() and not p.name.startswith("_")
     ]
     metafunc.parametrize("folder", sorted(folders), ids=id_fnc)
-
-
-def _test_schema(folder: Path, schema: str, file_name: str):
-    if not Path(folder).joinpath(file_name).is_file():
-        pytest.skip(f"No {file_name} in: {folder.name}")
-
-    with open(Path(folder).joinpath(file_name)) as f:
-        data: dict = json.load(f)
-
-    _ = schema(data)
 
 
 # NOTE: JSON is not compliant with the schema, but data is useful to test against
