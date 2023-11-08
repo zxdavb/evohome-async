@@ -77,7 +77,7 @@
   disallow_subclassing_any = true
   disallow_untyped_calls = true
   disallow_untyped_decorators = true
-  # disallow_untyped_defs =   # 41
+  # disallow_untyped_defs =   # 41  - see: check_untyped_defs
   # warn_return_any = true  # 34
   warn_unreachable = true
 
@@ -85,6 +85,8 @@
 [tool.mypy-tests]
   ignore_errors = true
 
+[tool.mypy-tests-tests_rf-mocked_server]
+  ignore_errors = true
 
 #
 ## ruff ##############################################################################

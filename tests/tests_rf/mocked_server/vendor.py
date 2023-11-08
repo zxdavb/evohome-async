@@ -143,7 +143,7 @@ class MockedServer:
         self.body, self.status = None, None
         for pattern, method in REQUEST_MAP.items():
             if re.search(pattern, url):
-                self.body: _bodyT | None = method(self)
+                self.body = method(self)
                 break
         else:
             self.status = HTTPStatus.NOT_FOUND
@@ -163,6 +163,7 @@ class MockedServer:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
         elif self._url == AUTH_URL:
             return MOCK_AUTH_RESPONSE
+        return None
 
     def usr_account(self) -> _bodyT | None:
         if self._method != HTTPMethod.GET:
@@ -172,9 +173,8 @@ class MockedServer:
         elif self._url == f"{URL_BASE}/userAccount":
             return self._user_config
 
-        else:
-            self.status = HTTPStatus.NOT_FOUND
-            return {"message": "Not found"}
+        self.status = HTTPStatus.NOT_FOUND
+        return {"message": "Not found"}
 
     @validate_id_of_url(_usr_id)
     def all_config(self) -> _bodyT | None:  # full_locn
@@ -182,28 +182,31 @@ class MockedServer:
 
         if self._user_config["userId"] == usr_id:
             return self._full_config
+        return None
 
     def loc_config(self) -> _bodyT | None:
         raise NotImplementedError
 
     @validate_id_of_url(_loc_id)
-    def loc_status(self) -> _bodyT:
+    def loc_status(self) -> _bodyT | None:
         loc_id = _loc_id(self._url)
 
         if self._locn_status[SZ_LOCATION_ID] == loc_id:
             return self._locn_status
+        return None
 
     def tcs_mode(self) -> _bodyT | None:
         raise NotImplementedError
 
     @validate_id_of_url(_tcs_id)
-    def tcs_status(self) -> _bodyT:
+    def tcs_status(self) -> _bodyT | None:
         tcs_id = _tcs_id(self._url)
 
         for gwy in self._locn_status[SZ_GATEWAYS]:
             for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
                 if tcs[SZ_SYSTEM_ID] == tcs_id:
                     return tcs
+        return None
 
     def zon_schedule(self) -> _bodyT | None:
         zon_id = _zon_id(self._url)
@@ -232,7 +235,7 @@ class MockedServer:
         raise NotImplementedError
 
     @validate_id_of_url(_zon_id)
-    def zon_status(self) -> _bodyT:
+    def zon_status(self) -> _bodyT | None:
         zon_id = _zon_id(self._url)
 
         for gwy in self._locn_status[SZ_GATEWAYS]:
@@ -240,6 +243,7 @@ class MockedServer:
                 for zone in tcs[SZ_ZONES]:
                     if zone[SZ_ZONE_ID] == zon_id:
                         return zone
+        return None
 
     def dhw_schedule(self) -> _bodyT | None:
         dhw_id = _dhw_id(self._url)
@@ -265,7 +269,7 @@ class MockedServer:
         return {"id": "1234567890"}
 
     @validate_id_of_url(_dhw_id)
-    def dhw_status(self) -> _bodyT:
+    def dhw_status(self) -> _bodyT | None:
         dhw_id = _dhw_id(self._url)
 
         for gwy in self._locn_status[SZ_GATEWAYS]:
@@ -273,130 +277,10 @@ class MockedServer:
                 if dhw := tcs.get(SZ_DHW):
                     if dhw[SZ_DHW_ID] == dhw_id:
                         return dhw
+        return None
 
     def dhw_mode(self) -> _bodyT | None:
         raise NotImplementedError
-
-    #
-
-    def OUT__response_for_request(self) -> _bodyT | None:
-        """Set the response body (and status) according to the request."""
-
-        if "/Auth" in self._url and self._method == HTTPMethod.POST:
-            # POST /Auth/OAuth/Token
-            return self.auth_response()
-
-        if "/userAccount" in self._url and self._method == HTTPMethod.GET:
-            # GET /userAccount
-            return self.user_config()
-
-        if "/location" in self._url and self._method == HTTPMethod.GET:
-            return self._response_for_location_request()
-
-        if "/temperatureControlSystem" in self._url and self._method == HTTPMethod.PUT:
-            if self._method != HTTPMethod.PUT:
-                pass
-
-            elif re.search(r"temperatureControlSystem/.*/mode", self._url):
-                # PUT /temperatureControlSystem/{systemId}/mode"
-                return self.full_config()
-
-        if "/temperatureZone" in self._url and self._method in (
-            HTTPMethod.GET,
-            HTTPMethod.PUT,
-        ):
-            return self._response_for_zone_request()
-
-        if "/domesticHotWater" in self._url and self._method in (
-            HTTPMethod.GET,
-            HTTPMethod.PUT,
-        ):
-            return self._response_for_dhw_request()
-
-    def OUT_response_for_location_request(self) -> _bodyT | None:
-        """"""
-
-        if self._method != HTTPMethod.GET:
-            pass
-
-        elif re.search(r"location/installationInfo", self._url):
-            # GET /location/installationInfo?userId={userId}
-            return self.full_config()
-
-        elif re.search(r"location/.*/installationInfo", self._url):
-            # GET /location/{locationId}/installationInfo
-            return self.locn_config(location_id=None)
-
-        elif re.search(r"location/.*/status", self._url):
-            # GET /location/{locationId}/status
-            return self.locn_status(location_id=None)
-
-    def OUT_response_for_zone_request(self) -> _bodyT | None:
-        """"""
-
-        def zone_id() -> _ZoneIdT:
-            return self._url.split("temperatureZone/")[1].split("/")[0]
-
-        if self._method == HTTPMethod.GET:
-            if re.search(r"temperatureZone/.*/schedule", self._url):
-                # GET /temperatureZone/{zoneId}/schedule  # /{zone_type}/{zoneId}/schedule
-                return self.zone_schedule(zone_id=zone_id())
-
-            if re.search(r"temperatureZone/.*/status", self._url):
-                # GET /temperatureZone/{zoneId}/status  # /{zone_type}/{zoneId}/schedule
-                return self.zone_status(zone_id=zone_id())
-
-        elif self._method == HTTPMethod.PUT:
-            if re.search(r"temperatureZone/.*/schedule", self._url):
-                # PUT /temperatureZone/{zoneId}/schedule
-                return {"id": "123456789"}
-
-            if re.search(r"temperatureZone/.*/heatSetpoint", self._url):  # aka mode
-                # PUT /temperatureZone/{zoneId}/heatSetpoint
-                raise NotImplementedError
-
-    def OUT_response_for_dhw_request(self) -> _bodyT | None:
-        """"""
-
-        def dhw_id() -> _DhwIdT:
-            return self._url.split("domesticHotWater/")[1].split("/")[0]
-
-        if self._method == HTTPMethod.GET:
-            if re.search(r"domesticHotWater/.*/schedule", self._url):
-                # GET /domesticHotWater/{dhwId}/schedule  # /{zone_type}/{zoneId}/schedule
-                return self.dhw_schedule(dhw_id=dhw_id())
-
-            if re.search(r"domesticHotWater/.*/status", self._url):
-                # GET /domesticHotWater/{dhwId}/status
-                return self.dhw_status(dhw_id=dhw_id())
-
-        elif self._method == HTTPMethod.PUT:
-            if re.search(r"domesticHotWater/.*/schedule", self._url):
-                # PUT /domesticHotWater/{dhwId}/schedule
-                return {"id": "123456789"}
-
-            if re.search(r"domesticHotWater/.*/state", self._url):  # aka mode
-                # PUT /domesticHotWater/{dhwId}/state
-                raise NotImplementedError
-
-    def OLD_dhw_status_old(self, dhw_id: _DhwIdT) -> dict | None:
-        for gwy in self._locn_status[SZ_GATEWAYS]:
-            for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
-                if (dhw := tcs.get(SZ_DHW)) and dhw[SZ_DHW_ID] == dhw_id:
-                    return dhw
-
-        self.status = 404
-
-    def OUT_zone_status(self, zone_id: _ZoneIdT) -> dict | None:
-        for gwy in self._locn_status[SZ_GATEWAYS]:
-            for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
-                for zone in tcs[SZ_ZONES]:
-                    if zone[SZ_ZONE_ID] == zone_id:
-                        return zone
-
-        self.status = 404
-
-    #
 
     @staticmethod
     def _user_config_from_full_config(full_config: list) -> dict:
