@@ -12,7 +12,7 @@ from http import HTTPMethod, HTTPStatus
 
 import evohomeasync2 as evo
 from evohomeasync2.const import URL_BASE
-from evohomeasync2.schema import vol  # voluptuous
+from evohomeasync2.schema import vol  # type: ignore[import-untyped]
 
 from . import _DEBUG_USE_REAL_AIOHTTP, _DISABLE_STRICT_ASSERTS, mocked_server as mock
 
@@ -51,7 +51,7 @@ def extract_oauth_tokens(client: evo.EvohomeClient):
     )
 
 
-async def should_work(
+async def should_work(  # type: ignore[no-any-unimported]
     client: evo.EvohomeClient,
     method: HTTPMethod,
     url: str,

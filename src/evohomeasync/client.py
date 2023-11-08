@@ -373,10 +373,7 @@ class EvohomeClient(EvohomeClientDeprecated):
 
     def _get_device(self, zone: str) -> _EvoDictT:
         """"""
-
-        if isinstance(zone, str):
-            return self.named_devices[zone]
-        return self.devices[zone]  # TODO: no need for str.isnumeric() check?
+        return self.named_devices[zone]
 
     def _get_device_id(self, device_id: _DeviceIdT) -> _DeviceIdT:
         """"""
