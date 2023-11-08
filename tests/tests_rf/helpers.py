@@ -107,19 +107,20 @@ async def should_fail(
     if isinstance(content, list):
         assert status in (
             HTTPStatus.BAD_REQUEST,
+            HTTPStatus.NOT_FOUND,  # CommTaskNotFound
             HTTPStatus.UNAUTHORIZED,
-        ), response.status
+        ), content
         assert "message" in content[0]  # sometimes "code" too
 
     elif isinstance(content, dict):
         assert status in (
             HTTPStatus.NOT_FOUND,
             HTTPStatus.METHOD_NOT_ALLOWED,
-        ), response.status
+        ), content
         assert "message" in content  # sometimes "code" too
 
     elif isinstance(content, str):  # 404
-        assert status in (HTTPStatus.NOT_FOUND,), response.status
+        assert status in (HTTPStatus.NOT_FOUND,), content
 
     else:
         assert False, response.status
