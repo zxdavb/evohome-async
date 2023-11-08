@@ -102,6 +102,14 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     def stateStatus(self) -> _EvoDictT | None:
         return self._status.get(SZ_STATE_STATUS)
 
+    @property  # status attr for convenience (new)
+    def mode(self) -> str | None:
+        return self.stateStatus[SZ_MODE] if self.stateStatus else None
+
+    @property  # status attr for convenience (new)
+    def state(self) -> str | None:
+        return self.stateStatus[SZ_STATE] if self.stateStatus else None
+
     async def _set_mode(self, mode: dict) -> None:
         """Set the DHW mode (state)."""
         _ = await self._broker.put(f"{self.TYPE}/{self._id}/state", json=mode)
