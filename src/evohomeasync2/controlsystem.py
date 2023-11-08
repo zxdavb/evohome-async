@@ -21,6 +21,7 @@ from .schema.const import (
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_DHW,
     SZ_IS_AVAILABLE,
+    SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_PERMANENT,
     SZ_SYSTEM_ID,
@@ -177,7 +178,7 @@ class ControlSystem(_ControlSystemDeprecated):
 
     @property  # status attr for convenience (new)
     def system_mode(self) -> str | None:
-        return self.systemModeStatus[SZ_SYSTEM_MODE] if self.systemModeStatus else None
+        return self.systemModeStatus[SZ_MODE] if self.systemModeStatus else None
 
     async def _set_mode(self, mode: dict) -> None:
         """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
