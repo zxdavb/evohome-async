@@ -63,7 +63,7 @@ async def _test_basics_apis(
     client = evo.EvohomeClient(
         username,
         password,
-        session=session,
+        session=session,  # type: ignore[arg-type]
         refresh_token=refresh_token,
         access_token=access_token,
         access_token_expires=access_token_expires,
@@ -151,7 +151,7 @@ async def _test_sched__apis(
     client = evo.EvohomeClient(
         username,
         password,
-        session=session,
+        session=session,  # type: ignore[arg-type]
         refresh_token=refresh_token,
         access_token=access_token,
         access_token_expires=access_token_expires,
@@ -193,7 +193,7 @@ async def _test_status_apis(
     client = evo.EvohomeClient(
         username,
         password,
-        session=session,
+        session=session,  # type: ignore[arg-type]
         refresh_token=refresh_token,
         access_token=access_token,
         access_token_expires=access_token_expires,
@@ -232,7 +232,7 @@ async def _test_system_apis(
     client = evo.EvohomeClient(
         username,
         password,
-        session=session,
+        session=session,  # type: ignore[arg-type]
         refresh_token=refresh_token,
         access_token=access_token,
         access_token_expires=access_token_expires,

@@ -178,7 +178,7 @@ class MockedServer:
 
     @validate_id_of_url(_usr_id)
     def all_config(self) -> _bodyT | None:  # full_locn
-        usr_id = _usr_id(self._url)
+        usr_id = _usr_id(self._url)  # type: ignore[arg-type]
 
         if self._user_config["userId"] == usr_id:
             return self._full_config
@@ -189,7 +189,7 @@ class MockedServer:
 
     @validate_id_of_url(_loc_id)
     def loc_status(self) -> _bodyT | None:
-        loc_id = _loc_id(self._url)
+        loc_id = _loc_id(self._url)  # type: ignore[arg-type]
 
         if self._locn_status[SZ_LOCATION_ID] == loc_id:
             return self._locn_status
@@ -200,7 +200,7 @@ class MockedServer:
 
     @validate_id_of_url(_tcs_id)
     def tcs_status(self) -> _bodyT | None:
-        tcs_id = _tcs_id(self._url)
+        tcs_id = _tcs_id(self._url)  # type: ignore[arg-type]
 
         for gwy in self._locn_status[SZ_GATEWAYS]:
             for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
@@ -209,7 +209,7 @@ class MockedServer:
         return None
 
     def zon_schedule(self) -> _bodyT | None:
-        zon_id = _zon_id(self._url)
+        zon_id = _zon_id(self._url)  # type: ignore[arg-type]
 
         if self._method == HTTPMethod.GET:
             return self._schedules.get(zon_id, self._zon_schedule)
@@ -236,7 +236,7 @@ class MockedServer:
 
     @validate_id_of_url(_zon_id)
     def zon_status(self) -> _bodyT | None:
-        zon_id = _zon_id(self._url)
+        zon_id = _zon_id(self._url)  # type: ignore[arg-type]
 
         for gwy in self._locn_status[SZ_GATEWAYS]:
             for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
@@ -246,7 +246,7 @@ class MockedServer:
         return None
 
     def dhw_schedule(self) -> _bodyT | None:
-        dhw_id = _dhw_id(self._url)
+        dhw_id = _dhw_id(self._url)  # type: ignore[arg-type]
 
         if self._method == HTTPMethod.GET:
             return self._schedules.get(dhw_id, self._dhw_schedule)
@@ -270,7 +270,7 @@ class MockedServer:
 
     @validate_id_of_url(_dhw_id)
     def dhw_status(self) -> _bodyT | None:
-        dhw_id = _dhw_id(self._url)
+        dhw_id = _dhw_id(self._url)  # type: ignore[arg-type]
 
         for gwy in self._locn_status[SZ_GATEWAYS]:
             for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:

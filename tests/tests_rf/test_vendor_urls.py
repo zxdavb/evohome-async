@@ -352,7 +352,10 @@ async def _test_schedule(
 
     schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp + 1  # type: ignore[call-overload]
     _ = await should_work(
-        client, HTTPMethod.PUT, url, json=convert_to_put_schedule(schedule)
+        client,
+        HTTPMethod.PUT,
+        url,
+        json=convert_to_put_schedule(schedule),  # type: ignore[arg-type]
     )
 
     schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
@@ -363,7 +366,10 @@ async def _test_schedule(
 
     schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp  # type: ignore[call-overload]
     _ = await should_work(
-        client, HTTPMethod.PUT, url, json=convert_to_put_schedule(schedule)
+        client,
+        HTTPMethod.PUT,
+        url,
+        json=convert_to_put_schedule(schedule),  # type: ignore[arg-type]
     )
 
     schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
