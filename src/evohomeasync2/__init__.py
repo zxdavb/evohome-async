@@ -28,4 +28,4 @@ from .location import Location  # noqa: F401
 from .zone import Zone  # noqa: F401
 
 
-__version__ = "0.4.6"
+__version__ = "0.4.7"
