@@ -50,12 +50,7 @@
 
 
 #
-### isort & pytest ###################################################################
-
-[tool.isort]
-  profile = "black"
-  multi_line_output = 3
-
+### pytest ###########################################################################
 
 [tool.pytest.ini_options]
   asyncio_mode = "auto"
@@ -69,77 +64,26 @@
   files = ["src/evohomeasync", "src/evohomeasync2"]
   # follow_imports = "skip"
 
+  disallow_any_unimported = true
+  warn_no_return = true
+
+  disallow_subclassing_any = true
+
+
+[tool.mypy-src]
+  # these are HA defaults
+  check_untyped_defs = true
+  # disallow_incomplete_defs = true  # 41
+  disallow_subclassing_any = true
+  disallow_untyped_calls = true
+  disallow_untyped_decorators = true
+  # disallow_untyped_defs =   # 41
+  # warn_return_any = true  # 34
+  warn_unreachable = true
+
 
 [tool.mypy-tests]
   ignore_errors = true
-
-
-#
-### pylint ###########################################################################
-
-[tool.pylint.MASTER]
-  ignore="docs"  # "docs,tests,tests_rf"
-
-[tool.pylint.format]
-  max-line-length = 120
-
-[tool.pylint.BASIC]
-  good-names="i,j,_"
-
-[tool.pylint."MESSAGES CONTROL"]
-# Reasons disabled:
-#   missing-class-docstring        - I use this a lot
-#   missing-function-docstring     - I use this a lot
-#   protected-access               - I use this a lot
-#
-#   format                         - handled by ruff/black
-#   locally-disabled               - it spams too much
-#   duplicate-code                 - unavoidable
-#   cyclic-import                  - doesn't test if both import on load
-#   unused-argument                - generic callbacks and setup methods create a lot of warnings
-#   global-statement               - used for the on-demand requirement installation
-#   redefined-variable-type        - this is Python, we're duck typing!
-#   too-many-*                     - are not enforced for the sake of readability
-#   too-few-*                      - same as too-many-*
-#   abstract-method                - with intro of async there are always methods missing
-#   inconsistent-return-statements - doesn't handle raise
-#   not-an-iterable                - https://github.com/PyCQA/pylint/issues/2311
-#   unnecessary-pass               - readability for functions which only contain pass
-#
-  disable="""
-    missing-class-docstring,
-    missing-function-docstring,
-    protected-access,
-    format,
-    abstract-method,
-    cyclic-import,
-    duplicate-code,
-    global-statement,
-    inconsistent-return-statements,
-    locally-disabled,
-    not-an-iterable,
-    not-context-manager,
-    too-few-public-methods,
-    too-many-arguments,
-    too-many-branches,
-    too-many-instance-attributes,
-    too-many-lines,
-    too-many-locals,
-    too-many-public-methods,
-    too-many-return-statements,
-    too-many-statements,
-    unnecessary-pass,
-    unused-argument
-  """
-
-[tool.pylint.REPORTS]
-  reports = "no"
-
-[tool.pylint.FORMAT]
-  expected-line-ending-format = "LF"
-
-[tool.pylint.EXCEPTIONS]
-  overgeneral-exceptions = "builtins.Exception"
 
 
 #
