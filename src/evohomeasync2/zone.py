@@ -83,6 +83,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
         self._logger: logging.Logger = tcs._logger
 
         self._status: _EvoDictT = {}
+        self._schedule: _EvoDictT = {}
 
     def __str__(self) -> str:
         return f"{self._id} ({self.TYPE})"
@@ -128,7 +129,8 @@ class _ZoneBase(_ZoneBaseDeprecated):
             f"{self.TYPE}/{self._id}/schedule", schema=self.SCH_SCHEDULE_GET
         )  # type: ignore[assignment]
 
-        return convert_to_put_schedule(schedule)
+        self._schedule = convert_to_put_schedule(schedule)
+        return self._schedule
 
     async def set_schedule(self, schedule: _EvoDictT | str) -> None:
         """Set the schedule for this DHW/zone object."""
