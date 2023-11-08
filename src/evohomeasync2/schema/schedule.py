@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from .const import (
+    SZ_COOL_SETPOINT,
     SZ_DAILY_SCHEDULES,
     SZ_DAY_OF_WEEK,
     SZ_DHW_STATE,
@@ -32,6 +33,7 @@ SCH_GET_SWITCHPOINT_DHW = vol.Schema(  # TODO: checkme
 
 SCH_GET_SWITCHPOINT_ZONE = vol.Schema(
     {
+        vol.Optional(SZ_COOL_SETPOINT): float,  # an extrapolation
         vol.Required(SZ_HEAT_SETPOINT): vol.All(float, vol.Range(min=5, max=35)),
         vol.Required(SZ_TIME_OF_DAY): vol.Datetime(format="%H:%M:00"),
     },

@@ -33,6 +33,8 @@ SZ_CAN_BE_TEMPORARY = "canBeTemporary"
 SZ_CAN_CONTROL_COOL = "canControlCool"
 SZ_CAN_CONTROL_HEAT = "canControlHeat"
 SZ_CITY = "city"
+SZ_COOL_SETPOINT = "coolSetpoint"
+SZ_COOL_SETPOINT_VALUE = "coolSetpointValue"  # an extrapolation
 SZ_COUNTRY = "country"
 SZ_CRC = "crc"
 SZ_CURRENT_OFFSET_MINUTES = "currentOffsetMinutes"
@@ -73,7 +75,7 @@ SZ_LOCATION_OWNER = "locationOwner"
 SZ_LOCATION_TYPE = "locationType"
 
 SZ_MAC = "mac"
-SZ_MAX_COOL_SETPOINT = "maxCoolSetpoint"
+SZ_MAX_COOL_SETPOINT = "maxCoolSetpoint"  # an extrapolation
 SZ_MAX_DURATION = "maxDuration"
 SZ_MAX_HEAT_SETPOINT = "maxHeatSetpoint"
 SZ_MAX_SWITCHPOINTS_PER_DAY = "maxSwitchpointsPerDay"
@@ -106,6 +108,7 @@ SZ_SYSTEM_ID = "systemId"
 SZ_SYSTEM_MODE = "systemMode"
 SZ_SYSTEM_MODE_STATUS = "systemModeStatus"
 
+SZ_TARGET_COOL_TEMPERATURE = "targetCoolTemperature"  # an extrapolation
 SZ_TARGET_HEAT_TEMPERATURE = "targetHeatTemperature"
 SZ_TEMPERATURE = "temperature"
 SZ_TEMPERATURE_CONTROL_SYSTEM = "temperatureControlSystem"
