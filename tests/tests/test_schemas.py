@@ -6,11 +6,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+
 import pytest
 
 from evohomeasync2.schema import SCH_LOCN_STATUS
 from evohomeasync2.schema.config import SCH_TEMPERATURE_CONTROL_SYSTEM, SCH_TIME_ZONE
-
 
 TEST_DIR = Path(__file__).resolve().parent
 WORK_DIR = f"{TEST_DIR}/schemas"

@@ -43,7 +43,7 @@ class Gateway:
         try:
             assert self.gatewayId, "Invalid config dict"
         except AssertionError as exc:
-            raise InvalidSchema(str(exc))
+            raise InvalidSchema(str(exc)) from exc
         self._id = self.gatewayId
 
         self._control_systems: list[ControlSystem] = []

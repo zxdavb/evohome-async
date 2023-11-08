@@ -14,10 +14,9 @@ from .const import (
     SZ_STREET_ADDRESS,
     SZ_USER_ID,
     SZ_USERNAME,
+    obfuscate as _obfuscate,
 )
-from .const import obfuscate as _obfuscate
 from .helpers import vol  # voluptuous
-
 
 # These are vendor-specific constants, used for authentication
 SZ_ACCESS_TOKEN = "access_token"

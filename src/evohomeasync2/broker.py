@@ -4,21 +4,20 @@
 """evohomeasync2 provides an async client for the updated Evohome API."""
 from __future__ import annotations
 
+from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from datetime import datetime as dt
-from datetime import timedelta as td
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
 from .const import (
-    AUTH_HEADER_ACCEPT,
     AUTH_HEADER,
-    AUTH_URL,
-    URL_BASE,
+    AUTH_HEADER_ACCEPT,
     AUTH_PAYLOAD,
+    AUTH_URL,
     CREDS_REFRESH_TOKEN,
     CREDS_USER_PASSWORD,
+    URL_BASE,
 )
 from .exceptions import (
     AuthenticationFailed,
@@ -199,11 +198,11 @@ class Broker:
 
         except aiohttp.ClientResponseError as exc:
             if hint := _ERR_MSG_LOOKUP_AUTH.get(exc.status):
-                raise AuthenticationFailed(hint, status=exc.status)
-            raise AuthenticationFailed(str(exc), status=exc.status)
+                raise AuthenticationFailed(hint, status=exc.status) from exc
+            raise AuthenticationFailed(str(exc), status=exc.status) from exc
 
         except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise AuthenticationFailed(str(exc))
+            raise AuthenticationFailed(str(exc)) from exc
 
         try:  # the access token _should_ be valid...
             _ = SCH_OAUTH_TOKEN(content)  # can't use result, due to obsfucated values
@@ -220,9 +219,9 @@ class Broker:
             self.refresh_token = content[SZ_REFRESH_TOKEN]  # type: ignore[assignment]
 
         except (KeyError, TypeError) as exc:
-            raise AuthenticationFailed(f"Invalid response from server: {exc}")
+            raise AuthenticationFailed(f"Invalid response from server: {exc}") from exc
 
-    async def get(self, url: str, schema: vol.Schema | None = None) -> _EvoSchemaT:
+    async def get(self, url: str, schema: vol.Schema | None = None) -> _EvoSchemaT:  # type: ignore[no-any-unimported]
         """"""
 
         response: aiohttp.ClientResponse
@@ -236,11 +235,11 @@ class Broker:
 
         except aiohttp.ClientResponseError as exc:
             if hint := _ERR_MSG_LOOKUP_BASE.get(exc.status):
-                raise RequestFailed(hint, status=exc.status)
-            raise RequestFailed(str(exc), status=exc.status)
+                raise RequestFailed(hint, status=exc.status) from exc
+            raise RequestFailed(str(exc), status=exc.status) from exc
 
         except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise RequestFailed(str(exc))
+            raise RequestFailed(str(exc)) from exc
 
         if schema:
             try:
@@ -252,7 +251,7 @@ class Broker:
 
         return content
 
-    async def put(
+    async def put(  # type: ignore[no-any-unimported]
         self, url: str, json: _EvoDictT | str, schema: vol.Schema | None = None
     ) -> dict | list[dict]:  # NOTE: not _EvoSchemaT
         """"""
@@ -276,10 +275,10 @@ class Broker:
 
         except aiohttp.ClientResponseError as exc:
             if hint := _ERR_MSG_LOOKUP_BASE.get(exc.status):
-                raise RequestFailed(hint, status=exc.status)
-            raise RequestFailed(str(exc), status=exc.status)
+                raise RequestFailed(hint, status=exc.status) from exc
+            raise RequestFailed(str(exc), status=exc.status) from exc
 
         except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise RequestFailed(str(exc))
+            raise RequestFailed(str(exc)) from exc
 
         return content

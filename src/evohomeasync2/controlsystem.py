@@ -8,8 +8,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime as dt
 import json
+from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME, SystemMode
@@ -33,7 +33,6 @@ from .schema.const import (
     SZ_ZONES,
 )
 from .zone import Zone
-
 
 if TYPE_CHECKING:
     import logging
@@ -126,7 +125,7 @@ class ControlSystem(_ControlSystemDeprecated):
         try:
             assert self.systemId, "Invalid config dict"
         except AssertionError as exc:
-            raise InvalidSchema(str(exc))
+            raise InvalidSchema(str(exc)) from exc
         self._id = self.systemId
 
         self._zones: list[Zone] = []
@@ -364,7 +363,7 @@ class ControlSystem(_ControlSystemDeprecated):
             f"{self.systemId} ({self.location.name}), from {filename}"
         )
 
-        with open(filename, "r") as file_input:
+        with open(filename) as file_input:
             schedule_db = file_input.read()
             schedules: dict = json.loads(schedule_db)
 

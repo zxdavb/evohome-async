@@ -28,7 +28,6 @@ from .schema.const import (
     SZ_ZONES,
 )
 
-
 if TYPE_CHECKING:
     import logging
 
@@ -60,7 +59,7 @@ class Location(_LocationDeprecated):
         try:
             assert self.locationId, "Invalid config dict"
         except AssertionError as exc:
-            raise InvalidSchema(str(exc))
+            raise InvalidSchema(str(exc)) from exc
         self._id = self.locationId
 
         self._gateways: list[Gateway] = []

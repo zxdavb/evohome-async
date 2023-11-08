@@ -36,10 +36,12 @@ from .const import (
     SZ_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONES,
+    DhwState,
+    FaultType,
+    SystemMode,
+    ZoneMode,
 )
-from .const import DhwState, FaultType, SystemMode, ZoneMode
 from .helpers import vol  # voluptuous
-
 
 SCH_ACTIVE_FAULT = vol.Schema(
     {

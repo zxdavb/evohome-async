@@ -12,10 +12,9 @@ from evohomeasync2.schema.schedule import (
     SCH_GET_SCHEDULE_ZONE,
     SCH_PUT_SCHEDULE_DHW,
     SCH_PUT_SCHEDULE_ZONE,
-    convert_to_put_schedule,
     convert_to_get_schedule,
+    convert_to_put_schedule,
 )
-
 
 TEST_DIR = Path(__file__).resolve().parent
 WORK_DIR = Path(f"{TEST_DIR}/schedules")

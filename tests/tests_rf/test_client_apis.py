@@ -4,30 +4,31 @@
 """evohome-async - validate the evohome-async APIs (methods)."""
 from __future__ import annotations
 
-import aiohttp
 from datetime import datetime as dt
+
+import aiohttp
 import pytest
 import pytest_asyncio
 
 import evohomeasync2 as evo
-
-from . import mocked_server as mock
 from evohomeasync2.schema import (
     SCH_DHW_STATUS,
     SCH_FULL_CONFIG,
     SCH_LOCN_STATUS,
     SCH_USER_ACCOUNT,
     SCH_ZONE_STATUS,
+    SYSTEM_MODES,
+    SystemMode,
 )
-from evohomeasync2.schema import SystemMode, SYSTEM_MODES
 from evohomeasync2.schema.const import SZ_MODE
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 
-from . import _DEBUG_USE_REAL_AIOHTTP
-from .helpers import user_credentials as _user_credentials
-from .helpers import client_session as _client_session
-from .helpers import extract_oauth_tokens
-
+from . import _DEBUG_USE_REAL_AIOHTTP, mocked_server as mock
+from .helpers import (
+    client_session as _client_session,
+    extract_oauth_tokens,
+    user_credentials as _user_credentials,
+)
 
 _global_oauth_tokens: tuple[str, str, dt] = None, None, None
 

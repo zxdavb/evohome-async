@@ -5,10 +5,11 @@
 from __future__ import annotations
 
 import asyncio
+import logging
+from collections.abc import Callable
 from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
-import logging
-from typing import TYPE_CHECKING, Any, Callable, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import aiohttp
 
@@ -19,7 +20,6 @@ from .exceptions import (
     RateLimitExceeded,
     RequestFailed,
 )
-
 
 if TYPE_CHECKING:
     from .schema import (
@@ -176,23 +176,23 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         except aiohttp.ClientError as exc:
             if method == HTTPMethod.POST:  # using response will cause UnboundLocalError
-                raise AuthenticationFailed(str(exc))
-            raise RequestFailed(str(exc))
+                raise AuthenticationFailed(str(exc)) from exc
+            raise RequestFailed(str(exc)) from exc
 
         try:
             response.raise_for_status()
 
         except aiohttp.ClientResponseError as exc:
             if response.method == HTTPMethod.POST:  # POST only used when authenticating
-                raise AuthenticationFailed(str(exc), status=exc.status)
+                raise AuthenticationFailed(str(exc), status=exc.status) from exc
             if response.status != HTTPStatus.TOO_MANY_REQUESTS:
-                raise RateLimitExceeded(str(exc), status=exc.status)
-            raise RequestFailed(str(exc), status=exc.status)
+                raise RateLimitExceeded(str(exc), status=exc.status) from exc
+            raise RequestFailed(str(exc), status=exc.status) from exc
 
         except aiohttp.ClientError as exc:
             if response.method == HTTPMethod.POST:  # POST only used when authenticating
-                raise AuthenticationFailed(str(exc))
-            raise RequestFailed(str(exc))
+                raise AuthenticationFailed(str(exc)) from exc
+            raise RequestFailed(str(exc)) from exc
 
         return response
 
@@ -316,7 +316,7 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         # harden code against unexpected schema (JSON structure)
         except (LookupError, TypeError, ValueError) as exc:
-            raise InvalidSchema(str(exc))
+            raise InvalidSchema(str(exc)) from exc
         return result
 
     async def get_system_modes(self) -> NoReturn:

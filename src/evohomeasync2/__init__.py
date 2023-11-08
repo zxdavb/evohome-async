@@ -18,14 +18,13 @@ from .exceptions import (  # noqa: F401
     InvalidParameter,
     InvalidSchedule,
     InvalidSchema,
-    RequestFailed,
     NoSingleTcsError,
     RateLimitExceeded,
+    RequestFailed,
 )
 from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401
 from .location import Location  # noqa: F401
 from .zone import Zone  # noqa: F401
-
 
 __version__ = "0.4.7"

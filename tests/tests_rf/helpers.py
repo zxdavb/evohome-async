@@ -5,18 +5,16 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime as dt
 import logging
 import os
+from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
 
 import evohomeasync2 as evo
 from evohomeasync2.const import URL_BASE
 from evohomeasync2.schema import vol  # voluptuous
 
-from . import _DISABLE_STRICT_ASSERTS, _DEBUG_USE_REAL_AIOHTTP
-from . import mocked_server as mock
-
+from . import _DEBUG_USE_REAL_AIOHTTP, _DISABLE_STRICT_ASSERTS, mocked_server as mock
 
 if _DEBUG_USE_REAL_AIOHTTP:
     import aiohttp

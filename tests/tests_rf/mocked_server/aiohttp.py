@@ -5,14 +5,12 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from enum import EnumCheck, StrEnum, verify
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Final, Self, Type
-
-import json
+from typing import TYPE_CHECKING, Any, Final, Self
 
 from .vendor import MockedServer
-
 
 if TYPE_CHECKING:
     from .const import _bodyT, _methodT, _statusT, _urlT
@@ -55,7 +53,7 @@ class StreamReader(asyncio.StreamReader):
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
@@ -156,7 +154,7 @@ class ClientResponse:
 
         # if isinstance(self._body, bytes):
         #     return "application/octet-stream"
-        if isinstance(self._body, (dict, list)):
+        if isinstance(self._body, (dict | list)):
             return "application/json"
         if not isinstance(self._body, str):
             raise NotImplementedError
@@ -176,7 +174,7 @@ class ClientResponse:
         """Return the response body as json (a dict)."""
         if self.content_type == "application/json":
             return self._body
-        assert not isinstance(self._body, (dict, list))  # mypy
+        assert not isinstance(self._body, (dict | list))  # mypy
         return json.loads(self._body)
 
     async def __aenter__(self, *args, **kwargs) -> Self:
@@ -184,7 +182,7 @@ class ClientResponse:
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:

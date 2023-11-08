@@ -17,14 +17,14 @@ from .const import (
     SZ_CAN_CONTROL_COOL,
     SZ_CAN_CONTROL_HEAT,
     SZ_CITY,
-    SZ_CURRENT_OFFSET_MINUTES,
     SZ_COUNTRY,
     SZ_CRC,
+    SZ_CURRENT_OFFSET_MINUTES,
     SZ_DHW,
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
-    SZ_FIRSTNAME,
     SZ_DISPLAY_NAME,
+    SZ_FIRSTNAME,
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
     SZ_GATEWAYS,
@@ -32,8 +32,8 @@ from .const import (
     SZ_LASTNAME,
     SZ_LOCATION_ID,
     SZ_LOCATION_INFO,
-    SZ_LOCATION_TYPE,
     SZ_LOCATION_OWNER,
+    SZ_LOCATION_TYPE,
     SZ_MAC,
     SZ_MAX_COOL_SETPOINT,
     SZ_MAX_DURATION,
@@ -67,9 +67,14 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
     SZ_ZONES,
+    DhwState,
+    SystemMode,
+    TcsModelType,
+    ZoneMode,
+    ZoneModelType,
+    ZoneType,
+    obfuscate as _obfuscate,
 )
-from .const import DhwState, SystemMode, TcsModelType, ZoneMode, ZoneModelType, ZoneType
-from .const import obfuscate as _obfuscate
 from .helpers import vol  # voluptuous
 
 SZ_DURATION = "Duration"

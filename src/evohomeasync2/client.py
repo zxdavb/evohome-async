@@ -4,9 +4,9 @@
 """evohomeasync2 provides an async client for the *updated* Evohome API."""
 from __future__ import annotations
 
-from http import HTTPStatus
 import logging
 from datetime import datetime as dt
+from http import HTTPStatus
 from typing import TYPE_CHECKING, NoReturn
 
 import aiohttp
@@ -17,15 +17,14 @@ from .exceptions import AuthenticationFailed, DeprecationError, NoSingleTcsError
 from .location import Location
 from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
 
-
 if TYPE_CHECKING:
     from .schema import (
-        _FilePathT,
-        _LocationIdT,
-        _SystemIdT,
         _EvoDictT,
         _EvoListT,
         _EvoSchemaT,
+        _FilePathT,
+        _LocationIdT,
+        _SystemIdT,
     )
 
 

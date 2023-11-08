@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from typing import Literal
 
-
 # Sample responses from evohome-client
 MOCK_AUTH_RESPONSE = {  # can use this for all
     "access_token": "ncWMqPh2yGgAqc...",

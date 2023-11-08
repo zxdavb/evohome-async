@@ -3,10 +3,9 @@
 #
 """evohomeasync2 - Constants."""
 
-from enum import EnumCheck, StrEnum, verify
 import re
+from enum import EnumCheck, StrEnum, verify
 from typing import Final
-
 
 # all debug flags should be False for published code
 _DEBUG_DONT_OBSFUCATE = False  # used for pytest scripts

@@ -8,6 +8,7 @@ try:  # voluptuous is an optional module...
     import voluptuous as vol  # type: ignore[import-untyped]
 
 except ModuleNotFoundError:  # No module named 'voluptuous'
+    # TODO: type object 'vol' has no attribute 'Required'
 
     class vol:  # type: ignore[no-redef]
         class Invalid(Exception):

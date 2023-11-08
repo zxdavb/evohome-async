@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, Final, NoReturn
 from .const import API_STRFTIME
 from .exceptions import DeprecationError, InvalidSchema
 from .schema import SCH_DHW_STATUS
-from .schema.const import DhwState, ZoneMode
 from .schema.const import (
     SZ_ALLOWED_MODES,
     SZ_DHW_ID,
@@ -24,10 +23,11 @@ from .schema.const import (
     SZ_STATE,
     SZ_STATE_STATUS,
     SZ_UNTIL_TIME,
+    DhwState,
+    ZoneMode,
 )
 from .schema.schedule import SCH_GET_SCHEDULE_DHW, SCH_PUT_SCHEDULE_DHW
 from .zone import _ZoneBase
-
 
 if TYPE_CHECKING:
     from . import ControlSystem
@@ -75,7 +75,7 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
         try:
             assert self.dhwId, "Invalid config dict"
         except AssertionError as exc:
-            raise InvalidSchema(str(exc))
+            raise InvalidSchema(str(exc)) from exc
         self._id = self.dhwId
 
     @property

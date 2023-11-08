@@ -8,23 +8,16 @@
 
 from __future__ import annotations
 
-from datetime import datetime as dt
 import json
+from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME, ZoneMode
 from .exceptions import DeprecationError, InvalidSchedule, InvalidSchema
 from .schema import SCH_ZONE_STATUS
-from .schema.schedule import (
-    SCH_GET_SCHEDULE,
-    SCH_GET_SCHEDULE_ZONE,
-    SCH_PUT_SCHEDULE,
-    SCH_PUT_SCHEDULE_ZONE,
-    convert_to_put_schedule,
-)
 from .schema.const import (
-    SZ_ALLOWED_SETPOINT_MODES,
     SZ_ACTIVE_FAULTS,
+    SZ_ALLOWED_SETPOINT_MODES,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_IS_AVAILABLE,
     SZ_MAX_HEAT_SETPOINT,
@@ -43,6 +36,13 @@ from .schema.const import (
     SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
+)
+from .schema.schedule import (
+    SCH_GET_SCHEDULE,
+    SCH_GET_SCHEDULE_ZONE,
+    SCH_PUT_SCHEDULE,
+    SCH_PUT_SCHEDULE_ZONE,
+    convert_to_put_schedule,
 )
 
 if TYPE_CHECKING:
@@ -141,13 +141,13 @@ class _ZoneBase(_ZoneBaseDeprecated):
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as exc:
-                raise InvalidSchedule(f"Invalid schedule: {exc}")
+                raise InvalidSchedule(f"Invalid schedule: {exc}") from exc
 
         elif isinstance(schedule, str):
             try:
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as exc:
-                raise InvalidSchedule(f"Invalid schedule: {exc}")
+                raise InvalidSchedule(f"Invalid schedule: {exc}") from exc
 
         else:
             raise InvalidSchedule(f"Invalid schedule type: {type(schedule)}")
@@ -189,7 +189,7 @@ class Zone(_ZoneDeprecated, _ZoneBase):
         try:
             assert self.zoneId, "Invalid config dict"
         except AssertionError as exc:
-            raise InvalidSchema(str(exc))
+            raise InvalidSchema(str(exc)) from exc
         self._id = self.zoneId
 
     @property

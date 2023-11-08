@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from .const import (
+    DAYS_OF_WEEK,
     SZ_COOL_SETPOINT,
     SZ_DAILY_SCHEDULES,
     SZ_DAY_OF_WEEK,
@@ -16,10 +17,8 @@ from .const import (
     SZ_TEMPERATURE,
     SZ_TIME_OF_DAY,
 )
-from .const import DAYS_OF_WEEK
-from .helpers import vol, pascal_case  # voluptuous
+from .helpers import pascal_case, vol  # voluptuous
 from .typing import _EvoDictT, _EvoListT
-
 
 #
 # These are returned from vendor's API (GET)...
@@ -165,7 +164,7 @@ def _convert_to_put_schedule_classic(raw_schedule: _EvoDictT) -> _EvoDictT:
     return data
 
 
-def convert_to_put_schedule(get_schedule: _EvoDictT) -> _EvoDictT:
+def convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
     """Convert a schedule to the format used by our get/set_schedule() methods.
 
     The 'raw' schedule format is the one returned by the vendor's RESTful API (GET).
@@ -174,11 +173,11 @@ def convert_to_put_schedule(get_schedule: _EvoDictT) -> _EvoDictT:
     put_schedule: dict[str, _EvoListT] = {}
     put_schedule[pascal_case(SZ_DAILY_SCHEDULES)] = []
 
-    for day_of_week, get_schedule in enumerate(get_schedule[SZ_DAILY_SCHEDULES]):
+    for day_of_week, day_schedule in enumerate(schedule[SZ_DAILY_SCHEDULES]):
         put_day_schedule: _EvoDictT = {pascal_case(SZ_DAY_OF_WEEK): day_of_week}
         put_switchpoints: _EvoListT = []
 
-        for get_sp in get_schedule[SZ_SWITCHPOINTS]:
+        for get_sp in day_schedule[SZ_SWITCHPOINTS]:
             if SZ_HEAT_SETPOINT in get_sp:
                 # NOTE: this key is not converted to pascal_case in evohomeclient2
                 put_sp = {SZ_HEAT_SETPOINT: get_sp[SZ_HEAT_SETPOINT]}
@@ -194,13 +193,13 @@ def convert_to_put_schedule(get_schedule: _EvoDictT) -> _EvoDictT:
     return put_schedule
 
 
-def convert_to_get_schedule(put_schedule: _EvoDictT) -> _EvoDictT:
+def convert_to_get_schedule(schedule: _EvoDictT) -> _EvoDictT:
     """Convert a schedule to the format returned by the vendor's RESTful API (GET)."""
 
     get_schedule: dict[str, _EvoListT] = {}
     get_schedule[SZ_DAILY_SCHEDULES] = []
 
-    for put_day_schedule in put_schedule[pascal_case(SZ_DAILY_SCHEDULES)]:
+    for put_day_schedule in schedule[pascal_case(SZ_DAILY_SCHEDULES)]:
         day_of_week = put_day_schedule[pascal_case(SZ_DAY_OF_WEEK)]
         get_day_schedule: _EvoDictT = {SZ_DAY_OF_WEEK: DAYS_OF_WEEK[day_of_week]}
         get_switchpoints: _EvoListT = []
