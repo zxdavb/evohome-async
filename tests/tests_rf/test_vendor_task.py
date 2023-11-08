@@ -161,7 +161,7 @@ async def _test_task_id(
     # {'commtaskId': '840367013', 'state': 'Succeeded'}
 
     # dtm = dt.now()
-    await wait_for_comm_task(client, task_id, timeout=3)
+    _ = await wait_for_comm_task(client, task_id, timeout=3)
     # assert (dt.now() - dtm).total_seconds() < 2
 
     #
@@ -172,7 +172,7 @@ async def _test_task_id(
         SZ_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
     _ = await should_work(client, HTTPMethod.PUT, PUT_URL, json=new_mode)  # HTTP 201
-    await wait_for_comm_task(client, task_id, timeout=3)
+    _ = await wait_for_comm_task(client, task_id, timeout=3)
     status = await should_work(client, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time
@@ -181,13 +181,13 @@ async def _test_task_id(
         pascal_case(SZ_UNTIL_TIME): (dt.now() + td(hours=2)).strftime(API_STRFTIME),
     }
     _ = await should_work(client, HTTPMethod.PUT, PUT_URL, json=new_mode)
-    await wait_for_comm_task(client, task_id)
+    _ = await wait_for_comm_task(client, task_id)
     status = await should_work(client, HTTPMethod.GET, GET_URL)
 
     #
     # PART 3: Restore the original mode
     _ = await should_work(client, HTTPMethod.PUT, PUT_URL, json=old_mode)
-    await wait_for_comm_task(client, task_id)
+    _ = await wait_for_comm_task(client, task_id)
     status = await should_work(client, HTTPMethod.GET, GET_URL)
 
     assert status  # == old_status

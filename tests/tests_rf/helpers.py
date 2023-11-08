@@ -19,7 +19,7 @@ from . import _DEBUG_USE_REAL_AIOHTTP, _DISABLE_STRICT_ASSERTS, mocked_server as
 if _DEBUG_USE_REAL_AIOHTTP:
     import aiohttp
 else:
-    from .mocked_server import aiohttp
+    from .mocked_server import aiohttp  # type: ignore[no-redef]
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -131,7 +131,7 @@ async def wait_for_comm_task(
     client: evo.EvohomeClient,
     task_id: str,
     timeout: int = 3,
-) -> None:
+) -> bool | None:
     """Wait for a communication task (API call) to complete."""
 
     await asyncio.sleep(0.5)
