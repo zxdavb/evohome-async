@@ -8,6 +8,7 @@ from .const import (
     REGEX_DHW_ID,
     REGEX_SYSTEM_ID,
     REGEX_ZONE_ID,
+    SZ_ALLOWED_FAN_MODES,
     SZ_ALLOWED_MODES,
     SZ_ALLOWED_SETPOINT_MODES,
     SZ_ALLOWED_STATES,
@@ -24,10 +25,13 @@ from .const import (
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
     SZ_DISPLAY_NAME,
+    SZ_FAN_MODE,
     SZ_FIRSTNAME,
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
     SZ_GATEWAYS,
+    SZ_IS_CANCELABLE,
+    SZ_IS_CHANGEABLE,
     SZ_IS_WI_FI,
     SZ_LASTNAME,
     SZ_LOCATION_ID,
@@ -40,6 +44,7 @@ from .const import (
     SZ_MAX_HEAT_SETPOINT,
     SZ_MAX_SWITCHPOINTS_PER_DAY,
     SZ_MIN_COOL_SETPOINT,
+    SZ_MIN_DURATION,
     SZ_MIN_HEAT_SETPOINT,
     SZ_MIN_SWITCHPOINTS_PER_DAY,
     SZ_MODEL_TYPE,
@@ -49,6 +54,7 @@ from .const import (
     SZ_SCHEDULE_CAPABILITIES,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_SETPOINT_CAPABILITIES,
+    SZ_SETPOINT_DEADBAND,
     SZ_SETPOINT_VALUE_RESOLUTION,
     SZ_STREET_ADDRESS,
     SZ_SUPPORTS_DAYLIGHT_SAVING,
@@ -68,6 +74,7 @@ from .const import (
     SZ_ZONE_TYPE,
     SZ_ZONES,
     DhwState,
+    FanMode,
     SystemMode,
     TcsModelType,
     ZoneMode,
@@ -89,6 +96,7 @@ SCH_SYSTEM_MODE_PERM = vol.Schema(
             str(SystemMode.HEATING_OFF),
             str(SystemMode.OFF),  # not evohome
             str(SystemMode.HEAT),  # not evohome
+            str(SystemMode.COOL),  # not evohome
         ),
         vol.Required(SZ_CAN_BE_PERMANENT): True,
         vol.Required(SZ_CAN_BE_TEMPORARY): False,
@@ -150,11 +158,22 @@ SCH_DHW = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
+SCH_VACATION_HOLD_CAPABILITIES = vol.Schema(
+    {
+        vol.Required(SZ_IS_CHANGEABLE): bool,
+        vol.Required(SZ_IS_CANCELABLE): bool,
+        vol.Optional(SZ_MAX_DURATION): str,
+        vol.Optional(SZ_MIN_DURATION): str,
+        vol.Optional(SZ_TIMING_RESOLUTION): str,
+    },
+    extra=vol.PREVENT_EXTRA,
+)
+
 SCH_SETPOINT_CAPABILITIES = vol.Schema(
     {
         vol.Required(SZ_CAN_CONTROL_HEAT): bool,
-        vol.Required(SZ_MAX_HEAT_SETPOINT): float,  # 35.0
-        vol.Required(SZ_MIN_HEAT_SETPOINT): float,  # 5.0
+        vol.Required(SZ_MAX_HEAT_SETPOINT): vol.All(float, vol.Range(max=35)),  # 35.0
+        vol.Required(SZ_MIN_HEAT_SETPOINT): vol.All(float, vol.Range(min=4.5)),  # 5.0
         vol.Required(SZ_CAN_CONTROL_COOL): bool,
         vol.Optional(SZ_MAX_COOL_SETPOINT): float,  #
         vol.Optional(SZ_MIN_COOL_SETPOINT): float,  #
@@ -164,8 +183,11 @@ SCH_SETPOINT_CAPABILITIES = vol.Schema(
         vol.Required(SZ_TIMING_RESOLUTION): vol.Datetime(
             format="00:%M:00"
         ),  # "00:10:00"
-        vol.Optional(SZ_VACATION_HOLD_CAPABILITIES): dict,  # TODO: non-evohome
-        # vol.Optional(SZ_ALLOWED_FAN_MODES): dict,  # TODO: non-evohome
+        vol.Optional(
+            SZ_VACATION_HOLD_CAPABILITIES
+        ): SCH_VACATION_HOLD_CAPABILITIES,  # non-evohome
+        # vol.Optional(SZ_ALLOWED_FAN_MODES): dict,  # non-evohome
+        vol.Optional(SZ_SETPOINT_DEADBAND): float,  # non-evohome
     },
     extra=vol.PREVENT_EXTRA,
 )
@@ -177,14 +199,24 @@ SCH_SCHEDULE_CAPABILITIES = SCH_SCHEDULE_CAPABILITIES_RESPONSE.extend(
     extra=vol.PREVENT_EXTRA,
 )
 
+SCH_FAN_MODE = vol.Schema(
+    {
+        vol.Required(SZ_FAN_MODE): vol.Any(*(m.value for m in FanMode)),
+    },
+    extra=vol.PREVENT_EXTRA,
+)
+
 SCH_ZONE = vol.Schema(
     {
         vol.Required(SZ_ZONE_ID): vol.Match(REGEX_ZONE_ID),
         vol.Required(SZ_MODEL_TYPE): vol.Any(*(m.value for m in ZoneModelType)),
         vol.Required(SZ_NAME): str,
         vol.Required(SZ_SETPOINT_CAPABILITIES): SCH_SETPOINT_CAPABILITIES,
-        vol.Required(SZ_SCHEDULE_CAPABILITIES): SCH_SCHEDULE_CAPABILITIES,
+        vol.Optional(
+            SZ_SCHEDULE_CAPABILITIES
+        ): SCH_SCHEDULE_CAPABILITIES,  # required for evo, optional for FocusProWifiRetail
         vol.Required(SZ_ZONE_TYPE): vol.Any(*(m.value for m in ZoneType)),
+        vol.Optional(SZ_ALLOWED_FAN_MODES): list,  # FocusProWifiRetail
     },
     extra=vol.PREVENT_EXTRA,
 )

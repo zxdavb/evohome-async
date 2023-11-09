@@ -27,6 +27,7 @@ SZ_ALLOWED_SETPOINT_MODES = "allowedSetpointModes"
 SZ_ALLOWED_STATES = "allowedStates"
 SZ_ALLOWED_SYSTEM_MODES = "allowedSystemModes"
 
+SZ_CAN_BE_CHANGED = "canBeChanged"
 SZ_CAN_BE_PERMANENT = "canBePermanent"
 SZ_CAN_BE_TEMPORARY = "canBeTemporary"
 SZ_CAN_CONTROL_COOL = "canControlCool"
@@ -47,6 +48,8 @@ SZ_DHW_STATE_CAPABILITIES_RESPONSE = "dhwStateCapabilitiesResponse"
 SZ_DISPLAY_NAME = "displayName"
 SZ_DOMESTIC_HOT_WATER = "domesticHotWater"
 
+SZ_FAN_MODE = "fanMode"
+SZ_FAN_STATUS = "fanStatus"
 SZ_FAULT_TYPE = "faultType"
 SZ_FIRSTNAME = "firstname"
 
@@ -79,6 +82,7 @@ SZ_MAX_DURATION = "maxDuration"
 SZ_MAX_HEAT_SETPOINT = "maxHeatSetpoint"
 SZ_MAX_SWITCHPOINTS_PER_DAY = "maxSwitchpointsPerDay"
 SZ_MIN_COOL_SETPOINT = "minCoolSetpoint"
+SZ_MIN_DURATION = "minDuration"
 SZ_MIN_HEAT_SETPOINT = "minHeatSetpoint"
 SZ_MIN_SWITCHPOINTS_PER_DAY = "minSwitchpointsPerDay"
 SZ_MODE = "mode"
@@ -94,6 +98,7 @@ SZ_POSTCODE = "postcode"
 SZ_SCHEDULE_CAPABILITIES = "scheduleCapabilities"
 SZ_SCHEDULE_CAPABILITIES_RESPONSE = "scheduleCapabilitiesResponse"
 SZ_SETPOINT_CAPABILITIES = "setpointCapabilities"
+SZ_SETPOINT_DEADBAND = "setpointDeadband"
 SZ_SETPOINT_MODE = "setpointMode"
 SZ_SETPOINT_STATUS = "setpointStatus"
 SZ_SETPOINT_VALUE_RESOLUTION = "setpointValueResolution"
@@ -159,21 +164,6 @@ SZ_OFF = "Off"
 SZ_ON = "On"
 
 
-@verify(EnumCheck.UNIQUE)
-class DhwState(StrEnum):
-    OFF: Final[str] = SZ_OFF
-    ON: Final[str] = SZ_ON
-
-
-@verify(EnumCheck.UNIQUE)
-class FaultType(StrEnum):
-    GCL__: Final[str] = "GatewayCommunicationLost"
-    TZACL: Final[str] = "TempZoneActuatorCommunicationLost"
-    TZALB: Final[str] = "TempZoneActuatorLowBattery"
-    TZSCL: Final[str] = "TempZoneSensorCommunicationLost"
-    TZSLB: Final[str] = "TempZoneSensorLowBattery"
-
-
 SZ_AUTO = "Auto"
 SZ_AUTO_WITH_ECO = "AutoWithEco"
 SZ_AUTO_WITH_RESET = "AutoWithReset"
@@ -187,6 +177,27 @@ SZ_HEAT = "Heat"
 
 
 @verify(EnumCheck.UNIQUE)
+class DhwState(StrEnum):
+    OFF: Final[str] = SZ_OFF
+    ON: Final[str] = SZ_ON
+
+
+@verify(EnumCheck.UNIQUE)
+class FanMode(StrEnum):
+    AUTO: Final[str] = SZ_AUTO
+    ON: Final[str] = SZ_ON
+
+
+@verify(EnumCheck.UNIQUE)
+class FaultType(StrEnum):
+    GCL__: Final[str] = "GatewayCommunicationLost"
+    TZACL: Final[str] = "TempZoneActuatorCommunicationLost"
+    TZALB: Final[str] = "TempZoneActuatorLowBattery"
+    TZSCL: Final[str] = "TempZoneSensorCommunicationLost"
+    TZSLB: Final[str] = "TempZoneSensorLowBattery"
+
+
+@verify(EnumCheck.UNIQUE)
 class SystemMode(StrEnum):
     AUTO: Final[str] = SZ_AUTO
     AUTO_WITH_ECO: Final[str] = SZ_AUTO_WITH_ECO
@@ -197,6 +208,7 @@ class SystemMode(StrEnum):
     HEATING_OFF: Final[str] = SZ_HEATING_OFF
     OFF: Final[str] = SZ_OFF  # not evohome (VisionProWifiRetail)
     HEAT: Final[str] = SZ_HEAT  # not evohome (VisionProWifiRetail)
+    COOL: Final[str] = SZ_COOL  # not evohome (VisionProWifiRetail)
 
 
 @verify(EnumCheck.UNIQUE)

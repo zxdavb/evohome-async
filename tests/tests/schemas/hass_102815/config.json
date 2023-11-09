@@ -31,13 +31,23 @@
                 "valueResolution": 0.5,
                 "canControlHeat": true,
                 "canControlCool": true,
-                "allowedSetpointModes": ["PermanentOverride", "VacationHold"],
+                "allowedSetpointModes": [
+                  "PermanentOverride",
+                  "VacationHold"
+                ],
                 "maxDuration": "1.00:00:00",
                 "timingResolution": "00:15:00"
               },
               "name": "DINING ROOM",
               "zoneType": "Thermostat",
-              "allowedFanModes": [{ "fanMode": "Auto" }, { "fanMode": "On" }]
+              "allowedFanModes": [
+                {
+                  "fanMode": "Auto"
+                },
+                {
+                  "fanMode": "On"
+                }
+              ]
             }
           ],
           "allowedSystemModes": [

@@ -11,8 +11,11 @@ from .const import (
     REGEX_SYSTEM_ID,
     REGEX_ZONE_ID,
     SZ_ACTIVE_FAULTS,
+    SZ_CAN_BE_CHANGED,
     SZ_DHW,
     SZ_DHW_ID,
+    SZ_FAN_MODE,
+    SZ_FAN_STATUS,
     SZ_FAULT_TYPE,
     SZ_GATEWAY_ID,
     SZ_GATEWAYS,
@@ -37,6 +40,7 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONES,
     DhwState,
+    FanMode,
     FaultType,
     SystemMode,
     ZoneMode,
@@ -76,6 +80,14 @@ SCH_SETPOINT_STATUS = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )  # NOTE: SZ_UNTIL is present only for some modes
 
+SCH_FAN_STATUS = vol.Schema(
+    {
+        vol.Required(SZ_FAN_MODE): vol.Any(*(m.value for m in FanMode)),
+        vol.Required(SZ_CAN_BE_CHANGED): bool,
+    },
+    extra=vol.PREVENT_EXTRA,
+)  # NOTE: SZ_UNTIL is present only for some modes
+
 SCH_ZONE = vol.Schema(
     {
         vol.Required(SZ_ZONE_ID): vol.Match(REGEX_ZONE_ID),
@@ -83,6 +95,7 @@ SCH_ZONE = vol.Schema(
         vol.Required(SZ_TEMPERATURE_STATUS): SCH_TEMPERATURE_STATUS,
         vol.Required(SZ_SETPOINT_STATUS): SCH_SETPOINT_STATUS,
         vol.Required(SZ_ACTIVE_FAULTS): [SCH_ACTIVE_FAULT],
+        vol.Optional(SZ_FAN_STATUS): SCH_FAN_STATUS,  # non-evohome
     },
     extra=vol.PREVENT_EXTRA,
 )
