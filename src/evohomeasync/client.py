@@ -6,43 +6,52 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Callable
 from datetime import datetime as dt
-from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, NoReturn
+from http import HTTPMethod
+from typing import TYPE_CHECKING, NoReturn
 
 import aiohttp
 
-from .exceptions import (
-    AuthenticationFailed,
-    DeprecationError,
-    InvalidSchema,
-    RateLimitExceeded,
-    RequestFailed,
-)
+from .broker import Broker, _FullDataT, _SessionIdT, _UserDataT, _UserInfoT
+from .exceptions import DeprecationError, InvalidSchema
 
 if TYPE_CHECKING:
     from .schema import (
-        _DeviceIdT,
         _EvoDictT,
         _EvoListT,
         _LocationIdT,
         _SystemModeT,
         _TaskIdT,
-        _ZoneIdT,
+        _ZoneNameT,
     )
-
-
-URL_HOST = "https://tccna.honeywell.com"
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class EvohomeClientDeprecated:  # NOTE: incl. _wait_for_put_task()
+class EvohomeClientDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
-    hostname: str
+    @property
+    def user_data(self) -> _UserDataT | None:
+        raise DeprecationError(
+            "EvohomeClient.user_data is deprecated, use .user_info"
+            " (session_id is now .broker.session_id)"
+        )
+
+    @property
+    def headers(self) -> str:
+        raise DeprecationError("EvohomeClient.headers is deprecated")
+
+    @property
+    def hostname(self) -> str:
+        raise DeprecationError(
+            "EvohomeClient.hostanme is deprecated, use .broker.hostname"
+        )
+
+    @property
+    def postdata(self) -> str:
+        raise DeprecationError("EvohomeClient.postdata is deprecated")
 
     async def _wait_for_put_task(self, response: aiohttp.ClientResponse) -> None:
         """This functionality is deprecated, but remains here as documentation."""
@@ -71,7 +80,7 @@ class EvohomeClientDeprecated:  # NOTE: incl. _wait_for_put_task()
         raise NotImplementedError
 
     # Not deprecated, just a placeholder for self._wait_for_put_task()
-    async def _populate_full_data(self, *args, **kwargs) -> None:
+    async def _populate_full_data(self, force_refresh: bool = True) -> _FullDataT:
         raise NotImplementedError
 
     async def get_system_modes(self, *args, **kwargs) -> NoReturn:
@@ -114,179 +123,107 @@ class EvohomeClientDeprecated:  # NOTE: incl. _wait_for_put_task()
 class EvohomeClient(EvohomeClientDeprecated):
     """Provide a client to access the Honeywell TCC API (assumes a single TCS)."""
 
+    user_info: _UserInfoT  # user_idata["UserInfo"] *without* session_id
+    full_data: _FullDataT  # of a single location (config and status)
+
     def __init__(
         self,
         username: str,
         password: str,
         /,
         *,
-        user_data: dict[str, str] | None = None,
-        **kwargs,
+        session_id: _SessionIdT | None = None,
+        session: aiohttp.ClientSession | None = None,
+        hostname: str | None = None,  # is a URL
+        debug: bool = False,
     ) -> None:
         """Construct the v1 EvohomeClient object.
 
-        If user_data is given then this will be used to try and reduce the number of
-        calls to the authentication service which is known to be rate limited.
+        If a session_id is provided it will be used to avoid calling the
+        authentication service, which is known to be rate limited.
         """
-        if kwargs.get("debug"):
+        if debug:
             _LOGGER.setLevel(logging.DEBUG)
             _LOGGER.debug("Debug mode is explicitly enabled.")
 
-        self.username = username
-        self.password = password
-
-        self.user_data: dict[str, str] | None = user_data
-        self.hostname: str = kwargs.get("hostname", URL_HOST)
-
-        self._session = kwargs.get("session") or aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30)
-        )
-
-        self.full_data: _EvoDictT = None  # type: ignore[assignment]
+        self.user_info = {}
+        self.full_data = {}
         self.location_id: _LocationIdT = None  # type: ignore[assignment]
 
-        self.devices: _EvoDictT = {}
-        self.named_devices: _EvoDictT = {}
+        self.devices: _FullDataT = {}  # dhw or zone by id
+        self.named_devices: _FullDataT = {}  # zone by name
 
-        self.postdata: dict[str, Any] = {}
-        self.headers: dict[str, Any] = {}
+        self.broker = Broker(
+            username,
+            password,
+            _LOGGER,
+            session_id=session_id,
+            hostname=hostname,
+            session=session,
+        )
 
-    async def _do_request(
-        self,
-        method: HTTPMethod,
-        url: str,
-        /,
-        *,
-        data: dict | None = None,
-        retry: bool = True,
-    ) -> aiohttp.ClientResponse:
-        """Perform an HTTP request, with optional retry (usu. for authentication)."""
+    @property
+    def user_data(self) -> _UserDataT | None:  # TODO: deprecate?
+        """Return the user data used for HTTP authentication."""
 
-        url = self.hostname + "/WebAPI/api" + url
+        if not self.broker.session_id:
+            return None
+        return {
+            "sessionId": self.broker.session_id,
+            "userInfo": self.user_info,
+        }
 
-        if method == HTTPMethod.GET:
-            func = self._session.get
-        elif method == HTTPMethod.PUT:
-            func = self._session.put
-        elif method == HTTPMethod.POST:
-            func = self._session.post
+    # User methods...
 
-        try:
-            response = await self._do_request_base(func, url, data=data, retry=retry)
+    async def _populate_user_data(
+        self, force_refresh: bool = False
+    ) -> dict[str, bool | int | str]:
+        """Retrieve the cached user data (excl. the session ID).
 
-        except aiohttp.ClientError as exc:
-            if method == HTTPMethod.POST:  # using response will cause UnboundLocalError
-                raise AuthenticationFailed(str(exc)) from exc
-            raise RequestFailed(str(exc)) from exc
+        Pull the latest JSON from the web only if force_refresh is True.
+        """
 
-        try:
-            response.raise_for_status()
+        if not self.user_info or force_refresh:
+            user_data = await self.broker.populate_user_data()
+            self.user_info = user_data["userInfo"]  # type: ignore[assignment]
 
-        except aiohttp.ClientResponseError as exc:
-            if response.method == HTTPMethod.POST:  # POST only used when authenticating
-                raise AuthenticationFailed(str(exc), status=exc.status) from exc
-            if response.status != HTTPStatus.TOO_MANY_REQUESTS:
-                raise RateLimitExceeded(str(exc), status=exc.status) from exc
-            raise RequestFailed(str(exc), status=exc.status) from exc
+        return self.user_info  # excludes session ID
 
-        except aiohttp.ClientError as exc:
-            if response.method == HTTPMethod.POST:  # POST only used when authenticating
-                raise AuthenticationFailed(str(exc)) from exc
-            raise RequestFailed(str(exc)) from exc
+    async def _get_user(self) -> _UserInfoT:
+        """Return the user (if needed, get the JSON)."""
 
-        return response
+        # only retrieve the config data if we don't already have it
+        if not self.user_info:
+            await self._populate_user_data(force_refresh=False)
+        return self.user_info
 
-    async def _do_request_base(
-        self,
-        func: Callable,
-        url: str,
-        /,
-        *,
-        data: dict | None = None,
-        retry: bool = True,
-    ) -> aiohttp.ClientResponse:
-        """Perform an HTTP request, with optional retry (usu. for authentication)."""
+    # Location methods...
 
-        response: aiohttp.ClientResponse
+    async def _populate_full_data(self, force_refresh: bool = True) -> _FullDataT:
+        """Retrieve the latest system data.
 
-        async with func(url, json=data, headers=self.headers) as response:  # NB: json=
-            response_text = await response.text()  # why cant I move this below the if?
+        Pull the latest JSON from the web unless force_refresh is False.
+        """
 
-            # if 401/unauthorized, may need to refresh sessionId
-            if response.status != HTTPStatus.UNAUTHORIZED or not retry:
-                return response
+        if not self.full_data or force_refresh:
+            full_data = await self.broker.populate_full_data()
+            self.full_data = full_data[0]
 
-            # TODO: use response.content_type to determine whether to use .json()
-            if "code" not in response_text:  # don't use .json() yet: may be plain text
-                return response
+            self.devices = {d["deviceID"]: d for d in self.full_data["devices"]}
+            self.named_devices = {d["name"]: d for d in self.full_data["devices"]}
 
-            response_json = await response.json()
-            if response_json[0]["code"] != "Unauthorized":
-                return response
+        return self.full_data
 
-            _LOGGER.debug("Session expired/invalid, re-authenticating...")
-            self.user_data = None  # Get a fresh (= None) sessionId
-            await self._populate_user_data()
+    async def temperatures(self) -> _EvoListT:  # DEPRECATED
+        return await self.get_temperatures()
 
-            session_id = self.user_data["sessionId"]  # type: ignore[index]
-            self.headers["sessionId"] = session_id
-            _LOGGER.debug(f"... Success: sessionId = {session_id}")
-
-            # NOTE: this is a recursive call, used only after re-authenticating
-            response = await self._do_request_base(func, url, data=data, retry=False)
-
-        return response
-
-    async def _populate_user_data(self) -> _EvoDictT:
-        """Retrieve all the user data from the web."""
-
-        if self.user_data is None:
-            self.postdata = {
-                "Username": self.username,
-                "Password": self.password,
-                "ApplicationId": "91db1612-73fd-4500-91b2-e63b069b185c",
-            }
-            self.headers = {"content-type": "application/json"}
-
-            url = "/session"
-            response = await self._do_request(
-                HTTPMethod.POST, url, data=self.postdata, retry=False
-            )
-
-            self.user_data = await response.json()
-
-        assert isinstance(self.user_data, dict)  # mypy
-        return self.user_data
-
-    async def _populate_full_data(self, force_refresh: bool = False) -> None:
-        """Retrieve all the system data from the web."""
-
-        if self.full_data is None or force_refresh:
-            await self._populate_user_data()
-
-            self.headers["sessionId"] = self.user_data["sessionId"]  # type: ignore[index]
-            user_id = self.user_data["userInfo"]["userID"]  # type: ignore[index]
-
-            url = f"/locations?userId={user_id}&allData=True"
-            response = await self._do_request(HTTPMethod.GET, url, data=self.postdata)
-
-            self.full_data = list(await response.json())[0]
-            self.location_id = self.full_data["locationID"]
-
-            self.devices = {}
-            self.named_devices = {}
-
-            for device in self.full_data["devices"]:
-                self.devices[device["deviceID"]] = device
-                self.named_devices[device["name"]] = device
-
-    async def temperatures(self, force_refresh: bool = False) -> _EvoListT:
-        """Retrieve the current details for each zone (incl. DHW)."""
+    async def get_temperatures(self) -> _EvoListT:  # a convenience function
+        """Retrieve the latest details for each zone (incl. DHW)."""
 
         set_point: float
         status: str
 
-        await self._populate_full_data(force_refresh=force_refresh)
+        await self._populate_full_data(force_refresh=True)
 
         result = []
 
@@ -319,6 +256,14 @@ class EvohomeClient(EvohomeClientDeprecated):
             raise InvalidSchema(str(exc)) from exc
         return result
 
+    async def _get_location(self) -> _FullDataT:
+        """Return the frst location (if needed, get the JSON)."""
+
+        # just want id, so retrieve the config data only if we don't already have it
+        await self._populate_full_data(force_refresh=False)
+
+        return self.full_data
+
     async def get_system_modes(self) -> NoReturn:
         """Return the set of modes the system can be assigned."""
         raise NotImplementedError
@@ -328,16 +273,14 @@ class EvohomeClient(EvohomeClientDeprecated):
     ) -> None:
         """Set the system mode."""
 
-        await self._populate_full_data()
+        location_id = (await self._get_location())["locationID"]
 
-        data: dict[str, str | None] = {"QuickAction": status}
-        if until is None:
-            data |= {"QuickActionNextTime": None}
-        else:
+        data = {"QuickAction": status}
+        if until:
             data |= {"QuickActionNextTime": until.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
-        url = f"/evoTouchSystems?locationId={self.location_id}"
-        await self._do_request(HTTPMethod.PUT, url, data=data)
+        url = f"/evoTouchSystems?locationId={location_id}"
+        await self.broker._request(HTTPMethod.PUT, url, data=data)
 
     async def set_mode_auto(self) -> None:
         """Set the system to normal operation."""
@@ -363,109 +306,135 @@ class EvohomeClient(EvohomeClientDeprecated):
         """Set the system to the heating off mode."""
         await self._set_system_mode("HeatingOff", until)
 
-    async def get_zone_modes(self, zone) -> list[str]:
+    # Zone methods...
+
+    async def _get_zone(self, id_or_name: str) -> _EvoDictT:
+        """Return the location's zone by its id or name (if needed, get the JSON).
+
+        Raise an exception if the zone is not found.
+        """
+
+        # just want id, so retrieve the config data only if we don't already have it
+        await self._populate_full_data(force_refresh=False)
+
+        device = self.devices.get(id_or_name)
+        if not device:
+            device = self.named_devices.get(id_or_name)
+
+        if device is None:
+            raise InvalidSchema(f"No zone {id_or_name} in location {self.location_id}")
+
+        if (model := device["thermostatModelType"]) != "EMEA_ZONE":
+            raise InvalidSchema(f"Zone {id_or_name} is not an EMEA_ZONE: {model}")
+
+        return device
+
+    async def get_zone_modes(self, zone: _ZoneNameT) -> list[str]:
         """Return the set of modes the zone can be assigned."""
 
-        await self._populate_full_data()
-
-        device = self._get_device(zone)
+        device: _EvoDictT = await self._get_zone(zone)
         return device["thermostat"]["allowedModes"]
 
-    def _get_device(self, zone: str) -> _EvoDictT:
-        """"""
-        return self.named_devices[zone]
+    async def _set_heat_setpoint(
+        self,
+        zone_id: _ZoneNameT,
+        status: str,  # "Scheduled" | "Temporary" | "Hold
+        value: float | None = None,
+        next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
+    ) -> None:
+        """Set zone setpoint, either indefinitely, or until a set time."""
 
-    def _get_device_id(self, device_id: _DeviceIdT) -> _DeviceIdT:
-        """"""
+        zone: _EvoDictT = await self._get_zone(zone_id)
 
-        device = self._get_device(device_id)
-        return device["deviceID"]
-
-    async def _set_heat_setpoint(self, zone, data: _EvoDictT) -> None:
-        """"""
-
-        await self._populate_full_data()
-
-        zone_id: _ZoneIdT = self._get_device_id(zone)
-
-        url = f"/devices/{zone_id}/thermostat/changeableValues/heatSetpoint"
-        await self._do_request(HTTPMethod.PUT, url, data=data)
-
-    async def set_temperature(self, zone, temperature, until: dt | None = None) -> None:
-        """Set the temperature of the given zone."""
-
-        if until is None:
-            data = {"Value": temperature, "Status": "Hold", "NextTime": None}
+        if next_time is None:
+            data = {"Status": "Hold", "Value": value}
         else:
             data = {
-                "Value": temperature,
-                "Status": "Temporary",
-                "NextTime": until.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "Status": status,
+                "Value": value,
+                "NextTime": next_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
 
-        await self._set_heat_setpoint(zone, data)
+        url = f"/devices/{zone['deviceID']}/thermostat/changeableValues/heatSetpoint"
+        await self.broker._request(HTTPMethod.PUT, url, data=data)
 
-    async def cancel_temp_override(self, zone) -> None:
-        """Remove an existing temperature override."""
+    async def set_temperature(
+        self, zone: _ZoneNameT, temperature, until: dt | None = None
+    ) -> None:
+        """Override the setpoint of a zone, for a period of time, or indefinitely."""
 
-        data = {"Value": None, "Status": "Scheduled", "NextTime": None}
-        await self._set_heat_setpoint(zone, data)
+        if until:
+            await self._set_heat_setpoint(
+                zone, "Temporary", value=temperature, next_time=until
+            )
+        else:
+            await self._set_heat_setpoint(zone, "Hold", value=temperature)
 
-    def _get_dhw_zone(self) -> str | None:
+    async def cancel_temp_override(self, zone: _ZoneNameT) -> None:  # DEPRECATED
+        return await self.set_zone_auto(zone)
+
+    async def set_zone_auto(self, zone: _ZoneNameT) -> None:
+        """Set a zone to follow its schedule."""
+        await self._set_heat_setpoint(zone, status="Scheduled")
+
+    # DHW methods...
+
+    async def _get_dhw(self) -> _FullDataT:
+        """Return the locations's DHW, if there is one (if needed, get the JSON).
+
+        Raise an exception if the DHW is not found.
+        """
+
+        # just want id, so retrieve the config data only if we don't already have it
+        await self._populate_full_data(force_refresh=False)
+
         for device in self.full_data["devices"]:
             if device["thermostatModelType"] == "DOMESTIC_HOT_WATER":
-                return device["deviceID"]
-        return None
+                return device
+
+        raise InvalidSchema(f"No DHW in location {self.location_id}")
 
     async def _set_dhw(
         self,
-        status: str = "Scheduled",
-        mode: str | None = None,
-        next_time: str | None = None,
+        status: str,  # "Scheduled" | "Hold"
+        mode: str | None = None,  # "DHWOn" | "DHWOff
+        next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
     ) -> None:
-        """Set DHW to On, Off or Auto, either indefinitely, or until a set time."""
+        """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
 
-        await self._populate_full_data()
-
-        dhw_id = self._get_dhw_zone()
-        if dhw_id is None:
-            raise InvalidSchema("No DHW zone reported from API")
+        dhw: _EvoDictT = await self._get_dhw()
+        dhw_id = dhw["deviceID"]
 
         data = {
             "Status": status,
-            "Mode": mode,
-            "NextTime": next_time,
-            "SpecialModes": None,
-            "HeatSetpoint": None,
-            "CoolSetpoint": None,
+            "Mode": mode,  # "NextTime": None,
+            # "SpecialModes": None, "HeatSetpoint": None, "CoolSetpoint": None,
         }
+        if next_time:
+            data |= {"NextTime": next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
         url = f"/devices/{dhw_id}/thermostat/changeableValues"
-        await self._do_request(HTTPMethod.PUT, url, data=data)
+        await self.broker._request(HTTPMethod.PUT, url, data=data)
 
     async def set_dhw_on(self, until: dt | None = None) -> None:
-        """Set DHW to on, either indefinitely, or until a specified time.
+        """Set DHW to On, either indefinitely, or until a specified time.
 
         When On, the DHW controller will work to keep its target temperature at/above
         its target temperature.  After the specified time, it will revert to its
         scheduled behaviour.
         """
 
-        time_until = None if until is None else until.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-        await self._set_dhw(status="Hold", mode="DHWOn", next_time=time_until)
+        await self._set_dhw(status="Hold", mode="DHWOn", next_time=until)
 
     async def set_dhw_off(self, until: dt | None = None) -> None:
-        """Set DHW to on, either indefinitely, or until a specified time.
+        """Set DHW to Off, either indefinitely, or until a specified time.
 
         When Off, the DHW controller will ignore its target temperature. After the
         specified time, it will revert to its scheduled behaviour.
         """
 
-        time_until = None if until is None else until.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-        await self._set_dhw(status="Hold", mode="DHWOff", next_time=time_until)
+        await self._set_dhw(status="Hold", mode="DHWOff", next_time=until)
 
     async def set_dhw_auto(self) -> None:
-        """Set DHW to On or Off, according to its schedule."""
+        """Allow DHW to switch between On and Off, according to its schedule."""
         await self._set_dhw(status="Scheduled")
