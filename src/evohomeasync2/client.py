@@ -106,55 +106,55 @@ class EvohomeClient(EvohomeClientDeprecated):
         password: str,
         /,
         *,
-        debug: bool = False,
         refresh_token: str | None = None,
         access_token: str | None = None,
         access_token_expires: dt | None = None,
         session: None | aiohttp.ClientSession = None,
+        debug: bool = False,
     ) -> None:
         """Construct the v2 EvohomeClient object.
 
-        If tokens are given then this will be used to try and reduce the number of
-        calls to the authentication service which is known to be rate limited.
+        If access/refresh tokens are provided they will be used to avoid calling the
+        authentication service, which is known to be rate limited.
         """
+
+        if debug:
+            _LOGGER.setLevel(logging.DEBUG)
+            _LOGGER.debug("Debug mode is explicitly enabled.")
 
         self._logger = _LOGGER
 
-        if debug:
-            self._logger.setLevel(logging.DEBUG)
-            self._logger.debug("Debug mode is explicitly enabled.")
-
-        self._broker = Broker(
+        self.broker = Broker(
             username,
             password,
+            _LOGGER,
             refresh_token=refresh_token,
             access_token=access_token,
             access_token_expires=access_token_expires,
             session=session,
-            logger=self._logger,
         )
 
         self.locations: list[Location] = []
 
     @property
     def username(self) -> str:  # TODO: deprecate? or use config JSON?
-        return self._broker._credentials["Username"]
+        return self.broker._credentials["Username"]
 
     @property
     def password(self) -> str:  # TODO: deprecate
-        return self._broker._credentials["Password"]
+        return self.broker._credentials["Password"]
 
     @property
     def refresh_token(self) -> str | None:  # TODO: deprecate
-        return self._broker.refresh_token
+        return self.broker.refresh_token
 
     @property
     def access_token(self) -> str | None:  # TODO: deprecate
-        return self._broker.access_token
+        return self.broker.access_token
 
     @property
     def access_token_expires(self) -> dt | None:  # TODO: deprecate
-        return self._broker.access_token_expires
+        return self.broker.access_token_expires
 
     async def login(self) -> None:
         """Retrieve the user account and installation details.
@@ -169,10 +169,8 @@ class EvohomeClient(EvohomeClientDeprecated):
             if exc.status != HTTPStatus.UNAUTHORIZED or not self.access_token:
                 raise
 
-            self._logger.warning(
-                "Unauthorized access_token (will try re-authenticating)."
-            )
-            self._broker.access_token = None  # FIXME: this is a hack
+            _LOGGER.warning("Unauthorized access_token (will try re-authenticating).")
+            self.broker.access_token = None  # FIXME: this is a hack
             await self.user_account(force_update=True)
 
         await self.installation()
@@ -192,7 +190,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         if self._user_account and not force_update:
             return self._user_account
 
-        self._user_account = await self._broker.get(
+        self._user_account = await self.broker.get(
             "userAccount", schema=SCH_USER_ACCOUNT
         )  # type: ignore[assignment]
 
@@ -232,7 +230,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         url = f"location/installationInfo?userId={self.account_info['userId']}"
         url += "&includeTemperatureControlSystems=True"
 
-        self._full_config = await self._broker.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
+        self._full_config = await self.broker.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
 
         # populate each freshly instantiated location with its initial status
         loc_config: _EvoDictT

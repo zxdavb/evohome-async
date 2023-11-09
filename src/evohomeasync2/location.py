@@ -51,7 +51,7 @@ class Location(_LocationDeprecated):
     def __init__(self, client: EvohomeClient, config: _EvoDictT) -> None:
         self.client = client
 
-        self._broker: Broker = client._broker
+        self._broker: Broker = client.broker
         self._logger: logging.Logger = client._logger
 
         self._config: Final[_EvoDictT] = config[SZ_LOCATION_INFO]

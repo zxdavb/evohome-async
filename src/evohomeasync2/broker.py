@@ -64,15 +64,15 @@ class Broker:
         self,
         username: str,
         password: str,
+        logger: logging.Logger,
         /,
         *,
         refresh_token: str | None = None,
         access_token: str | None = None,
         access_token_expires: dt | None = None,
         session: aiohttp.ClientSession | None = None,
-        logger: logging.Logger | None = None,
     ) -> None:
-        """A class for interacting with the Evohome API."""
+        """A class for interacting with the v2 Evohome API."""
 
         self._credentials = {
             "Username": username,
@@ -147,12 +147,6 @@ class Broker:
         First, try using the refresh token, if one is available, otherwise authenticate
         using the user credentials.
         """
-
-        # assert (
-        #     not self.access_token
-        #     or not self.access_token_expires
-        #     or dt.now() > self.access_token_expires - td(seconds=30)
-        # )
 
         self._logger.debug("No/Expired/Invalid access_token, re-authenticating.")
         self.access_token = self.access_token_expires = None
