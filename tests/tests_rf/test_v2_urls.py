@@ -90,7 +90,7 @@ async def instantiate_client(
     )
 
     # Authentication
-    await client._broker._basic_login()
+    await client.broker._basic_login()
     _global_oauth_tokens = extract_oauth_tokens(client)
 
     return client

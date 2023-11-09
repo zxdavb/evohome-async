@@ -63,7 +63,7 @@ async def should_work(  # type: ignore[no-any-unimported]
 
     response: aiohttp.ClientResponse
 
-    response, content = await client._broker._client(
+    response, content = await client.broker._client(
         method, f"{URL_BASE}/{url}", json=json
     )
 
@@ -88,7 +88,7 @@ async def should_fail(
 
     response: aiohttp.ClientResponse
 
-    response, content = await client._broker._client(
+    response, content = await client.broker._client(
         method, f"{URL_BASE}/{url}", json=json
     )
 

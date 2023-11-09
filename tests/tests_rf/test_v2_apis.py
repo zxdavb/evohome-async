@@ -71,7 +71,7 @@ async def _test_basics_apis(
 
     #
     # STEP 1: Authentication (isolated from client.login()), POST /Auth/OAuth/Token
-    await client._broker._basic_login()
+    await client.broker._basic_login()
     _global_oauth_tokens = extract_oauth_tokens(client)
 
     assert isinstance(client.access_token, str)
@@ -81,7 +81,7 @@ async def _test_basics_apis(
     access_token = client.access_token
     refresh_token = client.refresh_token
 
-    await client._broker._headers()
+    await client.broker._headers()
 
     # The above should not cause a re-authentication, so...
     assert client.access_token == access_token

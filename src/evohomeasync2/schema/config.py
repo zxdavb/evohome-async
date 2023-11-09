@@ -164,7 +164,7 @@ SCH_VACATION_HOLD_CAPABILITIES = vol.Schema(
         vol.Required(SZ_IS_CANCELABLE): bool,
         vol.Optional(SZ_MAX_DURATION): str,
         vol.Optional(SZ_MIN_DURATION): str,
-        vol.Optional(SZ_TIMING_RESOLUTION): str,
+        vol.Optional(SZ_TIMING_RESOLUTION): vol.Datetime(format="00:%M:00"),
     },
     extra=vol.PREVENT_EXTRA,
 )

@@ -10,7 +10,7 @@ import pytest
 import pytest_asyncio
 
 import evohomeasync as evo
-from evohomeasync.client import URL_HOST
+from evohomeasync.broker import URL_HOST
 
 # FIXME: need v1 schemas
 from evohomeasync2.schema import vol  # type: ignore[import-untyped]
@@ -145,7 +145,7 @@ async def _test_url_locations(
 ) -> None:
     client = await instantiate_client(username, password, session=session)
 
-    client.headers["sessionId"] = client.user_data["sessionId"]
+    client._headers["sessionId"] = client.user_data["sessionId"]
     user_id: int = client.user_data["userInfo"]["userID"]
 
     url = f"/locations?userId={user_id}&allData=True"
@@ -235,7 +235,7 @@ async def test_client_apis(
 USER_DATA = {
     "sessionId": "BE5F40A6-1234-1234-1234-A708947D638B",
     "userInfo": {
-        "userID": 1234567,
+        "userID": 2263181,
         "username": "null@gmail.com",
         "firstname": "David",
         "lastname": "Smith",
