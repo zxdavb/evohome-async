@@ -101,7 +101,6 @@ class Broker:
             response = await self._request_with_reauthentication(func, url, data=data)
 
         except aiohttp.ClientError as exc:
-            _LOGGER.error(str(exc))
             if method == HTTPMethod.POST:  # using response will cause UnboundLocalError
                 raise AuthenticationFailed(str(exc)) from exc
             raise RequestFailed(str(exc)) from exc
@@ -114,7 +113,6 @@ class Broker:
         # GET/PUT  /???????, 401, [{code: Unauthorized,    message: Unauthorized}]
 
         except aiohttp.ClientResponseError as exc:
-            _LOGGER.error(str(exc))
             if response.method == HTTPMethod.POST:  # POST only used when authenticating
                 raise AuthenticationFailed(
                     str(exc), status=exc.status
@@ -124,7 +122,6 @@ class Broker:
             raise RequestFailed(str(exc), status=exc.status) from exc
 
         except aiohttp.ClientError as exc:
-            _LOGGER.error(str(exc))
             if response.method == HTTPMethod.POST:  # POST only used when authenticating
                 raise AuthenticationFailed(str(exc)) from exc
             raise RequestFailed(str(exc)) from exc
@@ -162,13 +159,13 @@ class Broker:
             if "sessionId" not in self._headers:  # no value trying to re-authenticate
                 return response  # ...because: the username/password must be invalid
 
-            _LOGGER.warning(f"Session now expired/invalid ({self._session_id})...")
+            _LOGGER.debug(f"Session now expired/invalid ({self._session_id})...")
             self._headers = {"content-type": "application/json"}  # remove the sessionId
 
             _, response = await self._populate_user_data()  # Get a fresh sessionId
             assert self._session_id is not None  # mypy hint
 
-            _LOGGER.warning(f"... success: new sessionId = {self._session_id}\r\n")
+            _LOGGER.debug(f"... success: new sessionId = {self._session_id}\r\n")
             self._headers["sessionId"] = self._session_id
 
             if "session" in url:  # retry not needed for /session
@@ -192,7 +189,7 @@ class Broker:
         self._user_id = user_id
         self._session_id = self._headers["sessionId"] = session_id
 
-        _LOGGER.error(f"user_data = {self._user_data}")
+        _LOGGER.info(f"user_data = {self._user_data}")
         return self._user_data, response
 
     async def populate_user_data(self) -> _UserDataT:
@@ -213,5 +210,5 @@ class Broker:
 
         self._full_data: list[_FullDataT] = await response.json()
 
-        _LOGGER.debug(f"full_data = {self._full_data}\r\n")
+        _LOGGER.info(f"full_data = {self._full_data}\r\n")
         return self._full_data
