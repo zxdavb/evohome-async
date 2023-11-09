@@ -3,25 +3,25 @@
 #
 """evohomeasync provides an async client for the *original* Evohome API."""
 
-from typing import Any
+from typing import Any, TypeAlias
 
 # TCC config, status dicts
-_EvoLeafT = bool | float | int | str | list[str]  # Any
-_EvoDictT = dict[str, Any]  # '_EvoDictT' | _EvoLeafT]
-_EvoListT = list[_EvoDictT]
-_EvoSchemaT = _EvoDictT | _EvoListT
+_EvoLeafT: TypeAlias = bool | float | int | str | list[str]  # Any
+_EvoDictT: TypeAlias = dict[str, Any]  # '_EvoDictT' | _EvoLeafT]
+_EvoListT: TypeAlias = list[_EvoDictT]
+_EvoSchemaT: TypeAlias = _EvoDictT | _EvoListT
 
 # TCC identifiers
-_DhwIdT = str
-_GatewayIdT = str
-_LocationIdT = str
-_SystemIdT = str
-_ZoneIdT = str
-
-_DeviceIdT = _DhwIdT | _ZoneIdT
+_DhwIdT: TypeAlias = str
+_GatewayIdT: TypeAlias = str
+_LocationIdT: TypeAlias = str
+_SystemIdT: TypeAlias = str
+_UserIdT: TypeAlias = str
+_ZoneIdT: TypeAlias = str
+_ZoneNameT: TypeAlias = str
 
 # TCC other
-_ModeT = str
-_SystemModeT = str
+_ModeT: TypeAlias = str
+_SystemModeT: TypeAlias = str
 
-_TaskIdT = str
+_TaskIdT: TypeAlias = str
