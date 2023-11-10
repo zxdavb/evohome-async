@@ -254,17 +254,17 @@ class EvohomeClient(EvohomeClientDeprecated):
                 "There is not a single location (only) for this account"
             )
 
-        if len(self.locations[0]._gateways) != 1:  # type: ignore[index]
+        if len(self.locations[0]._gateways) != 1:
             raise NoSingleTcsError(
                 "There is not a single gateway (only) for this account/location"
             )
 
-        if len(self.locations[0]._gateways[0]._control_systems) != 1:  # type: ignore[index]
+        if len(self.locations[0]._gateways[0]._control_systems) != 1:
             raise NoSingleTcsError(
                 "There is not a single TCS (only) for this account/location/gateway"
             )
 
-        return self.locations[0]._gateways[0]._control_systems[0]  # type: ignore[index]
+        return self.locations[0]._gateways[0]._control_systems[0]
 
     @property
     def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?

@@ -35,30 +35,30 @@ class EvohomeClientDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     @property
-    def user_data(self) -> _UserDataT | None:  # type: ignore[no-untyped-def]
+    def user_data(self) -> _UserDataT | None:
         raise DeprecationError(
             "EvohomeClient.user_data is deprecated, use .user_info"
             " (session_id is now .broker.session_id)"
         )
 
     @property
-    def full_data(self) -> _UserDataT | None:  # type: ignore[no-untyped-def]
+    def full_data(self) -> _UserDataT | None:
         raise DeprecationError(
             "EvohomeClient.full_data is deprecated, use .location_data"
         )
 
     @property
-    def headers(self) -> str:  # type: ignore[no-untyped-def]
+    def headers(self) -> str:
         raise DeprecationError("EvohomeClient.headers is deprecated")
 
     @property
-    def hostname(self) -> str:  # type: ignore[no-untyped-def]
+    def hostname(self) -> str:
         raise DeprecationError(
             "EvohomeClient.hostanme is deprecated, use .broker.hostname"
         )
 
     @property
-    def postdata(self) -> str:  # type: ignore[no-untyped-def]
+    def postdata(self) -> str:
         raise DeprecationError("EvohomeClient.postdata is deprecated")
 
     async def _wait_for_put_task(self, response: aiohttp.ClientResponse) -> None:
