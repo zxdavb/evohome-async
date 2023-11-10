@@ -35,30 +35,30 @@ class EvohomeClientDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     @property
-    def user_data(self) -> _UserDataT | None:
+    def user_data(self) -> _UserDataT | None:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.user_data is deprecated, use .user_info"
             " (session_id is now .broker.session_id)"
         )
 
     @property
-    def xfull_data(self) -> _UserDataT | None:
+    def full_data(self) -> _UserDataT | None:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.full_data is deprecated, use .location_data"
         )
 
     @property
-    def headers(self) -> str:
+    def headers(self) -> str:  # type: ignore[no-untyped-def]
         raise DeprecationError("EvohomeClient.headers is deprecated")
 
     @property
-    def hostname(self) -> str:
+    def hostname(self) -> str:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.hostanme is deprecated, use .broker.hostname"
         )
 
     @property
-    def postdata(self) -> str:
+    def postdata(self) -> str:  # type: ignore[no-untyped-def]
         raise DeprecationError("EvohomeClient.postdata is deprecated")
 
     async def _wait_for_put_task(self, response: aiohttp.ClientResponse) -> None:
@@ -85,55 +85,55 @@ class EvohomeClientDeprecated:
             await asyncio.sleep(1)
 
     # Not deprecated, just a placeholder for self._wait_for_put_task()
-    async def _do_request(self, *args, **kwargs) -> aiohttp.ClientResponse:
+    async def _do_request(self, *args, **kwargs) -> aiohttp.ClientResponse:  # type: ignore[no-untyped-def]
         raise NotImplementedError
 
     # Not deprecated, just a placeholder for self._wait_for_put_task()
     async def _populate_locn_data(self, force_refresh: bool = True) -> _LocnDataT:
         raise NotImplementedError
 
-    async def get_system_modes(self, *args, **kwargs) -> NoReturn:
+    async def get_system_modes(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.get_modes() is deprecated, "
             "use .get_system_modes() or .get_zone_modes()"
         )
 
-    async def set_status_away(self, *args, **kwargs) -> NoReturn:
+    async def set_status_away(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_away() is deprecated, use .set_mode_away()"
         )
 
-    async def set_status_custom(self, *args, **kwargs) -> NoReturn:
+    async def set_status_custom(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_custom() is deprecated, use .set_mode_custom()"
         )
 
-    async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:
+    async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_dayoff() is deprecated, use .set_mode_dayoff()"
         )
 
-    async def set_status_eco(self, *args, **kwargs) -> NoReturn:
+    async def set_status_eco(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_eco() is deprecated, use .set_mode_eco()"
         )
 
-    async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:
+    async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_heatingoff() is deprecated, use .set_mode_heatingoff()"
         )
 
-    async def set_status_normal(self, *args, **kwargs) -> NoReturn:
+    async def set_status_normal(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
         )
 
-    async def temperatures(self, *args, **kwargs) -> NoReturn:
+    async def temperatures(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.temperatures() is deprecated, use .get_temperatures()"
         )
 
-    async def cancel_temp_override(self, *args, **kwargs) -> NoReturn:
+    async def cancel_temp_override(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.cancel_temp_override() is deprecated, use .set_zone_auto()"
         )
@@ -387,7 +387,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         await self.broker.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_temperature(
-        self, zone: _ZoneIdT | _ZoneNameT, temperature, until: dt | None = None
+        self, zone: _ZoneIdT | _ZoneNameT, temperature: float, until: dt | None = None
     ) -> None:
         """Override the setpoint of a zone, for a period of time, or indefinitely."""
 

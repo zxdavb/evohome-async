@@ -271,7 +271,7 @@ ZONE_MODES = tuple(x.value for x in ZoneMode)
 ZONE_TYPES = tuple(x.value for x in ZoneType)
 
 
-def obfuscate(value: bool | int | str):
+def obfuscate(value: bool | int | str) -> bool | int | str | None:
     if _DEBUG_DONT_OBSFUCATE:
         return value
     if isinstance(value, bool):

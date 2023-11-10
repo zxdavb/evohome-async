@@ -89,7 +89,12 @@ class Broker:
         )
 
     async def _client(
-        self, method, url, data=None, json=None, headers=None
+        self,
+        method: HTTPMethod,
+        url: str,
+        data: dict | None = None,
+        json: dict | None = None,
+        headers: dict | None = None,
     ) -> tuple[aiohttp.ClientResponse, None | str | _EvoDictT | _EvoListT]:
         """Wrapper for aiohttp.ClientSession()."""
 
@@ -102,14 +107,14 @@ class Broker:
 
         elif method == HTTPMethod.POST:
             _session_method = self._session.post
-            kwargs = {"headers": headers, "data": data}
+            kwargs = {"headers": headers, "data": data}  # type: ignore[dict-item]
 
         elif method == HTTPMethod.PUT:
             _session_method = self._session.put
             # headers["Content-Type"] = "application/json"
-            kwargs = {"headers": headers, "json": json}
+            kwargs = {"headers": headers, "json": json}  # type: ignore[dict-item]
 
-        async with _session_method(url, **kwargs) as response:
+        async with _session_method(url, **kwargs) as response:  # type: ignore[arg-type]
             if not response.content_length:
                 content = None
                 self._logger.info(f"{method} {url} ({response.status}) = {content}")
@@ -263,7 +268,9 @@ class Broker:
 
         try:
             response, content = await self._client(  # type: ignore[assignment]
-                HTTPMethod.PUT, f"{URL_BASE}/{url}", json=json
+                HTTPMethod.PUT,
+                f"{URL_BASE}/{url}",
+                json=json,  # type: ignore[arg-type]
             )
             response.raise_for_status()
 

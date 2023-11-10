@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 class _LocationDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
-    async def status(self, *args, **kwargs) -> NoReturn:
+    async def status(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError("Location.status() is deprecated, use .refresh_status()")
 
 

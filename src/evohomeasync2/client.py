@@ -45,50 +45,50 @@ class EvohomeClientDeprecated:
             "EvohomeClient.full_installation() is deprecated, use .installation()"
         )
 
-    async def gateway(self, *args, **kwargs) -> NoReturn:
+    async def gateway(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError("EvohomeClient.gateway() is deprecated")
 
-    async def set_status_away(self, *args, **kwargs) -> NoReturn:
+    async def set_status_away(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_away() is deprecated, use .set_mode_away()"
         )
 
-    async def set_status_custom(self, *args, **kwargs) -> NoReturn:
+    async def set_status_custom(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_custom() is deprecated, use .set_mode_custom()"
         )
 
-    async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:
+    async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_dayoff() is deprecated, use .set_mode_dayoff()"
         )
 
-    async def set_status_eco(self, *args, **kwargs) -> NoReturn:
+    async def set_status_eco(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_eco() is deprecated, use .set_mode_eco()"
         )
 
-    async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:
+    async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_heatingoff() is deprecated, use .set_mode_heatingoff()"
         )
 
-    async def set_status_normal(self, *args, **kwargs) -> NoReturn:
+    async def set_status_normal(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
         )
 
-    async def set_status_reset(self, *args, **kwargs) -> NoReturn:
+    async def set_status_reset(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.set_status_reset() is deprecated, use .reset_mode()"
         )
 
-    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
+    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.zone_schedules_backup() is deprecated, use .backup_schedules()"
         )
 
-    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:
+    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "EvohomeClient.zone_schedules_restore() is deprecated, use .restore_schedules()"
         )

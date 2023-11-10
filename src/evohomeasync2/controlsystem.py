@@ -54,52 +54,52 @@ SZ_SETPOINT = "setpoint"
 class _ControlSystemDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
-    async def set_status_reset(self, *args, **kwargs) -> NoReturn:
+    async def set_status_reset(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "ControlSystem.set_status_reset() is deprecrated, use .reset_mode()"
         )
 
-    async def set_status(self, *args, **kwargs) -> NoReturn:
+    async def set_status(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "ControlSystem.set_status() is deprecrated, use .set_mode()"
         )
 
-    async def set_status_normal(self, *args, **kwargs) -> NoReturn:
+    async def set_status_normal(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "ControlSystem.set_status_normal() is deprecrated, use .set_auto()"
         )
 
-    async def set_status_away(self, *args, **kwargs) -> NoReturn:
+    async def set_status_away(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "ControlSystem.set_status_away() is deprecrated, use .set_away()"
         )
 
-    async def set_status_custom(self, *args, **kwargs) -> NoReturn:
+    async def set_status_custom(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "ControlSystem.set_status_custom() is deprecrated, use .set_custom()"
         )
 
-    async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:
+    async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "ControlSystem.set_status_dayoff() is deprecrated, use .set_dayoff()"
         )
 
-    async def set_status_eco(self, *args, **kwargs) -> NoReturn:
+    async def set_status_eco(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "ControlSystem.set_status_eco() is deprecrated, use .set_eco()"
         )
 
-    async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:
+    async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "ControlSystem.set_status_heatingoff() is deprecrated, use .set_heatingoff()"
         )
 
-    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:
+    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "TCS.zone_schedules_backup() is deprecated, use .backup_schedules()"
         )
 
-    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:
+    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise DeprecationError(
             "TCS.zone_schedules_restore() is deprecated, use .restore_schedules()"
         )
