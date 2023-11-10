@@ -62,15 +62,18 @@ class Gateway:
 
     @property
     def gatewayId(self) -> _GatewayIdT:
-        return self._config[SZ_GATEWAY_ID]
+        ret: _GatewayIdT = self._config[SZ_GATEWAY_ID]
+        return ret
 
     @property
     def mac(self) -> str:
-        return self._config[SZ_MAC]
+        ret: str = self._config[SZ_MAC]
+        return ret
 
     @property
     def isWiFi(self) -> bool:
-        return self._config[SZ_IS_WI_FI]
+        ret: bool = self._config[SZ_IS_WI_FI]
+        return ret
 
     def _update_status(self, status: _EvoDictT) -> None:
         self._status = status

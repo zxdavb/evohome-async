@@ -76,31 +76,38 @@ class Location(_LocationDeprecated):
 
     @property
     def country(self) -> str:
-        return self._config[SZ_COUNTRY]
+        ret: str = self._config[SZ_COUNTRY]
+        return ret
 
     @property
     def locationOwner(self) -> _EvoDictT:
-        return self._config[SZ_LOCATION_OWNER]
+        ret: _EvoDictT = self._config[SZ_LOCATION_OWNER]
+        return ret
 
     @property
     def locationId(self) -> _LocationIdT:
-        return self._config[SZ_LOCATION_ID]
+        ret: _LocationIdT = self._config[SZ_LOCATION_ID]
+        return ret
 
     @property
     def locationType(self) -> str:
-        return self._config[SZ_LOCATION_TYPE]
+        ret: str = self._config[SZ_LOCATION_TYPE]
+        return ret
 
     @property
     def name(self) -> str:
-        return self._config[SZ_NAME]
+        ret: str = self._config[SZ_NAME]
+        return ret
 
     @property
     def timeZone(self) -> _EvoDictT:
-        return self._config[SZ_TIME_ZONE]
+        ret: _EvoDictT = self._config[SZ_TIME_ZONE]
+        return ret
 
     @property
     def useDaylightSaveSwitching(self) -> bool:
-        return self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
+        ret: bool = self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
+        return ret
 
     async def refresh_status(self) -> _EvoDictT:
         """Update the Location with its latest status (also returns the status)."""

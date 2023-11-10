@@ -116,9 +116,12 @@ class _ZoneBase(_ZoneBaseDeprecated):
 
     @property  # status attr for convenience (new)
     def temperature(self) -> float | None:
-        if self.temperatureStatus and self.temperatureStatus[SZ_IS_AVAILABLE]:
-            return self.temperatureStatus[SZ_TEMPERATURE]
-        return None
+        if not self.temperatureStatus or not self.temperatureStatus[SZ_IS_AVAILABLE]:
+            return None
+
+        assert isinstance(self.temperatureStatus[SZ_TEMPERATURE], float)  # mypy check
+        temperature: float = self.temperatureStatus[SZ_TEMPERATURE]
+        return temperature
 
     async def get_schedule(self) -> _EvoDictT:
         """Get the schedule for this DHW/zone object."""
@@ -194,39 +197,48 @@ class Zone(_ZoneDeprecated, _ZoneBase):
 
     @property
     def zoneId(self) -> _ZoneIdT:
-        return self._config[SZ_ZONE_ID]
+        ret: _ZoneIdT = self._config[SZ_ZONE_ID]
+        return ret
 
     @property
     def modelType(self) -> str:
-        return self._config[SZ_MODEL_TYPE]
+        ret: str = self._config[SZ_MODEL_TYPE]
+        return ret
 
     @property
     def setpointCapabilities(self) -> _EvoDictT:
-        return self._config[SZ_SETPOINT_CAPABILITIES]
+        ret: _EvoDictT = self._config[SZ_SETPOINT_CAPABILITIES]
+        return ret
 
     @property  # for convenience (is not a top-level config attribute)
     def allowedSetpointModes(self) -> _EvoListT:
-        return self.setpointCapabilities[SZ_ALLOWED_SETPOINT_MODES]
+        ret: _EvoListT = self.setpointCapabilities[SZ_ALLOWED_SETPOINT_MODES]
+        return ret
 
     @property
     def scheduleCapabilities(self) -> _EvoDictT:
-        return self._config[SZ_SCHEDULE_CAPABILITIES]
+        result: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES]
+        return result
 
     @property  # config attr for convenience (new)
     def max_heat_setpoint(self) -> float:
-        return self.setpointCapabilities[SZ_MAX_HEAT_SETPOINT]
+        ret: float = self.setpointCapabilities[SZ_MAX_HEAT_SETPOINT]
+        return ret
 
     @property  # config attr for convenience (new)
     def min_heat_setpoint(self) -> float:
-        return self.setpointCapabilities[SZ_MIN_HEAT_SETPOINT]
+        ret: float = self.setpointCapabilities[SZ_MIN_HEAT_SETPOINT]
+        return ret
 
     @property
     def zoneType(self) -> str:
-        return self._config[SZ_ZONE_TYPE]
+        ret: str = self._config[SZ_ZONE_TYPE]
+        return ret
 
     @property
     def name(self) -> str:
-        return self._status.get(SZ_NAME) or self._config[SZ_NAME]
+        ret: str = self._status.get(SZ_NAME) or self._config[SZ_NAME]
+        return ret
 
     @property
     def setpointStatus(self) -> _EvoDictT | None:
@@ -246,7 +258,8 @@ class Zone(_ZoneDeprecated, _ZoneBase):
     def target_heat_temperature(self) -> float | None:
         if not self.setpointStatus:
             return None
-        return self.setpointStatus[SZ_TARGET_HEAT_TEMPERATURE]
+        ret: float = self.setpointStatus[SZ_TARGET_HEAT_TEMPERATURE]
+        return ret
 
     async def _set_mode(self, mode: dict) -> None:  # NOTE: no provision for cooling
         """Set the zone mode (heat_setpoint, cooling is TBD)."""

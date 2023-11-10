@@ -152,15 +152,18 @@ class ControlSystem(_ControlSystemDeprecated):
 
     @property
     def allowedSystemModes(self) -> _EvoListT:
-        return self._config[SZ_ALLOWED_SYSTEM_MODES]
+        ret: _EvoListT = self._config[SZ_ALLOWED_SYSTEM_MODES]
+        return ret
 
     @property
     def modelType(self) -> str:
-        return self._config[SZ_MODEL_TYPE]
+        ret: str = self._config[SZ_MODEL_TYPE]
+        return ret
 
     @property
     def systemId(self) -> _SystemIdT:
-        return self._config[SZ_SYSTEM_ID]
+        ret: _SystemIdT = self._config[SZ_SYSTEM_ID]
+        return ret
 
     async def _refresh_status(self) -> None:
         await self.location.refresh_status()

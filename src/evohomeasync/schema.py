@@ -7,21 +7,22 @@ from typing import Any, TypeAlias
 
 # TCC config, status dicts
 _EvoLeafT: TypeAlias = bool | float | int | str | list[str]  # Any
+_DeviceDictT: TypeAlias = dict[str, Any]  # '_EvoDeviceT' | _EvoLeafT]
 _EvoDictT: TypeAlias = dict[str, Any]  # '_EvoDictT' | _EvoLeafT]
 _EvoListT: TypeAlias = list[_EvoDictT]
 _EvoSchemaT: TypeAlias = _EvoDictT | _EvoListT
 
-# TCC identifiers
-_DhwIdT: TypeAlias = str
-_GatewayIdT: TypeAlias = str
-_LocationIdT: TypeAlias = str
-_SystemIdT: TypeAlias = str
-_UserIdT: TypeAlias = str
-_ZoneIdT: TypeAlias = str
+# TCC identifiers (Usr, Loc, Gwy, Sys, Zon|Dhw)
+_DhwIdT: TypeAlias = int
+_GatewayIdT: TypeAlias = int
+_LocationIdT: TypeAlias = int
+_SystemIdT: TypeAlias = int
+_UserIdT: TypeAlias = int
+_ZoneIdT: TypeAlias = int
 _ZoneNameT: TypeAlias = str
 
 # TCC other
 _ModeT: TypeAlias = str
 _SystemModeT: TypeAlias = str
 
-_TaskIdT: TypeAlias = str
+_TaskIdT: TypeAlias = str  # TODO: int or str?

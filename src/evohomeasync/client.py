@@ -17,11 +17,13 @@ from .exceptions import DeprecationError, InvalidSchema
 
 if TYPE_CHECKING:
     from .schema import (
-        _EvoDictT,
+        _DeviceDictT,
+        _DhwIdT,
         _EvoListT,
         _LocationIdT,
         _SystemModeT,
         _TaskIdT,
+        _ZoneIdT,
         _ZoneNameT,
     )
 
@@ -68,7 +70,8 @@ class EvohomeClientDeprecated:
             url = f"/commTasks?commTaskId={task_id}"
             response = await self._do_request(HTTPMethod.GET, url)
 
-            return dict(await response.json())["state"]
+            ret: str = dict(await response.json())["state"]
+            return ret
 
         task_id: _TaskIdT
 
@@ -125,10 +128,20 @@ class EvohomeClientDeprecated:
             "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
         )
 
+    async def temperatures(self, *args, **kwargs) -> NoReturn:
+        raise DeprecationError(
+            "EvohomeClient.temperatures() is deprecated, use .get_temperatures()"
+        )
 
-# any API requests invokes self._populate_user_data()             (for authentication)
-#  - every API GET invokes self._populate_locn_data(refresh=True) (for up-to-date state)
-#  - every API PUT invokes self._populate_locn_data()             (for config)
+    async def cancel_temp_override(self, *args, **kwargs) -> NoReturn:
+        raise DeprecationError(
+            "EvohomeClient.cancel_temp_override() is deprecated, use .set_zone_auto()"
+        )
+
+
+# nay API request invokes self._populate_user_data()             (for authentication)
+# - every API GET invokes self._populate_locn_data(refresh=True) (for up-to-date state)
+# - every API PUT invokes self._populate_locn_data()             (for config)
 
 
 class EvohomeClient(EvohomeClientDeprecated):
@@ -161,8 +174,8 @@ class EvohomeClient(EvohomeClientDeprecated):
         self.location_data = {}
         self.location_id: _LocationIdT = None  # type: ignore[assignment]
 
-        self.devices: _LocnDataT = {}  # dhw or zone by id
-        self.named_devices: _LocnDataT = {}  # zone by name
+        self.devices: dict[_ZoneIdT, _DeviceDictT] = {}  # dhw or zone by id
+        self.named_devices: dict[_ZoneNameT, _DeviceDictT] = {}  # zone by name
 
         self.broker = Broker(
             username,
@@ -225,9 +238,6 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         return self.location_data
 
-    async def temperatures(self) -> _EvoListT:  # DEPRECATED
-        return await self.get_temperatures()
-
     async def get_temperatures(self) -> _EvoListT:  # a convenience function
         """Retrieve the latest details for each zone (incl. DHW)."""
 
@@ -284,7 +294,7 @@ class EvohomeClient(EvohomeClientDeprecated):
     ) -> None:
         """Set the system mode."""
 
-        location_id = (await self._get_location())["locationID"]
+        location_id: _LocationIdT = (await self._get_location())["locationID"]
 
         data = {"QuickAction": status}
         if until:
@@ -319,18 +329,21 @@ class EvohomeClient(EvohomeClientDeprecated):
 
     # Zone methods...
 
-    async def _get_zone(self, id_or_name: str) -> _EvoDictT:
+    async def _get_zone(self, id_or_name: _ZoneIdT | _ZoneNameT) -> _DeviceDictT:
         """Return the location's zone by its id or name (if needed, get the JSON).
 
         Raise an exception if the zone is not found.
         """
 
+        device: _DeviceDictT
+
         # just want id, so retrieve the config data only if we don't already have it
         await self._populate_locn_data(force_refresh=False)
 
-        device = self.devices.get(id_or_name)
-        if not device:
-            device = self.named_devices.get(id_or_name)
+        if isinstance(id_or_name, int):
+            device = self.devices.get(id_or_name)  # type: ignore[assignment]
+        else:
+            device = self.named_devices.get(id_or_name)  # type: ignore[assignment]
 
         if device is None:
             raise InvalidSchema(f"No zone {id_or_name} in location {self.location_id}")
@@ -338,24 +351,28 @@ class EvohomeClient(EvohomeClientDeprecated):
         if (model := device["thermostatModelType"]) != "EMEA_ZONE":
             raise InvalidSchema(f"Zone {id_or_name} is not an EMEA_ZONE: {model}")
 
+        assert device is not None  # mypy check
+
         return device
 
     async def get_zone_modes(self, zone: _ZoneNameT) -> list[str]:
         """Return the set of modes the zone can be assigned."""
 
-        device: _EvoDictT = await self._get_zone(zone)
-        return device["thermostat"]["allowedModes"]
+        device = await self._get_zone(zone)
+
+        ret: list[str] = device["thermostat"]["allowedModes"]
+        return ret
 
     async def _set_heat_setpoint(
         self,
-        zone_id: _ZoneNameT,
+        zone: _ZoneIdT | _ZoneNameT,
         status: str,  # "Scheduled" | "Temporary" | "Hold
         value: float | None = None,
         next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
     ) -> None:
         """Set zone setpoint, either indefinitely, or until a set time."""
 
-        zone: _EvoDictT = await self._get_zone(zone_id)
+        zone_id: _ZoneIdT = (await self._get_zone(zone))["deviceID"]
 
         if next_time is None:
             data = {"Status": "Hold", "Value": value}
@@ -366,11 +383,11 @@ class EvohomeClient(EvohomeClientDeprecated):
                 "NextTime": next_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
 
-        url = f"/devices/{zone['deviceID']}/thermostat/changeableValues/heatSetpoint"
+        url = f"/devices/{zone_id}/thermostat/changeableValues/heatSetpoint"
         await self.broker.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_temperature(
-        self, zone: _ZoneNameT, temperature, until: dt | None = None
+        self, zone: _ZoneIdT | _ZoneNameT, temperature, until: dt | None = None
     ) -> None:
         """Override the setpoint of a zone, for a period of time, or indefinitely."""
 
@@ -381,16 +398,13 @@ class EvohomeClient(EvohomeClientDeprecated):
         else:
             await self._set_heat_setpoint(zone, "Hold", value=temperature)
 
-    async def cancel_temp_override(self, zone: _ZoneNameT) -> None:  # DEPRECATED
-        return await self.set_zone_auto(zone)
-
-    async def set_zone_auto(self, zone: _ZoneNameT) -> None:
+    async def set_zone_auto(self, zone: _ZoneIdT | _ZoneNameT) -> None:
         """Set a zone to follow its schedule."""
         await self._set_heat_setpoint(zone, status="Scheduled")
 
     # DHW methods...
 
-    async def _get_dhw(self) -> _LocnDataT:
+    async def _get_dhw(self) -> _DeviceDictT:
         """Return the locations's DHW, if there is one (if needed, get the JSON).
 
         Raise an exception if the DHW is not found.
@@ -401,7 +415,8 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         for device in self.location_data["devices"]:
             if device["thermostatModelType"] == "DOMESTIC_HOT_WATER":
-                return device
+                ret: _DeviceDictT = device
+                return ret
 
         raise InvalidSchema(f"No DHW in location {self.location_id}")
 
@@ -413,8 +428,7 @@ class EvohomeClient(EvohomeClientDeprecated):
     ) -> None:
         """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
 
-        dhw: _EvoDictT = await self._get_dhw()
-        dhw_id = dhw["deviceID"]
+        dhw_id: _DhwIdT = (await self._get_dhw())["deviceID"]
 
         data = {
             "Status": status,

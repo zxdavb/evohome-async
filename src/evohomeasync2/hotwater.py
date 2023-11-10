@@ -80,19 +80,23 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
 
     @property
     def dhwId(self) -> _DhwIdT:
-        return self._config[SZ_DHW_ID]
+        ret: _DhwIdT = self._config[SZ_DHW_ID]
+        return ret
 
     @property
     def dhwStateCapabilitiesResponse(self) -> _EvoDictT:
-        return self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
+        ret: _EvoDictT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
+        return ret
 
     @property
     def scheduleCapabilitiesResponse(self) -> _EvoDictT:
-        return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
+        ret: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
+        return ret
 
     @property  # for convenience (is not a top-level config attribute)
     def allowedModes(self) -> _EvoListT:
-        return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE][SZ_ALLOWED_MODES]
+        ret: _EvoListT = self.scheduleCapabilitiesResponse[SZ_ALLOWED_MODES]
+        return ret
 
     @property
     def name(self) -> str:

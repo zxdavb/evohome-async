@@ -237,7 +237,7 @@ class Broker:
 
         if schema:
             try:
-                return schema(content)
+                content = schema(content)
             except vol.Invalid as exc:
                 self._logger.warning(
                     f"Response may be invalid (bad schema): GET {url}: {exc}"
