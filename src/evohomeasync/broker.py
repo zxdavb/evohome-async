@@ -78,7 +78,47 @@ class Broker:
         """Return the session id used for HTTP authentication."""
         return self._session_id
 
-    async def _request(
+    async def populate_user_data(self) -> _UserDataT:
+        """Return the latest user data as retrieved from the web."""
+
+        user_data: _UserDataT
+
+        user_data, _ = await self._populate_user_data()
+        return user_data
+
+    async def _populate_user_data(self) -> tuple[_UserDataT, aiohttp.ClientResponse]:
+        """Return the latest user data as retrieved from the web."""
+
+        url = "/session"
+        response = await self.make_request(HTTPMethod.POST, url, data=self._POST_DATA)
+
+        self._user_data: _UserDataT = await response.json()
+
+        user_id: _UserIdT = self._user_data["userInfo"]["userID"]  # type: ignore[assignment,index]
+        session_id: _SessionIdT = self._user_data["sessionId"]  # type: ignore[assignment]
+
+        self._user_id = user_id
+        self._session_id = self._headers["sessionId"] = session_id
+
+        _LOGGER.info(f"user_data = {self._user_data}")
+        return self._user_data, response
+
+    async def populate_full_data(self) -> list[_FullDataT]:
+        """Return the latest location data exactly as retrieved from the web."""
+
+        if not self._user_id:  # not yet authenticated
+            # maybe was instantiated with a bad session_id, so must check user_id
+            await self.populate_user_data()
+
+        url = f"/locations?userId={self._user_id}&allData=True"
+        response = await self.make_request(HTTPMethod.GET, url, data=self._POST_DATA)
+
+        self._full_data: list[_FullDataT] = await response.json()
+
+        _LOGGER.info(f"full_data = {self._full_data}\r\n")
+        return self._full_data
+
+    async def make_request(
         self,
         method: HTTPMethod,
         url: str,
@@ -86,7 +126,7 @@ class Broker:
         *,
         data: dict | None = None,
     ) -> aiohttp.ClientResponse:
-        """Perform an HTTP request, with optional retry (usu. for authentication)."""
+        """Perform an HTTP request, will authenticate if required."""
 
         url = self.hostname + "/WebAPI/api" + url
 
@@ -98,7 +138,7 @@ class Broker:
             func = self._session.post
 
         try:
-            response = await self._request_with_reauthentication(func, url, data=data)
+            response = await self._make_request(func, url, data=data)
 
         except aiohttp.ClientError as exc:
             if method == HTTPMethod.POST:  # using response will cause UnboundLocalError
@@ -128,7 +168,7 @@ class Broker:
 
         return response
 
-    async def _request_with_reauthentication(
+    async def _make_request(
         self,
         func: Callable,
         url: str,
@@ -137,7 +177,7 @@ class Broker:
         data: dict | None = None,
         _dont_reauthenticate: bool = False,  # used only with recursive call
     ) -> aiohttp.ClientResponse:
-        """Perform an HTTP request, with an optional retry for re-authentication."""
+        """Perform an HTTP request, with an optional retry if re-authenticated."""
 
         response: aiohttp.ClientResponse
 
@@ -172,43 +212,7 @@ class Broker:
                 return response
 
             # NOTE: this is a recursive call, used only after re-authenticating
-            response = await self._request_with_reauthentication(
+            response = await self._make_request(
                 func, url, data=data, _dont_reauthenticate=True
             )
             return response
-
-    async def _populate_user_data(self) -> tuple[_UserDataT, aiohttp.ClientResponse]:
-        url = "/session"
-        response = await self._request(HTTPMethod.POST, url, data=self._POST_DATA)
-
-        self._user_data: _UserDataT = await response.json()
-
-        user_id: _UserIdT = self._user_data["userInfo"]["userID"]  # type: ignore[assignment,index]
-        session_id: _SessionIdT = self._user_data["sessionId"]  # type: ignore[assignment]
-
-        self._user_id = user_id
-        self._session_id = self._headers["sessionId"] = session_id
-
-        _LOGGER.info(f"user_data = {self._user_data}")
-        return self._user_data, response
-
-    async def populate_user_data(self) -> _UserDataT:
-        """Return the latest user data as retrieved from the web."""
-
-        user_data, _ = await self._populate_user_data()
-        return user_data
-
-    async def populate_full_data(self) -> list[_FullDataT]:
-        """Return the latest location data exactly as retrieved from the web."""
-
-        if not self._user_id:  # not yet authenticated
-            # maybe was instantiated with a bad session_id, so must check user_id
-            await self.populate_user_data()
-
-        url = f"/locations?userId={self._user_id}&allData=True"
-        response = await self._request(HTTPMethod.GET, url, data=self._POST_DATA)
-
-        self._full_data: list[_FullDataT] = await response.json()
-
-        _LOGGER.info(f"full_data = {self._full_data}\r\n")
-        return self._full_data
