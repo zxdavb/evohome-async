@@ -56,19 +56,17 @@ async def instantiate_client(
 
     global _global_user_data
 
-    # refresh_token, access_token, access_token_expires = _global_user_data
-
     # Instantiation, NOTE: No API calls invoked during instantiation
     client = evo.EvohomeClient(
         username,
         password,
         session=session,
-        user_data=_global_user_data,
+        session_id=_global_user_data,
     )
 
     # Authentication
     await client._populate_user_data()
-    _global_user_data = client.user_data
+    _global_user_data = client.broker.session_id
 
     return client
 
@@ -145,8 +143,8 @@ async def _test_url_locations(
 ) -> None:
     client = await instantiate_client(username, password, session=session)
 
-    client._headers["sessionId"] = client.user_data["sessionId"]
-    user_id: int = client.user_data["userInfo"]["userID"]
+    client._headers["sessionId"] = client.user_info["sessionId"]
+    user_id: int = client.user_info["userInfo"]["userID"]
 
     url = f"/locations?userId={user_id}&allData=True"
     _ = await should_work(client, HTTPMethod.GET, url)
@@ -187,18 +185,18 @@ async def _test_client_apis(
         username,
         password,
         session=session,
-        user_data=_global_user_data,
+        session_id=_global_user_data,
     )
 
     user_data = await client._populate_user_data()
     assert user_data  # aka client.user_data
 
-    _global_user_data = client.user_data
+    _global_user_data = client.user_info
 
-    await client._populate_full_data()
-    assert client.full_data
+    await client._populate_locn_data()
+    _global_user_data = client.broker.session_id
 
-    temps = await client.temperatures()
+    temps = await client.get_temperatures()
     assert temps
 
 

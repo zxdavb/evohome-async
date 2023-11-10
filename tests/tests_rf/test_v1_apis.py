@@ -4,6 +4,7 @@
 """evohome-async - validate the handling of vendor APIs (URLs)."""
 from __future__ import annotations
 
+import logging
 from http import HTTPMethod, HTTPStatus
 
 import pytest
@@ -25,7 +26,9 @@ from .helpers import (
 URL_BASE = f"{URL_HOST}/WebAPI/api"
 
 
-_global_user_data: tuple[dict, str] = None, None
+_LOGGER = logging.getLogger(__name__)
+
+_global_user_data: str = None  # session_id
 
 
 @pytest.fixture()
@@ -56,19 +59,17 @@ async def instantiate_client(
 
     global _global_user_data
 
-    # refresh_token, access_token, access_token_expires = _global_user_data
-
     # Instantiation, NOTE: No API calls invoked during instantiation
     client = evo.EvohomeClient(
         username,
         password,
         session=session,
-        user_data=_global_user_data,
+        session_id=_global_user_data,
     )
 
     # Authentication
     await client._populate_user_data()
-    _global_user_data = client.user_data
+    _global_user_data = client.broker.session_id
 
     return client
 
@@ -154,19 +155,25 @@ async def _test_client_apis(
         username,
         password,
         session=session,
-        user_data=_global_user_data,
+        session_id=_global_user_data,
     )
 
     user_data = await client._populate_user_data()
-    assert user_data == client.user_data
+    assert user_data == client.user_info
 
-    _global_user_data = client.user_data, client.broker.session_id
+    _global_user_data = client.broker.session_id
 
-    full_data = await client._populate_full_data()
-    assert full_data == client.full_data
+    full_data = await client._populate_locn_data()
+    assert full_data == client.location_data
 
-    temps = await client.temperatures()
+    temps = await client.get_temperatures()
+
     assert temps
+
+    # for _ in range(3):
+    #     await asyncio.sleep(5)
+    #     _ = await client.get_temperatures()
+    #     _LOGGER.warning("get_temperatures() OK")
 
 
 @pytest.mark.asyncio
