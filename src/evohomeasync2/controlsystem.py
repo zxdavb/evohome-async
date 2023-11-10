@@ -39,7 +39,15 @@ if TYPE_CHECKING:
     import logging
 
     from . import Broker, Gateway, Location
-    from .schema import _DhwIdT, _EvoDictT, _EvoListT, _FilePathT, _SystemIdT, _ZoneIdT
+    from .schema import (
+        _DhwIdT,
+        _EvoDictT,
+        _EvoListT,
+        _FilePathT,
+        _ScheduleT,
+        _SystemIdT,
+        _ZoneIdT,
+    )
 
 
 # used by temperatures() and *_schedules()...
@@ -183,7 +191,7 @@ class ControlSystem(_ControlSystemDeprecated):
     def system_mode(self) -> str | None:
         return self.systemModeStatus[SZ_MODE] if self.systemModeStatus else None
 
-    async def _set_mode(self, mode: dict) -> None:
+    async def _set_mode(self, mode: dict[str, str | bool]) -> None:
         """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
         _ = await self._broker.put(f"{self.TYPE}/{self._id}/mode", json=mode)
 
@@ -203,7 +211,7 @@ class ControlSystem(_ControlSystemDeprecated):
             request = {
                 SZ_SYSTEM_MODE: mode,
                 SZ_PERMANENT: True,
-                SZ_TIME_UNTIL: None,
+                # SZ_TIME_UNTIL: None,
             }
         else:
             request = {
@@ -322,7 +330,7 @@ class ControlSystem(_ControlSystemDeprecated):
         The default is to match a schedule to its zone/dhw by id.
         """
 
-        async def restore_by_id(id: _ZoneIdT | _DhwIdT, schedule: dict) -> bool:
+        async def restore_by_id(id: _ZoneIdT | _DhwIdT, schedule: _ScheduleT) -> bool:
             """Restore schedule by id and return False if there was no match."""
 
             name = schedule.get(SZ_NAME)
@@ -342,7 +350,7 @@ class ControlSystem(_ControlSystemDeprecated):
 
             return True
 
-        async def restore_by_name(id: _ZoneIdT | _DhwIdT, schedule: dict) -> bool:
+        async def restore_by_name(id: _ZoneIdT | _DhwIdT, schedule: _ScheduleT) -> bool:
             """Restore schedule by name and return False if there was no match."""
 
             name = schedule[SZ_NAME]  # don't use .get()
@@ -369,7 +377,7 @@ class ControlSystem(_ControlSystemDeprecated):
 
         with open(filename) as file_input:
             schedule_db = file_input.read()
-            schedules: dict = json.loads(schedule_db)
+            schedules: _ScheduleT = json.loads(schedule_db)
 
         with_errors = False
 

@@ -23,3 +23,5 @@ _ModeT = str
 
 # others
 _FilePathT = str  # _typeshed FileDescriptorOrPath
+
+_ScheduleT = dict[str, Any]

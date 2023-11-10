@@ -53,6 +53,7 @@ from .typing import (  # noqa: F401  # noqa: F401  # noqa: F401
     _GatewayIdT,
     _LocationIdT,
     _ModeT,
+    _ScheduleT,
     _SystemIdT,
     _UserIdT,
     _ZoneIdT,

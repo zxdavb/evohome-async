@@ -120,11 +120,11 @@ class Broker:
 
     async def _make_request(
         self,
-        func: Callable,
+        func: Callable,  # type: ignore[type-arg]
         url: str,
         /,
         *,
-        data: dict | None = None,
+        data: dict[str, Any] | None = None,
         _dont_reauthenticate: bool = False,  # used only with recursive call
     ) -> aiohttp.ClientResponse:
         """Perform an HTTP request, with an optional retry if re-authenticated."""
@@ -173,7 +173,7 @@ class Broker:
         url: str,
         /,
         *,
-        data: dict | None = None,
+        data: dict[str, Any] | None = None,
     ) -> aiohttp.ClientResponse:
         """Perform an HTTP request, will authenticate if required."""
 

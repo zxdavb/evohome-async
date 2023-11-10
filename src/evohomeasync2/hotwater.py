@@ -118,7 +118,7 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
         """Return the datetime and state of the next setpoint."""
         raise NotImplementedError
 
-    async def _set_mode(self, mode: dict) -> None:
+    async def _set_mode(self, mode: dict[str, str | None]) -> None:
         """Set the DHW mode (state)."""
         _ = await self._broker.put(f"{self.TYPE}/{self._id}/state", json=mode)
 

@@ -62,24 +62,21 @@
 [tool.mypy]
   exclude = "docs"
   files = ["src/evohomeasync", "src/evohomeasync2"]
-  # follow_imports = "skip"
 
+  disallow_any_generics = true
   disallow_any_unimported = true
-  warn_no_return = true
-
-  disallow_subclassing_any = true
-
-
-[tool.mypy-src]
-  # these are HA defaults
-  check_untyped_defs = true
-  # disallow_incomplete_defs = true  # 41
+  disallow_incomplete_defs = true
   disallow_subclassing_any = true
   disallow_untyped_calls = true
   disallow_untyped_decorators = true
-  # disallow_untyped_defs =   # 41  - see: check_untyped_defs
-  # warn_return_any = true  # 34
+
+  # follow_imports = "skip"
+
+  warn_no_return = true
+  warn_return_any = true
   warn_unreachable = true
+
+
 
 
 [tool.mypy-tests]

@@ -92,9 +92,9 @@ class Broker:
         self,
         method: HTTPMethod,
         url: str,
-        data: dict | None = None,
-        json: dict | None = None,
-        headers: dict | None = None,
+        data: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
     ) -> tuple[aiohttp.ClientResponse, None | str | _EvoDictT | _EvoListT]:
         """Wrapper for aiohttp.ClientSession()."""
 
@@ -252,7 +252,7 @@ class Broker:
 
     async def put(  # type: ignore[no-any-unimported]
         self, url: str, json: _EvoDictT | str, schema: vol.Schema | None = None
-    ) -> dict | list[dict]:  # NOTE: not _EvoSchemaT
+    ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
         """"""
 
         response: aiohttp.ClientResponse

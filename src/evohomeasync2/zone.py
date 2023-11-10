@@ -261,17 +261,18 @@ class Zone(_ZoneDeprecated, _ZoneBase):
         ret: float = self.setpointStatus[SZ_TARGET_HEAT_TEMPERATURE]
         return ret
 
-    async def _set_mode(self, mode: dict) -> None:  # NOTE: no provision for cooling
+    # TODO: no provision for cooling
+    async def _set_mode(self, mode: dict[str, str | float]) -> None:
         """Set the zone mode (heat_setpoint, cooling is TBD)."""
         _ = await self._broker.put(f"{self.TYPE}/{self._id}/heatSetpoint", json=mode)
 
     async def reset_mode(self) -> None:
         """Cancel any override and allow the zone to follow its schedule"""
 
-        mode: dict[str, str | float | None] = {
+        mode: dict[str, str | float] = {
             SZ_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
-            SZ_HEAT_SETPOINT_VALUE: 0.0,
-            SZ_TIME_UNTIL: None,
+            # SZ_HEAT_SETPOINT_VALUE: 0.0,
+            # SZ_TIME_UNTIL: None,
         }
 
         await self._set_mode(mode)
@@ -281,13 +282,13 @@ class Zone(_ZoneDeprecated, _ZoneBase):
     ) -> None:
         """Set the temperature of the given zone (no provision for cooling)."""
 
-        mode: dict[str, str | float | None]
+        mode: dict[str, str | float]
 
         if until is None:  # NOTE: beware that these may be case-sensitive
             mode = {
                 SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
                 SZ_HEAT_SETPOINT_VALUE: temperature,
-                SZ_TIME_UNTIL: None,
+                # SZ_TIME_UNTIL: None,
             }
         else:
             mode = {
