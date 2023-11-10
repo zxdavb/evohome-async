@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, NoReturn
 
 import aiohttp
 
-from .broker import Broker, _FullDataT, _SessionIdT, _UserDataT, _UserInfoT
+from .broker import Broker, _LocnDataT, _SessionIdT, _UserDataT, _UserInfoT
 from .exceptions import DeprecationError, InvalidSchema
 
 if TYPE_CHECKING:
@@ -40,6 +40,12 @@ class EvohomeClientDeprecated:
         )
 
     @property
+    def xfull_data(self) -> _UserDataT | None:
+        raise DeprecationError(
+            "EvohomeClient.full_data is deprecated, use .location_data"
+        )
+
+    @property
     def headers(self) -> str:
         raise DeprecationError("EvohomeClient.headers is deprecated")
 
@@ -57,7 +63,7 @@ class EvohomeClientDeprecated:
         """This functionality is deprecated, but remains here as documentation."""
 
         async def get_task_status(task_id: _TaskIdT) -> str:
-            await self._populate_full_data()
+            await self._populate_locn_data()
 
             url = f"/commTasks?commTaskId={task_id}"
             response = await self._do_request(HTTPMethod.GET, url)
@@ -80,7 +86,7 @@ class EvohomeClientDeprecated:
         raise NotImplementedError
 
     # Not deprecated, just a placeholder for self._wait_for_put_task()
-    async def _populate_full_data(self, force_refresh: bool = True) -> _FullDataT:
+    async def _populate_locn_data(self, force_refresh: bool = True) -> _LocnDataT:
         raise NotImplementedError
 
     async def get_system_modes(self, *args, **kwargs) -> NoReturn:
@@ -120,11 +126,16 @@ class EvohomeClientDeprecated:
         )
 
 
+# any API requests invokes self._populate_user_data()             (for authentication)
+#  - every API GET invokes self._populate_locn_data(refresh=True) (for up-to-date state)
+#  - every API PUT invokes self._populate_locn_data()             (for config)
+
+
 class EvohomeClient(EvohomeClientDeprecated):
     """Provide a client to access the Honeywell TCC API (assumes a single TCS)."""
 
-    user_info: _UserInfoT  # user_idata["UserInfo"] *without* session_id
-    full_data: _FullDataT  # of a single location (config and status)
+    user_info: _UserInfoT  # user_data["UserInfo"] only (i.e. *without* "sessionID")
+    location_data: _LocnDataT  # of the first location (config and status) in list
 
     def __init__(
         self,
@@ -147,11 +158,11 @@ class EvohomeClient(EvohomeClientDeprecated):
             _LOGGER.debug("Debug mode is explicitly enabled.")
 
         self.user_info = {}
-        self.full_data = {}
+        self.location_data = {}
         self.location_id: _LocationIdT = None  # type: ignore[assignment]
 
-        self.devices: _FullDataT = {}  # dhw or zone by id
-        self.named_devices: _FullDataT = {}  # zone by name
+        self.devices: _LocnDataT = {}  # dhw or zone by id
+        self.named_devices: _LocnDataT = {}  # zone by name
 
         self.broker = Broker(
             username,
@@ -199,20 +210,20 @@ class EvohomeClient(EvohomeClientDeprecated):
 
     # Location methods...
 
-    async def _populate_full_data(self, force_refresh: bool = True) -> _FullDataT:
+    async def _populate_locn_data(self, force_refresh: bool = True) -> _LocnDataT:
         """Retrieve the latest system data.
 
         Pull the latest JSON from the web unless force_refresh is False.
         """
 
-        if not self.full_data or force_refresh:
+        if not self.location_data or force_refresh:
             full_data = await self.broker.populate_full_data()
-            self.full_data = full_data[0]
+            self.location_data = full_data[0]
 
-            self.devices = {d["deviceID"]: d for d in self.full_data["devices"]}
-            self.named_devices = {d["name"]: d for d in self.full_data["devices"]}
+            self.devices = {d["deviceID"]: d for d in self.location_data["devices"]}
+            self.named_devices = {d["name"]: d for d in self.location_data["devices"]}
 
-        return self.full_data
+        return self.location_data
 
     async def temperatures(self) -> _EvoListT:  # DEPRECATED
         return await self.get_temperatures()
@@ -223,12 +234,12 @@ class EvohomeClient(EvohomeClientDeprecated):
         set_point: float
         status: str
 
-        await self._populate_full_data(force_refresh=True)
+        await self._populate_locn_data(force_refresh=True)
 
         result = []
 
         try:
-            for device in self.full_data["devices"]:
+            for device in self.location_data["devices"]:
                 temp = float(device["thermostat"]["indoorTemperature"])
                 values = device["thermostat"]["changeableValues"]
 
@@ -256,13 +267,13 @@ class EvohomeClient(EvohomeClientDeprecated):
             raise InvalidSchema(str(exc)) from exc
         return result
 
-    async def _get_location(self) -> _FullDataT:
+    async def _get_location(self) -> _LocnDataT:
         """Return the frst location (if needed, get the JSON)."""
 
         # just want id, so retrieve the config data only if we don't already have it
-        await self._populate_full_data(force_refresh=False)
+        await self._populate_locn_data(force_refresh=False)
 
-        return self.full_data
+        return self.location_data
 
     async def get_system_modes(self) -> NoReturn:
         """Return the set of modes the system can be assigned."""
@@ -280,7 +291,7 @@ class EvohomeClient(EvohomeClientDeprecated):
             data |= {"QuickActionNextTime": until.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
         url = f"/evoTouchSystems?locationId={location_id}"
-        await self.broker._request(HTTPMethod.PUT, url, data=data)
+        await self.broker.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_mode_auto(self) -> None:
         """Set the system to normal operation."""
@@ -315,7 +326,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         """
 
         # just want id, so retrieve the config data only if we don't already have it
-        await self._populate_full_data(force_refresh=False)
+        await self._populate_locn_data(force_refresh=False)
 
         device = self.devices.get(id_or_name)
         if not device:
@@ -356,7 +367,7 @@ class EvohomeClient(EvohomeClientDeprecated):
             }
 
         url = f"/devices/{zone['deviceID']}/thermostat/changeableValues/heatSetpoint"
-        await self.broker._request(HTTPMethod.PUT, url, data=data)
+        await self.broker.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_temperature(
         self, zone: _ZoneNameT, temperature, until: dt | None = None
@@ -379,16 +390,16 @@ class EvohomeClient(EvohomeClientDeprecated):
 
     # DHW methods...
 
-    async def _get_dhw(self) -> _FullDataT:
+    async def _get_dhw(self) -> _LocnDataT:
         """Return the locations's DHW, if there is one (if needed, get the JSON).
 
         Raise an exception if the DHW is not found.
         """
 
         # just want id, so retrieve the config data only if we don't already have it
-        await self._populate_full_data(force_refresh=False)
+        await self._populate_locn_data(force_refresh=False)
 
-        for device in self.full_data["devices"]:
+        for device in self.location_data["devices"]:
             if device["thermostatModelType"] == "DOMESTIC_HOT_WATER":
                 return device
 
@@ -414,7 +425,7 @@ class EvohomeClient(EvohomeClientDeprecated):
             data |= {"NextTime": next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
         url = f"/devices/{dhw_id}/thermostat/changeableValues"
-        await self.broker._request(HTTPMethod.PUT, url, data=data)
+        await self.broker.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_dhw_on(self, until: dt | None = None) -> None:
         """Set DHW to On, either indefinitely, or until a specified time.

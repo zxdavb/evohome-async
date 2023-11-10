@@ -22,7 +22,7 @@ _UserIdT: TypeAlias = int
 
 _UserInfoT: TypeAlias = dict[str, bool | int | str]
 _UserDataT: TypeAlias = dict[str, _SessionIdT | _UserInfoT]
-_FullDataT: TypeAlias = dict[str, Any]
+_LocnDataT: TypeAlias = dict[str, Any]
 
 
 URL_HOST = "https://tccna.honeywell.com"
@@ -35,7 +35,7 @@ class Broker:
     """Provide a client to access the Honeywell TCC API (assumes a single TCS)."""
 
     _user_data: _UserDataT
-    _full_data: list[_FullDataT]
+    _full_data: list[_LocnDataT]
 
     def __init__(
         self,
@@ -103,7 +103,7 @@ class Broker:
         _LOGGER.info(f"user_data = {self._user_data}")
         return self._user_data, response
 
-    async def populate_full_data(self) -> list[_FullDataT]:
+    async def populate_full_data(self) -> list[_LocnDataT]:
         """Return the latest location data exactly as retrieved from the web."""
 
         if not self._user_id:  # not yet authenticated
@@ -113,10 +113,59 @@ class Broker:
         url = f"/locations?userId={self._user_id}&allData=True"
         response = await self.make_request(HTTPMethod.GET, url, data=self._POST_DATA)
 
-        self._full_data: list[_FullDataT] = await response.json()
+        self._full_data: list[_LocnDataT] = await response.json()
 
         _LOGGER.info(f"full_data = {self._full_data}\r\n")
         return self._full_data
+
+    async def _make_request(
+        self,
+        func: Callable,
+        url: str,
+        /,
+        *,
+        data: dict | None = None,
+        _dont_reauthenticate: bool = False,  # used only with recursive call
+    ) -> aiohttp.ClientResponse:
+        """Perform an HTTP request, with an optional retry if re-authenticated."""
+
+        response: aiohttp.ClientResponse
+
+        async with func(url, json=data, headers=self._headers) as response:  # NB: json=
+            response_text = await response.text()  # why cant I move this below the if?
+
+            # if 401/unauthorized, may need to refresh sessionId (expires in 15 mins?)
+            if response.status != HTTPStatus.UNAUTHORIZED or _dont_reauthenticate:
+                return response
+
+            # TODO: use response.content_type to determine whether to use .json()
+            if "code" not in response_text:  # don't use .json() yet: may be plain text
+                return response
+
+            response_json = await response.json()
+            if response_json[0]["code"] != "Unauthorized":
+                return response
+
+            if "sessionId" not in self._headers:  # no value trying to re-authenticate
+                return response  # ...because: the username/password must be invalid
+
+            _LOGGER.debug(f"Session now expired/invalid ({self._session_id})...")
+            self._headers = {"content-type": "application/json"}  # remove the sessionId
+
+            _, response = await self._populate_user_data()  # Get a fresh sessionId
+            assert self._session_id is not None  # mypy hint
+
+            _LOGGER.debug(f"... success: new sessionId = {self._session_id}\r\n")
+            self._headers["sessionId"] = self._session_id
+
+            if "session" in url:  # retry not needed for /session
+                return response
+
+            # NOTE: this is a recursive call, used only after re-authenticating
+            response = await self._make_request(
+                func, url, data=data, _dont_reauthenticate=True
+            )
+            return response
 
     async def make_request(
         self,
@@ -167,52 +216,3 @@ class Broker:
             raise RequestFailed(str(exc)) from exc
 
         return response
-
-    async def _make_request(
-        self,
-        func: Callable,
-        url: str,
-        /,
-        *,
-        data: dict | None = None,
-        _dont_reauthenticate: bool = False,  # used only with recursive call
-    ) -> aiohttp.ClientResponse:
-        """Perform an HTTP request, with an optional retry if re-authenticated."""
-
-        response: aiohttp.ClientResponse
-
-        async with func(url, json=data, headers=self._headers) as response:  # NB: json=
-            response_text = await response.text()  # why cant I move this below the if?
-
-            # if 401/unauthorized, may need to refresh sessionId (expires in 15 mins?)
-            if response.status != HTTPStatus.UNAUTHORIZED or _dont_reauthenticate:
-                return response
-
-            # TODO: use response.content_type to determine whether to use .json()
-            if "code" not in response_text:  # don't use .json() yet: may be plain text
-                return response
-
-            response_json = await response.json()
-            if response_json[0]["code"] != "Unauthorized":
-                return response
-
-            if "sessionId" not in self._headers:  # no value trying to re-authenticate
-                return response  # ...because: the username/password must be invalid
-
-            _LOGGER.debug(f"Session now expired/invalid ({self._session_id})...")
-            self._headers = {"content-type": "application/json"}  # remove the sessionId
-
-            _, response = await self._populate_user_data()  # Get a fresh sessionId
-            assert self._session_id is not None  # mypy hint
-
-            _LOGGER.debug(f"... success: new sessionId = {self._session_id}\r\n")
-            self._headers["sessionId"] = self._session_id
-
-            if "session" in url:  # retry not needed for /session
-                return response
-
-            # NOTE: this is a recursive call, used only after re-authenticating
-            response = await self._make_request(
-                func, url, data=data, _dont_reauthenticate=True
-            )
-            return response
