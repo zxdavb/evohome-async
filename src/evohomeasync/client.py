@@ -233,18 +233,22 @@ class EvohomeClient(EvohomeClientDeprecated):
             full_data = await self.broker.populate_full_data()
             self.location_data = full_data[0]
 
+            self.location_id = self.location_data["locationID"]
+
             self.devices = {d["deviceID"]: d for d in self.location_data["devices"]}
             self.named_devices = {d["name"]: d for d in self.location_data["devices"]}
 
         return self.location_data
 
-    async def get_temperatures(self) -> _EvoListT:  # a convenience function
+    async def get_temperatures(
+        self, force_refresh: bool = True
+    ) -> _EvoListT:  # a convenience function
         """Retrieve the latest details for each zone (incl. DHW)."""
 
         set_point: float
         status: str
 
-        await self._populate_locn_data(force_refresh=True)
+        await self._populate_locn_data(force_refresh=force_refresh)
 
         result = []
 
@@ -277,14 +281,6 @@ class EvohomeClient(EvohomeClientDeprecated):
             raise InvalidSchema(str(exc)) from exc
         return result
 
-    async def _get_location(self) -> _LocnDataT:
-        """Return the frst location (if needed, get the JSON)."""
-
-        # just want id, so retrieve the config data only if we don't already have it
-        await self._populate_locn_data(force_refresh=False)
-
-        return self.location_data
-
     async def get_system_modes(self) -> NoReturn:
         """Return the set of modes the system can be assigned."""
         raise NotImplementedError
@@ -294,13 +290,14 @@ class EvohomeClient(EvohomeClientDeprecated):
     ) -> None:
         """Set the system mode."""
 
-        location_id: _LocationIdT = (await self._get_location())["locationID"]
+        # just want id, so retrieve the config data only if we don't already have it
+        await self._populate_locn_data(force_refresh=False)  # get self.location_id
 
         data = {"QuickAction": status}
         if until:
             data |= {"QuickActionNextTime": until.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
-        url = f"/evoTouchSystems?locationId={location_id}"
+        url = f"/evoTouchSystems?locationId={self.location_id}"
         await self.broker.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_mode_auto(self) -> None:
