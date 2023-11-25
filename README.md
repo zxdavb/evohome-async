@@ -17,7 +17,7 @@ python client.py -u username@gmail.com -p password get-schedules --loc-idx 2 > s
 ```
 ... and to restore:
 ```
-python client.py -u username@gmail.com -p password set-schedules  --loc-idx 2 -f schedules.json
+python client.py -u username@gmail.com -p password set-schedules --loc-idx 2 -f schedules.json
 ```
 
 ### Differences from non-async version
