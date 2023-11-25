@@ -11,7 +11,7 @@ This client uses the [aiohttp](https://pypi.org/project/aiohttp/) library. If yo
 
 ### CLI for schedules
 
-If you download teh git repo you can use a basic CLI for bakup of schedules, for example:
+If you download the git repo you can use a basic CLI for backup/restore of schedules (incl. DHW, if any), for example:
 ```
 python client.py -u username@gmail.com -p password get-schedules --loc-idx 2 > schedules.json
 ```
