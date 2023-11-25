@@ -9,8 +9,6 @@ It provides support for **Evohome**, the **Round Thermostat** and some others. I
 
 This client uses the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead. It provides Evohome support for Home Assistant (and other automation platforms), see https://www.home-assistant.io/integrations/evohome
 
-Documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
-
 ### CLI for schedules
 
 If you download teh git repo you can use a basic CLI for bakup of schedules, for example:
@@ -23,6 +21,8 @@ python client.py -u username@gmail.com -p password set-schedules  --loc-idx 2 -f
 ```
 
 ### Differences from non-async version
+The non-async documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
+
 Note that this library is not able to expose more functionality than it's non-async cousin, other than asyncio (they both use the same vendor API).
 
 The difference between the **evohomeasync** and **evohomeclient** libraries have been kept to the minimum, and it is planned for exisiting docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
