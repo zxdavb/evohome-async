@@ -293,13 +293,8 @@ class ControlSystem(_ControlSystemDeprecated):
 
         return result
 
-    async def backup_schedules(self, filename: _FilePathT) -> None:
-        """Backup all schedules from the control system to the file."""
-
-        self._logger.info(
-            f"Backing up schedules from {self.systemId} ({self.location.name})"
-            f", to {filename}"
-        )
+    async def _get_schedules(self) -> _ScheduleT:
+        """Get the schedule for every DHW/zone of this TCS."""
 
         schedules = {}
 
@@ -317,18 +312,27 @@ class ControlSystem(_ControlSystemDeprecated):
                 SZ_SCHEDULE: schedule,
             }
 
+        return schedules
+
+    async def backup_schedules(self, filename: _FilePathT) -> None:
+        """Backup all schedules from the control system to the file."""
+
+        self._logger.info(
+            f"Schedules: Backing up"
+            f" from {self.systemId} ({self.location.name}), to {filename}"
+        )
+
+        schedules = await self._get_schedules()
+
         with open(filename, "w") as file_output:
             file_output.write(json.dumps(schedules, indent=4))
 
-        self._logger.info("Backup completed.")
+        self._logger.info("Schedules: Backup completed")
 
-    async def restore_schedules(
-        self, filename: _FilePathT, match_by_name: bool = False
-    ) -> None:
-        """Restore all schedules from the file to the TCS.
-
-        The default is to match a schedule to its zone/dhw by id.
-        """
+    async def _set_schedules(
+        self, schedules: _ScheduleT, match_by_name: bool = False
+    ) -> bool:
+        """Set the schedule for every DHW/zone of this TCS (return True if success)."""
 
         async def restore_by_id(id: _ZoneIdT | _DhwIdT, schedule: _ScheduleT) -> bool:
             """Restore schedule by id and return False if there was no match."""
@@ -370,15 +374,6 @@ class ControlSystem(_ControlSystemDeprecated):
 
             return True
 
-        self._logger.info(
-            f"Restoring schedules (matched by {'name' if match_by_name else 'id'}) to "
-            f"{self.systemId} ({self.location.name}), from {filename}"
-        )
-
-        with open(filename) as file_input:
-            schedule_db = file_input.read()
-            schedules: _ScheduleT = json.loads(schedule_db)
-
         with_errors = False
 
         for id, schedule in schedules.items():
@@ -391,7 +386,35 @@ class ControlSystem(_ControlSystemDeprecated):
 
             with_errors = with_errors and not matched
 
-        if with_errors or len(schedules) != len(self.zones) + 1 if self.hotwater else 0:
-            self._logger.warning("Restore completed, but with unmatched schedules.")
-        else:
-            self._logger.info("Restore completed.")
+        success = not with_errors or len(schedules) == len(self.zones) + (
+            1 if self.hotwater else 0
+        )
+
+        if not success:
+            self._logger.warning(
+                f"Schedules: Some entities not restored:"
+                f" not matched by {'name' if match_by_name else 'id'}"
+            )
+
+        return success
+
+    async def restore_schedules(
+        self, filename: _FilePathT, match_by_name: bool = False
+    ) -> None:
+        """Restore all schedules from the file to the TCS.
+
+        The default is to match a schedule to its zone/dhw by id.
+        """
+
+        self._logger.info(
+            f"Schedules: Restoring (matched by {'name' if match_by_name else 'id'})"
+            f" to {self.systemId} ({self.location.name}), from {filename}"
+        )
+
+        with open(filename) as file_input:
+            schedule_db = file_input.read()
+            schedules: _ScheduleT = json.loads(schedule_db)
+
+        await self._set_schedules(schedules)
+
+        self._logger.info("Schedules: Restore completed")

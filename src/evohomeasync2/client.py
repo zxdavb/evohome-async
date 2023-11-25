@@ -190,6 +190,12 @@ class EvohomeClient(EvohomeClientDeprecated):
         if self._user_account and not force_update:
             return self._user_account
 
+        # this code should really be in broker somewhere
+        if not self.broker._session:
+            self.broker._session = aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=30)
+            )
+
         self._user_account = await self.broker.get(
             "userAccount", schema=SCH_USER_ACCOUNT
         )  # type: ignore[assignment]

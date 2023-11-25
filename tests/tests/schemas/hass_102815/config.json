@@ -1,74 +1,74 @@
 {
-  "locationInfo": {
-    "timeZone": {
-      "timeZoneId": "RomanceStandardTime",
-      "displayName": "(UTC+01:00) Brussels, Copenhagen, Madrid, Paris",
-      "offsetMinutes": 60,
-      "currentOffsetMinutes": 120,
-      "supportsDaylightSaving": true
-    }
-  },
-  "gateways": [
-    {
-      "temperatureControlSystems": [
-        {
-          "systemId": "632515",
-          "modelType": "FocusProWifiRetail",
-          "zones": [
-            {
-              "zoneId": "632515",
-              "modelType": "FocusProWifiRetail",
-              "setpointCapabilities": {
-                "vacationHoldCapabilities": {
-                  "isChangeable": false,
-                  "isCancelable": false
-                },
-                "maxHeatSetpoint": 32.0,
-                "minHeatSetpoint": 4.5,
-                "maxCoolSetpoint": 37.0,
-                "minCoolSetpoint": 10.0,
-                "setpointDeadband": 0.0,
-                "valueResolution": 0.5,
-                "canControlHeat": true,
-                "canControlCool": true,
-                "allowedSetpointModes": [
-                  "PermanentOverride",
-                  "VacationHold"
-                ],
-                "maxDuration": "1.00:00:00",
-                "timingResolution": "00:15:00"
-              },
-              "name": "DINING ROOM",
-              "zoneType": "Thermostat",
-              "allowedFanModes": [
-                {
-                  "fanMode": "Auto"
-                },
-                {
-                  "fanMode": "On"
-                }
-              ]
-            }
-          ],
-          "allowedSystemModes": [
-            {
-              "systemMode": "Off",
-              "canBePermanent": true,
-              "canBeTemporary": false
-            },
-            {
-              "systemMode": "Heat",
-              "canBePermanent": true,
-              "canBeTemporary": false
-            },
-            {
-              "systemMode": "Cool",
-              "canBePermanent": true,
-              "canBeTemporary": false
-            }
-          ]
+    "locationInfo": {
+        "timeZone": {
+            "timeZoneId": "RomanceStandardTime",
+            "displayName": "(UTC+01:00) Brussels, Copenhagen, Madrid, Paris",
+            "offsetMinutes": 60,
+            "currentOffsetMinutes": 120,
+            "supportsDaylightSaving": true
         }
-      ]
-    }
-  ]
+    },
+    "gateways": [
+        {
+            "temperatureControlSystems": [
+                {
+                    "systemId": "632515",
+                    "modelType": "FocusProWifiRetail",
+                    "zones": [
+                        {
+                            "zoneId": "632515",
+                            "modelType": "FocusProWifiRetail",
+                            "setpointCapabilities": {
+                                "vacationHoldCapabilities": {
+                                    "isChangeable": false,
+                                    "isCancelable": false
+                                },
+                                "maxHeatSetpoint": 32.0,
+                                "minHeatSetpoint": 4.5,
+                                "maxCoolSetpoint": 37.0,
+                                "minCoolSetpoint": 10.0,
+                                "setpointDeadband": 0.0,
+                                "valueResolution": 0.5,
+                                "canControlHeat": true,
+                                "canControlCool": true,
+                                "allowedSetpointModes": [
+                                    "PermanentOverride",
+                                    "VacationHold"
+                                ],
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "00:15:00"
+                            },
+                            "name": "DINING ROOM",
+                            "zoneType": "Thermostat",
+                            "allowedFanModes": [
+                                {
+                                    "fanMode": "Auto"
+                                },
+                                {
+                                    "fanMode": "On"
+                                }
+                            ]
+                        }
+                    ],
+                    "allowedSystemModes": [
+                        {
+                            "systemMode": "Off",
+                            "canBePermanent": true,
+                            "canBeTemporary": false
+                        },
+                        {
+                            "systemMode": "Heat",
+                            "canBePermanent": true,
+                            "canBeTemporary": false
+                        },
+                        {
+                            "systemMode": "Cool",
+                            "canBePermanent": true,
+                            "canBeTemporary": false
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
 }

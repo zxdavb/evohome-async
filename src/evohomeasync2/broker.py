@@ -84,9 +84,7 @@ class Broker:
         self.access_token = access_token
         self.access_token_expires = access_token_expires
 
-        self._session = session or aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30)
-        )
+        self._session = session  # can't instantiate aiohttp.ClientSession() here
 
     async def _client(
         self,
@@ -97,6 +95,8 @@ class Broker:
         headers: dict[str, Any] | None = None,
     ) -> tuple[aiohttp.ClientResponse, None | str | _EvoDictT | _EvoListT]:
         """Wrapper for aiohttp.ClientSession()."""
+
+        assert self._session is not None  # mypy hint
 
         if headers is None:
             headers = await self._headers()
@@ -161,7 +161,7 @@ class Broker:
             credentials = {SZ_REFRESH_TOKEN: self.refresh_token}
 
             try:
-                await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)  # type: ignore[arg-type]
+                await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)  # type: ignore[operator]
 
             except AuthenticationFailed as exc:
                 if exc.status != HTTPStatus.BAD_REQUEST:  # e.g. invalid tokens
@@ -174,7 +174,7 @@ class Broker:
 
         if not self.refresh_token:
             self._logger.debug("Authenticating with username/password...")
-            await self._obtain_access_token(CREDS_USER_PASSWORD | self._credentials)  # type: ignore[arg-type]
+            await self._obtain_access_token(CREDS_USER_PASSWORD | self._credentials)  # type: ignore[operator]
 
         self._logger.debug(f"refresh_token = {self.refresh_token}")
         self._logger.debug(f"access_token = {self.access_token}")

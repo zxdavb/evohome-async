@@ -1,6 +1,6 @@
 #
 ### project ##########################################################################
-
+# updated: 2023-11-10
 #
 [project]
   name = "evohome-async"
@@ -63,7 +63,7 @@
   exclude = "docs"
   files = ["src/evohomeasync", "src/evohomeasync2"]
 
-  warn_redundant_casts = true  # not per-module
+  warn_redundant_casts = true  # this is not per-module
 
   check_untyped_defs = true
   disallow_any_generics = true
