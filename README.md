@@ -57,4 +57,3 @@ Other minor changes:
  - `Hotwater.zoneId` is deprecated
  - `ZoneBase.zone_type` is deprecated
  - some sentinel values are now `None`
-

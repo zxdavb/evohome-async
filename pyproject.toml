@@ -123,4 +123,3 @@
 
 [tool.ruff.lint.isort]
   combine-as-imports = true  # default is false
-
