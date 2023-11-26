@@ -139,7 +139,7 @@ class EvohomeClientDeprecated:
         )
 
 
-# nay API request invokes self._populate_user_data()             (for authentication)
+# any API request invokes self._populate_user_data()             (for authentication)
 # - every API GET invokes self._populate_locn_data(refresh=True) (for up-to-date state)
 # - every API PUT invokes self._populate_locn_data()             (for config)
 

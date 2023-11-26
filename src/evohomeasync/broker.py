@@ -147,7 +147,7 @@ class Broker:
                 return response
 
             if "sessionId" not in self._headers:  # no value trying to re-authenticate
-                return response  # ...because: the username/password must be invalid
+                return response  # ...because: the user credentials must be invalid
 
             _LOGGER.debug(f"Session now expired/invalid ({self._session_id})...")
             self._headers = {"content-type": "application/json"}  # remove the sessionId

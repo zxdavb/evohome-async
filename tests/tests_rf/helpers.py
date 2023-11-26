@@ -29,11 +29,6 @@ def user_credentials():
     username = os.getenv("PYTEST_USERNAME")
     password = os.getenv("PYTEST_PASSWORD")
 
-    # with open() as f:
-    #     lines = f.readlines()
-    # username = lines[0].strip()
-    # password = lines[1].strip()
-
     return username, password
 
 
