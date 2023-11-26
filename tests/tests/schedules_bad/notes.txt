@@ -1,0 +1,1 @@
+# actual JSON - HA issue #102505

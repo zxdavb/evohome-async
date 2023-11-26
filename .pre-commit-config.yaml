@@ -1,12 +1,13 @@
 # .pre-commit-config.yaml file for https://github.com/zxdavb
 # last updated 2023-11-15
 
-# files: ^(ramses.*/.+)?[^/]+\.py$
-exclude: ^examples/.*\.py$|^tests/_.*\.py$|^utils/.*\.py$|^\.secrets
+# files: ^(src.*/.+)?[^/]+\.py$
+# files: ^.|^src/|^tests/
+exclude: ^.secrets/
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.5  # Ruff version
+    rev: v0.1.6  # Ruff version
     hooks:
       - id: ruff         # linter
       - id: ruff-format  # formatter
@@ -16,3 +17,23 @@ repos:
     hooks:
     - id: python-check-blanket-noqa
     - id: python-check-blanket-type-ignore
+    - id: python-no-log-warn
+
+  -   repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.5.0
+      hooks:
+      -   id: check-json
+      -   id: check-toml
+      -   id: check-yaml
+      -   id: end-of-file-fixer
+      -   id: trailing-whitespace
+
+  -   repo: local
+      hooks:
+      -   id: secrets
+          name: Secrets check
+          # entry: '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'  # email address
+          entry: '#.*(secret|pass|pwd)'
+          language: pygrep
+          args: [-i]
+          exclude: .pre-commit-config.yaml  # avoid false +ve

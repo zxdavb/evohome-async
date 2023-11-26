@@ -1,4 +1,4 @@
-{  # actual JSON - HA issue #102505
+{
     "DailySchedules": [
         {
             "DayOfWeek": 0,
