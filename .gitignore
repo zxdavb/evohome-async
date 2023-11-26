@@ -5,6 +5,9 @@ tokens*
 .secrets/
 .vscode/
 
+# schedule backups
+/*.json
+
 
 ### github's default .gitignore file
 # https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
