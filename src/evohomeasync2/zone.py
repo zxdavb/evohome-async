@@ -10,7 +10,10 @@ from __future__ import annotations
 
 import json
 from datetime import datetime as dt
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Final, NoReturn
+
+import aiohttp
 
 from .const import API_STRFTIME, ZoneMode
 from .exceptions import DeprecationError, InvalidSchedule, InvalidSchema
@@ -128,9 +131,15 @@ class _ZoneBase(_ZoneBaseDeprecated):
 
         self._logger.debug(f"Getting schedule of {self._id} ({self.TYPE})...")
 
-        schedule: _EvoDictT = await self._broker.get(
-            f"{self.TYPE}/{self._id}/schedule", schema=self.SCH_SCHEDULE_GET
-        )  # type: ignore[assignment]
+        try:
+            schedule: _EvoDictT = await self._broker.get(
+                f"{self.TYPE}/{self._id}/schedule", schema=self.SCH_SCHEDULE_GET
+            )  # type: ignore[assignment]
+        except aiohttp.ClientResponseError as exc:
+            if exc.status == HTTPStatus.BAD_REQUEST:
+                raise InvalidSchedule("No Schedule / Schedule is missing") from exc
+            else:
+                raise InvalidSchedule("Unexpected error") from exc
 
         self._schedule = convert_to_put_schedule(schedule)
         return self._schedule

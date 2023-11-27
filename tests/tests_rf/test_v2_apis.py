@@ -47,6 +47,12 @@ async def session():
         await client_session.close()
 
 
+@pytest.fixture(autouse=True)
+def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("evohomeasync2.broker.aiohttp", aiohttp)
+    monkeypatch.setattr("evohomeasync2.zone.aiohttp", aiohttp)
+
+
 async def _test_basics_apis(
     username: str,
     password: str,
@@ -177,7 +183,7 @@ async def _test_sched__apis(
     if zone := evo._get_single_tcs().zones_by_id.get(mock.GHOST_ZONE_ID):
         try:
             schedule = await zone.get_schedule()
-        except aiohttp.ClientResponseError:
+        except evohome.InvalidSchedule:
             pass
         else:
             assert False

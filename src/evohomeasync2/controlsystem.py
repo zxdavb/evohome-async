@@ -13,7 +13,12 @@ from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import API_STRFTIME, SystemMode
-from .exceptions import DeprecationError, InvalidParameter, InvalidSchema
+from .exceptions import (
+    DeprecationError,
+    InvalidParameter,
+    InvalidSchedule,
+    InvalidSchema,
+)
 from .hotwater import HotWater
 from .schema import SCH_TCS_STATUS
 from .schema.const import (
@@ -296,20 +301,27 @@ class ControlSystem(_ControlSystemDeprecated):
     async def _get_schedules(self) -> _ScheduleT:
         """Get the schedule for every DHW/zone of this TCS."""
 
+        async def get_schedule(child: HotWater | Zone) -> _ScheduleT:
+            try:
+                return await child.get_schedule()
+            except InvalidSchedule:
+                self._logger.warning(
+                    f"Ignoring schedule of {child._id} ({child.name}): missing/invalid"
+                )
+            return {}
+
         schedules = {}
 
         for zone in self._zones:
-            schedule = await zone.get_schedule()
             schedules[zone.zoneId] = {
                 SZ_NAME: zone.name,
-                SZ_SCHEDULE: schedule,
+                SZ_SCHEDULE: await get_schedule(zone),
             }
 
         if self.hotwater:
-            schedule = await self.hotwater.get_schedule()
             schedules[self.hotwater.dhwId] = {
                 SZ_NAME: self.hotwater.name,
-                SZ_SCHEDULE: schedule,
+                SZ_SCHEDULE: await get_schedule(self.hotwater),
             }
 
         return schedules
