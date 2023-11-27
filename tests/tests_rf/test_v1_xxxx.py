@@ -15,7 +15,7 @@ from evohomeasync.broker import URL_HOST
 # FIXME: need v1 schemas
 from evohomeasync2.schema import vol  # type: ignore[import-untyped]
 
-from . import _DEBUG_USE_REAL_AIOHTTP, _DISABLE_STRICT_ASSERTS
+from . import _DEBUG_DISABLE_STRICT_ASSERTS, _DEBUG_USE_REAL_AIOHTTP
 from .helpers import (
     aiohttp,  # aiohttp may be mocked
     client_session as _client_session,
@@ -121,7 +121,7 @@ async def should_fail(
     else:
         assert False, response.status
 
-    if _DISABLE_STRICT_ASSERTS:
+    if _DEBUG_DISABLE_STRICT_ASSERTS:
         return response
 
     assert True or response.content_type == content_type

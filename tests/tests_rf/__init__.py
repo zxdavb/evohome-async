@@ -6,4 +6,4 @@ from __future__ import annotations
 
 # normally, we want these flags to be False
 _DEBUG_USE_REAL_AIOHTTP = False
-_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
+_DEBUG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema

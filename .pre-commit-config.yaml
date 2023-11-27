@@ -33,7 +33,7 @@ repos:
     - id: secrets
       name: check secrets
       # entry: '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'  # email address
-      entry: '#.*(secret|pass|pwd)'
+      entry: '(#.*(secret|pass|pwd)|_DEBUG_.*=.*True)'
       language: pygrep
       args: [-i]
       exclude: .pre-commit-config.yaml  # avoid false +ve

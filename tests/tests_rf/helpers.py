@@ -14,7 +14,7 @@ import evohomeasync2 as evohome
 from evohomeasync2.const import URL_BASE
 from evohomeasync2.schema import vol  # type: ignore[import-untyped]
 
-from . import _DEBUG_USE_REAL_AIOHTTP, _DISABLE_STRICT_ASSERTS
+from . import _DEBUG_DISABLE_STRICT_ASSERTS, _DEBUG_USE_REAL_AIOHTTP
 from .mocked_server import MockedServer
 
 if _DEBUG_USE_REAL_AIOHTTP:
@@ -91,7 +91,7 @@ async def should_fail(
     else:
         assert False, response.status
 
-    if _DISABLE_STRICT_ASSERTS:
+    if _DEBUG_DISABLE_STRICT_ASSERTS:
         return response
 
     assert response.content_type == content_type
