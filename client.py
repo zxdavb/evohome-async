@@ -6,14 +6,14 @@
 import sys
 
 try:
-    from evohomeasync2 import main
+    from evohomeasync2.utils import main
 
 except ModuleNotFoundError:
     import os
 
     sys.path.append(f"{os.path.dirname(__file__)}/src")
 
-    from evohomeasync2 import main
+    from evohomeasync2.utils import main
 
 if __name__ == "__main__":
     main()
