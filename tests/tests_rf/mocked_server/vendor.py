@@ -33,6 +33,7 @@ from evohomeasync2.schema.schedule import (
 )
 
 from .const import (
+    GHOST_ZONE_ID,
     MOCK_AUTH_RESPONSE,
     MOCK_FULL_CONFIG,
     MOCK_LOCN_STATUS,
@@ -212,6 +213,9 @@ class MockedServer:
         zon_id = _zon_id(self._url)  # type: ignore[arg-type]
 
         if self._method == HTTPMethod.GET:
+            if zon_id == GHOST_ZONE_ID:
+                self.status = HTTPStatus.BAD_REQUEST
+                return [{"code": "ScheduleNotFound", "message": "Schedule not found."}]
             return self._schedules.get(zon_id, self._zon_schedule)
 
         if self._method != HTTPMethod.PUT:

@@ -174,6 +174,11 @@ async def _test_sched__apis(
         assert SCH_PUT_SCHEDULE_ZONE(schedule)
         await zone.set_schedule(schedule)
 
+    if zone := client._get_single_tcs().zones_by_id.get(mock.GHOST_ZONE_ID):
+        schedule = await zone.get_schedule()
+        assert SCH_PUT_SCHEDULE_ZONE(schedule)
+        await zone.set_schedule(schedule)
+
     pass
 
 
