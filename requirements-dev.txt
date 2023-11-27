@@ -5,9 +5,9 @@
   -r requirements.txt
 
 # used for development
-  mypy >= 1.7.0
+  mypy >= 1.7.1
   pre-commit >= 3.5.0
-  ruff >= 0.1.5
+  ruff >= 0.1.6
 
 # used for testing
   pytest >= 7.4.3

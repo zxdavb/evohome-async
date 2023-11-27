@@ -19,21 +19,43 @@ repos:
     - id: python-check-blanket-type-ignore
     - id: python-no-log-warn
 
-  -   repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v4.5.0
-      hooks:
-      -   id: check-json
-      -   id: check-toml
-      -   id: check-yaml
-      -   id: end-of-file-fixer
-      -   id: trailing-whitespace
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    - id: check-json
+    - id: check-toml
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
 
-  -   repo: local
-      hooks:
-      -   id: secrets
-          name: Secrets check
-          # entry: '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'  # email address
-          entry: '#.*(secret|pass|pwd)'
-          language: pygrep
-          args: [-i]
-          exclude: .pre-commit-config.yaml  # avoid false +ve
+  - repo: local
+    hooks:
+    - id: secrets
+      name: check secrets
+      # entry: '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'  # email address
+      entry: '#.*(secret|pass|pwd)'
+      language: pygrep
+      args: [-i]
+      exclude: .pre-commit-config.yaml  # avoid false +ve
+
+    # # We do not use pre-commit/mirrors-mypy, as it comes with opinionated defaults
+    # # (like --ignore-missing-imports) and is difficult to configure to run
+    # # with the dependencies correctly installed.
+    # - id: mypy
+    #   name: check mypy
+    #   entry: mypy
+    #   language: python
+    #   additional_dependencies: []
+    #   types: [python]
+    #   # use require_serial so that script is only called once per commit
+    #   require_serial: true
+    #   # Print the number of files as a sanity-check
+    #   verbose: true
+    #   args: ["--config-file", "./pyproject.toml"]
+
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.7.1
+  #   hooks:
+  #     - id: mypy
+  #       additional_dependencies: []
+  #       args: ["--config-file", "./pyproject.toml"]
