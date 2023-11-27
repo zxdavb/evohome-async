@@ -10,7 +10,7 @@ from http import HTTPMethod, HTTPStatus
 import pytest
 import pytest_asyncio
 
-import evohomeasync as evo
+import evohomeasync as evohome
 from evohomeasync.broker import URL_HOST
 
 # FIXME: need v1 schemas
@@ -60,7 +60,7 @@ async def instantiate_client(
     global _global_user_data
 
     # Instantiation, NOTE: No API calls invoked during instantiation
-    client = evo.EvohomeClient(
+    evo = evohome.EvohomeClient(
         username,
         password,
         session=session,
@@ -68,14 +68,14 @@ async def instantiate_client(
     )
 
     # Authentication
-    await client._populate_user_data()
-    _global_user_data = client.broker.session_id
+    await evo._populate_user_data()
+    _global_user_data = evo.broker.session_id
 
-    return client
+    return evo
 
 
 async def should_work(  # type: ignore[no-any-unimported]
-    client: evo.EvohomeClient,
+    evo: evohome.EvohomeClient,
     method: HTTPMethod,
     url: str,
     json: dict | None = None,
@@ -86,7 +86,7 @@ async def should_work(  # type: ignore[no-any-unimported]
 
     response: aiohttp.ClientResponse
 
-    response = await client._do_request(method, f"{URL_BASE}/{url}", data=json)
+    response = await evo._do_request(method, f"{URL_BASE}/{url}", data=json)
 
     response.raise_for_status()
 
@@ -103,7 +103,7 @@ async def should_work(  # type: ignore[no-any-unimported]
 
 
 async def should_fail(
-    client: evo.EvohomeClient,
+    evo: evohome.EvohomeClient,
     method: HTTPMethod,
     url: str,
     json: dict | None = None,
@@ -114,7 +114,7 @@ async def should_fail(
 
     response: aiohttp.ClientResponse
 
-    response = await client._do_request(method, f"{URL_BASE}/{url}", data=json)
+    response = await evo._do_request(method, f"{URL_BASE}/{url}", data=json)
 
     try:
         response.raise_for_status()
@@ -151,28 +151,28 @@ async def _test_client_apis(
     global _global_user_data
 
     # Instantiation, NOTE: No API calls invoked during instantiation
-    client = evo.EvohomeClient(
+    evo = evohome.EvohomeClient(
         username,
         password,
         session=session,
         session_id=_global_user_data,
     )
 
-    user_data = await client._populate_user_data()
-    assert user_data == client.user_info
+    user_data = await evo._populate_user_data()
+    assert user_data == evo.user_info
 
-    _global_user_data = client.broker.session_id
+    _global_user_data = evo.broker.session_id
 
-    full_data = await client._populate_locn_data()
-    assert full_data == client.location_data
+    full_data = await evo._populate_locn_data()
+    assert full_data == evo.location_data
 
-    temps = await client.get_temperatures()
+    temps = await evo.get_temperatures()
 
     assert temps
 
     # for _ in range(3):
     #     await asyncio.sleep(5)
-    #     _ = await client.get_temperatures()
+    #     _ = await evo.get_temperatures()
     #     _LOGGER.warning("get_temperatures() OK")
 
 
@@ -187,5 +187,5 @@ async def test_client_apis(
 
     try:
         await _test_client_apis(*user_credentials, session=session)
-    except evo.AuthenticationFailed:
+    except evohome.AuthenticationFailed:
         pytest.skip("Unable to authenticate")

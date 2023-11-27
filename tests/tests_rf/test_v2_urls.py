@@ -10,7 +10,7 @@ from http import HTTPMethod, HTTPStatus
 import pytest
 import pytest_asyncio
 
-import evohomeasync2 as evo
+import evohomeasync2 as evohome
 from evohomeasync2.const import API_STRFTIME, SystemMode, ZoneMode
 from evohomeasync2.schema import (
     SCH_FULL_CONFIG,
@@ -36,8 +36,8 @@ from evohomeasync2.schema.const import (
 )
 from evohomeasync2.schema.schedule import convert_to_put_schedule
 
-from . import _DEBUG_USE_REAL_AIOHTTP
-from .helpers import (  # aiohttp may be mocked
+from . import _DEBUG_USE_REAL_AIOHTTP, mocked_server as mock
+from .helpers import (  # aiohttp may/may not be mocked
     aiohttp,
     client_session as _client_session,
     extract_oauth_tokens,
@@ -80,7 +80,7 @@ async def instantiate_client(
     refresh_token, access_token, access_token_expires = _global_oauth_tokens
 
     # Instantiation, NOTE: No API calls invoked during instantiation
-    client = evo.EvohomeClient(
+    evo = evohome.EvohomeClient(
         username,
         password,
         session=session,
@@ -90,10 +90,10 @@ async def instantiate_client(
     )
 
     # Authentication
-    await client.broker._basic_login()
-    _global_oauth_tokens = extract_oauth_tokens(client)
+    await evo.broker._basic_login()
+    _global_oauth_tokens = extract_oauth_tokens(evo)
 
-    return client
+    return evo
 
 
 async def _test_usr_account(
@@ -101,18 +101,18 @@ async def _test_usr_account(
 ) -> None:
     """Test /userAccount"""
 
-    client = await instantiate_client(username, password, session=session)
+    evo = await instantiate_client(username, password, session=session)
     #
 
     url = "userAccount"
-    _ = await should_work(client, HTTPMethod.GET, url, schema=SCH_USER_ACCOUNT)
+    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_USER_ACCOUNT)
     _ = await should_fail(
-        client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
+        evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
 
     url = "userXxxxxxx"  # NOTE: is a general test, and not a test specific to this URL
     _ = await should_fail(
-        client,
+        evo,
         HTTPMethod.GET,
         url,
         status=HTTPStatus.NOT_FOUND,
@@ -127,30 +127,30 @@ async def _test_all_config(
 ) -> None:
     """Test /location/installationInfo?userId={userId}"""
 
-    client = await instantiate_client(username, password, session=session)
-    _ = await client.user_account()
+    evo = await instantiate_client(username, password, session=session)
+    _ = await evo.user_account()
     #
 
-    url = f"location/installationInfo?userId={client.account_info['userId']}"
-    await should_work(client, HTTPMethod.GET, url)
+    url = f"location/installationInfo?userId={evo.account_info['userId']}"
+    await should_work(evo, HTTPMethod.GET, url)
 
     url += "&includeTemperatureControlSystems=True"
-    _ = await should_work(client, HTTPMethod.GET, url, schema=SCH_FULL_CONFIG)
+    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_FULL_CONFIG)
     _ = await should_fail(
-        client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
+        evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
 
     url = "location/installationInfo"
-    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
     url = "location/installationInfo?userId=1230000"
-    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
+    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
 
     url = "location/installationInfo?userId=xxxxxxx"
-    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
 
     url = "location/installationInfo?xxxxXx=xxxxxxx"
-    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
 
 async def _test_loc_status(
@@ -160,25 +160,25 @@ async def _test_loc_status(
 ) -> None:
     """Test /location/{locationId}/status"""
 
-    client = await instantiate_client(username, password, session=session)
-    _ = await client.user_account()
+    evo = await instantiate_client(username, password, session=session)
+    _ = await evo.user_account()
 
-    _ = await client._installation(refresh_status=False)
-    loc = client.locations[0]
+    _ = await evo._installation(refresh_status=False)
+    loc = evo.locations[0]
     #
 
     url = f"location/{loc.locationId}/status"
-    _ = await should_work(client, HTTPMethod.GET, url)
+    _ = await should_work(evo, HTTPMethod.GET, url)
 
     url += "?includeTemperatureControlSystems=True"
-    _ = await should_work(client, HTTPMethod.GET, url, schema=SCH_LOCN_STATUS)
+    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_LOCN_STATUS)
     _ = await should_fail(
-        client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
+        evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
 
     url = f"location/{loc.locationId}"
     await should_fail(
-        client,
+        evo,
         HTTPMethod.GET,
         url,
         status=HTTPStatus.NOT_FOUND,
@@ -186,14 +186,14 @@ async def _test_loc_status(
     )
 
     url = "location/1230000/status"
-    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
+    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
 
     url = "location/xxxxxxx/status"
-    _ = await should_fail(client, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
 
     url = f"location/{loc.locationId}/xxxxxxx"
     _ = await should_fail(
-        client,
+        evo,
         HTTPMethod.GET,
         url,
         status=HTTPStatus.NOT_FOUND,
@@ -208,27 +208,27 @@ async def _test_tcs_mode(
 ) -> None:
     """Test /temperatureControlSystem/{systemId}/mode"""
 
-    client = await instantiate_client(username, password, session=session)
-    _ = await client.user_account()
-    _ = await client._installation(refresh_status=False)
+    evo = await instantiate_client(username, password, session=session)
+    _ = await evo.user_account()
+    _ = await evo._installation(refresh_status=False)
 
-    tcs: evo.ControlSystem
+    tcs: evohome.ControlSystem
 
-    if not (tcs := client.locations[0]._gateways[0]._control_systems[0]):
+    if not (tcs := evo.locations[0]._gateways[0]._control_systems[0]):
         pytest.skip("No available zones found")
 
     _ = await tcs._refresh_status()
     old_mode = tcs.systemModeStatus
 
     url = f"{tcs.TYPE}/{tcs._id}/status"
-    _ = await should_work(client, HTTPMethod.GET, url, schema=SCH_TCS_STATUS)
+    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_TCS_STATUS)
 
     url = f"{tcs.TYPE}/{tcs._id}/mode"
     _ = await should_fail(
-        client, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
+        evo, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
     _ = await should_fail(
-        client, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.BAD_REQUEST
+        evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.BAD_REQUEST
     )
 
     old_mode[SZ_SYSTEM_MODE] = old_mode.pop(SZ_MODE)
@@ -239,7 +239,7 @@ async def _test_tcs_mode(
         SZ_SYSTEM_MODE: SystemMode.AUTO,
         SZ_PERMANENT: True,
     }
-    _ = await should_work(client, HTTPMethod.PUT, url, json=new_mode)
+    _ = await should_work(evo, HTTPMethod.PUT, url, json=new_mode)
 
     assert SystemMode.AWAY in [m[SZ_SYSTEM_MODE] for m in tcs.allowedSystemModes]
     new_mode = {
@@ -247,18 +247,18 @@ async def _test_tcs_mode(
         SZ_PERMANENT: True,
         SZ_TIME_UNTIL: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
-    _ = await should_work(client, HTTPMethod.PUT, url, json=new_mode)
+    _ = await should_work(evo, HTTPMethod.PUT, url, json=new_mode)
 
-    _ = await should_work(client, HTTPMethod.PUT, url, json=old_mode)
+    _ = await should_work(evo, HTTPMethod.PUT, url, json=old_mode)
 
     url = f"{tcs.TYPE}/1234567/mode"
     _ = await should_fail(
-        client, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.UNAUTHORIZED
+        evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.UNAUTHORIZED
     )
 
     url = f"{tcs.TYPE}/{tcs._id}/systemMode"
     _ = await should_fail(
-        client,
+        evo,
         HTTPMethod.PUT,
         url,
         json=old_mode,
@@ -276,11 +276,11 @@ async def _test_zone_mode(
 ) -> None:
     """Test /temperatureZone/{zoneId}/heatSetpoint"""
 
-    client = await instantiate_client(username, password, session=session)
-    _ = await client.user_account()
-    _ = await client._installation(refresh_status=False)
+    evo = await instantiate_client(username, password, session=session)
+    _ = await evo.user_account()
+    _ = await evo._installation(refresh_status=False)
 
-    for zone in client.locations[0]._gateways[0]._control_systems[0]._zones:
+    for zone in evo.locations[0]._gateways[0]._control_systems[0]._zones:
         _ = await zone._refresh_status()
         if zone.temperatureStatus[SZ_IS_AVAILABLE]:
             break
@@ -289,7 +289,7 @@ async def _test_zone_mode(
     #
 
     url = f"{zone.TYPE}/{zone._id}/status"
-    _ = await should_work(client, HTTPMethod.GET, url, schema=SCH_ZONE_STATUS)
+    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_ZONE_STATUS)
 
     url = f"{zone.TYPE}/{zone._id}/heatSetpoint"
 
@@ -298,27 +298,27 @@ async def _test_zone_mode(
         SZ_HEAT_SETPOINT_VALUE: zone.temperatureStatus[SZ_TEMPERATURE],
         # SZ_TIME_UNTIL: None,
     }
-    _ = await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
         SZ_HEAT_SETPOINT_VALUE: 99,
         SZ_TIME_UNTIL: None,
     }
-    _ = await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
         SZ_HEAT_SETPOINT_VALUE: 19.5,
     }
-    _ = await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: "xxxxxxx",
         SZ_HEAT_SETPOINT_VALUE: 19.5,
     }
     _ = await should_fail(
-        client, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
+        evo, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
     )
 
     heat_setpoint = {
@@ -326,7 +326,7 @@ async def _test_zone_mode(
         SZ_HEAT_SETPOINT_VALUE: 0.0,
         SZ_TIME_UNTIL: None,
     }
-    _ = await should_work(client, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
 
 # TODO: Test sending bad schedule
@@ -338,27 +338,32 @@ async def _test_schedule(
 ) -> None:
     """Test /{x.TYPE}/{x._id}/schedule (of a zone)"""
 
-    client = await instantiate_client(username, password, session=session)
-    _ = await client.user_account()
+    evo = await instantiate_client(username, password, session=session)
+    _ = await evo.user_account()
 
-    _ = await client.installation()
-    zone = client.locations[0]._gateways[0]._control_systems[0]._zones[0]
+    _ = await evo.installation()
+    zone = evo.locations[0]._gateways[0]._control_systems[0]._zones[0]
     #
 
+    if zone._id == mock.GHOST_ZONE_ID:
+        url = f"{zone.TYPE}/{mock.GHOST_ZONE_ID}/schedule"
+        _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+        return
+
     url = f"{zone.TYPE}/{zone._id}/schedule"
-    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
+    schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
 
     temp = schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]  # type: ignore[call-overload]
 
     schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp + 1  # type: ignore[call-overload]
     _ = await should_work(
-        client,
+        evo,
         HTTPMethod.PUT,
         url,
         json=convert_to_put_schedule(schedule),  # type: ignore[arg-type]
     )
 
-    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
+    schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
     assert (
         schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]  # type: ignore[call-overload]
         == temp + 1
@@ -366,17 +371,17 @@ async def _test_schedule(
 
     schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp  # type: ignore[call-overload]
     _ = await should_work(
-        client,
+        evo,
         HTTPMethod.PUT,
         url,
         json=convert_to_put_schedule(schedule),  # type: ignore[arg-type]
     )
 
-    schedule = await should_work(client, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
+    schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
     assert schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] == temp  # type: ignore[call-overload]
 
     _ = await should_fail(
-        client, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST
+        evo, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST
     )  # NOTE: json=None
 
 
@@ -388,7 +393,7 @@ async def test_usr_account(
 
     try:
         await _test_usr_account(*user_credentials, session=session)
-    except evo.AuthenticationFailed:
+    except evohome.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
@@ -402,7 +407,7 @@ async def test_all_config(
 
     try:
         await _test_all_config(*user_credentials, session=session)
-    except evo.AuthenticationFailed:
+    except evohome.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
@@ -416,7 +421,7 @@ async def test_loc_status(
 
     try:
         await _test_loc_status(*user_credentials, session=session)
-    except evo.AuthenticationFailed:
+    except evohome.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
@@ -430,7 +435,7 @@ async def test_tcs_mode(
 
     try:
         await _test_tcs_mode(*user_credentials, session=session)
-    except evo.AuthenticationFailed:
+    except evohome.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
@@ -448,7 +453,7 @@ async def test_zone_mode(
 
     try:
         await _test_zone_mode(*user_credentials, session=session)
-    except evo.AuthenticationFailed:
+    except evohome.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
@@ -466,7 +471,7 @@ async def test_schedule(
 
     try:
         await _test_schedule(*user_credentials, session=session)
-    except evo.AuthenticationFailed:
+    except evohome.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")

@@ -10,7 +10,7 @@ import os
 from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
 
-import evohomeasync2 as evo
+import evohomeasync2 as evohome
 from evohomeasync2.const import URL_BASE
 from evohomeasync2.schema import vol  # type: ignore[import-untyped]
 
@@ -38,16 +38,16 @@ def client_session():
     return aiohttp.ClientSession(mocked_server=mock.MockedServer(None, None))
 
 
-def extract_oauth_tokens(client: evo.EvohomeClient):
+def extract_oauth_tokens(evo: evohome.EvohomeClient):
     return (
-        client.refresh_token,
-        client.access_token,
-        client.access_token_expires,
+        evo.refresh_token,
+        evo.access_token,
+        evo.access_token_expires,
     )
 
 
 async def should_work(  # type: ignore[no-any-unimported]
-    client: evo.EvohomeClient,
+    evo: evohome.EvohomeClient,
     method: HTTPMethod,
     url: str,
     json: dict | None = None,
@@ -58,9 +58,7 @@ async def should_work(  # type: ignore[no-any-unimported]
 
     response: aiohttp.ClientResponse
 
-    response, content = await client.broker._client(
-        method, f"{URL_BASE}/{url}", json=json
-    )
+    response, content = await evo.broker._client(method, f"{URL_BASE}/{url}", json=json)
 
     response.raise_for_status()
 
@@ -72,7 +70,7 @@ async def should_work(  # type: ignore[no-any-unimported]
 
 
 async def should_fail(
-    client: evo.EvohomeClient,
+    evo: evohome.EvohomeClient,
     method: HTTPMethod,
     url: str,
     json: dict | None = None,
@@ -83,9 +81,7 @@ async def should_fail(
 
     response: aiohttp.ClientResponse
 
-    response, content = await client.broker._client(
-        method, f"{URL_BASE}/{url}", json=json
-    )
+    response, content = await evo.broker._client(method, f"{URL_BASE}/{url}", json=json)
 
     try:
         response.raise_for_status()
@@ -124,7 +120,7 @@ async def should_fail(
 
 
 async def wait_for_comm_task(
-    client: evo.EvohomeClient,
+    evo: evohome.EvohomeClient,
     task_id: str,
     timeout: int = 3,
 ) -> bool | None:
@@ -136,7 +132,7 @@ async def wait_for_comm_task(
 
     start_time = dt.now()
     while True:
-        response = await should_work(client, HTTPMethod.GET, url)
+        response = await should_work(evo, HTTPMethod.GET, url)
         if response["state"] == "Succeeded":  # type: ignore[call-overload]
             return True
         if (dt.now() - start_time).total_seconds() > timeout:

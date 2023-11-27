@@ -10,7 +10,7 @@ from http import HTTPMethod, HTTPStatus
 import pytest
 import pytest_asyncio
 
-import evohomeasync2 as evo
+import evohomeasync2 as evohome
 from evohomeasync2 import ControlSystem, Gateway, Location
 from evohomeasync2.const import API_STRFTIME, DhwState, ZoneMode
 from evohomeasync2.schema.const import (
@@ -67,7 +67,7 @@ async def instantiate_client(
     refresh_token, access_token, access_token_expires = _global_oauth_tokens
 
     # Instantiation, NOTE: No API calls invoked during instantiation
-    client = evo.EvohomeClient(
+    evo = evohome.EvohomeClient(
         username,
         password,
         session=session,
@@ -77,10 +77,10 @@ async def instantiate_client(
     )
 
     # Authentication
-    await client.broker._basic_login()
-    _global_oauth_tokens = extract_oauth_tokens(client)
+    await evo.broker._basic_login()
+    _global_oauth_tokens = extract_oauth_tokens(evo)
 
-    return client
+    return evo
 
 
 async def _test_task_id(
@@ -97,11 +97,11 @@ async def _test_task_id(
     gwy: Gateway
     tcs: ControlSystem
 
-    client = await instantiate_client(username, password, session=session)
-    _ = await client.user_account()
-    _ = await client._installation(refresh_status=False)
+    evo = await instantiate_client(username, password, session=session)
+    _ = await evo.user_account()
+    _ = await evo._installation(refresh_status=False)
 
-    for loc in client.locations:
+    for loc in evo.locations:
         for gwy in loc._gateways:
             for tcs in gwy._control_systems:
                 if tcs.hotwater:
@@ -117,7 +117,7 @@ async def _test_task_id(
 
     #
     # PART 0: Get initial state...
-    old_status = await should_work(client, HTTPMethod.GET, GET_URL)  # HTTP 200
+    old_status = await should_work(evo, HTTPMethod.GET, GET_URL)  # HTTP 200
     # {
     #     'dhwId': '3933910',
     #     'temperatureStatus': {'isAvailable': False},
@@ -150,18 +150,18 @@ async def _test_task_id(
         SZ_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
 
-    result = await should_work(client, HTTPMethod.PUT, PUT_URL, json=new_mode)
+    result = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)
     # {'id': '840367013'}  # HTTP 201/Created
 
     task_id = result[0]["id"] if isinstance(result, list) else result["id"]
     url_tsk = f"commTasks?commTaskId={task_id}"
 
-    _ = await should_work(client, HTTPMethod.GET, url_tsk)
+    _ = await should_work(evo, HTTPMethod.GET, url_tsk)
     # {'commtaskId': '840367013', 'state': 'Created'}
     # {'commtaskId': '840367013', 'state': 'Succeeded'}
 
     # dtm = dt.now()
-    _ = await wait_for_comm_task(client, task_id, timeout=3)
+    _ = await wait_for_comm_task(evo, task_id, timeout=3)
     # assert (dt.now() - dtm).total_seconds() < 2
 
     #
@@ -171,24 +171,24 @@ async def _test_task_id(
         SZ_STATE: DhwState.ON,
         SZ_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
-    _ = await should_work(client, HTTPMethod.PUT, PUT_URL, json=new_mode)  # HTTP 201
-    _ = await wait_for_comm_task(client, task_id, timeout=3)
-    status = await should_work(client, HTTPMethod.GET, GET_URL)
+    _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)  # HTTP 201
+    _ = await wait_for_comm_task(evo, task_id, timeout=3)
+    status = await should_work(evo, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time
         pascal_case(SZ_MODE): ZoneMode.TEMPORARY_OVERRIDE,
         pascal_case(SZ_STATE): DhwState.ON,
         pascal_case(SZ_UNTIL_TIME): (dt.now() + td(hours=2)).strftime(API_STRFTIME),
     }
-    _ = await should_work(client, HTTPMethod.PUT, PUT_URL, json=new_mode)
-    _ = await wait_for_comm_task(client, task_id)
-    status = await should_work(client, HTTPMethod.GET, GET_URL)
+    _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)
+    _ = await wait_for_comm_task(evo, task_id)
+    status = await should_work(evo, HTTPMethod.GET, GET_URL)
 
     #
     # PART 3: Restore the original mode
-    _ = await should_work(client, HTTPMethod.PUT, PUT_URL, json=old_mode)
-    _ = await wait_for_comm_task(client, task_id)
-    status = await should_work(client, HTTPMethod.GET, GET_URL)
+    _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=old_mode)
+    _ = await wait_for_comm_task(evo, task_id)
+    status = await should_work(evo, HTTPMethod.GET, GET_URL)
 
     assert status  # == old_status
 
@@ -200,7 +200,7 @@ async def _test_task_id(
         SZ_UNTIL_TIME: None,
     }
     _ = await should_fail(
-        client, HTTPMethod.PUT, PUT_URL, json=bad_mode, status=HTTPStatus.BAD_REQUEST
+        evo, HTTPMethod.PUT, PUT_URL, json=bad_mode, status=HTTPStatus.BAD_REQUEST
     )  #
     # x = [{
     #     "code": "InvalidInput", "message": """
@@ -220,12 +220,12 @@ async def _test_task_id(
     # PART 4B: Try 'bad' task_id values...
     url_tsk = "commTasks?commTaskId=ABC"
     _ = await should_fail(
-        client, HTTPMethod.GET, url_tsk, status=HTTPStatus.BAD_REQUEST
+        evo, HTTPMethod.GET, url_tsk, status=HTTPStatus.BAD_REQUEST
     )  # [{"code": "InvalidInput", "message": "Invalid Input."}]
 
     url_tsk = "commTasks?commTaskId=12345678"
     _ = await should_fail(
-        client, HTTPMethod.GET, url_tsk, status=HTTPStatus.NOT_FOUND
+        evo, HTTPMethod.GET, url_tsk, status=HTTPStatus.NOT_FOUND
     )  # [{"code": "CommTaskNotFound", "message": "Communication task not found."}]
 
     pass
@@ -242,5 +242,5 @@ async def test_task_id(
 
     try:
         await _test_task_id(*user_credentials, session)
-    except evo.AuthenticationFailed:
+    except evohome.AuthenticationFailed:
         pytest.skip("Unable to authenticate")

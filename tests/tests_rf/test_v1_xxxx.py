@@ -9,7 +9,7 @@ from http import HTTPMethod, HTTPStatus
 import pytest
 import pytest_asyncio
 
-import evohomeasync as evo
+import evohomeasync as evohome
 from evohomeasync.broker import URL_HOST
 
 # FIXME: need v1 schemas
@@ -57,7 +57,7 @@ async def instantiate_client(
     global _global_user_data
 
     # Instantiation, NOTE: No API calls invoked during instantiation
-    client = evo.EvohomeClient(
+    evo = evohome.EvohomeClient(
         username,
         password,
         session=session,
@@ -65,14 +65,14 @@ async def instantiate_client(
     )
 
     # Authentication
-    await client._populate_user_data()
-    _global_user_data = client.broker.session_id
+    await evo._populate_user_data()
+    _global_user_data = evo.broker.session_id
 
-    return client
+    return evo
 
 
 async def should_work(  # type: ignore[no-any-unimported]
-    client: evo.EvohomeClient,
+    evo: evohome.EvohomeClient,
     method: HTTPMethod,
     url: str,
     json: dict | None = None,
@@ -83,7 +83,7 @@ async def should_work(  # type: ignore[no-any-unimported]
 
     response: aiohttp.ClientResponse
 
-    response = await client._do_request(method, f"{URL_BASE}/{url}", data=json)
+    response = await evo._do_request(method, f"{URL_BASE}/{url}", data=json)
 
     response.raise_for_status()
 
@@ -100,7 +100,7 @@ async def should_work(  # type: ignore[no-any-unimported]
 
 
 async def should_fail(
-    client: evo.EvohomeClient,
+    evo: evohome.EvohomeClient,
     method: HTTPMethod,
     url: str,
     json: dict | None = None,
@@ -111,7 +111,7 @@ async def should_fail(
 
     response: aiohttp.ClientResponse
 
-    response = await client._do_request(method, f"{URL_BASE}/{url}", data=json)
+    response = await evo._do_request(method, f"{URL_BASE}/{url}", data=json)
 
     try:
         response.raise_for_status()
@@ -141,29 +141,29 @@ async def should_fail(
 async def _test_url_locations(
     username: str, password: str, session: aiohttp.ClientSession | None = None
 ) -> None:
-    client = await instantiate_client(username, password, session=session)
+    evo = await instantiate_client(username, password, session=session)
 
-    client._headers["sessionId"] = client.user_info["sessionId"]
-    user_id: int = client.user_info["userInfo"]["userID"]
+    evo._headers["sessionId"] = evo.user_info["sessionId"]
+    user_id: int = evo.user_info["userInfo"]["userID"]
 
     url = f"/locations?userId={user_id}&allData=True"
-    _ = await should_work(client, HTTPMethod.GET, url)
+    _ = await should_work(evo, HTTPMethod.GET, url)
     _ = await should_fail(
-        client, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
+        evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
 
     url = f"/locations?userId={user_id}"
-    _ = await should_work(client, HTTPMethod.GET, url)
+    _ = await should_work(evo, HTTPMethod.GET, url)
 
     url = "/locations?userId=123456"
-    _ = await should_fail(client, HTTPMethod.GET, url)
+    _ = await should_fail(evo, HTTPMethod.GET, url)
 
     url = "/locations?userId='123456'"
-    _ = await should_fail(client, HTTPMethod.GET, url)
+    _ = await should_fail(evo, HTTPMethod.GET, url)
 
     url = "xxxxxxx"  # NOTE: is a general test, and not a test specific to this URL
     _ = await should_fail(
-        client,
+        evo,
         HTTPMethod.GET,
         url,
         status=HTTPStatus.NOT_FOUND,
@@ -181,22 +181,22 @@ async def _test_client_apis(
     global _global_user_data
 
     # Instantiation, NOTE: No API calls invoked during instantiation
-    client = evo.EvohomeClient(
+    evo = evohome.EvohomeClient(
         username,
         password,
         session=session,
         session_id=_global_user_data,
     )
 
-    user_data = await client._populate_user_data()
-    assert user_data  # aka client.user_data
+    user_data = await evo._populate_user_data()
+    assert user_data  # aka evo.user_data
 
-    _global_user_data = client.user_info
+    _global_user_data = evo.user_info
 
-    await client._populate_locn_data()
-    _global_user_data = client.broker.session_id
+    await evo._populate_locn_data()
+    _global_user_data = evo.broker.session_id
 
-    temps = await client.get_temperatures()
+    temps = await evo.get_temperatures()
     assert temps
 
 
@@ -211,7 +211,7 @@ async def _test_locations(
 
     try:
         await _test_url_locations(*user_credentials, session=session)
-    except evo.AuthenticationFailed:
+    except evohome.AuthenticationFailed:
         pytest.skip("Unable to authenticate")
 
 
@@ -226,7 +226,7 @@ async def test_client_apis(
 
     try:
         await _test_client_apis(*user_credentials, session=session)
-    except evo.AuthenticationFailed:
+    except evohome.AuthenticationFailed:
         pytest.skip("Unable to authenticate")
 
 
