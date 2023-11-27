@@ -138,23 +138,21 @@ def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
     """Download the schedule of a zone (e.g. "00") or DHW ("HW")."""
 
     async def get_schedules(evo: EvohomeClient, loc_idx: int | None) -> None:
-        await evo.login()
+        try:
+            await evo.login()
 
-        tcs: ControlSystem = _get_tcs(evo, loc_idx)
-        schedules = await tcs._get_schedules()
+            tcs: ControlSystem = _get_tcs(evo, loc_idx)
+            schedules = await tcs._get_schedules()
+
+        finally:  # FIXME: EvohomeClient should do this...
+            assert evo.broker._session is not None  # mypy hint
+            await evo.broker._session.close()  # FIXME
 
         filename.write(json.dumps(schedules, indent=4))
 
-        assert evo.broker._session is not None  # mypy hint
-        await evo.broker._session.close()  # FIXME
-
     print("\r\nclient.py: Starting backup...")
 
-    evo: EvohomeClient = ctx.obj[SZ_EVO]
-    try:
-        asyncio.run(get_schedules(evo, loc_idx))
-    finally:
-        asyncio.run(evo.broker._session.close())
+    asyncio.run(get_schedules(ctx.obj[SZ_EVO], loc_idx))
 
     print(" - finished.\r\n")
 
@@ -174,26 +172,22 @@ def set_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
     """Upload a schedule for a zone (e.g. "00") or DHW ("HW")."""
 
     async def set_schedules(evo: EvohomeClient, loc_idx: int | None) -> bool:
-        await evo.login()
-
-        tcs: ControlSystem = _get_tcs(evo, loc_idx)
         schedules = json.loads(filename.read())
 
-        success = await tcs._set_schedules(schedules)
+        try:
+            await evo.login()
 
-        assert evo.broker._session is not None  # mypy hint
-        await evo.broker._session.close()  # FIXME
+            tcs: ControlSystem = _get_tcs(evo, loc_idx)
+            success = await tcs._set_schedules(schedules)
+
+        finally:  # FIXME: EvohomeClient should do this...
+            assert evo.broker._session is not None  # mypy hint
+            await evo.broker._session.close()
 
         return success
 
     print("\r\nclient.py: Starting restore...")
-
-    evo: EvohomeClient = ctx.obj[SZ_EVO]
-    try:
-        asyncio.run(set_schedules(ctx.obj[SZ_EVO], loc_idx))
-    finally:
-        asyncio.run(evo.broker._session.close())
-
+    asyncio.run(set_schedules(ctx.obj[SZ_EVO], loc_idx))
     print(" - finished.\r\n")
 
 
