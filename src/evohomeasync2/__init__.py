@@ -182,7 +182,7 @@ def set_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
 
         finally:  # FIXME: EvohomeClient should do this...
             assert evo.broker._session is not None  # mypy hint
-            await evo.broker._session.close()
+            await evo.broker._session.close()  # FIXME
 
         return success
 
