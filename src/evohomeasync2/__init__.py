@@ -35,7 +35,7 @@ from .hotwater import HotWater  # noqa: F401
 from .location import Location  # noqa: F401
 from .zone import Zone  # noqa: F401
 
-__version__ = "0.4.11"
+__version__ = "0.4.12"
 
 
 # debug flags should be False for end-users
