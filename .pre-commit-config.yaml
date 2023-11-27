@@ -3,7 +3,7 @@
 
 # files: ^(src.*/.+)?[^/]+\.py$
 # files: ^.|^src/|^tests/
-exclude: ^.secrets/
+exclude: (^.secrets/|^docs/)
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
