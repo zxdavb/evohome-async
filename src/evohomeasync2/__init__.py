@@ -38,7 +38,7 @@ from .zone import Zone  # noqa: F401
 __version__ = "0.4.11"
 
 
-# debug flags shoudl be False for end-users
+# debug flags should be False for end-users
 _DEBUG_CLI = False  # for debugging of CLI (*before* loading library)
 
 DEBUG_ADDR = "0.0.0.0"
@@ -138,7 +138,6 @@ def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
     """Download the schedule of a zone (e.g. "00") or DHW ("HW")."""
 
     async def get_schedules(evo: EvohomeClient, loc_idx: int | None) -> None:
-        evo = ctx.obj[SZ_EVO]
         await evo.login()
 
         tcs: ControlSystem = _get_tcs(evo, loc_idx)
@@ -150,7 +149,13 @@ def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
         await evo.broker._session.close()  # FIXME
 
     print("\r\nclient.py: Starting backup...")
-    asyncio.run(get_schedules(ctx.obj[SZ_EVO], loc_idx))
+
+    evo: EvohomeClient = ctx.obj[SZ_EVO]
+    try:
+        asyncio.run(get_schedules(evo, loc_idx))
+    finally:
+        asyncio.run(evo.broker._session.close())
+
     print(" - finished.\r\n")
 
 
@@ -169,7 +174,6 @@ def set_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
     """Upload a schedule for a zone (e.g. "00") or DHW ("HW")."""
 
     async def set_schedules(evo: EvohomeClient, loc_idx: int | None) -> bool:
-        evo = ctx.obj[SZ_EVO]
         await evo.login()
 
         tcs: ControlSystem = _get_tcs(evo, loc_idx)
@@ -183,7 +187,13 @@ def set_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
         return success
 
     print("\r\nclient.py: Starting restore...")
-    asyncio.run(set_schedules(ctx.obj[SZ_EVO], loc_idx))
+
+    evo: EvohomeClient = ctx.obj[SZ_EVO]
+    try:
+        asyncio.run(set_schedules(ctx.obj[SZ_EVO], loc_idx))
+    finally:
+        asyncio.run(evo.broker._session.close())
+
     print(" - finished.\r\n")
 
 
