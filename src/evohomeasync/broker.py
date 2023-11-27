@@ -11,11 +11,7 @@ from typing import Any, Final, TypeAlias
 
 import aiohttp
 
-from .exceptions import (
-    AuthenticationFailed,
-    RateLimitExceeded,
-    RequestFailed,
-)
+from . import exceptions as exc
 
 _SessionIdT: TypeAlias = str
 _UserIdT: TypeAlias = int
@@ -189,10 +185,10 @@ class Broker:
         try:
             response = await self._make_request(func, url, data=data)
 
-        except aiohttp.ClientError as exc:
+        except aiohttp.ClientError as err:
             if method == HTTPMethod.POST:  # using response will cause UnboundLocalError
-                raise AuthenticationFailed(str(exc)) from exc
-            raise RequestFailed(str(exc)) from exc
+                raise exc.AuthenticationFailed(str(err)) from err
+            raise exc.RequestFailed(str(err)) from err
 
         try:
             response.raise_for_status()
@@ -201,18 +197,18 @@ class Broker:
         # POST,    /session, 429, [{code: TooManyRequests, message: Request count limitation exceeded...}]
         # GET/PUT  /???????, 401, [{code: Unauthorized,    message: Unauthorized}]
 
-        except aiohttp.ClientResponseError as exc:
+        except aiohttp.ClientResponseError as err:
             if response.method == HTTPMethod.POST:  # POST only used when authenticating
-                raise AuthenticationFailed(
-                    str(exc), status=exc.status
-                ) from exc  # could be TOO_MANY_REQUESTS
+                raise exc.AuthenticationFailed(
+                    str(err), status=err.status
+                ) from err  # could be TOO_MANY_REQUESTS
             if response.status != HTTPStatus.TOO_MANY_REQUESTS:
-                raise RateLimitExceeded(str(exc), status=exc.status) from exc
-            raise RequestFailed(str(exc), status=exc.status) from exc
+                raise exc.RateLimitExceeded(str(err), status=err.status) from err
+            raise exc.RequestFailed(str(err), status=err.status) from err
 
-        except aiohttp.ClientError as exc:
+        except aiohttp.ClientError as err:
             if response.method == HTTPMethod.POST:  # POST only used when authenticating
-                raise AuthenticationFailed(str(exc)) from exc
-            raise RequestFailed(str(exc)) from exc
+                raise exc.AuthenticationFailed(str(err)) from err
+            raise exc.RequestFailed(str(err)) from err
 
         return response

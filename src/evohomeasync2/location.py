@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from .exceptions import DeprecationError, InvalidSchema
+from . import exceptions as exc
 from .gateway import Gateway
 from .schema import SCH_LOCN_STATUS
 from .schema.const import (
@@ -39,7 +39,9 @@ class _LocationDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     async def status(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError("Location.status() is deprecated, use .refresh_status()")
+        raise exc.DeprecationError(
+            "Location.status() is deprecated, use .refresh_status()"
+        )
 
 
 class Location(_LocationDeprecated):
@@ -58,8 +60,8 @@ class Location(_LocationDeprecated):
 
         try:
             assert self.locationId, "Invalid config dict"
-        except AssertionError as exc:
-            raise InvalidSchema(str(exc)) from exc
+        except AssertionError as err:
+            raise exc.InvalidSchema(str(err)) from err
         self._id = self.locationId
 
         self._gateways: list[Gateway] = []

@@ -36,6 +36,12 @@ from .helpers import (  # aiohttp may be mocked
 _global_oauth_tokens: tuple[str, str, dt] = None, None, None
 
 
+@pytest.fixture(autouse=True)
+def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("evohomeasync2.broker.aiohttp", aiohttp)
+    monkeypatch.setattr("evohomeasync2.client.aiohttp", aiohttp)
+
+
 @pytest.fixture()
 def user_credentials():
     return _user_credentials()
@@ -48,11 +54,6 @@ async def session():
         yield client_session
     finally:
         await client_session.close()
-
-
-@pytest.fixture(autouse=True)
-def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("evohomeasync2.broker.aiohttp", aiohttp)
 
 
 async def instantiate_client(

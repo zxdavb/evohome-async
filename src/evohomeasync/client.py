@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING, NoReturn
 
 import aiohttp
 
+from . import exceptions as exc
 from .broker import Broker, _LocnDataT, _SessionIdT, _UserDataT, _UserInfoT
-from .exceptions import DeprecationError, InvalidSchema
 
 if TYPE_CHECKING:
     from .schema import (
@@ -36,30 +36,30 @@ class EvohomeClientDeprecated:
 
     @property
     def user_data(self) -> _UserDataT | None:
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.user_data is deprecated, use .user_info"
             " (session_id is now .broker.session_id)"
         )
 
     @property
     def full_data(self) -> _UserDataT | None:
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.full_data is deprecated, use .location_data"
         )
 
     @property
     def headers(self) -> str:
-        raise DeprecationError("EvohomeClient.headers is deprecated")
+        raise exc.DeprecationError("EvohomeClient.headers is deprecated")
 
     @property
     def hostname(self) -> str:
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.hostanme is deprecated, use .broker.hostname"
         )
 
     @property
     def postdata(self) -> str:
-        raise DeprecationError("EvohomeClient.postdata is deprecated")
+        raise exc.DeprecationError("EvohomeClient.postdata is deprecated")
 
     async def _wait_for_put_task(self, response: aiohttp.ClientResponse) -> None:
         """This functionality is deprecated, but remains here as documentation."""
@@ -93,48 +93,48 @@ class EvohomeClientDeprecated:
         raise NotImplementedError
 
     async def get_system_modes(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.get_modes() is deprecated, "
             "use .get_system_modes() or .get_zone_modes()"
         )
 
     async def set_status_away(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_away() is deprecated, use .set_mode_away()"
         )
 
     async def set_status_custom(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_custom() is deprecated, use .set_mode_custom()"
         )
 
     async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_dayoff() is deprecated, use .set_mode_dayoff()"
         )
 
     async def set_status_eco(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_eco() is deprecated, use .set_mode_eco()"
         )
 
     async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_heatingoff() is deprecated, use .set_mode_heatingoff()"
         )
 
     async def set_status_normal(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
         )
 
     async def temperatures(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.temperatures() is deprecated, use .get_temperatures()"
         )
 
     async def cancel_temp_override(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.cancel_temp_override() is deprecated, use .set_zone_auto()"
         )
 
@@ -277,8 +277,8 @@ class EvohomeClient(EvohomeClientDeprecated):
                 )
 
         # harden code against unexpected schema (JSON structure)
-        except (LookupError, TypeError, ValueError) as exc:
-            raise InvalidSchema(str(exc)) from exc
+        except (LookupError, TypeError, ValueError) as err:
+            raise exc.InvalidSchema(str(err)) from err
         return result
 
     async def get_system_modes(self) -> NoReturn:
@@ -343,10 +343,12 @@ class EvohomeClient(EvohomeClientDeprecated):
             device = self.named_devices.get(id_or_name)  # type: ignore[assignment]
 
         if device is None:
-            raise InvalidSchema(f"No zone {id_or_name} in location {self.location_id}")
+            raise exc.InvalidSchema(
+                f"No zone {id_or_name} in location {self.location_id}"
+            )
 
         if (model := device["thermostatModelType"]) != "EMEA_ZONE":
-            raise InvalidSchema(f"Zone {id_or_name} is not an EMEA_ZONE: {model}")
+            raise exc.InvalidSchema(f"Zone {id_or_name} is not an EMEA_ZONE: {model}")
 
         assert device is not None  # mypy check
 
@@ -415,7 +417,7 @@ class EvohomeClient(EvohomeClientDeprecated):
                 ret: _DeviceDictT = device
                 return ret
 
-        raise InvalidSchema(f"No DHW in location {self.location_id}")
+        raise exc.InvalidSchema(f"No DHW in location {self.location_id}")
 
     async def _set_dhw(
         self,

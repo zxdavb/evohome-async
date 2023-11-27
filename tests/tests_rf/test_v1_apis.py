@@ -31,6 +31,12 @@ _LOGGER = logging.getLogger(__name__)
 _global_user_data: str = None  # session_id
 
 
+@pytest.fixture(autouse=True)
+def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("evohomeasync.broker.aiohttp", aiohttp)
+    monkeypatch.setattr("evohomeasync.client.aiohttp", aiohttp)
+
+
 @pytest.fixture()
 def user_credentials():
     return _user_credentials()
@@ -43,11 +49,6 @@ async def session():
         yield client_session
     finally:
         await client_session.close()
-
-
-@pytest.fixture(autouse=True)
-def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("evohomeasync.client.aiohttp", aiohttp)
 
 
 async def instantiate_client(

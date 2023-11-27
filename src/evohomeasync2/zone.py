@@ -13,10 +13,8 @@ from datetime import datetime as dt
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final, NoReturn
 
-import aiohttp
-
+from . import exceptions as exc
 from .const import API_STRFTIME, ZoneMode
-from .exceptions import DeprecationError, InvalidSchedule, InvalidSchema
 from .schema import SCH_ZONE_STATUS
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
@@ -60,10 +58,10 @@ class _ZoneBaseDeprecated:
 
     @property
     def zone_type(self) -> NoReturn:
-        raise DeprecationError("ZoneBase.zone_type is deprecated, use .TYPE")
+        raise exc.DeprecationError("ZoneBase.zone_type is deprecated, use .TYPE")
 
     async def schedule(self) -> NoReturn:
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "_ZoneBase.schedule() is deprecrated, use .get_schedule()"
         )
 
@@ -135,11 +133,11 @@ class _ZoneBase(_ZoneBaseDeprecated):
             schedule: _EvoDictT = await self._broker.get(
                 f"{self.TYPE}/{self._id}/schedule", schema=self.SCH_SCHEDULE_GET
             )  # type: ignore[assignment]
-        except aiohttp.ClientResponseError as exc:
-            if exc.status == HTTPStatus.BAD_REQUEST:
-                raise InvalidSchedule("No Schedule / Schedule is missing") from exc
+        except exc.RequestFailed as err:
+            if err.status == HTTPStatus.BAD_REQUEST:
+                raise exc.InvalidSchedule("No Schedule / Schedule is invalid") from err
             else:
-                raise InvalidSchedule("Unexpected error") from exc
+                raise exc.InvalidSchedule("Unexpected error") from err
 
         self._schedule = convert_to_put_schedule(schedule)
         return self._schedule
@@ -152,17 +150,17 @@ class _ZoneBase(_ZoneBaseDeprecated):
         if isinstance(schedule, dict):
             try:
                 json.dumps(schedule)
-            except (OverflowError, TypeError, ValueError) as exc:
-                raise InvalidSchedule(f"Invalid schedule: {exc}") from exc
+            except (OverflowError, TypeError, ValueError) as err:
+                raise exc.InvalidSchedule(f"Invalid schedule: {err}") from err
 
         elif isinstance(schedule, str):
             try:
                 schedule = json.loads(schedule)
-            except json.JSONDecodeError as exc:
-                raise InvalidSchedule(f"Invalid schedule: {exc}") from exc
+            except json.JSONDecodeError as err:
+                raise exc.InvalidSchedule(f"Invalid schedule: {err}") from err
 
         else:
-            raise InvalidSchedule(f"Invalid schedule type: {type(schedule)}")
+            raise exc.InvalidSchedule(f"Invalid schedule type: {type(schedule)}")
 
         assert isinstance(schedule, dict)  # mypy check
 
@@ -179,7 +177,7 @@ class _ZoneDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     async def cancel_temp_override(self) -> None:
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "Zone.cancel_temp_override() is deprecrated, use .reset_mode()"
         )
 
@@ -200,8 +198,8 @@ class Zone(_ZoneDeprecated, _ZoneBase):
 
         try:
             assert self.zoneId, "Invalid config dict"
-        except AssertionError as exc:
-            raise InvalidSchema(str(exc)) from exc
+        except AssertionError as err:
+            raise exc.InvalidSchema(str(err)) from err
         self._id = self.zoneId
 
     @property

@@ -12,13 +12,8 @@ import json
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final, NoReturn
 
+from . import exceptions as exc
 from .const import API_STRFTIME, SystemMode
-from .exceptions import (
-    DeprecationError,
-    InvalidParameter,
-    InvalidSchedule,
-    InvalidSchema,
-)
 from .hotwater import HotWater
 from .schema import SCH_TCS_STATUS
 from .schema.const import (
@@ -68,52 +63,52 @@ class _ControlSystemDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     async def set_status_reset(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "ControlSystem.set_status_reset() is deprecrated, use .reset_mode()"
         )
 
     async def set_status(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "ControlSystem.set_status() is deprecrated, use .set_mode()"
         )
 
     async def set_status_normal(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "ControlSystem.set_status_normal() is deprecrated, use .set_auto()"
         )
 
     async def set_status_away(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "ControlSystem.set_status_away() is deprecrated, use .set_away()"
         )
 
     async def set_status_custom(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "ControlSystem.set_status_custom() is deprecrated, use .set_custom()"
         )
 
     async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "ControlSystem.set_status_dayoff() is deprecrated, use .set_dayoff()"
         )
 
     async def set_status_eco(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "ControlSystem.set_status_eco() is deprecrated, use .set_eco()"
         )
 
     async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "ControlSystem.set_status_heatingoff() is deprecrated, use .set_heatingoff()"
         )
 
     async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "TCS.zone_schedules_backup() is deprecated, use .backup_schedules()"
         )
 
     async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "TCS.zone_schedules_restore() is deprecated, use .restore_schedules()"
         )
 
@@ -138,8 +133,8 @@ class ControlSystem(_ControlSystemDeprecated):
 
         try:
             assert self.systemId, "Invalid config dict"
-        except AssertionError as exc:
-            raise InvalidSchema(str(exc)) from exc
+        except AssertionError as err:
+            raise exc.InvalidSchema(str(err)) from err
         self._id = self.systemId
 
         self._zones: list[Zone] = []
@@ -210,7 +205,7 @@ class ControlSystem(_ControlSystemDeprecated):
         request: _EvoDictT
 
         if mode not in [m[SZ_SYSTEM_MODE] for m in self.allowedSystemModes]:
-            raise InvalidParameter(f"Unsupported/unknown mode: {mode}")
+            raise exc.InvalidParameter(f"Unsupported/unknown mode: {mode}")
 
         if until is None:
             request = {
@@ -304,7 +299,7 @@ class ControlSystem(_ControlSystemDeprecated):
         async def get_schedule(child: HotWater | Zone) -> _ScheduleT:
             try:
                 return await child.get_schedule()
-            except InvalidSchedule:
+            except exc.InvalidSchedule:
                 self._logger.warning(
                     f"Ignoring schedule of {child._id} ({child.name}): missing/invalid"
                 )

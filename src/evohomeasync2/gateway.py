@@ -6,8 +6,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
+from . import exceptions as exc
 from .controlsystem import ControlSystem
-from .exceptions import InvalidSchema
 from .schema.const import (
     SZ_GATEWAY,
     SZ_GATEWAY_ID,
@@ -42,8 +42,8 @@ class Gateway:
 
         try:
             assert self.gatewayId, "Invalid config dict"
-        except AssertionError as exc:
-            raise InvalidSchema(str(exc)) from exc
+        except AssertionError as err:
+            raise exc.InvalidSchema(str(err)) from err
         self._id = self.gatewayId
 
         self._control_systems: list[ControlSystem] = []

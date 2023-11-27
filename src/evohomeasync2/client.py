@@ -11,9 +11,9 @@ from typing import TYPE_CHECKING, NoReturn
 
 import aiohttp
 
+from . import exceptions as exc
 from .broker import Broker
 from .controlsystem import ControlSystem
-from .exceptions import AuthenticationFailed, DeprecationError, NoSingleTcsError
 from .location import Location
 from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
 
@@ -41,55 +41,55 @@ class EvohomeClientDeprecated:
         #     location_id = self.installation_info[0]["locationInfo"]["locationId"]
         # url = f"location/{location_id}/installationInfo?"  # Specific location
 
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.full_installation() is deprecated, use .installation()"
         )
 
     async def gateway(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError("EvohomeClient.gateway() is deprecated")
+        raise exc.DeprecationError("EvohomeClient.gateway() is deprecated")
 
     async def set_status_away(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_away() is deprecated, use .set_mode_away()"
         )
 
     async def set_status_custom(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_custom() is deprecated, use .set_mode_custom()"
         )
 
     async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_dayoff() is deprecated, use .set_mode_dayoff()"
         )
 
     async def set_status_eco(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_eco() is deprecated, use .set_mode_eco()"
         )
 
     async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_heatingoff() is deprecated, use .set_mode_heatingoff()"
         )
 
     async def set_status_normal(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
         )
 
     async def set_status_reset(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.set_status_reset() is deprecated, use .reset_mode()"
         )
 
     async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.zone_schedules_backup() is deprecated, use .backup_schedules()"
         )
 
     async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "EvohomeClient.zone_schedules_restore() is deprecated, use .restore_schedules()"
         )
 
@@ -165,8 +165,8 @@ class EvohomeClient(EvohomeClientDeprecated):
         try:  # the cached access_token may be valid, but is not authorized
             await self.user_account()
 
-        except AuthenticationFailed as exc:
-            if exc.status != HTTPStatus.UNAUTHORIZED or not self.access_token:
+        except exc.AuthenticationFailed as err:
+            if err.status != HTTPStatus.UNAUTHORIZED or not self.access_token:
                 raise
 
             _LOGGER.warning("Unauthorized access_token (will try re-authenticating).")
@@ -256,17 +256,17 @@ class EvohomeClient(EvohomeClientDeprecated):
         """
 
         if not self.locations or len(self.locations) != 1:
-            raise NoSingleTcsError(
+            raise exc.NoSingleTcsError(
                 "There is not a single location (only) for this account"
             )
 
         if len(self.locations[0]._gateways) != 1:
-            raise NoSingleTcsError(
+            raise exc.NoSingleTcsError(
                 "There is not a single gateway (only) for this account/location"
             )
 
         if len(self.locations[0]._gateways[0]._control_systems) != 1:
-            raise NoSingleTcsError(
+            raise exc.NoSingleTcsError(
                 "There is not a single TCS (only) for this account/location/gateway"
             )
 

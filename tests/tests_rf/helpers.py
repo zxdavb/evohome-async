@@ -14,7 +14,8 @@ import evohomeasync2 as evohome
 from evohomeasync2.const import URL_BASE
 from evohomeasync2.schema import vol  # type: ignore[import-untyped]
 
-from . import _DEBUG_USE_REAL_AIOHTTP, _DISABLE_STRICT_ASSERTS, mocked_server as mock
+from . import _DEBUG_USE_REAL_AIOHTTP, _DISABLE_STRICT_ASSERTS
+from .mocked_server import MockedServer
 
 if _DEBUG_USE_REAL_AIOHTTP:
     import aiohttp
@@ -35,7 +36,7 @@ def user_credentials():
 def client_session():
     if _DEBUG_USE_REAL_AIOHTTP:
         return aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
-    return aiohttp.ClientSession(mocked_server=mock.MockedServer(None, None))
+    return aiohttp.ClientSession(mocked_server=MockedServer(None, None))
 
 
 def extract_oauth_tokens(evo: evohome.EvohomeClient):

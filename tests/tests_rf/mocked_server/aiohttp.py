@@ -10,17 +10,16 @@ from enum import EnumCheck, StrEnum, verify
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Final, Self
 
-from .vendor import MockedServer
-
 if TYPE_CHECKING:
     from .const import _bodyT, _methodT, _statusT, _urlT
+    from .vendor import MockedServer
 
 
 _DEFAULT_LIMIT = 2**16  # 64 KiB
 
 
 @verify(EnumCheck.UNIQUE)
-class hdrs(StrEnum):  # from aiohttp
+class hdrs(StrEnum):  # a la aiohttp
     METH_GET: Final[str] = "GET"
     METH_POST: Final[str] = "POST"
     METH_PUT: Final[str] = "PUT"

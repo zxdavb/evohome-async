@@ -10,8 +10,8 @@ from __future__ import annotations
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final, NoReturn
 
+from . import exceptions as exc
 from .const import API_STRFTIME
-from .exceptions import DeprecationError, InvalidSchema
 from .schema import SCH_DHW_STATUS
 from .schema.const import (
     SZ_ALLOWED_MODES,
@@ -39,23 +39,27 @@ class HotWaterDeprecated:
 
     @property
     def zoneId(self) -> NoReturn:
-        raise DeprecationError("HotWater.zoneId is deprecated, use .dhwId (or ._id)")
+        raise exc.DeprecationError(
+            "HotWater.zoneId is deprecated, use .dhwId (or ._id)"
+        )
 
     async def get_dhw_state(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "HotWater.get_dhw_state() is deprecated, use Location.refresh_status()"
         )
 
     async def set_dhw_auto(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError(
+        raise exc.DeprecationError(
             "HotWater.set_dhw_auto() is deprecated, use .reset_mode()"
         )
 
     async def set_dhw_off(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError("HotWater.set_dhw_off() is deprecated, use .set_off()")
+        raise exc.DeprecationError(
+            "HotWater.set_dhw_off() is deprecated, use .set_off()"
+        )
 
     async def set_dhw_on(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise DeprecationError("HotWater.set_dhw_on() is deprecated, use .set_on()")
+        raise exc.DeprecationError("HotWater.set_dhw_on() is deprecated, use .set_on()")
 
 
 class HotWater(HotWaterDeprecated, _ZoneBase):
@@ -74,8 +78,8 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
 
         try:
             assert self.dhwId, "Invalid config dict"
-        except AssertionError as exc:
-            raise InvalidSchema(str(exc)) from exc
+        except AssertionError as err:
+            raise exc.DeprecationError(str(err)) from err
         self._id = self.dhwId
 
     @property

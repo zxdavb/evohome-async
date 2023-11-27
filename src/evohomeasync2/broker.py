@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
+from . import exceptions as exc
 from .const import (
     AUTH_HEADER,
     AUTH_HEADER_ACCEPT,
@@ -18,10 +19,6 @@ from .const import (
     CREDS_REFRESH_TOKEN,
     CREDS_USER_PASSWORD,
     URL_BASE,
-)
-from .exceptions import (
-    AuthenticationFailed,
-    RequestFailed,
 )
 from .schema import vol  # voluptuous
 from .schema.account import (
@@ -163,8 +160,8 @@ class Broker:
             try:
                 await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)  # type: ignore[operator]
 
-            except AuthenticationFailed as exc:
-                if exc.status != HTTPStatus.BAD_REQUEST:  # e.g. invalid tokens
+            except exc.AuthenticationFailed as err:
+                if err.status != HTTPStatus.BAD_REQUEST:  # e.g. invalid tokens
                     raise
 
                 self._logger.warning(
@@ -195,19 +192,19 @@ class Broker:
             )
             response.raise_for_status()
 
-        except aiohttp.ClientResponseError as exc:
-            if hint := _ERR_MSG_LOOKUP_AUTH.get(exc.status):
-                raise AuthenticationFailed(hint, status=exc.status) from exc
-            raise AuthenticationFailed(str(exc), status=exc.status) from exc
+        except aiohttp.ClientResponseError as err:
+            if hint := _ERR_MSG_LOOKUP_AUTH.get(err.status):
+                raise exc.AuthenticationFailed(hint, status=err.status) from err
+            raise exc.AuthenticationFailed(str(err), status=err.status) from err
 
-        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise AuthenticationFailed(str(exc)) from exc
+        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+            raise exc.AuthenticationFailed(str(err)) from err
 
         try:  # the access token _should_ be valid...
             _ = SCH_OAUTH_TOKEN(content)  # can't use result, due to obsfucated values
-        except vol.Invalid as exc:
+        except vol.Invalid as err:
             self._logger.warning(
-                f"Response may be invalid (bad schema): POST {AUTH_URL}: {exc}"
+                f"Response may be invalid (bad schema): POST {AUTH_URL}: {err}"
             )
 
         try:
@@ -217,8 +214,10 @@ class Broker:
             )
             self.refresh_token = content[SZ_REFRESH_TOKEN]  # type: ignore[assignment]
 
-        except (KeyError, TypeError) as exc:
-            raise AuthenticationFailed(f"Invalid response from server: {exc}") from exc
+        except (KeyError, TypeError) as err:
+            raise exc.AuthenticationFailed(
+                f"Invalid response from server: {err}"
+            ) from err
 
     async def get(self, url: str, schema: vol.Schema | None = None) -> _EvoSchemaT:  # type: ignore[no-any-unimported]
         """"""
@@ -232,20 +231,20 @@ class Broker:
             )
             response.raise_for_status()
 
-        except aiohttp.ClientResponseError as exc:
-            if hint := _ERR_MSG_LOOKUP_BASE.get(exc.status):
-                raise RequestFailed(hint, status=exc.status) from exc
-            raise RequestFailed(str(exc), status=exc.status) from exc
+        except aiohttp.ClientResponseError as err:
+            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
+                raise exc.RequestFailed(hint, status=err.status) from err
+            raise exc.RequestFailed(str(err), status=err.status) from err
 
-        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise RequestFailed(str(exc)) from exc
+        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+            raise exc.RequestFailed(str(err)) from err
 
         if schema:
             try:
                 content = schema(content)
-            except vol.Invalid as exc:
+            except vol.Invalid as err:
                 self._logger.warning(
-                    f"Response may be invalid (bad schema): GET {url}: {exc}"
+                    f"Response may be invalid (bad schema): GET {url}: {err}"
                 )
 
         return content
@@ -261,9 +260,9 @@ class Broker:
         if schema:
             try:
                 _ = schema(json)
-            except vol.Invalid as exc:
+            except vol.Invalid as err:
                 self._logger.warning(
-                    f"JSON may be invalid (bad schema): PUT {url}: {exc}"
+                    f"JSON may be invalid (bad schema): PUT {url}: {err}"
                 )
 
         try:
@@ -274,12 +273,12 @@ class Broker:
             )
             response.raise_for_status()
 
-        except aiohttp.ClientResponseError as exc:
-            if hint := _ERR_MSG_LOOKUP_BASE.get(exc.status):
-                raise RequestFailed(hint, status=exc.status) from exc
-            raise RequestFailed(str(exc), status=exc.status) from exc
+        except aiohttp.ClientResponseError as err:
+            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
+                raise exc.RequestFailed(hint, status=err.status) from err
+            raise exc.RequestFailed(str(err), status=err.status) from err
 
-        except aiohttp.ClientError as exc:  # e.g. ClientConnectionError
-            raise RequestFailed(str(exc)) from exc
+        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+            raise exc.RequestFailed(str(err)) from err
 
         return content
