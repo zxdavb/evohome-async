@@ -1,6 +1,7 @@
 !.gitignore
 
 *.out
+*.tmp
 tokens*
 .secrets/
 .vscode/
