@@ -180,7 +180,7 @@ def cli(
 def get_schedule(
     ctx: click.Context, zone_id: str, loc_idx: int, filename: TextIOWrapper
 ) -> None:
-    """Download the schedule of a zone (e.g. "00") or DHW ("HW")."""
+    """Download the schedule of a zone of a TCS."""
 
     async def get_schedule(
         evo: EvohomeClient, zone_id: str, loc_idx: int | None
@@ -228,7 +228,7 @@ def get_schedule(
 )
 @click.pass_context
 def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
-    """Download the schedule of a zone (e.g. "00") or DHW ("HW")."""
+    """Download all the schedule from a TCS."""
 
     async def get_schedules(evo: EvohomeClient, loc_idx: int | None) -> None:
         try:
@@ -266,7 +266,7 @@ def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
 @click.option("--filename", "-f", type=click.File(), help="The input file.")
 @click.pass_context
 def set_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
-    """Upload a schedule for a zone (e.g. "00") or DHW ("HW")."""
+    """Upload schedules to a TCS."""
 
     async def set_schedules(evo: EvohomeClient, loc_idx: int | None) -> bool:
         schedules = json.loads(filename.read())
