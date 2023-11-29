@@ -3,9 +3,9 @@ evohome-async
 
 Python client to _asynchronously_ access the [Total Connect Comfort](https://international.mytotalconnectcomfort.com/Account/Login) RESTful API.
 
-It is intended to be a faithly port of https://github.com/watchforstock/evohome-client, but is async aware.  That is, it exposes a superset of the **evohome-client** schema (same namespace, same JSON), but there are some notable differences between the two (see below).
+It is intended to be a faithlful port of https://github.com/watchforstock/evohome-client, but async-aware.  That is, it exposes a superset of the **evohome-client** schema (same namespace, same JSON), but with some notable differences between the two (see below).
 
-It provides support for Honeywell/Resideo TCC-based systems, such as **Evohome**, **Round Thermostat** and **VisonPro** and others:
+It provides support for Honeywell/Resideo TCC-based systems, such as **Evohome**, **Round Thermostat**, **VisonPro** and others:
  - it supports _only_ EU/EMEA-based systems, please use [somecomfort](https://github.com/mkmer/AIOSomecomfort) for US-based systems
  - it provides Evohome support for Home Assistant (and other automation platforms), see https://www.home-assistant.io/integrations/evohome
 
