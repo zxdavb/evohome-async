@@ -9,7 +9,7 @@ It provides support for Honeywell/Resideo TCC-based systems, such as **Evohome**
  - it supports _only_ EU/EMEA-based systems, please use [somecomfort](https://github.com/mkmer/AIOSomecomfort) for US-based systems
  - it provides Evohome support for Home Assistant (and other automation platforms), see https://www.home-assistant.io/integrations/evohome
 
-This client requires the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead. 
+This client requires the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead.
 
 Please contact me (e.g. open an issue) if you would like to help extending the functionality of **evohome-async** to include cooling, as support for such is minimal currently.
 
@@ -24,7 +24,7 @@ python client.py -u username@gmail.com -p password get-schedules --loc-idx 2 > s
 python client.py -u username@gmail.com -p password set-schedules --loc-idx 2 -f schedules.json
 ```
 
-To avoid exceeding the vendor's API rate limit, you can cache the access tokens via the `--cache-tokens` switch. 
+To avoid exceeding the vendor's API rate limit, you can cache the access tokens via the `--cache-tokens` switch.
 
 > Beware that the above switch will save your tokens to **.evo-cache.tmp**: this presents a security concern.
 
