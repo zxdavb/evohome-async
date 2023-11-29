@@ -38,8 +38,8 @@ _global_oauth_tokens: tuple[str, str, dt] = None, None, None
 
 @pytest.fixture(autouse=True)
 def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("evohomeasync2.base.aiohttp", aiohttp)
     monkeypatch.setattr("evohomeasync2.broker.aiohttp", aiohttp)
-    monkeypatch.setattr("evohomeasync2.client.aiohttp", aiohttp)
 
 
 @pytest.fixture()

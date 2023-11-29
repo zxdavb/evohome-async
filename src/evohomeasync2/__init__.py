@@ -8,8 +8,8 @@ It is (largely) a faithful port of https://github.com/watchforstock/evohome-clie
 Further information at: https://evohome-client.readthedocs.io
 """
 
+from .base import EvohomeClient  # noqa: F401
 from .broker import Broker  # noqa: F401
-from .client import EvohomeClient  # noqa: F401
 from .controlsystem import ControlSystem  # noqa: F401
 from .exceptions import (  # noqa: F401
     AuthenticationFailed,

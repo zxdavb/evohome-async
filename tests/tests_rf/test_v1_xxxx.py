@@ -30,8 +30,8 @@ _global_user_data: dict | None = None
 
 @pytest.fixture(autouse=True)
 def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("evohomeasync.base.aiohttp", aiohttp)
     monkeypatch.setattr("evohomeasync.broker.aiohttp", aiohttp)
-    monkeypatch.setattr("evohomeasync.client.aiohttp", aiohttp)
 
 
 @pytest.fixture()

@@ -2,325 +2,305 @@
 # -*- coding: utf-8 -*-
 #
 """evohomeasync2 provides an async client for the *updated* Evohome API."""
-from __future__ import annotations
 
+import asyncio
+import json
 import logging
+import os
+import sys
 from datetime import datetime as dt
-from http import HTTPStatus
-from typing import TYPE_CHECKING, NoReturn
+from io import TextIOWrapper
 
-import aiohttp
+import click
 
-from . import exceptions as exc
-from .broker import Broker
-from .controlsystem import ControlSystem
-from .location import Location
-from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
+from . import HotWater, Zone
+from .base import EvohomeClient
+from .controlsystem import SZ_NAME, SZ_SCHEDULE, ControlSystem
+from .schema.account import (
+    SZ_ACCESS_TOKEN,
+    SZ_ACCESS_TOKEN_EXPIRES,
+    SZ_REFRESH_TOKEN,
+)
 
-if TYPE_CHECKING:
-    from .schema import (
-        _EvoDictT,
-        _EvoListT,
-        _EvoSchemaT,
-        _FilePathT,
-        _LocationIdT,
-        _SystemIdT,
-    )
+# debug flags should be False for end-users
+_DEBUG_CLI = False  # for debugging of CLI (*before* loading library)
+
+DEBUG_ADDR = "0.0.0.0"
+DEBUG_PORT = 5679
+
+SZ_CACHE_TOKENS = "cache_tokens"
+SZ_EVO = "evo"
+SZ_USERNAME = "username"
+
+TOKEN_FILE = ".evo-cache.tmp"
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class EvohomeClientDeprecated:
-    """Deprecated attributes and methods removed from the evohome-client namespace."""
+def _start_debugging(wait_for_client: bool) -> None:
+    import debugpy  # type: ignore[import-untyped]
 
-    async def full_installation(
-        self, location_id: None | _LocationIdT = None
-    ) -> NoReturn:
-        # if location_id is None:
-        #     location_id = self.installation_info[0]["locationInfo"]["locationId"]
-        # url = f"location/{location_id}/installationInfo?"  # Specific location
+    debugpy.listen(address=(DEBUG_ADDR, DEBUG_PORT))
+    print(f" - Debugging is enabled, listening on: {DEBUG_ADDR}:{DEBUG_PORT}")
 
-        raise exc.DeprecationError(
-            "EvohomeClient.full_installation() is deprecated, use .installation()"
+    if wait_for_client:
+        print("   - execution paused, waiting for debugger to attach...")
+        debugpy.wait_for_client()
+        print("   - debugger is now attached, continuing execution.")
+
+
+if _DEBUG_CLI:
+    _start_debugging(True)
+
+
+def _check_zone_id(ctx: click.Context, param: click.Option, value: str) -> str:
+    """Validate the zone_idx argument is "00" to "11", or "HW"."""
+
+    return value
+
+    # if value.upper() == "HW":
+    #     return "HW"
+
+    # if not value.isdigit() or int(value) not in range(0, 12):
+    #     raise click.BadParameter("must be '00' to '11', or 'HW'")
+
+    # return f"{int(value):02X}"
+
+
+def _check_positive_int(ctx: click.Context, param: click.Option, value: int) -> int:
+    """Validate the parameter is a positive int."""
+
+    if value < 0:
+        raise click.BadParameter("must >= 0")
+
+    return value
+
+
+def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
+    """Get the ControlSystem object for the specified location idx."""
+
+    if loc_idx is None:
+        return evo._get_single_tcs()
+
+    return evo.locations[int(loc_idx)]._gateways[0]._control_systems[0]
+
+
+def _dump_tokens(evo: EvohomeClient) -> None:
+    """Dump the tokens to a cache (temporary file)."""
+
+    if evo.access_token_expires:
+        expires = evo.access_token_expires.isoformat()
+    else:
+        expires = None
+
+    with open(TOKEN_FILE, "w") as fp:
+        json.dump(
+            {
+                # SZ_USERNAME: evo.username,
+                SZ_REFRESH_TOKEN: evo.refresh_token,
+                SZ_ACCESS_TOKEN: evo.access_token,
+                SZ_ACCESS_TOKEN_EXPIRES: expires,
+            },
+            fp,
         )
 
-    async def gateway(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError("EvohomeClient.gateway() is deprecated")
-
-    async def set_status_away(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            "EvohomeClient.set_status_away() is deprecated, use .set_mode_away()"
-        )
-
-    async def set_status_custom(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            "EvohomeClient.set_status_custom() is deprecated, use .set_mode_custom()"
-        )
-
-    async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            "EvohomeClient.set_status_dayoff() is deprecated, use .set_mode_dayoff()"
-        )
-
-    async def set_status_eco(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            "EvohomeClient.set_status_eco() is deprecated, use .set_mode_eco()"
-        )
-
-    async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            "EvohomeClient.set_status_heatingoff() is deprecated, use .set_mode_heatingoff()"
-        )
-
-    async def set_status_normal(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
-        )
-
-    async def set_status_reset(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            "EvohomeClient.set_status_reset() is deprecated, use .reset_mode()"
-        )
-
-    async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            "EvohomeClient.zone_schedules_backup() is deprecated, use .backup_schedules()"
-        )
-
-    async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            "EvohomeClient.zone_schedules_restore() is deprecated, use .restore_schedules()"
-        )
+    _LOGGER.warning("Access tokens cached to: %s", TOKEN_FILE)
 
 
-class EvohomeClient(EvohomeClientDeprecated):
-    """Provide a client to access the Honeywell TCC API."""
+def _load_tokens() -> dict[str, dt | str]:
+    """Load the tokens from a cache (temporary file)."""
 
-    _full_config: _EvoListT = None  # type: ignore[assignment]  # installation_info (all locations of user)
-    _user_account: _EvoDictT = None  # type: ignore[assignment]  # account_info
+    if not os.path.exists(TOKEN_FILE):
+        return {}
 
-    def __init__(
-        self,
-        username: str,
-        password: str,
-        /,
-        *,
-        refresh_token: str | None = None,
-        access_token: str | None = None,
-        access_token_expires: dt | None = None,
-        session: None | aiohttp.ClientSession = None,
-        debug: bool = False,
+    with open(TOKEN_FILE) as f:
+        tokens = json.load(f)
+
+    if SZ_ACCESS_TOKEN_EXPIRES not in tokens:
+        return tokens  # type: ignore[no-any-return]
+
+    if expires := tokens[SZ_ACCESS_TOKEN_EXPIRES]:
+        tokens[SZ_ACCESS_TOKEN_EXPIRES] = dt.fromisoformat(expires)
+
+    return tokens  # type: ignore[no-any-return]
+
+
+@click.group()
+@click.option("--username", "-u", required=True, help="The TCC account username.")
+@click.option("--password", "-p", required=True, help="The TCC account password.")
+@click.option("--cache-tokens", "-c", is_flag=True, help="Cache of/for access tokens.")
+@click.option("--debug", "-d", is_flag=True, help="Enable debug logging.")
+@click.pass_context
+def cli(
+    ctx: click.Context,
+    username: str,
+    password: str,
+    location: int | None = None,
+    cache_tokens: bool | None = None,
+    debug: bool | None = None,
+) -> None:
+    # if debug:  # Do first
+    #     _start_debugging(True)
+
+    logging.basicConfig(
+        level=logging.DEBUG if debug else logging.WARNING,
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        stream=sys.stdout,
+    )
+
+    ctx.obj = ctx.obj or {}  # may be None
+    ctx.obj[SZ_CACHE_TOKENS] = cache_tokens
+
+    tokens = _load_tokens() if cache_tokens else {}
+
+    ctx.obj[SZ_EVO] = EvohomeClient(
+        username,
+        password,
+        debug=bool(debug),
+        **tokens,  # type: ignore[arg-type]
+    )
+
+
+@cli.command()
+@click.argument("zone_id", callback=_check_zone_id, type=str)
+@click.option(  # --loc-idx
+    "--loc-idx",
+    "-l",
+    callback=_check_positive_int,
+    default=0,
+    type=int,
+    help="The location idx.",
+)
+@click.option(  # --filename
+    "--filename", "-f", type=click.File("w"), default="-", help="The output file."
+)
+@click.pass_context
+def get_schedule(
+    ctx: click.Context, zone_id: str, loc_idx: int, filename: TextIOWrapper
+) -> None:
+    """Download the schedule of a zone of a TCS."""
+
+    async def get_schedule(
+        evo: EvohomeClient, zone_id: str, loc_idx: int | None
     ) -> None:
-        """Construct the v2 EvohomeClient object.
+        try:
+            await evo.login()
 
-        If access/refresh tokens are provided they will be used to avoid calling the
-        authentication service, which is known to be rate limited.
-        """
+            tcs: ControlSystem = _get_tcs(evo, loc_idx)
+            child: HotWater | Zone = tcs.zones_by_id[zone_id]
 
-        if debug:
-            _LOGGER.setLevel(logging.DEBUG)
-            _LOGGER.debug("Debug mode is explicitly enabled.")
+            schedule = await child.get_schedule()
 
-        self._logger = _LOGGER
+        finally:  # FIXME: EvohomeClient should do this...
+            assert evo.broker._session is not None  # mypy hint
+            await evo.broker._session.close()  # FIXME
 
-        self.broker = Broker(
-            username,
-            password,
-            _LOGGER,
-            refresh_token=refresh_token,
-            access_token=access_token,
-            access_token_expires=access_token_expires,
-            session=session,
-        )
+        schedules = {
+            child._id: {SZ_NAME: child.name, SZ_SCHEDULE: schedule},
+        }
 
-        self.locations: list[Location] = []
+        filename.write(json.dumps(schedules, indent=4))
+        filename.write("\r\n\r\n")
 
-    @property
-    def username(self) -> str:  # TODO: deprecate? or use config JSON?
-        return self.broker._credentials["Username"]
+    print("\r\nclient.py: Starting backup...")
+    evo = ctx.obj[SZ_EVO]
 
-    @property
-    def password(self) -> str:  # TODO: deprecate
-        return self.broker._credentials["Password"]
+    asyncio.run(get_schedule(evo, zone_id, loc_idx))
 
-    @property
-    def refresh_token(self) -> str | None:  # TODO: deprecate
-        return self.broker.refresh_token
+    if ctx.obj[SZ_CACHE_TOKENS]:
+        _dump_tokens(evo)
+    print(" - finished.\r\n")
 
-    @property
-    def access_token(self) -> str | None:  # TODO: deprecate
-        return self.broker.access_token
 
-    @property
-    def access_token_expires(self) -> dt | None:  # TODO: deprecate
-        return self.broker.access_token_expires
+@cli.command()
+@click.option(  # --loc-idx
+    "--loc-idx",
+    "-l",
+    callback=_check_positive_int,
+    default=0,
+    type=int,
+    help="The location idx.",
+)
+@click.option(  # --filename
+    "--filename", "-f", type=click.File("w"), default="-", help="The output file."
+)
+@click.pass_context
+def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
+    """Download all the schedule from a TCS."""
 
-    async def login(self) -> None:
-        """Retrieve the user account and installation details.
+    async def get_schedules(evo: EvohomeClient, loc_idx: int | None) -> None:
+        try:
+            await evo.login()
 
-        Will authenticate as required.
-        """
+            tcs: ControlSystem = _get_tcs(evo, loc_idx)
+            schedules = await tcs._get_schedules()
 
-        try:  # the cached access_token may be valid, but is not authorized
-            await self.user_account()
+        finally:  # FIXME: EvohomeClient should do this...
+            assert evo.broker._session is not None  # mypy hint
+            await evo.broker._session.close()  # FIXME
 
-        except exc.AuthenticationFailed as err:
-            if err.status != HTTPStatus.UNAUTHORIZED or not self.access_token:
-                raise
+        filename.write(json.dumps(schedules, indent=4))
+        filename.write("\r\n\r\n")
 
-            _LOGGER.warning("Unauthorized access_token (will try re-authenticating).")
-            self.broker.access_token = None  # FIXME: this is a hack
-            await self.user_account(force_update=True)
+    print("\r\nclient.py: Starting backup...")
+    evo = ctx.obj[SZ_EVO]
 
-        await self.installation()
+    asyncio.run(get_schedules(evo, loc_idx))
 
-    @property  # user_account
-    def account_info(self) -> _EvoSchemaT:  # from original evohomeclient namespace
-        """Return the information of the user account."""
-        return self._user_account
+    if ctx.obj[SZ_CACHE_TOKENS]:
+        _dump_tokens(evo)
+    print(" - finished.\r\n")
 
-    async def user_account(self, force_update: bool = False) -> _EvoDictT:
-        """Return the user account information.
 
-        If required/forced, retrieve that data from the vendor's API.
-        """
+@cli.command()
+@click.option(  # --loc-idx
+    "--loc-idx",
+    "-l",
+    callback=_check_positive_int,
+    default=0,
+    type=int,
+    help="The location idx.",
+)
+@click.option("--filename", "-f", type=click.File(), help="The input file.")
+@click.pass_context
+def set_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
+    """Upload schedules to a TCS."""
 
-        # There is usually no need to refresh this data (it is config, not state)
-        if self._user_account and not force_update:
-            return self._user_account
+    async def set_schedules(evo: EvohomeClient, loc_idx: int | None) -> bool:
+        schedules = json.loads(filename.read())
 
-        # this code should really be in broker somewhere
-        if not self.broker._session:
-            self.broker._session = aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=30)
-            )
+        try:
+            await evo.login()
 
-        self._user_account = await self.broker.get(
-            "userAccount", schema=SCH_USER_ACCOUNT
-        )  # type: ignore[assignment]
+            tcs: ControlSystem = _get_tcs(evo, loc_idx)
+            success = await tcs._set_schedules(schedules)
 
-        return self._user_account
+        finally:  # FIXME: EvohomeClient should do this...
+            assert evo.broker._session is not None  # mypy hint
+            await evo.broker._session.close()  # FIXME
 
-    @property  # full_config (all locations of user)
-    def installation_info(self) -> _EvoListT:  # from original evohomeclient namespace
-        """Return the installation info (config) of all the user's locations."""
-        return self._full_config
+        return success
 
-    async def installation(self, force_update: bool = False) -> _EvoListT:
-        """Return the configuration of the user's locations their status.
+    print("\r\nclient.py: Starting restore...")
+    evo = ctx.obj[SZ_EVO]
 
-        If required/forced, retrieve that data from the vendor's API.
-        Note that the force_update flag will create new location entities (it includes
-        `self.locations = []`).
-        """
+    asyncio.run(set_schedules(evo, loc_idx))
 
-        # There is usually no need to refresh this data (it is config, not state)
-        if self._full_config and not force_update:
-            return self._full_config
+    if ctx.obj[SZ_CACHE_TOKENS]:
+        _dump_tokens(evo)
+    print(" - finished.\r\n")
 
-        return await self._installation()  # aka self.installation_info
 
-    async def _installation(self, refresh_status: bool = True) -> _EvoListT:
-        """Return the configuration of the user's locations their status.
+def main() -> None:
+    try:
+        cli(obj={})  # default for ctx.obj is None
 
-        The refresh_status flag is used for dev/test to disable retreiving the initial
-        status of each location (and its child entities).
-        """
+    except click.ClickException as exc:
+        print(f"Error: {exc}")
+        sys.exit(-1)
 
-        assert isinstance(self.account_info, dict)  # mypy
 
-        # FIXME: shouldn't really be starting again with new objects?
-        self.locations = []  # for now, need to clear this before GET
-
-        url = f"location/installationInfo?userId={self.account_info['userId']}"
-        url += "&includeTemperatureControlSystems=True"
-
-        self._full_config = await self.broker.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
-
-        # populate each freshly instantiated location with its initial status
-        loc_config: _EvoDictT
-
-        for loc_config in self._full_config:
-            loc = Location(self, loc_config)
-            self.locations.append(loc)
-            if refresh_status:
-                await loc.refresh_status()
-
-        return self._full_config
-
-    def _get_single_tcs(self) -> ControlSystem:
-        """If there is a single location/gateway/TCS, return it, or raise an exception.
-
-        Most users will have only one TCS.
-        """
-
-        if not self.locations or len(self.locations) != 1:
-            raise exc.NoSingleTcsError(
-                "There is not a single location (only) for this account"
-            )
-
-        if len(self.locations[0]._gateways) != 1:
-            raise exc.NoSingleTcsError(
-                "There is not a single gateway (only) for this account/location"
-            )
-
-        if len(self.locations[0]._gateways[0]._control_systems) != 1:
-            raise exc.NoSingleTcsError(
-                "There is not a single TCS (only) for this account/location/gateway"
-            )
-
-        return self.locations[0]._gateways[0]._control_systems[0]
-
-    @property
-    def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?
-        """Return the ID of the 'default' TCS (assumes only one loc/gwy/TCS)."""
-        return self._get_single_tcs().systemId
-
-    async def reset_mode(self) -> None:
-        """Reset the mode of the default TCS and its zones."""
-        await self._get_single_tcs().reset_mode()
-
-    async def set_mode_auto(self) -> None:
-        """Set the default TCS into auto mode."""
-        await self._get_single_tcs().set_auto()
-
-    async def set_mode_away(self, /, *, until: dt | None = None) -> None:
-        """Set the default TCS into away mode."""
-        await self._get_single_tcs().set_away(until=until)
-
-    async def set_mode_custom(self, /, *, until: dt | None = None) -> None:
-        """Set the default TCS into custom mode."""
-        await self._get_single_tcs().set_custom(until=until)
-
-    async def set_mode_dayoff(self, /, *, until: dt | None = None) -> None:
-        """Set the default TCS into day off mode."""
-        await self._get_single_tcs().set_dayoff(until=until)
-
-    async def set_mode_eco(self, /, *, until: dt | None = None) -> None:
-        """Set the default TCS into eco mode."""
-        await self._get_single_tcs().set_eco(until=until)
-
-    async def set_mode_heatingoff(self, /, *, until: dt | None = None) -> None:
-        """Set the default TCS into heating off mode."""
-        await self._get_single_tcs().set_heatingoff(until=until)
-
-    async def temperatures(self) -> _EvoListT:
-        """Return the current temperatures and setpoints of the default TCS."""
-        return await self._get_single_tcs().temperatures()
-
-    async def backup_schedules(self, filename: _FilePathT) -> None:
-        """Backup all schedules from the default control system to the file."""
-        await self._get_single_tcs().backup_schedules(filename)
-
-    async def restore_schedules(
-        self, filename: _FilePathT, match_by_name: bool = False
-    ) -> None:
-        """Restore all schedules from the file to the control system.
-
-        There is the option to match schedules to their zone/dhw by name rather than id.
-        """
-
-        await self._get_single_tcs().restore_schedules(
-            filename, match_by_name=match_by_name
-        )
+if __name__ == "__main__":
+    main()

@@ -9,7 +9,7 @@ Further information at: https://evohome-client.readthedocs.io
 """
 from __future__ import annotations
 
-from .client import EvohomeClient  # noqa: F401
+from .base import EvohomeClient  # noqa: F401
 from .exceptions import (  # noqa: F401
     AuthenticationFailed,
     EvohomeError,

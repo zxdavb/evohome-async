@@ -4,8 +4,9 @@
 #
 [project]
   name = "evohome-async"
-  dynamic = ["readme", "version"]
+  dynamic = ["version"]
   description = "An async client for connecting to Honeywell's TCC RESTful API."
+  readme = "README.md"
   authors = [
     {name = "David Bonnes", email = "zxdavb@bonnes.me"},
     {name = "Andrew Stock", email = "evohome@andrew-stock.com"},
@@ -18,12 +19,18 @@
     "voluptuous>=0.13.1",
   ]
   requires-python = ">=3.11"
-  license = {file = "LICENSE"}
+  license = "Apache-2.0"
 
-  keywords = ["evohome", "honeywell", "resideo", "round thermostat", "tcc"]
+  keywords = [
+    "evohome", "honeywell", "resideo", "round thermostat", "tcc", "vision pro"
+  ]
   classifiers = [
     "Topic :: Home Automation",
   ]
+
+#
+[project.scripts]
+  evo-client = "evohomeasync2.client:main"
 
 #
 [project.urls]
