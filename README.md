@@ -20,6 +20,10 @@ python client.py -u username@gmail.com -p password get-schedules --loc-idx 2 > s
 python client.py -u username@gmail.com -p password set-schedules --loc-idx 2 -f schedules.json
 ```
 
+To avoid exceeding teh vendor's API rate limit, you can cache the access tokens via the `--cache-tokens` switch. 
+
+> Beware that the above switch will save your tokens to **.evo-cache.tmp**: this presents a security concern.
+
 ### Differences from non-async version
 The non-async documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
 
