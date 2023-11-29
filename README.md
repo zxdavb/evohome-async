@@ -3,11 +3,13 @@ evohome-async
 
 Python client to _asynchronously_ access the [Total Connect Comfort](https://international.mytotalconnectcomfort.com/Account/Login) RESTful API.
 
-It is largely a faithful port of https://github.com/watchforstock/evohome-client, which is not async-aware.  That is, it exposes the same schema (same namespace, same JSON). Some additional functionality has been added (e.g. restore schedules by name, as an alternative to by id).
+It is intended to be a faithly port of https://github.com/watchforstock/evohome-client, but is async aware.  That is, it exposes a superset of the **evohome-client** schema (same namespace, same JSON), but there are some notable differences between the two (see below).
 
-It provides support for **Evohome**, the **Round Thermostat** and some others. It supports only EU/EMEA-based systems, please use [somecomfort](https://github.com/mkmer/AIOSomecomfort) for US-based systems.
+It provides support for Honeywell/Resideo TCC-based systems, such as **Evohome**, **Round Thermostat** and **VisonPro** and others:
+ - it supports _only_ EU/EMEA-based systems, please use [somecomfort](https://github.com/mkmer/AIOSomecomfort) for US-based systems
+ - it provides Evohome support for Home Assistant (and other automation platforms), see https://www.home-assistant.io/integrations/evohome
 
-This client uses the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead. It provides Evohome support for Home Assistant (and other automation platforms), see https://www.home-assistant.io/integrations/evohome
+This client requires the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead. 
 
 ### CLI for schedules
 
@@ -20,20 +22,22 @@ python client.py -u username@gmail.com -p password get-schedules --loc-idx 2 > s
 python client.py -u username@gmail.com -p password set-schedules --loc-idx 2 -f schedules.json
 ```
 
-To avoid exceeding teh vendor's API rate limit, you can cache the access tokens via the `--cache-tokens` switch. 
+To avoid exceeding the vendor's API rate limit, you can cache the access tokens via the `--cache-tokens` switch. 
 
 > Beware that the above switch will save your tokens to **.evo-cache.tmp**: this presents a security concern.
 
 ### Differences from non-async version
 The non-async documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
 
-Note that this library is not able to expose more functionality than it's non-async cousin, other than asyncio (they both use the same vendor API).
+Note that this library is not able to expose more core functionality than it's non-async cousin, other than asyncio (they both use the same vendor API).
 
 The difference between the **evohomeasync** and **evohomeclient** libraries have been kept to the minimum, and it is planned for exisiting docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
 
 Currently, only `evohomeclient2` has been fully tested, and `evohomeclient` (the older API) is a WIP has not been fully tested.
 
 ### Technical differences
+Some additional functionality has been added (e.g. restore schedules by name, as an alternative to by id). Note that since **0.4.0**, some attributes have been renamed, and a few have been deprecated altogether (when required, an informative exception will be thrown).
+
 In both cases (`evohomeclient2` and `evohomeclient`):
  - uses **aiohttp** instead of **requests**:
  - most instantiation arguments (except for username, password) are now kwargs
