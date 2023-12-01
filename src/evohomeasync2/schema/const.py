@@ -194,7 +194,7 @@ class FaultType(StrEnum):
     DSCL_: Final[str] = "DHWSensorCommunicationLost"
     DSLB_: Final[str] = "DHWSensorLowBattery"  # extrapolated
     GCL__: Final[str] = "GatewayCommunicationLost"
-    # LB_: Final[str] = "GatewayLowBattery"  # extrapolated, or: ?temperatureControlSystemsLowBattery
+    # LB_: Final[str] = "temperatureControlSystemsLowBattery"  # extrapolated
     TZACL: Final[str] = "TempZoneActuatorCommunicationLost"
     TZALB: Final[str] = "TempZoneActuatorLowBattery"
     TZSCL: Final[str] = "TempZoneSensorCommunicationLost"
