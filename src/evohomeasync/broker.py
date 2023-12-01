@@ -96,7 +96,7 @@ class Broker:
         self._user_id = user_id
         self._session_id = self._headers["sessionId"] = session_id
 
-        _LOGGER.info(f"user_data = {self._user_data}")
+        self._logger.info(f"user_data = {self._user_data}")
         return self._user_data, response
 
     async def populate_full_data(self) -> list[_LocnDataT]:
@@ -111,7 +111,7 @@ class Broker:
 
         self._full_data: list[_LocnDataT] = await response.json()
 
-        _LOGGER.info(f"full_data = {self._full_data}\r\n")
+        self._logger.info(f"full_data = {self._full_data}\r\n")
         return self._full_data
 
     async def _make_request(

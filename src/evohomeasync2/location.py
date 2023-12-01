@@ -11,7 +11,6 @@ from .gateway import Gateway
 from .schema import SCH_LOCN_STATUS
 from .schema.const import (
     SZ_COUNTRY,
-    SZ_DHW,
     SZ_GATEWAY_ID,
     SZ_GATEWAYS,
     SZ_LOCATION,
@@ -20,18 +19,14 @@ from .schema.const import (
     SZ_LOCATION_OWNER,
     SZ_LOCATION_TYPE,
     SZ_NAME,
-    SZ_SYSTEM_ID,
-    SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TIME_ZONE,
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
-    SZ_ZONE_ID,
-    SZ_ZONES,
 )
 
 if TYPE_CHECKING:
     import logging
 
-    from . import Broker, ControlSystem, EvohomeClient
+    from . import Broker, EvohomeClient
     from .schema import _EvoDictT, _LocationIdT
 
 
@@ -122,23 +117,9 @@ class Location(_LocationDeprecated):
         self._update_status(status)
         return status
 
-    def _update_status(self, loc_status: _EvoDictT) -> None:
-        tcs: ControlSystem
-        gwy_status: _EvoDictT
-        dhw_status: _EvoDictT
-        tcs_status: _EvoDictT
-        zon_status: _EvoDictT
+    def _update_status(self, status: _EvoDictT) -> None:
+        self._status = status
 
-        for gwy_status in loc_status[SZ_GATEWAYS]:
+        for gwy_status in self._status[SZ_GATEWAYS]:
             gwy = self.gateways[gwy_status[SZ_GATEWAY_ID]]
             gwy._update_status(gwy_status)
-
-            for tcs_status in gwy_status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
-                tcs = gwy.control_systems[tcs_status[SZ_SYSTEM_ID]]
-                tcs._update_status(tcs_status)
-
-                if dhw_status := tcs_status.get(SZ_DHW):  # type: ignore[assignment]
-                    tcs.hotwater._update_status(dhw_status)  # type: ignore[union-attr]
-
-                for zon_status in tcs_status[SZ_ZONES]:
-                    tcs.zones_by_id[zon_status[SZ_ZONE_ID]]._update_status(zon_status)

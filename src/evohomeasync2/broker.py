@@ -4,6 +4,7 @@
 """evohomeasync2 provides an async client for the updated Evohome API."""
 from __future__ import annotations
 
+import logging
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any
@@ -29,9 +30,10 @@ from .schema.account import (
 )
 
 if TYPE_CHECKING:
-    import logging
-
     from .schema import _EvoDictT, _EvoListT, _EvoSchemaT
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 _ERR_MSG_LOOKUP_BOTH: dict[int, str] = {  # common to both OAUTH_URL & URL_BASE
@@ -75,7 +77,7 @@ class Broker:
             "Username": username,
             "Password": password,
         }  # NOTE: must be Uppercase keys
-        self._logger = logger or logging.getLogger(__name__)
+        self._logger = logger
 
         self.refresh_token = refresh_token
         self.access_token = access_token
@@ -114,15 +116,15 @@ class Broker:
         async with _session_method(url, **kwargs) as response:  # type: ignore[arg-type]
             if not response.content_length:
                 content = None
-                self._logger.info(f"{method} {url} ({response.status}) = {content}")
+                _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
 
             elif response.content_type == "application/json":
                 content = await response.json()
-                self._logger.info(f"{method} {url} ({response.status}) = {content}")
+                _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
 
             else:  # assume "text/plain" or "text/html"
                 content = await response.text()
-                self._logger.debug(f"{method} {url} ({response.status}) = {content}")
+                _LOGGER.debug(f"{method} {url} ({response.status}) = {content}")
 
             return response, content  # FIXME: is messy to return response
 
@@ -173,9 +175,9 @@ class Broker:
             self._logger.debug("Authenticating with username/password...")
             await self._obtain_access_token(CREDS_USER_PASSWORD | self._credentials)  # type: ignore[operator]
 
-        self._logger.debug(f"refresh_token = {self.refresh_token}")
-        self._logger.debug(f"access_token = {self.access_token}")
-        self._logger.debug(f"access_token_expires = {self.access_token_expires}")
+        _LOGGER.debug(f"refresh_token = {self.refresh_token}")
+        _LOGGER.debug(f"access_token = {self.access_token}")
+        _LOGGER.debug(f"access_token_expires = {self.access_token_expires}")
 
     async def _obtain_access_token(self, credentials: dict[str, int | str]) -> None:
         """Obtain an access token using either the refresh token or user credentials."""

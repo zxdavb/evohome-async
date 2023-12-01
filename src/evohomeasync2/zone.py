@@ -19,6 +19,7 @@ from .schema import SCH_ZONE_STATUS
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SETPOINT_MODES,
+    SZ_FAULT_TYPE,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_IS_AVAILABLE,
     SZ_MAX_HEAT_SETPOINT,
@@ -29,6 +30,7 @@ from .schema.const import (
     SZ_SETPOINT_CAPABILITIES,
     SZ_SETPOINT_MODE,
     SZ_SETPOINT_STATUS,
+    SZ_SINCE,
     SZ_TARGET_COOL_TEMPERATURE,
     SZ_TARGET_HEAT_TEMPERATURE,
     SZ_TEMPERATURE,
@@ -51,6 +53,13 @@ if TYPE_CHECKING:
 
     from . import Broker, ControlSystem
     from .schema import _EvoDictT, _EvoListT, _ZoneIdT
+
+
+def log_any_faults(name: str, logger: logging.Logger, status: _EvoDictT) -> None:
+    for fault in status[SZ_ACTIVE_FAULTS]:
+        logger.info(
+            f"Active fault: {name}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}",
+        )
 
 
 class _ZoneBaseDeprecated:
@@ -106,6 +115,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
 
     def _update_status(self, status: _EvoDictT) -> None:
         self._status = status
+        log_any_faults(f"{self._id} ({self.TYPE})", self._logger, status)
 
     @property
     def activeFaults(self) -> _EvoListT | None:

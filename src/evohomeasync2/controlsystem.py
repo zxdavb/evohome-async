@@ -31,9 +31,10 @@ from .schema.const import (
     SZ_TEMPERATURE,
     SZ_TEMPERATURE_CONTROL_SYSTEM,
     SZ_TIME_UNTIL,
+    SZ_ZONE_ID,
     SZ_ZONES,
 )
-from .zone import Zone
+from .zone import Zone, log_any_faults
 
 if TYPE_CHECKING:
     import logging
@@ -176,8 +177,15 @@ class ControlSystem(_ControlSystemDeprecated):
     async def _refresh_status(self) -> None:
         await self.location.refresh_status()
 
-    def _update_status(self, tcs_status: _EvoDictT) -> None:
-        self._status = tcs_status
+    def _update_status(self, status: _EvoDictT) -> None:
+        self._status = status
+        log_any_faults(f"{self._id} ({self.TYPE})", self._logger, status)
+
+        if dhw_status := self._status.get(SZ_DHW):
+            self.hotwater._update_status(dhw_status)  # type: ignore[union-attr]
+
+        for zon_status in self._status[SZ_ZONES]:
+            self.zones_by_id[zon_status[SZ_ZONE_ID]]._update_status(zon_status)
 
     @property
     def activeFaults(self) -> _EvoListT | None:

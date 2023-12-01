@@ -190,7 +190,11 @@ class FanMode(StrEnum):
 
 @verify(EnumCheck.UNIQUE)
 class FaultType(StrEnum):
+    # CL_: Final[str] = 'DHWActuatorCommunicationLost'  # extrapolated
+    DSCL_: Final[str] = "DHWSensorCommunicationLost"
+    DSLB_: Final[str] = "DHWSensorLowBattery"  # extrapolated
     GCL__: Final[str] = "GatewayCommunicationLost"
+    # LB_: Final[str] = "GatewayLowBattery"  # extrapolated, or: ?temperatureControlSystemsLowBattery
     TZACL: Final[str] = "TempZoneActuatorCommunicationLost"
     TZALB: Final[str] = "TempZoneActuatorLowBattery"
     TZSCL: Final[str] = "TempZoneSensorCommunicationLost"

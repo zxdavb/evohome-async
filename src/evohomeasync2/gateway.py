@@ -14,9 +14,11 @@ from .schema.const import (
     SZ_GATEWAY_INFO,
     SZ_IS_WI_FI,
     SZ_MAC,
+    SZ_SYSTEM_ID,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
 from .schema.status import SCH_GATEWAY
+from .zone import log_any_faults
 
 if TYPE_CHECKING:
     import logging
@@ -77,3 +79,8 @@ class Gateway:
 
     def _update_status(self, status: _EvoDictT) -> None:
         self._status = status
+        log_any_faults(f"{self._id} ({self.TYPE})", self._logger, status)
+
+        for tcs_status in self._status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+            tcs = self.control_systems[tcs_status[SZ_SYSTEM_ID]]
+            tcs._update_status(tcs_status)
