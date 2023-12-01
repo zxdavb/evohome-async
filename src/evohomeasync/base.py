@@ -14,6 +14,43 @@ import aiohttp
 
 from . import exceptions as exc
 from .broker import Broker, _LocnDataT, _SessionIdT, _UserDataT, _UserInfoT
+from .schema import (
+    SZ_ALLOWED_MODES,
+    SZ_AUTO,
+    SZ_AUTO_WITH_ECO,
+    SZ_AWAY,
+    SZ_CHANGEABLE_VALUES,
+    SZ_CUSTOM,
+    SZ_DAY_OFF,
+    SZ_DEVICE_ID,
+    SZ_DEVICES,
+    SZ_DHW_OFF,
+    SZ_DHW_ON,
+    SZ_DOMESTIC_HOT_WATER,
+    SZ_EMEA_ZONE,
+    SZ_HEAT_SETPOINT,
+    SZ_HEATING_OFF,
+    SZ_HOLD,
+    SZ_ID,
+    SZ_INDOOR_TEMPERATURE,
+    SZ_LOCATION_ID,
+    SZ_MODE,
+    SZ_NAME,
+    SZ_NEXT_TIME,
+    SZ_QUICK_ACTION,
+    SZ_QUICK_ACTION_NEXT_TIME,
+    SZ_SCHEDULED,
+    SZ_SESSION_ID,
+    SZ_SETPOINT,
+    SZ_STATE,
+    SZ_STATUS,
+    SZ_TEMP,
+    SZ_TEMPORARY,
+    SZ_THERMOSTAT,
+    SZ_THERMOSTAT_MODEL_TYPE,
+    SZ_USER_INFO,
+    SZ_VALUE,
+)
 
 if TYPE_CHECKING:
     from .schema import (
@@ -70,7 +107,7 @@ class EvohomeClientDeprecated:
             url = f"/commTasks?commTaskId={task_id}"
             response = await self._do_request(HTTPMethod.GET, url)
 
-            ret: str = dict(await response.json())["state"]
+            ret: str = dict(await response.json())[SZ_STATE]
             return ret
 
         task_id: _TaskIdT
@@ -78,7 +115,7 @@ class EvohomeClientDeprecated:
         assert response.method == HTTPMethod.PUT
 
         ret = await response.json()
-        task_id = ret[0]["id"] if isinstance(ret, list) else ret["id"]
+        task_id = ret[0][SZ_ID] if isinstance(ret, list) else ret[SZ_ID]
 
         # FIXME: could wait forvever?
         while await get_task_status(task_id) != "Succeeded":
@@ -147,7 +184,9 @@ class EvohomeClientDeprecated:
 class EvohomeClient(EvohomeClientDeprecated):
     """Provide a client to access the Honeywell TCC API (assumes a single TCS)."""
 
-    user_info: _UserInfoT  # user_data["UserInfo"] only (i.e. *without* "sessionID")
+    _LOC_IDX: int = 0  # the index of the location in the full_data list
+
+    user_info: _UserInfoT  # user_data[SZ_USER_INFO] only (i.e. *without* "sessionID")
     location_data: _LocnDataT  # of the first location (config and status) in list
 
     def __init__(
@@ -193,8 +232,8 @@ class EvohomeClient(EvohomeClientDeprecated):
         if not self.broker.session_id:
             return None
         return {
-            "sessionId": self.broker.session_id,
-            "userInfo": self.user_info,
+            SZ_SESSION_ID: self.broker.session_id,
+            SZ_USER_INFO: self.user_info,
         }
 
     # User methods...
@@ -209,7 +248,7 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         if not self.user_info or force_refresh:
             user_data = await self.broker.populate_user_data()
-            self.user_info = user_data["userInfo"]  # type: ignore[assignment]
+            self.user_info = user_data[SZ_USER_INFO]  # type: ignore[assignment]
 
         return self.user_info  # excludes session ID
 
@@ -231,12 +270,12 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         if not self.location_data or force_refresh:
             full_data = await self.broker.populate_full_data()
-            self.location_data = full_data[0]
+            self.location_data = full_data[self._LOC_IDX]
 
-            self.location_id = self.location_data["locationID"]
+            self.location_id = self.location_data[SZ_LOCATION_ID]
 
-            self.devices = {d["deviceID"]: d for d in self.location_data["devices"]}
-            self.named_devices = {d["name"]: d for d in self.location_data["devices"]}
+            self.devices = {d[SZ_DEVICE_ID]: d for d in self.location_data[SZ_DEVICES]}
+            self.named_devices = {d[SZ_NAME]: d for d in self.location_data[SZ_DEVICES]}
 
         return self.location_data
 
@@ -253,26 +292,26 @@ class EvohomeClient(EvohomeClientDeprecated):
         result = []
 
         try:
-            for device in self.location_data["devices"]:
-                temp = float(device["thermostat"]["indoorTemperature"])
-                values = device["thermostat"]["changeableValues"]
+            for device in self.location_data[SZ_DEVICES]:
+                temp = float(device[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE])
+                values = device[SZ_THERMOSTAT][SZ_CHANGEABLE_VALUES]
 
-                if "heatSetpoint" in values:
-                    set_point = float(values["heatSetpoint"]["value"])
-                    status = values["heatSetpoint"]["status"]
+                if SZ_HEAT_SETPOINT in values:
+                    set_point = float(values[SZ_HEAT_SETPOINT][SZ_VALUE])
+                    status = values[SZ_HEAT_SETPOINT][SZ_STATUS]
                 else:
                     set_point = 0
-                    status = values["status"]
+                    status = values[SZ_STATUS]
 
                 result.append(
                     {
-                        "thermostat": device["thermostatModelType"],
-                        "id": device["deviceID"],
-                        "name": device["name"],
-                        "temp": None if temp == 128 else temp,
-                        "setpoint": set_point,
-                        "status": status,
-                        "mode": values["mode"],
+                        SZ_THERMOSTAT: device[SZ_THERMOSTAT_MODEL_TYPE],
+                        SZ_ID: device[SZ_DEVICE_ID],
+                        SZ_NAME: device[SZ_NAME],
+                        SZ_TEMP: None if temp == 128 else temp,
+                        SZ_SETPOINT: set_point,
+                        SZ_STATUS: status,
+                        SZ_MODE: values[SZ_MODE],
                     }
                 )
 
@@ -293,36 +332,36 @@ class EvohomeClient(EvohomeClientDeprecated):
         # just want id, so retrieve the config data only if we don't already have it
         await self._populate_locn_data(force_refresh=False)  # get self.location_id
 
-        data = {"QuickAction": status}
+        data = {SZ_QUICK_ACTION: status}
         if until:
-            data |= {"QuickActionNextTime": until.strftime("%Y-%m-%dT%H:%M:%SZ")}
+            data |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
         url = f"/evoTouchSystems?locationId={self.location_id}"
         await self.broker.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_mode_auto(self) -> None:
         """Set the system to normal operation."""
-        await self._set_system_mode("Auto")
+        await self._set_system_mode(SZ_AUTO)
 
     async def set_mode_away(self, until: dt | None = None) -> None:
         """Set the system to the away mode."""
-        await self._set_system_mode("Away", until)
+        await self._set_system_mode(SZ_AWAY, until)
 
     async def set_mode_custom(self, until: dt | None = None) -> None:
         """Set the system to the custom programme."""
-        await self._set_system_mode("Custom", until)
+        await self._set_system_mode(SZ_CUSTOM, until)
 
     async def set_mode_dayoff(self, until: dt | None = None) -> None:
         """Set the system to the day off mode."""
-        await self._set_system_mode("DayOff", until)
+        await self._set_system_mode(SZ_DAY_OFF, until)
 
     async def set_mode_eco(self, until: dt | None = None) -> None:
         """Set the system to the eco mode."""
-        await self._set_system_mode("AutoWithEco", until)
+        await self._set_system_mode(SZ_AUTO_WITH_ECO, until)
 
     async def set_mode_heatingoff(self, until: dt | None = None) -> None:
         """Set the system to the heating off mode."""
-        await self._set_system_mode("HeatingOff", until)
+        await self._set_system_mode(SZ_HEATING_OFF, until)
 
     # Zone methods...
 
@@ -347,7 +386,7 @@ class EvohomeClient(EvohomeClientDeprecated):
                 f"No zone {id_or_name} in location {self.location_id}"
             )
 
-        if (model := device["thermostatModelType"]) != "EMEA_ZONE":
+        if (model := device[SZ_THERMOSTAT_MODEL_TYPE]) != SZ_EMEA_ZONE:
             raise exc.InvalidSchema(f"Zone {id_or_name} is not an EMEA_ZONE: {model}")
 
         assert device is not None  # mypy check
@@ -359,7 +398,7 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         device = await self._get_zone(zone)
 
-        ret: list[str] = device["thermostat"]["allowedModes"]
+        ret: list[str] = device[SZ_THERMOSTAT][SZ_ALLOWED_MODES]
         return ret
 
     async def _set_heat_setpoint(
@@ -371,15 +410,15 @@ class EvohomeClient(EvohomeClientDeprecated):
     ) -> None:
         """Set zone setpoint, either indefinitely, or until a set time."""
 
-        zone_id: _ZoneIdT = (await self._get_zone(zone))["deviceID"]
+        zone_id: _ZoneIdT = (await self._get_zone(zone))[SZ_DEVICE_ID]
 
         if next_time is None:
-            data = {"Status": "Hold", "Value": value}
+            data = {SZ_STATUS: SZ_HOLD, SZ_VALUE: value}
         else:
             data = {
-                "Status": status,
-                "Value": value,
-                "NextTime": next_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                SZ_STATUS: status,
+                SZ_VALUE: value,
+                SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
 
         url = f"/devices/{zone_id}/thermostat/changeableValues/heatSetpoint"
@@ -392,14 +431,14 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         if until:
             await self._set_heat_setpoint(
-                zone, "Temporary", value=temperature, next_time=until
+                zone, SZ_TEMPORARY, value=temperature, next_time=until
             )
         else:
-            await self._set_heat_setpoint(zone, "Hold", value=temperature)
+            await self._set_heat_setpoint(zone, SZ_HOLD, value=temperature)
 
     async def set_zone_auto(self, zone: _ZoneIdT | _ZoneNameT) -> None:
         """Set a zone to follow its schedule."""
-        await self._set_heat_setpoint(zone, status="Scheduled")
+        await self._set_heat_setpoint(zone, status=SZ_SCHEDULED)
 
     # DHW methods...
 
@@ -412,8 +451,8 @@ class EvohomeClient(EvohomeClientDeprecated):
         # just want id, so retrieve the config data only if we don't already have it
         await self._populate_locn_data(force_refresh=False)
 
-        for device in self.location_data["devices"]:
-            if device["thermostatModelType"] == "DOMESTIC_HOT_WATER":
+        for device in self.location_data[SZ_DEVICES]:
+            if device[SZ_THERMOSTAT_MODEL_TYPE] == SZ_DOMESTIC_HOT_WATER:
                 ret: _DeviceDictT = device
                 return ret
 
@@ -422,20 +461,23 @@ class EvohomeClient(EvohomeClientDeprecated):
     async def _set_dhw(
         self,
         status: str,  # "Scheduled" | "Hold"
-        mode: str | None = None,  # "DHWOn" | "DHWOff
+        mode: str | None = None,  # "DHWOn" | "DHWOff"
         next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
     ) -> None:
         """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
 
-        dhw_id: _DhwIdT = (await self._get_dhw())["deviceID"]
+        dhw_id: _DhwIdT = (await self._get_dhw())[SZ_DEVICE_ID]
 
         data = {
-            "Status": status,
-            "Mode": mode,  # "NextTime": None,
-            # "SpecialModes": None, "HeatSetpoint": None, "CoolSetpoint": None,
+            SZ_STATUS: status,
+            SZ_MODE: mode,
+            # SZ_NEXT_TIME: None,
+            # SZ_SPECIAL_TIMES: None,
+            # SZ_HEAT_SETPOINT: None,
+            # SZ_COOL_SETPOINT: None,
         }
         if next_time:
-            data |= {"NextTime": next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
+            data |= {SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
         url = f"/devices/{dhw_id}/thermostat/changeableValues"
         await self.broker.make_request(HTTPMethod.PUT, url, data=data)
@@ -448,7 +490,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         scheduled behaviour.
         """
 
-        await self._set_dhw(status="Hold", mode="DHWOn", next_time=until)
+        await self._set_dhw(status=SZ_HOLD, mode=SZ_DHW_ON, next_time=until)
 
     async def set_dhw_off(self, until: dt | None = None) -> None:
         """Set DHW to Off, either indefinitely, or until a specified time.
@@ -457,8 +499,8 @@ class EvohomeClient(EvohomeClientDeprecated):
         specified time, it will revert to its scheduled behaviour.
         """
 
-        await self._set_dhw(status="Hold", mode="DHWOff", next_time=until)
+        await self._set_dhw(status=SZ_HOLD, mode=SZ_DHW_OFF, next_time=until)
 
     async def set_dhw_auto(self) -> None:
         """Allow DHW to switch between On and Off, according to its schedule."""
-        await self._set_dhw(status="Scheduled")
+        await self._set_dhw(status=SZ_SCHEDULED)

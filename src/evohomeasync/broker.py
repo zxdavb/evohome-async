@@ -12,6 +12,11 @@ from typing import Any, Final, TypeAlias
 import aiohttp
 
 from . import exceptions as exc
+from .schema import (
+    SZ_SESSION_ID,
+    SZ_USER_ID,
+    SZ_USER_INFO,
+)
 
 _SessionIdT: TypeAlias = str
 _UserIdT: TypeAlias = int
@@ -90,11 +95,11 @@ class Broker:
 
         self._user_data: _UserDataT = await response.json()
 
-        user_id: _UserIdT = self._user_data["userInfo"]["userID"]  # type: ignore[assignment,index]
-        session_id: _SessionIdT = self._user_data["sessionId"]  # type: ignore[assignment]
+        user_id: _UserIdT = self._user_data[SZ_USER_INFO][SZ_USER_ID]  # type: ignore[assignment,index]
+        session_id: _SessionIdT = self._user_data[SZ_SESSION_ID]  # type: ignore[assignment]
 
         self._user_id = user_id
-        self._session_id = self._headers["sessionId"] = session_id
+        self._session_id = self._headers[SZ_SESSION_ID] = session_id
 
         self._logger.info(f"user_data = {self._user_data}")
         return self._user_data, response
@@ -142,7 +147,7 @@ class Broker:
             if response_json[0]["code"] != "Unauthorized":
                 return response
 
-            if "sessionId" not in self._headers:  # no value trying to re-authenticate
+            if SZ_SESSION_ID not in self._headers:  # no value trying to re-authenticate
                 return response  # ...because: the user credentials must be invalid
 
             _LOGGER.debug(f"Session now expired/invalid ({self._session_id})...")
@@ -152,7 +157,7 @@ class Broker:
             assert self._session_id is not None  # mypy hint
 
             _LOGGER.debug(f"... success: new sessionId = {self._session_id}\r\n")
-            self._headers["sessionId"] = self._session_id
+            self._headers[SZ_SESSION_ID] = self._session_id
 
             if "session" in url:  # retry not needed for /session
                 return response
