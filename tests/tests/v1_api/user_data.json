@@ -1,0 +1,22 @@
+{
+    "sessionId": "088744B1-29AF-4513-BB53-70978D8F4787",
+    "userInfo": {
+        "userID": 2263181,
+        "username": "username@gmail.com",
+        "firstname": "David",
+        "lastname": "Smith",
+        "streetAddress": "1 Main Road",
+        "city": "London",
+        "zipcode": "E1 1AA",
+        "country": "GB",
+        "telephone": "",
+        "userLanguage": "en-GB",
+        "isActivated": true,
+        "deviceCount": 0,
+        "tenantID": 5,
+        "securityQuestion1": "NotUsed",
+        "securityQuestion2": "NotUsed",
+        "securityQuestion3": "NotUsed",
+        "latestEulaAccepted": false
+    }
+}
