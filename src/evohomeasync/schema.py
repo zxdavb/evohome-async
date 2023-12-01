@@ -28,22 +28,26 @@ _SystemModeT: TypeAlias = str
 _TaskIdT: TypeAlias = str  # TODO: int or str?
 
 
-# schema keys
+SZ_SESSION_ID = "sessionId"  # id Id, not ID
+
+# schema keys (start with a lower case letter)
 SZ_ALLOWED_MODES = "allowedModes"
 SZ_CHANGEABLE_VALUES = "changeableValues"
 SZ_COOL_SETPOINT = "coolSetpoint"
-SZ_DEVICE_ID = "deviceID"
+SZ_DEVICE_ID = "deviceID"  # is ID, not Id
 SZ_DEVICES = "devices"
+SZ_DOMAIN_ID = "domainID"  # is ID, not Id
+SZ_GATEWAY_ID = "gatewayId"  # is Id, not ID
 SZ_HEAT_SETPOINT = "heatSetpoint"
-SZ_ID = "id"
+SZ_ID = "id"  # is id, not Id/ID
 SZ_INDOOR_TEMPERATURE = "indoorTemperature"
-SZ_LOCATION_ID = "locationID"
+SZ_LOCATION_ID = "locationID"  # is ID, not Id
+SZ_MAC_ID = "macID"  # is ID, not Id
 SZ_MODE = "mode"
 SZ_NAME = "name"
 SZ_NEXT_TIME = "NextTime"
 SZ_QUICK_ACTION = "QuickAction"
 SZ_QUICK_ACTION_NEXT_TIME = "QuickActionNextTime"
-SZ_SESSION_ID = "sessionId"
 SZ_SETPOINT = "setpoint"
 SZ_SPECIAL_MODES = "SpecialModes"
 SZ_STATE = "state"
@@ -51,11 +55,11 @@ SZ_STATUS = "status"
 SZ_TEMP = "temp"
 SZ_THERMOSTAT = "thermostat"
 SZ_THERMOSTAT_MODEL_TYPE = "thermostatModelType"
-SZ_USER_ID = "userID"
+SZ_USER_ID = "userID"  # is ID, not Id
 SZ_USER_INFO = "userInfo"
 SZ_VALUE = "value"
 
-# schema values
+# schema values (start with an upper case letter)
 SZ_AUTO = "Auto"
 SZ_AUTO_WITH_ECO = "AutoWithEco"
 SZ_AWAY = "Away"
@@ -72,3 +76,6 @@ SZ_EMEA_ZONE = "EMEA_ZONE"
 SZ_HOLD = "Hold"
 SZ_SCHEDULED = "Scheduled"
 SZ_TEMPORARY = "Temporary"
+#
+SZ_HEAT = "Heat"
+SZ_OFF = "Off"
