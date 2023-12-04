@@ -47,13 +47,16 @@ from .const import (
 )
 from .helpers import vol  # voluptuous
 
+# HACK: "2023-05-04T18:47:36.7727046" (7, not 6 digits) seen with gateway fault
+_DTM_FORMAT = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{1,7}$"
+
 SCH_ACTIVE_FAULT = vol.Schema(
     {
         vol.Required(SZ_FAULT_TYPE): vol.Any(*(m.value for m in FaultType)),
         vol.Required(SZ_SINCE): vol.Any(
             vol.Datetime(format="%Y-%m-%dT%H:%M:%S"),  # faults for zones
             vol.Datetime(format="%Y-%m-%dT%H:%M:%S.%f"),
-            str,  # HACK: "2023-05-04T18:47:36.7727046"  faults for gateways
+            vol.All(str, vol.Match(_DTM_FORMAT)),  # faults for gateways
         ),
     },
     extra=vol.PREVENT_EXTRA,
