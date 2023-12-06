@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
+from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
 from typing import Any, Final, TypeAlias
 
@@ -100,6 +101,7 @@ class Broker:
 
         self._user_id = user_id
         self._session_id = self._headers[SZ_SESSION_ID] = session_id
+        self._session_renewed = dt.now()
 
         self._logger.info(f"user_data = {self._user_data}")
         return self._user_data, response
@@ -147,8 +149,8 @@ class Broker:
             if response_json[0]["code"] != "Unauthorized":
                 return response
 
-            if SZ_SESSION_ID not in self._headers:  # no value trying to re-authenticate
-                return response  # ...because: the user credentials must be invalid
+            # if SZ_SESSION_ID not in self._headers:  # no value trying to re-authenticate
+            #     return response  # ...because: the user credentials must be invalid
 
             _LOGGER.debug(f"Session now expired/invalid ({self._session_id})...")
             self._headers = {"content-type": "application/json"}  # remove the sessionId
