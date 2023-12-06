@@ -76,7 +76,7 @@ class Broker:
         self._credentials = {
             "Username": username,
             "Password": password,
-        }  # NOTE: must be Uppercase keys
+        }  # TODO: these keys are only PascalCase (never camelCase?)
         self._logger = logger
 
         self.refresh_token = refresh_token
