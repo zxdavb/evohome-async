@@ -274,7 +274,7 @@ class EvohomeClient(EvohomeClientDeprecated):
 
     @property
     def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?
-        """Return the ID of the 'default' TCS (assumes only one loc/gwy/TCS)."""
+        """Return the ID of the default TCS (assumes only one loc/gwy/TCS)."""
         return self._get_single_tcs().systemId
 
     async def reset_mode(self) -> None:
@@ -310,7 +310,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         return await self._get_single_tcs().temperatures()
 
     async def backup_schedules(self, filename: _FilePathT) -> None:
-        """Backup all schedules from the default control system to the file."""
+        """Backup all schedules from the default TCS to the file."""
         await self._get_single_tcs().backup_schedules(filename)
 
     async def restore_schedules(
