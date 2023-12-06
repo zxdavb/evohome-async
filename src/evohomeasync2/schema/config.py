@@ -25,6 +25,7 @@ from .const import (
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
     SZ_DISPLAY_NAME,
+    SZ_DURATION,
     SZ_FAN_MODE,
     SZ_FIRSTNAME,
     SZ_GATEWAY_ID,
@@ -50,6 +51,7 @@ from .const import (
     SZ_MODEL_TYPE,
     SZ_NAME,
     SZ_OFFSET_MINUTES,
+    SZ_PERIOD,
     SZ_POSTCODE,
     SZ_SCHEDULE_CAPABILITIES,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
@@ -83,10 +85,6 @@ from .const import (
     obfuscate as _obfuscate,
 )
 from .helpers import vol  # voluptuous
-
-SZ_DURATION = "Duration"
-SZ_PERIOD = "Period"
-
 
 SCH_SYSTEM_MODE_PERM = vol.Schema(
     {

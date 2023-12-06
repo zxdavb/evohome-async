@@ -60,7 +60,6 @@ SZ_GATEWAYS = "gateways"
 
 SZ_HEAT_SETPOINT = "heatSetpoint"
 SZ_HEAT_SETPOINT_VALUE = "HeatSetpointValue"
-SZ_HEATING_ZONE = "HeatingZone"
 
 SZ_IS_AVAILABLE = "isAvailable"
 SZ_IS_CANCELABLE = "isCancelable"
@@ -139,6 +138,13 @@ SZ_VALUE_RESOLUTION = "valueResolution"
 SZ_ZONE_ID = "zoneId"
 SZ_ZONE_TYPE = "zoneType"
 SZ_ZONES = "zones"
+
+
+# These are vendor-specific constants, used for values
+SZ_DURATION = "Duration"
+SZ_HEATING_ZONE = "HeatingZone"
+SZ_PERIOD = "Period"
+SZ_THERMOSTAT = "Thermostat"
 
 
 SZ_MONDAY = "Monday"
