@@ -37,9 +37,12 @@ from .schema.const import (
     SZ_TEMPERATURE_STATUS,
     SZ_TEMPERATURE_ZONE,
     SZ_TIME_UNTIL,
-    SZ_UNKNOWN,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
+    ZONE_MODEL_TYPES,
+    ZONE_TYPES,
+    ZoneModelType,
+    ZoneType,
 )
 from .schema.schedule import (
     SCH_GET_SCHEDULE,
@@ -213,13 +216,16 @@ class Zone(_ZoneDeprecated, _ZoneBase):
             raise exc.InvalidSchema(str(err)) from err
         self._id = self.zoneId
 
-        if self.modelType == SZ_UNKNOWN:
+        if (
+            self.modelType not in ZONE_MODEL_TYPES
+            or self.modelType == ZoneModelType.UNKNOWN
+        ):
             raise exc.InvalidSchema(
-                "Invalid model type 'Unknown' (appears to be a ghost zone)"
+                f"Invalid model type '{self.modelType}' (is it a ghost zone?)"
             )
-        if self.zoneType == SZ_UNKNOWN:
+        if self.zoneType not in ZONE_TYPES or self.zoneType == ZoneType.UNKNOWN:
             raise exc.InvalidSchema(
-                "Invalid zone type 'Unknown' (appears to be a ghost zone)"
+                f"Invalid zone type '{self.modelType}' (is it a ghost zone?)"
             )
 
     @property

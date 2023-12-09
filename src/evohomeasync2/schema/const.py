@@ -243,13 +243,16 @@ class ZoneMode(StrEnum):
     VACATION_HOLD: Final[str] = SZ_VACATION_HOLD  # not evohome (VisionProWifiRetail)
 
 
+SZ_UNKNOWN = "Unknown"
+
+
 @verify(EnumCheck.UNIQUE)
 class ZoneModelType(StrEnum):
     FOCUS_PRO_WIFI_RETAIL: Final[str] = "FocusProWifiRetail"
     HEATING_ZONE: Final[str] = "HeatingZone"
     ROUND_MODULATION: Final[str] = "RoundModulation"
     ROUND_WIRELESS: Final[str] = "RoundWireless"
-    UNKNOWN: Final[str] = "Unknown"
+    UNKNOWN: Final[str] = SZ_UNKNOWN
     VISION_PRO_WIFI_RETAIL: Final[str] = "VisionProWifiRetail"
 
 
@@ -258,7 +261,6 @@ SZ_MIXING_VALVE = "MixingValve"
 SZ_RADIATOR_ZONE = "RadiatorZone"
 SZ_THERMOSTAT = "Thermostat"
 SZ_UNDERFLOOR_HEATING = "UnderfloorHeating"
-SZ_UNKNOWN = "Unknown"
 SZ_ZONE_VALVES = "ZoneValves"  # is not ZoneValve
 
 
