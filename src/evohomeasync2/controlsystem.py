@@ -147,11 +147,14 @@ class ControlSystem(_ControlSystemDeprecated):
         zon_config: _EvoDictT
 
         for zon_config in config[SZ_ZONES]:
-            zone = Zone(self, zon_config)
-
-            self._zones.append(zone)
-            self.zones[zone.name] = zone
-            self.zones_by_id[zone.zoneId] = zone
+            try:
+                zone = Zone(self, zon_config)
+            except exc.InvalidSchema as err:
+                self._logger.warning(f"Zone {zon_config[SZ_ZONE_ID]} ignored: {err}")
+            else:
+                self._zones.append(zone)
+                self.zones[zone.name] = zone
+                self.zones_by_id[zone.zoneId] = zone
 
         if dhw_config := config.get(SZ_DHW):  # type: ignore[assignment]
             self.hotwater = HotWater(self, dhw_config)

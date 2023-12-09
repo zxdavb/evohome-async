@@ -145,6 +145,7 @@ SZ_DURATION = "Duration"
 SZ_HEATING_ZONE = "HeatingZone"
 SZ_PERIOD = "Period"
 SZ_THERMOSTAT = "Thermostat"
+SZ_UNKNOWN = "Unknown"
 
 
 SZ_MONDAY = "Monday"

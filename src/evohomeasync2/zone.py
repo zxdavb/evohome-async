@@ -37,6 +37,7 @@ from .schema.const import (
     SZ_TEMPERATURE_STATUS,
     SZ_TEMPERATURE_ZONE,
     SZ_TIME_UNTIL,
+    SZ_UNKNOWN,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
@@ -211,6 +212,15 @@ class Zone(_ZoneDeprecated, _ZoneBase):
         except AssertionError as err:
             raise exc.InvalidSchema(str(err)) from err
         self._id = self.zoneId
+
+        if self.modelType == SZ_UNKNOWN:
+            raise exc.InvalidSchema(
+                "Invalid model type 'Unknown' (appears to be a ghost zone)"
+            )
+        if self.zoneType == SZ_UNKNOWN:
+            raise exc.InvalidSchema(
+                "Invalid zone type 'Unknown' (appears to be a ghost zone)"
+            )
 
     @property
     def zoneId(self) -> _ZoneIdT:
