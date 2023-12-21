@@ -14,7 +14,6 @@ from .const import (
     SZ_OFF,
     SZ_ON,
     SZ_SWITCHPOINTS,
-    SZ_TEMPERATURE,
     SZ_TIME_OF_DAY,
 )
 from .helpers import pascal_case, vol  # voluptuous
@@ -135,35 +134,6 @@ SCH_PUT_SCHEDULE = vol.Schema(  # PUT /{self.TYPE}/{self._id}/schedule
 
 
 #
-#
-def _convert_to_put_schedule_classic(raw_schedule: _EvoDictT) -> _EvoDictT:
-    """Convert a schedule as per evohomeclient2.schedule()."""
-
-    import json
-
-    MAPPINGS = [
-        (SZ_DAILY_SCHEDULES, "DailySchedules"),
-        (SZ_DAY_OF_WEEK, "DayOfWeek"),
-        (SZ_DHW_STATE, "DhwState"),
-        (SZ_SWITCHPOINTS, "Switchpoints"),
-        (SZ_TEMPERATURE, "TargetTemperature"),  # should have been SZ_HEAT_SETPOINT?
-        (SZ_TIME_OF_DAY, "TimeOfDay"),
-    ]
-
-    response_data = json.dumps(raw_schedule)
-
-    for from_key, to_key in MAPPINGS:  # an anachronism from evohome-client
-        response_data = response_data.replace(from_key, to_key)
-
-    data: _EvoDictT = json.loads(response_data)
-
-    # change the day name string to an ordinal (Monday = 0)
-    for day_of_week, setpoints in enumerate(data[pascal_case(SZ_DAILY_SCHEDULES)]):
-        setpoints[pascal_case(SZ_DAY_OF_WEEK)] = day_of_week
-
-    return data
-
-
 def convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
     """Convert a schedule to the format used by our get/set_schedule() methods.
 
@@ -179,8 +149,8 @@ def convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
 
         for get_sp in day_schedule[SZ_SWITCHPOINTS]:
             if SZ_HEAT_SETPOINT in get_sp:
-                # NOTE: this key is not converted to pascal_case in evohomeclient2
-                put_sp = {SZ_HEAT_SETPOINT: get_sp[SZ_HEAT_SETPOINT]}
+                # NOTE: this key is not converted to PascalCase
+                put_sp = {SZ_HEAT_SETPOINT: get_sp[SZ_HEAT_SETPOINT]}  #  camelCase
             else:
                 put_sp = {pascal_case(SZ_DHW_STATE): get_sp[SZ_DHW_STATE]}
 

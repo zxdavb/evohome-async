@@ -112,11 +112,17 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
 
     @property  # status attr for convenience (new)
     def mode(self) -> str | None:
-        return self.stateStatus[SZ_MODE] if self.stateStatus else None
+        if self.stateStatus is None:
+            return None
+        ret: str = self.stateStatus[SZ_MODE]
+        return ret
 
     @property  # status attr for convenience (new)
     def state(self) -> str | None:
-        return self.stateStatus[SZ_STATE] if self.stateStatus else None
+        if self.stateStatus is None:
+            return None
+        ret: str = self.stateStatus[SZ_STATE]
+        return ret
 
     def _next_setpoint(self) -> tuple[dt, str] | None:  # WIP: for convenience (new)
         """Return the datetime and state of the next setpoint."""

@@ -200,7 +200,10 @@ class ControlSystem(_ControlSystemDeprecated):
 
     @property  # status attr for convenience (new)
     def system_mode(self) -> str | None:
-        return self.systemModeStatus[SZ_MODE] if self.systemModeStatus else None
+        if self.systemModeStatus is None:
+            return None
+        ret: str = self.systemModeStatus[SZ_MODE]
+        return ret
 
     async def _set_mode(self, mode: dict[str, str | bool]) -> None:
         """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}

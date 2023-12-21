@@ -133,10 +133,9 @@ class _ZoneBase(_ZoneBaseDeprecated):
     def temperature(self) -> float | None:
         if not self.temperatureStatus or not self.temperatureStatus[SZ_IS_AVAILABLE]:
             return None
-
         assert isinstance(self.temperatureStatus[SZ_TEMPERATURE], float)  # mypy check
-        temperature: float = self.temperatureStatus[SZ_TEMPERATURE]
-        return temperature
+        ret: float = self.temperatureStatus[SZ_TEMPERATURE]
+        return ret
 
     async def get_schedule(self) -> _EvoDictT:
         """Get the schedule for this DHW/zone object."""
@@ -254,12 +253,16 @@ class Zone(_ZoneDeprecated, _ZoneBase):
         return result
 
     @property  # config attr for convenience (new)
-    def max_heat_setpoint(self) -> float:
+    def max_heat_setpoint(self) -> float | None:
+        if not self.setpointCapabilities:
+            return None
         ret: float = self.setpointCapabilities[SZ_MAX_HEAT_SETPOINT]
         return ret
 
     @property  # config attr for convenience (new)
-    def min_heat_setpoint(self) -> float:
+    def min_heat_setpoint(self) -> float | None:
+        if not self.setpointCapabilities:
+            return None
         ret: float = self.setpointCapabilities[SZ_MIN_HEAT_SETPOINT]
         return ret
 
@@ -279,13 +282,17 @@ class Zone(_ZoneDeprecated, _ZoneBase):
 
     @property  # status attr for convenience (new)
     def mode(self) -> str | None:
-        return self.setpointStatus[SZ_SETPOINT_MODE] if self.setpointStatus else None
+        if not self.setpointStatus:
+            return None
+        ret: str = self.setpointStatus[SZ_SETPOINT_MODE]
+        return ret
 
     @property  # status attr for convenience (new)
     def target_cool_temperature(self) -> float | None:
         if not self.setpointStatus:
             return None
-        return self.setpointStatus.get(SZ_TARGET_COOL_TEMPERATURE)
+        ret: float | None = self.setpointStatus.get(SZ_TARGET_COOL_TEMPERATURE)
+        return ret
 
     @property  # status attr for convenience (new)
     def target_heat_temperature(self) -> float | None:
