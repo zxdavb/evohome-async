@@ -20,7 +20,7 @@ from .helpers import vol  # voluptuous
 
 # These are vendor-specific constants, used for authentication
 SZ_ACCESS_TOKEN = "access_token"
-SZ_ACCESS_TOKEN_EXPIRES = "access_token_expires"  # not part of a chema
+SZ_ACCESS_TOKEN_EXPIRES = "access_token_expires"  # not part of a schema
 SZ_EXPIRES_IN = "expires_in"
 SZ_REFRESH_TOKEN = "refresh_token"
 SZ_SCOPE = "scope"

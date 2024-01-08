@@ -54,3 +54,12 @@ CREDS_USER_PASSWORD = {
     "Username": None,
     "Password": None,
 }
+
+
+# These are used in TCS.temperatures convenience function
+SZ_ID = "id"
+SZ_NAME = "name"
+SZ_TEMP = "temp"
+SZ_THERMOSTAT = "thermostat"
+SZ_SCHEDULE = "schedule"
+SZ_SETPOINT = "setpoint"

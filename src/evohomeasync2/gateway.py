@@ -33,11 +33,11 @@ class Gateway(ActiveFaultsBase):
     TYPE: Final[str] = SZ_GATEWAY  # type: ignore[misc]
 
     def __init__(self, location: Location, config: _EvoDictT) -> None:
-        super().__init__(location._broker, location._logger)
+        super().__init__(
+            config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID], location._broker, location._logger
+        )
 
         self.location = location
-
-        self._id: Final[_GatewayIdT] = config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID]  # type: ignore[misc]
 
         self._config: Final[_EvoDictT] = config[SZ_GATEWAY_INFO]
         self._status: _EvoDictT = {}

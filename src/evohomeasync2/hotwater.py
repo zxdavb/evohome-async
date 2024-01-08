@@ -74,9 +74,7 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     SCH_SCHEDULE_PUT: Final[vol.Schema] = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(tcs, config)
-
-        self._id: Final[_DhwIdT] = config[SZ_DHW_ID]  # type: ignore[misc]
+        super().__init__(config[SZ_DHW_ID], tcs, config)
 
     @property
     def dhwId(self) -> _DhwIdT:

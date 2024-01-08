@@ -15,7 +15,8 @@ import click
 
 from . import HotWater, Zone
 from .base import EvohomeClient
-from .controlsystem import SZ_NAME, SZ_SCHEDULE, ControlSystem
+from .const import SZ_NAME, SZ_SCHEDULE
+from .controlsystem import ControlSystem
 from .schema.account import (
     SZ_ACCESS_TOKEN,
     SZ_ACCESS_TOKEN_EXPIRES,

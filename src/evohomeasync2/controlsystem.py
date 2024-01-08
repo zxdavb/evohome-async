@@ -13,7 +13,16 @@ from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from . import exceptions as exc
-from .const import API_STRFTIME, SystemMode
+from .const import (
+    API_STRFTIME,
+    SZ_ID,
+    SZ_NAME,
+    SZ_SCHEDULE,
+    SZ_SETPOINT,
+    SZ_TEMP,
+    SZ_THERMOSTAT,
+    SystemMode,
+)
 from .hotwater import HotWater
 from .schema import SCH_TCS_STATUS
 from .schema.const import (
@@ -52,13 +61,6 @@ if TYPE_CHECKING:
 
 
 # used by temperatures() and *_schedules()...
-
-SZ_ID = "id"
-SZ_NAME = "name"
-SZ_TEMP = "temp"
-SZ_THERMOSTAT = "thermostat"
-SZ_SCHEDULE = "schedule"
-SZ_SETPOINT = "setpoint"
 
 
 class _ControlSystemDeprecated:
@@ -122,12 +124,10 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
     TYPE: Final[str] = SZ_TEMPERATURE_CONTROL_SYSTEM  # type: ignore[misc]
 
     def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
-        super().__init__(gateway._broker, gateway._logger)
+        super().__init__(config[SZ_SYSTEM_ID], gateway._broker, gateway._logger)
 
         self.gateway = gateway
         self.location: Location = gateway.location
-
-        self._id: Final[_SystemIdT] = config[SZ_SYSTEM_ID]  # type: ignore[misc]
 
         self._config: Final[_EvoDictT] = {
             k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)

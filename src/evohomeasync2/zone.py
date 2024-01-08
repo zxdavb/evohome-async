@@ -56,17 +56,20 @@ if TYPE_CHECKING:
     import logging
 
     from . import Broker, ControlSystem
-    from .schema import _EvoDictT, _EvoListT, _ZoneIdT
+    from .schema import _DhwIdT, _EvoDictT, _EvoListT, _ZoneIdT
 
 
 _ONE_DAY = td(days=1)
 
 
 class ActiveFaultsBase:
-    _id: str  # .zoneId or .dhwId
-    TYPE: str  # "temperatureZone", "domesticHotWater"
+    TYPE: _DhwIdT | _ZoneIdT  # "temperatureZone", "domesticHotWater"
 
-    def __init__(self, broker: Broker, logger: logging.Logger) -> None:
+    def __init__(
+        self, id: _DhwIdT | _ZoneIdT, broker: Broker, logger: logging.Logger
+    ) -> None:
+        self._id: Final[str] = id
+
         self._broker = broker
         self._logger = logger
 
@@ -138,8 +141,8 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
     SCH_SCHEDULE_GET: Final[vol.Schema]  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final[vol.Schema]  # type: ignore[misc]
 
-    def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(tcs._broker, tcs._logger)
+    def __init__(self, id: str, tcs: ControlSystem, config: _EvoDictT) -> None:
+        super().__init__(id, tcs._broker, tcs._logger)
 
         self.tcs = tcs
 
@@ -254,9 +257,7 @@ class Zone(_ZoneDeprecated, _ZoneBase):
     SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_ZONE  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(tcs, config)
-
-        self._id: Final[_ZoneIdT] = config[SZ_ZONE_ID]  # type: ignore[misc]
+        super().__init__(config[SZ_ZONE_ID], tcs, config)
 
         if (
             self.modelType not in ZONE_MODEL_TYPES
