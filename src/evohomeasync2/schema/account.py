@@ -4,6 +4,8 @@
 """evohomeasync2 - Schema for RESTful API Account JSON."""
 from __future__ import annotations
 
+import voluptuous as vol  # type: ignore[import-untyped]
+
 from .const import (
     SZ_CITY,
     SZ_COUNTRY,
@@ -16,7 +18,6 @@ from .const import (
     SZ_USERNAME,
     obfuscate as _obfuscate,
 )
-from .helpers import vol  # voluptuous
 
 # These are vendor-specific constants, used for authentication
 SZ_ACCESS_TOKEN = "access_token"

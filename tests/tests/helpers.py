@@ -8,8 +8,7 @@ import json
 from pathlib import Path
 
 import pytest
-
-from evohomeasync2.schema import vol
+import voluptuous as vol  # type: ignore[import-untyped]
 
 TEST_DIR = Path(__file__).resolve().parent
 

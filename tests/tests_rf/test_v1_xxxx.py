@@ -9,11 +9,11 @@ from http import HTTPMethod, HTTPStatus
 import pytest
 import pytest_asyncio
 
+# FIXME: need v1 schemas
+import voluptuous as vol  # type: ignore[import-untyped]
+
 import evohomeasync as evohome
 from evohomeasync.broker import URL_HOST
-
-# FIXME: need v1 schemas
-from evohomeasync2.schema import vol  # type: ignore[import-untyped]
 
 from . import _DEBUG_DISABLE_STRICT_ASSERTS, _DEBUG_USE_REAL_AIOHTTP
 from .helpers import (

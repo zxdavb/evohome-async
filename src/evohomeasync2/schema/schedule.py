@@ -4,6 +4,8 @@
 """evohomeasync2 - Schema for RESTful API Account JSON."""
 from __future__ import annotations
 
+import voluptuous as vol  # type: ignore[import-untyped]
+
 from .const import (
     DAYS_OF_WEEK,
     SZ_COOL_SETPOINT,
@@ -16,7 +18,7 @@ from .const import (
     SZ_SWITCHPOINTS,
     SZ_TIME_OF_DAY,
 )
-from .helpers import pascal_case, vol  # voluptuous
+from .helpers import pascal_case
 from .typing import _EvoDictT, _EvoListT
 
 #

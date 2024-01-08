@@ -10,6 +10,7 @@ from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
+import voluptuous as vol  # type: ignore[import-untyped]
 
 from . import exceptions as exc
 from .const import (
@@ -21,7 +22,7 @@ from .const import (
     CREDS_USER_PASSWORD,
     URL_BASE,
 )
-from .schema import SCH_OAUTH_TOKEN, vol  # voluptuous
+from .schema import SCH_OAUTH_TOKEN
 from .schema.account import (
     SZ_ACCESS_TOKEN,
     SZ_EXPIRES_IN,
@@ -220,7 +221,7 @@ class Broker:
                 f"Invalid response from server: {err}"
             ) from err
 
-    async def get(self, url: str, schema: vol.Schema | None = None) -> _EvoSchemaT:
+    async def get(self, url: str, schema: vol.Schema | None = None) -> _EvoSchemaT:  # type: ignore[no-any-unimported]
         """"""
 
         response: aiohttp.ClientResponse
@@ -250,7 +251,7 @@ class Broker:
 
         return content
 
-    async def put(
+    async def put(  # type: ignore[no-any-unimported]
         self, url: str, json: _EvoDictT | str, schema: vol.Schema | None = None
     ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
         """"""

@@ -4,6 +4,8 @@
 """evohomeasync2 - Schema for RESTful API Config JSON."""
 from __future__ import annotations
 
+import voluptuous as vol  # type: ignore[import-untyped]
+
 from .const import (
     REGEX_DHW_ID,
     REGEX_SYSTEM_ID,
@@ -84,7 +86,6 @@ from .const import (
     ZoneType,
     obfuscate as _obfuscate,
 )
-from .helpers import vol  # voluptuous
 
 SCH_SYSTEM_MODE_PERM = vol.Schema(
     {

@@ -1,4 +1,4 @@
 # Last updated: 2023/11/01 (HA 2023.9.3
 
 aiohttp>=3.8.5
-voluptuous>=0.14.1  # works with 0.13.1, but mypy needs 0.14.1
+voluptuous>=0.13.1  # untyped, mypy needs 0.14.1

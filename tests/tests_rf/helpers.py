@@ -10,9 +10,10 @@ import os
 from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
 
+import voluptuous as vol  # type: ignore[import-untyped]
+
 import evohomeasync2 as evohome
 from evohomeasync2.const import URL_BASE
-from evohomeasync2.schema import vol  # type: ignore[import-untyped]
 
 from . import _DEBUG_DISABLE_STRICT_ASSERTS, _DEBUG_USE_REAL_AIOHTTP
 from .mocked_server import MockedServer
