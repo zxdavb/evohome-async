@@ -199,7 +199,7 @@ SCH_SCHEDULE_CAPABILITIES = SCH_SCHEDULE_CAPABILITIES_RESPONSE.extend(
 
 SCH_FAN_MODE = vol.Schema(
     {
-        vol.Required(SZ_FAN_MODE): vol.Any(*(m.value for m in FanMode)),
+        vol.Required(SZ_FAN_MODE): vol.In([m.value for m in FanMode]),
     },
     extra=vol.PREVENT_EXTRA,
 )
@@ -207,13 +207,13 @@ SCH_FAN_MODE = vol.Schema(
 SCH_ZONE = vol.Schema(
     {
         vol.Required(SZ_ZONE_ID): vol.Match(REGEX_ZONE_ID),
-        vol.Required(SZ_MODEL_TYPE): vol.Any(*(m.value for m in ZoneModelType)),
+        vol.Required(SZ_MODEL_TYPE): vol.In([m.value for m in ZoneModelType]),
         vol.Required(SZ_NAME): str,
         vol.Required(SZ_SETPOINT_CAPABILITIES): SCH_SETPOINT_CAPABILITIES,
         vol.Optional(
             SZ_SCHEDULE_CAPABILITIES
         ): SCH_SCHEDULE_CAPABILITIES,  # required for evo, optional for FocusProWifiRetail
-        vol.Required(SZ_ZONE_TYPE): vol.Any(*(m.value for m in ZoneType)),
+        vol.Required(SZ_ZONE_TYPE): vol.In([m.value for m in ZoneType]),
         vol.Optional(SZ_ALLOWED_FAN_MODES): list,  # FocusProWifiRetail
     },
     extra=vol.PREVENT_EXTRA,
@@ -222,7 +222,7 @@ SCH_ZONE = vol.Schema(
 SCH_TEMPERATURE_CONTROL_SYSTEM = vol.Schema(
     {
         vol.Required(SZ_SYSTEM_ID): vol.Match(REGEX_SYSTEM_ID),
-        vol.Required(SZ_MODEL_TYPE): vol.Any(*(m.value for m in TcsModelType)),
+        vol.Required(SZ_MODEL_TYPE): vol.In([m.value for m in TcsModelType]),
         vol.Required(SZ_ALLOWED_SYSTEM_MODES): [SCH_ALLOWED_SYSTEM_MODE],
         vol.Required(SZ_ZONES): vol.All([SCH_ZONE], vol.Length(min=1, max=12)),
         vol.Optional(SZ_DHW): SCH_DHW,

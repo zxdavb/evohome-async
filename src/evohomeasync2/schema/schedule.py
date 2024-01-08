@@ -40,7 +40,7 @@ SCH_GET_SWITCHPOINT_ZONE = vol.Schema(
 
 SCH_GET_DAY_OF_WEEK_DHW = vol.Schema(
     {
-        vol.Required(SZ_DAY_OF_WEEK): vol.Any(*DAYS_OF_WEEK),
+        vol.Required(SZ_DAY_OF_WEEK): vol.In(DAYS_OF_WEEK),
         vol.Required(SZ_SWITCHPOINTS): [SCH_GET_SWITCHPOINT_DHW],
     },
     extra=vol.PREVENT_EXTRA,
@@ -48,7 +48,7 @@ SCH_GET_DAY_OF_WEEK_DHW = vol.Schema(
 
 SCH_GET_DAY_OF_WEEK_ZONE = vol.Schema(
     {
-        vol.Required(SZ_DAY_OF_WEEK): vol.Any(*DAYS_OF_WEEK),
+        vol.Required(SZ_DAY_OF_WEEK): vol.In(DAYS_OF_WEEK),
         vol.Required(SZ_SWITCHPOINTS): [SCH_GET_SWITCHPOINT_ZONE],
     },
     extra=vol.PREVENT_EXTRA,
@@ -95,9 +95,9 @@ SCH_PUT_SWITCHPOINT_ZONE = vol.Schema(
 
 SCH_PUT_DAY_OF_WEEK_DHW = vol.Schema(
     {
-        vol.Required(pascal_case(SZ_DAY_OF_WEEK)): vol.Any(
-            vol.All(int, vol.Range(min=0, max=6)),  # 0 is Monday
-        ),
+        vol.Required(pascal_case(SZ_DAY_OF_WEEK)): vol.All(
+            int, vol.Range(min=0, max=6)
+        ),  # 0 is Monday
         vol.Required(pascal_case(SZ_SWITCHPOINTS)): [SCH_PUT_SWITCHPOINT_DHW],
     },
     extra=vol.PREVENT_EXTRA,
@@ -105,9 +105,9 @@ SCH_PUT_DAY_OF_WEEK_DHW = vol.Schema(
 
 SCH_PUT_DAY_OF_WEEK_ZONE = vol.Schema(
     {
-        vol.Required(pascal_case(SZ_DAY_OF_WEEK)): vol.Any(
-            vol.All(int, vol.Range(min=0, max=6)),  # 0 is Monday
-        ),
+        vol.Required(pascal_case(SZ_DAY_OF_WEEK)): vol.All(
+            int, vol.Range(min=0, max=6)
+        ),  # 0 is Monday
         vol.Required(pascal_case(SZ_SWITCHPOINTS)): [SCH_PUT_SWITCHPOINT_ZONE],
     },
     extra=vol.PREVENT_EXTRA,

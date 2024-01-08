@@ -52,7 +52,7 @@ _DTM_FORMAT = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{1,7}$"
 
 SCH_ACTIVE_FAULT = vol.Schema(
     {
-        vol.Required(SZ_FAULT_TYPE): vol.Any(*(m.value for m in FaultType)),
+        vol.Required(SZ_FAULT_TYPE): vol.In([m.value for m in FaultType]),
         vol.Required(SZ_SINCE): vol.Any(
             vol.Datetime(format="%Y-%m-%dT%H:%M:%S"),  # faults for zones
             vol.Datetime(format="%Y-%m-%dT%H:%M:%S.%f"),
@@ -77,7 +77,7 @@ SCH_TEMPERATURE_STATUS = vol.Any(
 SCH_SETPOINT_STATUS = vol.Schema(
     {
         vol.Required(SZ_TARGET_HEAT_TEMPERATURE): float,
-        vol.Required(SZ_SETPOINT_MODE): vol.Any(*(m.value for m in ZoneMode)),
+        vol.Required(SZ_SETPOINT_MODE): vol.In([m.value for m in ZoneMode]),
         vol.Optional(SZ_UNTIL): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
     },
     extra=vol.PREVENT_EXTRA,
@@ -85,7 +85,7 @@ SCH_SETPOINT_STATUS = vol.Schema(
 
 SCH_FAN_STATUS = vol.Schema(
     {
-        vol.Required(SZ_FAN_MODE): vol.Any(*(m.value for m in FanMode)),
+        vol.Required(SZ_FAN_MODE): vol.In([m.value for m in FanMode]),
         vol.Required(SZ_CAN_BE_CHANGED): bool,
     },
     extra=vol.PREVENT_EXTRA,
@@ -105,8 +105,8 @@ SCH_ZONE = vol.Schema(
 
 SCH_STATE_STATUS = vol.Schema(
     {
-        vol.Required(SZ_STATE): vol.Any(*(m.value for m in DhwState)),
-        vol.Required(SZ_MODE): vol.Any(*(m.value for m in ZoneMode)),
+        vol.Required(SZ_STATE): vol.In([m.value for m in DhwState]),
+        vol.Required(SZ_MODE): vol.In([m.value for m in ZoneMode]),
         vol.Optional(SZ_UNTIL): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
     },
     extra=vol.PREVENT_EXTRA,
@@ -126,7 +126,7 @@ SCH_DHW = vol.Schema(
 SCH_SYSTEM_MODE_STATUS = vol.Any(
     vol.Schema(
         {
-            vol.Required(SZ_MODE): vol.Any(*(m.value for m in SystemMode)),
+            vol.Required(SZ_MODE): vol.In([m.value for m in SystemMode]),
             vol.Required(SZ_IS_PERMANENT): True,
         }
     ),
