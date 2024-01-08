@@ -7,7 +7,7 @@ from __future__ import annotations
 try:
     import voluptuous as vol
 
-    from .account import SCH_USER_ACCOUNT as SCH_USER_ACCOUNT
+    from .account import SCH_OAUTH_TOKEN, SCH_USER_ACCOUNT as SCH_USER_ACCOUNT
     from .config import (
         SCH_LOCATION_INSTALLATION_INFO as SCH_LOCN_CONFIG,
         SCH_USER_LOCATIONS_INSTALLATION_INFO as SCH_FULL_CONFIG,
@@ -27,7 +27,7 @@ except (AttributeError, ModuleNotFoundError):  # No module named 'voluptuous'
     SCH_FULL_CONFIG: vol.Schema = list  # type: ignore[no-redef]
     SCH_LOCN_CONFIG: vol.Schema = dict  # type: ignore[no-redef]
     SCH_LOCN_STATUS: vol.Schema = dict  # type: ignore[no-redef]
-    # SCH_OAUTH_TOKEN: vol.Schema = dict  # type: ignore[no-redef]
+    SCH_OAUTH_TOKEN: vol.Schema = dict  # type: ignore[no-redef]
     SCH_TCS_STATUS: vol.Schema = dict  # type: ignore[no-redef]
     SCH_USER_ACCOUNT: vol.Schema = dict  # type: ignore[no-redef]
     SCH_GET_SCHEDULE: vol.Schema = dict  # type: ignore[no-redef]

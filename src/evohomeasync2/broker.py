@@ -21,9 +21,8 @@ from .const import (
     CREDS_USER_PASSWORD,
     URL_BASE,
 )
-from .schema import vol  # voluptuous
+from .schema import SCH_OAUTH_TOKEN, vol  # voluptuous
 from .schema.account import (
-    SCH_OAUTH_TOKEN,
     SZ_ACCESS_TOKEN,
     SZ_EXPIRES_IN,
     SZ_REFRESH_TOKEN,
