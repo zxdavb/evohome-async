@@ -51,17 +51,15 @@ class Location(_LocationDeprecated):
         self._broker: Broker = client.broker
         self._logger: logging.Logger = client._logger
 
-        self._config: Final[_EvoDictT] = config[SZ_LOCATION_INFO]
+        self._id: Final[_LocationIdT] = config[SZ_LOCATION_INFO][SZ_LOCATION_ID]
 
-        try:
-            assert self.locationId, "Invalid config dict"
-        except AssertionError as err:
-            raise exc.InvalidSchema(str(err)) from err
-        self._id = self.locationId
+        self._config: Final[_EvoDictT] = config[SZ_LOCATION_INFO]
+        self._status: _EvoDictT = {}
 
         self._gateways: list[Gateway] = []
         self.gateways: dict[str, Gateway] = {}  # gwy by id
 
+        gwy_config: _EvoDictT
         for gwy_config in config[SZ_GATEWAYS]:
             gwy = Gateway(self, gwy_config)
 
@@ -72,6 +70,10 @@ class Location(_LocationDeprecated):
         return f"{self._id} ({self.TYPE})"
 
     @property
+    def locationId(self) -> _LocationIdT:
+        return self._id
+
+    @property
     def country(self) -> str:
         ret: str = self._config[SZ_COUNTRY]
         return ret
@@ -79,11 +81,6 @@ class Location(_LocationDeprecated):
     @property
     def locationOwner(self) -> _EvoDictT:
         ret: _EvoDictT = self._config[SZ_LOCATION_OWNER]
-        return ret
-
-    @property
-    def locationId(self) -> _LocationIdT:
-        ret: _LocationIdT = self._config[SZ_LOCATION_ID]
         return ret
 
     @property
@@ -118,6 +115,8 @@ class Location(_LocationDeprecated):
         return status
 
     def _update_status(self, status: _EvoDictT) -> None:
+        # No ActiveFaults in location node of status
+
         self._status = status
 
         for gwy_status in self._status[SZ_GATEWAYS]:

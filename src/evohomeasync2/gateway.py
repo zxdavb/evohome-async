@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
-from . import exceptions as exc
 from .controlsystem import ControlSystem
 from .schema.const import (
     SZ_GATEWAY,
@@ -18,54 +17,42 @@ from .schema.const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
 from .schema.status import SCH_GATEWAY
-from .zone import log_any_faults
+from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:
-    import logging
-
-    from . import Broker, Location
+    from . import Location
     from .schema import _EvoDictT, _GatewayIdT
 
 
-class Gateway:
+class Gateway(ActiveFaultsBase):
     """Instance of a location's gateway."""
 
     STATUS_SCHEMA: Final = SCH_GATEWAY
-    TYPE: Final[str] = SZ_GATEWAY
+    TYPE: Final[str] = SZ_GATEWAY  # type: ignore[misc]
 
     def __init__(self, location: Location, config: _EvoDictT) -> None:
-        self.location = location  # parent
+        super().__init__(location._broker, location._logger)
 
-        self._broker: Broker = location._broker
-        self._logger: logging.Logger = location._logger
+        self.location = location
 
-        self._status: _EvoDictT = {}
+        self._id: Final[_GatewayIdT] = config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID]  # type: ignore[misc]
+
         self._config: Final[_EvoDictT] = config[SZ_GATEWAY_INFO]
-
-        try:
-            assert self.gatewayId, "Invalid config dict"
-        except AssertionError as err:
-            raise exc.InvalidSchema(str(err)) from err
-        self._id = self.gatewayId
+        self._status: _EvoDictT = {}
 
         self._control_systems: list[ControlSystem] = []
         self.control_systems: dict[str, ControlSystem] = {}  # tcs by id
 
         tcs_config: _EvoDictT
-
         for tcs_config in config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             tcs = ControlSystem(self, tcs_config)
 
             self._control_systems.append(tcs)
             self.control_systems[tcs.systemId] = tcs
 
-    def __str__(self) -> str:
-        return f"{self._id} ({self.TYPE})"
-
     @property
     def gatewayId(self) -> _GatewayIdT:
-        ret: _GatewayIdT = self._config[SZ_GATEWAY_ID]
-        return ret
+        return self._id
 
     @property
     def mac(self) -> str:
@@ -78,8 +65,9 @@ class Gateway:
         return ret
 
     def _update_status(self, status: _EvoDictT) -> None:
+        super()._update_status(status)  # process active faults
+
         self._status = status
-        log_any_faults(f"{self._id} ({self.TYPE})", self._logger, status)
 
         for tcs_status in self._status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             tcs = self.control_systems[tcs_status[SZ_SYSTEM_ID]]

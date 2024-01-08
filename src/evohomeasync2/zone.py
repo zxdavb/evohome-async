@@ -9,9 +9,11 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta as td
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final, NoReturn
+
+import voluptuous as vol  # type: ignore[import-untyped]
 
 from . import exceptions as exc
 from .const import API_STRFTIME, ZoneMode
@@ -45,9 +47,7 @@ from .schema.const import (
     ZoneType,
 )
 from .schema.schedule import (
-    SCH_GET_SCHEDULE,
     SCH_GET_SCHEDULE_ZONE,
-    SCH_PUT_SCHEDULE,
     SCH_PUT_SCHEDULE_ZONE,
     convert_to_put_schedule,
 )
@@ -59,11 +59,62 @@ if TYPE_CHECKING:
     from .schema import _EvoDictT, _EvoListT, _ZoneIdT
 
 
-def log_any_faults(name: str, logger: logging.Logger, status: _EvoDictT) -> None:
-    for fault in status[SZ_ACTIVE_FAULTS]:
-        logger.info(
-            f"Active fault: {name}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}",
-        )
+_ONE_DAY = td(days=1)
+
+
+class ActiveFaultsBase:
+    _id: str  # .zoneId or .dhwId
+    TYPE: str  # "temperatureZone", "domesticHotWater"
+
+    def __init__(self, broker: Broker, logger: logging.Logger) -> None:
+        self._broker = broker
+        self._logger = logger
+
+        self._active_faults: _EvoListT = []
+        self._last_logged: dict[str, dt] = {}
+
+    def __str__(self) -> str:
+        return f"{self._id} ({self.TYPE})"
+
+    @property
+    def active_faults(self) -> _EvoListT:
+        return self._active_faults
+
+    @active_faults.setter
+    def active_faults(self, value: _EvoListT) -> None:
+        self._active_faults = value
+
+    def _update_status(self, status: _EvoDictT) -> None:
+        last_logged = {}
+
+        def hash(fault: _EvoDictT) -> str:
+            return f"{fault[SZ_FAULT_TYPE]}_{fault[SZ_SINCE]}"
+
+        def log_as_active(fault: _EvoDictT) -> None:
+            self._logger.warning(
+                f"Active fault: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
+            )
+            last_logged[hash(fault)] = dt.now()
+
+        def log_as_resolved(fault: _EvoDictT) -> None:
+            self._logger.info(
+                f"Fault cleared: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
+            )
+            del self._last_logged[hash(fault)]
+
+        for fault in status[SZ_ACTIVE_FAULTS]:
+            if fault not in self.active_faults:  # new active fault
+                log_as_active(fault)
+
+        for fault in self.active_faults:
+            if fault not in status[SZ_ACTIVE_FAULTS]:  # fault resolved
+                log_as_resolved(fault)
+
+            elif dt.now() - self._last_logged[hash(fault)] > _ONE_DAY:
+                log_as_active(fault)
+
+        self.active_faults = status[SZ_ACTIVE_FAULTS]
+        self._last_logged |= last_logged
 
 
 class _ZoneBaseDeprecated:
@@ -79,28 +130,22 @@ class _ZoneBaseDeprecated:
         )
 
 
-class _ZoneBase(_ZoneBaseDeprecated):
+class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    STATUS_SCHEMA = dict
+    STATUS_SCHEMA: Final  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET = SCH_GET_SCHEDULE
-    SCH_SCHEDULE_PUT = SCH_PUT_SCHEDULE
+    SCH_SCHEDULE_GET: Final  # type: ignore[misc]
+    SCH_SCHEDULE_PUT: Final  # type: ignore[misc]
 
-    _id: str  # .zoneId or .dhwId
-    TYPE: str  # "temperatureZone", "domesticHotWater"
+    def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
+        super().__init__(tcs._broker, tcs._logger)
 
-    def __init__(self, tcs: ControlSystem) -> None:
         self.tcs = tcs
 
-        self._broker: Broker = tcs._broker
-        self._logger: logging.Logger = tcs._logger
-
-        self._status: _EvoDictT = {}
+        self._config: Final[_EvoDictT] = config
         self._schedule: _EvoDictT = {}
-
-    def __str__(self) -> str:
-        return f"{self._id} ({self.TYPE})"
+        self._status: _EvoDictT = {}
 
     async def _refresh_status(self) -> _EvoDictT:
         """Update the DHW/zone with its latest status (also returns the status).
@@ -108,7 +153,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
         It will be more efficient to call Location.refresh_status().
         """
 
-        self._logger.debug(f"Getting status of {self._id} ({self.TYPE})...")
+        self._logger.debug(f"Getting status of {self})...")
 
         status: _EvoDictT = await self._broker.get(
             f"{self.TYPE}/{self._id}/status", schema=self.STATUS_SCHEMA
@@ -118,8 +163,9 @@ class _ZoneBase(_ZoneBaseDeprecated):
         return status
 
     def _update_status(self, status: _EvoDictT) -> None:
+        super()._update_status(status)  # process active faults
+
         self._status = status
-        log_any_faults(f"{self._id} ({self.TYPE})", self._logger, status)
 
     @property
     def activeFaults(self) -> _EvoListT | None:
@@ -140,17 +186,20 @@ class _ZoneBase(_ZoneBaseDeprecated):
     async def get_schedule(self) -> _EvoDictT:
         """Get the schedule for this DHW/zone object."""
 
-        self._logger.debug(f"Getting schedule of {self._id} ({self.TYPE})...")
+        self._logger.debug(f"Getting schedule of {self})...")
 
         try:
             schedule: _EvoDictT = await self._broker.get(
                 f"{self.TYPE}/{self._id}/schedule", schema=self.SCH_SCHEDULE_GET
             )  # type: ignore[assignment]
+
         except exc.RequestFailed as err:
             if err.status == HTTPStatus.BAD_REQUEST:
                 raise exc.InvalidSchedule("No Schedule / Schedule is invalid") from err
-            else:
-                raise exc.InvalidSchedule("Unexpected error") from err
+            raise exc.RequestFailed("Unexpected error") from err
+
+        except vol.Invalid as err:
+            raise exc.InvalidSchedule("No Schedule / Schedule is invalid") from err
 
         self._schedule = convert_to_put_schedule(schedule)
         return self._schedule
@@ -158,7 +207,7 @@ class _ZoneBase(_ZoneBaseDeprecated):
     async def set_schedule(self, schedule: _EvoDictT | str) -> None:
         """Set the schedule for this DHW/zone object."""
 
-        self._logger.debug(f"Setting schedule of {self._id} ({self.TYPE})...")
+        self._logger.debug(f"Setting schedule of {self})...")
 
         if isinstance(schedule, dict):
             try:
@@ -198,22 +247,16 @@ class _ZoneDeprecated:
 class Zone(_ZoneDeprecated, _ZoneBase):
     """Instance of a TCS's heating zone (temperatureZone)."""
 
-    STATUS_SCHEMA = SCH_ZONE_STATUS
+    STATUS_SCHEMA: Final = SCH_ZONE_STATUS  # type: ignore[misc]
     TYPE: Final[str] = SZ_TEMPERATURE_ZONE  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET = SCH_GET_SCHEDULE_ZONE
-    SCH_SCHEDULE_PUT = SCH_PUT_SCHEDULE_ZONE
+    SCH_SCHEDULE_GET: Final = SCH_GET_SCHEDULE_ZONE  # type: ignore[misc]
+    SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_ZONE  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(tcs)
+        super().__init__(tcs, config)
 
-        self._config: Final[_EvoDictT] = config
-
-        try:
-            assert self.zoneId, "Invalid config dict"
-        except AssertionError as err:
-            raise exc.InvalidSchema(str(err)) from err
-        self._id = self.zoneId
+        self._id: Final[_ZoneIdT] = config[SZ_ZONE_ID]  # type: ignore[misc]
 
         if (
             self.modelType not in ZONE_MODEL_TYPES
@@ -229,8 +272,7 @@ class Zone(_ZoneDeprecated, _ZoneBase):
 
     @property
     def zoneId(self) -> _ZoneIdT:
-        ret: _ZoneIdT = self._config[SZ_ZONE_ID]
-        return ret
+        return self._id
 
     @property
     def modelType(self) -> str:

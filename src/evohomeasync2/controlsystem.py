@@ -34,12 +34,10 @@ from .schema.const import (
     SZ_ZONE_ID,
     SZ_ZONES,
 )
-from .zone import Zone, log_any_faults
+from .zone import ActiveFaultsBase, Zone
 
 if TYPE_CHECKING:
-    import logging
-
-    from . import Broker, Gateway, Location
+    from . import Gateway, Location
     from .schema import (
         _DhwIdT,
         _EvoDictT,
@@ -114,38 +112,31 @@ class _ControlSystemDeprecated:
         )
 
 
-class ControlSystem(_ControlSystemDeprecated):
+class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
     STATUS_SCHEMA: Final = SCH_TCS_STATUS
-    TYPE: Final[str] = SZ_TEMPERATURE_CONTROL_SYSTEM
+    TYPE: Final[str] = SZ_TEMPERATURE_CONTROL_SYSTEM  # type: ignore[misc]
 
     def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
+        super().__init__(gateway._broker, gateway._logger)
+
         self.gateway = gateway
         self.location: Location = gateway.location
 
-        self._broker: Broker = gateway._broker
-        self._logger: logging.Logger = gateway._logger
+        self._id: Final[_SystemIdT] = config[SZ_SYSTEM_ID]  # type: ignore[misc]
 
-        self._status: _EvoDictT = {}
         self._config: Final[_EvoDictT] = {
             k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
         }
-
-        try:
-            assert self.systemId, "Invalid config dict"
-        except AssertionError as err:
-            raise exc.InvalidSchema(str(err)) from err
-        self._id = self.systemId
+        self._status: _EvoDictT = {}
 
         self._zones: list[Zone] = []
         self.zones: dict[str, Zone] = {}  # zone by name! what to do if name changed?
         self.zones_by_id: dict[str, Zone] = {}
         self.hotwater: None | HotWater = None
 
-        dhw_config: _EvoDictT
         zon_config: _EvoDictT
-
         for zon_config in config[SZ_ZONES]:
             try:
                 zone = Zone(self, zon_config)
@@ -156,11 +147,13 @@ class ControlSystem(_ControlSystemDeprecated):
                 self.zones[zone.name] = zone
                 self.zones_by_id[zone.zoneId] = zone
 
+        dhw_config: _EvoDictT
         if dhw_config := config.get(SZ_DHW):  # type: ignore[assignment]
             self.hotwater = HotWater(self, dhw_config)
 
-    def __str__(self) -> str:
-        return f"{self._id} ({self.TYPE})"
+    @property
+    def systemId(self) -> _SystemIdT:
+        return self._id
 
     @property
     def allowedSystemModes(self) -> _EvoListT:
@@ -172,17 +165,13 @@ class ControlSystem(_ControlSystemDeprecated):
         ret: str = self._config[SZ_MODEL_TYPE]
         return ret
 
-    @property
-    def systemId(self) -> _SystemIdT:
-        ret: _SystemIdT = self._config[SZ_SYSTEM_ID]
-        return ret
-
     async def _refresh_status(self) -> None:
         await self.location.refresh_status()
 
     def _update_status(self, status: _EvoDictT) -> None:
+        super()._update_status(status)  # process active faults
+
         self._status = status
-        log_any_faults(f"{self._id} ({self.TYPE})", self._logger, status)
 
         if dhw_status := self._status.get(SZ_DHW):
             self.hotwater._update_status(dhw_status)  # type: ignore[union-attr]

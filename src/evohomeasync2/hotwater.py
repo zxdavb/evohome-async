@@ -65,27 +65,20 @@ class HotWaterDeprecated:
 class HotWater(HotWaterDeprecated, _ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
-    STATUS_SCHEMA = SCH_DHW_STATUS
+    STATUS_SCHEMA: Final = SCH_DHW_STATUS  # type: ignore[misc]
     TYPE: Final[str] = SZ_DOMESTIC_HOT_WATER  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET = SCH_GET_SCHEDULE_DHW
-    SCH_SCHEDULE_PUT = SCH_PUT_SCHEDULE_DHW
+    SCH_SCHEDULE_GET: Final = SCH_GET_SCHEDULE_DHW  # type: ignore[misc]
+    SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(tcs)
+        super().__init__(tcs, config)
 
-        self._config: Final[_EvoDictT] = config
-
-        try:
-            assert self.dhwId, "Invalid config dict"
-        except AssertionError as err:
-            raise exc.DeprecationError(str(err)) from err
-        self._id = self.dhwId
+        self._id: Final[_DhwIdT] = config[SZ_DHW_ID]  # type: ignore[misc]
 
     @property
     def dhwId(self) -> _DhwIdT:
-        ret: _DhwIdT = self._config[SZ_DHW_ID]
-        return ret
+        return self._id
 
     @property
     def dhwStateCapabilitiesResponse(self) -> _EvoDictT:
