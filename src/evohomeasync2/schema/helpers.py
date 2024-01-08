@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any
 
 try:  # voluptuous is an optional module...
-    import voluptuous as vol  # type: ignore[import-untyped]
+    import voluptuous as vol
 
 except ModuleNotFoundError:  # No module named 'voluptuous'
     # TODO: type object 'vol' has no attribute 'Required'

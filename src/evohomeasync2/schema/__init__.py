@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 try:
-    import voluptuous as vol  # type: ignore[import-untyped]
+    import voluptuous as vol
 
     from .account import SCH_USER_ACCOUNT as SCH_USER_ACCOUNT
     from .config import (
@@ -23,16 +23,16 @@ try:
 except (AttributeError, ModuleNotFoundError):  # No module named 'voluptuous'
     from .helpers import vol  # noqa: F401
 
-    SCH_DHW_STATUS = dict
-    SCH_FULL_CONFIG = list
-    SCH_LOCN_CONFIG = dict
-    SCH_LOCN_STATUS = dict
-    SCH_OAUTH_TOKEN = dict
-    SCH_TCS_STATUS = dict
-    SCH_USER_ACCOUNT = dict
-    SCH_GET_SCHEDULE = dict
-    SCH_PUT_SCHEDULE = dict
-    SCH_ZONE_STATUS = dict
+    SCH_DHW_STATUS: vol.Schema = dict  # type: ignore[no-redef]
+    SCH_FULL_CONFIG: vol.Schema = list  # type: ignore[no-redef]
+    SCH_LOCN_CONFIG: vol.Schema = dict  # type: ignore[no-redef]
+    SCH_LOCN_STATUS: vol.Schema = dict  # type: ignore[no-redef]
+    # SCH_OAUTH_TOKEN: vol.Schema = dict  # type: ignore[no-redef]
+    SCH_TCS_STATUS: vol.Schema = dict  # type: ignore[no-redef]
+    SCH_USER_ACCOUNT: vol.Schema = dict  # type: ignore[no-redef]
+    SCH_GET_SCHEDULE: vol.Schema = dict  # type: ignore[no-redef]
+    SCH_PUT_SCHEDULE: vol.Schema = dict  # type: ignore[no-redef]
+    SCH_ZONE_STATUS: vol.Schema = dict  # type: ignore[no-redef]
 
 from .const import (  # noqa: F401
     DHW_STATES,

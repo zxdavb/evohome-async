@@ -221,7 +221,7 @@ class Broker:
                 f"Invalid response from server: {err}"
             ) from err
 
-    async def get(self, url: str, schema: vol.Schema | None = None) -> _EvoSchemaT:  # type: ignore[no-any-unimported]
+    async def get(self, url: str, schema: vol.Schema | None = None) -> _EvoSchemaT:
         """"""
 
         response: aiohttp.ClientResponse
@@ -251,7 +251,7 @@ class Broker:
 
         return content
 
-    async def put(  # type: ignore[no-any-unimported]
+    async def put(
         self, url: str, json: _EvoDictT | str, schema: vol.Schema | None = None
     ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
         """"""

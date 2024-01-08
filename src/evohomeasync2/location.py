@@ -26,6 +26,8 @@ from .schema.const import (
 if TYPE_CHECKING:
     import logging
 
+    import voluptuous as vol
+
     from . import Broker, EvohomeClient
     from .schema import _EvoDictT, _LocationIdT
 
@@ -42,7 +44,7 @@ class _LocationDeprecated:
 class Location(_LocationDeprecated):
     """Instance of an account's location."""
 
-    STATUS_SCHEMA: Final = SCH_LOCN_STATUS
+    STATUS_SCHEMA: Final[vol.Schema] = SCH_LOCN_STATUS
     TYPE: Final[str] = SZ_LOCATION
 
     def __init__(self, client: EvohomeClient, config: _EvoDictT) -> None:
