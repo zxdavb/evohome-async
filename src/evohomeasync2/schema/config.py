@@ -168,11 +168,11 @@ SCH_VACATION_HOLD_CAPABILITIES = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_SETPOINT_CAPABILITIES = vol.Schema(
+SCH_SETPOINT_CAPABILITIES = vol.Schema(  # min/max as per evohome
     {
         vol.Required(SZ_CAN_CONTROL_HEAT): bool,
-        vol.Required(SZ_MAX_HEAT_SETPOINT): vol.All(float, vol.Range(max=35)),  # 35.0
-        vol.Required(SZ_MIN_HEAT_SETPOINT): vol.All(float, vol.Range(min=4.5)),  # 5.0
+        vol.Required(SZ_MAX_HEAT_SETPOINT): vol.All(float, vol.Range(min=21, max=35)),
+        vol.Required(SZ_MIN_HEAT_SETPOINT): vol.All(float, vol.Range(min=5, max=21)),
         vol.Required(SZ_CAN_CONTROL_COOL): bool,
         vol.Optional(SZ_MAX_COOL_SETPOINT): float,  #
         vol.Optional(SZ_MIN_COOL_SETPOINT): float,  #
