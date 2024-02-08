@@ -20,141 +20,141 @@ REGEX_ZONE_ID = r"[0-9]*"
 
 
 # These are vendor-specific constants, used for keys
-SZ_ACTIVE_FAULTS = "activeFaults"
-SZ_ALLOWED_FAN_MODES = "allowedFanModes"
-SZ_ALLOWED_MODES = "allowedModes"
-SZ_ALLOWED_SETPOINT_MODES = "allowedSetpointModes"
-SZ_ALLOWED_STATES = "allowedStates"
-SZ_ALLOWED_SYSTEM_MODES = "allowedSystemModes"
+SZ_ACTIVE_FAULTS: Final = "activeFaults"
+SZ_ALLOWED_FAN_MODES: Final = "allowedFanModes"
+SZ_ALLOWED_MODES: Final = "allowedModes"
+SZ_ALLOWED_SETPOINT_MODES: Final = "allowedSetpointModes"
+SZ_ALLOWED_STATES: Final = "allowedStates"
+SZ_ALLOWED_SYSTEM_MODES: Final = "allowedSystemModes"
 
-SZ_CAN_BE_CHANGED = "canBeChanged"
-SZ_CAN_BE_PERMANENT = "canBePermanent"
-SZ_CAN_BE_TEMPORARY = "canBeTemporary"
-SZ_CAN_CONTROL_COOL = "canControlCool"
-SZ_CAN_CONTROL_HEAT = "canControlHeat"
-SZ_CITY = "city"
-SZ_COOL_SETPOINT = "coolSetpoint"
-SZ_COOL_SETPOINT_VALUE = "coolSetpointValue"  # an extrapolation
-SZ_COUNTRY = "country"
-SZ_CRC = "crc"
-SZ_CURRENT_OFFSET_MINUTES = "currentOffsetMinutes"
+SZ_CAN_BE_CHANGED: Final = "canBeChanged"
+SZ_CAN_BE_PERMANENT: Final = "canBePermanent"
+SZ_CAN_BE_TEMPORARY: Final = "canBeTemporary"
+SZ_CAN_CONTROL_COOL: Final = "canControlCool"
+SZ_CAN_CONTROL_HEAT: Final = "canControlHeat"
+SZ_CITY: Final = "city"
+SZ_COOL_SETPOINT: Final = "coolSetpoint"
+SZ_COOL_SETPOINT_VALUE: Final = "coolSetpointValue"  # an extrapolation
+SZ_COUNTRY: Final = "country"
+SZ_CRC: Final = "crc"
+SZ_CURRENT_OFFSET_MINUTES: Final = "currentOffsetMinutes"
 
-SZ_DAILY_SCHEDULES = "dailySchedules"
-SZ_DAY_OF_WEEK = "dayOfWeek"
-SZ_DHW = "dhw"
-SZ_DHW_ID = "dhwId"
-SZ_DHW_STATE = "dhwState"
-SZ_DHW_STATE_CAPABILITIES_RESPONSE = "dhwStateCapabilitiesResponse"
-SZ_DISPLAY_NAME = "displayName"
-SZ_DOMESTIC_HOT_WATER = "domesticHotWater"
+SZ_DAILY_SCHEDULES: Final = "dailySchedules"
+SZ_DAY_OF_WEEK: Final = "dayOfWeek"
+SZ_DHW: Final = "dhw"
+SZ_DHW_ID: Final = "dhwId"
+SZ_DHW_STATE: Final = "dhwState"
+SZ_DHW_STATE_CAPABILITIES_RESPONSE: Final = "dhwStateCapabilitiesResponse"
+SZ_DISPLAY_NAME: Final = "displayName"
+SZ_DOMESTIC_HOT_WATER: Final = "domesticHotWater"
 
-SZ_FAN_MODE = "fanMode"
-SZ_FAN_STATUS = "fanStatus"
-SZ_FAULT_TYPE = "faultType"
-SZ_FIRSTNAME = "firstname"
+SZ_FAN_MODE: Final = "fanMode"
+SZ_FAN_STATUS: Final = "fanStatus"
+SZ_FAULT_TYPE: Final = "faultType"
+SZ_FIRSTNAME: Final = "firstname"
 
-SZ_GATEWAY = "gateway"
-SZ_GATEWAY_ID = "gatewayId"
-SZ_GATEWAY_INFO = "gatewayInfo"
-SZ_GATEWAYS = "gateways"
+SZ_GATEWAY: Final = "gateway"
+SZ_GATEWAY_ID: Final = "gatewayId"
+SZ_GATEWAY_INFO: Final = "gatewayInfo"
+SZ_GATEWAYS: Final = "gateways"
 
-SZ_HEAT_SETPOINT = "heatSetpoint"
-SZ_HEAT_SETPOINT_VALUE = "HeatSetpointValue"
+SZ_HEAT_SETPOINT: Final = "heatSetpoint"
+SZ_HEAT_SETPOINT_VALUE: Final = "HeatSetpointValue"
 
-SZ_IS_AVAILABLE = "isAvailable"
-SZ_IS_CANCELABLE = "isCancelable"
-SZ_IS_CHANGEABLE = "isChangeable"
-SZ_IS_PERMANENT = "isPermanent"
-SZ_IS_WI_FI = "isWiFi"
+SZ_IS_AVAILABLE: Final = "isAvailable"
+SZ_IS_CANCELABLE: Final = "isCancelable"
+SZ_IS_CHANGEABLE: Final = "isChangeable"
+SZ_IS_PERMANENT: Final = "isPermanent"
+SZ_IS_WI_FI: Final = "isWiFi"
 
-SZ_LANGUAGE = "language"
-SZ_LASTNAME = "lastname"
-SZ_LOCATION = "location"
-SZ_LOCATION_ID = "locationId"
-SZ_LOCATION_INFO = "locationInfo"
-SZ_LOCATION_OWNER = "locationOwner"
-SZ_LOCATION_TYPE = "locationType"
+SZ_LANGUAGE: Final = "language"
+SZ_LASTNAME: Final = "lastname"
+SZ_LOCATION: Final = "location"
+SZ_LOCATION_ID: Final = "locationId"
+SZ_LOCATION_INFO: Final = "locationInfo"
+SZ_LOCATION_OWNER: Final = "locationOwner"
+SZ_LOCATION_TYPE: Final = "locationType"
 
-SZ_MAC = "mac"
-SZ_MAX_COOL_SETPOINT = "maxCoolSetpoint"  # an extrapolation
-SZ_MAX_DURATION = "maxDuration"
-SZ_MAX_HEAT_SETPOINT = "maxHeatSetpoint"
-SZ_MAX_SWITCHPOINTS_PER_DAY = "maxSwitchpointsPerDay"
-SZ_MIN_COOL_SETPOINT = "minCoolSetpoint"
-SZ_MIN_DURATION = "minDuration"
-SZ_MIN_HEAT_SETPOINT = "minHeatSetpoint"
-SZ_MIN_SWITCHPOINTS_PER_DAY = "minSwitchpointsPerDay"
-SZ_MODE = "mode"
-SZ_MODEL_TYPE = "modelType"
+SZ_MAC: Final = "mac"
+SZ_MAX_COOL_SETPOINT: Final = "maxCoolSetpoint"  # an extrapolation
+SZ_MAX_DURATION: Final = "maxDuration"
+SZ_MAX_HEAT_SETPOINT: Final = "maxHeatSetpoint"
+SZ_MAX_SWITCHPOINTS_PER_DAY: Final = "maxSwitchpointsPerDay"
+SZ_MIN_COOL_SETPOINT: Final = "minCoolSetpoint"
+SZ_MIN_DURATION: Final = "minDuration"
+SZ_MIN_HEAT_SETPOINT: Final = "minHeatSetpoint"
+SZ_MIN_SWITCHPOINTS_PER_DAY: Final = "minSwitchpointsPerDay"
+SZ_MODE: Final = "mode"
+SZ_MODEL_TYPE: Final = "modelType"
 
-SZ_NAME = "name"
+SZ_NAME: Final = "name"
 
-SZ_OFFSET_MINUTES = "offsetMinutes"
+SZ_OFFSET_MINUTES: Final = "offsetMinutes"
 
-SZ_PERMANENT = "permanent"
-SZ_POSTCODE = "postcode"
+SZ_PERMANENT: Final = "permanent"
+SZ_POSTCODE: Final = "postcode"
 
-SZ_SCHEDULE_CAPABILITIES = "scheduleCapabilities"
-SZ_SCHEDULE_CAPABILITIES_RESPONSE = "scheduleCapabilitiesResponse"
-SZ_SETPOINT_CAPABILITIES = "setpointCapabilities"
-SZ_SETPOINT_DEADBAND = "setpointDeadband"
-SZ_SETPOINT_MODE = "setpointMode"
-SZ_SETPOINT_STATUS = "setpointStatus"
-SZ_SETPOINT_VALUE_RESOLUTION = "setpointValueResolution"
-SZ_SINCE = "since"
-SZ_STATE = "state"
-SZ_STATE_STATUS = "stateStatus"
-SZ_STREET_ADDRESS = "streetAddress"
-SZ_SUPPORTS_DAYLIGHT_SAVING = "supportsDaylightSaving"
-SZ_SWITCHPOINTS = "switchpoints"
-SZ_SYSTEM_ID = "systemId"
-SZ_SYSTEM_MODE = "systemMode"
-SZ_SYSTEM_MODE_STATUS = "systemModeStatus"
+SZ_SCHEDULE_CAPABILITIES: Final = "scheduleCapabilities"
+SZ_SCHEDULE_CAPABILITIES_RESPONSE: Final = "scheduleCapabilitiesResponse"
+SZ_SETPOINT_CAPABILITIES: Final = "setpointCapabilities"
+SZ_SETPOINT_DEADBAND: Final = "setpointDeadband"
+SZ_SETPOINT_MODE: Final = "setpointMode"
+SZ_SETPOINT_STATUS: Final = "setpointStatus"
+SZ_SETPOINT_VALUE_RESOLUTION: Final = "setpointValueResolution"
+SZ_SINCE: Final = "since"
+SZ_STATE: Final = "state"
+SZ_STATE_STATUS: Final = "stateStatus"
+SZ_STREET_ADDRESS: Final = "streetAddress"
+SZ_SUPPORTS_DAYLIGHT_SAVING: Final = "supportsDaylightSaving"
+SZ_SWITCHPOINTS: Final = "switchpoints"
+SZ_SYSTEM_ID: Final = "systemId"
+SZ_SYSTEM_MODE: Final = "systemMode"
+SZ_SYSTEM_MODE_STATUS: Final = "systemModeStatus"
 
-SZ_TARGET_COOL_TEMPERATURE = "targetCoolTemperature"  # an extrapolation
-SZ_TARGET_HEAT_TEMPERATURE = "targetHeatTemperature"
-SZ_TEMPERATURE = "temperature"
-SZ_TEMPERATURE_CONTROL_SYSTEM = "temperatureControlSystem"
-SZ_TEMPERATURE_CONTROL_SYSTEMS = "temperatureControlSystems"
-SZ_TEMPERATURE_STATUS = "temperatureStatus"
-SZ_TEMPERATURE_ZONE = "temperatureZone"
-SZ_TIME_OF_DAY = "timeOfDay"
-SZ_TIME_UNTIL = "timeUntil"
-SZ_TIME_ZONE = "timeZone"
-SZ_TIME_ZONE_ID = "timeZoneId"
-SZ_TIMING_MODE = "timingMode"
-SZ_TIMING_RESOLUTION = "timingResolution"
+SZ_TARGET_COOL_TEMPERATURE: Final = "targetCoolTemperature"  # an extrapolation
+SZ_TARGET_HEAT_TEMPERATURE: Final = "targetHeatTemperature"
+SZ_TEMPERATURE: Final = "temperature"
+SZ_TEMPERATURE_CONTROL_SYSTEM: Final = "temperatureControlSystem"
+SZ_TEMPERATURE_CONTROL_SYSTEMS: Final = "temperatureControlSystems"
+SZ_TEMPERATURE_STATUS: Final = "temperatureStatus"
+SZ_TEMPERATURE_ZONE: Final = "temperatureZone"
+SZ_TIME_OF_DAY: Final = "timeOfDay"
+SZ_TIME_UNTIL: Final = "timeUntil"
+SZ_TIME_ZONE: Final = "timeZone"
+SZ_TIME_ZONE_ID: Final = "timeZoneId"
+SZ_TIMING_MODE: Final = "timingMode"
+SZ_TIMING_RESOLUTION: Final = "timingResolution"
 
-SZ_UNTIL = "until"
-SZ_UNTIL_TIME = "untilTime"
-SZ_USE_DAYLIGHT_SAVE_SWITCHING = "useDaylightSaveSwitching"
-SZ_USER_ACCOUNT = "userAccount"
-SZ_USER_ID = "userId"
-SZ_USERNAME = "username"
+SZ_UNTIL: Final = "until"
+SZ_UNTIL_TIME: Final = "untilTime"
+SZ_USE_DAYLIGHT_SAVE_SWITCHING: Final = "useDaylightSaveSwitching"
+SZ_USER_ACCOUNT: Final = "userAccount"
+SZ_USER_ID: Final = "userId"
+SZ_USERNAME: Final = "username"
 
-SZ_VACATION_HOLD_CAPABILITIES = "vacationHoldCapabilities"
-SZ_VALUE_RESOLUTION = "valueResolution"
+SZ_VACATION_HOLD_CAPABILITIES: Final = "vacationHoldCapabilities"
+SZ_VALUE_RESOLUTION: Final = "valueResolution"
 
-SZ_ZONE_ID = "zoneId"
-SZ_ZONE_TYPE = "zoneType"
-SZ_ZONES = "zones"
+SZ_ZONE_ID: Final = "zoneId"
+SZ_ZONE_TYPE: Final = "zoneType"
+SZ_ZONES: Final = "zones"
 
 
 # These are vendor-specific constants, used for values
-SZ_DURATION = "Duration"
-SZ_HEATING_ZONE = "HeatingZone"
-SZ_PERIOD = "Period"
-SZ_THERMOSTAT = "Thermostat"
-SZ_UNKNOWN = "Unknown"
+SZ_DURATION: Final = "Duration"
+SZ_HEATING_ZONE: Final = "HeatingZone"
+SZ_PERIOD: Final = "Period"
+SZ_THERMOSTAT: Final = "Thermostat"
+SZ_UNKNOWN: Final = "Unknown"
 
 
-SZ_MONDAY = "Monday"
-SZ_TUESDAY = "Tuesday"
-SZ_WEDNESDAY = "Wednesday"
-SZ_THURSDAY = "Thursday"
-SZ_FRIDAY = "Friday"
-SZ_SATURDAY = "Saturday"
-SZ_SUNDAY = "Sunday"
+SZ_MONDAY: Final = "Monday"
+SZ_TUESDAY: Final = "Tuesday"
+SZ_WEDNESDAY: Final = "Wednesday"
+SZ_THURSDAY: Final = "Thursday"
+SZ_FRIDAY: Final = "Friday"
+SZ_SATURDAY: Final = "Saturday"
+SZ_SUNDAY: Final = "Sunday"
 
 DAYS_OF_WEEK = (
     SZ_MONDAY,
@@ -167,113 +167,113 @@ DAYS_OF_WEEK = (
 )
 
 
-SZ_OFF = "Off"
-SZ_ON = "On"
+SZ_OFF: Final = "Off"
+SZ_ON: Final = "On"
 
 
-SZ_AUTO = "Auto"
-SZ_AUTO_WITH_ECO = "AutoWithEco"
-SZ_AUTO_WITH_RESET = "AutoWithReset"
-SZ_AWAY = "Away"
-SZ_CUSTOM = "Custom"
-SZ_DAY_OFF = "DayOff"
-SZ_HEATING_OFF = "HeatingOff"
+SZ_AUTO: Final = "Auto"
+SZ_AUTO_WITH_ECO: Final = "AutoWithEco"
+SZ_AUTO_WITH_RESET: Final = "AutoWithReset"
+SZ_AWAY: Final = "Away"
+SZ_CUSTOM: Final = "Custom"
+SZ_DAY_OFF: Final = "DayOff"
+SZ_HEATING_OFF: Final = "HeatingOff"
 
-SZ_COOL = "Cool"
-SZ_HEAT = "Heat"
+SZ_COOL: Final = "Cool"
+SZ_HEAT: Final = "Heat"
 
 
 @verify(EnumCheck.UNIQUE)
 class DhwState(StrEnum):
-    OFF: Final[str] = SZ_OFF
-    ON: Final[str] = SZ_ON
+    OFF: Final = SZ_OFF
+    ON: Final = SZ_ON
 
 
 @verify(EnumCheck.UNIQUE)
 class FanMode(StrEnum):
-    AUTO: Final[str] = SZ_AUTO
-    ON: Final[str] = SZ_ON
+    AUTO: Final = SZ_AUTO
+    ON: Final = SZ_ON
 
 
 @verify(EnumCheck.UNIQUE)
 class FaultType(StrEnum):
-    # W_A_CL: Final[str] = "DHWActuatorCommunicationLost"  # extrapolated
-    DHW_S_CL: Final[str] = "DHWSensorCommunicationLost"
-    DHW_S_LB: Final[str] = "DHWSensorLowBattery"  # extrapolated
-    GWY_X_CL: Final[str] = "GatewayCommunicationLost"
-    # S_X_LB: Final[str] = "TemperatureControlSystemLowBattery"  # extrapolated
-    ZON_A_CL: Final[str] = "TempZoneActuatorCommunicationLost"
-    ZON_A_LB: Final[str] = "TempZoneActuatorLowBattery"
-    ZON_S_CL: Final[str] = "TempZoneSensorCommunicationLost"
-    ZON_S_LB: Final[str] = "TempZoneSensorLowBattery"
+    # W_A_CL: Final = "DHWActuatorCommunicationLost"  # extrapolated
+    DHW_S_CL: Final = "DHWSensorCommunicationLost"
+    DHW_S_LB: Final = "DHWSensorLowBattery"  # extrapolated
+    GWY_X_CL: Final = "GatewayCommunicationLost"
+    # S_X_LB: Final = "TemperatureControlSystemLowBattery"  # extrapolated
+    ZON_A_CL: Final = "TempZoneActuatorCommunicationLost"
+    ZON_A_LB: Final = "TempZoneActuatorLowBattery"
+    ZON_S_CL: Final = "TempZoneSensorCommunicationLost"
+    ZON_S_LB: Final = "TempZoneSensorLowBattery"
 
 
 @verify(EnumCheck.UNIQUE)
 class SystemMode(StrEnum):
-    AUTO: Final[str] = SZ_AUTO
-    AUTO_WITH_ECO: Final[str] = SZ_AUTO_WITH_ECO
-    AUTO_WITH_RESET: Final[str] = SZ_AUTO_WITH_RESET
-    AWAY: Final[str] = SZ_AWAY
-    CUSTOM: Final[str] = SZ_CUSTOM
-    DAY_OFF: Final[str] = SZ_DAY_OFF
-    HEATING_OFF: Final[str] = SZ_HEATING_OFF
-    OFF: Final[str] = SZ_OFF  # not evohome (VisionProWifiRetail)
-    HEAT: Final[str] = SZ_HEAT  # not evohome (VisionProWifiRetail)
-    COOL: Final[str] = SZ_COOL  # not evohome (VisionProWifiRetail)
+    AUTO: Final = SZ_AUTO
+    AUTO_WITH_ECO: Final = SZ_AUTO_WITH_ECO
+    AUTO_WITH_RESET: Final = SZ_AUTO_WITH_RESET
+    AWAY: Final = SZ_AWAY
+    CUSTOM: Final = SZ_CUSTOM
+    DAY_OFF: Final = SZ_DAY_OFF
+    HEATING_OFF: Final = SZ_HEATING_OFF
+    OFF: Final = SZ_OFF  # not evohome (VisionProWifiRetail)
+    HEAT: Final = SZ_HEAT  # not evohome (VisionProWifiRetail)
+    COOL: Final = SZ_COOL  # not evohome (VisionProWifiRetail)
 
 
 @verify(EnumCheck.UNIQUE)
 class TcsModelType(StrEnum):
-    EVO_TOUCH: Final[str] = "EvoTouch"
-    FOCUS_PRO_WIFI_RETAIL: Final[str] = "FocusProWifiRetail"
-    VISION_PRO_WIFI_RETAIL: Final[str] = "VisionProWifiRetail"
+    EVO_TOUCH: Final = "EvoTouch"
+    FOCUS_PRO_WIFI_RETAIL: Final = "FocusProWifiRetail"
+    VISION_PRO_WIFI_RETAIL: Final = "VisionProWifiRetail"
 
 
-SZ_FOLLOW_SCHEDULE = "FollowSchedule"
-SZ_PERMANENT_OVERRIDE = "PermanentOverride"
-SZ_TEMPORARY_OVERRIDE = "TemporaryOverride"
-SZ_VACATION_HOLD = "VacationHold"
+SZ_FOLLOW_SCHEDULE: Final = "FollowSchedule"
+SZ_PERMANENT_OVERRIDE: Final = "PermanentOverride"
+SZ_TEMPORARY_OVERRIDE: Final = "TemporaryOverride"
+SZ_VACATION_HOLD: Final = "VacationHold"
 
 
 @verify(EnumCheck.UNIQUE)
 class ZoneMode(StrEnum):
-    FOLLOW_SCHEDULE: Final[str] = SZ_FOLLOW_SCHEDULE
-    PERMANENT_OVERRIDE: Final[str] = SZ_PERMANENT_OVERRIDE
-    TEMPORARY_OVERRIDE: Final[str] = SZ_TEMPORARY_OVERRIDE
-    VACATION_HOLD: Final[str] = SZ_VACATION_HOLD  # not evohome (VisionProWifiRetail)
+    FOLLOW_SCHEDULE: Final = SZ_FOLLOW_SCHEDULE
+    PERMANENT_OVERRIDE: Final = SZ_PERMANENT_OVERRIDE
+    TEMPORARY_OVERRIDE: Final = SZ_TEMPORARY_OVERRIDE
+    VACATION_HOLD: Final = SZ_VACATION_HOLD  # not evohome (VisionProWifiRetail)
 
 
-SZ_UNKNOWN = "Unknown"
+SZ_UNKNOWN: Final = "Unknown"
 
 
 @verify(EnumCheck.UNIQUE)
 class ZoneModelType(StrEnum):
-    FOCUS_PRO_WIFI_RETAIL: Final[str] = "FocusProWifiRetail"
-    HEATING_ZONE: Final[str] = "HeatingZone"
-    ROUND_MODULATION: Final[str] = "RoundModulation"
-    ROUND_WIRELESS: Final[str] = "RoundWireless"
-    UNKNOWN: Final[str] = SZ_UNKNOWN
-    VISION_PRO_WIFI_RETAIL: Final[str] = "VisionProWifiRetail"
+    FOCUS_PRO_WIFI_RETAIL: Final = "FocusProWifiRetail"
+    HEATING_ZONE: Final = "HeatingZone"
+    ROUND_MODULATION: Final = "RoundModulation"
+    ROUND_WIRELESS: Final = "RoundWireless"
+    UNKNOWN: Final = SZ_UNKNOWN
+    VISION_PRO_WIFI_RETAIL: Final = "VisionProWifiRetail"
 
 
-SZ_ELECTRIC_HEAT = "ElectricHeat"  # TODO: needs confirming
-SZ_MIXING_VALVE = "MixingValve"
-SZ_RADIATOR_ZONE = "RadiatorZone"
-SZ_THERMOSTAT = "Thermostat"
-SZ_UNDERFLOOR_HEATING = "UnderfloorHeating"
-SZ_ZONE_VALVES = "ZoneValves"  # is not ZoneValve
-SZ_ZONE_TEMPERATURE_CONTROL: Final[str] = "ZoneTemperatureControl"
+SZ_ELECTRIC_HEAT: Final = "ElectricHeat"  # TODO: needs confirming
+SZ_MIXING_VALVE: Final = "MixingValve"
+SZ_RADIATOR_ZONE: Final = "RadiatorZone"
+SZ_THERMOSTAT: Final = "Thermostat"
+SZ_UNDERFLOOR_HEATING: Final = "UnderfloorHeating"
+SZ_ZONE_VALVES: Final = "ZoneValves"  # is not ZoneValve
+SZ_ZONE_TEMPERATURE_CONTROL: Final = "ZoneTemperatureControl"
 
 
 @verify(EnumCheck.UNIQUE)
 class ZoneType(StrEnum):
-    MIXING_VALVE: Final[str] = SZ_MIXING_VALVE
-    RADIATOR_ZONE: Final[str] = SZ_RADIATOR_ZONE
-    THERMOSTAT: Final[str] = SZ_THERMOSTAT
-    UNDERFLOOR_HEATING: Final[str] = SZ_UNDERFLOOR_HEATING
-    UNKNOWN: Final[str] = SZ_UNKNOWN
-    ZONE_TEMPERATURE_CONTROL: Final[str] = SZ_ZONE_TEMPERATURE_CONTROL
-    ZONE_VALVES: Final[str] = SZ_ZONE_VALVES
+    MIXING_VALVE: Final = SZ_MIXING_VALVE
+    RADIATOR_ZONE: Final = SZ_RADIATOR_ZONE
+    THERMOSTAT: Final = SZ_THERMOSTAT
+    UNDERFLOOR_HEATING: Final = SZ_UNDERFLOOR_HEATING
+    UNKNOWN: Final = SZ_UNKNOWN
+    ZONE_TEMPERATURE_CONTROL: Final = SZ_ZONE_TEMPERATURE_CONTROL
+    ZONE_VALVES: Final = SZ_ZONE_VALVES
 
 
 # these may not be required with Python 3.12+ (used for 'if mode in ZONE_MODES'...)

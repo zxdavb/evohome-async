@@ -68,7 +68,7 @@ class ActiveFaultsBase:
     def __init__(
         self, id: _DhwIdT | _ZoneIdT, broker: Broker, logger: logging.Logger
     ) -> None:
-        self._id: Final[str] = id
+        self._id: Final = id
 
         self._broker = broker
         self._logger = logger
@@ -251,7 +251,7 @@ class Zone(_ZoneDeprecated, _ZoneBase):
     """Instance of a TCS's heating zone (temperatureZone)."""
 
     STATUS_SCHEMA: Final = SCH_ZONE_STATUS  # type: ignore[misc]
-    TYPE: Final[str] = SZ_TEMPERATURE_ZONE  # type: ignore[misc]
+    TYPE: Final = SZ_TEMPERATURE_ZONE  # type: ignore[misc]
 
     SCH_SCHEDULE_GET: Final = SCH_GET_SCHEDULE_ZONE  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_ZONE  # type: ignore[misc]

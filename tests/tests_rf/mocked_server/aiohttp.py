@@ -20,9 +20,9 @@ _DEFAULT_LIMIT = 2**16  # 64 KiB
 
 @verify(EnumCheck.UNIQUE)
 class hdrs(StrEnum):  # a la aiohttp
-    METH_GET: Final[str] = "GET"
-    METH_POST: Final[str] = "POST"
-    METH_PUT: Final[str] = "PUT"
+    METH_GET: Final = "GET"
+    METH_POST: Final = "POST"
+    METH_PUT: Final = "PUT"
 
 
 class StreamReader(asyncio.StreamReader):

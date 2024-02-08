@@ -3,6 +3,8 @@
 #
 """evohomeasync2 provides an async client for the updated Evohome API."""
 
+from typing import Final
+
 from .schema import (  # noqa: F401
     DhwState,
     SystemMode,
@@ -57,9 +59,9 @@ CREDS_USER_PASSWORD = {
 
 
 # These are used in TCS.temperatures convenience function
-SZ_ID = "id"
-SZ_NAME = "name"
-SZ_TEMP = "temp"
-SZ_THERMOSTAT = "thermostat"
-SZ_SCHEDULE = "schedule"
-SZ_SETPOINT = "setpoint"
+SZ_ID: Final = "id"
+SZ_NAME: Final = "name"
+SZ_TEMP: Final = "temp"
+SZ_THERMOSTAT: Final = "thermostat"
+SZ_SCHEDULE: Final = "schedule"
+SZ_SETPOINT: Final = "setpoint"

@@ -30,7 +30,7 @@ class Gateway(ActiveFaultsBase):
     """Instance of a location's gateway."""
 
     STATUS_SCHEMA: Final[vol.Schema] = SCH_GATEWAY  # type: ignore[no-any-unimported]
-    TYPE: Final[str] = SZ_GATEWAY  # type: ignore[misc]
+    TYPE: Final = SZ_GATEWAY  # type: ignore[misc]
 
     def __init__(self, location: Location, config: _EvoDictT) -> None:
         super().__init__(

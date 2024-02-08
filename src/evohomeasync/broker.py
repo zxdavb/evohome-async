@@ -58,7 +58,7 @@ class Broker:
         self._session_id: _SessionIdT | None = session_id
         self._user_id: _UserIdT | None = None
 
-        self.hostname: Final[str] = hostname or URL_HOST
+        self.hostname: Final = hostname or URL_HOST
         self._session = session or aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=30)
         )

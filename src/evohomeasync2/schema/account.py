@@ -4,6 +4,8 @@
 """evohomeasync2 - Schema for RESTful API Account JSON."""
 from __future__ import annotations
 
+from typing import Final
+
 import voluptuous as vol  # type: ignore[import-untyped]
 
 from .const import (
@@ -20,12 +22,12 @@ from .const import (
 )
 
 # These are vendor-specific constants, used for authentication
-SZ_ACCESS_TOKEN = "access_token"
-SZ_ACCESS_TOKEN_EXPIRES = "access_token_expires"  # not part of a schema
-SZ_EXPIRES_IN = "expires_in"
-SZ_REFRESH_TOKEN = "refresh_token"
-SZ_SCOPE = "scope"
-SZ_TOKEN_TYPE = "token_type"
+SZ_ACCESS_TOKEN: Final = "access_token"
+SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"  # not part of a schema
+SZ_EXPIRES_IN: Final = "expires_in"
+SZ_REFRESH_TOKEN: Final = "refresh_token"
+SZ_SCOPE: Final = "scope"
+SZ_TOKEN_TYPE: Final = "token_type"
 
 
 SCH_OAUTH_TOKEN = vol.Schema(

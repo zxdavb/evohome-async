@@ -45,7 +45,7 @@ class Location(_LocationDeprecated):
     """Instance of an account's location."""
 
     STATUS_SCHEMA: Final[vol.Schema] = SCH_LOCN_STATUS  # type: ignore[no-any-unimported]
-    TYPE: Final[str] = SZ_LOCATION
+    TYPE: Final = SZ_LOCATION
 
     def __init__(self, client: EvohomeClient, config: _EvoDictT) -> None:
         self.client = client

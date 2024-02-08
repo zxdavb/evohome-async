@@ -121,7 +121,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
     STATUS_SCHEMA: Final[vol.Schema] = SCH_TCS_STATUS  # type: ignore[no-any-unimported]
-    TYPE: Final[str] = SZ_TEMPERATURE_CONTROL_SYSTEM  # type: ignore[misc]
+    TYPE: Final = SZ_TEMPERATURE_CONTROL_SYSTEM  # type: ignore[misc]
 
     def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
         super().__init__(config[SZ_SYSTEM_ID], gateway._broker, gateway._logger)

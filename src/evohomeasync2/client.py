@@ -10,6 +10,7 @@ import os
 import sys
 from datetime import datetime as dt
 from io import TextIOWrapper
+from typing import Final
 
 import click
 
@@ -29,9 +30,9 @@ _DEBUG_CLI = False  # for debugging of CLI (*before* loading library)
 DEBUG_ADDR = "0.0.0.0"
 DEBUG_PORT = 5679
 
-SZ_CACHE_TOKENS = "cache_tokens"
-SZ_EVO = "evo"
-SZ_USERNAME = "username"
+SZ_CACHE_TOKENS: Final = "cache_tokens"
+SZ_EVO: Final = "evo"
+SZ_USERNAME: Final = "username"
 
 TOKEN_FILE = ".evo-cache.tmp"
 
