@@ -1,0 +1,306 @@
+{
+    "locationInfo": {
+        "timeZone": {
+            "timeZoneId": "RomanceStandardTime",
+            "displayName": "(UTC+01:00) Brussels, Copenhagen, Madrid, Paris",
+            "offsetMinutes": 60,
+            "currentOffsetMinutes": 60,
+            "supportsDaylightSaving": true
+        }
+    },
+    "gateways": [
+        {
+            "temperatureControlSystems": [
+                {
+                    "systemId": "8942494",
+                    "modelType": "EvoTouch",
+                    "zones": [
+                        {
+                            "zoneId": "8942485",
+                            "modelType": "HeatingZone",
+                            "setpointCapabilities": {
+                                "maxHeatSetpoint": 35.0,
+                                "minHeatSetpoint": 5.0,
+                                "valueResolution": 0.5,
+                                "canControlHeat": true,
+                                "canControlCool": false,
+                                "allowedSetpointModes": [
+                                    "PermanentOverride",
+                                    "FollowSchedule",
+                                    "TemporaryOverride"
+                                ],
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "00:10:00"
+                            },
+                            "scheduleCapabilities": {
+                                "maxSwitchpointsPerDay": 6,
+                                "minSwitchpointsPerDay": 1,
+                                "timingResolution": "00:10:00",
+                                "setpointValueResolution": 0.5
+                            },
+                            "name": "Comedor",
+                            "zoneType": "ZoneTemperatureControl"
+                        },
+                        {
+                            "zoneId": "8942486",
+                            "modelType": "HeatingZone",
+                            "setpointCapabilities": {
+                                "maxHeatSetpoint": 35.0,
+                                "minHeatSetpoint": 5.0,
+                                "valueResolution": 0.5,
+                                "canControlHeat": true,
+                                "canControlCool": false,
+                                "allowedSetpointModes": [
+                                    "PermanentOverride",
+                                    "FollowSchedule",
+                                    "TemporaryOverride"
+                                ],
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "00:10:00"
+                            },
+                            "scheduleCapabilities": {
+                                "maxSwitchpointsPerDay": 6,
+                                "minSwitchpointsPerDay": 1,
+                                "timingResolution": "00:10:00",
+                                "setpointValueResolution": 0.5
+                            },
+                            "name": "Cocina",
+                            "zoneType": "ZoneTemperatureControl"
+                        },
+                        {
+                            "zoneId": "8942487",
+                            "modelType": "HeatingZone",
+                            "setpointCapabilities": {
+                                "maxHeatSetpoint": 35.0,
+                                "minHeatSetpoint": 5.0,
+                                "valueResolution": 0.5,
+                                "canControlHeat": true,
+                                "canControlCool": false,
+                                "allowedSetpointModes": [
+                                    "PermanentOverride",
+                                    "FollowSchedule",
+                                    "TemporaryOverride"
+                                ],
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "00:10:00"
+                            },
+                            "scheduleCapabilities": {
+                                "maxSwitchpointsPerDay": 6,
+                                "minSwitchpointsPerDay": 1,
+                                "timingResolution": "00:10:00",
+                                "setpointValueResolution": 0.5
+                            },
+                            "name": "Hab nosotros",
+                            "zoneType": "ZoneTemperatureControl"
+                        },
+                        {
+                            "zoneId": "8942488",
+                            "modelType": "HeatingZone",
+                            "setpointCapabilities": {
+                                "maxHeatSetpoint": 35.0,
+                                "minHeatSetpoint": 5.0,
+                                "valueResolution": 0.5,
+                                "canControlHeat": true,
+                                "canControlCool": false,
+                                "allowedSetpointModes": [
+                                    "PermanentOverride",
+                                    "FollowSchedule",
+                                    "TemporaryOverride"
+                                ],
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "00:10:00"
+                            },
+                            "scheduleCapabilities": {
+                                "maxSwitchpointsPerDay": 6,
+                                "minSwitchpointsPerDay": 1,
+                                "timingResolution": "00:10:00",
+                                "setpointValueResolution": 0.5
+                            },
+                            "name": "Hab Mapi",
+                            "zoneType": "ZoneTemperatureControl"
+                        },
+                        {
+                            "zoneId": "8942489",
+                            "modelType": "HeatingZone",
+                            "setpointCapabilities": {
+                                "maxHeatSetpoint": 35.0,
+                                "minHeatSetpoint": 5.0,
+                                "valueResolution": 0.5,
+                                "canControlHeat": true,
+                                "canControlCool": false,
+                                "allowedSetpointModes": [
+                                    "PermanentOverride",
+                                    "FollowSchedule",
+                                    "TemporaryOverride"
+                                ],
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "00:10:00"
+                            },
+                            "scheduleCapabilities": {
+                                "maxSwitchpointsPerDay": 6,
+                                "minSwitchpointsPerDay": 1,
+                                "timingResolution": "00:10:00",
+                                "setpointValueResolution": 0.5
+                            },
+                            "name": "Hab visitas",
+                            "zoneType": "ZoneTemperatureControl"
+                        },
+                        {
+                            "zoneId": "8942490",
+                            "modelType": "HeatingZone",
+                            "setpointCapabilities": {
+                                "maxHeatSetpoint": 35.0,
+                                "minHeatSetpoint": 5.0,
+                                "valueResolution": 0.5,
+                                "canControlHeat": true,
+                                "canControlCool": false,
+                                "allowedSetpointModes": [
+                                    "PermanentOverride",
+                                    "FollowSchedule",
+                                    "TemporaryOverride"
+                                ],
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "00:10:00"
+                            },
+                            "scheduleCapabilities": {
+                                "maxSwitchpointsPerDay": 6,
+                                "minSwitchpointsPerDay": 1,
+                                "timingResolution": "00:10:00",
+                                "setpointValueResolution": 0.5
+                            },
+                            "name": "Bano",
+                            "zoneType": "ZoneTemperatureControl"
+                        },
+                        {
+                            "zoneId": "8942491",
+                            "modelType": "HeatingZone",
+                            "setpointCapabilities": {
+                                "maxHeatSetpoint": 35.0,
+                                "minHeatSetpoint": 5.0,
+                                "valueResolution": 0.5,
+                                "canControlHeat": true,
+                                "canControlCool": false,
+                                "allowedSetpointModes": [
+                                    "PermanentOverride",
+                                    "FollowSchedule",
+                                    "TemporaryOverride"
+                                ],
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "00:10:00"
+                            },
+                            "scheduleCapabilities": {
+                                "maxSwitchpointsPerDay": 6,
+                                "minSwitchpointsPerDay": 1,
+                                "timingResolution": "00:10:00",
+                                "setpointValueResolution": 0.5
+                            },
+                            "name": "Apagar",
+                            "zoneType": "ZoneTemperatureControl"
+                        },
+                        {
+                            "zoneId": "8942492",
+                            "modelType": "HeatingZone",
+                            "setpointCapabilities": {
+                                "maxHeatSetpoint": 35.0,
+                                "minHeatSetpoint": 5.0,
+                                "valueResolution": 0.5,
+                                "canControlHeat": true,
+                                "canControlCool": false,
+                                "allowedSetpointModes": [
+                                    "PermanentOverride",
+                                    "FollowSchedule",
+                                    "TemporaryOverride"
+                                ],
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "00:10:00"
+                            },
+                            "scheduleCapabilities": {
+                                "maxSwitchpointsPerDay": 6,
+                                "minSwitchpointsPerDay": 1,
+                                "timingResolution": "00:10:00",
+                                "setpointValueResolution": 0.5
+                            },
+                            "name": "Secador toalla",
+                            "zoneType": "ZoneTemperatureControl"
+                        },
+                        {
+                            "zoneId": "8942493",
+                            "modelType": "HeatingZone",
+                            "setpointCapabilities": {
+                                "maxHeatSetpoint": 35.0,
+                                "minHeatSetpoint": 5.0,
+                                "valueResolution": 0.5,
+                                "canControlHeat": true,
+                                "canControlCool": false,
+                                "allowedSetpointModes": [
+                                    "PermanentOverride",
+                                    "FollowSchedule",
+                                    "TemporaryOverride"
+                                ],
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "00:10:00"
+                            },
+                            "scheduleCapabilities": {
+                                "maxSwitchpointsPerDay": 6,
+                                "minSwitchpointsPerDay": 1,
+                                "timingResolution": "00:10:00",
+                                "setpointValueResolution": 0.5
+                            },
+                            "name": "Sala",
+                            "zoneType": "ZoneTemperatureControl"
+                        }
+                    ],
+                    "allowedSystemModes": [
+                        {
+                            "systemMode": "Auto",
+                            "canBePermanent": true,
+                            "canBeTemporary": false
+                        },
+                        {
+                            "systemMode": "AutoWithEco",
+                            "canBePermanent": true,
+                            "canBeTemporary": true,
+                            "maxDuration": "1.00:00:00",
+                            "timingResolution": "01:00:00",
+                            "timingMode": "Duration"
+                        },
+                        {
+                            "systemMode": "AutoWithReset",
+                            "canBePermanent": true,
+                            "canBeTemporary": false
+                        },
+                        {
+                            "systemMode": "Away",
+                            "canBePermanent": true,
+                            "canBeTemporary": true,
+                            "maxDuration": "99.00:00:00",
+                            "timingResolution": "1.00:00:00",
+                            "timingMode": "Period"
+                        },
+                        {
+                            "systemMode": "DayOff",
+                            "canBePermanent": true,
+                            "canBeTemporary": true,
+                            "maxDuration": "99.00:00:00",
+                            "timingResolution": "1.00:00:00",
+                            "timingMode": "Period"
+                        },
+                        {
+                            "systemMode": "HeatingOff",
+                            "canBePermanent": true,
+                            "canBeTemporary": false
+                        },
+                        {
+                            "systemMode": "Custom",
+                            "canBePermanent": true,
+                            "canBeTemporary": true,
+                            "maxDuration": "99.00:00:00",
+                            "timingResolution": "1.00:00:00",
+                            "timingMode": "Period"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
