@@ -34,7 +34,7 @@ jobs:
     - name: Check with mypy
       run: |
         pip install mypy
-        mypy evohomeasync/ evohomeasync2/
+        mypy src/
 
 
     - run: echo "🍏 This job's status is ${{ job.status }}."
