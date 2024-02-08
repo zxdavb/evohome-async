@@ -268,7 +268,7 @@ class Zone(_ZoneDeprecated, _ZoneBase):
             )
         if self.zoneType not in ZONE_TYPES or self.zoneType == ZoneType.UNKNOWN:
             raise exc.InvalidSchema(
-                f"Invalid zone type '{self.modelType}' (is it a ghost zone?)"
+                f"Invalid zone type '{self.zoneType}' (is it a ghost zone?)"
             )
 
     @property
