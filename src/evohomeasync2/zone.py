@@ -259,17 +259,15 @@ class Zone(_ZoneDeprecated, _ZoneBase):
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs, config)
 
-        if (
-            self.modelType not in ZONE_MODEL_TYPES
-            or self.modelType == ZoneModelType.UNKNOWN
-        ):
-            raise exc.InvalidSchema(
-                f"Invalid model type '{self.modelType}' (is it a ghost zone?)"
-            )
-        if self.zoneType not in ZONE_TYPES or self.zoneType == ZoneType.UNKNOWN:
-            raise exc.InvalidSchema(
-                f"Invalid zone type '{self.zoneType}' (is it a ghost zone?)"
-            )
+        if not self.modelType or self.modelType == ZoneModelType.UNKNOWN:
+            raise exc.InvalidSchema("Invalid model type (is it a ghost zone?)")
+        if not self.zoneType or self.zoneType == ZoneType.UNKNOWN:
+            raise exc.InvalidSchema("Invalid zone type (is it a ghost zone?)")
+
+        if self.modelType not in ZONE_MODEL_TYPES:
+            self._logger.warning("Uknown model type '%s' (YMMV)", self.modelType)
+        if self.zoneType not in ZONE_TYPES:
+            self._logger.warning("Unknown zone type '%s' (YMMV)", self.zoneType)
 
     @property
     def zoneId(self) -> _ZoneIdT:
