@@ -265,7 +265,7 @@ class Zone(_ZoneDeprecated, _ZoneBase):
             raise exc.InvalidSchema("Invalid zone type (is it a ghost zone?)")
 
         if self.modelType not in ZONE_MODEL_TYPES:
-            self._logger.warning("Uknown model type '%s' (YMMV)", self.modelType)
+            self._logger.warning("Unknown model type '%s' (YMMV)", self.modelType)
         if self.zoneType not in ZONE_TYPES:
             self._logger.warning("Unknown zone type '%s' (YMMV)", self.zoneType)
 
