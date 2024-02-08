@@ -144,7 +144,6 @@ SZ_ZONES: Final = "zones"
 SZ_DURATION: Final = "Duration"
 SZ_HEATING_ZONE: Final = "HeatingZone"
 SZ_PERIOD: Final = "Period"
-SZ_THERMOSTAT: Final = "Thermostat"
 SZ_UNKNOWN: Final = "Unknown"
 
 
@@ -241,9 +240,6 @@ class ZoneMode(StrEnum):
     PERMANENT_OVERRIDE: Final = SZ_PERMANENT_OVERRIDE
     TEMPORARY_OVERRIDE: Final = SZ_TEMPORARY_OVERRIDE
     VACATION_HOLD: Final = SZ_VACATION_HOLD  # not evohome (VisionProWifiRetail)
-
-
-SZ_UNKNOWN: Final = "Unknown"
 
 
 @verify(EnumCheck.UNIQUE)
