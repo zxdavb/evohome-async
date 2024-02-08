@@ -1,13 +1,17 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Typing with mypy
+name: Typing via mypy
 
-on: workflow_dispatch
-  # push:
-  #   branches: [ "master" ]
-  # pull_request:
-  #   branches: [ "master" ]
+on:
+  push:
+    branches: [ "master", "stable" ]
+    paths: ["src/**.py", "tests/**.py", "src/**/py.typed"]
+  pull_request:
+    branches: [ "master", "stable" ]
+    paths: ["src/**.py", "tests/**.py", "src/**/py.typed"]
+  workflow_dispatch:
+
 
 jobs:
   lint:

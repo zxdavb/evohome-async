@@ -1,14 +1,17 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Testing with pytest
+name: Testing via pytest
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ "stable" ]
-  # pull_request:
-  #   branches: [ "stable" ]
+    branches: [ "master", "stable" ]
+    paths: ["src/**.py", "tests/**"]
+  pull_request:
+    branches: [ "master", "stable" ]
+    paths: ["src/**.py", "tests/**"]
+  workflow_dispatch:
+
 
 jobs:
   test:

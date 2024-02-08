@@ -1,9 +1,17 @@
 #
 # https://docs.astral.sh/ruff/integrations/#github-actions
 
-name: Linting with ruff
+name: Linting via ruff
 
-on: workflow_dispatch  # [push, pull_request]
+on:
+  push:
+    branches: [ "master", "stable" ]
+    paths: ["src/**.py", "tests/**"]
+  pull_request:
+    branches: [ "master", "stable" ]
+    paths: ["src/**.py", "tests/**"]
+  workflow_dispatch:
+
 
 jobs:
   lint:
