@@ -4,6 +4,8 @@
 """evohomeasync2 - Schema for RESTful API Config JSON."""
 from __future__ import annotations
 
+from typing import Final
+
 import voluptuous as vol  # type: ignore[import-untyped]
 
 from .const import (
@@ -86,6 +88,14 @@ from .const import (
     ZoneType,
     obfuscate as _obfuscate,
 )
+
+# These are best guess
+MAX_HEAT_SETPOINT_LOWER: Final[float] = 21.0
+MAX_HEAT_SETPOINT_UPPER: Final[float] = 35.0
+
+MIN_HEAT_SETPOINT_LOWER: Final[float] = 4.5
+MIN_HEAT_SETPOINT_UPPER: Final[float] = 21.0
+
 
 SCH_SYSTEM_MODE_PERM = vol.Schema(
     {
@@ -171,11 +181,15 @@ SCH_VACATION_HOLD_CAPABILITIES = vol.Schema(
 SCH_SETPOINT_CAPABILITIES = vol.Schema(  # min/max as per evohome
     {
         vol.Required(SZ_CAN_CONTROL_HEAT): bool,
-        vol.Required(SZ_MAX_HEAT_SETPOINT): vol.All(float, vol.Range(min=21, max=35)),
-        vol.Required(SZ_MIN_HEAT_SETPOINT): vol.All(float, vol.Range(min=5, max=21)),
+        vol.Required(SZ_MAX_HEAT_SETPOINT): vol.All(
+            float, vol.Range(min=MAX_HEAT_SETPOINT_LOWER, max=MAX_HEAT_SETPOINT_UPPER)
+        ),
+        vol.Required(SZ_MIN_HEAT_SETPOINT): vol.All(
+            float, vol.Range(min=MIN_HEAT_SETPOINT_LOWER, max=MIN_HEAT_SETPOINT_UPPER)
+        ),
         vol.Required(SZ_CAN_CONTROL_COOL): bool,
-        vol.Optional(SZ_MAX_COOL_SETPOINT): float,  #
-        vol.Optional(SZ_MIN_COOL_SETPOINT): float,  #
+        vol.Optional(SZ_MAX_COOL_SETPOINT): float,  # TODO
+        vol.Optional(SZ_MIN_COOL_SETPOINT): float,  # TODO
         vol.Required(SZ_ALLOWED_SETPOINT_MODES): list(m.value for m in ZoneMode),
         vol.Required(SZ_VALUE_RESOLUTION): float,  # 0.5
         vol.Required(SZ_MAX_DURATION): str,  # "1.00:00:00"
