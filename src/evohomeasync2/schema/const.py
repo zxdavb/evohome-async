@@ -262,6 +262,7 @@ SZ_RADIATOR_ZONE = "RadiatorZone"
 SZ_THERMOSTAT = "Thermostat"
 SZ_UNDERFLOOR_HEATING = "UnderfloorHeating"
 SZ_ZONE_VALVES = "ZoneValves"  # is not ZoneValve
+SZ_ZONE_TEMPERATURE_CONTROL: Final[str] = "ZoneTemperatureControl"
 
 
 @verify(EnumCheck.UNIQUE)
@@ -271,6 +272,7 @@ class ZoneType(StrEnum):
     THERMOSTAT: Final[str] = SZ_THERMOSTAT
     UNDERFLOOR_HEATING: Final[str] = SZ_UNDERFLOOR_HEATING
     UNKNOWN: Final[str] = SZ_UNKNOWN
+    ZONE_TEMPERATURE_CONTROL: Final[str] = SZ_ZONE_TEMPERATURE_CONTROL
     ZONE_VALVES: Final[str] = SZ_ZONE_VALVES
 
 
