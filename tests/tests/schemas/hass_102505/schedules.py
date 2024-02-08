@@ -1,4 +1,5 @@
 schedule = {}
+
 schedule["Kitchen"] = {
     "DailySchedules": [
         {
@@ -64,6 +65,7 @@ schedule["Kitchen"] = {
         },
     ]
 }
+
 schedule["Basement One"] = {
     "DailySchedules": [
         {
@@ -96,6 +98,7 @@ schedule["Basement One"] = {
         },
     ]
 }
+
 schedule["Dining room"] = {
     "DailySchedules": [
         {
@@ -161,6 +164,7 @@ schedule["Dining room"] = {
         },
     ]
 }
+
 schedule["Landing"] = {
     "DailySchedules": [
         {
@@ -193,6 +197,7 @@ schedule["Landing"] = {
         },
     ]
 }
+
 schedule["Guest Bedroom"] = {
     "DailySchedules": [
         {
@@ -260,6 +265,7 @@ schedule["Guest Bedroom"] = {
         },
     ]
 }
+
 schedule["Sues Bedroom"] = {
     "DailySchedules": [
         {
@@ -327,6 +333,7 @@ schedule["Sues Bedroom"] = {
         },
     ]
 }
+
 schedule["Matts bedroom"] = {
     "DailySchedules": [
         {
@@ -394,6 +401,7 @@ schedule["Matts bedroom"] = {
         },
     ]
 }
+
 schedule["Basement Two"] = {
     "DailySchedules": [
         {
@@ -426,6 +434,7 @@ schedule["Basement Two"] = {
         },
     ]
 }
+
 schedule["Bathroom"] = {
     "DailySchedules": [
         {
@@ -491,6 +500,7 @@ schedule["Bathroom"] = {
         },
     ]
 }
+
 schedule["Dressing Room"] = {
     "DailySchedules": [
         {
@@ -551,6 +561,7 @@ schedule["Dressing Room"] = {
         },
     ]
 }
+
 schedule["Sitting Room"] = {
     "DailySchedules": [
         {
@@ -616,6 +627,7 @@ schedule["Sitting Room"] = {
         },
     ]
 }
+
 schedule["Hall"] = {
     "DailySchedules": [
         {

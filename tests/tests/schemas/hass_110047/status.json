@@ -1,0 +1,138 @@
+{
+    "locationId": "6992390",
+    "gateways": [
+        {
+            "gatewayId": "6613390",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "8942494",
+                    "zones": [
+                        {
+                            "zoneId": "8942485",
+                            "temperatureStatus": {
+                                "temperature": 22.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 18.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Comedor"
+                        },
+                        {
+                            "zoneId": "8942486",
+                            "temperatureStatus": {
+                                "temperature": 19.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 18.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Cocina"
+                        },
+                        {
+                            "zoneId": "8942487",
+                            "temperatureStatus": {
+                                "temperature": 22.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 23.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Hab nosotros"
+                        },
+                        {
+                            "zoneId": "8942488",
+                            "temperatureStatus": {
+                                "temperature": 23.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 24.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Hab Mapi"
+                        },
+                        {
+                            "zoneId": "8942489",
+                            "temperatureStatus": {
+                                "temperature": 21.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 18.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Hab visitas"
+                        },
+                        {
+                            "zoneId": "8942490",
+                            "temperatureStatus": {
+                                "temperature": 22.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 18.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Bano"
+                        },
+                        {
+                            "zoneId": "8942491",
+                            "temperatureStatus": {
+                                "temperature": 27.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 21.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Apagar"
+                        },
+                        {
+                            "zoneId": "8942492",
+                            "temperatureStatus": {
+                                "temperature": 27.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 5.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Secador toalla"
+                        },
+                        {
+                            "zoneId": "8942493",
+                            "temperatureStatus": {
+                                "temperature": 19.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 18.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Sala"
+                        }
+                    ],
+                    "activeFaults": [],
+                    "systemModeStatus": {
+                        "mode": "Auto",
+                        "isPermanent": true
+                    }
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}
