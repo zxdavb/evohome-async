@@ -1,0 +1,137 @@
+{
+    "locationId": "1234567",
+    "gateways": [
+        {
+            "gatewayId": "2345678",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "3432522",
+                    "zones": [
+                        {
+                            "zoneId": "3432521",
+                            "temperatureStatus": {
+                                "temperature": 20.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 20.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Main Room"
+                        },
+                        {
+                            "zoneId": "3432576",
+                            "temperatureStatus": {
+                                "temperature": 20.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 20.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Front Room"
+                        },
+                        {
+                            "zoneId": "3432577",
+                            "temperatureStatus": {
+                                "temperature": 20.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 19.5,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Kitchen"
+                        },
+                        {
+                            "zoneId": "3432578",
+                            "temperatureStatus": {
+                                "temperature": 20.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 18.5,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Bedroom"
+                        },
+                        {
+                            "zoneId": "3432579",
+                            "temperatureStatus": {
+                                "temperature": 18.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 18.5,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Beans Room"
+                        },
+                        {
+                            "zoneId": "3432580",
+                            "temperatureStatus": {
+                                "temperature": 18.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 18.5,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Noos Room"
+                        },
+                        {
+                            "zoneId": "3449703",
+                            "temperatureStatus": {
+                                "temperature": 18.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 18.5,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Bathroom"
+                        },
+                        {
+                            "zoneId": "3449740",
+                            "temperatureStatus": {
+                                "temperature": 20.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 21.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Zone Valve"
+                        }
+                    ],
+                    "dhw": {
+                        "dhwId": "3933910",
+                        "temperatureStatus": {
+                            "temperature": 44.0,
+                            "isAvailable": true
+                        },
+                        "stateStatus": {
+                            "state": "Off",
+                            "mode": "FollowSchedule"
+                        },
+                        "activeFaults": []
+                    },
+                    "activeFaults": [],
+                    "systemModeStatus": {
+                        "mode": "Auto",
+                        "isPermanent": true
+                    }
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}

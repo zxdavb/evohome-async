@@ -1,0 +1,48 @@
+{
+    "locationId": "4655156",
+    "gateways": [
+        {
+            "gatewayId": "4450182",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "6148217",
+                    "zones": [
+                        {"zoneId": "6148216", "name": "Living",
+                            "temperatureStatus": {"temperature": 23.0,"isAvailable": true},
+                            "setpointStatus": {"targetHeatTemperature": 22.0, "setpointMode": "FollowSchedule"},
+                            "activeFaults": []
+                        },
+                        {"zoneId": "6148370", "name": "Badkamer",
+                            "temperatureStatus": {"temperature": 20.5, "isAvailable": true},
+                            "setpointStatus": {"targetHeatTemperature": 18.0, "setpointMode": "FollowSchedule"},
+                            "activeFaults": []
+                        },
+                        {"zoneId": "6150627", "name": "Slaapkamer",
+                            "temperatureStatus": {"temperature": 19.5, "isAvailable": true},
+                            "setpointStatus": {"targetHeatTemperature": 15.0, "setpointMode": "FollowSchedule"},
+                            "activeFaults": []
+                        },
+                        {"zoneId": "6150671", "name": "Bryan",
+                            "temperatureStatus": {"temperature": 20.0, "isAvailable": true},
+                            "setpointStatus": { "targetHeatTemperature": 15.0, "setpointMode": "FollowSchedule" },
+                            "activeFaults": []
+                        },
+                        {"zoneId": "6150691", "name": "Katharina",
+                            "temperatureStatus": {"temperature": 19.0, "isAvailable": true},
+                            "setpointStatus": {"targetHeatTemperature": 15.0, "setpointMode": "FollowSchedule"},
+                            "activeFaults": []
+                        },
+                        {"zoneId": "6248903", "name": "",
+                            "temperatureStatus": {"isAvailable": false},
+                            "setpointStatus": {"targetHeatTemperature": 62.0, "setpointMode": "PermanentOverride"},
+                            "activeFaults": []
+                        }
+                    ],
+                    "systemModeStatus": {"mode": "Auto", "isPermanent": true},
+                    "activeFaults": []
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}
