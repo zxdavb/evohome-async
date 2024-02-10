@@ -61,9 +61,6 @@ if TYPE_CHECKING:
     )
 
 
-# used by temperatures() and *_schedules()...
-
-
 class _ControlSystemDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
