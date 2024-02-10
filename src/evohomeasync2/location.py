@@ -69,7 +69,7 @@ class Location(_LocationDeprecated):
             self.gateways[gwy.gatewayId] = gwy
 
     def __str__(self) -> str:
-        return f"{self._id} ({self.TYPE})"
+        return f"{self.__class__.__name__}(id='{self._id}')"
 
     @property
     def locationId(self) -> _LocationIdT:

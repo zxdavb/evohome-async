@@ -77,7 +77,7 @@ class ActiveFaultsBase:
         self._last_logged: dict[str, dt] = {}
 
     def __str__(self) -> str:
-        return f"{self._id} ({self.TYPE})"
+        return f"{self.__class__.__name__}(id='{self._id}')"
 
     @property
     def active_faults(self) -> _EvoListT:
