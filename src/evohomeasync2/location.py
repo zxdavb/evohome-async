@@ -122,5 +122,11 @@ class Location(_LocationDeprecated):
         self._status = status
 
         for gwy_status in self._status[SZ_GATEWAYS]:
-            gwy = self.gateways[gwy_status[SZ_GATEWAY_ID]]
-            gwy._update_status(gwy_status)
+            if gwy := self.gateways.get(gwy_status[SZ_GATEWAY_ID]):
+                gwy._update_status(gwy_status)
+
+            else:
+                self._logger.warning(
+                    f"{self}: gateway_id='{gwy_status[SZ_GATEWAY_ID]} not known"
+                    ", (did you change your system configuration?)"
+                )

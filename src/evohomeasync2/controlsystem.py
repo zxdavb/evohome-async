@@ -29,6 +29,7 @@ from .schema.const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_DHW,
+    SZ_DHW_ID,
     SZ_IS_AVAILABLE,
     SZ_MODE,
     SZ_MODEL_TYPE,
@@ -144,7 +145,9 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
             try:
                 zone = Zone(self, zon_config)
             except exc.InvalidSchema as err:
-                self._logger.warning(f"Zone {zon_config[SZ_ZONE_ID]} ignored: {err}")
+                self._logger.warning(
+                    f"{self}: zone_id='{zon_config[SZ_ZONE_ID]}' ignored: {err}"
+                )
             else:
                 self._zones.append(zone)
                 self.zones[zone.name] = zone
@@ -177,10 +180,24 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
         self._status = status
 
         if dhw_status := self._status.get(SZ_DHW):
-            self.hotwater._update_status(dhw_status)  # type: ignore[union-attr]
+            if self.hotwater and self.hotwater._id == dhw_status[SZ_DHW_ID]:
+                self.hotwater._update_status(dhw_status)
+
+            else:
+                self._logger.warning(
+                    f"{self}: dhw_id='{dhw_status[SZ_DHW_ID]}' not known"
+                    ", (did you change your system configuration?)"
+                )
 
         for zon_status in self._status[SZ_ZONES]:
-            self.zones_by_id[zon_status[SZ_ZONE_ID]]._update_status(zon_status)
+            if zone := self.zones_by_id.get(zon_status[SZ_ZONE_ID]):
+                zone._update_status(zon_status)
+
+            else:
+                self._logger.warning(
+                    f"{self}: zone_id='{zon_status[SZ_ZONE_ID]}' not known"
+                    ", (did you change your system configuration?)"
+                )
 
     @property
     def activeFaults(self) -> _EvoListT | None:

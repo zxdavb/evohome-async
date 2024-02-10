@@ -72,5 +72,11 @@ class Gateway(ActiveFaultsBase):
         self._status = status
 
         for tcs_status in self._status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
-            tcs = self.control_systems[tcs_status[SZ_SYSTEM_ID]]
-            tcs._update_status(tcs_status)
+            if tcs := self.control_systems.get(tcs_status[SZ_SYSTEM_ID]):
+                tcs._update_status(tcs_status)
+
+            else:
+                self._logger.warning(
+                    f"{self}: system_id='{tcs_status[SZ_SYSTEM_ID]}' not known"
+                    ", (did you change your system configuration?)"
+                )
