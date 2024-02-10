@@ -128,5 +128,5 @@ class Location(_LocationDeprecated):
             else:
                 self._logger.warning(
                     f"{self}: gateway_id='{gwy_status[SZ_GATEWAY_ID]} not known"
-                    ", (did you change your system configuration?)"
+                    ", (has the location configuration been changed?)"
                 )

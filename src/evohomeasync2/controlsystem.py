@@ -186,7 +186,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
             else:
                 self._logger.warning(
                     f"{self}: dhw_id='{dhw_status[SZ_DHW_ID]}' not known"
-                    ", (did you change your system configuration?)"
+                    ", (has the system configuration been changed?)"
                 )
 
         for zon_status in self._status[SZ_ZONES]:
@@ -196,7 +196,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
             else:
                 self._logger.warning(
                     f"{self}: zone_id='{zon_status[SZ_ZONE_ID]}' not known"
-                    ", (did you change your system configuration?)"
+                    ", (has the system configuration been changed?)"
                 )
 
     @property

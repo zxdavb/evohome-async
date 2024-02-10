@@ -78,5 +78,5 @@ class Gateway(ActiveFaultsBase):
             else:
                 self._logger.warning(
                     f"{self}: system_id='{tcs_status[SZ_SYSTEM_ID]}' not known"
-                    ", (did you change your system configuration?)"
+                    ", (has the gateway configuration been changed?)"
                 )
