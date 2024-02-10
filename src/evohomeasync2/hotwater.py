@@ -42,26 +42,28 @@ class HotWaterDeprecated:
     @property
     def zoneId(self) -> NoReturn:
         raise exc.DeprecationError(
-            "HotWater.zoneId is deprecated, use .dhwId (or ._id)"
+            f"{self}: .zoneId is deprecated, use .dhwId (or ._id)"
         )
 
     async def get_dhw_state(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "HotWater.get_dhw_state() is deprecated, use Location.refresh_status()"
+            f"{self}: .get_dhw_state() is deprecated, use Location.refresh_status()"
         )
 
     async def set_dhw_auto(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "HotWater.set_dhw_auto() is deprecated, use .reset_mode()"
+            f"{self}: .set_dhw_auto() is deprecated, use .reset_mode()"
         )
 
     async def set_dhw_off(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "HotWater.set_dhw_off() is deprecated, use .set_off()"
+            f"{self}: .set_dhw_off() is deprecated, use .set_off()"
         )
 
     async def set_dhw_on(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError("HotWater.set_dhw_on() is deprecated, use .set_on()")
+        raise exc.DeprecationError(
+            f"{self}: .set_dhw_on() is deprecated, use .set_on()"
+        )
 
 
 class HotWater(HotWaterDeprecated, _ZoneBase):

@@ -125,11 +125,11 @@ class _ZoneBaseDeprecated:
 
     @property
     def zone_type(self) -> NoReturn:
-        raise exc.DeprecationError("ZoneBase.zone_type is deprecated, use .TYPE")
+        raise exc.DeprecationError(f"{self}: .zone_type is deprecated, use .TYPE")
 
     async def schedule(self) -> NoReturn:
         raise exc.DeprecationError(
-            "_ZoneBase.schedule() is deprecrated, use .get_schedule()"
+            f"{self}: .schedule() is deprecrated, use .get_schedule()"
         )
 
 
@@ -156,7 +156,7 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
         It will be more efficient to call Location.refresh_status().
         """
 
-        self._logger.debug(f"Getting status of {self})...")
+        self._logger.debug(f"{self}: Getting status...")
 
         status: _EvoDictT = await self._broker.get(
             f"{self.TYPE}/{self._id}/status", schema=self.STATUS_SCHEMA
@@ -189,7 +189,7 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
     async def get_schedule(self) -> _EvoDictT:
         """Get the schedule for this DHW/zone object."""
 
-        self._logger.debug(f"Getting schedule of {self})...")
+        self._logger.debug(f"{self}: Getting schedule...")
 
         try:
             schedule: _EvoDictT = await self._broker.get(
@@ -198,11 +198,15 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
 
         except exc.RequestFailed as err:
             if err.status == HTTPStatus.BAD_REQUEST:
-                raise exc.InvalidSchedule("No Schedule / Schedule is invalid") from err
-            raise exc.RequestFailed("Unexpected error") from err
+                raise exc.InvalidSchedule(
+                    f"{self}: No Schedule / Schedule is invalid"
+                ) from err
+            raise exc.RequestFailed(f"{self}: Unexpected error") from err
 
         except vol.Invalid as err:
-            raise exc.InvalidSchedule("No Schedule / Schedule is invalid") from err
+            raise exc.InvalidSchedule(
+                f"{self}: No Schedule / Schedule is invalid"
+            ) from err
 
         self._schedule = convert_to_put_schedule(schedule)
         return self._schedule
@@ -210,22 +214,24 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
     async def set_schedule(self, schedule: _EvoDictT | str) -> None:
         """Set the schedule for this DHW/zone object."""
 
-        self._logger.debug(f"Setting schedule of {self})...")
+        self._logger.debug(f"{self}: Setting schedule...")
 
         if isinstance(schedule, dict):
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
-                raise exc.InvalidSchedule(f"Invalid schedule: {err}") from err
+                raise exc.InvalidSchedule(f"{self}: Invalid schedule: {err}") from err
 
         elif isinstance(schedule, str):
             try:
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as err:
-                raise exc.InvalidSchedule(f"Invalid schedule: {err}") from err
+                raise exc.InvalidSchedule(f"{self}: Invalid schedule: {err}") from err
 
         else:
-            raise exc.InvalidSchedule(f"Invalid schedule type: {type(schedule)}")
+            raise exc.InvalidSchedule(
+                f"{self}: Invalid schedule type: {type(schedule)}"
+            )
 
         assert isinstance(schedule, dict)  # mypy check
 
@@ -243,7 +249,7 @@ class _ZoneDeprecated:
 
     async def cancel_temp_override(self) -> None:
         raise exc.DeprecationError(
-            "Zone.cancel_temp_override() is deprecrated, use .reset_mode()"
+            f"{self}: .cancel_temp_override() is deprecrated, use .reset_mode()"
         )
 
 
@@ -260,14 +266,22 @@ class Zone(_ZoneDeprecated, _ZoneBase):
         super().__init__(config[SZ_ZONE_ID], tcs, config)
 
         if not self.modelType or self.modelType == ZoneModelType.UNKNOWN:
-            raise exc.InvalidSchema("Invalid model type (is it a ghost zone?)")
+            raise exc.InvalidSchema(
+                f"{self}: Invalid model type '{self.modelType}' (is it a ghost zone?)"
+            )
         if not self.zoneType or self.zoneType == ZoneType.UNKNOWN:
-            raise exc.InvalidSchema("Invalid zone type (is it a ghost zone?)")
+            raise exc.InvalidSchema(
+                f"{self}: Invalid zone type '{self.zoneType}' (is it a ghost zone?)"
+            )
 
         if self.modelType not in ZONE_MODEL_TYPES:
-            self._logger.warning("Unknown model type '%s' (YMMV)", self.modelType)
+            self._logger.warning(
+                "%s: Unknown model type '%s' (YMMV)", self, self.modelType
+            )
         if self.zoneType not in ZONE_TYPES:
-            self._logger.warning("Unknown zone type '%s' (YMMV)", self.zoneType)
+            self._logger.warning(
+                "%s: Unknown zone type '%s' (YMMV)", self, self.zoneType
+            )
 
     @property
     def zoneId(self) -> _ZoneIdT:

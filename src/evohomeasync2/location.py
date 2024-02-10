@@ -37,7 +37,7 @@ class _LocationDeprecated:
 
     async def status(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "Location.status() is deprecated, use .refresh_status()"
+            f"{self}: .status() is deprecated, use .refresh_status()"
         )
 
 

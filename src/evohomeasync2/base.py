@@ -42,55 +42,57 @@ class EvohomeClientDeprecated:
         # url = f"location/{location_id}/installationInfo?"  # Specific location
 
         raise exc.DeprecationError(
-            "EvohomeClient.full_installation() is deprecated, use .installation()"
+            f"{self}: .full_installation() is deprecated, use .installation()"
         )
 
     async def gateway(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError("EvohomeClient.gateway() is deprecated")
+        raise exc.DeprecationError(
+            f"{self}: .gateway() is deprecated, use .locations[x].gateways[y]"
+        )
 
     async def set_status_away(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "EvohomeClient.set_status_away() is deprecated, use .set_mode_away()"
+            f"{self}: .set_status_away() is deprecated, use .set_mode_away()"
         )
 
     async def set_status_custom(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "EvohomeClient.set_status_custom() is deprecated, use .set_mode_custom()"
+            f"{self}: .set_status_custom() is deprecated, use .set_mode_custom()"
         )
 
     async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "EvohomeClient.set_status_dayoff() is deprecated, use .set_mode_dayoff()"
+            f"{self}: .set_status_dayoff() is deprecated, use .set_mode_dayoff()"
         )
 
     async def set_status_eco(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "EvohomeClient.set_status_eco() is deprecated, use .set_mode_eco()"
+            f"{self}: .set_status_eco() is deprecated, use .set_mode_eco()"
         )
 
     async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "EvohomeClient.set_status_heatingoff() is deprecated, use .set_mode_heatingoff()"
+            f"{self}: .set_status_heatingoff() is deprecated, use .set_mode_heatingoff()"
         )
 
     async def set_status_normal(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "EvohomeClient.set_status_normal() is deprecated, use .set_mode_auto()"
+            f"{self}: .set_status_normal() is deprecated, use .set_mode_auto()"
         )
 
     async def set_status_reset(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "EvohomeClient.set_status_reset() is deprecated, use .reset_mode()"
+            f"{self}: .set_status_reset() is deprecated, use .reset_mode()"
         )
 
     async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "EvohomeClient.zone_schedules_backup() is deprecated, use .backup_schedules()"
+            f"{self}: .zone_schedules_backup() is deprecated, use .backup_schedules()"
         )
 
     async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "EvohomeClient.zone_schedules_restore() is deprecated, use .restore_schedules()"
+            f"{self}: .zone_schedules_restore() is deprecated, use .restore_schedules()"
         )
 
 
@@ -123,6 +125,7 @@ class EvohomeClient(EvohomeClientDeprecated):
             _LOGGER.debug("Debug mode is explicitly enabled.")
 
         self._logger = _LOGGER
+        self._username = username  # for __str__
 
         self.broker = Broker(
             username,
@@ -135,6 +138,9 @@ class EvohomeClient(EvohomeClientDeprecated):
         )
 
         self.locations: list[Location] = []
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}(username='{self._username}')"
 
     @property
     def username(self) -> str:  # TODO: deprecate? or use config JSON?
@@ -257,17 +263,17 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         if not self.locations or len(self.locations) != 1:
             raise exc.NoSingleTcsError(
-                "There is not a single location (only) for this account"
+                f"{self}: There is not a single location (only) for this account"
             )
 
         if len(self.locations[0]._gateways) != 1:
             raise exc.NoSingleTcsError(
-                "There is not a single gateway (only) for this account/location"
+                f"{self}: There is not a single gateway (only) for this account/location"
             )
 
         if len(self.locations[0]._gateways[0]._control_systems) != 1:
             raise exc.NoSingleTcsError(
-                "There is not a single TCS (only) for this account/location/gateway"
+                f"{self}: There is not a single TCS (only) for this account/location/gateway"
             )
 
         return self.locations[0]._gateways[0]._control_systems[0]

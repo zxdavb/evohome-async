@@ -68,52 +68,52 @@ class _ControlSystemDeprecated:
 
     async def set_status_reset(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "ControlSystem.set_status_reset() is deprecrated, use .reset_mode()"
+            f"{self}: .set_status_reset() is deprecrated, use .reset_mode()"
         )
 
     async def set_status(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "ControlSystem.set_status() is deprecrated, use .set_mode()"
+            f"{self}: .set_status() is deprecrated, use .set_mode()"
         )
 
     async def set_status_normal(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "ControlSystem.set_status_normal() is deprecrated, use .set_auto()"
+            f"{self}: .set_status_normal() is deprecrated, use .set_auto()"
         )
 
     async def set_status_away(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "ControlSystem.set_status_away() is deprecrated, use .set_away()"
+            f"{self}: .set_status_away() is deprecrated, use .set_away()"
         )
 
     async def set_status_custom(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "ControlSystem.set_status_custom() is deprecrated, use .set_custom()"
+            f"{self}: .set_status_custom() is deprecrated, use .set_custom()"
         )
 
     async def set_status_dayoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "ControlSystem.set_status_dayoff() is deprecrated, use .set_dayoff()"
+            f"{self}: .set_status_dayoff() is deprecrated, use .set_dayoff()"
         )
 
     async def set_status_eco(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "ControlSystem.set_status_eco() is deprecrated, use .set_eco()"
+            f"{self}: .set_status_eco() is deprecrated, use .set_eco()"
         )
 
     async def set_status_heatingoff(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "ControlSystem.set_status_heatingoff() is deprecrated, use .set_heatingoff()"
+            f"{self}: .set_status_heatingoff() is deprecrated, use .set_heatingoff()"
         )
 
     async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "TCS.zone_schedules_backup() is deprecated, use .backup_schedules()"
+            f"{self}: .zone_schedules_backup() is deprecated, use .backup_schedules()"
         )
 
     async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            "TCS.zone_schedules_restore() is deprecated, use .restore_schedules()"
+            f"{self}: .zone_schedules_restore() is deprecated, use .restore_schedules()"
         )
 
 
@@ -211,7 +211,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
         request: _EvoDictT
 
         if mode not in [m[SZ_SYSTEM_MODE] for m in self.allowedSystemModes]:
-            raise exc.InvalidParameter(f"Unsupported/unknown mode: {mode}")
+            raise exc.InvalidParameter(f"{self}: Unsupported/unknown mode: {mode}")
 
         if until is None:
             request = {
