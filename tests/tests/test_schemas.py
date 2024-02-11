@@ -27,6 +27,7 @@ from .helpers import TEST_DIR
 
 WORK_DIR = f"{TEST_DIR}/schemas"
 
+# NOTE: JSON fom HA is not compliant with vendor schema, but is useful to test against
 CONFIG_FILE_NAME = "config.json"
 STATUS_FILE_NAME = "status.json"
 
@@ -55,7 +56,6 @@ def pytest_generate_tests(metafunc: pytest.Metafunc):
 # Use pytest --log-cli-level=WARNING to see the output
 
 
-# NOTE: JSON is not compliant with UserInfo schema, but is useful to test against TCS
 def test_config_refresh(folder: Path):
     """Test the loading a config, then an update_status() on top of that."""
 
