@@ -71,7 +71,7 @@ def test_config_refresh(folder: Path):
     with open(Path(folder).joinpath(STATUS_FILE_NAME)) as f:
         status: dict = json.load(f)
 
-    # hack because the JSON is from HA's evohome integration, not vendor's TCC servers
+    # hack because old JSON from HA's evohome integration didn't have location_id, etc.
     if not config[SZ_LOCATION_INFO].get(SZ_LOCATION_ID):
         config[SZ_LOCATION_INFO][SZ_LOCATION_ID] = status[SZ_LOCATION_ID]
 
