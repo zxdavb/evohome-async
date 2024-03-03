@@ -49,14 +49,10 @@
                     ],
                     "allowedSystemModes": [
                         {
-                            "systemMode": "Off",
-                            "canBePermanent": true,
-                            "canBeTemporary": false
+                            "systemMode": "Off", "canBePermanent": true, "canBeTemporary": false
                         },
                         {
-                            "systemMode": "Heat",
-                            "canBePermanent": true,
-                            "canBeTemporary": false
+                            "systemMode": "Heat", "canBePermanent": true, "canBeTemporary": false
                         }
                     ]
                 }
