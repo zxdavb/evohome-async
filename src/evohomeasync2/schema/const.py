@@ -195,9 +195,13 @@ class FanMode(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class FaultType(StrEnum):
+class FaultType(StrEnum):  # NOTE: This list is incomplete
+    SYS_B_CL: Final = "BoilerCommunicationLost"
+    SYS_C_CL: Final = "ChValveCommunicationLost"
+    DHW_A_FL: Final = "DHWActuatorFailure"
     # W_A_CL: Final = "DHWActuatorCommunicationLost"  # extrapolated
     DHW_S_CL: Final = "DHWSensorCommunicationLost"
+    DHW_S_FL: Final = "DHWSensorFailure"
     DHW_S_LB: Final = "DHWSensorLowBattery"  # extrapolated
     GWY_X_CL: Final = "GatewayCommunicationLost"
     # S_X_LB: Final = "TemperatureControlSystemLowBattery"  # extrapolated
