@@ -13,7 +13,7 @@ from datetime import datetime as dt, timedelta as td
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final, NoReturn
 
-import voluptuous as vol  # type: ignore[import-untyped]
+import voluptuous as vol
 
 from . import exceptions as exc
 from .const import API_STRFTIME, ZoneMode
@@ -136,10 +136,10 @@ class _ZoneBaseDeprecated:
 class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    STATUS_SCHEMA: Final[vol.Schema]  # type: ignore[misc, no-any-unimported]
+    STATUS_SCHEMA: Final[vol.Schema]  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET: Final[vol.Schema]  # type: ignore[misc, no-any-unimported]
-    SCH_SCHEDULE_PUT: Final[vol.Schema]  # type: ignore[misc, no-any-unimported]
+    SCH_SCHEDULE_GET: Final[vol.Schema]  # type: ignore[misc]
+    SCH_SCHEDULE_PUT: Final[vol.Schema]  # type: ignore[misc]
 
     def __init__(self, id: str, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(id, tcs._broker, tcs._logger)

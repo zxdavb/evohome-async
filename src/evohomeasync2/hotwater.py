@@ -30,7 +30,7 @@ from .schema.schedule import SCH_GET_SCHEDULE_DHW, SCH_PUT_SCHEDULE_DHW
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
-    import voluptuous as vol  # type: ignore[import-untyped]
+    import voluptuous as vol
 
     from . import ControlSystem
     from .schema import _DhwIdT, _EvoDictT, _EvoListT
@@ -72,8 +72,8 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     STATUS_SCHEMA: Final = SCH_DHW_STATUS  # type: ignore[misc]
     TYPE: Final = SZ_DOMESTIC_HOT_WATER  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET: Final[vol.Schema] = SCH_GET_SCHEDULE_DHW  # type: ignore[misc, no-any-unimported]
-    SCH_SCHEDULE_PUT: Final[vol.Schema] = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc, no-any-unimported]
+    SCH_SCHEDULE_GET: Final[vol.Schema] = SCH_GET_SCHEDULE_DHW  # type: ignore[misc]
+    SCH_SCHEDULE_PUT: Final[vol.Schema] = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs, config)

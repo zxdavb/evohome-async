@@ -21,7 +21,7 @@ from .schema.status import SCH_GATEWAY
 from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:
-    import voluptuous as vol  # type: ignore[import-untyped]
+    import voluptuous as vol
 
     from . import Location
     from .schema import _EvoDictT, _GatewayIdT
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 class Gateway(ActiveFaultsBase):
     """Instance of a location's gateway."""
 
-    STATUS_SCHEMA: Final[vol.Schema] = SCH_GATEWAY  # type: ignore[no-any-unimported]
+    STATUS_SCHEMA: Final[vol.Schema] = SCH_GATEWAY
     TYPE: Final = SZ_GATEWAY  # type: ignore[misc]
 
     def __init__(self, location: Location, config: _EvoDictT) -> None:

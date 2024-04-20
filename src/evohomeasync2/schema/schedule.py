@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-import voluptuous as vol  # type: ignore[import-untyped]
+import voluptuous as vol
 
 from .const import (
     DAYS_OF_WEEK,

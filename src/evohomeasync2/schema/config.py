@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Final
 
-import voluptuous as vol  # type: ignore[import-untyped]
+import voluptuous as vol
 
 from .const import (
     REGEX_DHW_ID,
