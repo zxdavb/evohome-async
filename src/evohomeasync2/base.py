@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """evohomeasync2 provides an async client for the *updated* Evohome API."""
+
 from __future__ import annotations
 
 import logging

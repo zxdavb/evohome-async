@@ -7,6 +7,7 @@ It is a faithful async port of https://github.com/watchforstock/evohome-client
 
 Further information at: https://evohome-client.readthedocs.io
 """
+
 from __future__ import annotations
 
 from .base import EvohomeClient  # noqa: F401

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """evohome-async - validate the handling of vendor APIs (URLs)."""
+
 from __future__ import annotations
 
 from datetime import datetime as dt, timedelta as td

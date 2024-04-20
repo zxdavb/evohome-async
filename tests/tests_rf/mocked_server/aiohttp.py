@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """Hacked aiohttp to provide a mocked server."""
+
 from __future__ import annotations
 
 import asyncio

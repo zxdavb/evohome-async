@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """Provides handling of TCC gateways."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """evohome-async - validate the config & status schemas."""
+
 from __future__ import annotations
 
 import json

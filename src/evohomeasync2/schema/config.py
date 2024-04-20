@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """evohomeasync2 - Schema for RESTful API Config JSON."""
+
 from __future__ import annotations
 
 from typing import Final

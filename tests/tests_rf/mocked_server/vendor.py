@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """Mocked vendor server for provision via a hacked aiohttp."""
+
 from __future__ import annotations
 
 import re

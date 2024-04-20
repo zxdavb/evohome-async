@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """evohomeasync2 - Schema for vendor's RESTful API JSON."""
+
 from __future__ import annotations
 
 from .account import SCH_OAUTH_TOKEN, SCH_USER_ACCOUNT as SCH_USER_ACCOUNT  # noqa: F401
