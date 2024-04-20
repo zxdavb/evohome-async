@@ -9,7 +9,7 @@ import re
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
 
-import voluptuous as vol  # type: ignore[import-untyped]
+import voluptuous as vol
 
 from evohomeasync2.const import AUTH_URL, URL_BASE
 from evohomeasync2.schema import convert_to_get_schedule

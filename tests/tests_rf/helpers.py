@@ -11,7 +11,7 @@ import os
 from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
 
-import voluptuous as vol  # type: ignore[import-untyped]
+import voluptuous as vol
 
 import evohomeasync2 as evohome
 from evohomeasync2.const import URL_BASE
@@ -49,7 +49,7 @@ def extract_oauth_tokens(evo: evohome.EvohomeClient):
     )
 
 
-async def should_work(  # type: ignore[no-any-unimported]
+async def should_work(
     evo: evohome.EvohomeClient,
     method: HTTPMethod,
     url: str,

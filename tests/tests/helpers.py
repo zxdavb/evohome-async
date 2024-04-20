@@ -9,12 +9,12 @@ import json
 from pathlib import Path
 
 import pytest
-import voluptuous as vol  # type: ignore[import-untyped]
+import voluptuous as vol
 
 TEST_DIR = Path(__file__).resolve().parent
 
 
-def _test_schema(folder: Path, schema: vol.Schema, file_name: str):  # type: ignore[no-any-unimported]
+def _test_schema(folder: Path, schema: vol.Schema, file_name: str):
     if not Path(folder).joinpath(file_name).is_file():
         pytest.skip(f"No {file_name} in: {folder.name}")
 

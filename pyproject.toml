@@ -1,6 +1,6 @@
 #
 ### project ##########################################################################
-# updated: 2023-11-29
+# evohome-async, updated: 2024-04-20
 #
 
 [project]
@@ -16,7 +16,7 @@
     {name = "David Bonnes", email = "zxdavb@bonnes.me"},
   ]
   dependencies = [
-    "aiohttp>=3.8.5",
+    "aiohttp>=3.9.5",
     "voluptuous>=0.13.1",
   ]
   requires-python = ">=3.11"
@@ -63,17 +63,18 @@
 [tool.pytest.ini_options]
   asyncio_mode = "auto"
 
+  norecursedirs = "deprecated/*"
+
 
 #
 ###  mypy ############################################################################
 
 [tool.mypy]
   exclude = "docs"
-  files = ["src/evohomeasync", "src/evohomeasync2"]
-
-  warn_redundant_casts = true  # this is not per-module
+  files = ["src", "tests"]
 
   check_untyped_defs = true
+
   disallow_any_generics = true
   disallow_any_unimported = true
   disallow_incomplete_defs = true
@@ -82,30 +83,40 @@
   disallow_untyped_defs = true
   disallow_untyped_decorators = true
 
+  # extra_checks = true  # was: strict_equality, strict_concatenate = true
+  # no_implicit_optional = true
+  # no_implicit_reexport = true
+
   warn_no_return = true
+  warn_redundant_casts = true  # this is not per-module
   warn_return_any = true
   warn_unused_configs = true
   warn_unused_ignores = true
   warn_unreachable = true
 
-
+#
 [[tool.mypy.overrides]]
-  module = "tests.tests_rf.*"
+  module = [
+    "tests.*",
+    "tests_rf.*"
+  ]
 
-  check_untyped_defs = false
-  disallow_any_generics = false
-  disallow_any_unimported = false
-  disallow_incomplete_defs = false
-  disallow_subclassing_any = false
-  disallow_untyped_calls = false
-  disallow_untyped_defs = false
-  disallow_untyped_decorators = false
-
-  warn_no_return = false
-  warn_return_any = false
-  warn_unused_ignores = false
-  warn_unreachable = false
-
+  disable_error_code = [
+    "arg-type",        #  7
+    "assignment",      #  6
+    "call-arg",        #  1
+    "index",           #  6
+    "misc",            #  8
+    "name-defined",    #  8
+    "no-any-return",   # 16
+    "no-untyped-call", # 15
+    "no-untyped-def",  # 62
+    "return-value",    # 17
+    "type-arg",        # 27
+    "union-attr",      #  1
+    "unreachable",     #  9
+    "var-annotated",   #  1
+  ]
 
 #
 ## ruff ##############################################################################

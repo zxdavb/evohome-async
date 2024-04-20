@@ -12,7 +12,7 @@ import pytest
 import pytest_asyncio
 
 # TODO: need v1 schemas
-import voluptuous as vol  # type: ignore[import-untyped]
+import voluptuous as vol
 
 import evohomeasync as evohome
 from evohomeasync.broker import URL_HOST
@@ -76,7 +76,7 @@ async def instantiate_client(
     return evo
 
 
-async def should_work(  # type: ignore[no-any-unimported]
+async def should_work(
     evo: evohome.EvohomeClient,
     method: HTTPMethod,
     url: str,
