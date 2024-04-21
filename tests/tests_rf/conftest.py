@@ -19,7 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(autouse=True)
-def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
+def patches_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("evohomeasync2.base.aiohttp", aiohttp)
     monkeypatch.setattr("evohomeasync2.broker.aiohttp", aiohttp)
 

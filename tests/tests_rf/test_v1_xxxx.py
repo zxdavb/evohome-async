@@ -44,7 +44,7 @@ async def _test_url_locations(evo: evohome.EvohomeClient) -> None:
     )
 
 
-async def _test_client_apis(evo: evohome.EvohomeClient):
+async def _test_client_apis(evo: evohome.EvohomeClient) -> None:
     """Instantiate a client, and logon to the vendor API."""
 
     user_data = await evo._populate_user_data()

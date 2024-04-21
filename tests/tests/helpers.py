@@ -14,7 +14,7 @@ import voluptuous as vol
 TEST_DIR = Path(__file__).resolve().parent
 
 
-def _test_schema(folder: Path, schema: vol.Schema, file_name: str):
+def _test_schema(folder: Path, schema: vol.Schema, file_name: str) -> None:
     if not Path(folder).joinpath(file_name).is_file():
         pytest.skip(f"No {file_name} in: {folder.name}")
 

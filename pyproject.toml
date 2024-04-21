@@ -104,7 +104,6 @@
   disable_error_code = [
     "arg-type",        #  7
     "index",           # 18
-    "no-untyped-def",  # 16
     "type-arg",        # 15
   ]
 

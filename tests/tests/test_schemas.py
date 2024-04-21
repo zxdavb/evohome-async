@@ -44,8 +44,8 @@ class GatewayStub:
     location = None
 
 
-def pytest_generate_tests(metafunc: pytest.Metafunc):
-    def id_fnc(folder_path: Path):
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
+    def id_fnc(folder_path: Path) -> str:
         return folder_path.name
 
     folders = [
@@ -54,10 +54,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc):
     metafunc.parametrize("folder", sorted(folders), ids=id_fnc)
 
 
-# Use pytest --log-cli-level=WARNING to see the output
-
-
-def test_config_refresh(folder: Path):
+def test_config_refresh(folder: Path) -> None:
     """Test the loading a config, then an update_status() on top of that."""
 
     if not Path(folder).joinpath(CONFIG_FILE_NAME).is_file():
@@ -86,7 +83,7 @@ def test_config_refresh(folder: Path):
     loc._update_status(status)
 
 
-def test_config_schemas(folder: Path):
+def test_config_schemas(folder: Path) -> None:
     """Test the config schema for a location."""
 
     if not Path(folder).joinpath(CONFIG_FILE_NAME).is_file():
@@ -101,7 +98,7 @@ def test_config_schemas(folder: Path):
             _ = SCH_TEMPERATURE_CONTROL_SYSTEM(tcs_config)
 
 
-def test_status_schemas(folder: Path):
+def test_status_schemas(folder: Path) -> None:
     """Test the status schema for a location."""
 
     if not Path(folder).joinpath(STATUS_FILE_NAME).is_file():
