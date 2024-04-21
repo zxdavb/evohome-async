@@ -68,7 +68,7 @@ async def should_work_v1(
     json: dict | None = None,
     content_type: str | None = "application/json",
     schema: vol.Schema | None = None,
-) -> dict | list:
+) -> dict | list | str:
     """Make a request that is expected to succeed."""
 
     response: aiohttp.ClientResponse
@@ -85,9 +85,12 @@ async def should_work_v1(
 
     assert response.content_type == content_type, content
 
-    if schema:  # and response.content_type == "application/json"
-        return schema(content)
-    return content
+    if response.content_type != "application/json":
+        assert isinstance(content, str), content  # mypy
+        return content
+
+    assert isinstance(content, dict | list), content  # mypy
+    return schema(content) if schema else content
 
 
 async def should_fail_v1(
@@ -97,7 +100,7 @@ async def should_fail_v1(
     json: dict | None = None,
     content_type: str | None = "application/json",
     status: HTTPStatus | None = None,
-) -> aiohttp.ClientResponse:
+) -> dict | list | str | None:
     """Make a request that is expected to fail."""
 
     response: aiohttp.ClientResponse
@@ -107,13 +110,13 @@ async def should_fail_v1(
         response = await evo.broker._make_request(method, url, data=json)
         response.raise_for_status()
 
-    except aiohttp.ClientResponseError as exc:
-        assert exc.status == status, exc.status
+    except aiohttp.ClientResponseError as err:
+        assert err.status == status, err.status
     else:
         assert False, response.status
 
     if _DEBUG_DISABLE_STRICT_ASSERTS:
-        return response
+        return None
 
     # TODO: perform this transform in the broker
     if response.content_type == "application/json":
@@ -127,8 +130,12 @@ async def should_fail_v1(
         assert "message" in content, content
     elif isinstance(content, list):
         assert "message" in content[0], content[0]
+    elif isinstance(content, str):
+        pass
+    else:
+        assert False, response.content_type
 
-    return content
+    return content  # type: ignore[no-any-return]
 
 
 # version 2 helpers ###################################################################
@@ -202,7 +209,7 @@ async def should_work(
     json: dict | None = None,
     content_type: str | None = "application/json",
     schema: vol.Schema | None = None,
-) -> dict | list:
+) -> dict | list | str:
     """Make a request that is expected to succeed."""
 
     response: aiohttp.ClientResponse
@@ -210,16 +217,16 @@ async def should_work(
     response, content = await evo.broker._client(
         method, f"{URL_BASE_2}/{url}", json=json
     )
-
     response.raise_for_status()
 
     assert response.content_type == content_type, content
 
-    if schema:
-        return schema(content)
+    if response.content_type != "application/json":
+        assert isinstance(content, str), content  # mypy
+        return content
 
-    assert isinstance(content, dict | list), content
-    return content
+    assert isinstance(content, dict | list), content  # mypy
+    return schema(content) if schema else content
 
 
 async def should_fail(
@@ -229,15 +236,10 @@ async def should_fail(
     json: dict | None = None,
     content_type: str | None = "application/json",
     status: HTTPStatus | None = None,
-) -> aiohttp.ClientResponse:
+) -> dict | list | str | None:
     """Make a request that is expected to fail."""
 
     response: aiohttp.ClientResponse
-
-    # if method == HTTPMethod.GET:
-    #     content = await evo.broker.get(
-    # else:
-    #     content = await evo.broker.put(
 
     response, content = await evo.broker._client(
         method, f"{URL_BASE_2}/{url}", json=json
@@ -245,17 +247,25 @@ async def should_fail(
 
     try:
         response.raise_for_status()
-    except aiohttp.ClientResponseError as exc:
-        assert exc.status == status, exc.status
+
+    except aiohttp.ClientResponseError as err:
+        assert err.status == status, err.status
     else:
         assert False, response.status
 
     if _DEBUG_DISABLE_STRICT_ASSERTS:
-        return response
+        return None
 
     assert response.content_type == content_type, response.content_type
 
-    if isinstance(content, list):
+    if isinstance(content, dict):
+        assert status in (
+            HTTPStatus.NOT_FOUND,
+            HTTPStatus.METHOD_NOT_ALLOWED,
+        ), content
+        assert "message" in content, content  # sometimes "code" too
+
+    elif isinstance(content, list):
         assert status in (
             HTTPStatus.BAD_REQUEST,
             HTTPStatus.NOT_FOUND,  # CommTaskNotFound
@@ -263,20 +273,13 @@ async def should_fail(
         ), content
         assert "message" in content[0], content[0]  # sometimes "code" too
 
-    elif isinstance(content, dict):
-        assert status in (
-            HTTPStatus.NOT_FOUND,
-            HTTPStatus.METHOD_NOT_ALLOWED,
-        ), content
-        assert "message" in content, content  # sometimes "code" too
-
     elif isinstance(content, str):  # 404
         assert status in (HTTPStatus.NOT_FOUND,), status
 
     else:
-        assert False, response.status
+        assert False, response.content_type
 
-    return response
+    return content
 
 
 async def wait_for_comm_task(
@@ -293,6 +296,7 @@ async def wait_for_comm_task(
     start_time = dt.now()
     while True:
         response = await should_work(evo, HTTPMethod.GET, url)
+        assert isinstance(response, dict | list), response
         if response["state"] == "Succeeded":  # type: ignore[call-overload]
             return True
         if (dt.now() - start_time).total_seconds() > timeout:

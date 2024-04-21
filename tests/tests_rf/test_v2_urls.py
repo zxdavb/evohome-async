@@ -274,7 +274,7 @@ async def _test_schedule(evo: evo2.EvohomeClient) -> None:
 
     temp = schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]  # type: ignore[call-overload]
 
-    schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp + 1  # type: ignore[call-overload]
+    schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp + 1  # type: ignore[call-overload,operator]
     _ = await should_work(
         evo,
         HTTPMethod.PUT,
@@ -285,7 +285,7 @@ async def _test_schedule(evo: evo2.EvohomeClient) -> None:
     schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
     assert (
         schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]  # type: ignore[call-overload]
-        == temp + 1
+        == temp + 1  # type: ignore[operator]
     )
 
     schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp  # type: ignore[call-overload]

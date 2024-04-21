@@ -103,15 +103,14 @@
 
   disable_error_code = [
     "arg-type",        #  7
-    "index",           #  6
-    "no-any-return",   #  5
+    "index",           # 18
     "no-untyped-def",  # 16
     "type-arg",        # 15
   ]
 
 #
 [[tool.mypy.overrides]]
-  module = "tests_rf.mocked_server.aiohttp"
+  module = "tests_rf.mocked_server.*"
 
   disable_error_code = [
     "arg-type",        #  2 (aiohttp,vendor)

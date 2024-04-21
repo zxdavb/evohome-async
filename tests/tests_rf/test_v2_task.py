@@ -61,7 +61,8 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
 
     #
     # PART 0: Get initial state...
-    old_status = await should_work(evo, HTTPMethod.GET, GET_URL)  # HTTP 200
+    old_status = await should_work(evo, HTTPMethod.GET, GET_URL)
+    assert isinstance(old_status, dict)  # mypy
     # {
     #     'dhwId': '3933910',
     #     'temperatureStatus': {'isAvailable': False},
@@ -80,9 +81,9 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
     # }  # HTTP 200
 
     old_mode = {
-        SZ_MODE: old_status[SZ_STATE_STATUS][SZ_MODE],  # type: ignore[call-overload]
-        SZ_STATE: old_status[SZ_STATE_STATUS][SZ_STATE],  # type: ignore[call-overload]
-        SZ_UNTIL_TIME: old_status[SZ_STATE_STATUS].get(SZ_UNTIL),  # type: ignore[call-overload]
+        SZ_MODE: old_status[SZ_STATE_STATUS][SZ_MODE],
+        SZ_STATE: old_status[SZ_STATE_STATUS][SZ_STATE],
+        SZ_UNTIL_TIME: old_status[SZ_STATE_STATUS].get(SZ_UNTIL),
     }  # NOTE: untilTime/until
 
     #
@@ -95,6 +96,7 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
     }
 
     result = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)
+    assert isinstance(result, dict | list)  # mypy
     # {'id': '840367013'}  # HTTP 201/Created
 
     task_id = result[0]["id"] if isinstance(result, list) else result["id"]

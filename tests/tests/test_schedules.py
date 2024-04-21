@@ -8,6 +8,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import voluptuous as vol
+
 from evohomeasync2.schema.schedule import (
     SCH_GET_SCHEDULE_DHW,
     SCH_GET_SCHEDULE_ZONE,
@@ -22,13 +24,13 @@ from .helpers import TEST_DIR
 WORK_DIR = Path(f"{TEST_DIR}/schedules")
 
 
-def _test_schedule_schema(file_name: str, schema) -> dict:
+def _test_schedule_schema(file_name: str, schema: vol.Schema) -> dict:
     def read_dict_from_file(file_name: str):
         with open(WORK_DIR.joinpath(file_name)) as f:
             data: dict = json.load(f)
         return data
 
-    return schema(read_dict_from_file(file_name))
+    return schema(read_dict_from_file(file_name))  # type: ignore[no-any-return]
 
 
 def _test_schema_schedule_dhw() -> None:
