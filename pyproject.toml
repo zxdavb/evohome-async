@@ -102,11 +102,11 @@
   ]
 
   disable_error_code = [
-    "arg-type",        #  9
-    "index",           #  10
-    "no-any-return",   # 10
+    "arg-type",        #  7
+    "index",           #  6
+    "no-any-return",   #  5
     "no-untyped-def",  # 16
-    "type-arg",        # 27
+    "type-arg",        # 15
   ]
 
 #
@@ -114,8 +114,12 @@
   module = "tests_rf.mocked_server.aiohttp"
 
   disable_error_code = [
-    "return-value",    # high risk, low benefit to fix
-    "no-untyped-def",  # 15
+    "arg-type",        #  2 (aiohttp,vendor)
+    "index",           #  3 (vendor)
+    "no-any-return",   #  5 (aiohttp,const,vendor)
+    "no-untyped-def",  # 15 (aiohttp)
+    "return-value",    #  2 (aiohttp): high risk, low benefit to fix
+    "type-arg",        # 16 (aiohttp,const,vendor)
   ]
 #
 [[tool.mypy.overrides]]
