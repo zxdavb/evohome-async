@@ -86,7 +86,7 @@
   extra_checks = true  # was: strict_equality, strict_concatenate = true
 
   no_implicit_optional = true
-  # no_implicit_reexport = true
+# no_implicit_reexport = true
 
   warn_no_return = true
   warn_redundant_casts = true  # this is not per-module
