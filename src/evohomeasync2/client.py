@@ -299,8 +299,8 @@ def main() -> None:
     try:
         cli(obj={})  # default for ctx.obj is None
 
-    except click.ClickException as exc:
-        print(f"Error: {exc}")
+    except click.ClickException as err:
+        print(f"Error: {err}")
         sys.exit(-1)
 
 
