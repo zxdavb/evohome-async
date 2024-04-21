@@ -84,7 +84,9 @@ class Broker:
         self.access_token = access_token
         self.access_token_expires = access_token_expires
 
-        self._session = session  # can't instantiate aiohttp.ClientSession() here
+        self._session = session or aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=30)
+        )  # ??? can't instantiate aiohttp.ClientSession() here
 
     async def _client(
         self,

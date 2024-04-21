@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
 from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
 from typing import Any, Final, TypeAlias
@@ -29,6 +28,7 @@ _LocnDataT: TypeAlias = dict[str, Any]
 
 
 URL_HOST = "https://tccna.honeywell.com"
+
 _APP_ID = "91db1612-73fd-4500-91b2-e63b069b185c"
 
 _LOGGER = logging.getLogger(__name__)
@@ -92,7 +92,7 @@ class Broker:
     async def _populate_user_data(self) -> tuple[_UserDataT, aiohttp.ClientResponse]:
         """Return the latest user data as retrieved from the web."""
 
-        url = "/session"
+        url = "session"
         response = await self.make_request(HTTPMethod.POST, url, data=self._POST_DATA)
 
         self._user_data: _UserDataT = await response.json()
@@ -114,7 +114,7 @@ class Broker:
             # maybe was instantiated with a bad session_id, so must check user_id
             await self.populate_user_data()
 
-        url = f"/locations?userId={self._user_id}&allData=True"
+        url = f"locations?userId={self._user_id}&allData=True"
         response = await self.make_request(HTTPMethod.GET, url, data=self._POST_DATA)
 
         self._full_data: list[_LocnDataT] = await response.json()
@@ -124,7 +124,7 @@ class Broker:
 
     async def _make_request(
         self,
-        func: Callable,  # type: ignore[type-arg]
+        method: HTTPMethod,
         url: str,
         /,
         *,
@@ -135,7 +135,16 @@ class Broker:
 
         response: aiohttp.ClientResponse
 
-        async with func(url, json=data, headers=self._headers) as response:  # NB: json=
+        if method == HTTPMethod.GET:
+            func = self._session.get
+        elif method == HTTPMethod.PUT:
+            func = self._session.put
+        elif method == HTTPMethod.POST:
+            func = self._session.post
+
+        url_ = self.hostname + "/WebAPI/api/" + url
+
+        async with func(url_, json=data, headers=self._headers) as response:
             response_text = await response.text()  # why cant I move this below the if?
 
             # if 401/unauthorized, may need to refresh sessionId (expires in 15 mins?)
@@ -162,12 +171,12 @@ class Broker:
             _LOGGER.debug(f"... success: new sessionId = {self._session_id}\r\n")
             self._headers[SZ_SESSION_ID] = self._session_id
 
-            if "session" in url:  # retry not needed for /session
+            if "session" in url_:  # retry not needed for /session
                 return response
 
             # NOTE: this is a recursive call, used only after re-authenticating
             response = await self._make_request(
-                func, url, data=data, _dont_reauthenticate=True
+                method, url, data=data, _dont_reauthenticate=True
             )
             return response
 
@@ -181,25 +190,9 @@ class Broker:
     ) -> aiohttp.ClientResponse:
         """Perform an HTTP request, will authenticate if required."""
 
-        url = self.hostname + "/WebAPI/api" + url
-
-        if method == HTTPMethod.GET:
-            func = self._session.get
-        elif method == HTTPMethod.PUT:
-            func = self._session.put
-        elif method == HTTPMethod.POST:
-            func = self._session.post
-
         try:
-            response = await self._make_request(func, url, data=data)
-
-        except aiohttp.ClientError as err:
-            if method == HTTPMethod.POST:  # using response will cause UnboundLocalError
-                raise exc.AuthenticationFailed(str(err)) from err
-            raise exc.RequestFailed(str(err)) from err
-
-        try:
-            response.raise_for_status()
+            response = await self._make_request(method, url, data=data)  # ? ClientError
+            response.raise_for_status()  # ? ClientResponseError
 
         # response.method, response.url, response.status, response._body
         # POST,    /session, 429, [{code: TooManyRequests, message: Request count limitation exceeded...}]
@@ -207,15 +200,15 @@ class Broker:
 
         except aiohttp.ClientResponseError as err:
             if response.method == HTTPMethod.POST:  # POST only used when authenticating
-                raise exc.AuthenticationFailed(
+                raise exc.AuthenticationFailed(  # includes TOO_MANY_REQUESTS
                     str(err), status=err.status
-                ) from err  # could be TOO_MANY_REQUESTS
-            if response.status != HTTPStatus.TOO_MANY_REQUESTS:
+                ) from err
+            if response.status == HTTPStatus.TOO_MANY_REQUESTS:
                 raise exc.RateLimitExceeded(str(err), status=err.status) from err
             raise exc.RequestFailed(str(err), status=err.status) from err
 
-        except aiohttp.ClientError as err:
-            if response.method == HTTPMethod.POST:  # POST only used when authenticating
+        except aiohttp.ClientError as err:  # using response causes UnboundLocalError
+            if method == HTTPMethod.POST:  # POST only used when authenticating
                 raise exc.AuthenticationFailed(str(err)) from err
             raise exc.RequestFailed(str(err)) from err
 

@@ -123,16 +123,17 @@ class ClientResponse:
         self.url = url
         self.session = session
 
+        assert self.session is not None  # mypy
         self._mocked_server = self.session._mocked_server
 
-        self.status: _statusT = None
+        self.status: _statusT = None  # type: ignore[assignment]
         self._body: _bodyT | None = None
 
         # self.content = StreamReader(
         #     self._mocked_server.request(method, url, data=data or json)
         # )
         self._body = self._mocked_server.request(method, url, data=data or json)
-        self.status = self._mocked_server.status
+        self.status = self._mocked_server.status  # type: ignore[assignment]
 
     def raise_for_status(self) -> None:
         if self.status >= 300:

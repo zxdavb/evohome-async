@@ -5,7 +5,9 @@
 
 from __future__ import annotations
 
+import functools
 import re
+from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
 
@@ -79,29 +81,35 @@ def _zon_id(url: _urlT) -> _ZoneIdT:
     return url.split(f"{SZ_TEMPERATURE_ZONE}/")[1].split("/")[0]
 
 
-def validate_id_of_url(id_fnc):
+def validate_id_of_url(
+    id_fnc: Callable[[_urlT], str],
+) -> Callable[..., Callable[[MockedServer], _bodyT]]:
     """Validate the ID in the URL and set the status accordingly."""
 
-    def decorator(func):
-        def wrapper(self: MockedServer) -> _bodyT:
-            if self._method != HTTPMethod.GET:
-                self.status = HTTPStatus.METHOD_NOT_ALLOWED
+    def decorator(
+        fnc: Callable[[MockedServer], _bodyT | None],
+    ) -> Callable[[MockedServer], _bodyT]:
+        @functools.wraps(fnc)
+        def wrapper(svr: MockedServer) -> _bodyT:
+            if svr._method != HTTPMethod.GET:
+                svr.status = HTTPStatus.METHOD_NOT_ALLOWED
                 return {"message": "Method not allowed"}
 
+            assert svr._url  # mypy
             try:
-                id: str = id_fnc(self._url)
+                id: str = id_fnc(svr._url)
             except IndexError:
-                self.status = HTTPStatus.NOT_FOUND
+                svr.status = HTTPStatus.NOT_FOUND
                 return {"message": "Not Found"}
 
             if not id.isdigit():
-                self.status = HTTPStatus.BAD_REQUEST
+                svr.status = HTTPStatus.BAD_REQUEST
                 return [{"message": "Bad request"}]
 
-            if result := func(self):
+            if result := fnc(svr):
                 return result
 
-            self.status = HTTPStatus.UNAUTHORIZED
+            svr.status = HTTPStatus.UNAUTHORIZED
             return [{"message": "Unauthorized"}]
 
         return wrapper
@@ -126,7 +134,7 @@ class MockedServer:
         self._zon_schedule = zone_schedule or MOCK_SCHEDULE_ZONE
         self._dhw_schedule = dhw_schedule or MOCK_SCHEDULE_DHW
 
-        self._schedules = {}
+        self._schedules: dict[str, dict] = {}
         self._user_config = self._user_config_from_full_config(self._full_config)
 
         self.body: _bodyT | None = None
@@ -142,9 +150,9 @@ class MockedServer:
         self._data = data
 
         self.body, self.status = None, None
-        for pattern, method in REQUEST_MAP.items():
+        for pattern, fnc in REQUEST_MAP.items():
             if re.search(pattern, url):
-                self.body = method(self)
+                self.body = fnc(self)
                 break
         else:
             self.status = HTTPStatus.NOT_FOUND
@@ -166,7 +174,7 @@ class MockedServer:
             return MOCK_AUTH_RESPONSE
         return None
 
-    def usr_account(self) -> _bodyT | None:
+    def usr_account(self) -> _bodyT:
         if self._method != HTTPMethod.GET:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
             return {"message": "Method not allowed"}
@@ -292,7 +300,7 @@ class MockedServer:
         return _user_config_from_full_config(full_config)
 
 
-REQUEST_MAP = {
+REQUEST_MAP: dict[str, Callable] = {
     #
     r"/Auth/OAuth/Token": MockedServer.oauth_token,
     #

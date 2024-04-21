@@ -153,10 +153,9 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
     async def _refresh_status(self) -> _EvoDictT:
         """Update the DHW/zone with its latest status (also returns the status).
 
-        It will be more efficient to call Location.refresh_status().
+        It is more efficient to call Location.refresh_status() as all zones are updated
+        with a single GET.
         """
-
-        self._logger.debug(f"{self}: Getting status...")
 
         status: _EvoDictT = await self._broker.get(
             f"{self.TYPE}/{self._id}/status", schema=self.STATUS_SCHEMA

@@ -102,19 +102,27 @@
   ]
 
   disable_error_code = [
-    "arg-type",        #  7
-    "assignment",      #  6
-    "call-arg",        #  1
-    "index",           #  6
-    "misc",            #  8
-    "no-any-return",   # 16
-    "no-untyped-call", # 15
-    "no-untyped-def",  # 62
-    "return-value",    # 17
+    "arg-type",        #  9
+    "index",           #  10
+    "no-any-return",   # 10
+    "no-untyped-def",  # 16
     "type-arg",        # 27
-    "union-attr",      #  1
-    "unreachable",     #  9
-    "var-annotated",   #  1
+  ]
+
+#
+[[tool.mypy.overrides]]
+  module = "tests_rf.mocked_server.aiohttp"
+
+  disable_error_code = [
+    "return-value",    # high risk, low benefit to fix
+    "no-untyped-def",  # 15
+  ]
+#
+[[tool.mypy.overrides]]
+  module = "tests_rf.helpers"
+
+  disable_error_code = [
+    "call-arg",        # high risk, low benefit to fix
   ]
 
 #

@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 """evohome-async - validate the evohome-async APIs (methods)."""
 
 from __future__ import annotations
@@ -8,9 +6,8 @@ from __future__ import annotations
 from datetime import datetime as dt
 
 import pytest
-import pytest_asyncio
 
-import evohomeasync2 as evohome
+import evohomeasync2 as evo2
 from evohomeasync2.schema import (
     SCH_DHW_STATUS,
     SCH_FULL_CONFIG,
@@ -22,68 +19,26 @@ from evohomeasync2.schema import (
 )
 from evohomeasync2.schema.const import SZ_MODE
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
+from evohomeasync2.zone import Zone
 
 from . import _DEBUG_USE_REAL_AIOHTTP, mocked_server as mock
-from .helpers import (  # aiohttp may/may not be mocked
-    aiohttp,
-    client_session as _client_session,
-    extract_oauth_tokens,
-    user_credentials as _user_credentials,
-)
+from .helpers import aiohttp, instantiate_client
 
-_global_oauth_tokens: tuple[str, str, dt] = None, None, None
+#######################################################################################
 
 
-@pytest.fixture(autouse=True)
-def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("evohomeasync2.base.aiohttp", aiohttp)
-    monkeypatch.setattr("evohomeasync2.broker.aiohttp", aiohttp)
-
-
-@pytest.fixture()
-def user_credentials():
-    return _user_credentials()
-
-
-@pytest_asyncio.fixture
-async def session():
-    client_session = _client_session()
-    try:
-        yield client_session
-    finally:
-        await client_session.close()
-
-
-async def _test_basics_apis(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | mock.ClientSession | None = None,
-):
+async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
     """Test authentication, `user_account()` and `installation()`."""
-
-    global _global_oauth_tokens
-
-    refresh_token, access_token, access_token_expires = _global_oauth_tokens
-
-    #
-    # STEP 0: Instantiation, NOTE: No API calls invoked during instantiation
-    evo = evohome.EvohomeClient(
-        username,
-        password,
-        session=session,
-        refresh_token=refresh_token,
-        access_token=access_token,
-        access_token_expires=access_token_expires,
-    )
 
     #
     # STEP 1: Authentication (isolated from evo.login()), POST /Auth/OAuth/Token
-    await evo.broker._basic_login()
-    _global_oauth_tokens = extract_oauth_tokens(evo)
-
     assert isinstance(evo.access_token, str)
     assert isinstance(evo.access_token_expires, dt)
     assert isinstance(evo.refresh_token, str)
+
+    if not _DEBUG_USE_REAL_AIOHTTP:
+        assert evo.access_token == "ncWMqPh2yGgAqc..."  # mock.ACCESS_TOKEN
+        assert evo.refresh_token == "Ryx9fL34Z5GcNV..."  # mock.REFRESH_TOKEN
 
     access_token = evo.access_token
     refresh_token = evo.refresh_token
@@ -96,7 +51,7 @@ async def _test_basics_apis(
 
     #
     # STEP 1A: Re-Authentication: more likely to cause 429: Too Many Requests
-    if isinstance(session, aiohttp.ClientSession):
+    if isinstance(evo.broker._session, aiohttp.ClientSession):
         access_token = evo.access_token
         refresh_token = evo.refresh_token
 
@@ -142,32 +97,13 @@ async def _test_basics_apis(
     pass
 
 
-async def _test_sched__apis(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | mock.ClientSession | None = None,
-):
+async def _test_sched__apis(evo: evo2.EvohomeClient) -> None:
     """Test `get_schedule()` and `get_schedule()`."""
 
-    global _global_oauth_tokens
-
-    refresh_token, access_token, access_token_expires = _global_oauth_tokens
-
     #
-    # STEP 0: Instantiation...
-    evo = evohome.EvohomeClient(
-        username,
-        password,
-        session=session,
-        refresh_token=refresh_token,
-        access_token=access_token,
-        access_token_expires=access_token_expires,
-    )
-
-    #
-    # STEP 1: Initial authentication, retrieve config & status
-    await evo.login()  # invokes await evo.installation()
-    _global_oauth_tokens = extract_oauth_tokens(evo)
+    # STEP 1: retrieve base data
+    await evo.user_account()
+    await evo.installation()
 
     #
     # STEP 2: GET & PUT /{_type}/{_id}/schedule
@@ -175,6 +111,8 @@ async def _test_sched__apis(
         schedule = await dhw.get_schedule()
         assert SCH_PUT_SCHEDULE_DHW(schedule)
         await dhw.set_schedule(schedule)
+
+    zone: Zone | None
 
     if (zone := evo._get_single_tcs()._zones[0]) and zone._id != mock.GHOST_ZONE_ID:
         schedule = await zone.get_schedule()
@@ -184,38 +122,19 @@ async def _test_sched__apis(
     if zone := evo._get_single_tcs().zones_by_id.get(mock.GHOST_ZONE_ID):
         try:
             schedule = await zone.get_schedule()
-        except evohome.InvalidSchedule:
+        except evo2.InvalidSchedule:
             pass
         else:
             assert False
 
 
-async def _test_status_apis(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | mock.ClientSession | None = None,
-):
+async def _test_status_apis(evo: evo2.EvohomeClient) -> None:
     """Test `_refresh_status()` for DHW/zone."""
 
-    global _global_oauth_tokens
-
-    refresh_token, access_token, access_token_expires = _global_oauth_tokens
-
     #
-    # STEP 0: Instantiation...
-    evo = evohome.EvohomeClient(
-        username,
-        password,
-        session=session,
-        refresh_token=refresh_token,
-        access_token=access_token,
-        access_token_expires=access_token_expires,
-    )
-
-    #
-    # STEP 1: Initial authentication, retrieve config & status
-    await evo.login()  # invokes await evo.installation()
-    _global_oauth_tokens = extract_oauth_tokens(evo)
+    # STEP 1: retrieve base data
+    await evo.user_account()
+    await evo.installation()
 
     #
     # STEP 2: GET /{_type}/{_id}/status
@@ -230,37 +149,19 @@ async def _test_status_apis(
     pass
 
 
-async def _test_system_apis(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | mock.ClientSession | None = None,
-):
+async def _test_system_apis(evo: evo2.EvohomeClient) -> None:
     """Test `set_mode()` for TCS."""
-    global _global_oauth_tokens
-
-    refresh_token, access_token, access_token_expires = _global_oauth_tokens
 
     #
-    # STEP 0: Instantiation...
-    evo = evohome.EvohomeClient(
-        username,
-        password,
-        session=session,
-        refresh_token=refresh_token,
-        access_token=access_token,
-        access_token_expires=access_token_expires,
-    )
-
-    #
-    # STEP 1: Initial authentication, retrieve config & status
-    await evo.login()  # invokes await evo.installation()
-    _global_oauth_tokens = extract_oauth_tokens(evo)
+    # STEP 1: retrieve base data
+    await evo.user_account()
+    await evo.installation()
 
     #
     # STEP 2: GET /{_type}/{_id}/status
     try:
         tcs = evo._get_single_tcs()
-    except evohome.NoSingleTcsError:
+    except evo2.NoSingleTcsError:
         tcs = evo.locations[0].gateways[0].control_systems[0]
 
     mode = tcs.systemModeStatus[SZ_MODE]
@@ -274,65 +175,71 @@ async def _test_system_apis(
     pass
 
 
-@pytest.mark.asyncio
+#######################################################################################
+
+
 async def test_basics(
     user_credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
-):
-    username, password = user_credentials
+) -> None:
+    """Test authentication, `user_account()` and `installation()`."""
 
     try:
-        await _test_basics_apis(username, password, session=session)
-    except evohome.AuthenticationFailed:
+        await _test_basics_apis(
+            await instantiate_client(user_credentials, session, dont_login=True)
+        )
+
+    except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
 
-@pytest.mark.asyncio
 async def test_sched_(
     user_credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
-):
-    username, password = user_credentials
+) -> None:
+    """Test `get_schedule()` and `get_schedule()`."""
 
     try:
-        await _test_sched__apis(username, password, session=session)
-    except evohome.AuthenticationFailed:
+        await _test_sched__apis(await instantiate_client(user_credentials, session))
+
+    except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
 
-@pytest.mark.asyncio
 async def test_status(
     user_credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
-):
-    username, password = user_credentials
+) -> None:
+    """Test `_refresh_status()` for DHW/zone."""
 
     try:
-        await _test_status_apis(username, password, session=session)
-    except evohome.AuthenticationFailed:
+        await _test_status_apis(await instantiate_client(user_credentials, session))
+
+    except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
 
-@pytest.mark.asyncio
 async def test_system(
     user_credentials: tuple[str, str],
     session: aiohttp.ClientSession | mock.ClientSession,
-):
-    username, password = user_credentials
+) -> None:
+    """Test `set_mode()` for TCS"""
 
     try:
-        await _test_system_apis(username, password, session=session)
+        await _test_system_apis(await instantiate_client(user_credentials, session))
+
+    except evo2.AuthenticationFailed:
+        if not _DEBUG_USE_REAL_AIOHTTP:
+            raise
+        pytest.skip("Unable to authenticate")
+
     except NotImplementedError:  # TODO: implement
         if _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Mocked server API not implemented")
-    except evohome.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Unable to authenticate")

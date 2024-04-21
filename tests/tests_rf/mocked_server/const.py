@@ -672,7 +672,7 @@ def user_config_from_full_config(full_config: list) -> dict:
 MOCK_USER_CONFIG = user_config_from_full_config(MOCK_FULL_CONFIG)
 
 
-_bodyT = dict | str
+_bodyT = list | dict | str
 _methodT = Literal["GET", "POST", "PUT"]
 _statusT = int
 _urlT = str

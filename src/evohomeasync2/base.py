@@ -22,7 +22,6 @@ if TYPE_CHECKING:
     from .schema import (
         _EvoDictT,
         _EvoListT,
-        _EvoSchemaT,
         _FilePathT,
         _LocationIdT,
         _SystemIdT,
@@ -100,8 +99,8 @@ class EvohomeClientDeprecated:
 class EvohomeClient(EvohomeClientDeprecated):
     """Provide a client to access the Honeywell TCC API."""
 
-    _full_config: _EvoListT = None  # type: ignore[assignment]  # installation_info (all locations of user)
-    _user_account: _EvoDictT = None  # type: ignore[assignment]  # account_info
+    _full_config: _EvoListT | None = None  # installation_info (all locations of user)
+    _user_account: _EvoDictT | None = None  # account_info
 
     def __init__(
         self,
@@ -116,6 +115,11 @@ class EvohomeClient(EvohomeClientDeprecated):
         debug: bool = False,
     ) -> None:
         """Construct the v2 EvohomeClient object.
+
+        Usage:
+          evo = EvohomeClient(...
+          evo.login()                 # invokes: evo.user_account(), evo.installation()
+          print(evo.system_id)        # assumes only one TCS
 
         If access/refresh tokens are provided they will be used to avoid calling the
         authentication service, which is known to be rate limited.
@@ -183,7 +187,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         await self.installation()
 
     @property  # user_account
-    def account_info(self) -> _EvoSchemaT:  # from original evohomeclient namespace
+    def account_info(self) -> _EvoDictT | None:  # from original evohomeclient namespace
         """Return the information of the user account."""
         return self._user_account
 
@@ -197,20 +201,15 @@ class EvohomeClient(EvohomeClientDeprecated):
         if self._user_account and not force_update:
             return self._user_account
 
-        # this code should really be in broker somewhere
-        if not self.broker._session:
-            self.broker._session = aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=30)
-            )
-
-        self._user_account = await self.broker.get(
+        self._user_account: _EvoDictT = await self.broker.get(
             "userAccount", schema=SCH_USER_ACCOUNT
         )  # type: ignore[assignment]
 
+        assert self._user_account  # mypy
         return self._user_account
 
     @property  # full_config (all locations of user)
-    def installation_info(self) -> _EvoListT:  # from original evohomeclient namespace
+    def installation_info(self) -> _EvoListT | None:  # from original evohomeclient
         """Return the installation info (config) of all the user's locations."""
         return self._full_config
 
@@ -229,10 +228,10 @@ class EvohomeClient(EvohomeClientDeprecated):
         return await self._installation()  # aka self.installation_info
 
     async def _installation(self, refresh_status: bool = True) -> _EvoListT:
-        """Return the configuration of the user's locations their status.
+        """Return the configuration of the user's locations with their status.
 
         The refresh_status flag is used for dev/test to disable retreiving the initial
-        status of each location (and its child entities).
+        status of each location (and its child entities, e.g. TCS, zones, etc.).
         """
 
         assert isinstance(self.account_info, dict)  # mypy
@@ -248,13 +247,13 @@ class EvohomeClient(EvohomeClientDeprecated):
         # populate each freshly instantiated location with its initial status
         loc_config: _EvoDictT
 
-        for loc_config in self._full_config:
+        for loc_config in self._full_config:  # type: ignore[union-attr]
             loc = Location(self, loc_config)
             self.locations.append(loc)
             if refresh_status:
                 await loc.refresh_status()
 
-        return self._full_config
+        return self._full_config  # type: ignore[return-value]
 
     def _get_single_tcs(self) -> ControlSystem:
         """If there is a single location/gateway/TCS, return it, or raise an exception.

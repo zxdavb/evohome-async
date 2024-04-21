@@ -99,13 +99,15 @@ class EvohomeClientDeprecated:
     def postdata(self) -> str:
         raise exc.DeprecationError("EvohomeClient.postdata is deprecated")
 
-    async def _wait_for_put_task(self, response: aiohttp.ClientResponse) -> None:
+    async def _wait_for_put_task(self, response: aiohttp.ClientResponse) -> NoReturn:
         """This functionality is deprecated, but remains here as documentation."""
 
-        async def get_task_status(task_id: _TaskIdT) -> str:
+        raise exc.DeprecationError("EvohomeClient._wait_for_put_task() is deprecated")
+
+        async def get_task_status(task_id: _TaskIdT) -> str:  # type: ignore[unreachable]
             await self._populate_locn_data()
 
-            url = f"/commTasks?commTaskId={task_id}"
+            url = f"commTasks?commTaskId={task_id}"
             response = await self._do_request(HTTPMethod.GET, url)
 
             ret: str = dict(await response.json())[SZ_STATE]
@@ -122,13 +124,10 @@ class EvohomeClientDeprecated:
         while await get_task_status(task_id) != "Succeeded":
             await asyncio.sleep(1)
 
-    # Not deprecated, just a placeholder for self._wait_for_put_task()
-    async def _do_request(self, *args, **kwargs) -> aiohttp.ClientResponse:  # type: ignore[no-untyped-def]
-        raise NotImplementedError
-
-    # Not deprecated, just a placeholder for self._wait_for_put_task()
-    async def _populate_locn_data(self, force_refresh: bool = True) -> _LocnDataT:
-        raise NotImplementedError
+    async def _do_request(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
+        raise exc.DeprecationError(
+            "EvohomeClient._do_request() is deprecated, use .broker.make_request()"
+        )
 
     async def get_system_modes(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
@@ -337,7 +336,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         if until:
             data |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
-        url = f"/evoTouchSystems?locationId={self.location_id}"
+        url = f"evoTouchSystems?locationId={self.location_id}"
         await self.broker.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_mode_auto(self) -> None:
@@ -422,7 +421,7 @@ class EvohomeClient(EvohomeClientDeprecated):
                 SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
 
-        url = f"/devices/{zone_id}/thermostat/changeableValues/heatSetpoint"
+        url = f"devices/{zone_id}/thermostat/changeableValues/heatSetpoint"
         await self.broker.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_temperature(
@@ -480,7 +479,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         if next_time:
             data |= {SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
-        url = f"/devices/{dhw_id}/thermostat/changeableValues"
+        url = f"devices/{dhw_id}/thermostat/changeableValues"
         await self.broker.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_dhw_on(self, until: dt | None = None) -> None:

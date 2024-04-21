@@ -107,7 +107,7 @@ class Location(_LocationDeprecated):
         return ret
 
     async def refresh_status(self) -> _EvoDictT:
-        """Update the Location with its latest status (also returns the status)."""
+        """Update the entire Location with its latest status (returns the status)."""
 
         status: _EvoDictT = await self._broker.get(
             f"{self.TYPE}/{self._id}/status?includeTemperatureControlSystems=True",

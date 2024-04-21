@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 """evohome-async - validate the handling of vendor APIs (URLs)."""
 
 from __future__ import annotations
@@ -9,9 +7,8 @@ from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 
 import pytest
-import pytest_asyncio
 
-import evohomeasync2 as evohome
+import evohomeasync2 as evo2
 from evohomeasync2 import ControlSystem, Gateway, Location
 from evohomeasync2.const import API_STRFTIME, DhwState, ZoneMode
 from evohomeasync2.schema.const import (
@@ -24,72 +21,18 @@ from evohomeasync2.schema.const import (
 from evohomeasync2.schema.helpers import pascal_case
 
 from . import _DEBUG_USE_REAL_AIOHTTP
-from .helpers import (  # aiohttp may be mocked
+from .helpers import (
     aiohttp,
-    client_session as _client_session,
-    extract_oauth_tokens,
+    instantiate_client,
     should_fail,
     should_work,
-    user_credentials as _user_credentials,
     wait_for_comm_task,
 )
 
-_global_oauth_tokens: tuple[str, str, dt] = None, None, None
+#######################################################################################
 
 
-@pytest.fixture(autouse=True)
-def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("evohomeasync2.base.aiohttp", aiohttp)
-    monkeypatch.setattr("evohomeasync2.broker.aiohttp", aiohttp)
-
-
-@pytest.fixture()
-def user_credentials():
-    return _user_credentials()
-
-
-@pytest_asyncio.fixture
-async def session():
-    client_session = _client_session()
-    try:
-        yield client_session
-    finally:
-        await client_session.close()
-
-
-async def instantiate_client(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | None = None,
-):
-    """Instantiate a client, and logon to the vendor API."""
-
-    global _global_oauth_tokens
-
-    refresh_token, access_token, access_token_expires = _global_oauth_tokens
-
-    # Instantiation, NOTE: No API calls invoked during instantiation
-    evo = evohome.EvohomeClient(
-        username,
-        password,
-        session=session,
-        refresh_token=refresh_token,
-        access_token=access_token,
-        access_token_expires=access_token_expires,
-    )
-
-    # Authentication
-    await evo.broker._basic_login()
-    _global_oauth_tokens = extract_oauth_tokens(evo)
-
-    return evo
-
-
-async def _test_task_id(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession,
-) -> None:
+async def _test_task_id(evo: evo2.EvohomeClient) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
@@ -99,7 +42,6 @@ async def _test_task_id(
     gwy: Gateway
     tcs: ControlSystem
 
-    evo = await instantiate_client(username, password, session=session)
     _ = await evo.user_account()
     _ = await evo._installation(refresh_status=False)
 
@@ -233,9 +175,12 @@ async def _test_task_id(
     pass
 
 
-@pytest.mark.asyncio
+#######################################################################################
+
+
 async def test_task_id(
-    user_credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str],
+    session: aiohttp.ClientSession,
 ) -> None:
     """Test /location/{locationId}/status"""
 
@@ -243,6 +188,9 @@ async def test_task_id(
         pytest.skip("Test is only valid with a real server")
 
     try:
-        await _test_task_id(*user_credentials, session)
-    except evohome.AuthenticationFailed:
+        await _test_task_id(await instantiate_client(user_credentials, session))
+
+    except evo2.AuthenticationFailed:
+        if not _DEBUG_USE_REAL_AIOHTTP:
+            raise
         pytest.skip("Unable to authenticate")

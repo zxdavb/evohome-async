@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 """evohome-async - validate the handling of vendor APIs (URLs)."""
 
 from __future__ import annotations
 
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
-import pytest_asyncio
 
-import evohomeasync2 as evohome
+import evohomeasync2 as evo2
 from evohomeasync2.const import API_STRFTIME, SystemMode, ZoneMode
 from evohomeasync2.schema import (
     SCH_FULL_CONFIG,
@@ -38,73 +36,17 @@ from evohomeasync2.schema.const import (
 from evohomeasync2.schema.schedule import convert_to_put_schedule
 
 from . import _DEBUG_USE_REAL_AIOHTTP, mocked_server as mock
-from .helpers import (  # aiohttp may/may not be mocked
-    aiohttp,
-    client_session as _client_session,
-    extract_oauth_tokens,
-    should_fail,
-    should_work,
-    user_credentials as _user_credentials,
-)
+from .helpers import aiohttp, instantiate_client, should_fail, should_work
 
-_global_oauth_tokens: tuple[str, str, dt] = None, None, None  # type: ignore[assignment]
+if TYPE_CHECKING:
+    from evohomeasync2.schema import _EvoDictT
 
 
-@pytest.fixture(autouse=True)
-def patches_for_tests(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("evohomeasync2.base.aiohttp", aiohttp)
-    monkeypatch.setattr("evohomeasync2.broker.aiohttp", aiohttp)
+#######################################################################################
 
 
-@pytest.fixture()
-def user_credentials():
-    return _user_credentials()
-
-
-@pytest_asyncio.fixture
-async def session():
-    client_session = _client_session()
-    try:
-        yield client_session
-    finally:
-        await client_session.close()
-
-
-async def instantiate_client(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | None = None,
-):
-    """Instantiate a client, and logon to the vendor API."""
-
-    global _global_oauth_tokens
-
-    refresh_token, access_token, access_token_expires = _global_oauth_tokens
-
-    # Instantiation, NOTE: No API calls invoked during instantiation
-    evo = evohome.EvohomeClient(
-        username,
-        password,
-        session=session,
-        refresh_token=refresh_token,
-        access_token=access_token,
-        access_token_expires=access_token_expires,
-    )
-
-    # Authentication
-    await evo.broker._basic_login()
-    _global_oauth_tokens = extract_oauth_tokens(evo)
-
-    return evo
-
-
-async def _test_usr_account(
-    username: str, password: str, session: aiohttp.ClientSession | None = None
-) -> None:
+async def _test_usr_account(evo: evo2.EvohomeClient) -> None:
     """Test /userAccount"""
-
-    evo = await instantiate_client(username, password, session=session)
-    #
 
     url = "userAccount"
     _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_USER_ACCOUNT)
@@ -122,14 +64,9 @@ async def _test_usr_account(
     )
 
 
-async def _test_all_config(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | None = None,
-) -> None:
+async def _test_all_config(evo: evo2.EvohomeClient) -> None:
     """Test /location/installationInfo?userId={userId}"""
 
-    evo = await instantiate_client(username, password, session=session)
     _ = await evo.user_account()
     #
 
@@ -155,14 +92,9 @@ async def _test_all_config(
     _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
 
-async def _test_loc_status(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | None = None,
-) -> None:
+async def _test_loc_status(evo: evo2.EvohomeClient) -> None:
     """Test /location/{locationId}/status"""
 
-    evo = await instantiate_client(username, password, session=session)
     _ = await evo.user_account()
 
     _ = await evo._installation(refresh_status=False)
@@ -203,24 +135,19 @@ async def _test_loc_status(
     )
 
 
-async def _test_tcs_mode(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | None = None,
-) -> None:
+async def _test_tcs_mode(evo: evo2.EvohomeClient) -> None:
     """Test /temperatureControlSystem/{systemId}/mode"""
 
-    evo = await instantiate_client(username, password, session=session)
     _ = await evo.user_account()
     _ = await evo._installation(refresh_status=False)
 
-    tcs: evohome.ControlSystem
+    tcs: evo2.ControlSystem
 
     if not (tcs := evo.locations[0]._gateways[0]._control_systems[0]):
         pytest.skip("No available zones found")
 
-    _ = await tcs._refresh_status()
-    old_mode = tcs.systemModeStatus
+    _ = await tcs.location.refresh_status()  # could use: await tcs._refresh_status()
+    old_mode: _EvoDictT = tcs.systemModeStatus  # type: ignore[assignment]
 
     url = f"{tcs.TYPE}/{tcs._id}/status"
     _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_TCS_STATUS)
@@ -237,7 +164,7 @@ async def _test_tcs_mode(
     old_mode[SZ_PERMANENT] = old_mode.pop(SZ_IS_PERMANENT)
 
     assert SystemMode.AUTO in [m[SZ_SYSTEM_MODE] for m in tcs.allowedSystemModes]
-    new_mode = {
+    new_mode: _EvoDictT = {
         SZ_SYSTEM_MODE: SystemMode.AUTO,
         SZ_PERMANENT: True,
     }
@@ -271,14 +198,9 @@ async def _test_tcs_mode(
     pass
 
 
-async def _test_zone_mode(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | None = None,
-) -> None:
+async def _test_zone_mode(evo: evo2.EvohomeClient) -> None:
     """Test /temperatureZone/{zoneId}/heatSetpoint"""
 
-    evo = await instantiate_client(username, password, session=session)
     _ = await evo.user_account()
     _ = await evo._installation(refresh_status=False)
 
@@ -333,14 +255,9 @@ async def _test_zone_mode(
 
 # TODO: Test sending bad schedule
 # TODO: Try with/without convert_to_put_schedule()
-async def _test_schedule(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | None = None,
-) -> None:
+async def _test_schedule(evo: evo2.EvohomeClient) -> None:
     """Test /{x.TYPE}/{x._id}/schedule (of a zone)"""
 
-    evo = await instantiate_client(username, password, session=session)
     _ = await evo.user_account()
 
     _ = await evo.installation()
@@ -387,93 +304,104 @@ async def _test_schedule(
     )  # NOTE: json=None
 
 
-@pytest.mark.asyncio
+#######################################################################################
+
+
 async def test_usr_account(
-    user_credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str],
+    session: aiohttp.ClientSession,
 ) -> None:
     """Test /userAccount"""
 
     try:
-        await _test_usr_account(*user_credentials, session=session)
-    except evohome.AuthenticationFailed:
+        await _test_usr_account(await instantiate_client(user_credentials, session))
+
+    except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
 
-@pytest.mark.asyncio
 async def test_all_config(
-    user_credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str],
+    session: aiohttp.ClientSession,
 ) -> None:
     """Test /location/installationInfo"""
 
     try:
-        await _test_all_config(*user_credentials, session=session)
-    except evohome.AuthenticationFailed:
+        await _test_all_config(await instantiate_client(user_credentials, session))
+
+    except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
 
-@pytest.mark.asyncio
 async def test_loc_status(
-    user_credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str],
+    session: aiohttp.ClientSession,
 ) -> None:
     """Test /location/{locationId}/status"""
 
     try:
-        await _test_loc_status(*user_credentials, session=session)
-    except evohome.AuthenticationFailed:
+        await _test_loc_status(await instantiate_client(user_credentials, session))
+
+    except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
 
-@pytest.mark.asyncio
 async def test_tcs_mode(
-    user_credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str],
+    session: aiohttp.ClientSession,
 ) -> None:
     """Test /temperatureControlSystem/{systemId}/mode"""
 
     try:
-        await _test_tcs_mode(*user_credentials, session=session)
-    except evohome.AuthenticationFailed:
+        await _test_tcs_mode(await instantiate_client(user_credentials, session))
+
+    except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
+
     except NotImplementedError:  # TODO: implement
         if _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Mocked server API not implemented")
 
 
-@pytest.mark.asyncio
 async def test_zone_mode(
-    user_credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str],
+    session: aiohttp.ClientSession,
 ) -> None:
     """Test /temperatureZone/{zoneId}/heatSetpoint"""
 
     try:
-        await _test_zone_mode(*user_credentials, session=session)
-    except evohome.AuthenticationFailed:
+        await _test_zone_mode(await instantiate_client(user_credentials, session))
+
+    except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
+
     except NotImplementedError:  # TODO: implement
         if _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Mocked server API not implemented")
 
 
-@pytest.mark.asyncio
 async def test_schedule(
-    user_credentials: tuple[str, str], session: aiohttp.ClientSession
+    user_credentials: tuple[str, str],
+    session: aiohttp.ClientSession,
 ) -> None:
     """Test /{x.TYPE}/{x_id}/schedule"""
 
     try:
-        await _test_schedule(*user_credentials, session=session)
-    except evohome.AuthenticationFailed:
+        await _test_schedule(await instantiate_client(user_credentials, session))
+
+    except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")

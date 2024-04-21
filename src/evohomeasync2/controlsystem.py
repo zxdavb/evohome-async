@@ -168,8 +168,9 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
         ret: str = self._config[SZ_MODEL_TYPE]
         return ret
 
-    async def _refresh_status(self) -> None:
-        await self.location.refresh_status()
+    async def _refresh_status(self) -> _EvoDictT:
+        await self.location.refresh_status()  # NOTE: SE, also invokes ._update_status()
+        return self._status
 
     def _update_status(self, status: _EvoDictT) -> None:
         super()._update_status(status)  # process active faults
