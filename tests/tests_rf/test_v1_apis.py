@@ -40,7 +40,7 @@ async def test_client_apis(
     """Test _populate_user_data() & _populate_full_data()"""
 
     if not _DEBUG_USE_REAL_AIOHTTP:
-        pytest.skip("Mocked server not implemented")
+        pytest.skip("Mocked server not implemented for this API")
 
     try:
         await _test_client_apis(
