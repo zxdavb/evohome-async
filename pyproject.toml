@@ -73,27 +73,43 @@
   exclude = "docs"
   files = ["src", "tests"]
 
+  no_implicit_optional = true
+
+  # see: https://mypy.readthedocs.io/en/stable/existing_code.html#introduce-stricter-options
+
+  # Start off with these
+  warn_unused_configs = true
+  warn_redundant_casts = true  # this is not per-module
+  warn_unused_ignores = true
+
+  # Getting these passing should be easy
+  extra_checks = true  # now incl.: strict_concatenate = true
+  strict_equality = true
+
+  # Strongly recommend enabling this one as soon as you can
   check_untyped_defs = true
 
-  disallow_any_generics = true
-  disallow_any_unimported = true
-  disallow_incomplete_defs = true
+  # These shouldn't be too much additional work, but may be tricky to
+  # get passing if you use a lot of untyped libraries
   disallow_subclassing_any = true
-  disallow_untyped_calls = true
-  disallow_untyped_defs = true
   disallow_untyped_decorators = true
+  disallow_any_generics = true
 
-  extra_checks = true  # was: strict_equality, strict_concatenate = true
+  # These next few are various gradations of forcing use of type annotations
+  disallow_untyped_calls = true
+  disallow_incomplete_defs = true
+  disallow_untyped_defs = true
 
-  no_implicit_optional = true
-# no_implicit_reexport = true
+  # This one isn't too hard to get passing, but return on investment is lower
+  no_implicit_reexport = true
 
-  warn_no_return = true
-  warn_redundant_casts = true  # this is not per-module
+  # This one can be tricky to get passing if you use a lot of untyped libraries
   warn_return_any = true
-  warn_unused_configs = true
-  warn_unused_ignores = true
+
+  disallow_any_unimported = true
+  warn_no_return = true
   warn_unreachable = true
+
 
 #
 [[tool.mypy.overrides]]
@@ -142,13 +158,22 @@
     "E",  # pycodestyle
     "F",  # Pyflakes
     "I",  # isort
-    # "SIM",  # flake8-simplify
+    "SIM",  # flake8-simplify
     "UP",  # pyupgrade
   ]
-  ignore = ["B011", "E501", "UP009"]
-  # B011  - Do not call assert False since python -O removes these calls
-  # E501  - Line too long
-  # UP009 - UTF-8 encoding declaration is unnecessary
+  ignore = ["B011", "E501", "SIM102", "SIM114", "UP009"]
+  # B011   - Do not call assert False since python -O removes these calls
+  # E501   - Line too long
+  # SIM102 - Use a single `if` statement instead of nested `if` statements
+  # SIM114 - Combine `if` branches using logical `or` operator
+  # UP009  - UTF-8 encoding declaration is unnecessary
+
+
+[tool.ruff.lint.flake8-import-conventions.extend-aliases]
+  voluptuous = "vol"
+
 
 [tool.ruff.lint.isort]
-  combine-as-imports = true  # default is false
+  combine-as-imports = true
+  force-sort-within-sections = false
+  split-on-trailing-comma = false
