@@ -1,0 +1,66 @@
+[
+    {
+        "locationInfo": {
+            "locationId": "REDACTED",
+            "name": "Home",
+            "streetAddress": "REDACTED",
+            "city": "REDACTED",
+            "country": "REDACTED",
+            "postcode": "",
+            "locationType": "Residential",
+            "useDaylightSaveSwitching": true,
+            "timeZone": {
+                "timeZoneId": "REDACTED",
+                "displayName": "REDACTED",
+                "offsetMinutes": 600,
+                "currentOffsetMinutes": 600,
+                "supportsDaylightSaving": true
+            },
+            "locationOwner": {
+                "userId": "REDACTED",
+                "username": "REDACTED",
+                "firstname": "REDACTED",
+                "lastname": "REDACTED"
+            }
+        },
+        "gateways": [
+            {
+                "gatewayInfo": {
+                    "gatewayId": "REDACTED", "mac": "REDACTED", "crc": "REDACTED", "isWiFi": true
+                },
+                "temperatureControlSystems": [
+                    {
+                        "systemId": "REDACTED",
+                        "modelType": "FocusProWifiRetail",
+                        "zones": [
+                            {
+                                "zoneId": "REDACTED",
+                                "modelType": "FocusProWifiRetail",
+                                "setpointCapabilities": {
+                                    "vacationHoldCapabilities": {"isChangeable": false, "isCancelable": false},
+                                    "maxHeatSetpoint": 32.0,
+                                    "minHeatSetpoint": 4.5,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride", "VacationHold"],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:15:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 4, "minSwitchpointsPerDay": 0, "timingResolution": "00:15:00", "setpointValueResolution": 0.5
+                                },
+                                "name": "THERMOSTAT",
+                                "zoneType": "Thermostat"
+                            }
+                        ],
+                        "allowedSystemModes": [
+                            {"systemMode": "Off",  "canBePermanent": true, "canBeTemporary": false},
+                            {"systemMode": "Heat", "canBePermanent": true, "canBeTemporary": false}
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

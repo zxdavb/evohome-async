@@ -1,38 +1,29 @@
 {
-    "locationId": "1111111",
-    "gateways": [
+  "locationId": "1111111",
+  "gateways": [
+    {
+      "gatewayId": "2222222",
+      "temperatureControlSystems": [
         {
-            "gatewayId": "2222222",
-            "temperatureControlSystems": [
-                {
-                    "systemId": "3333333",
-                    "zones": [
-                        {
-                            "zoneId": "3333333",
-                            "temperatureStatus": {
-                                "temperature": 23.0,
-                                "isAvailable": true
-                            },
-                            "activeFaults": [],
-                            "setpointStatus": {
-                                "targetHeatTemperature": 23.0,
-                                "setpointMode": "PermanentOverride"
-                            },
-                            "name": "THERMOSTAT",
-                            "fanStatus": {
-                                "fanMode": "Auto",
-                                "canBeChanged": true
-                            }
-                        }
-                    ],
-                    "activeFaults": [],
-                    "systemModeStatus": {
-                        "mode": "Off",
-                        "isPermanent": true
-                    }
-                }
-            ],
-            "activeFaults": []
+          "systemId": "3333333",
+          "zones": [
+            {
+              "zoneId": "3333333",
+              "temperatureStatus": {
+                "temperature": 23.0, "isAvailable": true
+              },
+              "activeFaults": [],
+              "setpointStatus": {
+                "targetHeatTemperature": 23.0, "setpointMode": "PermanentOverride"},
+              "name": "THERMOSTAT",
+              "fanStatus": {"fanMode": "Auto", "canBeChanged": true}
+            }
+          ],
+          "activeFaults": [],
+          "systemModeStatus": {"mode": "Off", "isPermanent": true}
         }
-    ]
+      ],
+      "activeFaults": []
+    }
+  ]
 }

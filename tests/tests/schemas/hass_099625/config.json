@@ -69,32 +69,10 @@
                         }
                     ],
                     "allowedSystemModes": [
-                        {
-                            "systemMode": "Auto",
-                            "canBePermanent": true,
-                            "canBeTemporary": false
-                        },
-                        {
-                            "systemMode": "AutoWithEco",
-                            "canBePermanent": true,
-                            "canBeTemporary": true,
-                            "maxDuration": "1.00:00:00",
-                            "timingResolution": "01:00:00",
-                            "timingMode": "Duration"
-                        },
-                        {
-                            "systemMode": "Away",
-                            "canBePermanent": true,
-                            "canBeTemporary": true,
-                            "maxDuration": "99.00:00:00",
-                            "timingResolution": "1.00:00:00",
-                            "timingMode": "Period"
-                        },
-                        {
-                            "systemMode": "HeatingOff",
-                            "canBePermanent": true,
-                            "canBeTemporary": false
-                        }
+                        {"systemMode": "Auto",        "canBePermanent": true, "canBeTemporary": false},
+                        {"systemMode": "AutoWithEco", "canBePermanent": true, "canBeTemporary": true, "maxDuration":  "1.00:00:00", "timingResolution":   "01:00:00", "timingMode": "Duration"},
+                        {"systemMode": "Away",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+                        {"systemMode": "HeatingOff",  "canBePermanent": true, "canBeTemporary": false}
                     ]
                 }
             ]
