@@ -29,10 +29,7 @@ from evohomeasync2.schema.const import (
     SZ_ZONE_ID,
     SZ_ZONES,
 )
-from evohomeasync2.schema.schedule import (
-    SCH_PUT_SCHEDULE_DHW,
-    SCH_PUT_SCHEDULE_ZONE,
-)
+from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 
 from .const import (
     GHOST_ZONE_ID,

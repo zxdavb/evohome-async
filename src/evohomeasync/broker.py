@@ -13,11 +13,7 @@ from typing import Any, Final, TypeAlias
 import aiohttp
 
 from . import exceptions as exc
-from .schema import (
-    SZ_SESSION_ID,
-    SZ_USER_ID,
-    SZ_USER_INFO,
-)
+from .schema import SZ_SESSION_ID, SZ_USER_ID, SZ_USER_INFO
 
 _SessionIdT: TypeAlias = str
 _UserIdT: TypeAlias = int
@@ -29,6 +25,8 @@ _LocnDataT: TypeAlias = dict[str, Any]
 
 URL_HOST = "https://tccna.honeywell.com"
 
+# For docs, see:
+#  - https://mytotalconnectcomfort.com/WebApi/Help/LogIn and enter this Session Login:
 _APP_ID = "91db1612-73fd-4500-91b2-e63b069b185c"
 
 _LOGGER = logging.getLogger(__name__)

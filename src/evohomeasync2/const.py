@@ -3,11 +3,7 @@
 
 from typing import Final
 
-from .schema import (  # noqa: F401
-    DhwState,
-    SystemMode,
-    ZoneMode,
-)
+from .schema import DhwState as DhwState, SystemMode as SystemMode, ZoneMode as ZoneMode
 
 URL_HOST = "https://tccna.honeywell.com"
 

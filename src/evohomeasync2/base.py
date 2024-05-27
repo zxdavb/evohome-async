@@ -19,13 +19,7 @@ from .location import Location
 from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
 
 if TYPE_CHECKING:
-    from .schema import (
-        _EvoDictT,
-        _EvoListT,
-        _FilePathT,
-        _LocationIdT,
-        _SystemIdT,
-    )
+    from .schema import _EvoDictT, _EvoListT, _FilePathT, _LocationIdT, _SystemIdT
 
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])

@@ -18,11 +18,7 @@ from . import HotWater, Zone
 from .base import EvohomeClient
 from .const import SZ_NAME, SZ_SCHEDULE
 from .controlsystem import ControlSystem
-from .schema.account import (
-    SZ_ACCESS_TOKEN,
-    SZ_ACCESS_TOKEN_EXPIRES,
-    SZ_REFRESH_TOKEN,
-)
+from .schema.account import SZ_ACCESS_TOKEN, SZ_ACCESS_TOKEN_EXPIRES, SZ_REFRESH_TOKEN
 
 # debug flags should be False for end-users
 _DEBUG_CLI = False  # for debugging of CLI (*before* loading library)
@@ -91,10 +87,7 @@ def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
 def _dump_tokens(evo: EvohomeClient) -> None:
     """Dump the tokens to a cache (temporary file)."""
 
-    if evo.access_token_expires:
-        expires = evo.access_token_expires.isoformat()
-    else:
-        expires = None
+    expires = evo.access_token_expires.isoformat() if evo.access_token_expires else None
 
     with open(TOKEN_FILE, "w") as fp:
         json.dump(

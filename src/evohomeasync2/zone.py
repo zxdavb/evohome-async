@@ -358,6 +358,7 @@ class Zone(_ZoneDeprecated, _ZoneBase):
     # TODO: no provision for cooling
     async def _set_mode(self, mode: dict[str, str | float]) -> None:
         """Set the zone mode (heat_setpoint, cooling is TBD)."""
+        # TODO: also coolSetpoint
         _ = await self._broker.put(f"{self.TYPE}/{self._id}/heatSetpoint", json=mode)
 
     async def reset_mode(self) -> None:
