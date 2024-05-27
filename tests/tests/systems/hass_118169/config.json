@@ -10,8 +10,8 @@
             "locationType": "Residential",
             "useDaylightSaveSwitching": true,
             "timeZone": {
-                "timeZoneId": "REDACTED",
-                "displayName": "REDACTED",
+                "timeZoneId": "AUSEasternStandardTime",
+                "displayName": "(UTC+10:00) Canberra, Melbourne, Sydney",
                 "offsetMinutes": 600,
                 "currentOffsetMinutes": 600,
                 "supportsDaylightSaving": true
