@@ -5,17 +5,17 @@
   -r requirements.txt
 
 # used for development (linting)
-  pre-commit>=3.7.0
-  ruff>=0.4.1
+  pre-commit>=3.7.1
+  ruff>=0.4.5
 
 # used for development (typing)
-  mypy>=1.9.0
+  mypy>=1.10.0
   voluptuous>=0.14.2
 
 # used for testing
-  pytest>=8.1.1
-  pytest-asyncio>=0.23.6
-  pytest-xdist>=3.5.0
+  pytest>=8.2.1
+  pytest-asyncio>=0.23.
+  pytest-xdist>=3.6.1
 
 # used for testing at runtime
   debugpy >= 1.8.1
