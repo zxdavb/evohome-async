@@ -221,7 +221,11 @@ class Broker:
             ) from err
 
     async def get(self, url: str, schema: vol.Schema | None = None) -> _EvoSchemaT:
-        """"""
+        """Call the RESTful API with a GET.
+
+        Optionally checks the response JSON against the expected schema and logs a
+        warning if it doesn't match (NB: does not raise a vol.Invalid).
+        """
 
         response: aiohttp.ClientResponse
         content: _EvoSchemaT
@@ -253,7 +257,11 @@ class Broker:
     async def put(
         self, url: str, json: _EvoDictT | str, schema: vol.Schema | None = None
     ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
-        """"""
+        """Call the RESTful API with a PUT.
+
+        Optionally checks the request JSON against the expected schema and logs a
+        warning if it doesn't match (NB: does not raise a vol.Invalid).
+        """
 
         response: aiohttp.ClientResponse
         content: dict[str, Any] | list[dict[str, Any]]
