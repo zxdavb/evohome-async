@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-"""evohomeasync2 - Constants."""
+"""evohomeasync2 schema - shared constants."""
 
 import re
 from enum import EnumCheck, StrEnum, verify

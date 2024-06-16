@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-"""evohomeasync2 - Schema for RESTful API Account JSON."""
+"""evohomeasync2 schema - for Account JSON of RESTful API."""
 
 from __future__ import annotations
 
