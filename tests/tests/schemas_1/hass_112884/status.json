@@ -1,0 +1,46 @@
+ {
+    "locationId": "2049339",
+    "gateways": [
+        {
+            "gatewayId": "1710429",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "2069121",
+                    "zones": [
+                        {
+                            "zoneId": "2069120", "temperatureStatus": {"temperature": 18.5, "isAvailable": true}, "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 5.0, "setpointMode": "FollowSchedule"}, "name": "Livingroom"
+                        }, {
+                            "zoneId": "2069237", "temperatureStatus": {"temperature": 19.0, "isAvailable": true}, "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 5.0, "setpointMode": "FollowSchedule"}, "name": "Badkamer 1"
+                        }, {
+                            "zoneId": "2069263", "temperatureStatus": {"temperature": 17.5, "isAvailable": true}, "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 5.0, "setpointMode": "PermanentOverride"}, "name": "Gang"
+                        }, {
+                            "zoneId": "2297923", "temperatureStatus": {"temperature": 18.5, "isAvailable": true}, "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 5.0, "setpointMode": "FollowSchedule"}, "name": "Washok"
+                        }, {
+                            "zoneId": "2306137", "temperatureStatus": {"temperature": 18.5, "isAvailable": true}, "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 5.0, "setpointMode": "FollowSchedule"}, "name": "Badkamer 2"
+                        }, {
+                            "zoneId": "2306140", "temperatureStatus": {"temperature": 18.5, "isAvailable": true}, "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 5.0, "setpointMode": "FollowSchedule"}, "name": "Vloer"
+                        }, {
+                            "zoneId": "2329524", "temperatureStatus": {"temperature": 17.5, "isAvailable": true}, "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 5.0, "setpointMode": "PermanentOverride"}, "name": "Balzaal"
+                        }, {
+                            "zoneId": "2329554", "temperatureStatus": {"temperature": 18.5, "isAvailable": true}, "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 5.0, "setpointMode": "FollowSchedule"}, "name": "Logeerkamer"
+                        }, {
+                            "zoneId": "2329571", "temperatureStatus": {"temperature": 16.5, "isAvailable": true}, "activeFaults": [],
+                            "setpointStatus": {"targetHeatTemperature": 5.0, "setpointMode": "PermanentOverride"}, "name": "Slaapkamer"
+                        }
+                    ],
+                    "activeFaults": [],
+                    "systemModeStatus": {"mode": "HeatingOff", "isPermanent": true}
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}

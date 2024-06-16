@@ -34,9 +34,9 @@ WORK_DIR = Path(f"{TEST_DIR}/schedules")
 def test_schedule_to_pascal_case() -> None:
     """Convert a schedule to snake_case, and back again."""
 
-    get_schedule = json.load(
-        Path(f"{TEST_DIR}/systems/system_001/schedule_zone.json").open()
-    )
+    with open(Path(f"{TEST_DIR}/systems_0/system_001/schedule_zone.json")) as file:
+        get_schedule = json.load(file)
+
     assert get_schedule == SCH_GET_SCHEDULE_ZONE(get_schedule)
 
     put_schedule = convert_to_put_schedule(get_schedule)

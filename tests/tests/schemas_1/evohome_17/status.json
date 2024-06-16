@@ -1,0 +1,33 @@
+{
+    "locationId": "6390479",
+    "gateways": [
+        {
+            "gatewayId": "6008600",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "8222003",
+                    "zones": [
+                        {
+                            "zoneId": "8222000", "temperatureStatus": {"temperature": 24.0, "isAvailable": true},  "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 19.0, "setpointMode": "TemporaryOverride", "until": "2024-05-12T05:00:00Z"}, "name": "Woonkamer"
+                        }, {
+                            "zoneId": "8222001", "temperatureStatus": {"temperature": 27.0, "isAvailable": true},  "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 18.0, "setpointMode": "FollowSchedule"   }, "name": "MBR"
+                        }, {
+                            "zoneId": "8222002", "temperatureStatus": {"temperature": 21.0, "isAvailable": true},  "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 18.0, "setpointMode": "FollowSchedule"   }, "name": "BK"
+                        }, {
+                            "zoneId": "8403459", "temperatureStatus": {"temperature": 23.5, "isAvailable": true},  "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 18.0, "setpointMode": "FollowSchedule"   }, "name": "Kantoor"
+                        }, {
+                            "zoneId": "8403460", "temperatureStatus": {"temperature": 25.0, "isAvailable": true},  "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 16.0, "setpointMode": "FollowSchedule"   }, "name": "Sauna"
+                        }, {
+                            "zoneId": "8403596", "temperatureStatus": {"temperature": 21.5, "isAvailable": true},  "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 16.0, "setpointMode": "FollowSchedule"   }, "name": "Hut"
+                        }, {
+                            "zoneId": "8222004", "temperatureStatus": {                     "isAvailable": false}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 62.0, "setpointMode": "PermanentOverride"}, "name": ""
+                        }
+                    ],
+                    "activeFaults": [],
+                    "systemModeStatus": {"mode": "Auto", "isPermanent": true}
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}

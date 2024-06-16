@@ -13,7 +13,7 @@ from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCO
 
 from .helpers import TEST_DIR, _test_schema
 
-WORK_DIR = f"{TEST_DIR}/systems"
+WORK_DIR = f"{TEST_DIR}/systems_0"
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:

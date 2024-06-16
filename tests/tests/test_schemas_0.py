@@ -26,7 +26,7 @@ from evohomeasync2.schema.const import (
 
 from .helpers import TEST_DIR
 
-WORK_DIR = f"{TEST_DIR}/schemas"
+WORK_DIR = f"{TEST_DIR}/schemas_0"
 
 # NOTE: JSON fom HA is not compliant with vendor schema, but is useful to test against
 CONFIG_FILE_NAME = "config.json"
