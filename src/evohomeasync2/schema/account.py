@@ -29,7 +29,7 @@ SZ_SCOPE: Final = "scope"
 SZ_TOKEN_TYPE: Final = "token_type"
 
 
-SCH_OAUTH_TOKEN = vol.Schema(
+SCH_OAUTH_TOKEN: Final = vol.Schema(
     {
         vol.Required(SZ_ACCESS_TOKEN): vol.All(str, _obfuscate),
         vol.Required(SZ_EXPIRES_IN): int,  # 1800 seconds
@@ -39,7 +39,7 @@ SCH_OAUTH_TOKEN = vol.Schema(
     }
 )
 
-SCH_USER_ACCOUNT = vol.Schema(
+SCH_USER_ACCOUNT: Final = vol.Schema(
     {
         vol.Required(SZ_USER_ID): str,
         vol.Required(SZ_USERNAME): vol.All(vol.Email(), _obfuscate),

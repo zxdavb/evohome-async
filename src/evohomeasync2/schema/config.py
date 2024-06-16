@@ -96,7 +96,7 @@ MIN_HEAT_SETPOINT_LOWER: Final[float] = 4.5
 MIN_HEAT_SETPOINT_UPPER: Final[float] = 21.0
 
 
-SCH_SYSTEM_MODE_PERM = vol.Schema(
+SCH_SYSTEM_MODE_PERM: Final = vol.Schema(
     {
         vol.Required(SZ_SYSTEM_MODE): vol.Any(
             str(SystemMode.AUTO),
@@ -112,7 +112,7 @@ SCH_SYSTEM_MODE_PERM = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )  # TODO: does this apply to DHW?
 
-SCH_SYSTEM_MODE_TEMP = vol.Schema(
+SCH_SYSTEM_MODE_TEMP: Final = vol.Schema(
     {
         vol.Required(SZ_SYSTEM_MODE): vol.Any(
             str(SystemMode.AUTO_WITH_ECO),
@@ -129,10 +129,10 @@ SCH_SYSTEM_MODE_TEMP = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_ALLOWED_SYSTEM_MODE = vol.Any(SCH_SYSTEM_MODE_PERM, SCH_SYSTEM_MODE_TEMP)
+SCH_ALLOWED_SYSTEM_MODE: Final = vol.Any(SCH_SYSTEM_MODE_PERM, SCH_SYSTEM_MODE_TEMP)
 
 
-SCH_DHW_STATE_CAPABILITIES_RESPONSE = vol.Schema(
+SCH_DHW_STATE_CAPABILITIES_RESPONSE: Final = vol.Schema(
     {
         vol.Required(SZ_ALLOWED_STATES): list(m.value for m in DhwState),
         vol.Required(SZ_ALLOWED_MODES): list(m.value for m in ZoneMode),
@@ -142,7 +142,7 @@ SCH_DHW_STATE_CAPABILITIES_RESPONSE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_SCHEDULE_CAPABILITIES_RESPONSE = vol.Schema(
+SCH_SCHEDULE_CAPABILITIES_RESPONSE: Final = vol.Schema(
     {
         vol.Required(SZ_MAX_SWITCHPOINTS_PER_DAY): int,  # 6
         vol.Required(SZ_MIN_SWITCHPOINTS_PER_DAY): int,  # 1
@@ -153,7 +153,7 @@ SCH_SCHEDULE_CAPABILITIES_RESPONSE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_DHW = vol.Schema(
+SCH_DHW: Final = vol.Schema(
     {
         vol.Required(SZ_DHW_ID): vol.Match(REGEX_DHW_ID),
         vol.Required(
@@ -166,7 +166,7 @@ SCH_DHW = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_VACATION_HOLD_CAPABILITIES = vol.Schema(
+SCH_VACATION_HOLD_CAPABILITIES: Final = vol.Schema(
     {
         vol.Required(SZ_IS_CHANGEABLE): bool,
         vol.Required(SZ_IS_CANCELABLE): bool,
@@ -177,7 +177,7 @@ SCH_VACATION_HOLD_CAPABILITIES = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_SETPOINT_CAPABILITIES = vol.Schema(  # min/max as per evohome
+SCH_SETPOINT_CAPABILITIES: Final = vol.Schema(  # min/max as per evohome
     {
         vol.Required(SZ_CAN_CONTROL_HEAT): bool,
         vol.Required(SZ_MAX_HEAT_SETPOINT): vol.All(
@@ -211,14 +211,14 @@ SCH_SCHEDULE_CAPABILITIES = SCH_SCHEDULE_CAPABILITIES_RESPONSE.extend(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_FAN_MODE = vol.Schema(
+SCH_FAN_MODE: Final = vol.Schema(
     {
         vol.Required(SZ_FAN_MODE): vol.In([m.value for m in FanMode]),
     },
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_ZONE = vol.Schema(
+SCH_ZONE: Final = vol.Schema(
     {
         vol.Required(SZ_ZONE_ID): vol.Match(REGEX_ZONE_ID),
         vol.Required(SZ_MODEL_TYPE): vol.In([m.value for m in ZoneModelType]),
@@ -233,7 +233,7 @@ SCH_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_TEMPERATURE_CONTROL_SYSTEM = vol.Schema(
+SCH_TEMPERATURE_CONTROL_SYSTEM: Final = vol.Schema(
     {
         vol.Required(SZ_SYSTEM_ID): vol.Match(REGEX_SYSTEM_ID),
         vol.Required(SZ_MODEL_TYPE): vol.In([m.value for m in TcsModelType]),
@@ -244,7 +244,7 @@ SCH_TEMPERATURE_CONTROL_SYSTEM = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_GATEWAY_INFO = vol.Schema(
+SCH_GATEWAY_INFO: Final = vol.Schema(
     {
         vol.Required(SZ_GATEWAY_ID): str,
         vol.Required(SZ_MAC): str,
@@ -254,7 +254,7 @@ SCH_GATEWAY_INFO = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_GATEWAY = vol.Schema(
+SCH_GATEWAY: Final = vol.Schema(
     {
         vol.Required(SZ_GATEWAY_INFO): SCH_GATEWAY_INFO,
         vol.Required(SZ_TEMPERATURE_CONTROL_SYSTEMS): [SCH_TEMPERATURE_CONTROL_SYSTEM],
@@ -262,7 +262,7 @@ SCH_GATEWAY = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_TIME_ZONE = vol.Schema(
+SCH_TIME_ZONE: Final = vol.Schema(
     {
         vol.Required(SZ_TIME_ZONE_ID): str,
         vol.Required(SZ_DISPLAY_NAME): str,
@@ -273,7 +273,7 @@ SCH_TIME_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_LOCATION_OWNER = vol.Schema(
+SCH_LOCATION_OWNER: Final = vol.Schema(
     {
         vol.Required(SZ_USER_ID): str,
         vol.Required(SZ_USERNAME): vol.All(vol.Email(), _obfuscate),
@@ -283,7 +283,7 @@ SCH_LOCATION_OWNER = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_LOCATION_INFO = vol.Schema(
+SCH_LOCATION_INFO: Final = vol.Schema(
     {
         vol.Required(SZ_LOCATION_ID): str,
         vol.Required(SZ_NAME): str,  # e.g. "My Home"
@@ -300,7 +300,7 @@ SCH_LOCATION_INFO = vol.Schema(
 )
 
 # /location/{location_id}/installationInfo?includeTemperatureControlSystems=True
-SCH_LOCATION_INSTALLATION_INFO = vol.Schema(
+SCH_LOCATION_INSTALLATION_INFO: Final = vol.Schema(
     {
         vol.Required(SZ_LOCATION_INFO): SCH_LOCATION_INFO,
         vol.Required(SZ_GATEWAYS): [SCH_GATEWAY],
@@ -309,7 +309,7 @@ SCH_LOCATION_INSTALLATION_INFO = vol.Schema(
 )
 
 # /location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True
-SCH_USER_LOCATIONS_INSTALLATION_INFO = vol.Schema(
+SCH_USER_LOCATIONS_INSTALLATION_INFO: Final = vol.Schema(
     [SCH_LOCATION_INSTALLATION_INFO],
     extra=vol.PREVENT_EXTRA,
 )

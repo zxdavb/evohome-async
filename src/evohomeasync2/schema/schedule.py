@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import Final
+
 import voluptuous as vol
 
 from .const import (
@@ -22,7 +24,7 @@ from .typing import _EvoDictT, _EvoListT
 
 #
 # These are returned from vendor's API (GET)...
-SCH_GET_SWITCHPOINT_DHW = vol.Schema(  # TODO: checkme
+SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
     {
         vol.Required(SZ_DHW_STATE): vol.Any(SZ_ON, SZ_OFF),
         vol.Required(SZ_TIME_OF_DAY): vol.Datetime(format="%H:%M:00"),
@@ -30,7 +32,7 @@ SCH_GET_SWITCHPOINT_DHW = vol.Schema(  # TODO: checkme
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_GET_SWITCHPOINT_ZONE = vol.Schema(
+SCH_GET_SWITCHPOINT_ZONE: Final = vol.Schema(
     {
         vol.Optional(SZ_COOL_SETPOINT): float,  # an extrapolation
         vol.Required(SZ_HEAT_SETPOINT): vol.All(float, vol.Range(min=5, max=35)),
@@ -39,7 +41,7 @@ SCH_GET_SWITCHPOINT_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_GET_DAY_OF_WEEK_DHW = vol.Schema(
+SCH_GET_DAY_OF_WEEK_DHW: Final = vol.Schema(
     {
         vol.Required(SZ_DAY_OF_WEEK): vol.In(DAYS_OF_WEEK),
         vol.Required(SZ_SWITCHPOINTS): [SCH_GET_SWITCHPOINT_DHW],
@@ -47,7 +49,7 @@ SCH_GET_DAY_OF_WEEK_DHW = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_GET_DAY_OF_WEEK_ZONE = vol.Schema(
+SCH_GET_DAY_OF_WEEK_ZONE: Final = vol.Schema(
     {
         vol.Required(SZ_DAY_OF_WEEK): vol.In(DAYS_OF_WEEK),
         vol.Required(SZ_SWITCHPOINTS): [SCH_GET_SWITCHPOINT_ZONE],
@@ -55,21 +57,21 @@ SCH_GET_DAY_OF_WEEK_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_GET_SCHEDULE_DHW = vol.Schema(
+SCH_GET_SCHEDULE_DHW: Final = vol.Schema(
     {
         vol.Required(SZ_DAILY_SCHEDULES): [SCH_GET_DAY_OF_WEEK_DHW],
     },
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_GET_SCHEDULE_ZONE = vol.Schema(
+SCH_GET_SCHEDULE_ZONE: Final = vol.Schema(
     {
         vol.Required(SZ_DAILY_SCHEDULES): [SCH_GET_DAY_OF_WEEK_ZONE],
     },
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_GET_SCHEDULE = vol.Schema(  # PUT /{self.TYPE}/{self._id}/schedule
+SCH_GET_SCHEDULE: Final = vol.Schema(  # PUT /{self.TYPE}/{self._id}/schedule
     vol.Any(SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE),
     extra=vol.PREVENT_EXTRA,
 )
@@ -78,7 +80,7 @@ SCH_GET_SCHEDULE = vol.Schema(  # PUT /{self.TYPE}/{self._id}/schedule
 #
 # These are as to be provided to the vendor's API (PUT)...
 # This is after modified by evohome-client (PUT), an evohome-client anachronism?
-SCH_PUT_SWITCHPOINT_DHW = vol.Schema(  # TODO: checkme
+SCH_PUT_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
     {
         vol.Required(pascal_case(SZ_DHW_STATE)): vol.Any(SZ_ON, SZ_OFF),
         vol.Required(pascal_case(SZ_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
@@ -86,7 +88,7 @@ SCH_PUT_SWITCHPOINT_DHW = vol.Schema(  # TODO: checkme
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_PUT_SWITCHPOINT_ZONE = vol.Schema(
+SCH_PUT_SWITCHPOINT_ZONE: Final = vol.Schema(
     {  # NOTE: SZ_HEAT_SETPOINT is not .capitalized()
         vol.Required(SZ_HEAT_SETPOINT): vol.All(float, vol.Range(min=5, max=35)),
         vol.Required(pascal_case(SZ_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
@@ -94,7 +96,7 @@ SCH_PUT_SWITCHPOINT_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_PUT_DAY_OF_WEEK_DHW = vol.Schema(
+SCH_PUT_DAY_OF_WEEK_DHW: Final = vol.Schema(
     {
         vol.Required(pascal_case(SZ_DAY_OF_WEEK)): vol.All(
             int, vol.Range(min=0, max=6)
@@ -104,7 +106,7 @@ SCH_PUT_DAY_OF_WEEK_DHW = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_PUT_DAY_OF_WEEK_ZONE = vol.Schema(
+SCH_PUT_DAY_OF_WEEK_ZONE: Final = vol.Schema(
     {
         vol.Required(pascal_case(SZ_DAY_OF_WEEK)): vol.All(
             int, vol.Range(min=0, max=6)
@@ -114,21 +116,21 @@ SCH_PUT_DAY_OF_WEEK_ZONE = vol.Schema(
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_PUT_SCHEDULE_DHW = vol.Schema(
+SCH_PUT_SCHEDULE_DHW: Final = vol.Schema(
     {
         vol.Required(pascal_case(SZ_DAILY_SCHEDULES)): [SCH_PUT_DAY_OF_WEEK_DHW],
     },
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_PUT_SCHEDULE_ZONE = vol.Schema(
+SCH_PUT_SCHEDULE_ZONE: Final = vol.Schema(
     {
         vol.Required(pascal_case(SZ_DAILY_SCHEDULES)): [SCH_PUT_DAY_OF_WEEK_ZONE],
     },
     extra=vol.PREVENT_EXTRA,
 )
 
-SCH_PUT_SCHEDULE = vol.Schema(  # PUT /{self.TYPE}/{self._id}/schedule
+SCH_PUT_SCHEDULE: Final = vol.Schema(  # PUT /{self.TYPE}/{self._id}/schedule
     vol.Any(SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE),
     extra=vol.PREVENT_EXTRA,
 )

@@ -153,7 +153,7 @@ SZ_FRIDAY: Final = "Friday"
 SZ_SATURDAY: Final = "Saturday"
 SZ_SUNDAY: Final = "Sunday"
 
-DAYS_OF_WEEK = (
+DAYS_OF_WEEK: Final = (
     SZ_MONDAY,
     SZ_TUESDAY,
     SZ_WEDNESDAY,
