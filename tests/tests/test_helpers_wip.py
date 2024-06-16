@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-"""evohome-async - validate the helper functions."""
+"""Tests for evohome-async - validate the helper functions."""
 
 from __future__ import annotations
 

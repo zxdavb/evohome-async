@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for evohome-async - validate the schema of HA's debug JSON (older ver)."""
+"""Tests for evohome-async - validate the schema of HA's debug JSON (newer ver)."""
 
 from __future__ import annotations
 
@@ -13,10 +13,8 @@ from evohomeasync2 import Location
 from evohomeasync2.schema import SCH_LOCN_STATUS
 from evohomeasync2.schema.config import SCH_TEMPERATURE_CONTROL_SYSTEM, SCH_TIME_ZONE
 from evohomeasync2.schema.const import (
-    SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
     SZ_GATEWAYS,
-    SZ_LOCATION_ID,
     SZ_LOCATION_INFO,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TIME_ZONE,
@@ -24,7 +22,7 @@ from evohomeasync2.schema.const import (
 
 from .helpers import TEST_DIR
 
-WORK_DIR = f"{TEST_DIR}/schemas_0"
+WORK_DIR = f"{TEST_DIR}/schemas_1"
 
 # NOTE: JSON fom HA is not compliant with vendor schema, but is useful to test against
 CONFIG_FILE_NAME = "config.json"
@@ -67,16 +65,6 @@ def test_config_refresh(folder: Path) -> None:
     with open(Path(folder).joinpath(STATUS_FILE_NAME)) as f:
         status: dict = json.load(f)
 
-    # hack because old JSON from HA's evohome integration didn't have location_id, etc.
-    if not config[SZ_LOCATION_INFO].get(SZ_LOCATION_ID):
-        config[SZ_LOCATION_INFO][SZ_LOCATION_ID] = status[SZ_LOCATION_ID]
-
-    # hack because the JSON is from HA's evohome integration, not vendor's TCC servers
-    if not config[SZ_GATEWAYS][0].get(SZ_GATEWAY_ID):
-        config[SZ_GATEWAYS][0][SZ_GATEWAY_INFO] = {
-            SZ_GATEWAY_ID: status[SZ_GATEWAYS][0][SZ_GATEWAY_ID]
-        }
-
     loc = Location(ClientStub(), config)
     loc._update_status(status)
 
@@ -92,7 +80,7 @@ def test_config_schemas(folder: Path) -> None:
 
     _ = SCH_TIME_ZONE(config[SZ_LOCATION_INFO][SZ_TIME_ZONE])
     for gwy_config in config[SZ_GATEWAYS]:
-        for tcs_config in gwy_config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+        for tcs_config in gwy_config[SZ_GATEWAY_INFO][SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             _ = SCH_TEMPERATURE_CONTROL_SYSTEM(tcs_config)
 
 

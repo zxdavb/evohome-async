@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-"""evohome-async - validate the config & status schemas."""
+"""Tests for evohome-async - validate the schemas of vendor's RESTful JSON."""
 
 from __future__ import annotations
 
