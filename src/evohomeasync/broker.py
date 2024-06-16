@@ -117,7 +117,7 @@ class Broker:
 
         self._full_data: list[_LocnDataT] = await response.json()
 
-        self._logger.info(f"full_data = {self._full_data}\r\n")
+        self._logger.info(f"full_data = {self._full_data}")
         return self._full_data
 
     async def _make_request(
@@ -166,7 +166,7 @@ class Broker:
             _, response = await self._populate_user_data()  # Get a fresh sessionId
             assert self._session_id is not None  # mypy hint
 
-            _LOGGER.debug(f"... success: new sessionId = {self._session_id}\r\n")
+            _LOGGER.debug(f"... success: new sessionId = {self._session_id}")
             self._headers[SZ_SESSION_ID] = self._session_id
 
             if "session" in url_:  # retry not needed for /session
