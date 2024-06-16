@@ -123,7 +123,7 @@ class Broker:
 
             else:  # assume "text/plain" or "text/html"
                 content = await response.text()
-                _LOGGER.debug(f"{method} {url} ({response.status}) = {content}")
+                _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
 
             return response, content  # FIXME: is messy to return response
 
