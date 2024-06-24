@@ -7,6 +7,7 @@ from typing import Final
 
 import voluptuous as vol
 
+from .. import exceptions as exc
 from .const import (
     DAYS_OF_WEEK,
     SZ_COOL_SETPOINT,
@@ -143,6 +144,14 @@ def convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
     The 'raw' schedule format is the one returned by the vendor's RESTful API (GET).
     """
 
+    if not schedule:
+        raise exc.InvalidSchedule(f"Null schedule: {schedule}")
+
+    try:
+        SCH_GET_SCHEDULE(schedule)
+    except vol.Invalid as err:
+        raise exc.InvalidSchedule(f"Invalid schedule: {err}") from err
+
     put_schedule: dict[str, _EvoListT] = {}
     put_schedule[pascal_case(SZ_DAILY_SCHEDULES)] = []
 
@@ -168,6 +177,11 @@ def convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
 
 def convert_to_get_schedule(schedule: _EvoDictT) -> _EvoDictT:
     """Convert a schedule to the format returned by the vendor's RESTful API (GET)."""
+
+    try:
+        SCH_PUT_SCHEDULE(schedule)
+    except vol.Invalid as err:
+        raise exc.InvalidSchedule(f"Invalid schedule: {err}") from err
 
     get_schedule: dict[str, _EvoListT] = {}
     get_schedule[SZ_DAILY_SCHEDULES] = []
