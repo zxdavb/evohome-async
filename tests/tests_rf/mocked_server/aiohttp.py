@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 """Hacked aiohttp to provide a mocked server."""
 
 from __future__ import annotations
