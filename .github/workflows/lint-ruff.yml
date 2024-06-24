@@ -40,6 +40,6 @@ jobs:
           if [ -f requirements_dev.txt ]; then pip install -r requirements_dev.txt; fi
 
       - name: Check with ruff
-        uses: ruff check --output-format=github .
+        run: ruff check --output-format=github .
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
