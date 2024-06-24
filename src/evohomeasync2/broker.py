@@ -248,7 +248,7 @@ class Broker:
             try:
                 content = schema(content)
             except vol.Invalid as err:
-                self._logger.info(f"Response JSON may be invalid: GET {url}: {err}")
+                self._logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
 
         return content
 
