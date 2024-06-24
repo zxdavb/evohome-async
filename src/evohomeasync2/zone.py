@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 """Provides handling of TCC zones (heating and DHW)."""
 
 # TODO: add provision for cooling zones

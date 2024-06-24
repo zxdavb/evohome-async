@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 """Provides handling of TCC temperature control systems."""
 
 # TODO: add provision for cooling

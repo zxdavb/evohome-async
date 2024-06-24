@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 """evohomeasync2 provides an async client for the *updated* Evohome API.
 
 It is (largely) a faithful port of https://github.com/watchforstock/evohome-client
