@@ -37,7 +37,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install mypy voluptuous>=0.14.0
+          pip install mypy voluptuous
 
       - name: Check with mypy
         run: mypy
