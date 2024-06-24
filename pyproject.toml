@@ -27,6 +27,7 @@
   ]
   classifiers = [
     "Topic :: Home Automation",
+    "License :: OSI Approved :: Apache Software License",
   ]
 
 #
