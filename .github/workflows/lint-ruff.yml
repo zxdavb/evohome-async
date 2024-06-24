@@ -1,7 +1,7 @@
 # This workflow will...
 # - see: https://docs.astral.sh/ruff/integrations/#github-actions
 
-name: Linting via ruff
+name: Linting via ruff (check)
 
 
 on:
