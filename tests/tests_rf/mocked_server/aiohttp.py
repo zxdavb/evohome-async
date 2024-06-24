@@ -12,6 +12,8 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Final, Self
 
 if TYPE_CHECKING:
+    from asyncio.streams import _ReaduntilBuffer
+
     from .const import _bodyT, _methodT, _statusT, _urlT
     from .vendor import MockedServer
 
@@ -44,7 +46,7 @@ class StreamReader(asyncio.StreamReader):
         """Read exactly `n` bytes."""
         raise NotImplementedError
 
-    async def readuntil(self, separator: bytes = b"\n") -> bytes:
+    async def readuntil(self, separator: _ReaduntilBuffer = b"\n") -> bytes:
         """Read data from the stream until ``separator`` is found."""
         raise NotImplementedError
 
