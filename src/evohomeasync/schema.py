@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 """evohomeasync provides an async client for the *original* Evohome API."""
 
 from typing import Any, Final, TypeAlias
