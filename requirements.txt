@@ -2,4 +2,4 @@
 #
 
 aiohttp>=3.9.5
-voluptuous>=0.13.1  # untyped, mypy needs 0.14.x
+voluptuous>=0.13.1  # untyped, mypy needs >=0.14.x
