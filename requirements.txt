@@ -1,4 +1,5 @@
-# last checked/updated: 2024/04/20 (c.f. HA 2023.5.x)
+# last checked/updated: 2024/06/24 (c.f. HA 2023.6.4)
+#
 
 aiohttp>=3.9.5
 voluptuous>=0.13.1  # untyped, mypy needs 0.14.x
