@@ -42,7 +42,7 @@ async def session() -> AsyncGenerator[aiohttp.ClientSession, None]:
 
 @pytest.fixture()
 def user_credentials() -> tuple[str, str]:
-    username: str = os.getenv("TEST_USERNAME")
-    password: str = os.getenv("TEST_PASSWORD")
+    username: str = os.getenv("TEST_USERNAME") or "username@email.com"
+    password: str = os.getenv("TEST_PASSWORD") or "password!"
 
     return username, password
