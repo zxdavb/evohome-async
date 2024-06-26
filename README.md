@@ -1,3 +1,7 @@
+![ruff](https://github.com/zxdavb/evohome-async/actions/workflows/check-lint.yml/badge.svg)
+![mypy](https://github.com/zxdavb/evohome-async/actions/workflows/check-type.yml/badge.svg)
+![pytest](https://github.com/zxdavb/evohome-async/actions/workflows/check-test.yml/badge.svg)
+
 evohome-async
 ==============
 
