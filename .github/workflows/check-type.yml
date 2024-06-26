@@ -1,31 +1,33 @@
-# This workflow will...
-# - see: https://docs.astral.sh/ruff/integrations/#github-actions
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# - see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Linting via ruff (check)
+name: Typing via mypy
 
 
 on:
   push:
     branches: [ "master", "stable" ]
     paths: [
-      ".github/workflows/lint-ruff.yml",
+      ".github/workflows/check-type.yml",
       "src/**.py",
-      "tests/**",
+      "src/**/py.typed",
+      "tests/**.py",
     ]
 
   pull_request:
     branches: [ "master", "stable" ]
     paths: [
-      ".github/workflows/lint-ruff.yml",
+      ".github/workflows/check-type.yml",
       "src/**.py",
-      "tests/**",
+      "src/**/py.typed",
+      "tests/**.py",
     ]
 
   workflow_dispatch:
 
 
 jobs:
-  lint:
+  type:
     runs-on: ubuntu-latest
 
     strategy:
@@ -44,9 +46,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff
+          pip install -r requirements.txt
+          pip install -r requirements_dev.txt
 
-      - name: Check with ruff
-        run: ruff check --output-format=github .
+      - name: Check with mypy
+        run: mypy
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
