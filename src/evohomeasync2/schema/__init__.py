@@ -30,6 +30,7 @@ from .schedule import (  # noqa: F401
 )
 from .status import (  # noqa: F401
     SCH_DHW as SCH_DHW_STATUS,
+    SCH_GATEWAY as SCH_GWY_STATUS,
     SCH_LOCATION_STATUS as SCH_LOCN_STATUS,
     SCH_TEMPERATURE_CONTROL_SYSTEM as SCH_TCS_STATUS,
     SCH_ZONE as SCH_ZONE_STATUS,
