@@ -21,8 +21,7 @@ from .const import (
     CREDS_USER_PASSWORD,
     URL_BASE,
 )
-from .schema import SCH_OAUTH_TOKEN
-from .schema.account import SZ_ACCESS_TOKEN, SZ_EXPIRES_IN, SZ_REFRESH_TOKEN
+from .schema import SCH_OAUTH_TOKEN, SZ_ACCESS_TOKEN, SZ_EXPIRES_IN, SZ_REFRESH_TOKEN
 
 if TYPE_CHECKING:
     from .schema import _EvoDictT, _EvoListT, _EvoSchemaT
