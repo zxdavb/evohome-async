@@ -6,19 +6,19 @@ from __future__ import annotations
 import logging
 from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
-from typing import Any, Final, TypeAlias
+from typing import Any, Final, NewType
 
 import aiohttp
 
 from . import exceptions as exc
 from .schema import SZ_SESSION_ID, SZ_USER_ID, SZ_USER_INFO
 
-_SessionIdT: TypeAlias = str
-_UserIdT: TypeAlias = int
+_SessionIdT = NewType("_SessionIdT", str)
+_UserIdT = NewType("_UserIdT", int)
 
-_UserInfoT: TypeAlias = dict[str, bool | int | str]
-_UserDataT: TypeAlias = dict[str, _SessionIdT | _UserInfoT]
-_LocnDataT: TypeAlias = dict[str, Any]
+_UserInfoT = NewType("_UserInfoT", dict[str, bool | int | str])
+_UserDataT = NewType("_UserDataT", dict[str, _SessionIdT | _UserInfoT])
+_LocnDataT = NewType("_LocnDataT", dict[str, Any])
 
 
 URL_HOST = "https://tccna.honeywell.com"

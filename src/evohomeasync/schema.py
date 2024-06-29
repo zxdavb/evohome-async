@@ -1,29 +1,29 @@
 #!/usr/bin/env python3
 """evohomeasync provides an async client for the *original* Evohome API."""
 
-from typing import Any, Final, TypeAlias
+from typing import Any, Final, NewType
 
 # TCC config, status dicts
-_EvoLeafT: TypeAlias = bool | float | int | str | list[str]  # Any
-_DeviceDictT: TypeAlias = dict[str, Any]  # '_EvoDeviceT' | _EvoLeafT]
-_EvoDictT: TypeAlias = dict[str, Any]  # '_EvoDictT' | _EvoLeafT]
-_EvoListT: TypeAlias = list[_EvoDictT]
-_EvoSchemaT: TypeAlias = _EvoDictT | _EvoListT
+_EvoLeafT = NewType("_EvoLeafT", bool | float | int | str | list[str])  # Any
+_DeviceDictT = NewType("_DeviceDictT", dict[str, Any])  # '_EvoDeviceT' | _EvoLeafT]
+_EvoDictT = NewType("_EvoDictT", dict[str, Any])  # '_EvoDictT' | _EvoLeafT]
+_EvoListT = NewType("_EvoListT", list[_EvoDictT])
+_EvoSchemaT = NewType("_EvoSchemaT", _EvoDictT | _EvoListT)
 
 # TCC identifiers (Usr, Loc, Gwy, Sys, Zon|Dhw)
-_DhwIdT: TypeAlias = int
-_GatewayIdT: TypeAlias = int
-_LocationIdT: TypeAlias = int
-_SystemIdT: TypeAlias = int
-_UserIdT: TypeAlias = int
-_ZoneIdT: TypeAlias = int
-_ZoneNameT: TypeAlias = str
+_DhwIdT = NewType("_DhwIdT", int)
+_GatewayIdT = NewType("_GatewayIdT", int)
+_LocationIdT = NewType("_LocationIdT", int)
+_SystemIdT = NewType("_SystemIdT", int)
+_UserIdT = NewType("_UserIdT", int)
+_ZoneIdT = NewType("_ZoneIdT", int)
+_ZoneNameT = NewType("_ZoneNameT", str)
 
 # TCC other
-_ModeT: TypeAlias = str
-_SystemModeT: TypeAlias = str
+_ModeT = NewType("_ModeT", str)
+_SystemModeT = NewType("_SystemModeT", str)
 
-_TaskIdT: TypeAlias = str  # TODO: int or str?
+_TaskIdT = NewType("_TaskIdT", str)  # TODO: int or str?
 
 
 SZ_SESSION_ID: Final = "sessionId"  # id Id, not ID
