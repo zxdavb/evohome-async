@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
-from typing import Any, Final, NewType
+from typing import Any, Final, Never, NewType
 
 import aiohttp
 
@@ -33,7 +33,7 @@ _LOGGER = logging.getLogger(__name__)
 class Broker:
     """Provide a client to access the Honeywell TCC API (assumes a single TCS)."""
 
-    _user_data: _UserDataT
+    _user_data: _UserDataT | dict[Never, Never]
     _full_data: list[_LocnDataT]
 
     def __init__(
@@ -92,6 +92,7 @@ class Broker:
         response = await self.make_request(HTTPMethod.POST, url, data=self._POST_DATA)
 
         self._user_data: _UserDataT = await response.json()
+        assert self._user_data != {}
 
         user_id: _UserIdT = self._user_data[SZ_USER_INFO][SZ_USER_ID]  # type: ignore[assignment,index]
         session_id: _SessionIdT = self._user_data[SZ_SESSION_ID]  # type: ignore[assignment]

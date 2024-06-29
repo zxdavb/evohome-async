@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """evohomeasync provides an async client for the *original* Evohome API."""
 
+from enum import EnumCheck, StrEnum, verify
 from typing import Any, Final, NewType
 
 # TCC config, status dicts
-_EvoLeafT = NewType("_EvoLeafT", bool | float | int | str | list[str])  # Any
+_EvoLeafT = bool | float | int | str | list[str]  # Any
 _DeviceDictT = NewType("_DeviceDictT", dict[str, Any])  # '_EvoDeviceT' | _EvoLeafT]
 _EvoDictT = NewType("_EvoDictT", dict[str, Any])  # '_EvoDictT' | _EvoLeafT]
 _EvoListT = NewType("_EvoListT", list[_EvoDictT])
-_EvoSchemaT = NewType("_EvoSchemaT", _EvoDictT | _EvoListT)
+_EvoSchemaT = _EvoDictT | _EvoListT
 
 # TCC identifiers (Usr, Loc, Gwy, Sys, Zon|Dhw)
 _DhwIdT = NewType("_DhwIdT", int)
@@ -20,9 +21,6 @@ _ZoneIdT = NewType("_ZoneIdT", int)
 _ZoneNameT = NewType("_ZoneNameT", str)
 
 # TCC other
-_ModeT = NewType("_ModeT", str)
-_SystemModeT = NewType("_SystemModeT", str)
-
 _TaskIdT = NewType("_TaskIdT", str)  # TODO: int or str?
 
 
@@ -64,6 +62,18 @@ SZ_AWAY: Final = "Away"
 SZ_CUSTOM: Final = "Custom"
 SZ_DAY_OFF: Final = "DayOff"
 SZ_HEATING_OFF: Final = "HeatingOff"
+
+
+@verify(EnumCheck.UNIQUE)
+class SystemMode(StrEnum):
+    AUTO: Final = SZ_AUTO
+    AUTO_WITH_ECO: Final = SZ_AUTO_WITH_ECO
+    AWAY: Final = SZ_AWAY
+    CUSTOM: Final = SZ_CUSTOM
+    DAY_OFF: Final = SZ_DAY_OFF
+    HEATING_OFF: Final = SZ_HEATING_OFF
+
+
 #
 SZ_DHW_OFF: Final = "DHWOff"
 SZ_DHW_ON: Final = "DHWOn"

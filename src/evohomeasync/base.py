@@ -15,12 +15,7 @@ from . import exceptions as exc
 from .broker import Broker, _LocnDataT, _SessionIdT, _UserDataT, _UserInfoT
 from .schema import (
     SZ_ALLOWED_MODES,
-    SZ_AUTO,
-    SZ_AUTO_WITH_ECO,
-    SZ_AWAY,
     SZ_CHANGEABLE_VALUES,
-    SZ_CUSTOM,
-    SZ_DAY_OFF,
     SZ_DEVICE_ID,
     SZ_DEVICES,
     SZ_DHW_OFF,
@@ -28,7 +23,6 @@ from .schema import (
     SZ_DOMESTIC_HOT_WATER,
     SZ_EMEA_ZONE,
     SZ_HEAT_SETPOINT,
-    SZ_HEATING_OFF,
     SZ_HOLD,
     SZ_ID,
     SZ_INDOOR_TEMPERATURE,
@@ -53,11 +47,11 @@ from .schema import (
 
 if TYPE_CHECKING:
     from .schema import (
+        SystemMode,
         _DeviceDictT,
         _DhwIdT,
         _EvoListT,
         _LocationIdT,
-        _SystemModeT,
         _TaskIdT,
         _ZoneIdT,
         _ZoneNameT,
@@ -323,14 +317,14 @@ class EvohomeClient(EvohomeClientDeprecated):
         raise NotImplementedError
 
     async def _set_system_mode(
-        self, status: _SystemModeT, until: dt | None = None
+        self, system_mode: SystemMode, until: dt | None = None
     ) -> None:
         """Set the system mode."""
 
         # just want id, so retrieve the config data only if we don't already have it
         await self._populate_locn_data(force_refresh=False)  # get self.location_id
 
-        data = {SZ_QUICK_ACTION: status}
+        data: dict[str, str] = {SZ_QUICK_ACTION: system_mode}
         if until:
             data |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
@@ -339,27 +333,27 @@ class EvohomeClient(EvohomeClientDeprecated):
 
     async def set_mode_auto(self) -> None:
         """Set the system to normal operation."""
-        await self._set_system_mode(SZ_AUTO)
+        await self._set_system_mode(SystemMode.AUTO)
 
     async def set_mode_away(self, until: dt | None = None) -> None:
         """Set the system to the away mode."""
-        await self._set_system_mode(SZ_AWAY, until)
+        await self._set_system_mode(SystemMode.AWAY, until)
 
     async def set_mode_custom(self, until: dt | None = None) -> None:
         """Set the system to the custom programme."""
-        await self._set_system_mode(SZ_CUSTOM, until)
+        await self._set_system_mode(SystemMode.CUSTOM, until)
 
     async def set_mode_dayoff(self, until: dt | None = None) -> None:
         """Set the system to the day off mode."""
-        await self._set_system_mode(SZ_DAY_OFF, until)
+        await self._set_system_mode(SystemMode.DAY_OFF, until)
 
     async def set_mode_eco(self, until: dt | None = None) -> None:
         """Set the system to the eco mode."""
-        await self._set_system_mode(SZ_AUTO_WITH_ECO, until)
+        await self._set_system_mode(SystemMode.AUTO_WITH_ECO, until)
 
     async def set_mode_heatingoff(self, until: dt | None = None) -> None:
         """Set the system to the heating off mode."""
-        await self._set_system_mode(SZ_HEATING_OFF, until)
+        await self._set_system_mode(SystemMode.HEATING_OFF, until)
 
     # Zone methods...
 
@@ -369,27 +363,25 @@ class EvohomeClient(EvohomeClientDeprecated):
         Raise an exception if the zone is not found.
         """
 
-        device: _DeviceDictT
+        device_dict: _DeviceDictT | None
 
         # just want id, so retrieve the config data only if we don't already have it
         await self._populate_locn_data(force_refresh=False)
 
         if isinstance(id_or_name, int):
-            device = self.devices.get(id_or_name)  # type: ignore[assignment]
+            device_dict = self.devices.get(id_or_name)
         else:
-            device = self.named_devices.get(id_or_name)  # type: ignore[assignment]
+            device_dict = self.named_devices.get(id_or_name)
 
-        if device is None:
+        if device_dict is None:
             raise exc.InvalidSchema(
                 f"No zone {id_or_name} in location {self.location_id}"
             )
 
-        if (model := device[SZ_THERMOSTAT_MODEL_TYPE]) != SZ_EMEA_ZONE:
+        if (model := device_dict[SZ_THERMOSTAT_MODEL_TYPE]) != SZ_EMEA_ZONE:
             raise exc.InvalidSchema(f"Zone {id_or_name} is not an EMEA_ZONE: {model}")
 
-        assert device is not None  # mypy check
-
-        return device
+        return device_dict
 
     async def get_zone_modes(self, zone: _ZoneNameT) -> list[str]:
         """Return the set of modes the zone can be assigned."""
