@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final
 
 from .controlsystem import ControlSystem
+from .schema import SCH_GWY_STATUS
 from .schema.const import (
     SZ_GATEWAY,
     SZ_GATEWAY_ID,
@@ -15,7 +16,6 @@ from .schema.const import (
     SZ_SYSTEM_ID,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
-from .schema.status import SCH_GATEWAY
 from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 class Gateway(ActiveFaultsBase):
     """Instance of a location's gateway."""
 
-    STATUS_SCHEMA: Final[vol.Schema] = SCH_GATEWAY
+    STATUS_SCHEMA: Final[vol.Schema] = SCH_GWY_STATUS
     TYPE: Final = SZ_GATEWAY  # type: ignore[misc]
 
     def __init__(self, location: Location, config: _EvoDictT) -> None:
