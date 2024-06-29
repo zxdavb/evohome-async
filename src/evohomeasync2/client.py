@@ -31,7 +31,7 @@ SZ_USERNAME: Final = "username"
 TOKEN_FILE = ".evo-cache.tmp"
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 def _start_debugging(wait_for_client: bool) -> None:

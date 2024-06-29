@@ -21,13 +21,13 @@ _UserDataT = NewType("_UserDataT", dict[str, _SessionIdT | _UserInfoT])
 _LocnDataT = NewType("_LocnDataT", dict[str, Any])
 
 
-URL_HOST = "https://tccna.honeywell.com"
+URL_HOST: Final = "https://tccna.honeywell.com"
 
 # For docs, see:
 #  - https://mytotalconnectcomfort.com/WebApi/Help/LogIn and enter this Session Login:
-_APP_ID = "91db1612-73fd-4500-91b2-e63b069b185c"
+_APP_ID: Final = "91db1612-73fd-4500-91b2-e63b069b185c"
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 class Broker:

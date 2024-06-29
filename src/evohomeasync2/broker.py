@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 import aiohttp
 import voluptuous as vol
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from .schema import _EvoDictT, _EvoListT, _EvoSchemaT
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 _ERR_MSG_LOOKUP_BOTH: dict[int, str] = {  # common to both OAUTH_URL & URL_BASE

@@ -7,7 +7,7 @@ import asyncio
 import logging
 from datetime import datetime as dt
 from http import HTTPMethod
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, Final, NoReturn
 
 import aiohttp
 
@@ -58,7 +58,7 @@ if TYPE_CHECKING:
     )
 
 
-_LOGGER = logging.getLogger(__name__.rpartition(".")[0])
+_LOGGER: Final = logging.getLogger(__name__.rpartition(".")[0])
 
 
 class EvohomeClientDeprecated:
