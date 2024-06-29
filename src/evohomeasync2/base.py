@@ -79,12 +79,22 @@ class EvohomeClientDeprecated:
 
     async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            f"{self}: .zone_schedules_backup() is deprecated, use .backup_schedules()"
+            f"{self}: .zone_schedules_backup() is deprecated, use .get_schedules()"
         )
 
     async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            f"{self}: .zone_schedules_restore() is deprecated, use .restore_schedules()"
+            f"{self}: .zone_schedules_restore() is deprecated, use .set_schedules()"
+        )
+
+    async def backup_schedules(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
+        raise exc.DeprecationError(
+            f"{self}: .backup_schedules() is deprecated, use .get_schedules()"
+        )
+
+    async def restore_schedules(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
+        raise exc.DeprecationError(
+            f"{self}: .restore_schedules() is deprecated, use .set_schedules()"
         )
 
 

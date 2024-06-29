@@ -104,12 +104,22 @@ class _ControlSystemDeprecated:
 
     async def zone_schedules_backup(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            f"{self}: .zone_schedules_backup() is deprecated, use .backup_schedules()"
+            f"{self}: .zone_schedules_backup() is deprecated, use .get_schedules()"
         )
 
     async def zone_schedules_restore(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
-            f"{self}: .zone_schedules_restore() is deprecated, use .restore_schedules()"
+            f"{self}: .zone_schedules_restore() is deprecated, use .set_schedules()"
+        )
+
+    async def backup_schedules(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
+        raise exc.DeprecationError(
+            f"{self}: .backup_schedules() is deprecated, use .get_schedules()"
+        )
+
+    async def restore_schedules(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
+        raise exc.DeprecationError(
+            f"{self}: .restore_schedules() is deprecated, use .set_schedules()"
         )
 
 
@@ -350,7 +360,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
 
         schedules = await self._get_schedules()
 
-        with open(filename, "w") as file_output:
+        with open(filename, "w") as file_output:  # noqa: ASYNC101
             file_output.write(json.dumps(schedules, indent=4))
 
         self._logger.info("Schedules: Backup completed")
@@ -437,7 +447,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
             f" to {self.systemId} ({self.location.name}), from {filename}"
         )
 
-        with open(filename) as file_input:
+        with open(filename) as file_input:  # noqa: ASYNC101
             schedule_db = file_input.read()
             schedules: _ScheduleT = json.loads(schedule_db)
 
