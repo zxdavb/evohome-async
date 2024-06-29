@@ -16,7 +16,7 @@ from . import HotWater, Zone
 from .base import EvohomeClient
 from .const import SZ_NAME, SZ_SCHEDULE
 from .controlsystem import ControlSystem
-from .schema.account import SZ_ACCESS_TOKEN, SZ_ACCESS_TOKEN_EXPIRES, SZ_REFRESH_TOKEN
+from .schema import SZ_ACCESS_TOKEN, SZ_ACCESS_TOKEN_EXPIRES, SZ_REFRESH_TOKEN
 
 # debug flags should be False for end-users
 _DEBUG_CLI = False  # for debugging of CLI (*before* loading library)

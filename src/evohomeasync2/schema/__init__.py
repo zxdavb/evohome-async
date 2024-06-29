@@ -25,8 +25,14 @@ from .const import (  # noqa: F401
 )
 from .schedule import (  # noqa: F401
     SCH_GET_SCHEDULE,
+    SCH_GET_SCHEDULE_DHW,
+    SCH_GET_SCHEDULE_ZONE,
     SCH_PUT_SCHEDULE,
+    SCH_PUT_SCHEDULE_DHW,
+    SCH_PUT_SCHEDULE_ZONE,
+    _TcsSchedulesT,
     convert_to_get_schedule,
+    convert_to_put_schedule,
 )
 from .status import (  # noqa: F401
     SCH_DHW as SCH_DHW_STATUS,

@@ -15,7 +15,12 @@ import voluptuous as vol
 
 from . import exceptions as exc
 from .const import API_STRFTIME, ZoneMode
-from .schema import SCH_ZONE_STATUS
+from .schema import (
+    SCH_GET_SCHEDULE_ZONE,
+    SCH_PUT_SCHEDULE_ZONE,
+    SCH_ZONE_STATUS,
+    convert_to_put_schedule,
+)
 from .schema.const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SETPOINT_MODES,
@@ -43,11 +48,6 @@ from .schema.const import (
     ZONE_TYPES,
     ZoneModelType,
     ZoneType,
-)
-from .schema.schedule import (
-    SCH_GET_SCHEDULE_ZONE,
-    SCH_PUT_SCHEDULE_ZONE,
-    convert_to_put_schedule,
 )
 
 if TYPE_CHECKING:

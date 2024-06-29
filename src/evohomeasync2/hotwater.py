@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Final, NoReturn
 
 from . import exceptions as exc
 from .const import API_STRFTIME
-from .schema import SCH_DHW_STATUS
+from .schema import SCH_DHW_STATUS, SCH_GET_SCHEDULE_DHW, SCH_PUT_SCHEDULE_DHW
 from .schema.const import (
     SZ_ALLOWED_MODES,
     SZ_DHW_ID,
@@ -24,7 +24,6 @@ from .schema.const import (
     DhwState,
     ZoneMode,
 )
-from .schema.schedule import SCH_GET_SCHEDULE_DHW, SCH_PUT_SCHEDULE_DHW
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
