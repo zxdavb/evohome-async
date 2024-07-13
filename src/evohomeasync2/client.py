@@ -174,7 +174,7 @@ def cli(
 def get_schedule(
     ctx: click.Context, zone_id: str, loc_idx: int, filename: TextIOWrapper
 ) -> None:
-    """Download the schedule of a zone of a TCS."""
+    """Download the schedule of a zone of a TCS (WIP)."""
 
     async def get_schedule(
         evo: EvohomeClient, zone_id: str, loc_idx: int | None
@@ -198,10 +198,13 @@ def get_schedule(
         filename.write(json.dumps(schedules, indent=4))
         filename.write("\r\n\r\n")
 
-    print("\r\nclient.py: Starting backup...")
+    print("\r\nclient.py: Starting backup of zone schedule (WIP)...")
     evo = ctx.obj[SZ_EVO]
 
-    asyncio.run(get_schedule(evo, zone_id, loc_idx))
+    coro = get_schedule(evo, zone_id, loc_idx)
+    schedule = asyncio.get_event_loop().run_until_complete(coro)
+
+    filename.write(json.dumps(schedule, indent=4) + "\r\n\r\n")
 
     if ctx.obj[SZ_CACHE_TOKENS]:
         _dump_tokens(evo)
@@ -222,7 +225,7 @@ def get_schedule(
 )
 @click.pass_context
 def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
-    """Download all the schedule from a TCS."""
+    """Download all the schedules from a TCS."""
 
     async def get_schedules(evo: EvohomeClient, loc_idx: int | None) -> _ScheduleT:
         try:
@@ -240,7 +243,9 @@ def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
     print("\r\nclient.py: Starting backup of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    schedules = asyncio.run(get_schedules(evo, loc_idx))
+    coro = get_schedules(evo, loc_idx)
+    schedules = asyncio.get_event_loop().run_until_complete(coro)
+
     filename.write(json.dumps(schedules, indent=4) + "\r\n\r\n")
 
     if ctx.obj[SZ_CACHE_TOKENS]:
@@ -281,7 +286,9 @@ def set_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     schedules = json.loads(filename.read())
-    success = asyncio.run(set_schedules(evo, schedules, loc_idx))
+
+    coro = set_schedules(evo, schedules, loc_idx)
+    success = asyncio.get_event_loop().run_until_complete(coro)
 
     if ctx.obj[SZ_CACHE_TOKENS]:
         _dump_tokens(evo)
