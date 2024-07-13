@@ -48,15 +48,7 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import Gateway, Location
-    from .schema import (
-        _DhwIdT,
-        _EvoDictT,
-        _EvoListT,
-        _FilePathT,
-        _ScheduleT,
-        _SystemIdT,
-        _ZoneIdT,
-    )
+    from .schema import _DhwIdT, _EvoDictT, _EvoListT, _ScheduleT, _SystemIdT, _ZoneIdT
 
 
 class _ControlSystemDeprecated:
@@ -322,8 +314,8 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
 
         return result
 
-    async def _get_schedules(self) -> _ScheduleT:
-        """Get the schedule for every DHW/zone of this TCS."""
+    async def get_schedules(self) -> _ScheduleT:
+        """Backup all schedules from the control system."""
 
         async def get_schedule(child: HotWater | Zone) -> _ScheduleT:
             try:
@@ -333,6 +325,10 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
                     f"Ignoring schedule of {child._id} ({child.name}): missing/invalid"
                 )
             return {}
+
+        self._logger.info(
+            f"Schedules: Backing up from {self.systemId} ({self.location.name})"
+        )
 
         schedules = {}
 
@@ -350,25 +346,13 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
 
         return schedules
 
-    async def backup_schedules(self, filename: _FilePathT) -> None:
-        """Backup all schedules from the control system to the file."""
-
-        self._logger.info(
-            f"Schedules: Backing up"
-            f" from {self.systemId} ({self.location.name}), to {filename}"
-        )
-
-        schedules = await self._get_schedules()
-
-        with open(filename, "w") as file_output:  # noqa: ASYNC101
-            file_output.write(json.dumps(schedules, indent=4))
-
-        self._logger.info("Schedules: Backup completed")
-
-    async def _set_schedules(
+    async def set_schedules(
         self, schedules: _ScheduleT, match_by_name: bool = False
     ) -> bool:
-        """Set the schedule for every DHW/zone of this TCS (return True if success)."""
+        """Restore all schedules to the control system and return True if success.
+
+        The default is to match a schedule to its zone/dhw by id.
+        """
 
         async def restore_by_id(id: _ZoneIdT | _DhwIdT, schedule: _ScheduleT) -> bool:
             """Restore schedule by id and return False if there was no match."""
@@ -393,7 +377,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
         async def restore_by_name(id: _ZoneIdT | _DhwIdT, schedule: _ScheduleT) -> bool:
             """Restore schedule by name and return False if there was no match."""
 
-            name = schedule[SZ_NAME]  # don't use .get()
+            name: str = schedule[SZ_NAME]  # type: ignore[assignment]
 
             if self.hotwater and name == self.hotwater.name:
                 await self.hotwater.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
@@ -409,6 +393,11 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
                 return False
 
             return True
+
+        self._logger.info(
+            f"Schedules: Restoring (matched by {'name' if match_by_name else 'id'})"
+            f" to {self.systemId} ({self.location.name})"
+        )
 
         with_errors = False
 
@@ -433,24 +422,3 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
             )
 
         return success
-
-    async def restore_schedules(
-        self, filename: _FilePathT, match_by_name: bool = False
-    ) -> None:
-        """Restore all schedules from the file to the TCS.
-
-        The default is to match a schedule to its zone/dhw by id.
-        """
-
-        self._logger.info(
-            f"Schedules: Restoring (matched by {'name' if match_by_name else 'id'})"
-            f" to {self.systemId} ({self.location.name}), from {filename}"
-        )
-
-        with open(filename) as file_input:  # noqa: ASYNC101
-            schedule_db = file_input.read()
-            schedules: _ScheduleT = json.loads(schedule_db)
-
-        await self._set_schedules(schedules)
-
-        self._logger.info("Schedules: Restore completed")

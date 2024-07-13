@@ -17,7 +17,7 @@ from .location import Location
 from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
 
 if TYPE_CHECKING:
-    from .schema import _EvoDictT, _EvoListT, _FilePathT, _LocationIdT, _SystemIdT
+    from .schema import _EvoDictT, _EvoListT, _LocationIdT, _ScheduleT, _SystemIdT
 
 
 _LOGGER: Final = logging.getLogger(__name__.rpartition(".")[0])
@@ -317,18 +317,18 @@ class EvohomeClient(EvohomeClientDeprecated):
         """Return the current temperatures and setpoints of the default TCS."""
         return await self._get_single_tcs().temperatures()
 
-    async def backup_schedules(self, filename: _FilePathT) -> None:
-        """Backup all schedules from the default TCS to the file."""
-        await self._get_single_tcs().backup_schedules(filename)
+    async def get_schedules(self) -> _ScheduleT:
+        """Backup all schedules from the default TCS."""
+        return await self._get_single_tcs().get_schedules()
 
-    async def restore_schedules(
-        self, filename: _FilePathT, match_by_name: bool = False
-    ) -> None:
-        """Restore all schedules from the file to the control system.
+    async def set_schedules(
+        self, schedules: _ScheduleT, match_by_name: bool = False
+    ) -> bool:
+        """Restore all schedules to the default TCS and return True if success.
 
-        There is the option to match schedules to their zone/dhw by name rather than id.
+        There is the option to match a schedule to its zone/dhw by name, rather than id.
         """
 
-        await self._get_single_tcs().restore_schedules(
-            filename, match_by_name=match_by_name
+        return await self._get_single_tcs().set_schedules(
+            schedules, match_by_name=match_by_name
         )

@@ -17,6 +17,7 @@ from .base import EvohomeClient
 from .const import SZ_NAME, SZ_SCHEDULE
 from .controlsystem import ControlSystem
 from .schema import SZ_ACCESS_TOKEN, SZ_ACCESS_TOKEN_EXPIRES, SZ_REFRESH_TOKEN
+from .schema.schedule import _ScheduleT
 
 # debug flags should be False for end-users
 _DEBUG_CLI = False  # for debugging of CLI (*before* loading library)
@@ -223,24 +224,24 @@ def get_schedule(
 def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
     """Download all the schedule from a TCS."""
 
-    async def get_schedules(evo: EvohomeClient, loc_idx: int | None) -> None:
+    async def get_schedules(evo: EvohomeClient, loc_idx: int | None) -> _ScheduleT:
         try:
             await evo.login()
 
             tcs: ControlSystem = _get_tcs(evo, loc_idx)
-            schedules = await tcs._get_schedules()
+            schedules = await tcs.get_schedules()
 
         finally:  # FIXME: EvohomeClient should do this...
             assert evo.broker._session is not None  # mypy hint
             await evo.broker._session.close()  # FIXME
 
-        filename.write(json.dumps(schedules, indent=4))
-        filename.write("\r\n\r\n")
+        return schedules
 
-    print("\r\nclient.py: Starting backup...")
-    evo = ctx.obj[SZ_EVO]
+    print("\r\nclient.py: Starting backup of schedules...")
+    evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    asyncio.run(get_schedules(evo, loc_idx))
+    schedules = asyncio.run(get_schedules(evo, loc_idx))
+    filename.write(json.dumps(schedules, indent=4) + "\r\n\r\n")
 
     if ctx.obj[SZ_CACHE_TOKENS]:
         _dump_tokens(evo)
@@ -261,14 +262,14 @@ def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
 def set_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
     """Upload schedules to a TCS."""
 
-    async def set_schedules(evo: EvohomeClient, loc_idx: int | None) -> bool:
-        schedules = json.loads(filename.read())
-
+    async def set_schedules(
+        evo: EvohomeClient, schedules: _ScheduleT, loc_idx: int | None
+    ) -> bool:
         try:
             await evo.login()
 
             tcs: ControlSystem = _get_tcs(evo, loc_idx)
-            success = await tcs._set_schedules(schedules)
+            success = await tcs.set_schedules(schedules)
 
         finally:  # FIXME: EvohomeClient should do this...
             assert evo.broker._session is not None  # mypy hint
@@ -276,14 +277,15 @@ def set_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
 
         return success
 
-    print("\r\nclient.py: Starting restore...")
-    evo = ctx.obj[SZ_EVO]
+    print("\r\nclient.py: Starting restore of schedules...")
+    evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    asyncio.run(set_schedules(evo, loc_idx))
+    schedules = json.loads(filename.read())
+    success = asyncio.run(set_schedules(evo, schedules, loc_idx))
 
     if ctx.obj[SZ_CACHE_TOKENS]:
         _dump_tokens(evo)
-    print(" - finished.\r\n")
+    print(f" - finished{'' if success else ' (with errors)'}.\r\n")
 
 
 def main() -> None:
