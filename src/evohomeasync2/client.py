@@ -29,7 +29,7 @@ SZ_CACHE_TOKENS: Final = "cache_tokens"
 SZ_EVO: Final = "evo"
 SZ_USERNAME: Final = "username"
 
-TOKEN_FILE = ".evo-cache.tmp"
+TOKEN_FILE: Final = ".evo-cache.tmp"
 
 
 _LOGGER: Final = logging.getLogger(__name__)
