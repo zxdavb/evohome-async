@@ -17,4 +17,4 @@ from .exceptions import (  # noqa: F401
     RequestFailed,
 )
 
-__version__ = "0.4.20"
+__version__ = "1.0.0"
