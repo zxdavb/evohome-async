@@ -158,6 +158,50 @@ def cli(
 
 
 @cli.command()
+@click.option(  # --loc-idx
+    "--loc-idx",
+    "-l",
+    callback=_check_positive_int,
+    default=0,
+    type=int,
+    help="The location idx.",
+)
+@click.option(  # --filename
+    "--filename", "-f", type=click.File("w"), default="-", help="The output file."
+)
+@click.pass_context
+def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
+    """Download all the global config and the location status."""
+
+    async def get_state(evo: EvohomeClient, loc_idx: int | None) -> _ScheduleT:
+        try:
+            await evo.login()
+
+            status = await evo.locations[loc_idx].refresh_status()
+
+        finally:  # FIXME: EvohomeClient should do this...
+            assert evo.broker._session is not None  # mypy hint
+            await evo.broker._session.close()  # FIXME
+
+        return {
+            "config": evo.installation_info,
+            "status": status,
+        }
+
+    print("\r\nclient.py: Starting dump of config and status...")
+    evo: EvohomeClient = ctx.obj[SZ_EVO]
+
+    coro = get_state(evo, loc_idx)
+    result = asyncio.get_event_loop().run_until_complete(coro)
+
+    filename.write(json.dumps(result, indent=4) + "\r\n\r\n")
+
+    if ctx.obj[SZ_CACHE_TOKENS]:
+        _dump_tokens(evo)
+    print(" - finished.\r\n")
+
+
+@cli.command()
 @click.argument("zone_id", callback=_check_zone_id, type=str)
 @click.option(  # --loc-idx
     "--loc-idx",
