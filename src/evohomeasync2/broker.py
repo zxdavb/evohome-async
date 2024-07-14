@@ -198,6 +198,13 @@ class Broker:
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
             raise exc.AuthenticationFailed(str(err)) from err
 
+        if response.content_type != "application/json":  # is likely "text/html"
+            # <title>Authorize error <h1>Authorization failed
+            # <p>The authorization server have encoutered an error while processing...
+            raise exc.AuthenticationFailed(
+                f"Invalid response from server: POST {AUTH_URL}: %s", content
+            )
+
         try:  # the access token _should_ be valid...
             _ = SCH_OAUTH_TOKEN(content)  # can't use result, due to obsfucated values
         except vol.Invalid as err:
