@@ -35,8 +35,8 @@ repos:
       # entry: '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'  # email address
 
     - id: debugs
-      name: check for DEBUG flags
-      entry: '_DEBUG_.*=.*True'
+      name: check for _DBG_* flags  # should be False for published code
+      entry: '_DBG_.*=.*True'
       language: pygrep
       args: [-i]
       exclude: (.pre-commit-config.yaml|^tests/.*\.py$)  # avoid false +ve

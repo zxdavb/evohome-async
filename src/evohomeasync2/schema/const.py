@@ -5,8 +5,8 @@ import re
 from enum import EnumCheck, StrEnum, verify
 from typing import Final
 
-# all debug flags should be False for published code
-_DEBUG_DONT_OBSFUCATE = False  # used for pytest scripts
+# all _DBG_* flags should be False for published code
+_DBG_DONT_OBSFUCATE = False  # default is to obsfucate JSON in debug output
 
 
 REGEX_DHW_ID = r"[0-9]*"
@@ -285,7 +285,7 @@ ZONE_TYPES = tuple(x.value for x in ZoneType)
 
 
 def obfuscate(value: bool | int | str) -> bool | int | str | None:
-    if _DEBUG_DONT_OBSFUCATE:
+    if _DBG_DONT_OBSFUCATE:
         return value
     if isinstance(value, bool):
         return None

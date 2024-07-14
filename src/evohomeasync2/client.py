@@ -19,8 +19,8 @@ from .controlsystem import ControlSystem
 from .schema import SZ_ACCESS_TOKEN, SZ_ACCESS_TOKEN_EXPIRES, SZ_REFRESH_TOKEN
 from .schema.schedule import _ScheduleT
 
-# debug flags should be False for end-users
-_DEBUG_CLI = False  # for debugging of CLI (*before* loading library)
+# all _DBG_* flags should be False for published code
+_DBG_DEBUG_CLI = False  # for debugging of CLI (*before* loading EvohomeClient library)
 
 DEBUG_ADDR = "0.0.0.0"
 DEBUG_PORT = 5679
@@ -47,7 +47,7 @@ def _start_debugging(wait_for_client: bool) -> None:
         print("   - debugger is now attached, continuing execution.")
 
 
-if _DEBUG_CLI:
+if _DBG_DEBUG_CLI:
     _start_debugging(True)
 
 
