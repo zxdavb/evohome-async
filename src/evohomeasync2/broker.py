@@ -202,7 +202,7 @@ class Broker:
             _ = SCH_OAUTH_TOKEN(content)  # can't use result, due to obsfucated values
         except vol.Invalid as err:
             self._logger.warning(
-                f"Response JSON may be invalid: POST {AUTH_URL}: {err}"
+                f"Response JSON may be invalid: POST {AUTH_URL}: vol.Invalid({err})"
             )
 
         try:
@@ -245,7 +245,9 @@ class Broker:
             try:
                 content = schema(content)
             except vol.Invalid as err:
-                self._logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
+                self._logger.warning(
+                    f"Response JSON may be invalid: GET {url}: vol.Invalid({err})"
+                )
 
         return content
 
