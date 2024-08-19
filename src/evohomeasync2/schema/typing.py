@@ -19,8 +19,3 @@ _ZoneIdT = str
 
 # TCC other
 _ModeT = str
-
-# others
-_FilePathT = str  # _typeshed FileDescriptorOrPath
-
-_ScheduleT = dict[str, Any]
