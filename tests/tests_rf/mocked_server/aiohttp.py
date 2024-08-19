@@ -7,7 +7,7 @@ import asyncio
 import json
 from enum import EnumCheck, StrEnum, verify
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Final, Self
+from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
     from asyncio.streams import _ReaduntilBuffer
@@ -21,9 +21,9 @@ _DEFAULT_LIMIT = 2**16  # 64 KiB
 
 @verify(EnumCheck.UNIQUE)
 class hdrs(StrEnum):  # a la aiohttp
-    METH_GET: Final = "GET"
-    METH_POST: Final = "POST"
-    METH_PUT: Final = "PUT"
+    METH_GET = "GET"
+    METH_POST = "POST"
+    METH_PUT = "PUT"
 
 
 class StreamReader(asyncio.StreamReader):
@@ -87,6 +87,10 @@ class ClientSession:
 
         # this is required, so no .get()
         self._mocked_server: MockedServer = kwargs["mocked_server"]
+
+    # def request(self, method: str, url: StrOrURL, **kwargs: Any):
+    #     """Perform HTTP request."""
+    #     pass
 
     def get(self, url, /, headers: str | None = None):
         return ClientResponse(hdrs.METH_GET, url, session=self)  # type: ignore[arg-type]
