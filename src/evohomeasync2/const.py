@@ -41,14 +41,14 @@ AUTH_PAYLOAD: Final = {
 CREDS_REFRESH_TOKEN: Final = {
     "grant_type": "refresh_token",
     "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
-    "refresh_token": None,
+    "refresh_token": "",
 }
 
 CREDS_USER_PASSWORD: Final = {
     "grant_type": "password",
     "scope": "EMEA-V1-Basic EMEA-V1-Anonymous EMEA-V1-Get-Current-User-Account",
-    "Username": None,
-    "Password": None,
+    "Username": "",
+    "Password": "",
 }
 
 
