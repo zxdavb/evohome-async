@@ -123,7 +123,7 @@ def _load_tokens() -> dict[str, dt | str]:
 @click.group()
 @click.option("--username", "-u", required=True, help="The TCC account username.")
 @click.option("--password", "-p", required=True, help="The TCC account password.")
-@click.option("--cache-tokens", "-c", is_flag=True, help="Cache of/for access tokens.")
+@click.option("--cache-tokens", "-c", is_flag=True, help="Load cached tokens, if any.")
 @click.option("--debug", "-d", is_flag=True, help="Enable debug logging.")
 @click.pass_context
 def cli(
