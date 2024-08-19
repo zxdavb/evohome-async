@@ -23,8 +23,7 @@ from .const import (
 from .helpers import pascal_case
 from .typing import _EvoDictT, _EvoListT
 
-_ScheduleT = dict[str, Any]
-
+_ScheduleT = dict[str, dict[str, Any]]
 
 #
 # These are returned from vendor's API (GET)...
