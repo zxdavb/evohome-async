@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import Final
+from typing import Any, Final
 
 import voluptuous as vol
 
@@ -22,6 +22,9 @@ from .const import (
 )
 from .helpers import pascal_case
 from .typing import _EvoDictT, _EvoListT
+
+_ScheduleT = dict[str, Any]
+
 
 #
 # These are returned from vendor's API (GET)...
