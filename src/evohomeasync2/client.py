@@ -169,12 +169,12 @@ class TokenManager(AbstractTokenManager):
             await fp.write(content)
 
 
-def _startup(username: str, password: str) -> None:
+def _startup(client_id: str, secret: str) -> tuple[aiohttp.ClientSession, TokenManager]:
     """Create a web session and token manager."""
 
     websession = aiohttp.ClientSession()  # timeout=aiohttp.ClientTimeout(total=30))
     return websession, TokenManager(
-        username, password, websession, token_cache=TOKEN_CACHE
+        client_id, secret, websession, token_cache=TOKEN_CACHE
     )
 
 
