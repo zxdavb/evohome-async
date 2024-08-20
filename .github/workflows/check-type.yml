@@ -9,6 +9,8 @@ on:
       "src/**.py",
       "src/**/py.typed",
       "tests/**.py",
+      "requirements*.txt",
+      "pyproject.toml",
     ]
 
   pull_request:
@@ -18,6 +20,8 @@ on:
       "src/**.py",
       "src/**/py.typed",
       "tests/**.py",
+      "requirements*.txt",
+      "pyproject.toml",
     ]
 
   workflow_dispatch:

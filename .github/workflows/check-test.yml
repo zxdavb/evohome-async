@@ -8,6 +8,8 @@ on:
       ".github/workflows/check-test.yml",
       "src/**.py",
       "tests/**",
+      "requirements*.txt",
+      "pyproject.toml",
     ]
 
   pull_request:
@@ -16,7 +18,12 @@ on:
       ".github/workflows/check-test.yml",
       "src/**.py",
       "tests/**",
+      "requirements*.txt",
+      "pyproject.toml",
     ]
+
+  schedule:
+    - cron: "0 18 * * 5"
 
   workflow_dispatch:
 
