@@ -71,6 +71,116 @@ class _EvoTokenData(TypedDict):
     username: NotRequired[str]
 
 
+class AbstractTokenManager(ABC):
+    """Abstract class to manage an OAuth access token and its refresh token."""
+
+    access_token: str
+    access_token_expires: dt
+    refresh_token: str
+
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        websession: aiohttp.ClientSession,
+    ) -> None:
+        """Initialize the token manager."""
+
+        self._user_credentials = {
+            "Username": username,
+            "Password": password,
+        }  # TODO: are only ever PascalCase?
+
+        self.websession = websession
+
+        self._token_data_reset()
+
+    @property
+    def username(self) -> str:
+        """Return the username."""
+        return self._user_credentials["Username"]
+
+    def _token_data_reset(self) -> None:
+        self.access_token = ""
+        self.access_token_expires = dt.now()
+        self.refresh_token = ""
+
+    def _token_data_from_dict(self, tokens: _EvoTokenData) -> None:
+        self.access_token = tokens[SZ_ACCESS_TOKEN]
+        self.access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
+        self.refresh_token = tokens[SZ_REFRESH_TOKEN]
+
+    # HACK: sometimes using evo, not self
+    def _token_data_as_dict(self, evo: EvohomeClient | None) -> _EvoTokenData:
+        if evo is not None:  # TODO: remove this
+            return {
+                SZ_ACCESS_TOKEN: evo.access_token,  # type: ignore[typeddict-item]
+                SZ_ACCESS_TOKEN_EXPIRES: evo.access_token_expires.isoformat(),  # type: ignore[union-attr]
+                SZ_REFRESH_TOKEN: evo.refresh_token,  # type: ignore[typeddict-item]
+            }
+        return {
+            SZ_ACCESS_TOKEN: self.access_token,
+            SZ_ACCESS_TOKEN_EXPIRES: self.access_token_expires.isoformat(),
+            SZ_REFRESH_TOKEN: self.refresh_token,
+        }
+
+    async def is_token_data_valid(self) -> bool:
+        """Return True if we have a valid access token."""
+        return bool(self.access_token) and dt.now() < self.access_token_expires
+
+    async def fetch_access_token(self) -> None:  # HA api
+        """Obtain a new access token from the vendor (as ours is expired/invalid).
+
+        First, try using the refresh token, if one is available, otherwise authenticate
+        using the user credentials.
+        """
+        """Fetch an access token.
+
+        If there is a valid cached token use that, otherwise fetch via the web API.
+        """
+
+        raise NotImplementedError
+
+    async def _request_access_token(self, **kwargs: Any) -> aiohttp.ClientResponse:
+        """Fetch an access token via the vendor's web API."""
+
+        try:
+            response = await self._request(HTTPMethod.POST, AUTH_URL, **kwargs)
+            response.raise_for_status()
+
+        except aiohttp.ClientResponseError as err:
+            if hint := _ERR_MSG_LOOKUP_AUTH.get(err.status):
+                raise exc.AuthenticationFailed(hint, status=err.status) from err
+            raise exc.AuthenticationFailed(str(err), status=err.status) from err
+
+        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+            raise exc.AuthenticationFailed(str(err)) from err
+
+        if response.content_type != "application/json":  # or likely "text/html"
+            # <title>Authorize error <h1>Authorization failed
+            # <p>The authorization server have encoutered an error while processing...
+            content = await response.text()
+            raise exc.AuthenticationFailed(
+                f"Server response is not JSON: {HTTPMethod.POST} {AUTH_URL}: {content}"
+            )
+
+        return response
+
+    async def _request(
+        self, method: HTTPMethod, url: str, **kwargs: Any
+    ) -> aiohttp.ClientResponse:
+        # The credentials can be either a refresh token or username
+
+        async with self.websession.request(
+            method, url, headers=AUTH_HEADER, json=kwargs["credentials"]
+        ) as response:
+            return response
+
+    @abstractmethod
+    async def save_access_token(self) -> None:  # HA: api
+        """Save the access token to a cache."""
+
+
 class Broker:
     """A class for interacting with the Evohome API."""
 
@@ -316,113 +426,3 @@ class Broker:
             raise exc.RequestFailed(str(err)) from err
 
         return content
-
-
-class AbstractTokenManager(ABC):
-    """Abstract class to manage an OAuth access token and its refresh token."""
-
-    access_token: str
-    access_token_expires: dt
-    refresh_token: str
-
-    def __init__(
-        self,
-        username: str,
-        password: str,
-        websession: aiohttp.ClientSession,
-    ) -> None:
-        """Initialize the token manager."""
-
-        self._user_credentials = {
-            "Username": username,
-            "Password": password,
-        }  # TODO: are only ever PascalCase?
-
-        self.websession = websession
-
-        self._token_data_reset()
-
-    @property
-    def username(self) -> str:
-        """Return the username."""
-        return self._user_credentials["Username"]
-
-    def _token_data_reset(self) -> None:
-        self.access_token = ""
-        self.access_token_expires = dt.now()
-        self.refresh_token = ""
-
-    def _token_data_from_dict(self, tokens: _EvoTokenData) -> None:
-        self.access_token = tokens[SZ_ACCESS_TOKEN]
-        self.access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
-        self.refresh_token = tokens[SZ_REFRESH_TOKEN]
-
-    # HACK: sometimes using evo, not self
-    def _token_data_as_dict(self, evo: EvohomeClient | None) -> _EvoTokenData:
-        if evo is not None:  # TODO: remove this
-            return {
-                SZ_ACCESS_TOKEN: evo.access_token,  # type: ignore[typeddict-item]
-                SZ_ACCESS_TOKEN_EXPIRES: evo.access_token_expires.isoformat(),  # type: ignore[union-attr]
-                SZ_REFRESH_TOKEN: evo.refresh_token,  # type: ignore[typeddict-item]
-            }
-        return {
-            SZ_ACCESS_TOKEN: self.access_token,
-            SZ_ACCESS_TOKEN_EXPIRES: self.access_token_expires.isoformat(),
-            SZ_REFRESH_TOKEN: self.refresh_token,
-        }
-
-    async def is_token_data_valid(self) -> bool:
-        """Return True if we have a valid access token."""
-        return bool(self.access_token) and dt.now() < self.access_token_expires
-
-    async def fetch_access_token(self) -> None:  # HA api
-        """Obtain a new access token from the vendor (as ours is expired/invalid).
-
-        First, try using the refresh token, if one is available, otherwise authenticate
-        using the user credentials.
-        """
-        """Fetch an access token.
-
-        If there is a valid cached token use that, otherwise fetch via the web API.
-        """
-
-        raise NotImplementedError
-
-    async def _request_access_token(self, **kwargs: Any) -> aiohttp.ClientResponse:
-        """Fetch an access token via the vendor's web API."""
-
-        try:
-            response = await self._request(HTTPMethod.POST, AUTH_URL, **kwargs)
-            response.raise_for_status()
-
-        except aiohttp.ClientResponseError as err:
-            if hint := _ERR_MSG_LOOKUP_AUTH.get(err.status):
-                raise exc.AuthenticationFailed(hint, status=err.status) from err
-            raise exc.AuthenticationFailed(str(err), status=err.status) from err
-
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            raise exc.AuthenticationFailed(str(err)) from err
-
-        if response.content_type != "application/json":  # or likely "text/html"
-            # <title>Authorize error <h1>Authorization failed
-            # <p>The authorization server have encoutered an error while processing...
-            content = await response.text()
-            raise exc.AuthenticationFailed(
-                f"Server response is not JSON: {HTTPMethod.POST} {AUTH_URL}: {content}"
-            )
-
-        return response
-
-    async def _request(
-        self, method: HTTPMethod, url: str, **kwargs: Any
-    ) -> aiohttp.ClientResponse:
-        # The credentials can be either a refresh token or username
-
-        async with self.websession.request(
-            method, url, headers=AUTH_HEADER, json=kwargs["credentials"]
-        ) as response:
-            return response
-
-    @abstractmethod
-    async def save_access_token(self) -> None:  # HA: api
-        """Save the access token to a cache."""
