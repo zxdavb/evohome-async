@@ -169,6 +169,26 @@ class TokenManager(AbstractTokenManager):
             await fp.write(content)
 
 
+def _startup(username: str, password: str) -> None:
+    """Create a web session and token manager."""
+
+    websession = aiohttp.ClientSession()  # timeout=aiohttp.ClientTimeout(total=30))
+    return websession, TokenManager(
+        username, password, websession, token_cache=TOKEN_CACHE
+    )
+
+
+async def _cleanup(
+    session: aiohttp.ClientSession,
+    token_manager: TokenManager,
+    evo: EvohomeClient,
+) -> None:
+    """Close the web session and save the access token to the cache."""
+
+    await session.close()
+    await token_manager.save_access_token(evo)
+
+
 @click.group()
 @click.option("--username", "-u", required=True, help="The TCC account username.")
 @click.option("--password", "-p", required=True, help="The TCC account password.")
@@ -192,31 +212,32 @@ async def cli(
         stream=sys.stdout,
     )
 
-    ctx.obj[SZ_WEBSESSION] = websession = (
-        aiohttp.ClientSession()
-    )  # timeout=aiohttp.ClientTimeout(total=30))
+    websession, token_manager = _startup(username, password)
 
-    ctx.obj[SZ_TOKEN_MANAGER] = token_manager = TokenManager(
-        username, password, websession, token_cache=TOKEN_CACHE
-    )
+    ctx.obj[SZ_WEBSESSION] = websession
+    ctx.obj[SZ_TOKEN_MANAGER] = token_manager
 
     if not cache_tokens:
         tokens = {}
+
     else:
         await token_manager._load_access_token()  # not: fetch_access_token()
+
         tokens = {
             SZ_ACCESS_TOKEN: token_manager.access_token,
             SZ_ACCESS_TOKEN_EXPIRES: token_manager.access_token_expires,
             SZ_REFRESH_TOKEN: token_manager.refresh_token,
         }
 
-    ctx.obj[SZ_EVO] = EvohomeClient(
+    ctx.obj[SZ_EVO] = evo = EvohomeClient(
         username,
         password,
         **tokens,  # type: ignore[arg-type]
         session=websession,
         debug=bool(debug),
     )
+
+    await evo.login()
 
 
 @cli.command()
@@ -236,14 +257,9 @@ async def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> Non
     """Download all the global config and the location status."""
 
     async def get_state(evo: EvohomeClient, loc_idx: int) -> _EvoDictT:
-        try:
-            await evo.login()
+        await evo.login()
 
-            status = await evo.locations[loc_idx].refresh_status()
-
-        finally:  # FIXME: EvohomeClient should do this...
-            assert evo.broker._session is not None  # mypy hint
-            await evo.broker._session.close()  # FIXME
+        status = await evo.locations[loc_idx].refresh_status()
 
         return {
             "config": evo.installation_info,
@@ -256,8 +272,7 @@ async def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> Non
     result = await get_state(evo, loc_idx)
     await _write(filename, json.dumps(result, indent=4) + "\r\n\r\n")
 
-    await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(ctx.obj[SZ_EVO])
-    result = await ctx.obj[SZ_WEBSESSION].close()
+    await _cleanup(ctx.obj[SZ_WEBSESSION], ctx.obj[SZ_TOKEN_MANAGER], ctx.obj[SZ_EVO])
     print(" - finished.\r\n")
 
 
@@ -283,17 +298,10 @@ async def get_schedule(
     async def get_schedule(
         evo: EvohomeClient, zone_id: str, loc_idx: int | None
     ) -> _ScheduleT:
-        try:
-            await evo.login()
+        await evo.login()
 
-            tcs: ControlSystem = _get_tcs(evo, loc_idx)
-            child: HotWater | Zone = tcs.zones_by_id[zone_id]
-
-            schedule = await child.get_schedule()
-
-        finally:  # FIXME: EvohomeClient should do this...
-            assert evo.broker._session is not None  # mypy hint
-            await evo.broker._session.close()  # FIXME
+        child: HotWater | Zone = _get_tcs(evo, loc_idx).zones_by_id[zone_id]
+        schedule = await child.get_schedule()
 
         return {child._id: {SZ_NAME: child.name, SZ_SCHEDULE: schedule}}
 
@@ -303,7 +311,7 @@ async def get_schedule(
     schedule = await get_schedule(evo, zone_id, loc_idx)
     await _write(filename, json.dumps(schedule, indent=4) + "\r\n\r\n")
 
-    await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(evo)
+    await _cleanup(ctx.obj[SZ_WEBSESSION], ctx.obj[SZ_TOKEN_MANAGER], ctx.obj[SZ_EVO])
     print(" - finished.\r\n")
 
 
@@ -326,17 +334,7 @@ async def get_schedules(
     """Download all the schedules from a TCS."""
 
     async def get_schedules(evo: EvohomeClient, loc_idx: int | None) -> _ScheduleT:
-        try:
-            await evo.login()
-
-            tcs: ControlSystem = _get_tcs(evo, loc_idx)
-            schedules = await tcs.get_schedules()
-
-        finally:  # FIXME: EvohomeClient should do this...
-            assert evo.broker._session is not None  # mypy hint
-            await evo.broker._session.close()  # FIXME
-
-        return schedules
+        return await _get_tcs(evo, loc_idx).get_schedules()
 
     print("\r\nclient.py: Starting backup of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
@@ -344,7 +342,7 @@ async def get_schedules(
     schedules = await get_schedules(evo, loc_idx)
     await _write(filename, json.dumps(schedules, indent=4) + "\r\n\r\n")
 
-    await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(evo)
+    await _cleanup(ctx.obj[SZ_WEBSESSION], ctx.obj[SZ_TOKEN_MANAGER], ctx.obj[SZ_EVO])
     print(" - finished.\r\n")
 
 
@@ -364,21 +362,6 @@ async def set_schedules(
 ) -> None:
     """Upload schedules to a TCS."""
 
-    async def set_schedules(
-        evo: EvohomeClient, schedules: _ScheduleT, loc_idx: int | None
-    ) -> bool:
-        try:
-            await evo.login()
-
-            tcs: ControlSystem = _get_tcs(evo, loc_idx)
-            success = await tcs.set_schedules(schedules)
-
-        finally:  # FIXME: EvohomeClient should do this...
-            assert evo.broker._session is not None  # mypy hint
-            await evo.broker._session.close()  # FIXME
-
-        return success
-
     print("\r\nclient.py: Starting restore of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
@@ -387,9 +370,9 @@ async def set_schedules(
         content = await fp.read()
 
     schedules = json.loads(content)
-    success = await set_schedules(evo, schedules, loc_idx)
+    success = await _get_tcs(evo, loc_idx).set_schedules(schedules)
 
-    await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(evo)
+    await _cleanup(ctx.obj[SZ_WEBSESSION], ctx.obj[SZ_TOKEN_MANAGER], ctx.obj[SZ_EVO])
     print(f" - finished{'' if success else ' (with errors)'}.\r\n")
 
 
