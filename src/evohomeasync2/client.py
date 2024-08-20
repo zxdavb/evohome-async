@@ -186,7 +186,7 @@ async def _cleanup(
     """Close the web session and save the access token to the cache."""
 
     await session.close()
-    await token_manager.save_access_token(evo)
+    await token_manager.save_access_token(evo)  # TODO: remove when no longer needed
 
 
 @click.group()
@@ -238,7 +238,7 @@ async def cli(
     )
 
     await evo.login()
-    await token_manager.save_access_token(evo)  # TODO: remove
+    await token_manager.save_access_token(evo)  # TODO: remove when no longer needed
 
 
 @cli.command()
