@@ -246,7 +246,7 @@ async def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> Non
     result = await get_state(evo, loc_idx)
     content = json.dumps(result, indent=4) + "\r\n\r\n"
 
-    async with aiofiles.open(filename, "w") as fp:
+    async with aiofiles.open(filename, "w") as fp:  # type: ignore[call-overload]
         await fp.write(content)
 
     await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(ctx.obj[SZ_EVO])
@@ -296,7 +296,7 @@ async def get_schedule(
     schedule = await get_schedule(evo, zone_id, loc_idx)
     content = json.dumps(schedule, indent=4) + "\r\n\r\n"
 
-    async with aiofiles.open(filename, "w") as fp:
+    async with aiofiles.open(filename, "w") as fp:  # type: ignore[call-overload]
         await fp.write(content)
 
     await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(evo)
@@ -340,7 +340,7 @@ async def get_schedules(
     schedules = await get_schedules(evo, loc_idx)
     content = json.dumps(schedules, indent=4) + "\r\n\r\n"
 
-    async with aiofiles.open(filename, "w") as fp:
+    async with aiofiles.open(filename, "w") as fp:  # type: ignore[call-overload]
         await fp.write(content)
 
     await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(evo)
@@ -381,7 +381,7 @@ async def set_schedules(
     print("\r\nclient.py: Starting restore of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    async with aiofiles.open(filename, "r") as fp:
+    async with aiofiles.open(filename, "r") as fp:  # type: ignore[call-overload]
         content = await fp.read()
 
     schedules = json.loads(content)
