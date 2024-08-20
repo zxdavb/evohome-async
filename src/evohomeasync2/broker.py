@@ -95,6 +95,9 @@ class AbstractTokenManager(ABC):
 
         self._token_data_reset()
 
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}(username='{self.username}')"
+
     @property
     def username(self) -> str:
         """Return the username."""
@@ -117,16 +120,12 @@ class AbstractTokenManager(ABC):
 
     # HACK: sometimes using evo, not self
     def _token_data_as_dict(self, evo: EvohomeClient | None) -> _EvoTokenData:
-        if evo is not None:  # TODO: remove this
-            return {
-                SZ_ACCESS_TOKEN: evo.access_token,  # type: ignore[typeddict-item]
-                SZ_ACCESS_TOKEN_EXPIRES: evo.access_token_expires.isoformat(),  # type: ignore[union-attr]
-                SZ_REFRESH_TOKEN: evo.refresh_token,  # type: ignore[typeddict-item]
-            }
+        x = evo.token_manager if evo is not None else self  # TODO: remove evo
+
         return {
-            SZ_ACCESS_TOKEN: self.access_token,
-            SZ_ACCESS_TOKEN_EXPIRES: self.access_token_expires.isoformat(),
-            SZ_REFRESH_TOKEN: self.refresh_token,
+            SZ_ACCESS_TOKEN: x.access_token,  # type: ignore[misc]
+            SZ_ACCESS_TOKEN_EXPIRES: x.access_token_expires.isoformat(),
+            SZ_REFRESH_TOKEN: x.refresh_token,
         }
 
     async def is_token_data_valid(self) -> bool:
@@ -230,6 +229,7 @@ class Broker:
         self.access_token = token_manager.access_token
         self.access_token_expires = token_manager.access_token_expires
 
+        self.token_manager = token_manager
         self._session = session
         self._logger = logger
 
