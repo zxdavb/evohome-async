@@ -49,7 +49,7 @@ class Broker:
     ) -> None:
         """A class for interacting with the v1 Evohome API."""
 
-        self.username = username
+        self.username = username  # TODO: remove
         self._logger = logger
 
         self._session_id: _SessionIdT | None = session_id
