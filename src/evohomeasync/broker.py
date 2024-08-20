@@ -95,14 +95,14 @@ class Broker:
         assert self._user_data != {}
 
         user_id: _UserIdT = self._user_data[SZ_USER_INFO][SZ_USER_ID]  # type: ignore[assignment,index]
-        session_id: _SessionIdT = self._user_data[SZ_SESSION_ID]  # type: ignore[assignment]
+        session_id: _SessionIdT = self._user_data[SZ_SESSION_ID]  # type: ignore[assignment, index]
 
         self._user_id = user_id
         self._session_id = self._headers[SZ_SESSION_ID] = session_id
         self._session_renewed = dt.now()
 
         self._logger.info(f"user_data = {self._user_data}")
-        return self._user_data, response
+        return self._user_data, response  # type: ignore[return-value]
 
     async def populate_full_data(self) -> list[_LocnDataT]:
         """Return the latest location data exactly as retrieved from the web."""

@@ -201,8 +201,8 @@ class EvohomeClient(EvohomeClientDeprecated):
             _LOGGER.setLevel(logging.DEBUG)
             _LOGGER.debug("Debug mode is explicitly enabled.")
 
-        self.user_info = {}
-        self.location_data = {}
+        self.user_info = {}  # type: ignore[assignment]
+        self.location_data = {}  # type: ignore[assignment]
         self.location_id: _LocationIdT = None  # type: ignore[assignment]
 
         self.devices: dict[_ZoneIdT, _DeviceDictT] = {}  # dhw or zone by id
@@ -223,7 +223,7 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         if not self.broker.session_id:
             return None
-        return {
+        return {  # type: ignore[return-value]
             SZ_SESSION_ID: self.broker.session_id,
             SZ_USER_INFO: self.user_info,
         }
@@ -310,7 +310,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         # harden code against unexpected schema (JSON structure)
         except (LookupError, TypeError, ValueError) as err:
             raise exc.InvalidSchema(str(err)) from err
-        return result
+        return result  # type: ignore[return-value]
 
     async def get_system_modes(self) -> NoReturn:
         """Return the set of modes the system can be assigned."""
