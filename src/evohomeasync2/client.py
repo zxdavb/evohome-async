@@ -20,7 +20,12 @@ from .base import EvohomeClient
 from .broker import AbstractTokenManager, _EvoTokenData
 from .const import SZ_NAME, SZ_SCHEDULE
 from .controlsystem import ControlSystem
-from .schema import SZ_ACCESS_TOKEN, SZ_ACCESS_TOKEN_EXPIRES, SZ_REFRESH_TOKEN
+from .schema import (
+    SZ_ACCESS_TOKEN,
+    SZ_ACCESS_TOKEN_EXPIRES,
+    SZ_REFRESH_TOKEN,
+    _EvoDictT,
+)
 from .schema.schedule import _ScheduleT
 
 # all _DBG_* flags should be False for published code
@@ -98,7 +103,7 @@ class TokenManager(AbstractTokenManager):
         websession: aiohttp.ClientSession,
         /,
         *,
-        token_cache: Path | None = None,
+        token_cache: Path = TOKEN_CACHE,
     ) -> None:
         super().__init__(username, password, websession)
 
@@ -118,11 +123,11 @@ class TokenManager(AbstractTokenManager):
         if self.is_token_data_valid():
             return
 
-        self._load_access_token()
+        await self._load_access_token()
 
         if not self.is_token_data_valid():
             await super().fetch_access_token()
-            self.save_access_token()
+            await self.save_access_token(None)
 
     async def _load_access_token(self) -> None:
         """Load the tokens from a cache (temporary file)."""
@@ -143,7 +148,7 @@ class TokenManager(AbstractTokenManager):
         if tokens.pop(SZ_USERNAME) == self.username:
             self._token_data_from_dict(tokens)
 
-    async def save_access_token(self, evo: EvohomeClient) -> None:  # HA api
+    async def save_access_token(self, evo: EvohomeClient | None) -> None:  # type: ignore[override]
         """Dump the tokens to a cache (temporary file)."""
 
         content = json.dumps(
@@ -198,7 +203,7 @@ async def cli(
     ctx.obj[SZ_EVO] = EvohomeClient(
         username,
         password,
-        **tokens,
+        **tokens,  # type: ignore[arg-type]
         session=websession,
         debug=bool(debug),
     )
@@ -220,7 +225,7 @@ async def cli(
 async def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
     """Download all the global config and the location status."""
 
-    async def get_state(evo: EvohomeClient, loc_idx: int | None) -> _ScheduleT:
+    async def get_state(evo: EvohomeClient, loc_idx: int) -> _EvoDictT:
         try:
             await evo.login()
 
@@ -268,7 +273,7 @@ async def get_schedule(
 
     async def get_schedule(
         evo: EvohomeClient, zone_id: str, loc_idx: int | None
-    ) -> None:
+    ) -> _ScheduleT:
         try:
             await evo.login()
 
@@ -281,18 +286,12 @@ async def get_schedule(
             assert evo.broker._session is not None  # mypy hint
             await evo.broker._session.close()  # FIXME
 
-        schedules = {
-            child._id: {SZ_NAME: child.name, SZ_SCHEDULE: schedule},
-        }
-
-        filename.write(json.dumps(schedules, indent=4))
-        filename.write("\r\n\r\n")
+        return {child._id: {SZ_NAME: child.name, SZ_SCHEDULE: schedule}}
 
     print("\r\nclient.py: Starting backup of zone schedule (WIP)...")
     evo = ctx.obj[SZ_EVO]
 
     schedule = await get_schedule(evo, zone_id, loc_idx)
-
     filename.write(json.dumps(schedule, indent=4) + "\r\n\r\n")
 
     await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(evo)
