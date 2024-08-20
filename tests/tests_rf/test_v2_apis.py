@@ -32,33 +32,33 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
 
     #
     # STEP 1: Authentication (isolated from evo.login()), POST /Auth/OAuth/Token
-    assert isinstance(evo.access_token, str)
-    assert isinstance(evo.access_token_expires, dt)
-    assert isinstance(evo.refresh_token, str)
+    assert isinstance(evo.token_manager.access_token, str)
+    assert isinstance(evo.token_manager.access_token_expires, dt)
+    assert isinstance(evo.token_manager.refresh_token, str)
 
     if not _DEBUG_USE_REAL_AIOHTTP:
-        assert evo.access_token == "ncWMqPh2yGgAqc..."  # mock.ACCESS_TOKEN
-        assert evo.refresh_token == "Ryx9fL34Z5GcNV..."  # mock.REFRESH_TOKEN
+        assert evo.token_manager.access_token == "ncWMqPh2yGgAqc..."
+        assert evo.token_manager.refresh_token == "Ryx9fL34Z5GcNV..."
 
-    access_token = evo.access_token
-    refresh_token = evo.refresh_token
+    access_token = evo.token_manager.access_token
+    refresh_token = evo.token_manager.refresh_token
 
     await evo.broker._headers()
 
     # The above should not cause a re-authentication, so...
-    assert evo.access_token == access_token
-    assert evo.refresh_token == refresh_token
+    assert evo.token_manager.access_token == access_token
+    assert evo.token_manager.refresh_token == refresh_token
 
     #
     # STEP 1A: Re-Authentication: more likely to cause 429: Too Many Requests
     if isinstance(evo.broker._session, aiohttp.ClientSession):
-        access_token = evo.access_token
-        refresh_token = evo.refresh_token
+        access_token = evo.token_manager.access_token
+        refresh_token = evo.token_manager.refresh_token
 
     #     await evo._basic_login()  # re-authenticate using refresh_token
 
-    #     assert True or evo.access_token != access_token  # TODO: mocked_server wont do this
-    #     assert True or evo.refresh_token != refresh_token  # TODO: mocked_server wont do this
+    #     assert True or evo.token_manager.access_token != access_token  # TODO: mocked_server wont do this
+    #     assert True or evo.token_manager.refresh_token != refresh_token  # TODO: mocked_server wont do this
 
     #
     # STEP 2: User account,  GET /userAccount...
