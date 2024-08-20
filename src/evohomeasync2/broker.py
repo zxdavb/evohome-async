@@ -86,7 +86,7 @@ class AbstractTokenManager(ABC):
     ) -> None:
         """Initialize the token manager."""
 
-        self._user_credentials = {
+        self._credentials = {
             "Username": username,
             "Password": password,
         }  # TODO: are only ever PascalCase?
@@ -98,7 +98,7 @@ class AbstractTokenManager(ABC):
     @property
     def username(self) -> str:
         """Return the username."""
-        return self._user_credentials["Username"]
+        return self._credentials["Username"]
 
     def _token_data_reset(self) -> None:
         self.access_token = ""
@@ -129,20 +129,47 @@ class AbstractTokenManager(ABC):
         return bool(self.access_token) and dt.now() < self.access_token_expires
 
     async def fetch_access_token(self) -> None:  # HA api
-        """Obtain a new access token from the vendor (as ours is expired/invalid).
+        """Ensure the access token is valid.
 
-        First, try using the refresh token, if one is available, otherwise authenticate
-        using the user credentials.
-        """
-        """Fetch an access token.
-
-        If there is a valid cached token use that, otherwise fetch via the web API.
+        If required, fetch a new token via the vendor's web API.
         """
 
-        raise NotImplementedError
+        if self.is_token_data_valid():
+            return
 
-    async def _request_access_token(self, **kwargs: Any) -> aiohttp.ClientResponse:
-        """Fetch an access token via the vendor's web API."""
+        _LOGGER.debug("No/Expired/Invalid access_token, re-authenticating.")
+        self.access_token = ""
+        self.access_token_expires = dt.now()
+
+        if self.refresh_token:
+            _LOGGER.debug("Authenticating with the refresh_token...")
+            credentials = {SZ_REFRESH_TOKEN: self.refresh_token}
+
+            try:
+                await self._obtain_access_token(**(CREDS_REFRESH_TOKEN | credentials))
+
+            except exc.AuthenticationFailed as err:
+                if err.status != HTTPStatus.BAD_REQUEST:  # e.g. invalid tokens
+                    raise
+
+                _LOGGER.warning("Likely Invalid refresh_token, will try user_id/secret")
+                self.refresh_token = ""
+
+        if not self.refresh_token:
+            _LOGGER.debug("Authenticating with username/password...")
+            await self._obtain_access_token(**(CREDS_USER_PASSWORD | self._credentials))
+
+        # await self.save_access_token()
+
+        _LOGGER.debug(f"refresh_token = {self.refresh_token}")
+        _LOGGER.debug(f"access_token = {self.access_token}")
+        _LOGGER.debug(f"access_token_expires = {self.access_token_expires}")
+
+    async def _obtain_access_token(self, **kwargs: Any) -> aiohttp.ClientResponse:
+        """Obtain an access token via the vendor's web API.
+
+        Use the refresh token, if able, otherwise utilize the user's credentials.
+        """
 
         try:
             response = await self._request(HTTPMethod.POST, AUTH_URL, **kwargs)

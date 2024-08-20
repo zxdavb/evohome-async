@@ -125,15 +125,13 @@ class TokenManager(AbstractTokenManager):
         return str(self._token_cache)
 
     async def fetch_access_token(self) -> None:  # HA api
-        """If required, fetch an (updated) access token (somehow).
+        """Ensure the (cached) access token is valid.
 
-        If there is a valid cached token use that, otherwise fetch via the web API.
+        If required, fetch a new token via the vendor's web API.
         """
 
-        if self.is_token_data_valid():
-            return
-
-        await self._load_access_token()
+        if not self.is_token_data_valid():
+            await self._load_access_token()
 
         if not self.is_token_data_valid():
             await super().fetch_access_token()
