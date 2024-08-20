@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 
@@ -26,7 +27,7 @@ from .helpers import (
     instantiate_client,
     should_fail,
     should_work,
-    wait_for_comm_task,
+    wait_for_comm_task_v2 as wait_for_comm_task,
 )
 
 #######################################################################################
@@ -107,7 +108,8 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
     # {'commtaskId': '840367013', 'state': 'Succeeded'}
 
     # dtm = dt.now()
-    _ = await wait_for_comm_task(evo, task_id, timeout=3)
+    async with asyncio.timeout(3):
+        _ = await wait_for_comm_task(evo, task_id)
     # assert (dt.now() - dtm).total_seconds() < 2
 
     #
@@ -118,7 +120,9 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
         SZ_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
     _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)  # HTTP 201
-    _ = await wait_for_comm_task(evo, task_id, timeout=3)
+
+    async with asyncio.timeout(3):
+        _ = await wait_for_comm_task(evo, task_id)
     status = await should_work(evo, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time

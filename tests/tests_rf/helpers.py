@@ -282,7 +282,7 @@ async def should_fail(
     return content
 
 
-async def wait_for_comm_task(evo: evo2.EvohomeClient, task_id: str) -> bool | None:
+async def wait_for_comm_task_v2(evo: evo2.EvohomeClient, task_id: str) -> bool | None:
     """Wait for a communication task (API call) to complete."""
 
     # invoke via:
