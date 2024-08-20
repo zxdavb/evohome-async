@@ -24,7 +24,7 @@ from evohomeasync2.schema.helpers import pascal_case
 from . import _DEBUG_USE_REAL_AIOHTTP
 from .helpers import (
     aiohttp,
-    instantiate_client,
+    instantiate_client_v2,
     should_fail,
     should_work,
     wait_for_comm_task_v2 as wait_for_comm_task,
@@ -194,7 +194,7 @@ async def test_task_id(
         pytest.skip("Test is only valid with a real server")
 
     try:
-        await _test_task_id(await instantiate_client(user_credentials, session))
+        await _test_task_id(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:

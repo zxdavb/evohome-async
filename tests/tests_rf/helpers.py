@@ -5,20 +5,17 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime as dt
+import tempfile
 from http import HTTPMethod, HTTPStatus
-from typing import TypedDict
+from pathlib import Path
+from typing import Final
 
 import voluptuous as vol
 
 import evohomeasync as evo1
 import evohomeasync2 as evo2
+from evohomeasync2.client import TOKEN_CACHE, TokenManager
 from evohomeasync2.const import URL_BASE as URL_BASE_2
-from evohomeasync2.schema.account import (
-    SZ_ACCESS_TOKEN,
-    SZ_ACCESS_TOKEN_EXPIRES,
-    SZ_REFRESH_TOKEN,
-)
 
 from . import _DEBUG_DISABLE_STRICT_ASSERTS, _DEBUG_USE_REAL_AIOHTTP
 
@@ -26,6 +23,9 @@ if _DEBUG_USE_REAL_AIOHTTP:
     import aiohttp
 else:
     from .mocked_server import aiohttp  # type: ignore[no-redef]
+
+    # so we don't pollute a real token cache with fake tokens
+    TOKEN_CACHE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tst")  # type: ignore[misc]
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -140,55 +140,30 @@ async def should_fail_v1(
 
 # version 2 helpers ###################################################################
 
-
-class OAuthTokensT(TypedDict):
-    refresh_token: str | None
-    access_token: str | None
-    access_token_expires: dt | None
+_global_token_manager: TokenManager | None = None
 
 
-# OAuth tokens used by EvohomeClient2
-_global_oauth_tokens: OAuthTokensT = {
-    SZ_REFRESH_TOKEN: None,
-    SZ_ACCESS_TOKEN: None,
-    SZ_ACCESS_TOKEN_EXPIRES: None,
-}
-
-
-def update_oauth_tokens(evo: evo2.EvohomeClient) -> None:
-    """Save the global OAuth tokens for later use (for EvohomeClient2).
-
-    The tokens are used to stop tests from exceeding rate limits of authentication APIs.
-    """
-
-    global _global_oauth_tokens
-
-    old_dict = _global_oauth_tokens.copy()
-
-    _global_oauth_tokens[SZ_REFRESH_TOKEN] = evo.refresh_token
-    _global_oauth_tokens[SZ_ACCESS_TOKEN] = evo.access_token
-    _global_oauth_tokens[SZ_ACCESS_TOKEN_EXPIRES] = evo.access_token_expires
-
-    if _global_oauth_tokens != old_dict:
-        _LOGGER.warning("BEFORE: %s", old_dict)
-        _LOGGER.warning("AFTER_: %s", _global_oauth_tokens)
-
-
-async def instantiate_client(
+async def instantiate_client_v2(
     user_credentials: tuple[str, str],
     session: aiohttp.ClientSession,
     dont_login: bool = False,
 ) -> evo2.EvohomeClient:
     """Instantiate a client, and logon to the vendor API (cache any tokens)."""
 
-    global _global_oauth_tokens
+    global _global_token_manager
+
+    if (
+        not _global_token_manager
+        or _global_token_manager.username != user_credentials[0]
+    ):
+        _global_token_manager = TokenManager(
+            *user_credentials, session, token_cache=TOKEN_CACHE
+        )
+
+    await _global_token_manager._load_access_token()
 
     # Instantiation, NOTE: No API calls invoked during instantiation
-    evo = evo2.EvohomeClient(
-        *user_credentials,
-        session=session,
-        **_global_oauth_tokens,
-    )
+    evo = evo2.EvohomeClient(_global_token_manager, session=session)
 
     # Authentication - dont use evo.broker._login() as
     if dont_login:
@@ -197,7 +172,7 @@ async def instantiate_client(
         await evo.login()  # will use cached tokens, if able
         # will also call evo.user_account(), evo.installation()
 
-    update_oauth_tokens(evo)
+    await _global_token_manager.save_access_token(evo)
 
     return evo
 

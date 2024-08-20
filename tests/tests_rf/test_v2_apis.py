@@ -22,7 +22,7 @@ from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE
 from evohomeasync2.zone import Zone
 
 from . import _DEBUG_USE_REAL_AIOHTTP, mocked_server as mock
-from .helpers import aiohttp, instantiate_client
+from .helpers import aiohttp, instantiate_client_v2
 
 #######################################################################################
 
@@ -186,7 +186,7 @@ async def test_basics(
 
     try:
         await _test_basics_apis(
-            await instantiate_client(user_credentials, session, dont_login=True)
+            await instantiate_client_v2(user_credentials, session, dont_login=True)
         )
 
     except evo2.AuthenticationFailed:
@@ -202,7 +202,7 @@ async def test_sched_(
     """Test `get_schedule()` and `get_schedule()`."""
 
     try:
-        await _test_sched__apis(await instantiate_client(user_credentials, session))
+        await _test_sched__apis(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
@@ -217,7 +217,7 @@ async def test_status(
     """Test `_refresh_status()` for DHW/zone."""
 
     try:
-        await _test_status_apis(await instantiate_client(user_credentials, session))
+        await _test_status_apis(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
@@ -232,7 +232,7 @@ async def test_system(
     """Test `set_mode()` for TCS"""
 
     try:
-        await _test_system_apis(await instantiate_client(user_credentials, session))
+        await _test_system_apis(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:

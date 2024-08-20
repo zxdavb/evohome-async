@@ -36,7 +36,7 @@ from evohomeasync2.schema.const import (
 from evohomeasync2.schema.schedule import convert_to_put_schedule
 
 from . import _DEBUG_USE_REAL_AIOHTTP, mocked_server as mock
-from .helpers import aiohttp, instantiate_client, should_fail, should_work
+from .helpers import aiohttp, instantiate_client_v2, should_fail, should_work
 
 if TYPE_CHECKING:
     from evohomeasync2.schema import _EvoDictT
@@ -314,7 +314,7 @@ async def test_usr_account(
     """Test /userAccount"""
 
     try:
-        await _test_usr_account(await instantiate_client(user_credentials, session))
+        await _test_usr_account(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
@@ -329,7 +329,7 @@ async def test_all_config(
     """Test /location/installationInfo"""
 
     try:
-        await _test_all_config(await instantiate_client(user_credentials, session))
+        await _test_all_config(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
@@ -344,7 +344,7 @@ async def test_loc_status(
     """Test /location/{locationId}/status"""
 
     try:
-        await _test_loc_status(await instantiate_client(user_credentials, session))
+        await _test_loc_status(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
@@ -359,7 +359,7 @@ async def test_tcs_mode(
     """Test /temperatureControlSystem/{systemId}/mode"""
 
     try:
-        await _test_tcs_mode(await instantiate_client(user_credentials, session))
+        await _test_tcs_mode(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
@@ -379,7 +379,7 @@ async def test_zone_mode(
     """Test /temperatureZone/{zoneId}/heatSetpoint"""
 
     try:
-        await _test_zone_mode(await instantiate_client(user_credentials, session))
+        await _test_zone_mode(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:
@@ -399,7 +399,7 @@ async def test_schedule(
     """Test /{x.TYPE}/{x_id}/schedule"""
 
     try:
-        await _test_schedule(await instantiate_client(user_credentials, session))
+        await _test_schedule(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
         if not _DEBUG_USE_REAL_AIOHTTP:

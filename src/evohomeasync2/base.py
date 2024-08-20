@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Final, NoReturn
 import aiohttp
 
 from . import exceptions as exc
-from .broker import Broker
+from .broker import AbstractTokenManager, Broker
 from .controlsystem import ControlSystem
 from .location import Location
 from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
@@ -106,13 +106,9 @@ class EvohomeClient(EvohomeClientDeprecated):
 
     def __init__(
         self,
-        username: str,
-        password: str,
+        token_manager: AbstractTokenManager,
         /,
         *,
-        refresh_token: str | None = None,
-        access_token: str | None = None,
-        access_token_expires: dt | None = None,
         session: None | aiohttp.ClientSession = None,
         debug: bool = False,
     ) -> None:
@@ -127,20 +123,20 @@ class EvohomeClient(EvohomeClientDeprecated):
         authentication service, which is known to be rate limited.
         """
 
-        if debug:
-            _LOGGER.setLevel(logging.DEBUG)
-            _LOGGER.debug("Debug mode is explicitly enabled.")
-
         self._logger = _LOGGER
-        self._username = username  # for __str__
+        if debug:
+            self._logger.setLevel(logging.DEBUG)
+            self._logger.debug("Debug mode is explicitly enabled.")
+
+        self._username = token_manager.username  # for __str__
 
         self.broker = Broker(
-            username,
-            password,
+            token_manager.username,
+            token_manager._password,
             _LOGGER,
-            refresh_token=refresh_token,
-            access_token=access_token,
-            access_token_expires=access_token_expires,
+            refresh_token=token_manager.refresh_token,
+            access_token=token_manager.access_token,
+            access_token_expires=token_manager.access_token_expires,
             session=session,
         )
 

@@ -20,12 +20,7 @@ from .base import EvohomeClient
 from .broker import AbstractTokenManager, _EvoTokenData
 from .const import SZ_NAME, SZ_SCHEDULE
 from .controlsystem import ControlSystem
-from .schema import (
-    SZ_ACCESS_TOKEN,
-    SZ_ACCESS_TOKEN_EXPIRES,
-    SZ_REFRESH_TOKEN,
-    _EvoDictT,
-)
+from .schema import _EvoDictT
 from .schema.schedule import _ScheduleT
 
 # all _DBG_* flags should be False for published code
@@ -212,27 +207,14 @@ async def cli(
 
     websession, token_manager = _startup(username, password)
 
-    if not cache_tokens:
-        tokens = {}
-
-    else:
+    if cache_tokens:
         await token_manager._load_access_token()  # not: fetch_access_token()
-
-        tokens = {
-            SZ_ACCESS_TOKEN: token_manager.access_token,
-            SZ_ACCESS_TOKEN_EXPIRES: token_manager.access_token_expires,
-            SZ_REFRESH_TOKEN: token_manager.refresh_token,
-        }
 
     ctx.obj[SZ_WEBSESSION] = websession
     ctx.obj[SZ_TOKEN_MANAGER] = token_manager
 
     ctx.obj[SZ_EVO] = evo = EvohomeClient(
-        username,
-        password,
-        **tokens,  # type: ignore[arg-type]
-        session=websession,
-        debug=bool(debug),
+        token_manager, session=websession, debug=bool(debug)
     )
 
     await evo.login()
