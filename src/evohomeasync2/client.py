@@ -238,6 +238,7 @@ async def cli(
     )
 
     await evo.login()
+    await token_manager.save_access_token(evo)  # TODO: remove
 
 
 @cli.command()
