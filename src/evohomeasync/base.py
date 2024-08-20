@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from datetime import datetime as dt
 from http import HTTPMethod
@@ -35,7 +34,6 @@ from .schema import (
     SZ_SCHEDULED,
     SZ_SESSION_ID,
     SZ_SETPOINT,
-    SZ_STATE,
     SZ_STATUS,
     SZ_TEMP,
     SZ_TEMPORARY,
@@ -52,7 +50,6 @@ if TYPE_CHECKING:
         _DhwIdT,
         _EvoListT,
         _LocationIdT,
-        _TaskIdT,
         _ZoneIdT,
         _ZoneNameT,
     )
@@ -96,25 +93,27 @@ class EvohomeClientDeprecated:
 
         raise exc.DeprecationError("EvohomeClient._wait_for_put_task() is deprecated")
 
-        async def get_task_status(task_id: _TaskIdT) -> str:  # type: ignore[unreachable]
-            await self._populate_locn_data()
+        # # Code fragment left here, as documention of get_task_status()...
 
-            url = f"commTasks?commTaskId={task_id}"
-            response = await self._do_request(HTTPMethod.GET, url)
+        # async def get_task_status(task_id: _TaskIdT) -> str:
+        #     await self._populate_locn_data()
 
-            ret: str = dict(await response.json())[SZ_STATE]
-            return ret
+        #     url = f"commTasks?commTaskId={task_id}"
+        #     response = await self._do_request(HTTPMethod.GET, url)
 
-        task_id: _TaskIdT
+        #     ret: str = dict(await response.json())[SZ_STATE]
+        #     return ret
 
-        assert response.method == HTTPMethod.PUT
+        # task_id: _TaskIdT
 
-        ret = await response.json()
-        task_id = ret[0][SZ_ID] if isinstance(ret, list) else ret[SZ_ID]
+        # assert response.method == HTTPMethod.PUT
 
-        # FIXME: could wait forvever?
-        while await get_task_status(task_id) != "Succeeded":
-            await asyncio.sleep(1)
+        # ret = await response.json()
+        # task_id = ret[0][SZ_ID] if isinstance(ret, list) else ret[SZ_ID]
+
+        # # FIXME: could wait forvever?
+        # while await get_task_status(task_id) != "Succeeded":
+        #     await asyncio.sleep(1)
 
     async def _do_request(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(

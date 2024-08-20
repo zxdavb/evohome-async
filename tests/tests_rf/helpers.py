@@ -282,25 +282,22 @@ async def should_fail(
     return content
 
 
-async def wait_for_comm_task(
-    evo: evo2.EvohomeClient,
-    task_id: str,
-    timeout: int = 3,
-) -> bool | None:
+async def wait_for_comm_task(evo: evo2.EvohomeClient, task_id: str) -> bool | None:
     """Wait for a communication task (API call) to complete."""
+
+    # invoke via:
+    # async with asyncio.timeout(2):
+    #     await wait_for_comm_task()
 
     await asyncio.sleep(0.5)
 
     url = f"commTasks?commTaskId={task_id}"
 
-    start_time = dt.now()
     while True:
         response = await should_work(evo, HTTPMethod.GET, url)
         assert isinstance(response, dict | list), response
         if response["state"] == "Succeeded":  # type: ignore[call-overload]
             return True
-        if (dt.now() - start_time).total_seconds() > timeout:
-            return False
         if response["state"] in ("Created", "Running"):  # type: ignore[call-overload]
             await asyncio.sleep(0.3)
             continue
