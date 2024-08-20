@@ -15,7 +15,7 @@ import aiofiles.os
 import aiohttp
 import asyncclick as click
 
-from . import HotWater, Zone
+from . import HotWater, Zone, exceptions as exc
 from .base import EvohomeClient
 from .broker import AbstractTokenManager, _EvoTokenData
 from .const import SZ_NAME, SZ_SCHEDULE
@@ -29,11 +29,9 @@ _DBG_DEBUG_CLI = False  # for debugging of CLI (*before* loading EvohomeClient l
 DEBUG_ADDR = "0.0.0.0"
 DEBUG_PORT = 5679
 
-SZ_CACHE_TOKENS: Final = "cache_tokens"
+SZ_CLEANUP: Final = "cleanup"
 SZ_EVO: Final = "evo"
-SZ_TOKEN_MANAGER: Final = "token_manager"
 SZ_USERNAME: Final = "username"
-SZ_WEBSESSION: Final = "websession"
 
 TOKEN_CACHE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tmp")
 
@@ -162,26 +160,6 @@ class TokenManager(AbstractTokenManager):
             await fp.write(content)
 
 
-def _startup(client_id: str, secret: str) -> tuple[aiohttp.ClientSession, TokenManager]:
-    """Create a web session and token manager."""
-
-    websession = aiohttp.ClientSession()  # timeout=aiohttp.ClientTimeout(total=30))
-    return websession, TokenManager(
-        client_id, secret, websession, token_cache=TOKEN_CACHE
-    )
-
-
-async def _cleanup(
-    session: aiohttp.ClientSession,
-    token_manager: TokenManager,
-    evo: EvohomeClient,
-) -> None:
-    """Close the web session and save the access token to the cache."""
-
-    await session.close()
-    await token_manager.save_access_token(evo)  # TODO: remove when no longer needed
-
-
 @click.group()
 @click.option("--username", "-u", required=True, help="The TCC account username.")
 @click.option("--password", "-p", required=True, help="The TCC account password.")
@@ -198,6 +176,16 @@ async def cli(
     # if debug:  # Do first
     #     _start_debugging(True)
 
+    async def cleanup(
+        session: aiohttp.ClientSession,
+        token_manager: TokenManager,
+        evo: EvohomeClient,
+    ) -> None:
+        """Close the web session and save the access token to the cache."""
+
+        await session.close()
+        await token_manager.save_access_token(evo)  # TODO: remove when no longer needed
+
     logging.basicConfig(
         level=logging.DEBUG if debug else logging.WARNING,
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
@@ -205,17 +193,27 @@ async def cli(
         stream=sys.stdout,
     )
 
-    websession, token_manager = _startup(username, password)
+    websession = aiohttp.ClientSession()  # timeout=aiohttp.ClientTimeout(total=30))
+    token_manager = TokenManager(
+        username, password, websession, token_cache=TOKEN_CACHE
+    )
 
+    # FIXME: TokenManager will (may?) load tokens from cache, even if not requested
     if cache_tokens:
-        await token_manager._load_access_token()  # not: fetch_access_token()
+        await token_manager._load_access_token()  # TODO: fetch_access_token()
 
-    ctx.obj[SZ_WEBSESSION] = websession
-    ctx.obj[SZ_TOKEN_MANAGER] = token_manager
+    evo = EvohomeClient(token_manager, websession, debug=bool(debug))
 
-    ctx.obj[SZ_EVO] = evo = EvohomeClient(token_manager, websession, debug=bool(debug))
+    try:
+        await evo.login()
+    except exc.AuthenticationFailed:
+        await websession.close()
+        raise
 
-    await evo.login()
+    # TODO: use a typed dict for ctx.obj
+    ctx.obj[SZ_EVO] = evo
+    ctx.obj[SZ_CLEANUP] = cleanup(websession, token_manager, evo)
+
     await token_manager.save_access_token(evo)  # TODO: remove when no longer needed
 
 
@@ -251,7 +249,7 @@ async def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> Non
     result = await get_state(evo, loc_idx)
     await _write(filename, json.dumps(result, indent=4) + "\r\n\r\n")
 
-    await _cleanup(ctx.obj[SZ_WEBSESSION], ctx.obj[SZ_TOKEN_MANAGER], ctx.obj[SZ_EVO])
+    await ctx.obj[SZ_CLEANUP]
     print(" - finished.\r\n")
 
 
@@ -290,7 +288,7 @@ async def get_schedule(
     schedule = await get_schedule(evo, zone_id, loc_idx)
     await _write(filename, json.dumps(schedule, indent=4) + "\r\n\r\n")
 
-    await _cleanup(ctx.obj[SZ_WEBSESSION], ctx.obj[SZ_TOKEN_MANAGER], ctx.obj[SZ_EVO])
+    await ctx.obj[SZ_CLEANUP]
     print(" - finished.\r\n")
 
 
@@ -321,7 +319,7 @@ async def get_schedules(
     schedules = await get_schedules(evo, loc_idx)
     await _write(filename, json.dumps(schedules, indent=4) + "\r\n\r\n")
 
-    await _cleanup(ctx.obj[SZ_WEBSESSION], ctx.obj[SZ_TOKEN_MANAGER], ctx.obj[SZ_EVO])
+    await ctx.obj[SZ_CLEANUP]
     print(" - finished.\r\n")
 
 
@@ -351,7 +349,7 @@ async def set_schedules(
     schedules = json.loads(content)
     success = await _get_tcs(evo, loc_idx).set_schedules(schedules)
 
-    await _cleanup(ctx.obj[SZ_WEBSESSION], ctx.obj[SZ_TOKEN_MANAGER], ctx.obj[SZ_EVO])
+    await ctx.obj[SZ_CLEANUP]
     print(f" - finished{'' if success else ' (with errors)'}.\r\n")
 
 
