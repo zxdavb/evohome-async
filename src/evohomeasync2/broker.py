@@ -141,12 +141,12 @@ class AbstractTokenManager(ABC):
         if self.is_token_data_valid():
             return
 
-        _LOGGER.debug("No/Expired/Invalid access_token, re-authenticating.")
+        _LOGGER.warning("No/Expired/Invalid access_token, re-authenticating.")
         self.access_token = ""
         self.access_token_expires = dt.now()
 
         if self.refresh_token:
-            _LOGGER.debug("Authenticating with the refresh_token...")
+            _LOGGER.warning("Authenticating with the refresh_token...")
             credentials = {SZ_REFRESH_TOKEN: self.refresh_token}
 
             try:
@@ -160,14 +160,14 @@ class AbstractTokenManager(ABC):
                 self.refresh_token = ""
 
         if not self.refresh_token:
-            _LOGGER.debug("Authenticating with username/password...")
+            _LOGGER.warning("Authenticating with username/password...")
             await self._obtain_access_token(**(CREDS_USER_PASSWORD | self._credentials))
 
         # await self.save_access_token()
 
-        _LOGGER.debug(f"refresh_token = {self.refresh_token}")
-        _LOGGER.debug(f"access_token = {self.access_token}")
-        _LOGGER.debug(f"access_token_expires = {self.access_token_expires}")
+        _LOGGER.warning(f"refresh_token = {self.refresh_token}")
+        _LOGGER.warning(f"access_token = {self.access_token}")
+        _LOGGER.warning(f"access_token_expires = {self.access_token_expires}")
 
     async def _obtain_access_token(self, **kwargs: Any) -> aiohttp.ClientResponse:
         """Obtain an access token via the vendor's web API.
