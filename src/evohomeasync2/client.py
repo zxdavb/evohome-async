@@ -214,9 +214,6 @@ async def cli(
 
     websession, token_manager = _startup(username, password)
 
-    ctx.obj[SZ_WEBSESSION] = websession
-    ctx.obj[SZ_TOKEN_MANAGER] = token_manager
-
     if not cache_tokens:
         tokens = {}
 
@@ -228,6 +225,9 @@ async def cli(
             SZ_ACCESS_TOKEN_EXPIRES: token_manager.access_token_expires,
             SZ_REFRESH_TOKEN: token_manager.refresh_token,
         }
+
+    ctx.obj[SZ_WEBSESSION] = websession
+    ctx.obj[SZ_TOKEN_MANAGER] = token_manager
 
     ctx.obj[SZ_EVO] = evo = EvohomeClient(
         username,
