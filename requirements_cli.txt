@@ -1,0 +1,9 @@
+# last checked/updated: 2024/06/24
+#
+
+# for using the the library via the CLI, client.py (includes requirements.txt)
+  -r requirements.txt
+
+# used for CLI, but not for library
+  aiofiles>=24.1.0
+  asyncclick>=8.1.7
