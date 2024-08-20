@@ -4,16 +4,20 @@
 import asyncio
 import json
 import logging
-import os
 import sys
-from datetime import datetime as dt
+import tempfile
 from io import TextIOWrapper
+from pathlib import Path
 from typing import Final
 
-import click
+import aiofiles
+import aiofiles.os
+import aiohttp
+import asyncclick as click
 
 from . import HotWater, Zone
 from .base import EvohomeClient
+from .broker import AbstractTokenManager, _EvoTokenData
 from .const import SZ_NAME, SZ_SCHEDULE
 from .controlsystem import ControlSystem
 from .schema import SZ_ACCESS_TOKEN, SZ_ACCESS_TOKEN_EXPIRES, SZ_REFRESH_TOKEN
@@ -27,10 +31,11 @@ DEBUG_PORT = 5679
 
 SZ_CACHE_TOKENS: Final = "cache_tokens"
 SZ_EVO: Final = "evo"
+SZ_TOKEN_MANAGER: Final = "token_manager"
 SZ_USERNAME: Final = "username"
+SZ_WEBSESSION: Final = "websession"
 
-TOKEN_FILE: Final = ".evo-cache.tmp"
-
+TOKEN_CACHE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tmp")
 
 _LOGGER: Final = logging.getLogger(__name__)
 
@@ -83,41 +88,70 @@ def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
     return evo.locations[int(loc_idx)]._gateways[0]._control_systems[0]
 
 
-def _dump_tokens(evo: EvohomeClient) -> None:
-    """Dump the tokens to a cache (temporary file)."""
+class TokenManager(AbstractTokenManager):
+    """A token manager that uses a cache file to store the tokens."""
 
-    expires = evo.access_token_expires.isoformat() if evo.access_token_expires else None
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        websession: aiohttp.ClientSession,
+        /,
+        *,
+        token_cache: Path | None = None,
+    ) -> None:
+        super().__init__(username, password, websession)
 
-    with open(TOKEN_FILE, "w") as fp:
-        json.dump(
-            {
-                # SZ_USERNAME: evo.username,
-                SZ_REFRESH_TOKEN: evo.refresh_token,
-                SZ_ACCESS_TOKEN: evo.access_token,
-                SZ_ACCESS_TOKEN_EXPIRES: expires,
-            },
-            fp,
+        self._token_cache = token_cache
+
+    @property
+    def token_cache(self) -> str:
+        """Return the token cache path."""
+        return str(self._token_cache)
+
+    async def fetch_access_token(self) -> None:  # HA api
+        """If required, fetch an (updated) access token (somehow).
+
+        If there is a valid cached token use that, otherwise fetch via the web API.
+        """
+
+        if self.is_token_data_valid():
+            return
+
+        self._load_access_token()
+
+        if not self.is_token_data_valid():
+            await super().fetch_access_token()
+            self.save_access_token()
+
+    async def _load_access_token(self) -> None:
+        """Load the tokens from a cache (temporary file)."""
+
+        self._token_data_reset()
+
+        try:
+            async with aiofiles.open(self._token_cache) as fp:
+                content = await fp.read()
+        except FileNotFoundError:
+            return
+
+        try:
+            tokens: _EvoTokenData = json.loads(content)
+        except json.JSONDecodeError:
+            return
+
+        if tokens.pop(SZ_USERNAME) == self.username:
+            self._token_data_from_dict(tokens)
+
+    async def save_access_token(self, evo: EvohomeClient) -> None:  # HA api
+        """Dump the tokens to a cache (temporary file)."""
+
+        content = json.dumps(
+            {SZ_USERNAME: self.username} | self._token_data_as_dict(evo)
         )
 
-    _LOGGER.warning("Access tokens cached to: %s", TOKEN_FILE)
-
-
-def _load_tokens() -> dict[str, dt | str]:
-    """Load the tokens from a cache (temporary file)."""
-
-    if not os.path.exists(TOKEN_FILE):
-        return {}
-
-    with open(TOKEN_FILE) as f:
-        tokens = json.load(f)
-
-    if SZ_ACCESS_TOKEN_EXPIRES not in tokens:
-        return tokens  # type: ignore[no-any-return]
-
-    if expires := tokens[SZ_ACCESS_TOKEN_EXPIRES]:
-        tokens[SZ_ACCESS_TOKEN_EXPIRES] = dt.fromisoformat(expires)
-
-    return tokens  # type: ignore[no-any-return]
+        async with aiofiles.open(self._token_cache, "w") as fp:
+            await fp.write(content)
 
 
 @click.group()
@@ -126,11 +160,10 @@ def _load_tokens() -> dict[str, dt | str]:
 @click.option("--cache-tokens", "-c", is_flag=True, help="Use a token cache.")
 @click.option("--debug", "-d", is_flag=True, help="Enable debug logging.")
 @click.pass_context
-def cli(
+async def cli(
     ctx: click.Context,
     username: str,
     password: str,
-    location: int | None = None,
     cache_tokens: bool | None = None,
     debug: bool | None = None,
 ) -> None:
@@ -144,16 +177,30 @@ def cli(
         stream=sys.stdout,
     )
 
-    ctx.obj = ctx.obj or {}  # may be None
-    ctx.obj[SZ_CACHE_TOKENS] = cache_tokens
+    ctx.obj[SZ_WEBSESSION] = websession = (
+        aiohttp.ClientSession()
+    )  # timeout=aiohttp.ClientTimeout(total=30))
 
-    tokens = _load_tokens() if cache_tokens else {}
+    ctx.obj[SZ_TOKEN_MANAGER] = token_manager = TokenManager(
+        username, password, websession, token_cache=TOKEN_CACHE
+    )
+
+    if not cache_tokens:
+        tokens = {}
+    else:
+        await token_manager._load_access_token()  # not: fetch_access_token()
+        tokens = {
+            SZ_ACCESS_TOKEN: token_manager.access_token,
+            SZ_ACCESS_TOKEN_EXPIRES: token_manager.access_token_expires,
+            SZ_REFRESH_TOKEN: token_manager.refresh_token,
+        }
 
     ctx.obj[SZ_EVO] = EvohomeClient(
         username,
         password,
+        **tokens,
+        session=websession,
         debug=bool(debug),
-        **tokens,  # type: ignore[arg-type]
     )
 
 
@@ -170,7 +217,7 @@ def cli(
     "--filename", "-f", type=click.File("w"), default="-", help="The output file."
 )
 @click.pass_context
-def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
+async def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
     """Download all the global config and the location status."""
 
     async def get_state(evo: EvohomeClient, loc_idx: int | None) -> _ScheduleT:
@@ -191,13 +238,12 @@ def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
     print("\r\nclient.py: Starting dump of config and status...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    coro = get_state(evo, loc_idx)
-    result = asyncio.get_event_loop().run_until_complete(coro)
+    result = await get_state(evo, loc_idx)
 
     filename.write(json.dumps(result, indent=4) + "\r\n\r\n")
 
-    if ctx.obj[SZ_CACHE_TOKENS]:
-        _dump_tokens(evo)
+    await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(ctx.obj[SZ_EVO])
+    result = await ctx.obj[SZ_WEBSESSION].close()
     print(" - finished.\r\n")
 
 
@@ -215,7 +261,7 @@ def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
     "--filename", "-f", type=click.File("w"), default="-", help="The output file."
 )
 @click.pass_context
-def get_schedule(
+async def get_schedule(
     ctx: click.Context, zone_id: str, loc_idx: int, filename: TextIOWrapper
 ) -> None:
     """Download the schedule of a zone of a TCS (WIP)."""
@@ -245,13 +291,11 @@ def get_schedule(
     print("\r\nclient.py: Starting backup of zone schedule (WIP)...")
     evo = ctx.obj[SZ_EVO]
 
-    coro = get_schedule(evo, zone_id, loc_idx)
-    schedule = asyncio.get_event_loop().run_until_complete(coro)
+    schedule = await get_schedule(evo, zone_id, loc_idx)
 
     filename.write(json.dumps(schedule, indent=4) + "\r\n\r\n")
 
-    if ctx.obj[SZ_CACHE_TOKENS]:
-        _dump_tokens(evo)
+    await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(evo)
     print(" - finished.\r\n")
 
 
@@ -268,7 +312,9 @@ def get_schedule(
     "--filename", "-f", type=click.File("w"), default="-", help="The output file."
 )
 @click.pass_context
-def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
+async def get_schedules(
+    ctx: click.Context, loc_idx: int, filename: TextIOWrapper
+) -> None:
     """Download all the schedules from a TCS."""
 
     async def get_schedules(evo: EvohomeClient, loc_idx: int | None) -> _ScheduleT:
@@ -287,13 +333,11 @@ def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
     print("\r\nclient.py: Starting backup of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    coro = get_schedules(evo, loc_idx)
-    schedules = asyncio.get_event_loop().run_until_complete(coro)
+    schedules = await get_schedules(evo, loc_idx)
 
     filename.write(json.dumps(schedules, indent=4) + "\r\n\r\n")
 
-    if ctx.obj[SZ_CACHE_TOKENS]:
-        _dump_tokens(evo)
+    await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(evo)
     print(" - finished.\r\n")
 
 
@@ -308,7 +352,9 @@ def get_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
 )
 @click.option("--filename", "-f", type=click.File(), help="The input file.")
 @click.pass_context
-def set_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
+async def set_schedules(
+    ctx: click.Context, loc_idx: int, filename: TextIOWrapper
+) -> None:
     """Upload schedules to a TCS."""
 
     async def set_schedules(
@@ -331,17 +377,17 @@ def set_schedules(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> 
 
     schedules = json.loads(filename.read())
 
-    coro = set_schedules(evo, schedules, loc_idx)
-    success = asyncio.get_event_loop().run_until_complete(coro)
+    success = await set_schedules(evo, schedules, loc_idx)
 
-    if ctx.obj[SZ_CACHE_TOKENS]:
-        _dump_tokens(evo)
+    await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(evo)
     print(f" - finished{'' if success else ' (with errors)'}.\r\n")
 
 
 def main() -> None:
+    """Run the CLI."""
+
     try:
-        cli(obj={})  # default for ctx.obj is None
+        asyncio.run(cli(obj={}))  # default for ctx.obj is None
 
     except click.ClickException as err:
         print(f"Error: {err}")
