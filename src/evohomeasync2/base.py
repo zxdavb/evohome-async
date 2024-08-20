@@ -26,6 +26,26 @@ _LOGGER: Final = logging.getLogger(__name__.rpartition(".")[0])
 class EvohomeClientDeprecated:
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
+    @property
+    def username(self) -> NoReturn:
+        raise exc.DeprecationError(f"{self}: username attr is deprecated")
+
+    @property
+    def password(self) -> NoReturn:
+        raise exc.DeprecationError(f"{self}: password attr is deprecated")
+
+    @property
+    def refresh_token(self) -> NoReturn:
+        raise exc.DeprecationError(f"{self}: refresh_token attr is deprecated")
+
+    @property
+    def access_token(self) -> NoReturn:
+        raise exc.DeprecationError(f"{self}: access_token attr is deprecated")
+
+    @property
+    def access_token_expires(self) -> NoReturn:
+        raise exc.DeprecationError(f"{self}: access_token_expires attrs is deprecated")
+
     async def full_installation(
         self, location_id: None | _LocationIdT = None
     ) -> NoReturn:
@@ -128,34 +148,13 @@ class EvohomeClient(EvohomeClientDeprecated):
             self._logger.setLevel(logging.DEBUG)
             self._logger.debug("Debug mode is explicitly enabled.")
 
-        self._username = token_manager.username  # for __str__
-
+        self.token_manager = token_manager
         self.broker = Broker(token_manager, session, _LOGGER)
 
         self.locations: list[Location] = []
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__}(username='{self._username}')"
-
-    @property
-    def username(self) -> str:  # TODO: deprecate? or use config JSON?
-        return self.broker._credentials["Username"]
-
-    @property
-    def password(self) -> str:  # TODO: deprecate
-        return self.broker._credentials["Password"]
-
-    @property
-    def refresh_token(self) -> str | None:  # TODO: deprecate
-        return self.broker.refresh_token
-
-    @property
-    def access_token(self) -> str | None:  # TODO: deprecate
-        return self.broker.access_token
-
-    @property
-    def access_token_expires(self) -> dt | None:  # TODO: deprecate
-        return self.broker.access_token_expires
+        return f"{self.__class__.__name__}(token_manager='{self.token_manager}')"
 
     async def login(self) -> None:
         """Retrieve the user account and installation details.
