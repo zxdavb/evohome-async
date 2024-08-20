@@ -213,9 +213,7 @@ async def cli(
     ctx.obj[SZ_WEBSESSION] = websession
     ctx.obj[SZ_TOKEN_MANAGER] = token_manager
 
-    ctx.obj[SZ_EVO] = evo = EvohomeClient(
-        token_manager, session=websession, debug=bool(debug)
-    )
+    ctx.obj[SZ_EVO] = evo = EvohomeClient(token_manager, websession, debug=bool(debug))
 
     await evo.login()
     await token_manager.save_access_token(evo)  # TODO: remove when no longer needed

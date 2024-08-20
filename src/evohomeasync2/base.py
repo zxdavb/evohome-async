@@ -107,9 +107,9 @@ class EvohomeClient(EvohomeClientDeprecated):
     def __init__(
         self,
         token_manager: AbstractTokenManager,
+        session: aiohttp.ClientSession,
         /,
         *,
-        session: None | aiohttp.ClientSession = None,
         debug: bool = False,
     ) -> None:
         """Construct the v2 EvohomeClient object.
@@ -130,15 +130,7 @@ class EvohomeClient(EvohomeClientDeprecated):
 
         self._username = token_manager.username  # for __str__
 
-        self.broker = Broker(
-            token_manager.username,
-            token_manager._password,
-            _LOGGER,
-            refresh_token=token_manager.refresh_token,
-            access_token=token_manager.access_token,
-            access_token_expires=token_manager.access_token_expires,
-            session=session,
-        )
+        self.broker = Broker(token_manager, session, _LOGGER)
 
         self.locations: list[Location] = []
 

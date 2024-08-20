@@ -218,31 +218,20 @@ class Broker:
 
     def __init__(
         self,
-        username: str,
-        password: str,
+        token_manager: AbstractTokenManager,
+        session: aiohttp.ClientSession,
         logger: logging.Logger,
-        /,
-        *,
-        refresh_token: str | None = None,
-        access_token: str | None = None,
-        access_token_expires: dt | None = None,
-        session: aiohttp.ClientSession | None = None,
     ) -> None:
         """A class for interacting with the v2 Evohome API."""
 
-        self._credentials = {
-            "Username": username,
-            "Password": password,
-        }  # TODO: these keys are only PascalCase (never camelCase?)
+        self._credentials = token_manager._credentials
+
+        self.refresh_token = token_manager.refresh_token
+        self.access_token = token_manager.access_token
+        self.access_token_expires = token_manager.access_token_expires
+
+        self._session = session
         self._logger = logger
-
-        self.refresh_token = refresh_token
-        self.access_token = access_token
-        self.access_token_expires = access_token_expires
-
-        self._session = session or aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30)
-        )  # ??? can't instantiate aiohttp.ClientSession() here
 
     async def _client(
         self,

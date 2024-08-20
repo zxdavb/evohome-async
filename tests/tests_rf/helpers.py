@@ -163,7 +163,7 @@ async def instantiate_client_v2(
     await _global_token_manager._load_access_token()
 
     # Instantiation, NOTE: No API calls invoked during instantiation
-    evo = evo2.EvohomeClient(_global_token_manager, session=session)
+    evo = evo2.EvohomeClient(_global_token_manager, session)
 
     # Authentication - dont use evo.broker._login() as
     if dont_login:
