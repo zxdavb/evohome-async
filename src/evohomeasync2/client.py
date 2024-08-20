@@ -192,7 +192,7 @@ async def _cleanup(
 @click.group()
 @click.option("--username", "-u", required=True, help="The TCC account username.")
 @click.option("--password", "-p", required=True, help="The TCC account password.")
-@click.option("--cache-tokens", "-c", is_flag=True, help="Use a token cache.")
+@click.option("--cache-tokens", "-c", is_flag=True, help="Load the token cache.")
 @click.option("--debug", "-d", is_flag=True, help="Enable debug logging.")
 @click.pass_context
 async def cli(
