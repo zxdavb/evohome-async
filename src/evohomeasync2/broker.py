@@ -179,7 +179,7 @@ class Broker:
             credentials = {SZ_REFRESH_TOKEN: self.refresh_token}
 
             try:
-                await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)  # type: ignore[operator]
+                await self._obtain_access_token(CREDS_REFRESH_TOKEN | credentials)  # type: ignore[arg-type]
 
             except exc.AuthenticationFailed as err:
                 if err.status != HTTPStatus.BAD_REQUEST:  # e.g. invalid tokens
@@ -192,7 +192,7 @@ class Broker:
 
         if not self.refresh_token:
             self._logger.debug("Authenticating with username/password...")
-            await self._obtain_access_token(CREDS_USER_PASSWORD | self._credentials)  # type: ignore[operator]
+            await self._obtain_access_token(CREDS_USER_PASSWORD | self._credentials)  # type: ignore[arg-type]
 
         _LOGGER.debug(f"refresh_token = {self.refresh_token}")
         _LOGGER.debug(f"access_token = {self.access_token}")
@@ -225,7 +225,7 @@ class Broker:
             # <title>Authorize error <h1>Authorization failed
             # <p>The authorization server have encoutered an error while processing...
             raise exc.AuthenticationFailed(
-                f"Invalid response from server: POST {AUTH_URL}: %s", content
+                f"Invalid response from server: POST {AUTH_URL}: {content}"
             )
 
         try:  # the access token _should_ be valid...
@@ -359,11 +359,11 @@ class AbstractTokenManager(ABC):
 
     # HACK: sometimes using evo, not self
     def _token_data_as_dict(self, evo: EvohomeClient | None) -> _EvoTokenData:
-        if evo is not None:
+        if evo is not None:  # TODO: remove this
             return {
-                SZ_ACCESS_TOKEN: evo.access_token,
-                SZ_ACCESS_TOKEN_EXPIRES: evo.access_token_expires.isoformat(),
-                SZ_REFRESH_TOKEN: evo.refresh_token,
+                SZ_ACCESS_TOKEN: evo.access_token,  # type: ignore[typeddict-item]
+                SZ_ACCESS_TOKEN_EXPIRES: evo.access_token_expires.isoformat(),  # type: ignore[union-attr]
+                SZ_REFRESH_TOKEN: evo.refresh_token,  # type: ignore[typeddict-item]
             }
         return {
             SZ_ACCESS_TOKEN: self.access_token,
@@ -386,45 +386,7 @@ class AbstractTokenManager(ABC):
         If there is a valid cached token use that, otherwise fetch via the web API.
         """
 
-        _LOGGER.debug("No/Expired/Invalid access_token, re-authenticating.")
-        if self.refresh_token:
-            _LOGGER.debug("Authenticating with the refresh_token...")
-            try:
-                response = await self._request_access_token(
-                    CREDS_REFRESH_TOKEN | {SZ_REFRESH_TOKEN: self.refresh_token}
-                )
-            except exc.AuthenticationFailed as err:
-                if err.status != HTTPStatus.BAD_REQUEST:  # e.g. != invalid tokens
-                    raise
-
-                _LOGGER.warning(
-                    "Likely Invalid refresh_token (will try username/password)"
-                )
-                self.refresh_token = None
-
-        if self.refresh_token is None:
-            _LOGGER.debug("Authenticating with username/password...")
-            response = await self._request_access_token(
-                CREDS_USER_PASSWORD | self._user_credentials
-            )
-
-        try:
-            token_data = SCH_OAUTH_TOKEN(await response.json())
-        except vol.Invalid as err:
-            raise exc.AuthenticationFailed(f"Server response invalid: {err}") from err
-
-        try:
-            self.access_token = token_data[SZ_ACCESS_TOKEN]
-            self.access_token_expires = dt.now() + td(
-                seconds=token_data[SZ_EXPIRES_IN] - 15
-            )
-            self.refresh_token = token_data[SZ_REFRESH_TOKEN]
-        except (KeyError, TypeError) as err:
-            raise exc.AuthenticationFailed(f"Server response invalid: {err}") from err
-
-        _LOGGER.debug(f"refresh_token = {self.refresh_token}")
-        _LOGGER.debug(f"access_token = {self.access_token}")
-        _LOGGER.debug(f"access_token_expires = {self.access_token_expires}")
+        raise NotImplementedError
 
     async def _request_access_token(self, **kwargs: Any) -> aiohttp.ClientResponse:
         """Fetch an access token via the vendor's web API."""
