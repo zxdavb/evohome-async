@@ -93,6 +93,16 @@ def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
     return evo.locations[int(loc_idx)]._gateways[0]._control_systems[0]
 
 
+async def _write(filename: TextIOWrapper, content: str) -> None:
+    """Write to a file, async if possible and sync otherwise."""
+
+    try:
+        async with aiofiles.open(filename, "w") as fp:  # type: ignore[call-overload]
+            await fp.write(content)
+    except TypeError:  # if filename is sys.stdout:
+        filename.write(content)
+
+
 class TokenManager(AbstractTokenManager):
     """A token manager that uses a cache file to store the tokens."""
 
@@ -244,10 +254,7 @@ async def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> Non
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     result = await get_state(evo, loc_idx)
-    content = json.dumps(result, indent=4) + "\r\n\r\n"
-
-    async with aiofiles.open(filename, "w") as fp:  # type: ignore[call-overload]
-        await fp.write(content)
+    await _write(filename, json.dumps(result, indent=4) + "\r\n\r\n")
 
     await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(ctx.obj[SZ_EVO])
     result = await ctx.obj[SZ_WEBSESSION].close()
@@ -294,10 +301,7 @@ async def get_schedule(
     evo = ctx.obj[SZ_EVO]
 
     schedule = await get_schedule(evo, zone_id, loc_idx)
-    content = json.dumps(schedule, indent=4) + "\r\n\r\n"
-
-    async with aiofiles.open(filename, "w") as fp:  # type: ignore[call-overload]
-        await fp.write(content)
+    await _write(filename, json.dumps(schedule, indent=4) + "\r\n\r\n")
 
     await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(evo)
     print(" - finished.\r\n")
@@ -338,10 +342,7 @@ async def get_schedules(
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     schedules = await get_schedules(evo, loc_idx)
-    content = json.dumps(schedules, indent=4) + "\r\n\r\n"
-
-    async with aiofiles.open(filename, "w") as fp:  # type: ignore[call-overload]
-        await fp.write(content)
+    await _write(filename, json.dumps(schedules, indent=4) + "\r\n\r\n")
 
     await ctx.obj[SZ_TOKEN_MANAGER].save_access_token(evo)
     print(" - finished.\r\n")
@@ -381,6 +382,7 @@ async def set_schedules(
     print("\r\nclient.py: Starting restore of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
+    # this will TypeError if filename is sys.stdin
     async with aiofiles.open(filename, "r") as fp:  # type: ignore[call-overload]
         content = await fp.read()
 
