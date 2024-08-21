@@ -160,19 +160,19 @@ async def instantiate_client_v2(
             *user_credentials, session, token_cache=TOKEN_CACHE
         )
 
-    await _global_token_manager._load_access_token()
+    await _global_token_manager.restore_access_token()
 
     # Instantiation, NOTE: No API calls invoked during instantiation
     evo = evo2.EvohomeClient(_global_token_manager, session)
 
     # Authentication - dont use evo.broker._login() as
     if dont_login:
-        await evo.broker._basic_login()  # will force token refresh
+        await evo.broker.token_manager._update_access_token()  # force token refresh
     else:
         await evo.login()  # will use cached tokens, if able
         # will also call evo.user_account(), evo.installation()
 
-    await _global_token_manager.save_access_token(evo)
+    await _global_token_manager.save_access_token()
 
     return evo
 

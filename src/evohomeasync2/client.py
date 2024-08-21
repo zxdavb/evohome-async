@@ -6,9 +6,10 @@ import json
 import logging
 import sys
 import tempfile
+from datetime import datetime as dt
 from io import TextIOWrapper
 from pathlib import Path
-from typing import Final
+from typing import Any, Final
 
 import aiofiles
 import aiofiles.os
@@ -21,6 +22,7 @@ from .base import EvohomeClient
 from .broker import AbstractTokenManager, _EvoTokenData
 from .const import SZ_NAME, SZ_SCHEDULE
 from .controlsystem import ControlSystem
+from .schema import SZ_ACCESS_TOKEN_EXPIRES
 
 # all _DBG_* flags should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of click
@@ -87,7 +89,7 @@ def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
     return evo.locations[int(loc_idx)]._gateways[0]._control_systems[0]
 
 
-async def _write(filename: TextIOWrapper, content: str) -> None:
+async def _write(filename: TextIOWrapper | Any, content: str) -> None:
     """Write to a file, async if possible and sync otherwise."""
 
     try:
@@ -118,23 +120,11 @@ class TokenManager(AbstractTokenManager):
         """Return the token cache path."""
         return str(self._token_cache)
 
-    async def fetch_access_token(self) -> str:  # HA api
-        """Ensure the (cached) access token is valid.
+    async def restore_access_token(self) -> None:
+        """Load the tokens from a cache (temporary file).
 
-        If required, fetch a new token via the vendor's web API.
+        Reset the token data if the cache is not found, or is for a different user.
         """
-
-        if not self.is_token_data_valid():
-            await self._load_access_token()
-
-        if not self.is_token_data_valid():
-            await super().fetch_access_token()
-            await self.save_access_token(None)
-
-        return self.access_token
-
-    async def _load_access_token(self) -> None:
-        """Load the tokens from a cache (temporary file)."""
 
         self._token_data_reset()
 
@@ -144,19 +134,35 @@ class TokenManager(AbstractTokenManager):
         except FileNotFoundError:
             return
 
-        try:
-            tokens: _EvoTokenData = json.loads(content)
-        except json.JSONDecodeError:
-            return
+        # allow to fail if json.JSONDecodeError:
+        tokens_cache: dict[str, _EvoTokenData] = json.loads(content)
 
-        if tokens.pop(SZ_USERNAME) == self.username:
+        if tokens := tokens_cache.get(self.username):
             self._token_data_from_dict(tokens)
 
-    async def save_access_token(self, evo: EvohomeClient | None) -> None:  # type: ignore[override]
+    async def save_access_token(self) -> None:
         """Dump the tokens to a cache (temporary file)."""
 
+        try:
+            async with aiofiles.open(self._token_cache) as fp:
+                content = await fp.read()
+        except FileNotFoundError:
+            content = "{}"
+
+        try:
+            token_cache = json.loads(content)
+        except json.JSONDecodeError:
+            token_cache = {}
+
+        # remove any expired tokens
+        token_cache = {
+            k: v
+            for k, v in token_cache.items()
+            if v[SZ_ACCESS_TOKEN_EXPIRES] > dt.now().isoformat()
+        }
+
         content = json.dumps(
-            {SZ_USERNAME: self.username} | self._token_data_as_dict(evo)
+            token_cache | {self.username: self._token_data_as_dict()}, indent=4
         )
 
         async with aiofiles.open(self._token_cache, "w") as fp:
@@ -184,12 +190,11 @@ async def cli(
     async def cleanup(
         session: aiohttp.ClientSession,
         token_manager: TokenManager,
-        evo: EvohomeClient,
     ) -> None:
         """Close the web session and save the access token to the cache."""
 
         await session.close()
-        await token_manager.save_access_token(evo)  # TODO: remove when no longer needed
+        await token_manager.save_access_token()
 
     logging.basicConfig(
         level=logging.DEBUG if debug else logging.WARNING,
@@ -203,9 +208,8 @@ async def cli(
         username, password, websession, token_cache=TOKEN_CACHE
     )
 
-    # FIXME: TokenManager will (may?) load tokens from cache, even if not requested
-    if cache_tokens:
-        await token_manager._load_access_token()  # TODO: fetch_access_token()
+    if cache_tokens:  # restore cached tokens, if any
+        await token_manager.restore_access_token()
 
     evo = EvohomeClient(token_manager, websession, debug=bool(debug))
 
@@ -217,9 +221,7 @@ async def cli(
 
     # TODO: use a typed dict for ctx.obj
     ctx.obj[SZ_EVO] = evo
-    ctx.obj[SZ_CLEANUP] = cleanup(websession, token_manager, evo)
-
-    await token_manager.save_access_token(evo)  # TODO: remove when no longer needed
+    ctx.obj[SZ_CLEANUP] = cleanup(websession, token_manager)
 
 
 @cli.command()
@@ -238,7 +240,9 @@ async def mode(ctx: click.Context, loc_idx: int) -> None:
     print("\r\nclient.py: Retreiving the system mode...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    await _write(sys.stdout, "\r\n" + _get_tcs(evo, loc_idx).system_mode + "\r\n\r\n")
+    await _write(
+        sys.stdout, "\r\n" + str(_get_tcs(evo, loc_idx).system_mode) + "\r\n\r\n"
+    )
 
     await ctx.obj[SZ_CLEANUP]
     print(" - finished.\r\n")
