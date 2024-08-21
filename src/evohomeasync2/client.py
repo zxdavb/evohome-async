@@ -14,6 +14,7 @@ import aiofiles
 import aiofiles.os
 import aiohttp
 import asyncclick as click
+import debugpy  # type: ignore[import-untyped]
 
 from . import HotWater, Zone, exceptions as exc
 from .base import EvohomeClient
@@ -22,7 +23,7 @@ from .const import SZ_NAME, SZ_SCHEDULE
 from .controlsystem import ControlSystem
 
 # all _DBG_* flags should be False for published code
-_DBG_DEBUG_CLI = False  # for debugging of CLI (*before* loading EvohomeClient library)
+_DBG_DEBUG_CLI = False  # for debugging of click
 
 DEBUG_ADDR = "0.0.0.0"
 DEBUG_PORT = 5679
@@ -37,12 +38,14 @@ _LOGGER: Final = logging.getLogger(__name__)
 
 
 def _start_debugging(wait_for_client: bool) -> None:
-    import debugpy  # type: ignore[import-untyped]
+    try:
+        debugpy.listen(address=(DEBUG_ADDR, DEBUG_PORT))
+    except RuntimeError:
+        print(f" - Debugging is already enabled on: {DEBUG_ADDR}:{DEBUG_PORT}")
+    else:
+        print(f" - Debugging is enabled, listening on: {DEBUG_ADDR}:{DEBUG_PORT}")
 
-    debugpy.listen(address=(DEBUG_ADDR, DEBUG_PORT))
-    print(f" - Debugging is enabled, listening on: {DEBUG_ADDR}:{DEBUG_PORT}")
-
-    if wait_for_client:
+    if wait_for_client and not debugpy.is_client_connected():
         print("   - execution paused, waiting for debugger to attach...")
         debugpy.wait_for_client()
         print("   - debugger is now attached, continuing execution.")
@@ -173,8 +176,10 @@ async def cli(
     cache_tokens: bool | None = None,
     debug: bool | None = None,
 ) -> None:
-    # if debug:  # Do first
-    #     _start_debugging(True)
+    """A demonstration CLI for the evohomeasync2 client library."""
+
+    if debug:  # Do first
+        _start_debugging(True)
 
     async def cleanup(
         session: aiohttp.ClientSession,
