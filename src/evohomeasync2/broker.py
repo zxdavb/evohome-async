@@ -128,11 +128,11 @@ class AbstractTokenManager(ABC):
             SZ_REFRESH_TOKEN: x.refresh_token,
         }
 
-    async def is_token_data_valid(self) -> bool:
+    def is_token_data_valid(self) -> bool:
         """Return True if we have a valid access token."""
         return bool(self.access_token) and self.access_token_expires > dt.now()
 
-    async def fetch_access_token(self) -> None:  # HA api
+    async def fetch_access_token(self) -> str:  # HA api
         """Ensure the access token is valid.
 
         If required, fetch a new token via the vendor's web API.
@@ -168,6 +168,8 @@ class AbstractTokenManager(ABC):
         _LOGGER.warning(f"refresh_token = {self.refresh_token}")
         _LOGGER.warning(f"access_token = {self.access_token}")
         _LOGGER.warning(f"access_token_expires = {self.access_token_expires}")
+
+        return self.access_token
 
     async def _obtain_access_token(self, **kwargs: Any) -> aiohttp.ClientResponse:
         """Obtain an access token via the vendor's web API.

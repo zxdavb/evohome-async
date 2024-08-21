@@ -115,7 +115,7 @@ class TokenManager(AbstractTokenManager):
         """Return the token cache path."""
         return str(self._token_cache)
 
-    async def fetch_access_token(self) -> None:  # HA api
+    async def fetch_access_token(self) -> str:  # HA api
         """Ensure the (cached) access token is valid.
 
         If required, fetch a new token via the vendor's web API.
@@ -127,6 +127,8 @@ class TokenManager(AbstractTokenManager):
         if not self.is_token_data_valid():
             await super().fetch_access_token()
             await self.save_access_token(None)
+
+        return self.access_token
 
     async def _load_access_token(self) -> None:
         """Load the tokens from a cache (temporary file)."""
