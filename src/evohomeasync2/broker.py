@@ -120,7 +120,7 @@ class AbstractTokenManager(ABC):
 
     # HACK: sometimes using evo, not self
     def _token_data_as_dict(self, evo: EvohomeClient | None) -> _EvoTokenData:
-        x = evo.token_manager if evo is not None else self  # TODO: remove evo
+        x = evo.broker if evo is not None else self  # TODO: remove evo
 
         return {
             SZ_ACCESS_TOKEN: x.access_token,  # type: ignore[misc]
