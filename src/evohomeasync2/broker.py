@@ -110,7 +110,7 @@ class AbstractTokenManager(ABC):
 
     def _token_data_reset(self) -> None:
         self.access_token = ""
-        self.access_token_expires = dt.now()
+        self.access_token_expires = dt.min
         self.refresh_token = ""
 
     def _token_data_from_dict(self, tokens: _EvoTokenData) -> None:
@@ -130,7 +130,7 @@ class AbstractTokenManager(ABC):
 
     async def is_token_data_valid(self) -> bool:
         """Return True if we have a valid access token."""
-        return bool(self.access_token) and dt.now() < self.access_token_expires
+        return bool(self.access_token) and self.access_token_expires > dt.now()
 
     async def fetch_access_token(self) -> None:  # HA api
         """Ensure the access token is valid.
@@ -143,7 +143,7 @@ class AbstractTokenManager(ABC):
 
         _LOGGER.warning("No/Expired/Invalid access_token, re-authenticating.")
         self.access_token = ""
-        self.access_token_expires = dt.now()
+        self.access_token_expires = dt.min
 
         if self.refresh_token:
             _LOGGER.warning("Authenticating with the refresh_token...")
@@ -284,7 +284,7 @@ class Broker:
         if not self.access_token or not self.access_token_expires:
             await self._basic_login()
 
-        elif dt.now() > self.access_token_expires:
+        elif self.access_token_expires < dt.now():
             await self._basic_login()
 
         assert isinstance(self.access_token, str)  # mypy
