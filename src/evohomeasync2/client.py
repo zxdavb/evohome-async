@@ -224,6 +224,28 @@ async def cli(
     type=int,
     help="The location idx.",
 )
+@click.pass_context
+async def mode(ctx: click.Context, loc_idx: int) -> None:
+    """Retreive the system mode."""
+
+    print("\r\nclient.py: Retreiving the system mode...")
+    evo: EvohomeClient = ctx.obj[SZ_EVO]
+
+    await _write(sys.stdout, "\r\n" + _get_tcs(evo, loc_idx).system_mode + "\r\n\r\n")
+
+    await ctx.obj[SZ_CLEANUP]
+    print(" - finished.\r\n")
+
+
+@cli.command()
+@click.option(  # --loc-idx
+    "--loc-idx",
+    "-l",
+    callback=_check_positive_int,
+    default=0,
+    type=int,
+    help="The location idx.",
+)
 @click.option(  # --filename
     "--filename", "-f", type=click.File("w"), default="-", help="The output file."
 )
