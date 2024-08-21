@@ -20,8 +20,6 @@ from .base import EvohomeClient
 from .broker import AbstractTokenManager, _EvoTokenData
 from .const import SZ_NAME, SZ_SCHEDULE
 from .controlsystem import ControlSystem
-from .schema import _EvoDictT
-from .schema.schedule import _ScheduleT
 
 # all _DBG_* flags should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of CLI (*before* loading EvohomeClient library)
@@ -233,20 +231,14 @@ async def cli(
 async def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
     """Download all the global config and the location status."""
 
-    async def get_state(evo: EvohomeClient, loc_idx: int) -> _EvoDictT:
-        await evo.login()
-
-        status = await evo.locations[loc_idx].refresh_status()
-
-        return {
-            "config": evo.installation_info,
-            "status": status,
-        }
-
     print("\r\nclient.py: Starting dump of config and status...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    result = await get_state(evo, loc_idx)
+    result = {
+        "config": evo.installation_info,
+        "status": await evo.locations[loc_idx].refresh_status(),
+    }
+
     await _write(filename, json.dumps(result, indent=4) + "\r\n\r\n")
 
     await ctx.obj[SZ_CLEANUP]
@@ -272,20 +264,12 @@ async def get_schedule(
 ) -> None:
     """Download the schedule of a zone of a TCS (WIP)."""
 
-    async def get_schedule(
-        evo: EvohomeClient, zone_id: str, loc_idx: int | None
-    ) -> _ScheduleT:
-        await evo.login()
-
-        child: HotWater | Zone = _get_tcs(evo, loc_idx).zones_by_id[zone_id]
-        schedule = await child.get_schedule()
-
-        return {child._id: {SZ_NAME: child.name, SZ_SCHEDULE: schedule}}
-
     print("\r\nclient.py: Starting backup of zone schedule (WIP)...")
     evo = ctx.obj[SZ_EVO]
 
-    schedule = await get_schedule(evo, zone_id, loc_idx)
+    zon: HotWater | Zone = _get_tcs(evo, loc_idx).zones_by_id[zone_id]
+    schedule = {zon._id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
+
     await _write(filename, json.dumps(schedule, indent=4) + "\r\n\r\n")
 
     await ctx.obj[SZ_CLEANUP]
@@ -310,13 +294,11 @@ async def get_schedules(
 ) -> None:
     """Download all the schedules from a TCS."""
 
-    async def get_schedules(evo: EvohomeClient, loc_idx: int | None) -> _ScheduleT:
-        return await _get_tcs(evo, loc_idx).get_schedules()
-
     print("\r\nclient.py: Starting backup of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    schedules = await get_schedules(evo, loc_idx)
+    schedules = await _get_tcs(evo, loc_idx).get_schedules()
+
     await _write(filename, json.dumps(schedules, indent=4) + "\r\n\r\n")
 
     await ctx.obj[SZ_CLEANUP]
@@ -342,12 +324,11 @@ async def set_schedules(
     print("\r\nclient.py: Starting restore of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    # this will TypeError if filename is sys.stdin
+    # will TypeError if filename is sys.stdin
     async with aiofiles.open(filename, "r") as fp:  # type: ignore[call-overload]
         content = await fp.read()
 
-    schedules = json.loads(content)
-    success = await _get_tcs(evo, loc_idx).set_schedules(schedules)
+    success = await _get_tcs(evo, loc_idx).set_schedules(json.loads(content))
 
     await ctx.obj[SZ_CLEANUP]
     print(f" - finished{'' if success else ' (with errors)'}.\r\n")
