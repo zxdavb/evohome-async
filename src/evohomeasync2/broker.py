@@ -176,8 +176,8 @@ class AbstractTokenManager(ABC):
 
         await self.save_access_token()
 
-        _LOGGER.warning(f" - refresh_token = {self.refresh_token}")
-        _LOGGER.warning(f" - access_token = {self.access_token}")
+        _LOGGER.debug(f" - refresh_token = {self.refresh_token}")
+        _LOGGER.debug(f" - access_token = {self.access_token}")
         _LOGGER.warning(f" - access_token_expires = {self.access_token_expires}")
 
     async def _obtain_access_token(self, credentials: dict[str, str]) -> None:
