@@ -31,7 +31,7 @@ from .schema import (
 )
 
 if TYPE_CHECKING:
-    from .schema import _EvoDictT, _EvoListT, _EvoSchemaT
+    from .schema import _EvoDictT, _EvoSchemaT  # _EvoListT
 
 
 _LOGGER: Final = logging.getLogger(__name__)
@@ -254,49 +254,39 @@ class Broker:
         self._session = session
         self._logger = logger
 
-    async def _client(
-        self,
-        method: HTTPMethod,
-        url: str,
-        /,
-        *,
-        data: dict[str, Any] | None = None,
-        json: dict[str, Any] | None = None,
-        headers: dict[str, Any] | None = None,
-    ) -> tuple[aiohttp.ClientResponse, None | str | _EvoDictT | _EvoListT]:
+    async def request(
+        self, method: HTTPMethod, url: str, /, **kwargs: Any
+    ) -> dict[str, Any] | str | None:
         """Wrapper for aiohttp.ClientSession()."""
 
-        assert self._session is not None  # mypy hint
+        if not kwargs.get("headers"):
+            kwargs["headers"] = await self._headers()
 
-        if headers is None:
-            headers = await self._headers()
+        try:
+            async with self._session.request(method, url, **kwargs) as response:
+                response.raise_for_status()
 
-        if method == HTTPMethod.GET:
-            _session_method = self._session.get
-            kwargs = {"headers": headers}
+                if not response.content_length:
+                    content = None
+                    _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
 
-        elif method == HTTPMethod.POST:
-            _session_method = self._session.post
-            kwargs = {"headers": headers, "json": json}  # type: ignore[dict-item]
+                elif response.content_type == "application/json":
+                    content = await response.json()
+                    _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
 
-        elif method == HTTPMethod.PUT:
-            _session_method = self._session.put
-            kwargs = {"headers": headers, "json": json}  # type: ignore[dict-item]
+                else:  # assume "text/plain" or "text/html"
+                    content = await response.text()
+                    _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
 
-        async with _session_method(url, **kwargs) as response:  # type: ignore[arg-type]
-            if not response.content_length:
-                content = None
-                _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
+                return content
 
-            elif response.content_type == "application/json":
-                content = await response.json()
-                _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
+        except aiohttp.ClientResponseError as err:
+            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
+                raise exc.RequestFailed(hint, status=err.status) from err
+            raise exc.RequestFailed(str(err), status=err.status) from err
 
-            else:  # assume "text/plain" or "text/html"
-                content = await response.text()
-                _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
-
-            return response, content  # FIXME: is messy to return response
+        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+            raise exc.RequestFailed(str(err)) from err
 
     async def _headers(self) -> dict[str, str]:
         """Ensure the Authorization Header has a valid Access Token."""
@@ -314,22 +304,11 @@ class Broker:
         warning if it doesn't match (NB: does not raise a vol.Invalid).
         """
 
-        response: aiohttp.ClientResponse
         content: _EvoSchemaT
 
-        try:
-            response, content = await self._client(  # type: ignore[assignment]
-                HTTPMethod.GET, f"{URL_BASE}/{url}"
-            )
-            response.raise_for_status()
-
-        except aiohttp.ClientResponseError as err:
-            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
-                raise exc.RequestFailed(hint, status=err.status) from err
-            raise exc.RequestFailed(str(err), status=err.status) from err
-
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            raise exc.RequestFailed(str(err)) from err
+        content = await self.request(  # type: ignore[assignment]
+            HTTPMethod.GET, f"{URL_BASE}/{url}"
+        )
 
         if schema:
             try:
@@ -350,7 +329,6 @@ class Broker:
         warning if it doesn't match (NB: does not raise a vol.Invalid).
         """
 
-        response: aiohttp.ClientResponse
         content: dict[str, Any] | list[dict[str, Any]]
 
         if schema:
@@ -359,20 +337,8 @@ class Broker:
             except vol.Invalid as err:
                 self._logger.warning(f"Request JSON may be invalid: PUT {url}: {err}")
 
-        try:
-            response, content = await self._client(  # type: ignore[assignment]
-                HTTPMethod.PUT,
-                f"{URL_BASE}/{url}",
-                json=json,  # type: ignore[arg-type]
-            )
-            response.raise_for_status()
-
-        except aiohttp.ClientResponseError as err:
-            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
-                raise exc.RequestFailed(hint, status=err.status) from err
-            raise exc.RequestFailed(str(err), status=err.status) from err
-
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            raise exc.RequestFailed(str(err)) from err
+        content = await self.request(  # type: ignore[assignment]
+            HTTPMethod.PUT, f"{URL_BASE}/{url}", json=json
+        )
 
         return content
