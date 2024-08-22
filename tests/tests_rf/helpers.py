@@ -254,6 +254,8 @@ async def should_fail(
     else:
         assert False, response.content_type
 
+    assert isinstance(content, dict | list | str), content
+
     return content
 
 
