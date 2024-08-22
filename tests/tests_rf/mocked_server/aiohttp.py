@@ -73,14 +73,14 @@ class ClientResponseError(ClientError):
 
 
 class ClientTimeout:
-    """"""
+    """An erstaz ClientTimeout."""
 
     def __init__(self, /, *, total: float | None = None, **kwargs) -> None:
         self.total: float = total or 30
 
 
 class ClientSession:
-    """First-class interface for making HTTP requests."""
+    """An ersatz ClientSession."""
 
     def __init__(self, /, *, timeout: ClientTimeout | None = None, **kwargs) -> None:
         self._timeout = timeout or ClientTimeout()
@@ -88,19 +88,28 @@ class ClientSession:
         # this is required, so no .get()
         self._mocked_server: MockedServer = kwargs["mocked_server"]
 
-    # def request(self, method: str, url: StrOrURL, **kwargs: Any):
-    #     """Perform HTTP request."""
-    #     pass
+    def request(self, method: hdrs, url: str, **kwargs: Any) -> ClientResponse:
+        """Perform HTTP request."""
+        if method == hdrs.METH_GET:
+            return self.get(url, **kwargs)
+        if method == hdrs.METH_PUT:
+            return self.put(url, **kwargs)
+        if method == hdrs.METH_POST:
+            return self.post(url, **kwargs)
+        raise NotImplementedError
 
-    def get(self, url, /, headers: str | None = None):
+    def get(self, url: str, **kwargs: Any) -> ClientResponse:
+        assert not {k: v for k, v in kwargs.items() if k != "headers"}
         return ClientResponse(hdrs.METH_GET, url, session=self)  # type: ignore[arg-type]
 
     def put(
-        self, url, /, *, data: Any = None, json: Any = None, headers: str | None = None
-    ):
+        self, url: str, /, *, data: Any = None, json: Any = None, **kwargs: Any
+    ) -> ClientResponse:
+        assert not {k: v for k, v in kwargs.items() if k != "headers"}
         return ClientResponse(hdrs.METH_PUT, url, data=data or json, session=self)  # type: ignore[arg-type]
 
-    def post(self, url, /, *, data: Any = None, headers: str | None = None):
+    def post(self, url: str, /, *, data: Any = None, **kwargs: Any) -> ClientResponse:
+        assert not {k: v for k, v in kwargs.items() if k != "headers"}
         return ClientResponse(hdrs.METH_POST, url, data=data, session=self)  # type: ignore[arg-type]
 
     async def close(self) -> None:
@@ -108,7 +117,7 @@ class ClientSession:
 
 
 class ClientResponse:
-    """"""
+    """An ersatz ClientResponse."""
 
     charset: str = "utf-8"
 
@@ -119,7 +128,7 @@ class ClientResponse:
         /,
         *,
         data: str | None = None,
-        json: dict | None = None,
+        json: dict[str, Any] | None = None,
         session: ClientSession | None = None,
         **kwargs,
     ) -> None:
