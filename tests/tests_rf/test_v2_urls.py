@@ -35,7 +35,7 @@ from evohomeasync2.schema.const import (
 )
 from evohomeasync2.schema.schedule import convert_to_put_schedule
 
-from . import mocked_server
+from . import faked_server as faked
 from .conftest import _DBG_USE_REAL_AIOHTTP
 from .helpers import aiohttp, instantiate_client_v2, should_fail, should_work
 
@@ -265,8 +265,8 @@ async def _test_schedule(evo: evo2.EvohomeClient) -> None:
     zone = evo.locations[0]._gateways[0]._control_systems[0]._zones[0]
     #
 
-    if zone._id == mocked_server.GHOST_ZONE_ID:
-        url = f"{zone.TYPE}/{mocked_server.GHOST_ZONE_ID}/schedule"
+    if zone._id == faked.GHOST_ZONE_ID:
+        url = f"{zone.TYPE}/{faked.GHOST_ZONE_ID}/schedule"
         _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
         return
 

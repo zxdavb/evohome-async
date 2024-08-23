@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hacked aiohttp to provide a mocked server."""
+"""Hacked aiohttp to provide a ersatz server."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from asyncio.streams import _ReaduntilBuffer
 
     from .const import _bodyT, _methodT, _statusT, _urlT
-    from .vendor import MockedServer
+    from .vendor import FakedServer
 
 
 _DEFAULT_LIMIT = 2**16  # 64 KiB
@@ -86,7 +86,7 @@ class ClientSession:
         self._timeout = timeout or ClientTimeout()
 
         # this is required, so no .get()
-        self._mocked_server: MockedServer = kwargs["mocked_server"]
+        self._faked_server: FakedServer = kwargs["faked_server"]
 
     def request(self, method: hdrs, url: str, **kwargs: Any) -> ClientResponse:
         """Perform HTTP request."""
@@ -137,16 +137,16 @@ class ClientResponse:
         self.session = session
 
         assert self.session is not None  # mypy
-        self._mocked_server = self.session._mocked_server
+        self._faked_server = self.session._faked_server
 
         self.status: _statusT = None  # type: ignore[assignment]
         self._body: _bodyT | None = None
 
         # self.content = StreamReader(
-        #     self._mocked_server.request(method, url, data=data or json)
+        #     self._faked_server.request(method, url, data=data or json)
         # )
-        self._body = self._mocked_server.request(method, url, data=data or json)
-        self.status = self._mocked_server.status  # type: ignore[assignment]
+        self._body = self._faked_server.request(method, url, data=data or json)
+        self.status = self._faked_server.status  # type: ignore[assignment]
 
     def raise_for_status(self) -> None:
         if self.status >= 300:

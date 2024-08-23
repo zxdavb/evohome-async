@@ -8,8 +8,8 @@ from collections.abc import AsyncGenerator
 import pytest
 import pytest_asyncio
 
+from .faked_server import FakedServer
 from .helpers import aiohttp
-from .mocked_server import MockedServer
 
 # normally, we want these debug flags to be False
 _DBG_USE_REAL_AIOHTTP = False
@@ -35,7 +35,7 @@ async def session() -> AsyncGenerator[aiohttp.ClientSession, None]:
     if _DBG_USE_REAL_AIOHTTP:
         client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
     else:
-        client_session = aiohttp.ClientSession(mocked_server=MockedServer(None, None))  # type: ignore[call-arg]
+        client_session = aiohttp.ClientSession(faked_server=FakedServer(None, None))  # type: ignore[call-arg]
 
     try:
         yield client_session

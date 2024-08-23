@@ -78,14 +78,14 @@ def _zon_id(url: _urlT) -> _ZoneIdT:
 
 def validate_id_of_url(
     id_fnc: Callable[[_urlT], str],
-) -> Callable[..., Callable[[MockedServer], _bodyT]]:
+) -> Callable[..., Callable[[FakedServer], _bodyT]]:
     """Validate the ID in the URL and set the status accordingly."""
 
     def decorator(
-        fnc: Callable[[MockedServer], _bodyT | None],
-    ) -> Callable[[MockedServer], _bodyT]:
+        fnc: Callable[[FakedServer], _bodyT | None],
+    ) -> Callable[[FakedServer], _bodyT]:
         @functools.wraps(fnc)
-        def wrapper(svr: MockedServer) -> _bodyT:
+        def wrapper(svr: FakedServer) -> _bodyT:
             if svr._method != HTTPMethod.GET:
                 svr.status = HTTPStatus.METHOD_NOT_ALLOWED
                 return {"message": "Method not allowed"}
@@ -112,7 +112,7 @@ def validate_id_of_url(
     return decorator
 
 
-class MockedServer:
+class FakedServer:
     """Mocked vendor server for provision via a hacked aiohttp."""
 
     def __init__(
@@ -297,22 +297,22 @@ class MockedServer:
 
 REQUEST_MAP: dict[str, Callable] = {
     #
-    r"/Auth/OAuth/Token": MockedServer.oauth_token,
+    r"/Auth/OAuth/Token": FakedServer.oauth_token,
     #
-    r"/userAccount$": MockedServer.usr_account,
-    r"/location/installationInfo": MockedServer.all_config,
+    r"/userAccount$": FakedServer.usr_account,
+    r"/location/installationInfo": FakedServer.all_config,
     #
-    r"/location/.*/installationInfo": MockedServer.loc_config,
-    r"/location/.*/status": MockedServer.loc_status,
+    r"/location/.*/installationInfo": FakedServer.loc_config,
+    r"/location/.*/status": FakedServer.loc_status,
     #
-    r"/temperatureControlSystem/.*/mode": MockedServer.tcs_mode,
-    r"/temperatureControlSystem/.*/status": MockedServer.tcs_status,
+    r"/temperatureControlSystem/.*/mode": FakedServer.tcs_mode,
+    r"/temperatureControlSystem/.*/status": FakedServer.tcs_status,
     #
-    r"/temperatureZone/.*/status": MockedServer.zon_status,
-    r"/temperatureZone/.*/heatSetpoint": MockedServer.zon_mode,
-    r"/temperatureZone/.*/schedule": MockedServer.zon_schedule,
+    r"/temperatureZone/.*/status": FakedServer.zon_status,
+    r"/temperatureZone/.*/heatSetpoint": FakedServer.zon_mode,
+    r"/temperatureZone/.*/schedule": FakedServer.zon_schedule,
     #
-    r"/domesticHotWater/.*/status": MockedServer.dhw_status,
-    r"/domesticHotWater/.*/state": MockedServer.dhw_mode,
-    r"/domesticHotWater/.*/schedule": MockedServer.dhw_schedule,
+    r"/domesticHotWater/.*/status": FakedServer.dhw_status,
+    r"/domesticHotWater/.*/state": FakedServer.dhw_mode,
+    r"/domesticHotWater/.*/schedule": FakedServer.dhw_schedule,
 }

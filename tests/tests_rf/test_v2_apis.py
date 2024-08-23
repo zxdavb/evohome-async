@@ -21,7 +21,7 @@ from evohomeasync2.schema.const import SZ_MODE
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 from evohomeasync2.zone import Zone
 
-from . import mocked_server
+from . import faked_server as faked
 from .conftest import _DBG_USE_REAL_AIOHTTP
 from .helpers import aiohttp, instantiate_client_v2
 
@@ -58,8 +58,8 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
 
     #     await evo._basic_login()  # re-authenticate using refresh_token
 
-    #     assert True or evo.token_manager.access_token != access_token  # TODO: mocked_server wont do this
-    #     assert True or evo.token_manager.refresh_token != refresh_token  # TODO: mocked_server wont do this
+    #     assert True or evo.token_manager.access_token != access_token  # TODO: faked_server wont do this
+    #     assert True or evo.token_manager.refresh_token != refresh_token  # TODO: faked_server wont do this
 
     #
     # STEP 2: User account,  GET /userAccount...
@@ -115,14 +115,12 @@ async def _test_sched__apis(evo: evo2.EvohomeClient) -> None:
 
     zone: Zone | None
 
-    if (
-        zone := evo._get_single_tcs()._zones[0]
-    ) and zone._id != mocked_server.GHOST_ZONE_ID:
+    if (zone := evo._get_single_tcs()._zones[0]) and zone._id != faked.GHOST_ZONE_ID:
         schedule = await zone.get_schedule()
         assert SCH_PUT_SCHEDULE_ZONE(schedule)
         await zone.set_schedule(schedule)
 
-    if zone := evo._get_single_tcs().zones_by_id.get(mocked_server.GHOST_ZONE_ID):
+    if zone := evo._get_single_tcs().zones_by_id.get(faked.GHOST_ZONE_ID):
         try:
             schedule = await zone.get_schedule()
         except evo2.InvalidSchedule:
@@ -183,7 +181,7 @@ async def _test_system_apis(evo: evo2.EvohomeClient) -> None:
 
 async def test_basics(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | mocked_server.ClientSession,
+    session: aiohttp.ClientSession | faked.ClientSession,
 ) -> None:
     """Test authentication, `user_account()` and `installation()`."""
 
@@ -200,7 +198,7 @@ async def test_basics(
 
 async def test_sched_(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | mocked_server.ClientSession,
+    session: aiohttp.ClientSession | faked.ClientSession,
 ) -> None:
     """Test `get_schedule()` and `get_schedule()`."""
 
@@ -215,7 +213,7 @@ async def test_sched_(
 
 async def test_status(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | mocked_server.ClientSession,
+    session: aiohttp.ClientSession | faked.ClientSession,
 ) -> None:
     """Test `_refresh_status()` for DHW/zone."""
 
@@ -230,7 +228,7 @@ async def test_status(
 
 async def test_system(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | mocked_server.ClientSession,
+    session: aiohttp.ClientSession | faked.ClientSession,
 ) -> None:
     """Test `set_mode()` for TCS"""
 

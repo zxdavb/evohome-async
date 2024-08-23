@@ -22,7 +22,7 @@ from .conftest import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
 if _DBG_USE_REAL_AIOHTTP:
     import aiohttp
 else:
-    from .mocked_server import aiohttp  # type: ignore[no-redef]
+    from .faked_server import aiohttp  # type: ignore[no-redef]
 
     # so we don't pollute a real token cache with fake tokens
     TOKEN_CACHE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tst")  # type: ignore[misc]
