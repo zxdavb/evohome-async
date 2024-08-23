@@ -5,28 +5,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import tempfile
 from http import HTTPMethod, HTTPStatus
-from pathlib import Path
-from typing import Final
 
 import voluptuous as vol
 
 import evohomeasync as evo1
 import evohomeasync2 as evo2
-from evohomeasync2.client import TOKEN_CACHE, TokenManager
+from evohomeasync2.client import TokenManager
 from evohomeasync2.const import URL_BASE as URL_BASE_2
 
-from .conftest import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
-
-if _DBG_USE_REAL_AIOHTTP:
-    import aiohttp
-else:
-    from .faked_server import aiohttp  # type: ignore[no-redef]
-
-    # so we don't pollute a real token cache with fake tokens
-    TOKEN_CACHE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tst")  # type: ignore[misc]
-
+from .conftest import _DBG_DISABLE_STRICT_ASSERTS, TOKEN_CACHE, aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -250,7 +238,7 @@ async def should_fail(
         assert "message" in content, content  # sometimes "code" too
 
     elif isinstance(content, list):
-        assert status in (
+        assert status in (  # type: ignore[unreachable]
             HTTPStatus.BAD_REQUEST,
             HTTPStatus.NOT_FOUND,  # CommTaskNotFound
             HTTPStatus.UNAUTHORIZED,

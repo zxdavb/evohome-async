@@ -127,15 +127,12 @@
 
 #
 [[tool.mypy.overrides]]
-  module = "tests_rf.mocked_server.*"
+  module = "tests_rf.faked_server.*"
 
   disable_error_code = [
-    "arg-type",        #  2 (aiohttp,vendor)
-    "index",           #  3 (vendor)
     "no-any-return",   #  5 (aiohttp,const,vendor)
-    "no-untyped-def",  # 15 (aiohttp)
+    "no-untyped-def",  #  9 (aiohttp)
     "return-value",    #  2 (aiohttp): high risk, low benefit to fix
-    "type-arg",        # 16 (aiohttp,const,vendor)
   ]
 #
 [[tool.mypy.overrides]]

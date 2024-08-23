@@ -3,17 +3,30 @@
 
 import logging
 import os
+import tempfile
 from collections.abc import AsyncGenerator
+from pathlib import Path
+from typing import Final
 
 import pytest
 import pytest_asyncio
 
 from .faked_server import FakedServer
-from .helpers import aiohttp
 
 # normally, we want these debug flags to be False
-_DBG_USE_REAL_AIOHTTP = False
+_DBG_USE_REAL_AIOHTTP = True
 _DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
+
+if _DBG_USE_REAL_AIOHTTP:
+    import aiohttp
+
+    from evohomeasync2.client import TOKEN_CACHE
+else:
+    from .faked_server import aiohttp  # type: ignore[no-redef]
+
+    # so we don't pollute a real token cache with fake tokens
+    TOKEN_CACHE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tst")  # type: ignore[misc]
+
 
 _LOGGER = logging.getLogger(__name__)
 
