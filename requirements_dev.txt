@@ -17,6 +17,7 @@
   pytest>=8.3.2
   pytest-asyncio>=0.23.7
   pytest-xdist>=3.6.1
+  pytest-sugar>=1.0.0
 
 # used for testing at runtime
   debugpy >= 1.8.5
