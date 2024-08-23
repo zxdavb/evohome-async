@@ -254,31 +254,33 @@ class Broker:
         self._session = session
         self._logger = logger
 
-    async def request(
+    async def _request(
         self, method: HTTPMethod, url: str, /, **kwargs: Any
-    ) -> dict[str, Any] | str | None:
+    ) -> tuple[dict[str, Any] | str | None, aiohttp.ClientResponse]:
         """Wrapper for aiohttp.ClientSession()."""
 
         if not kwargs.get("headers"):
             kwargs["headers"] = await self._headers()
 
+        async with self._session.request(method, url, **kwargs) as response:
+            if not response.content_length:
+                content = None
+            elif response.content_type == "application/json":
+                content = await response.json()
+            else:  # assume "text/plain" or "text/html"
+                content = await response.text()
+
+            return content, response
+
+    async def request(
+        self, method: HTTPMethod, url: str, /, **kwargs: Any
+    ) -> dict[str, Any] | str | None:
+        """Wrapper for aiohttp.ClientSession()."""
+
         try:
-            async with self._session.request(method, url, **kwargs) as response:
-                response.raise_for_status()
-
-                if not response.content_length:
-                    content = None
-                    _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
-
-                elif response.content_type == "application/json":
-                    content = await response.json()
-                    _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
-
-                else:  # assume "text/plain" or "text/html"
-                    content = await response.text()
-                    _LOGGER.info(f"{method} {url} ({response.status}) = {content}")
-
-                return content
+            content, response = await self._request(method, url, **kwargs)
+            response.raise_for_status()
+            return content
 
         except aiohttp.ClientResponseError as err:
             if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):

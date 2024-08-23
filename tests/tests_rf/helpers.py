@@ -187,14 +187,17 @@ async def should_work(
     content_type: str | None = "application/json",
     schema: vol.Schema | None = None,
 ) -> dict | list | str:
-    """Make a request that is expected to succeed."""
+    """Make a HTTP request and check it succeeds as expected.
 
-    response: aiohttp.ClientResponse
+    Used to validate the ersatz API server against a 'real' server.
+    """
 
-    response, content = await evo.broker._client(
-        method, f"{URL_BASE_2}/{url}", json=json
-    )
-    response.raise_for_status()
+    if json is None:
+        content, response = await evo.broker._request(method, f"{URL_BASE_2}/{url}")
+    else:
+        content, response = await evo.broker._request(
+            method, f"{URL_BASE_2}/{url}", json=json
+        )
 
     assert response.content_type == content_type, content
 
@@ -216,21 +219,20 @@ async def should_fail(
     content_type: str | None = "application/json",
     status: HTTPStatus | None = None,
 ) -> dict | list | str | None:
-    """Make a request that is expected to fail."""
+    """Make a HTTP request and check it fails as expected.
 
-    response: aiohttp.ClientResponse
+    Used to validate the ersatz API server against a 'real' server.
+    """
 
-    response, content = await evo.broker._client(
-        method, f"{URL_BASE_2}/{url}", json=json
-    )
+    try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
+        content, response = await evo.broker._request(
+            method, f"{URL_BASE_2}/{url}", json=json
+        )
 
-    try:
-        response.raise_for_status()
-
-    except aiohttp.ClientResponseError as err:
-        assert err.status == status, err.status
+    except aiohttp.ClientResponseError:
+        assert False  # err.status == status, err.status
     else:
-        assert False, response.status
+        assert response.status == status, response.status
 
     if _DEBUG_DISABLE_STRICT_ASSERTS:
         return None
