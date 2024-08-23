@@ -225,9 +225,12 @@ async def should_fail(
     """
 
     try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
-        content, response = await evo.broker._request(
-            method, f"{URL_BASE_2}/{url}", json=json
-        )
+        if json is None:
+            content, response = await evo.broker._request(method, f"{URL_BASE_2}/{url}")
+        else:
+            content, response = await evo.broker._request(
+                method, f"{URL_BASE_2}/{url}", json=json
+            )
 
     except aiohttp.ClientResponseError:
         assert False  # err.status == status, err.status
