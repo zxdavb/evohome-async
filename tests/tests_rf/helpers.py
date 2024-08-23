@@ -177,7 +177,7 @@ async def should_work(
 ) -> dict | list | str:
     """Make a HTTP request and check it succeeds as expected.
 
-    Used to validate the ersatz API server against a 'real' server.
+    Used to validate the faked server against a 'real' server.
     """
 
     if json is None:
@@ -209,7 +209,7 @@ async def should_fail(
 ) -> dict | list | str | None:
     """Make a HTTP request and check it fails as expected.
 
-    Used to validate the ersatz API server against a 'real' server.
+    Used to validate the faked server against a 'real' server.
     """
 
     try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())

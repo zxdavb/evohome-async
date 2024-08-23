@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hacked aiohttp to provide a ersatz server."""
+"""A hacked aiohttp to provide a faked server."""
 
 from __future__ import annotations
 
@@ -27,6 +27,8 @@ class hdrs(StrEnum):  # a la aiohttp
 
 
 class StreamReader(asyncio.StreamReader):
+    """A faked StreamReader."""
+
     _buffer = bytearray()
 
     def __init__(self, limit=_DEFAULT_LIMIT, loop=None):
@@ -61,11 +63,11 @@ class StreamReader(asyncio.StreamReader):
 
 
 class ClientError(Exception):
-    """Base class for client connection errors."""
+    """A faked ClientError."""
 
 
 class ClientResponseError(ClientError):
-    """Base class for exceptions that occur after getting a response."""
+    """A faked ClientResponseError."""
 
     def __init__(self, msg, /, *, status: int | None = None, **kwargs) -> None:
         super().__init__(msg)
@@ -73,14 +75,14 @@ class ClientResponseError(ClientError):
 
 
 class ClientTimeout:
-    """An erstaz ClientTimeout."""
+    """A faked ClientTimeout."""
 
     def __init__(self, /, *, total: float | None = None, **kwargs) -> None:
         self.total: float = total or 30
 
 
 class ClientSession:
-    """An ersatz ClientSession."""
+    """A faked ClientSession."""
 
     def __init__(self, /, *, timeout: ClientTimeout | None = None, **kwargs) -> None:
         self._timeout = timeout or ClientTimeout()
@@ -117,7 +119,7 @@ class ClientSession:
 
 
 class ClientResponse:
-    """An ersatz ClientResponse."""
+    """A faked ClientResponse."""
 
     charset: str = "utf-8"
 
