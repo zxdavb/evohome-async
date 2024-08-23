@@ -35,7 +35,8 @@ from evohomeasync2.schema.const import (
 )
 from evohomeasync2.schema.schedule import convert_to_put_schedule
 
-from . import _DEBUG_USE_REAL_AIOHTTP, mocked_server as mock
+from . import mocked_server
+from .conftest import _DBG_USE_REAL_AIOHTTP
 from .helpers import aiohttp, instantiate_client_v2, should_fail, should_work
 
 if TYPE_CHECKING:
@@ -264,8 +265,8 @@ async def _test_schedule(evo: evo2.EvohomeClient) -> None:
     zone = evo.locations[0]._gateways[0]._control_systems[0]._zones[0]
     #
 
-    if zone._id == mock.GHOST_ZONE_ID:
-        url = f"{zone.TYPE}/{mock.GHOST_ZONE_ID}/schedule"
+    if zone._id == mocked_server.GHOST_ZONE_ID:
+        url = f"{zone.TYPE}/{mocked_server.GHOST_ZONE_ID}/schedule"
         _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
         return
 
@@ -317,7 +318,7 @@ async def test_usr_account(
         await _test_usr_account(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
+        if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
@@ -332,7 +333,7 @@ async def test_all_config(
         await _test_all_config(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
+        if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
@@ -347,7 +348,7 @@ async def test_loc_status(
         await _test_loc_status(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
+        if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
@@ -362,12 +363,12 @@ async def test_tcs_mode(
         await _test_tcs_mode(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
+        if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
     except NotImplementedError:  # TODO: implement
-        if _DEBUG_USE_REAL_AIOHTTP:
+        if _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Mocked server API not implemented")
 
@@ -382,12 +383,12 @@ async def test_zone_mode(
         await _test_zone_mode(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
+        if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
     except NotImplementedError:  # TODO: implement
-        if _DEBUG_USE_REAL_AIOHTTP:
+        if _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Mocked server API not implemented")
 
@@ -402,7 +403,7 @@ async def test_schedule(
         await _test_schedule(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
+        if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 

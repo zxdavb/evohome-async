@@ -21,7 +21,7 @@ from evohomeasync2.schema.const import (
 )
 from evohomeasync2.schema.helpers import pascal_case
 
-from . import _DEBUG_USE_REAL_AIOHTTP
+from .conftest import _DBG_USE_REAL_AIOHTTP
 from .helpers import (
     aiohttp,
     instantiate_client_v2,
@@ -190,13 +190,13 @@ async def test_task_id(
 ) -> None:
     """Test /location/{locationId}/status"""
 
-    if not _DEBUG_USE_REAL_AIOHTTP:
+    if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Test is only valid with a real server")
 
     try:
         await _test_task_id(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
+        if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")

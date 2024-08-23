@@ -8,9 +8,12 @@ from collections.abc import AsyncGenerator
 import pytest
 import pytest_asyncio
 
-from . import _DEBUG_USE_REAL_AIOHTTP
 from .helpers import aiohttp
 from .mocked_server import MockedServer
+
+# normally, we want these debug flags to be False
+_DBG_USE_REAL_AIOHTTP = False
+_DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +32,7 @@ def patches_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest_asyncio.fixture
 async def session() -> AsyncGenerator[aiohttp.ClientSession, None]:
-    if _DEBUG_USE_REAL_AIOHTTP:
+    if _DBG_USE_REAL_AIOHTTP:
         client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
     else:
         client_session = aiohttp.ClientSession(mocked_server=MockedServer(None, None))  # type: ignore[call-arg]

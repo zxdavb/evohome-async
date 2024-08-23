@@ -21,7 +21,8 @@ from evohomeasync2.schema.const import SZ_MODE
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 from evohomeasync2.zone import Zone
 
-from . import _DEBUG_USE_REAL_AIOHTTP, mocked_server as mock
+from . import mocked_server
+from .conftest import _DBG_USE_REAL_AIOHTTP
 from .helpers import aiohttp, instantiate_client_v2
 
 #######################################################################################
@@ -36,7 +37,7 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
     assert isinstance(evo.token_manager.access_token_expires, dt)
     assert isinstance(evo.token_manager.refresh_token, str)
 
-    if not _DEBUG_USE_REAL_AIOHTTP:
+    if not _DBG_USE_REAL_AIOHTTP:
         assert evo.token_manager.access_token == "ncWMqPh2yGgAqc..."
         assert evo.token_manager.refresh_token == "Ryx9fL34Z5GcNV..."
 
@@ -114,12 +115,14 @@ async def _test_sched__apis(evo: evo2.EvohomeClient) -> None:
 
     zone: Zone | None
 
-    if (zone := evo._get_single_tcs()._zones[0]) and zone._id != mock.GHOST_ZONE_ID:
+    if (
+        zone := evo._get_single_tcs()._zones[0]
+    ) and zone._id != mocked_server.GHOST_ZONE_ID:
         schedule = await zone.get_schedule()
         assert SCH_PUT_SCHEDULE_ZONE(schedule)
         await zone.set_schedule(schedule)
 
-    if zone := evo._get_single_tcs().zones_by_id.get(mock.GHOST_ZONE_ID):
+    if zone := evo._get_single_tcs().zones_by_id.get(mocked_server.GHOST_ZONE_ID):
         try:
             schedule = await zone.get_schedule()
         except evo2.InvalidSchedule:
@@ -180,7 +183,7 @@ async def _test_system_apis(evo: evo2.EvohomeClient) -> None:
 
 async def test_basics(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | mock.ClientSession,
+    session: aiohttp.ClientSession | mocked_server.ClientSession,
 ) -> None:
     """Test authentication, `user_account()` and `installation()`."""
 
@@ -190,14 +193,14 @@ async def test_basics(
         )
 
     except evo2.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
+        if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
 
 async def test_sched_(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | mock.ClientSession,
+    session: aiohttp.ClientSession | mocked_server.ClientSession,
 ) -> None:
     """Test `get_schedule()` and `get_schedule()`."""
 
@@ -205,14 +208,14 @@ async def test_sched_(
         await _test_sched__apis(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
+        if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
 
 async def test_status(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | mock.ClientSession,
+    session: aiohttp.ClientSession | mocked_server.ClientSession,
 ) -> None:
     """Test `_refresh_status()` for DHW/zone."""
 
@@ -220,14 +223,14 @@ async def test_status(
         await _test_status_apis(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
+        if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
 
 async def test_system(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | mock.ClientSession,
+    session: aiohttp.ClientSession | mocked_server.ClientSession,
 ) -> None:
     """Test `set_mode()` for TCS"""
 
@@ -235,11 +238,11 @@ async def test_system(
         await _test_system_apis(await instantiate_client_v2(user_credentials, session))
 
     except evo2.AuthenticationFailed:
-        if not _DEBUG_USE_REAL_AIOHTTP:
+        if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
     except NotImplementedError:  # TODO: implement
-        if _DEBUG_USE_REAL_AIOHTTP:
+        if _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Mocked server API not implemented")

@@ -17,9 +17,9 @@ import evohomeasync2 as evo2
 from evohomeasync2.client import TOKEN_CACHE, TokenManager
 from evohomeasync2.const import URL_BASE as URL_BASE_2
 
-from . import _DEBUG_DISABLE_STRICT_ASSERTS, _DEBUG_USE_REAL_AIOHTTP
+from .conftest import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
 
-if _DEBUG_USE_REAL_AIOHTTP:
+if _DBG_USE_REAL_AIOHTTP:
     import aiohttp
 else:
     from .mocked_server import aiohttp  # type: ignore[no-redef]
@@ -115,7 +115,7 @@ async def should_fail_v1(
     else:
         assert False, response.status
 
-    if _DEBUG_DISABLE_STRICT_ASSERTS:
+    if _DBG_DISABLE_STRICT_ASSERTS:
         return None
 
     # TODO: perform this transform in the broker
@@ -237,7 +237,7 @@ async def should_fail(
     else:
         assert response.status == status, response.status
 
-    if _DEBUG_DISABLE_STRICT_ASSERTS:
+    if _DBG_DISABLE_STRICT_ASSERTS:
         return None
 
     assert response.content_type == content_type, response.content_type

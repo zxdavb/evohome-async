@@ -9,7 +9,7 @@ import pytest
 
 import evohomeasync as evohome
 
-from . import _DEBUG_USE_REAL_AIOHTTP
+from .conftest import _DBG_USE_REAL_AIOHTTP
 from .helpers import aiohttp, instantiate_client_v1
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ async def test_client_apis(
 ) -> None:
     """Test _populate_user_data() & _populate_full_data()"""
 
-    if not _DEBUG_USE_REAL_AIOHTTP:
+    if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this API")
 
     try:
