@@ -31,7 +31,7 @@ from .schema import (
 )
 
 if TYPE_CHECKING:
-    from .schema import _EvoDictT, _EvoSchemaT  # _EvoListT
+    from .schema import _EvoDictT, _EvoSchemaT  # pragma: no cover
 
 
 _LOGGER: Final = logging.getLogger(__name__)

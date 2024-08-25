@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     from .schema import _DhwIdT, _EvoDictT, _EvoListT
 
 
-class HotWaterDeprecated:
+class HotWaterDeprecated:  # pragma: no cover
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     @property

@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from .schema import _EvoDictT, _LocationIdT
 
 
-class _LocationDeprecated:
+class _LocationDeprecated:  # pragma: no cover
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     async def status(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]

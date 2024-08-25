@@ -118,7 +118,7 @@ class ActiveFaultsBase:
         self._last_logged |= last_logged
 
 
-class _ZoneBaseDeprecated:
+class _ZoneBaseDeprecated:  # pragma: no cover
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     @property

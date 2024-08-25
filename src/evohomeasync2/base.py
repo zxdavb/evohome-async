@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 _LOGGER: Final = logging.getLogger(__name__.rpartition(".")[0])
 
 
-class EvohomeClientDeprecated:
+class EvohomeClientDeprecated:  # pragma: no cover
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     @property

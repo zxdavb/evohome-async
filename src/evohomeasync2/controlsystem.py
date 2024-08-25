@@ -51,7 +51,7 @@ if TYPE_CHECKING:
     from .schema import _DhwIdT, _EvoDictT, _EvoListT, _ScheduleT, _SystemIdT, _ZoneIdT
 
 
-class _ControlSystemDeprecated:
+class _ControlSystemDeprecated:  # pragma: no cover
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     async def set_status_reset(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
