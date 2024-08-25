@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from evohomeasync2.schema.helpers import camel_case, pascal_case
 from evohomeasync2.schema.schedule import (
     SCH_GET_SCHEDULE_DHW,
     SCH_GET_SCHEDULE_ZONE,
@@ -61,3 +62,18 @@ def test_get_schedule_dhw() -> None:
     assert put_schedule == SCH_PUT_SCHEDULE_DHW(put_schedule)
 
     assert get_schedule == convert_to_get_schedule(put_schedule)
+
+
+def test_helper_function() -> None:
+    """Test helper functions."""
+
+    CAMEL_CASE = "testString"
+    PASCAL_CASE = "TestString"
+
+    assert camel_case(CAMEL_CASE) == CAMEL_CASE
+    assert camel_case(PASCAL_CASE) == CAMEL_CASE
+    assert pascal_case(CAMEL_CASE) == PASCAL_CASE
+    assert pascal_case(PASCAL_CASE) == PASCAL_CASE
+
+    assert camel_case(pascal_case(CAMEL_CASE)) == CAMEL_CASE
+    assert pascal_case(camel_case(PASCAL_CASE)) == PASCAL_CASE
