@@ -91,7 +91,7 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
 
     @property  # for convenience (is not a top-level config attribute)
     def allowedModes(self) -> _EvoListT:
-        ret: _EvoListT = self.scheduleCapabilitiesResponse[SZ_ALLOWED_MODES]
+        ret: _EvoListT = self.dhwStateCapabilitiesResponse[SZ_ALLOWED_MODES]
         return ret
 
     @property
