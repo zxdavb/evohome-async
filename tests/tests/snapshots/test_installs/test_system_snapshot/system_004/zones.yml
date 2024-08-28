@@ -1,0 +1,72 @@
+'3935922':
+    activeFaults: &id001 []
+    active_faults: *id001
+    allowedSetpointModes: &id002
+    - PermanentOverride
+    - FollowSchedule
+    - TemporaryOverride
+    max_heat_setpoint: 35.0
+    min_heat_setpoint: 5.0
+    mode: PermanentOverride
+    modelType: RoundWireless
+    name: Name 3935922
+    scheduleCapabilities:
+        maxSwitchpointsPerDay: 6
+        minSwitchpointsPerDay: 0
+        setpointValueResolution: 0.5
+        timingResolution: 00:10:00
+    setpointCapabilities:
+        allowedSetpointModes: *id002
+        canControlCool: false
+        canControlHeat: true
+        maxDuration: 1.00:00:00
+        maxHeatSetpoint: 35.0
+        minHeatSetpoint: 5.0
+        timingResolution: 00:10:00
+        valueResolution: 0.5
+    setpointStatus:
+        setpointMode: PermanentOverride
+        targetHeatTemperature: 15.0
+    target_cool_temperature: null
+    target_heat_temperature: 15.0
+    temperature: 21.5
+    temperatureStatus:
+        isAvailable: true
+        temperature: 21.5
+    zoneType: Thermostat
+'4368406':
+    activeFaults: &id003 []
+    active_faults: *id003
+    allowedSetpointModes: &id004
+    - PermanentOverride
+    - FollowSchedule
+    - TemporaryOverride
+    max_heat_setpoint: 35.0
+    min_heat_setpoint: 5.0
+    mode: PermanentOverride
+    modelType: RoundWireless
+    name: Name 3935922
+    scheduleCapabilities:
+        maxSwitchpointsPerDay: 6
+        minSwitchpointsPerDay: 0
+        setpointValueResolution: 0.5
+        timingResolution: 00:10:00
+    setpointCapabilities:
+        allowedSetpointModes: *id004
+        canControlCool: false
+        canControlHeat: true
+        maxDuration: 1.00:00:00
+        maxHeatSetpoint: 35.0
+        minHeatSetpoint: 5.0
+        timingResolution: 00:10:00
+        valueResolution: 0.5
+    setpointStatus:
+        setpointMode: PermanentOverride
+        targetHeatTemperature: 15.0
+    target_cool_temperature: null
+    target_heat_temperature: 15.0
+    temperature: 23.0
+    temperatureStatus:
+        isAvailable: true
+        temperature: 23.0
+    zoneType: Thermostat

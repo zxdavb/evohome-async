@@ -1,0 +1,16 @@
+country: UnitedKingdom
+locationId: '2738909'
+locationOwner:
+    firstname: David
+    lastname: '********'
+    userId: '2263181'
+    username: nobody@nowhere.com
+locationType: Residential
+name: My Home
+timeZone:
+    currentOffsetMinutes: 60
+    displayName: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+    offsetMinutes: 0
+    supportsDaylightSaving: true
+    timeZoneId: GMTStandardTime
+useDaylightSaveSwitching: true
