@@ -166,11 +166,11 @@ class EvohomeClient(EvohomeClientDeprecated):
             await self.user_account()
 
         except exc.AuthenticationFailed as err:
-            if err.status != HTTPStatus.UNAUTHORIZED or not self.access_token:
+            if err.status != HTTPStatus.UNAUTHORIZED:  # or not self.access_token:
                 raise
 
-            _LOGGER.warning("Unauthorized access_token (will try re-authenticating).")  # type:ignore[unreachable]
-            self.token_manager.access_token = None  # FIXME: is this hack needed
+            _LOGGER.warning("Unauthorized access_token (will try re-authenticating).")
+            # self.token_manager.access_token = None  # FIXME: is this hack needed
             await self.user_account(force_update=True)
 
         await self.installation()

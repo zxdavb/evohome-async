@@ -9,7 +9,7 @@ import pytest
 
 from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
 
-from .helpers import TEST_DIR, _test_schema
+from .helpers import TEST_DIR, test_schema
 
 WORK_DIR = f"{TEST_DIR}/systems_0"
 
@@ -26,15 +26,15 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 def test_user_account(folder: Path) -> None:
     """Test the user account schema against the corresponding JSON."""
-    _test_schema(folder, SCH_USER_ACCOUNT, "user_account.json")
+    test_schema(folder, SCH_USER_ACCOUNT, "user_account.json")
 
 
 def test_user_locations(folder: Path) -> None:
     """Test the user locations config schema against the corresponding JSON."""
-    _test_schema(folder, SCH_FULL_CONFIG, "user_locations.json")
+    test_schema(folder, SCH_FULL_CONFIG, "user_locations.json")
 
 
 def test_location_status(folder: Path) -> None:
     """Test the location status schema against the corresponding JSON."""
     for p in Path(folder).glob("status_*.json"):
-        _test_schema(folder, SCH_LOCN_STATUS, p.name)
+        test_schema(folder, SCH_LOCN_STATUS, p.name)
