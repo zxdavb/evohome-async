@@ -3,7 +3,7 @@ name: Typing
 
 on:
   push:
-    branches: [ "master", "stable" ]
+    branches: [ "master", "dev" ]
     paths: [
       ".github/workflows/check-type.yml",
       "src/**.py",
@@ -14,7 +14,7 @@ on:
     ]
 
   pull_request:
-    branches: [ "master", "stable" ]
+    branches: [ "master", "dev" ]
     paths: [
       ".github/workflows/check-type.yml",
       "src/**.py",
