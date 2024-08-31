@@ -35,7 +35,7 @@ async def test_system_snapshot(  # type: ignore[no-any-unimported]
         return {
             attr: getattr(obj, attr)
             for attr in get_property_methods(obj)
-            if attr not in ("zoneId", "zone_type")
+            if attr not in ("zoneId", "zone_type")  # excl. deprecated attrs
         }
 
     with patch("evohomeasync2.broker.Broker.get", broker_get(install)):

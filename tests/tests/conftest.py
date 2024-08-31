@@ -44,9 +44,9 @@ class TokenManager(AbstractTokenManager):
     async def restore_access_token(self) -> None:
         """Restore the access token from the cache."""
 
-        self.access_token = "access_token"  # will always be valid
+        self.access_token = "access_token"  # noqa: S105
         self.access_token_expires = dt.max
-        self.refresh_token = "refresh_token"
+        self.refresh_token = "refresh_token"  # noqa: S105
 
     async def save_access_token(self) -> None:
         """Save the access token to the cache."""

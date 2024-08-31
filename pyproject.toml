@@ -157,13 +157,22 @@
     "B",  #     flake8-bugbear
     "E",  #     pycodestyle
     "F",  #     Pyflakes
+    "G",  #     flake8-logging-format
     "I",  #     isort
+    "LOG",  #   flake8-logging
+    "PGH",  #   pygrep hooks
     "SIM",  #   flake8-simplify
+    "S",  #     flake8-bandit
     "UP",  #    pyupgrade
   ]
-  ignore = ["B011", "E501", "SIM102", "SIM114", "UP009"]
+#   "FBT",  #   flake8-boolean-trap
+#   "PT",  #    flake8-pytest-style
+#   "RET",  #   flake8-return
+
+  ignore = ["B011", "G004", "E501", "S101", "SIM102", "SIM114", "UP009"]
   # B011   - Do not call assert False since python -O removes these calls
   # E501   - Line too long
+  # G004   - Logging statement uses f-string
   # SIM102 - Use a single `if` statement instead of nested `if` statements
   # SIM114 - Combine `if` branches using logical `or` operator
   # UP009  - UTF-8 encoding declaration is unnecessary
