@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
+import yaml
 from pytest_snapshot.plugin import Snapshot  # type: ignore[import-untyped]
 
 import evohomeasync2 as evo2
@@ -29,6 +31,13 @@ async def test_system_snapshot(  # type: ignore[no-any-unimported]
 ) -> None:
     """Test the user account schema against the corresponding JSON."""
 
+    def obj_to_dict(obj: object) -> dict[str, Any]:
+        return {
+            attr: getattr(obj, attr)
+            for attr in get_property_methods(obj)
+            if attr not in ("zoneId", "zone_type")  # excl. deprecated attrs
+        }
+
     with patch("evohomeasync2.broker.Broker.get", broker_get(install)):
         evo = evo2.EvohomeClient(token_manager, token_manager.websession)
 
@@ -37,13 +46,16 @@ async def test_system_snapshot(  # type: ignore[no-any-unimported]
     assert evo
 
     loc = evo.locations[0]
+    snapshot.assert_match(yaml.dump(obj_to_dict(loc), indent=4), "location.yml")
+
     gwy = loc._gateways[0]
+    snapshot.assert_match(yaml.dump(obj_to_dict(gwy), indent=4), "gateway.yml")
+
     tcs = gwy._control_systems[0]
+    snapshot.assert_match(yaml.dump(obj_to_dict(tcs), indent=4), "control_system.yml")
 
-    value = {
-        "loc": {attr: getattr(loc, attr) for attr in get_property_methods(loc)},
-        "gwy": {attr: getattr(gwy, attr) for attr in get_property_methods(gwy)},
-        "tcs": {attr: getattr(tcs, attr) for attr in get_property_methods(tcs)},
-    }
+    dhw = tcs.hotwater
+    snapshot.assert_match(yaml.dump(obj_to_dict(dhw), indent=4), "hot_water.yml")
 
-    snapshot.assert_match(str(value), install)
+    zones = {z.zoneId: obj_to_dict(z) for z in tcs._zones}
+    snapshot.assert_match(yaml.dump(zones, indent=4), "zones.yml")

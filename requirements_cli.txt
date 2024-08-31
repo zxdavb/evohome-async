@@ -1,4 +1,4 @@
-# last checked/updated: 2024/06/24
+# last checked/updated: 2024/08/31
 #
 
 # for using the the library via the CLI, client.py (includes requirements.txt)

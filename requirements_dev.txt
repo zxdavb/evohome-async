@@ -1,4 +1,4 @@
-# last checked/updated: 2024/06/24
+# last checked/updated: 2024/08/31
 #
 
 # for using the the library via the CLI, client.py (includes requirements.txt)
@@ -6,22 +6,24 @@
 
 # used for development (linting)
   pre-commit>=3.8.0
-  ruff>=0.6.2
+  ruff>=0.6.3
 
 # used for development (typing)
-  mypy>=1.11.1
+  mypy>=1.11.2
   types-aiofiles>=24.1.0  # used only by CLI
+  types-PyYAML>=6.0.12
   voluptuous>=0.15.2
 
 # used for testing
   pytest>=8.3.2
-  pytest-asyncio>=0.23.7
-  pytest-xdist>=3.6.1
+  pytest-asyncio>=0.24.0
+  pytest-snapshot>=0.9.0
   pytest-sugar>=1.0.0
+  pytest-xdist>=3.6.1
+# pytest-cov
 
 # used for testing at runtime
   debugpy >= 1.8.5
-# typeguard >= 4.1.5  # optional
 
 # used for build/deploy
   hatch>=1.12.0      # is not core HA

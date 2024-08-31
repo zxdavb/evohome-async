@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
 from typing import Any, Final, Never, NewType
 
@@ -94,12 +93,11 @@ class Broker:
         self._user_data: _UserDataT = await response.json()
         assert self._user_data != {}
 
-        user_id: _UserIdT = self._user_data[SZ_USER_INFO][SZ_USER_ID]  # type: ignore[assignment,index]
+        user_id: _UserIdT = self._user_data[SZ_USER_INFO][SZ_USER_ID]  # type: ignore[assignment, index]
         session_id: _SessionIdT = self._user_data[SZ_SESSION_ID]  # type: ignore[assignment, index]
 
         self._user_id = user_id
         self._session_id = self._headers[SZ_SESSION_ID] = session_id
-        self._session_renewed = dt.now()
 
         self._logger.info(f"user_data = {self._user_data}")
         return self._user_data, response  # type: ignore[return-value]
@@ -156,6 +154,7 @@ class Broker:
             if response_json[0]["code"] != "Unauthorized":
                 return response
 
+            # NOTE: I cannot recall if this is needed, or if it causes a bug
             # if SZ_SESSION_ID not in self._headers:  # no value trying to re-authenticate
             #     return response  # ...because: the user credentials must be invalid
 

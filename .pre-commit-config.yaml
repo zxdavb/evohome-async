@@ -5,18 +5,10 @@ exclude: (^.secrets/|^docs/)
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.2
+    rev: v0.6.3
     hooks:
       - id: ruff         # linter
       - id: ruff-format  # formatter
-
-  - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: v1.10.0
-    hooks:
-      - id: python-check-blanket-noqa
-      - id: python-check-blanket-type-ignore
-      - id: python-no-eval
-      - id: python-no-log-warn
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
@@ -26,7 +18,7 @@ repos:
       - id: check-toml
       - id: check-yaml
       - id: debug-statements
-      # id: end-of-file-fixer
+      # id: end-of-file-fixer  # not for snapshots
       - id: mixed-line-ending
       - id: trailing-whitespace
 

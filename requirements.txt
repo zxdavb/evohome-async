@@ -1,5 +1,6 @@
-# last checked/updated: 2024/06/24 (c.f. HA 2023.6.4)
+# last checked/updated: 2024/08/31 (c.f. HA 2023.10.x)
 #
 
+# used by library (but not enough for CLI)
 aiohttp>=3.10.5
 voluptuous>=0.15.2

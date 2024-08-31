@@ -27,7 +27,7 @@ from .schema import SZ_ACCESS_TOKEN_EXPIRES
 # all _DBG_* flags should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of click
 
-DEBUG_ADDR = "0.0.0.0"
+DEBUG_ADDR = "0.0.0.0"  # noqa: S104
 DEBUG_PORT = 5679
 
 SZ_CLEANUP: Final = "cleanup"

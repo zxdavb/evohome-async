@@ -3,7 +3,7 @@ name: Linting
 
 on:
   push:
-    branches: [ "master", "stable" ]
+    branches: [ "master", "dev" ]
     paths: [
       ".github/workflows/check-lint.yml",
       "src/**.py",
@@ -13,7 +13,7 @@ on:
     ]
 
   pull_request:
-    branches: [ "master", "stable" ]
+    branches: [ "master", "dev" ]
     paths: [
       ".github/workflows/check-lint.yml",
       "src/**.py",
@@ -41,6 +41,7 @@ jobs:
         uses: actions/setup-python@v5.1.0
         with:
           python-version: ${{ matrix.python-version }}
+          check-latest: true
 
       - name: Install dependencies
         run: |

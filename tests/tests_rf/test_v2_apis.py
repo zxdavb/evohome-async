@@ -38,8 +38,8 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
     assert isinstance(evo.token_manager.refresh_token, str)
 
     if not _DBG_USE_REAL_AIOHTTP:
-        assert evo.token_manager.access_token == "ncWMqPh2yGgAqc..."
-        assert evo.token_manager.refresh_token == "Ryx9fL34Z5GcNV..."
+        assert evo.token_manager.access_token == "ncWMqPh2yGgAqc..."  # noqa: S105
+        assert evo.token_manager.refresh_token == "Ryx9fL34Z5GcNV..."  # noqa: S105
 
     access_token = evo.token_manager.access_token
     refresh_token = evo.token_manager.refresh_token
