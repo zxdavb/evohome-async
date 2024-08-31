@@ -52,6 +52,6 @@ jobs:
           pip install -r requirements_dev.txt
 
       - name: Check with mypy
-        run: mypy
+        run: mypy --enable-incomplete-feature=NewGenericSyntax
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
