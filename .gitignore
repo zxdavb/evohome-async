@@ -10,6 +10,14 @@ tokens*
 /*.json
 
 
+# beware the *.log in github's default .gitignore
+!tests/
+!tests/**/*.ambr
+!tests/**/*.json
+!tests/**/*.log
+!tests/**/*.yaml
+
+
 ### github's default .gitignore file
 # https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
 
