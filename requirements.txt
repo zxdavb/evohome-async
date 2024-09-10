@@ -1,9 +1,16 @@
-# last checked/updated: 2024/09/10 (c.f. HA 2023.10.x)
+# Requirements to use the library via its CLI
+# - last checked/updated: 2024-09-10
 #
 
-# for dev/test...
-# -e .
+# library requirements (dependencies) are in pyproject.toml
+# - pip list | grep -E 'evohome|aiohttp|voluptuous'
 
-# used by library (but not enough for CLI)
-aiohttp>=3.10.5
-voluptuous>=0.15.2
+  -e .
+
+
+# also required if using the the library via the CLI, client.py
+  aiofiles >= 24.1.0
+  asyncclick >= 8.1.7                            # NOTE: async version
+  debugpy >= 1.8.5                               # can invoke via CLI
+
+# check via: pip list | grep -E 'aiofiles|click|debugpy'

@@ -22,12 +22,20 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
 
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: python-check-blanket-noqa
+      - id: python-check-blanket-type-ignore
+      # id: python-no-eval
+      - id: python-no-log-warn
+
   - repo: local
     hooks:
       # entry: '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'  # email address
 
     - id: debugs
-      name: check for _DBG_* flags  # should be False for published code
+      name: check for DEBUG flags  # should be False for published code
       entry: '_DBG_.*=.*True'
       language: pygrep
       args: [-i]
@@ -46,13 +54,6 @@ repos:
       language: pygrep
       args: [-i]
       exclude: .pre-commit-config.yaml  # avoid false +ve
-
-    # - id: fixme
-    #   name: check for FIXME flags
-    #   entry: '#.*(FIXME|TODO)'
-    #   language: pygrep
-    #   args: [-i]
-    #   exclude: (.pre-commit-config.yaml|^tests/.*\.py$)  # avoid false +ve
 
     # - id: private imports
     #   name: check private imports
