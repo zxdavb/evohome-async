@@ -1,5 +1,8 @@
-# last checked/updated: 2024/08/31 (c.f. HA 2023.10.x)
+# last checked/updated: 2024/09/10 (c.f. HA 2023.10.x)
 #
+
+# for dev/test...
+# -e .
 
 # used by library (but not enough for CLI)
 aiohttp>=3.10.5

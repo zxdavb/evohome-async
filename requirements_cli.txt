@@ -1,7 +1,7 @@
-# last checked/updated: 2024/08/31
+# last checked/updated: 2024/09/10
 #
 
-# for using the the library via the CLI, client.py (includes requirements.txt)
+# for using the the library via the CLI, client.py
   -r requirements.txt
 
 # used for CLI, but not for library
