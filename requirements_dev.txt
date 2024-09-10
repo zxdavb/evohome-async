@@ -22,10 +22,10 @@
 # used for testing
   pytest >= 8.3.3
   pytest-asyncio >= 0.24.0
-  pytest-snapshot >= 0.9.0
+# pytest-cov
   pytest-sugar >= 1.0.0
   pytest-xdist >= 3.6.1
-# pytest-cov
+  syrupy >= 4.6.1
 
 # used for build/deploy
   hatch >= 1.12.0
