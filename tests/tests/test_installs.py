@@ -52,7 +52,7 @@ async def test_system_snapshot(  # type: ignore[no-any-unimported]
     assert yaml.dump(obj_to_dict(gwy), indent=4) == snapshot(name="gateway")
 
     tcs = gwy._control_systems[0]
-    assert yaml.dump(obj_to_dict(tcs), indent=4) ==  snapshot(name="control_system")
+    assert yaml.dump(obj_to_dict(tcs), indent=4) == snapshot(name="control_system")
 
     dhw = tcs.hotwater
     assert yaml.dump(obj_to_dict(dhw), indent=4) == snapshot(name="hot_water")
