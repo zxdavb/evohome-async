@@ -19,7 +19,7 @@
     "aiohttp>=3.10.5",
     "voluptuous>=0.15.2",
   ]
-  requires-python = ">=3.12"
+  requires-python = ">=3.11"
   license = "Apache-2.0"
 
   keywords = [
