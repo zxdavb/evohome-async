@@ -37,10 +37,10 @@ jobs:
         python-version: ["3.12"]
 
     steps:
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.1
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5.1
         with:
           python-version: ${{ matrix.python-version }}
           check-latest: true
@@ -48,7 +48,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements_cli.txt
           pip install -r requirements_dev.txt
 
       - name: Check with mypy

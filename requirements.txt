@@ -5,7 +5,7 @@
 # library requirements (dependencies) are in pyproject.toml
 # - pip list | grep -E 'evohome|aiohttp|voluptuous'
 
-  -e .
+# -e .
 
 
 # also required if using the the library via the CLI, client.py
