@@ -26,7 +26,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     metafunc.parametrize("install", sorted(folders))
 
 
-async def test_system_snapshot(  # type: ignore[no-any-unimported]
+async def test_system_snapshot(
     install: str, token_manager: TokenManager, snapshot: SnapshotAssertion
 ) -> None:
     """Test the user account schema against the corresponding JSON."""
