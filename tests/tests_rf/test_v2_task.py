@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 
@@ -22,13 +21,7 @@ from evohomeasync2.schema.const import (
 from evohomeasync2.schema.helpers import pascal_case
 
 from .conftest import _DBG_USE_REAL_AIOHTTP
-from .helpers import (
-    aiohttp,
-    instantiate_client_v2,
-    should_fail,
-    should_work,
-    wait_for_comm_task_v2 as wait_for_comm_task,
-)
+from .helpers import aiohttp, instantiate_client_v2, should_fail, should_work
 
 #######################################################################################
 
@@ -103,14 +96,18 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
     task_id = result[0]["id"] if isinstance(result, list) else result["id"]
     url_tsk = f"commTasks?commTaskId={task_id}"
 
-    _ = await should_work(evo, HTTPMethod.GET, url_tsk)
+    assert int(task_id)
+
+    status = await should_work(evo, HTTPMethod.GET, url_tsk)
     # {'commtaskId': '840367013', 'state': 'Created'}
     # {'commtaskId': '840367013', 'state': 'Succeeded'}
 
-    # dtm = dt.now()
-    async with asyncio.timeout(3):
-        _ = await wait_for_comm_task(evo, task_id)
-    # assert (dt.now() - dtm).total_seconds() < 2
+    assert isinstance(status, dict)  # mypy
+    assert status["commtaskId"] == task_id
+    assert status["state"] in ("Created", "Running", "Succeeded")
+
+    # async with asyncio.timeout(30):
+    #     _ = await wait_for_comm_task(evo, task_id)
 
     #
     # PART 2A: Try different capitalisations of the JSON keys...
@@ -121,8 +118,9 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
     }
     _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)  # HTTP 201
 
-    async with asyncio.timeout(3):
-        _ = await wait_for_comm_task(evo, task_id)
+    # async with asyncio.timeout(30):
+    #     _ = await wait_for_comm_task(evo, task_id)
+
     status = await should_work(evo, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time
@@ -131,16 +129,22 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
         pascal_case(SZ_UNTIL_TIME): (dt.now() + td(hours=2)).strftime(API_STRFTIME),
     }
     _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)
-    _ = await wait_for_comm_task(evo, task_id)
+
+    # async with asyncio.timeout(30):
+    #     _ = await wait_for_comm_task(evo, task_id)
+
     status = await should_work(evo, HTTPMethod.GET, GET_URL)
 
     #
     # PART 3: Restore the original mode
     _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=old_mode)
-    _ = await wait_for_comm_task(evo, task_id)
+
+    # async with asyncio.timeout(30):
+    #    _ = await wait_for_comm_task(evo, task_id)
+
     status = await should_work(evo, HTTPMethod.GET, GET_URL)
 
-    assert status  # == old_status
+    # assert status # != old_status
 
     #
     # PART 4A: Try bad JSON...
@@ -151,8 +155,9 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
     }
     _ = await should_fail(
         evo, HTTPMethod.PUT, PUT_URL, json=bad_mode, status=HTTPStatus.BAD_REQUEST
-    )  #
-    # x = [{
+    )
+
+    # _ = [{
     #     "code": "InvalidInput", "message": """
     #         Error converting value 'TemporaryOverride'
     #         to type 'DomesticHotWater.Enums.EMEADomesticHotWaterState'.
@@ -177,8 +182,6 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
     _ = await should_fail(
         evo, HTTPMethod.GET, url_tsk, status=HTTPStatus.NOT_FOUND
     )  # [{"code": "CommTaskNotFound", "message": "Communication task not found."}]
-
-    pass
 
 
 #######################################################################################

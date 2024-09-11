@@ -256,7 +256,7 @@ async def should_fail(
     return content
 
 
-async def wait_for_comm_task_v2(evo: evo2.EvohomeClient, task_id: str) -> bool | None:
+async def wait_for_comm_task_v2(evo: evo2.EvohomeClient, task_id: str) -> bool:
     """Wait for a communication task (API call) to complete."""
 
     # invoke via:
@@ -270,11 +270,14 @@ async def wait_for_comm_task_v2(evo: evo2.EvohomeClient, task_id: str) -> bool |
     while True:
         response = await should_work(evo, HTTPMethod.GET, url)
         assert isinstance(response, dict | list), response
+
         if response["state"] == "Succeeded":  # type: ignore[call-overload]
             return True
+
         if response["state"] in ("Created", "Running"):  # type: ignore[call-overload]
             await asyncio.sleep(0.3)
             continue
+
         else:
             # raise RuntimeError(f"Unexpected state: {response['state']}")
             _LOGGER.warning(f"Unexpected state: {response['state']}")  # type: ignore[call-overload]
