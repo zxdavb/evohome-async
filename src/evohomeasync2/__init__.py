@@ -6,8 +6,15 @@ It is (largely) a faithful port of https://github.com/watchforstock/evohome-clie
 Further information at: https://evohome-client.readthedocs.io
 """
 
-from .base import EvohomeClient  # noqa: F401
-from .broker import Broker  # noqa: F401
+from __future__ import annotations
+
+import logging
+from datetime import datetime as dt
+
+import aiohttp
+
+from .base import EvohomeClient as _EvohomeClientNew
+from .broker import AbstractTokenManager, Broker  # noqa: F401
 from .controlsystem import ControlSystem  # noqa: F401
 from .exceptions import (  # noqa: F401
     AuthenticationFailed,
@@ -26,3 +33,83 @@ from .location import Location  # noqa: F401
 from .zone import Zone  # noqa: F401
 
 __version__ = "1.1.0"
+
+_LOOGER = logging.getLogger(__name__)
+
+
+class _TokenManager(AbstractTokenManager):
+    """A token manager that uses a cache file to store the tokens."""
+
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        websession: aiohttp.ClientSession,
+        /,
+        *,
+        refresh_token: str | None = None,
+        access_token: str | None = None,
+        access_token_expires: dt | None = None,
+    ) -> None:
+        super().__init__(username, password, websession)
+
+        self.refresh_token = refresh_token
+        self.access_token = access_token
+        self.access_token_expires = access_token_expires or dt.min
+
+    async def restore_access_token(self) -> None:
+        raise NotImplementedError
+
+    async def save_access_token(self) -> None:
+        pass
+
+
+class EvohomeClient(_EvohomeClientNew):
+    """A wrapper to expose the new EvohomeClient in the old style."""
+
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        /,
+        *,
+        refresh_token: str | None = None,
+        access_token: str | None = None,
+        access_token_expires: dt | None = None,
+        session: None | aiohttp.ClientSession = None,
+        debug: bool = False,
+    ) -> None:
+        """Construct the v2 EvohomeClient object."""
+
+        websession = session or aiohttp.ClientSession()
+
+        self._token_manager = _TokenManager(
+            username,
+            password,
+            websession,
+            refresh_token=refresh_token,
+            access_token=access_token,
+            access_token_expires=access_token_expires,
+        )
+
+        super().__init__(self._token_manager, websession, debug=debug)
+
+    @property
+    def access_token(self) -> str:
+        """Return the access_token attr."""
+        return self._token_manager.access_token
+
+    @property
+    def access_token_expires(self) -> dt:
+        """Return the access_token_expires attr."""
+        return self._token_manager.access_token_expires
+
+    @property
+    def refresh_token(self) -> str:
+        """Return the refresh_token attr."""
+        return self._token_manager.refresh_token
+
+    @property
+    def username(self) -> str:
+        """Return the username attr."""
+        return self._token_manager.username
