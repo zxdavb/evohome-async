@@ -56,7 +56,7 @@ _ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # GET/PUT URL_B
     HTTPStatus.UNAUTHORIZED: "Unauthorized (expired access token/unknown entity id?)",
 }
 
-SZ_USERNAME: Final = "Username"  # is PascalCase, not camelCase?
+SZ_USERNAME: Final = "Username"  # TODO: is camelCase (and not PascalCase) OK?
 SZ_PASSWORD: Final = "Password"
 
 
@@ -90,7 +90,7 @@ class AbstractTokenManager(ABC):
         self._user_credentials = {
             SZ_USERNAME: username,
             SZ_PASSWORD: password,
-        }  # TODO: are only ever PascalCase?
+        }
 
         self.websession = websession
 
@@ -103,11 +103,6 @@ class AbstractTokenManager(ABC):
     def username(self) -> str:
         """Return the username."""
         return self._user_credentials[SZ_USERNAME]
-
-    @property  # TODO: remove this whan no longer needed
-    def _password(self) -> str:
-        """Return the username."""
-        return self._user_credentials[SZ_PASSWORD]
 
     def _token_data_reset(self) -> None:
         """Reset the token data to its falsy state."""
