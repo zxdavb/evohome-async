@@ -1,8 +1,7 @@
 # serializer version: 1
 # name: test_system_snapshot[default][control_system]
   '''
-  activeFaults: &id001 []
-  active_faults: *id001
+  active_faults: []
   allowedSystemModes:
   -   canBePermanent: true
       canBeTemporary: false
@@ -37,8 +36,8 @@
       systemMode: Custom
       timingMode: Period
       timingResolution: 1.00:00:00
+  id: '3432522'
   modelType: EvoTouch
-  systemId: '3432522'
   systemModeStatus:
       isPermanent: true
       mode: AutoWithEco
@@ -49,7 +48,7 @@
 # name: test_system_snapshot[default][gateway]
   '''
   active_faults: []
-  gatewayId: '2499896'
+  id: '2499896'
   isWiFi: false
   mac: 00D02DEE4E56
   
@@ -57,20 +56,19 @@
 # ---
 # name: test_system_snapshot[default][hot_water]
   '''
-  activeFaults: &id001 []
-  active_faults: *id001
-  allowedModes: &id002
+  active_faults: []
+  allowedModes: &id001
   - FollowSchedule
   - PermanentOverride
   - TemporaryOverride
-  dhwId: '3933910'
   dhwStateCapabilitiesResponse:
-      allowedModes: *id002
+      allowedModes: *id001
       allowedStates:
       - 'On'
       - 'Off'
       maxDuration: 1.00:00:00
       timingResolution: 00:10:00
+  id: '3933910'
   mode: PermanentOverride
   name: Domestic Hot Water
   scheduleCapabilitiesResponse:
@@ -91,7 +89,7 @@
 # name: test_system_snapshot[default][location]
   '''
   country: UnitedKingdom
-  locationId: '2738909'
+  id: '2738909'
   locationOwner:
       firstname: David
       lastname: '********'
@@ -112,12 +110,12 @@
 # name: test_system_snapshot[default][zones]
   '''
   '3432521':
-      activeFaults: &id001 []
-      active_faults: *id001
-      allowedSetpointModes: &id002
+      active_faults: []
+      allowedSetpointModes: &id001
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432521'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: PermanentOverride
@@ -129,7 +127,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id002
+          allowedSetpointModes: *id001
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -147,17 +145,89 @@
           isAvailable: false
       zoneType: RadiatorZone
   '3432576':
-      activeFaults: &id003 []
-      active_faults: *id003
-      allowedSetpointModes: &id004
+      active_faults: []
+      allowedSetpointModes: &id002
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432576'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
       modelType: HeatingZone
       name: Main Room
+      scheduleCapabilities:
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
+      setpointCapabilities:
+          allowedSetpointModes: *id002
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
+      setpointStatus:
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
+      target_cool_temperature: null
+      target_heat_temperature: 17.0
+      temperature: 19.0
+      temperatureStatus:
+          isAvailable: true
+          temperature: 19.0
+      zoneType: RadiatorZone
+  '3432577':
+      active_faults: []
+      allowedSetpointModes: &id003
+      - PermanentOverride
+      - FollowSchedule
+      - TemporaryOverride
+      id: '3432577'
+      max_heat_setpoint: 35.0
+      min_heat_setpoint: 5.0
+      mode: FollowSchedule
+      modelType: HeatingZone
+      name: Front Room
+      scheduleCapabilities:
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
+      setpointCapabilities:
+          allowedSetpointModes: *id003
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
+      setpointStatus:
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
+      target_cool_temperature: null
+      target_heat_temperature: 17.0
+      temperature: 19.0
+      temperatureStatus:
+          isAvailable: true
+          temperature: 19.0
+      zoneType: RadiatorZone
+  '3432578':
+      active_faults: []
+      allowedSetpointModes: &id004
+      - PermanentOverride
+      - FollowSchedule
+      - TemporaryOverride
+      id: '3432578'
+      max_heat_setpoint: 35.0
+      min_heat_setpoint: 5.0
+      mode: FollowSchedule
+      modelType: HeatingZone
+      name: Kitchen
       scheduleCapabilities:
           maxSwitchpointsPerDay: 6
           minSwitchpointsPerDay: 1
@@ -177,90 +247,18 @@
           targetHeatTemperature: 17.0
       target_cool_temperature: null
       target_heat_temperature: 17.0
-      temperature: 19.0
-      temperatureStatus:
-          isAvailable: true
-          temperature: 19.0
-      zoneType: RadiatorZone
-  '3432577':
-      activeFaults: &id005 []
-      active_faults: *id005
-      allowedSetpointModes: &id006
-      - PermanentOverride
-      - FollowSchedule
-      - TemporaryOverride
-      max_heat_setpoint: 35.0
-      min_heat_setpoint: 5.0
-      mode: FollowSchedule
-      modelType: HeatingZone
-      name: Front Room
-      scheduleCapabilities:
-          maxSwitchpointsPerDay: 6
-          minSwitchpointsPerDay: 1
-          setpointValueResolution: 0.5
-          timingResolution: 00:10:00
-      setpointCapabilities:
-          allowedSetpointModes: *id006
-          canControlCool: false
-          canControlHeat: true
-          maxDuration: 1.00:00:00
-          maxHeatSetpoint: 35.0
-          minHeatSetpoint: 5.0
-          timingResolution: 00:10:00
-          valueResolution: 0.5
-      setpointStatus:
-          setpointMode: FollowSchedule
-          targetHeatTemperature: 17.0
-      target_cool_temperature: null
-      target_heat_temperature: 17.0
-      temperature: 19.0
-      temperatureStatus:
-          isAvailable: true
-          temperature: 19.0
-      zoneType: RadiatorZone
-  '3432578':
-      activeFaults: &id007 []
-      active_faults: *id007
-      allowedSetpointModes: &id008
-      - PermanentOverride
-      - FollowSchedule
-      - TemporaryOverride
-      max_heat_setpoint: 35.0
-      min_heat_setpoint: 5.0
-      mode: FollowSchedule
-      modelType: HeatingZone
-      name: Kitchen
-      scheduleCapabilities:
-          maxSwitchpointsPerDay: 6
-          minSwitchpointsPerDay: 1
-          setpointValueResolution: 0.5
-          timingResolution: 00:10:00
-      setpointCapabilities:
-          allowedSetpointModes: *id008
-          canControlCool: false
-          canControlHeat: true
-          maxDuration: 1.00:00:00
-          maxHeatSetpoint: 35.0
-          minHeatSetpoint: 5.0
-          timingResolution: 00:10:00
-          valueResolution: 0.5
-      setpointStatus:
-          setpointMode: FollowSchedule
-          targetHeatTemperature: 17.0
-      target_cool_temperature: null
-      target_heat_temperature: 17.0
       temperature: 20.0
       temperatureStatus:
           isAvailable: true
           temperature: 20.0
       zoneType: RadiatorZone
   '3432579':
-      activeFaults: &id009 []
-      active_faults: *id009
-      allowedSetpointModes: &id010
+      active_faults: []
+      allowedSetpointModes: &id005
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432579'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -272,7 +270,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id010
+          allowedSetpointModes: *id005
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -291,12 +289,12 @@
           temperature: 20.0
       zoneType: RadiatorZone
   '3432580':
-      activeFaults: &id011 []
-      active_faults: *id011
-      allowedSetpointModes: &id012
+      active_faults: []
+      allowedSetpointModes: &id006
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432580'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -308,7 +306,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id012
+          allowedSetpointModes: *id006
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -327,12 +325,12 @@
           temperature: 21.0
       zoneType: RadiatorZone
   '3449703':
-      activeFaults: &id013 []
-      active_faults: *id013
-      allowedSetpointModes: &id014
+      active_faults: []
+      allowedSetpointModes: &id007
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3449703'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -344,7 +342,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id014
+          allowedSetpointModes: *id007
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -363,12 +361,12 @@
           temperature: 19.5
       zoneType: RadiatorZone
   '3449740':
-      activeFaults: &id015 []
-      active_faults: *id015
-      allowedSetpointModes: &id016
+      active_faults: []
+      allowedSetpointModes: &id008
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3449740'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -380,7 +378,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id016
+          allowedSetpointModes: *id008
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -399,12 +397,12 @@
           temperature: 21.5
       zoneType: RadiatorZone
   '3450733':
-      activeFaults: &id017 []
-      active_faults: *id017
-      allowedSetpointModes: &id018
+      active_faults: []
+      allowedSetpointModes: &id009
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3450733'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: PermanentOverride
@@ -416,7 +414,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id018
+          allowedSetpointModes: *id009
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -439,8 +437,7 @@
 # ---
 # name: test_system_snapshot[hass_118169][control_system]
   '''
-  activeFaults: &id001 []
-  active_faults: *id001
+  active_faults: []
   allowedSystemModes:
   -   canBePermanent: true
       canBeTemporary: false
@@ -475,8 +472,8 @@
       systemMode: Custom
       timingMode: Period
       timingResolution: 1.00:00:00
+  id: '3432522'
   modelType: EvoTouch
-  systemId: '3432522'
   systemModeStatus:
       isPermanent: true
       mode: AutoWithEco
@@ -487,7 +484,7 @@
 # name: test_system_snapshot[hass_118169][gateway]
   '''
   active_faults: []
-  gatewayId: '2499896'
+  id: '2499896'
   isWiFi: false
   mac: 00D02DEE4E56
   
@@ -495,20 +492,19 @@
 # ---
 # name: test_system_snapshot[hass_118169][hot_water]
   '''
-  activeFaults: &id001 []
-  active_faults: *id001
-  allowedModes: &id002
+  active_faults: []
+  allowedModes: &id001
   - FollowSchedule
   - PermanentOverride
   - TemporaryOverride
-  dhwId: '3933910'
   dhwStateCapabilitiesResponse:
-      allowedModes: *id002
+      allowedModes: *id001
       allowedStates:
       - 'On'
       - 'Off'
       maxDuration: 1.00:00:00
       timingResolution: 00:10:00
+  id: '3933910'
   mode: PermanentOverride
   name: Domestic Hot Water
   scheduleCapabilitiesResponse:
@@ -529,7 +525,7 @@
 # name: test_system_snapshot[hass_118169][location]
   '''
   country: UnitedKingdom
-  locationId: '2738909'
+  id: '2738909'
   locationOwner:
       firstname: David
       lastname: '********'
@@ -550,12 +546,12 @@
 # name: test_system_snapshot[hass_118169][zones]
   '''
   '3432521':
-      activeFaults: &id001 []
-      active_faults: *id001
-      allowedSetpointModes: &id002
+      active_faults: []
+      allowedSetpointModes: &id001
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432521'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: PermanentOverride
@@ -567,7 +563,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id002
+          allowedSetpointModes: *id001
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -585,17 +581,89 @@
           isAvailable: false
       zoneType: RadiatorZone
   '3432576':
-      activeFaults: &id003 []
-      active_faults: *id003
-      allowedSetpointModes: &id004
+      active_faults: []
+      allowedSetpointModes: &id002
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432576'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
       modelType: HeatingZone
       name: Main Room
+      scheduleCapabilities:
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
+      setpointCapabilities:
+          allowedSetpointModes: *id002
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
+      setpointStatus:
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
+      target_cool_temperature: null
+      target_heat_temperature: 17.0
+      temperature: 19.0
+      temperatureStatus:
+          isAvailable: true
+          temperature: 19.0
+      zoneType: RadiatorZone
+  '3432577':
+      active_faults: []
+      allowedSetpointModes: &id003
+      - PermanentOverride
+      - FollowSchedule
+      - TemporaryOverride
+      id: '3432577'
+      max_heat_setpoint: 35.0
+      min_heat_setpoint: 5.0
+      mode: FollowSchedule
+      modelType: HeatingZone
+      name: Front Room
+      scheduleCapabilities:
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
+      setpointCapabilities:
+          allowedSetpointModes: *id003
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
+      setpointStatus:
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
+      target_cool_temperature: null
+      target_heat_temperature: 17.0
+      temperature: 19.0
+      temperatureStatus:
+          isAvailable: true
+          temperature: 19.0
+      zoneType: RadiatorZone
+  '3432578':
+      active_faults: []
+      allowedSetpointModes: &id004
+      - PermanentOverride
+      - FollowSchedule
+      - TemporaryOverride
+      id: '3432578'
+      max_heat_setpoint: 35.0
+      min_heat_setpoint: 5.0
+      mode: FollowSchedule
+      modelType: HeatingZone
+      name: Kitchen
       scheduleCapabilities:
           maxSwitchpointsPerDay: 6
           minSwitchpointsPerDay: 1
@@ -615,90 +683,18 @@
           targetHeatTemperature: 17.0
       target_cool_temperature: null
       target_heat_temperature: 17.0
-      temperature: 19.0
-      temperatureStatus:
-          isAvailable: true
-          temperature: 19.0
-      zoneType: RadiatorZone
-  '3432577':
-      activeFaults: &id005 []
-      active_faults: *id005
-      allowedSetpointModes: &id006
-      - PermanentOverride
-      - FollowSchedule
-      - TemporaryOverride
-      max_heat_setpoint: 35.0
-      min_heat_setpoint: 5.0
-      mode: FollowSchedule
-      modelType: HeatingZone
-      name: Front Room
-      scheduleCapabilities:
-          maxSwitchpointsPerDay: 6
-          minSwitchpointsPerDay: 1
-          setpointValueResolution: 0.5
-          timingResolution: 00:10:00
-      setpointCapabilities:
-          allowedSetpointModes: *id006
-          canControlCool: false
-          canControlHeat: true
-          maxDuration: 1.00:00:00
-          maxHeatSetpoint: 35.0
-          minHeatSetpoint: 5.0
-          timingResolution: 00:10:00
-          valueResolution: 0.5
-      setpointStatus:
-          setpointMode: FollowSchedule
-          targetHeatTemperature: 17.0
-      target_cool_temperature: null
-      target_heat_temperature: 17.0
-      temperature: 19.0
-      temperatureStatus:
-          isAvailable: true
-          temperature: 19.0
-      zoneType: RadiatorZone
-  '3432578':
-      activeFaults: &id007 []
-      active_faults: *id007
-      allowedSetpointModes: &id008
-      - PermanentOverride
-      - FollowSchedule
-      - TemporaryOverride
-      max_heat_setpoint: 35.0
-      min_heat_setpoint: 5.0
-      mode: FollowSchedule
-      modelType: HeatingZone
-      name: Kitchen
-      scheduleCapabilities:
-          maxSwitchpointsPerDay: 6
-          minSwitchpointsPerDay: 1
-          setpointValueResolution: 0.5
-          timingResolution: 00:10:00
-      setpointCapabilities:
-          allowedSetpointModes: *id008
-          canControlCool: false
-          canControlHeat: true
-          maxDuration: 1.00:00:00
-          maxHeatSetpoint: 35.0
-          minHeatSetpoint: 5.0
-          timingResolution: 00:10:00
-          valueResolution: 0.5
-      setpointStatus:
-          setpointMode: FollowSchedule
-          targetHeatTemperature: 17.0
-      target_cool_temperature: null
-      target_heat_temperature: 17.0
       temperature: 20.0
       temperatureStatus:
           isAvailable: true
           temperature: 20.0
       zoneType: RadiatorZone
   '3432579':
-      activeFaults: &id009 []
-      active_faults: *id009
-      allowedSetpointModes: &id010
+      active_faults: []
+      allowedSetpointModes: &id005
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432579'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -710,7 +706,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id010
+          allowedSetpointModes: *id005
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -729,12 +725,12 @@
           temperature: 20.0
       zoneType: RadiatorZone
   '3432580':
-      activeFaults: &id011 []
-      active_faults: *id011
-      allowedSetpointModes: &id012
+      active_faults: []
+      allowedSetpointModes: &id006
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432580'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -746,7 +742,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id012
+          allowedSetpointModes: *id006
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -765,12 +761,12 @@
           temperature: 21.0
       zoneType: RadiatorZone
   '3449703':
-      activeFaults: &id013 []
-      active_faults: *id013
-      allowedSetpointModes: &id014
+      active_faults: []
+      allowedSetpointModes: &id007
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3449703'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -782,7 +778,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id014
+          allowedSetpointModes: *id007
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -801,12 +797,12 @@
           temperature: 19.5
       zoneType: RadiatorZone
   '3449740':
-      activeFaults: &id015 []
-      active_faults: *id015
-      allowedSetpointModes: &id016
+      active_faults: []
+      allowedSetpointModes: &id008
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3449740'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -818,7 +814,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id016
+          allowedSetpointModes: *id008
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -837,12 +833,12 @@
           temperature: 21.5
       zoneType: RadiatorZone
   '3450733':
-      activeFaults: &id017 []
-      active_faults: *id017
-      allowedSetpointModes: &id018
+      active_faults: []
+      allowedSetpointModes: &id009
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3450733'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: PermanentOverride
@@ -854,7 +850,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id018
+          allowedSetpointModes: *id009
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -877,8 +873,7 @@
 # ---
 # name: test_system_snapshot[system_002][control_system]
   '''
-  activeFaults: &id001 []
-  active_faults: *id001
+  active_faults: []
   allowedSystemModes:
   -   canBePermanent: true
       canBeTemporary: false
@@ -913,8 +908,8 @@
       systemMode: Custom
       timingMode: Period
       timingResolution: 1.00:00:00
+  id: '3432522'
   modelType: EvoTouch
-  systemId: '3432522'
   systemModeStatus:
       isPermanent: true
       mode: Auto
@@ -925,7 +920,7 @@
 # name: test_system_snapshot[system_002][gateway]
   '''
   active_faults: []
-  gatewayId: '2499896'
+  id: '2499896'
   isWiFi: false
   mac: 00D02DEE4E56
   
@@ -933,22 +928,21 @@
 # ---
 # name: test_system_snapshot[system_002][hot_water]
   '''
-  activeFaults: &id001
+  active_faults:
   -   faultType: DHWSensorCommunicationLost
       since: '2023-11-30T18:48:40'
-  active_faults: *id001
-  allowedModes: &id002
+  allowedModes: &id001
   - FollowSchedule
   - PermanentOverride
   - TemporaryOverride
-  dhwId: '3933910'
   dhwStateCapabilitiesResponse:
-      allowedModes: *id002
+      allowedModes: *id001
       allowedStates:
       - 'On'
       - 'Off'
       maxDuration: 1.00:00:00
       timingResolution: 00:10:00
+  id: '3933910'
   mode: FollowSchedule
   name: Domestic Hot Water
   scheduleCapabilitiesResponse:
@@ -968,7 +962,7 @@
 # name: test_system_snapshot[system_002][location]
   '''
   country: UnitedKingdom
-  locationId: '2738909'
+  id: '2738909'
   locationOwner:
       firstname: David
       lastname: '********'
@@ -989,17 +983,52 @@
 # name: test_system_snapshot[system_002][zones]
   '''
   '3432521':
-      activeFaults: &id001 []
-      active_faults: *id001
-      allowedSetpointModes: &id002
+      active_faults: []
+      allowedSetpointModes: &id001
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432521'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: PermanentOverride
       modelType: HeatingZone
       name: Dead Zone
+      scheduleCapabilities:
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
+      setpointCapabilities:
+          allowedSetpointModes: *id001
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
+      setpointStatus:
+          setpointMode: PermanentOverride
+          targetHeatTemperature: 5.0
+      target_cool_temperature: null
+      target_heat_temperature: 5.0
+      temperature: null
+      temperatureStatus:
+          isAvailable: false
+      zoneType: RadiatorZone
+  '3432576':
+      active_faults: []
+      allowedSetpointModes: &id002
+      - PermanentOverride
+      - FollowSchedule
+      - TemporaryOverride
+      id: '3432576'
+      max_heat_setpoint: 35.0
+      min_heat_setpoint: 5.0
+      mode: PermanentOverride
+      modelType: HeatingZone
+      name: Main Room
       scheduleCapabilities:
           maxSwitchpointsPerDay: 6
           minSwitchpointsPerDay: 1
@@ -1019,53 +1048,18 @@
           targetHeatTemperature: 5.0
       target_cool_temperature: null
       target_heat_temperature: 5.0
-      temperature: null
-      temperatureStatus:
-          isAvailable: false
-      zoneType: RadiatorZone
-  '3432576':
-      activeFaults: &id003 []
-      active_faults: *id003
-      allowedSetpointModes: &id004
-      - PermanentOverride
-      - FollowSchedule
-      - TemporaryOverride
-      max_heat_setpoint: 35.0
-      min_heat_setpoint: 5.0
-      mode: PermanentOverride
-      modelType: HeatingZone
-      name: Main Room
-      scheduleCapabilities:
-          maxSwitchpointsPerDay: 6
-          minSwitchpointsPerDay: 1
-          setpointValueResolution: 0.5
-          timingResolution: 00:10:00
-      setpointCapabilities:
-          allowedSetpointModes: *id004
-          canControlCool: false
-          canControlHeat: true
-          maxDuration: 1.00:00:00
-          maxHeatSetpoint: 35.0
-          minHeatSetpoint: 5.0
-          timingResolution: 00:10:00
-          valueResolution: 0.5
-      setpointStatus:
-          setpointMode: PermanentOverride
-          targetHeatTemperature: 5.0
-      target_cool_temperature: null
-      target_heat_temperature: 5.0
       temperature: 17.0
       temperatureStatus:
           isAvailable: true
           temperature: 17.0
       zoneType: RadiatorZone
   '3432577':
-      activeFaults: &id005 []
-      active_faults: *id005
-      allowedSetpointModes: &id006
+      active_faults: []
+      allowedSetpointModes: &id003
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432577'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -1077,7 +1071,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id006
+          allowedSetpointModes: *id003
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -1096,12 +1090,12 @@
           temperature: 20.5
       zoneType: RadiatorZone
   '3432578':
-      activeFaults: &id007 []
-      active_faults: *id007
-      allowedSetpointModes: &id008
+      active_faults: []
+      allowedSetpointModes: &id004
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432578'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -1113,7 +1107,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id008
+          allowedSetpointModes: *id004
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -1132,12 +1126,12 @@
           temperature: 20.0
       zoneType: RadiatorZone
   '3432579':
-      activeFaults: &id009 []
-      active_faults: *id009
-      allowedSetpointModes: &id010
+      active_faults: []
+      allowedSetpointModes: &id005
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432579'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -1149,7 +1143,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id010
+          allowedSetpointModes: *id005
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -1168,12 +1162,12 @@
           temperature: 17.5
       zoneType: RadiatorZone
   '3432580':
-      activeFaults: &id011 []
-      active_faults: *id011
-      allowedSetpointModes: &id012
+      active_faults: []
+      allowedSetpointModes: &id006
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3432580'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: TemporaryOverride
@@ -1185,7 +1179,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id012
+          allowedSetpointModes: *id006
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -1205,12 +1199,12 @@
           temperature: 21.0
       zoneType: RadiatorZone
   '3449703':
-      activeFaults: &id013 []
-      active_faults: *id013
-      allowedSetpointModes: &id014
+      active_faults: []
+      allowedSetpointModes: &id007
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3449703'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -1222,7 +1216,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id014
+          allowedSetpointModes: *id007
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -1241,12 +1235,12 @@
           temperature: 19.5
       zoneType: RadiatorZone
   '3449740':
-      activeFaults: &id015 []
-      active_faults: *id015
-      allowedSetpointModes: &id016
+      active_faults: []
+      allowedSetpointModes: &id008
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3449740'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: FollowSchedule
@@ -1258,7 +1252,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id016
+          allowedSetpointModes: *id008
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -1277,12 +1271,12 @@
           temperature: 19.0
       zoneType: RadiatorZone
   '3450733':
-      activeFaults: &id017 []
-      active_faults: *id017
-      allowedSetpointModes: &id018
+      active_faults: []
+      allowedSetpointModes: &id009
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3450733'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: PermanentOverride
@@ -1294,7 +1288,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id018
+          allowedSetpointModes: *id009
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -1317,8 +1311,7 @@
 # ---
 # name: test_system_snapshot[system_004][control_system]
   '''
-  activeFaults: &id001 []
-  active_faults: *id001
+  active_faults: []
   allowedSystemModes:
   -   canBePermanent: true
       canBeTemporary: false
@@ -1338,8 +1331,8 @@
   -   canBePermanent: true
       canBeTemporary: false
       systemMode: HeatingOff
+  id: '3935923'
   modelType: EvoTouch
-  systemId: '3935923'
   systemModeStatus:
       isPermanent: true
       mode: Auto
@@ -1350,7 +1343,7 @@
 # name: test_system_snapshot[system_004][gateway]
   '''
   active_faults: []
-  gatewayId: '2820628'
+  id: '2820628'
   isWiFi: false
   mac: 00D02DF114FD
   
@@ -1365,7 +1358,7 @@
 # name: test_system_snapshot[system_004][location]
   '''
   country: CzechRepublic
-  locationId: '2664492'
+  id: '2664492'
   locationOwner:
       firstname: Jan
       lastname: '********'
@@ -1387,12 +1380,12 @@
 # name: test_system_snapshot[system_004][zones]
   '''
   '3935922':
-      activeFaults: &id001 []
-      active_faults: *id001
-      allowedSetpointModes: &id002
+      active_faults: []
+      allowedSetpointModes: &id001
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '3935922'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: PermanentOverride
@@ -1404,7 +1397,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id002
+          allowedSetpointModes: *id001
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00
@@ -1423,12 +1416,12 @@
           temperature: 21.5
       zoneType: Thermostat
   '4368406':
-      activeFaults: &id003 []
-      active_faults: *id003
-      allowedSetpointModes: &id004
+      active_faults: []
+      allowedSetpointModes: &id002
       - PermanentOverride
       - FollowSchedule
       - TemporaryOverride
+      id: '4368406'
       max_heat_setpoint: 35.0
       min_heat_setpoint: 5.0
       mode: PermanentOverride
@@ -1440,7 +1433,7 @@
           setpointValueResolution: 0.5
           timingResolution: 00:10:00
       setpointCapabilities:
-          allowedSetpointModes: *id004
+          allowedSetpointModes: *id002
           canControlCool: false
           canControlHeat: true
           maxDuration: 1.00:00:00

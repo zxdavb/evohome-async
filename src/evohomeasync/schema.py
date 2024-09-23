@@ -24,7 +24,7 @@ _ZoneNameT = NewType("_ZoneNameT", str)
 _TaskIdT = NewType("_TaskIdT", str)  # TODO: int or str?
 
 
-SZ_SESSION_ID: Final = "sessionId"  # id Id, not ID
+SZ_SESSION_ID: Final = "sessionId"  # is Id, not ID
 
 # schema keys (start with a lower case letter)
 SZ_ALLOWED_MODES: Final = "allowedModes"

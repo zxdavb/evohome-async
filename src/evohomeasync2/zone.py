@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Provides handling of TCC zones (heating and DHW)."""
 
-# TODO: add provision for cooling zones
+# TODO: add provision for cooling zones, when vendor's API adds support for such
 # TODO: add set_mode() for non-evohome modes (e.g. "VacationHold")
 
 from __future__ import annotations
@@ -40,12 +40,12 @@ from .schema.const import (
     SZ_TARGET_HEAT_TEMPERATURE,
     SZ_TEMPERATURE,
     SZ_TEMPERATURE_STATUS,
-    SZ_TEMPERATURE_ZONE,
     SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
     ZONE_MODEL_TYPES,
     ZONE_TYPES,
+    EntityType,
     ZoneModelType,
     ZoneType,
 )
@@ -54,28 +54,35 @@ if TYPE_CHECKING:
     import logging
 
     from . import Broker, ControlSystem
-    from .schema import _DhwIdT, _EvoDictT, _EvoListT, _ZoneIdT
+    from .schema import _EvoDictT, _EvoListT
 
 
 _ONE_DAY = td(days=1)
 
 
-class ActiveFaultsBase:
-    TYPE: _DhwIdT | _ZoneIdT  # "temperatureZone", "domesticHotWater"
+class EntityBase:
+    TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
 
-    def __init__(
-        self, id: _DhwIdT | _ZoneIdT, broker: Broker, logger: logging.Logger
-    ) -> None:
+    def __init__(self, id: str, broker: Broker, logger: logging.Logger) -> None:
         self._id: Final = id
 
         self._broker = broker
         self._logger = logger
 
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}(id='{self.id}')"
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+
+class ActiveFaultsBase(EntityBase):
+    def __init__(self, id: str, broker: Broker, logger: logging.Logger) -> None:
+        super().__init__(id, broker, logger)
+
         self._active_faults: _EvoListT = []
         self._last_logged: dict[str, dt] = {}
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}(id='{self._id}')"
 
     @property
     def active_faults(self) -> _EvoListT:
@@ -122,6 +129,16 @@ class _ZoneBaseDeprecated:  # pragma: no cover
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     @property
+    def zoneId(self) -> NoReturn:
+        raise exc.DeprecationError(f"{self}: .zoneId is deprecated, use .id")
+
+    @property
+    def activeFaults(self) -> NoReturn:
+        raise exc.DeprecationError(
+            f"{self}: .activeFaults is deprecated, use .active_faults"
+        )
+
+    @property
     def zone_type(self) -> NoReturn:
         raise exc.DeprecationError(f"{self}: .zone_type is deprecated, use .TYPE")
 
@@ -142,7 +159,7 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
     def __init__(self, id: str, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(id, tcs._broker, tcs._logger)
 
-        self.tcs = tcs
+        self.tcs = tcs  # parent
 
         self._config: Final[_EvoDictT] = config
         self._schedule: _EvoDictT = {}
@@ -156,7 +173,7 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
         """
 
         status: _EvoDictT = await self._broker.get(
-            f"{self.TYPE}/{self._id}/status", schema=self.STATUS_SCHEMA
+            f"{self.TYPE}/{self.id}/status", schema=self.STATUS_SCHEMA
         )  # type: ignore[assignment]
 
         self._update_status(status)
@@ -166,10 +183,6 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
         super()._update_status(status)  # process active faults
 
         self._status = status
-
-    @property
-    def activeFaults(self) -> _EvoListT | None:
-        return self._status.get(SZ_ACTIVE_FAULTS)
 
     @property
     def temperatureStatus(self) -> _EvoDictT | None:
@@ -190,7 +203,7 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
 
         try:
             schedule: _EvoDictT = await self._broker.get(
-                f"{self.TYPE}/{self._id}/schedule", schema=self.SCH_SCHEDULE_GET
+                f"{self.TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE_GET
             )  # type: ignore[assignment]
 
         except exc.RequestFailed as err:
@@ -233,7 +246,7 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
         assert isinstance(schedule, dict)  # mypy check
 
         _ = await self._broker.put(
-            f"{self.TYPE}/{self._id}/schedule",
+            f"{self.TYPE}/{self.id}/schedule",
             json=schedule,
             schema=self.SCH_SCHEDULE_PUT,
         )
@@ -254,7 +267,7 @@ class Zone(_ZoneDeprecated, _ZoneBase):
     """Instance of a TCS's heating zone (temperatureZone)."""
 
     STATUS_SCHEMA: Final = SCH_ZONE_STATUS  # type: ignore[misc]
-    TYPE: Final = SZ_TEMPERATURE_ZONE  # type: ignore[misc]
+    TYPE: Final = EntityType.ZON  # type: ignore[misc]
 
     SCH_SCHEDULE_GET: Final = SCH_GET_SCHEDULE_ZONE  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_ZONE  # type: ignore[misc]
@@ -279,10 +292,6 @@ class Zone(_ZoneDeprecated, _ZoneBase):
             self._logger.warning(
                 "%s: Unknown zone type '%s' (YMMV)", self, self.zoneType
             )
-
-    @property
-    def zoneId(self) -> _ZoneIdT:
-        return self._id
 
     @property
     def modelType(self) -> str:
@@ -357,7 +366,7 @@ class Zone(_ZoneDeprecated, _ZoneBase):
     async def _set_mode(self, mode: dict[str, str | float]) -> None:
         """Set the zone mode (heat_setpoint, cooling is TBD)."""
         # TODO: also coolSetpoint
-        _ = await self._broker.put(f"{self.TYPE}/{self._id}/heatSetpoint", json=mode)
+        _ = await self._broker.put(f"{self.TYPE}/{self.id}/heatSetpoint", json=mode)
 
     async def reset_mode(self) -> None:
         """Cancel any override and allow the zone to follow its schedule"""

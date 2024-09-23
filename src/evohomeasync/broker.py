@@ -61,7 +61,7 @@ class Broker:
 
         self._headers: dict[str, str] = {
             "content-type": "application/json"
-        }  # NB: no sessionId yet
+        }  # NB: no session_id yet
         self._POST_DATA: Final[dict[str, str]] = {
             "Username": self.username,
             "Password": password,
@@ -142,7 +142,7 @@ class Broker:
         async with func(url_, json=data, headers=self._headers) as response:
             response_text = await response.text()  # why cant I move this below the if?
 
-            # if 401/unauthorized, may need to refresh sessionId (expires in 15 mins?)
+            # if 401/unauthorized, may need to refresh session_id (expires in 15 mins?)
             if response.status != HTTPStatus.UNAUTHORIZED or _dont_reauthenticate:
                 return response
 
@@ -159,12 +159,14 @@ class Broker:
             #     return response  # ...because: the user credentials must be invalid
 
             _LOGGER.debug(f"Session now expired/invalid ({self._session_id})...")
-            self._headers = {"content-type": "application/json"}  # remove the sessionId
+            self._headers = {
+                "content-type": "application/json"
+            }  # remove the session_id
 
-            _, response = await self._populate_user_data()  # Get a fresh sessionId
+            _, response = await self._populate_user_data()  # Get a fresh session_id
             assert self._session_id is not None  # mypy hint
 
-            _LOGGER.debug(f"... success: new sessionId = {self._session_id}")
+            _LOGGER.debug(f"... success: new session_id = {self._session_id}")
             self._headers[SZ_SESSION_ID] = self._session_id
 
             if "session" in url_:  # retry not needed for /session

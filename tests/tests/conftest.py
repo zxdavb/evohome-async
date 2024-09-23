@@ -14,6 +14,7 @@ import aiohttp
 import pytest
 import pytest_asyncio
 import voluptuous as vol
+from aioresponses import aioresponses
 
 from evohomeasync2.broker import AbstractTokenManager
 from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
@@ -51,6 +52,13 @@ class TokenManager(AbstractTokenManager):
     async def save_access_token(self) -> None:
         """Save the access token to the cache."""
         pass
+
+
+@pytest.fixture(autouse=True)
+def block_aiohttp():
+    """Prevent any actual I/O: will raise ClientConnectionError(Connection refused)."""
+    with aioresponses() as m:
+        yield m
 
 
 @lru_cache

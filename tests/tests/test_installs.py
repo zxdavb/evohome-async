@@ -32,10 +32,19 @@ async def test_system_snapshot(
     """Test the user account schema against the corresponding JSON."""
 
     def obj_to_dict(obj: object) -> dict[str, Any]:
+        DEPRECATED_ATTRS = (  # attrs only in _Deprecated classes
+            "activeFaults",
+            "dhwId",
+            "gatewayId",
+            "locationId",
+            "systemId",
+            "zone_type",
+            "zoneId",
+        )
         return {
             attr: getattr(obj, attr)
             for attr in get_property_methods(obj)
-            if attr not in ("zoneId", "zone_type")  # excl. deprecated attrs
+            if attr not in DEPRECATED_ATTRS
         }
 
     with patch("evohomeasync2.broker.Broker.get", broker_get(install)):
@@ -57,5 +66,5 @@ async def test_system_snapshot(
     dhw = tcs.hotwater
     assert yaml.dump(obj_to_dict(dhw), indent=4) == snapshot(name="hot_water")
 
-    zones = {z.zoneId: obj_to_dict(z) for z in tcs._zones}
+    zones = {z.id: obj_to_dict(z) for z in tcs._zones}
     assert yaml.dump(zones, indent=4) == snapshot(name="zones")

@@ -15,9 +15,10 @@ from .broker import AbstractTokenManager, Broker
 from .controlsystem import ControlSystem
 from .location import Location
 from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
+from .schema.const import SZ_USER_ID
 
 if TYPE_CHECKING:
-    from .schema import _EvoDictT, _EvoListT, _LocationIdT, _ScheduleT, _SystemIdT
+    from .schema import _EvoDictT, _EvoListT, _ScheduleT
 
 
 _LOGGER: Final = logging.getLogger(__name__.rpartition(".")[0])
@@ -46,12 +47,10 @@ class EvohomeClientDeprecated:  # pragma: no cover
     def access_token_expires(self) -> NoReturn:
         raise exc.DeprecationError(f"{self}: access_token_expires attrs is deprecated")
 
-    async def full_installation(
-        self, location_id: None | _LocationIdT = None
-    ) -> NoReturn:
-        # if location_id is None:
-        #     location_id = self.installation_info[0]["locationInfo"]["locationId"]
-        # url = f"location/{location_id}/installationInfo?"  # Specific location
+    async def full_installation(self, loc_id: str | None = None) -> NoReturn:
+        # if loc_id is None:
+        #     loc_id = self.installation_info[0][SZ_LOCATION_INFO][SZ_LOCATION_ID]
+        # url = f"location/{loc_id}/installationInfo?"  # Specific location
 
         raise exc.DeprecationError(
             f"{self}: .full_installation() is deprecated, use .installation()"
@@ -228,7 +227,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         # FIXME: shouldn't really be starting again with new objects?
         self.locations = []  # for now, need to clear this before GET
 
-        url = f"location/installationInfo?userId={self.account_info['userId']}"
+        url = f"location/installationInfo?userId={self.account_info[SZ_USER_ID]}"
         url += "&includeTemperatureControlSystems=True"
 
         self._full_config = await self.broker.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
@@ -268,8 +267,8 @@ class EvohomeClient(EvohomeClientDeprecated):
         return self.locations[0]._gateways[0]._control_systems[0]
 
     @property
-    def system_id(self) -> _SystemIdT:  # an evohome-client anachronism, deprecate?
-        """Return the ID of the default TCS (assumes only one loc/gwy/TCS)."""
+    def system_id(self) -> str:  # an evohome-client anachronism, deprecate?
+        """Return the id of the default TCS (assumes only one loc/gwy/TCS)."""
         return self._get_single_tcs().systemId
 
     async def reset_mode(self) -> None:

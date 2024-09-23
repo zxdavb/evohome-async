@@ -24,6 +24,7 @@ from evohomeasync2.schema.const import (
     SZ_TEMPERATURE_CONTROL_SYSTEM,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TEMPERATURE_ZONE,
+    SZ_USER_ID,
     SZ_ZONE_ID,
     SZ_ZONES,
 )
@@ -52,34 +53,34 @@ if TYPE_CHECKING:
 
 
 def _dhw_id(url: _urlT) -> _DhwIdT:
-    """Extract a DHW ID from a URL."""
+    """Extract a DHW id from a URL."""
     return url.split(f"{SZ_DOMESTIC_HOT_WATER}/")[1].split("/")[0]
 
 
 def _loc_id(url: _urlT) -> _LocationIdT:
-    """Extract a Location ID from a URL."""
+    """Extract a Location id from a URL."""
     return url.split(f"{SZ_LOCATION}/")[1].split("/")[0]
 
 
 def _tcs_id(url: _urlT) -> _SystemIdT:
-    """Extract a TCS ID from a URL."""
+    """Extract a TCS id from a URL."""
     return url.split(f"{SZ_TEMPERATURE_CONTROL_SYSTEM}/")[1].split("/")[0]
 
 
 def _usr_id(url: _urlT) -> _UserIdT:
-    """Extract a TCS ID from a URL."""
+    """Extract a User id from a URL."""
     return url.split("?userId=")[1].split("&")[0]
 
 
 def _zon_id(url: _urlT) -> _ZoneIdT:
-    """Extract a Zone ID from a URL."""
+    """Extract a Zone id from a URL."""
     return url.split(f"{SZ_TEMPERATURE_ZONE}/")[1].split("/")[0]
 
 
 def validate_id_of_url(
     id_fnc: Callable[[_urlT], str],
 ) -> Callable[..., Callable[[FakedServer], _bodyT]]:
-    """Validate the ID in the URL and set the status accordingly."""
+    """Validate the id in the URL and set the status accordingly."""
 
     def decorator(
         fnc: Callable[[FakedServer], _bodyT | None],
@@ -184,7 +185,7 @@ class FakedServer:
     def all_config(self) -> _bodyT | None:  # full_locn
         usr_id = _usr_id(self._url)  # type: ignore[arg-type]
 
-        if self._user_config["userId"] == usr_id:
+        if self._user_config[SZ_USER_ID] == usr_id:
             return self._full_config
         return None
 

@@ -182,96 +182,105 @@ SZ_HEAT: Final = "Heat"
 
 @verify(EnumCheck.UNIQUE)
 class DhwState(StrEnum):
-    OFF: Final = SZ_OFF
-    ON: Final = SZ_ON
+    OFF = SZ_OFF
+    ON = SZ_ON
 
 
 @verify(EnumCheck.UNIQUE)
 class FanMode(StrEnum):
-    AUTO: Final = SZ_AUTO
-    ON: Final = SZ_ON
+    AUTO = SZ_AUTO
+    ON = SZ_ON
 
 
 @verify(EnumCheck.UNIQUE)
 class FaultType(StrEnum):  # NOTE: This list is incomplete
-    SYS_B_CL: Final = "BoilerCommunicationLost"
-    SYS_C_CL: Final = "ChValveCommunicationLost"
-    DHW_A_FL: Final = "DHWActuatorFailure"
-    # W_A_CL: Final = "DHWActuatorCommunicationLost"  # extrapolated
-    DHW_S_CL: Final = "DHWSensorCommunicationLost"
-    DHW_S_FL: Final = "DHWSensorFailure"
-    DHW_S_LB: Final = "DHWSensorLowBattery"  # extrapolated
-    GWY_X_CL: Final = "GatewayCommunicationLost"
-    # S_X_LB: Final = "TemperatureControlSystemLowBattery"  # extrapolated
-    ZON_A_CL: Final = "TempZoneActuatorCommunicationLost"
-    ZON_A_LB: Final = "TempZoneActuatorLowBattery"
-    ZON_S_CL: Final = "TempZoneSensorCommunicationLost"
-    ZON_S_LB: Final = "TempZoneSensorLowBattery"
+    SYS_B_CL = "BoilerCommunicationLost"
+    SYS_C_CL = "ChValveCommunicationLost"
+    DHW_A_FL = "DHWActuatorFailure"
+    # W_A_CL = "DHWActuatorCommunicationLost"  # extrapolated
+    DHW_S_CL = "DHWSensorCommunicationLost"
+    DHW_S_FL = "DHWSensorFailure"
+    DHW_S_LB = "DHWSensorLowBattery"  # extrapolated
+    GWY_X_CL = "GatewayCommunicationLost"
+    # S_X_LB = "TemperatureControlSystemLowBattery"  # extrapolated
+    ZON_A_CL = "TempZoneActuatorCommunicationLost"
+    ZON_A_LB = "TempZoneActuatorLowBattery"
+    ZON_S_CL = "TempZoneSensorCommunicationLost"
+    ZON_S_LB = "TempZoneSensorLowBattery"
 
 
 @verify(EnumCheck.UNIQUE)
 class SystemMode(StrEnum):
-    AUTO: Final = SZ_AUTO
-    AUTO_WITH_ECO: Final = SZ_AUTO_WITH_ECO
-    AUTO_WITH_RESET: Final = SZ_AUTO_WITH_RESET
-    AWAY: Final = SZ_AWAY
-    CUSTOM: Final = SZ_CUSTOM
-    DAY_OFF: Final = SZ_DAY_OFF
-    HEATING_OFF: Final = SZ_HEATING_OFF
-    OFF: Final = SZ_OFF  # not evohome (VisionProWifiRetail)
-    HEAT: Final = SZ_HEAT  # not evohome (VisionProWifiRetail)
-    COOL: Final = SZ_COOL  # not evohome (VisionProWifiRetail)
+    AUTO = SZ_AUTO
+    AUTO_WITH_ECO = SZ_AUTO_WITH_ECO
+    AUTO_WITH_RESET = SZ_AUTO_WITH_RESET
+    AWAY = SZ_AWAY
+    CUSTOM = SZ_CUSTOM
+    DAY_OFF = SZ_DAY_OFF
+    HEATING_OFF = SZ_HEATING_OFF
+    OFF = SZ_OFF  # not evohome (VisionProWifiRetail)
+    HEAT = SZ_HEAT  # not evohome (VisionProWifiRetail)
+    COOL = SZ_COOL  # not evohome (VisionProWifiRetail)
+
+
+@verify(EnumCheck.UNIQUE)
+class EntityType(StrEnum):
+    LOC = SZ_LOCATION
+    GWY = SZ_GATEWAY
+    TCS = SZ_TEMPERATURE_CONTROL_SYSTEM
+    ZON = SZ_TEMPERATURE_ZONE
+    DHW = SZ_DOMESTIC_HOT_WATER
 
 
 @verify(EnumCheck.UNIQUE)
 class TcsModelType(StrEnum):
-    EVO_TOUCH: Final = "EvoTouch"
-    FOCUS_PRO_WIFI_RETAIL: Final = "FocusProWifiRetail"
-    VISION_PRO_WIFI_RETAIL: Final = "VisionProWifiRetail"
+    EVO_TOUCH = "EvoTouch"
+    FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
+    VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
 
 
-SZ_FOLLOW_SCHEDULE: Final = "FollowSchedule"
-SZ_PERMANENT_OVERRIDE: Final = "PermanentOverride"
-SZ_TEMPORARY_OVERRIDE: Final = "TemporaryOverride"
-SZ_VACATION_HOLD: Final = "VacationHold"
+SZ_FOLLOW_SCHEDULE = "FollowSchedule"
+SZ_PERMANENT_OVERRIDE = "PermanentOverride"
+SZ_TEMPORARY_OVERRIDE = "TemporaryOverride"
+SZ_VACATION_HOLD = "VacationHold"
 
 
 @verify(EnumCheck.UNIQUE)
 class ZoneMode(StrEnum):
-    FOLLOW_SCHEDULE: Final = SZ_FOLLOW_SCHEDULE
-    PERMANENT_OVERRIDE: Final = SZ_PERMANENT_OVERRIDE
-    TEMPORARY_OVERRIDE: Final = SZ_TEMPORARY_OVERRIDE
-    VACATION_HOLD: Final = SZ_VACATION_HOLD  # not evohome (VisionProWifiRetail)
+    FOLLOW_SCHEDULE = SZ_FOLLOW_SCHEDULE
+    PERMANENT_OVERRIDE = SZ_PERMANENT_OVERRIDE
+    TEMPORARY_OVERRIDE = SZ_TEMPORARY_OVERRIDE
+    VACATION_HOLD = SZ_VACATION_HOLD  # not evohome (VisionProWifiRetail)
 
 
 @verify(EnumCheck.UNIQUE)
 class ZoneModelType(StrEnum):
-    FOCUS_PRO_WIFI_RETAIL: Final = "FocusProWifiRetail"
-    HEATING_ZONE: Final = "HeatingZone"
-    ROUND_MODULATION: Final = "RoundModulation"
-    ROUND_WIRELESS: Final = "RoundWireless"
-    UNKNOWN: Final = SZ_UNKNOWN
-    VISION_PRO_WIFI_RETAIL: Final = "VisionProWifiRetail"
+    FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
+    HEATING_ZONE = "HeatingZone"
+    ROUND_MODULATION = "RoundModulation"
+    ROUND_WIRELESS = "RoundWireless"
+    UNKNOWN = SZ_UNKNOWN
+    VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
 
 
-SZ_ELECTRIC_HEAT: Final = "ElectricHeat"  # TODO: needs confirming
-SZ_MIXING_VALVE: Final = "MixingValve"
-SZ_RADIATOR_ZONE: Final = "RadiatorZone"
-SZ_THERMOSTAT: Final = "Thermostat"
-SZ_UNDERFLOOR_HEATING: Final = "UnderfloorHeating"
-SZ_ZONE_VALVES: Final = "ZoneValves"  # is not ZoneValve
-SZ_ZONE_TEMPERATURE_CONTROL: Final = "ZoneTemperatureControl"
+SZ_ELECTRIC_HEAT = "ElectricHeat"  # TODO: needs confirming
+SZ_MIXING_VALVE = "MixingValve"
+SZ_RADIATOR_ZONE = "RadiatorZone"
+SZ_THERMOSTAT = "Thermostat"
+SZ_UNDERFLOOR_HEATING = "UnderfloorHeating"
+SZ_ZONE_VALVES = "ZoneValves"  # is not ZoneValve
+SZ_ZONE_TEMPERATURE_CONTROL = "ZoneTemperatureControl"
 
 
 @verify(EnumCheck.UNIQUE)
 class ZoneType(StrEnum):
-    MIXING_VALVE: Final = SZ_MIXING_VALVE
-    RADIATOR_ZONE: Final = SZ_RADIATOR_ZONE
-    THERMOSTAT: Final = SZ_THERMOSTAT
-    UNDERFLOOR_HEATING: Final = SZ_UNDERFLOOR_HEATING
-    UNKNOWN: Final = SZ_UNKNOWN
-    ZONE_TEMPERATURE_CONTROL: Final = SZ_ZONE_TEMPERATURE_CONTROL
-    ZONE_VALVES: Final = SZ_ZONE_VALVES
+    MIXING_VALVE = SZ_MIXING_VALVE
+    RADIATOR_ZONE = SZ_RADIATOR_ZONE
+    THERMOSTAT = SZ_THERMOSTAT
+    UNDERFLOOR_HEATING = SZ_UNDERFLOOR_HEATING
+    UNKNOWN = SZ_UNKNOWN
+    ZONE_TEMPERATURE_CONTROL = SZ_ZONE_TEMPERATURE_CONTROL
+    ZONE_VALVES = SZ_ZONE_VALVES
 
 
 # these may not be required with Python 3.12+ (used for 'if mode in ZONE_MODES'...)

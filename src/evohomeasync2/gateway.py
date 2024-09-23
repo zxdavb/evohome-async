@@ -3,18 +3,21 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, NoReturn
 
+import voluptuous as vol
+
+from . import exceptions as exc
 from .controlsystem import ControlSystem
 from .schema import SCH_GWY_STATUS
 from .schema.const import (
-    SZ_GATEWAY,
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
     SZ_IS_WI_FI,
     SZ_MAC,
     SZ_SYSTEM_ID,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
+    EntityType,
 )
 from .zone import ActiveFaultsBase
 
@@ -22,25 +25,34 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import Location
-    from .schema import _EvoDictT, _GatewayIdT
+    from .schema import _EvoDictT
 
 
-class Gateway(ActiveFaultsBase):
+class _GatewayDeprecated:  # pragma: no cover
+    """Deprecated attributes and methods removed from the evohome-client namespace."""
+
+    @property
+    def gatewayId(self) -> NoReturn:
+        raise exc.DeprecationError(f"{self}: .gatewayId is deprecated, use .id")
+
+
+class Gateway(_GatewayDeprecated, ActiveFaultsBase):
     """Instance of a location's gateway."""
 
     STATUS_SCHEMA: Final[vol.Schema] = SCH_GWY_STATUS
-    TYPE: Final = SZ_GATEWAY  # type: ignore[misc]
+    TYPE: Final = EntityType.GWY  # type: ignore[misc]
 
     def __init__(self, location: Location, config: _EvoDictT) -> None:
         super().__init__(
             config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID], location._broker, location._logger
         )
 
-        self.location = location
+        self.location = location  # parent
 
         self._config: Final[_EvoDictT] = config[SZ_GATEWAY_INFO]
         self._status: _EvoDictT = {}
 
+        # children
         self._control_systems: list[ControlSystem] = []
         self.control_systems: dict[str, ControlSystem] = {}  # tcs by id
 
@@ -49,11 +61,7 @@ class Gateway(ActiveFaultsBase):
             tcs = ControlSystem(self, tcs_config)
 
             self._control_systems.append(tcs)
-            self.control_systems[tcs.systemId] = tcs
-
-    @property
-    def gatewayId(self) -> _GatewayIdT:
-        return self._id
+            self.control_systems[tcs.id] = tcs
 
     @property
     def mac(self) -> str:

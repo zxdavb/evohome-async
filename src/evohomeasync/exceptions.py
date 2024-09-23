@@ -21,7 +21,7 @@ class DeprecationError(EvohomeBaseError):
 
 
 class InvalidSchema(EvohomeError):
-    """The config/status JSON is invalid (e.g. missing an entity Id)."""
+    """The config/status JSON is invalid (e.g. missing an entity id)."""
 
 
 class RequestFailed(EvohomeError):

@@ -74,7 +74,7 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
     # await evo.user_account(force_update=True)  # will update as forced
 
     #
-    # STEP 3: Installation, GET /location/installationInfo?userId={userId}
+    # STEP 3: Installation, GET /location/installationInfo?userId={user_id}
     assert evo.locations == []
     assert evo.installation_info is None
 
@@ -90,7 +90,7 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
     # await evo.installation(force_update=True)  # will update as forced
 
     #
-    # STEP 4: Status, GET /location/{locationId}/status
+    # STEP 4: Status, GET /location/{loc.id}/status
     for loc in evo.locations:
         loc_status = await loc.refresh_status()
         assert SCH_LOCN_STATUS(loc_status)
@@ -107,7 +107,7 @@ async def _test_sched__apis(evo: evo2.EvohomeClient) -> None:
     await evo.installation()
 
     #
-    # STEP 2: GET & PUT /{_type}/{_id}/schedule
+    # STEP 2: GET & PUT /{x.TYPE}/{x.id}/schedule
     if dhw := evo._get_single_tcs().hotwater:
         schedule = await dhw.get_schedule()
         assert SCH_PUT_SCHEDULE_DHW(schedule)
@@ -115,7 +115,7 @@ async def _test_sched__apis(evo: evo2.EvohomeClient) -> None:
 
     zone: Zone | None
 
-    if (zone := evo._get_single_tcs()._zones[0]) and zone._id != faked.GHOST_ZONE_ID:
+    if (zone := evo._get_single_tcs()._zones[0]) and zone.id != faked.GHOST_ZONE_ID:
         schedule = await zone.get_schedule()
         assert SCH_PUT_SCHEDULE_ZONE(schedule)
         await zone.set_schedule(schedule)
@@ -138,7 +138,7 @@ async def _test_status_apis(evo: evo2.EvohomeClient) -> None:
     await evo.installation()
 
     #
-    # STEP 2: GET /{_type}/{_id}/status
+    # STEP 2: GET /{x.TYPE}/{x.id}/status
     if dhw := evo._get_single_tcs().hotwater:
         dhw_status = await dhw._refresh_status()
         assert SCH_DHW_STATUS(dhw_status)
@@ -159,7 +159,7 @@ async def _test_system_apis(evo: evo2.EvohomeClient) -> None:
     await evo.installation()
 
     #
-    # STEP 2: GET /{_type}/{_id}/status
+    # STEP 2: GET /{x.TYPE}/{x.id}/status
     try:
         tcs = evo._get_single_tcs()
     except evo2.NoSingleTcsError:

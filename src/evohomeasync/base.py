@@ -232,7 +232,7 @@ class EvohomeClient(EvohomeClientDeprecated):
     async def _populate_user_data(
         self, force_refresh: bool = False
     ) -> dict[str, bool | int | str]:
-        """Retrieve the cached user data (excl. the session ID).
+        """Retrieve the cached user data (excl. the session id).
 
         Pull the latest JSON from the web only if force_refresh is True.
         """
@@ -241,7 +241,7 @@ class EvohomeClient(EvohomeClientDeprecated):
             user_data = await self.broker.populate_user_data()
             self.user_info = user_data[SZ_USER_INFO]  # type: ignore[assignment]
 
-        return self.user_info  # excludes session ID
+        return self.user_info  # excludes session id
 
     async def _get_user(self) -> _UserInfoT:
         """Return the user (if needed, get the JSON)."""

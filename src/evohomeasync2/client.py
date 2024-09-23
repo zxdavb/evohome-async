@@ -301,7 +301,7 @@ async def get_schedule(
     evo = ctx.obj[SZ_EVO]
 
     zon: HotWater | Zone = _get_tcs(evo, loc_idx).zones_by_id[zone_id]
-    schedule = {zon._id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
+    schedule = {zon.id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
 
     await _write(filename, json.dumps(schedule, indent=4) + "\r\n\r\n")
 

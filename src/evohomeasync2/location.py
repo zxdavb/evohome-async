@@ -12,7 +12,6 @@ from .schema.const import (
     SZ_COUNTRY,
     SZ_GATEWAY_ID,
     SZ_GATEWAYS,
-    SZ_LOCATION,
     SZ_LOCATION_ID,
     SZ_LOCATION_INFO,
     SZ_LOCATION_OWNER,
@@ -20,19 +19,23 @@ from .schema.const import (
     SZ_NAME,
     SZ_TIME_ZONE,
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
+    EntityType,
 )
+from .zone import EntityBase
 
 if TYPE_CHECKING:
-    import logging
-
     import voluptuous as vol
 
-    from . import Broker, EvohomeClient
-    from .schema import _EvoDictT, _LocationIdT
+    from .base import EvohomeClient
+    from .schema import _EvoDictT
 
 
 class _LocationDeprecated:  # pragma: no cover
     """Deprecated attributes and methods removed from the evohome-client namespace."""
+
+    @property
+    def locationId(self) -> NoReturn:
+        raise exc.DeprecationError(f"{self}: .locationId is deprecated, use .id")
 
     async def status(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
@@ -40,23 +43,23 @@ class _LocationDeprecated:  # pragma: no cover
         )
 
 
-class Location(_LocationDeprecated):
+class Location(_LocationDeprecated, EntityBase):
     """Instance of an account's location."""
 
     STATUS_SCHEMA: Final[vol.Schema] = SCH_LOCN_STATUS
-    TYPE: Final = SZ_LOCATION
+    TYPE: Final = EntityType.LOC  # type: ignore[misc]
 
     def __init__(self, client: EvohomeClient, config: _EvoDictT) -> None:
-        self.client = client
+        super().__init__(
+            config[SZ_LOCATION_INFO][SZ_LOCATION_ID], client.broker, client._logger
+        )
 
-        self._broker: Broker = client.broker
-        self._logger: logging.Logger = client._logger
-
-        self._id: Final[_LocationIdT] = config[SZ_LOCATION_INFO][SZ_LOCATION_ID]
+        self.client = client  # proxy for parent
 
         self._config: Final[_EvoDictT] = config[SZ_LOCATION_INFO]
         self._status: _EvoDictT = {}
 
+        # children
         self._gateways: list[Gateway] = []
         self.gateways: dict[str, Gateway] = {}  # gwy by id
 
@@ -65,14 +68,7 @@ class Location(_LocationDeprecated):
             gwy = Gateway(self, gwy_config)
 
             self._gateways.append(gwy)
-            self.gateways[gwy.gatewayId] = gwy
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}(id='{self._id}')"
-
-    @property
-    def locationId(self) -> _LocationIdT:
-        return self._id
+            self.gateways[gwy.id] = gwy
 
     @property
     def country(self) -> str:
@@ -108,7 +104,7 @@ class Location(_LocationDeprecated):
         """Update the entire Location with its latest status (returns the status)."""
 
         status: _EvoDictT = await self._broker.get(
-            f"{self.TYPE}/{self._id}/status?includeTemperatureControlSystems=True",
+            f"{self.TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
             schema=self.STATUS_SCHEMA,
         )  # type: ignore[assignment]
 

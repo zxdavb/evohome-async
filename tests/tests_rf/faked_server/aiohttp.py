@@ -74,6 +74,10 @@ class ClientResponseError(ClientError):
         self.status = status
 
 
+class ContentTypeError(ClientResponseError):
+    """ContentType found is not valid."""
+
+
 class ClientTimeout:
     """A faked ClientTimeout."""
 

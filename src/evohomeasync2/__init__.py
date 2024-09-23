@@ -13,7 +13,7 @@ from datetime import datetime as dt
 
 import aiohttp
 
-from .base import EvohomeClient as _EvohomeClientNew
+from .base import EvohomeClient
 from .broker import AbstractTokenManager, Broker  # noqa: F401
 from .controlsystem import ControlSystem  # noqa: F401
 from .exceptions import (  # noqa: F401
@@ -53,8 +53,8 @@ class _TokenManager(AbstractTokenManager):
     ) -> None:
         super().__init__(username, password, websession)
 
-        self.refresh_token = refresh_token
-        self.access_token = access_token
+        self.refresh_token = refresh_token or ""
+        self.access_token = access_token or ""
         self.access_token_expires = access_token_expires or dt.min
 
     async def restore_access_token(self) -> None:
@@ -64,7 +64,7 @@ class _TokenManager(AbstractTokenManager):
         pass
 
 
-class EvohomeClient(_EvohomeClientNew):
+class EvohomeClientOld(EvohomeClient):
     """A wrapper to expose the new EvohomeClient in the old style."""
 
     def __init__(
@@ -95,21 +95,21 @@ class EvohomeClient(_EvohomeClientNew):
         super().__init__(self._token_manager, websession, debug=debug)
 
     @property
-    def access_token(self) -> str:
+    def access_token(self) -> str:  # type: ignore[override]
         """Return the access_token attr."""
         return self._token_manager.access_token
 
     @property
-    def access_token_expires(self) -> dt:
+    def access_token_expires(self) -> dt:  # type: ignore[override]
         """Return the access_token_expires attr."""
         return self._token_manager.access_token_expires
 
     @property
-    def refresh_token(self) -> str:
+    def refresh_token(self) -> str:  # type: ignore[override]
         """Return the refresh_token attr."""
         return self._token_manager.refresh_token
 
     @property
-    def username(self) -> str:
+    def username(self) -> str:  # type: ignore[override]
         """Return the username attr."""
         return self._token_manager.username

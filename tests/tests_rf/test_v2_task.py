@@ -50,8 +50,8 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
     #     pytest.skip("No available DHW found")
     #
 
-    GET_URL = f"{dhw.TYPE}/{dhw._id}/status"
-    PUT_URL = f"{dhw.TYPE}/{dhw._id}/state"
+    GET_URL = f"{dhw.TYPE}/{dhw.id}/status"
+    PUT_URL = f"{dhw.TYPE}/{dhw.id}/state"
 
     #
     # PART 0: Get initial state...
@@ -191,7 +191,7 @@ async def test_task_id(
     user_credentials: tuple[str, str],
     session: aiohttp.ClientSession,
 ) -> None:
-    """Test /location/{locationId}/status"""
+    """Test /location/{loc.id}/status"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Test is only valid with a real server")

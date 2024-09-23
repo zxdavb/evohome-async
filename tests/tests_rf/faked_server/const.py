@@ -499,7 +499,7 @@ MOCK_LOCN_STATUS = {  # of a specific location
 }
 
 
-MOCK_SCHEDULE_ZONE = {  # of any zone (no zoneId)
+MOCK_SCHEDULE_ZONE = {  # of any zone (i.e. no zone id)
     "dailySchedules": [
         {
             "dayOfWeek": "Monday",
@@ -568,7 +568,7 @@ MOCK_SCHEDULE_ZONE = {  # of any zone (no zoneId)
 }
 
 
-MOCK_SCHEDULE_DHW = {  # of any zone (no dhwId)
+MOCK_SCHEDULE_DHW = {  # of any zone (i.e. no dhw id)
     "dailySchedules": [
         {
             "dayOfWeek": "Monday",

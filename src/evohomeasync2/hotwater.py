@@ -15,13 +15,13 @@ from .schema.const import (
     SZ_ALLOWED_MODES,
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
-    SZ_DOMESTIC_HOT_WATER,
     SZ_MODE,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_STATE,
     SZ_STATE_STATUS,
     SZ_UNTIL_TIME,
     DhwState,
+    EntityType,
     ZoneMode,
 )
 from .zone import _ZoneBase
@@ -30,17 +30,15 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import ControlSystem
-    from .schema import _DhwIdT, _EvoDictT, _EvoListT
+    from .schema import _EvoDictT, _EvoListT
 
 
 class HotWaterDeprecated:  # pragma: no cover
     """Deprecated attributes and methods removed from the evohome-client namespace."""
 
     @property
-    def zoneId(self) -> NoReturn:
-        raise exc.DeprecationError(
-            f"{self}: .zoneId is deprecated, use .dhwId (or ._id)"
-        )
+    def dhwId(self) -> NoReturn:
+        raise exc.DeprecationError(f"{self}: .dhwId is deprecated, use .id")
 
     async def get_dhw_state(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
@@ -67,17 +65,13 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
     STATUS_SCHEMA: Final = SCH_DHW_STATUS  # type: ignore[misc]
-    TYPE: Final = SZ_DOMESTIC_HOT_WATER  # type: ignore[misc]
+    TYPE: Final = EntityType.DHW  # type: ignore[misc]
 
     SCH_SCHEDULE_GET: Final[vol.Schema] = SCH_GET_SCHEDULE_DHW  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final[vol.Schema] = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs, config)
-
-    @property
-    def dhwId(self) -> _DhwIdT:
-        return self._id
 
     @property
     def dhwStateCapabilitiesResponse(self) -> _EvoDictT:
@@ -122,7 +116,7 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
 
     async def _set_mode(self, mode: dict[str, str | None]) -> None:
         """Set the DHW mode (state)."""
-        _ = await self._broker.put(f"{self.TYPE}/{self._id}/state", json=mode)
+        _ = await self._broker.put(f"{self.TYPE}/{self.id}/state", json=mode)
 
     async def reset_mode(self) -> None:
         """Cancel any override and allow the DHW to follow its schedule."""

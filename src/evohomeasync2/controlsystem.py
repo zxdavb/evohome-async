@@ -24,7 +24,6 @@ from .const import (
 from .hotwater import HotWater
 from .schema import SCH_TCS_STATUS
 from .schema.const import (
-    SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_DHW,
     SZ_DHW_ID,
@@ -37,10 +36,10 @@ from .schema.const import (
     SZ_SYSTEM_MODE_STATUS,
     SZ_TARGET_HEAT_TEMPERATURE,
     SZ_TEMPERATURE,
-    SZ_TEMPERATURE_CONTROL_SYSTEM,
     SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONES,
+    EntityType,
 )
 from .zone import ActiveFaultsBase, Zone
 
@@ -48,11 +47,15 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import Gateway, Location
-    from .schema import _DhwIdT, _EvoDictT, _EvoListT, _ScheduleT, _SystemIdT, _ZoneIdT
+    from .schema import _EvoDictT, _EvoListT, _ScheduleT
 
 
 class _ControlSystemDeprecated:  # pragma: no cover
     """Deprecated attributes and methods removed from the evohome-client namespace."""
+
+    @property
+    def systemId(self) -> NoReturn:
+        raise exc.DeprecationError(f"{self}: .systemId is deprecated, use .id")
 
     async def set_status_reset(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
         raise exc.DeprecationError(
@@ -119,12 +122,12 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
     STATUS_SCHEMA: Final[vol.Schema] = SCH_TCS_STATUS
-    TYPE: Final = SZ_TEMPERATURE_CONTROL_SYSTEM  # type: ignore[misc]
+    TYPE: Final = EntityType.TCS  # type: ignore[misc]
 
     def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
         super().__init__(config[SZ_SYSTEM_ID], gateway._broker, gateway._logger)
 
-        self.gateway = gateway
+        self.gateway = gateway  # parent
         self.location: Location = gateway.location
 
         self._config: Final[_EvoDictT] = {
@@ -132,6 +135,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
         }
         self._status: _EvoDictT = {}
 
+        # children
         self._zones: list[Zone] = []
         self.zones: dict[str, Zone] = {}  # zone by name! what to do if name changed?
         self.zones_by_id: dict[str, Zone] = {}
@@ -148,15 +152,11 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
             else:
                 self._zones.append(zone)
                 self.zones[zone.name] = zone
-                self.zones_by_id[zone.zoneId] = zone
+                self.zones_by_id[zone.id] = zone
 
         dhw_config: _EvoDictT
         if dhw_config := config.get(SZ_DHW):  # type: ignore[assignment]
             self.hotwater = HotWater(self, dhw_config)
-
-    @property
-    def systemId(self) -> _SystemIdT:
-        return self._id
 
     @property
     def allowedSystemModes(self) -> _EvoListT:
@@ -178,7 +178,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
         self._status = status
 
         if dhw_status := self._status.get(SZ_DHW):
-            if self.hotwater and self.hotwater._id == dhw_status[SZ_DHW_ID]:
+            if self.hotwater and self.hotwater.id == dhw_status[SZ_DHW_ID]:
                 self.hotwater._update_status(dhw_status)
 
             else:
@@ -198,10 +198,6 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
                 )
 
     @property
-    def activeFaults(self) -> _EvoListT | None:
-        return self._status.get(SZ_ACTIVE_FAULTS)
-
-    @property
     def systemModeStatus(self) -> _EvoDictT | None:
         return self._status.get(SZ_SYSTEM_MODE_STATUS)
 
@@ -214,7 +210,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
 
     async def _set_mode(self, mode: dict[str, str | bool]) -> None:
         """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
-        _ = await self._broker.put(f"{self.TYPE}/{self._id}/mode", json=mode)
+        _ = await self._broker.put(f"{self.TYPE}/{self.id}/mode", json=mode)
 
     async def reset_mode(self) -> None:
         """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
@@ -277,7 +273,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
         if dhw := self.hotwater:
             dhw_status = {
                 SZ_THERMOSTAT: "DOMESTIC_HOT_WATER",
-                SZ_ID: dhw.dhwId,
+                SZ_ID: dhw.id,
                 SZ_NAME: dhw.name,
                 SZ_TEMP: None,
             }
@@ -293,7 +289,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
         for zone in self._zones:
             zone_status = {
                 SZ_THERMOSTAT: "EMEA_ZONE",
-                SZ_ID: zone.zoneId,
+                SZ_ID: zone.id,
                 SZ_NAME: zone.name,
                 SZ_SETPOINT: None,
                 SZ_TEMP: None,
@@ -322,24 +318,24 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
                 return await child.get_schedule()
             except exc.InvalidSchedule:
                 self._logger.warning(
-                    f"Ignoring schedule of {child._id} ({child.name}): missing/invalid"
+                    f"Ignoring schedule of {child.id} ({child.name}): missing/invalid"
                 )
             return {}
 
         self._logger.info(
-            f"Schedules: Backing up from {self.systemId} ({self.location.name})"
+            f"Schedules: Backing up from {self.id} ({self.location.name})"
         )
 
         schedules = {}
 
         for zone in self._zones:
-            schedules[zone.zoneId] = {
+            schedules[zone.id] = {
                 SZ_NAME: zone.name,
                 SZ_SCHEDULE: await get_schedule(zone),
             }
 
         if self.hotwater:
-            schedules[self.hotwater.dhwId] = {
+            schedules[self.hotwater.id] = {
                 SZ_NAME: self.hotwater.name,
                 SZ_SCHEDULE: await get_schedule(self.hotwater),
             }
@@ -354,12 +350,12 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
         The default is to match a schedule to its zone/dhw by id.
         """
 
-        async def restore_by_id(id: _ZoneIdT | _DhwIdT, schedule: _ScheduleT) -> bool:
+        async def restore_by_id(id: str, schedule: _ScheduleT) -> bool:
             """Restore schedule by id and return False if there was no match."""
 
             name = schedule.get(SZ_NAME)
 
-            if self.hotwater and self.hotwater.dhwId == id:
+            if self.hotwater and self.hotwater.id == id:
                 await self.hotwater.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
 
             elif zone := self.zones_by_id.get(id):
@@ -374,7 +370,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
 
             return True
 
-        async def restore_by_name(id: _ZoneIdT | _DhwIdT, schedule: _ScheduleT) -> bool:
+        async def restore_by_name(id: str, schedule: _ScheduleT) -> bool:
             """Restore schedule by name and return False if there was no match."""
 
             name: str = schedule[SZ_NAME]  # type: ignore[assignment]
@@ -396,7 +392,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
 
         self._logger.info(
             f"Schedules: Restoring (matched by {'name' if match_by_name else 'id'})"
-            f" to {self.systemId} ({self.location.name})"
+            f" to {self.id} ({self.location.name})"
         )
 
         with_errors = False
