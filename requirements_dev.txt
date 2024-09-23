@@ -20,6 +20,7 @@
   voluptuous >= 0.15.2
 
 # used for testing
+  aioresponses >= 0.7.6                         # to prevent leaking HTTP requests 
   pytest >= 8.3.3
   pytest-asyncio >= 0.24.0
 # pytest-cov
