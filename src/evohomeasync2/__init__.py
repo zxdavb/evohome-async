@@ -32,7 +32,7 @@ from .hotwater import HotWater  # noqa: F401
 from .location import Location  # noqa: F401
 from .zone import Zone  # noqa: F401
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 _LOOGER = logging.getLogger(__name__)
 
