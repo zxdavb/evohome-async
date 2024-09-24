@@ -1,5 +1,5 @@
 # Requirements to use the library via its CLI
-# - last checked/updated: 2024-09-10
+# - last checked/updated: 2024-09-24 (HA 2024.9.3)
 #
 
 # library requirements (dependencies) are in pyproject.toml
@@ -9,8 +9,8 @@
 
 
 # also required if using the the library via the CLI, client.py
-  aiofiles >= 24.1.0
-  asyncclick >= 8.1.7                            # NOTE: async version
-  debugpy >= 1.8.5                               # can invoke via CLI
+  aiofiles >= 23.2.0
+  asyncclick >= 8.1.7                            # NOTE: async version (not used by HA)
+  debugpy >= 1.8.1                               # can invoke via CLI
 
 # check via: pip list | grep -E 'aiofiles|click|debugpy'
