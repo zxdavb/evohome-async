@@ -7,7 +7,7 @@
 
 
 # libraries required for development (lint/type/test)...
-# - pip list | grep -E 'pre-commit|ruff|mypy|types-|voluptuous|pytest|hatch'
+# - pip list | grep -E 'pre-commit|ruff|mypy|types-|voluptuous|pytest|syrup|hatch'
 
 # used for development (linting)
   pre-commit >= 3.7.1
