@@ -235,9 +235,9 @@ async def cli(
 )
 @click.pass_context
 async def mode(ctx: click.Context, loc_idx: int) -> None:
-    """Retreive the system mode."""
+    """Retrieve the system mode."""
 
-    print("\r\nclient.py: Retreiving the system mode...")
+    print("\r\nclient.py: Retrieving the system mode...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     await _write(

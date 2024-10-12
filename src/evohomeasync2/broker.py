@@ -218,7 +218,7 @@ class AbstractTokenManager(ABC):
 
         except aiohttp.ContentTypeError as err:
             # <title>Authorize error <h1>Authorization failed
-            # <p>The authorization server have encoutered an error while processing...
+            # <p>The authorization server have encoutered an error while processing...  # codespell:ignore encoutered
             content = await response.text()
             raise exc.AuthenticationFailed(
                 f"Server response is not JSON: {HTTPMethod.POST} {AUTH_URL}: {content}"

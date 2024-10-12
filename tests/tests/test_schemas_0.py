@@ -26,7 +26,7 @@ from .helpers import TEST_DIR
 
 WORK_DIR = f"{TEST_DIR}/schemas_0"
 
-# NOTE: JSON fom HA is not compliant with vendor schema, but is useful to test against
+# NOTE: JSON from HA is not compliant with vendor schema, but is useful to test against
 CONFIG_FILE_NAME = "config.json"
 STATUS_FILE_NAME = "status.json"
 

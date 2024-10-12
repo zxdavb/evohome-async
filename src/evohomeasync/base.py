@@ -81,7 +81,7 @@ class EvohomeClientDeprecated:
     @property
     def hostname(self) -> str:
         raise exc.DeprecationError(
-            "EvohomeClient.hostanme is deprecated, use .broker.hostname"
+            "EvohomeClient.hostname is deprecated, use .broker.hostname"
         )
 
     @property
@@ -93,7 +93,7 @@ class EvohomeClientDeprecated:
 
         raise exc.DeprecationError("EvohomeClient._wait_for_put_task() is deprecated")
 
-        # # Code fragment left here, as documention of get_task_status()...
+        # # Code fragment left here, as documentation of get_task_status()...
 
         # async def get_task_status(task_id: _TaskIdT) -> str:
         #     await self._populate_locn_data()

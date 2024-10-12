@@ -264,7 +264,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
         await self.set_status(SystemMode.HEATING_OFF, until=until)
 
     async def temperatures(self) -> _EvoListT:
-        """A convienience function to return the latest temperatures and setpoints."""
+        """A convenience function to return the latest temperatures and setpoints."""
 
         await self.location.refresh_status()
 

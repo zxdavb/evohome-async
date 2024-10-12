@@ -261,7 +261,7 @@ class FakedServer:
 
         if self._method != HTTPMethod.PUT:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
-            return {"message": "Method not allowes"}
+            return {"message": "Method not allowed"}
 
         if not isinstance(self._data, dict):
             self.status = HTTPStatus.BAD_REQUEST

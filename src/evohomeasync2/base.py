@@ -218,7 +218,7 @@ class EvohomeClient(EvohomeClientDeprecated):
     async def _installation(self, refresh_status: bool = True) -> _EvoListT:
         """Return the configuration of the user's locations with their status.
 
-        The refresh_status flag is used for dev/test to disable retreiving the initial
+        The refresh_status flag is used for dev/test to disable retrieving the initial
         status of each location (and its child entities, e.g. TCS, zones, etc.).
         """
 

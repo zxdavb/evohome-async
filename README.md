@@ -33,7 +33,7 @@ To avoid exceeding the vendor's API rate limit, you can cache the access tokens 
 > Beware that the above switch will save your tokens to **.evo-cache.tmp**: this presents a security concern.
 
 ### Differences from non-async version
-The difference between the **evohomeasync** and **evohomeclient** libraries have been kept to the minimum, and it is planned for exisiting docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
+The difference between the **evohomeasync** and **evohomeclient** libraries have been kept to the minimum, and it is planned for existing docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
 
 The non-async documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
 
@@ -54,7 +54,7 @@ In both cases (`evohomeclient2` and `evohomeclient`):
 For the newer evohome API (evohomeclient2):
  - `import evohomeasync2` instead of `import evohomeclient2`
  - must invoke `await client.login()` after instntiating `EvohomeClient`
- - gerneric `Exceptions` have changed...
+ - generic `Exceptions` have changed...
     `requests.ConnectionError` becomes: `aiohttp.ClientConnectionError`
     `requests.HTTPError` becomes `aiohttp.ClientResponseError`
  - but in most case, exceptions are no longer generic (since **0.4.0**)...
