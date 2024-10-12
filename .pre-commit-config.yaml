@@ -15,7 +15,7 @@ repos:
     hooks:
       - id: codespell
         args:
-          - --ignore-words-list=cant,wont
+          # --ignore-words-list=cant,wont
           - --skip="./.*,*.csv,*.json,*.ambr"
           - --quiet-level=2
         exclude_types: [csv, json, html]

@@ -140,7 +140,7 @@ class Broker:
         url_ = self.hostname + "/WebAPI/api/" + url
 
         async with func(url_, json=data, headers=self._headers) as response:
-            response_text = await response.text()  # why cant I move this below the if?
+            response_text = await response.text()  # why can't I move this below the if?
 
             # if 401/unauthorized, may need to refresh session_id (expires in 15 mins?)
             if response.status != HTTPStatus.UNAUTHORIZED or _dont_reauthenticate:

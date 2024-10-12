@@ -58,8 +58,8 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
 
     #     await evo._basic_login()  # re-authenticate using refresh_token
 
-    #     assert True or evo.token_manager.access_token != access_token  # TODO: faked_server wont do this
-    #     assert True or evo.token_manager.refresh_token != refresh_token  # TODO: faked_server wont do this
+    #     assert True or evo.token_manager.access_token != access_token  # TODO: faked_server won't do this
+    #     assert True or evo.token_manager.refresh_token != refresh_token  # TODO: faked_server won't do this
 
     #
     # STEP 2: User account,  GET /userAccount...
@@ -70,7 +70,7 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
     assert SCH_USER_ACCOUNT(evo._user_account)
     assert evo.account_info == evo._user_account
 
-    await evo.user_account()  # wont update as access_token is valid
+    await evo.user_account()  # won't update as access_token is valid
     # await evo.user_account(force_update=True)  # will update as forced
 
     #
