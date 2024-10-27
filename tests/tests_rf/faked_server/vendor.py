@@ -41,38 +41,30 @@ from .const import (
 )
 
 if TYPE_CHECKING:
-    from evohomeasync2.schema import (
-        _DhwIdT,
-        _LocationIdT,
-        _SystemIdT,
-        _UserIdT,
-        _ZoneIdT,
-    )
-
     from .const import _bodyT, _methodT, _statusT, _urlT
 
 
-def _dhw_id(url: _urlT) -> _DhwIdT:
+def _dhw_id(url: _urlT) -> str:
     """Extract a DHW id from a URL."""
     return url.split(f"{SZ_DOMESTIC_HOT_WATER}/")[1].split("/")[0]
 
 
-def _loc_id(url: _urlT) -> _LocationIdT:
+def _loc_id(url: _urlT) -> str:
     """Extract a Location id from a URL."""
     return url.split(f"{SZ_LOCATION}/")[1].split("/")[0]
 
 
-def _tcs_id(url: _urlT) -> _SystemIdT:
+def _tcs_id(url: _urlT) -> str:
     """Extract a TCS id from a URL."""
     return url.split(f"{SZ_TEMPERATURE_CONTROL_SYSTEM}/")[1].split("/")[0]
 
 
-def _usr_id(url: _urlT) -> _UserIdT:
+def _usr_id(url: _urlT) -> str:
     """Extract a User id from a URL."""
     return url.split("?userId=")[1].split("&")[0]
 
 
-def _zon_id(url: _urlT) -> _ZoneIdT:
+def _zon_id(url: _urlT) -> str:
     """Extract a Zone id from a URL."""
     return url.split(f"{SZ_TEMPERATURE_ZONE}/")[1].split("/")[0]
 
