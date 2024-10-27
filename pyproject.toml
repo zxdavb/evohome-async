@@ -72,7 +72,7 @@
 ###  mypy ############################################################################
 
 [tool.mypy]
-  exclude = "docs"
+  exclude = ["docs", "tests/tests_cc"]
   files = ["src", "tests"]
 
   no_implicit_optional = true
