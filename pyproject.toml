@@ -147,7 +147,7 @@
 ## ruff ##############################################################################
 
 [tool.ruff]
-  exclude = ["docs/*.py"]
+  exclude = ["docs/*.py", "tests/tests_cc"]
   src = ["src", "tests"]
   target-version = "py312"
 

@@ -6,6 +6,8 @@ tokens*
 .secrets/
 .vscode/
 
+custom_components
+
 # schedule backups
 /*.json
 
