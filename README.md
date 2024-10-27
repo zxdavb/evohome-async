@@ -7,15 +7,15 @@ evohome-async
 
 Python client to _asynchronously_ access the [Total Connect Comfort](https://international.mytotalconnectcomfort.com/Account/Login) RESTful API.
 
-It is intended to be a faithful port of https://github.com/watchforstock/evohome-client, but async-aware.  That is, it exposes a superset of the **evohome-client** schema (same namespace, same JSON), but with some notable differences between the two (see below).
+It is based upon https://github.com/watchforstock/evohome-client, but async-aware.  That is, it exposes a superset of the **evohome-client** schema (same namespace, same JSON), but with some notable differences between the two (see below).
 
-It provides support for Honeywell/Resideo TCC-based systems, such as **Evohome**, **Round Thermostat**, **VisonPro** and others:
+It provides support for Honeywell/Resideo TCC-based systems, such as **Evohome**, **Round Thermostat**, **VisionPro** and others:
  - it supports _only_ EU/EMEA-based systems, please use [somecomfort](https://github.com/mkmer/AIOSomecomfort) for US-based systems
  - it provides Evohome support for Home Assistant (and other automation platforms), see https://www.home-assistant.io/integrations/evohome
 
 This client requires the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead.
 
-Please contact me (e.g. open an issue) if you would like to help extending the functionality of **evohome-async** to include cooling, as support for such is minimal currently.
+The evohome API does not currently support cooling.
 
 ### CLI for schedules
 
@@ -30,14 +30,14 @@ python client.py -u username@gmail.com -p password set-schedules --loc-idx 2 -f 
 
 To avoid exceeding the vendor's API rate limit, you can cache the access tokens via the `--cache-tokens` switch.
 
-> Beware that the above switch will save your tokens to **.evo-cache.tmp**: this presents a security concern.
+> Beware that the above switch will save your tokens to **.evo-cache.tmp**: this presents a small security concern.
 
 ### Differences from non-async version
 The difference between the **evohomeasync** and **evohomeclient** libraries have been kept to the minimum, and it is planned for existing docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
 
 The non-async documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
 
-#### Technical differences
+#### Technical differences (out of date)
 Some additional functionality has been added to the methods that wrap the vendor APIs (e.g. restore schedules by name, as an alternative to by id). Note that this library is not able to expose more _core_ functionality than it's non-async cousin (i.e. they both use the same vendor API).
 
 Note that since **0.4.0**, some attributes have been renamed, and a few have been deprecated altogether (when required, an informative exception will be thrown).
