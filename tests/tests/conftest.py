@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import logging
 import pathlib
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator, Callable, Generator
 from datetime import datetime as dt
 from functools import lru_cache
 
@@ -55,7 +55,7 @@ class TokenManager(AbstractTokenManager):
 
 
 @pytest.fixture(autouse=True)
-def block_aiohttp():
+def block_aiohttp() -> Generator[Callable]:
     """Prevent any actual I/O: will raise ClientConnectionError(Connection refused)."""
     with aioresponses() as m:
         yield m
