@@ -122,7 +122,6 @@ class AbstractTokenManager(ABC):
         self.access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
         self.refresh_token = tokens[SZ_REFRESH_TOKEN]
 
-    # HACK: sometimes using evo, not self
     def _token_data_as_dict(self) -> _EvoTokenData:
         """Serialize the token data to a dictionary."""
         return {
@@ -135,7 +134,7 @@ class AbstractTokenManager(ABC):
         """Return True if we have a valid access token."""
         return bool(self.access_token) and self.access_token_expires > dt.now()
 
-    async def fetch_access_token(self) -> str:  # HA api
+    async def get_access_token(self) -> str:
         """Return a valid access token.
 
         If required, fetch a new token via the vendor's web API.
@@ -237,7 +236,7 @@ class AbstractTokenManager(ABC):
         """Save the access token to a cache."""
 
 
-class Broker:
+class Auth:
     """A class for interacting with the Evohome API."""
 
     def __init__(
@@ -293,7 +292,7 @@ class Broker:
 
         return {
             "Accept": AUTH_HEADER_ACCEPT,
-            "Authorization": "bearer " + await self.token_manager.fetch_access_token(),
+            "Authorization": "bearer " + await self.token_manager.get_access_token(),
             "Content-Type": "application/json",
         }
 

@@ -16,8 +16,8 @@ import pytest_asyncio
 import voluptuous as vol
 from aioresponses import aioresponses
 
-from evohomeasync2.broker import AbstractTokenManager
 from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
+from evohomeasync2.session import AbstractTokenManager
 
 type JsonValueType = (
     dict[str, JsonValueType] | list[JsonValueType] | str | int | float | bool | None

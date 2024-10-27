@@ -11,11 +11,11 @@ from typing import TYPE_CHECKING, Final, NoReturn
 import aiohttp
 
 from . import exceptions as exc
-from .broker import AbstractTokenManager, Broker
 from .controlsystem import ControlSystem
 from .location import Location
 from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
 from .schema.const import SZ_USER_ID
+from .session import AbstractTokenManager, Auth
 
 if TYPE_CHECKING:
     from .schema import _EvoDictT, _EvoListT, _ScheduleT
@@ -148,7 +148,7 @@ class EvohomeClient(EvohomeClientDeprecated):
             self._logger.debug("Debug mode is explicitly enabled.")
 
         self.token_manager = token_manager
-        self.broker = Broker(token_manager, session, _LOGGER)
+        self.broker = Auth(token_manager, session, _LOGGER)
 
         self.locations: list[Location] = []
 

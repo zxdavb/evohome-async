@@ -53,7 +53,7 @@ from .schema.const import (
 if TYPE_CHECKING:
     import logging
 
-    from . import Broker, ControlSystem
+    from . import Auth, ControlSystem
     from .schema import _EvoDictT, _EvoListT
 
 
@@ -63,7 +63,7 @@ _ONE_DAY = td(days=1)
 class EntityBase:
     TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
 
-    def __init__(self, id: str, broker: Broker, logger: logging.Logger) -> None:
+    def __init__(self, id: str, broker: Auth, logger: logging.Logger) -> None:
         self._id: Final = id
 
         self._broker = broker
@@ -78,7 +78,7 @@ class EntityBase:
 
 
 class ActiveFaultsBase(EntityBase):
-    def __init__(self, id: str, broker: Broker, logger: logging.Logger) -> None:
+    def __init__(self, id: str, broker: Auth, logger: logging.Logger) -> None:
         super().__init__(id, broker, logger)
 
         self._active_faults: _EvoListT = []
