@@ -93,7 +93,7 @@ async def _write(filename: TextIOWrapper | Any, content: str) -> None:
     """Write to a file, async if possible and sync otherwise."""
 
     try:
-        async with aiofiles.open(filename, "w") as fp:  # type: ignore[call-overload]
+        async with aiofiles.open(filename.name, "w") as fp:  # type: ignore[call-overload]
             await fp.write(content)
     except TypeError:  # if filename is sys.stdout:
         filename.write(content)
@@ -358,7 +358,7 @@ async def set_schedules(
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     # will TypeError if filename is sys.stdin
-    async with aiofiles.open(filename) as fp:  # type: ignore[call-overload]
+    async with aiofiles.open(filename.name) as fp:  # type: ignore[call-overload]
         content = await fp.read()
 
     success = await _get_tcs(evo, loc_idx).set_schedules(json.loads(content))
