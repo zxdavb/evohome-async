@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync2 provides an async client for the *updated* Evohome API."""
+"""evohomeasync2 provides an async client for the *updated* Evohome TCC API."""
 
 import asyncio
 import json

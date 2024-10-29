@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""evohomeasync provides an async client for the *original* Evohome API.
+"""evohomeasync provides an async client for the *original* Evohome TCC API.
 
-It is a faithful async port of https://github.com/watchforstock/evohome-client
+It is an async port of https://github.com/watchforstock/evohome-client
 
 Further information at: https://evohome-client.readthedocs.io
 """
