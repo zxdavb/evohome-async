@@ -89,14 +89,14 @@ def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
     return evo.locations[int(loc_idx)]._gateways[0]._control_systems[0]
 
 
-async def _write(filename: TextIOWrapper | Any, content: str) -> None:
+async def _write(output_file: TextIOWrapper | Any, content: str) -> None:
     """Write to a file, async if possible and sync otherwise."""
 
     try:
-        async with aiofiles.open(filename.name, "w") as fp:
+        async with aiofiles.open(output_file.name, "w") as fp:
             await fp.write(content)
-    except TypeError:  # if filename is sys.stdout:
-        filename.write(content)
+    except TypeError:  # if output_file is sys.stdout:
+        output_file.write(content)
 
 
 class TokenManager(AbstractTokenManager):
@@ -257,11 +257,11 @@ async def mode(ctx: click.Context, loc_idx: int) -> None:
     type=int,
     help="The location idx.",
 )
-@click.option(  # --filename
-    "--filename", "-f", type=click.File("w"), default="-", help="The output file."
+@click.option(  # --output-file
+    "--output-file", "-o", type=click.File("w"), default="-", help="The output file."
 )
 @click.pass_context
-async def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> None:
+async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> None:
     """Download all the global config and the location status."""
 
     print("\r\nclient.py: Starting dump of config and status...")
@@ -272,7 +272,7 @@ async def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> Non
         "status": await evo.locations[loc_idx].refresh_status(),
     }
 
-    await _write(filename, json.dumps(result, indent=4) + "\r\n\r\n")
+    await _write(output_file, json.dumps(result, indent=4) + "\r\n\r\n")
 
     await ctx.obj[SZ_CLEANUP]
     print(" - finished.\r\n")
@@ -288,12 +288,12 @@ async def dump(ctx: click.Context, loc_idx: int, filename: TextIOWrapper) -> Non
     type=int,
     help="The location idx.",
 )
-@click.option(  # --filename
-    "--filename", "-f", type=click.File("w"), default="-", help="The output file."
+@click.option(  # --output-file
+    "--output-file", "-o", type=click.File("w"), default="-", help="The output file."
 )
 @click.pass_context
 async def get_schedule(
-    ctx: click.Context, zone_id: str, loc_idx: int, filename: TextIOWrapper
+    ctx: click.Context, zone_id: str, loc_idx: int, output_file: TextIOWrapper
 ) -> None:
     """Download the schedule of a zone of a TCS (WIP)."""
 
@@ -303,7 +303,7 @@ async def get_schedule(
     zon: HotWater | Zone = _get_tcs(evo, loc_idx).zones_by_id[zone_id]
     schedule = {zon.id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
 
-    await _write(filename, json.dumps(schedule, indent=4) + "\r\n\r\n")
+    await _write(output_file, json.dumps(schedule, indent=4) + "\r\n\r\n")
 
     await ctx.obj[SZ_CLEANUP]
     print(" - finished.\r\n")
@@ -318,12 +318,12 @@ async def get_schedule(
     type=int,
     help="The location idx.",
 )
-@click.option(  # --filename
-    "--filename", "-f", type=click.File("w"), default="-", help="The output file."
+@click.option(  # --output-file
+    "--output-file", "-o", type=click.File("w"), default="-", help="The output file."
 )
 @click.pass_context
 async def get_schedules(
-    ctx: click.Context, loc_idx: int, filename: TextIOWrapper
+    ctx: click.Context, loc_idx: int, output_file: TextIOWrapper
 ) -> None:
     """Download all the schedules from a TCS."""
 
@@ -332,7 +332,7 @@ async def get_schedules(
 
     schedules = await _get_tcs(evo, loc_idx).get_schedules()
 
-    await _write(filename, json.dumps(schedules, indent=4) + "\r\n\r\n")
+    await _write(output_file, json.dumps(schedules, indent=4) + "\r\n\r\n")
 
     await ctx.obj[SZ_CLEANUP]
     print(" - finished.\r\n")
@@ -347,18 +347,18 @@ async def get_schedules(
     type=int,
     help="The location idx.",
 )
-@click.option("--filename", "-f", type=click.File(), help="The input file.")
+@click.option("--input-file", "-i", type=click.File(), help="The input file.")
 @click.pass_context
 async def set_schedules(
-    ctx: click.Context, loc_idx: int, filename: TextIOWrapper
+    ctx: click.Context, loc_idx: int, input_file: TextIOWrapper
 ) -> None:
     """Upload schedules to a TCS."""
 
     print("\r\nclient.py: Starting restore of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    # will TypeError if filename is sys.stdin
-    async with aiofiles.open(filename.name) as fp:
+    # will TypeError if input_file is sys.stdin
+    async with aiofiles.open(input_file.name) as fp:
         content = await fp.read()
 
     success = await _get_tcs(evo, loc_idx).set_schedules(json.loads(content))
