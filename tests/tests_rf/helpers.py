@@ -13,6 +13,7 @@ import evohomeasync as evo1
 import evohomeasync2 as evo2
 from evohomeasync2.client import TokenManager
 from evohomeasync2.const import URL_BASE as URL_BASE_2
+from evohomeasync2.session import Auth
 
 from .conftest import _DBG_DISABLE_STRICT_ASSERTS, TOKEN_CACHE, aiohttp
 
@@ -180,13 +181,9 @@ async def should_work(
     Used to validate the faked server against a 'real' server.
     """
 
-    if json is None:
-        content, response = await evo.broker._request(method, f"{URL_BASE_2}/{url}")
-    else:
-        content, response = await evo.broker._request(
-            method, f"{URL_BASE_2}/{url}", json=json
-        )
+    response = await evo.broker.request(method, f"{URL_BASE_2}/{url}", json=json)
 
+    content = await Auth._content(response)
     assert response.content_type == content_type, content
 
     if response.content_type != "application/json":
@@ -213,12 +210,7 @@ async def should_fail(
     """
 
     try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
-        if json is None:
-            content, response = await evo.broker._request(method, f"{URL_BASE_2}/{url}")
-        else:
-            content, response = await evo.broker._request(
-                method, f"{URL_BASE_2}/{url}", json=json
-            )
+        response = await evo.broker.request(method, f"{URL_BASE_2}/{url}", json=json)
 
     except aiohttp.ClientResponseError:
         assert False  # err.status == status, err.status
@@ -228,7 +220,8 @@ async def should_fail(
     if _DBG_DISABLE_STRICT_ASSERTS:
         return None
 
-    assert response.content_type == content_type, response.content_type
+    content = await Auth._content(response)
+    assert response.content_type == content_type, content
 
     if isinstance(content, dict):
         assert status in (
@@ -238,7 +231,7 @@ async def should_fail(
         assert "message" in content, content  # sometimes "code" too
 
     elif isinstance(content, list):
-        assert status in (  # type: ignore[unreachable]
+        assert status in (
             HTTPStatus.BAD_REQUEST,
             HTTPStatus.NOT_FOUND,  # CommTaskNotFound
             HTTPStatus.UNAUTHORIZED,

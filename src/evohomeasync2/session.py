@@ -21,6 +21,7 @@ from .const import (
     CREDS_REFRESH_TOKEN,
     CREDS_USER_PASSWORD,
     URL_BASE,
+    URL_HOST,
 )
 from .schema import (
     SCH_OAUTH_TOKEN,
@@ -31,6 +32,8 @@ from .schema import (
 )
 
 if TYPE_CHECKING:
+    from aiohttp.typedefs import StrOrURL
+
     from .schema import _EvoDictT, _EvoSchemaT  # pragma: no cover
 
 
@@ -94,7 +97,7 @@ class AbstractTokenManager(ABC):
 
         self.websession = websession
 
-        self._token_data_reset()
+        self._auth_tokens_clear()
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(username='{self.username}')"
@@ -119,25 +122,25 @@ class AbstractTokenManager(ABC):
         """Return the username."""
         return self._user_credentials[SZ_USERNAME]
 
-    def _token_data_reset(self) -> None:
+    def _auth_tokens_clear(self) -> None:
         """Reset the token data to its falsy state."""
         self._access_token = ""
         self._access_token_expires = dt.min
         self._refresh_token = ""
 
-    def _token_data_from_api(self, tokens: OAuthTokenData) -> None:
+    def _auth_tokens_from_api(self, tokens: OAuthTokenData) -> None:
         """Convert the token data from the vendor's API to the internal format."""
         self._access_token = tokens[SZ_ACCESS_TOKEN]
-        self._access_token_expires = dt.now() + td(seconds=tokens[SZ_EXPIRES_IN] - 15)
+        self._access_token_expires = dt.now() + td(seconds=tokens[SZ_EXPIRES_IN])
         self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
-    def _token_data_from_dict(self, tokens: _EvoTokenData) -> None:
+    def _deserialize_auth_tokens(self, tokens: _EvoTokenData) -> None:
         """Deserialize the token data from a dictionary."""
         self._access_token = tokens[SZ_ACCESS_TOKEN]
         self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
         self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
-    def _token_data_as_dict(self) -> _EvoTokenData:
+    def _serialize_auth_tokens(self) -> _EvoTokenData:
         """Serialize the token data to a dictionary."""
         return {
             SZ_ACCESS_TOKEN: self.access_token,
@@ -212,7 +215,7 @@ class AbstractTokenManager(ABC):
             )
 
         try:
-            self._token_data_from_api(token_data)
+            self._auth_tokens_from_api(token_data)
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailed(
@@ -251,48 +254,61 @@ class AbstractTokenManager(ABC):
         """Save the access token to a cache."""
 
 
-class Auth:
-    """A class for interacting with the Evohome API."""
+class AbstractAuth(ABC):  # APIs esposed by/for HA
+    def __init__(self, websession: aiohttp.ClientSession, host: str):
+        """Initialize the auth."""
+        self.websession = websession
+        self.host = host
+
+    @abstractmethod
+    async def get_access_token(self) -> str:
+        """Return a valid access token."""
+
+    async def request(
+        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+    ) -> aiohttp.ClientResponse:
+        """Make a request to the Evohome TCC API."""
+
+        headers = kwargs.pop("headers", None) or {
+            "Accept": AUTH_HEADER_ACCEPT,
+            "Content-Type": "application/json",
+        }
+        headers["Authorization"] = "bearer " + await self.get_access_token()
+
+        async with self.websession.request(
+            method, url, **kwargs, headers=headers
+        ) as response:
+            return response
+
+
+class Auth(AbstractAuth):
+    """A class for interacting with the Evohome TCC API."""
 
     def __init__(
         self,
         token_manager: AbstractTokenManager,
-        session: aiohttp.ClientSession,
+        websession: aiohttp.ClientSession,
         logger: logging.Logger,
     ) -> None:
-        """A class for interacting with the v2 Evohome API."""
+        """A class for interacting with the v2 Evohome TCC API."""
+
+        super().__init__(websession, URL_HOST)
 
         self.token_manager = token_manager
-        self._session = session
         self._logger = logger
 
+    async def get_access_token(self) -> str:
+        """Return a valid access token."""
+        return await self.token_manager.get_access_token()
+
     async def _request(
-        self, method: HTTPMethod, url: str, /, **kwargs: Any
-    ) -> tuple[dict[str, Any] | str | None, aiohttp.ClientResponse]:
-        """Wrapper for aiohttp.ClientSession()."""
-
-        if not kwargs.get("headers"):
-            kwargs["headers"] = await self._headers()
-
-        async with self._session.request(method, url, **kwargs) as response:
-            if not response.content_length:
-                content = None
-            elif response.content_type == "application/json":
-                content = await response.json()
-            else:  # assume "text/plain" or "text/html"
-                content = await response.text()
-
-            return content, response
-
-    async def request(
-        self, method: HTTPMethod, url: str, /, **kwargs: Any
-    ) -> dict[str, Any] | str | None:
-        """Wrapper for aiohttp.ClientSession()."""
+        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+    ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
+        """Make a request to the Evohome TCC API."""
 
         try:
-            content, response = await self._request(method, url, **kwargs)
+            response = await self.request(method, url, **kwargs)
             response.raise_for_status()
-            return content
 
         except aiohttp.ClientResponseError as err:
             if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
@@ -302,17 +318,26 @@ class Auth:
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
             raise exc.RequestFailed(str(err)) from err
 
-    async def _headers(self) -> dict[str, str]:
-        """Ensure the Authorization Header has a valid Access Token."""
+        return await self._content(response)
 
-        return {
-            "Accept": AUTH_HEADER_ACCEPT,
-            "Authorization": "bearer " + await self.token_manager.get_access_token(),
-            "Content-Type": "application/json",
-        }
+    @staticmethod
+    async def _content(
+        response: aiohttp.ClientResponse,
+    ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
+        """Return the content of the response."""
 
-    async def get(self, url: str, schema: vol.Schema | None = None) -> _EvoSchemaT:
-        """Call the RESTful API with a GET.
+        if not response.content_length:
+            return None
+
+        if response.content_type != "application/json":
+            # assume "text/plain" or "text/html"
+            return await response.text()
+
+        content: dict[str, Any] = await response.json()
+        return content
+
+    async def get(self, url: StrOrURL, schema: vol.Schema | None = None) -> _EvoSchemaT:
+        """Call the Evohome TCC API with a GET.
 
         Optionally checks the response JSON against the expected schema and logs a
         warning if it doesn't match (NB: does not raise a vol.Invalid).
@@ -320,7 +345,7 @@ class Auth:
 
         content: _EvoSchemaT
 
-        content = await self.request(  # type: ignore[assignment]
+        content = await self._request(  # type: ignore[assignment]
             HTTPMethod.GET, f"{URL_BASE}/{url}"
         )
 
@@ -335,9 +360,9 @@ class Auth:
         return content
 
     async def put(
-        self, url: str, json: _EvoDictT | str, schema: vol.Schema | None = None
+        self, url: StrOrURL, json: _EvoDictT | str, schema: vol.Schema | None = None
     ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
-        """Call the RESTful API with a PUT.
+        """Call the Evohome TCC API with a PUT (POST is only used for authentication).
 
         Optionally checks the request JSON against the expected schema and logs a
         warning if it doesn't match (NB: does not raise a vol.Invalid).
@@ -351,7 +376,7 @@ class Auth:
             except vol.Invalid as err:
                 self._logger.warning(f"Request JSON may be invalid: PUT {url}: {err}")
 
-        content = await self.request(  # type: ignore[assignment]
+        content = await self._request(  # type: ignore[assignment]
             HTTPMethod.PUT, f"{URL_BASE}/{url}", json=json
         )
 

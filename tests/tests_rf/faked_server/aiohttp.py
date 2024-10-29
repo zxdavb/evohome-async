@@ -105,7 +105,7 @@ class ClientSession:
         raise NotImplementedError
 
     def get(self, url: str, **kwargs: Any) -> ClientResponse:
-        assert not {k: v for k, v in kwargs.items() if k != "headers"}
+        assert not {k: v for k, v in kwargs.items() if k != "headers" and v is not None}
         return ClientResponse(hdrs.METH_GET, url, session=self)  # type: ignore[arg-type]
 
     def put(

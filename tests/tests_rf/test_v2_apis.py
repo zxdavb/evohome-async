@@ -41,18 +41,9 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
         assert evo.token_manager.access_token == "ncWMqPh2yGgAqc..."  # noqa: S105
         assert evo.token_manager.refresh_token == "Ryx9fL34Z5GcNV..."  # noqa: S105
 
-    access_token = evo.token_manager.access_token
-    refresh_token = evo.token_manager.refresh_token
-
-    await evo.broker._headers()
-
-    # The above should not cause a re-authentication, so...
-    assert evo.token_manager.access_token == access_token
-    assert evo.token_manager.refresh_token == refresh_token
-
     #
     # STEP 1A: Re-Authentication: more likely to cause 429: Too Many Requests
-    if isinstance(evo.broker._session, aiohttp.ClientSession):
+    if isinstance(evo.broker.websession, aiohttp.ClientSession):
         access_token = evo.token_manager.access_token
         refresh_token = evo.token_manager.refresh_token
 
