@@ -53,9 +53,9 @@ class _TokenManager(AbstractTokenManager):
     ) -> None:
         super().__init__(username, password, websession)
 
-        self.refresh_token = refresh_token or ""
-        self.access_token = access_token or ""
-        self.access_token_expires = access_token_expires or dt.min
+        self._refresh_token = refresh_token or ""
+        self._access_token = access_token or ""
+        self._access_token_expires = access_token_expires or dt.min
 
     async def restore_access_token(self) -> None:
         raise NotImplementedError

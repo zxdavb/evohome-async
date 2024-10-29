@@ -75,9 +75,9 @@ class _EvoTokenData(TypedDict):
 class AbstractTokenManager(ABC):
     """Abstract class to manage an OAuth access token and its refresh token."""
 
-    access_token: str
-    access_token_expires: dt
-    refresh_token: str
+    _access_token: str
+    _access_token_expires: dt
+    _refresh_token: str
 
     def __init__(
         self,
@@ -100,27 +100,42 @@ class AbstractTokenManager(ABC):
         return f"{self.__class__.__name__}(username='{self.username}')"
 
     @property
+    def access_token(self) -> str:
+        """Return the access_token."""
+        return self._access_token
+
+    @property
+    def access_token_expires(self) -> dt:
+        """Return the access_token_expires."""
+        return self._access_token_expires
+
+    @property
+    def refresh_token(self) -> str:
+        """Return the refresh_token."""
+        return self._refresh_token
+
+    @property
     def username(self) -> str:
         """Return the username."""
         return self._user_credentials[SZ_USERNAME]
 
     def _token_data_reset(self) -> None:
         """Reset the token data to its falsy state."""
-        self.access_token = ""
-        self.access_token_expires = dt.min
-        self.refresh_token = ""
+        self._access_token = ""
+        self._access_token_expires = dt.min
+        self._refresh_token = ""
 
     def _token_data_from_api(self, tokens: OAuthTokenData) -> None:
         """Convert the token data from the vendor's API to the internal format."""
-        self.access_token = tokens[SZ_ACCESS_TOKEN]
-        self.access_token_expires = dt.now() + td(seconds=tokens[SZ_EXPIRES_IN] - 15)
-        self.refresh_token = tokens[SZ_REFRESH_TOKEN]
+        self._access_token = tokens[SZ_ACCESS_TOKEN]
+        self._access_token_expires = dt.now() + td(seconds=tokens[SZ_EXPIRES_IN] - 15)
+        self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
     def _token_data_from_dict(self, tokens: _EvoTokenData) -> None:
         """Deserialize the token data from a dictionary."""
-        self.access_token = tokens[SZ_ACCESS_TOKEN]
-        self.access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
-        self.refresh_token = tokens[SZ_REFRESH_TOKEN]
+        self._access_token = tokens[SZ_ACCESS_TOKEN]
+        self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
+        self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
     def _token_data_as_dict(self) -> _EvoTokenData:
         """Serialize the token data to a dictionary."""
@@ -149,7 +164,7 @@ class AbstractTokenManager(ABC):
     async def _update_access_token(self) -> None:
         """Update the access token and save it to the store/cache."""
 
-        if self.refresh_token:
+        if self._refresh_token:
             _LOGGER.warning("Authenticating with the refresh_token...")
 
             try:
@@ -162,9 +177,9 @@ class AbstractTokenManager(ABC):
                     raise
 
                 _LOGGER.warning(" - invalid/expired refresh_token")
-                self.refresh_token = ""
+                self._refresh_token = ""
 
-        if not self.refresh_token:
+        if not self._refresh_token:
             _LOGGER.warning("Authenticating with username/password...")
 
             await self._obtain_access_token(
