@@ -125,8 +125,8 @@ class EvohomeClient(EvohomeClientDeprecated):
 
     def __init__(
         self,
+        websession: aiohttp.ClientSession,
         token_manager: AbstractTokenManager,
-        session: aiohttp.ClientSession,
         /,
         *,
         debug: bool = False,
@@ -147,13 +147,12 @@ class EvohomeClient(EvohomeClientDeprecated):
             self._logger.setLevel(logging.DEBUG)
             self._logger.debug("Debug mode is explicitly enabled.")
 
-        self.token_manager = token_manager
-        self.broker = Auth(token_manager, session, _LOGGER)
+        self.broker = Auth(websession, token_manager, _LOGGER)
 
         self.locations: list[Location] = []
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__}(token_manager='{self.token_manager}')"
+        return f"{self.__class__.__name__}(token_manager='{self.broker.token_manager}')"
 
     async def login(self) -> None:
         """Retrieve the user account and installation details.

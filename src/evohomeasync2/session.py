@@ -255,7 +255,7 @@ class AbstractTokenManager(ABC):
 
 
 class AbstractAuth(ABC):  # APIs esposed by/for HA
-    def __init__(self, websession: aiohttp.ClientSession, host: str):
+    def __init__(self, websession: aiohttp.ClientSession, host: str) -> None:
         """Initialize the auth."""
         self.websession = websession
         self.host = host
@@ -264,9 +264,9 @@ class AbstractAuth(ABC):  # APIs esposed by/for HA
     async def get_access_token(self) -> str:
         """Return a valid access token."""
 
-    async def request(
+    async def request(  # type: ignore[no-untyped-def]
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> aiohttp.ClientResponse:
+    ):
         """Make a request to the Evohome TCC API."""
 
         headers = kwargs.pop("headers", None) or {
@@ -275,10 +275,7 @@ class AbstractAuth(ABC):  # APIs esposed by/for HA
         }
         headers["Authorization"] = "bearer " + await self.get_access_token()
 
-        async with self.websession.request(
-            method, url, **kwargs, headers=headers
-        ) as response:
-            return response
+        return self.websession.request(method, url, **kwargs, headers=headers)
 
 
 class Auth(AbstractAuth):
@@ -286,8 +283,8 @@ class Auth(AbstractAuth):
 
     def __init__(
         self,
-        token_manager: AbstractTokenManager,
         websession: aiohttp.ClientSession,
+        token_manager: AbstractTokenManager,
         logger: logging.Logger,
     ) -> None:
         """A class for interacting with the v2 Evohome TCC API."""
@@ -306,19 +303,19 @@ class Auth(AbstractAuth):
     ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
         """Make a request to the Evohome TCC API."""
 
-        try:
-            response = await self.request(method, url, **kwargs)
-            response.raise_for_status()
+        async with await self.request(method, url, **kwargs) as response:
+            try:
+                response.raise_for_status()
 
-        except aiohttp.ClientResponseError as err:
-            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
-                raise exc.RequestFailed(hint, status=err.status) from err
-            raise exc.RequestFailed(str(err), status=err.status) from err
+            except aiohttp.ClientResponseError as err:
+                if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
+                    raise exc.RequestFailed(hint, status=err.status) from err
+                raise exc.RequestFailed(str(err), status=err.status) from err
 
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            raise exc.RequestFailed(str(err)) from err
+            except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+                raise exc.RequestFailed(str(err)) from err
 
-        return await self._content(response)
+            return await self._content(response)
 
     @staticmethod
     async def _content(

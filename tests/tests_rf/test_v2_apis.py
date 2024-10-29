@@ -31,26 +31,29 @@ from .helpers import aiohttp, instantiate_client_v2
 async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
     """Test authentication, `user_account()` and `installation()`."""
 
+    token_manager = evo.broker.token_manager
+
     #
     # STEP 1: Authentication (isolated from evo.login()), POST /Auth/OAuth/Token
-    assert isinstance(evo.token_manager.access_token, str)
-    assert isinstance(evo.token_manager.access_token_expires, dt)
-    assert isinstance(evo.token_manager.refresh_token, str)
+    assert isinstance(token_manager.access_token, str)
+    assert isinstance(token_manager.access_token_expires, dt)
+    assert isinstance(token_manager.refresh_token, str)
 
     if not _DBG_USE_REAL_AIOHTTP:
-        assert evo.token_manager.access_token == "ncWMqPh2yGgAqc..."  # noqa: S105
-        assert evo.token_manager.refresh_token == "Ryx9fL34Z5GcNV..."  # noqa: S105
+        assert token_manager.access_token == "ncWMqPh2yGgAqc..."  # noqa: S105
+        assert token_manager.refresh_token == "Ryx9fL34Z5GcNV..."  # noqa: S105
 
-    #
-    # STEP 1A: Re-Authentication: more likely to cause 429: Too Many Requests
-    if isinstance(evo.broker.websession, aiohttp.ClientSession):
-        access_token = evo.token_manager.access_token
-        refresh_token = evo.token_manager.refresh_token
+    # #
+    # # STEP 1A: Re-Authentication: more likely to cause 429: Too Many Requests
+    # FIXME: if isinstance(evo.broker.websession, aiohttp.ClientSession):
+    #     access_token = token_manager.access_token
+    #     refresh_token = token_manager.refresh_token
 
-    #     await evo._basic_login()  # re-authenticate using refresh_token
+    #     await evo.login()  # re-authenticate using refresh_token
 
-    #     assert True or evo.token_manager.access_token != access_token  # TODO: faked_server won't do this
-    #     assert True or evo.token_manager.refresh_token != refresh_token  # TODO: faked_server won't do this
+    #     # TODO: faked_server won't do this
+    #     assert token_manager.access_token != access_token
+    #     assert token_manager.refresh_token != refresh_token
 
     #
     # STEP 2: User account,  GET /userAccount...
@@ -172,13 +175,15 @@ async def _test_system_apis(evo: evo2.EvohomeClient) -> None:
 
 async def test_basics(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | faked.ClientSession,
+    client_session: aiohttp.ClientSession | faked.ClientSession,
 ) -> None:
     """Test authentication, `user_account()` and `installation()`."""
 
     try:
         await _test_basics_apis(
-            await instantiate_client_v2(user_credentials, session, dont_login=True)
+            await instantiate_client_v2(
+                user_credentials, client_session, dont_login=True
+            )
         )
 
     except evo2.AuthenticationFailed:
@@ -189,12 +194,14 @@ async def test_basics(
 
 async def test_sched_(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | faked.ClientSession,
+    client_session: aiohttp.ClientSession | faked.ClientSession,
 ) -> None:
     """Test `get_schedule()` and `get_schedule()`."""
 
     try:
-        await _test_sched__apis(await instantiate_client_v2(user_credentials, session))
+        await _test_sched__apis(
+            await instantiate_client_v2(user_credentials, client_session)
+        )
 
     except evo2.AuthenticationFailed:
         if not _DBG_USE_REAL_AIOHTTP:
@@ -204,12 +211,14 @@ async def test_sched_(
 
 async def test_status(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | faked.ClientSession,
+    client_session: aiohttp.ClientSession | faked.ClientSession,
 ) -> None:
     """Test `_refresh_status()` for DHW/zone."""
 
     try:
-        await _test_status_apis(await instantiate_client_v2(user_credentials, session))
+        await _test_status_apis(
+            await instantiate_client_v2(user_credentials, client_session)
+        )
 
     except evo2.AuthenticationFailed:
         if not _DBG_USE_REAL_AIOHTTP:
@@ -219,12 +228,14 @@ async def test_status(
 
 async def test_system(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession | faked.ClientSession,
+    client_session: aiohttp.ClientSession | faked.ClientSession,
 ) -> None:
     """Test `set_mode()` for TCS"""
 
     try:
-        await _test_system_apis(await instantiate_client_v2(user_credentials, session))
+        await _test_system_apis(
+            await instantiate_client_v2(user_credentials, client_session)
+        )
 
     except evo2.AuthenticationFailed:
         if not _DBG_USE_REAL_AIOHTTP:

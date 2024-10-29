@@ -76,12 +76,12 @@ class EvohomeClientOld(EvohomeClient):
         refresh_token: str | None = None,
         access_token: str | None = None,
         access_token_expires: dt | None = None,
-        session: None | aiohttp.ClientSession = None,
+        websession: None | aiohttp.ClientSession = None,
         debug: bool = False,
     ) -> None:
         """Construct the v2 EvohomeClient object."""
 
-        websession = session or aiohttp.ClientSession()
+        websession = websession or aiohttp.ClientSession()
 
         self._token_manager = _TokenManager(
             username,
@@ -92,7 +92,7 @@ class EvohomeClientOld(EvohomeClient):
             access_token_expires=access_token_expires,
         )
 
-        super().__init__(self._token_manager, websession, debug=debug)
+        super().__init__(websession, self._token_manager, debug=debug)
 
     @property
     def access_token(self) -> str:  # type: ignore[override]

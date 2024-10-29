@@ -189,7 +189,7 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
 
 async def test_task_id(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession,
+    client_session: aiohttp.ClientSession,
 ) -> None:
     """Test /location/{loc.id}/status"""
 
@@ -197,7 +197,9 @@ async def test_task_id(
         pytest.skip("Test is only valid with a real server")
 
     try:
-        await _test_task_id(await instantiate_client_v2(user_credentials, session))
+        await _test_task_id(
+            await instantiate_client_v2(user_credentials, client_session)
+        )
 
     except evo2.AuthenticationFailed:
         if not _DBG_USE_REAL_AIOHTTP:

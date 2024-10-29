@@ -44,6 +44,7 @@ def _start_debugging(wait_for_client: bool) -> None:
         debugpy.listen(address=(DEBUG_ADDR, DEBUG_PORT))
     except RuntimeError:
         print(f" - Debugging is already enabled on: {DEBUG_ADDR}:{DEBUG_PORT}")
+        raise
     else:
         print(f" - Debugging is enabled, listening on: {DEBUG_ADDR}:{DEBUG_PORT}")
 
@@ -188,12 +189,12 @@ async def cli(
         _start_debugging(True)
 
     async def cleanup(
-        session: aiohttp.ClientSession,
+        websession: aiohttp.ClientSession,
         token_manager: TokenManager,
     ) -> None:
         """Close the web session and save the access token to the cache."""
 
-        await session.close()
+        await websession.close()
         await token_manager.save_access_token()
 
     logging.basicConfig(
@@ -211,7 +212,7 @@ async def cli(
     if cache_tokens:  # restore cached tokens, if any
         await token_manager.restore_access_token()
 
-    evo = EvohomeClient(token_manager, websession, debug=bool(debug))
+    evo = EvohomeClient(websession, token_manager, debug=bool(debug))
 
     try:
         await evo.login()

@@ -134,7 +134,7 @@ _global_token_manager: TokenManager | None = None
 
 async def instantiate_client_v2(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession,
+    websession: aiohttp.ClientSession,
     dont_login: bool = False,
 ) -> evo2.EvohomeClient:
     """Instantiate a client, and logon to the vendor API (cache any tokens)."""
@@ -146,13 +146,13 @@ async def instantiate_client_v2(
         or _global_token_manager.username != user_credentials[0]
     ):
         _global_token_manager = TokenManager(
-            *user_credentials, session, token_cache=TOKEN_CACHE
+            *user_credentials, websession, token_cache=TOKEN_CACHE
         )
 
     await _global_token_manager.restore_access_token()
 
     # Instantiation, NOTE: No API calls invoked during instantiation
-    evo = evo2.EvohomeClient(_global_token_manager, session)
+    evo = evo2.EvohomeClient(websession, _global_token_manager)
 
     # Authentication - dont use evo.broker._login() as
     if dont_login:

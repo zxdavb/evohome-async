@@ -311,12 +311,14 @@ async def _test_schedule(evo: evo2.EvohomeClient) -> None:
 
 async def test_usr_account(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession,
+    client_session: aiohttp.ClientSession,
 ) -> None:
     """Test /userAccount"""
 
     try:
-        await _test_usr_account(await instantiate_client_v2(user_credentials, session))
+        await _test_usr_account(
+            await instantiate_client_v2(user_credentials, client_session)
+        )
 
     except evo2.AuthenticationFailed:
         if not _DBG_USE_REAL_AIOHTTP:
@@ -326,12 +328,14 @@ async def test_usr_account(
 
 async def test_all_config(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession,
+    client_session: aiohttp.ClientSession,
 ) -> None:
     """Test /location/installationInfo"""
 
     try:
-        await _test_all_config(await instantiate_client_v2(user_credentials, session))
+        await _test_all_config(
+            await instantiate_client_v2(user_credentials, client_session)
+        )
 
     except evo2.AuthenticationFailed:
         if not _DBG_USE_REAL_AIOHTTP:
@@ -341,12 +345,14 @@ async def test_all_config(
 
 async def test_loc_status(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession,
+    client_session: aiohttp.ClientSession,
 ) -> None:
     """Test /location/{loc.id}/status"""
 
     try:
-        await _test_loc_status(await instantiate_client_v2(user_credentials, session))
+        await _test_loc_status(
+            await instantiate_client_v2(user_credentials, client_session)
+        )
 
     except evo2.AuthenticationFailed:
         if not _DBG_USE_REAL_AIOHTTP:
@@ -356,12 +362,14 @@ async def test_loc_status(
 
 async def test_tcs_mode(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession,
+    client_session: aiohttp.ClientSession,
 ) -> None:
     """Test /temperatureControlSystem/{tcs.id}/mode"""
 
     try:
-        await _test_tcs_mode(await instantiate_client_v2(user_credentials, session))
+        await _test_tcs_mode(
+            await instantiate_client_v2(user_credentials, client_session)
+        )
 
     except evo2.AuthenticationFailed:
         if not _DBG_USE_REAL_AIOHTTP:
@@ -376,12 +384,14 @@ async def test_tcs_mode(
 
 async def test_zone_mode(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession,
+    client_session: aiohttp.ClientSession,
 ) -> None:
     """Test /temperatureZone/{zone.id}/heatSetpoint"""
 
     try:
-        await _test_zone_mode(await instantiate_client_v2(user_credentials, session))
+        await _test_zone_mode(
+            await instantiate_client_v2(user_credentials, client_session)
+        )
 
     except evo2.AuthenticationFailed:
         if not _DBG_USE_REAL_AIOHTTP:
@@ -396,12 +406,14 @@ async def test_zone_mode(
 
 async def test_schedule(
     user_credentials: tuple[str, str],
-    session: aiohttp.ClientSession,
+    client_session: aiohttp.ClientSession,
 ) -> None:
     """Test /{x.TYPE}/{x.id}/schedule"""
 
     try:
-        await _test_schedule(await instantiate_client_v2(user_credentials, session))
+        await _test_schedule(
+            await instantiate_client_v2(user_credentials, client_session)
+        )
 
     except evo2.AuthenticationFailed:
         if not _DBG_USE_REAL_AIOHTTP:

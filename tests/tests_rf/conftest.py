@@ -46,7 +46,7 @@ def patches_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest_asyncio.fixture
-async def session() -> AsyncGenerator[aiohttp.ClientSession, None]:
+async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
     if _DBG_USE_REAL_AIOHTTP:
         client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
     else:

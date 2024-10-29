@@ -48,7 +48,7 @@ async def test_system_snapshot(
         }
 
     with patch("evohomeasync2.session.Auth.get", broker_get(install)):
-        evo = evo2.EvohomeClient(token_manager, token_manager.websession)
+        evo = evo2.EvohomeClient(token_manager.websession, token_manager)
 
         await evo.login()
 
