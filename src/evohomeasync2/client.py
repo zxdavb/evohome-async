@@ -17,8 +17,7 @@ import aiohttp
 import asyncclick as click
 import debugpy  # type: ignore[import-untyped]
 
-from . import HotWater, Zone, exceptions as exc
-from .base import EvohomeClient
+from . import EvohomeClientNew, HotWater, Zone, exceptions as exc
 from .const import SZ_NAME, SZ_SCHEDULE
 from .controlsystem import ControlSystem
 from .schema import SZ_ACCESS_TOKEN_EXPIRES
@@ -81,7 +80,7 @@ def _check_positive_int(ctx: click.Context, param: click.Option, value: int) -> 
     return value
 
 
-def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
+def _get_tcs(evo: EvohomeClientNew, loc_idx: int | None) -> ControlSystem:
     """Get the ControlSystem object for the specified location idx."""
 
     if loc_idx is None:
@@ -127,7 +126,7 @@ class TokenManager(AbstractTokenManager):
         Reset the token data if the cache is not found, or is for a different user.
         """
 
-        self._token_data_reset()
+        self._auth_tokens_clear()
 
         try:
             async with aiofiles.open(self._token_cache) as fp:
@@ -139,7 +138,7 @@ class TokenManager(AbstractTokenManager):
         tokens_cache: dict[str, _EvoTokenData] = json.loads(content)
 
         if tokens := tokens_cache.get(self.username):
-            self._token_data_from_dict(tokens)
+            self._deserialize_auth_tokens(tokens)
 
     async def save_access_token(self) -> None:
         """Dump the tokens to a cache (temporary file)."""
@@ -163,7 +162,7 @@ class TokenManager(AbstractTokenManager):
         }
 
         content = json.dumps(
-            token_cache | {self.username: self._token_data_as_dict()}, indent=4
+            token_cache | {self.username: self._serialize_auth_tokens()}, indent=4
         )
 
         async with aiofiles.open(self._token_cache, "w") as fp:
@@ -212,7 +211,7 @@ async def cli(
     if cache_tokens:  # restore cached tokens, if any
         await token_manager.restore_access_token()
 
-    evo = EvohomeClient(websession, token_manager, debug=bool(debug))
+    evo = EvohomeClientNew(websession, token_manager, debug=bool(debug))
 
     try:
         await evo.login()
@@ -239,7 +238,7 @@ async def mode(ctx: click.Context, loc_idx: int) -> None:
     """Retrieve the system mode."""
 
     print("\r\nclient.py: Retrieving the system mode...")
-    evo: EvohomeClient = ctx.obj[SZ_EVO]
+    evo: EvohomeClientNew = ctx.obj[SZ_EVO]
 
     await _write(
         sys.stdout, "\r\n" + str(_get_tcs(evo, loc_idx).system_mode) + "\r\n\r\n"
@@ -266,7 +265,7 @@ async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> 
     """Download all the global config and the location status."""
 
     print("\r\nclient.py: Starting dump of config and status...")
-    evo: EvohomeClient = ctx.obj[SZ_EVO]
+    evo: EvohomeClientNew = ctx.obj[SZ_EVO]
 
     result = {
         "config": evo.installation_info,
@@ -329,7 +328,7 @@ async def get_schedules(
     """Download all the schedules from a TCS."""
 
     print("\r\nclient.py: Starting backup of schedules...")
-    evo: EvohomeClient = ctx.obj[SZ_EVO]
+    evo: EvohomeClientNew = ctx.obj[SZ_EVO]
 
     schedules = await _get_tcs(evo, loc_idx).get_schedules()
 
@@ -356,7 +355,7 @@ async def set_schedules(
     """Upload schedules to a TCS."""
 
     print("\r\nclient.py: Starting restore of schedules...")
-    evo: EvohomeClient = ctx.obj[SZ_EVO]
+    evo: EvohomeClientNew = ctx.obj[SZ_EVO]
 
     # will TypeError if input_file is sys.stdin
     async with aiofiles.open(input_file.name) as fp:

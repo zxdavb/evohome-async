@@ -13,7 +13,7 @@ from datetime import datetime as dt
 
 import aiohttp
 
-from .base import EvohomeClient
+from .base import EvohomeClient as EvohomeClientNew
 from .controlsystem import ControlSystem  # noqa: F401
 from .exceptions import (  # noqa: F401
     AuthenticationFailed,
@@ -64,7 +64,7 @@ class _TokenManager(AbstractTokenManager):
         pass
 
 
-class EvohomeClientOld(EvohomeClient):
+class EvohomeClientOld(EvohomeClientNew):
     """A wrapper to expose the new EvohomeClient in the old style."""
 
     def __init__(
@@ -76,12 +76,12 @@ class EvohomeClientOld(EvohomeClient):
         refresh_token: str | None = None,
         access_token: str | None = None,
         access_token_expires: dt | None = None,
-        websession: None | aiohttp.ClientSession = None,
+        session: None | aiohttp.ClientSession = None,
         debug: bool = False,
     ) -> None:
         """Construct the v2 EvohomeClient object."""
 
-        websession = websession or aiohttp.ClientSession()
+        websession = session or aiohttp.ClientSession()
 
         self._token_manager = _TokenManager(
             username,
@@ -113,3 +113,7 @@ class EvohomeClientOld(EvohomeClient):
     def username(self) -> str:  # type: ignore[override]
         """Return the username attr."""
         return self._token_manager.username
+
+
+class EvohomeClient(EvohomeClientOld):
+    """A wrapper to expose the new EvohomeClient in the selected version."""

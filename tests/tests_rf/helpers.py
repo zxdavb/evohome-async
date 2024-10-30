@@ -136,7 +136,7 @@ async def instantiate_client_v2(
     user_credentials: tuple[str, str],
     websession: aiohttp.ClientSession,
     dont_login: bool = False,
-) -> evo2.EvohomeClient:
+) -> evo2.EvohomeClientNew:
     """Instantiate a client, and logon to the vendor API (cache any tokens)."""
 
     global _global_token_manager
@@ -152,7 +152,7 @@ async def instantiate_client_v2(
     await _global_token_manager.restore_access_token()
 
     # Instantiation, NOTE: No API calls invoked during instantiation
-    evo = evo2.EvohomeClient(websession, _global_token_manager)
+    evo = evo2.EvohomeClientNew(websession, _global_token_manager)
 
     # Authentication - dont use evo.broker._login() as
     if dont_login:
@@ -167,7 +167,7 @@ async def instantiate_client_v2(
 
 
 async def should_work(
-    evo: evo2.EvohomeClient,
+    evo: evo2.EvohomeClientNew,
     method: HTTPMethod,
     url: str,
     /,
@@ -195,7 +195,7 @@ async def should_work(
 
 
 async def should_fail(
-    evo: evo2.EvohomeClient,
+    evo: evo2.EvohomeClientNew,
     method: HTTPMethod,
     url: str,
     /,
@@ -249,7 +249,7 @@ async def should_fail(
     return content
 
 
-async def wait_for_comm_task_v2(evo: evo2.EvohomeClient, task_id: str) -> bool:
+async def wait_for_comm_task_v2(evo: evo2.EvohomeClientNew, task_id: str) -> bool:
     """Wait for a communication task (API call) to complete."""
 
     # invoke via:
