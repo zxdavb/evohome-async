@@ -19,6 +19,8 @@ custom_components
 !tests/**/*.log
 !tests/**/*.yaml
 
+tests.wip/
+
 
 ### github's default .gitignore file
 # https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
