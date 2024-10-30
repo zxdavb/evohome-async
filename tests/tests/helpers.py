@@ -18,7 +18,7 @@ def test_schema(folder: Path, schema: vol.Schema, file_name: str) -> None:
         pytest.skip(f"No {file_name} in: {folder.name}")
 
     with open(Path(folder).joinpath(file_name)) as f:
-        data: dict = json.load(f)
+        data: dict = json.load(f)  # is camelCase, as per vendor's schema
 
     _ = schema(data)
 

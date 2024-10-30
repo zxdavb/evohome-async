@@ -25,7 +25,7 @@ WORK_DIR = Path(f"{TEST_DIR}/schedules")
 def _test_schedule_schema(file_name: str, schema: vol.Schema) -> dict:
     def read_dict_from_file(file_name: str) -> dict:
         with open(WORK_DIR.joinpath(file_name)) as f:
-            data: dict = json.load(f)
+            data: dict = json.load(f)  # is camelCase, as per vendor's schema
         return data
 
     return schema(read_dict_from_file(file_name))  # type: ignore[no-any-return]

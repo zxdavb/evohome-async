@@ -190,7 +190,7 @@ def _factory_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
     SCH_FAN_MODE: Final = vol.Schema(  # noqa: F841
         {
-            vol.Required(SZ_FAN_MODE): vol.In([m.value for m in FanMode]),
+            vol.Required(fnc(SZ_FAN_MODE)): vol.In([m.value for m in FanMode]),
         },
         extra=vol.PREVENT_EXTRA,
     )

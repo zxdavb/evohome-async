@@ -25,6 +25,7 @@ from evohomeasync2.schema.const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TIME_ZONE,
 )
+from evohomeasync2.schema.helpers import snake_to_camel
 
 from .helpers import TEST_DIR
 
@@ -96,11 +97,13 @@ def test_config_schemas(folder: Path) -> None:
         pytest.skip(f"No {CONFIG_FILE_NAME} in: {folder.name}")
 
     with open(Path(folder).joinpath(CONFIG_FILE_NAME)) as f:
-        config: dict = json.load(f)
+        config: dict = json.load(f)  # is camelCase, as per vendor's schema
 
-    _ = SCH_TIME_ZONE(config[SZ_LOCATION_INFO][SZ_TIME_ZONE])
-    for gwy_config in config[SZ_GATEWAYS]:
-        for tcs_config in gwy_config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+    _ = SCH_TIME_ZONE(
+        config[snake_to_camel(SZ_LOCATION_INFO)][snake_to_camel(SZ_TIME_ZONE)]
+    )
+    for gwy_config in config[snake_to_camel(SZ_GATEWAYS)]:
+        for tcs_config in gwy_config[snake_to_camel(SZ_TEMPERATURE_CONTROL_SYSTEMS)]:
             _ = SCH_TCS_CONFIG(tcs_config)
 
 
@@ -111,6 +114,6 @@ def test_status_schemas(folder: Path) -> None:
         pytest.skip(f"No {STATUS_FILE_NAME} in: {folder.name}")
 
     with open(Path(folder).joinpath(STATUS_FILE_NAME)) as f:
-        status: dict = json.load(f)
+        status: dict = json.load(f)  # is camelCase, as per vendor's schema
 
     _ = SCH_LOCN_STATUS(status)
