@@ -61,4 +61,5 @@ def _factory_user_account(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     )
 
 
+# GET /userAccount
 SCH_USER_ACCOUNT: Final = _factory_user_account(snake_to_camel)

@@ -164,7 +164,9 @@ def _factory_system_mode_status(fnc: Callable[[str], str] = do_nothing) -> vol.A
                     str(SystemMode.CUSTOM),
                     str(SystemMode.DAY_OFF),
                 ),
-                vol.Required(fnc(SZ_TIME_UNTIL)): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
+                vol.Required(fnc(SZ_TIME_UNTIL)): vol.Datetime(
+                    format="%Y-%m-%dT%H:%M:%SZ"
+                ),
                 vol.Required(fnc(SZ_IS_PERMANENT)): False,
             }
         ),
@@ -222,5 +224,5 @@ SCH_TCS_STATUS: Final = _factory_tcs_status(snake_to_camel)
 
 SCH_GWY_STATUS: Final = _factory_gwy_status(snake_to_camel)
 
-# location/{location_id}/status?includeTemperatureControlSystems=True
+# GET /location/{location_id}/status?includeTemperatureControlSystems=True
 SCH_LOC_STATUS: Final = _factory_loc_status(snake_to_camel)

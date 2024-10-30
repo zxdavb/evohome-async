@@ -141,7 +141,9 @@ def _factory_system_mode_temp(fnc: Callable[[str], str] = do_nothing) -> vol.Sch
     )
 
 
-def _factory_schedule_capabilities_response(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_schedule_capabilities_response(
+    fnc: Callable[[str], str] = do_nothing,
+) -> vol.Schema:
     """Factory for the schedule_capabilities_response schema."""
 
     return vol.Schema(
@@ -315,7 +317,9 @@ def _factory_time_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_locations_installation_info(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_locations_installation_info(
+    fnc: Callable[[str], str] = do_nothing,
+) -> vol.Schema:
     """Factory for the location (config) schema."""
 
     SCH_LOCATION_OWNER: Final = vol.Schema(
@@ -353,7 +357,9 @@ def _factory_locations_installation_info(fnc: Callable[[str], str] = do_nothing)
     )
 
 
-def _factory_user_locations_installation_info(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_user_locations_installation_info(
+    fnc: Callable[[str], str] = do_nothing,
+) -> vol.Schema:
     """Factory for the user locations (config) schema."""
 
     return vol.Schema(
@@ -372,11 +378,11 @@ SCH_GWY_CONFIG: Final = _factory_gateway(snake_to_camel)
 
 SCH_TIME_ZONE: Final = _factory_time_zone(snake_to_camel)
 
-# /location/{location_id}/installationInfo?includeTemperatureControlSystems=True
+# GET /location/{location_id}/installationInfo?includeTemperatureControlSystems=True
 SCH_LOCATION_INSTALLATION_INFO: Final = _factory_locations_installation_info(
     snake_to_camel
 )
-# /location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True
+# GET /location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True
 SCH_USER_LOCATIONS_INSTALLATION_INFO: Final = _factory_user_locations_installation_info(
     snake_to_camel
 )
