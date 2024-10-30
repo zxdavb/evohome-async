@@ -9,6 +9,7 @@ from typing import Final
 _DBG_DONT_OBSFUCATE = False  # default is to obsfucate JSON in debug output
 
 
+# Various useful regex forms
 REGEX_DHW_ID = r"[0-9]*"
 REGEX_EMAIL_ADDRESS = r"^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$"
 REGEX_GATEWAY_ID = r"[0-9]*"
