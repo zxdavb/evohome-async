@@ -10,7 +10,11 @@ from pathlib import Path
 import pytest
 
 from evohomeasync2 import Location
-from evohomeasync2.schema import SCH_LOCN_STATUS
+from evohomeasync2.schema import (
+    SCH_LOCN_STATUS,
+    camel_to_snake,
+    convert_keys_to_snake_case,
+)
 from evohomeasync2.schema.config import SCH_TEMPERATURE_CONTROL_SYSTEM, SCH_TIME_ZONE
 from evohomeasync2.schema.const import (
     SZ_GATEWAY_ID,
@@ -21,7 +25,6 @@ from evohomeasync2.schema.const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TIME_ZONE,
 )
-from evohomeasync2.session import camel_to_snake, convert_keys_to_snake_case
 
 from .helpers import TEST_DIR
 

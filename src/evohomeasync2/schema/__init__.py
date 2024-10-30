@@ -23,6 +23,7 @@ from .const import (  # noqa: F401
     SystemMode,
     ZoneMode,
 )
+from .helpers import camel_to_snake, convert_keys_to_snake_case  # noqa: F401
 from .schedule import (  # noqa: F401
     SCH_GET_SCHEDULE,
     SCH_GET_SCHEDULE_DHW,

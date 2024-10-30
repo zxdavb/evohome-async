@@ -4,11 +4,10 @@
 from __future__ import annotations
 
 import logging
-import re
 from abc import ABC, abstractmethod
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, Final, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import aiohttp
 import voluptuous as vol
@@ -30,6 +29,7 @@ from .schema import (
     SZ_ACCESS_TOKEN_EXPIRES,
     SZ_EXPIRES_IN,
     SZ_REFRESH_TOKEN,
+    convert_keys_to_snake_case,
 )
 
 if TYPE_CHECKING:
@@ -379,21 +379,3 @@ class Auth(AbstractAuth):
         )
 
         return content
-
-
-_T = TypeVar("_T")
-
-
-def camel_to_snake(name: str) -> str:
-    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
-    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
-
-
-def convert_keys_to_snake_case(data: _T) -> _T:
-    if isinstance(data, list):
-        return [convert_keys_to_snake_case(item) for item in data]  # type: ignore[return-value]
-
-    if not isinstance(data, dict):
-        return data
-
-    return {camel_to_snake(k): convert_keys_to_snake_case(v) for k, v in data.items()}  # type: ignore[return-value]

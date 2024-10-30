@@ -13,9 +13,9 @@ import aiohttp
 from . import exceptions as exc
 from .controlsystem import ControlSystem
 from .location import Location
-from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
+from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT, camel_to_snake
 from .schema.const import SZ_USER_ID
-from .session import AbstractTokenManager, Auth, camel_to_snake
+from .session import AbstractTokenManager, Auth
 
 if TYPE_CHECKING:
     from .schema import _EvoDictT, _EvoListT, _ScheduleT

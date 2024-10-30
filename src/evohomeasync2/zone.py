@@ -19,6 +19,7 @@ from .schema import (
     SCH_GET_SCHEDULE_ZONE,
     SCH_PUT_SCHEDULE_ZONE,
     SCH_ZONE_STATUS,
+    camel_to_snake,
     convert_to_put_schedule,
 )
 from .schema.const import (
@@ -49,7 +50,6 @@ from .schema.const import (
     ZoneModelType,
     ZoneType,
 )
-from .session import camel_to_snake
 
 if TYPE_CHECKING:
     import logging

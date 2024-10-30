@@ -9,7 +9,7 @@ import voluptuous as vol
 
 from . import exceptions as exc
 from .controlsystem import ControlSystem
-from .schema import SCH_GWY_STATUS
+from .schema import SCH_GWY_STATUS, camel_to_snake
 from .schema.const import (
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
@@ -19,7 +19,6 @@ from .schema.const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     EntityType,
 )
-from .session import camel_to_snake
 from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:

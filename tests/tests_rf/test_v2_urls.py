@@ -18,6 +18,7 @@ from evohomeasync2.schema import (
     SCH_TCS_STATUS,
     SCH_USER_ACCOUNT,
     SCH_ZONE_STATUS,
+    camel_to_snake,
 )
 from evohomeasync2.schema.const import (
     SZ_DAILY_SCHEDULES,
@@ -35,7 +36,6 @@ from evohomeasync2.schema.const import (
     SZ_USER_ID,
 )
 from evohomeasync2.schema.schedule import convert_to_put_schedule
-from evohomeasync2.session import camel_to_snake
 
 from . import faked_server as faked
 from .conftest import _DBG_USE_REAL_AIOHTTP

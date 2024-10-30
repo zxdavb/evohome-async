@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Final, NoReturn
 
 from . import exceptions as exc
 from .gateway import Gateway
-from .schema import SCH_LOCN_STATUS
+from .schema import SCH_LOCN_STATUS, camel_to_snake
 from .schema.const import (
     SZ_COUNTRY,
     SZ_GATEWAY_ID,
@@ -21,7 +21,6 @@ from .schema.const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
     EntityType,
 )
-from .session import camel_to_snake
 from .zone import EntityBase
 
 if TYPE_CHECKING:

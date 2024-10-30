@@ -22,7 +22,7 @@ from .const import (
     SystemMode,
 )
 from .hotwater import HotWater
-from .schema import SCH_TCS_STATUS
+from .schema import SCH_TCS_STATUS, camel_to_snake
 from .schema.const import (
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_DHW,
@@ -41,7 +41,6 @@ from .schema.const import (
     SZ_ZONES,
     EntityType,
 )
-from .session import camel_to_snake
 from .zone import ActiveFaultsBase, Zone
 
 if TYPE_CHECKING:
