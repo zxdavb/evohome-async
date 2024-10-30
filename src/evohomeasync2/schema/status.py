@@ -55,7 +55,7 @@ from .helpers import do_nothing, snake_to_camel
 _DTM_FORMAT = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{1,7}$"
 
 
-def _factory_active_faults(fnc: Callable = do_nothing) -> vol.Schema:
+def _factory_active_faults(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the active faults schema."""
 
     return vol.Schema(
@@ -71,7 +71,7 @@ def _factory_active_faults(fnc: Callable = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_temp_status(fnc: Callable = do_nothing) -> vol.Schema:
+def _factory_temp_status(fnc: Callable[[str], str] = do_nothing) -> vol.Any:
     """Factory for the temperature status schema."""
 
     return vol.Any(
@@ -90,7 +90,7 @@ def _factory_temp_status(fnc: Callable = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_zone_status(fnc: Callable = do_nothing) -> vol.Schema:
+def _factory_zone_status(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the zone status schema."""
 
     SCH_SETPOINT_STATUS: Final = vol.Schema(
@@ -123,7 +123,7 @@ def _factory_zone_status(fnc: Callable = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_dhw_status(fnc: Callable = do_nothing) -> vol.Schema:
+def _factory_dhw_status(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the DHW status schema."""
 
     SCH_STATE_STATUS: Final = vol.Schema(
@@ -146,7 +146,7 @@ def _factory_dhw_status(fnc: Callable = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_system_mode_status(fnc: Callable = do_nothing) -> vol.Schema:
+def _factory_system_mode_status(fnc: Callable[[str], str] = do_nothing) -> vol.Any:
     """Factory for the system mode status schema."""
 
     return vol.Any(
@@ -172,7 +172,7 @@ def _factory_system_mode_status(fnc: Callable = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_tcs_status(fnc: Callable = do_nothing) -> vol.Schema:
+def _factory_tcs_status(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the TCS status schema."""
 
     return vol.Schema(
@@ -187,7 +187,7 @@ def _factory_tcs_status(fnc: Callable = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_gwy_status(fnc: Callable = do_nothing) -> vol.Schema:
+def _factory_gwy_status(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the gateway status schema."""
 
     return vol.Schema(
@@ -202,7 +202,7 @@ def _factory_gwy_status(fnc: Callable = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_loc_status(fnc: Callable = do_nothing) -> vol.Schema:
+def _factory_loc_status(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the locations status schema."""
 
     return vol.Schema(

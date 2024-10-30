@@ -12,22 +12,8 @@ from typing import TYPE_CHECKING
 import voluptuous as vol
 
 from evohomeasync2.const import AUTH_URL, URL_BASE
-from evohomeasync2.schema import convert_to_get_schedule
-from evohomeasync2.schema.const import (
-    SZ_DHW,
-    SZ_DHW_ID,
-    SZ_DOMESTIC_HOT_WATER,
-    SZ_GATEWAYS,
-    SZ_LOCATION,
-    SZ_LOCATION_ID,
-    SZ_SYSTEM_ID,
-    SZ_TEMPERATURE_CONTROL_SYSTEM,
-    SZ_TEMPERATURE_CONTROL_SYSTEMS,
-    SZ_TEMPERATURE_ZONE,
-    SZ_USER_ID,
-    SZ_ZONE_ID,
-    SZ_ZONES,
-)
+from evohomeasync2.schema import const, convert_to_get_schedule
+from evohomeasync2.schema.const import SZ_DHW, SZ_GATEWAYS, SZ_LOCATION, SZ_ZONES
 from evohomeasync2.schema.helpers import snake_to_camel
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 
@@ -45,15 +31,15 @@ if TYPE_CHECKING:
     from .const import _bodyT, _methodT, _statusT, _urlT
 
 # the vendor API uses camelCase, so some conversion is required
-SZ_DHW_ID = snake_to_camel(SZ_DHW_ID)
-SZ_DOMESTIC_HOT_WATER = snake_to_camel(SZ_DOMESTIC_HOT_WATER)
-SZ_LOCATION_ID = snake_to_camel(SZ_LOCATION_ID)
-SZ_SYSTEM_ID = snake_to_camel(SZ_SYSTEM_ID)
-SZ_TEMPERATURE_CONTROL_SYSTEM = snake_to_camel(SZ_TEMPERATURE_CONTROL_SYSTEM)
-SZ_TEMPERATURE_CONTROL_SYSTEMS = snake_to_camel(SZ_TEMPERATURE_CONTROL_SYSTEMS)
-SZ_TEMPERATURE_ZONE = snake_to_camel(SZ_TEMPERATURE_ZONE)
-SZ_USER_ID = snake_to_camel(SZ_USER_ID)
-SZ_ZONE_ID = snake_to_camel(SZ_ZONE_ID)
+SZ_DHW_ID = snake_to_camel(const.SZ_DHW_ID)
+SZ_DOMESTIC_HOT_WATER = snake_to_camel(const.SZ_DOMESTIC_HOT_WATER)
+SZ_LOCATION_ID = snake_to_camel(const.SZ_LOCATION_ID)
+SZ_SYSTEM_ID = snake_to_camel(const.SZ_SYSTEM_ID)
+SZ_TEMPERATURE_CONTROL_SYSTEM = snake_to_camel(const.SZ_TEMPERATURE_CONTROL_SYSTEM)
+SZ_TEMPERATURE_CONTROL_SYSTEMS = snake_to_camel(const.SZ_TEMPERATURE_CONTROL_SYSTEMS)
+SZ_TEMPERATURE_ZONE = snake_to_camel(const.SZ_TEMPERATURE_ZONE)
+SZ_USER_ID = snake_to_camel(const.SZ_USER_ID)
+SZ_ZONE_ID = snake_to_camel(const.SZ_ZONE_ID)
 
 
 def _dhw_id(url: _urlT) -> str:

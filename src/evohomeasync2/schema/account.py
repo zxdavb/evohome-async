@@ -42,7 +42,7 @@ SCH_OAUTH_TOKEN: Final = vol.Schema(
 )
 
 
-def _factory_user_account(fnc: Callable = do_nothing) -> vol.Schema:
+def _factory_user_account(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the user account schema."""
 
     return vol.Schema(
