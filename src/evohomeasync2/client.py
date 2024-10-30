@@ -258,7 +258,11 @@ async def mode(ctx: click.Context, loc_idx: int) -> None:
     help="The location idx.",
 )
 @click.option(  # --output-file
-    "--output-file", "-o", type=click.File("w"), default="-", help="The output file."
+    "--output-file",
+    "-o",
+    type=click.File("w"),
+    default="-",
+    help="The output file.",
 )
 @click.pass_context
 async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> None:
@@ -279,7 +283,11 @@ async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> 
 
 
 @cli.command()
-@click.argument("zone_id", callback=_check_zone_id, type=str)
+@click.argument(  # zone-id
+    "zone-id",
+    callback=_check_zone_id,
+    type=str,
+)
 @click.option(  # --loc-idx
     "--loc-idx",
     "-l",
@@ -289,7 +297,11 @@ async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> 
     help="The location idx.",
 )
 @click.option(  # --output-file
-    "--output-file", "-o", type=click.File("w"), default="-", help="The output file."
+    "--output-file",
+    "-o",
+    type=click.File("w"),
+    default="-",
+    help="The output file.",
 )
 @click.pass_context
 async def get_schedule(
@@ -319,7 +331,11 @@ async def get_schedule(
     help="The location idx.",
 )
 @click.option(  # --output-file
-    "--output-file", "-o", type=click.File("w"), default="-", help="The output file."
+    "--output-file",
+    "-o",
+    type=click.File("w"),
+    default="-",
+    help="The output file.",
 )
 @click.pass_context
 async def get_schedules(
@@ -347,7 +363,12 @@ async def get_schedules(
     type=int,
     help="The location idx.",
 )
-@click.option("--input-file", "-i", type=click.File(), help="The input file.")
+@click.option(  # --input-file
+    "--input-file",
+    "-i",
+    type=click.File(),
+    help="The input file.",
+)
 @click.pass_context
 async def set_schedules(
     ctx: click.Context, loc_idx: int, input_file: TextIOWrapper
