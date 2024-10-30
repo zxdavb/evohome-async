@@ -21,6 +21,7 @@ from evohomeasync2.schema.const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TIME_ZONE,
 )
+from evohomeasync2.session import camel_to_snake, convert_keys_to_snake_case
 
 from .helpers import TEST_DIR
 
@@ -62,19 +63,23 @@ def test_config_refresh(folder: Path) -> None:
         pytest.skip(f"No {STATUS_FILE_NAME} in: {folder.name}")
 
     with open(Path(folder).joinpath(CONFIG_FILE_NAME)) as f:
-        config: dict = json.load(f)
+        config: dict = convert_keys_to_snake_case(json.load(f))
 
     with open(Path(folder).joinpath(STATUS_FILE_NAME)) as f:
-        status: dict = json.load(f)
+        status: dict = convert_keys_to_snake_case(json.load(f))
 
     # hack because old JSON from HA's evohome integration didn't have location_id, etc.
-    if not config[SZ_LOCATION_INFO].get(SZ_LOCATION_ID):
-        config[SZ_LOCATION_INFO][SZ_LOCATION_ID] = status[SZ_LOCATION_ID]
+    if not config[camel_to_snake(SZ_LOCATION_INFO)].get(camel_to_snake(SZ_LOCATION_ID)):
+        config[camel_to_snake(SZ_LOCATION_INFO)][camel_to_snake(SZ_LOCATION_ID)] = (
+            status[camel_to_snake(SZ_LOCATION_ID)]
+        )
 
     # hack because the JSON is from HA's evohome integration, not vendor's TCC servers
-    if not config[SZ_GATEWAYS][0].get(SZ_GATEWAY_ID):
-        config[SZ_GATEWAYS][0][SZ_GATEWAY_INFO] = {
-            SZ_GATEWAY_ID: status[SZ_GATEWAYS][0][SZ_GATEWAY_ID]
+    if not config[SZ_GATEWAYS][0].get(camel_to_snake(SZ_GATEWAY_ID)):
+        config[SZ_GATEWAYS][0][camel_to_snake(SZ_GATEWAY_INFO)] = {
+            camel_to_snake(SZ_GATEWAY_ID): status[SZ_GATEWAYS][0][
+                camel_to_snake(SZ_GATEWAY_ID)
+            ]
         }
 
     loc = Location(ClientStub(), config)

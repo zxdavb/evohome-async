@@ -41,6 +41,7 @@ from .schema.const import (
     SZ_ZONES,
     EntityType,
 )
+from .session import camel_to_snake
 from .zone import ActiveFaultsBase, Zone
 
 if TYPE_CHECKING:
@@ -125,7 +126,11 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
     TYPE: Final = EntityType.TCS  # type: ignore[misc]
 
     def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
-        super().__init__(config[SZ_SYSTEM_ID], gateway._broker, gateway._logger)
+        super().__init__(
+            config[camel_to_snake(SZ_SYSTEM_ID)],
+            gateway._broker,
+            gateway._logger,
+        )
 
         self.gateway = gateway  # parent
         self.location: Location = gateway.location
@@ -147,7 +152,7 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
                 zone = Zone(self, zon_config)
             except exc.InvalidSchema as err:
                 self._logger.warning(
-                    f"{self}: zone_id='{zon_config[SZ_ZONE_ID]}' ignored: {err}"
+                    f"{self}: zone_id='{zon_config[camel_to_snake(SZ_ZONE_ID)]}' ignored: {err}"
                 )
             else:
                 self._zones.append(zone)
@@ -160,12 +165,12 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
 
     @property
     def allowedSystemModes(self) -> _EvoListT:
-        ret: _EvoListT = self._config[SZ_ALLOWED_SYSTEM_MODES]
+        ret: _EvoListT = self._config[camel_to_snake(SZ_ALLOWED_SYSTEM_MODES)]
         return ret
 
     @property
     def modelType(self) -> str:
-        ret: str = self._config[SZ_MODEL_TYPE]
+        ret: str = self._config[camel_to_snake(SZ_MODEL_TYPE)]
         return ret
 
     async def _refresh_status(self) -> _EvoDictT:
@@ -178,28 +183,31 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
         self._status = status
 
         if dhw_status := self._status.get(SZ_DHW):
-            if self.hotwater and self.hotwater.id == dhw_status[SZ_DHW_ID]:
+            if (
+                self.hotwater
+                and self.hotwater.id == dhw_status[camel_to_snake(SZ_DHW_ID)]
+            ):
                 self.hotwater._update_status(dhw_status)
 
             else:
                 self._logger.warning(
-                    f"{self}: dhw_id='{dhw_status[SZ_DHW_ID]}' not known"
+                    f"{self}: dhw_id='{dhw_status[camel_to_snake(SZ_DHW_ID)]}' not known"
                     ", (has the system configuration been changed?)"
                 )
 
         for zon_status in self._status[SZ_ZONES]:
-            if zone := self.zones_by_id.get(zon_status[SZ_ZONE_ID]):
+            if zone := self.zones_by_id.get(zon_status[camel_to_snake(SZ_ZONE_ID)]):
                 zone._update_status(zon_status)
 
             else:
                 self._logger.warning(
-                    f"{self}: zone_id='{zon_status[SZ_ZONE_ID]}' not known"
+                    f"{self}: zone_id='{zon_status[camel_to_snake(SZ_ZONE_ID)]}' not known"
                     ", (has the system configuration been changed?)"
                 )
 
     @property
     def systemModeStatus(self) -> _EvoDictT | None:
-        return self._status.get(SZ_SYSTEM_MODE_STATUS)
+        return self._status.get(camel_to_snake(SZ_SYSTEM_MODE_STATUS))
 
     @property  # status attr for convenience (new)
     def system_mode(self) -> str | None:
@@ -221,7 +229,9 @@ class ControlSystem(ActiveFaultsBase, _ControlSystemDeprecated):
 
         request: _EvoDictT
 
-        if mode not in [m[SZ_SYSTEM_MODE] for m in self.allowedSystemModes]:
+        if mode not in [
+            m[camel_to_snake(SZ_SYSTEM_MODE)] for m in self.allowedSystemModes
+        ]:
             raise exc.InvalidParameter(f"{self}: Unsupported/unknown mode: {mode}")
 
         if until is None:

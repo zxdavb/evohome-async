@@ -35,6 +35,7 @@ from evohomeasync2.schema.const import (
     SZ_USER_ID,
 )
 from evohomeasync2.schema.schedule import convert_to_put_schedule
+from evohomeasync2.session import camel_to_snake
 
 from . import faked_server as faked
 from .conftest import _DBG_USE_REAL_AIOHTTP
@@ -72,7 +73,7 @@ async def _test_all_config(evo: evo2.EvohomeClient) -> None:
     _ = await evo.user_account()
     #
 
-    url = f"location/installationInfo?userId={evo.account_info[SZ_USER_ID]}"
+    url = f"location/installationInfo?userId={evo.account_info[camel_to_snake(SZ_USER_ID)]}"
     await should_work(evo, HTTPMethod.GET, url)
 
     url += "&includeTemperatureControlSystems=True"
@@ -208,7 +209,7 @@ async def _test_zone_mode(evo: evo2.EvohomeClient) -> None:
 
     for zone in evo.locations[0]._gateways[0]._control_systems[0]._zones:
         _ = await zone._refresh_status()
-        if zone.temperatureStatus[SZ_IS_AVAILABLE]:
+        if zone.temperatureStatus[camel_to_snake(SZ_IS_AVAILABLE)]:
             break
     else:
         pytest.skip("No available zones found")

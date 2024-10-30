@@ -41,4 +41,4 @@ from .status import (  # noqa: F401
     SCH_TEMPERATURE_CONTROL_SYSTEM as SCH_TCS_STATUS,
     SCH_ZONE as SCH_ZONE_STATUS,
 )
-from .typing import _EvoDictT, _EvoLeafT, _EvoListT, _EvoSchemaT, _ModeT  # noqa: F401
+from .typedefs import _EvoDictT, _EvoLeafT, _EvoListT, _EvoSchemaT, _ModeT  # noqa: F401

@@ -24,6 +24,7 @@ from .schema.const import (
     EntityType,
     ZoneMode,
 )
+from .session import camel_to_snake
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
@@ -71,21 +72,25 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
     SCH_SCHEDULE_PUT: Final[vol.Schema] = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(config[SZ_DHW_ID], tcs, config)
+        super().__init__(config[camel_to_snake(SZ_DHW_ID)], tcs, config)
 
     @property
     def dhwStateCapabilitiesResponse(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
+        ret: _EvoDictT = self._config[
+            camel_to_snake(SZ_DHW_STATE_CAPABILITIES_RESPONSE)
+        ]
         return ret
 
     @property
     def scheduleCapabilitiesResponse(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
+        ret: _EvoDictT = self._config[camel_to_snake(SZ_SCHEDULE_CAPABILITIES_RESPONSE)]
         return ret
 
     @property  # for convenience (is not a top-level config attribute)
     def allowedModes(self) -> _EvoListT:
-        ret: _EvoListT = self.dhwStateCapabilitiesResponse[SZ_ALLOWED_MODES]
+        ret: _EvoListT = self.dhwStateCapabilitiesResponse[
+            camel_to_snake(SZ_ALLOWED_MODES)
+        ]
         return ret
 
     @property
@@ -94,7 +99,7 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
 
     @property
     def stateStatus(self) -> _EvoDictT | None:
-        return self._status.get(SZ_STATE_STATUS)
+        return self._status.get(camel_to_snake(SZ_STATE_STATUS))
 
     @property  # status attr for convenience (new)
     def mode(self) -> str | None:

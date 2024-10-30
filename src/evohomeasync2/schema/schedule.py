@@ -21,7 +21,7 @@ from .const import (
     SZ_TIME_OF_DAY,
 )
 from .helpers import pascal_case
-from .typing import _EvoDictT, _EvoListT
+from .typedefs import _EvoDictT, _EvoListT
 
 _ScheduleT = dict[str, dict[str, Any]]
 

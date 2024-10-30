@@ -17,6 +17,7 @@ from evohomeasync2.schema.const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TIME_ZONE,
 )
+from evohomeasync2.session import convert_keys_to_snake_case
 
 from .conftest import ClientStub
 from .helpers import TEST_DIR
@@ -48,10 +49,10 @@ def test_config_refresh(folder: Path) -> None:
         pytest.skip(f"No {STATUS_FILE_NAME} in: {folder.name}")
 
     with open(Path(folder).joinpath(CONFIG_FILE_NAME)) as f:
-        config: dict = json.load(f)
+        config: dict = convert_keys_to_snake_case(json.load(f))
 
     with open(Path(folder).joinpath(STATUS_FILE_NAME)) as f:
-        status: dict = json.load(f)
+        status: dict = convert_keys_to_snake_case(json.load(f))
 
     loc = Location(ClientStub(), config)
     loc._update_status(status)

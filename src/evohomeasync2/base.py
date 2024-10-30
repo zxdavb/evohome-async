@@ -15,7 +15,7 @@ from .controlsystem import ControlSystem
 from .location import Location
 from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
 from .schema.const import SZ_USER_ID
-from .session import AbstractTokenManager, Auth
+from .session import AbstractTokenManager, Auth, camel_to_snake
 
 if TYPE_CHECKING:
     from .schema import _EvoDictT, _EvoListT, _ScheduleT
@@ -227,7 +227,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         # FIXME: shouldn't really be starting again with new objects?
         self.locations = []  # for now, need to clear this before GET
 
-        url = f"location/installationInfo?userId={self.account_info[SZ_USER_ID]}"
+        url = f"location/installationInfo?userId={self.account_info[camel_to_snake(SZ_USER_ID)]}"
         url += "&includeTemperatureControlSystems=True"
 
         self._full_config = await self.broker.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
