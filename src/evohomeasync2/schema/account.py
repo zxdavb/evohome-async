@@ -20,7 +20,7 @@ from .const import (
     SZ_USERNAME,
     obfuscate as _obfuscate,
 )
-from .helpers import snake_to_camel
+from .helpers import do_nothing, snake_to_camel
 
 # These are vendor-specific constants, used for authentication
 SZ_ACCESS_TOKEN: Final = "access_token"
@@ -42,12 +42,8 @@ SCH_OAUTH_TOKEN: Final = vol.Schema(
 )
 
 
-def _factory_user_account(fnc: Callable | None) -> vol.Schema:
+def _factory_user_account(fnc: Callable = do_nothing) -> vol.Schema:
     """Factory for the user account schema."""
-
-    if fnc is None:
-        def fnc(x: str) -> str:
-            return x
 
     return vol.Schema(
         {

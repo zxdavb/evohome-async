@@ -31,6 +31,11 @@ def snake_to_camel(s: str) -> str:
     return components[0] + "".join(x.title() for x in components[1:])
 
 
+def do_nothing(s: str) -> str:
+    """Return a string unconverted."""
+    return s
+
+
 def convert_keys_to_snake_case(data: _T) -> _T:
     """Convert all keys in a dictionary to snake_case.
 
