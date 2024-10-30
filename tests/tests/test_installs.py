@@ -38,7 +38,6 @@ async def test_system_snapshot(
             "gatewayId",
             "locationId",
             "systemId",
-            "zone_type",
             "zoneId",
         )
         return {

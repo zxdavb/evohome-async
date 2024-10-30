@@ -10,7 +10,12 @@ from typing import TYPE_CHECKING, Final, NoReturn
 
 from . import exceptions as exc
 from .const import API_STRFTIME
-from .schema import SCH_DHW_STATUS, SCH_GET_SCHEDULE_DHW, SCH_PUT_SCHEDULE_DHW
+from .schema import (
+    SCH_DHW_STATUS,
+    SCH_GET_SCHEDULE_DHW,
+    SCH_PUT_SCHEDULE_DHW,
+    convert_keys_to_snake_case,
+)
 from .schema.const import (
     SZ_ALLOWED_MODES,
     SZ_DHW_ID,
@@ -74,40 +79,42 @@ class HotWater(HotWaterDeprecated, _ZoneBase):
         super().__init__(config[SZ_DHW_ID], tcs, config)
 
     @property
-    def dhwStateCapabilitiesResponse(self) -> _EvoDictT:
+    def state_capabilities(self) -> _EvoDictT:
         ret: _EvoDictT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
-        return ret
+        return convert_keys_to_snake_case(ret)
 
     @property
-    def scheduleCapabilitiesResponse(self) -> _EvoDictT:
+    def schedule_capabilities(self) -> _EvoDictT:
         ret: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
-        return ret
+        return convert_keys_to_snake_case(ret)
 
     @property  # for convenience (is not a top-level config attribute)
-    def allowedModes(self) -> _EvoListT:
-        ret: _EvoListT = self.dhwStateCapabilitiesResponse[SZ_ALLOWED_MODES]
-        return ret
+    def allowed_modes(self) -> _EvoListT:
+        ret: _EvoListT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE][
+            SZ_ALLOWED_MODES
+        ]
+        return convert_keys_to_snake_case(ret)
 
     @property
     def name(self) -> str:
         return "Domestic Hot Water"
 
     @property
-    def stateStatus(self) -> _EvoDictT | None:
+    def state_status(self) -> _EvoDictT | None:
         return self._status.get(SZ_STATE_STATUS)
 
     @property  # status attr for convenience (new)
     def mode(self) -> str | None:
-        if self.stateStatus is None:
+        if (state_status := self._status.get(SZ_STATE_STATUS)) is None:
             return None
-        ret: str = self.stateStatus[SZ_MODE]
+        ret: str = state_status[SZ_MODE]
         return ret
 
     @property  # status attr for convenience (new)
     def state(self) -> str | None:
-        if self.stateStatus is None:
+        if (state_status := self._status.get(SZ_STATE_STATUS)) is None:
             return None
-        ret: str = self.stateStatus[SZ_STATE]
+        ret: str = state_status[SZ_STATE]
         return ret
 
     def _next_setpoint(self) -> tuple[dt, str] | None:  # WIP: for convenience (new)

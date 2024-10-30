@@ -14,7 +14,7 @@ from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .controlsystem import ControlSystem
 from .location import Location
-from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
+from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT, convert_keys_to_snake_case
 from .schema.const import SZ_USER_ID
 
 if TYPE_CHECKING:
@@ -177,7 +177,7 @@ class EvohomeClient(EvohomeClientDeprecated):
     @property  # user_account
     def account_info(self) -> _EvoDictT | None:  # from original evohomeclient namespace
         """Return the information of the user account."""
-        return self._user_account
+        return convert_keys_to_snake_case(self._user_account)
 
     async def user_account(self, force_update: bool = False) -> _EvoDictT:
         """Return the user account information.
@@ -194,12 +194,12 @@ class EvohomeClient(EvohomeClientDeprecated):
         )  # type: ignore[assignment]
 
         assert self._user_account  # mypy
-        return self._user_account
+        return self.account_info
 
     @property  # full_config (all locations of user)
     def installation_info(self) -> _EvoListT | None:  # from original evohomeclient
         """Return the installation info (config) of all the user's locations."""
-        return self._full_config
+        return convert_keys_to_snake_case(self._full_config)
 
     async def installation(self, force_update: bool = False) -> _EvoListT:
         """Return the configuration of the user's locations their status.
@@ -210,10 +210,10 @@ class EvohomeClient(EvohomeClientDeprecated):
         """
 
         # There is usually no need to refresh this data (it is config, not state)
-        if self._full_config and not force_update:
-            return self._full_config
+        if not self._full_config or force_update:
+            await self._installation()
 
-        return await self._installation()  # aka self.installation_info
+        return self.installation_info
 
     async def _installation(self, refresh_status: bool = True) -> _EvoListT:
         """Return the configuration of the user's locations with their status.
@@ -227,7 +227,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         # FIXME: shouldn't really be starting again with new objects?
         self.locations = []  # for now, need to clear this before GET
 
-        url = f"location/installationInfo?userId={self.account_info[SZ_USER_ID]}"
+        url = f"location/installationInfo?userId={self._user_account[SZ_USER_ID]}"
         url += "&includeTemperatureControlSystems=True"
 
         self._full_config = await self.broker.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
@@ -241,7 +241,7 @@ class EvohomeClient(EvohomeClientDeprecated):
             if refresh_status:
                 await loc.refresh_status()
 
-        return self._full_config  # type: ignore[return-value]
+        return self.installation_info  # type: ignore[return-value]
 
     def _get_single_tcs(self) -> ControlSystem:
         """If there is a single location/gateway/TCS, return it, or raise an exception.

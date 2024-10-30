@@ -16,6 +16,7 @@ from evohomeasync2.schema import (
     SCH_ZONE_STATUS,
     SYSTEM_MODES,
     SystemMode,
+    convert_keys_to_snake_case,
 )
 from evohomeasync2.schema.const import SZ_MODE
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
@@ -61,8 +62,8 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
 
     await evo.user_account(force_update=False)  # will update as no access_token
 
-    # TODO: assert SCH_USER_ACCOUNT(evo._user_account)
-    assert evo.account_info == evo._user_account
+    assert SCH_USER_ACCOUNT(evo._user_account)
+    assert evo.account_info == convert_keys_to_snake_case(evo._user_account)
 
     await evo.user_account()  # won't update as access_token is valid
     # await evo.user_account(force_update=True)  # will update as forced
@@ -74,8 +75,8 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
 
     await evo._installation(refresh_status=False)  # not evo.installation()
 
-    # TODO: assert SCH_FULL_CONFIG(evo._full_config)  # an array of locations
-    assert evo.installation_info == evo._full_config
+    assert SCH_FULL_CONFIG(evo._full_config)  # an array of locations
+    assert evo.installation_info == convert_keys_to_snake_case(evo._full_config)
 
     # assert isinstance(evo.system_id, str)  # only if one TCS
     assert evo.locations
@@ -86,8 +87,8 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
     #
     # STEP 4: Status, GET /location/{loc.id}/status
     for loc in evo.locations:
-        _ = await loc.refresh_status()
-        # TODO: assert SCH_LOCN_STATUS(loc_status)
+        loc_status = await loc.refresh_status()
+        assert SCH_LOCN_STATUS(loc_status)
 
     pass
 
@@ -135,11 +136,11 @@ async def _test_status_apis(evo: evo2.EvohomeClient) -> None:
     # STEP 2: GET /{x.TYPE}/{x.id}/status
     if dhw := evo._get_single_tcs().hotwater:
         dhw_status = await dhw._refresh_status()
-        # TODO: assert SCH_DHW_STATUS(dhw_status)
+        assert SCH_DHW_STATUS(dhw_status)
 
     if zone := evo._get_single_tcs()._zones[0]:
         zone_status = await zone._refresh_status()
-        # TODO: assert SCH_ZONE_STATUS(zone_status)
+        assert SCH_ZONE_STATUS(zone_status)
 
     pass
 
@@ -159,7 +160,7 @@ async def _test_system_apis(evo: evo2.EvohomeClient) -> None:
     except evo2.NoSingleTcsError:
         tcs = evo.locations[0].gateways[0].control_systems[0]
 
-    mode = tcs.systemModeStatus[SZ_MODE]
+    mode = tcs.system_mode_status[SZ_MODE]
     assert mode in SYSTEM_MODES
 
     await tcs.set_mode(SystemMode.AWAY)

@@ -23,14 +23,12 @@ from evohomeasync2.schema.const import (
     SZ_DAILY_SCHEDULES,
     SZ_HEAT_SETPOINT,
     SZ_HEAT_SETPOINT_VALUE,
-    SZ_IS_AVAILABLE,
     SZ_IS_PERMANENT,
     SZ_MODE,
     SZ_PERMANENT,
     SZ_SETPOINT_MODE,
     SZ_SWITCHPOINTS,
     SZ_SYSTEM_MODE,
-    SZ_TEMPERATURE,
     SZ_TIME_UNTIL,
     SZ_USER_ID,
 )
@@ -72,7 +70,7 @@ async def _test_all_config(evo: evo2.EvohomeClient) -> None:
     _ = await evo.user_account()
     #
 
-    url = f"location/installationInfo?userId={evo.account_info[SZ_USER_ID]}"
+    url = f"location/installationInfo?userId={evo._user_account[SZ_USER_ID]}"
     await should_work(evo, HTTPMethod.GET, url)
 
     url += "&includeTemperatureControlSystems=True"
@@ -149,7 +147,7 @@ async def _test_tcs_mode(evo: evo2.EvohomeClient) -> None:
         pytest.skip("No available zones found")
 
     _ = await tcs.location.refresh_status()  # could use: await tcs._refresh_status()
-    old_mode: _EvoDictT = tcs.systemModeStatus  # type: ignore[assignment]
+    old_mode: _EvoDictT = tcs.system_mode_status  # type: ignore[assignment]
 
     url = f"{tcs.TYPE}/{tcs.id}/status"
     _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_TCS_STATUS)
@@ -165,14 +163,14 @@ async def _test_tcs_mode(evo: evo2.EvohomeClient) -> None:
     old_mode[SZ_SYSTEM_MODE] = old_mode.pop(SZ_MODE)
     old_mode[SZ_PERMANENT] = old_mode.pop(SZ_IS_PERMANENT)
 
-    assert SystemMode.AUTO in [m[SZ_SYSTEM_MODE] for m in tcs.allowedSystemModes]
+    assert SystemMode.AUTO in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
     new_mode: _EvoDictT = {
         SZ_SYSTEM_MODE: SystemMode.AUTO,
         SZ_PERMANENT: True,
     }
     _ = await should_work(evo, HTTPMethod.PUT, url, json=new_mode)
 
-    assert SystemMode.AWAY in [m[SZ_SYSTEM_MODE] for m in tcs.allowedSystemModes]
+    assert SystemMode.AWAY in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
     new_mode = {
         SZ_SYSTEM_MODE: SystemMode.AWAY,
         SZ_PERMANENT: True,
@@ -208,7 +206,7 @@ async def _test_zone_mode(evo: evo2.EvohomeClient) -> None:
 
     for zone in evo.locations[0]._gateways[0]._control_systems[0]._zones:
         _ = await zone._refresh_status()
-        if zone.temperatureStatus[SZ_IS_AVAILABLE]:
+        if zone.temperature is None:
             break
     else:
         pytest.skip("No available zones found")
@@ -221,7 +219,7 @@ async def _test_zone_mode(evo: evo2.EvohomeClient) -> None:
 
     heat_setpoint = {
         SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
-        SZ_HEAT_SETPOINT_VALUE: zone.temperatureStatus[SZ_TEMPERATURE],
+        SZ_HEAT_SETPOINT_VALUE: zone.temperature,
         # SZ_TIME_UNTIL: None,
     }
     _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)

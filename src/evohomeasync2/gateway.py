@@ -71,7 +71,7 @@ class Gateway(_GatewayDeprecated, ActiveFaultsBase):
         return ret
 
     @property
-    def isWiFi(self) -> bool:
+    def is_wi_fi(self) -> bool:
         ret: bool = self._config[SZ_IS_WI_FI]
         return ret
 

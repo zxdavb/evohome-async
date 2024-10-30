@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Final, NoReturn
 
 from . import exceptions as exc
 from .gateway import Gateway
-from .schema import SCH_LOCN_STATUS
+from .schema import SCH_LOCN_STATUS, convert_keys_to_snake_case
 from .schema.const import (
     SZ_COUNTRY,
     SZ_GATEWAY_ID,
@@ -78,12 +78,12 @@ class Location(_LocationDeprecated, EntityBase):
         return ret
 
     @property
-    def locationOwner(self) -> _EvoDictT:
+    def location_owner(self) -> _EvoDictT:
         ret: _EvoDictT = self._config[SZ_LOCATION_OWNER]
-        return ret
+        return convert_keys_to_snake_case(ret)
 
     @property
-    def locationType(self) -> str:
+    def location_type(self) -> str:
         ret: str = self._config[SZ_LOCATION_TYPE]
         return ret
 
@@ -93,12 +93,12 @@ class Location(_LocationDeprecated, EntityBase):
         return ret
 
     @property
-    def timeZone(self) -> _EvoDictT:
+    def time_tone(self) -> _EvoDictT:
         ret: _EvoDictT = self._config[SZ_TIME_ZONE]
-        return ret
+        return convert_keys_to_snake_case(ret)
 
     @property
-    def useDaylightSaveSwitching(self) -> bool:
+    def use_daylight_save_switching(self) -> bool:
         ret: bool = self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
         return ret
 
