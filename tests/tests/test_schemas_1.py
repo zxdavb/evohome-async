@@ -10,7 +10,7 @@ import pytest
 
 from evohomeasync2 import Location
 from evohomeasync2.schema import SCH_LOCN_STATUS
-from evohomeasync2.schema.config import SCH_TEMPERATURE_CONTROL_SYSTEM, SCH_TIME_ZONE
+from evohomeasync2.schema.config import SCH_TCS_CONFIG, SCH_TIME_ZONE
 from evohomeasync2.schema.const import (
     SZ_GATEWAYS,
     SZ_LOCATION_INFO,
@@ -70,7 +70,7 @@ def test_config_schemas(folder: Path) -> None:
     _ = SCH_TIME_ZONE(config[SZ_LOCATION_INFO][SZ_TIME_ZONE])
     for gwy_config in config[SZ_GATEWAYS]:
         for tcs_config in gwy_config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
-            _ = SCH_TEMPERATURE_CONTROL_SYSTEM(tcs_config)
+            _ = SCH_TCS_CONFIG(tcs_config)
 
 
 def test_status_schemas(folder: Path) -> None:

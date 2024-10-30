@@ -36,10 +36,10 @@ from .schedule import (  # noqa: F401
     convert_to_put_schedule,
 )
 from .status import (  # noqa: F401
-    SCH_DHW as SCH_DHW_STATUS,
-    SCH_GATEWAY as SCH_GWY_STATUS,
-    SCH_LOCATION_STATUS as SCH_LOCN_STATUS,
-    SCH_TEMPERATURE_CONTROL_SYSTEM as SCH_TCS_STATUS,
-    SCH_ZONE as SCH_ZONE_STATUS,
+    SCH_DHW_STATUS,
+    SCH_GWY_STATUS,
+    SCH_LOC_STATUS as SCH_LOCN_STATUS,
+    SCH_TCS_STATUS,
+    SCH_ZON_CONFIG as SCH_ZONE_STATUS,
 )
 from .typedefs import _EvoDictT, _EvoLeafT, _EvoListT, _EvoSchemaT, _ModeT  # noqa: F401

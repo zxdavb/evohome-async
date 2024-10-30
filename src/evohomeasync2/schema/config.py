@@ -272,7 +272,7 @@ def _factory_tcs(fnc: Callable = do_nothing) -> vol.Schema:
             vol.Required(fnc(SZ_ZONES)): vol.All(
                 [_factory_zone(fnc)], vol.Length(min=1, max=12)
             ),
-            vol.Optional(fnc(SZ_DHW)): SCH_DHW,
+            vol.Optional(fnc(SZ_DHW)): _factory_dhw(fnc),
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -362,17 +362,20 @@ def _factory_user_locations_installation_info(fnc: Callable = do_nothing) -> vol
     )
 
 
-SCH_DHW: Final = _factory_dhw(snake_to_camel)
-SCH_ZONE: Final = _factory_zone(snake_to_camel)
-SCH_TEMPERATURE_CONTROL_SYSTEM: Final = _factory_tcs(snake_to_camel)
-SCH_GATEWAY: Final = _factory_gateway(snake_to_camel)
+SCH_DHW_CONFIG: Final = _factory_dhw(snake_to_camel)
+
+SCH_ZON_CONFIG: Final = _factory_zone(snake_to_camel)
+
+SCH_TCS_CONFIG: Final = _factory_tcs(snake_to_camel)
+
+SCH_GWY_CONFIG: Final = _factory_gateway(snake_to_camel)
+
 SCH_TIME_ZONE: Final = _factory_time_zone(snake_to_camel)
 
 # /location/{location_id}/installationInfo?includeTemperatureControlSystems=True
 SCH_LOCATION_INSTALLATION_INFO: Final = _factory_locations_installation_info(
     snake_to_camel
 )
-
 # /location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True
 SCH_USER_LOCATIONS_INSTALLATION_INFO: Final = _factory_user_locations_installation_info(
     snake_to_camel
