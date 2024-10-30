@@ -88,6 +88,10 @@ from .const import (
     obfuscate as _obfuscate,
 )
 
+SZ_STREET_ADDRESS: Final = "streetAddress"  # noqa: F811  # TODO: remove me
+SZ_USER_ID: Final = "userId"  # noqa: F811  # TODO: remove me
+
+
 # These are best guess
 MAX_HEAT_SETPOINT_LOWER: Final[float] = 21.0
 MAX_HEAT_SETPOINT_UPPER: Final[float] = 35.0
