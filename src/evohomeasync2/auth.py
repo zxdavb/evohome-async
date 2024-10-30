@@ -29,7 +29,6 @@ from .schema import (
     SZ_ACCESS_TOKEN_EXPIRES,
     SZ_EXPIRES_IN,
     SZ_REFRESH_TOKEN,
-    convert_keys_to_snake_case,
 )
 
 if TYPE_CHECKING:
@@ -194,7 +193,7 @@ class AbstractTokenManager(ABC):
 
         _LOGGER.debug(f" - refresh_token = {self.refresh_token}")
         _LOGGER.debug(f" - access_token = {self.access_token}")
-        _LOGGER.warning(f" - access_token_expires = {self.access_token_expires}")
+        _LOGGER.debug(f" - access_token_expires = {self.access_token_expires}")
 
     async def _obtain_access_token(self, credentials: dict[str, str]) -> None:
         """Obtain an access token using the supplied credentials.
@@ -355,7 +354,7 @@ class Auth(AbstractAuth):
                     f"Response JSON may be invalid: GET {url}: vol.Invalid({err})"
                 )
 
-        return convert_keys_to_snake_case(content)
+        return content
 
     async def put(
         self, url: StrOrURL, json: _EvoDictT | str, schema: vol.Schema | None = None

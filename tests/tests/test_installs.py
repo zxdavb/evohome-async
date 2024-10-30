@@ -47,7 +47,7 @@ async def test_system_snapshot(
             if attr not in DEPRECATED_ATTRS
         }
 
-    with patch("evohomeasync2.session.Auth.get", broker_get(install)):
+    with patch("evohomeasync2.auth.Auth.get", broker_get(install)):
         evo = evo2.EvohomeClientNew(token_manager.websession, token_manager)
 
         await evo.login()

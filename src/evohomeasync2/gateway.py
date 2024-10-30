@@ -9,7 +9,7 @@ import voluptuous as vol
 
 from . import exceptions as exc
 from .controlsystem import ControlSystem
-from .schema import SCH_GWY_STATUS, camel_to_snake
+from .schema import SCH_GWY_STATUS
 from .schema.const import (
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
@@ -44,14 +44,14 @@ class Gateway(_GatewayDeprecated, ActiveFaultsBase):
 
     def __init__(self, location: Location, config: _EvoDictT) -> None:
         super().__init__(
-            config[camel_to_snake(SZ_GATEWAY_INFO)][camel_to_snake(SZ_GATEWAY_ID)],
+            config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID],
             location._broker,
             location._logger,
         )
 
         self.location = location  # parent
 
-        self._config: Final[_EvoDictT] = config[camel_to_snake(SZ_GATEWAY_INFO)]
+        self._config: Final[_EvoDictT] = config[SZ_GATEWAY_INFO]
         self._status: _EvoDictT = {}
 
         # children
@@ -59,7 +59,7 @@ class Gateway(_GatewayDeprecated, ActiveFaultsBase):
         self.control_systems: dict[str, ControlSystem] = {}  # tcs by id
 
         tcs_config: _EvoDictT
-        for tcs_config in config[camel_to_snake(SZ_TEMPERATURE_CONTROL_SYSTEMS)]:
+        for tcs_config in config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             tcs = ControlSystem(self, tcs_config)
 
             self._control_systems.append(tcs)
@@ -72,7 +72,7 @@ class Gateway(_GatewayDeprecated, ActiveFaultsBase):
 
     @property
     def isWiFi(self) -> bool:
-        ret: bool = self._config[camel_to_snake(SZ_IS_WI_FI)]
+        ret: bool = self._config[SZ_IS_WI_FI]
         return ret
 
     def _update_status(self, status: _EvoDictT) -> None:
@@ -80,14 +80,12 @@ class Gateway(_GatewayDeprecated, ActiveFaultsBase):
 
         self._status = status
 
-        for tcs_status in self._status[camel_to_snake(SZ_TEMPERATURE_CONTROL_SYSTEMS)]:
-            if tcs := self.control_systems.get(
-                tcs_status[camel_to_snake(SZ_SYSTEM_ID)]
-            ):
+        for tcs_status in self._status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+            if tcs := self.control_systems.get(tcs_status[SZ_SYSTEM_ID]):
                 tcs._update_status(tcs_status)
 
             else:
                 self._logger.warning(
-                    f"{self}: system_id='{tcs_status[camel_to_snake(SZ_SYSTEM_ID)]}' not known"
+                    f"{self}: system_id='{tcs_status[SZ_SYSTEM_ID]}' not known"
                     ", (has the gateway configuration been changed?)"
                 )

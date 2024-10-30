@@ -13,6 +13,7 @@ from datetime import datetime as dt
 
 import aiohttp
 
+from .auth import AbstractTokenManager, Auth  # noqa: F401
 from .base import EvohomeClient as EvohomeClientNew
 from .controlsystem import ControlSystem  # noqa: F401
 from .exceptions import (  # noqa: F401
@@ -29,7 +30,6 @@ from .exceptions import (  # noqa: F401
 from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401
 from .location import Location  # noqa: F401
-from .session import AbstractTokenManager, Auth  # noqa: F401
 from .zone import Zone  # noqa: F401
 
 __version__ = "1.2.0"

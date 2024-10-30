@@ -10,11 +10,7 @@ from pathlib import Path
 import pytest
 
 from evohomeasync2 import Location
-from evohomeasync2.schema import (
-    SCH_LOCN_STATUS,
-    camel_to_snake,
-    convert_keys_to_snake_case,
-)
+from evohomeasync2.schema import SCH_LOCN_STATUS
 from evohomeasync2.schema.config import SCH_TCS_CONFIG, SCH_TIME_ZONE
 from evohomeasync2.schema.const import (
     SZ_GATEWAY_ID,
@@ -25,7 +21,6 @@ from evohomeasync2.schema.const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TIME_ZONE,
 )
-from evohomeasync2.schema.helpers import snake_to_camel
 
 from .helpers import TEST_DIR
 
@@ -67,23 +62,19 @@ def test_config_refresh(folder: Path) -> None:
         pytest.skip(f"No {STATUS_FILE_NAME} in: {folder.name}")
 
     with open(Path(folder).joinpath(CONFIG_FILE_NAME)) as f:
-        config: dict = convert_keys_to_snake_case(json.load(f))
+        config: dict = json.load(f)  # is camelCase, as per vendor's schema
 
     with open(Path(folder).joinpath(STATUS_FILE_NAME)) as f:
-        status: dict = convert_keys_to_snake_case(json.load(f))
+        status: dict = json.load(f)  # is camelCase, as per vendor's schema
 
     # hack because old JSON from HA's evohome integration didn't have location_id, etc.
-    if not config[camel_to_snake(SZ_LOCATION_INFO)].get(camel_to_snake(SZ_LOCATION_ID)):
-        config[camel_to_snake(SZ_LOCATION_INFO)][camel_to_snake(SZ_LOCATION_ID)] = (
-            status[camel_to_snake(SZ_LOCATION_ID)]
-        )
+    if not config[SZ_LOCATION_INFO].get(SZ_LOCATION_ID):
+        config[SZ_LOCATION_INFO][SZ_LOCATION_ID] = status[SZ_LOCATION_ID]
 
     # hack because the JSON is from HA's evohome integration, not vendor's TCC servers
-    if not config[SZ_GATEWAYS][0].get(camel_to_snake(SZ_GATEWAY_ID)):
-        config[SZ_GATEWAYS][0][camel_to_snake(SZ_GATEWAY_INFO)] = {
-            camel_to_snake(SZ_GATEWAY_ID): status[SZ_GATEWAYS][0][
-                camel_to_snake(SZ_GATEWAY_ID)
-            ]
+    if not config[SZ_GATEWAYS][0].get(SZ_GATEWAY_ID):
+        config[SZ_GATEWAYS][0][SZ_GATEWAY_INFO] = {
+            SZ_GATEWAY_ID: status[SZ_GATEWAYS][0][SZ_GATEWAY_ID]
         }
 
     loc = Location(ClientStub(), config)
@@ -99,11 +90,9 @@ def test_config_schemas(folder: Path) -> None:
     with open(Path(folder).joinpath(CONFIG_FILE_NAME)) as f:
         config: dict = json.load(f)  # is camelCase, as per vendor's schema
 
-    _ = SCH_TIME_ZONE(
-        config[snake_to_camel(SZ_LOCATION_INFO)][snake_to_camel(SZ_TIME_ZONE)]
-    )
-    for gwy_config in config[snake_to_camel(SZ_GATEWAYS)]:
-        for tcs_config in gwy_config[snake_to_camel(SZ_TEMPERATURE_CONTROL_SYSTEMS)]:
+    _ = SCH_TIME_ZONE(config[SZ_LOCATION_INFO][SZ_TIME_ZONE])
+    for gwy_config in config[SZ_GATEWAYS]:
+        for tcs_config in gwy_config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             _ = SCH_TCS_CONFIG(tcs_config)
 
 

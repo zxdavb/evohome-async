@@ -11,11 +11,11 @@ from typing import TYPE_CHECKING, Final, NoReturn
 import aiohttp
 
 from . import exceptions as exc
+from .auth import AbstractTokenManager, Auth
 from .controlsystem import ControlSystem
 from .location import Location
-from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT, camel_to_snake
+from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
 from .schema.const import SZ_USER_ID
-from .session import AbstractTokenManager, Auth
 
 if TYPE_CHECKING:
     from .schema import _EvoDictT, _EvoListT, _ScheduleT
@@ -227,7 +227,7 @@ class EvohomeClient(EvohomeClientDeprecated):
         # FIXME: shouldn't really be starting again with new objects?
         self.locations = []  # for now, need to clear this before GET
 
-        url = f"location/installationInfo?userId={self.account_info[camel_to_snake(SZ_USER_ID)]}"
+        url = f"location/installationInfo?userId={self.account_info[SZ_USER_ID]}"
         url += "&includeTemperatureControlSystems=True"
 
         self._full_config = await self.broker.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
@@ -269,7 +269,7 @@ class EvohomeClient(EvohomeClientDeprecated):
     @property
     def system_id(self) -> str:  # an evohome-client anachronism, deprecate?
         """Return the id of the default TCS (assumes only one loc/gwy/TCS)."""
-        return self._get_single_tcs().systemId
+        return self._get_single_tcs().id
 
     async def reset_mode(self) -> None:
         """Reset the mode of the default TCS and its zones."""

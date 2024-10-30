@@ -18,26 +18,7 @@ REGEX_SYSTEM_ID = r"[0-9]*"
 REGEX_ZONE_ID = r"[0-9]*"
 
 
-# These are constants, used for keys in the vendor's API JSON
-# NOTE: the vendor API uses camelCase, so some conversion is required
-SZ_CITY: Final = "city"
-SZ_COUNTRY: Final = "country"
-
-SZ_FIRSTNAME: Final = "firstname"
-
-SZ_LANGUAGE: Final = "language"
-SZ_LASTNAME: Final = "lastname"
-
-SZ_POSTCODE: Final = "postcode"
-
-SZ_STREET_ADDRESS: Final = "street_address"
-
-SZ_USER_ID: Final = "user_id"
-SZ_USERNAME: Final = "username"
-
-#
-# camelCase
-# These are vendor-specific constants, used for keys in API JSON
+# These are vendorconstants, used for keys in the vendor's schema
 SZ_ACTIVE_FAULTS: Final = "activeFaults"
 SZ_ALLOWED_FAN_MODES: Final = "allowedFanModes"
 SZ_ALLOWED_MODES: Final = "allowedModes"
@@ -45,13 +26,14 @@ SZ_ALLOWED_SETPOINT_MODES: Final = "allowedSetpointModes"
 SZ_ALLOWED_STATES: Final = "allowedStates"
 SZ_ALLOWED_SYSTEM_MODES: Final = "allowedSystemModes"
 
-SZ_CAN_BE_CHANGED: Final = "canBeChanged"
 SZ_CAN_BE_PERMANENT: Final = "canBePermanent"
+SZ_CAN_BE_CHANGED: Final = "canBeChanged"
 SZ_CAN_BE_TEMPORARY: Final = "canBeTemporary"
 SZ_CAN_CONTROL_COOL: Final = "canControlCool"
 SZ_CAN_CONTROL_HEAT: Final = "canControlHeat"
+SZ_CITY: Final = "city"
 SZ_COOL_SETPOINT: Final = "coolSetpoint"
-SZ_COOL_SETPOINT_VALUE: Final = "coolSetpointValue"  # an extrapolation
+SZ_COUNTRY: Final = "country"
 SZ_CRC: Final = "crc"
 SZ_CURRENT_OFFSET_MINUTES: Final = "currentOffsetMinutes"
 
@@ -62,19 +44,17 @@ SZ_DHW_ID: Final = "dhwId"
 SZ_DHW_STATE: Final = "dhwState"
 SZ_DHW_STATE_CAPABILITIES_RESPONSE: Final = "dhwStateCapabilitiesResponse"
 SZ_DISPLAY_NAME: Final = "displayName"
-SZ_DOMESTIC_HOT_WATER: Final = "domesticHotWater"
 
 SZ_FAN_MODE: Final = "fanMode"
 SZ_FAN_STATUS: Final = "fanStatus"
 SZ_FAULT_TYPE: Final = "faultType"
+SZ_FIRSTNAME: Final = "firstname"
 
-SZ_GATEWAY: Final = "gateway"
 SZ_GATEWAY_ID: Final = "gatewayId"
 SZ_GATEWAY_INFO: Final = "gatewayInfo"
 SZ_GATEWAYS: Final = "gateways"
 
 SZ_HEAT_SETPOINT: Final = "heatSetpoint"
-SZ_HEAT_SETPOINT_VALUE: Final = "HeatSetpointValue"
 
 SZ_IS_AVAILABLE: Final = "isAvailable"
 SZ_IS_CANCELABLE: Final = "isCancelable"
@@ -82,7 +62,8 @@ SZ_IS_CHANGEABLE: Final = "isChangeable"
 SZ_IS_PERMANENT: Final = "isPermanent"
 SZ_IS_WI_FI: Final = "isWiFi"
 
-SZ_LOCATION: Final = "location"
+SZ_LANGUAGE: Final = "language"
+SZ_LASTNAME: Final = "lastname"
 SZ_LOCATION_ID: Final = "locationId"
 SZ_LOCATION_INFO: Final = "locationInfo"
 SZ_LOCATION_OWNER: Final = "locationOwner"
@@ -104,7 +85,7 @@ SZ_NAME: Final = "name"
 
 SZ_OFFSET_MINUTES: Final = "offsetMinutes"
 
-SZ_PERMANENT: Final = "permanent"
+SZ_POSTCODE: Final = "postcode"
 
 SZ_SCHEDULE_CAPABILITIES: Final = "scheduleCapabilities"
 SZ_SCHEDULE_CAPABILITIES_RESPONSE: Final = "scheduleCapabilitiesResponse"
@@ -116,6 +97,7 @@ SZ_SETPOINT_VALUE_RESOLUTION: Final = "setpointValueResolution"
 SZ_SINCE: Final = "since"
 SZ_STATE: Final = "state"
 SZ_STATE_STATUS: Final = "stateStatus"
+SZ_STREET_ADDRESS: Final = "streetAddress"
 SZ_SUPPORTS_DAYLIGHT_SAVING: Final = "supportsDaylightSaving"
 SZ_SWITCHPOINTS: Final = "switchpoints"
 SZ_SYSTEM_ID: Final = "systemId"
@@ -125,10 +107,8 @@ SZ_SYSTEM_MODE_STATUS: Final = "systemModeStatus"
 SZ_TARGET_COOL_TEMPERATURE: Final = "targetCoolTemperature"  # an extrapolation
 SZ_TARGET_HEAT_TEMPERATURE: Final = "targetHeatTemperature"
 SZ_TEMPERATURE: Final = "temperature"
-SZ_TEMPERATURE_CONTROL_SYSTEM: Final = "temperatureControlSystem"
 SZ_TEMPERATURE_CONTROL_SYSTEMS: Final = "temperatureControlSystems"
 SZ_TEMPERATURE_STATUS: Final = "temperatureStatus"
-SZ_TEMPERATURE_ZONE: Final = "temperatureZone"
 SZ_TIME_OF_DAY: Final = "timeOfDay"
 SZ_TIME_UNTIL: Final = "timeUntil"
 SZ_TIME_ZONE: Final = "timeZone"
@@ -137,9 +117,9 @@ SZ_TIMING_MODE: Final = "timingMode"
 SZ_TIMING_RESOLUTION: Final = "timingResolution"
 
 SZ_UNTIL: Final = "until"
-SZ_UNTIL_TIME: Final = "untilTime"
 SZ_USE_DAYLIGHT_SAVE_SWITCHING: Final = "useDaylightSaveSwitching"
-SZ_USER_ACCOUNT: Final = "userAccount"
+SZ_USER_ID: Final = "userId"
+SZ_USERNAME: Final = "username"
 
 SZ_VACATION_HOLD_CAPABILITIES: Final = "vacationHoldCapabilities"
 SZ_VALUE_RESOLUTION: Final = "valueResolution"
@@ -149,13 +129,29 @@ SZ_ZONE_TYPE: Final = "zoneType"
 SZ_ZONES: Final = "zones"
 
 
+#
+# These are vendor constants, used for API calls
+
+SZ_DOMESTIC_HOT_WATER: Final = "domesticHotWater"
+SZ_GATEWAY: Final = "gateway"
+SZ_LOCATION: Final = "location"
+SZ_TEMPERATURE_CONTROL_SYSTEM: Final = "temperatureControlSystem"
+SZ_TEMPERATURE_ZONE: Final = "temperatureZone"
+SZ_USER_ACCOUNT: Final = "userAccount"
+
+SZ_COOL_SETPOINT_VALUE: Final = "coolSetpointValue"  # an extrapolation
+SZ_HEAT_SETPOINT_VALUE: Final = "HeatSetpointValue"
+
+SZ_PERMANENT: Final = "permanent"
+SZ_UNTIL_TIME: Final = "untilTime"
+
 # These are vendor-specific constants, used for values
 SZ_DURATION: Final = "Duration"
 SZ_HEATING_ZONE: Final = "HeatingZone"
 SZ_PERIOD: Final = "Period"
 SZ_UNKNOWN: Final = "Unknown"
 
-
+#
 SZ_MONDAY: Final = "Monday"
 SZ_TUESDAY: Final = "Tuesday"
 SZ_WEDNESDAY: Final = "Wednesday"

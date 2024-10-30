@@ -11,9 +11,9 @@ import voluptuous as vol
 
 import evohomeasync as evo1
 import evohomeasync2 as evo2
+from evohomeasync2.auth import Auth
 from evohomeasync2.client import TokenManager
 from evohomeasync2.const import URL_BASE as URL_BASE_2
-from evohomeasync2.session import Auth
 
 from .conftest import _DBG_DISABLE_STRICT_ASSERTS, TOKEN_CACHE, aiohttp
 

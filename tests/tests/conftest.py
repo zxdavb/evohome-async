@@ -16,8 +16,8 @@ import pytest_asyncio
 import voluptuous as vol
 from aioresponses import aioresponses
 
+from evohomeasync2.auth import AbstractTokenManager
 from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
-from evohomeasync2.session import AbstractTokenManager, convert_keys_to_snake_case
 
 type JsonValueType = (
     dict[str, JsonValueType] | list[JsonValueType] | str | int | float | bool | None
@@ -99,19 +99,13 @@ def broker_get(install: str) -> Callable:
         self, url: str, schema: vol.Schema | None = None
     ) -> JsonArrayType | JsonObjectType:
         if "userAccount" in url:  # EvohomeClient.user_account
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                SCH_USER_ACCOUNT(user_account_fixture(install))
-            )
+            return SCH_USER_ACCOUNT(user_account_fixture(install))  # type: ignore[no-any-return]
 
         elif "installationInfo" in url:  # EvohomeClient._installation
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                SCH_FULL_CONFIG(user_locations_config_fixture(install))
-            )
+            return SCH_FULL_CONFIG(user_locations_config_fixture(install))  # type: ignore[no-any-return]
 
         elif "status" in url:  # Location.refresh_status
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                SCH_LOCN_STATUS(location_status_fixture(install, url.split("/")[1]))
-            )
+            return SCH_LOCN_STATUS(location_status_fixture(install, url.split("/")[1]))  # type: ignore[no-any-return]
 
         pytest.fail(f"Unexpected/unknown URL: {url}")
 

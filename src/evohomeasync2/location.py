@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Final, NoReturn
 
 from . import exceptions as exc
 from .gateway import Gateway
-from .schema import SCH_LOCN_STATUS, camel_to_snake
+from .schema import SCH_LOCN_STATUS
 from .schema.const import (
     SZ_COUNTRY,
     SZ_GATEWAY_ID,
@@ -51,14 +51,14 @@ class Location(_LocationDeprecated, EntityBase):
 
     def __init__(self, client: EvohomeClient, config: _EvoDictT) -> None:
         super().__init__(
-            config[camel_to_snake(SZ_LOCATION_INFO)][camel_to_snake(SZ_LOCATION_ID)],
+            config[SZ_LOCATION_INFO][SZ_LOCATION_ID],
             client.broker,
             client._logger,
         )
 
         self.client = client  # proxy for parent
 
-        self._config: Final[_EvoDictT] = config[camel_to_snake(SZ_LOCATION_INFO)]
+        self._config: Final[_EvoDictT] = config[SZ_LOCATION_INFO]
         self._status: _EvoDictT = {}
 
         # children
@@ -79,12 +79,12 @@ class Location(_LocationDeprecated, EntityBase):
 
     @property
     def locationOwner(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[camel_to_snake(SZ_LOCATION_OWNER)]
+        ret: _EvoDictT = self._config[SZ_LOCATION_OWNER]
         return ret
 
     @property
     def locationType(self) -> str:
-        ret: str = self._config[camel_to_snake(SZ_LOCATION_TYPE)]
+        ret: str = self._config[SZ_LOCATION_TYPE]
         return ret
 
     @property
@@ -94,12 +94,12 @@ class Location(_LocationDeprecated, EntityBase):
 
     @property
     def timeZone(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[camel_to_snake(SZ_TIME_ZONE)]
+        ret: _EvoDictT = self._config[SZ_TIME_ZONE]
         return ret
 
     @property
     def useDaylightSaveSwitching(self) -> bool:
-        ret: bool = self._config[camel_to_snake(SZ_USE_DAYLIGHT_SAVE_SWITCHING)]
+        ret: bool = self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
         return ret
 
     async def refresh_status(self) -> _EvoDictT:
@@ -119,11 +119,11 @@ class Location(_LocationDeprecated, EntityBase):
         self._status = status
 
         for gwy_status in self._status[SZ_GATEWAYS]:
-            if gwy := self.gateways.get(gwy_status[camel_to_snake(SZ_GATEWAY_ID)]):
+            if gwy := self.gateways.get(gwy_status[SZ_GATEWAY_ID]):
                 gwy._update_status(gwy_status)
 
             else:
                 self._logger.warning(
-                    f"{self}: gateway_id='{gwy_status[camel_to_snake(SZ_GATEWAY_ID)]} not known"
+                    f"{self}: gateway_id='{gwy_status[SZ_GATEWAY_ID]} not known"
                     ", (has the location configuration been changed?)"
                 )

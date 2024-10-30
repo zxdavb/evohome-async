@@ -3,43 +3,43 @@
   '''
   active_faults: []
   allowedSystemModes:
-  -   can_be_permanent: true
-      can_be_temporary: false
-      system_mode: HeatingOff
-  -   can_be_permanent: true
-      can_be_temporary: false
-      system_mode: Auto
-  -   can_be_permanent: true
-      can_be_temporary: false
-      system_mode: AutoWithReset
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 1.00:00:00
-      system_mode: AutoWithEco
-      timing_mode: Duration
-      timing_resolution: 01:00:00
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 99.00:00:00
-      system_mode: Away
-      timing_mode: Period
-      timing_resolution: 1.00:00:00
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 99.00:00:00
-      system_mode: DayOff
-      timing_mode: Period
-      timing_resolution: 1.00:00:00
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 99.00:00:00
-      system_mode: Custom
-      timing_mode: Period
-      timing_resolution: 1.00:00:00
+  -   canBePermanent: true
+      canBeTemporary: false
+      systemMode: HeatingOff
+  -   canBePermanent: true
+      canBeTemporary: false
+      systemMode: Auto
+  -   canBePermanent: true
+      canBeTemporary: false
+      systemMode: AutoWithReset
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 1.00:00:00
+      systemMode: AutoWithEco
+      timingMode: Duration
+      timingResolution: 01:00:00
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 99.00:00:00
+      systemMode: Away
+      timingMode: Period
+      timingResolution: 1.00:00:00
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 99.00:00:00
+      systemMode: DayOff
+      timingMode: Period
+      timingResolution: 1.00:00:00
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 99.00:00:00
+      systemMode: Custom
+      timingMode: Period
+      timingResolution: 1.00:00:00
   id: '3432522'
   modelType: EvoTouch
   systemModeStatus:
-      is_permanent: true
+      isPermanent: true
       mode: AutoWithEco
   system_mode: AutoWithEco
   
@@ -62,26 +62,26 @@
   - PermanentOverride
   - TemporaryOverride
   dhwStateCapabilitiesResponse:
-      allowed_modes: *id001
-      allowed_states:
+      allowedModes: *id001
+      allowedStates:
       - 'On'
       - 'Off'
-      max_duration: 1.00:00:00
-      timing_resolution: 00:10:00
+      maxDuration: 1.00:00:00
+      timingResolution: 00:10:00
   id: '3933910'
   mode: PermanentOverride
   name: Domestic Hot Water
   scheduleCapabilitiesResponse:
-      max_switchpoints_per_day: 6
-      min_switchpoints_per_day: 1
-      timing_resolution: 00:10:00
+      maxSwitchpointsPerDay: 6
+      minSwitchpointsPerDay: 1
+      timingResolution: 00:10:00
   state: 'Off'
   stateStatus:
       mode: PermanentOverride
       state: 'Off'
   temperature: 23.0
   temperatureStatus:
-      is_available: true
+      isAvailable: true
       temperature: 23.0
   
   '''
@@ -93,16 +93,16 @@
   locationOwner:
       firstname: David
       lastname: '********'
-      user_id: '2263181'
+      userId: '2263181'
       username: nobody@nowhere.com
   locationType: Residential
   name: My Home
   timeZone:
-      current_offset_minutes: 60
-      display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
-      offset_minutes: 0
-      supports_daylight_saving: true
-      time_zone_id: GMTStandardTime
+      currentOffsetMinutes: 60
+      displayName: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+      offsetMinutes: 0
+      supportsDaylightSaving: true
+      timeZoneId: GMTStandardTime
   useDaylightSaveSwitching: true
   
   '''
@@ -122,27 +122,27 @@
       modelType: HeatingZone
       name: Dead Zone
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id001
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id001
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 5.0
+          setpointMode: PermanentOverride
+          targetHeatTemperature: 5.0
       target_cool_temperature: null
       target_heat_temperature: 5.0
       temperature: null
       temperatureStatus:
-          is_available: false
+          isAvailable: false
       zoneType: RadiatorZone
   '3432576':
       active_faults: []
@@ -157,27 +157,27 @@
       modelType: HeatingZone
       name: Main Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id002
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id002
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
       target_cool_temperature: null
       target_heat_temperature: 17.0
       temperature: 19.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 19.0
       zoneType: RadiatorZone
   '3432577':
@@ -193,27 +193,27 @@
       modelType: HeatingZone
       name: Front Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id003
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id003
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
       target_cool_temperature: null
       target_heat_temperature: 17.0
       temperature: 19.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 19.0
       zoneType: RadiatorZone
   '3432578':
@@ -229,27 +229,27 @@
       modelType: HeatingZone
       name: Kitchen
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id004
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id004
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
       target_cool_temperature: null
       target_heat_temperature: 17.0
       temperature: 20.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 20.0
       zoneType: RadiatorZone
   '3432579':
@@ -265,27 +265,27 @@
       modelType: HeatingZone
       name: Bathroom Dn
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id005
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id005
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 16.0
       target_cool_temperature: null
       target_heat_temperature: 16.0
       temperature: 20.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 20.0
       zoneType: RadiatorZone
   '3432580':
@@ -301,27 +301,27 @@
       modelType: HeatingZone
       name: Main Bedroom
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id006
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id006
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 16.0
       target_cool_temperature: null
       target_heat_temperature: 16.0
       temperature: 21.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 21.0
       zoneType: RadiatorZone
   '3449703':
@@ -337,27 +337,27 @@
       modelType: HeatingZone
       name: Kids Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id007
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id007
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
       target_cool_temperature: null
       target_heat_temperature: 17.0
       temperature: 19.5
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 19.5
       zoneType: RadiatorZone
   '3449740':
@@ -373,27 +373,27 @@
       modelType: HeatingZone
       name: Bathroom Up
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id008
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id008
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.5
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 16.5
       target_cool_temperature: null
       target_heat_temperature: 16.5
       temperature: 21.5
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 21.5
       zoneType: RadiatorZone
   '3450733':
@@ -409,27 +409,27 @@
       modelType: HeatingZone
       name: Spare Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id009
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id009
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 14.0
+          setpointMode: PermanentOverride
+          targetHeatTemperature: 14.0
       target_cool_temperature: null
       target_heat_temperature: 14.0
       temperature: 19.5
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 19.5
       zoneType: RadiatorZone
   
@@ -439,43 +439,43 @@
   '''
   active_faults: []
   allowedSystemModes:
-  -   can_be_permanent: true
-      can_be_temporary: false
-      system_mode: HeatingOff
-  -   can_be_permanent: true
-      can_be_temporary: false
-      system_mode: Auto
-  -   can_be_permanent: true
-      can_be_temporary: false
-      system_mode: AutoWithReset
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 1.00:00:00
-      system_mode: AutoWithEco
-      timing_mode: Duration
-      timing_resolution: 01:00:00
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 99.00:00:00
-      system_mode: Away
-      timing_mode: Period
-      timing_resolution: 1.00:00:00
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 99.00:00:00
-      system_mode: DayOff
-      timing_mode: Period
-      timing_resolution: 1.00:00:00
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 99.00:00:00
-      system_mode: Custom
-      timing_mode: Period
-      timing_resolution: 1.00:00:00
+  -   canBePermanent: true
+      canBeTemporary: false
+      systemMode: HeatingOff
+  -   canBePermanent: true
+      canBeTemporary: false
+      systemMode: Auto
+  -   canBePermanent: true
+      canBeTemporary: false
+      systemMode: AutoWithReset
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 1.00:00:00
+      systemMode: AutoWithEco
+      timingMode: Duration
+      timingResolution: 01:00:00
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 99.00:00:00
+      systemMode: Away
+      timingMode: Period
+      timingResolution: 1.00:00:00
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 99.00:00:00
+      systemMode: DayOff
+      timingMode: Period
+      timingResolution: 1.00:00:00
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 99.00:00:00
+      systemMode: Custom
+      timingMode: Period
+      timingResolution: 1.00:00:00
   id: '3432522'
   modelType: EvoTouch
   systemModeStatus:
-      is_permanent: true
+      isPermanent: true
       mode: AutoWithEco
   system_mode: AutoWithEco
   
@@ -498,26 +498,26 @@
   - PermanentOverride
   - TemporaryOverride
   dhwStateCapabilitiesResponse:
-      allowed_modes: *id001
-      allowed_states:
+      allowedModes: *id001
+      allowedStates:
       - 'On'
       - 'Off'
-      max_duration: 1.00:00:00
-      timing_resolution: 00:10:00
+      maxDuration: 1.00:00:00
+      timingResolution: 00:10:00
   id: '3933910'
   mode: PermanentOverride
   name: Domestic Hot Water
   scheduleCapabilitiesResponse:
-      max_switchpoints_per_day: 6
-      min_switchpoints_per_day: 1
-      timing_resolution: 00:10:00
+      maxSwitchpointsPerDay: 6
+      minSwitchpointsPerDay: 1
+      timingResolution: 00:10:00
   state: 'Off'
   stateStatus:
       mode: PermanentOverride
       state: 'Off'
   temperature: 23.0
   temperatureStatus:
-      is_available: true
+      isAvailable: true
       temperature: 23.0
   
   '''
@@ -529,16 +529,16 @@
   locationOwner:
       firstname: David
       lastname: '********'
-      user_id: '2263181'
+      userId: '2263181'
       username: nobody@nowhere.com
   locationType: Residential
   name: My Home
   timeZone:
-      current_offset_minutes: 60
-      display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
-      offset_minutes: 0
-      supports_daylight_saving: true
-      time_zone_id: GMTStandardTime
+      currentOffsetMinutes: 60
+      displayName: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+      offsetMinutes: 0
+      supportsDaylightSaving: true
+      timeZoneId: GMTStandardTime
   useDaylightSaveSwitching: true
   
   '''
@@ -558,27 +558,27 @@
       modelType: HeatingZone
       name: Dead Zone
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id001
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id001
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 5.0
+          setpointMode: PermanentOverride
+          targetHeatTemperature: 5.0
       target_cool_temperature: null
       target_heat_temperature: 5.0
       temperature: null
       temperatureStatus:
-          is_available: false
+          isAvailable: false
       zoneType: RadiatorZone
   '3432576':
       active_faults: []
@@ -593,27 +593,27 @@
       modelType: HeatingZone
       name: Main Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id002
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id002
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
       target_cool_temperature: null
       target_heat_temperature: 17.0
       temperature: 19.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 19.0
       zoneType: RadiatorZone
   '3432577':
@@ -629,27 +629,27 @@
       modelType: HeatingZone
       name: Front Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id003
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id003
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
       target_cool_temperature: null
       target_heat_temperature: 17.0
       temperature: 19.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 19.0
       zoneType: RadiatorZone
   '3432578':
@@ -665,27 +665,27 @@
       modelType: HeatingZone
       name: Kitchen
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id004
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id004
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
       target_cool_temperature: null
       target_heat_temperature: 17.0
       temperature: 20.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 20.0
       zoneType: RadiatorZone
   '3432579':
@@ -701,27 +701,27 @@
       modelType: HeatingZone
       name: Bathroom Dn
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id005
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id005
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 16.0
       target_cool_temperature: null
       target_heat_temperature: 16.0
       temperature: 20.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 20.0
       zoneType: RadiatorZone
   '3432580':
@@ -737,27 +737,27 @@
       modelType: HeatingZone
       name: Main Bedroom
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id006
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id006
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 16.0
       target_cool_temperature: null
       target_heat_temperature: 16.0
       temperature: 21.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 21.0
       zoneType: RadiatorZone
   '3449703':
@@ -773,27 +773,27 @@
       modelType: HeatingZone
       name: Kids Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id007
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id007
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 17.0
       target_cool_temperature: null
       target_heat_temperature: 17.0
       temperature: 19.5
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 19.5
       zoneType: RadiatorZone
   '3449740':
@@ -809,27 +809,27 @@
       modelType: HeatingZone
       name: Bathroom Up
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id008
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id008
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.5
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 16.5
       target_cool_temperature: null
       target_heat_temperature: 16.5
       temperature: 21.5
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 21.5
       zoneType: RadiatorZone
   '3450733':
@@ -845,27 +845,27 @@
       modelType: HeatingZone
       name: Spare Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id009
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id009
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 14.0
+          setpointMode: PermanentOverride
+          targetHeatTemperature: 14.0
       target_cool_temperature: null
       target_heat_temperature: 14.0
       temperature: 19.5
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 19.5
       zoneType: RadiatorZone
   
@@ -875,43 +875,43 @@
   '''
   active_faults: []
   allowedSystemModes:
-  -   can_be_permanent: true
-      can_be_temporary: false
-      system_mode: HeatingOff
-  -   can_be_permanent: true
-      can_be_temporary: false
-      system_mode: Auto
-  -   can_be_permanent: true
-      can_be_temporary: false
-      system_mode: AutoWithReset
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 1.00:00:00
-      system_mode: AutoWithEco
-      timing_mode: Duration
-      timing_resolution: 01:00:00
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 99.00:00:00
-      system_mode: Away
-      timing_mode: Period
-      timing_resolution: 1.00:00:00
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 99.00:00:00
-      system_mode: DayOff
-      timing_mode: Period
-      timing_resolution: 1.00:00:00
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 99.00:00:00
-      system_mode: Custom
-      timing_mode: Period
-      timing_resolution: 1.00:00:00
+  -   canBePermanent: true
+      canBeTemporary: false
+      systemMode: HeatingOff
+  -   canBePermanent: true
+      canBeTemporary: false
+      systemMode: Auto
+  -   canBePermanent: true
+      canBeTemporary: false
+      systemMode: AutoWithReset
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 1.00:00:00
+      systemMode: AutoWithEco
+      timingMode: Duration
+      timingResolution: 01:00:00
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 99.00:00:00
+      systemMode: Away
+      timingMode: Period
+      timingResolution: 1.00:00:00
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 99.00:00:00
+      systemMode: DayOff
+      timingMode: Period
+      timingResolution: 1.00:00:00
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 99.00:00:00
+      systemMode: Custom
+      timingMode: Period
+      timingResolution: 1.00:00:00
   id: '3432522'
   modelType: EvoTouch
   systemModeStatus:
-      is_permanent: true
+      isPermanent: true
       mode: Auto
   system_mode: Auto
   
@@ -929,33 +929,33 @@
 # name: test_system_snapshot[system_002][hot_water]
   '''
   active_faults:
-  -   fault_type: DHWSensorCommunicationLost
+  -   faultType: DHWSensorCommunicationLost
       since: '2023-11-30T18:48:40'
   allowedModes: &id001
   - FollowSchedule
   - PermanentOverride
   - TemporaryOverride
   dhwStateCapabilitiesResponse:
-      allowed_modes: *id001
-      allowed_states:
+      allowedModes: *id001
+      allowedStates:
       - 'On'
       - 'Off'
-      max_duration: 1.00:00:00
-      timing_resolution: 00:10:00
+      maxDuration: 1.00:00:00
+      timingResolution: 00:10:00
   id: '3933910'
   mode: FollowSchedule
   name: Domestic Hot Water
   scheduleCapabilitiesResponse:
-      max_switchpoints_per_day: 6
-      min_switchpoints_per_day: 1
-      timing_resolution: 00:10:00
+      maxSwitchpointsPerDay: 6
+      minSwitchpointsPerDay: 1
+      timingResolution: 00:10:00
   state: 'Off'
   stateStatus:
       mode: FollowSchedule
       state: 'Off'
   temperature: null
   temperatureStatus:
-      is_available: false
+      isAvailable: false
   
   '''
 # ---
@@ -966,16 +966,16 @@
   locationOwner:
       firstname: David
       lastname: '********'
-      user_id: '2263181'
+      userId: '2263181'
       username: nobody@nowhere.com
   locationType: Residential
   name: My Home
   timeZone:
-      current_offset_minutes: 60
-      display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
-      offset_minutes: 0
-      supports_daylight_saving: true
-      time_zone_id: GMTStandardTime
+      currentOffsetMinutes: 60
+      displayName: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+      offsetMinutes: 0
+      supportsDaylightSaving: true
+      timeZoneId: GMTStandardTime
   useDaylightSaveSwitching: true
   
   '''
@@ -995,27 +995,27 @@
       modelType: HeatingZone
       name: Dead Zone
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id001
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id001
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 5.0
+          setpointMode: PermanentOverride
+          targetHeatTemperature: 5.0
       target_cool_temperature: null
       target_heat_temperature: 5.0
       temperature: null
       temperatureStatus:
-          is_available: false
+          isAvailable: false
       zoneType: RadiatorZone
   '3432576':
       active_faults: []
@@ -1030,27 +1030,27 @@
       modelType: HeatingZone
       name: Main Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id002
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id002
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 5.0
+          setpointMode: PermanentOverride
+          targetHeatTemperature: 5.0
       target_cool_temperature: null
       target_heat_temperature: 5.0
       temperature: 17.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 17.0
       zoneType: RadiatorZone
   '3432577':
@@ -1066,27 +1066,27 @@
       modelType: HeatingZone
       name: Front Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id003
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id003
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 20.6
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 20.6
       target_cool_temperature: null
       target_heat_temperature: 20.6
       temperature: 20.5
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 20.5
       zoneType: RadiatorZone
   '3432578':
@@ -1102,27 +1102,27 @@
       modelType: HeatingZone
       name: Kitchen
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id004
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id004
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 20.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 20.0
       target_cool_temperature: null
       target_heat_temperature: 20.0
       temperature: 20.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 20.0
       zoneType: RadiatorZone
   '3432579':
@@ -1138,27 +1138,27 @@
       modelType: HeatingZone
       name: Bathroom Dn
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id005
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id005
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 18.5
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 18.5
       target_cool_temperature: null
       target_heat_temperature: 18.5
       temperature: 17.5
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 17.5
       zoneType: RadiatorZone
   '3432580':
@@ -1174,28 +1174,28 @@
       modelType: HeatingZone
       name: Main Bedroom
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id006
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id006
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: TemporaryOverride
-          target_heat_temperature: 20.5
+          setpointMode: TemporaryOverride
+          targetHeatTemperature: 20.5
           until: '2023-11-30T22:10:00Z'
       target_cool_temperature: null
       target_heat_temperature: 20.5
       temperature: 21.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 21.0
       zoneType: RadiatorZone
   '3449703':
@@ -1211,27 +1211,27 @@
       modelType: HeatingZone
       name: Kids Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id007
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id007
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 18.6
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 18.6
       target_cool_temperature: null
       target_heat_temperature: 18.6
       temperature: 19.5
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 19.5
       zoneType: RadiatorZone
   '3449740':
@@ -1247,27 +1247,27 @@
       modelType: HeatingZone
       name: Bathroom Up
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id008
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id008
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 19.0
+          setpointMode: FollowSchedule
+          targetHeatTemperature: 19.0
       target_cool_temperature: null
       target_heat_temperature: 19.0
       temperature: 19.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 19.0
       zoneType: RadiatorZone
   '3450733':
@@ -1283,27 +1283,27 @@
       modelType: HeatingZone
       name: Spare Room
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 1
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 1
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id009
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id009
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 10.0
+          setpointMode: PermanentOverride
+          targetHeatTemperature: 10.0
       target_cool_temperature: null
       target_heat_temperature: 10.0
       temperature: 15.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 15.0
       zoneType: RadiatorZone
   
@@ -1313,28 +1313,28 @@
   '''
   active_faults: []
   allowedSystemModes:
-  -   can_be_permanent: true
-      can_be_temporary: false
-      system_mode: Auto
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 1.00:00:00
-      system_mode: AutoWithEco
-      timing_mode: Duration
-      timing_resolution: 01:00:00
-  -   can_be_permanent: true
-      can_be_temporary: true
-      max_duration: 99.00:00:00
-      system_mode: Away
-      timing_mode: Period
-      timing_resolution: 1.00:00:00
-  -   can_be_permanent: true
-      can_be_temporary: false
-      system_mode: HeatingOff
+  -   canBePermanent: true
+      canBeTemporary: false
+      systemMode: Auto
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 1.00:00:00
+      systemMode: AutoWithEco
+      timingMode: Duration
+      timingResolution: 01:00:00
+  -   canBePermanent: true
+      canBeTemporary: true
+      maxDuration: 99.00:00:00
+      systemMode: Away
+      timingMode: Period
+      timingResolution: 1.00:00:00
+  -   canBePermanent: true
+      canBeTemporary: false
+      systemMode: HeatingOff
   id: '3935923'
   modelType: EvoTouch
   systemModeStatus:
-      is_permanent: true
+      isPermanent: true
       mode: Auto
   system_mode: Auto
   
@@ -1362,17 +1362,17 @@
   locationOwner:
       firstname: Jan
       lastname: '********'
-      user_id: '2224990'
+      userId: '2224990'
       username: nobody@nowhere.com
   locationType: Residential
   name: Summer House
   timeZone:
-      current_offset_minutes: 120
-      display_name: "(UTC+01:00) Praha, Bratislava, Budape\u0161\u0165, B\u011Blehrad,\
+      currentOffsetMinutes: 120
+      displayName: "(UTC+01:00) Praha, Bratislava, Budape\u0161\u0165, B\u011Blehrad,\
           \ Lubla\u0148"
-      offset_minutes: 60
-      supports_daylight_saving: true
-      time_zone_id: CentralEuropeStandardTime
+      offsetMinutes: 60
+      supportsDaylightSaving: true
+      timeZoneId: CentralEuropeStandardTime
   useDaylightSaveSwitching: true
   
   '''
@@ -1392,27 +1392,27 @@
       modelType: RoundWireless
       name: Name 3935922
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 0
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 0
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id001
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id001
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 15.0
+          setpointMode: PermanentOverride
+          targetHeatTemperature: 15.0
       target_cool_temperature: null
       target_heat_temperature: 15.0
       temperature: 21.5
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 21.5
       zoneType: Thermostat
   '4368406':
@@ -1428,27 +1428,27 @@
       modelType: RoundWireless
       name: Name 3935922
       scheduleCapabilities:
-          max_switchpoints_per_day: 6
-          min_switchpoints_per_day: 0
-          setpoint_value_resolution: 0.5
-          timing_resolution: 00:10:00
+          maxSwitchpointsPerDay: 6
+          minSwitchpointsPerDay: 0
+          setpointValueResolution: 0.5
+          timingResolution: 00:10:00
       setpointCapabilities:
-          allowed_setpoint_modes: *id002
-          can_control_cool: false
-          can_control_heat: true
-          max_duration: 1.00:00:00
-          max_heat_setpoint: 35.0
-          min_heat_setpoint: 5.0
-          timing_resolution: 00:10:00
-          value_resolution: 0.5
+          allowedSetpointModes: *id002
+          canControlCool: false
+          canControlHeat: true
+          maxDuration: 1.00:00:00
+          maxHeatSetpoint: 35.0
+          minHeatSetpoint: 5.0
+          timingResolution: 00:10:00
+          valueResolution: 0.5
       setpointStatus:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 15.0
+          setpointMode: PermanentOverride
+          targetHeatTemperature: 15.0
       target_cool_temperature: null
       target_heat_temperature: 15.0
       temperature: 23.0
       temperatureStatus:
-          is_available: true
+          isAvailable: true
           temperature: 23.0
       zoneType: Thermostat
   

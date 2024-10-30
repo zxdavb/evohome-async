@@ -19,7 +19,6 @@ from .schema import (
     SCH_GET_SCHEDULE_ZONE,
     SCH_PUT_SCHEDULE_ZONE,
     SCH_ZONE_STATUS,
-    camel_to_snake,
     convert_to_put_schedule,
 )
 from .schema.const import (
@@ -97,32 +96,32 @@ class ActiveFaultsBase(EntityBase):
         last_logged = {}
 
         def hash(fault: _EvoDictT) -> str:
-            return f"{fault[camel_to_snake(SZ_FAULT_TYPE)]}_{fault[SZ_SINCE]}"
+            return f"{fault[SZ_FAULT_TYPE]}_{fault[SZ_SINCE]}"
 
         def log_as_active(fault: _EvoDictT) -> None:
             self._logger.warning(
-                f"Active fault: {self}: {fault[camel_to_snake(SZ_FAULT_TYPE)]}, since {fault[SZ_SINCE]}"
+                f"Active fault: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
             )
             last_logged[hash(fault)] = dt.now()
 
         def log_as_resolved(fault: _EvoDictT) -> None:
             self._logger.info(
-                f"Fault cleared: {self}: {fault[camel_to_snake(SZ_FAULT_TYPE)]}, since {fault[SZ_SINCE]}"
+                f"Fault cleared: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
             )
             del self._last_logged[hash(fault)]
 
-        for fault in status[camel_to_snake(SZ_ACTIVE_FAULTS)]:
+        for fault in status[SZ_ACTIVE_FAULTS]:
             if fault not in self.active_faults:  # new active fault
                 log_as_active(fault)
 
         for fault in self.active_faults:
-            if fault not in status[camel_to_snake(SZ_ACTIVE_FAULTS)]:  # fault resolved
+            if fault not in status[SZ_ACTIVE_FAULTS]:  # fault resolved
                 log_as_resolved(fault)
 
             elif dt.now() - self._last_logged[hash(fault)] > _ONE_DAY:
                 log_as_active(fault)
 
-        self.active_faults = status[camel_to_snake(SZ_ACTIVE_FAULTS)]
+        self.active_faults = status[SZ_ACTIVE_FAULTS]
         self._last_logged |= last_logged
 
 
@@ -187,14 +186,11 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
 
     @property
     def temperatureStatus(self) -> _EvoDictT | None:
-        return self._status.get(camel_to_snake(SZ_TEMPERATURE_STATUS))
+        return self._status.get(SZ_TEMPERATURE_STATUS)
 
     @property  # status attr for convenience (new)
     def temperature(self) -> float | None:
-        if (
-            not self.temperatureStatus
-            or not self.temperatureStatus[camel_to_snake(SZ_IS_AVAILABLE)]
-        ):
+        if not self.temperatureStatus or not self.temperatureStatus[SZ_IS_AVAILABLE]:
             return None
         assert isinstance(self.temperatureStatus[SZ_TEMPERATURE], float)  # mypy check
         ret: float = self.temperatureStatus[SZ_TEMPERATURE]
@@ -277,7 +273,7 @@ class Zone(_ZoneDeprecated, _ZoneBase):
     SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_ZONE  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(config[camel_to_snake(SZ_ZONE_ID)], tcs, config)
+        super().__init__(config[SZ_ZONE_ID], tcs, config)
 
         if not self.modelType or self.modelType == ZoneModelType.UNKNOWN:
             raise exc.InvalidSchema(
@@ -299,43 +295,41 @@ class Zone(_ZoneDeprecated, _ZoneBase):
 
     @property
     def modelType(self) -> str:
-        ret: str = self._config[camel_to_snake(SZ_MODEL_TYPE)]
+        ret: str = self._config[SZ_MODEL_TYPE]
         return ret
 
     @property
     def setpointCapabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[camel_to_snake(SZ_SETPOINT_CAPABILITIES)]
+        ret: _EvoDictT = self._config[SZ_SETPOINT_CAPABILITIES]
         return ret
 
     @property  # for convenience (is not a top-level config attribute)
     def allowedSetpointModes(self) -> _EvoListT:
-        ret: _EvoListT = self.setpointCapabilities[
-            camel_to_snake(SZ_ALLOWED_SETPOINT_MODES)
-        ]
+        ret: _EvoListT = self.setpointCapabilities[SZ_ALLOWED_SETPOINT_MODES]
         return ret
 
     @property
     def scheduleCapabilities(self) -> _EvoDictT:
-        result: _EvoDictT = self._config[camel_to_snake(SZ_SCHEDULE_CAPABILITIES)]
+        result: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES]
         return result
 
     @property  # config attr for convenience (new)
     def max_heat_setpoint(self) -> float | None:
         if not self.setpointCapabilities:
             return None
-        ret: float = self.setpointCapabilities[camel_to_snake(SZ_MAX_HEAT_SETPOINT)]
+        ret: float = self.setpointCapabilities[SZ_MAX_HEAT_SETPOINT]
         return ret
 
     @property  # config attr for convenience (new)
     def min_heat_setpoint(self) -> float | None:
         if not self.setpointCapabilities:
             return None
-        ret: float = self.setpointCapabilities[camel_to_snake(SZ_MIN_HEAT_SETPOINT)]
+        ret: float = self.setpointCapabilities[SZ_MIN_HEAT_SETPOINT]
         return ret
 
     @property
     def zoneType(self) -> str:
-        ret: str = self._config[camel_to_snake(SZ_ZONE_TYPE)]
+        ret: str = self._config[SZ_ZONE_TYPE]
         return ret
 
     @property
@@ -345,29 +339,27 @@ class Zone(_ZoneDeprecated, _ZoneBase):
 
     @property
     def setpointStatus(self) -> _EvoDictT | None:
-        return self._status.get(camel_to_snake(SZ_SETPOINT_STATUS))
+        return self._status.get(SZ_SETPOINT_STATUS)
 
     @property  # status attr for convenience (new)
     def mode(self) -> str | None:
         if not self.setpointStatus:
             return None
-        ret: str = self.setpointStatus[camel_to_snake(SZ_SETPOINT_MODE)]
+        ret: str = self.setpointStatus[SZ_SETPOINT_MODE]
         return ret
 
     @property  # status attr for convenience (new)
     def target_cool_temperature(self) -> float | None:
         if not self.setpointStatus:
             return None
-        ret: float | None = self.setpointStatus.get(
-            camel_to_snake(SZ_TARGET_COOL_TEMPERATURE)
-        )
+        ret: float | None = self.setpointStatus.get(SZ_TARGET_COOL_TEMPERATURE)
         return ret
 
     @property  # status attr for convenience (new)
     def target_heat_temperature(self) -> float | None:
         if not self.setpointStatus:
             return None
-        ret: float = self.setpointStatus[camel_to_snake(SZ_TARGET_HEAT_TEMPERATURE)]
+        ret: float = self.setpointStatus[SZ_TARGET_HEAT_TEMPERATURE]
         return ret
 
     # TODO: no provision for cooling
