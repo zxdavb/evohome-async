@@ -12,43 +12,14 @@ import voluptuous as vol
 import evohomeasync as evo1
 import evohomeasync2 as evo2
 from evohomeasync2.auth import Auth
-from evohomeasync2.client import TokenManager
 from evohomeasync2.const import URL_BASE as URL_BASE_2
 
-from .conftest import _DBG_DISABLE_STRICT_ASSERTS, TOKEN_CACHE, aiohttp
+from .conftest import _DBG_DISABLE_STRICT_ASSERTS, aiohttp
 
 _LOGGER = logging.getLogger(__name__)
 
 
 # version 1 helpers ###################################################################
-
-
-_global_session_id: str | None = None  # session_id
-
-
-async def instantiate_client_v1(
-    username: str,
-    password: str,
-    session: aiohttp.ClientSession | None = None,
-) -> evo1.EvohomeClient:
-    """Instantiate a client, and logon to the vendor API."""
-
-    global _global_session_id
-
-    # Instantiation, NOTE: No API calls invoked during instantiation
-    evo = evo1.EvohomeClient(
-        username,
-        password,
-        session=session,
-        session_id=_global_session_id,
-    )
-
-    # Authentication
-    await evo._populate_user_data()
-    _global_session_id = evo.broker.session_id
-
-    return evo
-
 
 async def should_work_v1(
     evo: evo1.EvohomeClient,
@@ -129,43 +100,6 @@ async def should_fail_v1(
 
 # version 2 helpers ###################################################################
 
-_global_token_manager: TokenManager | None = None
-
-
-async def instantiate_client_v2(
-    user_credentials: tuple[str, str],
-    websession: aiohttp.ClientSession,
-    dont_login: bool = False,
-) -> evo2.EvohomeClientNew:
-    """Instantiate a client, and logon to the vendor API (cache any tokens)."""
-
-    global _global_token_manager
-
-    if (
-        not _global_token_manager
-        or _global_token_manager.username != user_credentials[0]
-    ):
-        _global_token_manager = TokenManager(
-            *user_credentials, websession, token_cache=TOKEN_CACHE
-        )
-
-    await _global_token_manager.restore_access_token()
-
-    # Instantiation, NOTE: No API calls invoked during instantiation
-    evo = evo2.EvohomeClientNew(websession, _global_token_manager)
-
-    # Authentication - dont use evo.broker._login() as
-    if dont_login:
-        await evo.broker.token_manager._update_access_token()  # force token refresh
-    else:
-        await evo.login()  # will use cached tokens, if able
-        # will also call evo.user_account(), evo.installation()
-
-    await _global_token_manager.save_access_token()
-
-    return evo
-
-
 async def should_work(
     evo: evo2.EvohomeClientNew,
     method: HTTPMethod,
@@ -181,7 +115,7 @@ async def should_work(
     Used to validate the faked server against a 'real' server.
     """
 
-    response = await evo.broker.request(method, f"{URL_BASE_2}/{url}", json=json)
+    response = await evo.auth.request(method, f"{URL_BASE_2}/{url}", json=json)
 
     content = await Auth._content(response)
     assert response.content_type == content_type, content
@@ -210,7 +144,7 @@ async def should_fail(
     """
 
     try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
-        response = await evo.broker.request(method, f"{URL_BASE_2}/{url}", json=json)
+        response = await evo.auth.request(method, f"{URL_BASE_2}/{url}", json=json)
 
     except aiohttp.ClientResponseError:
         assert False  # err.status == status, err.status
