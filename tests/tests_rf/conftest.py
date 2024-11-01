@@ -26,6 +26,9 @@ _DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 if TYPE_CHECKING:
     import aiohttp
 
+USERNAME = "username@email.com"
+PASSWORD = "P@ssw0rd!!"  # noqa: S105
+
 
 @pytest.fixture(autouse=True)
 def patches_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -65,8 +68,8 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
 def user_credentials() -> tuple[str, str]:
     """Return a username and a password."""
 
-    username: str = os.getenv("TEST_USERNAME") or "username@email.com"
-    password: str = os.getenv("TEST_PASSWORD") or "P@ssw0rd!!"
+    username: str = os.getenv("TEST_USERNAME") or USERNAME
+    password: str = os.getenv("TEST_PASSWORD") or PASSWORD
 
     return username, password
 
