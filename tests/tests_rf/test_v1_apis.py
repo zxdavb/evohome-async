@@ -3,16 +3,16 @@
 
 from __future__ import annotations
 
-import logging
+from typing import TYPE_CHECKING
 
 import pytest
 
 import evohomeasync as evohome
 
 from .conftest import _DBG_USE_REAL_AIOHTTP
-from .helpers import aiohttp, instantiate_client_v1
 
-_LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    import aiohttp
 
 
 async def _test_client_apis(evo: evohome.EvohomeClient) -> None:
@@ -35,7 +35,7 @@ async def _test_client_apis(evo: evohome.EvohomeClient) -> None:
 
 
 async def test_client_apis(
-    user_credentials: tuple[str, str], client_session: aiohttp.ClientSession
+    credentials: tuple[str, str], client_session: aiohttp.ClientSession
 ) -> None:
     """Test _populate_user_data() & _populate_full_data()"""
 
@@ -44,7 +44,7 @@ async def test_client_apis(
 
     try:
         await _test_client_apis(
-            await instantiate_client_v1(*user_credentials, session=client_session)
+            await instantiate_client_v1(*credentials, session=client_session)
         )
     except evohome.AuthenticationFailed:
         pytest.skip("Unable to authenticate")

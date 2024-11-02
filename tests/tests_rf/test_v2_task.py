@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -21,7 +22,11 @@ from evohomeasync2.schema.const import (
 from evohomeasync2.schema.helpers import pascal_case
 
 from .conftest import _DBG_USE_REAL_AIOHTTP
-from .helpers import aiohttp, instantiate_client_v2, should_fail, should_work
+from .helpers import should_fail, should_work
+
+if TYPE_CHECKING:
+    import aiohttp
+
 
 #######################################################################################
 
@@ -37,11 +42,11 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
     tcs: ControlSystem
 
     _ = await evo.user_account()
-    _ = await evo._installation(refresh_status=False)
+    _ = await evo._installation(disable_status_update=True)
 
     for loc in evo.locations:
-        for gwy in loc._gateways:
-            for tcs in gwy._control_systems:
+        for gwy in loc.gateways:
+            for tcs in gwy.control_systems:
                 if tcs.hotwater:
                     # if (dhw := tcs.hotwater) and dhw.temperatureStatus['isAvailable']:
                     dhw = tcs.hotwater
@@ -188,7 +193,7 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
 
 
 async def test_task_id(
-    user_credentials: tuple[str, str],
+    credentials: tuple[str, str],
     client_session: aiohttp.ClientSession,
 ) -> None:
     """Test /location/{loc.id}/status"""
@@ -197,11 +202,9 @@ async def test_task_id(
         pytest.skip("Test is only valid with a real server")
 
     try:
-        await _test_task_id(
-            await instantiate_client_v2(user_credentials, client_session)
-        )
+        await _test_task_id(await instantiate_client_v2(credentials, client_session))
 
-    except evo2.AuthenticationFailed:
+    except evo2.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")

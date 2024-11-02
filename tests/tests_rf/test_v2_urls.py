@@ -36,7 +36,7 @@ from evohomeasync2.schema.schedule import convert_to_put_schedule
 
 from . import faked_server as faked
 from .conftest import _DBG_USE_REAL_AIOHTTP
-from .helpers import aiohttp, instantiate_client_v2, should_fail, should_work
+from .helpers import should_fail, should_work
 
 if TYPE_CHECKING:
     from evohomeasync2.schema import _EvoDictT
@@ -67,10 +67,10 @@ async def _test_usr_account(evo: evo2.EvohomeClient) -> None:
 async def _test_all_config(evo: evo2.EvohomeClient) -> None:
     """Test /location/installationInfo?userId={user_id}"""
 
-    _ = await evo.user_account()
+    _ = await evo.update()
     #
 
-    url = f"location/installationInfo?userId={evo._user_account[SZ_USER_ID]}"
+    url = f"location/installationInfo?userId={evo._user_information[SZ_USER_ID]}"
     await should_work(evo, HTTPMethod.GET, url)
 
     url += "&includeTemperatureControlSystems=True"
@@ -95,9 +95,8 @@ async def _test_all_config(evo: evo2.EvohomeClient) -> None:
 async def _test_loc_status(evo: evo2.EvohomeClient) -> None:
     """Test /location/{loc.id}/status"""
 
-    _ = await evo.user_account()
+    _ = await evo.update(disable_status_update=True)
 
-    _ = await evo._installation(refresh_status=False)
     loc = evo.locations[0]
     #
 
@@ -138,15 +137,14 @@ async def _test_loc_status(evo: evo2.EvohomeClient) -> None:
 async def _test_tcs_mode(evo: evo2.EvohomeClient) -> None:
     """Test /temperatureControlSystem/{tcs.id}/mode"""
 
-    _ = await evo.user_account()
-    _ = await evo._installation(refresh_status=False)
+    _ = await evo.update(disable_status_update=True)
 
     tcs: evo2.ControlSystem
 
-    if not (tcs := evo.locations[0]._gateways[0]._control_systems[0]):
+    if not (tcs := evo.locations[0].gateways[0].control_systems[0]):
         pytest.skip("No available zones found")
 
-    _ = await tcs.location.refresh_status()  # could use: await tcs._refresh_status()
+    _ = await tcs.location.update()
     old_mode: _EvoDictT = tcs.system_mode_status  # type: ignore[assignment]
 
     url = f"{tcs.TYPE}/{tcs.id}/status"
@@ -201,11 +199,9 @@ async def _test_tcs_mode(evo: evo2.EvohomeClient) -> None:
 async def _test_zone_mode(evo: evo2.EvohomeClient) -> None:
     """Test /temperatureZone/{zone.id}/heatSetpoint"""
 
-    _ = await evo.user_account()
-    _ = await evo._installation(refresh_status=False)
+    _ = await evo.update()
 
-    for zone in evo.locations[0]._gateways[0]._control_systems[0]._zones:
-        _ = await zone._refresh_status()
+    for zone in evo.locations[0].gateways[0].control_systems[0].zones:
         if zone.temperature is None:
             break
     else:
@@ -258,10 +254,9 @@ async def _test_zone_mode(evo: evo2.EvohomeClient) -> None:
 async def _test_schedule(evo: evo2.EvohomeClient) -> None:
     """Test /{x.TYPE}/{x.id}/schedule (of a zone)"""
 
-    _ = await evo.user_account()
+    _ = await evo.update()
 
-    _ = await evo.installation()
-    zone = evo.locations[0]._gateways[0]._control_systems[0]._zones[0]
+    zone = evo.locations[0].gateways[0].control_systems[0].zones[0]
     #
 
     if zone.id == faked.GHOST_ZONE_ID:
@@ -307,72 +302,35 @@ async def _test_schedule(evo: evo2.EvohomeClient) -> None:
 #######################################################################################
 
 
-async def test_usr_account(
-    user_credentials: tuple[str, str],
-    client_session: aiohttp.ClientSession,
-) -> None:
+async def test_usr_account(evohome_v2: evo2.EvohomeClient) -> None:
     """Test /userAccount"""
 
     try:
-        await _test_usr_account(
-            await instantiate_client_v2(user_credentials, client_session)
-        )
+        await _test_usr_account(evohome_v2)
 
-    except evo2.AuthenticationFailed:
+    except evo2.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
 
 
-async def test_all_config(
-    user_credentials: tuple[str, str],
-    client_session: aiohttp.ClientSession,
-) -> None:
+async def test_all_config(evohome_v2: evo2.EvohomeClient) -> None:
     """Test /location/installationInfo"""
 
-    try:
-        await _test_all_config(
-            await instantiate_client_v2(user_credentials, client_session)
-        )
-
-    except evo2.AuthenticationFailed:
-        if not _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Unable to authenticate")
+    await _test_all_config(evohome_v2)
 
 
-async def test_loc_status(
-    user_credentials: tuple[str, str],
-    client_session: aiohttp.ClientSession,
-) -> None:
+async def test_loc_status(evohome_v2: evo2.EvohomeClient) -> None:
     """Test /location/{loc.id}/status"""
 
-    try:
-        await _test_loc_status(
-            await instantiate_client_v2(user_credentials, client_session)
-        )
-
-    except evo2.AuthenticationFailed:
-        if not _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Unable to authenticate")
+    await _test_loc_status(evohome_v2)
 
 
-async def test_tcs_mode(
-    user_credentials: tuple[str, str],
-    client_session: aiohttp.ClientSession,
-) -> None:
+async def test_tcs_mode(evohome_v2: evo2.EvohomeClient) -> None:
     """Test /temperatureControlSystem/{tcs.id}/mode"""
 
     try:
-        await _test_tcs_mode(
-            await instantiate_client_v2(user_credentials, client_session)
-        )
-
-    except evo2.AuthenticationFailed:
-        if not _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Unable to authenticate")
+        await _test_tcs_mode(evohome_v2)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -380,21 +338,11 @@ async def test_tcs_mode(
         pytest.skip("Mocked server API not implemented")
 
 
-async def test_zone_mode(
-    user_credentials: tuple[str, str],
-    client_session: aiohttp.ClientSession,
-) -> None:
+async def test_zone_mode(evohome_v2: evo2.EvohomeClient) -> None:
     """Test /temperatureZone/{zone.id}/heatSetpoint"""
 
     try:
-        await _test_zone_mode(
-            await instantiate_client_v2(user_credentials, client_session)
-        )
-
-    except evo2.AuthenticationFailed:
-        if not _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Unable to authenticate")
+        await _test_zone_mode(evohome_v2)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -402,21 +350,10 @@ async def test_zone_mode(
         pytest.skip("Mocked server API not implemented")
 
 
-async def test_schedule(
-    user_credentials: tuple[str, str],
-    client_session: aiohttp.ClientSession,
-) -> None:
+async def test_schedule(evohome_v2: evo2.EvohomeClient) -> None:
     """Test /{x.TYPE}/{x.id}/schedule"""
 
-    try:
-        await _test_schedule(
-            await instantiate_client_v2(user_credentials, client_session)
-        )
-
-    except evo2.AuthenticationFailed:
-        if not _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Unable to authenticate")
+    await _test_schedule(evohome_v2)
 
 
 # TODO: test_oauth_token(

@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import asyncio
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
 
+import aiohttp
 import voluptuous as vol
 
 import evohomeasync as evo1
@@ -15,10 +15,6 @@ from evohomeasync2.auth import Auth
 from evohomeasync2.const import URL_BASE as URL_BASE_2
 
 from .conftest import _DBG_DISABLE_STRICT_ASSERTS
-
-if TYPE_CHECKING:
-    import aiohttp
-
 
 # version 1 helpers ###################################################################
 

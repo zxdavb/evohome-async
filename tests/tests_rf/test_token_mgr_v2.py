@@ -18,7 +18,7 @@ import evohomeasync2 as evo2
 from evohomeasync2 import exceptions as exc
 from evohomeasync2.client import TokenManager
 
-from .conftest import PASSWORD, USERNAME
+from .conftest import DEFAULT_PASSWORD, DEFAULT_USERNAME
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
@@ -42,20 +42,17 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
         data = kwargs["data"]
 
         if data["grant_type"] == "refresh_token":  # mock it is not valid
-            raise aiohttp.ClientResponseError(
-                None, (), status=HTTPStatus.UNAUTHORIZED
-            )
+            raise aiohttp.ClientResponseError(None, (), status=HTTPStatus.UNAUTHORIZED)
 
         # else: data["grant_type"] == "password"...
 
-        if data.get("Username") != USERNAME or data.get("Password") != PASSWORD:
-            raise aiohttp.ClientResponseError(
-                None, (), status=HTTPStatus.BAD_REQUEST
-            )
+        if (
+            data.get("Username") != DEFAULT_USERNAME
+            or data.get("Password") != DEFAULT_PASSWORD
+        ):
+            raise aiohttp.ClientResponseError(None, (), status=HTTPStatus.BAD_REQUEST)
 
-        raise aiohttp.ClientResponseError(
-            None, (), status=HTTPStatus.TOO_MANY_REQUESTS
-        )
+        raise aiohttp.ClientResponseError(None, (), status=HTTPStatus.TOO_MANY_REQUESTS)
 
     mock_session = AsyncMock(spec=aiohttp.ClientSession)
     mock_session.post = post_side_effect
@@ -68,7 +65,7 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
 
 async def test_token_manager_loading(
     client_session: aiohttp.ClientSession,
-    user_credentials: tuple[str, str],
+    credentials: tuple[str, str],
     tmp_path: Path,
     token_data: dict[str, Any],
 ) -> None:
@@ -84,9 +81,7 @@ async def test_token_manager_loading(
     # we don't use the token_manager fixture in this test
     token_cache = tmp_path / ".evo-cache.tst"
 
-    token_manager = TokenManager(
-        *user_credentials, client_session, token_cache=token_cache
-    )
+    token_manager = TokenManager(*credentials, client_session, token_cache=token_cache)
 
     assert tokens_are_null()
     assert not token_manager.is_token_data_valid()
@@ -131,9 +126,7 @@ async def test_token_manager_loading(
     #
     # Test 3: invalid token cache (different username)
     with token_cache.open("w") as f:
-        f.write(
-            json.dumps({f"_{user_credentials[0]}": token_data[user_credentials[0]]})
-        )
+        f.write(json.dumps({f"_{credentials[0]}": token_data[credentials[0]]}))
 
     await token_manager.load_access_token()
 
@@ -142,15 +135,13 @@ async def test_token_manager_loading(
 
 
 async def _test_token_manager_00(
-    user_credentials: tuple[str, str],
+    credentials: tuple[str, str],
     token_cache: Path,
     client_session: aiohttp.ClientSession,
 ) -> None:
     """Test token manager."""
 
-    token_manager = TokenManager(
-        *user_credentials, client_session, token_cache=token_cache
-    )
+    token_manager = TokenManager(*credentials, client_session, token_cache=token_cache)
 
     assert not token_manager.is_token_data_valid()
 
@@ -169,7 +160,7 @@ async def _test_evo_update_00(
     assert evo._user_information is None
     assert evo._installation_config is None
 
-    await evo.update(reset_config=False, update_status=False)
+    await evo.update(reset_config=False, disable_status_update=False)
 
     assert evo._user_information
     assert evo._installation_config
