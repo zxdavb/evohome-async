@@ -104,24 +104,10 @@ class ControlSystem(ActiveFaultsBase):
         ret: str = self._config[SZ_MODEL_TYPE]
         return ret
 
-    async def _refresh_status(self) -> _EvoDictT:
-        await self.location.refresh_status()  # NOTE: SE, also invokes ._update_status()
-        return self._status
-
     def _update_status(self, status: _EvoDictT) -> None:
         super()._update_status(status)  # process active faults
 
         self._status = status
-
-        if dhw_status := self._status.get(SZ_DHW):
-            if self.hotwater and self.hotwater.id == dhw_status[SZ_DHW_ID]:
-                self.hotwater._update_status(dhw_status)
-
-            else:
-                self._logger.warning(
-                    f"{self}: dhw_id='{dhw_status[SZ_DHW_ID]}' not known"
-                    ", (has the system configuration been changed?)"
-                )
 
         for zon_status in self._status[SZ_ZONES]:
             if zone := self.zones_by_id.get(zon_status[SZ_ZONE_ID]):
@@ -130,6 +116,16 @@ class ControlSystem(ActiveFaultsBase):
             else:
                 self._logger.warning(
                     f"{self}: zone_id='{zon_status[SZ_ZONE_ID]}' not known"
+                    ", (has the system configuration been changed?)"
+                )
+
+        if dhw_status := self._status.get(SZ_DHW):
+            if self.hotwater and self.hotwater.id == dhw_status[SZ_DHW_ID]:
+                self.hotwater._update_status(dhw_status)
+
+            else:
+                self._logger.warning(
+                    f"{self}: dhw_id='{dhw_status[SZ_DHW_ID]}' not known"
                     ", (has the system configuration been changed?)"
                 )
 
@@ -209,7 +205,7 @@ class ControlSystem(ActiveFaultsBase):
     async def temperatures(self) -> _EvoListT:
         """A convenience function to return the latest temperatures and setpoints."""
 
-        await self.location.refresh_status()
+        await self.location.update()
 
         result = []
 

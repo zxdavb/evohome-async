@@ -273,7 +273,7 @@ async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> 
 
     result = {
         "config": evo.installation_config,
-        "status": await evo.locations[loc_idx].refresh_status(),
+        "status": await evo.locations[loc_idx].update(),
     }
 
     await _write(output_file, json.dumps(result, indent=4) + "\r\n\r\n")

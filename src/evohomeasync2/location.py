@@ -89,9 +89,11 @@ class Location(EntityBase):
         return ret
 
     async def update(self) -> _EvoDictT:
-        """Update the entire Location with its latest status.
+        """Get the latest state of the location and update its status.
 
-        Returns the raw JSON of the status.
+        Will also update teh status of its gateways, their TCSs, and their DHW/zones.
+
+        Returns the raw JSON of the latest state.
         """
 
         status: _EvoDictT = await self._broker.get(

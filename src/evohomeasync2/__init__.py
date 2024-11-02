@@ -109,12 +109,15 @@ class EvohomeClientNew:  # requires a Token Manager
         /,
         *,
         reset_config: bool = False,
-        update_status: bool = True,
+        disable_status_update: bool = False,
     ) -> _EvoListT:
-        """Retrieve the latest status of all the locations of the installation.
+        """Retrieve the latest state of the installation and it's locations.
 
         If required, or when `reset_config` is true, first retrieves the user
         information & installation configuration.
+
+        If `disable_status_update` is True, does not update the status of each location
+        (but will still retreive configuration data, if required).
         """
 
         if reset_config:
@@ -141,13 +144,13 @@ class EvohomeClientNew:  # requires a Token Manager
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 
-            if update_status and (num := len(self._locations)) > 1:
+            if disable_status_update and (num := len(self._locations)) > 1:
                 self._logger.warning(
                     f"There are {num} locations. Reduce the risk of exceeding API rate "
                     "limits by individually updating only the necessary locations."
                 )
 
-        if update_status:
+        if not disable_status_update:
             for loc in self._locations:
                 await loc.update()
 
