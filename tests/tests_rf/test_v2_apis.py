@@ -31,8 +31,8 @@ async def _test_basics_apis(evo: evo2.EvohomeClientNew) -> None:
     # STEP 1: retrieve base data
     await evo.update(dont_update_status=False)
 
-    assert SCH_USER_ACCOUNT(evo._install_config)
-    assert SCH_FULL_CONFIG(evo._user_info)
+    assert SCH_USER_ACCOUNT(evo._user_info)
+    assert SCH_FULL_CONFIG(evo._install_config)
 
     # STEP 4: Status, GET /location/{loc.id}/status
     for loc in evo.locations:
