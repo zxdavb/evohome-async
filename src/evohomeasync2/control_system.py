@@ -151,7 +151,7 @@ class ControlSystem(ActiveFaultsBase):
 
     async def reset_mode(self) -> None:
         """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
-        await self.set_status(SystemMode.AUTO_WITH_RESET)
+        await self.set_mode(SystemMode.AUTO_WITH_RESET)
 
     async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
@@ -180,27 +180,27 @@ class ControlSystem(ActiveFaultsBase):
 
     async def set_auto(self) -> None:
         """Set the system into normal mode."""
-        await self.set_status(SystemMode.AUTO)
+        await self.set_mode(SystemMode.AUTO)
 
     async def set_away(self, /, *, until: dt | None = None) -> None:
         """Set the system into away mode."""
-        await self.set_status(SystemMode.AWAY, until=until)
+        await self.set_mode(SystemMode.AWAY, until=until)
 
     async def set_custom(self, /, *, until: dt | None = None) -> None:
         """Set the system into custom mode."""
-        await self.set_status(SystemMode.CUSTOM, until=until)
+        await self.set_mode(SystemMode.CUSTOM, until=until)
 
     async def set_dayoff(self, /, *, until: dt | None = None) -> None:
         """Set the system into dayoff mode."""
-        await self.set_status(SystemMode.DAY_OFF, until=until)
+        await self.set_mode(SystemMode.DAY_OFF, until=until)
 
     async def set_eco(self, /, *, until: dt | None = None) -> None:
         """Set the system into eco mode."""
-        await self.set_status(SystemMode.AUTO_WITH_ECO, until=until)
+        await self.set_mode(SystemMode.AUTO_WITH_ECO, until=until)
 
     async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
         """Set the system into heating off mode."""
-        await self.set_status(SystemMode.HEATING_OFF, until=until)
+        await self.set_mode(SystemMode.HEATING_OFF, until=until)
 
     async def temperatures(self) -> _EvoListT:
         """A convenience function to return the latest temperatures and setpoints."""
