@@ -81,6 +81,7 @@ class AbstractTokenManager(ABC):
     _access_token: str
     _access_token_expires: dt
     _refresh_token: str
+    websession: aiohttp.ClientSession
 
     def __init__(
         self,
@@ -128,11 +129,18 @@ class AbstractTokenManager(ABC):
         self._access_token_expires = dt.min
         self._refresh_token = ""
 
-    def _auth_tokens_from_api(self, tokens: OAuthTokenData) -> None:
+    def _auth_tokens_from_api(self, tokens: OAuthTokenData) -> tuple[str, dt, str]:
         """Convert the token data from the vendor's API to the internal format."""
+
         self._access_token = tokens[SZ_ACCESS_TOKEN]
         self._access_token_expires = dt.now() + td(seconds=tokens[SZ_EXPIRES_IN])
         self._refresh_token = tokens[SZ_REFRESH_TOKEN]
+
+        return (
+            self._access_token,
+            self._access_token_expires,
+            self._refresh_token,
+        )
 
     def _deserialize_auth_tokens(self, tokens: _EvoTokenData) -> None:
         """Deserialize the token data from a dictionary."""
@@ -175,7 +183,7 @@ class AbstractTokenManager(ABC):
                     CREDS_REFRESH_TOKEN | {SZ_REFRESH_TOKEN: self.refresh_token}
                 )
 
-            except exc.AuthenticationFailed as err:
+            except exc.AuthenticationFailedError as err:
                 if err.status != HTTPStatus.BAD_REQUEST:  # e.g. invalid tokens
                     raise
 
@@ -216,9 +224,8 @@ class AbstractTokenManager(ABC):
 
         try:
             self._auth_tokens_from_api(token_data)
-
         except (KeyError, TypeError) as err:
-            raise exc.AuthenticationFailed(
+            raise exc.AuthenticationFailedError(
                 f"Invalid response from server: {err}"
             ) from err
 
@@ -237,17 +244,17 @@ class AbstractTokenManager(ABC):
             # <title>Authorize error <h1>Authorization failed
             # <p>The authorization server have encoutered an error while processing...  # codespell:ignore encoutered
             content = await response.text()
-            raise exc.AuthenticationFailed(
+            raise exc.AuthenticationFailedError(
                 f"Server response is not JSON: {HTTPMethod.POST} {AUTH_URL}: {content}"
             ) from err
 
         except aiohttp.ClientResponseError as err:
             if hint := _ERR_MSG_LOOKUP_AUTH.get(err.status):
-                raise exc.AuthenticationFailed(hint, status=err.status) from err
-            raise exc.AuthenticationFailed(str(err), status=err.status) from err
+                raise exc.AuthenticationFailedError(hint, status=err.status) from err
+            raise exc.AuthenticationFailedError(str(err), status=err.status) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            raise exc.AuthenticationFailed(str(err)) from err
+            raise exc.AuthenticationFailedError(str(err)) from err
 
     @abstractmethod
     async def save_access_token(self) -> None:  # HA: api
@@ -309,11 +316,11 @@ class Auth(AbstractAuth):
 
             except aiohttp.ClientResponseError as err:
                 if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
-                    raise exc.RequestFailed(hint, status=err.status) from err
-                raise exc.RequestFailed(str(err), status=err.status) from err
+                    raise exc.RequestFailedError(hint, status=err.status) from err
+                raise exc.RequestFailedError(str(err), status=err.status) from err
 
             except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-                raise exc.RequestFailed(str(err)) from err
+                raise exc.RequestFailedError(str(err)) from err
 
             return await self._content(response)
 

@@ -86,7 +86,7 @@ def _get_tcs(evo: EvohomeClientNew, loc_idx: int | None) -> ControlSystem:
     if loc_idx is None:
         return evo._get_single_tcs()
 
-    return evo.locations[int(loc_idx)]._gateways[0]._control_systems[0]
+    return evo.locations[int(loc_idx)].gateways[0].control_systems[0]
 
 
 async def _write(output_file: TextIOWrapper | Any, content: str) -> None:
@@ -120,7 +120,7 @@ class TokenManager(AbstractTokenManager):
         """Return the token cache path."""
         return str(self._token_cache)
 
-    async def restore_access_token(self) -> None:
+    async def load_access_token(self) -> None:
         """Load the tokens from a cache (temporary file).
 
         Reset the token data if the cache is not found, or is for a different user.
@@ -209,13 +209,13 @@ async def cli(
     )
 
     if cache_tokens:  # restore cached tokens, if any
-        await token_manager.restore_access_token()
+        await token_manager.load_access_token()
 
     evo = EvohomeClientNew(websession, token_manager, debug=bool(debug))
 
     try:
         await evo.login()
-    except exc.AuthenticationFailed:
+    except exc.AuthenticationFailedError:
         await websession.close()
         raise
 
@@ -272,7 +272,7 @@ async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> 
     evo: EvohomeClientNew = ctx.obj[SZ_EVO]
 
     result = {
-        "config": evo.installation_info,
+        "config": evo.installation_config,
         "status": await evo.locations[loc_idx].refresh_status(),
     }
 
