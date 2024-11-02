@@ -5,7 +5,6 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
 
 import pytest
 import yaml
@@ -13,7 +12,7 @@ from syrupy import SnapshotAssertion
 
 import evohomeasync2 as evo2
 
-from .conftest import FIXTURES_DIR, TokenManager, broker_get
+from .conftest import FIXTURES_DIR
 from .helpers import get_property_methods
 
 
@@ -27,12 +26,12 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 
 async def test_system_snapshot(
-    install: str, token_manager: TokenManager, snapshot: SnapshotAssertion
+    evohome_v2: evo2.EvohomeClientNew,
+    snapshot: SnapshotAssertion,
 ) -> None:
     """Test the user account schema against the corresponding JSON."""
 
     def serializable_attrs(obj: object) -> dict[str, Any]:
-
         result = {}
         for k in list(vars(obj).keys()) + get_property_methods(obj):
             if not k.startswith("_"):
@@ -43,14 +42,7 @@ async def test_system_snapshot(
 
         return result
 
-    with patch("evohomeasync2.auth.Auth.get", broker_get(install)):
-        evo = evo2.EvohomeClientNew(token_manager)
-
-        await evo.update()
-
-    assert evo
-
-    loc = evo.locations[0]
+    loc = evohome_v2.locations[0]
     assert serializable_attrs(loc) == snapshot(name="location")
 
     gwy = loc.gateways[0]

@@ -5,17 +5,19 @@ from __future__ import annotations
 
 import json
 import logging
-import pathlib
 from collections.abc import AsyncGenerator, Callable, Generator
 from datetime import datetime as dt
 from functools import lru_cache
+from pathlib import Path
+from typing import Final
+from unittest.mock import patch
 
 import aiohttp
 import pytest
-import pytest_asyncio
 import voluptuous as vol
 from aioresponses import aioresponses
 
+import evohomeasync2 as evo2
 from evohomeasync2.auth import AbstractTokenManager
 from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
 
@@ -25,21 +27,18 @@ type JsonValueType = (
 type JsonArrayType = list[JsonValueType]
 type JsonObjectType = dict[str, JsonValueType]
 
-FIXTURES_DIR = pathlib.Path(__file__).parent / "fixtures"
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
-_LOGGER = logging.getLogger(__name__)
+
+# used to construct the default token cache
+DEFAULT_USERNAME: Final[str] = "username@email.com"
+DEFAULT_PASSWORD: Final[str]  = "P@ssw0rd!!"  # noqa: S105
 
 
 class ClientStub:
     auth = None
     broker = None
-    _logger = _LOGGER
-
-
-class GatewayStub:
-    _broker = None
-    _logger = _LOGGER
-    location = None
+    _logger = logging.getLogger(__name__)
 
 
 class TokenManager(AbstractTokenManager):
@@ -63,34 +62,42 @@ def block_aiohttp() -> Generator[Callable]:
 
 
 @lru_cache
-def load_fixture(install: str, file_name: str) -> JsonArrayType | JsonObjectType:
+def load_fixture(file: Path) -> JsonArrayType | JsonObjectType:
     """Load a file fixture."""
 
-    try:
-        try:
-            text = pathlib.Path(FIXTURES_DIR / install / file_name).read_text()
-        except FileNotFoundError:
-            text = pathlib.Path(FIXTURES_DIR / "default" / file_name).read_text()
-
-    except FileNotFoundError:
-        pytest.xfail(f"Fixture file not found: {file_name}")
+    text = Path(file).read_text()
 
     return json.loads(text)  # type: ignore[no-any-return]
 
 
+def _load_fixture(install: str, file_name: str) -> JsonArrayType | JsonObjectType:
+    """Load a file fixture."""
+
+    try:
+        try:
+            result = load_fixture(FIXTURES_DIR / install / file_name)
+        except FileNotFoundError:
+            result = load_fixture(FIXTURES_DIR / "default" / file_name)
+
+    except FileNotFoundError:
+        pytest.xfail(f"Fixture file not found: {file_name}")
+
+    return result
+
+
 def user_account_fixture(install: str) -> JsonObjectType:
     """Load the JSON of the user installation."""
-    return load_fixture(install, "user_account.json")  # type: ignore[return-value]
+    return _load_fixture(install, "user_account.json")  # type: ignore[return-value]
 
 
 def user_locations_config_fixture(install: str) -> JsonArrayType:
     """Load the JSON of the config of a user's installation (a list of locations)."""
-    return load_fixture(install, "user_locations.json")  # type: ignore[return-value]
+    return _load_fixture(install, "user_locations.json")  # type: ignore[return-value]
 
 
 def location_status_fixture(install: str, loc_id: str) -> JsonObjectType:
     """Load the JSON of the status of a location."""
-    return load_fixture(install, f"status_{loc_id}.json")  # type: ignore[return-value]
+    return _load_fixture(install, f"status_{loc_id}.json")  # type: ignore[return-value]
 
 
 def broker_get(install: str) -> Callable:
@@ -113,7 +120,7 @@ def broker_get(install: str) -> Callable:
     return get
 
 
-@pytest_asyncio.fixture
+@pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
     """Yield a vanilla aiohttp.ClientSession."""
 
@@ -125,16 +132,42 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
         await client_session.close()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
+def credentials() -> tuple[str, str]:
+    """Return a username and a password."""
+
+    return DEFAULT_USERNAME, DEFAULT_PASSWORD
+
+
+@pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def token_manager(
     client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
 ) -> AsyncGenerator[TokenManager, None]:
     """Yield a token manager with vanilla credentials."""
 
-    token_manager = TokenManager("user@mail.com", "password", client_session)
+    token_manager = TokenManager(credentials[0], credentials[1], client_session)
     await token_manager.restore_access_token()
 
     try:
         yield token_manager
     finally:
         await token_manager.save_access_token()
+
+
+@pytest.fixture
+async def evohome_v2(
+    install: str,
+    token_manager: TokenManager,
+) -> AsyncGenerator[evo2.EvohomeClientNew, None]:
+    """Yield an instance of a v2 EvohomeClient."""
+
+    with patch("evohomeasync2.auth.Auth.get", broker_get(install)):
+        evo = evo2.EvohomeClientNew(token_manager)
+
+        await evo.update()
+
+        try:
+            yield evo
+        finally:
+            pass
