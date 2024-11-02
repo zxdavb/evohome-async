@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """evohomeasync provides an async client for the *original* Evohome TCC API."""
 
+from __future__ import annotations
+
 from enum import EnumCheck, StrEnum, verify
 from typing import Any, Final, NewType
 
@@ -24,7 +26,7 @@ _ZoneNameT = NewType("_ZoneNameT", str)
 _TaskIdT = NewType("_TaskIdT", str)  # TODO: int or str?
 
 
-SZ_SESSION_ID: Final = "sessionId"  # is Id, not ID
+SZ_SESSION_ID: Final = "sessionId"
 
 # schema keys (start with a lower case letter)
 SZ_ALLOWED_MODES: Final = "allowedModes"
@@ -33,7 +35,7 @@ SZ_COOL_SETPOINT: Final = "coolSetpoint"
 SZ_DEVICE_ID: Final = "deviceID"  # is ID, not Id
 SZ_DEVICES: Final = "devices"
 SZ_DOMAIN_ID: Final = "domainID"  # is ID, not Id
-SZ_GATEWAY_ID: Final = "gatewayId"  # is Id, not ID
+SZ_GATEWAY_ID: Final = "gatewayId"
 SZ_HEAT_SETPOINT: Final = "heatSetpoint"
 SZ_ID: Final = "id"  # is id, not Id/ID
 SZ_INDOOR_TEMPERATURE: Final = "indoorTemperature"
@@ -66,12 +68,12 @@ SZ_HEATING_OFF: Final = "HeatingOff"
 
 @verify(EnumCheck.UNIQUE)
 class SystemMode(StrEnum):
-    AUTO: Final = SZ_AUTO
-    AUTO_WITH_ECO: Final = SZ_AUTO_WITH_ECO
-    AWAY: Final = SZ_AWAY
-    CUSTOM: Final = SZ_CUSTOM
-    DAY_OFF: Final = SZ_DAY_OFF
-    HEATING_OFF: Final = SZ_HEATING_OFF
+    AUTO = SZ_AUTO
+    AUTO_WITH_ECO = SZ_AUTO_WITH_ECO
+    AWAY = SZ_AWAY
+    CUSTOM = SZ_CUSTOM
+    DAY_OFF = SZ_DAY_OFF
+    HEATING_OFF = SZ_HEATING_OFF
 
 
 #
