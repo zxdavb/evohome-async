@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from http import HTTPMethod, HTTPStatus
+from typing import TYPE_CHECKING
 
 import voluptuous as vol
 
@@ -14,12 +14,14 @@ import evohomeasync2 as evo2
 from evohomeasync2.auth import Auth
 from evohomeasync2.const import URL_BASE as URL_BASE_2
 
-from .conftest import _DBG_DISABLE_STRICT_ASSERTS, aiohttp
+from .conftest import _DBG_DISABLE_STRICT_ASSERTS
 
-_LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    import aiohttp
 
 
 # version 1 helpers ###################################################################
+
 
 async def should_work_v1(
     evo: evo1.EvohomeClient,
@@ -99,6 +101,7 @@ async def should_fail_v1(
 
 
 # version 2 helpers ###################################################################
+
 
 async def should_work(
     evo: evo2.EvohomeClientNew,
@@ -206,5 +209,4 @@ async def wait_for_comm_task_v2(evo: evo2.EvohomeClientNew, task_id: str) -> boo
             continue
 
         else:
-            # raise RuntimeError(f"Unexpected state: {response['state']}")
-            _LOGGER.warning(f"Unexpected state: {response['state']}")  # type: ignore[call-overload]
+            raise RuntimeError(f"Unexpected state: {response['state']}")

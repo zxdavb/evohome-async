@@ -8,7 +8,7 @@ import os
 from collections.abc import AsyncGenerator
 from datetime import datetime as dt, timedelta as td
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 import pytest
 
@@ -20,14 +20,15 @@ from .faked_server import FakedServer
 
 #
 # normally, we want debug flags to be False
-_DBG_USE_REAL_AIOHTTP = True
+_DBG_USE_REAL_AIOHTTP = False
 _DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 
 if TYPE_CHECKING:
     import aiohttp
 
-USERNAME = "username@email.com"
-PASSWORD = "P@ssw0rd!!"  # noqa: S105
+# used to construct the default token cache
+DEFAULT_USERNAME: Final[str] = "username@email.com"
+DEFAULT_PASSWORD: Final[str] = "P@ssw0rd!!"  # noqa: S105
 
 
 @pytest.fixture(autouse=True)
@@ -65,21 +66,21 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
 
 
 @pytest.fixture(scope="session")
-def user_credentials() -> tuple[str, str]:
+def credentials() -> tuple[str, str]:
     """Return a username and a password."""
 
-    username: str = os.getenv("TEST_USERNAME") or USERNAME
-    password: str = os.getenv("TEST_PASSWORD") or PASSWORD
+    username: str = os.getenv("TEST_USERNAME") or DEFAULT_USERNAME
+    password: str = os.getenv("TEST_PASSWORD") or DEFAULT_PASSWORD
 
     return username, password
 
 
 @pytest.fixture(scope="session")
-def token_data(user_credentials: tuple[str, str]) -> dict[str, Any]:
+def token_data(credentials: tuple[str, str]) -> dict[str, Any]:
     """Return the path to the token cache."""
 
     return {
-        user_credentials[0]: {
+        credentials[0]: {
             "access_token": "ncWMqPh2yGgAqc...",
             "access_token_expires": (dt.now() + td(hours=1)).isoformat(),
             "refresh_token": "Ryx9fL34Z5GcNV...",
@@ -111,14 +112,12 @@ def token_cache(
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def token_manager(
     client_session: aiohttp.ClientSession,
-    user_credentials: tuple[str, str],
+    credentials: tuple[str, str],
     token_cache: Path,
 ) -> AsyncGenerator[TokenManager, None]:
     """Yield a token manager."""
 
-    token_manager = TokenManager(
-        *user_credentials, client_session, token_cache=token_cache
-    )
+    token_manager = TokenManager(*credentials, client_session, token_cache=token_cache)
 
     await token_manager.load_access_token()  # restore auth tokens from cache
 
@@ -130,12 +129,12 @@ async def token_manager(
 
 @pytest.fixture
 async def evohome_v1(
-    user_credentials: tuple[str, str],
+    credentials: tuple[str, str],
     client_session: aiohttp.ClientSession,
 ) -> AsyncGenerator[evo1.EvohomeClient, None]:
     """Yield an instance of a v1 EvohomeClient."""
 
-    evo = evo1.EvohomeClient(*user_credentials, websession=client_session)
+    evo = evo1.EvohomeClient(*credentials, websession=client_session)
 
     try:
         yield evo

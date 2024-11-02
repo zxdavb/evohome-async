@@ -106,13 +106,13 @@ def broker_get(install: str) -> Callable:
     async def get(  # type: ignore[no-untyped-def]
         self, url: str, schema: vol.Schema | None = None
     ) -> JsonArrayType | JsonObjectType:
-        if "userAccount" in url:  # EvohomeClient.user_account
+        if "userAccount" in url:
             return SCH_USER_ACCOUNT(user_account_fixture(install))  # type: ignore[no-any-return]
 
-        elif "installationInfo" in url:  # EvohomeClient._installation
+        elif "installationInfo" in url:
             return SCH_FULL_CONFIG(user_locations_config_fixture(install))  # type: ignore[no-any-return]
 
-        elif "status" in url:  # Location.refresh_status
+        elif "status" in url:
             return SCH_LOCN_STATUS(location_status_fixture(install, url.split("/")[1]))  # type: ignore[no-any-return]
 
         pytest.fail(f"Unexpected/unknown URL: {url}")
