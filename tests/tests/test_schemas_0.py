@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import json
-import logging
 from pathlib import Path
 
 import pytest
@@ -22,6 +21,7 @@ from evohomeasync2.schema.const import (
     SZ_TIME_ZONE,
 )
 
+from .conftest import ClientStub
 from .helpers import TEST_DIR
 
 WORK_DIR = f"{TEST_DIR}/schemas_0"
@@ -29,17 +29,6 @@ WORK_DIR = f"{TEST_DIR}/schemas_0"
 # NOTE: JSON from HA is not compliant with vendor schema, but is useful to test against
 CONFIG_FILE_NAME = "config.json"
 STATUS_FILE_NAME = "status.json"
-
-
-class ClientStub:
-    broker = None
-    _logger = logging.getLogger(__name__)
-
-
-class GatewayStub:
-    _broker = None
-    _logger = logging.getLogger(__name__)
-    location = None
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:

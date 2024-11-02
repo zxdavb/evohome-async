@@ -31,6 +31,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ClientStub:
+    auth = None
     broker = None
     _logger = _LOGGER
 

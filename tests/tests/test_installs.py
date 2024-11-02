@@ -31,39 +31,36 @@ async def test_system_snapshot(
 ) -> None:
     """Test the user account schema against the corresponding JSON."""
 
-    def obj_to_dict(obj: object) -> dict[str, Any]:
-        DEPRECATED_ATTRS = (  # attrs only in _Deprecated classes
-            "activeFaults",
-            "dhwId",
-            "gatewayId",
-            "locationId",
-            "systemId",
-            "zoneId",
-        )
-        return {
-            attr: getattr(obj, attr)
-            for attr in get_property_methods(obj)
-            if attr not in DEPRECATED_ATTRS
-        }
+    def serializable_attrs(obj: object) -> dict[str, Any]:
+
+        result = {}
+        for k in list(vars(obj).keys()) + get_property_methods(obj):
+            if not k.startswith("_"):
+                try:
+                    result[k] = yaml.dump(getattr(obj, k))
+                except TypeError:  # not all attrs are serializable
+                    continue
+
+        return result
 
     with patch("evohomeasync2.auth.Auth.get", broker_get(install)):
-        evo = evo2.EvohomeClientNew(token_manager.websession, token_manager)
+        evo = evo2.EvohomeClientNew(token_manager)
 
-        await evo.login()
+        await evo.update()
 
     assert evo
 
     loc = evo.locations[0]
-    assert yaml.dump(obj_to_dict(loc), indent=4) == snapshot(name="location")
+    assert serializable_attrs(loc) == snapshot(name="location")
 
-    gwy = loc._gateways[0]
-    assert yaml.dump(obj_to_dict(gwy), indent=4) == snapshot(name="gateway")
+    gwy = loc.gateways[0]
+    assert serializable_attrs(gwy) == snapshot(name="gateway")
 
-    tcs = gwy._control_systems[0]
-    assert yaml.dump(obj_to_dict(tcs), indent=4) == snapshot(name="control_system")
+    tcs = gwy.control_systems[0]
+    assert serializable_attrs(tcs) == snapshot(name="control_system")
 
-    dhw = tcs.hotwater
-    assert yaml.dump(obj_to_dict(dhw), indent=4) == snapshot(name="hot_water")
+    if dhw := tcs.hotwater:
+        assert serializable_attrs(dhw) == snapshot(name="hot_water")
 
-    zones = {z.id: obj_to_dict(z) for z in tcs._zones}
+    zones = {z.id: serializable_attrs(z) for z in tcs.zones}
     assert yaml.dump(zones, indent=4) == snapshot(name="zones")
