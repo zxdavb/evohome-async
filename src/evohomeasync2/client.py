@@ -211,10 +211,10 @@ async def cli(
     if cache_tokens:  # restore cached tokens, if any
         await token_manager.load_access_token()
 
-    evo = EvohomeClientNew(websession, token_manager, debug=bool(debug))
+    evo = EvohomeClientNew(token_manager, debug=bool(debug))
 
     try:
-        await evo.login()
+        await evo.update()
     except exc.AuthenticationFailedError:
         await websession.close()
         raise

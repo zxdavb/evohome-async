@@ -38,7 +38,7 @@ def patches_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
     if _DBG_USE_REAL_AIOHTTP:
         import aiohttp
     else:
-        from .faked_server import aiohttp
+        from .faked_server import aiohttp  # type: ignore[no-redef]
 
     monkeypatch.setattr("evohomeasync.auth.aiohttp", aiohttp)
     monkeypatch.setattr("evohomeasync2.auth.aiohttp", aiohttp)
@@ -52,7 +52,7 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
     if _DBG_USE_REAL_AIOHTTP:
         import aiohttp
     else:
-        from .faked_server import aiohttp
+        from .faked_server import aiohttp  # type: ignore[no-redef]
 
     if _DBG_USE_REAL_AIOHTTP:
         client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))

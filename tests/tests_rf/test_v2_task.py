@@ -26,7 +26,7 @@ from .helpers import should_fail, should_work
 #######################################################################################
 
 
-async def _test_task_id(evo: evo2.EvohomeClient) -> None:
+async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
@@ -186,7 +186,7 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
 #######################################################################################
 
 
-async def test_task_id(evohome_v2: evo2.EvohomeClient) -> None:
+async def test_task_id(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /location/{loc.id}/status"""
 
     if not _DBG_USE_REAL_AIOHTTP:

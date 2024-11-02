@@ -197,12 +197,13 @@ async def wait_for_comm_task_v2(evo: evo2.EvohomeClientNew, task_id: str) -> boo
         response = await should_work(evo, HTTPMethod.GET, url)
         assert isinstance(response, dict | list), response
 
-        if response["state"] == "Succeeded":  # type: ignore[call-overload]
+        task = response[0] if isinstance(response, list) else response
+
+        if task["state"] == "Succeeded":
             return True
 
-        if response["state"] in ("Created", "Running"):  # type: ignore[call-overload]
+        if task["state"] in ("Created", "Running"):
             await asyncio.sleep(0.3)
             continue
 
-        else:
-            raise RuntimeError(f"Unexpected state: {response['state']}")
+        raise RuntimeError(f"Unexpected state: {task['state']}")

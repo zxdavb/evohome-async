@@ -25,14 +25,14 @@ from .conftest import _DBG_USE_REAL_AIOHTTP
 #######################################################################################
 
 
-async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
+async def _test_basics_apis(evo: evo2.EvohomeClientNew) -> None:
     """Test authentication, `user_account()` and `installation()`."""
 
     # STEP 1: retrieve base data
     await evo.update(dont_update_status=False)
 
-    assert SCH_USER_ACCOUNT(evo._installation_config)
-    assert SCH_FULL_CONFIG(evo._user_information)
+    assert SCH_USER_ACCOUNT(evo._install_config)
+    assert SCH_FULL_CONFIG(evo._user_info)
 
     # STEP 4: Status, GET /location/{loc.id}/status
     for loc in evo.locations:
@@ -42,7 +42,7 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
     pass
 
 
-async def _test_sched__apis(evo: evo2.EvohomeClient) -> None:
+async def _test_sched__apis(evo: evo2.EvohomeClientNew) -> None:
     """Test `get_schedule()` and `get_schedule()`."""
 
     # STEP 1: retrieve base data
@@ -70,7 +70,7 @@ async def _test_sched__apis(evo: evo2.EvohomeClient) -> None:
             assert False
 
 
-async def _test_update_apis(evo: evo2.EvohomeClient) -> None:
+async def _test_update_apis(evo: evo2.EvohomeClientNew) -> None:
     """Test `_update()` for DHW/zone."""
 
     # STEP 1: retrieve config
@@ -88,7 +88,7 @@ async def _test_update_apis(evo: evo2.EvohomeClient) -> None:
     pass
 
 
-async def _test_system_apis(evo: evo2.EvohomeClient) -> None:
+async def _test_system_apis(evo: evo2.EvohomeClientNew) -> None:
     """Test `set_mode()` for TCS."""
 
     # STEP 1: retrieve base data
@@ -114,22 +114,22 @@ async def _test_system_apis(evo: evo2.EvohomeClient) -> None:
 #######################################################################################
 
 
-async def test_basics(evohome_v2: evo2.EvohomeClient) -> None:
+async def test_basics(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test authentication, `user_account()` and `installation()`."""
     await _test_basics_apis(evohome_v2)
 
 
-async def _test_sched_(evohome_v2: evo2.EvohomeClient) -> None:
+async def _test_sched_(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test `get_schedule()` and `get_schedule()`."""
     await _test_sched__apis(evohome_v2)
 
 
-async def test_status(evohome_v2: evo2.EvohomeClient) -> None:
+async def test_status(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test `_update()` for DHW/zone."""
     await _test_update_apis(evohome_v2)
 
 
-async def test_system(evohome_v2: evo2.EvohomeClient) -> None:
+async def test_system(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test `set_mode()` for TCS"""
 
     try:

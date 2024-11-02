@@ -47,7 +47,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
-    """A wrapper to expose the new EvohomeClient without a TokenManager."""
+    """A TokenManager wrapper to help expose the new EvohomeClient."""
 
     def __init__(
         self,
@@ -76,8 +76,8 @@ class TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
 class EvohomeClientNew:  # requires a Token Manager
     """Provide a client to access the Honeywell TCC API."""
 
-    _installation_config: _EvoListT | None = None  # all locations
-    _user_information: _EvoDictT | None = None
+    _install_config: _EvoListT | None = None  # all locations
+    _user_info: _EvoDictT | None = None
 
     def __init__(
         self,
@@ -119,25 +119,31 @@ class EvohomeClientNew:  # requires a Token Manager
         """
 
         if reset_config:
-            self._user_information = None
-            self._installation_config = None
+            self._user_info = None
+            self._install_config = None
 
-        if not self._user_information:
+        if self._user_info is None:
             url = "userAccount"
-            self._user_information = await self.auth.get(url, schema=SCH_USER_ACCOUNT)
+            self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
 
-        if not self._installation_config:
-            url = (
-                f"location/installationInfo?userId={self._user_information[SZ_USER_ID]}"
-            )
+        assert self._user_info is not None  # mypy hint
+
+        if self._install_config is None:
+            url = f"location/installationInfo?userId={self._user_info[SZ_USER_ID]}"
             url += "&includeTemperatureControlSystems=True"
 
-            self._installation_config = await self.auth.get(url, schema=SCH_FULL_CONFIG)
+            self._install_config = await self.auth.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
 
+            self._locations = None
+            self._location_by_id = None
+
+        assert self._install_config is not None  # mypy hint
+
+        if self._locations is None:
             self._locations = []
             self._location_by_id = {}
 
-            for loc_config in self._installation_config:
+            for loc_config in self._install_config:
                 loc = Location(self, loc_config)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
@@ -148,42 +154,47 @@ class EvohomeClientNew:  # requires a Token Manager
                     "limits by individually updating only the necessary locations."
                 )
 
+        assert self._locations is not None  # mypy hint
+
         if not dont_update_status:
             for loc in self._locations:
                 await loc.update()
 
-        return self._installation_config
+        return self._install_config
 
     @property
     def user_information(self) -> _EvoDictT:
         """Return the information of the user account."""
 
-        if not self._user_information:
+        if not self._user_info:
             raise exc.NoSystemConfigError(
                 f"{self}: The account information is not (yet) available"
             )
 
-        return convert_keys_to_snake_case(self._user_information)
+        return convert_keys_to_snake_case(self._user_info)
 
     @property
     def installation_config(self) -> _EvoListT:
         """Return the installation info (config) of all the user's locations."""
 
-        if not self._installation_config:
+        if not self._install_config:
             raise exc.NoSystemConfigError(
                 f"{self}: The installation information is not (yet) available"
             )
 
-        return convert_keys_to_snake_case(self._installation_config)
+        return convert_keys_to_snake_case(self._install_config)
 
     @property
     def locations(self) -> list[Location]:
         """Return the list of locations."""
 
-        if self._installation_config is None:
+        if self._install_config is None:
             raise exc.NoSystemConfigError(
                 f"{self}: The installation information is not (yet) available"
             )
+
+        assert self._locations  # mypy hint
+
         return self._locations
 
     # Most users only have exactly one TCS, thus these convenience methods...
@@ -295,22 +306,22 @@ class EvohomeClientOld(EvohomeClientNew):  # needs only user credentials (no TM)
         super().__init__(self._token_manager, debug=debug)
 
     @property
-    def access_token(self) -> str:  # type: ignore[override]
+    def access_token(self) -> str:
         """Return the access_token attr."""
         return self._token_manager.access_token
 
     @property
-    def access_token_expires(self) -> dt:  # type: ignore[override]
+    def access_token_expires(self) -> dt:
         """Return the access_token_expires attr."""
         return self._token_manager.access_token_expires
 
     @property
-    def refresh_token(self) -> str:  # type: ignore[override]
+    def refresh_token(self) -> str:
         """Return the refresh_token attr."""
         return self._token_manager.refresh_token
 
     @property
-    def username(self) -> str:  # type: ignore[override]
+    def username(self) -> str:
         """Return the username attr."""
         return self._token_manager.username
 

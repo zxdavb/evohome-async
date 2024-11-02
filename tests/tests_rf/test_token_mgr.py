@@ -157,20 +157,20 @@ async def _test_evo_update_00(
 
     evo = evohome_v2
 
-    assert evo._user_information is None
-    assert evo._installation_config is None
+    assert evo._user_info is None
+    assert evo._install_config is None
 
     await evo.update(reset_config=False, dont_update_status=False)
 
-    assert evo._user_information
-    assert evo._installation_config
+    assert evo._user_info is not None
+    assert evo._install_config is not None  # type: ignore[unreachable]
 
     assert evo.locations[0]._status == {}
 
     await evo.update(reset_config=True)
 
-    assert evo._user_information
-    assert evo._installation_config
+    assert evo._user_info is not None
+    assert evo._install_config is not None
 
     assert evo.locations[0]._status != {}
 

@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 #######################################################################################
 
 
-async def _test_usr_account(evo: evo2.EvohomeClient) -> None:
+async def _test_usr_account(evo: evo2.EvohomeClientNew) -> None:
     """Test /userAccount"""
 
     url = "userAccount"
@@ -64,13 +64,13 @@ async def _test_usr_account(evo: evo2.EvohomeClient) -> None:
     )
 
 
-async def _test_all_config(evo: evo2.EvohomeClient) -> None:
+async def _test_all_config(evo: evo2.EvohomeClientNew) -> None:
     """Test /location/installationInfo?userId={user_id}"""
 
     _ = await evo.update()
     #
 
-    url = f"location/installationInfo?userId={evo._user_information[SZ_USER_ID]}"
+    url = f"location/installationInfo?userId={evo._user_info[SZ_USER_ID]}"
     await should_work(evo, HTTPMethod.GET, url)
 
     url += "&includeTemperatureControlSystems=True"
@@ -92,7 +92,7 @@ async def _test_all_config(evo: evo2.EvohomeClient) -> None:
     _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
 
-async def _test_loc_status(evo: evo2.EvohomeClient) -> None:
+async def _test_loc_status(evo: evo2.EvohomeClientNew) -> None:
     """Test /location/{loc.id}/status"""
 
     _ = await evo.update(dont_update_status=True)
@@ -134,7 +134,7 @@ async def _test_loc_status(evo: evo2.EvohomeClient) -> None:
     )
 
 
-async def _test_tcs_mode(evo: evo2.EvohomeClient) -> None:
+async def _test_tcs_mode(evo: evo2.EvohomeClientNew) -> None:
     """Test /temperatureControlSystem/{tcs.id}/mode"""
 
     _ = await evo.update(dont_update_status=True)
@@ -196,7 +196,7 @@ async def _test_tcs_mode(evo: evo2.EvohomeClient) -> None:
     pass
 
 
-async def _test_zone_mode(evo: evo2.EvohomeClient) -> None:
+async def _test_zone_mode(evo: evo2.EvohomeClientNew) -> None:
     """Test /temperatureZone/{zone.id}/heatSetpoint"""
 
     _ = await evo.update()
@@ -213,7 +213,7 @@ async def _test_zone_mode(evo: evo2.EvohomeClient) -> None:
 
     url = f"{zone.TYPE}/{zone.id}/heatSetpoint"
 
-    heat_setpoint = {
+    heat_setpoint: dict[str, float | str | None] = {
         SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
         SZ_HEAT_SETPOINT_VALUE: zone.temperature,
         # SZ_TIME_UNTIL: None,
@@ -251,7 +251,7 @@ async def _test_zone_mode(evo: evo2.EvohomeClient) -> None:
 
 # TODO: Test sending bad schedule
 # TODO: Try with/without convert_to_put_schedule()
-async def _test_schedule(evo: evo2.EvohomeClient) -> None:
+async def _test_schedule(evo: evo2.EvohomeClientNew) -> None:
     """Test /{x.TYPE}/{x.id}/schedule (of a zone)"""
 
     _ = await evo.update()
@@ -302,7 +302,7 @@ async def _test_schedule(evo: evo2.EvohomeClient) -> None:
 #######################################################################################
 
 
-async def test_usr_account(evohome_v2: evo2.EvohomeClient) -> None:
+async def test_usr_account(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /userAccount"""
 
     try:
@@ -314,19 +314,19 @@ async def test_usr_account(evohome_v2: evo2.EvohomeClient) -> None:
         pytest.skip("Unable to authenticate")
 
 
-async def test_all_config(evohome_v2: evo2.EvohomeClient) -> None:
+async def test_all_config(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /location/installationInfo"""
 
     await _test_all_config(evohome_v2)
 
 
-async def test_loc_status(evohome_v2: evo2.EvohomeClient) -> None:
+async def test_loc_status(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /location/{loc.id}/status"""
 
     await _test_loc_status(evohome_v2)
 
 
-async def test_tcs_mode(evohome_v2: evo2.EvohomeClient) -> None:
+async def test_tcs_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /temperatureControlSystem/{tcs.id}/mode"""
 
     try:
@@ -338,7 +338,7 @@ async def test_tcs_mode(evohome_v2: evo2.EvohomeClient) -> None:
         pytest.skip("Mocked server API not implemented")
 
 
-async def test_zone_mode(evohome_v2: evo2.EvohomeClient) -> None:
+async def test_zone_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /temperatureZone/{zone.id}/heatSetpoint"""
 
     try:
@@ -350,7 +350,7 @@ async def test_zone_mode(evohome_v2: evo2.EvohomeClient) -> None:
         pytest.skip("Mocked server API not implemented")
 
 
-async def test_schedule(evohome_v2: evo2.EvohomeClient) -> None:
+async def test_schedule(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /{x.TYPE}/{x.id}/schedule"""
 
     await _test_schedule(evohome_v2)

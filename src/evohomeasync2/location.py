@@ -25,7 +25,7 @@ from .zone import EntityBase
 if TYPE_CHECKING:
     import voluptuous as vol
 
-    from . import EvohomeClient
+    from . import EvohomeClientNew
     from .schema import _EvoDictT
 
 
@@ -35,7 +35,7 @@ class Location(EntityBase):
     STATUS_SCHEMA: Final[vol.Schema] = SCH_LOCN_STATUS
     TYPE: Final = EntityType.LOC  # type: ignore[misc]
 
-    def __init__(self, client: EvohomeClient, config: _EvoDictT) -> None:
+    def __init__(self, client: EvohomeClientNew, config: _EvoDictT) -> None:
         super().__init__(
             config[SZ_LOCATION_INFO][SZ_LOCATION_ID],
             client.auth,
