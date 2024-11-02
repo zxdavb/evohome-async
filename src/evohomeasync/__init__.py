@@ -114,7 +114,7 @@ class EvohomeClient:
         self.devices: dict[_ZoneIdT, _DeviceDictT] = {}  # dhw or zone by id
         self.named_devices: dict[_ZoneNameT, _DeviceDictT] = {}  # zone by name
 
-        self.broker = Auth(
+        self.auth = Auth(
             username,
             password,
             _LOGGER,
@@ -127,10 +127,10 @@ class EvohomeClient:
     def user_data(self) -> _UserDataT | None:  # TODO: deprecate?
         """Return the user data used for HTTP authentication."""
 
-        if not self.broker.session_id:
+        if not self.auth.session_id:
             return None
         return {  # type: ignore[return-value]
-            SZ_SESSION_ID: self.broker.session_id,
+            SZ_SESSION_ID: self.auth.session_id,
             SZ_USER_INFO: self.user_info,
         }
 
@@ -145,7 +145,7 @@ class EvohomeClient:
         """
 
         if not self.user_info or force_refresh:
-            user_data = await self.broker.populate_user_data()
+            user_data = await self.auth.populate_user_data()
             self.user_info = user_data[SZ_USER_INFO]  # type: ignore[assignment]
 
         return self.user_info  # excludes session id
@@ -167,7 +167,7 @@ class EvohomeClient:
         """
 
         if not self.location_data or force_refresh:
-            full_data = await self.broker.populate_full_data()
+            full_data = await self.auth.populate_full_data()
             self.location_data = full_data[self._LOC_IDX]
 
             self.location_id = self.location_data[SZ_LOCATION_ID]
@@ -235,7 +235,7 @@ class EvohomeClient:
             data |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
         url = f"evoTouchSystems?locationId={self.location_id}"
-        await self.broker.make_request(HTTPMethod.PUT, url, data=data)
+        await self.auth.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_mode_auto(self) -> None:
         """Set the system to normal operation."""
@@ -320,7 +320,7 @@ class EvohomeClient:
             }
 
         url = f"devices/{zone_id}/thermostat/changeableValues/heatSetpoint"
-        await self.broker.make_request(HTTPMethod.PUT, url, data=data)
+        await self.auth.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_temperature(
         self, zone: _ZoneIdT | _ZoneNameT, temperature: float, until: dt | None = None
@@ -378,7 +378,7 @@ class EvohomeClient:
             data |= {SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
         url = f"devices/{dhw_id}/thermostat/changeableValues"
-        await self.broker.make_request(HTTPMethod.PUT, url, data=data)
+        await self.auth.make_request(HTTPMethod.PUT, url, data=data)
 
     async def set_dhw_on(self, until: dt | None = None) -> None:
         """Set DHW to On, either indefinitely, or until a specified time.

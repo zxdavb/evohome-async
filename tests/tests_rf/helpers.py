@@ -32,7 +32,7 @@ async def should_work_v1(
     response: aiohttp.ClientResponse
 
     # unlike _make_request(), make_request() incl. raise_for_status()
-    response = await evo.broker._make_request(method, url, data=json)
+    response = await evo.auth._make_request(method, url, data=json)
     response.raise_for_status()
 
     # TODO: perform this transform in the broker
@@ -65,7 +65,7 @@ async def should_fail_v1(
 
     try:
         # unlike _make_request(), make_request() incl. raise_for_status()
-        response = await evo.broker._make_request(method, url, data=json)
+        response = await evo.auth._make_request(method, url, data=json)
         response.raise_for_status()
 
     except aiohttp.ClientResponseError as err:

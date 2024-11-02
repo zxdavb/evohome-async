@@ -14,10 +14,12 @@ from .helpers import should_fail_v1, should_work_v1
 
 
 async def _test_url_locations(evo: evo1.EvohomeClient) -> None:
+    # evo.update()
+
     # evo.broker._headers["sessionId"] = evo.user_info["sessionId"]  # what is this?
     user_id: int = evo.user_info["userID"]  # type: ignore[assignment]
 
-    assert evo.broker.session_id
+    assert evo.auth.session_id
 
     url = f"locations?userId={user_id}&allData=True"
     _ = await should_work_v1(evo, HTTPMethod.GET, url)
