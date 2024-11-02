@@ -3,19 +3,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 
-import evohomeasync as evohome
+import evohomeasync as evo1
 
 from .conftest import _DBG_USE_REAL_AIOHTTP
 
-if TYPE_CHECKING:
-    import aiohttp
 
-
-async def _test_client_apis(evo: evohome.EvohomeClient) -> None:
+async def _test_client_apis(evo: evo1.EvohomeClient) -> None:
     """Instantiate a client, and logon to the vendor API."""
 
     user_data = await evo._populate_user_data()
@@ -34,17 +29,10 @@ async def _test_client_apis(evo: evohome.EvohomeClient) -> None:
     #     _LOGGER.warning("get_temperatures() OK")
 
 
-async def test_client_apis(
-    credentials: tuple[str, str], client_session: aiohttp.ClientSession
-) -> None:
+async def test_client_apis(evohome_v1: evo1.EvohomeClient) -> None:
     """Test _populate_user_data() & _populate_full_data()"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this API")
 
-    try:
-        await _test_client_apis(
-            await instantiate_client_v1(*credentials, session=client_session)
-        )
-    except evohome.AuthenticationFailed:
-        pytest.skip("Unable to authenticate")
+    await _test_client_apis(evohome_v1)

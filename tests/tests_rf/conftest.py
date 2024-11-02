@@ -138,8 +138,11 @@ async def evohome_v1(
 
     try:
         yield evo
-    finally:
-        pass
+
+    except evo1.AuthenticationFailed as err:
+        if not _DBG_USE_REAL_AIOHTTP:
+            raise
+        pytest.skip(f"Unable to authenticate: {err}")
 
 
 @pytest.fixture

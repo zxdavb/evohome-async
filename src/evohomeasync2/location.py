@@ -91,7 +91,7 @@ class Location(EntityBase):
     async def update(self) -> _EvoDictT:
         """Get the latest state of the location and update its status.
 
-        Will also update teh status of its gateways, their TCSs, and their DHW/zones.
+        Will also update the status of its gateways, their TCSs, and their DHW/zones.
 
         Returns the raw JSON of the latest state.
         """

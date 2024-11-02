@@ -76,7 +76,7 @@ class TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
 class EvohomeClientNew:  # requires a Token Manager
     """Provide a client to access the Honeywell TCC API."""
 
-    _installation_config: _EvoListT | None = None # all locations
+    _installation_config: _EvoListT | None = None  # all locations
     _user_information: _EvoDictT | None = None
 
     def __init__(
@@ -115,7 +115,7 @@ class EvohomeClientNew:  # requires a Token Manager
         information & installation configuration.
 
         If `disable_status_update` is True, does not update the status of each location
-        (but will still retreive configuration data, if required).
+        (but will still retrieve configuration data, if required).
         """
 
         if reset_config:

@@ -67,9 +67,8 @@ repos:
 
     - id: secrets
       name: check secrets
-      entry: '#.*(secret|password|pwd)'
+      entry: '#.*(SECRET|PASSWORD|PWD)'
       language: pygrep
-      args: [-i]
       exclude: .pre-commit-config.yaml  # avoid false +ve
 
     - id: style_1

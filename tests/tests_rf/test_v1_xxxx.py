@@ -4,20 +4,16 @@
 from __future__ import annotations
 
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
 
 import pytest
 
-import evohomeasync as evohome
+import evohomeasync as evo1
 
 from .conftest import _DBG_USE_REAL_AIOHTTP
 from .helpers import should_fail_v1, should_work_v1
 
-if TYPE_CHECKING:
-    import aiohttp
 
-
-async def _test_url_locations(evo: evohome.EvohomeClient) -> None:
+async def _test_url_locations(evo: evo1.EvohomeClient) -> None:
     # evo.broker._headers["sessionId"] = evo.user_info["sessionId"]  # what is this?
     user_id: int = evo.user_info["userID"]  # type: ignore[assignment]
 
@@ -48,7 +44,7 @@ async def _test_url_locations(evo: evohome.EvohomeClient) -> None:
     )
 
 
-async def _test_client_apis(evo: evohome.EvohomeClient) -> None:
+async def _test_client_apis(evo: evo1.EvohomeClient) -> None:
     """Instantiate a client, and logon to the vendor API."""
 
     user_data = await evo._populate_user_data()
@@ -62,36 +58,22 @@ async def _test_client_apis(evo: evohome.EvohomeClient) -> None:
     assert temps
 
 
-async def test_locations(
-    credentials: tuple[str, str], client_session: aiohttp.ClientSession
-) -> None:
+async def test_locations(evohome_v1: evo1.EvohomeClient) -> None:
     """Test /locations"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this API")
 
-    try:
-        await _test_url_locations(
-            await instantiate_client_v1(*credentials, session=client_session)
-        )
-    except evohome.AuthenticationFailed as err:
-        pytest.skip(f"Unable to authenticate: {err}")
+    await _test_url_locations(evohome_v1)
 
 
-async def test_client_apis(
-    credentials: tuple[str, str], client_session: aiohttp.ClientSession
-) -> None:
+async def test_client_apis(evohome_v1: evo1.EvohomeClient) -> None:
     """Test _populate_user_data() & _populate_full_data()"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this API")
 
-    try:
-        await _test_client_apis(
-            await instantiate_client_v1(*credentials, session=client_session)
-        )
-    except evohome.AuthenticationFailed:
-        pytest.skip("Unable to authenticate")
+    await _test_client_apis(evohome_v1)
 
 
 USER_DATA = {

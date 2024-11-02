@@ -36,8 +36,7 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
     gwy: Gateway
     tcs: ControlSystem
 
-    _ = await evo.user_account()
-    _ = await evo._installation(disable_status_update=True)
+    _ = await evo.update(disable_status_update=True)
 
     for loc in evo.locations:
         for gwy in loc.gateways:
