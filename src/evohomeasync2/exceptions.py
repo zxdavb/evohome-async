@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync2 provides an async client for the updated Evohome TCC API."""
+"""evohomeasync2 provides an async client for the v2 Evohome TCC API."""
 
 from __future__ import annotations
 

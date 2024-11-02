@@ -198,16 +198,16 @@ class Auth:
 
         except aiohttp.ClientResponseError as err:
             if response.method == HTTPMethod.POST:  # POST only used when authenticating
-                raise exc.AuthenticationFailed(  # includes TOO_MANY_REQUESTS
+                raise exc.AuthenticationFailedError(  # includes TOO_MANY_REQUESTS
                     str(err), status=err.status
                 ) from err
             if response.status == HTTPStatus.TOO_MANY_REQUESTS:
-                raise exc.RateLimitExceeded(str(err), status=err.status) from err
-            raise exc.RequestFailed(str(err), status=err.status) from err
+                raise exc.RateLimitExceededError(str(err), status=err.status) from err
+            raise exc.RequestFailedError(str(err), status=err.status) from err
 
         except aiohttp.ClientError as err:  # using response causes UnboundLocalError
             if method == HTTPMethod.POST:  # POST only used when authenticating
-                raise exc.AuthenticationFailed(str(err)) from err
-            raise exc.RequestFailed(str(err)) from err
+                raise exc.AuthenticationFailedError(str(err)) from err
+            raise exc.RequestFailedError(str(err)) from err
 
         return response

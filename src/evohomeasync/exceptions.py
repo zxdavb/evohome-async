@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync provides an async client for the *original* Evohome TCC API."""
+"""evohomeasync provides an async client for the v1 Evohome TCC API."""
 
 from __future__ import annotations
 
@@ -16,15 +16,15 @@ class EvohomeError(EvohomeBaseError):
     """The base exception class for evohome-async."""
 
 
-class DeprecationError(EvohomeBaseError):
-    """The method or property has changed, or is otherwise deprecated."""
-
-
-class InvalidSchema(EvohomeError):
+class InvalidSchemaError(EvohomeError):
     """The config/status JSON is invalid (e.g. missing an entity id)."""
 
 
-class RequestFailed(EvohomeError):
+class SystemConfigBaseError(EvohomeError):
+    """The system configuration is missing/invalid."""
+
+
+class RequestFailedError(EvohomeError):
     """The API request failed for some reason (no/invalid/unexpected response).
 
     Could be caused by any aiohttp.ClientError, for example: ConnectionError.  If the
@@ -36,11 +36,11 @@ class RequestFailed(EvohomeError):
         self.status = status  # iff cause was aiohttp.ClientResponseError
 
 
-class RateLimitExceeded(RequestFailed):
+class RateLimitExceededError(RequestFailedError):
     """API request failed because the vendor's API rate limit was exceeded."""
 
 
-class AuthenticationFailed(RequestFailed):
+class AuthenticationFailedError(RequestFailedError):
     """Unable to authenticate (unable to obtain an access token).
 
     The cause could be any FailedRequest, including RateLimitExceeded.

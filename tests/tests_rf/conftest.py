@@ -20,7 +20,7 @@ from .faked_server import FakedServer
 
 #
 # normally, we want debug flags to be False
-_DBG_USE_REAL_AIOHTTP = False
+_DBG_USE_REAL_AIOHTTP = True
 _DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 
 if TYPE_CHECKING:
@@ -139,7 +139,7 @@ async def evohome_v1(
     try:
         yield evo
 
-    except evo1.AuthenticationFailed as err:
+    except evo1.AuthenticationFailedError as err:
         if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip(f"Unable to authenticate: {err}")
