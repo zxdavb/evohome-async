@@ -20,7 +20,7 @@ from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE
 from evohomeasync2.zone import Zone
 
 from . import faked_server as faked
-from .conftest import _DBG_USE_REAL_AIOHTTP
+from .conftest import _DBG_USE_REAL_AIOHTTP, skipif_auth_failed
 
 #######################################################################################
 
@@ -114,21 +114,25 @@ async def _test_system_apis(evo: evo2.EvohomeClientNew) -> None:
 #######################################################################################
 
 
+@skipif_auth_failed
 async def test_basics(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test authentication, `user_account()` and `installation()`."""
     await _test_basics_apis(evohome_v2)
 
 
+@skipif_auth_failed
 async def _test_sched_(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test `get_schedule()` and `get_schedule()`."""
     await _test_sched__apis(evohome_v2)
 
 
+@skipif_auth_failed
 async def test_status(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test `_update()` for DHW/zone."""
     await _test_update_apis(evohome_v2)
 
 
+@skipif_auth_failed
 async def test_system(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test `set_mode()` for TCS"""
 

@@ -7,7 +7,7 @@ import pytest
 
 import evohomeasync as evo1
 
-from .conftest import _DBG_USE_REAL_AIOHTTP
+from .conftest import _DBG_USE_REAL_AIOHTTP, skipif_auth_failed
 
 
 async def _test_client_apis(evo: evo1.EvohomeClient) -> None:
@@ -29,6 +29,7 @@ async def _test_client_apis(evo: evo1.EvohomeClient) -> None:
     #     _LOGGER.warning("get_temperatures() OK")
 
 
+@skipif_auth_failed
 async def test_client_apis(evohome_v1: evo1.EvohomeClient) -> None:
     """Test _populate_user_data() & _populate_full_data()"""
 

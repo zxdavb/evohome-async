@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import functools
 import json
 import os
 from collections.abc import AsyncGenerator
@@ -20,15 +21,46 @@ from .faked_server import FakedServer
 
 #
 # normally, we want debug flags to be False
-_DBG_USE_REAL_AIOHTTP = True
+_DBG_USE_REAL_AIOHTTP = False
 _DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 
 if TYPE_CHECKING:
     import aiohttp
 
 # used to construct the default token cache
-DEFAULT_USERNAME: Final[str] = "username@email.com"
-DEFAULT_PASSWORD: Final[str] = "P@ssw0rd!!"  # noqa: S105
+TEST_USERNAME: Final[str] = "username@email.com"
+TEST_PASSWORD: Final[str] = "P@ssw0rd!!"  # noqa: S105
+
+
+# Global flag to indicate if AuthenticationFailedError has been encountered
+global_auth_failed = False
+
+
+def skipif_auth_failed(fnc):
+    """Decorator to skip tests if AuthenticationFailedError is encountered."""
+
+    @functools.wraps(fnc)
+    async def wrapper(*args, **kwargs):
+        global global_auth_failed
+
+        if global_auth_failed:
+            pytest.skip("Unable to authenticate")
+
+        try:
+            result = await fnc(*args, **kwargs)
+            return result
+
+        except (
+            evo1.AuthenticationFailedError,
+            evo2.AuthenticationFailedError,
+        ) as err:
+            if not _DBG_USE_REAL_AIOHTTP:
+                raise
+
+            global_auth_failed = True
+            pytest.fail(f"Unable to authenticate: {err}")
+
+    return wrapper
 
 
 @pytest.fixture(autouse=True)
@@ -69,8 +101,8 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
 def credentials() -> tuple[str, str]:
     """Return a username and a password."""
 
-    username: str = os.getenv("TEST_USERNAME") or DEFAULT_USERNAME
-    password: str = os.getenv("TEST_PASSWORD") or DEFAULT_PASSWORD
+    username: str = os.getenv("TEST_USERNAME") or TEST_USERNAME
+    password: str = os.getenv("TEST_PASSWORD") or TEST_PASSWORD
 
     return username, password
 
@@ -134,6 +166,8 @@ async def evohome_v1(
 ) -> AsyncGenerator[evo1.EvohomeClient, None]:
     """Yield an instance of a v1 EvohomeClient."""
 
+    global skipif_auth_failed
+
     evo = evo1.EvohomeClient(*credentials, websession=client_session)
 
     try:
@@ -142,6 +176,8 @@ async def evohome_v1(
     except evo1.AuthenticationFailedError as err:
         if not _DBG_USE_REAL_AIOHTTP:
             raise
+
+        skipif_auth_failed = True
         pytest.skip(f"Unable to authenticate: {err}")
 
 
@@ -151,6 +187,8 @@ async def evohome_v2(
 ) -> AsyncGenerator[evo2.EvohomeClientNew, None]:
     """Yield an instance of a v2 EvohomeClient."""
 
+    global skipif_auth_failed
+
     evo = evo2.EvohomeClientNew(token_manager)
 
     try:
@@ -159,4 +197,6 @@ async def evohome_v2(
     except evo2.AuthenticationFailedError as err:
         if not _DBG_USE_REAL_AIOHTTP:
             raise
+
+        skipif_auth_failed = True
         pytest.skip(f"Unable to authenticate: {err}")

@@ -9,7 +9,7 @@ import pytest
 
 import evohomeasync as evo1
 
-from .conftest import _DBG_USE_REAL_AIOHTTP
+from .conftest import _DBG_USE_REAL_AIOHTTP, skipif_auth_failed
 from .helpers import should_fail_v1, should_work_v1
 
 
@@ -58,6 +58,7 @@ async def _test_client_apis(evo: evo1.EvohomeClient) -> None:
     assert temps
 
 
+@skipif_auth_failed
 async def test_locations(evohome_v1: evo1.EvohomeClient) -> None:
     """Test /locations"""
 
@@ -67,6 +68,7 @@ async def test_locations(evohome_v1: evo1.EvohomeClient) -> None:
     await _test_url_locations(evohome_v1)
 
 
+@skipif_auth_failed
 async def test_client_apis(evohome_v1: evo1.EvohomeClient) -> None:
     """Test _populate_user_data() & _populate_full_data()"""
 

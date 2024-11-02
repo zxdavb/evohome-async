@@ -18,7 +18,7 @@ import evohomeasync2 as evo2
 from evohomeasync2 import exceptions as exc
 from evohomeasync2.client import TokenManager
 
-from .conftest import DEFAULT_PASSWORD, DEFAULT_USERNAME
+from .conftest import TEST_PASSWORD, TEST_USERNAME
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
@@ -47,8 +47,8 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
         # else: data["grant_type"] == "password"...
 
         if (
-            data.get("Username") != DEFAULT_USERNAME
-            or data.get("Password") != DEFAULT_PASSWORD
+            data.get("Username") != TEST_USERNAME
+            or data.get("Password") != TEST_PASSWORD
         ):
             raise aiohttp.ClientResponseError(None, (), status=HTTPStatus.BAD_REQUEST)
 

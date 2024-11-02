@@ -35,7 +35,7 @@ from evohomeasync2.schema.const import (
 from evohomeasync2.schema.schedule import convert_to_put_schedule
 
 from . import faked_server as faked
-from .conftest import _DBG_USE_REAL_AIOHTTP
+from .conftest import _DBG_USE_REAL_AIOHTTP, skipif_auth_failed
 from .helpers import should_fail, should_work
 
 if TYPE_CHECKING:
@@ -302,6 +302,7 @@ async def _test_schedule(evo: evo2.EvohomeClientNew) -> None:
 #######################################################################################
 
 
+@skipif_auth_failed
 async def test_usr_account(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /userAccount"""
 
@@ -314,18 +315,21 @@ async def test_usr_account(evohome_v2: evo2.EvohomeClientNew) -> None:
         pytest.skip("Unable to authenticate")
 
 
+@skipif_auth_failed
 async def test_all_config(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /location/installationInfo"""
 
     await _test_all_config(evohome_v2)
 
 
+@skipif_auth_failed
 async def test_loc_status(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /location/{loc.id}/status"""
 
     await _test_loc_status(evohome_v2)
 
 
+@skipif_auth_failed
 async def test_tcs_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /temperatureControlSystem/{tcs.id}/mode"""
 
@@ -338,6 +342,7 @@ async def test_tcs_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
         pytest.skip("Mocked server API not implemented")
 
 
+@skipif_auth_failed
 async def test_zone_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /temperatureZone/{zone.id}/heatSetpoint"""
 
@@ -350,6 +355,7 @@ async def test_zone_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
         pytest.skip("Mocked server API not implemented")
 
 
+@skipif_auth_failed
 async def test_schedule(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /{x.TYPE}/{x.id}/schedule"""
 

@@ -31,8 +31,8 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 # used to construct the default token cache
-DEFAULT_USERNAME: Final[str] = "username@email.com"
-DEFAULT_PASSWORD: Final[str] = "P@ssw0rd!!"  # noqa: S105
+TEST_USERNAME: Final[str] = "username@email.com"
+TEST_PASSWORD: Final[str] = "P@ssw0rd!!"  # noqa: S105
 
 
 class ClientStub:
@@ -136,7 +136,7 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
 def credentials() -> tuple[str, str]:
     """Return a username and a password."""
 
-    return DEFAULT_USERNAME, DEFAULT_PASSWORD
+    return TEST_USERNAME, TEST_PASSWORD
 
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")

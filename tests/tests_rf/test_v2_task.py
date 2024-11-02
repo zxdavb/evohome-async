@@ -20,7 +20,7 @@ from evohomeasync2.schema.const import (
 )
 from evohomeasync2.schema.helpers import pascal_case
 
-from .conftest import _DBG_USE_REAL_AIOHTTP
+from .conftest import _DBG_USE_REAL_AIOHTTP, skipif_auth_failed
 from .helpers import should_fail, should_work
 
 #######################################################################################
@@ -186,6 +186,7 @@ async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
 #######################################################################################
 
 
+@skipif_auth_failed
 async def test_task_id(evohome_v2: evo2.EvohomeClientNew) -> None:
     """Test /location/{loc.id}/status"""
 
