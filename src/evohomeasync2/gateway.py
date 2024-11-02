@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Final
 
 import voluptuous as vol
 
-from .controlsystem import ControlSystem
+from .control_system import ControlSystem
 from .schema import SCH_GWY_STATUS
 from .schema.const import (
     SZ_GATEWAY_ID,

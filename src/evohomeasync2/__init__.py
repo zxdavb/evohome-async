@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 from . import exceptions as exc  # used internally
 from .auth import AbstractTokenManager, Auth  # noqa: F401
-from .controlsystem import ControlSystem
+from .control_system import ControlSystem
 from .exceptions import (  # noqa: F401
     AuthenticationFailedError,
     EvohomeBaseError,
