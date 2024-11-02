@@ -6,9 +6,8 @@
 from __future__ import annotations
 
 from datetime import datetime as dt
-from typing import TYPE_CHECKING, Final, NoReturn
+from typing import TYPE_CHECKING, Final
 
-from . import exceptions as exc
 from .const import API_STRFTIME
 from .schema import (
     SCH_DHW_STATUS,
@@ -38,35 +37,7 @@ if TYPE_CHECKING:
     from .schema import _EvoDictT, _EvoListT
 
 
-class HotWaterDeprecated:  # pragma: no cover
-    """Deprecated attributes and methods removed from the evohome-client namespace."""
-
-    @property
-    def dhwId(self) -> NoReturn:
-        raise exc.DeprecationError(f"{self}: .dhwId is deprecated, use .id")
-
-    async def get_dhw_state(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            f"{self}: .get_dhw_state() is deprecated, use Location.refresh_status()"
-        )
-
-    async def set_dhw_auto(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            f"{self}: .set_dhw_auto() is deprecated, use .reset_mode()"
-        )
-
-    async def set_dhw_off(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            f"{self}: .set_dhw_off() is deprecated, use .set_off()"
-        )
-
-    async def set_dhw_on(self, *args, **kwargs) -> NoReturn:  # type: ignore[no-untyped-def]
-        raise exc.DeprecationError(
-            f"{self}: .set_dhw_on() is deprecated, use .set_on()"
-        )
-
-
-class HotWater(HotWaterDeprecated, _ZoneBase):
+class HotWater(_ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
     STATUS_SCHEMA: Final = SCH_DHW_STATUS  # type: ignore[misc]

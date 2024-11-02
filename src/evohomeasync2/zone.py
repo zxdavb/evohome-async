@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from datetime import datetime as dt, timedelta as td
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Final, NoReturn
+from typing import TYPE_CHECKING, Final
 
 import voluptuous as vol
 
@@ -126,26 +126,7 @@ class ActiveFaultsBase(EntityBase):
         self._last_logged |= last_logged
 
 
-class _ZoneBaseDeprecated:  # pragma: no cover
-    """Deprecated attributes and methods removed from the evohome-client namespace."""
-
-    @property
-    def zoneId(self) -> NoReturn:
-        raise exc.DeprecationError(f"{self}: .zoneId is deprecated, use .id")
-
-    @property
-    def activeFaults(self) -> NoReturn:
-        raise exc.DeprecationError(
-            f"{self}: .activeFaults is deprecated, use .active_faults"
-        )
-
-    async def schedule(self) -> NoReturn:
-        raise exc.DeprecationError(
-            f"{self}: .schedule() is deprecrated, use .get_schedule()"
-        )
-
-
-class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
+class _ZoneBase(ActiveFaultsBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     STATUS_SCHEMA: Final[vol.Schema]  # type: ignore[misc]
@@ -207,15 +188,15 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
                 f"{self.TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE_GET
             )  # type: ignore[assignment]
 
-        except exc.RequestFailed as err:
+        except exc.RequestFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:
-                raise exc.InvalidSchedule(
+                raise exc.InvalidScheduleError(
                     f"{self}: No Schedule / Schedule is invalid"
                 ) from err
-            raise exc.RequestFailed(f"{self}: Unexpected error") from err
+            raise exc.RequestFailedError(f"{self}: Unexpected error") from err
 
         except vol.Invalid as err:
-            raise exc.InvalidSchedule(
+            raise exc.InvalidScheduleError(
                 f"{self}: No Schedule / Schedule is invalid"
             ) from err
 
@@ -231,16 +212,20 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
-                raise exc.InvalidSchedule(f"{self}: Invalid schedule: {err}") from err
+                raise exc.InvalidScheduleError(
+                    f"{self}: Invalid schedule: {err}"
+                ) from err
 
         elif isinstance(schedule, str):
             try:
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as err:
-                raise exc.InvalidSchedule(f"{self}: Invalid schedule: {err}") from err
+                raise exc.InvalidScheduleError(
+                    f"{self}: Invalid schedule: {err}"
+                ) from err
 
         else:
-            raise exc.InvalidSchedule(
+            raise exc.InvalidScheduleError(
                 f"{self}: Invalid schedule type: {type(schedule)}"
             )
 
@@ -255,16 +240,7 @@ class _ZoneBase(ActiveFaultsBase, _ZoneBaseDeprecated):
         self._schedule = schedule
 
 
-class _ZoneDeprecated:
-    """Deprecated attributes and methods removed from the evohome-client namespace."""
-
-    async def cancel_temp_override(self) -> None:
-        raise exc.DeprecationError(
-            f"{self}: .cancel_temp_override() is deprecrated, use .reset_mode()"
-        )
-
-
-class Zone(_ZoneDeprecated, _ZoneBase):
+class Zone(_ZoneBase):
     """Instance of a TCS's heating zone (temperatureZone)."""
 
     STATUS_SCHEMA: Final = SCH_ZONE_STATUS  # type: ignore[misc]
@@ -277,11 +253,11 @@ class Zone(_ZoneDeprecated, _ZoneBase):
         super().__init__(config[SZ_ZONE_ID], tcs, config)
 
         if not self.model_type or self.model_type == ZoneModelType.UNKNOWN:
-            raise exc.InvalidSchema(
+            raise exc.InvalidSchemaError(
                 f"{self}: Invalid model type '{self.model_type}' (is it a ghost zone?)"
             )
         if not self.zone_type or self.zone_type == ZoneType.UNKNOWN:
-            raise exc.InvalidSchema(
+            raise exc.InvalidSchemaError(
                 f"{self}: Invalid zone type '{self.zone_type}' (is it a ghost zone?)"
             )
 

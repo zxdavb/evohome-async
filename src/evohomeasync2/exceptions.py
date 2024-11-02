@@ -16,11 +16,7 @@ class EvohomeError(EvohomeBaseError):
     """The base exception class for evohome-async."""
 
 
-class DeprecationError(EvohomeBaseError):
-    """The method or property has changed, or is otherwise deprecated."""
-
-
-class InvalidSchema(EvohomeError):
+class InvalidSchemaError(EvohomeError):
     """The config/status JSON is invalid (e.g. missing an entity id)."""
 
 
