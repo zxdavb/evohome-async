@@ -9,7 +9,7 @@ from http import HTTPMethod, HTTPStatus
 import pytest
 
 import evohomeasync2 as evo2
-from evohomeasync2 import ControlSystem, Gateway, Location
+from evohomeasync2 import ControlSystem, Gateway, HotWater, Location
 from evohomeasync2.const import API_STRFTIME, DhwState, ZoneMode
 from evohomeasync2.schema.const import (
     SZ_MODE,
@@ -38,6 +38,8 @@ async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
 
     _ = await evo.update(dont_update_status=True)
 
+    dhw: HotWater | None = None
+
     for loc in evo.locations:
         for gwy in loc.gateways:
             for tcs in gwy.control_systems:
@@ -45,9 +47,11 @@ async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
                     # if (dhw := tcs.hotwater) and dhw.temperatureStatus['isAvailable']:
                     dhw = tcs.hotwater
                     break
-    # else:
-    #     pytest.skip("No available DHW found")
-    #
+
+    else:  # No available DHW found
+        pytest.skip("No available DHW found")
+
+    assert dhw is not None  # mypy hint
 
     GET_URL = f"{dhw.TYPE}/{dhw.id}/status"
     PUT_URL = f"{dhw.TYPE}/{dhw.id}/state"

@@ -6,10 +6,10 @@ from __future__ import annotations
 import functools
 import json
 import os
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 from datetime import datetime as dt, timedelta as td
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, TypeVar
 
 import pytest
 
@@ -21,7 +21,7 @@ from .faked_server import FakedServer
 
 #
 # normally, we want debug flags to be False
-_DBG_USE_REAL_AIOHTTP = False
+_DBG_USE_REAL_AIOHTTP = True
 _DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 
 if TYPE_CHECKING:
@@ -32,23 +32,25 @@ TEST_USERNAME: Final[str] = "username@email.com"
 TEST_PASSWORD: Final[str] = "P@ssw0rd!!"  # noqa: S105
 
 
+_F = TypeVar("_F", bound=Callable[..., Any])
+
+
 # Global flag to indicate if AuthenticationFailedError has been encountered
 global_auth_failed = False
 
 
-def skipif_auth_failed(fnc):
+def skipif_auth_failed(fnc: _F) -> _F:
     """Decorator to skip tests if AuthenticationFailedError is encountered."""
 
     @functools.wraps(fnc)
-    async def wrapper(*args, **kwargs):
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
         global global_auth_failed
 
         if global_auth_failed:
             pytest.skip("Unable to authenticate")
 
         try:
-            result = await fnc(*args, **kwargs)
-            return result
+            return await fnc(*args, **kwargs)
 
         except (
             evo1.AuthenticationFailedError,
@@ -60,7 +62,7 @@ def skipif_auth_failed(fnc):
             global_auth_failed = True
             pytest.fail(f"Unable to authenticate: {err}")
 
-    return wrapper
+    return wrapper  # type: ignore[return-value]
 
 
 @pytest.fixture(autouse=True)
@@ -166,19 +168,12 @@ async def evohome_v1(
 ) -> AsyncGenerator[evo1.EvohomeClient, None]:
     """Yield an instance of a v1 EvohomeClient."""
 
-    global skipif_auth_failed
-
     evo = evo1.EvohomeClient(*credentials, websession=client_session)
 
     try:
         yield evo
-
-    except evo1.AuthenticationFailedError as err:
-        if not _DBG_USE_REAL_AIOHTTP:
-            raise
-
-        skipif_auth_failed = True
-        pytest.skip(f"Unable to authenticate: {err}")
+    finally:
+        pass
 
 
 @pytest.fixture
@@ -187,16 +182,9 @@ async def evohome_v2(
 ) -> AsyncGenerator[evo2.EvohomeClientNew, None]:
     """Yield an instance of a v2 EvohomeClient."""
 
-    global skipif_auth_failed
-
     evo = evo2.EvohomeClientNew(token_manager)
 
     try:
         yield evo
-
-    except evo2.AuthenticationFailedError as err:
-        if not _DBG_USE_REAL_AIOHTTP:
-            raise
-
-        skipif_auth_failed = True
-        pytest.skip(f"Unable to authenticate: {err}")
+    finally:
+        pass

@@ -7,6 +7,7 @@ import logging
 from abc import ABC, abstractmethod
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
+from types import TracebackType
 from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import aiohttp
@@ -59,7 +60,7 @@ _ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # GET/PUT URL_B
     HTTPStatus.UNAUTHORIZED: "Unauthorized (expired access token/unknown entity id?)",
 }
 
-SZ_USERNAME: Final = "Username"  # TODO: is camelCase (and not PascalCase) OK?
+SZ_USERNAME: Final = "Username"
 SZ_PASSWORD: Final = "Password"
 
 
@@ -261,6 +262,51 @@ class AbstractTokenManager(ABC):
         """Save the access token to a cache."""
 
 
+class _RequestContextManager:
+    """A context manager for Auth's aiohttp request."""
+
+    _response: aiohttp.ClientResponse | None = None
+
+    def __init__(
+        self,
+        websession: aiohttp.ClientSession,
+        method: HTTPMethod,
+        url: StrOrURL,
+        /,
+        **kwargs: Any,
+    ):
+        """Initialize the request context manager."""
+
+        self.websession = websession
+        self.method = method
+        self.url = url
+        self.kwargs = kwargs
+
+    async def __aenter__(self) -> aiohttp.ClientResponse:
+        """Async context manager entry."""
+        self._response = await self._await_impl()
+        return self._response
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        """Async context manager exit."""
+        if self._response:
+            self._response.release()  # or: close()
+            await self._response.wait_for_close()
+
+    def __await__(self) -> aiohttp.ClientResponse:
+        """Make this class awaitable."""
+        return self._await_impl().__await__()
+
+    async def _await_impl(self) -> aiohttp.ClientResponse:
+        """Return the actual result."""
+        return await self.websession.request(self.method, self.url, **self.kwargs)
+
+
 class AbstractAuth(ABC):  # APIs esposed by/for HA
     def __init__(self, websession: aiohttp.ClientSession, host: str) -> None:
         """Initialize the auth."""
@@ -282,7 +328,9 @@ class AbstractAuth(ABC):  # APIs esposed by/for HA
         }
         headers["Authorization"] = "bearer " + await self.get_access_token()
 
-        return self.websession.request(method, url, **kwargs, headers=headers)
+        return await _RequestContextManager(
+            self.websession, method, url, **kwargs, headers=headers
+        )
 
 
 class Auth(AbstractAuth):
