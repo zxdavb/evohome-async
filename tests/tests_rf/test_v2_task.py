@@ -5,7 +5,6 @@ from __future__ import annotations
 
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -23,10 +22,6 @@ from evohomeasync2.schema.helpers import pascal_case
 
 from .conftest import _DBG_USE_REAL_AIOHTTP
 from .helpers import should_fail, should_work
-
-if TYPE_CHECKING:
-    import aiohttp
-
 
 #######################################################################################
 
@@ -192,17 +187,14 @@ async def _test_task_id(evo: evo2.EvohomeClient) -> None:
 #######################################################################################
 
 
-async def test_task_id(
-    credentials: tuple[str, str],
-    client_session: aiohttp.ClientSession,
-) -> None:
+async def test_task_id(evohome_v2: evo2.EvohomeClient) -> None:
     """Test /location/{loc.id}/status"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Test is only valid with a real server")
 
     try:
-        await _test_task_id(await instantiate_client_v2(credentials, client_session))
+        await _test_task_id(evohome_v2)
 
     except evo2.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:

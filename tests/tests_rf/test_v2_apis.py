@@ -28,13 +28,12 @@ from .conftest import _DBG_USE_REAL_AIOHTTP
 async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
     """Test authentication, `user_account()` and `installation()`."""
 
-    token_manager = evo.auth.token_manager
-
-    #
     # STEP 1: retrieve base data
     await evo.update(disable_status_update=False)
 
-    #
+    assert SCH_USER_ACCOUNT(evo._installation_config)
+    assert SCH_FULL_CONFIG(evo._user_information)
+
     # STEP 4: Status, GET /location/{loc.id}/status
     for loc in evo.locations:
         loc_status = await loc.update()
@@ -46,11 +45,9 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
 async def _test_sched__apis(evo: evo2.EvohomeClient) -> None:
     """Test `get_schedule()` and `get_schedule()`."""
 
-    #
     # STEP 1: retrieve base data
     await evo.update()
 
-    #
     # STEP 2: GET & PUT /{x.TYPE}/{x.id}/schedule
     if dhw := evo._get_single_tcs().hotwater:
         schedule = await dhw.get_schedule()
@@ -76,11 +73,9 @@ async def _test_sched__apis(evo: evo2.EvohomeClient) -> None:
 async def _test_update_apis(evo: evo2.EvohomeClient) -> None:
     """Test `_update()` for DHW/zone."""
 
-    #
     # STEP 1: retrieve config
     await evo.update(disable_status_update=True)
 
-    #
     # STEP 2: GET /{x.TYPE}/{x.id}/status
     if dhw := evo._get_single_tcs().hotwater:
         dhw_status = await dhw._update()
@@ -96,11 +91,9 @@ async def _test_update_apis(evo: evo2.EvohomeClient) -> None:
 async def _test_system_apis(evo: evo2.EvohomeClient) -> None:
     """Test `set_mode()` for TCS."""
 
-    #
     # STEP 1: retrieve base data
     await evo.update()
 
-    #
     # STEP 2: GET /{x.TYPE}/{x.id}/status
     try:
         tcs = evo._get_single_tcs()

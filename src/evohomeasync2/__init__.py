@@ -76,10 +76,8 @@ class TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
 class EvohomeClientNew:  # requires a Token Manager
     """Provide a client to access the Honeywell TCC API."""
 
-    _installation_config: _EvoListT | None = (
-        None  # installation_info (all locations of user)
-    )
-    _user_information: _EvoDictT | None = None  # account_info
+    _installation_config: _EvoListT | None = None # all locations
+    _user_information: _EvoDictT | None = None
 
     def __init__(
         self,
