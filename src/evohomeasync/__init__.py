@@ -136,6 +136,16 @@ class EvohomeClient:
 
     # User methods...
 
+    async def update(
+        self,
+        /,
+        *,
+        reset_config: bool = False,
+    ) -> None:
+        """Update the user and location data."""
+        await self._populate_user_data(force_refresh=reset_config)
+        await self._populate_locn_data(force_refresh=reset_config)
+
     async def _populate_user_data(
         self, force_refresh: bool = False
     ) -> dict[str, bool | int | str]:

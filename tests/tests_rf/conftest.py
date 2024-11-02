@@ -21,7 +21,7 @@ from .faked_server import FakedServer
 
 #
 # normally, we want debug flags to be False
-_DBG_USE_REAL_AIOHTTP = True
+_DBG_USE_REAL_AIOHTTP = False
 _DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 
 if TYPE_CHECKING:

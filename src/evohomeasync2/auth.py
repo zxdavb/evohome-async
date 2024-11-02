@@ -295,7 +295,7 @@ class _RequestContextManager:
     ) -> None:
         """Async context manager exit."""
         if self._response:
-            self._response.release()  # or: close()
+            self._response.release()
             await self._response.wait_for_close()
 
     def __await__(self) -> aiohttp.ClientResponse:

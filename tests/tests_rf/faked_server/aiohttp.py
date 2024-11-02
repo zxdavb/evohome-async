@@ -207,3 +207,11 @@ class ClientResponse:
         exc_tb: TracebackType | None,
     ) -> None:
         pass
+
+    def __await__(self) -> Self:
+        """Make this class awaitable."""
+        return self._await_impl().__await__()
+
+    async def _await_impl(self) -> Self:
+        """Return the actual result."""
+        return self
