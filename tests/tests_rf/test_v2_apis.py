@@ -29,7 +29,7 @@ async def _test_basics_apis(evo: evo2.EvohomeClient) -> None:
     """Test authentication, `user_account()` and `installation()`."""
 
     # STEP 1: retrieve base data
-    await evo.update(disable_status_update=False)
+    await evo.update(dont_update_status=False)
 
     assert SCH_USER_ACCOUNT(evo._installation_config)
     assert SCH_FULL_CONFIG(evo._user_information)
@@ -74,7 +74,7 @@ async def _test_update_apis(evo: evo2.EvohomeClient) -> None:
     """Test `_update()` for DHW/zone."""
 
     # STEP 1: retrieve config
-    await evo.update(disable_status_update=True)
+    await evo.update(dont_update_status=True)
 
     # STEP 2: GET /{x.TYPE}/{x.id}/status
     if dhw := evo._get_single_tcs().hotwater:

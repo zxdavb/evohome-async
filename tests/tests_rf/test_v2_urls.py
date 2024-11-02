@@ -95,7 +95,7 @@ async def _test_all_config(evo: evo2.EvohomeClient) -> None:
 async def _test_loc_status(evo: evo2.EvohomeClient) -> None:
     """Test /location/{loc.id}/status"""
 
-    _ = await evo.update(disable_status_update=True)
+    _ = await evo.update(dont_update_status=True)
 
     loc = evo.locations[0]
     #
@@ -137,7 +137,7 @@ async def _test_loc_status(evo: evo2.EvohomeClient) -> None:
 async def _test_tcs_mode(evo: evo2.EvohomeClient) -> None:
     """Test /temperatureControlSystem/{tcs.id}/mode"""
 
-    _ = await evo.update(disable_status_update=True)
+    _ = await evo.update(dont_update_status=True)
 
     tcs: evo2.ControlSystem
 

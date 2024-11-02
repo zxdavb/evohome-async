@@ -160,7 +160,7 @@ async def _test_evo_update_00(
     assert evo._user_information is None
     assert evo._installation_config is None
 
-    await evo.update(reset_config=False, disable_status_update=False)
+    await evo.update(reset_config=False, dont_update_status=False)
 
     assert evo._user_information
     assert evo._installation_config
