@@ -14,35 +14,35 @@ from .const import (
     REGEX_LOCATION_ID,
     REGEX_SYSTEM_ID,
     REGEX_ZONE_ID,
-    SZ_ACTIVE_FAULTS,
-    SZ_CAN_BE_CHANGED,
-    SZ_DHW,
-    SZ_DHW_ID,
-    SZ_FAN_MODE,
-    SZ_FAN_STATUS,
-    SZ_FAULT_TYPE,
-    SZ_GATEWAY_ID,
-    SZ_GATEWAYS,
-    SZ_IS_AVAILABLE,
-    SZ_IS_PERMANENT,
-    SZ_LOCATION_ID,
-    SZ_MODE,
-    SZ_NAME,
-    SZ_SETPOINT_MODE,
-    SZ_SETPOINT_STATUS,
-    SZ_SINCE,
-    SZ_STATE,
-    SZ_STATE_STATUS,
-    SZ_SYSTEM_ID,
-    SZ_SYSTEM_MODE_STATUS,
-    SZ_TARGET_HEAT_TEMPERATURE,  # also: SZ_TARGET_COOL_TEMPERATURE ??
-    SZ_TEMPERATURE,
-    SZ_TEMPERATURE_CONTROL_SYSTEMS,
-    SZ_TEMPERATURE_STATUS,
-    SZ_TIME_UNTIL,
-    SZ_UNTIL,
-    SZ_ZONE_ID,
-    SZ_ZONES,
+    S2_ACTIVE_FAULTS,
+    S2_CAN_BE_CHANGED,
+    S2_DHW,
+    S2_DHW_ID,
+    S2_FAN_MODE,
+    S2_FAN_STATUS,
+    S2_FAULT_TYPE,
+    S2_GATEWAY_ID,
+    S2_GATEWAYS,
+    S2_IS_AVAILABLE,
+    S2_IS_PERMANENT,
+    S2_LOCATION_ID,
+    S2_MODE,
+    S2_NAME,
+    S2_SETPOINT_MODE,
+    S2_SETPOINT_STATUS,
+    S2_SINCE,
+    S2_STATE,
+    S2_STATE_STATUS,
+    S2_SYSTEM_ID,
+    S2_SYSTEM_MODE_STATUS,
+    S2_TARGET_HEAT_TEMPERATURE,  # also: SZ_TARGET_COOL_TEMPERATURE ??
+    S2_TEMPERATURE,
+    S2_TEMPERATURE_CONTROL_SYSTEMS,
+    S2_TEMPERATURE_STATUS,
+    S2_TIME_UNTIL,
+    S2_UNTIL,
+    S2_ZONE_ID,
+    S2_ZONES,
     DhwState,
     FanMode,
     FaultType,
@@ -60,8 +60,8 @@ def _factory_active_faults(fnc: Callable[[str], str] = do_nothing) -> vol.Schema
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_FAULT_TYPE)): vol.In([m.value for m in FaultType]),
-            vol.Required(fnc(SZ_SINCE)): vol.Any(
+            vol.Required(fnc(S2_FAULT_TYPE)): vol.In([m.value for m in FaultType]),
+            vol.Required(fnc(S2_SINCE)): vol.Any(
                 vol.Datetime(format="%Y-%m-%dT%H:%M:%S"),  # faults for zones
                 vol.Datetime(format="%Y-%m-%dT%H:%M:%S.%f"),
                 vol.All(str, vol.Match(_DTM_FORMAT)),  # faults for gateways
@@ -76,13 +76,13 @@ def _factory_temp_status(fnc: Callable[[str], str] = do_nothing) -> vol.Any:
 
     return vol.Any(
         vol.Schema(
-            {vol.Required(fnc(SZ_IS_AVAILABLE)): False},
+            {vol.Required(fnc(S2_IS_AVAILABLE)): False},
             extra=vol.PREVENT_EXTRA,
         ),
         vol.Schema(
             {
-                vol.Required(fnc(SZ_IS_AVAILABLE)): True,
-                vol.Required(fnc(SZ_TEMPERATURE)): float,
+                vol.Required(fnc(S2_IS_AVAILABLE)): True,
+                vol.Required(fnc(S2_TEMPERATURE)): float,
             },
             extra=vol.PREVENT_EXTRA,
         ),
@@ -95,29 +95,29 @@ def _factory_zone_status(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
     SCH_SETPOINT_STATUS: Final = vol.Schema(
         {
-            vol.Required(fnc(SZ_TARGET_HEAT_TEMPERATURE)): float,
-            vol.Required(fnc(SZ_SETPOINT_MODE)): vol.In([m.value for m in ZoneMode]),
-            vol.Optional(fnc(SZ_UNTIL)): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
+            vol.Required(fnc(S2_TARGET_HEAT_TEMPERATURE)): float,
+            vol.Required(fnc(S2_SETPOINT_MODE)): vol.In([m.value for m in ZoneMode]),
+            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
         },
         extra=vol.PREVENT_EXTRA,
-    )  # NOTE: SZ_UNTIL is present only for some modes
+    )  # NOTE: S2_UNTIL is present only for some modes
 
     SCH_FAN_STATUS: Final = vol.Schema(
         {
-            vol.Required(fnc(SZ_FAN_MODE)): vol.In([m.value for m in FanMode]),
-            vol.Required(fnc(SZ_CAN_BE_CHANGED)): bool,
+            vol.Required(fnc(S2_FAN_MODE)): vol.In([m.value for m in FanMode]),
+            vol.Required(fnc(S2_CAN_BE_CHANGED)): bool,
         },
         extra=vol.PREVENT_EXTRA,
-    )  # NOTE: SZ_UNTIL is present only for some modes
+    )  # NOTE: S2_UNTIL is present only for some modes
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_ZONE_ID)): vol.Match(REGEX_ZONE_ID),
-            vol.Required(fnc(SZ_NAME)): str,
-            vol.Required(fnc(SZ_TEMPERATURE_STATUS)): _factory_temp_status(fnc),
-            vol.Required(fnc(SZ_SETPOINT_STATUS)): SCH_SETPOINT_STATUS,
-            vol.Required(fnc(SZ_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
-            vol.Optional(fnc(SZ_FAN_STATUS)): SCH_FAN_STATUS,  # non-evohome
+            vol.Required(fnc(S2_ZONE_ID)): vol.Match(REGEX_ZONE_ID),
+            vol.Required(fnc(S2_NAME)): str,
+            vol.Required(fnc(S2_TEMPERATURE_STATUS)): _factory_temp_status(fnc),
+            vol.Required(fnc(S2_SETPOINT_STATUS)): SCH_SETPOINT_STATUS,
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
+            vol.Optional(fnc(S2_FAN_STATUS)): SCH_FAN_STATUS,  # non-evohome
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -128,19 +128,19 @@ def _factory_dhw_status(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
     SCH_STATE_STATUS: Final = vol.Schema(
         {
-            vol.Required(fnc(SZ_STATE)): vol.In([m.value for m in DhwState]),
-            vol.Required(fnc(SZ_MODE)): vol.In([m.value for m in ZoneMode]),
-            vol.Optional(fnc(SZ_UNTIL)): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
+            vol.Required(fnc(S2_STATE)): vol.In([m.value for m in DhwState]),
+            vol.Required(fnc(S2_MODE)): vol.In([m.value for m in ZoneMode]),
+            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
         },
         extra=vol.PREVENT_EXTRA,
-    )  # NOTE: SZ_UNTIL is present only for some modes
+    )  # NOTE: S2_UNTIL is present only for some modes
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_DHW_ID)): vol.Match(REGEX_DHW_ID),
-            vol.Required(fnc(SZ_TEMPERATURE_STATUS)): _factory_temp_status(fnc),
-            vol.Required(fnc(SZ_STATE_STATUS)): SCH_STATE_STATUS,
-            vol.Required(fnc(SZ_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
+            vol.Required(fnc(S2_DHW_ID)): vol.Match(REGEX_DHW_ID),
+            vol.Required(fnc(S2_TEMPERATURE_STATUS)): _factory_temp_status(fnc),
+            vol.Required(fnc(S2_STATE_STATUS)): SCH_STATE_STATUS,
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -152,22 +152,22 @@ def _factory_system_mode_status(fnc: Callable[[str], str] = do_nothing) -> vol.A
     return vol.Any(
         vol.Schema(
             {
-                vol.Required(fnc(SZ_MODE)): vol.In([m.value for m in SystemMode]),
-                vol.Required(fnc(SZ_IS_PERMANENT)): True,
+                vol.Required(fnc(S2_MODE)): vol.In([m.value for m in SystemMode]),
+                vol.Required(fnc(S2_IS_PERMANENT)): True,
             }
         ),
         vol.Schema(
             {
-                vol.Required(SZ_MODE): vol.Any(
+                vol.Required(S2_MODE): vol.Any(
                     str(SystemMode.AUTO_WITH_ECO),
                     str(SystemMode.AWAY),
                     str(SystemMode.CUSTOM),
                     str(SystemMode.DAY_OFF),
                 ),
-                vol.Required(fnc(SZ_TIME_UNTIL)): vol.Datetime(
+                vol.Required(fnc(S2_TIME_UNTIL)): vol.Datetime(
                     format="%Y-%m-%dT%H:%M:%SZ"
                 ),
-                vol.Required(fnc(SZ_IS_PERMANENT)): False,
+                vol.Required(fnc(S2_IS_PERMANENT)): False,
             }
         ),
         extra=vol.PREVENT_EXTRA,
@@ -179,11 +179,11 @@ def _factory_tcs_status(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
-            vol.Required(fnc(SZ_SYSTEM_MODE_STATUS)): _factory_system_mode_status(fnc),
-            vol.Required(fnc(SZ_ZONES)): [SCH_ZON_CONFIG],
-            vol.Optional(fnc(SZ_DHW)): _factory_dhw_status(fnc),
-            vol.Required(fnc(SZ_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
+            vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
+            vol.Required(fnc(S2_SYSTEM_MODE_STATUS)): _factory_system_mode_status(fnc),
+            vol.Required(fnc(S2_ZONES)): [SCH_ZON_CONFIG],
+            vol.Optional(fnc(S2_DHW)): _factory_dhw_status(fnc),
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -194,11 +194,11 @@ def _factory_gwy_status(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_GATEWAY_ID)): vol.Match(REGEX_GATEWAY_ID),
-            vol.Required(fnc(SZ_TEMPERATURE_CONTROL_SYSTEMS)): [
+            vol.Required(fnc(S2_GATEWAY_ID)): vol.Match(REGEX_GATEWAY_ID),
+            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [
                 _factory_tcs_status(fnc)
             ],
-            vol.Required(fnc(SZ_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -209,8 +209,8 @@ def _factory_loc_status(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_LOCATION_ID)): vol.Match(REGEX_LOCATION_ID),
-            vol.Required(fnc(SZ_GATEWAYS)): [_factory_gwy_status(fnc)],
+            vol.Required(fnc(S2_LOCATION_ID)): vol.Match(REGEX_LOCATION_ID),
+            vol.Required(fnc(S2_GATEWAYS)): [_factory_gwy_status(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )

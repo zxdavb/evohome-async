@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Generator
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from types import TracebackType
@@ -21,15 +22,15 @@ from .const import (
     AUTH_URL,
     CREDS_REFRESH_TOKEN,
     CREDS_USER_PASSWORD,
-    URL_BASE,
-    URL_HOST,
-)
-from .schema import (
     SCH_OAUTH_TOKEN,
     SZ_ACCESS_TOKEN,
     SZ_ACCESS_TOKEN_EXPIRES,
     SZ_EXPIRES_IN,
+    SZ_PASSWORD,
     SZ_REFRESH_TOKEN,
+    SZ_USERNAME,
+    URL_BASE,
+    URL_HOST,
 )
 
 if TYPE_CHECKING:
@@ -59,9 +60,6 @@ _ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # GET/PUT URL_B
     HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
     HTTPStatus.UNAUTHORIZED: "Unauthorized (expired access token/unknown entity id?)",
 }
-
-SZ_USERNAME: Final = "Username"
-SZ_PASSWORD: Final = "Password"
 
 
 class OAuthTokenData(TypedDict):
@@ -298,7 +296,7 @@ class _RequestContextManager:
             self._response.release()
             await self._response.wait_for_close()
 
-    def __await__(self) -> aiohttp.ClientResponse:
+    def __await__(self) -> Generator[Any, Any, aiohttp.ClientResponse]:
         """Make this class awaitable."""
         return self._await_impl().__await__()
 

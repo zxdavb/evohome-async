@@ -14,73 +14,73 @@ from .const import (
     REGEX_DHW_ID,
     REGEX_SYSTEM_ID,
     REGEX_ZONE_ID,
-    SZ_ALLOWED_FAN_MODES,
-    SZ_ALLOWED_MODES,
-    SZ_ALLOWED_SETPOINT_MODES,
-    SZ_ALLOWED_STATES,
-    SZ_ALLOWED_SYSTEM_MODES,
-    SZ_CAN_BE_PERMANENT,
-    SZ_CAN_BE_TEMPORARY,
-    SZ_CAN_CONTROL_COOL,
-    SZ_CAN_CONTROL_HEAT,
-    SZ_CITY,
-    SZ_COUNTRY,
-    SZ_CRC,
-    SZ_CURRENT_OFFSET_MINUTES,
-    SZ_DHW,
-    SZ_DHW_ID,
-    SZ_DHW_STATE_CAPABILITIES_RESPONSE,
-    SZ_DISPLAY_NAME,
-    SZ_DURATION,
-    SZ_FAN_MODE,
-    SZ_FIRSTNAME,
-    SZ_GATEWAY_ID,
-    SZ_GATEWAY_INFO,
-    SZ_GATEWAYS,
-    SZ_IS_CANCELABLE,
-    SZ_IS_CHANGEABLE,
-    SZ_IS_WI_FI,
-    SZ_LASTNAME,
-    SZ_LOCATION_ID,
-    SZ_LOCATION_INFO,
-    SZ_LOCATION_OWNER,
-    SZ_LOCATION_TYPE,
-    SZ_MAC,
-    SZ_MAX_COOL_SETPOINT,
-    SZ_MAX_DURATION,
-    SZ_MAX_HEAT_SETPOINT,
-    SZ_MAX_SWITCHPOINTS_PER_DAY,
-    SZ_MIN_COOL_SETPOINT,
-    SZ_MIN_DURATION,
-    SZ_MIN_HEAT_SETPOINT,
-    SZ_MIN_SWITCHPOINTS_PER_DAY,
-    SZ_MODEL_TYPE,
-    SZ_NAME,
-    SZ_OFFSET_MINUTES,
-    SZ_PERIOD,
-    SZ_POSTCODE,
-    SZ_SCHEDULE_CAPABILITIES,
-    SZ_SCHEDULE_CAPABILITIES_RESPONSE,
-    SZ_SETPOINT_CAPABILITIES,
-    SZ_SETPOINT_DEADBAND,
-    SZ_SETPOINT_VALUE_RESOLUTION,
-    SZ_STREET_ADDRESS,
-    SZ_SUPPORTS_DAYLIGHT_SAVING,
-    SZ_SYSTEM_ID,
-    SZ_SYSTEM_MODE,
-    SZ_TEMPERATURE_CONTROL_SYSTEMS,
-    SZ_TIME_ZONE,
-    SZ_TIME_ZONE_ID,
-    SZ_TIMING_MODE,
-    SZ_TIMING_RESOLUTION,
-    SZ_USE_DAYLIGHT_SAVE_SWITCHING,
-    SZ_USER_ID,
-    SZ_USERNAME,
-    SZ_VACATION_HOLD_CAPABILITIES,
-    SZ_VALUE_RESOLUTION,
-    SZ_ZONE_ID,
-    SZ_ZONE_TYPE,
-    SZ_ZONES,
+    S2_ALLOWED_FAN_MODES,
+    S2_ALLOWED_MODES,
+    S2_ALLOWED_SETPOINT_MODES,
+    S2_ALLOWED_STATES,
+    S2_ALLOWED_SYSTEM_MODES,
+    S2_CAN_BE_PERMANENT,
+    S2_CAN_BE_TEMPORARY,
+    S2_CAN_CONTROL_COOL,
+    S2_CAN_CONTROL_HEAT,
+    S2_CITY,
+    S2_COUNTRY,
+    S2_CRC,
+    S2_CURRENT_OFFSET_MINUTES,
+    S2_DHW,
+    S2_DHW_ID,
+    S2_DHW_STATE_CAPABILITIES_RESPONSE,
+    S2_DISPLAY_NAME,
+    S2_DURATION,
+    S2_FAN_MODE,
+    S2_FIRSTNAME,
+    S2_GATEWAY_ID,
+    S2_GATEWAY_INFO,
+    S2_GATEWAYS,
+    S2_IS_CANCELABLE,
+    S2_IS_CHANGEABLE,
+    S2_IS_WI_FI,
+    S2_LASTNAME,
+    S2_LOCATION_ID,
+    S2_LOCATION_INFO,
+    S2_LOCATION_OWNER,
+    S2_LOCATION_TYPE,
+    S2_MAC,
+    S2_MAX_COOL_SETPOINT,
+    S2_MAX_DURATION,
+    S2_MAX_HEAT_SETPOINT,
+    S2_MAX_SWITCHPOINTS_PER_DAY,
+    S2_MIN_COOL_SETPOINT,
+    S2_MIN_DURATION,
+    S2_MIN_HEAT_SETPOINT,
+    S2_MIN_SWITCHPOINTS_PER_DAY,
+    S2_MODEL_TYPE,
+    S2_NAME,
+    S2_OFFSET_MINUTES,
+    S2_PERIOD,
+    S2_POSTCODE,
+    S2_SCHEDULE_CAPABILITIES,
+    S2_SCHEDULE_CAPABILITIES_RESPONSE,
+    S2_SETPOINT_CAPABILITIES,
+    S2_SETPOINT_DEADBAND,
+    S2_SETPOINT_VALUE_RESOLUTION,
+    S2_STREET_ADDRESS,
+    S2_SUPPORTS_DAYLIGHT_SAVING,
+    S2_SYSTEM_ID,
+    S2_SYSTEM_MODE,
+    S2_TEMPERATURE_CONTROL_SYSTEMS,
+    S2_TIME_ZONE,
+    S2_TIME_ZONE_ID,
+    S2_TIMING_MODE,
+    S2_TIMING_RESOLUTION,
+    S2_USE_DAYLIGHT_SAVE_SWITCHING,
+    S2_USER_ID,
+    S2_USERNAME,
+    S2_VACATION_HOLD_CAPABILITIES,
+    S2_VALUE_RESOLUTION,
+    S2_ZONE_ID,
+    S2_ZONE_TYPE,
+    S2_ZONES,
     DhwState,
     FanMode,
     SystemMode,
@@ -88,9 +88,8 @@ from .const import (
     ZoneMode,
     ZoneModelType,
     ZoneType,
-    obfuscate as _obfuscate,
 )
-from .helpers import do_nothing, snake_to_camel
+from .helpers import do_nothing, obfuscate as _obfuscate, snake_to_camel
 
 # These are best guess
 MAX_HEAT_SETPOINT_LOWER: Final = 21.0
@@ -105,7 +104,7 @@ def _factory_system_mode_perm(fnc: Callable[[str], str] = do_nothing) -> vol.Sch
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_SYSTEM_MODE)): vol.Any(
+            vol.Required(fnc(S2_SYSTEM_MODE)): vol.Any(
                 str(SystemMode.AUTO),
                 str(SystemMode.AUTO_WITH_RESET),
                 str(SystemMode.HEATING_OFF),
@@ -113,8 +112,8 @@ def _factory_system_mode_perm(fnc: Callable[[str], str] = do_nothing) -> vol.Sch
                 str(SystemMode.HEAT),  # not evohome
                 str(SystemMode.COOL),  # not evohome
             ),
-            vol.Required(fnc(SZ_CAN_BE_PERMANENT)): True,
-            vol.Required(fnc(SZ_CAN_BE_TEMPORARY)): False,
+            vol.Required(fnc(S2_CAN_BE_PERMANENT)): True,
+            vol.Required(fnc(S2_CAN_BE_TEMPORARY)): False,
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -125,17 +124,17 @@ def _factory_system_mode_temp(fnc: Callable[[str], str] = do_nothing) -> vol.Sch
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_SYSTEM_MODE)): vol.Any(
+            vol.Required(fnc(S2_SYSTEM_MODE)): vol.Any(
                 str(SystemMode.AUTO_WITH_ECO),
                 str(SystemMode.AWAY),
                 str(SystemMode.CUSTOM),
                 str(SystemMode.DAY_OFF),
             ),
-            vol.Required(fnc(SZ_CAN_BE_PERMANENT)): True,
-            vol.Required(fnc(SZ_CAN_BE_TEMPORARY)): True,
-            vol.Required(fnc(SZ_MAX_DURATION)): str,  # "99.00:00:00"
-            vol.Required(fnc(SZ_TIMING_RESOLUTION)): str,  # "1.00:00:00"
-            vol.Required(fnc(SZ_TIMING_MODE)): vol.Any(SZ_DURATION, SZ_PERIOD),
+            vol.Required(fnc(S2_CAN_BE_PERMANENT)): True,
+            vol.Required(fnc(S2_CAN_BE_TEMPORARY)): True,
+            vol.Required(fnc(S2_MAX_DURATION)): str,  # "99.00:00:00"
+            vol.Required(fnc(S2_TIMING_RESOLUTION)): str,  # "1.00:00:00"
+            vol.Required(fnc(S2_TIMING_MODE)): vol.Any(S2_DURATION, S2_PERIOD),
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -148,9 +147,9 @@ def _factory_schedule_capabilities_response(
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_MAX_SWITCHPOINTS_PER_DAY)): int,  # 6
-            vol.Required(fnc(SZ_MIN_SWITCHPOINTS_PER_DAY)): int,  # 1
-            vol.Required(fnc(SZ_TIMING_RESOLUTION)): vol.Datetime(
+            vol.Required(fnc(S2_MAX_SWITCHPOINTS_PER_DAY)): int,  # 6
+            vol.Required(fnc(S2_MIN_SWITCHPOINTS_PER_DAY)): int,  # 1
+            vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(
                 format="00:%M:00"
             ),  # "00:10:00"
         },
@@ -163,22 +162,22 @@ def _factory_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
     SCH_DHW_STATE_CAPABILITIES_RESPONSE: Final = vol.Schema(
         {
-            vol.Required(fnc(SZ_ALLOWED_STATES)): list(m.value for m in DhwState),
-            vol.Required(fnc(SZ_ALLOWED_MODES)): list(m.value for m in ZoneMode),
-            vol.Required(fnc(SZ_MAX_DURATION)): str,
-            vol.Required(fnc(SZ_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),
+            vol.Required(fnc(S2_ALLOWED_STATES)): list(m.value for m in DhwState),
+            vol.Required(fnc(S2_ALLOWED_MODES)): list(m.value for m in ZoneMode),
+            vol.Required(fnc(S2_MAX_DURATION)): str,
+            vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),
         },
         extra=vol.PREVENT_EXTRA,
     )
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_DHW_ID)): vol.Match(REGEX_DHW_ID),
+            vol.Required(fnc(S2_DHW_ID)): vol.Match(REGEX_DHW_ID),
             vol.Required(
-                fnc(SZ_DHW_STATE_CAPABILITIES_RESPONSE)
+                fnc(S2_DHW_STATE_CAPABILITIES_RESPONSE)
             ): SCH_DHW_STATE_CAPABILITIES_RESPONSE,
             vol.Required(
-                fnc(SZ_SCHEDULE_CAPABILITIES_RESPONSE)
+                fnc(S2_SCHEDULE_CAPABILITIES_RESPONSE)
             ): _factory_schedule_capabilities_response(fnc),
         },
         extra=vol.PREVENT_EXTRA,
@@ -190,56 +189,56 @@ def _factory_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
     SCH_FAN_MODE: Final = vol.Schema(  # noqa: F841
         {
-            vol.Required(fnc(SZ_FAN_MODE)): vol.In([m.value for m in FanMode]),
+            vol.Required(fnc(S2_FAN_MODE)): vol.In([m.value for m in FanMode]),
         },
         extra=vol.PREVENT_EXTRA,
     )
 
     SCH_VACATION_HOLD_CAPABILITIES: Final = vol.Schema(
         {
-            vol.Required(fnc(SZ_IS_CHANGEABLE)): bool,
-            vol.Required(fnc(SZ_IS_CANCELABLE)): bool,
-            vol.Optional(fnc(SZ_MAX_DURATION)): str,
-            vol.Optional(fnc(SZ_MIN_DURATION)): str,
-            vol.Optional(fnc(SZ_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),
+            vol.Required(fnc(S2_IS_CHANGEABLE)): bool,
+            vol.Required(fnc(S2_IS_CANCELABLE)): bool,
+            vol.Optional(fnc(S2_MAX_DURATION)): str,
+            vol.Optional(fnc(S2_MIN_DURATION)): str,
+            vol.Optional(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),
         },
         extra=vol.PREVENT_EXTRA,
     )
 
     SCH_SETPOINT_CAPABILITIES: Final = vol.Schema(  # min/max as per evohome
         {
-            vol.Required(fnc(SZ_CAN_CONTROL_HEAT)): bool,
-            vol.Required(fnc(SZ_MAX_HEAT_SETPOINT)): vol.All(
+            vol.Required(fnc(S2_CAN_CONTROL_HEAT)): bool,
+            vol.Required(fnc(S2_MAX_HEAT_SETPOINT)): vol.All(
                 float,
                 vol.Range(min=MAX_HEAT_SETPOINT_LOWER, max=MAX_HEAT_SETPOINT_UPPER),
             ),
-            vol.Required(fnc(SZ_MIN_HEAT_SETPOINT)): vol.All(
+            vol.Required(fnc(S2_MIN_HEAT_SETPOINT)): vol.All(
                 float,
                 vol.Range(min=MIN_HEAT_SETPOINT_LOWER, max=MIN_HEAT_SETPOINT_UPPER),
             ),
-            vol.Required(fnc(SZ_CAN_CONTROL_COOL)): bool,
-            vol.Optional(fnc(SZ_MAX_COOL_SETPOINT)): float,  # TODO
-            vol.Optional(fnc(SZ_MIN_COOL_SETPOINT)): float,  # TODO
-            vol.Required(fnc(SZ_ALLOWED_SETPOINT_MODES)): list(
+            vol.Required(fnc(S2_CAN_CONTROL_COOL)): bool,
+            vol.Optional(fnc(S2_MAX_COOL_SETPOINT)): float,  # TODO
+            vol.Optional(fnc(S2_MIN_COOL_SETPOINT)): float,  # TODO
+            vol.Required(fnc(S2_ALLOWED_SETPOINT_MODES)): list(
                 m.value for m in ZoneMode
             ),
-            vol.Required(fnc(SZ_VALUE_RESOLUTION)): float,  # 0.5
-            vol.Required(fnc(SZ_MAX_DURATION)): str,  # "1.00:00:00"
-            vol.Required(fnc(SZ_TIMING_RESOLUTION)): vol.Datetime(
+            vol.Required(fnc(S2_VALUE_RESOLUTION)): float,  # 0.5
+            vol.Required(fnc(S2_MAX_DURATION)): str,  # "1.00:00:00"
+            vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(
                 format="00:%M:00"
             ),  # "00:10:00"
             vol.Optional(
-                fnc(SZ_VACATION_HOLD_CAPABILITIES)
+                fnc(S2_VACATION_HOLD_CAPABILITIES)
             ): SCH_VACATION_HOLD_CAPABILITIES,  # non-evohome
-            # vol.Optional((SZ_ALLOWED_FAN_MODES)): dict,  # non-evohome
-            vol.Optional(fnc(SZ_SETPOINT_DEADBAND)): float,  # non-evohome
+            # vol.Optional((S2_ALLOWED_FAN_MODES)): dict,  # non-evohome
+            vol.Optional(fnc(S2_SETPOINT_DEADBAND)): float,  # non-evohome
         },
         extra=vol.PREVENT_EXTRA,
     )
 
     SCH_SCHEDULE_CAPABILITIES = _factory_schedule_capabilities_response(fnc).extend(
         {
-            vol.Required(fnc(SZ_SETPOINT_VALUE_RESOLUTION)): float,
+            vol.Required(fnc(S2_SETPOINT_VALUE_RESOLUTION)): float,
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -247,13 +246,13 @@ def _factory_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     # schedule_capabilities is required for evo, optional for FocusProWifiRetail
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_ZONE_ID)): vol.Match(REGEX_ZONE_ID),
-            vol.Required(fnc(SZ_MODEL_TYPE)): vol.In([m.value for m in ZoneModelType]),
-            vol.Required(fnc(SZ_NAME)): str,
-            vol.Required(fnc(SZ_SETPOINT_CAPABILITIES)): SCH_SETPOINT_CAPABILITIES,
-            vol.Optional(fnc(SZ_SCHEDULE_CAPABILITIES)): SCH_SCHEDULE_CAPABILITIES,
-            vol.Required(fnc(SZ_ZONE_TYPE)): vol.In([m.value for m in ZoneType]),
-            vol.Optional(fnc(SZ_ALLOWED_FAN_MODES)): list,  # FocusProWifiRetail
+            vol.Required(fnc(S2_ZONE_ID)): vol.Match(REGEX_ZONE_ID),
+            vol.Required(fnc(S2_MODEL_TYPE)): vol.In([m.value for m in ZoneModelType]),
+            vol.Required(fnc(S2_NAME)): str,
+            vol.Required(fnc(S2_SETPOINT_CAPABILITIES)): SCH_SETPOINT_CAPABILITIES,
+            vol.Optional(fnc(S2_SCHEDULE_CAPABILITIES)): SCH_SCHEDULE_CAPABILITIES,
+            vol.Required(fnc(S2_ZONE_TYPE)): vol.In([m.value for m in ZoneType]),
+            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): list,  # FocusProWifiRetail
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -268,13 +267,13 @@ def _factory_tcs(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
-            vol.Required(fnc(SZ_MODEL_TYPE)): vol.In([m.value for m in TcsModelType]),
-            vol.Required(fnc(SZ_ALLOWED_SYSTEM_MODES)): [SCH_ALLOWED_SYSTEM_MODES],
-            vol.Required(fnc(SZ_ZONES)): vol.All(
+            vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
+            vol.Required(fnc(S2_MODEL_TYPE)): vol.In([m.value for m in TcsModelType]),
+            vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [SCH_ALLOWED_SYSTEM_MODES],
+            vol.Required(fnc(S2_ZONES)): vol.All(
                 [_factory_zone(fnc)], vol.Length(min=1, max=12)
             ),
-            vol.Optional(fnc(SZ_DHW)): _factory_dhw(fnc),
+            vol.Optional(fnc(S2_DHW)): _factory_dhw(fnc),
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -285,18 +284,18 @@ def _factory_gateway(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
     SCH_GATEWAY_INFO: Final = vol.Schema(
         {
-            vol.Required(fnc(SZ_GATEWAY_ID)): str,
-            vol.Required(fnc(SZ_MAC)): str,
-            vol.Required(fnc(SZ_CRC)): vol.All(str, _obfuscate),
-            vol.Required(fnc(SZ_IS_WI_FI)): bool,
+            vol.Required(fnc(S2_GATEWAY_ID)): str,
+            vol.Required(fnc(S2_MAC)): str,
+            vol.Required(fnc(S2_CRC)): vol.All(str, _obfuscate),
+            vol.Required(fnc(S2_IS_WI_FI)): bool,
         },
         extra=vol.PREVENT_EXTRA,
     )
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_GATEWAY_INFO)): SCH_GATEWAY_INFO,
-            vol.Required(fnc(SZ_TEMPERATURE_CONTROL_SYSTEMS)): [_factory_tcs(fnc)],
+            vol.Required(fnc(S2_GATEWAY_INFO)): SCH_GATEWAY_INFO,
+            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [_factory_tcs(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -307,11 +306,11 @@ def _factory_time_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_TIME_ZONE_ID)): str,
-            vol.Required(fnc(SZ_DISPLAY_NAME)): str,
-            vol.Required(fnc(SZ_OFFSET_MINUTES)): int,
-            vol.Required(fnc(SZ_CURRENT_OFFSET_MINUTES)): int,
-            vol.Required(fnc(SZ_SUPPORTS_DAYLIGHT_SAVING)): bool,
+            vol.Required(fnc(S2_TIME_ZONE_ID)): str,
+            vol.Required(fnc(S2_DISPLAY_NAME)): str,
+            vol.Required(fnc(S2_OFFSET_MINUTES)): int,
+            vol.Required(fnc(S2_CURRENT_OFFSET_MINUTES)): int,
+            vol.Required(fnc(S2_SUPPORTS_DAYLIGHT_SAVING)): bool,
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -324,34 +323,34 @@ def _factory_locations_installation_info(
 
     SCH_LOCATION_OWNER: Final = vol.Schema(
         {
-            vol.Required(fnc(SZ_USER_ID)): str,
-            vol.Required(fnc(SZ_USERNAME)): vol.All(vol.Email(), _obfuscate),
-            vol.Required(fnc(SZ_FIRSTNAME)): str,
-            vol.Required(fnc(SZ_LASTNAME)): vol.All(str, _obfuscate),
+            vol.Required(fnc(S2_USER_ID)): str,
+            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), _obfuscate),
+            vol.Required(fnc(S2_FIRSTNAME)): str,
+            vol.Required(fnc(S2_LASTNAME)): vol.All(str, _obfuscate),
         },
         extra=vol.PREVENT_EXTRA,
     )
 
     SCH_LOCATION_INFO: Final = vol.Schema(
         {
-            vol.Required(fnc(SZ_LOCATION_ID)): str,
-            vol.Required(fnc(SZ_NAME)): str,  # e.g. "My Home"
-            vol.Required(fnc(SZ_STREET_ADDRESS)): vol.All(str, _obfuscate),
-            vol.Required(fnc(SZ_CITY)): vol.All(str, _obfuscate),
-            vol.Required(fnc(SZ_COUNTRY)): str,
-            vol.Required(fnc(SZ_POSTCODE)): vol.All(str, _obfuscate),
-            vol.Required(fnc(SZ_LOCATION_TYPE)): str,  # "Residential"
-            vol.Required(fnc(SZ_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
-            vol.Required(fnc(SZ_TIME_ZONE)): _factory_time_zone(fnc),
-            vol.Required(fnc(SZ_LOCATION_OWNER)): SCH_LOCATION_OWNER,
+            vol.Required(fnc(S2_LOCATION_ID)): str,
+            vol.Required(fnc(S2_NAME)): str,  # e.g. "My Home"
+            vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, _obfuscate),
+            vol.Required(fnc(S2_CITY)): vol.All(str, _obfuscate),
+            vol.Required(fnc(S2_COUNTRY)): str,
+            vol.Required(fnc(S2_POSTCODE)): vol.All(str, _obfuscate),
+            vol.Required(fnc(S2_LOCATION_TYPE)): str,  # "Residential"
+            vol.Required(fnc(S2_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
+            vol.Required(fnc(S2_TIME_ZONE)): _factory_time_zone(fnc),
+            vol.Required(fnc(S2_LOCATION_OWNER)): SCH_LOCATION_OWNER,
         },
         extra=vol.PREVENT_EXTRA,
     )
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_LOCATION_INFO)): SCH_LOCATION_INFO,
-            vol.Required(fnc(SZ_GATEWAYS)): [_factory_gateway(fnc)],
+            vol.Required(fnc(S2_LOCATION_INFO)): SCH_LOCATION_INFO,
+            vol.Required(fnc(S2_GATEWAYS)): [_factory_gateway(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )

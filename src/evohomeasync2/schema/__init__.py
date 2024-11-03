@@ -3,14 +3,7 @@
 
 from __future__ import annotations
 
-from .account import (  # noqa: F401
-    SCH_OAUTH_TOKEN,
-    SCH_USER_ACCOUNT,
-    SZ_ACCESS_TOKEN,
-    SZ_ACCESS_TOKEN_EXPIRES,
-    SZ_EXPIRES_IN,
-    SZ_REFRESH_TOKEN,
-)
+from .account import SCH_USER_ACCOUNT  # noqa: F401
 from .config import (  # noqa: F401
     SCH_LOCATION_INSTALLATION_INFO as SCH_LOCN_CONFIG,
     SCH_USER_LOCATIONS_INSTALLATION_INFO as SCH_FULL_CONFIG,
@@ -23,7 +16,7 @@ from .const import (  # noqa: F401
     SystemMode,
     ZoneMode,
 )
-from .helpers import convert_keys_to_snake_case  # noqa: F401
+from .helpers import convert_keys_to_snake_case, obfuscate  # noqa: F401
 from .schedule import (  # noqa: F401
     SCH_GET_SCHEDULE,
     SCH_GET_SCHEDULE_DHW,

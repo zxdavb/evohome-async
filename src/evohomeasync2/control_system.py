@@ -24,21 +24,21 @@ from .const import (
 from .hotwater import HotWater
 from .schema import SCH_TCS_STATUS, convert_keys_to_snake_case
 from .schema.const import (
-    SZ_ALLOWED_SYSTEM_MODES,
-    SZ_DHW,
-    SZ_DHW_ID,
-    SZ_IS_AVAILABLE,
-    SZ_MODE,
-    SZ_MODEL_TYPE,
-    SZ_PERMANENT,
-    SZ_SYSTEM_ID,
-    SZ_SYSTEM_MODE,
-    SZ_SYSTEM_MODE_STATUS,
-    SZ_TARGET_HEAT_TEMPERATURE,
-    SZ_TEMPERATURE,
-    SZ_TIME_UNTIL,
-    SZ_ZONE_ID,
-    SZ_ZONES,
+    S2_ALLOWED_SYSTEM_MODES,
+    S2_DHW,
+    S2_DHW_ID,
+    S2_IS_AVAILABLE,
+    S2_MODE,
+    S2_MODEL_TYPE,
+    S2_PERMANENT,
+    S2_SYSTEM_ID,
+    S2_SYSTEM_MODE,
+    S2_SYSTEM_MODE_STATUS,
+    S2_TARGET_HEAT_TEMPERATURE,
+    S2_TEMPERATURE,
+    S2_TIME_UNTIL,
+    S2_ZONE_ID,
+    S2_ZONES,
     EntityType,
 )
 from .zone import ActiveFaultsBase, Zone
@@ -58,7 +58,7 @@ class ControlSystem(ActiveFaultsBase):
 
     def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
         super().__init__(
-            config[SZ_SYSTEM_ID],
+            config[S2_SYSTEM_ID],
             gateway._broker,
             gateway._logger,
         )
@@ -67,7 +67,7 @@ class ControlSystem(ActiveFaultsBase):
         self.location: Location = gateway.location
 
         self._config: Final[_EvoDictT] = {
-            k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
+            k: v for k, v in config.items() if k not in (S2_DHW, S2_ZONES)
         }
         self._status: _EvoDictT = {}
 
@@ -78,12 +78,12 @@ class ControlSystem(ActiveFaultsBase):
         self.hotwater: None | HotWater = None
 
         zon_config: _EvoDictT
-        for zon_config in config[SZ_ZONES]:
+        for zon_config in config[S2_ZONES]:
             try:
                 zone = Zone(self, zon_config)
             except exc.InvalidSchemaError as err:
                 self._logger.warning(
-                    f"{self}: zone_id='{zon_config[SZ_ZONE_ID]}' ignored: {err}"
+                    f"{self}: zone_id='{zon_config[S2_ZONE_ID]}' ignored: {err}"
                 )
             else:
                 self.zones.append(zone)
@@ -91,17 +91,17 @@ class ControlSystem(ActiveFaultsBase):
                 self.zones_by_id[zone.id] = zone
 
         dhw_config: _EvoDictT
-        if dhw_config := config.get(SZ_DHW):  # type: ignore[assignment]
+        if dhw_config := config.get(S2_DHW):  # type: ignore[assignment]
             self.hotwater = HotWater(self, dhw_config)
 
     @property
     def allowed_system_modes(self) -> _EvoListT:
-        ret: _EvoListT = self._config[SZ_ALLOWED_SYSTEM_MODES]
+        ret: _EvoListT = self._config[S2_ALLOWED_SYSTEM_MODES]
         return convert_keys_to_snake_case(ret)
 
     @property
     def model_type(self) -> str:
-        ret: str = self._config[SZ_MODEL_TYPE]
+        ret: str = self._config[S2_MODEL_TYPE]
         return ret
 
     def _update_status(self, status: _EvoDictT) -> None:
@@ -109,35 +109,35 @@ class ControlSystem(ActiveFaultsBase):
 
         self._status = status
 
-        for zon_status in self._status[SZ_ZONES]:
-            if zone := self.zones_by_id.get(zon_status[SZ_ZONE_ID]):
+        for zon_status in self._status[S2_ZONES]:
+            if zone := self.zones_by_id.get(zon_status[S2_ZONE_ID]):
                 zone._update_status(zon_status)
 
             else:
                 self._logger.warning(
-                    f"{self}: zone_id='{zon_status[SZ_ZONE_ID]}' not known"
+                    f"{self}: zone_id='{zon_status[S2_ZONE_ID]}' not known"
                     ", (has the system configuration been changed?)"
                 )
 
-        if dhw_status := self._status.get(SZ_DHW):
-            if self.hotwater and self.hotwater.id == dhw_status[SZ_DHW_ID]:
+        if dhw_status := self._status.get(S2_DHW):
+            if self.hotwater and self.hotwater.id == dhw_status[S2_DHW_ID]:
                 self.hotwater._update_status(dhw_status)
 
             else:
                 self._logger.warning(
-                    f"{self}: dhw_id='{dhw_status[SZ_DHW_ID]}' not known"
+                    f"{self}: dhw_id='{dhw_status[S2_DHW_ID]}' not known"
                     ", (has the system configuration been changed?)"
                 )
 
     @property
     def system_mode_status(self) -> _EvoDictT | None:
-        return self._status.get(SZ_SYSTEM_MODE_STATUS)
+        return self._status.get(S2_SYSTEM_MODE_STATUS)
 
     @property  # status attr for convenience (new)
     def system_mode(self) -> str | None:
-        if (status := self._status.get(SZ_SYSTEM_MODE_STATUS)) is None:
+        if (status := self._status.get(S2_SYSTEM_MODE_STATUS)) is None:
             return None
-        ret: str = status[SZ_MODE]
+        ret: str = status[S2_MODE]
         return ret
 
     @property
@@ -159,21 +159,21 @@ class ControlSystem(ActiveFaultsBase):
         request: _EvoDictT
 
         if mode not in [
-            m[SZ_SYSTEM_MODE] for m in self._config[SZ_ALLOWED_SYSTEM_MODES]
+            m[S2_SYSTEM_MODE] for m in self._config[S2_ALLOWED_SYSTEM_MODES]
         ]:
             raise exc.InvalidParameterError(f"{self}: Unsupported/unknown mode: {mode}")
 
         if until is None:
             request = {
-                SZ_SYSTEM_MODE: mode,
-                SZ_PERMANENT: True,
-                # SZ_TIME_UNTIL: None,
+                S2_SYSTEM_MODE: mode,
+                S2_PERMANENT: True,
+                # S2_TIME_UNTIL: None,
             }
         else:
             request = {
-                SZ_SYSTEM_MODE: mode,
-                SZ_PERMANENT: False,
-                SZ_TIME_UNTIL: until.strftime(API_STRFTIME),
+                S2_SYSTEM_MODE: mode,
+                S2_PERMANENT: False,
+                S2_TIME_UNTIL: until.strftime(API_STRFTIME),
             }
 
         await self._set_mode(request)
@@ -219,9 +219,9 @@ class ControlSystem(ActiveFaultsBase):
 
             if (
                 isinstance(dhw.temperature_status, dict)
-                and dhw.temperature_status[SZ_IS_AVAILABLE]
+                and dhw.temperature_status[S2_IS_AVAILABLE]
             ):
-                dhw_status[SZ_TEMP] = dhw.temperature_status[SZ_TEMPERATURE]
+                dhw_status[SZ_TEMP] = dhw.temperature_status[S2_TEMPERATURE]
 
             result.append(dhw_status)
 
@@ -236,14 +236,14 @@ class ControlSystem(ActiveFaultsBase):
 
             if isinstance(zone.setpoint_status, dict):
                 zone_status[SZ_SETPOINT] = zone.setpoint_status[
-                    SZ_TARGET_HEAT_TEMPERATURE
+                    S2_TARGET_HEAT_TEMPERATURE
                 ]
 
             if (
                 isinstance(zone.temperature_status, dict)
-                and zone.temperature_status[SZ_IS_AVAILABLE]
+                and zone.temperature_status[S2_IS_AVAILABLE]
             ):
-                zone_status[SZ_TEMP] = zone.temperature_status[SZ_TEMPERATURE]
+                zone_status[SZ_TEMP] = zone.temperature_status[S2_TEMPERATURE]
 
             result.append(zone_status)
 

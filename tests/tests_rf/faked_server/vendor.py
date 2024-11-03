@@ -12,9 +12,7 @@ from typing import TYPE_CHECKING
 import voluptuous as vol
 
 from evohomeasync2.const import AUTH_URL, URL_BASE
-from evohomeasync2.schema import const, convert_to_get_schedule
-from evohomeasync2.schema.const import SZ_DHW, SZ_GATEWAYS, SZ_LOCATION, SZ_ZONES
-from evohomeasync2.schema.helpers import snake_to_camel
+from evohomeasync2.schema import const as sch, convert_to_get_schedule
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 
 from .const import (
@@ -30,31 +28,20 @@ from .const import (
 if TYPE_CHECKING:
     from .const import _bodyT, _methodT, _statusT, _urlT
 
-# the vendor API uses camelCase, so some conversion is required
-SZ_DHW_ID = snake_to_camel(const.SZ_DHW_ID)
-SZ_DOMESTIC_HOT_WATER = snake_to_camel(const.SZ_DOMESTIC_HOT_WATER)
-SZ_LOCATION_ID = snake_to_camel(const.SZ_LOCATION_ID)
-SZ_SYSTEM_ID = snake_to_camel(const.SZ_SYSTEM_ID)
-SZ_TEMPERATURE_CONTROL_SYSTEM = snake_to_camel(const.SZ_TEMPERATURE_CONTROL_SYSTEM)
-SZ_TEMPERATURE_CONTROL_SYSTEMS = snake_to_camel(const.SZ_TEMPERATURE_CONTROL_SYSTEMS)
-SZ_TEMPERATURE_ZONE = snake_to_camel(const.SZ_TEMPERATURE_ZONE)
-SZ_USER_ID = snake_to_camel(const.SZ_USER_ID)
-SZ_ZONE_ID = snake_to_camel(const.SZ_ZONE_ID)
-
 
 def _dhw_id(url: _urlT) -> str:
     """Extract a DHW id from a URL."""
-    return url.split(f"{SZ_DOMESTIC_HOT_WATER}/")[1].split("/")[0]
+    return url.split(f"{sch.S2_DOMESTIC_HOT_WATER}/")[1].split("/")[0]
 
 
 def _loc_id(url: _urlT) -> str:
     """Extract a Location id from a URL."""
-    return url.split(f"{SZ_LOCATION}/")[1].split("/")[0]
+    return url.split(f"{sch.S2_LOCATION}/")[1].split("/")[0]
 
 
 def _tcs_id(url: _urlT) -> str:
     """Extract a TCS id from a URL."""
-    return url.split(f"{SZ_TEMPERATURE_CONTROL_SYSTEM}/")[1].split("/")[0]
+    return url.split(f"{sch.S2_TEMPERATURE_CONTROL_SYSTEM}/")[1].split("/")[0]
 
 
 def _usr_id(url: _urlT) -> str:
@@ -64,7 +51,7 @@ def _usr_id(url: _urlT) -> str:
 
 def _zon_id(url: _urlT) -> str:
     """Extract a Zone id from a URL."""
-    return url.split(f"{SZ_TEMPERATURE_ZONE}/")[1].split("/")[0]
+    return url.split(f"{sch.S2_TEMPERATURE_ZONE}/")[1].split("/")[0]
 
 
 def validate_id_of_url(
@@ -175,7 +162,7 @@ class FakedServer:
     def all_config(self) -> _bodyT | None:  # full_locn
         usr_id = _usr_id(self._url)  # type: ignore[arg-type]
 
-        if self._user_config[SZ_USER_ID] == usr_id:
+        if self._user_config[sch.S2_USER_ID] == usr_id:
             return self._full_config
         return None
 
@@ -186,7 +173,7 @@ class FakedServer:
     def loc_status(self) -> _bodyT | None:
         loc_id = _loc_id(self._url)  # type: ignore[arg-type]
 
-        if self._locn_status[SZ_LOCATION_ID] == loc_id:
+        if self._locn_status[sch.S2_LOCATION_ID] == loc_id:
             return self._locn_status
         return None
 
@@ -197,9 +184,9 @@ class FakedServer:
     def tcs_status(self) -> _bodyT | None:
         tcs_id = _tcs_id(self._url)  # type: ignore[arg-type]
 
-        for gwy in self._locn_status[SZ_GATEWAYS]:
-            for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
-                if tcs[SZ_SYSTEM_ID] == tcs_id:
+        for gwy in self._locn_status[sch.S2_GATEWAYS]:
+            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
+                if tcs[sch.S2_SYSTEM_ID] == tcs_id:
                     return tcs
         return None
 
@@ -236,10 +223,10 @@ class FakedServer:
     def zon_status(self) -> _bodyT | None:
         zon_id = _zon_id(self._url)  # type: ignore[arg-type]
 
-        for gwy in self._locn_status[SZ_GATEWAYS]:
-            for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
-                for zone in tcs[SZ_ZONES]:
-                    if zone[SZ_ZONE_ID] == zon_id:
+        for gwy in self._locn_status[sch.S2_GATEWAYS]:
+            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
+                for zone in tcs[sch.S2_ZONES]:
+                    if zone[sch.S2_ZONE_ID] == zon_id:
                         return zone
         return None
 
@@ -270,10 +257,10 @@ class FakedServer:
     def dhw_status(self) -> _bodyT | None:
         dhw_id = _dhw_id(self._url)  # type: ignore[arg-type]
 
-        for gwy in self._locn_status[SZ_GATEWAYS]:
-            for tcs in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
-                if dhw := tcs.get(SZ_DHW):
-                    if dhw[SZ_DHW_ID] == dhw_id:
+        for gwy in self._locn_status[sch.S2_GATEWAYS]:
+            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
+                if dhw := tcs.get(sch.S2_DHW):
+                    if dhw[sch.S2_DHW_ID] == dhw_id:
                         return dhw
         return None
 

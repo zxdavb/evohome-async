@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import Generator
 from enum import EnumCheck, StrEnum, verify
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Self
@@ -208,7 +209,7 @@ class ClientResponse:
     ) -> None:
         pass
 
-    def __await__(self) -> Self:
+    def __await__(self) -> Generator[Any, Any, Self]:
         """Make this class awaitable."""
         return self._await_impl().__await__()
 

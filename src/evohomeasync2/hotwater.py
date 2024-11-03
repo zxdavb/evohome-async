@@ -16,14 +16,14 @@ from .schema import (
     convert_keys_to_snake_case,
 )
 from .schema.const import (
-    SZ_ALLOWED_MODES,
-    SZ_DHW_ID,
-    SZ_DHW_STATE_CAPABILITIES_RESPONSE,
-    SZ_MODE,
-    SZ_SCHEDULE_CAPABILITIES_RESPONSE,
-    SZ_STATE,
-    SZ_STATE_STATUS,
-    SZ_UNTIL_TIME,
+    S2_ALLOWED_MODES,
+    S2_DHW_ID,
+    S2_DHW_STATE_CAPABILITIES_RESPONSE,
+    S2_MODE,
+    S2_SCHEDULE_CAPABILITIES_RESPONSE,
+    S2_STATE,
+    S2_STATE_STATUS,
+    S2_UNTIL_TIME,
     DhwState,
     EntityType,
     ZoneMode,
@@ -47,22 +47,22 @@ class HotWater(_ZoneBase):
     SCH_SCHEDULE_PUT: Final[vol.Schema] = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(config[SZ_DHW_ID], tcs, config)
+        super().__init__(config[S2_DHW_ID], tcs, config)
 
     @property
     def state_capabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
+        ret: _EvoDictT = self._config[S2_DHW_STATE_CAPABILITIES_RESPONSE]
         return convert_keys_to_snake_case(ret)
 
     @property
     def schedule_capabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
+        ret: _EvoDictT = self._config[S2_SCHEDULE_CAPABILITIES_RESPONSE]
         return convert_keys_to_snake_case(ret)
 
     @property  # for convenience (is not a top-level config attribute)
     def allowed_modes(self) -> _EvoListT:
-        ret: _EvoListT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE][
-            SZ_ALLOWED_MODES
+        ret: _EvoListT = self._config[S2_DHW_STATE_CAPABILITIES_RESPONSE][
+            S2_ALLOWED_MODES
         ]
         return convert_keys_to_snake_case(ret)
 
@@ -72,20 +72,20 @@ class HotWater(_ZoneBase):
 
     @property
     def state_status(self) -> _EvoDictT | None:
-        return self._status.get(SZ_STATE_STATUS)
+        return self._status.get(S2_STATE_STATUS)
 
     @property  # status attr for convenience (new)
     def mode(self) -> str | None:
-        if (state_status := self._status.get(SZ_STATE_STATUS)) is None:
+        if (state_status := self._status.get(S2_STATE_STATUS)) is None:
             return None
-        ret: str = state_status[SZ_MODE]
+        ret: str = state_status[S2_MODE]
         return ret
 
     @property  # status attr for convenience (new)
     def state(self) -> str | None:
-        if (state_status := self._status.get(SZ_STATE_STATUS)) is None:
+        if (state_status := self._status.get(S2_STATE_STATUS)) is None:
             return None
-        ret: str = state_status[SZ_STATE]
+        ret: str = state_status[S2_STATE]
         return ret
 
     def _next_setpoint(self) -> tuple[dt, str] | None:  # WIP: for convenience (new)
@@ -99,10 +99,10 @@ class HotWater(_ZoneBase):
     async def reset_mode(self) -> None:
         """Cancel any override and allow the DHW to follow its schedule."""
 
-        mode: dict[str, str | None] = {  # NOTE: SZ_STATE was previously ""
-            SZ_MODE: ZoneMode.FOLLOW_SCHEDULE,
-            SZ_STATE: None,
-            SZ_UNTIL_TIME: None,
+        mode: dict[str, str | None] = {  # NOTE: S2_STATE was previously ""
+            S2_MODE: ZoneMode.FOLLOW_SCHEDULE,
+            S2_STATE: None,
+            S2_UNTIL_TIME: None,
         }
 
         await self._set_mode(mode)
@@ -114,15 +114,15 @@ class HotWater(_ZoneBase):
 
         if until is None:
             mode = {
-                SZ_MODE: ZoneMode.PERMANENT_OVERRIDE,
-                SZ_STATE: DhwState.ON,
-                SZ_UNTIL_TIME: None,
+                S2_MODE: ZoneMode.PERMANENT_OVERRIDE,
+                S2_STATE: DhwState.ON,
+                S2_UNTIL_TIME: None,
             }
         else:
             mode = {
-                SZ_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-                SZ_STATE: DhwState.ON,
-                SZ_UNTIL_TIME: until.strftime(API_STRFTIME),
+                S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
+                S2_STATE: DhwState.ON,
+                S2_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
 
         await self._set_mode(mode)
@@ -134,15 +134,15 @@ class HotWater(_ZoneBase):
 
         if until is None:
             mode = {
-                SZ_MODE: ZoneMode.PERMANENT_OVERRIDE,
-                SZ_STATE: DhwState.OFF,
-                SZ_UNTIL_TIME: None,
+                S2_MODE: ZoneMode.PERMANENT_OVERRIDE,
+                S2_STATE: DhwState.OFF,
+                S2_UNTIL_TIME: None,
             }
         else:
             mode = {
-                SZ_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-                SZ_STATE: DhwState.OFF,
-                SZ_UNTIL_TIME: until.strftime(API_STRFTIME),
+                S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
+                S2_STATE: DhwState.OFF,
+                S2_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
 
         await self._set_mode(mode)

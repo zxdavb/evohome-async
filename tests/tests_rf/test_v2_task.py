@@ -12,11 +12,11 @@ import evohomeasync2 as evo2
 from evohomeasync2 import ControlSystem, Gateway, HotWater, Location
 from evohomeasync2.const import API_STRFTIME, DhwState, ZoneMode
 from evohomeasync2.schema.const import (
-    SZ_MODE,
-    SZ_STATE,
-    SZ_STATE_STATUS,
-    SZ_UNTIL,
-    SZ_UNTIL_TIME,
+    S2_MODE,
+    S2_STATE,
+    S2_STATE_STATUS,
+    S2_UNTIL,
+    S2_UNTIL_TIME,
 )
 from evohomeasync2.schema.helpers import pascal_case
 
@@ -51,7 +51,7 @@ async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
     else:  # No available DHW found
         pytest.skip("No available DHW found")
 
-    assert dhw is not None  # mypy hint
+    assert dhw is not None  # type: ignore[unreachable]
 
     GET_URL = f"{dhw.TYPE}/{dhw.id}/status"
     PUT_URL = f"{dhw.TYPE}/{dhw.id}/state"
@@ -78,18 +78,18 @@ async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
     # }  # HTTP 200
 
     old_mode = {
-        SZ_MODE: old_status[SZ_STATE_STATUS][SZ_MODE],
-        SZ_STATE: old_status[SZ_STATE_STATUS][SZ_STATE],
-        SZ_UNTIL_TIME: old_status[SZ_STATE_STATUS].get(SZ_UNTIL),
+        S2_MODE: old_status[S2_STATE_STATUS][S2_MODE],
+        S2_STATE: old_status[S2_STATE_STATUS][S2_STATE],
+        S2_UNTIL_TIME: old_status[S2_STATE_STATUS].get(S2_UNTIL),
     }  # NOTE: untilTime/until
 
     #
     # PART 1: Try the basic functionality...
-    # new_mode = {SZ_MODE: ZoneMode.PERMANENT_OVERRIDE, SZ_STATE: DhwState.OFF, SZ_UNTIL_TIME: None}
+    # new_mode = {S2_MODE: ZoneMode.PERMANENT_OVERRIDE, S2_STATE: DhwState.OFF, S2_UNTIL_TIME: None}
     new_mode = {
-        SZ_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-        SZ_STATE: DhwState.ON,
-        SZ_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
+        S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
+        S2_STATE: DhwState.ON,
+        S2_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
 
     result = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)
@@ -115,9 +115,9 @@ async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
     #
     # PART 2A: Try different capitalisations of the JSON keys...
     new_mode = {
-        SZ_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-        SZ_STATE: DhwState.ON,
-        SZ_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
+        S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
+        S2_STATE: DhwState.ON,
+        S2_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
     _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)  # HTTP 201
 
@@ -127,9 +127,9 @@ async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
     status = await should_work(evo, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time
-        pascal_case(SZ_MODE): ZoneMode.TEMPORARY_OVERRIDE,
-        pascal_case(SZ_STATE): DhwState.ON,
-        pascal_case(SZ_UNTIL_TIME): (dt.now() + td(hours=2)).strftime(API_STRFTIME),
+        pascal_case(S2_MODE): ZoneMode.TEMPORARY_OVERRIDE,
+        pascal_case(S2_STATE): DhwState.ON,
+        pascal_case(S2_UNTIL_TIME): (dt.now() + td(hours=2)).strftime(API_STRFTIME),
     }
     _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)
 
@@ -152,9 +152,9 @@ async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
     #
     # PART 4A: Try bad JSON...
     bad_mode = {
-        SZ_STATE: ZoneMode.TEMPORARY_OVERRIDE,
-        SZ_MODE: DhwState.OFF,
-        SZ_UNTIL_TIME: None,
+        S2_STATE: ZoneMode.TEMPORARY_OVERRIDE,
+        S2_MODE: DhwState.OFF,
+        S2_UNTIL_TIME: None,
     }
     _ = await should_fail(
         evo, HTTPMethod.PUT, PUT_URL, json=bad_mode, status=HTTPStatus.BAD_REQUEST

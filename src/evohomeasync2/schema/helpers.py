@@ -6,7 +6,27 @@ from __future__ import annotations
 import re
 from typing import TypeVar
 
+from .const import REGEX_EMAIL_ADDRESS
+
 _T = TypeVar("_T")
+
+
+# all _DBG_* flags should be False for published code
+_DBG_DONT_OBSFUCATE = False  # default is to obsfucate JSON in debug output
+
+
+def obfuscate(value: bool | int | str) -> bool | int | str | None:
+    if _DBG_DONT_OBSFUCATE:
+        return value
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return 0
+    if not isinstance(value, str):
+        raise TypeError(f"obfuscate() expects bool | int | str, got {type(value)}")
+    if re.match(REGEX_EMAIL_ADDRESS, value):
+        return "nobody@nowhere.com"
+    return "********"
 
 
 def camel_case(s: str) -> str:

@@ -19,9 +19,8 @@ import debugpy  # type: ignore[import-untyped]
 
 from . import EvohomeClientNew, HotWater, Zone, exceptions as exc
 from .auth import AbstractTokenManager, _EvoTokenData
-from .const import SZ_NAME, SZ_SCHEDULE
+from .const import SZ_ACCESS_TOKEN_EXPIRES, SZ_NAME, SZ_SCHEDULE
 from .control_system import ControlSystem
-from .schema import SZ_ACCESS_TOKEN_EXPIRES
 
 # all _DBG_* flags should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of click

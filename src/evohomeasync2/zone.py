@@ -23,27 +23,27 @@ from .schema import (
     convert_to_put_schedule,
 )
 from .schema.const import (
-    SZ_ACTIVE_FAULTS,
-    SZ_ALLOWED_SETPOINT_MODES,
-    SZ_FAULT_TYPE,
-    SZ_HEAT_SETPOINT_VALUE,
-    SZ_IS_AVAILABLE,
-    SZ_MAX_HEAT_SETPOINT,
-    SZ_MIN_HEAT_SETPOINT,
-    SZ_MODEL_TYPE,
-    SZ_NAME,
-    SZ_SCHEDULE_CAPABILITIES,
-    SZ_SETPOINT_CAPABILITIES,
-    SZ_SETPOINT_MODE,
-    SZ_SETPOINT_STATUS,
-    SZ_SINCE,
-    SZ_TARGET_COOL_TEMPERATURE,
-    SZ_TARGET_HEAT_TEMPERATURE,
-    SZ_TEMPERATURE,
-    SZ_TEMPERATURE_STATUS,
-    SZ_TIME_UNTIL,
-    SZ_ZONE_ID,
-    SZ_ZONE_TYPE,
+    S2_ACTIVE_FAULTS,
+    S2_ALLOWED_SETPOINT_MODES,
+    S2_FAULT_TYPE,
+    S2_HEAT_SETPOINT_VALUE,
+    S2_IS_AVAILABLE,
+    S2_MAX_HEAT_SETPOINT,
+    S2_MIN_HEAT_SETPOINT,
+    S2_MODEL_TYPE,
+    S2_NAME,
+    S2_SCHEDULE_CAPABILITIES,
+    S2_SETPOINT_CAPABILITIES,
+    S2_SETPOINT_MODE,
+    S2_SETPOINT_STATUS,
+    S2_SINCE,
+    S2_TARGET_COOL_TEMPERATURE,
+    S2_TARGET_HEAT_TEMPERATURE,
+    S2_TEMPERATURE,
+    S2_TEMPERATURE_STATUS,
+    S2_TIME_UNTIL,
+    S2_ZONE_ID,
+    S2_ZONE_TYPE,
     ZONE_MODEL_TYPES,
     ZONE_TYPES,
     EntityType,
@@ -97,32 +97,32 @@ class ActiveFaultsBase(EntityBase):
         last_logged = {}
 
         def hash(fault: _EvoDictT) -> str:
-            return f"{fault[SZ_FAULT_TYPE]}_{fault[SZ_SINCE]}"
+            return f"{fault[S2_FAULT_TYPE]}_{fault[S2_SINCE]}"
 
         def log_as_active(fault: _EvoDictT) -> None:
             self._logger.warning(
-                f"Active fault: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
+                f"Active fault: {self}: {fault[S2_FAULT_TYPE]}, since {fault[S2_SINCE]}"
             )
             last_logged[hash(fault)] = dt.now()
 
         def log_as_resolved(fault: _EvoDictT) -> None:
             self._logger.info(
-                f"Fault cleared: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
+                f"Fault cleared: {self}: {fault[S2_FAULT_TYPE]}, since {fault[S2_SINCE]}"
             )
             del self._last_logged[hash(fault)]
 
-        for fault in status[SZ_ACTIVE_FAULTS]:
+        for fault in status[S2_ACTIVE_FAULTS]:
             if fault not in self.active_faults:  # new active fault
                 log_as_active(fault)
 
         for fault in self.active_faults:
-            if fault not in status[SZ_ACTIVE_FAULTS]:  # fault resolved
+            if fault not in status[S2_ACTIVE_FAULTS]:  # fault resolved
                 log_as_resolved(fault)
 
             elif dt.now() - self._last_logged[hash(fault)] > _ONE_DAY:
                 log_as_active(fault)
 
-        self.active_faults = status[SZ_ACTIVE_FAULTS]
+        self.active_faults = status[S2_ACTIVE_FAULTS]
         self._last_logged |= last_logged
 
 
@@ -166,18 +166,18 @@ class _ZoneBase(ActiveFaultsBase):
 
     @property
     def temperature_status(self) -> _EvoDictT | None:
-        return convert_keys_to_snake_case(self._status.get(SZ_TEMPERATURE_STATUS))
+        return convert_keys_to_snake_case(self._status.get(S2_TEMPERATURE_STATUS))
 
     @property  # status attr for convenience (new)
     def temperature(self) -> float | None:
         if (
-            not (status := self._status.get(SZ_TEMPERATURE_STATUS))
-            or not status[SZ_IS_AVAILABLE]
+            not (status := self._status.get(S2_TEMPERATURE_STATUS))
+            or not status[S2_IS_AVAILABLE]
         ):
             return None
 
-        # assert isinstance(status[SZ_TEMPERATURE], float)  # mypy check
-        ret: float = status[SZ_TEMPERATURE]
+        # assert isinstance(status[S2_TEMPERATURE], float)  # mypy check
+        ret: float = status[S2_TEMPERATURE]
         return ret
 
     async def get_schedule(self) -> _EvoDictT:
@@ -252,7 +252,7 @@ class Zone(_ZoneBase):
     SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_ZONE  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(config[SZ_ZONE_ID], tcs, config)
+        super().__init__(config[S2_ZONE_ID], tcs, config)
 
         if not self.model_type or self.model_type == ZoneModelType.UNKNOWN:
             raise exc.InvalidSchemaError(
@@ -274,69 +274,69 @@ class Zone(_ZoneBase):
 
     @property
     def model_type(self) -> str:
-        ret: str = self._config[SZ_MODEL_TYPE]
+        ret: str = self._config[S2_MODEL_TYPE]
         return ret
 
     @property
     def setpoint_capabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[SZ_SETPOINT_CAPABILITIES]
+        ret: _EvoDictT = self._config[S2_SETPOINT_CAPABILITIES]
         return convert_keys_to_snake_case(ret)
 
     @property  # for convenience (is not a top-level config attribute)
     def allowed_setpoint_modes(self) -> _EvoListT:
-        ret: _EvoListT = self._config[SZ_SETPOINT_CAPABILITIES][
-            SZ_ALLOWED_SETPOINT_MODES
+        ret: _EvoListT = self._config[S2_SETPOINT_CAPABILITIES][
+            S2_ALLOWED_SETPOINT_MODES
         ]
         return convert_keys_to_snake_case(ret)
 
     @property
     def schedule_capabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES]
+        ret: _EvoDictT = self._config[S2_SCHEDULE_CAPABILITIES]
         return convert_keys_to_snake_case(ret)
 
     @property  # config attr for convenience (new)
     def max_heat_setpoint(self) -> float:
-        ret: float = self._config[SZ_SETPOINT_CAPABILITIES][SZ_MAX_HEAT_SETPOINT]
+        ret: float = self._config[S2_SETPOINT_CAPABILITIES][S2_MAX_HEAT_SETPOINT]
         return ret
 
     @property  # config attr for convenience (new)
     def min_heat_setpoint(self) -> float:
-        ret: float = self._config[SZ_SETPOINT_CAPABILITIES][SZ_MIN_HEAT_SETPOINT]
+        ret: float = self._config[S2_SETPOINT_CAPABILITIES][S2_MIN_HEAT_SETPOINT]
         return ret
 
     @property
     def zone_type(self) -> str:
-        ret: str = self._config[SZ_ZONE_TYPE]
+        ret: str = self._config[S2_ZONE_TYPE]
         return ret
 
     @property
     def name(self) -> str:
-        ret: str = self._status.get(SZ_NAME) or self._config[SZ_NAME]
+        ret: str = self._status.get(S2_NAME) or self._config[S2_NAME]
         return ret
 
     @property
     def setpoint_status(self) -> _EvoDictT | None:
-        return self._status.get(SZ_SETPOINT_STATUS)
+        return self._status.get(S2_SETPOINT_STATUS)
 
     @property  # status attr for convenience (new)
     def mode(self) -> str | None:
         if not self.setpoint_status:
             return None
-        ret: str = self.setpoint_status[SZ_SETPOINT_MODE]
+        ret: str = self.setpoint_status[S2_SETPOINT_MODE]
         return ret
 
     @property  # status attr for convenience (new)
     def target_cool_temperature(self) -> float | None:
         if not self.setpoint_status:
             return None
-        ret: float | None = self.setpoint_status.get(SZ_TARGET_COOL_TEMPERATURE)
+        ret: float | None = self.setpoint_status.get(S2_TARGET_COOL_TEMPERATURE)
         return ret
 
     @property  # status attr for convenience (new)
     def target_heat_temperature(self) -> float | None:
         if not self.setpoint_status:
             return None
-        ret: float = self.setpoint_status[SZ_TARGET_HEAT_TEMPERATURE]
+        ret: float = self.setpoint_status[S2_TARGET_HEAT_TEMPERATURE]
         return ret
 
     # TODO: no provision for cooling
@@ -349,9 +349,9 @@ class Zone(_ZoneBase):
         """Cancel any override and allow the zone to follow its schedule"""
 
         mode: dict[str, str | float] = {
-            SZ_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
-            # SZ_HEAT_SETPOINT_VALUE: 0.0,
-            # SZ_TIME_UNTIL: None,
+            S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
+            # S2_HEAT_SETPOINT_VALUE: 0.0,
+            # S2_TIME_UNTIL: None,
         }
 
         await self._set_mode(mode)
@@ -365,15 +365,15 @@ class Zone(_ZoneBase):
 
         if until is None:  # NOTE: beware that these may be case-sensitive
             mode = {
-                SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
-                SZ_HEAT_SETPOINT_VALUE: temperature,
-                # SZ_TIME_UNTIL: None,
+                S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
+                S2_HEAT_SETPOINT_VALUE: temperature,
+                # S2_TIME_UNTIL: None,
             }
         else:
             mode = {
-                SZ_SETPOINT_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-                SZ_HEAT_SETPOINT_VALUE: temperature,
-                SZ_TIME_UNTIL: until.strftime(API_STRFTIME),
+                S2_SETPOINT_MODE: ZoneMode.TEMPORARY_OVERRIDE,
+                S2_HEAT_SETPOINT_VALUE: temperature,
+                S2_TIME_UNTIL: until.strftime(API_STRFTIME),
             }
 
         await self._set_mode(mode)

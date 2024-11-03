@@ -32,7 +32,7 @@ from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401
 from .location import Location
 from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT, convert_keys_to_snake_case
-from .schema.const import SZ_USER_ID
+from .schema.const import S2_USER_ID
 from .zone import Zone  # noqa: F401
 
 if TYPE_CHECKING:
@@ -129,7 +129,7 @@ class EvohomeClientNew:  # requires a Token Manager
         assert self._user_info is not None  # mypy hint
 
         if self._install_config is None:
-            url = f"location/installationInfo?userId={self._user_info[SZ_USER_ID]}"
+            url = f"location/installationInfo?userId={self._user_info[S2_USER_ID]}"
             url += "&includeTemperatureControlSystems=True"
 
             self._install_config = await self.auth.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]

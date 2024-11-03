@@ -3,7 +3,14 @@
 
 from typing import Final
 
-from .schema import DhwState as DhwState, SystemMode as SystemMode, ZoneMode as ZoneMode
+import voluptuous as vol
+
+from .schema import (
+    DhwState as DhwState,
+    SystemMode as SystemMode,
+    ZoneMode as ZoneMode,
+    obfuscate as _obfuscate,
+)
 
 URL_HOST: Final = "https://tccna.honeywell.com"
 
@@ -52,6 +59,11 @@ CREDS_USER_PASSWORD: Final = {
 }
 
 
+# These snake_case equivalents of schema strings
+# S2_SYSTEM_MODE: Final = "system_mode"
+# SZ_USER_ID: Final = "user_id"
+
+
 # These are used in TCS.temperatures convenience function
 SZ_ID: Final = "id"
 SZ_NAME: Final = "name"
@@ -59,3 +71,26 @@ SZ_TEMP: Final = "temp"
 SZ_THERMOSTAT: Final = "thermostat"
 SZ_SCHEDULE: Final = "schedule"
 SZ_SETPOINT: Final = "setpoint"
+
+
+# These are used for v1/v2 authentication (not part of a schema)
+SZ_USERNAME: Final = "Username"
+SZ_PASSWORD: Final = "Password"
+
+SZ_ACCESS_TOKEN: Final = "access_token"
+SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"
+SZ_EXPIRES_IN: Final = "expires_in"
+SZ_REFRESH_TOKEN: Final = "refresh_token"
+SZ_SCOPE: Final = "scope"
+SZ_TOKEN_TYPE: Final = "token_type"
+
+
+SCH_OAUTH_TOKEN: Final = vol.Schema(
+    {
+        vol.Required(SZ_ACCESS_TOKEN): vol.All(str, _obfuscate),
+        vol.Required(SZ_EXPIRES_IN): int,  # 1800 seconds
+        vol.Required(SZ_REFRESH_TOKEN): vol.All(str, _obfuscate),
+        vol.Required(SZ_TOKEN_TYPE): str,
+        vol.Optional(SZ_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
+    }
+)

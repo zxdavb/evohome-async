@@ -20,17 +20,17 @@ from evohomeasync2.schema import (
     SCH_ZONE_STATUS,
 )
 from evohomeasync2.schema.const import (
-    SZ_DAILY_SCHEDULES,
-    SZ_HEAT_SETPOINT,
-    SZ_HEAT_SETPOINT_VALUE,
-    SZ_IS_PERMANENT,
-    SZ_MODE,
-    SZ_PERMANENT,
-    SZ_SETPOINT_MODE,
-    SZ_SWITCHPOINTS,
-    SZ_SYSTEM_MODE,
-    SZ_TIME_UNTIL,
-    SZ_USER_ID,
+    S2_DAILY_SCHEDULES,
+    S2_HEAT_SETPOINT,
+    S2_HEAT_SETPOINT_VALUE,
+    S2_IS_PERMANENT,
+    S2_MODE,
+    S2_PERMANENT,
+    S2_SETPOINT_MODE,
+    S2_SWITCHPOINTS,
+    S2_SYSTEM_MODE,
+    S2_TIME_UNTIL,
+    S2_USER_ID,
 )
 from evohomeasync2.schema.schedule import convert_to_put_schedule
 
@@ -70,7 +70,7 @@ async def _test_all_config(evo: evo2.EvohomeClientNew) -> None:
     _ = await evo.update()
     #
 
-    url = f"location/installationInfo?userId={evo._user_info[SZ_USER_ID]}"
+    url = f"location/installationInfo?userId={evo._user_info[S2_USER_ID]}"
     await should_work(evo, HTTPMethod.GET, url)
 
     url += "&includeTemperatureControlSystems=True"
@@ -158,21 +158,21 @@ async def _test_tcs_mode(evo: evo2.EvohomeClientNew) -> None:
         evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.BAD_REQUEST
     )
 
-    old_mode[SZ_SYSTEM_MODE] = old_mode.pop(SZ_MODE)
-    old_mode[SZ_PERMANENT] = old_mode.pop(SZ_IS_PERMANENT)
+    old_mode[S2_SYSTEM_MODE] = old_mode.pop(S2_MODE)
+    old_mode[S2_PERMANENT] = old_mode.pop(S2_IS_PERMANENT)
 
-    assert SystemMode.AUTO in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
+    assert SystemMode.AUTO in [m[S2_SYSTEM_MODE] for m in tcs.allowed_system_modes]
     new_mode: _EvoDictT = {
-        SZ_SYSTEM_MODE: SystemMode.AUTO,
-        SZ_PERMANENT: True,
+        S2_SYSTEM_MODE: SystemMode.AUTO,
+        S2_PERMANENT: True,
     }
     _ = await should_work(evo, HTTPMethod.PUT, url, json=new_mode)
 
-    assert SystemMode.AWAY in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
+    assert SystemMode.AWAY in [m[S2_SYSTEM_MODE] for m in tcs.allowed_system_modes]
     new_mode = {
-        SZ_SYSTEM_MODE: SystemMode.AWAY,
-        SZ_PERMANENT: True,
-        SZ_TIME_UNTIL: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
+        S2_SYSTEM_MODE: SystemMode.AWAY,
+        S2_PERMANENT: True,
+        S2_TIME_UNTIL: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
     _ = await should_work(evo, HTTPMethod.PUT, url, json=new_mode)
 
@@ -214,37 +214,37 @@ async def _test_zone_mode(evo: evo2.EvohomeClientNew) -> None:
     url = f"{zone.TYPE}/{zone.id}/heatSetpoint"
 
     heat_setpoint: dict[str, float | str | None] = {
-        SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
-        SZ_HEAT_SETPOINT_VALUE: zone.temperature,
-        # SZ_TIME_UNTIL: None,
+        S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
+        S2_HEAT_SETPOINT_VALUE: zone.temperature,
+        # S2_TIME_UNTIL: None,
     }
     _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
-        SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
-        SZ_HEAT_SETPOINT_VALUE: 99,
-        SZ_TIME_UNTIL: None,
+        S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
+        S2_HEAT_SETPOINT_VALUE: 99,
+        S2_TIME_UNTIL: None,
     }
     _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
-        SZ_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
-        SZ_HEAT_SETPOINT_VALUE: 19.5,
+        S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
+        S2_HEAT_SETPOINT_VALUE: 19.5,
     }
     _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
-        SZ_SETPOINT_MODE: "xxxxxxx",
-        SZ_HEAT_SETPOINT_VALUE: 19.5,
+        S2_SETPOINT_MODE: "xxxxxxx",
+        S2_HEAT_SETPOINT_VALUE: 19.5,
     }
     _ = await should_fail(
         evo, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
     )
 
     heat_setpoint = {
-        SZ_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
-        SZ_HEAT_SETPOINT_VALUE: 0.0,
-        SZ_TIME_UNTIL: None,
+        S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
+        S2_HEAT_SETPOINT_VALUE: 0.0,
+        S2_TIME_UNTIL: None,
     }
     _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
@@ -267,9 +267,9 @@ async def _test_schedule(evo: evo2.EvohomeClientNew) -> None:
     url = f"{zone.TYPE}/{zone.id}/schedule"
     schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
 
-    temp = schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]  # type: ignore[call-overload]
+    temp = schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT]  # type: ignore[call-overload]
 
-    schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp + 1  # type: ignore[call-overload,operator]
+    schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] = temp + 1  # type: ignore[call-overload,operator]
     _ = await should_work(
         evo,
         HTTPMethod.PUT,
@@ -279,11 +279,11 @@ async def _test_schedule(evo: evo2.EvohomeClientNew) -> None:
 
     schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
     assert (
-        schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT]  # type: ignore[call-overload]
+        schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT]  # type: ignore[call-overload]
         == temp + 1  # type: ignore[operator]
     )
 
-    schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] = temp  # type: ignore[call-overload]
+    schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] = temp  # type: ignore[call-overload]
     _ = await should_work(
         evo,
         HTTPMethod.PUT,
@@ -292,7 +292,7 @@ async def _test_schedule(evo: evo2.EvohomeClientNew) -> None:
     )
 
     schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
-    assert schedule[SZ_DAILY_SCHEDULES][0][SZ_SWITCHPOINTS][0][SZ_HEAT_SETPOINT] == temp  # type: ignore[call-overload]
+    assert schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] == temp  # type: ignore[call-overload]
 
     _ = await should_fail(
         evo, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST

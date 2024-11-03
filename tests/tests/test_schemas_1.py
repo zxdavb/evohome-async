@@ -12,10 +12,10 @@ from evohomeasync2 import Location
 from evohomeasync2.schema import SCH_LOCN_STATUS
 from evohomeasync2.schema.config import SCH_TCS_CONFIG, SCH_TIME_ZONE
 from evohomeasync2.schema.const import (
-    SZ_GATEWAYS,
-    SZ_LOCATION_INFO,
-    SZ_TEMPERATURE_CONTROL_SYSTEMS,
-    SZ_TIME_ZONE,
+    S2_GATEWAYS,
+    S2_LOCATION_INFO,
+    S2_TEMPERATURE_CONTROL_SYSTEMS,
+    S2_TIME_ZONE,
 )
 
 from .conftest import ClientStub
@@ -67,10 +67,10 @@ def test_config_schemas(folder: Path) -> None:
     with open(Path(folder).joinpath(CONFIG_FILE_NAME)) as f:
         config: dict = json.load(f)  # is camelCase, as per vendor's schema
 
-    _ = SCH_TIME_ZONE(config[SZ_LOCATION_INFO][SZ_TIME_ZONE])
+    _ = SCH_TIME_ZONE(config[S2_LOCATION_INFO][S2_TIME_ZONE])
 
-    for gwy_config in config[SZ_GATEWAYS]:
-        for tcs_config in gwy_config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+    for gwy_config in config[S2_GATEWAYS]:
+        for tcs_config in gwy_config[S2_TEMPERATURE_CONTROL_SYSTEMS]:
             _ = SCH_TCS_CONFIG(tcs_config)
 
 

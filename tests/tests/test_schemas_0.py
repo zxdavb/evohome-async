@@ -12,13 +12,13 @@ from evohomeasync2 import Location
 from evohomeasync2.schema import SCH_LOCN_STATUS
 from evohomeasync2.schema.config import SCH_TCS_CONFIG, SCH_TIME_ZONE
 from evohomeasync2.schema.const import (
-    SZ_GATEWAY_ID,
-    SZ_GATEWAY_INFO,
-    SZ_GATEWAYS,
-    SZ_LOCATION_ID,
-    SZ_LOCATION_INFO,
-    SZ_TEMPERATURE_CONTROL_SYSTEMS,
-    SZ_TIME_ZONE,
+    S2_GATEWAY_ID,
+    S2_GATEWAY_INFO,
+    S2_GATEWAYS,
+    S2_LOCATION_ID,
+    S2_LOCATION_INFO,
+    S2_TEMPERATURE_CONTROL_SYSTEMS,
+    S2_TIME_ZONE,
 )
 
 from .conftest import ClientStub
@@ -57,13 +57,13 @@ def test_config_refresh(folder: Path) -> None:
         status: dict = json.load(f)  # is camelCase, as per vendor's schema
 
     # hack because old JSON from HA's evohome integration didn't have location_id, etc.
-    if not config[SZ_LOCATION_INFO].get(SZ_LOCATION_ID):
-        config[SZ_LOCATION_INFO][SZ_LOCATION_ID] = status[SZ_LOCATION_ID]
+    if not config[S2_LOCATION_INFO].get(S2_LOCATION_ID):
+        config[S2_LOCATION_INFO][S2_LOCATION_ID] = status[S2_LOCATION_ID]
 
     # hack because the JSON is from HA's evohome integration, not vendor's TCC servers
-    if not config[SZ_GATEWAYS][0].get(SZ_GATEWAY_ID):
-        config[SZ_GATEWAYS][0][SZ_GATEWAY_INFO] = {
-            SZ_GATEWAY_ID: status[SZ_GATEWAYS][0][SZ_GATEWAY_ID]
+    if not config[S2_GATEWAYS][0].get(S2_GATEWAY_ID):
+        config[S2_GATEWAYS][0][S2_GATEWAY_INFO] = {
+            S2_GATEWAY_ID: status[S2_GATEWAYS][0][S2_GATEWAY_ID]
         }
 
     loc = Location(ClientStub(), config)
@@ -79,9 +79,9 @@ def test_config_schemas(folder: Path) -> None:
     with open(Path(folder).joinpath(CONFIG_FILE_NAME)) as f:
         config: dict = json.load(f)  # is camelCase, as per vendor's schema
 
-    _ = SCH_TIME_ZONE(config[SZ_LOCATION_INFO][SZ_TIME_ZONE])
-    for gwy_config in config[SZ_GATEWAYS]:
-        for tcs_config in gwy_config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+    _ = SCH_TIME_ZONE(config[S2_LOCATION_INFO][S2_TIME_ZONE])
+    for gwy_config in config[S2_GATEWAYS]:
+        for tcs_config in gwy_config[S2_TEMPERATURE_CONTROL_SYSTEMS]:
             _ = SCH_TCS_CONFIG(tcs_config)
 
 

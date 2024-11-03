@@ -15,7 +15,7 @@ from evohomeasync2.schema import (
     SYSTEM_MODES,
     SystemMode,
 )
-from evohomeasync2.schema.const import SZ_MODE
+from evohomeasync2.schema.const import S2_MODE
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 from evohomeasync2.zone import Zone
 
@@ -100,7 +100,7 @@ async def _test_system_apis(evo: evo2.EvohomeClientNew) -> None:
     except evo2.NoSingleTcsError:
         tcs = evo.locations[0].gateway_by_id[0].control_system_by_id[0]
 
-    mode = tcs.system_mode_status[SZ_MODE]
+    mode = tcs.system_mode_status[S2_MODE]
     assert mode in SYSTEM_MODES
 
     await tcs.set_mode(SystemMode.AWAY)
