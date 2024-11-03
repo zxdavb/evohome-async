@@ -93,11 +93,11 @@ from .const import (
 from .helpers import do_nothing, snake_to_camel
 
 # These are best guess
-MAX_HEAT_SETPOINT_LOWER: Final[float] = 21.0
-MAX_HEAT_SETPOINT_UPPER: Final[float] = 35.0
+MAX_HEAT_SETPOINT_LOWER: Final = 21.0
+MAX_HEAT_SETPOINT_UPPER: Final = 35.0
 
-MIN_HEAT_SETPOINT_LOWER: Final[float] = 4.5
-MIN_HEAT_SETPOINT_UPPER: Final[float] = 21.0
+MIN_HEAT_SETPOINT_LOWER: Final = 4.5
+MIN_HEAT_SETPOINT_UPPER: Final = 21.0
 
 
 def _factory_system_mode_perm(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:

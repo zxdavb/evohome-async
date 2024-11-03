@@ -21,15 +21,15 @@ from .faked_server import FakedServer
 
 #
 # normally, we want debug flags to be False
-_DBG_USE_REAL_AIOHTTP = False
+_DBG_USE_REAL_AIOHTTP = True
 _DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 
 if TYPE_CHECKING:
     import aiohttp
 
 # used to construct the default token cache
-TEST_USERNAME: Final[str] = "username@email.com"
-TEST_PASSWORD: Final[str] = "P@ssw0rd!!"  # noqa: S105
+TEST_USERNAME: Final = "username@email.com"
+TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
 
 
 _F = TypeVar("_F", bound=Callable[..., Any])
@@ -103,8 +103,8 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
 def credentials() -> tuple[str, str]:
     """Return a username and a password."""
 
-    username: str = os.getenv("TEST_USERNAME") or TEST_USERNAME
-    password: str = os.getenv("TEST_PASSWORD") or TEST_PASSWORD
+    username: str = os.getenv("TEST_USERNAME") or "spotty.blackcat@gmail.com"  # TEST_USERNAME  # SECRET
+    password: str = os.getenv("TEST_PASSWORD") or "ziQajn732m5JYQ!"  # TEST_PASSWORD
 
     return username, password
 

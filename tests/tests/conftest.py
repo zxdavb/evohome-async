@@ -31,8 +31,8 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 # used to construct the default token cache
-TEST_USERNAME: Final[str] = "username@email.com"
-TEST_PASSWORD: Final[str] = "P@ssw0rd!!"  # noqa: S105
+TEST_USERNAME: Final = "username@email.com"
+TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
 
 
 class ClientStub:
