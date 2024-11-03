@@ -63,7 +63,7 @@ repos:
       entry: '_DBG_.*=.*True'
       language: pygrep
       args: [-i]
-      exclude: (.pre-commit-config.yaml|^tests/.*\.py$)  # avoid false +ve
+      exclude: .pre-commit-config.yaml  # avoid false +ve
 
     - id: secrets
       name: check secrets
