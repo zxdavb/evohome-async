@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from evohomeasync.auth import _APPLICATION_ID, _HOSTNAME, HEADERS_BASE
-from evohomeasync.schema import SCH_USER_ACCOUNT_RESPONSE
+from evohomeasync.schema import SCH_LOCATION_RESPONSE, SCH_USER_ACCOUNT_RESPONSE
 
 from .conftest import _DBG_USE_REAL_AIOHTTP
 
@@ -36,47 +36,28 @@ async def test_url_session_bad1(
 
     data = {
         "applicationId": _APPLICATION_ID,
-        "username": credentials[0] + random.choice(string.ascii_uppercase),  # noqa: S311
+        "username": credentials[0] + random.choice(string.ascii_letters),  # noqa: S311
         "password": credentials[1],
     }
 
     async with client_session.request(
         HTTPMethod.POST, url, headers=HEADERS_BASE, json=data
     ) as rsp:
-        assert rsp.status in [
-            HTTPStatus.UNAUTHORIZED,
-            HTTPStatus.TOO_MANY_REQUESTS,
-        ]
+        assert rsp.status == HTTPStatus.UNAUTHORIZED
 
         response: list[ErrorResponse] = await rsp.json()
 
-        # assert SCH_ERROR_RESPONSE(result), result
-
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert response[0]["code"] == "TooManyRequests"
-            assert response[0]["message"] and isinstance(response[0]["message"], str)
-            pytest.skip("Too many requests")
-
         """
-            [
-                {
-                    'code': 'EmailOrPasswordIncorrect',
-                    'message': 'The email or password provided is incorrect.'
-                }
-            ]
-        """
-
-        """
-            [
-                {
-                    'code': 'TooManyRequests',
-                    'message': 'Request count limitation exceeded, please try again later.'
-                }
-            ]
+            [{
+                'code': 'EmailOrPasswordIncorrect',
+                'message': 'The email or password provided is incorrect.'
+            }]
         """
 
     assert response[0]["code"] == "EmailOrPasswordIncorrect"
     assert response[0]["message"] and isinstance(response[0]["message"], str)
+
+    # assert SCH_ERROR_RESPONSE(result), result
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
@@ -86,7 +67,7 @@ async def test_url_session_bad2(
     """Test the authentication flow with an invalid session id,"""
 
     # pre-requisite data
-    session_id = "-- bad or expired session id --"
+    session_id = "-- bad / expired session id --"  + random.choice(string.ascii_letters)  # noqa: S311
     user_id = 1234567
 
     # invalid/expired session id -> HTTPStatus.UNAUTHORIZED
@@ -95,31 +76,21 @@ async def test_url_session_bad2(
     headers = HEADERS_BASE | {"sessionId": session_id}
 
     async with client_session.request(HTTPMethod.GET, url, headers=headers) as rsp:
-        assert rsp.status in [
-            HTTPStatus.UNAUTHORIZED,
-            HTTPStatus.TOO_MANY_REQUESTS,
-        ]
+        assert rsp.status == HTTPStatus.UNAUTHORIZED
 
         response: list[ErrorResponse] = await rsp.json()
 
-        # assert SCH_ERROR_RESPONSE(result), result
-
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert response[0]["code"] == "TooManyRequests"
-            assert response[0]["message"] and isinstance(response[0]["message"], str)
-            pytest.skip("Too many requests")
-
         """
-            [
-                {
-                    'code': 'Unauthorized',
-                    'message': 'Unauthorized'
-                }
-            ]
+            [{
+                'code': 'Unauthorized',
+                'message': 'Unauthorized'
+            }]
         """
 
     assert response[0]["code"] == "Unauthorized"
     assert response[0]["message"] and isinstance(response[0]["message"], str)
+
+    # assert SCH_ERROR_RESPONSE(result), result
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
@@ -147,6 +118,13 @@ async def test_url_session_good(
         ]
 
         response: SessionResponse = await rsp.json()
+
+        """
+            [{
+                'code': 'TooManyRequests',
+                'message': 'Request count limitation exceeded, please try again later.'
+            }]
+        """
 
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
             assert response[0]["code"] == "TooManyRequests"
@@ -200,7 +178,7 @@ async def test_url_session_good(
             HTTPStatus.TOO_MANY_REQUESTS,
         ]
 
-        response: LocationResponse = await rsp.json()
+        response: list[LocationResponse] = await rsp.json()
 
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
             assert response[0]["code"] == "TooManyRequests"
@@ -258,4 +236,4 @@ async def test_url_session_good(
     assert response[0]["locationID"] and isinstance(response[0]["locationID"], int)
     assert response[0]["devices"] and isinstance(response[0]["devices"], list)
 
-    # assert SCH_LOCATION_RESPONSE(response), response
+    assert SCH_LOCATION_RESPONSE(response[0]), response[0]
