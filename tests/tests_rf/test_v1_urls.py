@@ -25,7 +25,7 @@ URL_BASE = f"https://{_HOSTNAME}/WebAPI/api/"
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
-async def test_url_session_bad1(
+async def test_url_session_bad1(  # invalid/unknown credentials
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
 ) -> None:
@@ -61,13 +61,13 @@ async def test_url_session_bad1(
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
-async def test_url_session_bad2(
+async def test_url_session_bad2(  # invalid/expired session id
     client_session: aiohttp.ClientSession,
 ) -> None:
     """Test the authentication flow with an invalid session id,"""
 
     # pre-requisite data
-    session_id = "-- bad / expired session id --"  + random.choice(string.ascii_letters)  # noqa: S311
+    session_id = "-- bad / expired session id --" + random.choice(string.ascii_letters)  # noqa: S311
     user_id = 1234567
 
     # invalid/expired session id -> HTTPStatus.UNAUTHORIZED
