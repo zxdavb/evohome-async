@@ -32,14 +32,15 @@ TEST_USERNAME: Final = "username@email.com"
 TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
 
 
-_F = TypeVar("_F", bound=Callable[..., Any])
+_FNC = TypeVar("_F", bound=Callable[..., Any])
 
 
 # Global flag to indicate if AuthenticationFailedError has been encountered
 global_auth_failed = False
 
 
-def skipif_auth_failed(fnc: _F) -> _F:
+# decorator to skip remaining tests if an AuthenticationFailedError is encountered
+def skipif_auth_failed(fnc: _FNC) -> _FNC:
     """Decorator to skip tests if AuthenticationFailedError is encountered."""
 
     @functools.wraps(fnc)
@@ -103,8 +104,8 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
 def credentials() -> tuple[str, str]:
     """Return a username and a password."""
 
-    username: str = os.getenv("TEST_USERNAME") or "spotty.blackcat@gmail.com"  # TEST_USERNAME  # SECRET
-    password: str = os.getenv("TEST_PASSWORD") or "ziQajn732m5JYQ!"  # TEST_PASSWORD
+    username: str = os.getenv("TEST_USERNAME") or TEST_USERNAME
+    password: str = os.getenv("TEST_PASSWORD") or TEST_PASSWORD
 
     return username, password
 
@@ -149,7 +150,7 @@ async def token_manager(
     credentials: tuple[str, str],
     token_cache: Path,
 ) -> AsyncGenerator[TokenManager, None]:
-    """Yield a token manager."""
+    """Yield a token manager for the v2 API."""
 
     token_manager = TokenManager(*credentials, client_session, token_cache=token_cache)
 
