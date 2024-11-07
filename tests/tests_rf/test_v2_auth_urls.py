@@ -84,11 +84,15 @@ async def test_url_auth_bad2(  # invalid/expired access token
     async with client_session.get(url, headers=headers) as rsp:
         assert rsp.status == HTTPStatus.UNAUTHORIZED
 
-        response: dict = await rsp.json()
+        response: dict | list = await rsp.json()
 
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert isinstance(response, dict)  # mypy hint
+
             assert response["error"] == "attempt_limit_exceeded"
             pytest.skip("Too many requests")
+
+        assert isinstance(response, list)  # mypy hint
 
         """
             [{
@@ -119,14 +123,14 @@ async def test_url_auth_good(
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
         assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
 
-        response: dict = await rsp.json()
+        user_auth: dict = await rsp.json()
 
         """
             {'error': 'attempt_limit_exceeded'}
         """
 
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert response["error"] == "attempt_limit_exceeded"
+            assert user_auth["error"] == "attempt_limit_exceeded"
             pytest.skip("Too many requests")
 
         """
@@ -139,15 +143,15 @@ async def test_url_auth_good(
             }
         """
 
-    assert response["access_token"] and isinstance(response["access_token"], str)
-    assert response["expires_in"] <= 1800
+    assert user_auth["access_token"] and isinstance(user_auth["access_token"], str)
+    assert user_auth["expires_in"] <= 1800
 
-    assert SCH_OAUTH_TOKEN(response), response
+    assert SCH_OAUTH_TOKEN(user_auth), user_auth
 
     # #################################################################################
 
     # Check the access token by accessing a resource...
-    access_token = response["access_token"]
+    access_token = user_auth["access_token"]
     #
 
     # valid access token -> HTTPStatus.OK

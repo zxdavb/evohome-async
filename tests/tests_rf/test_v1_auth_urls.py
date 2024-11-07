@@ -35,7 +35,7 @@ HEADERS_AUTH = {
 HEADERS_BASE = {
     "Accept": "application/json",
     "Content-Type": "application/json",  # json=
-    "SessionId": None,
+    "SessionId": None,  # "e163b069-1234-..."
 }
 
 
@@ -115,7 +115,7 @@ async def test_url_auth_good(
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
         assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
 
-        response: SessionResponse = await rsp.json()
+        user_auth: dict | list = await rsp.json()
 
         """
             [{
@@ -125,9 +125,12 @@ async def test_url_auth_good(
         """
 
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert response[0]["code"] == "TooManyRequests"
-            assert response[0]["message"] and isinstance(response[0]["message"], str)
+            assert isinstance(user_auth, list)  # mypy hint
+            assert user_auth[0]["code"] == "TooManyRequests"
+            assert user_auth[0]["message"] and isinstance(user_auth[0]["message"], str)
             pytest.skip("Too many requests")
+
+        assert isinstance(user_auth, dict)  # mypy hint
 
         """
             {
@@ -154,16 +157,16 @@ async def test_url_auth_good(
             }
         """
 
-    assert response["sessionId"] and isinstance(response["sessionId"], str)
-    assert response["userInfo"]["username"] == credentials[0]
+    assert user_auth["sessionId"] and isinstance(user_auth["sessionId"], str)
+    assert user_auth["userInfo"]["username"] == credentials[0]
 
-    assert SCH_USER_ACCOUNT_RESPONSE(response["userInfo"]), response["userInfo"]
+    assert SCH_USER_ACCOUNT_RESPONSE(user_auth["userInfo"]), user_auth["userInfo"]
 
     # #################################################################################
 
     # Check the session id by accessing a resource...
-    session_id = response["sessionId"]
-    user_id = response["userInfo"]["userID"]
+    session_id = user_auth["sessionId"]
+    user_id = user_auth["userInfo"]["userID"]
 
     # valid session id -> HTTPStatus.OK
     url = URL_BASE + f"locations?userId={user_id}&allData=True"
@@ -172,7 +175,7 @@ async def test_url_auth_good(
     async with client_session.get(url, headers=headers) as rsp:
         assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
 
-        response: list[LocationResponse] = await rsp.json()
+        response: list = await rsp.json()
 
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
             assert response[0]["code"] == "TooManyRequests"
