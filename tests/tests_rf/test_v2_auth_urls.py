@@ -40,11 +40,31 @@ HEADERS_BASE = {
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
 async def test_url_auth_bad1(  # invalid/unknown credentials
     client_session: aiohttp.ClientSession,
-    credentials: tuple[str, str],
 ) -> None:
     """Test the authentication flow with bad credentials."""
 
     # invalid credentials -> HTTPStatus.UNAUTHORIZED
+    data = {
+        "grant_type": "password",
+        "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # EMEA-V1-Get-Current-User-Account",
+        "Username": random.choice(string.ascii_letters),  # noqa: S311
+        "Password": "",
+    }
+
+    async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        assert rsp.status == HTTPStatus.BAD_REQUEST
+
+        response: dict = await rsp.json()
+
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert response["error"] == "attempt_limit_exceeded"
+            pytest.skip("Too many requests")
+
+        """
+            {'error': 'invalid_grant'}
+        """
+
+    assert response["error"] == "invalid_grant"
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
@@ -58,6 +78,27 @@ async def test_url_auth_bad2(  # invalid/expired access token
     #
 
     # invalid/expired session id -> HTTPStatus.UNAUTHORIZED
+    url = URL_BASE + "userAccount"
+    headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
+
+    async with client_session.get(url, headers=headers) as rsp:
+        assert rsp.status == HTTPStatus.UNAUTHORIZED
+
+        response: dict = await rsp.json()
+
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert response["error"] == "attempt_limit_exceeded"
+            pytest.skip("Too many requests")
+
+        """
+            [{
+                'code': 'Unauthorized',
+                'message': 'Unauthorized.'
+            }]
+        """
+
+    assert response[0]["code"] == "Unauthorized"
+    assert response[0]["message"] and isinstance(response[0]["message"], str)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")

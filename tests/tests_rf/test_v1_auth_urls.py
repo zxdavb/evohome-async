@@ -42,15 +42,14 @@ HEADERS_BASE = {
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
 async def test_url_auth_bad1(  # invalid/unknown credentials
     client_session: aiohttp.ClientSession,
-    credentials: tuple[str, str],
 ) -> None:
     """Test the authentication flow with bad credentials."""
 
     # invalid credentials -> HTTPStatus.UNAUTHORIZED
     data = {
         "applicationId": _APPLICATION_ID,
-        "username": credentials[0] + random.choice(string.ascii_letters),  # noqa: S311
-        "password": credentials[1],
+        "username": random.choice(string.ascii_letters),  # noqa: S311
+        "password": "",
     }
 
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
@@ -67,8 +66,6 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
 
     assert response[0]["code"] == "EmailOrPasswordIncorrect"
     assert response[0]["message"] and isinstance(response[0]["message"], str)
-
-    # assert SCH_ERROR_RESPONSE(result), result
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
@@ -99,8 +96,6 @@ async def test_url_auth_bad2(  # invalid/expired session id
 
     assert response[0]["code"] == "Unauthorized"
     assert response[0]["message"] and isinstance(response[0]["message"], str)
-
-    # assert SCH_ERROR_RESPONSE(result), result
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
