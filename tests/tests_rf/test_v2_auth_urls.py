@@ -24,7 +24,7 @@ URL_BASE = f"https://{HOSTNAME}/WebAPI/emea/api/v1/"
 
 HEADERS_AUTH = {
     "Accept": "application/json",
-    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",  # data=
     "Cache-Control": "no-cache, no-store",
     "Pragma": "no-cache",
     "Connection": "Keep-Alive",
@@ -32,7 +32,7 @@ HEADERS_AUTH = {
 }
 HEADERS_BASE = {
     "Accept": "application/json",
-    "Content-Type": "application/json",
+    "Content-Type": "application/json",  # json=
     "Authorization": None,  # "Bearer " + access_token
 }
 
