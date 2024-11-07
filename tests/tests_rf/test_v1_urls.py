@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from evohomeasync.auth import _APPLICATION_ID, _HOSTNAME, HEADERS_BASE
+from evohomeasync.auth import _APPLICATION_ID, HEADERS_BASE, HOSTNAME
 from evohomeasync.schema import SCH_LOCATION_RESPONSE, SCH_USER_ACCOUNT_RESPONSE
 
 from .conftest import _DBG_USE_REAL_AIOHTTP
@@ -21,7 +21,8 @@ if TYPE_CHECKING:
     from evohomeasync.schema import ErrorResponse, LocationResponse, SessionResponse
 
 
-URL_BASE = f"https://{_HOSTNAME}/WebAPI/api/"
+URL_AUTH = f"https://{HOSTNAME}/WebAPI/api/session"
+URL_BASE = f"https://{HOSTNAME}/WebAPI/api/"
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
@@ -32,7 +33,7 @@ async def test_url_session_bad1(  # invalid/unknown credentials
     """Test the authentication flow with bad credentials."""
 
     # invalid credentials -> HTTPStatus.UNAUTHORIZED
-    url = URL_BASE + "session"
+    url = URL_AUTH
 
     data = {
         "applicationId": _APPLICATION_ID,
@@ -101,7 +102,7 @@ async def test_url_session_good(
     """Test the authentication flow (and authorization) with good credentials."""
 
     # valid credentials -> HTTPStatus.OK
-    url = URL_BASE + "session"
+    url = URL_AUTH
 
     data = {
         "applicationId": _APPLICATION_ID,
