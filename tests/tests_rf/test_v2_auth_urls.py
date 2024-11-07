@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohome-async - validate the handling of vendor APIs (URLs)."""
+"""evohome-async - validate authentication with the vendor's v2 API."""
 
 from __future__ import annotations
 

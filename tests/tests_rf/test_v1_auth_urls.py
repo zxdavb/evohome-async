@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohome-async - validate the evohomeclient v1 session manager."""
+"""evohome-async - validate authentication with the vendor's v1 API."""
 
 from __future__ import annotations
 
