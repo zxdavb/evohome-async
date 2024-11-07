@@ -134,7 +134,7 @@ async def test_url_auth_good(
                 'sessionId': 'A80FF794-C042-42BC-A63E-7A509C9AA6C9',
                 'userInfo': {
                     'userID': 2263181,
-                    'username': 'spotty.blackcat@gmail.com',
+                    'username': 'username@email.com',
                     'firstname': 'David',
                     'lastname': 'Smith',
                     'streetAddress': '1 Main Street',
