@@ -39,7 +39,7 @@ HEADERS_BASE = {
 }
 
 
-@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_url_auth_bad1(  # invalid/unknown credentials
     client_session: aiohttp.ClientSession,
 ) -> None:
@@ -68,7 +68,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
     assert response[0]["message"] and isinstance(response[0]["message"], str)
 
 
-@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_url_auth_bad2(  # invalid/expired session id
     client_session: aiohttp.ClientSession,
 ) -> None:
@@ -98,7 +98,7 @@ async def test_url_auth_bad2(  # invalid/expired session id
     assert response[0]["message"] and isinstance(response[0]["message"], str)
 
 
-@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_url_auth_good(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],

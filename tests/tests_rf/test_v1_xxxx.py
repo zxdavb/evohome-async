@@ -9,8 +9,7 @@ import pytest
 
 import evohomeasync as evo1
 
-from .common import should_fail_v1, should_work_v1
-from .conftest import skipif_auth_failed
+from .common import should_fail_v1, should_work_v1, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
 
 

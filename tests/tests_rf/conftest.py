@@ -29,40 +29,6 @@ TEST_USERNAME: Final = "spotty.blackcat@gmail.com"  # SECRET "username@email.com
 TEST_PASSWORD: Final = "ziQajn732m5JYQ!"  # "P@ssw0rd!!"  # noqa: S105
 
 
-_FNC = TypeVar("_FNC", bound=Callable[..., Any])
-
-
-# Global flag to indicate if AuthenticationFailedError has been encountered
-global_auth_failed = False
-
-
-# decorator to skip remaining tests if an AuthenticationFailedError is encountered
-def skipif_auth_failed(fnc: _FNC) -> _FNC:
-    """Decorator to skip tests if AuthenticationFailedError is encountered."""
-
-    @functools.wraps(fnc)
-    async def wrapper(*args: Any, **kwargs: Any) -> Any:
-        global global_auth_failed
-
-        if global_auth_failed:
-            pytest.skip("Unable to authenticate")
-
-        try:
-            return await fnc(*args, **kwargs)
-
-        except (
-            evo1.AuthenticationFailedError,
-            evo2.AuthenticationFailedError,
-        ) as err:
-            if not _DBG_USE_REAL_AIOHTTP:
-                raise
-
-            global_auth_failed = True
-            pytest.fail(f"Unable to authenticate: {err}")
-
-    return wrapper  # type: ignore[return-value]
-
-
 @pytest.fixture(autouse=False)
 def zpatches_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
     """Patch the evohomeasync and evohomeasync2 modules."""

@@ -7,7 +7,7 @@ import pytest
 
 import evohomeasync as evo1
 
-from .conftest import skipif_auth_failed
+from .common import skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
 
 

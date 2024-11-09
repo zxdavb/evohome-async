@@ -17,11 +17,10 @@ from evohomeasync import exceptions as exc
 from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
-
     from .common import SessionManager
 
 
-@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="is not using the real aiohttp")
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="incompatible with faked aiohttp")
 async def test_get_session_id(
     session_manager: SessionManager,
     freezer: FrozenDateTimeFactory,

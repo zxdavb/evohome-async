@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 import voluptuous as vol
 
-from evohomeasync2.const import AUTH_URL, URL_BASE
+from evohomeasync2.auth import URL_AUTH, URL_BASE
 from evohomeasync2.schema import const as sch, convert_to_get_schedule
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 
@@ -143,7 +143,7 @@ class FakedServer:
     def oauth_token(self) -> _bodyT | None:
         if self._method != HTTPMethod.POST:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
-        elif self._url == AUTH_URL:
+        elif self._url == URL_AUTH:
             return MOCK_AUTH_RESPONSE
         return None
 

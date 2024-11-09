@@ -4,18 +4,55 @@
 from __future__ import annotations
 
 import asyncio
+import functools
+from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final, TypeVar
 
 import aiohttp
+import pytest
 import voluptuous as vol
 
 import evohomeasync as evo1
 import evohomeasync2 as evo2
 from evohomeasync2.auth import URL_BASE as URL_BASE_2, Auth
 
-from .const import _DBG_DISABLE_STRICT_ASSERTS
+from .const import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
+
+_FNC = TypeVar("_FNC", bound=Callable[..., Any])
+
+
+# Global flag to indicate if AuthenticationFailedError has been encountered
+global_auth_failed = False
+
+
+# decorator to skip remaining tests if an AuthenticationFailedError is encountered
+def skipif_auth_failed(fnc: _FNC) -> _FNC:
+    """Decorator to skip tests if AuthenticationFailedError is encountered."""
+
+    @functools.wraps(fnc)
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
+        global global_auth_failed
+
+        if global_auth_failed:
+            pytest.skip("Unable to authenticate")
+
+        try:
+            return await fnc(*args, **kwargs)
+
+        except (
+            evo1.AuthenticationFailedError,
+            evo2.AuthenticationFailedError,
+        ) as err:
+            if not _DBG_USE_REAL_AIOHTTP:
+                raise
+
+            global_auth_failed = True
+            pytest.fail(f"Unable to authenticate: {err}")
+
+    return wrapper  # type: ignore[return-value]
+
 
 # version 1 helpers ###################################################################
 
@@ -42,7 +79,6 @@ class SessionManager(evo1.Auth):
 
     async def load_session_id(self) -> None:
         """Save the (serialized) session id from a cache."""
-
 
 
 async def should_work_v1(
