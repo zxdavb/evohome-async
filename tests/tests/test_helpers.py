@@ -7,7 +7,7 @@ from pathlib import Path
 
 from evohomeasync2.schema.helpers import camel_case, pascal_case
 
-from .helpers import TEST_DIR
+from .common import TEST_DIR
 
 WORK_DIR = Path(f"{TEST_DIR}/schedules")
 

@@ -9,7 +9,7 @@ import pytest
 
 from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
 
-from .helpers import TEST_DIR, test_schema
+from .common import TEST_DIR, test_schema
 
 WORK_DIR = f"{TEST_DIR}/systems_0"
 

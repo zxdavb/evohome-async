@@ -19,7 +19,7 @@ from evohomeasync2.schema.const import (
 )
 
 from .conftest import ClientStub
-from .helpers import TEST_DIR
+from .common import TEST_DIR
 
 WORK_DIR = f"{TEST_DIR}/schemas_1"
 
