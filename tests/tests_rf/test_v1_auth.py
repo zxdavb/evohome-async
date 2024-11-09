@@ -75,12 +75,14 @@ async def test_get_session_id(
     assert session_manager.is_session_valid() is True
 
     #
-    # check does invoke the URL, as session_id now expired
-    assert session_manager.is_session_valid() is True
-
+    # check session_id now expired
     freezer.tick(1200)  # advance time by another 10 minutes, 15 total
 
     assert session_manager.is_session_valid() is False
+
+    #
+    # check does invoke the URL, as session_id now expired
+    session_id = str(uuid.uuid4()).upper()
 
     with aioresponses() as rsp:
         rsp.post(
