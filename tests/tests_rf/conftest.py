@@ -17,22 +17,19 @@ import evohomeasync as evo1
 import evohomeasync2 as evo2
 from evohomeasync2.client import TokenManager
 
+from .common import SessionManager  # incl. support for cache file
+from .const import _DBG_USE_REAL_AIOHTTP
 from .faked_server import FakedServer
-
-#
-# normally, we want debug flags to be False
-_DBG_USE_REAL_AIOHTTP = False
-_DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 
 if TYPE_CHECKING:
     import aiohttp
 
 # used to construct the default token cache
-TEST_USERNAME: Final = "username@email.com"
-TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
+TEST_USERNAME: Final = "spotty.blackcat@gmail.com"  # SECRET "username@email.com"
+TEST_PASSWORD: Final = "ziQajn732m5JYQ!"  # "P@ssw0rd!!"  # noqa: S105
 
 
-_FNC = TypeVar("_F", bound=Callable[..., Any])
+_FNC = TypeVar("_FNC", bound=Callable[..., Any])
 
 
 # Global flag to indicate if AuthenticationFailedError has been encountered
@@ -66,8 +63,8 @@ def skipif_auth_failed(fnc: _FNC) -> _FNC:
     return wrapper  # type: ignore[return-value]
 
 
-@pytest.fixture(autouse=True)
-def patches_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.fixture(autouse=False)
+def zpatches_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
     """Patch the evohomeasync and evohomeasync2 modules."""
 
     if _DBG_USE_REAL_AIOHTTP:
@@ -145,6 +142,24 @@ def token_cache(
 
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
+async def session_manager(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    token_cache: Path,
+) -> AsyncGenerator[SessionManager, None]:
+    """Yield a token manager for the v1 API."""
+
+    manager = SessionManager(*credentials, client_session, token_cache=token_cache)
+
+    # await manager.load_session_id()  # restoresession_id from cache
+
+    try:
+        yield manager
+    finally:
+        await manager.save_session_id()  # save auth tokens to cache
+
+
+@pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def token_manager(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
@@ -152,14 +167,14 @@ async def token_manager(
 ) -> AsyncGenerator[TokenManager, None]:
     """Yield a token manager for the v2 API."""
 
-    token_manager = TokenManager(*credentials, client_session, token_cache=token_cache)
+    manager = TokenManager(*credentials, client_session, token_cache=token_cache)
 
-    await token_manager.load_access_token()  # restore auth tokens from cache
+    # await manager.load_access_token()  # restore auth tokens from cache
 
     try:
-        yield token_manager
+        yield manager
     finally:
-        await token_manager.save_access_token()  # save auth tokens to cache
+        await manager.save_access_token()  # save auth tokens to cache
 
 
 @pytest.fixture

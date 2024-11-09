@@ -5,18 +5,44 @@ from __future__ import annotations
 
 import asyncio
 from http import HTTPMethod, HTTPStatus
+from pathlib import Path
+from typing import Any, Final
 
 import aiohttp
 import voluptuous as vol
 
 import evohomeasync as evo1
 import evohomeasync2 as evo2
-from evohomeasync2.auth import Auth
-from evohomeasync2.const import URL_BASE as URL_BASE_2
+from evohomeasync2.auth import URL_BASE as URL_BASE_2, Auth
 
-from .conftest import _DBG_DISABLE_STRICT_ASSERTS
+from .const import _DBG_DISABLE_STRICT_ASSERTS
 
 # version 1 helpers ###################################################################
+
+
+class SessionManager(evo1.Auth):
+    """An evohomeasync session manager."""
+
+    def __init__(
+        self,
+        client_id: str,
+        secret: str,
+        websession: aiohttp.ClientSession,
+        /,
+        token_cache: Path | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Initialise the session manager."""
+        super().__init__(client_id, secret, websession, **kwargs)
+
+        self._token_cache: Final = token_cache
+
+    async def save_session_id(self) -> None:
+        """Save the (serialized) session id to a cache."""
+
+    async def load_session_id(self) -> None:
+        """Save the (serialized) session id from a cache."""
+
 
 
 async def should_work_v1(
@@ -32,7 +58,7 @@ async def should_work_v1(
     response: aiohttp.ClientResponse
 
     # unlike _make_request(), make_request() incl. raise_for_status()
-    response = await evo.auth._make_request(method, url, data=json)
+    response = await evo.auth.request(method, url, data=json)
     response.raise_for_status()
 
     # TODO: perform this transform in the broker
@@ -65,7 +91,7 @@ async def should_fail_v1(
 
     try:
         # unlike _make_request(), make_request() incl. raise_for_status()
-        response = await evo.auth._make_request(method, url, data=json)
+        response = await evo.auth.request(method, url, data=json)
         response.raise_for_status()
 
     except aiohttp.ClientResponseError as err:

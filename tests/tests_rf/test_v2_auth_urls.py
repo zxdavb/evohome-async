@@ -13,7 +13,7 @@ import pytest
 from evohomeasync2.auth import _APPLICATION_ID, HOSTNAME, SCH_OAUTH_TOKEN
 from evohomeasync2.schema import SCH_USER_ACCOUNT
 
-from .conftest import _DBG_USE_REAL_AIOHTTP
+from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
     import aiohttp

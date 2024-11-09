@@ -13,12 +13,12 @@ import pytest
 from evohomeasync.auth import _APPLICATION_ID, HOSTNAME
 from evohomeasync.schema import SCH_LOCATION_RESPONSE, SCH_USER_ACCOUNT_RESPONSE
 
-from .conftest import _DBG_USE_REAL_AIOHTTP
+from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
     import aiohttp
 
-    from evohomeasync.schema import ErrorResponse, LocationResponse, SessionResponse
+    from evohomeasync.schema import ErrorResponse
 
 
 URL_AUTH = f"https://{HOSTNAME}/WebAPI/api/session"

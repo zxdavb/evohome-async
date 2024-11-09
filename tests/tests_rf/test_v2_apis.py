@@ -20,7 +20,8 @@ from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE
 from evohomeasync2.zone import Zone
 
 from . import faked_server as faked
-from .conftest import _DBG_USE_REAL_AIOHTTP, skipif_auth_failed
+from .conftest import skipif_auth_failed
+from .const import _DBG_USE_REAL_AIOHTTP
 
 #######################################################################################
 

@@ -7,7 +7,8 @@ import pytest
 
 import evohomeasync as evo1
 
-from .conftest import _DBG_USE_REAL_AIOHTTP, skipif_auth_failed
+from .conftest import skipif_auth_failed
+from .const import _DBG_USE_REAL_AIOHTTP
 
 
 async def _test_client_apis(evo: evo1.EvohomeClient) -> None:

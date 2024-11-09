@@ -9,8 +9,9 @@ import pytest
 
 import evohomeasync as evo1
 
-from .conftest import _DBG_USE_REAL_AIOHTTP, skipif_auth_failed
-from .helpers import should_fail_v1, should_work_v1
+from .common import should_fail_v1, should_work_v1
+from .conftest import skipif_auth_failed
+from .const import _DBG_USE_REAL_AIOHTTP
 
 
 async def _test_url_locations(evo: evo1.EvohomeClient) -> None:
@@ -81,10 +82,10 @@ async def test_client_apis(evohome_v1: evo1.EvohomeClient) -> None:
 
 
 USER_DATA = {
-    "sessionId": "BE5F40A6-1234-1234-1234-A708947D638B",
+    "sessionId": "BE5F40A6-1234-1234-1234-A708947D6399",
     "userInfo": {
-        "userID": 2263181,
-        "username": "null@gmail.com",
+        "userID": 1234567,
+        "username": "username@email.com",
         "firstname": "David",
         "lastname": "Smith",
         "streetAddress": "1 Main Street",
