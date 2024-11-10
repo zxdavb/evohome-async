@@ -21,8 +21,8 @@ from evohomeasync2.schema.const import (
     S2_TIME_ZONE,
 )
 
-from .conftest import ClientStub
 from .common import TEST_DIR
+from .conftest import ClientStub
 
 WORK_DIR = f"{TEST_DIR}/schemas_0"
 

@@ -177,7 +177,7 @@
       ...
   
     ''',
-    'time_tone': '''
+    'time_zone': '''
       current_offset_minutes: 60
       display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
       offset_minutes: 0
@@ -196,912 +196,534 @@
   '''
   '3432521':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432521''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'PermanentOverride
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Dead Zone
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: PermanentOverride
-  
           targetHeatTemperature: 5.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '5.0
-  
           ...
-  
           '
       temperature: 'null
-  
           ...
-  
           '
       temperature_status: 'is_available: false
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432576':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432576''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Main Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 17.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '17.0
-  
           ...
-  
           '
       temperature: '19.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 19.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432577':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432577''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Front Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 17.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '17.0
-  
           ...
-  
           '
       temperature: '19.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 19.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432578':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432578''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Kitchen
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 17.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '17.0
-  
           ...
-  
           '
       temperature: '20.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 20.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432579':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432579''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Bathroom Dn
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 16.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '16.0
-  
           ...
-  
           '
       temperature: '20.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 20.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432580':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432580''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Main Bedroom
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 16.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '16.0
-  
           ...
-  
           '
       temperature: '21.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 21.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3449703':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3449703''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Kids Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 17.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '17.0
-  
           ...
-  
           '
       temperature: '19.5
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 19.5
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3449740':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3449740''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Bathroom Up
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 16.5
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '16.5
-  
           ...
-  
           '
       temperature: '21.5
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 21.5
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3450733':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3450733''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'PermanentOverride
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Spare Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: PermanentOverride
-  
           targetHeatTemperature: 14.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '14.0
-  
           ...
-  
           '
       temperature: '19.5
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 19.5
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
-  
   '''
 # ---
 # name: test_system_snapshot[hass_118169][control_system]
@@ -1282,7 +904,7 @@
       ...
   
     ''',
-    'time_tone': '''
+    'time_zone': '''
       current_offset_minutes: 60
       display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
       offset_minutes: 0
@@ -1301,912 +923,534 @@
   '''
   '3432521':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432521''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'PermanentOverride
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Dead Zone
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: PermanentOverride
-  
           targetHeatTemperature: 5.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '5.0
-  
           ...
-  
           '
       temperature: 'null
-  
           ...
-  
           '
       temperature_status: 'is_available: false
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432576':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432576''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Main Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 17.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '17.0
-  
           ...
-  
           '
       temperature: '19.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 19.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432577':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432577''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Front Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 17.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '17.0
-  
           ...
-  
           '
       temperature: '19.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 19.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432578':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432578''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Kitchen
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 17.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '17.0
-  
           ...
-  
           '
       temperature: '20.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 20.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432579':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432579''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Bathroom Dn
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 16.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '16.0
-  
           ...
-  
           '
       temperature: '20.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 20.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432580':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432580''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Main Bedroom
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 16.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '16.0
-  
           ...
-  
           '
       temperature: '21.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 21.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3449703':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3449703''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Kids Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 17.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '17.0
-  
           ...
-  
           '
       temperature: '19.5
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 19.5
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3449740':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3449740''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Bathroom Up
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 16.5
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '16.5
-  
           ...
-  
           '
       temperature: '21.5
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 21.5
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3450733':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3450733''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'PermanentOverride
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Spare Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: PermanentOverride
-  
           targetHeatTemperature: 14.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '14.0
-  
           ...
-  
           '
       temperature: '19.5
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 19.5
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
-  
   '''
 # ---
 # name: test_system_snapshot[system_002][control_system]
@@ -2387,7 +1631,7 @@
       ...
   
     ''',
-    'time_tone': '''
+    'time_zone': '''
       current_offset_minutes: 60
       display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
       offset_minutes: 0
@@ -2406,914 +1650,535 @@
   '''
   '3432521':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432521''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'PermanentOverride
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Dead Zone
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: PermanentOverride
-  
           targetHeatTemperature: 5.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '5.0
-  
           ...
-  
           '
       temperature: 'null
-  
           ...
-  
           '
       temperature_status: 'is_available: false
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432576':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432576''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'PermanentOverride
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Main Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: PermanentOverride
-  
           targetHeatTemperature: 5.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '5.0
-  
           ...
-  
           '
       temperature: '17.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 17.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432577':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432577''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Front Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 20.6
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '20.6
-  
           ...
-  
           '
       temperature: '20.5
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 20.5
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432578':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432578''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Kitchen
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 20.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '20.0
-  
           ...
-  
           '
       temperature: '20.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 20.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432579':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432579''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Bathroom Dn
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 18.5
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '18.5
-  
           ...
-  
           '
       temperature: '17.5
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 17.5
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3432580':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3432580''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'TemporaryOverride
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Main Bedroom
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: TemporaryOverride
-  
           targetHeatTemperature: 20.5
-  
           until: ''2023-11-30T22:10:00Z''
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '20.5
-  
           ...
-  
           '
       temperature: '21.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 21.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3449703':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3449703''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Kids Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 18.6
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '18.6
-  
           ...
-  
           '
       temperature: '19.5
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 19.5
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3449740':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3449740''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'FollowSchedule
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Bathroom Up
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: FollowSchedule
-  
           targetHeatTemperature: 19.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '19.0
-  
           ...
-  
           '
       temperature: '19.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 19.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
   '3450733':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3450733''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'PermanentOverride
-  
           ...
-  
           '
       model_type: 'HeatingZone
-  
           ...
-  
           '
       name: 'Spare Room
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 1
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: PermanentOverride
-  
           targetHeatTemperature: 10.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '10.0
-  
           ...
-  
           '
       temperature: '15.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 15.0
-  
           '
       zone_type: 'RadiatorZone
-  
           ...
-  
           '
-  
   '''
 # ---
 # name: test_system_snapshot[system_004][control_system]
@@ -3419,7 +2284,7 @@
       ...
   
     ''',
-    'time_tone': '''
+    'time_zone': '''
       current_offset_minutes: 120
       display_name: "(UTC+01:00) Praha, Bratislava, Budape\u0161\u0165, B\u011Blehrad, Lubla\u0148"
       offset_minutes: 60
@@ -3438,206 +2303,121 @@
   '''
   '3935922':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''3935922''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'PermanentOverride
-  
           ...
-  
           '
       model_type: 'RoundWireless
-  
           ...
-  
           '
       name: 'Name 3935922
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 0
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: PermanentOverride
-  
           targetHeatTemperature: 15.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '15.0
-  
           ...
-  
           '
       temperature: '21.5
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 21.5
-  
           '
       zone_type: 'Thermostat
-  
           ...
-  
           '
   '4368406':
       active_faults: '[]
-  
           '
       allowed_setpoint_modes: '- PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           '
       id: '''4368406''
-  
           '
       max_heat_setpoint: '35.0
-  
           ...
-  
           '
       min_heat_setpoint: '5.0
-  
           ...
-  
           '
       mode: 'PermanentOverride
-  
           ...
-  
           '
       model_type: 'RoundWireless
-  
           ...
-  
           '
       name: 'Name 3935922
-  
           ...
-  
           '
       schedule_capabilities: 'max_switchpoints_per_day: 6
-  
           min_switchpoints_per_day: 0
-  
           setpoint_value_resolution: 0.5
-  
           timing_resolution: 00:10:00
-  
           '
       setpoint_capabilities: 'allowed_setpoint_modes:
-  
           - PermanentOverride
-  
           - FollowSchedule
-  
           - TemporaryOverride
-  
           can_control_cool: false
-  
           can_control_heat: true
-  
           max_duration: 1.00:00:00
-  
           max_heat_setpoint: 35.0
-  
           min_heat_setpoint: 5.0
-  
           timing_resolution: 00:10:00
-  
           value_resolution: 0.5
-  
           '
       setpoint_status: 'setpointMode: PermanentOverride
-  
           targetHeatTemperature: 15.0
-  
           '
       target_cool_temperature: 'null
-  
           ...
-  
           '
       target_heat_temperature: '15.0
-  
           ...
-  
           '
       temperature: '23.0
-  
           ...
-  
           '
       temperature_status: 'is_available: true
-  
           temperature: 23.0
-  
           '
       zone_type: 'Thermostat
-  
           ...
-  
           '
-  
   '''
 # ---

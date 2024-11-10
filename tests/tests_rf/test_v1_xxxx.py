@@ -17,7 +17,7 @@ async def _test_url_locations(evo: evo1.EvohomeClient) -> None:
     await evo.update()
 
     # evo.broker._headers["sessionId"] = evo.user_info["sessionId"]  # what is this?
-    user_id: int = evo.user_info["userID"]  # type: ignore[assignment]
+    user_id: int = evo.user_info["userID"]
 
     assert evo.auth.session_id
 

@@ -16,8 +16,9 @@ import voluptuous as vol
 
 import evohomeasync as evo1
 import evohomeasync2 as evo2
-from evohomeasync2.auth import URL_BASE as URL_BASE_2, Auth
+from evohomeasync2.auth import Auth
 
+from ..const import URL_BASE_V1
 from .const import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
 
 _FNC = TypeVar("_FNC", bound=Callable[..., Any])
@@ -176,7 +177,7 @@ async def should_work(
     Used to validate the faked server against a 'real' server.
     """
 
-    response = await evo.auth.request(method, f"{URL_BASE_2}/{url}", json=json)
+    response = await evo.auth.request(method, f"{URL_BASE_V1}/{url}", json=json)
 
     content = await Auth._content(response)
     assert response.content_type == content_type, content
@@ -205,7 +206,7 @@ async def should_fail(
     """
 
     try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
-        response = await evo.auth.request(method, f"{URL_BASE_2}/{url}", json=json)
+        response = await evo.auth.request(method, f"{URL_BASE_V1}/{url}", json=json)
 
     except aiohttp.ClientResponseError:
         assert False  # err.status == status, err.status

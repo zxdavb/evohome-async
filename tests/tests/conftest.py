@@ -6,20 +6,21 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import AsyncGenerator, Callable, Generator
-from datetime import datetime as dt
 from functools import lru_cache
 from pathlib import Path
-from typing import Final
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
-import aiohttp
 import pytest
 import voluptuous as vol
 from aioresponses import aioresponses
 
 import evohomeasync2 as evo2
-from evohomeasync2.auth import AbstractTokenManager
 from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
+
+if TYPE_CHECKING:
+    from ..conftest import TokenManager
+
 
 type JsonValueType = (
     dict[str, JsonValueType] | list[JsonValueType] | str | int | float | bool | None
@@ -30,31 +31,13 @@ type JsonObjectType = dict[str, JsonValueType]
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
-# used to construct the default token cache
-TEST_USERNAME: Final = "username@email.com"
-TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
-
-
 class ClientStub:
     auth = None
     broker = None
     _logger = logging.getLogger(__name__)
 
 
-class TokenManager(AbstractTokenManager):
-    async def restore_access_token(self) -> None:
-        """Restore the access token from the cache."""
-
-        self._access_token = "access_token"  # noqa: S105
-        self._access_token_expires = dt.max
-        self._refresh_token = "refresh_token"  # noqa: S105
-
-    async def save_access_token(self) -> None:
-        """Save the access token to the cache."""
-        pass
-
-
-@pytest.fixture(autouse=True)
+@pytest.fixture()  # autouse=True)
 def block_aiohttp() -> Generator[Callable]:
     """Prevent any actual I/O: will raise ClientConnectionError(Connection refused)."""
     with aioresponses() as m:
@@ -120,39 +103,31 @@ def broker_get(install: str) -> Callable:
     return get
 
 
-@pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
-async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
-    """Yield a vanilla aiohttp.ClientSession."""
-
-    client_session = aiohttp.ClientSession()
-
-    try:
-        yield client_session
-    finally:
-        await client_session.close()
+# #####################################################################################
 
 
 @pytest.fixture(scope="session")
-def credentials() -> tuple[str, str]:
-    """Return a username and a password."""
+def use_fake_aiohttp() -> bool:
+    """Return True is using the real aiohttp library."""
+    return False
 
-    return TEST_USERNAME, TEST_PASSWORD
 
+# @pytest.fixture  # NOTE: is a WIP
+# async def evohome_v1(
+#     install: str,
+#     session_manager: SessionManager,
+# ) -> AsyncGenerator[evo1.EvohomeClient, None]:
+#     """Yield an instance of a v1 EvohomeClient."""
 
-@pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
-async def token_manager(
-    client_session: aiohttp.ClientSession,
-    credentials: tuple[str, str],
-) -> AsyncGenerator[TokenManager, None]:
-    """Yield a token manager with vanilla credentials."""
+#     with patch("evohomeasync1.auth.Auth.get", broker_get(install)):
+#         evo = evo1.EvohomeClient(session_manager)
 
-    token_manager = TokenManager(credentials[0], credentials[1], client_session)
-    await token_manager.restore_access_token()
+#         await evo.update()
 
-    try:
-        yield token_manager
-    finally:
-        await token_manager.save_access_token()
+#         try:
+#             yield evo
+#         finally:
+#             pass
 
 
 @pytest.fixture

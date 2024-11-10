@@ -10,17 +10,15 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from evohomeasync2.auth import _APPLICATION_ID, HOSTNAME, SCH_OAUTH_TOKEN
+from evohomeasync2.auth import _APPLICATION_ID, SCH_OAUTH_TOKEN
 from evohomeasync2.schema import SCH_USER_ACCOUNT
 
+from ..const import URL_AUTH_V1 as URL_AUTH, URL_BASE_V1 as URL_BASE
 from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
     import aiohttp
 
-
-URL_AUTH = f"https://{HOSTNAME}/Auth/OAuth/Token"
-URL_BASE = f"https://{HOSTNAME}/WebAPI/emea/api/v1/"
 
 HEADERS_AUTH = {
     "Accept": "application/json",
@@ -41,7 +39,7 @@ HEADERS_BASE = {
 async def test_url_auth_bad1(  # invalid/unknown credentials
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test the authentication flow with bad credentials."""
+    """Test authentication flow with invalid credentials."""
 
     # invalid credentials -> HTTPStatus.UNAUTHORIZED
     data = {
@@ -60,8 +58,9 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
             assert response["error"] == "attempt_limit_exceeded"
             pytest.skip("Too many requests")
 
+        # the expected response for bad credentials
         """
-            {'error': 'invalid_grant'}
+            {"error": "invalid_grant"}
         """
 
     assert response["error"] == "invalid_grant"
@@ -71,13 +70,13 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
 async def test_url_auth_bad2(  # invalid/expired access token
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test the authentication flow with an invalid session id,"""
+    """Test authentication flow with an invalid access token."""
 
     # pre-requisite data
-    access_token = "bad/expired acesss token " + random.choice(string.ascii_letters)  # noqa: S311
+    access_token = "invalid access token " + random.choice(string.ascii_letters)  # noqa: S311
     #
 
-    # invalid/expired session id -> HTTPStatus.UNAUTHORIZED
+    # invalid/expired access token -> HTTPStatus.UNAUTHORIZED
     url = URL_BASE + "userAccount"
     headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
 
@@ -94,10 +93,11 @@ async def test_url_auth_bad2(  # invalid/expired access token
 
         assert isinstance(response, list)  # mypy hint
 
+        # the expected response for bad access tokens
         """
             [{
-                'code': 'Unauthorized',
-                'message': 'Unauthorized.'
+                "code": "Unauthorized",
+                "message": "Unauthorized."
             }]
         """
 
@@ -106,11 +106,45 @@ async def test_url_auth_bad2(  # invalid/expired access token
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_url_auth_bad3(  # invalid/expired refresh token
+    client_session: aiohttp.ClientSession,
+) -> None:
+    """Test authentication flow with an invalid refresh token."""
+
+    # pre-requisite data
+    refresh_token = "invalid refresh token " + random.choice(string.ascii_letters)  # noqa: S311
+    #
+
+    # invalid/expired refresh token -> HTTPStatus.UNAUTHORIZED
+    data = {
+        "grant_type": "refresh_token",
+        "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
+        "refresh_token": refresh_token,
+    }
+
+    async with client_session.get(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        assert rsp.status == HTTPStatus.BAD_REQUEST
+
+        response: dict = await rsp.json()
+
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert response["error"] == "attempt_limit_exceeded"
+            pytest.skip("Too many requests")
+
+        # the expected response for bad refresh tokens
+        """
+            {"error": "invalid_grant"}
+        """
+
+    assert response["error"] == "invalid_grant"
+
+
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_url_auth_good(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
 ) -> None:
-    """Test the authentication flow (and authorization) with good credentials."""
+    """Test authentication flow (and authorization) with good credentials."""
 
     # valid credentials -> HTTPStatus.OK
     data = {
@@ -125,21 +159,23 @@ async def test_url_auth_good(
 
         user_auth: dict = await rsp.json()
 
+        # the expected response for TOO_MANY_REQUESTS
         """
-            {'error': 'attempt_limit_exceeded'}
+            {"error": "attempt_limit_exceeded"}
         """
 
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
             assert user_auth["error"] == "attempt_limit_exceeded"
             pytest.skip("Too many requests")
 
+        # the expected response for good credentials
         """
             {
-                'access_token': 'HojUMRvmn...",
-                'token_type': 'bearer',
-                'expires_in': 1799,
-                'refresh_token': 'vdBdHjxK...",
-                # 'scope': 'EMEA-V1-Basic EMEA-V1-Anonymous'  # optional
+                "access_token": "HojUMRvmn...",
+                "token_type": "bearer",
+                "expires_in": 1799,
+                "refresh_token": "vdBdHjxK...",
+                # "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # optional
             }
         """
 
@@ -167,17 +203,18 @@ async def test_url_auth_good(
             assert response["error"] == "attempt_limit_exceeded"
             pytest.skip("Too many requests")
 
+        # the expected response for good access token
         """
             {
-                'userId': '1234567',
-                'username': 'username@email.com',
-                'firstname': 'David',
-                'lastname': 'Smith',
-                'streetAddress': '1 Main Street',
-                'city': 'London',
-                'postcode': 'E1 1AA',
-                'country': 'UnitedKingdom',
-                'language': 'enGB'
+                "userId": "1234567",
+                "username": "username@email.com",
+                "firstname": "David",
+                "lastname": "Smith",
+                "streetAddress": "1 Main Street",
+                "city": "London",
+                "postcode": "E1 1AA",
+                "country": "UnitedKingdom",
+                "language": "enGB"
             }
         """
 
@@ -185,3 +222,41 @@ async def test_url_auth_good(
     assert response["username"] and response["username"] == credentials[0]
 
     assert SCH_USER_ACCOUNT(response), response
+
+    # #################################################################################
+
+    # Check the refresh token by requesting another access token...
+    refresh_token = user_auth["refresh_token"]
+    #
+
+    # valid credentials -> HTTPStatus.OK
+    data = {
+        "grant_type": "refresh_token",
+        "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
+        "refresh_token": refresh_token,
+    }
+
+    async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
+
+        user_auth = await rsp.json()
+
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert user_auth["error"] == "attempt_limit_exceeded"
+            pytest.skip("Too many requests")
+
+        # the expected response for good refresh tokens
+        """
+            {
+                "access_token": "HojUMRvmn...",
+                "token_type": "bearer",
+                "expires_in": 1799,
+                "refresh_token": "vdBdHjxK...",
+                # "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # optional
+            }
+        """
+
+    assert user_auth["access_token"] and isinstance(user_auth["access_token"], str)
+    assert user_auth["expires_in"] <= 1800
+
+    assert SCH_OAUTH_TOKEN(user_auth), user_auth

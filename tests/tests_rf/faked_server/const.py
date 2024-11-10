@@ -3,7 +3,18 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Final, Literal
+
+HOSTNAME: Final = "tccna.honeywell.com"
+
+# vendors API URLs - the older API
+URL_AUTH_V0 = f"https://{HOSTNAME}/WebAPI/api/session"
+URL_BASE_V0 = f"https://{HOSTNAME}/WebAPI/api/"
+
+# - the newer API
+URL_AUTH_V1 = f"https://{HOSTNAME}/Auth/OAuth/Token"
+URL_BASE_V1 = f"https://{HOSTNAME}/WebAPI/emea/api/v1/"
+
 
 GHOST_ZONE_ID = "0000000"  # "3432521"
 
@@ -656,7 +667,7 @@ def user_config_from_full_config(full_config: list) -> dict:
 
     # assert schema
     loc_idx = 0
-    return (
+    return (  # type: ignore[no-any-return]
         full_config[loc_idx]["locationInfo"]["locationOwner"]
         | {
             k: v

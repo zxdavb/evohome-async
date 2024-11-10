@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING
 
 import voluptuous as vol
 
-from evohomeasync2.auth import URL_AUTH, URL_BASE
 from evohomeasync2.schema import const as sch, convert_to_get_schedule
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 
@@ -22,6 +21,8 @@ from .const import (
     MOCK_LOCN_STATUS,
     MOCK_SCHEDULE_DHW,
     MOCK_SCHEDULE_ZONE,
+    URL_AUTH_V1 as URL_AUTH,
+    URL_BASE_V1 as URL_BASE,
     user_config_from_full_config as _user_config_from_full_config,
 )
 
@@ -187,7 +188,7 @@ class FakedServer:
         for gwy in self._locn_status[sch.S2_GATEWAYS]:
             for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
                 if tcs[sch.S2_SYSTEM_ID] == tcs_id:
-                    return tcs
+                    return tcs  # type: ignore[no-any-return]
         return None
 
     def zon_schedule(self) -> _bodyT | None:
@@ -227,7 +228,7 @@ class FakedServer:
             for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
                 for zone in tcs[sch.S2_ZONES]:
                     if zone[sch.S2_ZONE_ID] == zon_id:
-                        return zone
+                        return zone  # type: ignore[no-any-return]
         return None
 
     def dhw_schedule(self) -> _bodyT | None:
@@ -261,7 +262,7 @@ class FakedServer:
             for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
                 if dhw := tcs.get(sch.S2_DHW):
                     if dhw[sch.S2_DHW_ID] == dhw_id:
-                        return dhw
+                        return dhw  # type: ignore[no-any-return]
         return None
 
     def dhw_mode(self) -> _bodyT | None:

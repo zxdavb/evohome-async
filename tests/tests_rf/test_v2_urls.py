@@ -10,7 +10,13 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync2 as evo2
-from evohomeasync2.const import API_STRFTIME, SystemMode, ZoneMode
+from evohomeasync2.const import (
+    API_STRFTIME,
+    SZ_PERMANENT,
+    SZ_SYSTEM_MODE,
+    SystemMode,
+    ZoneMode,
+)
 from evohomeasync2.schema import (
     SCH_FULL_CONFIG,
     SCH_GET_SCHEDULE,
@@ -35,8 +41,8 @@ from evohomeasync2.schema.const import (
 from evohomeasync2.schema.schedule import convert_to_put_schedule
 
 from . import faked_server as faked
-from .conftest import _DBG_USE_REAL_AIOHTTP, skipif_auth_failed
-from .helpers import should_fail, should_work
+from .common import should_fail, should_work, skipif_auth_failed
+from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
     from evohomeasync2.schema import _EvoDictT
@@ -67,7 +73,7 @@ async def _test_usr_account(evo: evo2.EvohomeClientNew) -> None:
 async def _test_all_config(evo: evo2.EvohomeClientNew) -> None:
     """Test /location/installationInfo?userId={user_id}"""
 
-    _ = await evo.update()
+    await evo.update()
     #
 
     url = f"location/installationInfo?userId={evo._user_info[S2_USER_ID]}"
@@ -95,7 +101,7 @@ async def _test_all_config(evo: evo2.EvohomeClientNew) -> None:
 async def _test_loc_status(evo: evo2.EvohomeClientNew) -> None:
     """Test /location/{loc.id}/status"""
 
-    _ = await evo.update(dont_update_status=True)
+    await evo.update(dont_update_status=True)
 
     loc = evo.locations[0]
     #
@@ -137,7 +143,7 @@ async def _test_loc_status(evo: evo2.EvohomeClientNew) -> None:
 async def _test_tcs_mode(evo: evo2.EvohomeClientNew) -> None:
     """Test /temperatureControlSystem/{tcs.id}/mode"""
 
-    _ = await evo.update(dont_update_status=True)
+    await evo.update(dont_update_status=True)
 
     tcs: evo2.ControlSystem
 
@@ -158,17 +164,17 @@ async def _test_tcs_mode(evo: evo2.EvohomeClientNew) -> None:
         evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.BAD_REQUEST
     )
 
-    old_mode[S2_SYSTEM_MODE] = old_mode.pop(S2_MODE)
-    old_mode[S2_PERMANENT] = old_mode.pop(S2_IS_PERMANENT)
+    old_mode[SZ_SYSTEM_MODE] = old_mode.pop(S2_MODE)
+    old_mode[SZ_PERMANENT] = old_mode.pop(S2_IS_PERMANENT)
 
-    assert SystemMode.AUTO in [m[S2_SYSTEM_MODE] for m in tcs.allowed_system_modes]
+    assert SystemMode.AUTO in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
     new_mode: _EvoDictT = {
         S2_SYSTEM_MODE: SystemMode.AUTO,
         S2_PERMANENT: True,
     }
     _ = await should_work(evo, HTTPMethod.PUT, url, json=new_mode)
 
-    assert SystemMode.AWAY in [m[S2_SYSTEM_MODE] for m in tcs.allowed_system_modes]
+    assert SystemMode.AWAY in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
     new_mode = {
         S2_SYSTEM_MODE: SystemMode.AWAY,
         S2_PERMANENT: True,
@@ -199,7 +205,7 @@ async def _test_tcs_mode(evo: evo2.EvohomeClientNew) -> None:
 async def _test_zone_mode(evo: evo2.EvohomeClientNew) -> None:
     """Test /temperatureZone/{zone.id}/heatSetpoint"""
 
-    _ = await evo.update()
+    await evo.update()
 
     for zone in evo.locations[0].gateways[0].control_systems[0].zones:
         if zone.temperature is None:
@@ -254,7 +260,7 @@ async def _test_zone_mode(evo: evo2.EvohomeClientNew) -> None:
 async def _test_schedule(evo: evo2.EvohomeClientNew) -> None:
     """Test /{x.TYPE}/{x.id}/schedule (of a zone)"""
 
-    _ = await evo.update()
+    await evo.update()
 
     zone = evo.locations[0].gateways[0].control_systems[0].zones[0]
     #

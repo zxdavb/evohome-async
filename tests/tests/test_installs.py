@@ -12,8 +12,8 @@ from syrupy import SnapshotAssertion
 
 import evohomeasync2 as evo2
 
-from .conftest import FIXTURES_DIR
 from .common import get_property_methods
+from .conftest import FIXTURES_DIR
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:

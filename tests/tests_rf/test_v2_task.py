@@ -36,7 +36,7 @@ async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
     gwy: Gateway
     tcs: ControlSystem
 
-    _ = await evo.update(dont_update_status=True)
+    await evo.update(dont_update_status=True)
 
     dhw: HotWater | None = None
 

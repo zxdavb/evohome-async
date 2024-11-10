@@ -10,9 +10,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from evohomeasync.auth import _APPLICATION_ID, HOSTNAME
+from evohomeasync.auth import _APPLICATION_ID
 from evohomeasync.schema import SCH_LOCATION_RESPONSE, SCH_USER_ACCOUNT_RESPONSE
 
+from ..const import URL_AUTH_V0 as URL_AUTH, URL_BASE_V0 as URL_BASE
 from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
@@ -20,9 +21,6 @@ if TYPE_CHECKING:
 
     from evohomeasync.schema import ErrorResponse
 
-
-URL_AUTH = f"https://{HOSTNAME}/WebAPI/api/session"
-URL_BASE = f"https://{HOSTNAME}/WebAPI/api/"
 
 HEADERS_AUTH = {
     "Accept": "application/json",
@@ -59,8 +57,8 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
 
         """
             [{
-                'code': 'EmailOrPasswordIncorrect',
-                'message': 'The email or password provided is incorrect.'
+                "code": "EmailOrPasswordIncorrect",
+                "message": "The email or password provided is incorrect."
             }]
         """
 
@@ -89,8 +87,8 @@ async def test_url_auth_bad2(  # invalid/expired session id
 
         """
             [{
-                'code': 'Unauthorized',
-                'message': 'Unauthorized'
+                "code": "Unauthorized",
+                "message": "Unauthorized"
             }]
         """
 
@@ -119,8 +117,8 @@ async def test_url_auth_good(
 
         """
             [{
-                'code': 'TooManyRequests',
-                'message': 'Request count limitation exceeded, please try again later.'
+                "code": "TooManyRequests",
+                "message": "Request count limitation exceeded, please try again later."
             }]
         """
 
@@ -134,25 +132,25 @@ async def test_url_auth_good(
 
         """
             {
-                'sessionId': 'A80FF794-C042-42BC-A63E-7A509C9AA6C9',
-                'userInfo': {
-                    'userID': 2263181,
-                    'username': 'username@email.com',
-                    'firstname': 'David',
-                    'lastname': 'Smith',
-                    'streetAddress': '1 Main Street',
-                    'city': 'London',
-                    'zipcode': 'E1 1AA',
-                    'country': 'GB',
-                    'telephone': '',
-                    'userLanguage': 'en-GB',
-                    'isActivated': True,
-                    'deviceCount': 0,
-                    'tenantID': 5,
-                    'securityQuestion1': 'NotUsed',
-                    'securityQuestion2': 'NotUsed',
-                    'securityQuestion3': 'NotUsed',
-                    'latestEulaAccepted': False
+                "sessionId": "A80FF794-C042-42BC-A63E-7A509C9AA6C9",
+                "userInfo": {
+                    "userID": 2263181,
+                    "username": "username@email.com",
+                    "firstname": "David",
+                    "lastname": "Smith",
+                    "streetAddress": "1 Main Street",
+                    "city": "London",
+                    "zipcode": "E1 1AA",
+                    "country": "GB",
+                    "telephone": "",
+                    "userLanguage": "en-GB",
+                    "isActivated": True,
+                    "deviceCount": 0,
+                    "tenantID": 5,
+                    "securityQuestion1": "NotUsed",
+                    "securityQuestion2": "NotUsed",
+                    "securityQuestion3": "NotUsed",
+                    "latestEulaAccepted": False
                 }
             }
         """
