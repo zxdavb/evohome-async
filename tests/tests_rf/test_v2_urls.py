@@ -47,11 +47,13 @@ from .const import _DBG_USE_REAL_AIOHTTP
 if TYPE_CHECKING:
     from evohomeasync2.schema import _EvoDictT
 
+    from ..conftest import EvohomeClientv2
+
 
 #######################################################################################
 
 
-async def _test_usr_account(evo: evo2.EvohomeClientNew) -> None:
+async def _test_usr_account(evo: EvohomeClientv2) -> None:
     """Test /userAccount"""
 
     url = "userAccount"
@@ -70,7 +72,7 @@ async def _test_usr_account(evo: evo2.EvohomeClientNew) -> None:
     )
 
 
-async def _test_all_config(evo: evo2.EvohomeClientNew) -> None:
+async def _test_all_config(evo: EvohomeClientv2) -> None:
     """Test /location/installationInfo?userId={user_id}"""
 
     await evo.update()
@@ -98,7 +100,7 @@ async def _test_all_config(evo: evo2.EvohomeClientNew) -> None:
     _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
 
-async def _test_loc_status(evo: evo2.EvohomeClientNew) -> None:
+async def _test_loc_status(evo: EvohomeClientv2) -> None:
     """Test /location/{loc.id}/status"""
 
     await evo.update(dont_update_status=True)
@@ -140,7 +142,7 @@ async def _test_loc_status(evo: evo2.EvohomeClientNew) -> None:
     )
 
 
-async def _test_tcs_mode(evo: evo2.EvohomeClientNew) -> None:
+async def _test_tcs_mode(evo: EvohomeClientv2) -> None:
     """Test /temperatureControlSystem/{tcs.id}/mode"""
 
     await evo.update(dont_update_status=True)
@@ -202,7 +204,7 @@ async def _test_tcs_mode(evo: evo2.EvohomeClientNew) -> None:
     pass
 
 
-async def _test_zone_mode(evo: evo2.EvohomeClientNew) -> None:
+async def _test_zone_mode(evo: EvohomeClientv2) -> None:
     """Test /temperatureZone/{zone.id}/heatSetpoint"""
 
     await evo.update()
@@ -257,7 +259,7 @@ async def _test_zone_mode(evo: evo2.EvohomeClientNew) -> None:
 
 # TODO: Test sending bad schedule
 # TODO: Try with/without convert_to_put_schedule()
-async def _test_schedule(evo: evo2.EvohomeClientNew) -> None:
+async def _test_schedule(evo: EvohomeClientv2) -> None:
     """Test /{x.TYPE}/{x.id}/schedule (of a zone)"""
 
     await evo.update()
@@ -309,7 +311,7 @@ async def _test_schedule(evo: evo2.EvohomeClientNew) -> None:
 
 
 @skipif_auth_failed
-async def test_usr_account(evohome_v2: evo2.EvohomeClientNew) -> None:
+async def test_usr_account(evohome_v2: EvohomeClientv2) -> None:
     """Test /userAccount"""
 
     try:
@@ -322,21 +324,21 @@ async def test_usr_account(evohome_v2: evo2.EvohomeClientNew) -> None:
 
 
 @skipif_auth_failed
-async def test_all_config(evohome_v2: evo2.EvohomeClientNew) -> None:
+async def test_all_config(evohome_v2: EvohomeClientv2) -> None:
     """Test /location/installationInfo"""
 
     await _test_all_config(evohome_v2)
 
 
 @skipif_auth_failed
-async def test_loc_status(evohome_v2: evo2.EvohomeClientNew) -> None:
+async def test_loc_status(evohome_v2: EvohomeClientv2) -> None:
     """Test /location/{loc.id}/status"""
 
     await _test_loc_status(evohome_v2)
 
 
 @skipif_auth_failed
-async def test_tcs_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
+async def test_tcs_mode(evohome_v2: EvohomeClientv2) -> None:
     """Test /temperatureControlSystem/{tcs.id}/mode"""
 
     try:
@@ -349,7 +351,7 @@ async def test_tcs_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
 
 
 @skipif_auth_failed
-async def test_zone_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
+async def test_zone_mode(evohome_v2: EvohomeClientv2) -> None:
     """Test /temperatureZone/{zone.id}/heatSetpoint"""
 
     try:
@@ -362,7 +364,7 @@ async def test_zone_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
 
 
 @skipif_auth_failed
-async def test_schedule(evohome_v2: evo2.EvohomeClientNew) -> None:
+async def test_schedule(evohome_v2: EvohomeClientv2) -> None:
     """Test /{x.TYPE}/{x.id}/schedule"""
 
     await _test_schedule(evohome_v2)

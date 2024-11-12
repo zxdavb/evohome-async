@@ -15,7 +15,7 @@ import pytest
 import voluptuous as vol
 from aioresponses import aioresponses
 
-import evohomeasync2 as evo2
+from evohomeasync2.main import EvohomeClientNew as EvohomeClientv2
 from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
 
 if TYPE_CHECKING:
@@ -116,11 +116,11 @@ def use_fake_aiohttp() -> bool:
 async def evohome_v2(
     install: str,
     cache_manager: CacheManager,
-) -> AsyncGenerator[evo2.EvohomeClientNew, None]:
+) -> AsyncGenerator[EvohomeClientv2, None]:
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync2.auth.Auth.get", broker_get(install)):
-        evo = evo2.EvohomeClientNew(cache_manager)
+        evo = EvohomeClientv2(cache_manager)
 
         await evo.update()
 

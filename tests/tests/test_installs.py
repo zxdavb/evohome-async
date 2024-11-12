@@ -4,16 +4,17 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 import yaml
 from syrupy import SnapshotAssertion
 
-import evohomeasync2 as evo2
-
 from .common import get_property_methods
 from .conftest import FIXTURES_DIR
+
+if TYPE_CHECKING:
+    from ..conftest import EvohomeClientv2
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -26,7 +27,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 
 async def test_system_snapshot(
-    evohome_v2: evo2.EvohomeClientNew,
+    evohome_v2: EvohomeClientv2,
     snapshot: SnapshotAssertion,
 ) -> None:
     """Test the user account schema against the corresponding JSON."""

@@ -8,7 +8,7 @@ import functools
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
 from pathlib import Path
-from typing import Any, Final, TypeVar
+from typing import TYPE_CHECKING, Any, Final, TypeVar
 
 import aiohttp
 import pytest
@@ -20,6 +20,9 @@ from evohomeasync2.auth import Auth
 
 from ..const import URL_BASE_V1
 from .const import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
+
+if TYPE_CHECKING:
+    from ..conftest import EvohomeClientv2
 
 _FNC = TypeVar("_FNC", bound=Callable[..., Any])
 
@@ -163,7 +166,7 @@ async def should_fail_v0(
 
 
 async def should_work(
-    evo: evo2.EvohomeClientNew,
+    evo: EvohomeClientv2,
     method: HTTPMethod,
     url: str,
     /,
@@ -191,7 +194,7 @@ async def should_work(
 
 
 async def should_fail(
-    evo: evo2.EvohomeClientNew,
+    evo: EvohomeClientv2,
     method: HTTPMethod,
     url: str,
     /,
@@ -245,7 +248,7 @@ async def should_fail(
     return content
 
 
-async def wait_for_comm_task_v2(evo: evo2.EvohomeClientNew, task_id: str) -> bool:
+async def wait_for_comm_task_v2(evo: EvohomeClientv2, task_id: str) -> bool:
     """Wait for a communication task (API call) to complete."""
 
     # invoke via:

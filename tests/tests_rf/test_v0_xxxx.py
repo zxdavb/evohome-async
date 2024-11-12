@@ -4,16 +4,18 @@
 from __future__ import annotations
 
 from http import HTTPMethod, HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
-
-import evohomeasync as evo0
 
 from .common import should_fail_v0, should_work_v0, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
 
+if TYPE_CHECKING:
+    from ..conftest import EvohomeClientv0
 
-async def _test_url_locations(evo: evo0.EvohomeClient) -> None:
+
+async def _test_url_locations(evo: EvohomeClientv0) -> None:
     await evo.update()
 
     # evo.broker._headers["sessionId"] = evo.user_info["sessionId"]  # what is this?
@@ -46,10 +48,10 @@ async def _test_url_locations(evo: evo0.EvohomeClient) -> None:
     )
 
 
-async def _test_client_apis(evo: evo0.EvohomeClient) -> None:
+async def _test_client_apis(evo: EvohomeClientv0) -> None:
     """Instantiate a client, and logon to the vendor API."""
 
-    user_data = await evo._populate_user_data()
+    user_data = await evo._get_user_data()
     assert user_data  # aka evo.user_data
 
     assert evo.user_info
@@ -61,7 +63,7 @@ async def _test_client_apis(evo: evo0.EvohomeClient) -> None:
 
 
 @skipif_auth_failed
-async def test_locations(evohome_v0: evo0.EvohomeClient) -> None:
+async def test_locations(evohome_v0: EvohomeClientv0) -> None:
     """Test /locations"""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -71,7 +73,7 @@ async def test_locations(evohome_v0: evo0.EvohomeClient) -> None:
 
 
 @skipif_auth_failed
-async def test_client_apis(evohome_v0: evo0.EvohomeClient) -> None:
+async def test_client_apis(evohome_v0: EvohomeClientv0) -> None:
     """Test _populate_user_data() & _populate_full_data()"""
 
     if not _DBG_USE_REAL_AIOHTTP:

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -23,10 +24,13 @@ from evohomeasync2.schema.helpers import pascal_case
 from .common import should_fail, should_work, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
 
+if TYPE_CHECKING:
+    from ..conftest import EvohomeClientv2
+
 #######################################################################################
 
 
-async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
+async def _test_task_id(evo: EvohomeClientv2) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
@@ -191,7 +195,7 @@ async def _test_task_id(evo: evo2.EvohomeClientNew) -> None:
 
 
 @skipif_auth_failed
-async def test_task_id(evohome_v2: evo2.EvohomeClientNew) -> None:
+async def test_task_id(evohome_v2: EvohomeClientv2) -> None:
     """Test /location/{loc.id}/status"""
 
     if not _DBG_USE_REAL_AIOHTTP:

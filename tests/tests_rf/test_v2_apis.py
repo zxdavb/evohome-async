@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 import evohomeasync2 as evo2
@@ -23,10 +25,13 @@ from . import faked_server as faked
 from .common import skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
 
+if TYPE_CHECKING:
+    from ..conftest import EvohomeClientv2
+
 #######################################################################################
 
 
-async def _test_basics_apis(evo: evo2.EvohomeClientNew) -> None:
+async def _test_basics_apis(evo: EvohomeClientv2) -> None:
     """Test authentication, `user_account()` and `installation()`."""
 
     # STEP 1: retrieve base data
@@ -43,7 +48,7 @@ async def _test_basics_apis(evo: evo2.EvohomeClientNew) -> None:
     pass
 
 
-async def _test_sched__apis(evo: evo2.EvohomeClientNew) -> None:
+async def _test_sched__apis(evo: EvohomeClientv2) -> None:
     """Test `get_schedule()` and `get_schedule()`."""
 
     # STEP 1: retrieve base data
@@ -71,7 +76,7 @@ async def _test_sched__apis(evo: evo2.EvohomeClientNew) -> None:
             assert False
 
 
-async def _test_update_apis(evo: evo2.EvohomeClientNew) -> None:
+async def _test_update_apis(evo: EvohomeClientv2) -> None:
     """Test `_update()` for DHW/zone."""
 
     # STEP 1: retrieve config
@@ -89,7 +94,7 @@ async def _test_update_apis(evo: evo2.EvohomeClientNew) -> None:
     pass
 
 
-async def _test_system_apis(evo: evo2.EvohomeClientNew) -> None:
+async def _test_system_apis(evo: EvohomeClientv2) -> None:
     """Test `set_mode()` for TCS."""
 
     # STEP 1: retrieve base data
@@ -116,25 +121,25 @@ async def _test_system_apis(evo: evo2.EvohomeClientNew) -> None:
 
 
 @skipif_auth_failed
-async def test_basics(evohome_v2: evo2.EvohomeClientNew) -> None:
+async def test_basics(evohome_v2: EvohomeClientv2) -> None:
     """Test authentication, `user_account()` and `installation()`."""
     await _test_basics_apis(evohome_v2)
 
 
 @skipif_auth_failed
-async def _test_sched_(evohome_v2: evo2.EvohomeClientNew) -> None:
+async def _test_sched_(evohome_v2: EvohomeClientv2) -> None:
     """Test `get_schedule()` and `get_schedule()`."""
     await _test_sched__apis(evohome_v2)
 
 
 @skipif_auth_failed
-async def test_status(evohome_v2: evo2.EvohomeClientNew) -> None:
+async def test_status(evohome_v2: EvohomeClientv2) -> None:
     """Test `_update()` for DHW/zone."""
     await _test_update_apis(evohome_v2)
 
 
 @skipif_auth_failed
-async def test_system(evohome_v2: evo2.EvohomeClientNew) -> None:
+async def test_system(evohome_v2: EvohomeClientv2) -> None:
     """Test `set_mode()` for TCS"""
 
     try:

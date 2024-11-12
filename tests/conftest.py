@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from cli.auth import CacheManager
 
-import evohomeasync as evo0
-import evohomeasync2 as evo2
+from evohomeasync.main import EvohomeClientOld as EvohomeClientv0
+from evohomeasync2.main import EvohomeClientNew as EvohomeClientv2
 
 from .const import TEST_PASSWORD, TEST_USERNAME
 
@@ -113,10 +113,10 @@ async def cache_manager(
 async def evohome_v0(
     credentials: tuple[str, str],
     client_session: aiohttp.ClientSession,
-) -> AsyncGenerator[evo0.EvohomeClient, None]:
+) -> AsyncGenerator[EvohomeClientv0, None]:
     """Yield an instance of a v0 EvohomeClient."""
 
-    evo = evo0.EvohomeClient(*credentials, websession=client_session)
+    evo = EvohomeClientv0(*credentials, websession=client_session)
 
     # await evo.update()
 
@@ -129,10 +129,10 @@ async def evohome_v0(
 @pytest.fixture
 async def evohome_v2(
     cache_manager: CacheManager,
-) -> AsyncGenerator[evo2.EvohomeClientNew, None]:
+) -> AsyncGenerator[EvohomeClientv2, None]:
     """Yield an instance of a v2 EvohomeClient."""
 
-    evo = evo2.EvohomeClientNew(cache_manager)
+    evo = EvohomeClientv2(cache_manager)
 
     # await evo.update()
 
