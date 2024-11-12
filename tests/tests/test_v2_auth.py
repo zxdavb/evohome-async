@@ -3,31 +3,28 @@
 
 from __future__ import annotations
 
-import json
 import uuid
-from datetime import datetime as dt
 from http import HTTPMethod, HTTPStatus
-from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, patch
 
-import aiohttp
 import pytest
 from aioresponses import aioresponses
-from freezegun.api import FrozenDateTimeFactory
 
 from evohomeasync2 import exceptions as exc
-from evohomeasync2.client import TokenManager
-
-from ..const import HEADERS_AUTH_V1 as HEADERS_AUTH, URL_AUTH_V1 as URL_AUTH
+from tests.const import HEADERS_AUTH_V1 as HEADERS_AUTH, URL_AUTH_V1 as URL_AUTH
 
 if TYPE_CHECKING:
-    from .conftest import TokenManager
+    from pathlib import Path
+
+    from freezegun.api import FrozenDateTimeFactory
+
+    from tests.conftest import CacheManager
 
 
 async def test_get_auth_token(
     credentials: tuple[str, str],
-    token_manager: TokenManager,
+    cache_manager: CacheManager,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test .get_acces_token() and .is_access_token_valid() methods."""
@@ -42,11 +39,11 @@ async def test_get_auth_token(
         }
 
     # TODO: ensure cache is empty...
-    # maybe: token_manager = TokenManager(...) here?
+    # maybe: token_manager = CacheManager(...) here?
 
     #
     # have not yet called get_access_token (so not loaded cache either)
-    assert token_manager.is_access_token_valid() is False
+    assert cache_manager.is_access_token_valid() is False
 
     #
     # test HTTPStatus.UNAUTHORIZED -> exc.AuthenticationFailedError
@@ -64,13 +61,13 @@ async def test_get_auth_token(
         rsp.post(URL_AUTH, status=HTTPStatus.UNAUTHORIZED, payload=response)
 
         with pytest.raises(exc.AuthenticationFailedError):
-            await token_manager.get_access_token()
+            await cache_manager.get_access_token()
 
         rsp.assert_called_once_with(
             URL_AUTH, HTTPMethod.POST, headers=HEADERS_AUTH, data=data_password
         )
 
-    assert token_manager.is_access_token_valid() is False
+    assert cache_manager.is_access_token_valid() is False
 
     #
     # test HTTPStatus.OK
@@ -79,30 +76,30 @@ async def test_get_auth_token(
     with aioresponses() as rsp:
         rsp.post(URL_AUTH, payload=payload)
 
-        assert await token_manager.get_access_token() == payload["access_token"]
+        assert await cache_manager.get_access_token() == payload["access_token"]
 
         rsp.assert_called_once_with(
             URL_AUTH, HTTPMethod.POST, headers=HEADERS_AUTH, data=data_password
         )
 
-    assert token_manager.is_access_token_valid() is True
+    assert cache_manager.is_access_token_valid() is True
 
     #
     # check doesn't invoke the URL again, as session_id still valid
     freezer.tick(600)  # advance time by 5 minutes
 
     with patch("aiohttp.ClientSession.post", new_callable=AsyncMock) as mok:
-        assert await token_manager.get_access_token() == payload["access_token"]
+        assert await cache_manager.get_access_token() == payload["access_token"]
 
         mok.assert_not_called()
 
-    assert token_manager.is_access_token_valid() is True
+    assert cache_manager.is_access_token_valid() is True
 
     #
     # check does invoke the URL, as access token now expired
     freezer.tick(1200)  # advance time by another 10 minutes, 15 total
 
-    assert token_manager.is_access_token_valid() is False
+    assert cache_manager.is_access_token_valid() is False
 
     #
     # check does invoke the URL, as access token now expired
@@ -116,88 +113,44 @@ async def test_get_auth_token(
     with aioresponses() as rsp:
         rsp.post(URL_AUTH, payload=payload)
 
-        assert await token_manager.get_access_token() == payload["access_token"]
+        assert await cache_manager.get_access_token() == payload["access_token"]
 
         rsp.assert_called_once_with(
             URL_AUTH, HTTPMethod.POST, headers=HEADERS_AUTH, data=data_token
         )
 
-    assert token_manager.is_access_token_valid() is True
+    assert cache_manager.is_access_token_valid() is True
 
     #
     # test _clear_auth_tokens()
-    token_manager._clear_auth_tokens()
+    cache_manager._clear_auth_tokens()
 
-    assert token_manager.is_access_token_valid() is False
+    assert cache_manager.is_access_token_valid() is False
 
 
-
-async def _test_token_manager_loading(
-    client_session: aiohttp.ClientSession,
+async def test_cache(
     credentials: tuple[str, str],
-    tmp_path: Path,
-    token_data: dict[str, Any],
+    cache_manager: CacheManager,
+    token_cache: Path,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
-    """Test the token manager by loading different token data from the cache."""
+    """Test the .load_access_token() and .save_access_token() methods."""
 
-    def tokens_are_null() -> bool:
-        return (
-            token_manager.access_token == ""
-            and token_manager.access_token_expires <= dt.min
-            and token_manager.refresh_token == ""
-        )
-
-    # we don't use the token_manager fixture in this test
-    token_cache = tmp_path / ".evo-cache.tst"
-
-    token_manager = TokenManager(*credentials, client_session, token_cache=token_cache)
-
-    assert tokens_are_null()
-    assert not token_manager.is_access_token_valid()
+    #
+    # have not yet called get_access_token (so not loaded cache either)
+    assert cache_manager.is_access_token_valid() is False
 
     #
     # Test 0: null token cache (zero-length content in file)
-    await token_manager.load_access_token()
+    await cache_manager._load_access_token()
 
-    assert tokens_are_null()
-    assert not token_manager.is_access_token_valid()
+    # assert not token_manager.is_access_token_valid()
 
-    #
-    # Test 1: valid token cache
-    with token_cache.open("w") as f:
-        f.write(json.dumps(token_data))
+    # #
+    # # Test 1: valid token cache
+    # with token_cache.open("w") as f:
+    #     f.write(json.dumps(token_data))
 
-    await token_manager.load_access_token()
+    # await token_manager.load_access_token()
 
-    assert not tokens_are_null()
-    assert token_manager.is_access_token_valid()
-
-    #
-    # Test 2: empty token cache (empty dict in file)
-    with token_cache.open("w") as f:
-        f.write(json.dumps({}))
-
-    await token_manager.load_access_token()
-
-    assert tokens_are_null()
-    assert not token_manager.is_access_token_valid()
-
-    #
-    # Test 1: valid token cache (again)
-    with token_cache.open("w") as f:
-        f.write(json.dumps(token_data))
-
-    await token_manager.load_access_token()
-
-    assert not tokens_are_null()
-    assert token_manager.is_access_token_valid()
-
-    #
-    # Test 3: invalid token cache (different username)
-    with token_cache.open("w") as f:
-        f.write(json.dumps({f"_{credentials[0]}": token_data[credentials[0]]}))
-
-    await token_manager.load_access_token()
-
-    assert tokens_are_null()
-    assert not token_manager.is_access_token_valid()
+    # assert token_manager.is_access_token_valid()

@@ -19,7 +19,7 @@ import evohomeasync2 as evo2
 from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
 
 if TYPE_CHECKING:
-    from ..conftest import TokenManager
+    from ..conftest import CacheManager
 
 
 type JsonValueType = (
@@ -112,33 +112,15 @@ def use_fake_aiohttp() -> bool:
     return False
 
 
-# @pytest.fixture  # NOTE: is a WIP
-# async def evohome_v1(
-#     install: str,
-#     session_manager: SessionManager,
-# ) -> AsyncGenerator[evo1.EvohomeClient, None]:
-#     """Yield an instance of a v1 EvohomeClient."""
-
-#     with patch("evohomeasync1.auth.Auth.get", broker_get(install)):
-#         evo = evo1.EvohomeClient(session_manager)
-
-#         await evo.update()
-
-#         try:
-#             yield evo
-#         finally:
-#             pass
-
-
 @pytest.fixture
 async def evohome_v2(
     install: str,
-    token_manager: TokenManager,
+    cache_manager: CacheManager,
 ) -> AsyncGenerator[evo2.EvohomeClientNew, None]:
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync2.auth.Auth.get", broker_get(install)):
-        evo = evo2.EvohomeClientNew(token_manager)
+        evo = evo2.EvohomeClientNew(cache_manager)
 
         await evo.update()
 

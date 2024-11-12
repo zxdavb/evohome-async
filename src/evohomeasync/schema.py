@@ -50,13 +50,13 @@ SZ_LOCATION_ID: Final = "locationID"  # is ID, not Id
 
 SZ_NAME: Final = "name"
 
-SZ_SESSION_ID: Final = "SessionId"
+SZ_SESSION_ID: Final = "sessionId"
 SZ_STATE: Final = "state"
 SZ_STREET_ADDRESS: Final = "streetAddress"
 SZ_TELEPHONE: Final = "telephone"
 
 SZ_USER_ID: Final = "userID"  # is ID, not Id
-SZ_USER_INFO: Final = "UserInfo"
+SZ_USER_INFO: Final = "userInfo"
 SZ_USER_LANGUAGE: Final = "userLanguage"
 SZ_USERNAME: Final = "username"
 
@@ -114,7 +114,7 @@ SCH_USER_ACCOUNT_RESPONSE: Final = vol.Schema(
 )
 
 
-class SessionResponse(TypedDict):
+class SessionResponseT(TypedDict):
     sessionId: str
     userInfo: UserAccountResponse
 

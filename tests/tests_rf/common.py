@@ -14,7 +14,7 @@ import aiohttp
 import pytest
 import voluptuous as vol
 
-import evohomeasync as evo1
+import evohomeasync as evo0
 import evohomeasync2 as evo2
 from evohomeasync2.auth import Auth
 
@@ -43,7 +43,7 @@ def skipif_auth_failed(fnc: _FNC) -> _FNC:
             return await fnc(*args, **kwargs)
 
         except (
-            evo1.AuthenticationFailedError,
+            evo0.AuthenticationFailedError,
             evo2.AuthenticationFailedError,
         ) as err:
             if not _DBG_USE_REAL_AIOHTTP:
@@ -58,7 +58,7 @@ def skipif_auth_failed(fnc: _FNC) -> _FNC:
 # version 1 helpers ###################################################################
 
 
-class SessionManager(evo1.Auth):
+class SessionManager(evo0.Auth):
     """An evohomeasync session manager."""
 
     def __init__(
@@ -82,8 +82,8 @@ class SessionManager(evo1.Auth):
         """Save the (serialized) session id from a cache."""
 
 
-async def should_work_v1(
-    evo: evo1.EvohomeClient,
+async def should_work_v0(
+    evo: evo0.EvohomeClient,
     method: HTTPMethod,
     url: str,
     json: dict | None = None,
@@ -114,8 +114,8 @@ async def should_work_v1(
     return schema(content) if schema else content
 
 
-async def should_fail_v1(
-    evo: evo1.EvohomeClient,
+async def should_fail_v0(
+    evo: evo0.EvohomeClient,
     method: HTTPMethod,
     url: str,
     json: dict | None = None,

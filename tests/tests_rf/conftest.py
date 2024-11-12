@@ -28,4 +28,4 @@ def zpatches_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.fixture(scope="session")
 def use_fake_aiohttp() -> bool:
     """Return True is using the real aiohttp library."""
-    return _DBG_USE_REAL_AIOHTTP
+    return not _DBG_USE_REAL_AIOHTTP

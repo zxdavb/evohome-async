@@ -175,12 +175,12 @@ class AbstractTokenManager(ABC):
     ) -> None:
         """Initialize the token manager."""
 
-        self._client_id: Final = client_id
-        self._secret: Final = secret
-        self._websession: Final = websession
+        self._client_id = client_id
+        self._secret = secret
+        self._websession = websession
 
-        self._hostname: str = _hostname
-        self._logger: Final = _logger or logging.getLogger(__name__)
+        self._hostname = _hostname
+        self._logger = _logger or logging.getLogger(__name__)
 
         # set True once the credentials are validated the first time
         self._was_authenticated = False
@@ -201,11 +201,6 @@ class AbstractTokenManager(ABC):
         self._access_token = ""
         self._access_token_expires = dt.min
         self._refresh_token = ""
-
-    @property
-    def _url_auth(self) -> StrOrURL:
-        """Return the URL base used for authentication."""
-        return f"https://{self._hostname}/Auth/OAuth/Token"
 
     @property
     def refresh_token(self) -> str:
@@ -230,13 +225,13 @@ class AbstractTokenManager(ABC):
     async def save_access_token(self) -> None:
         """Save the (serialized) authentication tokens to a cache."""
 
-    def _import_auth_token(self, tokens: AuthTokensT) -> None:
+    def _import_auth_tokens(self, tokens: AuthTokensT) -> None:
         """Deserialize the token data from a dictionary."""
         self._access_token = tokens[SZ_ACCESS_TOKEN]
         self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
         self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
-    def _export_auth_token(self) -> AuthTokensT:
+    def _export_auth_tokens(self) -> AuthTokensT:
         """Serialize the token data to a dictionary."""
         return {
             SZ_ACCESS_TOKEN: self._access_token,
@@ -264,10 +259,10 @@ class AbstractTokenManager(ABC):
         if self._refresh_token:
             self._logger.warning("Authenticating with the refresh_token...")
 
+            credentials = {SZ_REFRESH_TOKEN: self.refresh_token}
+
             try:
-                await self._request_access_token(
-                    CREDS_REFRESH_TOKEN | {SZ_REFRESH_TOKEN: self.refresh_token}
-                )
+                await self._request_access_token(CREDS_REFRESH_TOKEN | credentials)
 
             except exc.AuthenticationFailedError as err:
                 if err.status != HTTPStatus.BAD_REQUEST:  # e.g. invalid tokens
@@ -279,15 +274,17 @@ class AbstractTokenManager(ABC):
         if not self._refresh_token:
             self._logger.warning("Authenticating with username/password...")
 
-            await self._request_access_token(
-                CREDS_USER_PASSWORD | self._user_credentials
-            )
+            credentials = {SZ_USERNAME: self._client_id, SZ_PASSWORD: self._secret}
 
-        await self.save_access_token()
+            # allow underlying exceptions through (as client_id/secret invalid)...
+            await self._request_access_token(CREDS_USER_PASSWORD | credentials)
+            self._was_authenticated = True
 
-        self._logger.debug(f" - refresh_token = {self.refresh_token}")
+        # await self.save_access_token()
+
         self._logger.debug(f" - access_token = {self.access_token}")
         self._logger.debug(f" - access_token_expires = {self.access_token_expires}")
+        self._logger.debug(f" - refresh_token = {self.refresh_token}")
 
     async def _request_access_token(self, credentials: dict[str, str]) -> None:
         """Obtain an access token using the supplied credentials.
@@ -295,28 +292,28 @@ class AbstractTokenManager(ABC):
         The credentials are either a refresh token or the user's client_id/secret.
         """
 
-        result = await self._post_access_token_request(
-            self._url_auth,
-            data=credentials,
-            headers=HEADERS_AUTH,
+        url = f"https://{self._hostname}/Auth/OAuth/Token"
+
+        response: AuthTokenResponseT = await self._post_access_token_request(
+            url, headers=HEADERS_AUTH, data=credentials
         )
 
         try:  # the dict _should_ be the expected schema...
-            _ = SCH_OAUTH_TOKEN(result)  # can't use this result, due to obsfucation
+            _ = SCH_OAUTH_TOKEN(response)  # can't use this result, due to obsfucation
         except vol.Invalid as err:
-            self._logger.debug(
-                f"Response JSON may be invalid: POST {self._url_auth}: vol.Invalid({err})"
-            )
+            self._logger.debug(f"Response JSON may be invalid: POST {url}: {err}")
 
         try:
-            self._access_token = result[SZ_ACCESS_TOKEN]
-            self._access_token_expires = dt.now() + td(seconds=result[SZ_EXPIRES_IN])
-            self._refresh_token = result[SZ_REFRESH_TOKEN]
+            self._access_token = response[SZ_ACCESS_TOKEN]
+            self._access_token_expires = dt.now() + td(seconds=response[SZ_EXPIRES_IN])
+            self._refresh_token = response[SZ_REFRESH_TOKEN]
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
                 f"Invalid response from server: {err}"
             ) from err
+
+        # if response.get(SZ_LATEST_EULA_ACCEPTED):
 
     async def _post_access_token_request(
         self, url: StrOrURL, **kwargs: Any
@@ -338,7 +335,7 @@ class AbstractTokenManager(ABC):
             # <p>The authorization server have encoutered an error while processing...  # codespell:ignore encoutered
             content = await rsp.text()
             raise exc.AuthenticationFailedError(
-                f"Server response is not JSON: {HTTPMethod.POST} {url}: {content}"
+                f"Server response is not JSON: POST {url}: {content}"
             ) from err
 
         except aiohttp.ClientResponseError as err:

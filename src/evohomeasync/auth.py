@@ -9,8 +9,7 @@ from collections.abc import Generator
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Final, Never, NewType
-from typing import Any, Final, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, Final, Never, NewType, TypedDict
 
 import aiohttp
 import voluptuous as vol
@@ -18,9 +17,9 @@ import voluptuous as vol
 from . import exceptions as exc
 from .schema import (
     SZ_LATEST_EULA_ACCEPTED,
-    SZ_SESSION_ID,
-    SZ_USER_INFO,
-    SessionResponse,
+    SZ_SESSION_ID as S2_SESSION_ID,
+    SZ_USER_INFO as S2_USER_INFO,
+    SessionResponseT,
     UserAccountResponse,
 )
 
@@ -53,9 +52,7 @@ HEADERS_BASE = {
     "SessionId": None,
 }
 
-# SZ_USERNAME: Final = "Username"
-# SZ_PASSWORD: Final = "Password"
-
+SZ_SESSION_ID: Final = "session_id"
 SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
 
 
@@ -128,24 +125,18 @@ class AbstractSessionManager(ABC):
     ) -> None:
         """Initialise the session manager."""
 
-        self._client_id: Final = client_id
-        self._secret: Final = secret
-        self._websession: Final = websession
+        self._client_id = client_id
+        self._secret = secret
+        self._websession = websession
 
-        self._hostname: Final = _hostname
-        self._logger: Final = _logger or logging.getLogger(__name__)
+        self._hostname = _hostname
+        self._logger = _logger or logging.getLogger(__name__)
 
         # set True once the credentials are validated the first time
         self._was_authenticated = False
 
         # the following is specific to session id (vs auth tokens)...
         self._clear_session_id()
-
-        # # self._POST_DATA: Final = {
-        # #     SZ_USERNAME: client_id,
-        # #     SZ_PASSWORD: secret,
-        # #     "ApplicationId": _APPLICATION_ID,
-        # # }
 
         # self._headers: dict[str, str] = {"content-type": "application/json"}
 
@@ -163,13 +154,8 @@ class AbstractSessionManager(ABC):
         self._session_expires = dt.min
         #
 
-    @property
-    def _url_auth(self) -> StrOrURL:
-        """Return the URL base used for authentication."""
-        return f"https://{self._hostname}/WebAPI/api/session"
-
-    #
-    #
+    # @property
+    # def user_info(self) -> str:
 
     @property
     def session_id(self) -> str:
@@ -209,57 +195,68 @@ class AbstractSessionManager(ABC):
         If required, fetch a new session id via the vendor's web API.
         """
 
-        if not self.is_session_id_valid():  # but may be invalid for other reasons
+        if not self.is_session_id_valid():  # may be invalid for other reasons
             self._logger.warning(
                 "Missing/Expired/Invalid session_id, re-authenticating."
             )
-            await self._request_access_token()
+            await self._update_session_id()
 
         return self.session_id
 
-    #
+    async def _update_session_id(self) -> None:
+        self._logger.warning("Authenticating with username/password...")
 
-    async def _request_access_token(self) -> None:
-        """Obtain an session id using the supplied credentials.
-
-        The credentials are the user's client_id/secret.
-        """
-
-        data = {
+        credentials = {
             "applicationId": _APPLICATION_ID,
             "username": self._client_id,
             "password": self._secret,
         }
 
-        response = await self._post_session_id_request(
-            self._url_auth, headers=HEADERS_AUTH, data=data
+        # allow underlying exceptions through (as client_id/secret invalid)...
+        await self._request_session_id(credentials)
+        self._was_authenticated = True
+
+        # await self.save_session_id()
+
+        self._logger.debug(f" - session_id = {self._session_id}")
+        self._logger.debug(f" - session_id_expires = {self._session_expires}")
+        self._logger.debug(f" - user_info = {self._user_info}")
+
+    async def _request_session_id(self, credentials: dict[str, str]) -> None:
+        """Obtain an session id using the supplied credentials.
+
+        The credentials are the user's client_id/secret.
+        """
+
+        url = f"https://{self._hostname}/WebAPI/api/session"
+
+        response: SessionResponseT = await self._post_session_id_request(
+            url, headers=HEADERS_AUTH, data=credentials
         )
 
         # try:  # the dict _should_ be the expected schema...
-        #     _ = SCH_SESSION_RESPONSE(result)
+        #     _ = SCH_SESSION_RESPONSE(response)
         # except vol.Invalid as err:
         #     self._logger.debug(
-        #         f"Response JSON may be invalid: POST {self._URL}: vol.Invalid({err})"
+        #         f"Response JSON may be invalid: POST {url}: {err})
         #     )
 
         try:
-            self._session_id: str = response[SZ_SESSION_ID]
+            self._session_id: str = response[S2_SESSION_ID]
             self._session_expires = dt.now() + td(minutes=15)
-            self._user_info: UserAccountResponse = response[SZ_USER_INFO]
-
-            if response.get(SZ_LATEST_EULA_ACCEPTED):
-                self._logger.warning(
-                    "The latest EULA has not been accepted by the user"
-                )
+            self._user_info: UserAccountResponse = response[S2_USER_INFO]
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
                 f"Invalid response from server: {err}"
             ) from err
 
+        if response.get(SZ_LATEST_EULA_ACCEPTED):
+            self._logger.warning("The latest EULA has not been accepted by the user")
+
     async def _post_session_id_request(
         self, url: StrOrURL, **kwargs: Any
-    ) -> SessionResponse:
+    ) -> SessionResponseT:
         """Obtain a session id via a POST to the vendor's web API.
 
         Raise AuthenticationFailedError if unable to obtain a session id.
@@ -277,7 +274,7 @@ class AbstractSessionManager(ABC):
             #
             content = await rsp.text()
             raise exc.AuthenticationFailedError(
-                f"Server response is not JSON: {HTTPMethod.POST} {url}: {content}"
+                f"Server response is not JSON: POST {url}: {content}"
             ) from err
 
         except aiohttp.ClientResponseError as err:
@@ -343,7 +340,7 @@ class Auth(AbstractSessionManager):
                 return rsp
 
             # NOTE: I cannot recall if this is needed, or if it causes a bug
-            # if SZ_SESSION_ID not in self._headers:  # no value trying to re-authenticate
+            # if S2_SESSION_ID not in self._headers:  # no value trying to re-authenticate
             #     return response  # ...because: the user credentials must be invalid
 
             self._logger.debug(f"Session now expired/invalid ({self._session_id})...")
@@ -355,7 +352,7 @@ class Auth(AbstractSessionManager):
             assert self._session_id is not None  # mypy hint
 
             self._logger.debug(f"... success: new session_id = {self._session_id}")
-            self._headers[SZ_SESSION_ID] = self._session_id
+            self._headers[S2_SESSION_ID] = self._session_id
 
             if "session" in url:  # retry not needed for /session
                 return rsp
@@ -376,8 +373,8 @@ class Auth(AbstractSessionManager):
             "Content-Type": "application/json",
         }
 
-        if SZ_SESSION_ID not in headers:
-            headers[SZ_SESSION_ID] = await self.get_session_id()
+        if S2_SESSION_ID not in headers:
+            headers[S2_SESSION_ID] = await self.get_session_id()
 
         return await _RequestContextManager(
             self._websession, method, url, **kwargs, headers=headers

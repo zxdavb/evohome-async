@@ -5,13 +5,13 @@ from __future__ import annotations
 
 import pytest
 
-import evohomeasync as evo1
+import evohomeasync as evo0
 
 from .common import skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
 
 
-async def _test_client_apis(evo: evo1.EvohomeClient) -> None:
+async def _test_client_apis(evo: evo0.EvohomeClient) -> None:
     """Instantiate a client, and logon to the vendor API."""
 
     user_data = await evo._populate_user_data()
@@ -31,10 +31,10 @@ async def _test_client_apis(evo: evo1.EvohomeClient) -> None:
 
 
 @skipif_auth_failed
-async def test_client_apis(evohome_v1: evo1.EvohomeClient) -> None:
+async def test_client_apis(evohome_v0: evo0.EvohomeClient) -> None:
     """Test _populate_user_data() & _populate_full_data()"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this API")
 
-    await _test_client_apis(evohome_v1)
+    await _test_client_apis(evohome_v0)

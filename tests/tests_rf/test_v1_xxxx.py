@@ -7,13 +7,13 @@ from http import HTTPMethod, HTTPStatus
 
 import pytest
 
-import evohomeasync as evo1
+import evohomeasync as evo0
 
-from .common import should_fail_v1, should_work_v1, skipif_auth_failed
+from .common import should_fail_v0, should_work_v0, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
 
 
-async def _test_url_locations(evo: evo1.EvohomeClient) -> None:
+async def _test_url_locations(evo: evo0.EvohomeClient) -> None:
     await evo.update()
 
     # evo.broker._headers["sessionId"] = evo.user_info["sessionId"]  # what is this?
@@ -22,22 +22,22 @@ async def _test_url_locations(evo: evo1.EvohomeClient) -> None:
     assert evo.auth.session_id
 
     url = f"locations?userId={user_id}&allData=True"
-    _ = await should_work_v1(evo, HTTPMethod.GET, url)
+    _ = await should_work_v0(evo, HTTPMethod.GET, url)
 
     # why isn't this one METHOD_NOT_ALLOWED?
-    _ = await should_fail_v1(evo, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
+    _ = await should_fail_v0(evo, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
 
     url = f"locations?userId={user_id}"
-    _ = await should_work_v1(evo, HTTPMethod.GET, url)
+    _ = await should_work_v0(evo, HTTPMethod.GET, url)
 
     url = "locations?userId=123456"
-    _ = await should_fail_v1(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
+    _ = await should_fail_v0(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
 
     url = "locations?userId='123456'"
-    _ = await should_fail_v1(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    _ = await should_fail_v0(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
 
     url = "xxxxxxx"  # NOTE: a general test, not a test specific to the 'locations' URL
-    _ = await should_fail_v1(
+    _ = await should_fail_v0(
         evo,
         HTTPMethod.GET,
         url,
@@ -46,7 +46,7 @@ async def _test_url_locations(evo: evo1.EvohomeClient) -> None:
     )
 
 
-async def _test_client_apis(evo: evo1.EvohomeClient) -> None:
+async def _test_client_apis(evo: evo0.EvohomeClient) -> None:
     """Instantiate a client, and logon to the vendor API."""
 
     user_data = await evo._populate_user_data()
@@ -61,23 +61,23 @@ async def _test_client_apis(evo: evo1.EvohomeClient) -> None:
 
 
 @skipif_auth_failed
-async def test_locations(evohome_v1: evo1.EvohomeClient) -> None:
+async def test_locations(evohome_v0: evo0.EvohomeClient) -> None:
     """Test /locations"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this API")
 
-    await _test_url_locations(evohome_v1)
+    await _test_url_locations(evohome_v0)
 
 
 @skipif_auth_failed
-async def test_client_apis(evohome_v1: evo1.EvohomeClient) -> None:
+async def test_client_apis(evohome_v0: evo0.EvohomeClient) -> None:
     """Test _populate_user_data() & _populate_full_data()"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this API")
 
-    await _test_client_apis(evohome_v1)
+    await _test_client_apis(evohome_v0)
 
 
 USER_DATA = {

@@ -11,11 +11,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import pytest
+from cli.auth import CacheManager
 
-import evohomeasync as evo1
+import evohomeasync as evo0
 import evohomeasync2 as evo2
 
-from .common import SessionManager, TokenManager
 from .const import TEST_PASSWORD, TEST_USERNAME
 
 if TYPE_CHECKING:
@@ -29,19 +29,19 @@ async def client_session(
     """Yield an aiohttp.ClientSession, which may be faked."""
 
     if use_fake_aiohttp:
-        from .tests_rf.faked_server import aiohttp  # type: ignore[no-redef]
+        from .tests_rf.faked_server import aiohttp
     else:
-        import aiohttp
+        import aiohttp  # type: ignore[no-redef]
 
     if use_fake_aiohttp:
         from .tests_rf.faked_server import FakedServer
 
-        client_session = aiohttp.ClientSession(faked_server=FakedServer(None, None))  # type: ignore[call-arg]
+        client_session = aiohttp.ClientSession(faked_server=FakedServer(None, None))
     else:
         client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
 
     try:
-        yield client_session
+        yield client_session  # type: ignore[misc]
     finally:
         await client_session.close()
 
@@ -79,7 +79,7 @@ def token_cache(
 
     # don't pollute the real token cache with fake tokens
     if not use_fake_aiohttp:
-        from evohomeasync2.client import TOKEN_CACHE
+        from cli.client import TOKEN_CACHE
 
         return TOKEN_CACHE
 
@@ -92,32 +92,14 @@ def token_cache(
 
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
-async def session_manager(
+async def cache_manager(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
     token_cache: Path,
-) -> AsyncGenerator[SessionManager, None]:
-    """Yield a token manager for the v1 API."""
-
-    manager = SessionManager(*credentials, client_session, token_cache=token_cache)
-
-    # await manager.load_session_id()  # dont restore from cache yet
-
-    try:
-        yield manager
-    finally:
-        await manager.save_session_id()  # for next run of tests
-
-
-@pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
-async def token_manager(
-    client_session: aiohttp.ClientSession,
-    credentials: tuple[str, str],
-    token_cache: Path,
-) -> AsyncGenerator[TokenManager, None]:
+) -> AsyncGenerator[CacheManager, None]:
     """Yield a token manager for the v2 API."""
 
-    manager = TokenManager(*credentials, client_session, token_cache=token_cache)
+    manager = CacheManager(*credentials, client_session, token_cache=token_cache)
 
     # await manager.restore_access_token()  # dont restore from cache yet
 
@@ -128,13 +110,13 @@ async def token_manager(
 
 
 @pytest.fixture
-async def evohome_v1(
+async def evohome_v0(
     credentials: tuple[str, str],
     client_session: aiohttp.ClientSession,
-) -> AsyncGenerator[evo1.EvohomeClient, None]:
-    """Yield an instance of a v1 EvohomeClient."""
+) -> AsyncGenerator[evo0.EvohomeClient, None]:
+    """Yield an instance of a v0 EvohomeClient."""
 
-    evo = evo1.EvohomeClient(*credentials, websession=client_session)
+    evo = evo0.EvohomeClient(*credentials, websession=client_session)
 
     # await evo.update()
 
@@ -146,11 +128,11 @@ async def evohome_v1(
 
 @pytest.fixture
 async def evohome_v2(
-    token_manager: TokenManager,
+    cache_manager: CacheManager,
 ) -> AsyncGenerator[evo2.EvohomeClientNew, None]:
     """Yield an instance of a v2 EvohomeClient."""
 
-    evo = evo2.EvohomeClientNew(token_manager)
+    evo = evo2.EvohomeClientNew(cache_manager)
 
     # await evo.update()
 
