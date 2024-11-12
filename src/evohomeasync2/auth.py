@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""evohomeasync2 provides an async client for the updated Evohome TCC API."""
+"""evohomeasync2 provides an async client for the v2 Evohome TCC API."""
 
 from __future__ import annotations
 
+import base64
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Generator
@@ -15,23 +16,7 @@ import aiohttp
 import voluptuous as vol
 
 from . import exceptions as exc
-from .const import (
-    AUTH_HEADER,
-    AUTH_HEADER_ACCEPT,
-    AUTH_PAYLOAD,
-    AUTH_URL,
-    CREDS_REFRESH_TOKEN,
-    CREDS_USER_PASSWORD,
-    SCH_OAUTH_TOKEN,
-    SZ_ACCESS_TOKEN,
-    SZ_ACCESS_TOKEN_EXPIRES,
-    SZ_EXPIRES_IN,
-    SZ_PASSWORD,
-    SZ_REFRESH_TOKEN,
-    SZ_USERNAME,
-    URL_BASE,
-    URL_HOST,
-)
+from .schema import obfuscate as _obfuscate
 
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
@@ -39,229 +24,96 @@ if TYPE_CHECKING:
     from .schema import _EvoDictT, _EvoSchemaT  # pragma: no cover
 
 
-_LOGGER: Final = logging.getLogger(__name__)
+_APPLICATION_ID: Final = base64.b64encode(
+    (  # noqa: UP012
+        "4a231089-d2b6-41bd-a5eb-16a0a422b999:"  # fmt: off
+        "1a15cdb8-42de-407b-add0-059f92c530cb"
+    ).encode("utf-8")
+).decode("utf-8")
+
+HOSTNAME: Final = "tccna.honeywell.com"
+
+HEADERS_AUTH = {
+    "Accept": "application/json",
+    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+    "Cache-Control": "no-cache, no-store",
+    "Pragma": "no-cache",
+    "Connection": "Keep-Alive",
+    "Authorization": "Basic " + _APPLICATION_ID,
+}
+HEADERS_BASE = {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "Authorization": None,  # "Bearer " + access_token
+}
+
+SZ_USERNAME: Final = "Username"
+SZ_PASSWORD: Final = "Password"
+
+SZ_ACCESS_TOKEN: Final = "access_token"
+SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"
+SZ_EXPIRES_IN: Final = "expires_in"
+SZ_REFRESH_TOKEN: Final = "refresh_token"
 
 
-_ERR_MSG_LOOKUP_BOTH: dict[int, str] = {  # common to both OAUTH_URL & URL_BASE
+SCH_OAUTH_TOKEN: Final = vol.Schema(
+    {
+        vol.Required(SZ_ACCESS_TOKEN): vol.All(str, _obfuscate),
+        vol.Required(SZ_EXPIRES_IN): int,  # 1800 seconds
+        vol.Required(SZ_REFRESH_TOKEN): vol.All(str, _obfuscate),
+        vol.Required("token_type"): str,
+        vol.Optional("scope"): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
+    }
+)
+
+CREDS_REFRESH_TOKEN: Final = {
+    "grant_type": "refresh_token",
+    "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
+    "refresh_token": "",
+}
+
+CREDS_USER_PASSWORD: Final = {
+    "grant_type": "password",
+    "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # EMEA-V1-Get-Current-User-Account",
+    "Username": "",
+    "Password": "",
+}
+
+
+_ERR_MSG_LOOKUP_BOTH: dict[int, str] = {  # common to both url_auth & url_base
     HTTPStatus.INTERNAL_SERVER_ERROR: "Can't reach server (check vendor's status page)",
     HTTPStatus.METHOD_NOT_ALLOWED: "Method not allowed (dev/test?)",
     HTTPStatus.SERVICE_UNAVAILABLE: "Can't reach server (check vendor's status page)",
     HTTPStatus.TOO_MANY_REQUESTS: "Vendor's API rate limit exceeded (wait a while)",
 }
 
-_ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # POST OAUTH_URL
+_ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # POST url_auth
     HTTPStatus.BAD_REQUEST: "Invalid user credentials (check the username/password)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid URL?)",
     HTTPStatus.UNAUTHORIZED: "Invalid access token (dev/test only)",
 }
 
-_ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # GET/PUT URL_BASE
+_ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # GET/PUT url_base
     HTTPStatus.BAD_REQUEST: "Bad request (invalid data/json?)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
     HTTPStatus.UNAUTHORIZED: "Unauthorized (expired access token/unknown entity id?)",
 }
 
 
-class OAuthTokenData(TypedDict):
-    access_token: str
-    expires_in: int  # number of seconds
-    refresh_token: str
-
-
-class _EvoTokenData(TypedDict):
+class AuthTokensT(TypedDict):
     access_token: str
     access_token_expires: str  # dt.isoformat()
     refresh_token: str
 
 
-class AbstractTokenManager(ABC):
-    """Abstract class to manage an OAuth access token and its refresh token."""
-
-    _access_token: str
-    _access_token_expires: dt
-    _refresh_token: str
-    websession: aiohttp.ClientSession
-
-    def __init__(
-        self,
-        username: str,
-        password: str,
-        websession: aiohttp.ClientSession,
-    ) -> None:
-        """Initialize the token manager."""
-
-        self._user_credentials = {
-            SZ_USERNAME: username,
-            SZ_PASSWORD: password,
-        }
-
-        self.websession = websession
-
-        self._auth_tokens_clear()
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}(username='{self.username}')"
-
-    @property
-    def access_token(self) -> str:
-        """Return the access_token."""
-        return self._access_token
-
-    @property
-    def access_token_expires(self) -> dt:
-        """Return the access_token_expires."""
-        return self._access_token_expires
-
-    @property
-    def refresh_token(self) -> str:
-        """Return the refresh_token."""
-        return self._refresh_token
-
-    @property
-    def username(self) -> str:
-        """Return the username."""
-        return self._user_credentials[SZ_USERNAME]
-
-    def _auth_tokens_clear(self) -> None:
-        """Reset the token data to its falsy state."""
-        self._access_token = ""
-        self._access_token_expires = dt.min
-        self._refresh_token = ""
-
-    def _auth_tokens_from_api(self, tokens: OAuthTokenData) -> tuple[str, dt, str]:
-        """Convert the token data from the vendor's API to the internal format."""
-
-        self._access_token = tokens[SZ_ACCESS_TOKEN]
-        self._access_token_expires = dt.now() + td(seconds=tokens[SZ_EXPIRES_IN])
-        self._refresh_token = tokens[SZ_REFRESH_TOKEN]
-
-        return (
-            self._access_token,
-            self._access_token_expires,
-            self._refresh_token,
-        )
-
-    def _deserialize_auth_tokens(self, tokens: _EvoTokenData) -> None:
-        """Deserialize the token data from a dictionary."""
-        self._access_token = tokens[SZ_ACCESS_TOKEN]
-        self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
-        self._refresh_token = tokens[SZ_REFRESH_TOKEN]
-
-    def _serialize_auth_tokens(self) -> _EvoTokenData:
-        """Serialize the token data to a dictionary."""
-        return {
-            SZ_ACCESS_TOKEN: self.access_token,
-            SZ_ACCESS_TOKEN_EXPIRES: self.access_token_expires.isoformat(),
-            SZ_REFRESH_TOKEN: self.refresh_token,
-        }
-
-    def is_token_data_valid(self) -> bool:
-        """Return True if we have a valid access token."""
-        return bool(self.access_token) and self.access_token_expires > dt.now()
-
-    async def get_access_token(self) -> str:
-        """Return a valid access token.
-
-        If required, fetch a new token via the vendor's web API.
-        """
-
-        if not self.is_token_data_valid():  # TODO: but may be invalid for other reasons
-            _LOGGER.warning("Missing/Expired/Invalid access_token, re-authenticating.")
-            await self._update_access_token()
-
-        return self.access_token
-
-    async def _update_access_token(self) -> None:
-        """Update the access token and save it to the store/cache."""
-
-        if self._refresh_token:
-            _LOGGER.warning("Authenticating with the refresh_token...")
-
-            try:
-                await self._obtain_access_token(
-                    CREDS_REFRESH_TOKEN | {SZ_REFRESH_TOKEN: self.refresh_token}
-                )
-
-            except exc.AuthenticationFailedError as err:
-                if err.status != HTTPStatus.BAD_REQUEST:  # e.g. invalid tokens
-                    raise
-
-                _LOGGER.warning(" - invalid/expired refresh_token")
-                self._refresh_token = ""
-
-        if not self._refresh_token:
-            _LOGGER.warning("Authenticating with username/password...")
-
-            await self._obtain_access_token(
-                CREDS_USER_PASSWORD | self._user_credentials
-            )
-
-        await self.save_access_token()
-
-        _LOGGER.debug(f" - refresh_token = {self.refresh_token}")
-        _LOGGER.debug(f" - access_token = {self.access_token}")
-        _LOGGER.debug(f" - access_token_expires = {self.access_token_expires}")
-
-    async def _obtain_access_token(self, credentials: dict[str, str]) -> None:
-        """Obtain an access token using the supplied credentials.
-
-        The credentials are either a refresh token or the client_id/secret.
-        """
-
-        token_data = await self._post_access_token_request(
-            AUTH_URL,
-            data=AUTH_PAYLOAD | credentials,
-            headers=AUTH_HEADER,
-        )
-
-        try:  # the access token _should_ be valid...
-            _ = SCH_OAUTH_TOKEN(token_data)  # can't use this result, due to obsfucation
-        except vol.Invalid as err:
-            _LOGGER.warning(
-                f"Response JSON may be invalid: POST {AUTH_URL}: vol.Invalid({err})"
-            )
-
-        try:
-            self._auth_tokens_from_api(token_data)
-        except (KeyError, TypeError) as err:
-            raise exc.AuthenticationFailedError(
-                f"Invalid response from server: {err}"
-            ) from err
-
-    async def _post_access_token_request(
-        self, url: str, **kwargs: Any
-    ) -> OAuthTokenData:
-        """Obtain an access token via the vendor's web API."""
-
-        try:
-            async with self.websession.post(url, **kwargs) as response:
-                response.raise_for_status()
-
-                return await response.json()  # type: ignore[no-any-return]
-
-        except aiohttp.ContentTypeError as err:
-            # <title>Authorize error <h1>Authorization failed
-            # <p>The authorization server have encoutered an error while processing...  # codespell:ignore encoutered
-            content = await response.text()
-            raise exc.AuthenticationFailedError(
-                f"Server response is not JSON: {HTTPMethod.POST} {AUTH_URL}: {content}"
-            ) from err
-
-        except aiohttp.ClientResponseError as err:
-            if hint := _ERR_MSG_LOOKUP_AUTH.get(err.status):
-                raise exc.AuthenticationFailedError(hint, status=err.status) from err
-            raise exc.AuthenticationFailedError(str(err), status=err.status) from err
-
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            raise exc.AuthenticationFailedError(str(err)) from err
-
-    @abstractmethod
-    async def save_access_token(self) -> None:  # HA: api
-        """Save the access token to a cache."""
+class AuthTokenResponseT(TypedDict):
+    access_token: str
+    expires_in: int  # number of seconds
+    refresh_token: str
 
 
 class _RequestContextManager:
-    """A context manager for Auth's aiohttp request."""
+    """A context manager for an aiohttp request."""
 
     _response: aiohttp.ClientResponse | None = None
 
@@ -305,11 +157,217 @@ class _RequestContextManager:
         return await self.websession.request(self.method, self.url, **self.kwargs)
 
 
+class AbstractTokenManager(ABC):
+    """An ABC for managing the auth tokens used for HTTP authentication."""
+
+    _access_token: str
+    _access_token_expires: dt
+    _refresh_token: str
+
+    def __init__(
+        self,
+        client_id: str,
+        secret: str,
+        websession: aiohttp.ClientSession,
+        /,
+        _hostname: str = HOSTNAME,
+        _logger: logging.Logger | None = None,
+    ) -> None:
+        """Initialize the token manager."""
+
+        self._client_id: Final = client_id
+        self._secret: Final = secret
+        self._websession: Final = websession
+
+        self._hostname: str = _hostname
+        self._logger: Final = _logger or logging.getLogger(__name__)
+
+        # set True once the credentials are validated the first time
+        self._was_authenticated = False
+
+        # the following is specific to auth tokens (vs session id)...
+        self._clear_auth_tokens()
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}(client_id='{self.client_id}')"
+
+    @property
+    def client_id(self) -> str:
+        """Return the client id used for HTTP authentication."""
+        return self._client_id
+
+    def _clear_auth_tokens(self) -> None:
+        """Clear the auth tokens."""
+        self._access_token = ""
+        self._access_token_expires = dt.min
+        self._refresh_token = ""
+
+    @property
+    def _url_auth(self) -> StrOrURL:
+        """Return the URL base used for authentication."""
+        return f"https://{self._hostname}/Auth/OAuth/Token"
+
+    @property
+    def refresh_token(self) -> str:
+        """Return the refresh token."""
+        return self._refresh_token
+
+    @property
+    def access_token(self) -> str:
+        """Return the access token."""
+        return self._access_token
+
+    @property
+    def access_token_expires(self) -> dt:
+        """Return the expiration datetime of the access token."""
+        return self._access_token_expires
+
+    def is_access_token_valid(self) -> bool:
+        """Return True if the access token is valid."""
+        return self.access_token_expires > dt.now() + td(seconds=15)
+
+    @abstractmethod
+    async def save_access_token(self) -> None:
+        """Save the (serialized) authentication tokens to a cache."""
+
+    def _import_auth_token(self, tokens: AuthTokensT) -> None:
+        """Deserialize the token data from a dictionary."""
+        self._access_token = tokens[SZ_ACCESS_TOKEN]
+        self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
+        self._refresh_token = tokens[SZ_REFRESH_TOKEN]
+
+    def _export_auth_token(self) -> AuthTokensT:
+        """Serialize the token data to a dictionary."""
+        return {
+            SZ_ACCESS_TOKEN: self._access_token,
+            SZ_ACCESS_TOKEN_EXPIRES: self._access_token_expires.isoformat(),
+            SZ_REFRESH_TOKEN: self._refresh_token,
+        }
+
+    async def get_access_token(self) -> str:
+        """Return a valid access token.
+
+        If required, fetch a new token via the vendor's web API.
+        """
+
+        if not self.is_access_token_valid():  # may be invalid for other reasons
+            self._logger.warning(
+                "Missing/Expired/Invalid access_token, re-authenticating."
+            )
+            await self._update_access_token()
+
+        return self.access_token
+
+    async def _update_access_token(self) -> None:
+        """Update the access token and save it to the store/cache."""
+
+        if self._refresh_token:
+            self._logger.warning("Authenticating with the refresh_token...")
+
+            try:
+                await self._request_access_token(
+                    CREDS_REFRESH_TOKEN | {SZ_REFRESH_TOKEN: self.refresh_token}
+                )
+
+            except exc.AuthenticationFailedError as err:
+                if err.status != HTTPStatus.BAD_REQUEST:  # e.g. invalid tokens
+                    raise
+
+                self._logger.warning(" - invalid/expired refresh_token")
+                self._refresh_token = ""
+
+        if not self._refresh_token:
+            self._logger.warning("Authenticating with username/password...")
+
+            await self._request_access_token(
+                CREDS_USER_PASSWORD | self._user_credentials
+            )
+
+        await self.save_access_token()
+
+        self._logger.debug(f" - refresh_token = {self.refresh_token}")
+        self._logger.debug(f" - access_token = {self.access_token}")
+        self._logger.debug(f" - access_token_expires = {self.access_token_expires}")
+
+    async def _request_access_token(self, credentials: dict[str, str]) -> None:
+        """Obtain an access token using the supplied credentials.
+
+        The credentials are either a refresh token or the user's client_id/secret.
+        """
+
+        result = await self._post_access_token_request(
+            self._url_auth,
+            data=credentials,
+            headers=HEADERS_AUTH,
+        )
+
+        try:  # the dict _should_ be the expected schema...
+            _ = SCH_OAUTH_TOKEN(result)  # can't use this result, due to obsfucation
+        except vol.Invalid as err:
+            self._logger.debug(
+                f"Response JSON may be invalid: POST {self._url_auth}: vol.Invalid({err})"
+            )
+
+        try:
+            self._access_token = result[SZ_ACCESS_TOKEN]
+            self._access_token_expires = dt.now() + td(seconds=result[SZ_EXPIRES_IN])
+            self._refresh_token = result[SZ_REFRESH_TOKEN]
+
+        except (KeyError, TypeError) as err:
+            raise exc.AuthenticationFailedError(
+                f"Invalid response from server: {err}"
+            ) from err
+
+    async def _post_access_token_request(
+        self, url: StrOrURL, **kwargs: Any
+    ) -> AuthTokenResponseT:
+        """Obtain an access token via a POST to the vendor's web API.
+
+        Raise AuthenticationFailedError if unable to obtain an access token.
+        """
+
+        try:
+            async with self._websession.post(url, **kwargs) as rsp:
+                rsp.raise_for_status()
+
+                self._was_authenticated = True  # i.e. the credentials are valid
+                return await rsp.json()  # type: ignore[no-any-return]
+
+        except aiohttp.ContentTypeError as err:
+            # <title>Authorize error <h1>Authorization failed
+            # <p>The authorization server have encoutered an error while processing...  # codespell:ignore encoutered
+            content = await rsp.text()
+            raise exc.AuthenticationFailedError(
+                f"Server response is not JSON: {HTTPMethod.POST} {url}: {content}"
+            ) from err
+
+        except aiohttp.ClientResponseError as err:
+            hint = _ERR_MSG_LOOKUP_AUTH.get(err.status) or str(err)
+            raise exc.AuthenticationFailedError(hint, status=err.status) from err
+
+        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+            raise exc.AuthenticationFailedError(str(err)) from err
+
+
 class AbstractAuth(ABC):  # APIs esposed by/for HA
-    def __init__(self, websession: aiohttp.ClientSession, host: str) -> None:
+    def __init__(
+        self,
+        websession: aiohttp.ClientSession,
+        /,
+        *,
+        _hostname: str = HOSTNAME,
+        _logger: logging.Logger | None = None,
+    ) -> None:
         """Initialize the auth."""
-        self.websession = websession
-        self.host = host
+
+        self._websession: Final = websession
+        self._hostname: Final = _hostname
+        self._logger: Final = _logger or logging.getLogger(__name__)
+
+    @property
+    def _url_base(self) -> StrOrURL:
+        """Return the URL base used for GET/PUT."""
+        return f"https://{self._hostname}/WebAPI/emea/api/v1/"
 
     @abstractmethod
     async def get_access_token(self) -> str:
@@ -321,13 +379,15 @@ class AbstractAuth(ABC):  # APIs esposed by/for HA
         """Make a request to the Evohome TCC API."""
 
         headers = kwargs.pop("headers", None) or {
-            "Accept": AUTH_HEADER_ACCEPT,
+            "Accept": HEADERS_BASE,
             "Content-Type": "application/json",
         }
-        headers["Authorization"] = "bearer " + await self.get_access_token()
+
+        if "Authorization" not in headers:
+            headers["Authorization"] = "bearer " + await self.get_access_token()
 
         return await _RequestContextManager(
-            self.websession, method, url, **kwargs, headers=headers
+            self._websession, method, url, **kwargs, headers=headers
         )
 
 
@@ -338,27 +398,29 @@ class Auth(AbstractAuth):
         self,
         websession: aiohttp.ClientSession,
         token_manager: AbstractTokenManager,
-        logger: logging.Logger,
+        /,
+        *,
+        _hostname: str = HOSTNAME,
+        _logger: logging.Logger | None = None,
     ) -> None:
         """A class for interacting with the v2 Evohome TCC API."""
 
-        super().__init__(websession, URL_HOST)
+        super().__init__(websession, _hostname=_hostname, _logger=_logger)
 
         self.token_manager = token_manager
-        self._logger = logger
 
     async def get_access_token(self) -> str:
         """Return a valid access token."""
         return await self.token_manager.get_access_token()
 
-    async def _request(
+    async def _request(  # wrapper for self.request()
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
         """Make a request to the Evohome TCC API."""
 
-        async with await self.request(method, url, **kwargs) as response:
+        async with await self.request(method, url, **kwargs) as rsp:
             try:
-                response.raise_for_status()
+                rsp.raise_for_status()
 
             except aiohttp.ClientResponseError as err:
                 if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
@@ -368,7 +430,7 @@ class Auth(AbstractAuth):
             except aiohttp.ClientError as err:  # e.g. ClientConnectionError
                 raise exc.RequestFailedError(str(err)) from err
 
-            return await self._content(response)
+            return await self._content(rsp)
 
     @staticmethod
     async def _content(
@@ -396,7 +458,7 @@ class Auth(AbstractAuth):
         content: _EvoSchemaT
 
         content = await self._request(  # type: ignore[assignment]
-            HTTPMethod.GET, f"{URL_BASE}/{url}"
+            HTTPMethod.GET, f"{self._url_base}/{url}"
         )
 
         if schema:
@@ -427,7 +489,7 @@ class Auth(AbstractAuth):
                 self._logger.warning(f"Request JSON may be invalid: PUT {url}: {err}")
 
         content = await self._request(  # type: ignore[assignment]
-            HTTPMethod.PUT, f"{URL_BASE}/{url}", json=json
+            HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
         )
 
         return content

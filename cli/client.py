@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """evohomeasync2 - a CLI utility that is not a core part of the library."""
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -14,11 +16,16 @@ import aiohttp
 import asyncclick as click
 import debugpy  # type: ignore[import-untyped]
 
-from evohomeasync2 import EvohomeClientNew, ControlSystem, HotWater, Zone
+from evohomeasync2 import (
+    ControlSystem,
+    EvohomeClientNew,
+    HotWater,
+    Zone,
+    exceptions as exc,
+)
 from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE
-from evohomeasync2 import exceptions as exc
 
-from .auth import TOKEN_CACHE, TokenManager
+from .auth import TOKEN_CACHE, CacheManager
 
 # all _DBG_* flags should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of click
@@ -115,7 +122,7 @@ async def cli(
 
     async def cleanup(
         websession: aiohttp.ClientSession,
-        token_manager: TokenManager,
+        token_manager: CacheManager,
     ) -> None:
         """Close the web session and save the access token to the cache."""
 
@@ -130,12 +137,12 @@ async def cli(
     )
 
     websession = aiohttp.ClientSession()  # timeout=aiohttp.ClientTimeout(total=30))
-    token_manager = TokenManager(
+    token_manager = CacheManager(
         username, password, websession, token_cache=TOKEN_CACHE
     )
 
     if cache_tokens:  # restore cached tokens, if any
-        await token_manager.load_access_token()
+        await token_manager._load_access_token()
 
     evo = EvohomeClientNew(token_manager, debug=bool(debug))
 
