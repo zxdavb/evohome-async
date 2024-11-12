@@ -9,8 +9,8 @@ from evohomeasync.auth import HOSTNAME as HOSTNAME_V0
 from evohomeasync2.auth import _APPLICATION_ID, HOSTNAME as HOSTNAME_V1
 
 # used to construct the default token cache
-TEST_USERNAME: Final = "spotty.blackcat@gmail.com"  # SECRET "username@email.com"
-TEST_PASSWORD: Final = "ziQajn732m5JYQ!"  # "P@ssw0rd!!"  # noqa: S105
+TEST_USERNAME: Final = "username@email.com"
+TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
 
 # vendors API URLs - the older API
 URL_AUTH_V0 = f"https://{HOSTNAME_V0}/WebAPI/api/session"
