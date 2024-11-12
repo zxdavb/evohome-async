@@ -26,7 +26,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     metafunc.parametrize("install", sorted(folders))
 
 
-async def test_system_snapshot(
+async def test_system_snapshot_v2(
     evohome_v2: EvohomeClientv2,
     snapshot: SnapshotAssertion,
 ) -> None:
