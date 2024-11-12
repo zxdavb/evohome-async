@@ -73,7 +73,7 @@
 
 [tool.mypy]
   exclude = ["docs", "tests/tests_cc"]
-  files = ["src", "tests"]
+  files = ["cli", "src", "tests"]
 
   no_implicit_optional = true
 
@@ -148,7 +148,7 @@
 
 [tool.ruff]
   exclude = ["docs/*.py", "tests/tests_cc"]
-  src = ["src", "tests"]
+  src = ["cli", "src", "tests"]
   target-version = "py312"
 
 [tool.ruff.lint]
@@ -191,8 +191,9 @@
 
 [tool.coverage.run]
   omit = [
-    "src/evohomeasync2/client.py",
-    "tests/*",
-    ]
+    "cli/*",
+    "tests*/*",
+  ]
+
 [tool.coverage.report]
   show_missing = true
