@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync2 schema - for Status JSON of RESTful API."""
+"""evohomeasync schema - for Status JSON of RESTful API."""
 
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync2 - a CLI utility that is not a core part of the library."""
+"""evohomeasync - a CLI utility that is not a core part of the library."""
 
 from __future__ import annotations
 
@@ -16,14 +16,9 @@ import aiohttp
 import asyncclick as click
 import debugpy  # type: ignore[import-untyped]
 
-from evohomeasync2 import (
-    ControlSystem,
-    EvohomeClientNew,
-    HotWater,
-    Zone,
-    exceptions as exc,
-)
+from evohomeasync2 import ControlSystem, HotWater, Zone, exceptions as exc
 from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE
+from evohomeasync2.main import EvohomeClientNew
 
 from .auth import TOKEN_CACHE, CacheManager
 

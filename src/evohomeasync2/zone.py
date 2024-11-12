@@ -273,8 +273,8 @@ class Zone(_ZoneBase):
             )
 
     @property
-    def model_type(self) -> str:
-        ret: str = self._config[S2_MODEL_TYPE]
+    def model_type(self) -> ZoneModelType:
+        ret: ZoneModelType = self._config[S2_MODEL_TYPE]
         return ret
 
     @property
@@ -316,13 +316,14 @@ class Zone(_ZoneBase):
 
     @property
     def setpoint_status(self) -> _EvoDictT | None:
-        return self._status.get(S2_SETPOINT_STATUS)
+        ret: _EvoDictT | None = self._status.get(S2_SETPOINT_STATUS)
+        return convert_keys_to_snake_case(ret)
 
     @property  # status attr for convenience (new)
-    def mode(self) -> str | None:
+    def mode(self) -> ZoneMode | None:
         if not self.setpoint_status:
             return None
-        ret: str = self.setpoint_status[S2_SETPOINT_MODE]
+        ret: ZoneMode = self.setpoint_status[S2_SETPOINT_MODE]
         return ret
 
     @property  # status attr for convenience (new)

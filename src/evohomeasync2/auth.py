@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync2 provides an async client for the v2 Evohome TCC API."""
+"""evohomeasync provides an async client for the v2 Resideo TCC API."""
 
 from __future__ import annotations
 
@@ -170,8 +170,8 @@ class AbstractTokenManager(ABC):
         secret: str,
         websession: aiohttp.ClientSession,
         /,
-        _hostname: str = HOSTNAME,
-        _logger: logging.Logger | None = None,
+        _hostname: str | None = None,
+        logger: logging.Logger | None = None,
     ) -> None:
         """Initialize the token manager."""
 
@@ -179,8 +179,8 @@ class AbstractTokenManager(ABC):
         self._secret = secret
         self._websession = websession
 
-        self._hostname = _hostname
-        self._logger = _logger or logging.getLogger(__name__)
+        self._hostname = _hostname or HOSTNAME
+        self._logger = logger or logging.getLogger(__name__)
 
         # set True once the credentials are validated the first time
         self._was_authenticated = False
@@ -346,75 +346,86 @@ class AbstractTokenManager(ABC):
             raise exc.AuthenticationFailedError(str(err)) from err
 
 
-class AbstractAuth(ABC):  # APIs esposed by/for HA
+class Auth:
+    """A class for interacting with the Resideo TCC API."""
+
+    #
+    #
+
     def __init__(
         self,
+        token_manager: AbstractTokenManager,
         websession: aiohttp.ClientSession,
         /,
         *,
         _hostname: str = HOSTNAME,
-        _logger: logging.Logger | None = None,
+        logger: logging.Logger | None = None,
     ) -> None:
-        """Initialize the auth."""
+        """A class for interacting with the v2 Resideo TCC API."""
 
+        self._token_manager = token_manager
         self._websession: Final = websession
         self._hostname: Final = _hostname
-        self._logger: Final = _logger or logging.getLogger(__name__)
+        self._logger: Final = logger or logging.getLogger(__name__)
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}(base='{self._url_base}')"
 
     @property
     def _url_base(self) -> StrOrURL:
         """Return the URL base used for GET/PUT."""
         return f"https://{self._hostname}/WebAPI/emea/api/v1/"
 
-    @abstractmethod
-    async def get_access_token(self) -> str:
-        """Return a valid access token."""
+    async def get(self, url: StrOrURL, schema: vol.Schema | None = None) -> _EvoSchemaT:
+        """Call the Resideo TCC API with a GET.
 
-    async def request(  # type: ignore[no-untyped-def]
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ):
-        """Make a request to the Evohome TCC API."""
+        Optionally checks the response JSON against the expected schema and logs a
+        warning if it doesn't match.
+        """
 
-        headers = kwargs.pop("headers", None) or {
-            "Accept": HEADERS_BASE,
-            "Content-Type": "application/json",
-        }
+        content: _EvoSchemaT
 
-        if "Authorization" not in headers:
-            headers["Authorization"] = "bearer " + await self.get_access_token()
-
-        return await _RequestContextManager(
-            self._websession, method, url, **kwargs, headers=headers
+        content = await self._request(  # type: ignore[assignment]
+            HTTPMethod.GET, f"{self._url_base}/{url}"
         )
 
+        if schema:
+            try:
+                content = schema(content)
+            except vol.Invalid as err:
+                self._logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
 
-class Auth(AbstractAuth):
-    """A class for interacting with the Evohome TCC API."""
+        return content
 
-    def __init__(
-        self,
-        websession: aiohttp.ClientSession,
-        token_manager: AbstractTokenManager,
-        /,
-        *,
-        _hostname: str = HOSTNAME,
-        _logger: logging.Logger | None = None,
-    ) -> None:
-        """A class for interacting with the v2 Evohome TCC API."""
+    async def put(
+        self, url: StrOrURL, json: _EvoDictT | str, schema: vol.Schema | None = None
+    ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
+        """Call the Resideo TCC API with a PUT (POST is only used for authentication).
 
-        super().__init__(websession, _hostname=_hostname, _logger=_logger)
+        Optionally checks the request JSON against the expected schema and logs a
+        warning if it doesn't match (NB: does not raise a vol.Invalid).
+        """
 
-        self.token_manager = token_manager
+        content: dict[str, Any] | list[dict[str, Any]]
 
-    async def get_access_token(self) -> str:
-        """Return a valid access token."""
-        return await self.token_manager.get_access_token()
+        if schema:
+            try:
+                _ = schema(json)
+            except vol.Invalid as err:
+                self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
+
+        content = await self._request(  # type: ignore[assignment]
+            HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
+        )
+
+        return content
 
     async def _request(  # wrapper for self.request()
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
-        """Make a request to the Evohome TCC API."""
+        """Handle Auth failures when making a request to the RESTful API."""
 
+        # async with self.request(method, url, **kwargs) as rsp:
         async with await self.request(method, url, **kwargs) as rsp:
             try:
                 rsp.raise_for_status()
@@ -428,6 +439,20 @@ class Auth(AbstractAuth):
                 raise exc.RequestFailedError(str(err)) from err
 
             return await self._content(rsp)
+
+    async def request(
+        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+    ) -> aiohttp.ClientResponse:
+        """Make a request to the Resideo TCC RESTful API."""
+
+        headers = kwargs.pop("headers", None) or HEADERS_BASE
+
+        if not headers.get("Authorization"):
+            headers["Authorization"] = "bearer " + await self.get_access_token()
+
+        return await _RequestContextManager(
+            self._websession, method, url, **kwargs, headers=headers
+        )
 
     @staticmethod
     async def _content(
@@ -445,48 +470,6 @@ class Auth(AbstractAuth):
         content: dict[str, Any] = await response.json()
         return content
 
-    async def get(self, url: StrOrURL, schema: vol.Schema | None = None) -> _EvoSchemaT:
-        """Call the Evohome TCC API with a GET.
-
-        Optionally checks the response JSON against the expected schema and logs a
-        warning if it doesn't match (NB: does not raise a vol.Invalid).
-        """
-
-        content: _EvoSchemaT
-
-        content = await self._request(  # type: ignore[assignment]
-            HTTPMethod.GET, f"{self._url_base}/{url}"
-        )
-
-        if schema:
-            try:
-                content = schema(content)
-            except vol.Invalid as err:
-                self._logger.warning(
-                    f"Response JSON may be invalid: GET {url}: vol.Invalid({err})"
-                )
-
-        return content
-
-    async def put(
-        self, url: StrOrURL, json: _EvoDictT | str, schema: vol.Schema | None = None
-    ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
-        """Call the Evohome TCC API with a PUT (POST is only used for authentication).
-
-        Optionally checks the request JSON against the expected schema and logs a
-        warning if it doesn't match (NB: does not raise a vol.Invalid).
-        """
-
-        content: dict[str, Any] | list[dict[str, Any]]
-
-        if schema:
-            try:
-                _ = schema(json)
-            except vol.Invalid as err:
-                self._logger.warning(f"Request JSON may be invalid: PUT {url}: {err}")
-
-        content = await self._request(  # type: ignore[assignment]
-            HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
-        )
-
-        return content
+    async def get_access_token(self) -> str:
+        """Return a valid access token."""
+        return await self._token_manager.get_access_token()

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync provides an async client for the v1 Evohome TCC API."""
+"""evohomeasync provides an async client for the v0 Resideo TCC API."""
 
 from __future__ import annotations
 
@@ -120,8 +120,8 @@ class AbstractSessionManager(ABC):
         websession: aiohttp.ClientSession,
         /,
         *,
-        _hostname: str = HOSTNAME,
-        _logger: logging.Logger | None = None,
+        _hostname: str | None = None,
+        logger: logging.Logger | None = None,
     ) -> None:
         """Initialise the session manager."""
 
@@ -129,16 +129,14 @@ class AbstractSessionManager(ABC):
         self._secret = secret
         self._websession = websession
 
-        self._hostname = _hostname
-        self._logger = _logger or logging.getLogger(__name__)
+        self._hostname = _hostname or HOSTNAME
+        self._logger = logger or logging.getLogger(__name__)
 
         # set True once the credentials are validated the first time
         self._was_authenticated = False
 
         # the following is specific to session id (vs auth tokens)...
         self._clear_session_id()
-
-        # self._headers: dict[str, str] = {"content-type": "application/json"}
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(client_id='{self.client_id}')"
@@ -286,7 +284,7 @@ class AbstractSessionManager(ABC):
 
 
 class Auth(AbstractSessionManager):
-    """An ABC to provide to access the Honeywell TCC API (assumes a single TCS)."""
+    """A class to provide to access the Resideo TCC API."""
 
     _user_data: _UserDataT | dict[Never, Never]
     _full_data: list[_LocnDataT]
@@ -299,32 +297,76 @@ class Auth(AbstractSessionManager):
         /,
         *,
         _hostname: str = HOSTNAME,
-        _logger: logging.Logger | None = None,
+        logger: logging.Logger | None = None,
     ) -> None:
-        """A class for interacting with the v1 Evohome TCC API."""
+        """A class for interacting with the v0 Resideo TCC API."""
 
         super().__init__(
-            username, password, websession, _hostname=_hostname, _logger=_logger
+            username, password, websession, _hostname=_hostname, logger=logger
         )
 
         self._full_data = []
         self._user_data = {}
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}(base='{self._url_base}')"
 
     @property
     def _url_base(self) -> StrOrURL:
         """Return the URL base used for GET/PUT."""
         return f"https://{self._hostname}/WebAPI/api"
 
-    async def save_session_id(self) -> None:
-        """Save the (serialized) session id to a cache."""
-        raise NotImplementedError
+    async def get(self, url: StrOrURL, schema: vol.Schema | None = None) -> dict:
+        """Call the Resideo TCC API with a GET.
+
+        Optionally checks the response JSON against the expected schema and logs a
+        warning if it doesn't match.
+        """
+
+        content: dict
+
+        content = await self._request(  # type: ignore[assignment]
+            HTTPMethod.GET, f"{self._url_base}/{url}"
+        )
+
+        if schema:
+            try:
+                content = schema(content)
+            except vol.Invalid as err:
+                self._logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
+
+        return content
+
+    async def put(
+        self, url: StrOrURL, json: dict | str, schema: vol.Schema | None = None
+    ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
+        """Call the Resideo TCC API with a PUT (POST is only used for authentication).
+
+        Optionally checks the request JSON against the expected schema and logs a
+        warning if it doesn't match (NB: does not raise a vol.Invalid).
+        """
+
+        content: dict[str, Any] | list[dict[str, Any]]
+
+        if schema:
+            try:
+                _ = schema(json)
+            except vol.Invalid as err:
+                self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
+
+        content = await self._request(  # type: ignore[assignment]
+            HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
+        )
+
+        return content
 
     async def _request(  # wrapper for self.request()
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> aiohttp.ClientResponse:
-        """Make a request to the Evohome TCC API."""
+        """Handle Auth failures when making a request to the RESTful API."""
 
-        async with self._websession(method, url, **kwargs) as rsp:
+        # async with self._websession(method, url, **kwargs) as rsp:
+        async with await self.request(method, url, **kwargs) as rsp:
             response_text = await rsp.text()  # why can't I move this below the if?
 
             # if 401/unauthorized, may need to refresh session_id (expires in 15 mins?)
@@ -348,7 +390,7 @@ class Auth(AbstractSessionManager):
                 "content-type": "application/json"
             }  # remove the session_id
 
-            _, rsp = await self._populate_user_data()  # Get a fresh session_id
+            _, rsp = await self.get_user_data()  # Get a fresh session_id
             assert self._session_id is not None  # mypy hint
 
             self._logger.debug(f"... success: new session_id = {self._session_id}")
@@ -366,62 +408,17 @@ class Auth(AbstractSessionManager):
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> aiohttp.ClientResponse:
-        """Make a request to the Evohome TCC API."""
+        """Make a request to the Resideo TCC RESTful API."""
 
-        headers = kwargs.pop("headers", None) or {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-        }
+        headers = kwargs.pop("headers", None) or HEADERS_BASE
 
-        if S2_SESSION_ID not in headers:
+        if not headers.get(S2_SESSION_ID):
             headers[S2_SESSION_ID] = await self.get_session_id()
 
         return await _RequestContextManager(
             self._websession, method, url, **kwargs, headers=headers
         )
 
-    async def get(self, url: StrOrURL, schema: vol.Schema | None = None) -> dict:
-        """Call the Evohome TCC API with a GET.
-
-        Optionally checks the response JSON against the expected schema and logs a
-        warning if it doesn't match (NB: does not raise a vol.Invalid).
-        """
-
-        content: dict
-
-        content = await self._request(  # type: ignore[assignment]
-            HTTPMethod.GET, f"{self._url_base}/{url}"
-        )
-
-        if schema:
-            try:
-                content = schema(content)
-            except vol.Invalid as err:
-                self._logger.warning(
-                    f"Response JSON may be invalid: GET {url}: vol.Invalid({err})"
-                )
-
-        return content
-
-    async def put(
-        self, url: StrOrURL, json: dict | str, schema: vol.Schema | None = None
-    ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
-        """Call the Evohome TCC API with a PUT (POST is only used for authentication).
-
-        Optionally checks the request JSON against the expected schema and logs a
-        warning if it doesn't match (NB: does not raise a vol.Invalid).
-        """
-
-        content: dict[str, Any] | list[dict[str, Any]]
-
-        if schema:
-            try:
-                _ = schema(json)
-            except vol.Invalid as err:
-                self._logger.warning(f"Request JSON may be invalid: PUT {url}: {err}")
-
-        content = await self._request(  # type: ignore[assignment]
-            HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
-        )
-
-        return content
+    async def save_session_id(self) -> None:
+        """Save the (serialized) session id to a cache."""
+        raise NotImplementedError

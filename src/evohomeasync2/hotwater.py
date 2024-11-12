@@ -82,10 +82,10 @@ class HotWater(_ZoneBase):
         return ret
 
     @property  # status attr for convenience (new)
-    def state(self) -> str | None:
+    def state(self) -> DhwState | None:
         if (state_status := self._status.get(S2_STATE_STATUS)) is None:
             return None
-        ret: str = state_status[S2_STATE]
+        ret: DhwState = state_status[S2_STATE]
         return ret
 
     def _next_setpoint(self) -> tuple[dt, str] | None:  # WIP: for convenience (new)

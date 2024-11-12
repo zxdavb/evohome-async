@@ -79,7 +79,14 @@ class Location(EntityBase):
         return ret
 
     @property
-    def time_tone(self) -> _EvoDictT:
+    def time_zone(self) -> _EvoDictT:
+        # "GMTStandardTime":           "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+        # "CentralEuropeStandardTime": "(UTC+01:00) Praha, Bratislava, Budapešť, Bělehrad, Lublaň",
+        # "RomanceStandardTime":       "(UTC+01:00) Brussels, Copenhagen, Madrid, Paris",
+        # "WEuropeStandardTime":       "(UTC+01:00) Amsterdam, Berlijn, Bern, Rome, Stockholm, Wenen",
+        # "FLEStandardTime":           "(UTC+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius",
+        # "AUSEasternStandardTime":    "(UTC+10:00) Canberra, Melbourne, Sydney",
+
         ret: _EvoDictT = self._config[S2_TIME_ZONE]
         return convert_keys_to_snake_case(ret)
 

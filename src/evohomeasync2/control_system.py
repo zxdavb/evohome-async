@@ -75,7 +75,7 @@ class ControlSystem(ActiveFaultsBase):
         self.zones: list[Zone] = []
         self.zones_by_id: dict[str, Zone] = {}
 
-        self.hotwater: None | HotWater = None
+        self.hotwater: HotWater | None = None
 
         zon_config: _EvoDictT
         for zon_config in config[S2_ZONES]:
@@ -134,10 +134,10 @@ class ControlSystem(ActiveFaultsBase):
         return self._status.get(S2_SYSTEM_MODE_STATUS)
 
     @property  # status attr for convenience (new)
-    def system_mode(self) -> str | None:
+    def system_mode(self) -> SystemMode | None:
         if (status := self._status.get(S2_SYSTEM_MODE_STATUS)) is None:
             return None
-        ret: str = status[S2_MODE]
+        ret: SystemMode = status[S2_MODE]
         return ret
 
     @property

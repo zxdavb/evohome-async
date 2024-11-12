@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync2 provides an async client for the v2 Evohome TCC API."""
+"""evohomeasync provides an async client for the v2 Resideo TCC API."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ class RequestFailedError(EvohomeError):
     cause was a ClientResponseError, then the `status` attr will have an integer value.
     """
 
-    def __init__(self, message: str, status: None | int = None) -> None:
+    def __init__(self, message: str, status: int | None = None) -> None:
         super().__init__(message)
         self.status = status  # iff cause was aiohttp.ClientResponseError
 

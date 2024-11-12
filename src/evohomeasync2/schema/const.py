@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync2 schema - shared constants."""
+"""evohomeasync schema - shared constants."""
 
 from enum import EnumCheck, StrEnum, verify
 from typing import Final

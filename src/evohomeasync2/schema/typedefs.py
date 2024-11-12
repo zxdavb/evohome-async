@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync2 schema - shared types (WIP)."""
+"""evohomeasync schema - shared types (WIP)."""
 
 from typing import Any
 

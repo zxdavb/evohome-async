@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync2 schema - for vendor's RESTful API JSON."""
+"""evohomeasync schema - for vendor's RESTful API JSON."""
 
 from __future__ import annotations
 

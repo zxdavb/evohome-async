@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync2 schema - shared helpers."""
+"""evohomeasync schema - shared helpers."""
 
 from __future__ import annotations
 
