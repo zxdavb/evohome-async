@@ -423,7 +423,10 @@ class Auth:
     async def _request(  # wrapper for self.request()
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
-        """Handle Auth failures when making a request to the RESTful API."""
+        """Make a request to the Resideo TCC RESTful API.
+
+        Handles Auth failures. If result is JSON, converts the keys to snake_case.
+        """
 
         # async with self.request(method, url, **kwargs) as rsp:
         async with await self.request(method, url, **kwargs) as rsp:
@@ -443,7 +446,10 @@ class Auth:
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> aiohttp.ClientResponse:
-        """Make a request to the Resideo TCC RESTful API."""
+        """Make a request to the Resideo TCC RESTful API.
+
+        Does *not* convert the keys to snake_case.
+        """
 
         headers = kwargs.pop("headers", None) or HEADERS_BASE
 
