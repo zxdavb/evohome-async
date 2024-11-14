@@ -186,31 +186,31 @@ class EvohomeClientNew:  # requires a Token Manager
         """Return the id of the default TCS (assumes only one loc/gwy/TCS)."""
         return self._get_single_tcs().id
 
-    async def reset_mode(self) -> None:
+    async def reset(self) -> None:
         """Reset the mode of the default TCS and its zones."""
         await self._get_single_tcs().reset()
 
-    async def set_mode_auto(self) -> None:
+    async def set_auto(self) -> None:
         """Set the default TCS into auto mode."""
         await self._get_single_tcs().set_auto()
 
-    async def set_mode_away(self, /, *, until: dt | None = None) -> None:
+    async def set_away(self, /, *, until: dt | None = None) -> None:
         """Set the default TCS into away mode."""
         await self._get_single_tcs().set_away(until=until)
 
-    async def set_mode_custom(self, /, *, until: dt | None = None) -> None:
+    async def set_custom(self, /, *, until: dt | None = None) -> None:
         """Set the default TCS into custom mode."""
         await self._get_single_tcs().set_custom(until=until)
 
-    async def set_mode_dayoff(self, /, *, until: dt | None = None) -> None:
+    async def set_dayoff(self, /, *, until: dt | None = None) -> None:
         """Set the default TCS into day off mode."""
         await self._get_single_tcs().set_dayoff(until=until)
 
-    async def set_mode_eco(self, /, *, until: dt | None = None) -> None:
+    async def set_eco(self, /, *, until: dt | None = None) -> None:
         """Set the default TCS into eco mode."""
         await self._get_single_tcs().set_eco(until=until)
 
-    async def set_mode_heatingoff(self, /, *, until: dt | None = None) -> None:
+    async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
         """Set the default TCS into heating off mode."""
         await self._get_single_tcs().set_heatingoff(until=until)
 
