@@ -43,7 +43,7 @@ class Location(EntityBase):
 
         self.client = client  # proxy for parent
 
-        self._config: Final[_EvoDictT] = config[SZ_LOCATION_INFO]
+        self._config: Final[_EvoDictT] = config[SZ_LOCATION_INFO]  # type: ignore[misc]
         self._status: _EvoDictT = {}
 
         # children

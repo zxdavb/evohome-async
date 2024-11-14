@@ -41,7 +41,7 @@ class Gateway(ActiveFaultsBase):
 
         self.location = location  # parent
 
-        self._config: Final[_EvoDictT] = config[SZ_GATEWAY_INFO]
+        self._config: Final[_EvoDictT] = config[SZ_GATEWAY_INFO]  # type: ignore[misc]
         self._status: _EvoDictT = {}
 
         # children

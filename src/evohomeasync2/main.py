@@ -214,7 +214,9 @@ class EvohomeClientNew:  # requires a Token Manager
         """Set the default TCS into heating off mode."""
         await self._get_single_tcs().set_heatingoff(until=until)
 
-    async def temperatures(self) -> list[dict[str, int | str | None]]:  # TODO: remove?
+    async def temperatures(
+        self,
+    ) -> list[dict[str, float | str | None]]:  # TODO: remove?
         """Return the current temperatures and setpoints of the default TCS."""
         return await self._get_single_tcs().temperatures()
 

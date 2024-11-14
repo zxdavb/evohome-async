@@ -67,6 +67,9 @@ _ONE_DAY = td(days=1)
 class EntityBase:
     TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
 
+    _config: _EvoDictT
+    _status: _EvoDictT
+
     def __init__(self, id: str, broker: Auth, logger: logging.Logger) -> None:
         self._id: Final = id
 
@@ -79,6 +82,16 @@ class EntityBase:
     @property
     def id(self) -> str:
         return self._id
+
+    @property
+    def config(self) -> _EvoDictT:
+        """Return the latest config of the entity."""
+        return self._config
+
+    @property
+    def status(self) -> _EvoDictT | None:
+        """Return the latest status of the entity."""
+        return self._status
 
 
 class ActiveFaultsBase(EntityBase):
@@ -147,7 +160,7 @@ class _ZoneBase(ActiveFaultsBase):
 
         self.tcs = tcs  # parent
 
-        self._config: Final[_EvoDictT] = config
+        self._config: Final[_EvoDictT] = config  # type: ignore[misc]
         self._schedule: _EvoDictT = {}
         self._status: _EvoDictT = {}
 

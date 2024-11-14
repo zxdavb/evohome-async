@@ -316,14 +316,16 @@ class Auth(AbstractSessionManager):
         """Return the URL base used for GET/PUT."""
         return f"https://{self._hostname}/WebAPI/api"
 
-    async def get(self, url: StrOrURL, schema: vol.Schema | None = None) -> dict:
+    async def get(
+        self, url: StrOrURL, schema: vol.Schema | None = None
+    ) -> dict[str, Any]:
         """Call the Resideo TCC API with a GET.
 
         Optionally checks the response JSON against the expected schema and logs a
         warning if it doesn't match.
         """
 
-        content: dict
+        content: dict[str, Any]
 
         content = await self._request(  # type: ignore[assignment]
             HTTPMethod.GET, f"{self._url_base}/{url}"
@@ -338,7 +340,10 @@ class Auth(AbstractSessionManager):
         return content
 
     async def put(
-        self, url: StrOrURL, json: dict | str, schema: vol.Schema | None = None
+        self,
+        url: StrOrURL,
+        json: dict[str, Any] | str,
+        schema: vol.Schema | None = None,
     ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
         """Call the Resideo TCC API with a PUT (POST is only used for authentication).
 
@@ -396,7 +401,7 @@ class Auth(AbstractSessionManager):
             self._logger.debug(f"... success: new session_id = {self._session_id}")
             self._headers[S2_SESSION_ID] = self._session_id
 
-            if "session" in url:  # retry not needed for /session
+            if "session" in str(url):  # retry not needed for /session
                 return rsp
 
             # NOTE: this is a recursive call, used only after re-authenticating

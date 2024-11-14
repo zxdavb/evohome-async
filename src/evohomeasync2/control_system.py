@@ -64,7 +64,7 @@ class ControlSystem(ActiveFaultsBase):
         self.gateway = gateway  # parent
         self.location: Location = gateway.location
 
-        self._config: Final[_EvoDictT] = {
+        self._config: Final[_EvoDictT] = {  # type: ignore[misc]
             k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
         }
         self._status: _EvoDictT = {}
@@ -213,7 +213,9 @@ class ControlSystem(ActiveFaultsBase):
         """Set the system into heating off mode."""
         await self.set_mode(SystemMode.HEATING_OFF, until=until)
 
-    async def temperatures(self) -> list[dict[str, int | str | None]]:  # TODO: remove?
+    async def temperatures(
+        self,
+    ) -> list[dict[str, float | str | None]]:  # TODO: remove?
         """A convenience function to return the latest temperatures and setpoints."""
 
         await self.location.update()
