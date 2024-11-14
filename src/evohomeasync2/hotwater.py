@@ -8,21 +8,20 @@ from __future__ import annotations
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final
 
-from .const import API_STRFTIME
-from .schema import (
-    SCH_DHW_STATUS,
-    SCH_GET_SCHEDULE_DHW,
-    SCH_PUT_SCHEDULE_DHW,
-    convert_keys_to_snake_case,
+from .const import (
+    API_STRFTIME,
+    SZ_ALLOWED_MODES,
+    SZ_DHW_ID,
+    SZ_DHW_STATE_CAPABILITIES_RESPONSE,
+    SZ_MODE,
+    SZ_SCHEDULE_CAPABILITIES_RESPONSE,
+    SZ_STATE,
+    SZ_STATE_STATUS,
 )
+from .schema import SCH_DHW_STATUS, SCH_GET_SCHEDULE_DHW, SCH_PUT_SCHEDULE_DHW
 from .schema.const import (
-    S2_ALLOWED_MODES,
-    S2_DHW_ID,
-    S2_DHW_STATE_CAPABILITIES_RESPONSE,
     S2_MODE,
-    S2_SCHEDULE_CAPABILITIES_RESPONSE,
     S2_STATE,
-    S2_STATE_STATUS,
     S2_UNTIL_TIME,
     DhwState,
     EntityType,
@@ -47,24 +46,24 @@ class HotWater(_ZoneBase):
     SCH_SCHEDULE_PUT: Final[vol.Schema] = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(config[S2_DHW_ID], tcs, config)
+        super().__init__(config[SZ_DHW_ID], tcs, config)
 
     @property
-    def state_capabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[S2_DHW_STATE_CAPABILITIES_RESPONSE]
-        return convert_keys_to_snake_case(ret)
+    def capabilities(self) -> _EvoDictT:
+        ret: _EvoDictT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
+        return ret
 
     @property
     def schedule_capabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[S2_SCHEDULE_CAPABILITIES_RESPONSE]
-        return convert_keys_to_snake_case(ret)
+        ret: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
+        return ret
 
     @property  # for convenience (is not a top-level config attribute)
-    def allowed_modes(self) -> _EvoListT:
-        ret: _EvoListT = self._config[S2_DHW_STATE_CAPABILITIES_RESPONSE][
-            S2_ALLOWED_MODES
+    def modes(self) -> _EvoListT:
+        ret: _EvoListT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE][
+            SZ_ALLOWED_MODES
         ]
-        return convert_keys_to_snake_case(ret)
+        return ret
 
     @property
     def name(self) -> str:
@@ -72,20 +71,20 @@ class HotWater(_ZoneBase):
 
     @property
     def state_status(self) -> _EvoDictT | None:
-        return self._status.get(S2_STATE_STATUS)
+        return self._status.get(SZ_STATE_STATUS)
 
     @property  # status attr for convenience (new)
     def mode(self) -> str | None:
-        if (state_status := self._status.get(S2_STATE_STATUS)) is None:
+        if (state_status := self._status.get(SZ_STATE_STATUS)) is None:
             return None
-        ret: str = state_status[S2_MODE]
+        ret: str = state_status[SZ_MODE]
         return ret
 
     @property  # status attr for convenience (new)
     def state(self) -> DhwState | None:
-        if (state_status := self._status.get(S2_STATE_STATUS)) is None:
+        if (state_status := self._status.get(SZ_STATE_STATUS)) is None:
             return None
-        ret: DhwState = state_status[S2_STATE]
+        ret: DhwState = state_status[SZ_STATE]
         return ret
 
     def _next_setpoint(self) -> tuple[dt, str] | None:  # WIP: for convenience (new)
@@ -99,9 +98,9 @@ class HotWater(_ZoneBase):
     async def reset_mode(self) -> None:
         """Cancel any override and allow the DHW to follow its schedule."""
 
-        mode: dict[str, str | None] = {  # NOTE: S2_STATE was previously ""
+        mode: dict[str, str | None] = {
             S2_MODE: ZoneMode.FOLLOW_SCHEDULE,
-            S2_STATE: None,
+            S2_STATE: None,  # NOTE: was "state": ""
             S2_UNTIL_TIME: None,
         }
 
