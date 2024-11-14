@@ -212,6 +212,12 @@ class FaultType(StrEnum):  # NOTE: This list is incomplete
 
 
 @verify(EnumCheck.UNIQUE)
+class LocationType(StrEnum):
+    COMMERCIAL = "Commercial"
+    AUTO_WITH_ECO = "Residential"
+
+
+@verify(EnumCheck.UNIQUE)
 class SystemMode(StrEnum):
     AUTO = S2_AUTO
     AUTO_WITH_ECO = S2_AUTO_WITH_ECO

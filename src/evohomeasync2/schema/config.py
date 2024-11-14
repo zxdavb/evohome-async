@@ -83,6 +83,7 @@ from .const import (
     S2_ZONES,
     DhwState,
     FanMode,
+    LocationType,
     SystemMode,
     TcsModelType,
     ZoneMode,
@@ -339,7 +340,9 @@ def _factory_locations_installation_info(
             vol.Required(fnc(S2_CITY)): vol.All(str, _obfuscate),
             vol.Required(fnc(S2_COUNTRY)): str,
             vol.Required(fnc(S2_POSTCODE)): vol.All(str, _obfuscate),
-            vol.Required(fnc(S2_LOCATION_TYPE)): str,  # "Residential"
+            vol.Required(fnc(S2_LOCATION_TYPE)): vol.In(
+                [m.value for m in LocationType]
+            ),  # "Residential"
             vol.Required(fnc(S2_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
             vol.Required(fnc(S2_TIME_ZONE)): _factory_time_zone(fnc),
             vol.Required(fnc(S2_LOCATION_OWNER)): SCH_LOCATION_OWNER,

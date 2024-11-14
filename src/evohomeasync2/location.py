@@ -19,6 +19,7 @@ from .schema.const import (
     S2_TIME_ZONE,
     S2_USE_DAYLIGHT_SAVE_SWITCHING,
     EntityType,
+    LocationType,
 )
 from .zone import EntityBase
 
@@ -60,6 +61,12 @@ class Location(EntityBase):
 
     @property
     def country(self) -> str:
+
+        # "Belgium"
+        # "CzechRepublic"
+        # "Netherlands"
+        # "UnitedKingdom"
+        
         ret: str = self._config[S2_COUNTRY]
         return ret
 
@@ -78,8 +85,8 @@ class Location(EntityBase):
         return convert_keys_to_snake_case(ret)
 
     @property
-    def location_type(self) -> str:
-        ret: str = self._config[S2_LOCATION_TYPE]
+    def location_type(self) -> LocationType:
+        ret: LocationType = self._config[S2_LOCATION_TYPE]
         return ret
 
     @property
