@@ -14,6 +14,7 @@ from . import exceptions as exc
 from .const import (
     API_STRFTIME,
     SZ_ID,
+    SZ_MODE,
     SZ_NAME,
     SZ_SCHEDULE,
     SZ_SETPOINT,
@@ -28,7 +29,6 @@ from .schema.const import (
     S2_DHW,
     S2_DHW_ID,
     S2_IS_AVAILABLE,
-    S2_MODE,
     S2_MODEL_TYPE,
     S2_PERMANENT,
     S2_SYSTEM_ID,
@@ -40,6 +40,7 @@ from .schema.const import (
     S2_ZONE_ID,
     S2_ZONES,
     EntityType,
+    TcsModelType,
 )
 from .zone import ActiveFaultsBase, Zone
 
@@ -95,13 +96,25 @@ class ControlSystem(ActiveFaultsBase):
             self.hotwater = HotWater(self, dhw_config)
 
     @property
-    def allowed_system_modes(self) -> _EvoListT:
+    def allowed_system_modes(self) -> list[_EvoDictT]:
+        """
+        "allowedSystemModes": [
+            {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "Auto",          "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "AutoWithReset", "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "AutoWithEco",   "canBePermanent": true, "canBeTemporary": true, "maxDuration":  "1.00:00:00", "timingResolution":   "01:00:00", "timingMode": "Duration"},
+            {"systemMode": "Away",          "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"systemMode": "DayOff",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"systemMode": "Custom",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"}
+        ]
+        """
+
         ret: _EvoListT = self._config[S2_ALLOWED_SYSTEM_MODES]
         return convert_keys_to_snake_case(ret)
 
     @property
-    def model_type(self) -> str:
-        ret: str = self._config[S2_MODEL_TYPE]
+    def model_type(self) -> TcsModelType:
+        ret: TcsModelType = self._config[S2_MODEL_TYPE]
         return ret
 
     def _update_status(self, status: _EvoDictT) -> None:
@@ -131,13 +144,21 @@ class ControlSystem(ActiveFaultsBase):
 
     @property
     def system_mode_status(self) -> _EvoDictT | None:
-        return self._status.get(S2_SYSTEM_MODE_STATUS)
+        """
+        "systemModeStatus": {
+            "mode": "AutoWithEco",
+            "isPermanent": true
+        }
+        """
+
+        ret: _EvoDictT = self._status.get(S2_SYSTEM_MODE_STATUS)
+        return convert_keys_to_snake_case(ret)
 
     @property  # status attr for convenience (new)
-    def system_mode(self) -> SystemMode | None:
-        if (status := self._status.get(S2_SYSTEM_MODE_STATUS)) is None:
+    def mode(self) -> SystemMode | None:
+        if self.system_mode_status is None:
             return None
-        ret: SystemMode = status[S2_MODE]
+        ret: SystemMode = self.system_mode_status[SZ_MODE]
         return ret
 
     @property
@@ -202,7 +223,7 @@ class ControlSystem(ActiveFaultsBase):
         """Set the system into heating off mode."""
         await self.set_mode(SystemMode.HEATING_OFF, until=until)
 
-    async def temperatures(self) -> _EvoListT:
+    async def temperatures(self) -> list[dict[str, int | str | None]]:  # TODO: remove?
         """A convenience function to return the latest temperatures and setpoints."""
 
         await self.location.update()

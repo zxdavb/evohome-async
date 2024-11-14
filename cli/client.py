@@ -173,9 +173,7 @@ async def mode(ctx: click.Context, loc_idx: int) -> None:
     print("\r\nclient.py: Retrieving the system mode...")
     evo: EvohomeClientNew = ctx.obj[SZ_EVO]
 
-    await _write(
-        sys.stdout, "\r\n" + str(_get_tcs(evo, loc_idx).system_mode) + "\r\n\r\n"
-    )
+    await _write(sys.stdout, "\r\n" + str(_get_tcs(evo, loc_idx).mode) + "\r\n\r\n")
 
     await ctx.obj[SZ_CLEANUP]
     print(" - finished.\r\n")

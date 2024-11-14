@@ -61,12 +61,11 @@ class Location(EntityBase):
 
     @property
     def country(self) -> str:
-
         # "Belgium"
         # "CzechRepublic"
         # "Netherlands"
         # "UnitedKingdom"
-        
+
         ret: str = self._config[S2_COUNTRY]
         return ret
 

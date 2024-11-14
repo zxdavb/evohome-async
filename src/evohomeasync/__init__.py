@@ -54,7 +54,6 @@ from .schema import (  # noqa: F401
 __version__ = "1.2.0"
 
 
-
 class Auth(_Auth):  # used only by EvohomeClientOld
     """A TokenManager wrapper to help expose the refactored EvohomeClient."""
 
