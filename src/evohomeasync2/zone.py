@@ -390,8 +390,14 @@ class Zone(_ZoneBase):
         """Set the zone mode (heat_setpoint, cooling is TBD)."""
 
         if mode[S2_SETPOINT_MODE] not in self.modes:
-            self._logger.warning(
+            raise exc.InvalidParameterError(
                 f"{self}: Unsupported/unknown {S2_SETPOINT_MODE}: {mode}"
+            )
+
+        temp: float | None = mode.get(S2_HEAT_SETPOINT_VALUE)  # type: ignore[assignment]
+        if temp is not None and self.min_heat_setpoint > temp > self.max_heat_setpoint:
+            raise exc.InvalidParameterError(
+                f"{self}: Unsupported/invalid {S2_HEAT_SETPOINT_VALUE}: {mode}"
             )
 
         await self._broker.put(f"{self._TYPE}/{self.id}/heatSetpoint", json=mode)

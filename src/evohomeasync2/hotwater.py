@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final
 
+from . import exceptions as exc
 from .const import (
     API_STRFTIME,
     SZ_ALLOWED_MODES,
@@ -111,12 +112,12 @@ class HotWater(_ZoneBase):
         """Set the DHW mode (state)."""
 
         if mode[S2_MODE] not in self.modes:
-            self._logger.warning(
+            raise exc.InvalidParameterError(
                 f"{self}: Unsupported/unknown {S2_MODE}: {mode}"
             )
 
         if mode[S2_STATE] not in self.states:
-            self._logger.warning(
+            raise exc.InvalidParameterError(
                 f"{self}: Unsupported/unknown {S2_STATE}: {mode}"
             )
 
