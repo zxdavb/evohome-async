@@ -7,17 +7,16 @@ from typing import TYPE_CHECKING, Final
 
 import voluptuous as vol
 
+from .const import (
+    SZ_GATEWAY_ID,
+    SZ_GATEWAY_INFO,
+    SZ_MAC,
+    SZ_SYSTEM_ID,
+    SZ_TEMPERATURE_CONTROL_SYSTEMS,
+)
 from .control_system import ControlSystem
 from .schema import SCH_GWY_STATUS
-from .schema.const import (
-    S2_GATEWAY_ID,
-    S2_GATEWAY_INFO,
-    S2_IS_WI_FI,
-    S2_MAC,
-    S2_SYSTEM_ID,
-    S2_TEMPERATURE_CONTROL_SYSTEMS,
-    EntityType,
-)
+from .schema.const import EntityType
 from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:
@@ -35,14 +34,14 @@ class Gateway(ActiveFaultsBase):
 
     def __init__(self, location: Location, config: _EvoDictT) -> None:
         super().__init__(
-            config[S2_GATEWAY_INFO][S2_GATEWAY_ID],
+            config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID],
             location._broker,
             location._logger,
         )
 
         self.location = location  # parent
 
-        self._config: Final[_EvoDictT] = config[S2_GATEWAY_INFO]
+        self._config: Final[_EvoDictT] = config[SZ_GATEWAY_INFO]
         self._status: _EvoDictT = {}
 
         # children
@@ -50,20 +49,15 @@ class Gateway(ActiveFaultsBase):
         self.control_system_by_id: dict[str, ControlSystem] = {}  # tcs by id
 
         tcs_config: _EvoDictT
-        for tcs_config in config[S2_TEMPERATURE_CONTROL_SYSTEMS]:
+        for tcs_config in config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             tcs = ControlSystem(self, tcs_config)
 
             self.control_systems.append(tcs)
             self.control_system_by_id[tcs.id] = tcs
 
     @property
-    def mac(self) -> str:
-        ret: str = self._config[S2_MAC]
-        return ret
-
-    @property
-    def is_wi_fi(self) -> bool:
-        ret: bool = self._config[S2_IS_WI_FI]
+    def mac_address(self) -> str:
+        ret: str = self._config[SZ_MAC]
         return ret
 
     def _update_status(self, status: _EvoDictT) -> None:
@@ -71,12 +65,12 @@ class Gateway(ActiveFaultsBase):
 
         self._status = status
 
-        for tcs_status in self._status[S2_TEMPERATURE_CONTROL_SYSTEMS]:
-            if tcs := self.control_system_by_id.get(tcs_status[S2_SYSTEM_ID]):
+        for tcs_status in self._status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+            if tcs := self.control_system_by_id.get(tcs_status[SZ_SYSTEM_ID]):
                 tcs._update_status(tcs_status)
 
             else:
                 self._logger.warning(
-                    f"{self}: system_id='{tcs_status[S2_SYSTEM_ID]}' not known"
+                    f"{self}: system_id='{tcs_status[SZ_SYSTEM_ID]}' not known"
                     ", (has the gateway configuration been changed?)"
                 )
