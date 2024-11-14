@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from evohomeasync2 import Location
-from evohomeasync2.schema import SCH_LOCN_STATUS
+from evohomeasync2.schema import SCH_LOCN_STATUS, convert_keys_to_snake_case
 from evohomeasync2.schema.config import SCH_TCS_CONFIG, SCH_TIME_ZONE
 from evohomeasync2.schema.const import (
     S2_GATEWAYS,
@@ -52,6 +52,9 @@ def test_config_refresh(folder: Path) -> None:
 
     with open(Path(folder).joinpath(STATUS_FILE_NAME)) as f:
         status: dict = json.load(f)  # is camelCase, as per vendor's schema
+
+    config = convert_keys_to_snake_case(config)
+    status = convert_keys_to_snake_case(status)
 
     # for this, we need snake_case keys
     loc = Location(ClientStub(), config)

@@ -367,14 +367,6 @@ class Zone(_ZoneBase):
         ret: str = self._status.get(SZ_NAME) or self._config[SZ_NAME]
         return ret
 
-    @property  # status attr for convenience (new)
-    def setpoint(self) -> float | None:
-        if (status := self.setpoint_status) is None:
-            return None
-
-        ret: float = status[SZ_TEMPERATURE]
-        return ret
-
     @property
     def setpoint_status(self) -> _EvoDictT | None:
         """

@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from evohomeasync2 import Location
-from evohomeasync2.schema import SCH_LOCN_STATUS
+from evohomeasync2.schema import SCH_LOCN_STATUS, convert_keys_to_snake_case
 from evohomeasync2.schema.config import SCH_TCS_CONFIG, SCH_TIME_ZONE
 from evohomeasync2.schema.const import (
     S2_GATEWAY_ID,
@@ -65,6 +65,9 @@ def test_config_refresh(folder: Path) -> None:
         config[S2_GATEWAYS][0][S2_GATEWAY_INFO] = {
             S2_GATEWAY_ID: status[S2_GATEWAYS][0][S2_GATEWAY_ID]
         }
+
+    config = convert_keys_to_snake_case(config)
+    status = convert_keys_to_snake_case(status)
 
     loc = Location(ClientStub(), config)
     loc._update_status(status)
