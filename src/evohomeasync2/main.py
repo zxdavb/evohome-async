@@ -188,7 +188,7 @@ class EvohomeClientNew:  # requires a Token Manager
 
     async def reset_mode(self) -> None:
         """Reset the mode of the default TCS and its zones."""
-        await self._get_single_tcs().reset_mode()
+        await self._get_single_tcs().reset()
 
     async def set_mode_auto(self) -> None:
         """Set the default TCS into auto mode."""

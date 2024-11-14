@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final
 
+from . import exceptions as exc
 from .const import (
     API_STRFTIME,
     SZ_ALLOWED_MODES,
@@ -107,11 +108,22 @@ class HotWater(_ZoneBase):
         """Return the datetime and state of the next setpoint."""
         raise NotImplementedError
 
-    async def _set_mode(self, mode: dict[str, str | None]) -> None:
+    async def _set_state(self, mode: dict[str, str | None]) -> None:
         """Set the DHW mode (state)."""
-        _ = await self._broker.put(f"{self._TYPE}/{self.id}/state", json=mode)
 
-    async def reset_mode(self) -> None:
+        if mode[S2_MODE] not in self.modes:
+            raise exc.InvalidParameterError(
+                f"{self}: Unsupported/unknown {S2_MODE}: {mode}"
+            )
+
+        if mode[S2_STATE] not in self.states:
+            raise exc.InvalidParameterError(
+                f"{self}: Unsupported/unknown {S2_STATE}: {mode}"
+            )
+
+        await self._broker.put(f"{self._TYPE}/{self.id}/state", json=mode)
+
+    async def reset(self) -> None:
         """Cancel any override and allow the DHW to follow its schedule."""
 
         mode: dict[str, str | None] = {
@@ -120,7 +132,7 @@ class HotWater(_ZoneBase):
             S2_UNTIL_TIME: None,
         }
 
-        await self._set_mode(mode)
+        await self._set_state(mode)
 
     async def set_on(self, /, *, until: dt | None = None) -> None:
         """Set the DHW on until a given time, or permanently."""
@@ -140,7 +152,7 @@ class HotWater(_ZoneBase):
                 S2_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
 
-        await self._set_mode(mode)
+        await self._set_state(mode)
 
     async def set_off(self, /, *, until: dt | None = None) -> None:
         """Set the DHW off until a given time, or permanently."""
@@ -160,4 +172,4 @@ class HotWater(_ZoneBase):
                 S2_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
 
-        await self._set_mode(mode)
+        await self._set_state(mode)

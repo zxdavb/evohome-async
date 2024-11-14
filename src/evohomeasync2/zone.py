@@ -257,7 +257,7 @@ class _ZoneBase(ActiveFaultsBase):
 
         assert isinstance(schedule, dict)  # mypy check
 
-        _ = await self._broker.put(
+        await self._broker.put(
             f"{self._TYPE}/{self.id}/schedule",
             json=schedule,
             schema=self.SCH_SCHEDULE_PUT,
@@ -386,13 +386,17 @@ class Zone(_ZoneBase):
         ret: ZoneType = self._config[SZ_ZONE_TYPE]
         return ret
 
-    # TODO: no provision for cooling
     async def _set_mode(self, mode: dict[str, str | float]) -> None:
         """Set the zone mode (heat_setpoint, cooling is TBD)."""
-        # TODO: also coolSetpoint
-        _ = await self._broker.put(f"{self._TYPE}/{self.id}/heatSetpoint", json=mode)
 
-    async def reset_mode(self) -> None:
+        if mode[S2_SETPOINT_MODE] not in self.modes:
+            raise exc.InvalidParameterError(
+                f"{self}: Unsupported/unknown {S2_SETPOINT_MODE}: {mode}"
+            )
+
+        await self._broker.put(f"{self._TYPE}/{self.id}/heatSetpoint", json=mode)
+
+    async def reset(self) -> None:
         """Cancel any override and allow the zone to follow its schedule"""
 
         mode: dict[str, str | float] = {
@@ -403,7 +407,8 @@ class Zone(_ZoneBase):
 
         await self._set_mode(mode)
 
-    async def set_temperature(  # NOTE: no provision for cooling
+    # NOTE: no provision for cooling (not supported by API)
+    async def set_temperature(  # aka. set_mode()
         self, temperature: float, /, *, until: dt | None = None
     ) -> None:
         """Set the temperature of the given zone (no provision for cooling)."""

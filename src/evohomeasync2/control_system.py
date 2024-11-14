@@ -172,21 +172,32 @@ class ControlSystem(ActiveFaultsBase):
 
     async def _set_mode(self, mode: dict[str, str | bool]) -> None:
         """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
-        _ = await self._broker.put(f"{self._TYPE}/{self.id}/mode", json=mode)
 
-    async def reset_mode(self) -> None:
+        if mode[S2_SYSTEM_MODE] not in self.modes:
+            raise exc.InvalidParameterError(
+                f"{self}: Unsupported/unknown {S2_SYSTEM_MODE}: {mode}"
+            )
+
+        await self._broker.put(f"{self._TYPE}/{self.id}/mode", json=mode)
+
+    async def reset(self) -> None:
         """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
-        await self.set_mode(SystemMode.AUTO_WITH_RESET)
+
+        if SystemMode.AUTO_WITH_RESET in self.modes:
+            await self.set_mode(SystemMode.AUTO_WITH_RESET)
+            return
+
+        await self.set_mode(SystemMode.AUTO)  # may raise InvalidParameterError
+
+        for zone in self.zones:
+            await zone.reset()
+        if self.hotwater:
+            await self.hotwater.reset()
 
     async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
 
         request: _EvoDictT
-
-        if mode not in [
-            m[SZ_SYSTEM_MODE] for m in self._config[SZ_ALLOWED_SYSTEM_MODES]
-        ]:
-            raise exc.InvalidParameterError(f"{self}: Unsupported/unknown mode: {mode}")
 
         if until is None:
             request = {

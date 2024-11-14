@@ -233,7 +233,7 @@ class AbstractSessionManager(ABC):
         )
 
         # try:  # the dict _should_ be the expected schema...
-        #     _ = SCH_SESSION_RESPONSE(response)
+        #     SCH_SESSION_RESPONSE(response)
         # except vol.Invalid as err:
         #     self._logger.debug(
         #         f"Response JSON may be invalid: POST {url}: {err})
@@ -355,7 +355,7 @@ class Auth(AbstractSessionManager):
 
         if schema:
             try:
-                _ = schema(json)
+                schema(json)
             except vol.Invalid as err:
                 self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
 
