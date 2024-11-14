@@ -15,7 +15,7 @@ import pytest
 import voluptuous as vol
 from aioresponses import aioresponses
 
-from evohomeasync2.main import EvohomeClientNew as EvohomeClientv2
+from evohomeasync2 import _EvohomeClientNew as EvohomeClientv2
 from evohomeasync2.schema import SCH_FULL_CONFIG, SCH_LOCN_STATUS, SCH_USER_ACCOUNT
 
 if TYPE_CHECKING:

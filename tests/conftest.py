@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from cli.auth import CacheManager
 
-from evohomeasync.main import EvohomeClientOld as EvohomeClientv0
-from evohomeasync2.main import EvohomeClientNew as EvohomeClientv2
+from evohomeasync import _EvohomeClientOld as EvohomeClientv0
+from evohomeasync2 import _EvohomeClientNew as EvohomeClientv2
 
 from .const import TEST_PASSWORD, TEST_USERNAME
 

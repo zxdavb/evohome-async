@@ -25,7 +25,7 @@ from .zone import EntityBase
 if TYPE_CHECKING:
     import voluptuous as vol
 
-    from . import EvohomeClientNew
+    from . import _EvohomeClientNew as EvohomeClientNew
     from .schema import _EvoDictT
 
 
@@ -65,6 +65,15 @@ class Location(EntityBase):
 
     @property
     def location_owner(self) -> _EvoDictT:
+        """
+        "locationOwner": {
+            "userId": "1234567",
+            "username": "username@email.com",
+            "firstname": "John",
+            "lastname": "Smith"
+        }
+        """
+
         ret: _EvoDictT = self._config[S2_LOCATION_OWNER]
         return convert_keys_to_snake_case(ret)
 
@@ -80,6 +89,16 @@ class Location(EntityBase):
 
     @property
     def time_zone(self) -> _EvoDictT:
+        """
+        "timeZone": {
+            "timeZoneId": "GMTStandardTime",
+            "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+            "offsetMinutes": 0,
+            "currentOffsetMinutes": 60,
+            "supportsDaylightSaving": true
+        }
+        """
+
         # "GMTStandardTime":           "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
         # "CentralEuropeStandardTime": "(UTC+01:00) Praha, Bratislava, Budapešť, Bělehrad, Lublaň",
         # "RomanceStandardTime":       "(UTC+01:00) Brussels, Copenhagen, Madrid, Paris",
@@ -95,7 +114,7 @@ class Location(EntityBase):
         ret: bool = self._config[S2_USE_DAYLIGHT_SAVE_SWITCHING]
         return ret
 
-    async def update(self) -> _EvoDictT:
+    async def update(self) -> None:
         """Get the latest state of the location and update its status.
 
         Will also update the status of its gateways, their TCSs, and their DHW/zones.
@@ -109,7 +128,6 @@ class Location(EntityBase):
         )  # type: ignore[assignment]
 
         self._update_status(status)
-        return status
 
     def _update_status(self, status: _EvoDictT) -> None:
         # No ActiveFaults in location node of status
@@ -123,5 +141,5 @@ class Location(EntityBase):
             else:
                 self._logger.warning(
                     f"{self}: gateway_id='{gwy_status[S2_GATEWAY_ID]} not known"
-                    ", (has the location configuration been changed?)"
+                    ", (has the location configuration changed?)"
                 )

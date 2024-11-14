@@ -16,9 +16,14 @@ import aiohttp
 import asyncclick as click
 import debugpy  # type: ignore[import-untyped]
 
-from evohomeasync2 import ControlSystem, HotWater, Zone, exceptions as exc
+from evohomeasync2 import (
+    ControlSystem,
+    HotWater,
+    Zone,
+    _EvohomeClientNew as EvohomeClientNew,
+    exceptions as exc,
+)
 from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE
-from evohomeasync2.main import EvohomeClientNew
 
 from .auth import TOKEN_CACHE, CacheManager
 

@@ -8,7 +8,11 @@ Further information at: https://evohome-client.readthedocs.io
 
 from __future__ import annotations
 
-from .auth import AbstractSessionManager, Auth  # noqa: F401
+from datetime import datetime as dt, timedelta as td
+
+import aiohttp
+
+from .auth import Auth as _Auth  # noqa: F401
 from .exceptions import (  # noqa: F401
     AuthenticationFailedError,
     EvohomeError,
@@ -16,7 +20,7 @@ from .exceptions import (  # noqa: F401
     RateLimitExceededError,
     RequestFailedError,
 )
-from .main import EvohomeClientOld as _EvohomeClient
+from .main import EvohomeClientNew as _EvohomeClientNew
 from .schema import (  # noqa: F401
     SZ_ALLOWED_MODES,
     SZ_CHANGEABLE_VALUES,
@@ -50,5 +54,59 @@ from .schema import (  # noqa: F401
 __version__ = "1.2.0"
 
 
-class EvohomeClient(_EvohomeClient):
+
+class Auth(_Auth):  # used only by EvohomeClientOld
+    """A TokenManager wrapper to help expose the refactored EvohomeClient."""
+
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        websession: aiohttp.ClientSession,
+        /,
+        *,
+        session_id: str | None = None,
+    ) -> None:
+        super().__init__(username, password, websession)
+        # to maintain compatibility, allow these to be passed in here
+        if session_id:
+            self._session_id = session_id
+            self._session_id_expires = dt.now() + td(minutes=15)  # best guess
+
+    async def load_session_id(self) -> None:
+        raise NotImplementedError
+
+    async def save_session_id(self) -> None:
+        pass
+
+
+class _EvohomeClientOld(_EvohomeClientNew):
+    """A wrapper to use the EvohomeClient without passing in a SessionManager.
+
+    Also permits a session_id to be passed in.
+    """
+
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        /,
+        *,
+        session_id: str | None = None,
+        websession: aiohttp.ClientSession | None = None,
+        debug: bool = False,
+    ) -> None:
+        """Construct the v0 EvohomeClient object."""
+        websession = websession or aiohttp.ClientSession()
+
+        self.auth = Auth(
+            username,
+            password,
+            websession,
+            session_id=session_id,
+        )
+        super().__init__(self.auth, debug=debug)
+
+
+class EvohomeClient(_EvohomeClientOld):
     """An async client for v0 of the Resideo TCC API."""
