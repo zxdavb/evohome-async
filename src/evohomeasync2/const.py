@@ -9,16 +9,27 @@ from .schema import DhwState as DhwState, SystemMode as SystemMode, ZoneMode as 
 API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"  # used by API
 
 
+# snake_case equivalents of schema strings
+SZ_USER_ID: Final = "user_id"
+
+
+
 # These snake_case equivalents of schema strings
 SZ_PERMANENT: Final = "permanent"
 SZ_SYSTEM_MODE: Final = "system_mode"
-# SZ_USER_ID: Final = "user_id"
+
+
+
 
 
 SZ_ID: Final = "id"
+SZ_IS_AVAILABLE: Final = "is_available"
+SZ_MAX_HEAT_SETPOINT: Final = "max_heat_setpoint"
+SZ_MIN_HEAT_SETPOINT: Final = "min_heat_setpoint"
 SZ_MODE: Final = "mode"
 SZ_NAME: Final = "name"
 SZ_TEMP: Final = "temp"
+SZ_TEMPERATURE: Final = "temperature"
 SZ_THERMOSTAT: Final = "thermostat"
 SZ_SCHEDULE: Final = "schedule"
 SZ_SETPOINT: Final = "setpoint"

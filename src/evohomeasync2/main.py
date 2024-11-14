@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING
 
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
+from .const import SZ_USER_ID
 from .control_system import ControlSystem
 from .location import Location
-from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT, convert_keys_to_snake_case
-from .schema.const import S2_USER_ID
+from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
 
 if TYPE_CHECKING:
     import aiohttp
@@ -28,7 +28,7 @@ class EvohomeClientNew:  # requires a Token Manager
 
     #
 
-    _install_config: _EvoListT | None = None  # all locations
+    _locn_info: _EvoListT | None = None  # all locations
     _user_info: _EvoDictT | None = None
 
     def __init__(
@@ -82,7 +82,7 @@ class EvohomeClientNew:  # requires a Token Manager
 
         if reset_config:
             self._user_info = None
-            self._install_config = None
+            self._locn_info = None
 
         if self._user_info is None:
             url = "userAccount"
@@ -90,22 +90,22 @@ class EvohomeClientNew:  # requires a Token Manager
 
         assert self._user_info is not None  # mypy hint
 
-        if self._install_config is None:
-            url = f"location/installationInfo?userId={self._user_info[S2_USER_ID]}"
+        if self._locn_info is None:
+            url = f"location/installationInfo?userId={self._user_info[SZ_USER_ID]}"
             url += "&includeTemperatureControlSystems=True"
 
-            self._install_config = await self.auth.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
+            self._locn_info = await self.auth.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
 
             self._locations = None
             self._location_by_id = None
 
-        assert self._install_config is not None  # mypy hint
+        assert self._locn_info is not None  # mypy hint
 
         if self._locations is None:
             self._locations = []
             self._location_by_id = {}
 
-            for loc_config in self._install_config:
+            for loc_config in self._locn_info:
                 loc = Location(self, loc_config)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
@@ -123,7 +123,7 @@ class EvohomeClientNew:  # requires a Token Manager
                 await loc.update()
 
     @property
-    def user_information(self) -> _EvoDictT:
+    def user_account(self) -> _EvoDictT:
         """Return the information of the user account."""
 
         if not self._user_info:
@@ -131,24 +131,24 @@ class EvohomeClientNew:  # requires a Token Manager
                 f"{self}: The account information is not (yet) available"
             )
 
-        return convert_keys_to_snake_case(self._user_info)
+        return self._user_info
 
     @property
-    def installation_config(self) -> _EvoListT:
+    def installation_info(self) -> _EvoListT:
         """Return the installation info (config) of all the user's locations."""
 
-        if not self._install_config:
+        if not self._locn_info:
             raise exc.NoSystemConfigError(
                 f"{self}: The installation information is not (yet) available"
             )
 
-        return convert_keys_to_snake_case(self._install_config)
+        return self._locn_info
 
     @property
     def locations(self) -> list[Location]:
         """Return the list of locations."""
 
-        if self._install_config is None:
+        if self._locn_info is None:
             raise exc.NoSystemConfigError(
                 f"{self}: The installation information is not (yet) available"
             )

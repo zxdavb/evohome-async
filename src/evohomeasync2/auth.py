@@ -16,7 +16,7 @@ import aiohttp
 import voluptuous as vol
 
 from . import exceptions as exc
-from .schema import obfuscate as _obfuscate
+from .schema import convert_keys_to_snake_case, obfuscate as _obfuscate
 
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
@@ -458,7 +458,7 @@ class Auth:
     async def _content(
         response: aiohttp.ClientResponse,
     ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
-        """Return the content of the response."""
+        """Return the content of the response (converts keys to snake_case)."""
 
         if not response.content_length:
             return None
@@ -468,7 +468,7 @@ class Auth:
             return await response.text()
 
         content: dict[str, Any] = await response.json()
-        return content
+        return convert_keys_to_snake_case(content)
 
     async def get_access_token(self) -> str:
         """Return a valid access token."""
