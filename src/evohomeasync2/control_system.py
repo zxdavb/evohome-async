@@ -174,7 +174,7 @@ class ControlSystem(ActiveFaultsBase):
         """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
 
         if mode[S2_SYSTEM_MODE] not in self.modes:
-            raise exc.InvalidParameterError(
+            self._logger.warning(
                 f"{self}: Unsupported/unknown {S2_SYSTEM_MODE}: {mode}"
             )
 

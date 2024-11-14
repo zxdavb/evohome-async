@@ -390,7 +390,7 @@ class Zone(_ZoneBase):
         """Set the zone mode (heat_setpoint, cooling is TBD)."""
 
         if mode[S2_SETPOINT_MODE] not in self.modes:
-            raise exc.InvalidParameterError(
+            self._logger.warning(
                 f"{self}: Unsupported/unknown {S2_SETPOINT_MODE}: {mode}"
             )
 
