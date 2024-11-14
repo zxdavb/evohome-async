@@ -29,13 +29,11 @@ from .const import (
     SZ_SETPOINT_MODE,
     SZ_SETPOINT_STATUS,
     SZ_SINCE,
-    SZ_TARGET_COOL_TEMPERATURE,
     SZ_TARGET_HEAT_TEMPERATURE,
     SZ_TEMPERATURE,
     SZ_TEMPERATURE_STATUS,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
-    ZoneMode,
 )
 from .schema import (
     SCH_GET_SCHEDULE_ZONE,
@@ -50,6 +48,7 @@ from .schema.const import (
     ZONE_MODEL_TYPES,
     ZONE_TYPES,
     EntityType,
+    ZoneMode,
     ZoneModelType,
     ZoneType,
 )
@@ -65,7 +64,7 @@ _ONE_DAY = td(days=1)
 
 
 class EntityBase:
-    TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
+    _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
 
     _config: _EvoDictT
     _status: _EvoDictT
@@ -174,7 +173,7 @@ class _ZoneBase(ActiveFaultsBase):
         """
 
         status: _EvoDictT = await self._broker.get(
-            f"{self.TYPE}/{self.id}/status", schema=self.STATUS_SCHEMA
+            f"{self._TYPE}/{self.id}/status", schema=self.STATUS_SCHEMA
         )  # type: ignore[assignment]
 
         self._update_status(status)
@@ -197,7 +196,7 @@ class _ZoneBase(ActiveFaultsBase):
         ret: _EvoDictT | None = self._status.get(SZ_TEMPERATURE_STATUS)
         return ret
 
-    @property  # status attr for convenience (new)
+    @property  # a convenience attr
     def temperature(self) -> float | None:
         if not (status := self.temperature_status) or not status[SZ_IS_AVAILABLE]:
             return None
@@ -212,7 +211,7 @@ class _ZoneBase(ActiveFaultsBase):
 
         try:
             schedule: _EvoDictT = await self._broker.get(
-                f"{self.TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE_GET
+                f"{self._TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE_GET
             )  # type: ignore[assignment]
 
         except exc.RequestFailedError as err:
@@ -259,7 +258,7 @@ class _ZoneBase(ActiveFaultsBase):
         assert isinstance(schedule, dict)  # mypy check
 
         _ = await self._broker.put(
-            f"{self.TYPE}/{self.id}/schedule",
+            f"{self._TYPE}/{self.id}/schedule",
             json=schedule,
             schema=self.SCH_SCHEDULE_PUT,
         )
@@ -267,11 +266,12 @@ class _ZoneBase(ActiveFaultsBase):
         self._schedule = schedule
 
 
+# Currently, cooling (e.g. target_heat_temperature) is not supported by the API
 class Zone(_ZoneBase):
     """Instance of a TCS's heating zone (temperatureZone)."""
 
     STATUS_SCHEMA: Final = SCH_ZONE_STATUS  # type: ignore[misc]
-    TYPE: Final = EntityType.ZON  # type: ignore[misc]
+    _TYPE: Final = EntityType.ZON  # type: ignore[misc]
 
     SCH_SCHEDULE_GET: Final = SCH_GET_SCHEDULE_ZONE  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_ZONE  # type: ignore[misc]
@@ -279,58 +279,56 @@ class Zone(_ZoneBase):
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs, config)
 
-        if not self.model_type or self.model_type == ZoneModelType.UNKNOWN:
+        if not self.model or self.model == ZoneModelType.UNKNOWN:
             raise exc.InvalidSchemaError(
-                f"{self}: Invalid model type '{self.model_type}' (is it a ghost zone?)"
+                f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)"
             )
-        if not self.zone_type or self.zone_type == ZoneType.UNKNOWN:
+        if not self.type or self.type == ZoneType.UNKNOWN:
             raise exc.InvalidSchemaError(
-                f"{self}: Invalid zone type '{self.zone_type}' (is it a ghost zone?)"
+                f"{self}: Invalid zone type '{self.type}' (is it a ghost zone?)"
             )
 
-        if self.model_type not in ZONE_MODEL_TYPES:
-            self._logger.warning(
-                "%s: Unknown model type '%s' (YMMV)", self, self.model_type
-            )
-        if self.zone_type not in ZONE_TYPES:
-            self._logger.warning(
-                "%s: Unknown zone type '%s' (YMMV)", self, self.zone_type
-            )
+        if self.model not in ZONE_MODEL_TYPES:
+            self._logger.warning("%s: Unknown model type '%s' (YMMV)", self, self.model)
+        if self.type not in ZONE_TYPES:
+            self._logger.warning("%s: Unknown zone type '%s' (YMMV)", self, self.type)
+
+    @property  # convenience attr
+    def max_heat_setpoint(self) -> float:
+        ret: float = self.setpoint_capabilities[SZ_MAX_HEAT_SETPOINT]
+        return ret
+
+    @property  # convenience attr
+    def min_heat_setpoint(self) -> float:
+        ret: float = self.setpoint_capabilities[SZ_MIN_HEAT_SETPOINT]
+        return ret
 
     @property
-    def model_type(self) -> ZoneModelType:
+    def model(self) -> ZoneModelType:
         ret: ZoneModelType = self._config[SZ_MODEL_TYPE]
         return ret
 
-    @property
-    def capabilities(self) -> _EvoDictT:
-        """
-        "setpointCapabilities": {
-            "maxHeatSetpoint": 35.0,
-            "minHeatSetpoint": 5.0,
-            "valueResolution": 0.5,
-            "canControlHeat": true,
-            "canControlCool": false,
-            "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
-            "maxDuration": "1.00:00:00",
-            "timingResolution": "00:10:00"
-        }
-        """
-
-        ret: _EvoDictT = self._config[SZ_SETPOINT_CAPABILITIES]
+    @property  # a convenience attr
+    def mode(self) -> ZoneMode | None:
+        if not self.setpoint_status:
+            return None
+        ret: ZoneMode = self.setpoint_status[SZ_SETPOINT_MODE]
         return ret
 
-    @property  # for convenience (is not a top-level config attribute)
-    def modes(self) -> list[ZoneMode]:
+    @property  # a convenience attr
+    def modes(self) -> tuple[ZoneMode]:
         """
         "allowedSetpointModes": [
             "PermanentOverride", "FollowSchedule", "TemporaryOverride"
         ]
         """
 
-        ret: list[ZoneMode] = self._config[SZ_SETPOINT_CAPABILITIES][
-            SZ_ALLOWED_SETPOINT_MODES
-        ]
+        ret = tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
+        return ret
+
+    @property
+    def name(self) -> str:
+        ret: str = self._status.get(SZ_NAME) or self._config[SZ_NAME]
         return ret
 
     @property
@@ -347,24 +345,22 @@ class Zone(_ZoneBase):
         ret: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES]
         return ret
 
-    @property  # config attr for convenience (new)
-    def max_heat_setpoint(self) -> float:
-        ret: float = self.capabilities[SZ_MAX_HEAT_SETPOINT]
-        return ret
-
-    @property  # config attr for convenience (new)
-    def min_heat_setpoint(self) -> float:
-        ret: float = self.capabilities[SZ_MIN_HEAT_SETPOINT]
-        return ret
-
     @property
-    def zone_type(self) -> ZoneType:
-        ret: ZoneType = self._config[SZ_ZONE_TYPE]
-        return ret
+    def setpoint_capabilities(self) -> _EvoDictT:
+        """
+        "setpointCapabilities": {
+            "maxHeatSetpoint": 35.0,
+            "minHeatSetpoint": 5.0,
+            "valueResolution": 0.5,
+            "canControlHeat": true,
+            "canControlCool": false,
+            "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+            "maxDuration": "1.00:00:00",
+            "timingResolution": "00:10:00"
+        }
+        """
 
-    @property
-    def name(self) -> str:
-        ret: str = self._status.get(SZ_NAME) or self._config[SZ_NAME]
+        ret: _EvoDictT = self._config[SZ_SETPOINT_CAPABILITIES]
         return ret
 
     @property
@@ -378,32 +374,23 @@ class Zone(_ZoneBase):
         ret: _EvoDictT | None = self._status.get(SZ_SETPOINT_STATUS)
         return ret
 
-    @property  # status attr for convenience (new)
-    def mode(self) -> ZoneMode | None:
-        if not self.setpoint_status:
-            return None
-        ret: ZoneMode = self.setpoint_status[SZ_SETPOINT_MODE]
-        return ret
-
-    @property  # status attr for convenience (new)
-    def target_cool_temperature(self) -> float | None:
-        if not self.setpoint_status:
-            return None
-        ret: float | None = self.setpoint_status.get(SZ_TARGET_COOL_TEMPERATURE)
-        return ret
-
-    @property  # status attr for convenience (new)
+    @property  # a convenience attr
     def target_heat_temperature(self) -> float | None:
-        if not self.setpoint_status:
+        if self.setpoint_status is None:
             return None
         ret: float = self.setpoint_status[SZ_TARGET_HEAT_TEMPERATURE]
+        return ret
+
+    @property
+    def type(self) -> ZoneType:
+        ret: ZoneType = self._config[SZ_ZONE_TYPE]
         return ret
 
     # TODO: no provision for cooling
     async def _set_mode(self, mode: dict[str, str | float]) -> None:
         """Set the zone mode (heat_setpoint, cooling is TBD)."""
         # TODO: also coolSetpoint
-        _ = await self._broker.put(f"{self.TYPE}/{self.id}/heatSetpoint", json=mode)
+        _ = await self._broker.put(f"{self._TYPE}/{self.id}/heatSetpoint", json=mode)
 
     async def reset_mode(self) -> None:
         """Cancel any override and allow the zone to follow its schedule"""

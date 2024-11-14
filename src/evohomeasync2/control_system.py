@@ -17,10 +17,12 @@ from .const import (
     SZ_DHW,
     SZ_DHW_ID,
     SZ_ID,  # remove?
+    SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_NAME,
     SZ_SCHEDULE,
     SZ_SETPOINT,  # remove?
+    SZ_STATE,
     SZ_SYSTEM_ID,
     SZ_SYSTEM_MODE,
     SZ_SYSTEM_MODE_STATUS,
@@ -52,7 +54,7 @@ class ControlSystem(ActiveFaultsBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
     STATUS_SCHEMA: Final[vol.Schema] = SCH_TCS_STATUS
-    TYPE: Final = EntityType.TCS  # type: ignore[misc]
+    _TYPE: Final = EntityType.TCS  # type: ignore[misc]
 
     def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
         super().__init__(
@@ -118,24 +120,7 @@ class ControlSystem(ActiveFaultsBase):
                 )
 
     @property
-    def mode(self) -> _EvoDictT | None:
-        """
-        "systemModeStatus": {
-            "mode": "AutoWithEco",
-            "isPermanent": true
-        }
-        """
-
-        ret: _EvoDictT | None = self._status.get(SZ_SYSTEM_MODE_STATUS)
-        return ret
-
-    @property
-    def model_type(self) -> TcsModelType:
-        ret: TcsModelType = self._config[SZ_MODEL_TYPE]
-        return ret
-
-    @property
-    def modes(self) -> list[_EvoDictT]:
+    def allowed_system_modes(self) -> list[_EvoDictT]:
         """
         "allowedSystemModes": [
             {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
@@ -151,6 +136,35 @@ class ControlSystem(ActiveFaultsBase):
         ret: list[_EvoDictT] = self._config[SZ_ALLOWED_SYSTEM_MODES]
         return ret
 
+    @property  # a convenience attr
+    def mode(self) -> SystemMode | None:
+        if self.system_mode_status is None:
+            return None
+        ret: SystemMode = self.system_mode_status[SZ_MODE]
+        return ret
+
+    @property  # a convenience attr
+    def modes(self) -> tuple[SystemMode]:
+        ret = tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
+        return ret
+
+    @property
+    def model(self) -> TcsModelType:
+        ret: TcsModelType = self._config[SZ_MODEL_TYPE]
+        return ret
+
+    @property
+    def system_mode_status(self) -> _EvoDictT | None:
+        """
+        "systemModeStatus": {
+            "mode": "AutoWithEco",
+            "isPermanent": true
+        }
+        """
+
+        ret: _EvoDictT | None = self._status.get(SZ_SYSTEM_MODE_STATUS)
+        return ret
+
     @property
     def zones_by_name(self) -> dict[str, Zone]:
         """Return the zones by name (names are not fixed attrs)."""
@@ -158,7 +172,7 @@ class ControlSystem(ActiveFaultsBase):
 
     async def _set_mode(self, mode: dict[str, str | bool]) -> None:
         """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
-        _ = await self._broker.put(f"{self.TYPE}/{self.id}/mode", json=mode)
+        _ = await self._broker.put(f"{self._TYPE}/{self.id}/mode", json=mode)
 
     async def reset_mode(self) -> None:
         """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
@@ -222,10 +236,10 @@ class ControlSystem(ActiveFaultsBase):
 
         result = [
             {
-                SZ_THERMOSTAT: "EMEA_ZONE",
+                SZ_THERMOSTAT: zone.type,
                 SZ_ID: zone.id,
                 SZ_NAME: zone.name,
-                SZ_SETPOINT: zone.setpoint,
+                SZ_SETPOINT: zone.target_heat_temperature,
                 SZ_TEMPERATURE: zone.temperature,
             }
             for zone in self.zones
@@ -233,9 +247,10 @@ class ControlSystem(ActiveFaultsBase):
 
         if dhw := self.hotwater:
             dhw_status = {
-                SZ_THERMOSTAT: "DOMESTIC_HOT_WATER",
+                SZ_THERMOSTAT: dhw.type,
                 SZ_ID: dhw.id,
                 SZ_NAME: dhw.name,
+                SZ_STATE: dhw.state,
                 SZ_TEMPERATURE: dhw.temperature,
             }
 

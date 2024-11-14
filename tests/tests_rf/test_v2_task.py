@@ -57,8 +57,8 @@ async def _test_task_id(evo: EvohomeClientv2) -> None:
 
     assert dhw is not None  # type: ignore[unreachable]
 
-    GET_URL = f"{dhw.TYPE}/{dhw.id}/status"
-    PUT_URL = f"{dhw.TYPE}/{dhw.id}/state"
+    GET_URL = f"{dhw._TYPE}/{dhw.id}/status"
+    PUT_URL = f"{dhw._TYPE}/{dhw.id}/state"
 
     #
     # PART 0: Get initial state...

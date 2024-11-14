@@ -5,6 +5,42 @@
       []
   
     ''',
+    'allowed_system_modes': '''
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: AutoWithReset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: DayOff
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Custom
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+  
+    ''',
     'config': '''
       allowed_system_modes:
       - can_be_permanent: true
@@ -49,49 +85,24 @@
   
     ''',
     'mode': '''
-      is_permanent: true
-      mode: AutoWithEco
+      AutoWithEco
+      ...
   
     ''',
-    'model_type': '''
+    'model': '''
       EvoTouch
       ...
   
     ''',
     'modes': '''
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: HeatingOff
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: Auto
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: AutoWithReset
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 1.00:00:00
-        system_mode: AutoWithEco
-        timing_mode: Duration
-        timing_resolution: 01:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: Away
-        timing_mode: Period
-        timing_resolution: 1.00:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: DayOff
-        timing_mode: Period
-        timing_resolution: 1.00:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: Custom
-        timing_mode: Period
-        timing_resolution: 1.00:00:00
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
   
     ''',
     'status': '''
@@ -190,6 +201,11 @@
           is_available: true
           temperature: 19.5
         zone_id: '3450733'
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: AutoWithEco
   
     ''',
   })
@@ -325,18 +341,6 @@
       []
   
     ''',
-    'capabilities': '''
-      allowed_modes:
-      - FollowSchedule
-      - PermanentOverride
-      - TemporaryOverride
-      allowed_states:
-      - 'On'
-      - 'Off'
-      max_duration: 1.00:00:00
-      timing_resolution: 00:10:00
-  
-    ''',
     'config': '''
       dhw_id: '3933910'
       dhw_state_capabilities_response:
@@ -365,6 +369,7 @@
   
     ''',
     'modes': '''
+      !!python/tuple
       - FollowSchedule
       - PermanentOverride
       - TemporaryOverride
@@ -385,9 +390,27 @@
       'Off'
   
     ''',
+    'state_capabilities': '''
+      allowed_modes:
+      - FollowSchedule
+      - PermanentOverride
+      - TemporaryOverride
+      allowed_states:
+      - 'On'
+      - 'Off'
+      max_duration: 1.00:00:00
+      timing_resolution: 00:10:00
+  
+    ''',
     'state_status': '''
       mode: PermanentOverride
       state: 'Off'
+  
+    ''',
+    'states': '''
+      !!python/tuple
+      - 'Off'
+      - 'On'
   
     ''',
     'status': '''
@@ -409,6 +432,11 @@
     'temperature_status': '''
       is_available: true
       temperature: 23.0
+  
+    ''',
+    'type': '''
+      DomesticHotWater
+      ...
   
     ''',
   })
@@ -582,29 +610,6 @@
       active_faults: '[]
   
           '
-      capabilities: 'allowed_setpoint_modes:
-  
-          - PermanentOverride
-  
-          - FollowSchedule
-  
-          - TemporaryOverride
-  
-          can_control_cool: false
-  
-          can_control_heat: true
-  
-          max_duration: 1.00:00:00
-  
-          max_heat_setpoint: 35.0
-  
-          min_heat_setpoint: 5.0
-  
-          timing_resolution: 00:10:00
-  
-          value_resolution: 0.5
-  
-          '
       config: "model_type: HeatingZone\nname: Dead Zone\nschedule_capabilities:\n  max_switchpoints_per_day:\
           \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
           \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
@@ -630,12 +635,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -656,42 +663,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: PermanentOverride
-  
-          target_heat_temperature: 5.0
-  
-          '
-      status: "active_faults: []\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
-          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
-          \  is_available: false\nzone_id: '3432521'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '5.0
-  
-          ...
-  
-          '
-      temperature: 'null
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: false
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432576':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -712,6 +684,36 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 5.0
+  
+          '
+      status: "active_faults: []\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
+          \  is_available: false\nzone_id: '3432521'\n"
+      target_heat_temperature: '5.0
+  
+          ...
+  
+          '
+      temperature: 'null
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: false
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432576':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Main Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -739,12 +741,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -765,44 +769,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 17.0
-  
-          '
-      status: "active_faults: []\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 19.0\nzone_id: '3432576'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '17.0
-  
-          ...
-  
-          '
-      temperature: '19.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 19.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432577':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -823,6 +790,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.0\nzone_id: '3432576'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432577':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Front Room\nschedule_capabilities:\n \
@@ -850,12 +849,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -876,44 +877,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 17.0
-  
-          '
-      status: "active_faults: []\nname: Front Room\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 19.0\nzone_id: '3432577'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '17.0
-  
-          ...
-  
-          '
-      temperature: '19.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 19.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432578':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -934,6 +898,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Front Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.0\nzone_id: '3432577'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432578':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Kitchen\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -961,12 +957,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -987,44 +985,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 17.0
-  
-          '
-      status: "active_faults: []\nname: Kitchen\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 20.0\nzone_id: '3432578'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '17.0
-  
-          ...
-  
-          '
-      temperature: '20.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 20.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432579':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -1045,6 +1006,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Kitchen\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.0\nzone_id: '3432578'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '20.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432579':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Dn\nschedule_capabilities:\n\
@@ -1072,12 +1065,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -1098,44 +1093,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 16.0
-  
-          '
-      status: "active_faults: []\nname: Bathroom Dn\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 20.0\nzone_id: '3432579'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '16.0
-  
-          ...
-  
-          '
-      temperature: '20.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 20.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432580':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -1156,6 +1114,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.0
+  
+          '
+      status: "active_faults: []\nname: Bathroom Dn\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.0\nzone_id: '3432579'\n"
+      target_heat_temperature: '16.0
+  
+          ...
+  
+          '
+      temperature: '20.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432580':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Main Bedroom\nschedule_capabilities:\n\
@@ -1183,12 +1173,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -1209,44 +1201,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 16.0
-  
-          '
-      status: "active_faults: []\nname: Main Bedroom\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 21.0\nzone_id: '3432580'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '16.0
-  
-          ...
-  
-          '
-      temperature: '21.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 21.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3449703':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -1267,6 +1222,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.0
+  
+          '
+      status: "active_faults: []\nname: Main Bedroom\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 21.0\nzone_id: '3432580'\n"
+      target_heat_temperature: '16.0
+  
+          ...
+  
+          '
+      temperature: '21.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3449703':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Kids Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -1294,12 +1281,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -1320,44 +1309,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 17.0
-  
-          '
-      status: "active_faults: []\nname: Kids Room\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 19.5\nzone_id: '3449703'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '17.0
-  
-          ...
-  
-          '
-      temperature: '19.5
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 19.5
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3449740':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -1378,6 +1330,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Kids Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.5\nzone_id: '3449703'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.5
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3449740':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Up\nschedule_capabilities:\n\
@@ -1405,12 +1389,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -1431,44 +1417,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 16.5
-  
-          '
-      status: "active_faults: []\nname: Bathroom Up\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 16.5\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 21.5\nzone_id: '3449740'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '16.5
-  
-          ...
-  
-          '
-      temperature: '21.5
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 21.5
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3450733':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -1489,6 +1438,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.5
+  
+          '
+      status: "active_faults: []\nname: Bathroom Up\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.5\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 21.5\nzone_id: '3449740'\n"
+      target_heat_temperature: '16.5
+  
+          ...
+  
+          '
+      temperature: '21.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.5
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3450733':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Spare Room\nschedule_capabilities:\n \
@@ -1516,12 +1497,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -1542,6 +1525,29 @@
           timing_resolution: 00:10:00
   
           '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
       setpoint_status: 'setpoint_mode: PermanentOverride
   
           target_heat_temperature: 14.0
@@ -1550,11 +1556,6 @@
       status: "active_faults: []\nname: Spare Room\nsetpoint_status:\n  setpoint_mode:\
           \ PermanentOverride\n  target_heat_temperature: 14.0\ntemperature_status:\n\
           \  is_available: true\n  temperature: 19.5\nzone_id: '3450733'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
       target_heat_temperature: '14.0
   
           ...
@@ -1570,7 +1571,7 @@
           temperature: 19.5
   
           '
-      zone_type: 'RadiatorZone
+      type: 'RadiatorZone
   
           ...
   
@@ -1582,6 +1583,42 @@
   dict({
     'active_faults': '''
       []
+  
+    ''',
+    'allowed_system_modes': '''
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: AutoWithReset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: DayOff
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Custom
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
   
     ''',
     'config': '''
@@ -1628,49 +1665,24 @@
   
     ''',
     'mode': '''
-      is_permanent: true
-      mode: AutoWithEco
+      AutoWithEco
+      ...
   
     ''',
-    'model_type': '''
+    'model': '''
       EvoTouch
       ...
   
     ''',
     'modes': '''
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: HeatingOff
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: Auto
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: AutoWithReset
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 1.00:00:00
-        system_mode: AutoWithEco
-        timing_mode: Duration
-        timing_resolution: 01:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: Away
-        timing_mode: Period
-        timing_resolution: 1.00:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: DayOff
-        timing_mode: Period
-        timing_resolution: 1.00:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: Custom
-        timing_mode: Period
-        timing_resolution: 1.00:00:00
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
   
     ''',
     'status': '''
@@ -1769,6 +1781,11 @@
           is_available: true
           temperature: 19.5
         zone_id: '3450733'
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: AutoWithEco
   
     ''',
   })
@@ -1904,18 +1921,6 @@
       []
   
     ''',
-    'capabilities': '''
-      allowed_modes:
-      - FollowSchedule
-      - PermanentOverride
-      - TemporaryOverride
-      allowed_states:
-      - 'On'
-      - 'Off'
-      max_duration: 1.00:00:00
-      timing_resolution: 00:10:00
-  
-    ''',
     'config': '''
       dhw_id: '3933910'
       dhw_state_capabilities_response:
@@ -1944,6 +1949,7 @@
   
     ''',
     'modes': '''
+      !!python/tuple
       - FollowSchedule
       - PermanentOverride
       - TemporaryOverride
@@ -1964,9 +1970,27 @@
       'Off'
   
     ''',
+    'state_capabilities': '''
+      allowed_modes:
+      - FollowSchedule
+      - PermanentOverride
+      - TemporaryOverride
+      allowed_states:
+      - 'On'
+      - 'Off'
+      max_duration: 1.00:00:00
+      timing_resolution: 00:10:00
+  
+    ''',
     'state_status': '''
       mode: PermanentOverride
       state: 'Off'
+  
+    ''',
+    'states': '''
+      !!python/tuple
+      - 'Off'
+      - 'On'
   
     ''',
     'status': '''
@@ -1988,6 +2012,11 @@
     'temperature_status': '''
       is_available: true
       temperature: 23.0
+  
+    ''',
+    'type': '''
+      DomesticHotWater
+      ...
   
     ''',
   })
@@ -2161,29 +2190,6 @@
       active_faults: '[]
   
           '
-      capabilities: 'allowed_setpoint_modes:
-  
-          - PermanentOverride
-  
-          - FollowSchedule
-  
-          - TemporaryOverride
-  
-          can_control_cool: false
-  
-          can_control_heat: true
-  
-          max_duration: 1.00:00:00
-  
-          max_heat_setpoint: 35.0
-  
-          min_heat_setpoint: 5.0
-  
-          timing_resolution: 00:10:00
-  
-          value_resolution: 0.5
-  
-          '
       config: "model_type: HeatingZone\nname: Dead Zone\nschedule_capabilities:\n  max_switchpoints_per_day:\
           \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
           \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
@@ -2209,12 +2215,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -2235,42 +2243,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: PermanentOverride
-  
-          target_heat_temperature: 5.0
-  
-          '
-      status: "active_faults: []\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
-          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
-          \  is_available: false\nzone_id: '3432521'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '5.0
-  
-          ...
-  
-          '
-      temperature: 'null
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: false
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432576':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -2291,6 +2264,36 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 5.0
+  
+          '
+      status: "active_faults: []\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
+          \  is_available: false\nzone_id: '3432521'\n"
+      target_heat_temperature: '5.0
+  
+          ...
+  
+          '
+      temperature: 'null
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: false
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432576':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Main Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -2318,12 +2321,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -2344,44 +2349,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 17.0
-  
-          '
-      status: "active_faults: []\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 19.0\nzone_id: '3432576'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '17.0
-  
-          ...
-  
-          '
-      temperature: '19.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 19.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432577':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -2402,6 +2370,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.0\nzone_id: '3432576'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432577':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Front Room\nschedule_capabilities:\n \
@@ -2429,12 +2429,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -2455,44 +2457,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 17.0
-  
-          '
-      status: "active_faults: []\nname: Front Room\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 19.0\nzone_id: '3432577'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '17.0
-  
-          ...
-  
-          '
-      temperature: '19.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 19.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432578':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -2513,6 +2478,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Front Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.0\nzone_id: '3432577'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432578':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Kitchen\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -2540,12 +2537,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -2566,44 +2565,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 17.0
-  
-          '
-      status: "active_faults: []\nname: Kitchen\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 20.0\nzone_id: '3432578'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '17.0
-  
-          ...
-  
-          '
-      temperature: '20.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 20.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432579':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -2624,6 +2586,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Kitchen\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.0\nzone_id: '3432578'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '20.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432579':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Dn\nschedule_capabilities:\n\
@@ -2651,12 +2645,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -2677,44 +2673,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 16.0
-  
-          '
-      status: "active_faults: []\nname: Bathroom Dn\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 20.0\nzone_id: '3432579'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '16.0
-  
-          ...
-  
-          '
-      temperature: '20.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 20.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432580':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -2735,6 +2694,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.0
+  
+          '
+      status: "active_faults: []\nname: Bathroom Dn\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.0\nzone_id: '3432579'\n"
+      target_heat_temperature: '16.0
+  
+          ...
+  
+          '
+      temperature: '20.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432580':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Main Bedroom\nschedule_capabilities:\n\
@@ -2762,12 +2753,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -2788,44 +2781,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 16.0
-  
-          '
-      status: "active_faults: []\nname: Main Bedroom\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 21.0\nzone_id: '3432580'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '16.0
-  
-          ...
-  
-          '
-      temperature: '21.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 21.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3449703':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -2846,6 +2802,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.0
+  
+          '
+      status: "active_faults: []\nname: Main Bedroom\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 21.0\nzone_id: '3432580'\n"
+      target_heat_temperature: '16.0
+  
+          ...
+  
+          '
+      temperature: '21.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3449703':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Kids Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -2873,12 +2861,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -2899,44 +2889,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 17.0
-  
-          '
-      status: "active_faults: []\nname: Kids Room\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 19.5\nzone_id: '3449703'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '17.0
-  
-          ...
-  
-          '
-      temperature: '19.5
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 19.5
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3449740':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -2957,6 +2910,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Kids Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.5\nzone_id: '3449703'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.5
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3449740':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Up\nschedule_capabilities:\n\
@@ -2984,12 +2969,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -3010,44 +2997,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 16.5
-  
-          '
-      status: "active_faults: []\nname: Bathroom Up\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 16.5\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 21.5\nzone_id: '3449740'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '16.5
-  
-          ...
-  
-          '
-      temperature: '21.5
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 21.5
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3450733':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -3068,6 +3018,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.5
+  
+          '
+      status: "active_faults: []\nname: Bathroom Up\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.5\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 21.5\nzone_id: '3449740'\n"
+      target_heat_temperature: '16.5
+  
+          ...
+  
+          '
+      temperature: '21.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.5
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3450733':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Spare Room\nschedule_capabilities:\n \
@@ -3095,12 +3077,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -3121,6 +3105,29 @@
           timing_resolution: 00:10:00
   
           '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
       setpoint_status: 'setpoint_mode: PermanentOverride
   
           target_heat_temperature: 14.0
@@ -3129,11 +3136,6 @@
       status: "active_faults: []\nname: Spare Room\nsetpoint_status:\n  setpoint_mode:\
           \ PermanentOverride\n  target_heat_temperature: 14.0\ntemperature_status:\n\
           \  is_available: true\n  temperature: 19.5\nzone_id: '3450733'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
       target_heat_temperature: '14.0
   
           ...
@@ -3149,7 +3151,7 @@
           temperature: 19.5
   
           '
-      zone_type: 'RadiatorZone
+      type: 'RadiatorZone
   
           ...
   
@@ -3161,6 +3163,42 @@
   dict({
     'active_faults': '''
       []
+  
+    ''',
+    'allowed_system_modes': '''
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: AutoWithReset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: DayOff
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Custom
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
   
     ''',
     'config': '''
@@ -3207,49 +3245,24 @@
   
     ''',
     'mode': '''
-      is_permanent: true
-      mode: Auto
+      Auto
+      ...
   
     ''',
-    'model_type': '''
+    'model': '''
       EvoTouch
       ...
   
     ''',
     'modes': '''
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: HeatingOff
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: Auto
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: AutoWithReset
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 1.00:00:00
-        system_mode: AutoWithEco
-        timing_mode: Duration
-        timing_resolution: 01:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: Away
-        timing_mode: Period
-        timing_resolution: 1.00:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: DayOff
-        timing_mode: Period
-        timing_resolution: 1.00:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: Custom
-        timing_mode: Period
-        timing_resolution: 1.00:00:00
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
   
     ''',
     'status': '''
@@ -3350,6 +3363,11 @@
           is_available: true
           temperature: 15.0
         zone_id: '3450733'
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: Auto
   
     ''',
   })
@@ -3488,18 +3506,6 @@
         since: '2023-11-30T18:48:40'
   
     ''',
-    'capabilities': '''
-      allowed_modes:
-      - FollowSchedule
-      - PermanentOverride
-      - TemporaryOverride
-      allowed_states:
-      - 'On'
-      - 'Off'
-      max_duration: 1.00:00:00
-      timing_resolution: 00:10:00
-  
-    ''',
     'config': '''
       dhw_id: '3933910'
       dhw_state_capabilities_response:
@@ -3528,6 +3534,7 @@
   
     ''',
     'modes': '''
+      !!python/tuple
       - FollowSchedule
       - PermanentOverride
       - TemporaryOverride
@@ -3548,9 +3555,27 @@
       'Off'
   
     ''',
+    'state_capabilities': '''
+      allowed_modes:
+      - FollowSchedule
+      - PermanentOverride
+      - TemporaryOverride
+      allowed_states:
+      - 'On'
+      - 'Off'
+      max_duration: 1.00:00:00
+      timing_resolution: 00:10:00
+  
+    ''',
     'state_status': '''
       mode: FollowSchedule
       state: 'Off'
+  
+    ''',
+    'states': '''
+      !!python/tuple
+      - 'Off'
+      - 'On'
   
     ''',
     'status': '''
@@ -3572,6 +3597,11 @@
     ''',
     'temperature_status': '''
       is_available: false
+  
+    ''',
+    'type': '''
+      DomesticHotWater
+      ...
   
     ''',
   })
@@ -3747,29 +3777,6 @@
       active_faults: '[]
   
           '
-      capabilities: 'allowed_setpoint_modes:
-  
-          - PermanentOverride
-  
-          - FollowSchedule
-  
-          - TemporaryOverride
-  
-          can_control_cool: false
-  
-          can_control_heat: true
-  
-          max_duration: 1.00:00:00
-  
-          max_heat_setpoint: 35.0
-  
-          min_heat_setpoint: 5.0
-  
-          timing_resolution: 00:10:00
-  
-          value_resolution: 0.5
-  
-          '
       config: "model_type: HeatingZone\nname: Dead Zone\nschedule_capabilities:\n  max_switchpoints_per_day:\
           \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
           \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
@@ -3795,12 +3802,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -3821,42 +3830,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: PermanentOverride
-  
-          target_heat_temperature: 5.0
-  
-          '
-      status: "active_faults: []\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
-          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
-          \  is_available: false\nzone_id: '3432521'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '5.0
-  
-          ...
-  
-          '
-      temperature: 'null
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: false
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432576':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -3877,6 +3851,36 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 5.0
+  
+          '
+      status: "active_faults: []\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
+          \  is_available: false\nzone_id: '3432521'\n"
+      target_heat_temperature: '5.0
+  
+          ...
+  
+          '
+      temperature: 'null
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: false
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432576':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Main Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -3904,12 +3908,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -3930,44 +3936,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: PermanentOverride
-  
-          target_heat_temperature: 5.0
-  
-          '
-      status: "active_faults: []\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
-          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
-          \  is_available: true\n  temperature: 17.0\nzone_id: '3432576'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '5.0
-  
-          ...
-  
-          '
-      temperature: '17.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 17.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432577':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -3988,6 +3957,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 5.0
+  
+          '
+      status: "active_faults: []\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
+          \  is_available: true\n  temperature: 17.0\nzone_id: '3432576'\n"
+      target_heat_temperature: '5.0
+  
+          ...
+  
+          '
+      temperature: '17.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 17.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432577':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Front Room\nschedule_capabilities:\n \
@@ -4015,12 +4016,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -4041,44 +4044,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 20.6
-  
-          '
-      status: "active_faults: []\nname: Front Room\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 20.6\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 20.5\nzone_id: '3432577'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '20.6
-  
-          ...
-  
-          '
-      temperature: '20.5
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 20.5
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432578':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -4099,6 +4065,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 20.6
+  
+          '
+      status: "active_faults: []\nname: Front Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 20.6\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.5\nzone_id: '3432577'\n"
+      target_heat_temperature: '20.6
+  
+          ...
+  
+          '
+      temperature: '20.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.5
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432578':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Kitchen\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -4126,12 +4124,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -4152,44 +4152,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 20.0
-  
-          '
-      status: "active_faults: []\nname: Kitchen\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 20.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 20.0\nzone_id: '3432578'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '20.0
-  
-          ...
-  
-          '
-      temperature: '20.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 20.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432579':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -4210,6 +4173,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 20.0
+  
+          '
+      status: "active_faults: []\nname: Kitchen\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 20.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.0\nzone_id: '3432578'\n"
+      target_heat_temperature: '20.0
+  
+          ...
+  
+          '
+      temperature: '20.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432579':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Dn\nschedule_capabilities:\n\
@@ -4237,12 +4232,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -4263,44 +4260,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 18.5
-  
-          '
-      status: "active_faults: []\nname: Bathroom Dn\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 18.5\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 17.5\nzone_id: '3432579'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '18.5
-  
-          ...
-  
-          '
-      temperature: '17.5
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 17.5
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3432580':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -4321,6 +4281,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 18.5
+  
+          '
+      status: "active_faults: []\nname: Bathroom Dn\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 18.5\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 17.5\nzone_id: '3432579'\n"
+      target_heat_temperature: '18.5
+  
+          ...
+  
+          '
+      temperature: '17.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 17.5
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3432580':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Main Bedroom\nschedule_capabilities:\n\
@@ -4348,12 +4340,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -4374,46 +4368,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: TemporaryOverride
-  
-          target_heat_temperature: 20.5
-  
-          until: ''2023-11-30T22:10:00Z''
-  
-          '
-      status: "active_faults: []\nname: Main Bedroom\nsetpoint_status:\n  setpoint_mode:\
-          \ TemporaryOverride\n  target_heat_temperature: 20.5\n  until: '2023-11-30T22:10:00Z'\n\
-          temperature_status:\n  is_available: true\n  temperature: 21.0\nzone_id: '3432580'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '20.5
-  
-          ...
-  
-          '
-      temperature: '21.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 21.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3449703':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -4434,6 +4389,40 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: TemporaryOverride
+  
+          target_heat_temperature: 20.5
+  
+          until: ''2023-11-30T22:10:00Z''
+  
+          '
+      status: "active_faults: []\nname: Main Bedroom\nsetpoint_status:\n  setpoint_mode:\
+          \ TemporaryOverride\n  target_heat_temperature: 20.5\n  until: '2023-11-30T22:10:00Z'\n\
+          temperature_status:\n  is_available: true\n  temperature: 21.0\nzone_id: '3432580'\n"
+      target_heat_temperature: '20.5
+  
+          ...
+  
+          '
+      temperature: '21.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3449703':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Kids Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -4461,12 +4450,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -4487,44 +4478,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 18.6
-  
-          '
-      status: "active_faults: []\nname: Kids Room\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 18.6\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 19.5\nzone_id: '3449703'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '18.6
-  
-          ...
-  
-          '
-      temperature: '19.5
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 19.5
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3449740':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -4545,6 +4499,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 18.6
+  
+          '
+      status: "active_faults: []\nname: Kids Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 18.6\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.5\nzone_id: '3449703'\n"
+      target_heat_temperature: '18.6
+  
+          ...
+  
+          '
+      temperature: '19.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.5
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3449740':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Up\nschedule_capabilities:\n\
@@ -4572,12 +4558,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -4598,44 +4586,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: FollowSchedule
-  
-          target_heat_temperature: 19.0
-  
-          '
-      status: "active_faults: []\nname: Bathroom Up\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 19.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 19.0\nzone_id: '3449740'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '19.0
-  
-          ...
-  
-          '
-      temperature: '19.0
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 19.0
-  
-          '
-      zone_type: 'RadiatorZone
-  
-          ...
-  
-          '
-  '3450733':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -4656,6 +4607,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 19.0
+  
+          '
+      status: "active_faults: []\nname: Bathroom Up\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 19.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.0\nzone_id: '3449740'\n"
+      target_heat_temperature: '19.0
+  
+          ...
+  
+          '
+      temperature: '19.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.0
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+  '3450733':
+      active_faults: '[]
   
           '
       config: "model_type: HeatingZone\nname: Spare Room\nschedule_capabilities:\n \
@@ -4683,12 +4666,14 @@
           ...
   
           '
-      model_type: 'HeatingZone
+      model: 'HeatingZone
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -4709,6 +4694,29 @@
           timing_resolution: 00:10:00
   
           '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
       setpoint_status: 'setpoint_mode: PermanentOverride
   
           target_heat_temperature: 10.0
@@ -4717,11 +4725,6 @@
       status: "active_faults: []\nname: Spare Room\nsetpoint_status:\n  setpoint_mode:\
           \ PermanentOverride\n  target_heat_temperature: 10.0\ntemperature_status:\n\
           \  is_available: true\n  temperature: 15.0\nzone_id: '3450733'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
       target_heat_temperature: '10.0
   
           ...
@@ -4737,7 +4740,7 @@
           temperature: 15.0
   
           '
-      zone_type: 'RadiatorZone
+      type: 'RadiatorZone
   
           ...
   
@@ -4749,6 +4752,27 @@
   dict({
     'active_faults': '''
       []
+  
+    ''',
+    'allowed_system_modes': '''
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
   
     ''',
     'config': '''
@@ -4785,34 +4809,21 @@
   
     ''',
     'mode': '''
-      is_permanent: true
-      mode: Auto
+      Auto
+      ...
   
     ''',
-    'model_type': '''
+    'model': '''
       EvoTouch
       ...
   
     ''',
     'modes': '''
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: Auto
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 1.00:00:00
-        system_mode: AutoWithEco
-        timing_mode: Duration
-        timing_resolution: 01:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: Away
-        timing_mode: Period
-        timing_resolution: 1.00:00:00
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: HeatingOff
+      !!python/tuple
+      - Auto
+      - AutoWithEco
+      - Away
+      - HeatingOff
   
     ''',
     'status': '''
@@ -4840,6 +4851,11 @@
           is_available: true
           temperature: 23.0
         zone_id: '4368406'
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: Auto
   
     ''',
   })
@@ -4997,29 +5013,6 @@
       active_faults: '[]
   
           '
-      capabilities: 'allowed_setpoint_modes:
-  
-          - PermanentOverride
-  
-          - FollowSchedule
-  
-          - TemporaryOverride
-  
-          can_control_cool: false
-  
-          can_control_heat: true
-  
-          max_duration: 1.00:00:00
-  
-          max_heat_setpoint: 35.0
-  
-          min_heat_setpoint: 5.0
-  
-          timing_resolution: 00:10:00
-  
-          value_resolution: 0.5
-  
-          '
       config: "model_type: RoundWireless\nname: Pokoj Honzicek\nschedule_capabilities:\n\
           \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 0\n  setpoint_value_resolution:\
           \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
@@ -5045,12 +5038,14 @@
           ...
   
           '
-      model_type: 'RoundWireless
+      model: 'RoundWireless
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -5071,44 +5066,7 @@
           timing_resolution: 00:10:00
   
           '
-      setpoint_status: 'setpoint_mode: PermanentOverride
-  
-          target_heat_temperature: 15.0
-  
-          '
-      status: "active_faults: []\nname: Name 3935922\nsetpoint_status:\n  setpoint_mode:\
-          \ PermanentOverride\n  target_heat_temperature: 15.0\ntemperature_status:\n\
-          \  is_available: true\n  temperature: 21.5\nzone_id: '3935922'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
-      target_heat_temperature: '15.0
-  
-          ...
-  
-          '
-      temperature: '21.5
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: true
-  
-          temperature: 21.5
-  
-          '
-      zone_type: 'Thermostat
-  
-          ...
-  
-          '
-  '4368406':
-      active_faults: '[]
-  
-          '
-      capabilities: 'allowed_setpoint_modes:
+      setpoint_capabilities: 'allowed_setpoint_modes:
   
           - PermanentOverride
   
@@ -5129,6 +5087,38 @@
           timing_resolution: 00:10:00
   
           value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 15.0
+  
+          '
+      status: "active_faults: []\nname: Name 3935922\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 15.0\ntemperature_status:\n\
+          \  is_available: true\n  temperature: 21.5\nzone_id: '3935922'\n"
+      target_heat_temperature: '15.0
+  
+          ...
+  
+          '
+      temperature: '21.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.5
+  
+          '
+      type: 'Thermostat
+  
+          ...
+  
+          '
+  '4368406':
+      active_faults: '[]
   
           '
       config: "model_type: RoundWireless\nname: Kuchyne\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -5156,12 +5146,14 @@
           ...
   
           '
-      model_type: 'RoundWireless
+      model: 'RoundWireless
   
           ...
   
           '
-      modes: '- PermanentOverride
+      modes: '!!python/tuple
+  
+          - PermanentOverride
   
           - FollowSchedule
   
@@ -5182,6 +5174,29 @@
           timing_resolution: 00:10:00
   
           '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
       setpoint_status: 'setpoint_mode: PermanentOverride
   
           target_heat_temperature: 15.0
@@ -5190,11 +5205,6 @@
       status: "active_faults: []\nname: Name 3935922\nsetpoint_status:\n  setpoint_mode:\
           \ PermanentOverride\n  target_heat_temperature: 15.0\ntemperature_status:\n\
           \  is_available: true\n  temperature: 23.0\nzone_id: '4368406'\n"
-      target_cool_temperature: 'null
-  
-          ...
-  
-          '
       target_heat_temperature: '15.0
   
           ...
@@ -5210,7 +5220,7 @@
           temperature: 23.0
   
           '
-      zone_type: 'Thermostat
+      type: 'Thermostat
   
           ...
   

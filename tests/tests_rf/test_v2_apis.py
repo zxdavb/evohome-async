@@ -54,7 +54,7 @@ async def _test_sched__apis(evo: EvohomeClientv2) -> None:
     # STEP 1: retrieve base data
     await evo.update()
 
-    # STEP 2: GET & PUT /{x.TYPE}/{x.id}/schedule
+    # STEP 2: GET & PUT /{x._TYPE}/{x.id}/schedule
     if dhw := evo._get_single_tcs().hotwater:
         schedule = await dhw.get_schedule()
         assert SCH_PUT_SCHEDULE_DHW(schedule)
@@ -82,7 +82,7 @@ async def _test_update_apis(evo: EvohomeClientv2) -> None:
     # STEP 1: retrieve config
     await evo.update(dont_update_status=True)
 
-    # STEP 2: GET /{x.TYPE}/{x.id}/status
+    # STEP 2: GET /{x._TYPE}/{x.id}/status
     if dhw := evo._get_single_tcs().hotwater:
         dhw_status = await dhw._update()
         assert SCH_DHW_STATUS(dhw_status)
@@ -100,7 +100,7 @@ async def _test_system_apis(evo: EvohomeClientv2) -> None:
     # STEP 1: retrieve base data
     await evo.update()
 
-    # STEP 2: GET /{x.TYPE}/{x.id}/status
+    # STEP 2: GET /{x._TYPE}/{x.id}/status
     try:
         tcs = evo._get_single_tcs()
     except evo2.NoSingleTcsError:

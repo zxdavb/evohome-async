@@ -32,7 +32,7 @@ class Location(EntityBase):
     """Instance of an account's location."""
 
     STATUS_SCHEMA: Final[vol.Schema] = SCH_LOCN_STATUS
-    TYPE: Final = EntityType.LOC  # type: ignore[misc]
+    _TYPE: Final = EntityType.LOC  # type: ignore[misc]
 
     def __init__(self, client: EvohomeClientNew, config: _EvoDictT) -> None:
         super().__init__(
@@ -122,7 +122,7 @@ class Location(EntityBase):
         """
 
         status: _EvoDictT = await self._broker.get(
-            f"{self.TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
+            f"{self._TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
             schema=self.STATUS_SCHEMA,
         )  # type: ignore[assignment]
 

@@ -243,8 +243,8 @@ SCH_PUT_SCHEDULE_DHW: Final = _factory_put_schedule_dhw(pascal_case)
 
 SCH_PUT_SCHEDULE_ZONE: Final = _factory_put_schedule_zone(pascal_case)
 
-# GET /{self.TYPE}/{self.id}/schedule
+# GET /{self._TYPE}/{self.id}/schedule
 SCH_GET_SCHEDULE: Final = _factory_get_schedule(snake_to_camel)
 
-# PUT /{self.TYPE}/{self.id}/schedule
+# PUT /{self._TYPE}/{self.id}/schedule
 SCH_PUT_SCHEDULE: Final = _factory_put_schedule(pascal_case)

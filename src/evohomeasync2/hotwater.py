@@ -33,14 +33,14 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import ControlSystem
-    from .schema import _EvoDictT, _EvoListT
+    from .schema import _EvoDictT
 
 
 class HotWater(_ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
     STATUS_SCHEMA: Final = SCH_DHW_STATUS  # type: ignore[misc]
-    TYPE: Final = EntityType.DHW  # type: ignore[misc]
+    _TYPE: Final = EntityType.DHW  # type: ignore[misc]
 
     SCH_SCHEDULE_GET: Final[vol.Schema] = SCH_GET_SCHEDULE_DHW  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final[vol.Schema] = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
@@ -48,21 +48,16 @@ class HotWater(_ZoneBase):
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs, config)
 
-    @property
-    def capabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
+    @property  # a for convenience attr
+    def mode(self) -> ZoneMode | None:
+        if (state_status := self.state_status) is None:
+            return None
+        ret: ZoneMode = state_status[SZ_MODE]
         return ret
 
-    @property
-    def schedule_capabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
-        return ret
-
-    @property  # for convenience (is not a top-level config attribute)
-    def modes(self) -> _EvoListT:
-        ret: _EvoListT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE][
-            SZ_ALLOWED_MODES
-        ]
+    @property  # a convenience attr
+    def modes(self) -> tuple[ZoneMode]:
+        ret = tuple(self.state_capabilities[SZ_ALLOWED_MODES])
         return ret
 
     @property
@@ -70,22 +65,43 @@ class HotWater(_ZoneBase):
         return "Domestic Hot Water"
 
     @property
-    def state_status(self) -> _EvoDictT | None:
-        return self._status.get(SZ_STATE_STATUS)
-
-    @property  # status attr for convenience (new)
-    def mode(self) -> str | None:
-        if (state_status := self._status.get(SZ_STATE_STATUS)) is None:
-            return None
-        ret: str = state_status[SZ_MODE]
+    def schedule_capabilities(self) -> _EvoDictT:
+        ret: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
         return ret
 
-    @property  # status attr for convenience (new)
+    @property  # a convenience attr
     def state(self) -> DhwState | None:
-        if (state_status := self._status.get(SZ_STATE_STATUS)) is None:
+        if (state_status := self.state_status) is None:
             return None
         ret: DhwState = state_status[SZ_STATE]
         return ret
+
+    @property  # a convenience attr
+    def states(self) -> tuple[DhwState]:
+        ret: tuple[DhwState] = tuple(x.value for x in DhwState)  # type: ignore[assignment]
+        return ret
+
+    @property
+    def state_capabilities(self) -> _EvoDictT:
+        """
+        "dhwStateCapabilitiesResponse": {
+            "allowedStates": ["On", "Off"],
+            "allowedModes": ["FollowSchedule", "PermanentOverride", "TemporaryOverride"],
+            "maxDuration": "1.00:00:00",
+            "timingResolution": "00:10:00"
+        },
+        """
+
+        ret: _EvoDictT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
+        return ret
+
+    @property
+    def state_status(self) -> _EvoDictT | None:
+        return self._status.get(SZ_STATE_STATUS)
+
+    @property
+    def type(self) -> str:
+        return "DomesticHotWater"
 
     def _next_setpoint(self) -> tuple[dt, str] | None:  # WIP: for convenience (new)
         """Return the datetime and state of the next setpoint."""
@@ -93,7 +109,7 @@ class HotWater(_ZoneBase):
 
     async def _set_mode(self, mode: dict[str, str | None]) -> None:
         """Set the DHW mode (state)."""
-        _ = await self._broker.put(f"{self.TYPE}/{self.id}/state", json=mode)
+        _ = await self._broker.put(f"{self._TYPE}/{self.id}/state", json=mode)
 
     async def reset_mode(self) -> None:
         """Cancel any override and allow the DHW to follow its schedule."""

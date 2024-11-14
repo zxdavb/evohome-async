@@ -155,10 +155,10 @@ async def _test_tcs_mode(evo: EvohomeClientv2) -> None:
     _ = await tcs.location.update()
     old_mode: _EvoDictT = tcs.system_mode_status  # type: ignore[assignment]
 
-    url = f"{tcs.TYPE}/{tcs.id}/status"
+    url = f"{tcs._TYPE}/{tcs.id}/status"
     _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_TCS_STATUS)
 
-    url = f"{tcs.TYPE}/{tcs.id}/mode"
+    url = f"{tcs._TYPE}/{tcs.id}/mode"
     _ = await should_fail(
         evo, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
@@ -186,12 +186,12 @@ async def _test_tcs_mode(evo: EvohomeClientv2) -> None:
 
     _ = await should_work(evo, HTTPMethod.PUT, url, json=old_mode)
 
-    url = f"{tcs.TYPE}/1234567/mode"
+    url = f"{tcs._TYPE}/1234567/mode"
     _ = await should_fail(
         evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.UNAUTHORIZED
     )
 
-    url = f"{tcs.TYPE}/{tcs.id}/systemMode"
+    url = f"{tcs._TYPE}/{tcs.id}/systemMode"
     _ = await should_fail(
         evo,
         HTTPMethod.PUT,
@@ -216,10 +216,10 @@ async def _test_zone_mode(evo: EvohomeClientv2) -> None:
         pytest.skip("No available zones found")
     #
 
-    url = f"{zone.TYPE}/{zone.id}/status"
+    url = f"{zone._TYPE}/{zone.id}/status"
     _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_ZONE_STATUS)
 
-    url = f"{zone.TYPE}/{zone.id}/heatSetpoint"
+    url = f"{zone._TYPE}/{zone.id}/heatSetpoint"
 
     heat_setpoint: dict[str, float | str | None] = {
         S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
@@ -260,7 +260,7 @@ async def _test_zone_mode(evo: EvohomeClientv2) -> None:
 # TODO: Test sending bad schedule
 # TODO: Try with/without convert_to_put_schedule()
 async def _test_schedule(evo: EvohomeClientv2) -> None:
-    """Test /{x.TYPE}/{x.id}/schedule (of a zone)"""
+    """Test /{x._TYPE}/{x.id}/schedule (of a zone)"""
 
     await evo.update()
 
@@ -268,11 +268,11 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
     #
 
     if zone.id == faked.GHOST_ZONE_ID:
-        url = f"{zone.TYPE}/{faked.GHOST_ZONE_ID}/schedule"
+        url = f"{zone._TYPE}/{faked.GHOST_ZONE_ID}/schedule"
         _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
         return
 
-    url = f"{zone.TYPE}/{zone.id}/schedule"
+    url = f"{zone._TYPE}/{zone.id}/schedule"
     schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
 
     temp = schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT]  # type: ignore[call-overload]
@@ -365,7 +365,7 @@ async def test_zone_mode(evohome_v2: EvohomeClientv2) -> None:
 
 @skipif_auth_failed
 async def test_schedule(evohome_v2: EvohomeClientv2) -> None:
-    """Test /{x.TYPE}/{x.id}/schedule"""
+    """Test /{x._TYPE}/{x.id}/schedule"""
 
     await _test_schedule(evohome_v2)
 
