@@ -90,7 +90,7 @@ from .const import (
     ZoneModelType,
     ZoneType,
 )
-from .helpers import do_nothing, obfuscate as _obfuscate, snake_to_camel
+from .helpers import _do_nothing, obfuscate as _obfuscate, snake_to_camel
 
 # These are best guess
 MAX_HEAT_SETPOINT_LOWER: Final = 21.0
@@ -100,7 +100,7 @@ MIN_HEAT_SETPOINT_LOWER: Final = 4.5
 MIN_HEAT_SETPOINT_UPPER: Final = 21.0
 
 
-def _factory_system_mode_perm(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_system_mode_perm(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the permanent system modes schema."""
 
     return vol.Schema(
@@ -120,7 +120,7 @@ def _factory_system_mode_perm(fnc: Callable[[str], str] = do_nothing) -> vol.Sch
     )
 
 
-def _factory_system_mode_temp(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_system_mode_temp(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the temporary system modes schema."""
 
     return vol.Schema(
@@ -142,7 +142,7 @@ def _factory_system_mode_temp(fnc: Callable[[str], str] = do_nothing) -> vol.Sch
 
 
 def _factory_schedule_capabilities_response(
-    fnc: Callable[[str], str] = do_nothing,
+    fnc: Callable[[str], str] = _do_nothing,
 ) -> vol.Schema:
     """Factory for the schedule_capabilities_response schema."""
 
@@ -158,7 +158,7 @@ def _factory_schedule_capabilities_response(
     )
 
 
-def _factory_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the DHW schema."""
 
     SCH_DHW_STATE_CAPABILITIES_RESPONSE: Final = vol.Schema(
@@ -185,7 +185,7 @@ def _factory_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the zone schema."""
 
     SCH_FAN_MODE: Final = vol.Schema(  # noqa: F841
@@ -259,7 +259,7 @@ def _factory_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_tcs(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_tcs(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the TCS schema."""
 
     SCH_ALLOWED_SYSTEM_MODES: Final = vol.Any(
@@ -280,7 +280,7 @@ def _factory_tcs(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_gateway(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_gateway(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the gateway schema."""
 
     SCH_GATEWAY_INFO: Final = vol.Schema(
@@ -302,7 +302,7 @@ def _factory_gateway(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     )
 
 
-def _factory_time_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_time_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the time zone schema."""
 
     return vol.Schema(
@@ -318,7 +318,7 @@ def _factory_time_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 
 
 def _factory_locations_installation_info(
-    fnc: Callable[[str], str] = do_nothing,
+    fnc: Callable[[str], str] = _do_nothing,
 ) -> vol.Schema:
     """Factory for the location (config) schema."""
 
@@ -360,7 +360,7 @@ def _factory_locations_installation_info(
 
 
 def _factory_user_locations_installation_info(
-    fnc: Callable[[str], str] = do_nothing,
+    fnc: Callable[[str], str] = _do_nothing,
 ) -> vol.Schema:
     """Factory for the user locations (config) schema."""
 
