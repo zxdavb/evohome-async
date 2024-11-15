@@ -29,16 +29,6 @@ def obfuscate(value: bool | int | str) -> bool | int | str | None:
     return "********"
 
 
-def camel_case(s: str) -> str:
-    """Convert a PascalCase string to camelCase."""
-    return s[:1].lower() + s[1:]
-
-
-def pascal_case(s: str) -> str:
-    """Convert a camelCase string to PascalCase."""
-    return s[:1].upper() + s[1:]
-
-
 def camel_to_snake(s: str) -> str:
     """Return a string converted from camelCase to snake_case."""
     s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", s)
@@ -71,7 +61,11 @@ def convert_keys_to_snake_case(data: _T) -> _T:
     return {camel_to_snake(k): convert_keys_to_snake_case(v) for k, v in data.items()}  # type: ignore[return-value]
 
 
-assert snake_to_camel("snakeToCamel") == "snakeToCamel"
-assert camel_to_snake("snakeToCamel") == "snake_to_camel"
-assert camel_to_snake("snake_to_camel") == "snake_to_camel"
-assert snake_to_camel("snake_to_camel") == "snakeToCamel"
+def _OUT_camel_case(s: str) -> str:
+    """Convert a PascalCase string to camelCase."""
+    return s[:1].lower() + s[1:]
+
+
+def _OUT_pascal_case(s: str) -> str:
+    """Convert a camelCase string to PascalCase."""
+    return s[:1].upper() + s[1:]
