@@ -44,7 +44,6 @@ from .schema.const import (
 from .zone import ActiveFaultsBase, Zone
 
 if TYPE_CHECKING:
-    import voluptuous as vol
 
     from . import Gateway, Location
     from .schema import _EvoDictT, _ScheduleT
@@ -53,7 +52,7 @@ if TYPE_CHECKING:
 class ControlSystem(ActiveFaultsBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
-    STATUS_SCHEMA: Final[vol.Schema] = SCH_TCS_STATUS
+    STATUS_SCHEMA: Final = SCH_TCS_STATUS
     _TYPE: Final = EntityType.TCS  # type: ignore[misc]
 
     def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:

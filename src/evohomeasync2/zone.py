@@ -149,7 +149,7 @@ class ActiveFaultsBase(EntityBase):
 class _ZoneBase(ActiveFaultsBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    STATUS_SCHEMA: Final[vol.Schema]  # type: ignore[misc]
+    STATUS_SCHEMA: Final  # type: ignore[misc]
 
     SCH_SCHEDULE_GET: Final  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final  # type: ignore[misc]

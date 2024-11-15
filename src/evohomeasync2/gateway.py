@@ -5,8 +5,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
-import voluptuous as vol
-
 from .const import (
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
@@ -20,7 +18,6 @@ from .schema.const import EntityType
 from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:
-    import voluptuous as vol
 
     from . import Location
     from .schema import _EvoDictT
@@ -29,7 +26,7 @@ if TYPE_CHECKING:
 class Gateway(ActiveFaultsBase):
     """Instance of a location's gateway."""
 
-    STATUS_SCHEMA: Final[vol.Schema] = SCH_GWY_STATUS
+    STATUS_SCHEMA: Final = SCH_GWY_STATUS
     _TYPE: Final = EntityType.GWY  # type: ignore[misc]
 
     def __init__(self, location: Location, config: _EvoDictT) -> None:
