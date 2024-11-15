@@ -66,6 +66,6 @@ def _OUT_camel_case(s: str) -> str:
     return s[:1].lower() + s[1:]
 
 
-def _OUT_pascal_case(s: str) -> str:
+def pascal_case(s: str) -> str:
     """Convert a camelCase string to PascalCase."""
     return s[:1].upper() + s[1:]
