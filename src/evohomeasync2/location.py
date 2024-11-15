@@ -113,7 +113,7 @@ class Location(EntityBase):
         ret: bool = self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
         return ret
 
-    async def update(self) -> None:
+    async def update(self) -> _EvoDictT:
         """Get the latest state of the location and update its status.
 
         Will also update the status of its gateways, their TCSs, and their DHW/zones.
@@ -127,6 +127,8 @@ class Location(EntityBase):
         )  # type: ignore[assignment]
 
         self._update_status(status)
+
+        return status
 
     def _update_status(self, status: _EvoDictT) -> None:
         # No ActiveFaults in location node of status

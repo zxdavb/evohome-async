@@ -14,17 +14,11 @@ from evohomeasync2.const import (
     API_STRFTIME,
     SZ_PERMANENT,
     SZ_SYSTEM_MODE,
+    SZ_USER_ID,
     SystemMode,
     ZoneMode,
 )
-from evohomeasync2.schema import (
-    SCH_FULL_CONFIG,
-    SCH_GET_SCHEDULE,
-    SCH_LOCN_STATUS,
-    SCH_TCS_STATUS,
-    SCH_USER_ACCOUNT,
-    SCH_ZONE_STATUS,
-)
+from evohomeasync2.schema import SCH_GET_SCHEDULE
 from evohomeasync2.schema.const import (
     S2_DAILY_SCHEDULES,
     S2_HEAT_SETPOINT,
@@ -36,13 +30,19 @@ from evohomeasync2.schema.const import (
     S2_SWITCHPOINTS,
     S2_SYSTEM_MODE,
     S2_TIME_UNTIL,
-    S2_USER_ID,
 )
 from evohomeasync2.schema.schedule import convert_to_put_schedule
 
 from . import faked_server as faked
 from .common import should_fail, should_work, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
+from .schema import (
+    SCH_FULL_CONFIG,
+    SCH_LOCN_STATUS,
+    SCH_TCS_STATUS,
+    SCH_USER_ACCOUNT,
+    SCH_ZONE_STATUS,
+)
 
 if TYPE_CHECKING:
     from evohomeasync2.schema import _EvoDictT
@@ -78,7 +78,7 @@ async def _test_all_config(evo: EvohomeClientv2) -> None:
     await evo.update()
     #
 
-    url = f"location/installationInfo?userId={evo._user_info[S2_USER_ID]}"
+    url = f"location/installationInfo?userId={evo._user_info[SZ_USER_ID]}"
     await should_work(evo, HTTPMethod.GET, url)
 
     url += "&includeTemperatureControlSystems=True"

@@ -238,7 +238,7 @@ class ControlSystem(ActiveFaultsBase):
         """Set the system into heating off mode."""
         await self.set_mode(SystemMode.HEATING_OFF, until=until)
 
-    async def temperatures(
+    async def get_temperatures(
         self,
     ) -> list[dict[str, float | str | None]]:  # TODO: remove?
         """A convenience function to return the latest temperatures and setpoints."""

@@ -70,7 +70,7 @@ class EvohomeClientNew:  # requires a Token Manager
         *,
         reset_config: bool = False,
         dont_update_status: bool = False,
-    ) -> None:
+    ) -> _EvoListT:
         """Retrieve the latest state of the installation and it's locations.
 
         If required, or when `reset_config` is true, first retrieves the user
@@ -121,6 +121,8 @@ class EvohomeClientNew:  # requires a Token Manager
         if not dont_update_status:
             for loc in self._locations:
                 await loc.update()
+
+        return self._locn_info
 
     @property
     def user_account(self) -> _EvoDictT:
@@ -214,11 +216,11 @@ class EvohomeClientNew:  # requires a Token Manager
         """Set the default TCS into heating off mode."""
         await self._get_single_tcs().set_heatingoff(until=until)
 
-    async def temperatures(
+    async def get_temperatures(
         self,
     ) -> list[dict[str, float | str | None]]:  # TODO: remove?
         """Return the current temperatures and setpoints of the default TCS."""
-        return await self._get_single_tcs().temperatures()
+        return await self._get_single_tcs().get_temperatures()
 
     async def get_schedules(self) -> _ScheduleT:
         """Backup all schedules from the default TCS."""

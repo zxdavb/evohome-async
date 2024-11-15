@@ -181,7 +181,7 @@ def _factory_tcs_status(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
         {
             vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
             vol.Required(fnc(S2_SYSTEM_MODE_STATUS)): _factory_system_mode_status(fnc),
-            vol.Required(fnc(S2_ZONES)): [SCH_ZON_CONFIG],
+            vol.Required(fnc(S2_ZONES)): [_factory_zone_status(fnc)],
             vol.Optional(fnc(S2_DHW)): _factory_dhw_status(fnc),
             vol.Required(fnc(S2_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
         },

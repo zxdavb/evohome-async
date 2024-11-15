@@ -8,15 +8,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync2 as evo2
-from evohomeasync2.schema import (
-    SCH_DHW_STATUS,
-    SCH_FULL_CONFIG,
-    SCH_LOCN_STATUS,
-    SCH_USER_ACCOUNT,
-    SCH_ZONE_STATUS,
-    SYSTEM_MODES,
-    SystemMode,
-)
+from evohomeasync2.schema import SYSTEM_MODES, SystemMode
 from evohomeasync2.schema.const import S2_MODE
 from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 from evohomeasync2.zone import Zone
@@ -24,9 +16,18 @@ from evohomeasync2.zone import Zone
 from . import faked_server as faked
 from .common import skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
+from .schema import (
+    SCH_DHW_STATUS,
+    SCH_FULL_CONFIG,
+    SCH_LOCN_STATUS,
+    SCH_USER_ACCOUNT,
+    SCH_ZONE_STATUS,
+)
 
 if TYPE_CHECKING:
     from ..conftest import EvohomeClientv2
+
+
 
 #######################################################################################
 
