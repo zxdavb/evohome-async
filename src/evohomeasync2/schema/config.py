@@ -90,7 +90,7 @@ from .const import (
     ZoneModelType,
     ZoneType,
 )
-from .helpers import _do_nothing, obfuscate as _obfuscate, snake_to_camel
+from .helpers import _do_nothing, obfuscate as _obfuscate
 
 # These are best guess
 MAX_HEAT_SETPOINT_LOWER: Final = 21.0
@@ -100,7 +100,7 @@ MIN_HEAT_SETPOINT_LOWER: Final = 4.5
 MIN_HEAT_SETPOINT_UPPER: Final = 21.0
 
 
-def _factory_system_mode_perm(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_system_mode_perm(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the permanent system modes schema."""
 
     return vol.Schema(
@@ -120,7 +120,7 @@ def _factory_system_mode_perm(fnc: Callable[[str], str] = _do_nothing) -> vol.Sc
     )
 
 
-def _factory_system_mode_temp(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_system_mode_temp(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the temporary system modes schema."""
 
     return vol.Schema(
@@ -141,7 +141,7 @@ def _factory_system_mode_temp(fnc: Callable[[str], str] = _do_nothing) -> vol.Sc
     )
 
 
-def _factory_schedule_capabilities_response(
+def factory_schedule_capabilities_response(
     fnc: Callable[[str], str] = _do_nothing,
 ) -> vol.Schema:
     """Factory for the schedule_capabilities_response schema."""
@@ -158,7 +158,7 @@ def _factory_schedule_capabilities_response(
     )
 
 
-def _factory_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the DHW schema."""
 
     SCH_DHW_STATE_CAPABILITIES_RESPONSE: Final = vol.Schema(
@@ -179,13 +179,13 @@ def _factory_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
             ): SCH_DHW_STATE_CAPABILITIES_RESPONSE,
             vol.Required(
                 fnc(S2_SCHEDULE_CAPABILITIES_RESPONSE)
-            ): _factory_schedule_capabilities_response(fnc),
+            ): factory_schedule_capabilities_response(fnc),
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def _factory_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the zone schema."""
 
     SCH_FAN_MODE: Final = vol.Schema(  # noqa: F841
@@ -237,7 +237,7 @@ def _factory_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
         extra=vol.PREVENT_EXTRA,
     )
 
-    SCH_SCHEDULE_CAPABILITIES = _factory_schedule_capabilities_response(fnc).extend(
+    SCH_SCHEDULE_CAPABILITIES = factory_schedule_capabilities_response(fnc).extend(
         {
             vol.Required(fnc(S2_SETPOINT_VALUE_RESOLUTION)): float,
         },
@@ -259,11 +259,11 @@ def _factory_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-def _factory_tcs(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_tcs(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the TCS schema."""
 
     SCH_ALLOWED_SYSTEM_MODES: Final = vol.Any(
-        _factory_system_mode_perm(fnc), _factory_system_mode_temp(fnc)
+        factory_system_mode_perm(fnc), factory_system_mode_temp(fnc)
     )
 
     return vol.Schema(
@@ -272,15 +272,15 @@ def _factory_tcs(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
             vol.Required(fnc(S2_MODEL_TYPE)): vol.In([m.value for m in TcsModelType]),
             vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [SCH_ALLOWED_SYSTEM_MODES],
             vol.Required(fnc(S2_ZONES)): vol.All(
-                [_factory_zone(fnc)], vol.Length(min=1, max=12)
+                [factory_zone(fnc)], vol.Length(min=1, max=12)
             ),
-            vol.Optional(fnc(S2_DHW)): _factory_dhw(fnc),
+            vol.Optional(fnc(S2_DHW)): factory_dhw(fnc),
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def _factory_gateway(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_gateway(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the gateway schema."""
 
     SCH_GATEWAY_INFO: Final = vol.Schema(
@@ -296,13 +296,13 @@ def _factory_gateway(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_GATEWAY_INFO)): SCH_GATEWAY_INFO,
-            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [_factory_tcs(fnc)],
+            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [factory_tcs(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def _factory_time_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_time_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the time zone schema."""
 
     return vol.Schema(
@@ -317,7 +317,7 @@ def _factory_time_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-def _factory_locations_installation_info(
+def factory_locations_installation_info(
     fnc: Callable[[str], str] = _do_nothing,
 ) -> vol.Schema:
     """Factory for the location (config) schema."""
@@ -344,7 +344,7 @@ def _factory_locations_installation_info(
                 [m.value for m in LocationType]
             ),  # "Residential"
             vol.Required(fnc(S2_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
-            vol.Required(fnc(S2_TIME_ZONE)): _factory_time_zone(fnc),
+            vol.Required(fnc(S2_TIME_ZONE)): factory_time_zone(fnc),
             vol.Required(fnc(S2_LOCATION_OWNER)): SCH_LOCATION_OWNER,
         },
         extra=vol.PREVENT_EXTRA,
@@ -353,38 +353,35 @@ def _factory_locations_installation_info(
     return vol.Schema(
         {
             vol.Required(fnc(S2_LOCATION_INFO)): SCH_LOCATION_INFO,
-            vol.Required(fnc(S2_GATEWAYS)): [_factory_gateway(fnc)],
+            vol.Required(fnc(S2_GATEWAYS)): [factory_gateway(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def _factory_user_locations_installation_info(
+def factory_user_locations_installation_info(
     fnc: Callable[[str], str] = _do_nothing,
 ) -> vol.Schema:
     """Factory for the user locations (config) schema."""
 
     return vol.Schema(
-        [_factory_locations_installation_info(fnc)],
+        [factory_locations_installation_info(fnc)],
         extra=vol.PREVENT_EXTRA,
     )
 
 
-SCH_DHW_CONFIG: Final = _factory_dhw(snake_to_camel)
+SCH_DHW_CONFIG: Final = factory_dhw()
 
-SCH_ZON_CONFIG: Final = _factory_zone(snake_to_camel)
+SCH_ZON_CONFIG: Final = factory_zone()
 
-SCH_TCS_CONFIG: Final = _factory_tcs(snake_to_camel)
+SCH_TCS_CONFIG: Final = factory_tcs()
 
-SCH_GWY_CONFIG: Final = _factory_gateway(snake_to_camel)
+SCH_GWY_CONFIG: Final = factory_gateway()
 
-SCH_TIME_ZONE: Final = _factory_time_zone(snake_to_camel)
+SCH_TIME_ZONE: Final = factory_time_zone()
 
 # GET /location/{location_id}/installationInfo?includeTemperatureControlSystems=True
-SCH_LOCATION_INSTALLATION_INFO: Final = _factory_locations_installation_info(
-    snake_to_camel
-)
+SCH_LOCATION_INSTALLATION_INFO: Final = factory_locations_installation_info()
+
 # GET /location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True
-SCH_USER_LOCATIONS_INSTALLATION_INFO: Final = _factory_user_locations_installation_info(
-    snake_to_camel
-)
+SCH_USER_LOCATIONS_INSTALLATION_INFO: Final = factory_user_locations_installation_info()

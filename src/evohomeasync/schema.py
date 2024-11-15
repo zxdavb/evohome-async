@@ -126,7 +126,7 @@ class UserAccountResponse(TypedDict):
     latestEulaAccepted: bool
 
 
-def _factory_user_account_response(
+def factory_user_account_response(
     fnc: Callable[[str], str] = _do_nothing,
 ) -> vol.Schema:
     """Factory for the user account schema."""
@@ -158,7 +158,7 @@ def _factory_user_account_response(
     )
 
 
-SCH_USER_ACCOUNT_RESPONSE: Final = _factory_user_account_response()
+SCH_USER_ACCOUNT_RESPONSE: Final = factory_user_account_response()
 
 
 class SessionResponseT(TypedDict):
@@ -255,7 +255,7 @@ class LocationResponse(TypedDict):
     contractor: dict[str, Any]  # ContractorResponse
 
 
-def _factory_user_account_response(
+def factory_user_account_response(
     fnc: Callable[[str], str] = _do_nothing,
 ) -> vol.Schema:
     """Factory for the user account schema."""
@@ -288,7 +288,7 @@ def _factory_user_account_response(
     )
 
 
-SCH_LOCATION_RESPONSE: Final = _factory_user_account_response()
+SCH_LOCATION_RESPONSE: Final = factory_user_account_response()
 
 
 # schema keys (start with a lower case letter)

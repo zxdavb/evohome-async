@@ -22,7 +22,7 @@ from .const import (
 from .helpers import _do_nothing, obfuscate as _obfuscate
 
 
-def _factory_user_account(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_user_account(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the user account schema."""
 
     return vol.Schema(
@@ -42,4 +42,4 @@ def _factory_user_account(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema
 
 
 # GET /userAccount
-SCH_USER_ACCOUNT: Final = _factory_user_account()
+SCH_USER_ACCOUNT: Final = factory_user_account()

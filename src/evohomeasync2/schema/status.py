@@ -49,13 +49,13 @@ from .const import (
     SystemMode,
     ZoneMode,
 )
-from .helpers import _do_nothing, snake_to_camel
+from .helpers import _do_nothing
 
 # HACK: "2023-05-04T18:47:36.7727046" (7, not 6 digits) seen with gateway fault
 _DTM_FORMAT = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{1,7}$"
 
 
-def _factory_active_faults(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_active_faults(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the active faults schema."""
 
     return vol.Schema(
@@ -71,7 +71,7 @@ def _factory_active_faults(fnc: Callable[[str], str] = _do_nothing) -> vol.Schem
     )
 
 
-def _factory_temp_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Any:
+def factory_temp_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Any:
     """Factory for the temperature status schema."""
 
     return vol.Any(
@@ -90,7 +90,7 @@ def _factory_temp_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Any:
     )
 
 
-def _factory_zone_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_zone_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the zone status schema."""
 
     SCH_SETPOINT_STATUS: Final = vol.Schema(
@@ -114,16 +114,16 @@ def _factory_zone_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
         {
             vol.Required(fnc(S2_ZONE_ID)): vol.Match(REGEX_ZONE_ID),
             vol.Required(fnc(S2_NAME)): str,
-            vol.Required(fnc(S2_TEMPERATURE_STATUS)): _factory_temp_status(fnc),
+            vol.Required(fnc(S2_TEMPERATURE_STATUS)): factory_temp_status(fnc),
             vol.Required(fnc(S2_SETPOINT_STATUS)): SCH_SETPOINT_STATUS,
-            vol.Required(fnc(S2_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc)],
             vol.Optional(fnc(S2_FAN_STATUS)): SCH_FAN_STATUS,  # non-evohome
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def _factory_dhw_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_dhw_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the DHW status schema."""
 
     SCH_STATE_STATUS: Final = vol.Schema(
@@ -138,15 +138,15 @@ def _factory_dhw_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_DHW_ID)): vol.Match(REGEX_DHW_ID),
-            vol.Required(fnc(S2_TEMPERATURE_STATUS)): _factory_temp_status(fnc),
+            vol.Required(fnc(S2_TEMPERATURE_STATUS)): factory_temp_status(fnc),
             vol.Required(fnc(S2_STATE_STATUS)): SCH_STATE_STATUS,
-            vol.Required(fnc(S2_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def _factory_system_mode_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Any:
+def factory_system_mode_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Any:
     """Factory for the system mode status schema."""
 
     return vol.Any(
@@ -174,55 +174,55 @@ def _factory_system_mode_status(fnc: Callable[[str], str] = _do_nothing) -> vol.
     )
 
 
-def _factory_tcs_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_tcs_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the TCS status schema."""
 
     return vol.Schema(
         {
             vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
-            vol.Required(fnc(S2_SYSTEM_MODE_STATUS)): _factory_system_mode_status(fnc),
-            vol.Required(fnc(S2_ZONES)): [_factory_zone_status(fnc)],
-            vol.Optional(fnc(S2_DHW)): _factory_dhw_status(fnc),
-            vol.Required(fnc(S2_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
+            vol.Required(fnc(S2_SYSTEM_MODE_STATUS)): factory_system_mode_status(fnc),
+            vol.Required(fnc(S2_ZONES)): [factory_zone_status(fnc)],
+            vol.Optional(fnc(S2_DHW)): factory_dhw_status(fnc),
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def _factory_gwy_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_gwy_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the gateway status schema."""
 
     return vol.Schema(
         {
             vol.Required(fnc(S2_GATEWAY_ID)): vol.Match(REGEX_GATEWAY_ID),
             vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [
-                _factory_tcs_status(fnc)
+                factory_tcs_status(fnc)
             ],
-            vol.Required(fnc(S2_ACTIVE_FAULTS)): [_factory_active_faults(fnc)],
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def _factory_loc_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_loc_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the locations status schema."""
 
     return vol.Schema(
         {
             vol.Required(fnc(S2_LOCATION_ID)): vol.Match(REGEX_LOCATION_ID),
-            vol.Required(fnc(S2_GATEWAYS)): [_factory_gwy_status(fnc)],
+            vol.Required(fnc(S2_GATEWAYS)): [factory_gwy_status(fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-SCH_DHW_STATUS: Final = _factory_dhw_status(snake_to_camel)
+SCH_DHW_STATUS: Final = factory_dhw_status()
 
-SCH_ZON_CONFIG: Final = _factory_zone_status(snake_to_camel)
+SCH_ZON_CONFIG: Final = factory_zone_status()
 
-SCH_TCS_STATUS: Final = _factory_tcs_status(snake_to_camel)
+SCH_TCS_STATUS: Final = factory_tcs_status()
 
-SCH_GWY_STATUS: Final = _factory_gwy_status(snake_to_camel)
+SCH_GWY_STATUS: Final = factory_gwy_status()
 
 # GET /location/{location_id}/status?includeTemperatureControlSystems=True
-SCH_LOC_STATUS: Final = _factory_loc_status(snake_to_camel)
+SCH_LOC_STATUS: Final = factory_loc_status()
