@@ -35,12 +35,7 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
-from .schema import (
-    SCH_PUT_SCHEDULE_ZONE,
-    SCH_SCHEDULE_ZONE,
-    SCH_ZONE_STATUS,
-    convert_to_put_schedule,
-)
+from .schema import SCH_PUT_SCHEDULE_ZONE, SCH_SCHEDULE_ZONE, convert_to_put_schedule
 from .schema.const import (
     S2_HEAT_SETPOINT_VALUE,
     S2_SETPOINT_MODE,
@@ -52,6 +47,8 @@ from .schema.const import (
     ZoneModelType,
     ZoneType,
 )
+from .schema.helpers import camel_to_snake
+from .schema.status import factory_zone_status
 
 if TYPE_CHECKING:
     import logging
@@ -270,7 +267,7 @@ class _ZoneBase(ActiveFaultsBase):
 class Zone(_ZoneBase):
     """Instance of a TCS's heating zone (temperatureZone)."""
 
-    STATUS_SCHEMA: Final = SCH_ZONE_STATUS  # type: ignore[misc]
+    STATUS_SCHEMA: Final = factory_zone_status(camel_to_snake)  # type: ignore[misc]
     _TYPE: Final = EntityType.ZON  # type: ignore[misc]
 
     SCH_SCHEDULE_GET: Final = SCH_SCHEDULE_ZONE  # type: ignore[misc]

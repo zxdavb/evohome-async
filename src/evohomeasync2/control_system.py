@@ -33,7 +33,6 @@ from .const import (
     SystemMode,
 )
 from .hotwater import HotWater
-from .schema import SCH_TCS_STATUS
 from .schema.const import (
     S2_PERMANENT,
     S2_SYSTEM_MODE,
@@ -41,10 +40,11 @@ from .schema.const import (
     EntityType,
     TcsModelType,
 )
+from .schema.helpers import camel_to_snake
+from .schema.status import factory_tcs_status
 from .zone import ActiveFaultsBase, Zone
 
 if TYPE_CHECKING:
-
     from . import Gateway, Location
     from .schema import _EvoDictT, _ScheduleT
 
@@ -52,7 +52,7 @@ if TYPE_CHECKING:
 class ControlSystem(ActiveFaultsBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
-    STATUS_SCHEMA: Final = SCH_TCS_STATUS
+    STATUS_SCHEMA: Final = factory_tcs_status(camel_to_snake)
     _TYPE: Final = EntityType.TCS  # type: ignore[misc]
 
     def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:

@@ -19,7 +19,7 @@ from .const import (
     SZ_STATE,
     SZ_STATE_STATUS,
 )
-from .schema import SCH_DHW_STATUS, SCH_PUT_SCHEDULE_DHW, SCH_SCHEDULE_DHW
+from .schema import SCH_PUT_SCHEDULE_DHW, SCH_SCHEDULE_DHW
 from .schema.const import (
     S2_MODE,
     S2_STATE,
@@ -28,6 +28,8 @@ from .schema.const import (
     EntityType,
     ZoneMode,
 )
+from .schema.helpers import camel_to_snake
+from .schema.status import factory_dhw_status
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
@@ -38,7 +40,7 @@ if TYPE_CHECKING:
 class HotWater(_ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
-    STATUS_SCHEMA: Final = SCH_DHW_STATUS  # type: ignore[misc]
+    STATUS_SCHEMA: Final = factory_dhw_status(camel_to_snake)  # type: ignore[misc]
     _TYPE: Final = EntityType.DHW  # type: ignore[misc]
 
     SCH_SCHEDULE_GET: Final = SCH_SCHEDULE_DHW  # type: ignore[misc]

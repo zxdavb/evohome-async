@@ -17,12 +17,12 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
-from .schema import SCH_LOCN_STATUS
 from .schema.const import EntityType
+from .schema.helpers import camel_to_snake
+from .schema.status import factory_loc_status
 from .zone import EntityBase
 
 if TYPE_CHECKING:
-
     from . import _EvohomeClientNew as EvohomeClientNew
     from .schema import _EvoDictT
 
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 class Location(EntityBase):
     """Instance of an account's location."""
 
-    STATUS_SCHEMA: Final = SCH_LOCN_STATUS
+    STATUS_SCHEMA: Final = factory_loc_status(camel_to_snake)
     _TYPE: Final = EntityType.LOC  # type: ignore[misc]
 
     def __init__(self, client: EvohomeClientNew, config: _EvoDictT) -> None:
