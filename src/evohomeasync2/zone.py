@@ -151,8 +151,8 @@ class _ZoneBase(ActiveFaultsBase):
 
     STATUS_SCHEMA: Final[vol.Schema]  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET: Final[vol.Schema]  # type: ignore[misc]
-    SCH_SCHEDULE_PUT: Final[vol.Schema]  # type: ignore[misc]
+    SCH_SCHEDULE_GET: Final  # type: ignore[misc]
+    SCH_SCHEDULE_PUT: Final  # type: ignore[misc]
 
     def __init__(self, id: str, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(id, tcs._broker, tcs._logger)

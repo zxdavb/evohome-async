@@ -31,8 +31,6 @@ from .schema.const import (
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
-    import voluptuous as vol
-
     from . import ControlSystem
     from .schema import _EvoDictT
 
@@ -43,8 +41,8 @@ class HotWater(_ZoneBase):
     STATUS_SCHEMA: Final = SCH_DHW_STATUS  # type: ignore[misc]
     _TYPE: Final = EntityType.DHW  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET: Final[vol.Schema] = SCH_GET_SCHEDULE_DHW  # type: ignore[misc]
-    SCH_SCHEDULE_PUT: Final[vol.Schema] = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
+    SCH_SCHEDULE_GET: Final = SCH_GET_SCHEDULE_DHW  # type: ignore[misc]
+    SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs, config)
