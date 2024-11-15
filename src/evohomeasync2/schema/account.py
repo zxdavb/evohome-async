@@ -19,10 +19,10 @@ from .const import (
     S2_USER_ID,
     S2_USERNAME,
 )
-from .helpers import do_nothing, obfuscate as _obfuscate, snake_to_camel
+from .helpers import _do_nothing, camel_to_snake, obfuscate as _obfuscate
 
 
-def _factory_user_account(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_user_account(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the user account schema."""
 
     return vol.Schema(
