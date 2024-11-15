@@ -13,7 +13,7 @@ from aioresponses import aioresponses
 
 from evohomeasync2 import exceptions as exc
 
-from ..const import HEADERS_AUTH_V1 as HEADERS_AUTH, URL_AUTH_V1 as URL_AUTH
+from ..const import HEADERS_AUTH_V2 as HEADERS_AUTH, URL_AUTH_V2 as URL_AUTH
 
 if TYPE_CHECKING:
     from pathlib import Path

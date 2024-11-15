@@ -18,7 +18,7 @@ from evohomeasync2.const import (
     SystemMode,
     ZoneMode,
 )
-from evohomeasync2.schema import SCH_GET_SCHEDULE
+from evohomeasync2.schema import SCH_GET_SCHEDULE, SCH_PUT_SCHEDULE
 from evohomeasync2.schema.const import (
     S2_DAILY_SCHEDULES,
     S2_HEAT_SETPOINT,
@@ -273,7 +273,7 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
         return
 
     url = f"{zone._TYPE}/{zone.id}/schedule"
-    schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
+    schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_PUT_SCHEDULE)
 
     temp = schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT]  # type: ignore[call-overload]
 

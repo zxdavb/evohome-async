@@ -21,8 +21,8 @@ from .const import (
     MOCK_LOCN_STATUS,
     MOCK_SCHEDULE_DHW,
     MOCK_SCHEDULE_ZONE,
-    URL_AUTH_V1 as URL_AUTH,
-    URL_BASE_V1 as URL_BASE,
+    URL_AUTH_V2 as URL_AUTH,
+    URL_BASE_V2 as URL_BASE,
     user_config_from_full_config as _user_config_from_full_config,
 )
 

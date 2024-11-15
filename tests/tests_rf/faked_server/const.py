@@ -12,8 +12,8 @@ URL_AUTH_V0 = f"https://{HOSTNAME}/WebAPI/api/session"
 URL_BASE_V0 = f"https://{HOSTNAME}/WebAPI/api/"
 
 # - the newer API
-URL_AUTH_V1 = f"https://{HOSTNAME}/Auth/OAuth/Token"
-URL_BASE_V1 = f"https://{HOSTNAME}/WebAPI/emea/api/v1/"
+URL_AUTH_V2 = f"https://{HOSTNAME}/Auth/OAuth/Token"
+URL_BASE_V2 = f"https://{HOSTNAME}/WebAPI/emea/api/v1/"
 
 
 GHOST_ZONE_ID = "0000000"  # "3432521"

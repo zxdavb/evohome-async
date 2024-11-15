@@ -18,7 +18,7 @@ import evohomeasync as evo0
 import evohomeasync2 as evo2
 from evohomeasync2.auth import Auth
 
-from ..const import URL_BASE_V1
+from ..const import URL_BASE_V2
 from .const import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
@@ -180,9 +180,9 @@ async def should_work(
     Used to validate the faked server against a 'real' server.
     """
 
-    response = await evo.auth.request(method, f"{URL_BASE_V1}/{url}", json=json)
+    response = await evo.auth.request(method, f"{URL_BASE_V2}/{url}", json=json)
 
-    content = await Auth._content(response)
+    content = await Auth._content(response)  # converts to snake_case
     assert response.content_type == content_type, content
 
     if response.content_type != "application/json":
@@ -209,7 +209,7 @@ async def should_fail(
     """
 
     try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
-        response = await evo.auth.request(method, f"{URL_BASE_V1}/{url}", json=json)
+        response = await evo.auth.request(method, f"{URL_BASE_V2}/{url}", json=json)
 
     except aiohttp.ClientResponseError:
         assert False  # err.status == status, err.status
