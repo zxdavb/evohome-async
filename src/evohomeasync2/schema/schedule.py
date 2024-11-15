@@ -21,7 +21,7 @@ from .const import (
     S2_SWITCHPOINTS,
     S2_TIME_OF_DAY,
 )
-from .helpers import do_nothing, pascal_case, snake_to_camel
+from .helpers import _do_nothing, pascal_case, snake_to_camel
 from .typedefs import _EvoDictT, _EvoListT
 
 _ScheduleT = dict[str, dict[str, Any]]
@@ -29,7 +29,7 @@ _ScheduleT = dict[str, dict[str, Any]]
 
 #
 # These are returned from vendor's API (GET)...
-def _factory_get_schedule_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_get_schedule_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the DHW schedule schema."""
 
     SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
@@ -56,7 +56,7 @@ def _factory_get_schedule_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Sch
     )
 
 
-def _factory_get_schedule_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_get_schedule_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_GET_SWITCHPOINT_ZONE: Final = vol.Schema(
@@ -86,7 +86,7 @@ def _factory_get_schedule_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Sc
     )
 
 
-def _factory_get_schedule(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_get_schedule(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the schedule schema."""
 
     return vol.Schema(
@@ -98,7 +98,7 @@ def _factory_get_schedule(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 #
 # These are as to be provided to the vendor's API (PUT)...
 # This is after modified by evohome-client (PUT), an evohome-client anachronism?
-def _factory_put_schedule_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_put_schedule_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_PUT_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
@@ -127,7 +127,7 @@ def _factory_put_schedule_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Sch
     )
 
 
-def _factory_put_schedule_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_put_schedule_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_PUT_SWITCHPOINT_ZONE: Final = vol.Schema(
@@ -156,7 +156,7 @@ def _factory_put_schedule_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Sc
     )
 
 
-def _factory_put_schedule(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def _factory_put_schedule(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the schedule schema."""
 
     return vol.Schema(

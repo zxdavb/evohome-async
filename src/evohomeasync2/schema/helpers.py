@@ -40,18 +40,18 @@ def pascal_case(s: str) -> str:
 
 
 def camel_to_snake(s: str) -> str:
-    """Convert a camelCase string to snake_case."""
+    """Return a string converted from camelCase to snake_case."""
     s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", s)
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
 
 
 def snake_to_camel(s: str) -> str:
-    """Convert a snake_case string to camelCase."""
+    """Return a string converted from snake_case to camelCase."""
     components = s.split("_")
     return components[0] + "".join(x.title() for x in components[1:])
 
 
-def do_nothing(s: str) -> str:
+def _do_nothing(s: str) -> str:
     """Return a string unconverted."""
     return s
 
