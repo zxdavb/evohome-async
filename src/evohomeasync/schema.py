@@ -3,10 +3,15 @@
 
 from __future__ import annotations
 
+import re
+from collections.abc import Callable
 from enum import EnumCheck, StrEnum, verify
-from typing import Any, Final, NewType, TypedDict
+from typing import Any, Final, NewType, TypedDict, TypeVar
 
 import voluptuous as vol
+
+_T = TypeVar("_T")
+
 
 # TCC config, status dicts
 _EvoLeafT = bool | float | int | str | list[str]  # Any
@@ -63,6 +68,38 @@ SZ_USERNAME: Final = "username"
 SZ_ZIPCODE: Final = "zipcode"
 
 
+def camel_to_snake(s: str) -> str:
+    """Return a string converted from camelCase to snake_case."""
+    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", s)
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+
+
+def snake_to_camel(s: str) -> str:
+    """Return a string converted from snake_case to camelCase."""
+    components = s.split("_")
+    return components[0] + "".join(x.title() for x in components[1:])
+
+
+def _do_nothing(s: str) -> str:
+    """Return a string unconverted."""
+    return s
+
+
+def convert_keys_to_snake_case(data: _T) -> _T:
+    """Convert all keys in a dictionary to snake_case.
+
+    Used after retreiiving JSON data from the vendor API.
+    """
+
+    if isinstance(data, list):
+        return [convert_keys_to_snake_case(item) for item in data]  # type: ignore[return-value]
+
+    if not isinstance(data, dict):
+        return data
+
+    return {camel_to_snake(k): convert_keys_to_snake_case(v) for k, v in data.items()}  # type: ignore[return-value]
+
+
 class ErrorResponse(TypedDict):
     code: str
     message: str
@@ -89,29 +126,39 @@ class UserAccountResponse(TypedDict):
     latestEulaAccepted: bool
 
 
-SCH_USER_ACCOUNT_RESPONSE: Final = vol.Schema(
-    {
-        vol.Required(SZ_USER_ID): int,
-        vol.Required(SZ_USERNAME): vol.All(str, vol.Length(min=1)),  # email address
-        vol.Required(SZ_FIRSTNAME): str,
-        vol.Required(SZ_LASTNAME): str,
-        vol.Required(SZ_STREET_ADDRESS): str,
-        vol.Required(SZ_CITY): str,
-        # l.Optional(SZ_STATE): str,  # Uncomment if state is used
-        vol.Required(SZ_ZIPCODE): str,
-        vol.Required(SZ_COUNTRY): vol.All(str, vol.Length(min=2)),  # GB
-        vol.Required(SZ_TELEPHONE): str,
-        vol.Required(SZ_USER_LANGUAGE): str,
-        vol.Required(SZ_IS_ACTIVATED): bool,
-        vol.Required(SZ_DEVICE_COUNT): int,
-        vol.Required("tenantID"): int,
-        vol.Required("securityQuestion1"): str,
-        vol.Required("securityQuestion2"): str,
-        vol.Required("securityQuestion3"): str,
-        vol.Required(SZ_LATEST_EULA_ACCEPTED): bool,
-    },
-    extra=vol.ALLOW_EXTRA,
-)
+def _factory_user_account_response(
+    fnc: Callable[[str], str] = _do_nothing,
+) -> vol.Schema:
+    """Factory for the user account schema."""
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(SZ_USER_ID)): int,
+            vol.Required(fnc(SZ_USERNAME)): vol.All(
+                str, vol.Length(min=1)
+            ),  # email address
+            vol.Required(fnc(SZ_FIRSTNAME)): str,
+            vol.Required(fnc(SZ_LASTNAME)): str,
+            vol.Required(fnc(SZ_STREET_ADDRESS)): str,
+            vol.Required(fnc(SZ_CITY)): str,
+            # l.Optional(fnc(SZ_STATE)): str,  # Uncomment if state is used
+            vol.Required(fnc(SZ_ZIPCODE)): str,
+            vol.Required(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
+            vol.Required(fnc(SZ_TELEPHONE)): str,
+            vol.Required(fnc(SZ_USER_LANGUAGE)): str,
+            vol.Required(fnc(SZ_IS_ACTIVATED)): bool,
+            vol.Required(fnc(SZ_DEVICE_COUNT)): int,
+            vol.Required(fnc("tenantID")): int,
+            vol.Required(fnc("securityQuestion1")): str,
+            vol.Required(fnc("securityQuestion2")): str,
+            vol.Required(fnc("securityQuestion3")): str,
+            vol.Required(fnc(SZ_LATEST_EULA_ACCEPTED)): bool,
+        },
+        extra=vol.ALLOW_EXTRA,
+    )
+
+
+SCH_USER_ACCOUNT_RESPONSE: Final = _factory_user_account_response()
 
 
 class SessionResponseT(TypedDict):
@@ -208,32 +255,41 @@ class LocationResponse(TypedDict):
     contractor: dict[str, Any]  # ContractorResponse
 
 
-SCH_LOCATION_RESPONSE: Final = vol.Schema(
-    {
-        vol.Required(SZ_LOCATION_ID): int,  # is ID, not Id
-        vol.Required(SZ_NAME): vol.All(str, vol.Length(min=1)),
-        vol.Required(SZ_STREET_ADDRESS): str,
-        vol.Required(SZ_CITY): str,
-        vol.Optional(SZ_STATE): str,  # Uncomment if state is used
-        vol.Required(SZ_COUNTRY): vol.All(str, vol.Length(min=2)),  # GB
-        vol.Required(SZ_ZIPCODE): str,
-        vol.Required("type"): vol.In(["Commercial", "Residential"]),
-        vol.Required("hasStation"): bool,
-        vol.Required(SZ_DEVICES): [dict],  # TODO: [DeviceResponse]
-        vol.Required("oneTouchButtons"): list,
-        vol.Required("weather"): {str: object},  # WeatherResponse
-        vol.Required("daylightSavingTimeEnabled"): bool,
-        vol.Required("timeZone"): {str: object},  # TimeZoneResponse
-        vol.Required("oneTouchActionsSuspended"): bool,
-        vol.Required("isLocationOwner"): bool,
-        vol.Required("locationOwnerID"): int,  # ID, not Id
-        vol.Required("locationOwnerName"): str,
-        vol.Required("locationOwnerUserName"): vol.All(str, vol.Length(min=1)),
-        vol.Required("canSearchForContractors"): bool,
-        vol.Required("contractor"): {str: object},  # ContractorResponse
-    },
-    extra=vol.ALLOW_EXTRA,
-)
+def _factory_user_account_response(
+    fnc: Callable[[str], str] = _do_nothing,
+) -> vol.Schema:
+    """Factory for the user account schema."""
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(SZ_LOCATION_ID)): int,  # is ID, not Id
+            vol.Required(fnc(SZ_NAME)): vol.All(str, vol.Length(min=1)),
+            vol.Required(fnc(SZ_STREET_ADDRESS)): str,
+            vol.Required(fnc(SZ_CITY)): str,
+            vol.Optional(fnc(SZ_STATE)): str,  # Optional
+            vol.Required(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
+            vol.Required(fnc(SZ_ZIPCODE)): str,
+            vol.Required(fnc("type")): vol.In(["Commercial", "Residential"]),
+            vol.Required(fnc("hasStation")): bool,
+            vol.Required(fnc(SZ_DEVICES)): [dict],  # TODO: [DeviceResponse]
+            vol.Required(fnc("oneTouchButtons")): list,
+            vol.Required(fnc("weather")): {str: object},  # WeatherResponse
+            vol.Required(fnc("daylightSavingTimeEnabled")): bool,
+            vol.Required(fnc("timeZone")): {str: object},  # TimeZoneResponse
+            vol.Required(fnc("oneTouchActionsSuspended")): bool,
+            vol.Required(fnc("isLocationOwner")): bool,
+            vol.Required(fnc("locationOwnerID")): int,  # ID, not Id
+            vol.Required(fnc("locationOwnerName")): str,
+            vol.Required(fnc("locationOwnerUserName")): vol.All(str, vol.Length(min=1)),
+            vol.Required(fnc("canSearchForContractors")): bool,
+            vol.Required(fnc("contractor")): {str: object},  # ContractorResponse
+        },
+        extra=vol.ALLOW_EXTRA,
+    )
+
+
+SCH_LOCATION_RESPONSE: Final = _factory_user_account_response()
+
 
 # schema keys (start with a lower case letter)
 SZ_COOL_SETPOINT: Final = "coolSetpoint"
