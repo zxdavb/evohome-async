@@ -19,7 +19,12 @@ from .const import (
     SZ_STATE,
     SZ_STATE_STATUS,
 )
-from .schema import SCH_PUT_SCHEDULE_DHW, SCH_SCHEDULE_DHW
+from .schema import (
+    SCH_PUT_SCHEDULE_DHW,
+    SCH_SCHEDULE_DHW,
+    camel_to_snake,
+    factory_dhw_status,
+)
 from .schema.const import (
     S2_MODE,
     S2_STATE,
@@ -28,8 +33,6 @@ from .schema.const import (
     EntityType,
     ZoneMode,
 )
-from .schema.helpers import camel_to_snake
-from .schema.status import factory_dhw_status
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:

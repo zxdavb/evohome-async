@@ -17,9 +17,8 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
+from .schema import camel_to_snake, factory_loc_status
 from .schema.const import EntityType
-from .schema.helpers import camel_to_snake
-from .schema.status import factory_loc_status
 from .zone import EntityBase
 
 if TYPE_CHECKING:

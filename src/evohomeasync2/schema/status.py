@@ -214,15 +214,3 @@ def factory_loc_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
         },
         extra=vol.PREVENT_EXTRA,
     )
-
-
-SCH_DHW_STATUS: Final = factory_dhw_status()
-
-SCH_ZON_CONFIG: Final = factory_zone_status()
-
-SCH_TCS_STATUS: Final = factory_tcs_status()
-
-SCH_GWY_STATUS: Final = factory_gwy_status()
-
-# GET /location/{location_id}/status?includeTemperatureControlSystems=True
-SCH_LOC_STATUS: Final = factory_loc_status()

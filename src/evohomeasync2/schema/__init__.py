@@ -3,10 +3,12 @@
 
 from __future__ import annotations
 
-from .account import SCH_USER_ACCOUNT  # noqa: F401
-from .config import (  # noqa: F401
-    SCH_LOCATION_INSTALLATION_INFO as SCH_LOCN_CONFIG,
-    SCH_USER_LOCATIONS_INSTALLATION_INFO as SCH_FULL_CONFIG,
+from typing import Final
+
+from .account import factory_user_account
+from .config import (
+    factory_locations_installation_info,
+    factory_user_locations_installation_info,
 )
 from .const import (  # noqa: F401
     DHW_STATES,
@@ -16,7 +18,7 @@ from .const import (  # noqa: F401
     SystemMode,
     ZoneMode,
 )
-from .helpers import convert_keys_to_snake_case, obfuscate  # noqa: F401
+from .helpers import camel_to_snake, convert_keys_to_snake_case, obfuscate  # noqa: F401
 from .schedule import (  # noqa: F401
     SCH_PUT_SCHEDULE,
     SCH_PUT_SCHEDULE_DHW,
@@ -29,10 +31,19 @@ from .schedule import (  # noqa: F401
     convert_to_put_schedule,
 )
 from .status import (  # noqa: F401
-    SCH_DHW_STATUS,
-    SCH_GWY_STATUS,
-    SCH_LOC_STATUS as SCH_LOCN_STATUS,
-    SCH_TCS_STATUS,
-    SCH_ZON_CONFIG as SCH_ZONE_STATUS,
+    factory_dhw_status,
+    factory_gwy_status,
+    factory_loc_status,
+    factory_tcs_status,
+    factory_zone_status,
 )
 from .typedefs import _EvoDictT, _EvoLeafT, _EvoListT, _EvoSchemaT, _ModeT  # noqa: F401
+
+# GET /userAccount
+SCH_GET_USER_ACCOUNT: Final = factory_user_account()
+
+# GET /location/{location_id}/installationInfo?includeTemperatureControlSystems=True
+SCH_LOCATION_INSTALLATION_INFO: Final = factory_locations_installation_info()
+
+# GET /location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True
+SCH_USER_LOCATIONS_INSTALLATION_INFO: Final = factory_user_locations_installation_info()

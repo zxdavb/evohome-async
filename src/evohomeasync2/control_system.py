@@ -33,6 +33,7 @@ from .const import (
     SystemMode,
 )
 from .hotwater import HotWater
+from .schema import camel_to_snake, factory_tcs_status
 from .schema.const import (
     S2_PERMANENT,
     S2_SYSTEM_MODE,
@@ -40,8 +41,6 @@ from .schema.const import (
     EntityType,
     TcsModelType,
 )
-from .schema.helpers import camel_to_snake
-from .schema.status import factory_tcs_status
 from .zone import ActiveFaultsBase, Zone
 
 if TYPE_CHECKING:

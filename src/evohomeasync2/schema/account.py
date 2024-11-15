@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Final
 
 import voluptuous as vol
 
@@ -41,5 +40,3 @@ def factory_user_account(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-# GET /userAccount
-SCH_USER_ACCOUNT: Final = factory_user_account()

@@ -368,20 +368,3 @@ def factory_user_locations_installation_info(
         [factory_locations_installation_info(fnc)],
         extra=vol.PREVENT_EXTRA,
     )
-
-
-SCH_DHW_CONFIG: Final = factory_dhw()
-
-SCH_ZON_CONFIG: Final = factory_zone()
-
-SCH_TCS_CONFIG: Final = factory_tcs()
-
-SCH_GWY_CONFIG: Final = factory_gateway()
-
-SCH_TIME_ZONE: Final = factory_time_zone()
-
-# GET /location/{location_id}/installationInfo?includeTemperatureControlSystems=True
-SCH_LOCATION_INSTALLATION_INFO: Final = factory_locations_installation_info()
-
-# GET /location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True
-SCH_USER_LOCATIONS_INSTALLATION_INFO: Final = factory_user_locations_installation_info()

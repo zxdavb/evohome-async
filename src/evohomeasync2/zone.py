@@ -35,7 +35,13 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
-from .schema import SCH_PUT_SCHEDULE_ZONE, SCH_SCHEDULE_ZONE, convert_to_put_schedule
+from .schema import (
+    SCH_PUT_SCHEDULE_ZONE,
+    SCH_SCHEDULE_ZONE,
+    camel_to_snake,
+    convert_to_put_schedule,
+    factory_zone_status,
+)
 from .schema.const import (
     S2_HEAT_SETPOINT_VALUE,
     S2_SETPOINT_MODE,
@@ -47,8 +53,6 @@ from .schema.const import (
     ZoneModelType,
     ZoneType,
 )
-from .schema.helpers import camel_to_snake
-from .schema.status import factory_zone_status
 
 if TYPE_CHECKING:
     import logging
