@@ -19,7 +19,7 @@ from .const import (
     SZ_STATE,
     SZ_STATE_STATUS,
 )
-from .schema import SCH_DHW_STATUS, SCH_GET_SCHEDULE_DHW, SCH_PUT_SCHEDULE_DHW
+from .schema import SCH_DHW_STATUS, SCH_PUT_SCHEDULE_DHW, SCH_SCHEDULE_DHW
 from .schema.const import (
     S2_MODE,
     S2_STATE,
@@ -41,7 +41,7 @@ class HotWater(_ZoneBase):
     STATUS_SCHEMA: Final = SCH_DHW_STATUS  # type: ignore[misc]
     _TYPE: Final = EntityType.DHW  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET: Final = SCH_GET_SCHEDULE_DHW  # type: ignore[misc]
+    SCH_SCHEDULE_GET: Final = SCH_SCHEDULE_DHW  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:

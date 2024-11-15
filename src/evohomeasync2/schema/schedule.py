@@ -29,7 +29,7 @@ _ScheduleT = dict[str, dict[str, Any]]
 
 #
 # These are returned from vendor's API (GET)...
-def _factory_get_schedule_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def _factory_schedule_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the DHW schedule schema."""
 
     SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
@@ -56,7 +56,7 @@ def _factory_get_schedule_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Sc
     )
 
 
-def _factory_get_schedule_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def _factory_schedule_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_GET_SWITCHPOINT_ZONE: Final = vol.Schema(
@@ -72,6 +72,7 @@ def _factory_get_schedule_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.S
 
     SCH_GET_DAY_OF_WEEK_ZONE: Final = vol.Schema(
         {
+            # l.Required(fnc(S2_DAY_OF_WEEK)): vol.All(int, vol.Range(min=0, max=6)),  # 0 is Monday
             vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DAYS_OF_WEEK),
             vol.Required(fnc(S2_SWITCHPOINTS)): [SCH_GET_SWITCHPOINT_ZONE],
         },
@@ -86,11 +87,11 @@ def _factory_get_schedule_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.S
     )
 
 
-def _factory_get_schedule(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def _factory_schedule(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     """Factory for the schedule schema."""
 
     return vol.Schema(
-        vol.Any(SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE),
+        vol.Any(SCH_SCHEDULE_DHW, SCH_SCHEDULE_ZONE),
         extra=vol.PREVENT_EXTRA,
     )
 
@@ -132,6 +133,7 @@ def _factory_put_schedule_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.S
 
     SCH_PUT_SWITCHPOINT_ZONE: Final = vol.Schema(
         {  # NOTE: S2_HEAT_SETPOINT is not .capitalized()
+            #
             vol.Required(S2_HEAT_SETPOINT): vol.All(float, vol.Range(min=5, max=35)),
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
         },
@@ -166,6 +168,7 @@ def _factory_put_schedule(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema
 
 
 #
+# Converters...
 def convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
     """Convert a schedule to the format used by our get/set_schedule() methods.
 
@@ -176,7 +179,7 @@ def convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
         raise exc.InvalidScheduleError(f"Null schedule: {schedule}")
 
     try:
-        SCH_GET_SCHEDULE(schedule)
+        SCH_SCHEDULE(schedule)
     except vol.Invalid as err:
         raise exc.InvalidScheduleError(f"Invalid schedule: {err}") from err
 
@@ -235,16 +238,16 @@ def convert_to_get_schedule(schedule: _EvoDictT) -> _EvoDictT:
     return get_schedule
 
 
-SCH_GET_SCHEDULE_DHW: Final = _factory_get_schedule_dhw(snake_to_camel)
+#
+SCH_SCHEDULE_DHW: Final = _factory_schedule_dhw(snake_to_camel)
 
-SCH_GET_SCHEDULE_ZONE: Final = _factory_get_schedule_zone(snake_to_camel)
+SCH_SCHEDULE_ZONE: Final = _factory_schedule_zone(snake_to_camel)
 
+SCH_SCHEDULE: Final = _factory_schedule(snake_to_camel)
+
+#
 SCH_PUT_SCHEDULE_DHW: Final = _factory_put_schedule_dhw(pascal_case)
 
 SCH_PUT_SCHEDULE_ZONE: Final = _factory_put_schedule_zone(pascal_case)
 
-# GET /{self._TYPE}/{self.id}/schedule
-SCH_GET_SCHEDULE: Final = _factory_get_schedule(snake_to_camel)
-
-# PUT /{self._TYPE}/{self.id}/schedule
 SCH_PUT_SCHEDULE: Final = _factory_put_schedule(pascal_case)

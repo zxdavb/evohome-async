@@ -21,4 +21,3 @@ SCH_LOCN_STATUS: Final = _factory_loc_status(camel_to_snake)
 SCH_TCS_STATUS: Final = _factory_tcs_status(camel_to_snake)
 SCH_USER_ACCOUNT: Final = _factory_user_account(camel_to_snake)
 SCH_ZONE_STATUS: Final = _factory_zone_status(camel_to_snake)
-

@@ -18,12 +18,12 @@ from .const import (  # noqa: F401
 )
 from .helpers import convert_keys_to_snake_case, obfuscate  # noqa: F401
 from .schedule import (  # noqa: F401
-    SCH_GET_SCHEDULE,
-    SCH_GET_SCHEDULE_DHW,
-    SCH_GET_SCHEDULE_ZONE,
     SCH_PUT_SCHEDULE,
     SCH_PUT_SCHEDULE_DHW,
     SCH_PUT_SCHEDULE_ZONE,
+    SCH_SCHEDULE,
+    SCH_SCHEDULE_DHW,
+    SCH_SCHEDULE_ZONE,
     _ScheduleT,
     convert_to_get_schedule,
     convert_to_put_schedule,

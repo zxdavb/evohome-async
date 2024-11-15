@@ -317,7 +317,9 @@ class Auth(AbstractSessionManager):
         return f"https://{self._hostname}/WebAPI/api"
 
     async def get(
-        self, url: StrOrURL, schema: vol.Schema | None = None
+        self,
+        url: StrOrURL,
+        schema: vol.Schema | None = None,
     ) -> dict[str, Any]:
         """Call the Resideo TCC API with a GET.
 
