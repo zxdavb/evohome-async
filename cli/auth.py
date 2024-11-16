@@ -111,6 +111,8 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
     async def _load_access_token(self, cache: TokenCacheT | None = None) -> None:
         """Load the (serialized) auth tokens from the cache."""
 
+        tokens: AuthTokensT
+
         cache = cache or await self._read_cache_from_file()
 
         if not (entry := cache.get(self.client_id)):
@@ -125,6 +127,8 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
 
     async def _load_session_id(self, cache: TokenCacheT | None = None) -> None:
         """Load the (serialized) session id from the cache."""
+
+        session: SessionIdT
 
         cache = cache or await self._read_cache_from_file()
 
