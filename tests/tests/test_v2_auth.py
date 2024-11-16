@@ -132,7 +132,7 @@ async def test_get_auth_token(
 async def test_cache(
     credentials: tuple[str, str],
     cache_manager: CacheManager,
-    token_cache: Path,
+    cache_file: Path,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test the .load_access_token() and .save_access_token() methods."""

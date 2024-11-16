@@ -19,7 +19,7 @@ from evohomeasync2.auth import (
     AuthTokensT,
 )
 
-TOKEN_CACHE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tmp")
+CACHE_FILE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tmp")
 
 
 SZ_AUTH_TOKENS: Final = "auth_tokens"
@@ -42,12 +42,12 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
     """A token manager that uses a cache file to store the tokens."""
 
     def __init__(
-        self, *args: Any, token_cache: Path | None = None, **kwargs: Any
+        self, *args: Any, cache_file: Path | None = None, **kwargs: Any
     ) -> None:
         """Initialise the token manager."""
         super().__init__(*args, **kwargs)
 
-        self._cache_file: Final = token_cache
+        self._cache_file: Final = cache_file
 
         self._clear_auth_tokens()
         self._clear_session_id()

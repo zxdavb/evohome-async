@@ -25,7 +25,7 @@ from evohomeasync2 import (
 )
 from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE
 
-from .auth import TOKEN_CACHE, CacheManager
+from .auth import CACHE_FILE, CacheManager
 
 # all _DBG_* flags should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of click
@@ -138,7 +138,7 @@ async def cli(
 
     websession = aiohttp.ClientSession()  # timeout=aiohttp.ClientTimeout(total=30))
     token_manager = CacheManager(
-        username, password, websession, token_cache=TOKEN_CACHE
+        username, password, websession, cache_file=CACHE_FILE
     )
 
     if cache_tokens:  # restore cached tokens, if any

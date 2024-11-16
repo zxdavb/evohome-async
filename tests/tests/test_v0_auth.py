@@ -127,7 +127,7 @@ async def test_get_session_id(
 async def test_cache(
     credentials: tuple[str, str],
     cache_manager: CacheManager,
-    token_cache: Path,
+    cache_file: Path,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test the .load_session_id() and .save_session_id() methods."""

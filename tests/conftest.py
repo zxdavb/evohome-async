@@ -70,7 +70,7 @@ def token_data(credentials: tuple[str, str]) -> dict[str, Any]:
 
 
 @pytest.fixture(scope="session")
-def token_cache(
+def cache_file(
     token_data: dict[str, int | str],
     tmp_path_factory: pytest.TempPathFactory,
     use_fake_aiohttp: bool,
@@ -79,29 +79,29 @@ def token_cache(
 
     # don't pollute the real token cache with fake tokens
     if not use_fake_aiohttp:
-        from cli.client import TOKEN_CACHE
+        from cli.client import CACHE_FILE
 
-        return TOKEN_CACHE
+        return CACHE_FILE
 
-    token_cache = tmp_path_factory.getbasetemp() / ".evo-cache.tst"
+    cache_file = tmp_path_factory.getbasetemp() / ".evo-cache.tst"
 
-    with token_cache.open("w") as f:
+    with cache_file.open("w") as f:
         f.write(json.dumps(token_data))
 
-    return token_cache
+    return cache_file
 
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def cache_manager(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
-    token_cache: Path,
+    cache_file: Path,
 ) -> AsyncGenerator[CacheManager, None]:
     """Yield a token manager for the v2 API."""
 
-    manager = CacheManager(*credentials, client_session, token_cache=token_cache)
+    manager = CacheManager(*credentials, client_session, cache_file=cache_file)
 
-    # await manager.restore_access_token()  # dont restore from cache yet
+    # await cache_manager.load_cache()
 
     try:
         yield manager
@@ -111,14 +111,13 @@ async def cache_manager(
 
 @pytest.fixture
 async def evohome_v0(
-    credentials: tuple[str, str],
-    client_session: aiohttp.ClientSession,
+    cache_manager: CacheManager,
 ) -> AsyncGenerator[EvohomeClientv0, None]:
     """Yield an instance of a v0 EvohomeClient."""
 
-    # await cache_manager.load_cache()
+    await cache_manager.load_cache()
 
-    evo = EvohomeClientv0(*credentials, websession=client_session)
+    evo = EvohomeClientv0(cache_manager)
 
     # await evo.update()
 
