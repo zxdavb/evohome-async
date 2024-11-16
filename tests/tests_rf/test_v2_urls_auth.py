@@ -80,13 +80,11 @@ async def _test_user_locations(evo: EvohomeClientv2) -> None:
 
     # Cannot call evo.update() here, as it will request the URL we want to test
     url = "userAccount"
-    user_info = await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_USER_ACCOUNT
-    )
+    user_info = await should_work_v2(evo, HTTPMethod.GET, url)  # schema not re-tested
     #
 
     url = f"location/installationInfo?userId={user_info[S2_USER_ID]}"
-    await should_work_v2(evo, HTTPMethod.GET, url)
+    await should_work_v2(evo, HTTPMethod.GET, url)  # schema not tested here
 
     url += "&includeTemperatureControlSystems=True"
     _ = await should_work_v2(
@@ -118,7 +116,9 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
     #
 
     url = f"location/{loc.id}/status"
-    _ = await should_work_v2(evo, HTTPMethod.GET, url)
+    _ = await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_LOCN_STATUS
+    )
 
     url += "?includeTemperatureControlSystems=True"
     _ = await should_work_v2(
