@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""evohome-async - validate the handling of vendor APIs (URLs)."""
+"""evohome-async - validate the handling of vendor APIs (URLs).
+
+This is used to:
+  a) document the RESTful API that is provided by the vendor
+  b) confirm the faked server is behaving as per a)
+
+Testing is at HTTP request layer (e.g. GET).
+Everything to/from the RESTful API is in camelCase (so those schemas are used).
+"""
 
 from __future__ import annotations
 
@@ -10,15 +18,15 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync2 as evo2
+from evohomeasync2 import schema
 from evohomeasync2.const import (
     API_STRFTIME,
     SZ_PERMANENT,
     SZ_SYSTEM_MODE,
-    SZ_USER_ID,
     SystemMode,
     ZoneMode,
 )
-from evohomeasync2.schema import SCH_SCHEDULE
+from evohomeasync2.schema import convert_to_put_schedule
 from evohomeasync2.schema.const import (
     S2_DAILY_SCHEDULES,
     S2_HEAT_SETPOINT,
@@ -30,13 +38,12 @@ from evohomeasync2.schema.const import (
     S2_SWITCHPOINTS,
     S2_SYSTEM_MODE,
     S2_TIME_UNTIL,
+    S2_USER_ID,
 )
-from evohomeasync2.schema.schedule import convert_to_put_schedule
 
 from . import faked_server as faked
-from .common import should_fail, should_work, skipif_auth_failed
+from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
-from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
 
 if TYPE_CHECKING:
     from evohomeasync2.schema import _EvoDictT
@@ -51,13 +58,15 @@ async def _test_usr_account(evo: EvohomeClientv2) -> None:
     """Test /userAccount"""
 
     url = "userAccount"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_USER_ACCOUNT)
-    _ = await should_fail(
+    _ = await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_USER_ACCOUNT
+    )
+    _ = await should_fail_v2(
         evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
 
     url = "userXxxxxxx"  # NOTE: is a general test, and not a test specific to this URL
-    _ = await should_fail(
+    _ = await should_fail_v2(
         evo,
         HTTPMethod.GET,
         url,
@@ -69,29 +78,35 @@ async def _test_usr_account(evo: EvohomeClientv2) -> None:
 async def _test_user_locations(evo: EvohomeClientv2) -> None:
     """Test /location/installationInfo?userId={user_id}"""
 
-    await evo.update()
+    # Cannot call evo.update() here, as it will request the URL we want to test
+    url = "userAccount"
+    user_info = await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_USER_ACCOUNT
+    )
     #
 
-    url = f"location/installationInfo?userId={evo._user_info[SZ_USER_ID]}"
-    await should_work(evo, HTTPMethod.GET, url)
+    url = f"location/installationInfo?userId={user_info[S2_USER_ID]}"
+    await should_work_v2(evo, HTTPMethod.GET, url)
 
     url += "&includeTemperatureControlSystems=True"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_FULL_CONFIG)
-    _ = await should_fail(
+    _ = await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_USER_LOCATIONS
+    )
+    _ = await should_fail_v2(
         evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
 
     url = "location/installationInfo"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
     url = "location/installationInfo?userId=1230000"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
+    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
 
     url = "location/installationInfo?userId=xxxxxxx"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
 
     url = "location/installationInfo?xxxxXx=xxxxxxx"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
 
 async def _test_loc_status(evo: EvohomeClientv2) -> None:
@@ -103,16 +118,18 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
     #
 
     url = f"location/{loc.id}/status"
-    _ = await should_work(evo, HTTPMethod.GET, url)
+    _ = await should_work_v2(evo, HTTPMethod.GET, url)
 
     url += "?includeTemperatureControlSystems=True"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=evo2.Location.STATUS_SCHEMA)
-    _ = await should_fail(
+    _ = await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_LOCN_STATUS
+    )
+    _ = await should_fail_v2(
         evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
 
     url = f"location/{loc.id}"
-    await should_fail(
+    await should_fail_v2(
         evo,
         HTTPMethod.GET,
         url,
@@ -121,13 +138,13 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
     )
 
     url = "location/1230000/status"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
+    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
 
     url = "location/xxxxxxx/status"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
 
     url = f"location/{loc.id}/xxxxxxx"
-    _ = await should_fail(
+    _ = await should_fail_v2(
         evo,
         HTTPMethod.GET,
         url,
@@ -150,15 +167,13 @@ async def _test_tcs_mode(evo: EvohomeClientv2) -> None:
     old_mode: _EvoDictT = tcs.system_mode_status  # type: ignore[assignment]
 
     url = f"{tcs._TYPE}/{tcs.id}/status"
-    _ = await should_work(
-        evo, HTTPMethod.GET, url, schema=evo2.ControlSystem.STATUS_SCHEMA
-    )
+    _ = await should_work_v2(evo, HTTPMethod.GET, url, schema=schema.SCH_GET_TCS_STATUS)
 
     url = f"{tcs._TYPE}/{tcs.id}/mode"
-    _ = await should_fail(
+    _ = await should_fail_v2(
         evo, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
-    _ = await should_fail(
+    _ = await should_fail_v2(
         evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.BAD_REQUEST
     )
 
@@ -170,7 +185,7 @@ async def _test_tcs_mode(evo: EvohomeClientv2) -> None:
         S2_SYSTEM_MODE: SystemMode.AUTO,
         S2_PERMANENT: True,
     }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=new_mode)
+    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=new_mode)
 
     assert SystemMode.AWAY in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
     new_mode = {
@@ -178,17 +193,17 @@ async def _test_tcs_mode(evo: EvohomeClientv2) -> None:
         S2_PERMANENT: True,
         S2_TIME_UNTIL: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=new_mode)
+    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=new_mode)
 
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=old_mode)
+    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=old_mode)
 
     url = f"{tcs._TYPE}/1234567/mode"
-    _ = await should_fail(
+    _ = await should_fail_v2(
         evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.UNAUTHORIZED
     )
 
     url = f"{tcs._TYPE}/{tcs.id}/systemMode"
-    _ = await should_fail(
+    _ = await should_fail_v2(
         evo,
         HTTPMethod.PUT,
         url,
@@ -213,7 +228,9 @@ async def _test_zone_mode(evo: EvohomeClientv2) -> None:
     #
 
     url = f"{zone._TYPE}/{zone.id}/status"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=evo2.Zone.STATUS_SCHEMA)
+    _ = await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_ZONE_STATUS
+    )
 
     url = f"{zone._TYPE}/{zone.id}/heatSetpoint"
 
@@ -222,26 +239,26 @@ async def _test_zone_mode(evo: EvohomeClientv2) -> None:
         S2_HEAT_SETPOINT_VALUE: zone.temperature,
         # S2_TIME_UNTIL: None,
     }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
         S2_HEAT_SETPOINT_VALUE: 99,
         S2_TIME_UNTIL: None,
     }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
         S2_HEAT_SETPOINT_VALUE: 19.5,
     }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
     heat_setpoint = {
         S2_SETPOINT_MODE: "xxxxxxx",
         S2_HEAT_SETPOINT_VALUE: 19.5,
     }
-    _ = await should_fail(
+    _ = await should_fail_v2(
         evo, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
     )
 
@@ -250,7 +267,7 @@ async def _test_zone_mode(evo: EvohomeClientv2) -> None:
         S2_HEAT_SETPOINT_VALUE: 0.0,
         S2_TIME_UNTIL: None,
     }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
+    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
 
 # TODO: Test sending bad schedule
@@ -265,40 +282,48 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
 
     if zone.id == faked.GHOST_ZONE_ID:
         url = f"{zone._TYPE}/{faked.GHOST_ZONE_ID}/schedule"
-        _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+        _ = await should_fail_v2(
+            evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST
+        )
         return
 
     url = f"{zone._TYPE}/{zone.id}/schedule"
-    schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
+    schedule = await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
+    )
 
     temp = schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT]  # type: ignore[call-overload]
 
     schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] = temp + 1  # type: ignore[call-overload,operator]
-    _ = await should_work(
+    _ = await should_work_v2(
         evo,
         HTTPMethod.PUT,
         url,
         json=convert_to_put_schedule(schedule),  # type: ignore[arg-type]
     )
 
-    schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
+    schedule = await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
+    )
     assert (
         schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT]  # type: ignore[call-overload]
         == temp + 1  # type: ignore[operator]
     )
 
     schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] = temp  # type: ignore[call-overload]
-    _ = await should_work(
+    _ = await should_work_v2(
         evo,
         HTTPMethod.PUT,
         url,
         json=convert_to_put_schedule(schedule),  # type: ignore[arg-type]
     )
 
-    schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_SCHEDULE)
+    schedule = await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
+    )
     assert schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] == temp  # type: ignore[call-overload]
 
-    _ = await should_fail(
+    _ = await should_fail_v2(
         evo, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST
     )  # NOTE: json=None
 
@@ -348,7 +373,10 @@ async def test_tcs_mode(evohome_v2: EvohomeClientv2) -> None:
 
 @skipif_auth_failed  # GET, PUT
 async def test_zone_mode(evohome_v2: EvohomeClientv2) -> None:
-    """Test /temperatureZone/{zone.id}/heatSetpoint"""
+    """Test /temperatureZone/{zone.id}/heatSetpoint
+
+    Includes /temperatureZone/{zone.id}/status
+    """
 
     try:
         await _test_zone_mode(evohome_v2)
@@ -370,4 +398,3 @@ async def test_schedule(evohome_v2: EvohomeClientv2) -> None:
 # TODO: test_put_dhw_state(
 # TODO: test_get_dhw_status(
 # TODO: test_set_tcs_mode(
-# TODO: test_get_zon_status(

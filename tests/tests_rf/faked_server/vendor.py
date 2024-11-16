@@ -11,8 +11,12 @@ from typing import TYPE_CHECKING
 
 import voluptuous as vol
 
-from evohomeasync2.schema import const as sch, convert_to_get_schedule
-from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
+from evohomeasync2.schema import (
+    SCH_PUT_SCHEDULE_DHW,
+    SCH_PUT_SCHEDULE_ZONE,
+    const as sch,
+    convert_to_get_schedule,
+)
 
 from .const import (
     GHOST_ZONE_ID,

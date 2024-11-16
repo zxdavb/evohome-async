@@ -36,10 +36,10 @@ from .const import (
     SZ_ZONE_TYPE,
 )
 from .schema import (
-    SCH_PUT_SCHEDULE_ZONE,
-    SCH_SCHEDULE_ZONE,
     camel_to_snake,
     convert_to_put_schedule,
+    factory_put_schedule_zone,
+    factory_schedule_zone,
     factory_zone_status,
 )
 from .schema.const import (
@@ -274,8 +274,8 @@ class Zone(_ZoneBase):
     STATUS_SCHEMA: Final = factory_zone_status(camel_to_snake)  # type: ignore[misc]
     _TYPE: Final = EntityType.ZON  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET: Final = SCH_SCHEDULE_ZONE  # type: ignore[misc]
-    SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_ZONE  # type: ignore[misc]
+    SCH_SCHEDULE_GET: Final = factory_schedule_zone(camel_to_snake)  # type: ignore[misc]
+    SCH_SCHEDULE_PUT: Final = factory_put_schedule_zone(camel_to_snake)  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs, config)

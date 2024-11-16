@@ -8,21 +8,18 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync2 as evo2
-from evohomeasync2.schema import SYSTEM_MODES, SystemMode
+from evohomeasync2.schema import (
+    SCH_PUT_SCHEDULE_DHW,
+    SCH_PUT_SCHEDULE_ZONE,
+    SYSTEM_MODES,
+    SystemMode,
+)
 from evohomeasync2.schema.const import S2_MODE
-from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
 from evohomeasync2.zone import Zone
 
 from . import faked_server as faked
 from .common import skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
-from .schema import (
-    SCH_DHW_STATUS,
-    SCH_FULL_CONFIG,
-    SCH_LOCN_STATUS,
-    SCH_USER_ACCOUNT,
-    SCH_ZONE_STATUS,
-)
 
 if TYPE_CHECKING:
     from ..conftest import EvohomeClientv2
@@ -37,13 +34,13 @@ async def _test_basics_apis(evo: EvohomeClientv2) -> None:
     # STEP 1: retrieve base data
     await evo.update(dont_update_status=False)
 
-    assert SCH_USER_ACCOUNT(evo._user_info)
-    assert SCH_FULL_CONFIG(evo._locn_info)
+    assert evo2.main.SCH_USER_ACCOUNT(evo.user_account)
+    assert evo2.main.SCH_USER_LOCATIONS(evo.installation_info)
 
     # STEP 4: Status, GET /location/{loc.id}/status
     for loc in evo.locations:
         loc_status = await loc.update()
-        assert SCH_LOCN_STATUS(loc_status)
+        assert evo2.Location.STATUS_SCHEMA(loc_status)
 
     pass
 
@@ -85,11 +82,11 @@ async def _test_update_apis(evo: EvohomeClientv2) -> None:
     # STEP 2: GET /{x._TYPE}/{x.id}/status
     if dhw := evo._get_single_tcs().hotwater:
         dhw_status = await dhw._update()
-        assert SCH_DHW_STATUS(dhw_status)
+        assert evo2.HotWater.STATUS_SCHEMA(dhw_status)
 
     if zone := evo._get_single_tcs().zones[0]:
         zone_status = await zone._update()
-        assert SCH_ZONE_STATUS(zone_status)
+        assert evo2.Zone.STATUS_SCHEMA(zone_status)
 
     pass
 

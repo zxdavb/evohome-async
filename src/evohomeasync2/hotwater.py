@@ -20,10 +20,10 @@ from .const import (
     SZ_STATE_STATUS,
 )
 from .schema import (
-    SCH_PUT_SCHEDULE_DHW,
-    SCH_SCHEDULE_DHW,
     camel_to_snake,
     factory_dhw_status,
+    factory_put_schedule_dhw,
+    factory_schedule_dhw,
 )
 from .schema.const import (
     S2_MODE,
@@ -46,8 +46,8 @@ class HotWater(_ZoneBase):
     STATUS_SCHEMA: Final = factory_dhw_status(camel_to_snake)  # type: ignore[misc]
     _TYPE: Final = EntityType.DHW  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET: Final = SCH_SCHEDULE_DHW  # type: ignore[misc]
-    SCH_SCHEDULE_PUT: Final = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
+    SCH_SCHEDULE_GET: Final = factory_schedule_dhw(camel_to_snake)  # type: ignore[misc]
+    SCH_SCHEDULE_PUT: Final = factory_put_schedule_dhw(camel_to_snake)  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs, config)

@@ -5,19 +5,29 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime as dt
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import SZ_USER_ID
 from .control_system import ControlSystem
 from .location import Location
-from .schema import SCH_GET_USER_ACCOUNT, SCH_GET_USER_LOCATIONS
+from .schema import (
+    SCH_GET_USER_ACCOUNT,
+    SCH_GET_USER_LOCATIONS,
+    camel_to_snake,
+    factory_user_account,
+    factory_user_locations_installation_info,
+)
 
 if TYPE_CHECKING:
     import aiohttp
 
     from .schema import _EvoDictT, _EvoListT, _ScheduleT
+
+
+SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)
+SCH_USER_LOCATIONS: Final = factory_user_locations_installation_info(camel_to_snake)
 
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])

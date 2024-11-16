@@ -21,7 +21,7 @@ from evohomeasync2.schema.const import (
 )
 from evohomeasync2.schema.helpers import pascal_case
 
-from .common import should_fail, should_work, skipif_auth_failed
+from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
@@ -62,7 +62,7 @@ async def _test_task_id(evo: EvohomeClientv2) -> None:
 
     #
     # PART 0: Get initial state...
-    old_status = await should_work(evo, HTTPMethod.GET, GET_URL)
+    old_status = await should_work_v2(evo, HTTPMethod.GET, GET_URL)
     assert isinstance(old_status, dict)  # mypy
     # {
     #     'dhwId': '3933910',
@@ -96,7 +96,7 @@ async def _test_task_id(evo: EvohomeClientv2) -> None:
         S2_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
 
-    result = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)
+    result = await should_work_v2(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)
     assert isinstance(result, dict | list)  # mypy
     # {'id': '840367013'}  # HTTP 201/Created
 
@@ -105,7 +105,7 @@ async def _test_task_id(evo: EvohomeClientv2) -> None:
 
     assert int(task_id)
 
-    status = await should_work(evo, HTTPMethod.GET, url_tsk)
+    status = await should_work_v2(evo, HTTPMethod.GET, url_tsk)
     # {'commtaskId': '840367013', 'state': 'Created'}
     # {'commtaskId': '840367013', 'state': 'Succeeded'}
 
@@ -123,33 +123,33 @@ async def _test_task_id(evo: EvohomeClientv2) -> None:
         S2_STATE: DhwState.ON,
         S2_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
-    _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)  # HTTP 201
+    _ = await should_work_v2(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)  # HTTP 201
 
     # async with asyncio.timeout(30):
     #     _ = await wait_for_comm_task(evo, task_id)
 
-    status = await should_work(evo, HTTPMethod.GET, GET_URL)
+    status = await should_work_v2(evo, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time
         pascal_case(S2_MODE): ZoneMode.TEMPORARY_OVERRIDE,
         pascal_case(S2_STATE): DhwState.ON,
         pascal_case(S2_UNTIL_TIME): (dt.now() + td(hours=2)).strftime(API_STRFTIME),
     }
-    _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)
+    _ = await should_work_v2(evo, HTTPMethod.PUT, PUT_URL, json=new_mode)
 
     # async with asyncio.timeout(30):
     #     _ = await wait_for_comm_task(evo, task_id)
 
-    status = await should_work(evo, HTTPMethod.GET, GET_URL)
+    status = await should_work_v2(evo, HTTPMethod.GET, GET_URL)
 
     #
     # PART 3: Restore the original mode
-    _ = await should_work(evo, HTTPMethod.PUT, PUT_URL, json=old_mode)
+    _ = await should_work_v2(evo, HTTPMethod.PUT, PUT_URL, json=old_mode)
 
     # async with asyncio.timeout(30):
     #    _ = await wait_for_comm_task(evo, task_id)
 
-    status = await should_work(evo, HTTPMethod.GET, GET_URL)
+    status = await should_work_v2(evo, HTTPMethod.GET, GET_URL)
 
     # assert status # != old_status
 
@@ -160,7 +160,7 @@ async def _test_task_id(evo: EvohomeClientv2) -> None:
         S2_MODE: DhwState.OFF,
         S2_UNTIL_TIME: None,
     }
-    _ = await should_fail(
+    _ = await should_fail_v2(
         evo, HTTPMethod.PUT, PUT_URL, json=bad_mode, status=HTTPStatus.BAD_REQUEST
     )
 
@@ -181,12 +181,12 @@ async def _test_task_id(evo: EvohomeClientv2) -> None:
     #
     # PART 4B: Try 'bad' task_id values...
     url_tsk = "commTasks?commTaskId=ABC"
-    _ = await should_fail(
+    _ = await should_fail_v2(
         evo, HTTPMethod.GET, url_tsk, status=HTTPStatus.BAD_REQUEST
     )  # [{"code": "InvalidInput", "message": "Invalid Input."}]
 
     url_tsk = "commTasks?commTaskId=12345678"
-    _ = await should_fail(
+    _ = await should_fail_v2(
         evo, HTTPMethod.GET, url_tsk, status=HTTPStatus.NOT_FOUND
     )  # [{"code": "CommTaskNotFound", "message": "Communication task not found."}]
 

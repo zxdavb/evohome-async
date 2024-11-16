@@ -5,11 +5,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from evohomeasync2.schema.schedule import (
+from evohomeasync2.schema import (
+    SCH_GET_SCHEDULE_DHW,
+    SCH_GET_SCHEDULE_ZONE,
     SCH_PUT_SCHEDULE_DHW,
     SCH_PUT_SCHEDULE_ZONE,
-    SCH_SCHEDULE_DHW,
-    SCH_SCHEDULE_ZONE,
     convert_to_get_schedule,
     convert_to_put_schedule,
 )
@@ -29,7 +29,7 @@ def test_schema_schedule_dhw() -> None:
     get_sched = schedule_fixture("schedule_dhw_get.json")
     put_sched = schedule_fixture("schedule_dhw_put.json")
 
-    assert get_sched == SCH_SCHEDULE_DHW(get_sched)
+    assert get_sched == SCH_GET_SCHEDULE_DHW(get_sched)
     assert put_sched == SCH_PUT_SCHEDULE_DHW(put_sched)
 
     assert put_sched == convert_to_put_schedule(get_sched)
@@ -42,7 +42,7 @@ def test_schema_schedule_zone() -> None:
     get_sched = schedule_fixture("schedule_zone_get.json")
     put_sched = schedule_fixture("schedule_zone_put.json")
 
-    assert get_sched == SCH_SCHEDULE_ZONE(get_sched)
+    assert get_sched == SCH_GET_SCHEDULE_ZONE(get_sched)
     assert put_sched == SCH_PUT_SCHEDULE_ZONE(put_sched)
 
     assert put_sched == convert_to_put_schedule(get_sched)
