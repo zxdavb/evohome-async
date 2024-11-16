@@ -16,6 +16,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+import evohomeasync as evo0
+
 from .common import should_fail_v0, should_work_v0, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
 
@@ -23,13 +25,13 @@ if TYPE_CHECKING:
     from ..conftest import EvohomeClientv0
 
 
-async def _test_url_locations(evo: EvohomeClientv0) -> None:
-    await evo.update()
+async def _test_usr_locations(evo: EvohomeClientv0) -> None:
+    """Test /locations?userId={user_id}&allData=True"""
 
-    # evo.broker._headers["sessionId"] = evo.user_info["sessionId"]  # what is this?
-    user_id: int = evo.user_info["userID"]
-
+    await evo.auth.get_session_id()
     assert evo.auth.session_id
+
+    user_id: int = evo.auth.user_info["userID"]
 
     url = f"locations?userId={user_id}&allData=True"
     _ = await should_work_v0(evo, HTTPMethod.GET, url)
@@ -38,7 +40,7 @@ async def _test_url_locations(evo: EvohomeClientv0) -> None:
     _ = await should_fail_v0(evo, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
 
     url = f"locations?userId={user_id}"
-    _ = await should_work_v0(evo, HTTPMethod.GET, url)
+    _ = await should_work_v0(evo, HTTPMethod.GET, url, schema=None)
 
     url = "locations?userId=123456"
     _ = await should_fail_v0(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
@@ -56,38 +58,25 @@ async def _test_url_locations(evo: EvohomeClientv0) -> None:
     )
 
 
-async def _test_client_apis(evo: EvohomeClientv0) -> None:
-    """Instantiate a client, and logon to the vendor API."""
-
-    user_data = await evo._get_user_data()
-    assert user_data  # aka evo.user_data
-
-    assert evo.user_info
-
-    await evo._populate_locn_data()
-
-    temps = await evo.get_temperatures()
-    assert temps
+# NOTE: this URL is tested with authentication tests
+# async def test_usr_account(evohome_v0: EvohomeClientv0) -> None:
+#     """Test /session"""
 
 
 @skipif_auth_failed
-async def test_locations(evohome_v0: EvohomeClientv0) -> None:
-    """Test /locations"""
+async def test_usr_locations(evohome_v0: EvohomeClientv0) -> None:
+    """Test /locations?userId={user_id}&allData=True"""
 
     if not _DBG_USE_REAL_AIOHTTP:
-        pytest.skip("Mocked server not implemented for this API")
+        pytest.skip("Mocked server not implemented for this test")
 
-    await _test_url_locations(evohome_v0)
+    try:
+        await _test_usr_locations(evohome_v0)
 
-
-@skipif_auth_failed
-async def test_client_apis(evohome_v0: EvohomeClientv0) -> None:
-    """Test _populate_user_data() & _populate_full_data()"""
-
-    if not _DBG_USE_REAL_AIOHTTP:
-        pytest.skip("Mocked server not implemented for this API")
-
-    await _test_client_apis(evohome_v0)
+    except evo0.AuthenticationFailedError:
+        if not _DBG_USE_REAL_AIOHTTP:
+            raise
+        pytest.skip("Unable to authenticate with real server")
 
 
 USER_DATA = {

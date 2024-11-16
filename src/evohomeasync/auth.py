@@ -18,6 +18,7 @@ from . import exceptions as exc
 from .schema import (
     SZ_LATEST_EULA_ACCEPTED,
     SZ_SESSION_ID as S2_SESSION_ID,
+    SZ_USER_ID as S2_USER_ID,
     SZ_USER_INFO as S2_USER_INFO,
     SessionResponseT,
     UserAccountResponse,
@@ -112,7 +113,7 @@ class AbstractSessionManager(ABC):
 
     _session_id: str
     _session_expires: dt  # TODO: should be in Auth class?
-    #
+    _user_info: UserAccountResponse | None
 
     def __init__(
         self,
@@ -152,9 +153,6 @@ class AbstractSessionManager(ABC):
         self._session_id = ""
         self._session_expires = dt.min
         #
-
-    # @property
-    # def user_info(self) -> str:
 
     @property
     def session_id(self) -> str:
@@ -243,7 +241,7 @@ class AbstractSessionManager(ABC):
         try:
             self._session_id: str = response[S2_SESSION_ID]
             self._session_expires = dt.now() + td(minutes=15)
-            self._user_info: UserAccountResponse = response[S2_USER_INFO]
+            self._user_info = response[S2_USER_INFO]
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
@@ -316,6 +314,12 @@ class Auth(AbstractSessionManager):
     def _url_base(self) -> StrOrURL:
         """Return the URL base used for GET/PUT."""
         return f"https://{self._hostname}/WebAPI/api"
+
+    @property  # from AbstractSessionManager
+    def _user_id(self) -> str:
+        if self._user_info is None or self._user_info.get(S2_USER_ID) is None:
+            raise NotImplementedError
+        return self._user_info[S2_USER_ID]
 
     async def get(
         self, url: StrOrURL, schema: vol.Schema | None = None
