@@ -62,9 +62,15 @@ def token_data(credentials: tuple[str, str]) -> dict[str, Any]:
 
     return {
         credentials[0]: {
+            "auth_tokens": {
             "access_token": "ncWMqPh2yGgAqc...",
             "access_token_expires": (dt.now() + td(hours=1)).isoformat(),
             "refresh_token": "Ryx9fL34Z5GcNV...",
+            },
+            "session_id": {
+                "session_id": "12345...",
+                "session_id_expires": (dt.now() + td(hours=1)).isoformat(),
+            },
         }
     }
 

@@ -137,9 +137,7 @@ async def cli(
     )
 
     websession = aiohttp.ClientSession()  # timeout=aiohttp.ClientTimeout(total=30))
-    token_manager = CacheManager(
-        username, password, websession, cache_file=CACHE_FILE
-    )
+    token_manager = CacheManager(username, password, websession, cache_file=CACHE_FILE)
 
     if cache_tokens:  # restore cached tokens, if any
         await token_manager._load_access_token()
