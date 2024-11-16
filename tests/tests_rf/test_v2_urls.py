@@ -36,13 +36,7 @@ from evohomeasync2.schema.schedule import convert_to_put_schedule
 from . import faked_server as faked
 from .common import should_fail, should_work, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
-from .schema import (
-    SCH_FULL_CONFIG,
-    SCH_LOCN_STATUS,
-    SCH_TCS_STATUS,
-    SCH_USER_ACCOUNT,
-    SCH_ZONE_STATUS,
-)
+from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
 
 if TYPE_CHECKING:
     from evohomeasync2.schema import _EvoDictT
@@ -72,7 +66,7 @@ async def _test_usr_account(evo: EvohomeClientv2) -> None:
     )
 
 
-async def _test_all_config(evo: EvohomeClientv2) -> None:
+async def _test_user_locations(evo: EvohomeClientv2) -> None:
     """Test /location/installationInfo?userId={user_id}"""
 
     await evo.update()
@@ -112,7 +106,7 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
     _ = await should_work(evo, HTTPMethod.GET, url)
 
     url += "?includeTemperatureControlSystems=True"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_LOCN_STATUS)
+    _ = await should_work(evo, HTTPMethod.GET, url, schema=evo2.Location.STATUS_SCHEMA)
     _ = await should_fail(
         evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
@@ -156,7 +150,9 @@ async def _test_tcs_mode(evo: EvohomeClientv2) -> None:
     old_mode: _EvoDictT = tcs.system_mode_status  # type: ignore[assignment]
 
     url = f"{tcs._TYPE}/{tcs.id}/status"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_TCS_STATUS)
+    _ = await should_work(
+        evo, HTTPMethod.GET, url, schema=evo2.ControlSystem.STATUS_SCHEMA
+    )
 
     url = f"{tcs._TYPE}/{tcs.id}/mode"
     _ = await should_fail(
@@ -217,7 +213,7 @@ async def _test_zone_mode(evo: EvohomeClientv2) -> None:
     #
 
     url = f"{zone._TYPE}/{zone.id}/status"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_ZONE_STATUS)
+    _ = await should_work(evo, HTTPMethod.GET, url, schema=evo2.Zone.STATUS_SCHEMA)
 
     url = f"{zone._TYPE}/{zone.id}/heatSetpoint"
 
@@ -310,7 +306,7 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
 #######################################################################################
 
 
-@skipif_auth_failed
+@skipif_auth_failed  # GET
 async def test_usr_account(evohome_v2: EvohomeClientv2) -> None:
     """Test /userAccount"""
 
@@ -323,21 +319,21 @@ async def test_usr_account(evohome_v2: EvohomeClientv2) -> None:
         pytest.skip("Unable to authenticate")
 
 
-@skipif_auth_failed
-async def test_all_config(evohome_v2: EvohomeClientv2) -> None:
+@skipif_auth_failed  # GET
+async def test_usr_locations(evohome_v2: EvohomeClientv2) -> None:
     """Test /location/installationInfo"""
 
-    await _test_all_config(evohome_v2)
+    await _test_user_locations(evohome_v2)
 
 
-@skipif_auth_failed
+@skipif_auth_failed  # GET
 async def test_loc_status(evohome_v2: EvohomeClientv2) -> None:
     """Test /location/{loc.id}/status"""
 
     await _test_loc_status(evohome_v2)
 
 
-@skipif_auth_failed
+@skipif_auth_failed  # GET, PUT
 async def test_tcs_mode(evohome_v2: EvohomeClientv2) -> None:
     """Test /temperatureControlSystem/{tcs.id}/mode"""
 
@@ -350,7 +346,7 @@ async def test_tcs_mode(evohome_v2: EvohomeClientv2) -> None:
         pytest.skip("Mocked server API not implemented")
 
 
-@skipif_auth_failed
+@skipif_auth_failed  # GET, PUT
 async def test_zone_mode(evohome_v2: EvohomeClientv2) -> None:
     """Test /temperatureZone/{zone.id}/heatSetpoint"""
 
@@ -363,7 +359,7 @@ async def test_zone_mode(evohome_v2: EvohomeClientv2) -> None:
         pytest.skip("Mocked server API not implemented")
 
 
-@skipif_auth_failed
+@skipif_auth_failed  # GET, PUT
 async def test_schedule(evohome_v2: EvohomeClientv2) -> None:
     """Test /{x._TYPE}/{x.id}/schedule"""
 

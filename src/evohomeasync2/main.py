@@ -12,7 +12,7 @@ from .auth import AbstractTokenManager, Auth
 from .const import SZ_USER_ID
 from .control_system import ControlSystem
 from .location import Location
-from .schema import SCH_FULL_CONFIG, SCH_USER_ACCOUNT
+from .schema import SCH_GET_USER_ACCOUNT, SCH_GET_USER_LOCATIONS
 
 if TYPE_CHECKING:
     import aiohttp
@@ -86,7 +86,7 @@ class EvohomeClientNew:  # requires a Token Manager
 
         if self._user_info is None:
             url = "userAccount"
-            self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
+            self._user_info = await self.auth.get(url, schema=SCH_GET_USER_ACCOUNT)  # type: ignore[assignment]
 
         assert self._user_info is not None  # mypy hint
 
@@ -94,7 +94,7 @@ class EvohomeClientNew:  # requires a Token Manager
             url = f"location/installationInfo?userId={self._user_info[SZ_USER_ID]}"
             url += "&includeTemperatureControlSystems=True"
 
-            self._locn_info = await self.auth.get(url, schema=SCH_FULL_CONFIG)  # type: ignore[assignment]
+            self._locn_info = await self.auth.get(url, schema=SCH_GET_USER_LOCATIONS)  # type: ignore[assignment]
 
             self._locations = None
             self._location_by_id = None

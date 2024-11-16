@@ -5,12 +5,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Final
 
 import pytest
 
 from evohomeasync2 import Location
-from evohomeasync2.schema import SCH_LOCN_STATUS, convert_keys_to_snake_case
-from evohomeasync2.schema.config import SCH_TCS_CONFIG, SCH_TIME_ZONE
+from evohomeasync2.schema import convert_keys_to_snake_case
+from evohomeasync2.schema.config import factory_tcs, factory_time_zone
 from evohomeasync2.schema.const import (
     S2_GATEWAY_ID,
     S2_GATEWAY_INFO,
@@ -20,6 +21,7 @@ from evohomeasync2.schema.const import (
     S2_TEMPERATURE_CONTROL_SYSTEMS,
     S2_TIME_ZONE,
 )
+from evohomeasync2.schema.status import factory_loc_status
 
 from .common import TEST_DIR
 from .conftest import ClientStub
@@ -29,6 +31,11 @@ WORK_DIR = f"{TEST_DIR}/schemas_0"
 # NOTE: JSON from HA is not compliant with vendor schema, but is useful to test against
 CONFIG_FILE_NAME = "config.json"
 STATUS_FILE_NAME = "status.json"
+
+# These schemas have camelCase keys, as per the vendor's schema
+SCH_TCS_CONFIG: Final = factory_tcs()
+SCH_TIME_ZONE: Final = factory_time_zone()
+SCH_LOCN_STATUS: Final = factory_loc_status()
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:

@@ -43,7 +43,10 @@ from .typedefs import _EvoDictT, _EvoLeafT, _EvoListT, _EvoSchemaT, _ModeT  # no
 SCH_GET_USER_ACCOUNT: Final = factory_user_account()
 
 # GET /location/{location_id}/installationInfo?includeTemperatureControlSystems=True
-SCH_LOCATION_INSTALLATION_INFO: Final = factory_locations_installation_info()
+SCH_GET_LOCATION_INSTALLATION_INFO: Final = factory_locations_installation_info()
 
 # GET /location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True
-SCH_USER_LOCATIONS_INSTALLATION_INFO: Final = factory_user_locations_installation_info()
+SCH_GET_USER_LOCATIONS: Final = factory_user_locations_installation_info()
+
+# GET /location/{self.id}/status?includeTemperatureControlSystems=True
+SCH_GET_LOCN_STATUS: Final = factory_loc_status()

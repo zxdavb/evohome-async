@@ -38,5 +38,3 @@ def factory_user_account(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
         },
         extra=vol.PREVENT_EXTRA,
     )
-
-

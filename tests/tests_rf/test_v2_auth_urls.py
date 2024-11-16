@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from evohomeasync2.auth import _APPLICATION_ID, SCH_OAUTH_TOKEN
-from evohomeasync2.schema import SCH_USER_ACCOUNT
+from evohomeasync2.schema import SCH_GET_USER_ACCOUNT
 
 from ..const import URL_AUTH_V2 as URL_AUTH, URL_BASE_V2 as URL_BASE
 from .const import _DBG_USE_REAL_AIOHTTP
@@ -221,7 +221,7 @@ async def test_url_auth_good(
     assert response["userId"] and isinstance(response["userId"], str)
     assert response["username"] and response["username"] == credentials[0]
 
-    assert SCH_USER_ACCOUNT(response), response
+    assert SCH_GET_USER_ACCOUNT(response), response
 
     # #################################################################################
 
