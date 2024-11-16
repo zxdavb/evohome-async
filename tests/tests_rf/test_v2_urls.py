@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohome-async - validate the handling of vendor APIs (URLs).
+"""evohome-async - validate the handling of vendor APIs (URLs) for Authorization.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor

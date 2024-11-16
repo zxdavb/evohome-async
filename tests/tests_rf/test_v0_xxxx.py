@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""evohome-async - validate the handling of vendor APIs (URLs)."""
+"""evohome-async - validate the handling of vendor APIs (URLs) for Authorization.
+
+This is used to:
+  a) document the RESTful API that is provided by the vendor
+  b) confirm the faked server is behaving as per a)
+
+Testing is at HTTP request layer (e.g. GET).
+Everything to/from the RESTful API is in camelCase (so those schemas are used).
+"""
 
 from __future__ import annotations
 
