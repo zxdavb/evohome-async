@@ -149,7 +149,7 @@ async def test_cache(
 
     # #
     # # Test 1: valid token cache
-    # with token_cache.open("w") as f:
+    # with cache_file.open("w") as f:
     #     f.write(json.dumps(token_data))
 
     # await token_manager.load_access_token()

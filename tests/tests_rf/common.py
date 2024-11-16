@@ -70,13 +70,13 @@ class SessionManager(evo0.Auth):
         secret: str,
         websession: aiohttp.ClientSession,
         /,
-        token_cache: Path | None = None,
+        cache_file: Path | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialise the session manager."""
         super().__init__(client_id, secret, websession, **kwargs)
 
-        self._token_cache: Final = token_cache
+        self._cache_file: Final = cache_file
 
     async def save_session_id(self) -> None:
         """Save the (serialized) session id to a cache."""
