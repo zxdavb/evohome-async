@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync2 as evo2
-from evohomeasync2 import ControlSystem, Gateway, HotWater, Location
+from evohomeasync2 import ControlSystem, Gateway, HotWater, Location, Zone
 from evohomeasync2.const import API_STRFTIME, DhwState, ZoneMode
 from evohomeasync2.schema.const import (
     S2_MODE,
@@ -38,7 +38,8 @@ if TYPE_CHECKING:
 #######################################################################################
 
 
-async def _test_task_id(evo: EvohomeClientv2) -> None:
+# NOTE: a long test, but not all systems have DHW
+async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
@@ -60,10 +61,8 @@ async def _test_task_id(evo: EvohomeClientv2) -> None:
                     dhw = tcs.hotwater
                     break
 
-    else:  # No available DHW found
+    if dhw is None:
         pytest.skip("No available DHW found")
-
-    assert dhw is not None  # type: ignore[unreachable]
 
     GET_URL = f"{dhw._TYPE}/{dhw.id}/status"
     PUT_URL = f"{dhw._TYPE}/{dhw.id}/state"
@@ -199,18 +198,76 @@ async def _test_task_id(evo: EvohomeClientv2) -> None:
     )  # [{"code": "CommTaskNotFound", "message": "Communication task not found."}]
 
 
-#######################################################################################
+# TODO: a short test
+async def _test_task_id_zone(evo: EvohomeClientv2) -> None:
+    """Test the task_id returned when using the vendor's RESTful APIs.
+
+    This test can be used to prove that JSON keys are can be camelCase or PascalCase.
+    """
+
+    loc: Location
+    gwy: Gateway
+    tcs: ControlSystem
+
+    await evo.update(dont_update_status=True)
+
+    zone: Zone | None = None
+
+    for loc in evo.locations:
+        for gwy in loc.gateways:
+            for tcs in gwy.control_systems:
+                if not tcs.zones:
+                    continue
+                zone = tcs.zones[0]
+                break
+
+    if zone is None:
+        pytest.skip("No available Zone found")
+
+    GET_URL = f"{zone._TYPE}/{zone.id}/status"
+    # T_URL = f"{zone._TYPE}/{zone.id}/mode"
+
+    #
+    # PART 0: Get the initial mode...
+    old_status = await should_work_v2(evo, HTTPMethod.GET, GET_URL)
+    assert isinstance(old_status, dict)  # mypy
+    # {
+    #     'zoneId': '3432576',
+    #     'name': 'Main Room'
+    #     'temperatureStatus': {'temperature': 25.5, 'isAvailable': True}
+    #     'setpointStatus': {
+    #         'targetHeatTemperature': 10.0,
+    #         'setpointMode': 'FollowSchedule'
+    #      }
+    #     'activeFaults': []
+    # }  # HTTP 200
 
 
 @skipif_auth_failed
-async def test_task_id(evohome_v2: EvohomeClientv2) -> None:
-    """Test /location/{loc.id}/status"""
+async def test_task_id_dhw(evohome_v2: EvohomeClientv2) -> None:
+    """Test /commTasks?commTaskId={task_id}"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Test is only valid with a real server")
 
     try:
-        await _test_task_id(evohome_v2)
+        await _test_task_id_dhw(evohome_v2)
+
+    except evo2.AuthenticationFailedError:
+        if not _DBG_USE_REAL_AIOHTTP:
+            raise
+        pytest.skip("Unable to authenticate")
+
+
+@skipif_auth_failed
+async def _OUT_test_task_id_zone(evohome_v2: EvohomeClientv2) -> None:
+    """Test /commTasks?commTaskId={task_id}"""
+
+    if not _DBG_USE_REAL_AIOHTTP:
+        pytest.skip("Test is only valid with a real server")
+
+    try:
+        await _test_task_id_zone(evohome_v2)
 
     except evo2.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:

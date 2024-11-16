@@ -28,7 +28,6 @@ from evohomeasync2.const import (
     SystemMode,
     ZoneMode,
 )
-from evohomeasync2.schema import convert_to_put_schedule
 from evohomeasync2.schema.const import (
     S2_DAILY_SCHEDULES,
     S2_HEAT_SETPOINT,
@@ -81,13 +80,19 @@ async def _test_user_locations(evo: EvohomeClientv2) -> None:
     # TODO: can't use .update(); in any case, should use URLs only
     url = "userAccount"
     user_info = await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=None  # schema not re-tested here
+        evo,
+        HTTPMethod.GET,
+        url,
+        schema=None,  # schema not re-tested here
     )
     #
 
     url = f"location/installationInfo?userId={user_info[S2_USER_ID]}"
     await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=None  # schema not tested here
+        evo,
+        HTTPMethod.GET,
+        url,
+        schema=None,  # schema not tested here
     )
 
     url += "&includeTemperatureControlSystems=True"
@@ -122,7 +127,10 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
 
     url = f"location/{loc.id}/status"
     _ = await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=None  # schema not tested here
+        evo,
+        HTTPMethod.GET,
+        url,
+        schema=None,  # schema not tested here
     )
 
     url += "?includeTemperatureControlSystems=True"
@@ -286,9 +294,11 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
 
 
 # TODO: Test sending bad schedule
-# TODO: Try with/without convert_to_put_schedule()
 async def _test_schedule(evo: EvohomeClientv2) -> None:
-    """Test /{x._TYPE}/{x.id}/schedule (of a zone)"""
+    """Test /{x._TYPE}/{xid}/schedule
+
+    Also test commTasks?commTaskId={task_id}
+    """
 
     # TODO: remove .update() and use URLs only
     await evo.update()
@@ -303,21 +313,41 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
         )
         return
 
+    #
+    # STEP 0: GET the current schedule
     url = f"{zone._TYPE}/{zone.id}/schedule"
     schedule = await should_work_v2(
         evo, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
     )
 
+    #
+    # STEP 1: PUT a new schedule
     temp = schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT]  # type: ignore[call-overload]
 
     schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] = temp + 1  # type: ignore[call-overload,operator]
-    _ = await should_work_v2(
+    result = await should_work_v2(
         evo,
         HTTPMethod.PUT,
         url,
-        json=convert_to_put_schedule(schedule),  # type: ignore[arg-type]
-    )
+        json=schedule,  # was convert_to_put_schedule(schedule),  # type: ignore[arg-type]
+    )  # returns (e.g.) {'id': '1586180358'}
 
+    #
+    # STEP 2: check the status of the task
+    task_id = result[0]["id"] if isinstance(result, list) else result["id"]
+    url_tsk = f"commTasks?commTaskId={task_id}"
+
+    status = await should_work_v2(evo, HTTPMethod.GET, url_tsk)
+    # {'commtaskId': '840367013', 'state': 'Created'}
+    # {'commtaskId': '840367013', 'state': 'Running'}
+    # {'commtaskId': '840367013', 'state': 'Succeeded'}
+
+    assert isinstance(status, dict)  # mypy
+    assert status["commtaskId"] == task_id
+    assert status["state"] in ("Created", "Running", "Succeeded")
+
+    #
+    # STEP 3: check the new schedule was effected
     schedule = await should_work_v2(
         evo, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
     )
@@ -326,14 +356,21 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
         == temp + 1  # type: ignore[operator]
     )
 
+    #
+    # STEP 4: PUT the original schedule back
     schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] = temp  # type: ignore[call-overload]
     _ = await should_work_v2(
         evo,
         HTTPMethod.PUT,
         url,
-        json=convert_to_put_schedule(schedule),  # type: ignore[arg-type]
+        json=schedule,  # type: ignore[arg-type]
     )
 
+    #
+    # STEP 5: check the status of the task
+
+    #
+    # STEP 6: check the new schedule was effected
     schedule = await should_work_v2(
         evo, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
     )
@@ -342,6 +379,10 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
     _ = await should_fail_v2(
         evo, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST
     )  # NOTE: json=None
+
+    #
+    # STEP 7: PUT a bad schedule
+    # [{'code': 'ParameterIsMissing', 'parameterName': 'request', 'message': 'Parameter is missing.'}]
 
 
 #######################################################################################
@@ -408,7 +449,10 @@ async def test_zone_status(evohome_v2: EvohomeClientv2) -> None:
 
 @skipif_auth_failed  # GET, PUT
 async def test_schedule(evohome_v2: EvohomeClientv2) -> None:
-    """Test /{x._TYPE}/{x.id}/schedule"""
+    """Test /{x._TYPE}/{xid}/schedule
+
+    Also test commTasks?commTaskId={task_id}
+    """
 
     await _test_schedule(evohome_v2)
 

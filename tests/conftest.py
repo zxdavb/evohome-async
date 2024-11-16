@@ -116,6 +116,8 @@ async def evohome_v0(
 ) -> AsyncGenerator[EvohomeClientv0, None]:
     """Yield an instance of a v0 EvohomeClient."""
 
+    # await cache_manager.load_cache()
+
     evo = EvohomeClientv0(*credentials, websession=client_session)
 
     # await evo.update()
@@ -131,6 +133,8 @@ async def evohome_v2(
     cache_manager: CacheManager,
 ) -> AsyncGenerator[EvohomeClientv2, None]:
     """Yield an instance of a v2 EvohomeClient."""
+
+    await cache_manager.load_cache()
 
     evo = EvohomeClientv2(cache_manager)
 
