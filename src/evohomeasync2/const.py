@@ -55,6 +55,8 @@ SZ_ZONE_TYPE: Final = "zone_type"
 SZ_ZONES: Final = "zones"
 
 
+SZ_IS_PERMANENT: Final = "is_permanent"
+
 # These keys are not in the vendor's schema
 SZ_ID: Final = "id"
 SZ_PERMANENT: Final = "permanent"

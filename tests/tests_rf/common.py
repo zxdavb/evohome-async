@@ -180,7 +180,7 @@ async def should_work_v2(
 
     response = await evo.auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
 
-    content = await Auth._content(response)  # converts to snake_case
+    content = await Auth._content(response)
     assert response.content_type == content_type, content
 
     if response.content_type != "application/json":

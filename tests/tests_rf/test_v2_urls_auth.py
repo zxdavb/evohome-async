@@ -21,6 +21,8 @@ import evohomeasync2 as evo2
 from evohomeasync2 import schema
 from evohomeasync2.const import (
     API_STRFTIME,
+    SZ_IS_PERMANENT,
+    SZ_MODE,
     SZ_PERMANENT,
     SZ_SYSTEM_MODE,
     SystemMode,
@@ -31,8 +33,6 @@ from evohomeasync2.schema.const import (
     S2_DAILY_SCHEDULES,
     S2_HEAT_SETPOINT,
     S2_HEAT_SETPOINT_VALUE,
-    S2_IS_PERMANENT,
-    S2_MODE,
     S2_PERMANENT,
     S2_SETPOINT_MODE,
     S2_SWITCHPOINTS,
@@ -78,13 +78,17 @@ async def _test_usr_account(evo: EvohomeClientv2) -> None:
 async def _test_user_locations(evo: EvohomeClientv2) -> None:
     """Test /location/installationInfo?userId={user_id}"""
 
-    # Cannot call evo.update() here, as it will request the URL we want to test
+    # TODO: can't use .update(); in any case, should use URLs only
     url = "userAccount"
-    user_info = await should_work_v2(evo, HTTPMethod.GET, url)  # schema not re-tested
+    user_info = await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=None  # schema not re-tested here
+    )
     #
 
     url = f"location/installationInfo?userId={user_info[S2_USER_ID]}"
-    await should_work_v2(evo, HTTPMethod.GET, url)  # schema not tested here
+    await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=None  # schema not tested here
+    )
 
     url += "&includeTemperatureControlSystems=True"
     _ = await should_work_v2(
@@ -110,6 +114,7 @@ async def _test_user_locations(evo: EvohomeClientv2) -> None:
 async def _test_loc_status(evo: EvohomeClientv2) -> None:
     """Test /location/{loc.id}/status"""
 
+    # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
     loc = evo.locations[0]
@@ -117,7 +122,7 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
 
     url = f"location/{loc.id}/status"
     _ = await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_LOCN_STATUS
+        evo, HTTPMethod.GET, url, schema=None  # schema not tested here
     )
 
     url += "?includeTemperatureControlSystems=True"
@@ -153,9 +158,13 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
     )
 
 
-async def _test_tcs_mode(evo: EvohomeClientv2) -> None:
-    """Test /temperatureControlSystem/{tcs.id}/mode"""
+async def _test_tcs_status(evo: EvohomeClientv2) -> None:
+    """Test /temperatureControlSystem/{tcs.id}/statis
 
+    Also tests /temperatureControlSystem/{tcs.id}/mode
+    """
+
+    # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
     tcs: evo2.ControlSystem
@@ -163,7 +172,8 @@ async def _test_tcs_mode(evo: EvohomeClientv2) -> None:
     if not (tcs := evo.locations[0].gateways[0].control_systems[0]):
         pytest.skip("No available zones found")
 
-    _ = await tcs.location.update()
+    # TODO: remove .update() and use URLs only
+    _ = await tcs.location.update()  # NOTE: below is snake_case
     old_mode: _EvoDictT = tcs.system_mode_status  # type: ignore[assignment]
 
     url = f"{tcs._TYPE}/{tcs.id}/status"
@@ -173,12 +183,13 @@ async def _test_tcs_mode(evo: EvohomeClientv2) -> None:
     _ = await should_fail_v2(
         evo, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
+    # FIXME: old_mode is snack_case
     _ = await should_fail_v2(
         evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.BAD_REQUEST
     )
 
-    old_mode[SZ_SYSTEM_MODE] = old_mode.pop(S2_MODE)
-    old_mode[SZ_PERMANENT] = old_mode.pop(S2_IS_PERMANENT)
+    old_mode[SZ_SYSTEM_MODE] = old_mode.pop(SZ_MODE)
+    old_mode[SZ_PERMANENT] = old_mode.pop(SZ_IS_PERMANENT)
 
     assert SystemMode.AUTO in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
     new_mode: _EvoDictT = {
@@ -215,9 +226,13 @@ async def _test_tcs_mode(evo: EvohomeClientv2) -> None:
     pass
 
 
-async def _test_zone_mode(evo: EvohomeClientv2) -> None:
-    """Test /temperatureZone/{zone.id}/heatSetpoint"""
+async def _test_zone_status(evo: EvohomeClientv2) -> None:
+    """Test /temperatureZone/{zone.id}/status
 
+    Also tests /temperatureZone/{zone.id}/heatSetpoint
+    """
+
+    # TODO: remove .update() and use URLs only
     await evo.update()
 
     for zone in evo.locations[0].gateways[0].control_systems[0].zones:
@@ -275,6 +290,7 @@ async def _test_zone_mode(evo: EvohomeClientv2) -> None:
 async def _test_schedule(evo: EvohomeClientv2) -> None:
     """Test /{x._TYPE}/{x.id}/schedule (of a zone)"""
 
+    # TODO: remove .update() and use URLs only
     await evo.update()
 
     zone = evo.locations[0].gateways[0].control_systems[0].zones[0]
@@ -359,11 +375,14 @@ async def test_loc_status(evohome_v2: EvohomeClientv2) -> None:
 
 
 @skipif_auth_failed  # GET, PUT
-async def test_tcs_mode(evohome_v2: EvohomeClientv2) -> None:
-    """Test /temperatureControlSystem/{tcs.id}/mode"""
+async def test_tcs_status(evohome_v2: EvohomeClientv2) -> None:
+    """Test /temperatureControlSystem/{tcs.id}/statis
+
+    Also tests /temperatureControlSystem/{tcs.id}/mode
+    """
 
     try:
-        await _test_tcs_mode(evohome_v2)
+        await _test_tcs_status(evohome_v2)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -372,14 +391,14 @@ async def test_tcs_mode(evohome_v2: EvohomeClientv2) -> None:
 
 
 @skipif_auth_failed  # GET, PUT
-async def test_zone_mode(evohome_v2: EvohomeClientv2) -> None:
-    """Test /temperatureZone/{zone.id}/heatSetpoint
+async def test_zone_status(evohome_v2: EvohomeClientv2) -> None:
+    """Test /temperatureZone/{zone.id}/status
 
-    Includes /temperatureZone/{zone.id}/status
+    Also tests /temperatureZone/{zone.id}/heatSetpoint
     """
 
     try:
-        await _test_zone_mode(evohome_v2)
+        await _test_zone_status(evohome_v2)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -395,6 +414,4 @@ async def test_schedule(evohome_v2: EvohomeClientv2) -> None:
 
 
 # TODO: test_oauth_token(
-# TODO: test_put_dhw_state(
-# TODO: test_get_dhw_status(
-# TODO: test_set_tcs_mode(
+# TODO: test_get_dhw_status( & test_put_dhw_state(
