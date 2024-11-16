@@ -205,7 +205,7 @@ class EvohomeClientNew:
             data |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
         url = f"evoTouchSystems?locationId={self.location_id}"
-        await self.auth._request(HTTPMethod.PUT, url, data=data)
+        await self.auth.request(HTTPMethod.PUT, url, data=data)
 
     async def set_mode_auto(self) -> None:
         """Set the system to normal operation."""
@@ -291,7 +291,7 @@ class EvohomeClientNew:
             }
 
         url = f"devices/{zone_id}/thermostat/changeableValues/heatSetpoint"
-        await self.auth._request(HTTPMethod.PUT, url, data=data)
+        await self.auth.request(HTTPMethod.PUT, url, data=data)
 
     async def set_temperature(
         self, zone: _ZoneIdT | _ZoneNameT, temperature: float, until: dt | None = None
@@ -350,7 +350,7 @@ class EvohomeClientNew:
             data |= {SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
         url = f"devices/{dhw_id}/thermostat/changeableValues"
-        await self.auth._request(HTTPMethod.PUT, url, data=data)
+        await self.auth.request(HTTPMethod.PUT, url, data=data)
 
     async def set_dhw_on(self, until: dt | None = None) -> None:
         """Set DHW to On, either indefinitely, or until a specified time.

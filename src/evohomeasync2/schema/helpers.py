@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from typing import TypeVar
 
 from .const import REGEX_EMAIL_ADDRESS
@@ -46,7 +47,7 @@ def _do_nothing(s: str) -> str:
     return s
 
 
-def convert_keys_to_snake_case(data: _T) -> _T:
+def _convert_keys(data: _T, fnc: Callable) -> _T:
     """Convert all keys in a dictionary to snake_case.
 
     Used after retreiiving JSON data from the vendor API.
@@ -58,7 +59,15 @@ def convert_keys_to_snake_case(data: _T) -> _T:
     if not isinstance(data, dict):
         return data
 
-    return {camel_to_snake(k): convert_keys_to_snake_case(v) for k, v in data.items()}  # type: ignore[return-value]
+    return {fnc(k): convert_keys_to_snake_case(v) for k, v in data.items()}  # type: ignore[return-value]
+
+
+def convert_keys_to_camel_case(data: _T) -> _T:
+    return _convert_keys(data, camel_to_snake)
+
+
+def convert_keys_to_snake_case(data: _T) -> _T:
+    return _convert_keys(data, camel_to_snake)
 
 
 def _OUT_camel_case(s: str) -> str:

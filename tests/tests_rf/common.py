@@ -97,8 +97,7 @@ async def should_work_v0(
 
     response: aiohttp.ClientResponse
 
-    # unlike _make_request(), make_request() incl. raise_for_status()
-    response = await evo.auth.request(method, url, data=json)
+    response = await evo.auth._raw_request(method, url, data=json)
     response.raise_for_status()
 
     # TODO: perform this transform in the broker
@@ -130,8 +129,7 @@ async def should_fail_v0(
     response: aiohttp.ClientResponse
 
     try:
-        # unlike _make_request(), make_request() incl. raise_for_status()
-        response = await evo.auth.request(method, url, data=json)
+        response = await evo.auth._raw_request(method, url, data=json)
         response.raise_for_status()
 
     except aiohttp.ClientResponseError as err:
@@ -165,7 +163,7 @@ async def should_fail_v0(
 # version 2 helpers ###################################################################
 
 
-async def should_work(
+async def should_work_v2(
     evo: EvohomeClientv2,
     method: HTTPMethod,
     url: str,
@@ -180,7 +178,7 @@ async def should_work(
     Used to validate the faked server against a 'real' server.
     """
 
-    response = await evo.auth.request(method, f"{URL_BASE_V2}/{url}", json=json)
+    response = await evo.auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
 
     content = await Auth._content(response)  # converts to snake_case
     assert response.content_type == content_type, content
@@ -193,7 +191,7 @@ async def should_work(
     return schema(content) if schema else content
 
 
-async def should_fail(
+async def should_fail_v2(
     evo: EvohomeClientv2,
     method: HTTPMethod,
     url: str,
@@ -209,7 +207,9 @@ async def should_fail(
     """
 
     try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
-        response = await evo.auth.request(method, f"{URL_BASE_V2}/{url}", json=json)
+        response = await evo.auth._raw_request(
+            method, f"{URL_BASE_V2}/{url}", json=json
+        )
 
     except aiohttp.ClientResponseError:
         assert False  # err.status == status, err.status
@@ -260,7 +260,7 @@ async def wait_for_comm_task_v2(evo: EvohomeClientv2, task_id: str) -> bool:
     url = f"commTasks?commTaskId={task_id}"
 
     while True:
-        response = await should_work(evo, HTTPMethod.GET, url)
+        response = await should_work_v2(evo, HTTPMethod.GET, url)
         assert isinstance(response, dict | list), response
 
         task = response[0] if isinstance(response, list) else response

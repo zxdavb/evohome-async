@@ -21,6 +21,8 @@ from .schema import (
     SZ_USER_INFO as S2_USER_INFO,
     SessionResponseT,
     UserAccountResponse,
+    convert_keys_to_camel_case,
+    convert_keys_to_snake_case,
 )
 
 if TYPE_CHECKING:
@@ -317,9 +319,7 @@ class Auth(AbstractSessionManager):
         return f"https://{self._hostname}/WebAPI/api"
 
     async def get(
-        self,
-        url: StrOrURL,
-        schema: vol.Schema | None = None,
+        self, url: StrOrURL, schema: vol.Schema | None = None
     ) -> dict[str, Any]:
         """Call the Resideo TCC API with a GET.
 
@@ -329,7 +329,7 @@ class Auth(AbstractSessionManager):
 
         content: dict[str, Any]
 
-        content = await self._request(  # type: ignore[assignment]
+        content = await self.request(  # type: ignore[assignment]
             HTTPMethod.GET, f"{self._url_base}/{url}"
         )
 
@@ -347,10 +347,10 @@ class Auth(AbstractSessionManager):
         json: dict[str, Any] | str,
         schema: vol.Schema | None = None,
     ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
-        """Call the Resideo TCC API with a PUT (POST is only used for authentication).
+        """Call the Resideo TCC API with a PUT.
 
-        Optionally checks the request JSON against the expected schema and logs a
-        warning if it doesn't match (NB: does not raise a vol.Invalid).
+        Optionally checks the payload JSON against the expected schema and logs a
+        warning if it doesn't match.
         """
 
         content: dict[str, Any] | list[dict[str, Any]]
@@ -361,19 +361,39 @@ class Auth(AbstractSessionManager):
             except vol.Invalid as err:
                 self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
 
-        content = await self._request(  # type: ignore[assignment]
+        content = await self.request(  # type: ignore[assignment]
             HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
         )
 
         return content
 
-    async def _request(  # wrapper for self.request()
+    async def request(
+        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+    ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
+        """Make a request to the Resideo TCC RESTful API.
+
+        Converts keys to/from snake_case as required.
+        """
+
+        if method == HTTPMethod.PUT and "json" in kwargs:
+            kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
+
+        content = await self._request(method, url, **kwargs)
+
+        if method == HTTPMethod.GET:
+            return convert_keys_to_snake_case(content)
+        return content
+
+    async def _request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> aiohttp.ClientResponse:
-        """Handle Auth failures when making a request to the RESTful API."""
+        """Make a request to the Resideo TCC RESTful API.
+
+        Handles Auth failures appropriately.
+        """
 
         # async with self._websession(method, url, **kwargs) as rsp:
-        async with await self.request(method, url, **kwargs) as rsp:
+        async with await self._raw_request(method, url, **kwargs) as rsp:
             response_text = await rsp.text()  # why can't I move this below the if?
 
             # if 401/unauthorized, may need to refresh session_id (expires in 15 mins?)
@@ -407,15 +427,18 @@ class Auth(AbstractSessionManager):
                 return rsp
 
             # NOTE: this is a recursive call, used only after re-authenticating
-            rsp = await self.request(
+            rsp = await self._raw_request(
                 method, url, kwargs=kwargs, _dont_reauthenticate=True
             )
             return rsp
 
-    async def request(
+    async def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> aiohttp.ClientResponse:
-        """Make a request to the Resideo TCC RESTful API."""
+        """Make an aiohttp request to the vendor's servers.
+
+        Will handle authorisation by inserting a session id into the header.
+        """
 
         headers = kwargs.pop("headers", None) or HEADERS_BASE
 

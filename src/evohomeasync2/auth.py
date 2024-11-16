@@ -16,7 +16,11 @@ import aiohttp
 import voluptuous as vol
 
 from . import exceptions as exc
-from .schema import convert_keys_to_snake_case, obfuscate as _obfuscate
+from .schema import (
+    convert_keys_to_camel_case,
+    convert_keys_to_snake_case,
+    obfuscate as _obfuscate,
+)
 
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
@@ -383,7 +387,7 @@ class Auth:
 
         content: _EvoSchemaT
 
-        content = await self._request(  # type: ignore[assignment]
+        content = await self.request(  # type: ignore[assignment]
             HTTPMethod.GET, f"{self._url_base}/{url}"
         )
 
@@ -398,10 +402,10 @@ class Auth:
     async def put(
         self, url: StrOrURL, json: _EvoDictT | str, schema: vol.Schema | None = None
     ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
-        """Call the Resideo TCC API with a PUT (POST is only used for authentication).
+        """Call the Resideo TCC API with a PUT.
 
-        Optionally checks the request JSON against the expected schema and logs a
-        warning if it doesn't match (NB: does not raise a vol.Invalid).
+        Optionally checks the payload JSON against the expected schema and logs a
+        warning if it doesn't match.
         """
 
         content: dict[str, Any] | list[dict[str, Any]]
@@ -412,22 +416,39 @@ class Auth:
             except vol.Invalid as err:
                 self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
 
-        content = await self._request(  # type: ignore[assignment]
+        content = await self.request(  # type: ignore[assignment]
             HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
         )
 
         return content
 
-    async def _request(  # wrapper for self.request()
+    async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
         """Make a request to the Resideo TCC RESTful API.
 
-        Handles Auth failures. If result is JSON, converts the keys to snake_case.
+        Converts keys to/from snake_case as required.
+        """
+
+        if method == HTTPMethod.PUT and "json" in kwargs:
+            kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
+
+        content = await self._request(method, url, **kwargs)
+
+        if method == HTTPMethod.GET:
+            return convert_keys_to_snake_case(content)
+        return content
+
+    async def _request(
+        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+    ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
+        """Make a request to the Resideo TCC RESTful API.
+
+        Handles Auth failures appropriately.
         """
 
         # async with self.request(method, url, **kwargs) as rsp:
-        async with await self.request(method, url, **kwargs) as rsp:
+        async with await self._raw_request(method, url, **kwargs) as rsp:
             try:
                 rsp.raise_for_status()
 
@@ -441,12 +462,12 @@ class Auth:
 
             return await self._content(rsp)
 
-    async def request(
+    async def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> aiohttp.ClientResponse:
-        """Make a request to the Resideo TCC RESTful API.
+        """Make an aiohttp request to the vendor's servers.
 
-        Does *not* convert the keys to snake_case.
+        Will handle authorisation by inserting an access token into the header.
         """
 
         headers = kwargs.pop("headers", None) or HEADERS_BASE
@@ -472,7 +493,7 @@ class Auth:
             return await response.text()
 
         content: dict[str, Any] = await response.json()
-        return convert_keys_to_snake_case(content)
+        return content
 
     async def get_access_token(self) -> str:
         """Return a valid access token."""
