@@ -47,15 +47,15 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
         """Initialise the token manager."""
         super().__init__(*args, **kwargs)
 
-        self._token_cache: Final = token_cache
+        self._cache_file: Final = token_cache
 
         self._clear_auth_tokens()
         self._clear_session_id()
 
     @property
-    def token_cache(self) -> str:
+    def cache_file(self) -> str:
         """Return the token cache path."""
-        return str(self._token_cache)
+        return str(self._cache_file)
 
     @staticmethod
     def _clean_cache(old_cache: TokenCacheT) -> TokenCacheT:
@@ -84,7 +84,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
         """Return a copy of the cache as read from file."""
 
         try:
-            async with aiofiles.open(self.token_cache) as fp:
+            async with aiofiles.open(self.cache_file) as fp:
                 content = await fp.read() or "{}"
         except FileNotFoundError:
             return {}
@@ -97,7 +97,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
 
         content = json.dumps(cache)
 
-        async with aiofiles.open(self.token_cache, "w") as fp:
+        async with aiofiles.open(self.cache_file, "w") as fp:
             await fp.write(content)
 
     async def load_cache(self) -> None:
