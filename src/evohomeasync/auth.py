@@ -21,7 +21,6 @@ from .schema import (
     SZ_USER_INFO as S2_USER_INFO,
     SessionResponseT,
     UserAccountResponse,
-    convert_keys_to_camel_case,
     convert_keys_to_snake_case,
 )
 
@@ -375,8 +374,8 @@ class Auth(AbstractSessionManager):
         Converts keys to/from snake_case as required.
         """
 
-        if method == HTTPMethod.PUT and "json" in kwargs:
-            kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
+        # TODO: if method == HTTPMethod.PUT and "json" in kwargs:
+        #     kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
         content = await self._request(method, url, **kwargs)
 

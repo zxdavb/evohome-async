@@ -16,11 +16,7 @@ import aiohttp
 import voluptuous as vol
 
 from . import exceptions as exc
-from .schema import (
-    convert_keys_to_camel_case,
-    convert_keys_to_snake_case,
-    obfuscate as _obfuscate,
-)
+from .schema import convert_keys_to_snake_case, obfuscate as _obfuscate
 
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
@@ -430,8 +426,8 @@ class Auth:
         Converts keys to/from snake_case as required.
         """
 
-        if method == HTTPMethod.PUT and "json" in kwargs:
-            kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
+        # TODO: if method == HTTPMethod.PUT and "json" in kwargs:
+        #     kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
         content = await self._request(method, url, **kwargs)
 
