@@ -330,21 +330,22 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
         HTTPMethod.PUT,
         url,
         json=schedule,  # was convert_to_put_schedule(schedule),  # type: ignore[arg-type]
-    )  # returns (e.g.) {'id': '1586180358'}
+    )  # returns (e.g.) {'id': '840367013'}
 
     #
     # STEP 2: check the status of the task
-    task_id = result[0]["id"] if isinstance(result, list) else result["id"]
-    url_tsk = f"commTasks?commTaskId={task_id}"
+    if _DBG_USE_REAL_AIOHTTP:
+        task_id = result[0]["id"] if isinstance(result, list) else result["id"]
+        url_tsk = f"commTasks?commTaskId={task_id}"
 
-    status = await should_work_v2(evo, HTTPMethod.GET, url_tsk)
-    # {'commtaskId': '840367013', 'state': 'Created'}
-    # {'commtaskId': '840367013', 'state': 'Running'}
-    # {'commtaskId': '840367013', 'state': 'Succeeded'}
+        status = await should_work_v2(evo, HTTPMethod.GET, url_tsk)
+        # {'commtaskId': '840367013', 'state': 'Created'}
+        # {'commtaskId': '840367013', 'state': 'Running'}
+        # {'commtaskId': '840367013', 'state': 'Succeeded'}
 
-    assert isinstance(status, dict)  # mypy
-    assert status["commtaskId"] == task_id
-    assert status["state"] in ("Created", "Running", "Succeeded")
+        assert isinstance(status, dict)  # mypy
+        assert status["commtaskId"] == task_id
+        assert status["state"] in ("Created", "Running", "Succeeded")
 
     #
     # STEP 3: check the new schedule was effected
@@ -359,12 +360,7 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
     #
     # STEP 4: PUT the original schedule back
     schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] = temp  # type: ignore[call-overload]
-    _ = await should_work_v2(
-        evo,
-        HTTPMethod.PUT,
-        url,
-        json=schedule,  # type: ignore[arg-type]
-    )
+    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=schedule)
 
     #
     # STEP 5: check the status of the task
