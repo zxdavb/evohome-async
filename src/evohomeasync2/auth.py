@@ -6,7 +6,7 @@ from __future__ import annotations
 import base64
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Generator
+from collections.abc import Awaitable, Generator
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from types import TracebackType
@@ -108,51 +108,6 @@ class AuthTokenResponseT(TypedDict):
     access_token: str
     expires_in: int  # number of seconds
     refresh_token: str
-
-
-class _RequestContextManager:
-    """A context manager for an aiohttp request."""
-
-    _response: aiohttp.ClientResponse | None = None
-
-    def __init__(
-        self,
-        websession: aiohttp.ClientSession,
-        method: HTTPMethod,
-        url: StrOrURL,
-        /,
-        **kwargs: Any,
-    ):
-        """Initialize the request context manager."""
-
-        self.websession = websession
-        self.method = method
-        self.url = url
-        self.kwargs = kwargs
-
-    async def __aenter__(self) -> aiohttp.ClientResponse:
-        """Async context manager entry."""
-        self._response = await self._await_impl()
-        return self._response
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc: BaseException | None,
-        tb: TracebackType | None,
-    ) -> None:
-        """Async context manager exit."""
-        if self._response:
-            self._response.release()
-            await self._response.wait_for_close()
-
-    def __await__(self) -> Generator[Any, Any, aiohttp.ClientResponse]:
-        """Make this class awaitable."""
-        return self._await_impl().__await__()
-
-    async def _await_impl(self) -> aiohttp.ClientResponse:
-        """Return the actual result."""
-        return await self.websession.request(self.method, self.url, **self.kwargs)
 
 
 class AbstractTokenManager(ABC):
@@ -344,6 +299,65 @@ class AbstractTokenManager(ABC):
             raise exc.AuthenticationFailedError(str(err)) from err
 
 
+class _RequestContextManager:
+    """A context manager for an aiohttp request."""
+
+    _response: aiohttp.ClientResponse | None = None
+
+    def __init__(
+        self,
+        access_token_getter: Awaitable[str],
+        websession: aiohttp.ClientSession,
+        method: HTTPMethod,
+        url: StrOrURL,
+        /,
+        **kwargs: Any,
+    ):
+        """Initialize the request context manager."""
+
+        self._get_access_token = access_token_getter
+        self.websession = websession
+        self.method = method
+        self.url = url
+        self.kwargs = kwargs
+
+    async def __aenter__(self) -> aiohttp.ClientResponse:
+        """Async context manager entry."""
+        self._response = await self._await_impl()
+        return self._response
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        """Async context manager exit."""
+        if self._response:
+            self._response.release()
+            await self._response.wait_for_close()
+
+    def __await__(self) -> Generator[Any, Any, aiohttp.ClientResponse]:
+        """Make this class awaitable."""
+        return self._await_impl().__await__()
+
+    async def _await_impl(self) -> aiohttp.ClientResponse:
+        """Make an aiohttp request to the vendor's servers.
+
+        Will handle authorisation by inserting an access token into the header.
+        """
+
+        headers = self.kwargs.pop("headers", None) or HEADERS_BASE
+
+        if not headers.get("Authorization"):
+            access_token = await self._get_access_token()
+            headers["Authorization"] = "bearer " + access_token
+
+        return await self.websession.request(
+            self.method, self.url, headers=headers, **self.kwargs
+        )
+
+
 class Auth:
     """A class for interacting with the Resideo TCC API."""
 
@@ -458,8 +472,7 @@ class Auth:
             content: dict[str, Any] = await response.json()
             return content
 
-        # async with self.request(method, url, **kwargs) as rsp:
-        async with await self._raw_request(method, url, **kwargs) as rsp:
+        async with self._raw_request(method, url, **kwargs) as rsp:
             try:
                 rsp.raise_for_status()
 
@@ -473,20 +486,15 @@ class Auth:
 
             return await _content(rsp)
 
-    async def _raw_request(
+    def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> aiohttp.ClientResponse:
-        """Make an aiohttp request to the vendor's servers.
+        """Return a context handler that can make the request."""
 
-        Will handle authorisation by inserting an access token into the header.
-        """
-
-        headers = kwargs.pop("headers", None) or HEADERS_BASE
-
-        if not headers.get("Authorization"):
-            access_token = await self._token_manager.get_access_token()
-            headers["Authorization"] = "bearer " + access_token
-
-        return await _RequestContextManager(
-            self._websession, method, url, **kwargs, headers=headers
+        return _RequestContextManager(
+            self._token_manager.get_access_token,
+            self._websession,
+            method,
+            url,
+            **kwargs,
         )

@@ -12,7 +12,7 @@ from datetime import datetime as dt
 
 import aiohttp
 
-from .auth import AbstractTokenManager, Auth  # noqa: F401
+from .auth import AbstractTokenManager
 from .control_system import ControlSystem  # noqa: F401
 from .exceptions import (  # noqa: F401
     AuthenticationFailedError,

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Generator
+from collections.abc import Awaitable, Generator
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from types import TracebackType
@@ -60,51 +60,6 @@ SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
 class SessionIdT(TypedDict):
     session_id: str
     session_id_expires: str  # dt.isoformat()
-
-
-class _RequestContextManager:
-    """A context manager for an aiohttp request."""
-
-    _response: aiohttp.ClientResponse | None = None
-
-    def __init__(
-        self,
-        websession: aiohttp.ClientSession,
-        method: HTTPMethod,
-        url: StrOrURL,
-        /,
-        **kwargs: Any,
-    ):
-        """Initialize the request context manager."""
-
-        self.websession = websession
-        self.method = method
-        self.url = url
-        self.kwargs = kwargs
-
-    async def __aenter__(self) -> aiohttp.ClientResponse:
-        """Async context manager entry."""
-        self._response = await self._await_impl()
-        return self._response
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc: BaseException | None,
-        tb: TracebackType | None,
-    ) -> None:
-        """Async context manager exit."""
-        if self._response:
-            self._response.release()
-            await self._response.wait_for_close()
-
-    def __await__(self) -> Generator[Any, Any, aiohttp.ClientResponse]:
-        """Make this class awaitable."""
-        return self._await_impl().__await__()
-
-    async def _await_impl(self) -> aiohttp.ClientResponse:
-        """Return the actual result."""
-        return await self.websession.request(self.method, self.url, **self.kwargs)
 
 
 class AbstractSessionManager(ABC):
@@ -286,6 +241,65 @@ class AbstractSessionManager(ABC):
             raise exc.AuthenticationFailedError(str(err)) from err
 
 
+class _RequestContextManager:
+    """A context manager for an aiohttp request."""
+
+    _response: aiohttp.ClientResponse | None = None
+
+    def __init__(
+        self,
+        session_id_getter: Awaitable[str],
+        websession: aiohttp.ClientSession,
+        method: HTTPMethod,
+        url: StrOrURL,
+        /,
+        **kwargs: Any,
+    ):
+        """Initialize the request context manager."""
+
+        self._get_session_id = session_id_getter
+        self.websession = websession
+        self.method = method
+        self.url = url
+        self.kwargs = kwargs
+
+    async def __aenter__(self) -> aiohttp.ClientResponse:
+        """Async context manager entry."""
+        self._response = await self._await_impl()
+        return self._response
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        """Async context manager exit."""
+        if self._response:
+            self._response.release()
+            await self._response.wait_for_close()
+
+    def __await__(self) -> Generator[Any, Any, aiohttp.ClientResponse]:
+        """Make this class awaitable."""
+        return self._await_impl().__await__()
+
+    async def _await_impl(self) -> aiohttp.ClientResponse:
+        """Make an aiohttp request to the vendor's servers.
+
+        Will handle authorisation by inserting a session id into the header.
+        """
+
+        headers = self.kwargs.pop("headers", None) or HEADERS_BASE
+
+        if not headers.get(S2_SESSION_ID):
+            session_id = await self._get_session_id()
+            headers[S2_SESSION_ID] = session_id
+
+        return await self.websession.request(
+            self.method, self.url, headers=headers, **self.kwargs
+        )
+
+
 class Auth:
     """A class to provide to access the Resideo TCC API."""
 
@@ -387,8 +401,7 @@ class Auth:
         Handles Auth failures appropriately.
         """
 
-        # async with self._websession(method, url, **kwargs) as rsp:
-        async with await self._raw_request(method, url, **kwargs) as rsp:
+        async with self._raw_request(method, url, **kwargs) as rsp:
             response_text = await rsp.text()  # why can't I move this below the if?
 
             # if 401/unauthorized, may need to refresh session_id (expires in 15 mins?)
@@ -427,20 +440,15 @@ class Auth:
             )
             return rsp
 
-    async def _raw_request(
+    def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> aiohttp.ClientResponse:
-        """Make an aiohttp request to the vendor's servers.
+        """Return a context handler that can make the request."""
 
-        Will handle authorisation by inserting a session id into the header.
-        """
-
-        headers = kwargs.pop("headers", None) or HEADERS_BASE
-
-        if not headers.get(S2_SESSION_ID):
-            session_id = await self._session_manager.get_session_id()
-            headers[S2_SESSION_ID] = session_id
-
-        return await _RequestContextManager(
-            self._websession, method, url, **kwargs, headers=headers
+        return _RequestContextManager(
+            self._session_manager.get_session_id,
+            self._websession,
+            method,
+            url,
+            **kwargs,
         )

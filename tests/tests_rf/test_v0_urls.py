@@ -34,23 +34,27 @@ async def _test_usr_locations(evo: EvohomeClientv0) -> None:
     user_id: int = evo.auth._user_info["userID"]
 
     url = f"locations?userId={user_id}&allData=True"
-    _ = await should_work_v0(evo, HTTPMethod.GET, url)  # TODO: add schema
+    _ = await should_work_v0(evo.auth, HTTPMethod.GET, url)  # TODO: add schema
 
     # why isn't this one METHOD_NOT_ALLOWED?
-    _ = await should_fail_v0(evo, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
+    _ = await should_fail_v0(evo.auth, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
 
     url = f"locations?userId={user_id}"
-    _ = await should_work_v0(evo, HTTPMethod.GET, url, schema=None)
+    _ = await should_work_v0(evo.auth, HTTPMethod.GET, url, schema=None)
 
     url = "locations?userId=123456"
-    _ = await should_fail_v0(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
+    _ = await should_fail_v0(
+        evo.auth, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED
+    )
 
     url = "locations?userId='123456'"
-    _ = await should_fail_v0(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+    _ = await should_fail_v0(
+        evo.auth, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST
+    )
 
     url = "xxxxxxx"  # NOTE: a general test, not a test specific to the 'locations' URL
     _ = await should_fail_v0(
-        evo,
+        evo.auth,
         HTTPMethod.GET,
         url,
         status=HTTPStatus.NOT_FOUND,

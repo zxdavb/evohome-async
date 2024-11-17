@@ -8,7 +8,7 @@ import functools
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final, TypeVar
+from typing import Any, Final, TypeVar
 
 import aiohttp
 import pytest
@@ -19,9 +19,6 @@ import evohomeasync2 as evo2
 
 from ..const import URL_BASE_V0, URL_BASE_V2
 from .const import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
-
-if TYPE_CHECKING:
-    from ..conftest import EvohomeClientv2
 
 _FNC = TypeVar("_FNC", bound=Callable[..., Any])
 
@@ -60,7 +57,7 @@ def skipif_auth_failed(fnc: _FNC) -> _FNC:
 # version 1 helpers ###################################################################
 
 
-class SessionManager(evo0.Auth):
+class SessionManager(evo0.auth.Auth):
     """An evohomeasync session manager."""
 
     def __init__(
@@ -85,7 +82,7 @@ class SessionManager(evo0.Auth):
 
 
 async def should_work_v0(
-    evo: evo0.EvohomeClient,
+    auth: evo0.auth.Auth,
     method: HTTPMethod,
     url: str,
     /,
@@ -96,22 +93,29 @@ async def should_work_v0(
 ) -> dict | list | str:
     """Make a request that is expected to succeed."""
 
-    response = await evo.auth._raw_request(method, f"{URL_BASE_V0}/{url}", json=json)
+    async with auth._raw_request(method, f"{URL_BASE_V0}/{url}", json=json) as rsp:
+        # need to do this before raise_for_status()
+        if rsp.content_type == "application/json":
+            content = await rsp.json()
+        else:
+            content = await rsp.text()
 
-    response.raise_for_status()  # should be 200/OK
-    assert response.content_type == content_type
+        try:
+            rsp.raise_for_status()  # should be 200/OK
+        except aiohttp.ClientResponseError as err:
+            raise RuntimeError(f"{err.status}/{err.message}: {content}") from err
 
-    if response.content_type != "application/json":
-        return await response.text()
+        assert rsp.content_type == content_type
 
-    #
-    content = await response.json()
+        if rsp.content_type != "application/json":
+            return await rsp.text()
 
-    return schema(content) if schema else content
+        content = await rsp.json()
+        return schema(content) if schema else content
 
 
 async def should_fail_v0(
-    evo: evo0.EvohomeClient,
+    auth: evo0.auth.Auth,
     method: HTTPMethod,
     url: str,
     /,
@@ -122,7 +126,7 @@ async def should_fail_v0(
 ) -> dict | list | str:
     """Make a request that is expected to fail."""
 
-    response = await evo.auth._raw_request(method, f"{URL_BASE_V0}/{url}", data=json)
+    response = await auth._raw_request(method, f"{URL_BASE_V0}/{url}", data=json)
 
     # need to do this before raise_for_status()
     if response.content_type == "application/json":
@@ -161,7 +165,7 @@ async def should_fail_v0(
 
 
 async def should_work_v2(
-    evo: EvohomeClientv2,
+    auth: evo2.auth.Auth,
     method: HTTPMethod,
     url: str,
     /,
@@ -175,32 +179,29 @@ async def should_work_v2(
     Used to validate the faked server against a 'real' server.
     """
 
-    response = await evo.auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
+    async with auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json) as rsp:
+        # need to do this before raise_for_status()
+        if rsp.content_type == "application/json":
+            content = await rsp.json()
+        else:
+            content = await rsp.text()
 
-    # need to do this before raise_for_status()
-    if response.content_type == "application/json":
-        content = await response.json()
-    else:
-        content = await response.text()
+        try:
+            rsp.raise_for_status()  # should be 200/OK
+        except aiohttp.ClientResponseError as err:
+            raise RuntimeError(f"{err.status}/{err.message}: {content}") from err
 
-    assert response.content_type == content_type, content
+        assert rsp.content_type == content_type, content
 
-    try:
-        response.raise_for_status()  # should be 200/OK
-    except aiohttp.ClientResponseError as err:
-        raise RuntimeError(f"{err.status}/{err.message}: {content}") from err
+        if rsp.content_type != "application/json":
+            return await rsp.text()
 
-    if response.content_type != "application/json":
-        return await response.text()
-
-    #
-    content = await response.json()
-
-    return schema(content) if schema else content
+        content = await rsp.json()
+        return schema(content) if schema else content
 
 
 async def should_fail_v2(
-    evo: EvohomeClientv2,
+    auth: evo2.auth.Auth,
     method: HTTPMethod,
     url: str,
     /,
@@ -214,7 +215,7 @@ async def should_fail_v2(
     Used to validate the faked server against a 'real' server.
     """
 
-    response = await evo.auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
+    response = await auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
 
     # need to do this before raise_for_status()
     if response.content_type == "application/json":
@@ -222,14 +223,14 @@ async def should_fail_v2(
     else:
         content = await response.text()
 
-    assert response.content_type == content_type, content
-
     try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
         response.raise_for_status()
     except aiohttp.ClientResponseError as err:
         assert err.status == status, err.status
     else:
         assert False, response.status
+
+    assert response.content_type == content_type, content
 
     if _DBG_DISABLE_STRICT_ASSERTS:
         return content  # type: ignore[no-any-return]
@@ -254,25 +255,35 @@ async def should_fail_v2(
         assert status in (HTTPStatus.NOT_FOUND,), status
 
     else:
-        assert False, response.content_type
+        raise RuntimeError(f"{status}: {content}")
 
     return content  # type: ignore[no-any-return]
 
 
-async def wait_for_comm_task_v2(evo: EvohomeClientv2, task_id: str) -> bool:
+async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
     """Wait for a communication task (API call) to complete."""
 
     # invoke via:
     # async with asyncio.timeout(2):
     #     await wait_for_comm_task()
 
-    await asyncio.sleep(0.5)
-
     url = f"commTasks?commTaskId={task_id}"
 
     while True:
-        response = await should_work_v2(evo, HTTPMethod.GET, url)
-        assert isinstance(response, dict | list), response
+        response = await auth._raw_request(HTTPMethod.GET, f"{URL_BASE_V2}/{url}")
+
+        # need to do this before raise_for_status()
+        if response.content_type == "application/json":
+            content = await response.json()
+        else:
+            content = await response.text()
+
+        try:
+            response.raise_for_status()  # should be 200/OK
+        except aiohttp.ClientResponseError as err:
+            raise RuntimeError(f"{err.status}/{err.message}: {content}") from err
+
+        assert response.content_type == "application/json", content
 
         task = response[0] if isinstance(response, list) else response
 
@@ -283,4 +294,4 @@ async def wait_for_comm_task_v2(evo: EvohomeClientv2, task_id: str) -> bool:
             await asyncio.sleep(0.3)
             continue
 
-        raise RuntimeError(f"Unexpected state: {task['state']}")
+        raise RuntimeError(f"Unexpected state: {task}")

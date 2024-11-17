@@ -12,7 +12,7 @@ from datetime import datetime as dt, timedelta as td
 
 import aiohttp
 
-from .auth import Auth as _Auth  # noqa: F401
+from .auth import Auth as _AuthOld  # noqa: F401
 from .exceptions import (  # noqa: F401
     AuthenticationFailedError,
     EvohomeError,
@@ -54,7 +54,7 @@ from .schema import (  # noqa: F401
 __version__ = "1.2.0"
 
 
-class Auth(_Auth):  # used only by EvohomeClientOld
+class _AuthNew(_AuthOld):  # used only by EvohomeClientOld
     """A TokenManager wrapper to help expose the refactored EvohomeClient."""
 
     def __init__(
@@ -98,7 +98,7 @@ class _EvohomeClientOld(_EvohomeClientNew):
         """Construct the v0 EvohomeClient object."""
         websession = websession or aiohttp.ClientSession()
 
-        self.auth = Auth(
+        self.auth = _AuthNew(
             username,
             password,
             websession,
