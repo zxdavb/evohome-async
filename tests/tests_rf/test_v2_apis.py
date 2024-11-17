@@ -32,7 +32,7 @@ async def _test_basics_apis(evo: EvohomeClientv2) -> None:
     """Test authentication, `user_account()` and `installation()`."""
 
     # STEP 1: retrieve base data
-    await evo.update(dont_update_status=False)
+    await evo.update(_dont_update_status=False)
 
     assert evo2.main.SCH_USER_ACCOUNT(evo.user_account)
     assert evo2.main.SCH_USER_LOCATIONS(evo.installation_info)
@@ -77,7 +77,7 @@ async def _test_update_apis(evo: EvohomeClientv2) -> None:
     """Test `_update()` for DHW/zone."""
 
     # STEP 1: retrieve config
-    await evo.update(dont_update_status=True)
+    await evo.update(_dont_update_status=True)
 
     # STEP 2: GET /{x._TYPE}/{x.id}/status
     if dhw := evo._get_single_tcs().hotwater:

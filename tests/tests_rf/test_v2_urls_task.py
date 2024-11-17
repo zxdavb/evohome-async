@@ -49,7 +49,7 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     gwy: Gateway
     tcs: ControlSystem
 
-    await evo.update(dont_update_status=True)
+    await evo.update(_dont_update_status=True)
 
     dhw: HotWater | None = None
 
@@ -211,7 +211,7 @@ async def _test_task_id_zone(evo: EvohomeClientv2) -> None:
     gwy: Gateway
     tcs: ControlSystem
 
-    await evo.update(dont_update_status=True)
+    await evo.update(_dont_update_status=True)
 
     zone: Zone | None = None
 
