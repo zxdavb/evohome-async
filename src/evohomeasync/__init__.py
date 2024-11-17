@@ -80,7 +80,7 @@ class _AuthNew(_AuthOld):  # used only by EvohomeClientOld
 
 
 class _EvohomeClientOld(_EvohomeClientNew):
-    """A wrapper to use the EvohomeClient without passing in a SessionManager.
+    """A wrapper to use EvohomeClient without passing in a SessionManager.
 
     Also permits a session_id to be passed in.
     """

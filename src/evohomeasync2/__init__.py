@@ -64,7 +64,7 @@ class TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
 
 
 class _EvohomeClientOld(_EvohomeClientNew):
-    """A wrapper to use the EvohomeClient without passing in a TokenManager.
+    """A wrapper to use EvohomeClient without passing in a TokenManager.
 
     Also allows auth tokens to be passed in.
     """
