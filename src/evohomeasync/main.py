@@ -207,29 +207,29 @@ class EvohomeClientNew:
         url = f"evoTouchSystems?locationId={self.location_id}"
         await self.auth.request(HTTPMethod.PUT, url, data=data)
 
-    async def set_mode_auto(self) -> None:
+    async def set_auto(self) -> None:
         """Set the system to normal operation."""
         await self._set_system_mode(SystemMode.AUTO)
 
-    async def set_mode_away(self, until: dt | None = None) -> None:
+    async def set_away(self, /, *, until: dt | None = None) -> None:
         """Set the system to the away mode."""
-        await self._set_system_mode(SystemMode.AWAY, until)
+        await self._set_system_mode(SystemMode.AWAY, until=until)
 
-    async def set_mode_custom(self, until: dt | None = None) -> None:
+    async def set_custom(self, /, *, until: dt | None = None) -> None:
         """Set the system to the custom programme."""
-        await self._set_system_mode(SystemMode.CUSTOM, until)
+        await self._set_system_mode(SystemMode.CUSTOM, until=until)
 
-    async def set_mode_dayoff(self, until: dt | None = None) -> None:
+    async def set_dayoff(self, /, *, until: dt | None = None) -> None:
         """Set the system to the day off mode."""
-        await self._set_system_mode(SystemMode.DAY_OFF, until)
+        await self._set_system_mode(SystemMode.DAY_OFF, until=until)
 
-    async def set_mode_eco(self, until: dt | None = None) -> None:
+    async def set_eco(self, /, *, until: dt | None = None) -> None:
         """Set the system to the eco mode."""
-        await self._set_system_mode(SystemMode.AUTO_WITH_ECO, until)
+        await self._set_system_mode(SystemMode.AUTO_WITH_ECO, until=until)
 
-    async def set_mode_heatingoff(self, until: dt | None = None) -> None:
+    async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
         """Set the system to the heating off mode."""
-        await self._set_system_mode(SystemMode.HEATING_OFF, until)
+        await self._set_system_mode(SystemMode.HEATING_OFF, until=until)
 
     #
     # Zone methods...
