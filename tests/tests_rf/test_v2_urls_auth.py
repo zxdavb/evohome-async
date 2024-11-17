@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohome-async - validate the handling of vendor APIs (URLs) for Authorization.
+"""evohome-async - validate the handling of vendor APIs (URLs) for Authentication.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor
@@ -11,436 +11,260 @@ Everything to/from the RESTful API is in camelCase (so those schemas are used).
 
 from __future__ import annotations
 
-from datetime import datetime as dt, timedelta as td
-from http import HTTPMethod, HTTPStatus
+import random
+import string
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
 
-import evohomeasync2 as evo2
-from evohomeasync2 import schema
-from evohomeasync2.const import (
-    API_STRFTIME,
-    SZ_IS_PERMANENT,
-    SZ_MODE,
-    SZ_PERMANENT,
-    SZ_SYSTEM_MODE,
-    SystemMode,
-    ZoneMode,
-)
+from evohomeasync2.auth import _APPLICATION_ID, SCH_OAUTH_TOKEN
+from evohomeasync2.schema import SCH_GET_USER_ACCOUNT
 
-from . import faked_server as faked
-from .common import should_fail_v2, should_work_v2, skipif_auth_failed
+from ..const import URL_AUTH_V2 as URL_AUTH, URL_BASE_V2 as URL_BASE
 from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
-    from evohomeasync2.schema import _EvoDictT
-
-    from ..conftest import EvohomeClientv2
+    import aiohttp
 
 
-#######################################################################################
+HEADERS_AUTH = {
+    "Accept": "application/json",
+    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",  # data=
+    "Cache-Control": "no-cache, no-store",
+    "Pragma": "no-cache",
+    "Connection": "Keep-Alive",
+    "Authorization": "Basic " + _APPLICATION_ID,
+}
+HEADERS_BASE = {
+    "Accept": "application/json",
+    "Content-Type": "application/json",  # json=
+    "Authorization": None,  # "Bearer " + access_token
+}
 
 
-async def _test_usr_account(evo: EvohomeClientv2) -> None:
-    """Test /userAccount"""
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_url_auth_bad1(  # invalid/unknown credentials
+    client_session: aiohttp.ClientSession,
+) -> None:
+    """Test authentication flow with invalid credentials."""
 
-    url = "userAccount"
-    _ = await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_USER_ACCOUNT
-    )
-    _ = await should_fail_v2(
-        evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
-    )
-
-    url = "userXxxxxxx"  # NOTE: is a general test, and not a test specific to this URL
-    _ = await should_fail_v2(
-        evo,
-        HTTPMethod.GET,
-        url,
-        status=HTTPStatus.NOT_FOUND,
-        content_type="text/html",  # exception to usual content-type
-    )
-
-
-async def _test_user_locations(evo: EvohomeClientv2) -> None:
-    """Test /location/installationInfo?userId={user_id}"""
-
-    # TODO: can't use .update(); in any case, should use URLs only
-    url = "userAccount"
-    user_info = await should_work_v2(
-        evo,
-        HTTPMethod.GET,
-        url,
-        schema=None,  # schema not re-tested here
-    )
-    #
-
-    url = f"location/installationInfo?userId={user_info["userId"]}"
-    await should_work_v2(
-        evo,
-        HTTPMethod.GET,
-        url,
-        schema=None,  # schema not tested here
-    )
-
-    url += "&includeTemperatureControlSystems=True"
-    _ = await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_USER_LOCATIONS
-    )
-    _ = await should_fail_v2(
-        evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
-    )
-
-    url = "location/installationInfo"
-    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
-
-    url = "location/installationInfo?userId=1230000"
-    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
-
-    url = "location/installationInfo?userId=xxxxxxx"
-    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
-
-    url = "location/installationInfo?xxxxXx=xxxxxxx"
-    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
-
-
-async def _test_loc_status(evo: EvohomeClientv2) -> None:
-    """Test /location/{loc.id}/status"""
-
-    # TODO: remove .update() and use URLs only
-    await evo.update(dont_update_status=True)
-
-    loc = evo.locations[0]
-    #
-
-    url = f"location/{loc.id}/status"
-    _ = await should_work_v2(
-        evo,
-        HTTPMethod.GET,
-        url,
-        schema=None,  # schema not tested here
-    )
-
-    url += "?includeTemperatureControlSystems=True"
-    _ = await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_LOCN_STATUS
-    )
-    _ = await should_fail_v2(
-        evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
-    )
-
-    url = f"location/{loc.id}"
-    await should_fail_v2(
-        evo,
-        HTTPMethod.GET,
-        url,
-        status=HTTPStatus.NOT_FOUND,
-        content_type="text/html",  # exception to usual content-type
-    )
-
-    url = "location/1230000/status"
-    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
-
-    url = "location/xxxxxxx/status"
-    _ = await should_fail_v2(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
-
-    url = f"location/{loc.id}/xxxxxxx"
-    _ = await should_fail_v2(
-        evo,
-        HTTPMethod.GET,
-        url,
-        status=HTTPStatus.NOT_FOUND,
-        content_type="text/html",  # exception to usual content-type
-    )
-
-
-async def _test_tcs_status(evo: EvohomeClientv2) -> None:
-    """Test /temperatureControlSystem/{tcs.id}/statis
-
-    Also tests /temperatureControlSystem/{tcs.id}/mode
-    """
-
-    # TODO: remove .update() and use URLs only
-    await evo.update(dont_update_status=True)
-
-    tcs: evo2.ControlSystem
-
-    if not (tcs := evo.locations[0].gateways[0].control_systems[0]):
-        pytest.skip("No available zones found")
-
-    # TODO: remove .update() and use URLs only
-    _ = await tcs.location.update()  # NOTE: below is snake_case
-    old_mode: _EvoDictT = tcs.system_mode_status  # type: ignore[assignment]
-
-    url = f"{tcs._TYPE}/{tcs.id}/status"
-    _ = await should_work_v2(evo, HTTPMethod.GET, url, schema=schema.SCH_GET_TCS_STATUS)
-
-    url = f"{tcs._TYPE}/{tcs.id}/mode"
-    _ = await should_fail_v2(
-        evo, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
-    )
-    # FIXME: old_mode is snack_case
-    _ = await should_fail_v2(
-        evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.BAD_REQUEST
-    )
-
-    old_mode[SZ_SYSTEM_MODE] = old_mode.pop(SZ_MODE)
-    old_mode[SZ_PERMANENT] = old_mode.pop(SZ_IS_PERMANENT)
-
-    assert SystemMode.AUTO in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
-    new_mode: _EvoDictT = {
-        "systemMode": SystemMode.AUTO,
-        "permanent": True,
+    # invalid credentials -> HTTPStatus.UNAUTHORIZED
+    data = {
+        "grant_type": "password",
+        "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # EMEA-V1-Get-Current-User-Account",
+        "Username": random.choice(string.ascii_letters),  # noqa: S311
+        "Password": "",
     }
-    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=new_mode)
 
-    assert SystemMode.AWAY in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
-    new_mode = {
-        "systemMode": SystemMode.AWAY,
-        "permanent": True,
-        "timeUntil": (dt.now() + td(hours=1)).strftime(API_STRFTIME),
+    async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        assert rsp.status == HTTPStatus.BAD_REQUEST
+
+        response: dict = await rsp.json()
+
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert response["error"] == "attempt_limit_exceeded"
+            pytest.skip("Too many requests")
+
+        # the expected response for bad credentials
+        """
+            {"error": "invalid_grant"}
+        """
+
+    assert response["error"] == "invalid_grant"
+
+
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_url_auth_bad2(  # invalid/expired access token
+    client_session: aiohttp.ClientSession,
+) -> None:
+    """Test authentication flow with an invalid access token."""
+
+    # pre-requisite data
+    access_token = "invalid access token " + random.choice(string.ascii_letters)  # noqa: S311
+    #
+
+    # invalid/expired access token -> HTTPStatus.UNAUTHORIZED
+    url = URL_BASE + "userAccount"
+    headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
+
+    async with client_session.get(url, headers=headers) as rsp:
+        assert rsp.status == HTTPStatus.UNAUTHORIZED
+
+        response: dict | list = await rsp.json()
+
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert isinstance(response, dict)  # mypy hint
+
+            assert response["error"] == "attempt_limit_exceeded"
+            pytest.skip("Too many requests")
+
+        assert isinstance(response, list)  # mypy hint
+
+        # the expected response for bad access tokens
+        """
+            [{
+                "code": "Unauthorized",
+                "message": "Unauthorized."
+            }]
+        """
+
+    assert response[0]["code"] == "Unauthorized"
+    assert response[0]["message"] and isinstance(response[0]["message"], str)
+
+
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_url_auth_bad3(  # invalid/expired refresh token
+    client_session: aiohttp.ClientSession,
+) -> None:
+    """Test authentication flow with an invalid refresh token."""
+
+    # pre-requisite data
+    refresh_token = "invalid refresh token " + random.choice(string.ascii_letters)  # noqa: S311
+    #
+
+    # invalid/expired refresh token -> HTTPStatus.UNAUTHORIZED
+    data = {
+        "grant_type": "refresh_token",
+        "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
+        "refresh_token": refresh_token,
     }
-    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=new_mode)
 
-    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=old_mode)
+    async with client_session.get(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        assert rsp.status == HTTPStatus.BAD_REQUEST
 
-    url = f"{tcs._TYPE}/1234567/mode"
-    _ = await should_fail_v2(
-        evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.UNAUTHORIZED
-    )
+        response: dict = await rsp.json()
 
-    url = f"{tcs._TYPE}/{tcs.id}/systemMode"
-    _ = await should_fail_v2(
-        evo,
-        HTTPMethod.PUT,
-        url,
-        json=old_mode,
-        status=HTTPStatus.NOT_FOUND,
-        content_type="text/html",  # exception to usual content-type
-    )
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert response["error"] == "attempt_limit_exceeded"
+            pytest.skip("Too many requests")
 
-    pass
+        # the expected response for bad refresh tokens
+        """
+            {"error": "invalid_grant"}
+        """
+
+    assert response["error"] == "invalid_grant"
 
 
-async def _test_zone_status(evo: EvohomeClientv2) -> None:
-    """Test /temperatureZone/{zone.id}/status
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_url_auth_good(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+) -> None:
+    """Test authentication flow (and authorization) with good credentials."""
 
-    Also tests /temperatureZone/{zone.id}/heatSetpoint
-    """
-
-    # TODO: remove .update() and use URLs only
-    await evo.update()
-
-    for zone in evo.locations[0].gateways[0].control_systems[0].zones:
-        if zone.temperature is None:
-            break
-    else:
-        pytest.skip("No available zones found")
-    #
-
-    url = f"{zone._TYPE}/{zone.id}/status"
-    _ = await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_ZONE_STATUS
-    )
-
-    url = f"{zone._TYPE}/{zone.id}/heatSetpoint"
-
-    heat_setpoint: dict[str, float | str | None] = {
-        "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
-        "HeatSetpointValue": zone.temperature,
-        # "timeUntil": None,
+    # valid credentials -> HTTPStatus.OK
+    data = {
+        "grant_type": "password",
+        "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # EMEA-V1-Get-Current-User-Account",
+        "Username": credentials[0],
+        "Password": credentials[1],
     }
-    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
-    heat_setpoint = {
-        "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
-        "HeatSetpointValue": 99,
-        "timeUntil": None,
+    async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
+
+        user_auth: dict = await rsp.json()
+
+        # the expected response for TOO_MANY_REQUESTS
+        """
+            {"error": "attempt_limit_exceeded"}
+        """
+
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert user_auth["error"] == "attempt_limit_exceeded"
+            pytest.skip("Too many requests")
+
+        # the expected response for good credentials
+        """
+            {
+                "access_token": "HojUMRvmn...",
+                "token_type": "bearer",
+                "expires_in": 1799,
+                "refresh_token": "vdBdHjxK...",
+                # "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # optional
+            }
+        """
+
+    assert user_auth["access_token"] and isinstance(user_auth["access_token"], str)
+    assert user_auth["expires_in"] <= 1800
+
+    assert SCH_OAUTH_TOKEN(user_auth), user_auth
+
+    # #################################################################################
+
+    # Check the access token by accessing a resource...
+    access_token = user_auth["access_token"]
+    #
+
+    # valid access token -> HTTPStatus.OK
+    url = URL_BASE + "userAccount"
+    headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
+
+    async with client_session.get(url, headers=headers) as rsp:
+        assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
+
+        response: dict = await rsp.json()
+
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert response["error"] == "attempt_limit_exceeded"
+            pytest.skip("Too many requests")
+
+        # the expected response for good access token
+        """
+            {
+                "userId": "1234567",
+                "username": "username@email.com",
+                "firstname": "David",
+                "lastname": "Smith",
+                "streetAddress": "1 Main Street",
+                "city": "London",
+                "postcode": "E1 1AA",
+                "country": "UnitedKingdom",
+                "language": "enGB"
+            }
+        """
+
+    assert response["userId"] and isinstance(response["userId"], str)
+    assert response["username"] and response["username"] == credentials[0]
+
+    assert SCH_GET_USER_ACCOUNT(response), response
+
+    # #################################################################################
+
+    # Check the refresh token by requesting another access token...
+    refresh_token = user_auth["refresh_token"]
+    #
+
+    # valid credentials -> HTTPStatus.OK
+    data = {
+        "grant_type": "refresh_token",
+        "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
+        "refresh_token": refresh_token,
     }
-    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
 
-    heat_setpoint = {
-        "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
-        "HeatSetpointValue": 19.5,
-    }
-    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
+    async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
 
-    heat_setpoint = {
-        "setpointMode": "xxxxxxx",
-        "HeatSetpointValue": 19.5,
-    }
-    _ = await should_fail_v2(
-        evo, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
-    )
+        user_auth = await rsp.json()
 
-    heat_setpoint = {
-        "setpointMode": ZoneMode.FOLLOW_SCHEDULE,
-        "HeatSetpointValue": 0.0,
-        "timeUntil": None,
-    }
-    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert user_auth["error"] == "attempt_limit_exceeded"
+            pytest.skip("Too many requests")
 
+        # the expected response for good refresh tokens
+        """
+            {
+                "access_token": "HojUMRvmn...",
+                "token_type": "bearer",
+                "expires_in": 1799,
+                "refresh_token": "vdBdHjxK...",
+                # "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # optional
+            }
+        """
 
-# TODO: Test sending bad schedule
-async def _test_schedule(evo: EvohomeClientv2) -> None:
-    """Test /{x._TYPE}/{xid}/schedule
+    assert user_auth["access_token"] and isinstance(user_auth["access_token"], str)
+    assert user_auth["expires_in"] <= 1800
 
-    Also test commTasks?commTaskId={task_id}
-    """
-
-    # TODO: remove .update() and use URLs only
-    await evo.update()
-
-    zone = evo.locations[0].gateways[0].control_systems[0].zones[0]
-    #
-
-    if zone.id == faked.GHOST_ZONE_ID:
-        url = f"{zone._TYPE}/{faked.GHOST_ZONE_ID}/schedule"
-        _ = await should_fail_v2(
-            evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST
-        )
-        return
-
-    #
-    # STEP 0: GET the current schedule
-    url = f"{zone._TYPE}/{zone.id}/schedule"
-    schedule = await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
-    )
-
-    #
-    # STEP 1: PUT a new schedule
-    temp = schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]  # type: ignore[call-overload]
-
-    schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp + 1  # type: ignore[call-overload,operator]
-    result = await should_work_v2(
-        evo,
-        HTTPMethod.PUT,
-        url,
-        json=schedule,  # was convert_to_put_schedule(schedule),  # type: ignore[arg-type]
-    )  # returns (e.g.) {'id': '840367013'}
-
-    #
-    # STEP 2: check the status of the task
-    if _DBG_USE_REAL_AIOHTTP:
-        task_id = result[0]["id"] if isinstance(result, list) else result["id"]
-        url_tsk = f"commTasks?commTaskId={task_id}"
-
-        status = await should_work_v2(evo, HTTPMethod.GET, url_tsk)
-        # {'commtaskId': '840367013', 'state': 'Created'}
-        # {'commtaskId': '840367013', 'state': 'Running'}
-        # {'commtaskId': '840367013', 'state': 'Succeeded'}
-
-        assert isinstance(status, dict)  # mypy
-        assert status["commtaskId"] == task_id
-        assert status["state"] in ("Created", "Running", "Succeeded")
-
-    #
-    # STEP 3: check the new schedule was effected
-    schedule = await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
-    )
-    assert (
-        schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]  # type: ignore[call-overload]
-        == temp + 1  # type: ignore[operator]
-    )
-
-    #
-    # STEP 4: PUT the original schedule back
-    schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp  # type: ignore[call-overload]
-    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=schedule)
-
-    #
-    # STEP 5: check the status of the task
-
-    #
-    # STEP 6: check the new schedule was effected
-    schedule = await should_work_v2(
-        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
-    )
-    assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp  # type: ignore[call-overload]
-
-    _ = await should_fail_v2(
-        evo, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST
-    )  # NOTE: json=None
-
-    #
-    # STEP 7: PUT a bad schedule
-    # [{'code': 'ParameterIsMissing', 'parameterName': 'request', 'message': 'Parameter is missing.'}]
-
-
-#######################################################################################
-
-
-@skipif_auth_failed  # GET
-async def test_usr_account(evohome_v2: EvohomeClientv2) -> None:
-    """Test /userAccount"""
-
-    try:
-        await _test_usr_account(evohome_v2)
-
-    except evo2.AuthenticationFailedError:
-        if not _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Unable to authenticate")
-
-
-@skipif_auth_failed  # GET
-async def test_usr_locations(evohome_v2: EvohomeClientv2) -> None:
-    """Test /location/installationInfo"""
-
-    await _test_user_locations(evohome_v2)
-
-
-@skipif_auth_failed  # GET
-async def test_loc_status(evohome_v2: EvohomeClientv2) -> None:
-    """Test /location/{loc.id}/status"""
-
-    await _test_loc_status(evohome_v2)
-
-
-@skipif_auth_failed  # GET, PUT
-async def test_tcs_status(evohome_v2: EvohomeClientv2) -> None:
-    """Test /temperatureControlSystem/{tcs.id}/statis
-
-    Also tests /temperatureControlSystem/{tcs.id}/mode
-    """
-
-    try:
-        await _test_tcs_status(evohome_v2)
-
-    except NotImplementedError:  # TODO: implement
-        if _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Mocked server API not implemented")
-
-
-@skipif_auth_failed  # GET, PUT
-async def test_zone_status(evohome_v2: EvohomeClientv2) -> None:
-    """Test /temperatureZone/{zone.id}/status
-
-    Also tests /temperatureZone/{zone.id}/heatSetpoint
-    """
-
-    try:
-        await _test_zone_status(evohome_v2)
-
-    except NotImplementedError:  # TODO: implement
-        if _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Mocked server API not implemented")
-
-
-@skipif_auth_failed  # GET, PUT
-async def test_schedule(evohome_v2: EvohomeClientv2) -> None:
-    """Test /{x._TYPE}/{xid}/schedule
-
-    Also test commTasks?commTaskId={task_id}
-    """
-
-    await _test_schedule(evohome_v2)
-
-
-# TODO: test_oauth_token(
-# TODO: test_get_dhw_status( & test_put_dhw_state(
+    assert SCH_OAUTH_TOKEN(user_auth), user_auth

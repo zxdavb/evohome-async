@@ -16,7 +16,6 @@ import voluptuous as vol
 
 import evohomeasync as evo0
 import evohomeasync2 as evo2
-from evohomeasync2.auth import Auth
 
 from ..const import URL_BASE_V2
 from .const import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
@@ -180,14 +179,14 @@ async def should_work_v2(
 
     response = await evo.auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
 
-    content = await Auth._content(response)
-    assert response.content_type == content_type, content
+    assert response.content_type == content_type
 
     if response.content_type != "application/json":
-        assert isinstance(content, str), content  # mypy
-        return content
+        return await response.text()
 
-    assert isinstance(content, dict | list), content  # mypy
+    #
+    content = await response.json()
+
     return schema(content) if schema else content
 
 
@@ -200,7 +199,7 @@ async def should_fail_v2(
     json: dict | None = None,
     content_type: str | None = "application/json",
     status: HTTPStatus | None = None,
-) -> dict | list | str | None:
+) -> dict | list | str:
     """Make a HTTP request and check it fails as expected.
 
     Used to validate the faked server against a 'real' server.
@@ -219,8 +218,12 @@ async def should_fail_v2(
     if _DBG_DISABLE_STRICT_ASSERTS:
         return None
 
-    content = await Auth._content(response)
-    assert response.content_type == content_type, content
+    assert response.content_type == content_type
+
+    if response.content_type == "application/json":
+        content = await response.json()
+    else:
+        content = await response.text()
 
     if isinstance(content, dict):
         assert status in (
@@ -242,8 +245,6 @@ async def should_fail_v2(
 
     else:
         assert False, response.content_type
-
-    assert isinstance(content, dict | list | str), content
 
     return content
 

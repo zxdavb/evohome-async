@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohome-async - validate the handling of vendor APIs (URLs) for Authorization.
+"""evohome-async - validate the handling of vendor APIs (URLs) for Authentication.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor
@@ -11,961 +11,232 @@ Everything to/from the RESTful API is in camelCase (so those schemas are used).
 
 from __future__ import annotations
 
-from http import HTTPMethod, HTTPStatus
+import random
+import string
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
 
-import evohomeasync as evo0
+from evohomeasync.auth import _APPLICATION_ID
+from evohomeasync.schema import SCH_LOCATION_RESPONSE, SCH_USER_ACCOUNT_RESPONSE
 
-from .common import should_fail_v0, should_work_v0, skipif_auth_failed
+from ..const import URL_AUTH_V0 as URL_AUTH, URL_BASE_V0 as URL_BASE
 from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
-    from ..conftest import EvohomeClientv0
+    import aiohttp
+
+    from evohomeasync.schema import ErrorResponse
 
 
-async def _test_usr_locations(evo: EvohomeClientv0) -> None:
-    """Test /locations?userId={user_id}&allData=True"""
-
-    await evo.auth.get_session_id()
-    assert evo.auth.session_id
-
-    user_id: int = evo.auth.user_info["userID"]
-
-    url = f"locations?userId={user_id}&allData=True"
-    _ = await should_work_v0(evo, HTTPMethod.GET, url)
-
-    # why isn't this one METHOD_NOT_ALLOWED?
-    _ = await should_fail_v0(evo, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
-
-    url = f"locations?userId={user_id}"
-    _ = await should_work_v0(evo, HTTPMethod.GET, url, schema=None)
-
-    url = "locations?userId=123456"
-    _ = await should_fail_v0(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
-
-    url = "locations?userId='123456'"
-    _ = await should_fail_v0(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
-
-    url = "xxxxxxx"  # NOTE: a general test, not a test specific to the 'locations' URL
-    _ = await should_fail_v0(
-        evo,
-        HTTPMethod.GET,
-        url,
-        status=HTTPStatus.NOT_FOUND,
-        content_type="text/html",  # not the usual content-type
-    )
-
-
-# NOTE: this URL is tested with authentication tests
-# async def test_usr_account(evohome_v0: EvohomeClientv0) -> None:
-#     """Test /session"""
-
-
-@skipif_auth_failed
-async def test_usr_locations(evohome_v0: EvohomeClientv0) -> None:
-    """Test /locations?userId={user_id}&allData=True"""
-
-    if not _DBG_USE_REAL_AIOHTTP:
-        pytest.skip("Mocked server not implemented for this test")
-
-    try:
-        await _test_usr_locations(evohome_v0)
-
-    except evo0.AuthenticationFailedError:
-        if not _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Unable to authenticate with real server")
-
-
-USER_DATA = {
-    "sessionId": "BE5F40A6-1234-1234-1234-A708947D6399",
-    "userInfo": {
-        "userID": 1234567,
-        "username": "username@email.com",
-        "firstname": "David",
-        "lastname": "Smith",
-        "streetAddress": "1 Main Street",
-        "city": "London",
-        "zipcode": "NW1 1AA",
-        "country": "GB",
-        "telephone": "",
-        "userLanguage": "en-GB",
-        "isActivated": True,
-        "deviceCount": 0,
-        "tenantID": 5,
-        "securityQuestion1": "NotUsed",
-        "securityQuestion2": "NotUsed",
-        "securityQuestion3": "NotUsed",
-        "latestEulaAccepted": False,
-    },
+HEADERS_AUTH = {
+    "Accept": "application/json",
+    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",  # data=
+    "Cache-Control": "no-cache, no-store",
+    "Pragma": "no-cache",
+    "Connection": "Keep-Alive",
+    # _APPLICATION_ID is in the data
+}
+HEADERS_BASE = {
+    "Accept": "application/json",
+    "Content-Type": "application/json",  # json=
+    "SessionId": None,  # "e163b069-1234-..."
 }
 
-FULL_DATA = {
-    "locationID": 2738909,
-    "name": "My Home",
-    "streetAddress": "1 Main Street",
-    "city": "London",
-    "state": "",
-    "country": "GB",
-    "zipcode": "NW1 1AA",
-    "type": "Residential",
-    "hasStation": True,
-    "devices": [
-        {
-            "gatewayId": 2499896,
-            "deviceID": 3933910,
-            "thermostatModelType": "DOMESTIC_HOT_WATER",
-            "deviceType": 128,
-            "name": "",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 22.77,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "Measured",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["DHWOn", "DHWOff"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 30.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {"mode": "DHWOff", "status": "Scheduled"},
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 3933910,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 250,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 3432579,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "Bathroom Dn",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 20.79,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "Measured",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 15.0, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 3432579,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 4,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 3449740,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "Bathroom Up",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 20.26,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "Measured",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 19.0, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 3449740,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 7,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 3432521,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "Dead Zone",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 128.0,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "NotAvailable",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 5.0, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 3432521,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 0,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 5333958,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "Eh",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 128.0,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "NotAvailable",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 21.0, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 5333958,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 11,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 3432577,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "Front Room",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 19.83,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "Measured",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 20.5, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 3432577,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 2,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 3449703,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "Kids Room",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 19.53,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "Measured",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 16.0, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 3449703,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 6,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 3432578,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "Kitchen",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 20.43,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "Measured",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 15.0, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 3432578,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 3,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 3432580,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "Main Bedroom",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 20.72,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "Measured",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 16.0, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 3432580,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 5,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 3432576,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "Main Room",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 20.14,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "Measured",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 15.0, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 3432576,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 1,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 3450733,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "Spare Room",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 18.81,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "Measured",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 16.0, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 3450733,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 8,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 5333957,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "UFH",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 128.0,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "NotAvailable",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 21.0, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 5333957,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 10,
-        },
-        {
-            "gatewayId": 2499896,
-            "deviceID": 5333955,
-            "thermostatModelType": "EMEA_ZONE",
-            "deviceType": 128,
-            "name": "Zv",
-            "scheduleCapable": False,
-            "holdUntilCapable": False,
-            "thermostat": {
-                "units": "Celsius",
-                "indoorTemperature": 128.0,
-                "outdoorTemperature": 128.0,
-                "outdoorTemperatureAvailable": False,
-                "outdoorHumidity": 128.0,
-                "outdootHumidityAvailable": False,
-                "indoorHumidity": 128.0,
-                "indoorTemperatureStatus": "NotAvailable",
-                "indoorHumidityStatus": "NotAvailable",
-                "outdoorTemperatureStatus": "NotAvailable",
-                "outdoorHumidityStatus": "NotAvailable",
-                "isCommercial": False,
-                "allowedModes": ["Heat", "Off"],
-                "deadband": 0.0,
-                "minHeatSetpoint": 5.0,
-                "maxHeatSetpoint": 35.0,
-                "minCoolSetpoint": 50.0,
-                "maxCoolSetpoint": 90.0,
-                "changeableValues": {
-                    "mode": "Off",
-                    "heatSetpoint": {"value": 21.0, "status": "Scheduled"},
-                    "vacationHoldDays": 0,
-                },
-                "scheduleCapable": False,
-                "vacationHoldChangeable": False,
-                "vacationHoldCancelable": False,
-                "scheduleHeatSp": 0.0,
-                "scheduleCoolSp": 0.0,
-            },
-            "alertSettings": {
-                "deviceID": 5333955,
-                "tempHigherThanActive": True,
-                "tempHigherThan": 30.0,
-                "tempHigherThanMinutes": 0,
-                "tempLowerThanActive": True,
-                "tempLowerThan": 5.0,
-                "tempLowerThanMinutes": 0,
-                "faultConditionExistsActive": False,
-                "faultConditionExistsHours": 0,
-                "normalConditionsActive": True,
-                "communicationLostActive": False,
-                "communicationLostHours": 0,
-                "communicationFailureActive": True,
-                "communicationFailureMinutes": 15,
-                "deviceLostActive": False,
-                "deviceLostHours": 0,
-            },
-            "isUpgrading": False,
-            "isAlive": True,
-            "thermostatVersion": "02.00.19.33",
-            "macID": "00D02DEE4E56",
-            "locationID": 2738909,
-            "domainID": 20054,
-            "instance": 9,
-        },
-    ],
-    "oneTouchButtons": [],
-    "weather": {
-        "condition": "NightClear",
-        "temperature": 9.0,
-        "units": "Celsius",
-        "humidity": 87,
-        "phrase": "Clear",
-    },
-    "daylightSavingTimeEnabled": True,
-    "timeZone": {
-        "id": "GMT Standard Time",
-        "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
-        "offsetMinutes": 0,
-        "currentOffsetMinutes": 0,
-        "usingDaylightSavingTime": True,
-    },
-    "oneTouchActionsSuspended": False,
-    "isLocationOwner": True,
-    "locationOwnerID": 2263181,
-    "locationOwnerName": "David Smith",
-    "locationOwnerUserName": "null@gmail.com",
-    "canSearchForContractors": True,
-    "contractor": {
-        "info": {"contractorID": 1839},
-        "monitoring": {"levelOfAccess": "Partial", "contactPreferences": []},
-    },
-}
+
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_url_auth_bad1(  # invalid/unknown credentials
+    client_session: aiohttp.ClientSession,
+) -> None:
+    """Test the authentication flow with bad credentials."""
+
+    # invalid credentials -> HTTPStatus.UNAUTHORIZED
+    data = {
+        "applicationId": _APPLICATION_ID,
+        "username": random.choice(string.ascii_letters),  # noqa: S311
+        "password": "",
+    }
+
+    async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        assert rsp.status == HTTPStatus.UNAUTHORIZED
+
+        response: list[ErrorResponse] = await rsp.json()
+
+        """
+            [{
+                "code": "EmailOrPasswordIncorrect",
+                "message": "The email or password provided is incorrect."
+            }]
+        """
+
+    assert response[0]["code"] == "EmailOrPasswordIncorrect"
+    assert response[0]["message"] and isinstance(response[0]["message"], str)
+
+
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_url_auth_bad2(  # invalid/expired session id
+    client_session: aiohttp.ClientSession,
+) -> None:
+    """Test the authentication flow with an invalid session id,"""
+
+    # pre-requisite data
+    session_id = "bad/expired session id " + random.choice(string.ascii_letters)  # noqa: S311
+    user_id = 1234567
+
+    # invalid/expired session id -> HTTPStatus.UNAUTHORIZED
+    url = URL_BASE + f"locations?userId={user_id}&allData=True"
+    headers = HEADERS_BASE | {"sessionId": session_id}
+
+    async with client_session.get(url, headers=headers) as rsp:
+        assert rsp.status == HTTPStatus.UNAUTHORIZED
+
+        response: list[ErrorResponse] = await rsp.json()
+
+        """
+            [{
+                "code": "Unauthorized",
+                "message": "Unauthorized"
+            }]
+        """
+
+    assert response[0]["code"] == "Unauthorized"
+    assert response[0]["message"] and isinstance(response[0]["message"], str)
+
+
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_url_auth_good(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+) -> None:
+    """Test the authentication flow (and authorization) with good credentials."""
+
+    # valid credentials -> HTTPStatus.OK
+    data = {
+        "applicationId": _APPLICATION_ID,
+        "username": credentials[0],
+        "password": credentials[1],
+    }
+
+    async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
+
+        user_auth: dict | list = await rsp.json()
+
+        """
+            [{
+                "code": "TooManyRequests",
+                "message": "Request count limitation exceeded, please try again later."
+            }]
+        """
+
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert isinstance(user_auth, list)  # mypy hint
+            assert user_auth[0]["code"] == "TooManyRequests"
+            assert user_auth[0]["message"] and isinstance(user_auth[0]["message"], str)
+            pytest.skip("Too many requests")
+
+        assert isinstance(user_auth, dict)  # mypy hint
+
+        """
+            {
+                "sessionId": "A80FF794-C042-42BC-A63E-7A509C9AA6C9",
+                "userInfo": {
+                    "userID": 2263181,
+                    "username": "username@email.com",
+                    "firstname": "David",
+                    "lastname": "Smith",
+                    "streetAddress": "1 Main Street",
+                    "city": "London",
+                    "zipcode": "E1 1AA",
+                    "country": "GB",
+                    "telephone": "",
+                    "userLanguage": "en-GB",
+                    "isActivated": True,
+                    "deviceCount": 0,
+                    "tenantID": 5,
+                    "securityQuestion1": "NotUsed",
+                    "securityQuestion2": "NotUsed",
+                    "securityQuestion3": "NotUsed",
+                    "latestEulaAccepted": False
+                }
+            }
+        """
+
+    assert user_auth["sessionId"] and isinstance(user_auth["sessionId"], str)
+    assert user_auth["userInfo"]["username"] == credentials[0]
+
+    assert SCH_USER_ACCOUNT_RESPONSE(user_auth["userInfo"]), user_auth["userInfo"]
+
+    # #################################################################################
+
+    # Check the session id by accessing a resource...
+    session_id = user_auth["sessionId"]
+    user_id = user_auth["userInfo"]["userID"]
+
+    # valid session id -> HTTPStatus.OK
+    url = URL_BASE + f"locations?userId={user_id}&allData=True"
+    headers = HEADERS_BASE | {"sessionId": session_id}
+
+    async with client_session.get(url, headers=headers) as rsp:
+        assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
+
+        response: list = await rsp.json()
+
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            assert response[0]["code"] == "TooManyRequests"
+            assert response[0]["message"] and isinstance(response[0]["message"], str)
+            pytest.skip("Too many requests")
+
+        """
+            [
+                {
+                    "locationID": 1234567,
+                    "name": "My Home",
+                    "streetAddress": "1 Main Street",
+                    "city": "London",
+                    "state": "",
+                    "country": "GB",
+                    "zipcode": "E1 1AA",
+                    "type": "Residential",
+                    "hasStation": true,
+                    "devices": [{}],  # list of ?DeviceResponse
+                    "oneTouchButtons": [],
+                    "weather": {
+                        "condition": "Cloudy",
+                        "temperature": 13.0,
+                        "units": "Celsius",
+                        "humidity": 96,
+                        "phrase": "Cloudy"
+                    },
+                    "daylightSavingTimeEnabled": true,
+                    "timeZone": {
+                        "id": "GMT Standard Time",
+                        "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+                        "offsetMinutes": 0,
+                        "currentOffsetMinutes": 0,
+                        "usingDaylightSavingTime": true
+                    },
+                    "oneTouchActionsSuspended": false,
+                    "isLocationOwner": true,
+                    "locationOwnerID": 1234568,
+                    "locationOwnerName": "David Smith",
+                    "locationOwnerUserName": "username@email.com",
+                    "canSearchForContractors": true,
+                    "contractor": {
+                        "info": {
+                            "contractorID": 1839
+                        },
+                        "monitoring": {
+                            "levelOfAccess": "Partial",
+                            "contactPreferences": []
+                        }
+                    }
+                }
+            ]
+        """
+
+    assert response[0]["locationID"] and isinstance(response[0]["locationID"], int)
+    assert response[0]["devices"] and isinstance(response[0]["devices"], list)
+
+    assert SCH_LOCATION_RESPONSE(response[0]), response[0]
