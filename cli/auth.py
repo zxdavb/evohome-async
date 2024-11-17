@@ -49,7 +49,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
 
         self._cache_file: Final = cache_file
 
-        self._clear_auth_tokens()
+        self._clear_auth_tokens()  # set to initial (falsey) state
         self._clear_session_id()
 
     @property
@@ -111,6 +111,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
     async def _load_access_token(self, cache: TokenCacheT | None = None) -> None:
         """Load the (serialized) auth tokens from the cache."""
 
+        entry: dict[str, AuthTokensT]
         tokens: AuthTokensT
 
         cache = cache or await self._read_cache_from_file()
@@ -128,6 +129,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
     async def _load_session_id(self, cache: TokenCacheT | None = None) -> None:
         """Load the (serialized) session id from the cache."""
 
+        entry: dict[str, SessionIdT]
         session: SessionIdT
 
         cache = cache or await self._read_cache_from_file()

@@ -347,9 +347,6 @@ class AbstractTokenManager(ABC):
 class Auth:
     """A class for interacting with the Resideo TCC API."""
 
-    #
-    #
-
     def __init__(
         self,
         token_manager: AbstractTokenManager,
@@ -396,9 +393,12 @@ class Auth:
         return content
 
     async def put(
-        self, url: StrOrURL, json: _EvoDictT | str, schema: vol.Schema | None = None
+        self,
+        url: StrOrURL,
+        json: _EvoDictT,
+        schema: vol.Schema | None = None,
     ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
-        """Call the Resideo TCC API with a PUT.
+        """Call the vendor's API with a PUT.
 
         Optionally checks the payload JSON against the expected schema and logs a
         warning if it doesn't match.
@@ -443,6 +443,21 @@ class Auth:
         Handles Auth failures appropriately.
         """
 
+        async def _content(
+            response: aiohttp.ClientResponse,
+        ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
+            """Return the content of the response."""
+
+            if not response.content_length:
+                return None
+
+            if response.content_type != "application/json":
+                # assume "text/plain" or "text/html"
+                return await response.text()
+
+            content: dict[str, Any] = await response.json()
+            return content
+
         # async with self.request(method, url, **kwargs) as rsp:
         async with await self._raw_request(method, url, **kwargs) as rsp:
             try:
@@ -456,7 +471,7 @@ class Auth:
             except aiohttp.ClientError as err:  # e.g. ClientConnectionError
                 raise exc.RequestFailedError(str(err)) from err
 
-            return await self._content(rsp)
+            return await _content(rsp)
 
     async def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
@@ -469,28 +484,9 @@ class Auth:
         headers = kwargs.pop("headers", None) or HEADERS_BASE
 
         if not headers.get("Authorization"):
-            headers["Authorization"] = "bearer " + await self.get_access_token()
+            access_token = await self._token_manager.get_access_token()
+            headers["Authorization"] = "bearer " + access_token
 
         return await _RequestContextManager(
             self._websession, method, url, **kwargs, headers=headers
         )
-
-    @staticmethod
-    async def _content(
-        response: aiohttp.ClientResponse,
-    ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
-        """Return the content of the response (converts keys to snake_case)."""
-
-        if not response.content_length:
-            return None
-
-        if response.content_type != "application/json":
-            # assume "text/plain" or "text/html"
-            return await response.text()
-
-        content: dict[str, Any] = await response.json()
-        return content
-
-    async def get_access_token(self) -> str:
-        """Return a valid access token."""
-        return await self._token_manager.get_access_token()

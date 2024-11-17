@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from cli.auth import CacheManager
 
-from evohomeasync import _EvohomeClientOld as EvohomeClientv0
+from evohomeasync import _EvohomeClientNew as EvohomeClientv0
 from evohomeasync2 import _EvohomeClientNew as EvohomeClientv2
 
 from .const import TEST_PASSWORD, TEST_USERNAME
@@ -63,9 +63,9 @@ def token_data(credentials: tuple[str, str]) -> dict[str, Any]:
     return {
         credentials[0]: {
             "auth_tokens": {
-            "access_token": "ncWMqPh2yGgAqc...",
-            "access_token_expires": (dt.now() + td(hours=1)).isoformat(),
-            "refresh_token": "Ryx9fL34Z5GcNV...",
+                "access_token": "ncWMqPh2yGgAqc...",
+                "access_token_expires": (dt.now() + td(hours=1)).isoformat(),
+                "refresh_token": "Ryx9fL34Z5GcNV...",
             },
             "session_id": {
                 "session_id": "12345...",

@@ -9,7 +9,7 @@ from collections.abc import Generator
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Final, Never, NewType, TypedDict
+from typing import TYPE_CHECKING, Any, Final, NewType, TypedDict
 
 import aiohttp
 import voluptuous as vol
@@ -18,7 +18,6 @@ from . import exceptions as exc
 from .schema import (
     SZ_LATEST_EULA_ACCEPTED,
     SZ_SESSION_ID as S2_SESSION_ID,
-    SZ_USER_ID as S2_USER_ID,
     SZ_USER_INFO as S2_USER_INFO,
     SessionResponseT,
     UserAccountResponse,
@@ -113,7 +112,7 @@ class AbstractSessionManager(ABC):
 
     _session_id: str
     _session_expires: dt  # TODO: should be in Auth class?
-    _user_info: UserAccountResponse | None
+    _user_info: UserAccountResponse | None  # TODO: should not publicise?
 
     def __init__(
         self,
@@ -163,6 +162,11 @@ class AbstractSessionManager(ABC):
     def session_id_expires(self) -> dt:
         """Return the expiration datetime of the session id."""
         return self._session_expires
+
+    @property
+    def user_info(self) -> UserAccountResponse | None:
+        """Return the expiration datetime of the session id."""
+        return self._user_info
 
     def is_session_id_valid(self) -> bool:
         """Return True if the session id is valid."""
@@ -282,16 +286,12 @@ class AbstractSessionManager(ABC):
             raise exc.AuthenticationFailedError(str(err)) from err
 
 
-class Auth(AbstractSessionManager):
+class Auth:
     """A class to provide to access the Resideo TCC API."""
-
-    _user_data: _UserDataT | dict[Never, Never]
-    _full_data: list[_LocnDataT]
 
     def __init__(
         self,
-        username: str,
-        password: str,
+        session_manager: AbstractSessionManager,
         websession: aiohttp.ClientSession,
         /,
         *,
@@ -300,12 +300,10 @@ class Auth(AbstractSessionManager):
     ) -> None:
         """A class for interacting with the v0 Resideo TCC API."""
 
-        super().__init__(
-            username, password, websession, _hostname=_hostname, logger=logger
-        )
-
-        self._full_data = []
-        self._user_data = {}
+        self._session_manager = session_manager
+        self._websession: Final = websession
+        self._hostname: Final = _hostname
+        self._logger: Final = logger or logging.getLogger(__name__)
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(base='{self._url_base}')"
@@ -314,12 +312,6 @@ class Auth(AbstractSessionManager):
     def _url_base(self) -> StrOrURL:
         """Return the URL base used for GET/PUT."""
         return f"https://{self._hostname}/WebAPI/api"
-
-    @property  # from AbstractSessionManager
-    def _user_id(self) -> str:
-        if self._user_info is None or self._user_info.get(S2_USER_ID) is None:
-            raise NotImplementedError
-        return self._user_info[S2_USER_ID]
 
     async def get(
         self, url: StrOrURL, schema: vol.Schema | None = None
@@ -347,10 +339,10 @@ class Auth(AbstractSessionManager):
     async def put(
         self,
         url: StrOrURL,
-        json: dict[str, Any] | str,
+        json: dict[str, Any],
         schema: vol.Schema | None = None,
     ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
-        """Call the Resideo TCC API with a PUT.
+        """Call the vendor's API with a PUT.
 
         Optionally checks the payload JSON against the expected schema and logs a
         warning if it doesn't match.
@@ -446,12 +438,9 @@ class Auth(AbstractSessionManager):
         headers = kwargs.pop("headers", None) or HEADERS_BASE
 
         if not headers.get(S2_SESSION_ID):
-            headers[S2_SESSION_ID] = await self.get_session_id()
+            session_id = await self._session_manager.get_session_id()
+            headers[S2_SESSION_ID] = session_id
 
         return await _RequestContextManager(
             self._websession, method, url, **kwargs, headers=headers
         )
-
-    async def save_session_id(self) -> None:
-        """Save the (serialized) session id to a cache."""
-        raise NotImplementedError
