@@ -113,7 +113,7 @@ class ErrorResponse(TypedDict):
     message: str
 
 
-class UserAccountResponse(TypedDict):
+class UserAccountResponseT(TypedDict):
     userID: int
     username: str  # email address
     firstname: str
@@ -171,10 +171,10 @@ SCH_USER_ACCOUNT_RESPONSE: Final = factory_user_account_response()
 
 class SessionResponseT(TypedDict):
     sessionId: str
-    userInfo: UserAccountResponse
+    userInfo: UserAccountResponseT
 
 
-class ThermostatResponse(TypedDict):
+class ThermostatResponseT(TypedDict):
     Units: str  # displayedUnits: Fahrenheit or Celsius
     IndoorTemperature: float
     OutdoorTemperature: float
@@ -207,7 +207,7 @@ class ThermostatResponse(TypedDict):
     PcbNumber: str
 
 
-class DeviceResponse(TypedDict):
+class DeviceResponseT(TypedDict):
     GatewayId: int
     DeviceID: int
     ThermostatModelType: str
@@ -215,7 +215,7 @@ class DeviceResponse(TypedDict):
     Name: str
     ScheduleCapable: bool
     HoldUntilCapable: bool
-    Thermostat: ThermostatResponse
+    Thermostat: ThermostatResponseT
     Humidifier: dict[str, Any]  # HumidifierResponse
     Dehumidifier: dict[str, Any]  # DehumidifierResponse
     Fan: dict[str, Any]  # FanResponse
@@ -232,7 +232,7 @@ class DeviceResponse(TypedDict):
     PcbNumber: str
 
 
-class TimeZoneResponse(TypedDict):
+class TimeZoneResponseT(TypedDict):
     ID: str
     DisplayName: str
     OffsetMinutes: int
@@ -240,7 +240,7 @@ class TimeZoneResponse(TypedDict):
     UsingDaylightSavingTime: bool
 
 
-class LocationResponse(TypedDict):
+class LocationResponseT(TypedDict):
     locationID: int  # is ID, not Id
     name: str
     streetAddress: str
@@ -250,10 +250,10 @@ class LocationResponse(TypedDict):
     zipcode: str
     type: str  # LocationType: "Commercial" | "Residential"
     hasStation: bool
-    devices: list[DeviceResponse]
+    devices: list[DeviceResponseT]
     weather: dict[str, Any]  # WeatherResponse
     daylightSavingTimeEnabled: bool
-    timeZone: TimeZoneResponse
+    timeZone: TimeZoneResponseT
     oneTouchActionsSuspended: bool
     isLocationOwner: bool
     locationOwnerID: int  # ID, not Id

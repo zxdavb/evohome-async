@@ -56,14 +56,14 @@ class EvohomeClientNew:
 
         #
 
-        self._locations: list[Location] | None = None  # to preserve the order
-        self._location_by_id: dict[str, Location] | None = None
-
         self.auth = Auth(
             token_manager,
             websession or token_manager._websession,
             logger=self._logger,
         )
+
+        self._locations: list[Location] | None = None  # to preserve the order
+        self._location_by_id: dict[str, Location] | None = None
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(auth='{self.auth}')"

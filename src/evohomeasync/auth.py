@@ -9,7 +9,7 @@ from collections.abc import Awaitable, Generator
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Final, NewType, TypedDict
+from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import aiohttp
 import voluptuous as vol
@@ -19,18 +19,13 @@ from .schema import (
     SZ_LATEST_EULA_ACCEPTED,
     SZ_SESSION_ID as S2_SESSION_ID,
     SZ_USER_INFO as S2_USER_INFO,
-    SessionResponseT,
-    UserAccountResponse,
     convert_keys_to_snake_case,
 )
 
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
 
-_UserIdT = NewType("_UserIdT", int)
-
-_UserDataT = NewType("_UserDataT", dict[str, str | UserAccountResponse])
-_LocnDataT = NewType("_LocnDataT", dict[str, Any])
+    from .schema import SessionResponseT, UserAccountResponseT
 
 
 # For docs, enter this App ID on the following website under 'Session login':
@@ -67,7 +62,7 @@ class AbstractSessionManager(ABC):
 
     _session_id: str
     _session_expires: dt  # TODO: should be in Auth class?
-    _user_info: UserAccountResponse | None  # TODO: should not publicise?
+    _user_info: UserAccountResponseT | None  # TODO: should not publicise?
 
     def __init__(
         self,
@@ -119,8 +114,8 @@ class AbstractSessionManager(ABC):
         return self._session_expires
 
     @property
-    def user_info(self) -> UserAccountResponse | None:
-        """Return the expiration datetime of the session id."""
+    def user_info(self) -> UserAccountResponseT | None:
+        """Return the user account information."""
         return self._user_info
 
     def is_session_id_valid(self) -> bool:
@@ -172,7 +167,7 @@ class AbstractSessionManager(ABC):
         await self._request_session_id(credentials)
         self._was_authenticated = True
 
-        # await self.save_session_id()
+        await self.save_session_id()
 
         self._logger.debug(f" - session_id = {self._session_id}")
         self._logger.debug(f" - session_id_expires = {self._session_expires}")

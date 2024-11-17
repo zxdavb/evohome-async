@@ -233,7 +233,7 @@ class AbstractTokenManager(ABC):
             await self._request_access_token(CREDS_USER_PASSWORD | credentials)
             self._was_authenticated = True
 
-        # await self.save_access_token()
+        await self.save_access_token()
 
         self._logger.debug(f" - access_token = {self.access_token}")
         self._logger.debug(f" - access_token_expires = {self.access_token_expires}")

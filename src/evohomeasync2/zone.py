@@ -57,7 +57,8 @@ from .schema.const import (
 if TYPE_CHECKING:
     import logging
 
-    from . import Auth, ControlSystem
+    from . import ControlSystem
+    from .auth import Auth
     from .schema import _EvoDictT, _EvoListT
 
 

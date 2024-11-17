@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Provides handling of TCC locations."""
+"""Provides handling of TCC v2 locations."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from .schema.const import EntityType
 from .zone import EntityBase
 
 if TYPE_CHECKING:
-    from . import _EvohomeClientNew as EvohomeClientNew
+    from . import _EvohomeClientNew as EvohomeClient
     from .schema import _EvoDictT
 
 
@@ -32,14 +32,14 @@ class Location(EntityBase):
     STATUS_SCHEMA: Final = factory_loc_status(camel_to_snake)
     _TYPE: Final = EntityType.LOC  # type: ignore[misc]
 
-    def __init__(self, client: EvohomeClientNew, config: _EvoDictT) -> None:
+    def __init__(self, client: EvohomeClient, config: _EvoDictT) -> None:
         super().__init__(
             config[SZ_LOCATION_INFO][SZ_LOCATION_ID],
             client.auth,
             client._logger,
         )
 
-        self.client = client  # proxy for parent
+        self.client = client  # proxy for location's parent
 
         self._config: Final[_EvoDictT] = config[SZ_LOCATION_INFO]  # type: ignore[misc]
         self._status: _EvoDictT = {}

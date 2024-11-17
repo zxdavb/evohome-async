@@ -21,7 +21,7 @@ async def _test_client_apis(evo: EvohomeClientv0) -> None:
     assert user_data == evo.user_info
 
     full_data = await evo._populate_locn_data()
-    assert full_data == evo.location_data
+    assert full_data == evo.locn_data
 
     temps = await evo.get_temperatures()
 

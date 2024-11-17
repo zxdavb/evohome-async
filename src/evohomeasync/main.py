@@ -9,8 +9,11 @@ from http import HTTPMethod
 from typing import TYPE_CHECKING, NoReturn
 
 from . import exceptions as exc
-from .auth import Auth
+from .auth import AbstractSessionManager, Auth
+from .location import Location
 from .schema import (
+    SCH_LOCATION_RESPONSE,
+    SCH_USER_ACCOUNT_RESPONSE,
     SZ_ALLOWED_MODES,
     SZ_CHANGEABLE_VALUES,
     SZ_DEVICE_ID,
@@ -36,14 +39,17 @@ from .schema import (
     SZ_TEMPORARY,
     SZ_THERMOSTAT,
     SZ_THERMOSTAT_MODEL_TYPE,
-    SZ_USER_INFO,
+    SZ_USER_ID as S2_USER_ID,
     SZ_VALUE,
 )
 
 if TYPE_CHECKING:
-    from .auth import _LocnDataT, _UserDataT
+    import aiohttp
+
     from .schema import (
+        LocationResponseT,
         SystemMode,
+        UserAccountResponseT,
         _DeviceDictT,
         _DhwIdT,
         _EvoListT,
@@ -61,14 +67,15 @@ class EvohomeClientNew:
 
     _LOC_IDX: int = 0  # the index of the location in the full_data list
 
-    user_info: _UserDataT  # user_data[SZ_USER_INFO] only (i.e. *without* "sessionID")
-    location_data: _LocnDataT  # of the first location (config and status) in list
+    _user_info: UserAccountResponseT | None = None
+    _user_locs: list[LocationResponseT] | None = None  # all locations of the user
 
     def __init__(
         self,
-        session_manager: Auth,
+        session_manager: AbstractSessionManager,
         /,
         *,
+        websession: aiohttp.ClientSession | None = None,
         debug: bool = False,
     ) -> None:
         """Construct the v0 EvohomeClient object."""
@@ -78,74 +85,108 @@ class EvohomeClientNew:
             self._logger.setLevel(logging.DEBUG)
             self._logger.debug("Debug mode is explicitly enabled.")
 
-        # self._session_manager = session_manager
-
-        self.user_info = {}  # type: ignore[assignment]
-        self.location_data = {}  # type: ignore[assignment]
         self.location_id: _LocationIdT = None  # type: ignore[assignment]
 
         self.devices: dict[_ZoneIdT, _DeviceDictT] = {}  # dhw or zone by id
         self.named_devices: dict[_ZoneNameT, _DeviceDictT] = {}  # zone by name
 
-        self.auth = session_manager
+        self.auth = Auth(
+            session_manager,
+            websession or session_manager._websession,
+            logger=self._logger,
+        )
+
+        self._locations: list[Location] | None = None  # to preserve the order
+        self._location_by_id: dict[str, Location] | None = None
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(auth='{self.auth}')"
 
     #
-    # User methods...
+    # New methods...
 
     async def update(
         self,
         /,
         *,
-        reset_config: bool = False,
-    ) -> None:
-        """Update the user and location data."""
-        await self._get_user_data(force_refresh=reset_config)
-        await self._get_locn_data(force_refresh=reset_config)
+        _reset_config: bool = False,
+        # _dont_update_status: bool = False,
+    ) -> LocationResponseT | None:
+        """Retrieve the latest state of the installation and it's locations.
 
-    async def _get_user_data(
-        self, force_refresh: bool = False
-    ) -> dict[str, bool | int | str]:
-        """Retrieve the cached user data (excl. the session id).
-
-        Pull the latest JSON from the web only if force_refresh is True.
+        If required, or when `_reset_config` is true, first retrieves the user
+        information.
         """
 
-        if not self.user_info or force_refresh:
-            user_data = await self.auth.get_user_data()
-            self.user_info = user_data[SZ_USER_INFO]  # type: ignore[assignment]
+        if _reset_config:
+            self._user_info = None
+            #
 
-        return self.user_info  # excludes session id
+        if self._user_info is None:
+            url = "api/accountInfo"
+            self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT_RESPONSE)
 
-    async def _get_user(self) -> _UserDataT:
-        """Return the user (if needed, get the JSON)."""
+        # assert self._user_info is not None  # mypy hint
 
-        # only retrieve the config data if we don't already have it
-        if not self.user_info:
-            await self._get_user_data(force_refresh=False)
-        return self.user_info
+        if self._user_locs is None:
+            url = f"locations?userId={self._user_info[S2_USER_ID]}&allData=True"
+            #
+
+            self.locn_data = await self.auth.get(url, schema=SCH_LOCATION_RESPONSE)
+
+            self._locations = None
+            self._location_by_id = None
+
+        # assert self._user_locs is not None  # mypy hint
+
+        if self._locations is None:
+            self._locations = []
+            self._location_by_id = {}
+
+            for loc_config in self._user_locs:
+                loc = Location(self, loc_config)
+                self._locations.append(loc)
+                self._location_by_id[loc.id] = loc
+
+        self._locn_info = self._user_locs[self._LOC_IDX]
+
+        self.location_id = self._locn_info[SZ_LOCATION_ID]
+
+        self.devices = {d[SZ_DEVICE_ID]: d for d in self._locn_info[SZ_DEVICES]}
+        self.named_devices = {d[SZ_NAME]: d for d in self._locn_info[SZ_DEVICES]}
+
+        return self._user_locs
+
+    @property
+    def user_account(self) -> UserAccountResponseT:
+        """Return the information of the user account."""
+
+        if self._user_info is None:
+            raise exc.NoSystemConfigError(
+                f"{self}: The account information is not (yet) available"
+            )
+
+        return self._user_info
 
     #
     # Location methods...
 
-    async def _get_locn_data(self, force_refresh: bool = True) -> _LocnDataT:
+    async def _get_locn_data(self, force_refresh: bool = True) -> LocationResponseT:
         """Retrieve the latest system data.
 
         Pull the latest JSON from the web unless force_refresh is False.
         """
 
-        if not self.location_data or force_refresh:
+        if not self.locn_data or force_refresh:
             full_data = await self.auth.get_locn_data()
-            self.location_data = full_data[self._LOC_IDX]
+            self.locn_data = full_data[self._LOC_IDX]
 
-            self.location_id = self.location_data[SZ_LOCATION_ID]
+            self.location_id = self.locn_data[SZ_LOCATION_ID]
 
-            self.devices = {d[SZ_DEVICE_ID]: d for d in self.location_data[SZ_DEVICES]}
-            self.named_devices = {d[SZ_NAME]: d for d in self.location_data[SZ_DEVICES]}
+            self.devices = {d[SZ_DEVICE_ID]: d for d in self.locn_data[SZ_DEVICES]}
+            self.named_devices = {d[SZ_NAME]: d for d in self.locn_data[SZ_DEVICES]}
 
-        return self.location_data
+        return self.locn_data
 
     async def get_temperatures(
         self, force_refresh: bool = True
@@ -160,7 +201,7 @@ class EvohomeClientNew:
         result = []
 
         try:
-            for device in self.location_data[SZ_DEVICES]:
+            for device in self.locn_data[SZ_DEVICES]:
                 temp = float(device[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE])
                 values = device[SZ_THERMOSTAT][SZ_CHANGEABLE_VALUES]
 
@@ -321,7 +362,7 @@ class EvohomeClientNew:
         # just want id, so retrieve the config data only if we don't already have it
         await self._get_locn_data(force_refresh=False)
 
-        for device in self.location_data[SZ_DEVICES]:
+        for device in self.locn_data[SZ_DEVICES]:
             if device[SZ_THERMOSTAT_MODEL_TYPE] == SZ_DOMESTIC_HOT_WATER:
                 ret: _DeviceDictT = device
                 return ret

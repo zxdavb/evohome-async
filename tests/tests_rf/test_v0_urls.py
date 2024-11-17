@@ -28,8 +28,10 @@ if TYPE_CHECKING:
 async def _test_usr_locations(evo: EvohomeClientv0) -> None:
     """Test /locations?userId={user_id}&allData=True"""
 
-    await evo.auth.get_session_id()
-    assert evo.auth.session_id
+    _ = await evo.auth._session_manager.get_session_id()
+    assert evo.auth._session_manager.is_session_id_valid()
+
+    await evo.update()
 
     user_id: int = evo.auth._user_info["userID"]
 

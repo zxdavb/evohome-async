@@ -51,6 +51,7 @@ class TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
         access_token_expires: dt | None = None,
     ) -> None:
         super().__init__(username, password, websession)
+
         # to maintain compatibility, allow these to be passed in here
         self._refresh_token = refresh_token or ""
         self._access_token = access_token or ""
