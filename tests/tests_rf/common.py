@@ -10,7 +10,6 @@ from http import HTTPMethod, HTTPStatus
 from pathlib import Path
 from typing import Any, Final, TypeVar
 
-import aiohttp
 import pytest
 import voluptuous as vol
 
@@ -19,6 +18,11 @@ import evohomeasync2 as evo2
 
 from ..const import URL_BASE_V0, URL_BASE_V2
 from .const import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
+
+if _DBG_USE_REAL_AIOHTTP:
+    import aiohttp
+else:
+    from .faked_server import aiohttp
 
 _FNC = TypeVar("_FNC", bound=Callable[..., Any])
 
@@ -103,7 +107,7 @@ async def should_work_v0(
         try:
             rsp.raise_for_status()  # should be 200/OK
         except aiohttp.ClientResponseError as err:
-            raise RuntimeError(f"{err.status}/{err.message}: {content}") from err
+            raise AssertionError(f"status={err.status}: {content}") from err
 
         assert rsp.content_type == content_type
 
@@ -189,7 +193,7 @@ async def should_work_v2(
         try:
             rsp.raise_for_status()  # should be 200/OK
         except aiohttp.ClientResponseError as err:
-            raise RuntimeError(f"{err.status}/{err.message}: {content}") from err
+            raise AssertionError(f"status={err.status}: {content}") from err
 
         assert rsp.content_type == content_type, content
 
@@ -255,7 +259,7 @@ async def should_fail_v2(
         assert status in (HTTPStatus.NOT_FOUND,), status
 
     else:
-        raise RuntimeError(f"{status}: {content}")
+        raise AssertionError(f"status={status}: {content}")
 
     return content  # type: ignore[no-any-return]
 
@@ -281,7 +285,7 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
         try:
             response.raise_for_status()  # should be 200/OK
         except aiohttp.ClientResponseError as err:
-            raise RuntimeError(f"{err.status}/{err.message}: {content}") from err
+            raise AssertionError(f"status={err.status}: {content}") from err
 
         assert response.content_type == "application/json", content
 
@@ -294,4 +298,4 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
             await asyncio.sleep(0.3)
             continue
 
-        raise RuntimeError(f"Unexpected state: {task}")
+        raise AssertionError(f"Unexpected task state: {task}")

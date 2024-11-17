@@ -36,14 +36,26 @@ if TYPE_CHECKING:
 async def _test_usr_account(evo: EvohomeClientv2) -> None:
     """Test /userAccount"""
 
+    # STEP 1:
     url = "userAccount"
     _ = await should_work_v2(
         evo.auth, HTTPMethod.GET, url, schema=schema.SCH_GET_USER_ACCOUNT
     )
+    # {
+    #     'userId': '2263181',
+    #     'username': 'nobody@nowhere.com',
+    # ...
+    #     'country': 'UnitedKingdom',
+    #     'language': 'enGB'
+    # }
+
+    # STEP 2:
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
+    # {'message': "The requested resource does not support http method 'PUT'."}
 
+    # STEP 3:
     url = "userXxxxxxx"  # NOTE: is a general test, and not a test specific to this URL
     _ = await should_fail_v2(
         evo.auth,
@@ -52,6 +64,7 @@ async def _test_usr_account(evo: EvohomeClientv2) -> None:
         status=HTTPStatus.NOT_FOUND,
         content_type="text/html",  # exception to usual content-type
     )
+    # '<!DOCTYPE html PUBLIC ...
 
 
 async def _test_user_locations(evo: EvohomeClientv2) -> None:
@@ -65,8 +78,8 @@ async def _test_user_locations(evo: EvohomeClientv2) -> None:
         url,
         schema=None,  # schema not re-tested here
     )
-    #
 
+    #
     url = f"location/installationInfo?userId={user_info["userId"]}"
     await should_work_v2(
         evo.auth,
@@ -75,27 +88,34 @@ async def _test_user_locations(evo: EvohomeClientv2) -> None:
         schema=None,  # schema not tested here
     )
 
+    #
     url += "&includeTemperatureControlSystems=True"
     _ = await should_work_v2(
         evo.auth, HTTPMethod.GET, url, schema=schema.SCH_GET_USER_LOCATIONS
     )
+
+    #
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
 
+    #
     url = "location/installationInfo"
     _ = await should_fail_v2(evo.auth, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
+    #
     url = "location/installationInfo?userId=1230000"
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED
     )
 
+    #
     url = "location/installationInfo?userId=xxxxxxx"
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST
     )
 
+    #
     url = "location/installationInfo?xxxxXx=xxxxxxx"
     _ = await should_fail_v2(evo.auth, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 

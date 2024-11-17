@@ -77,6 +77,7 @@ class ClientResponseError(ClientError):
     ) -> None:
         super().__init__(msg)
         self.status = status
+        self.message = msg
 
 
 class ContentTypeError(ClientResponseError):
@@ -224,3 +225,11 @@ class ClientResponse:
     async def _await_impl(self) -> Self:
         """Return the actual result."""
         return self
+
+    async def wait_for_close(self) -> None:
+        """Wait for the response to close."""
+        pass
+
+    def release(self) -> None:
+        """Release the response."""
+        pass
