@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 async def _test_schedule(evo: EvohomeClientv2) -> None:
-    """Test /{x._TYPE}/{xid}/schedule
+    """Test /{x._TYPE}/{x.id}/schedule
 
     Also test commTasks?commTaskId={task_id}
     """
@@ -48,10 +48,13 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
     url = f"{zone._TYPE}/{zone.id}/schedule"
     schedule = await should_work_v2(
         evo.auth, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
-    )
+    )  # {'dailySchedules': [...]}
 
     #
     # STEP 1: PUT a new schedule
+    if not _DBG_USE_REAL_AIOHTTP:  # TODO: faked server using old schema
+        return
+
     temp = schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]  # type: ignore[call-overload]
 
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp + 1  # type: ignore[call-overload,operator]
@@ -116,7 +119,7 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
 
 @skipif_auth_failed  # GET, PUT
 async def test_schedule(evohome_v2: EvohomeClientv2) -> None:
-    """Test /{x._TYPE}/{xid}/schedule
+    """Test /{x._TYPE}/{x.id}/schedule
 
     Also test commTasks?commTaskId={task_id}
     """
