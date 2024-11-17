@@ -21,7 +21,7 @@ from .schema import (
 if TYPE_CHECKING:
     import aiohttp
 
-    from .schema import _EvoDictT, _EvoListT, _ScheduleT
+    from .schema import _EvoDictT, _ScheduleT
 
 
 SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)
@@ -36,8 +36,8 @@ class EvohomeClientNew:
 
     #
 
-    _locn_info: _EvoListT | None = None  # all locations
     _user_info: _EvoDictT | None = None
+    _user_locs: list[_EvoDictT] | None = None  # all locations of the user
 
     def __init__(
         self,
@@ -54,10 +54,6 @@ class EvohomeClientNew:
             self._logger.setLevel(logging.DEBUG)
             self._logger.debug("Debug mode is explicitly enabled.")
 
-        # self._token_manager = token_manager
-
-        #
-        #
         #
 
         self._locations: list[Location] | None = None  # to preserve the order
@@ -76,21 +72,21 @@ class EvohomeClientNew:
         self,
         /,
         *,
-        reset_config: bool = False,
-        dont_update_status: bool = False,
-    ) -> _EvoListT:
+        _reset_config: bool = False,
+        _dont_update_status: bool = False,
+    ) -> list[_EvoDictT]:
         """Retrieve the latest state of the installation and it's locations.
 
-        If required, or when `reset_config` is true, first retrieves the user
+        If required, or when `_reset_config` is true, first retrieves the user
         information & installation configuration.
 
-        If `disable_status_update` is True, does not update the status of each location
+        If `_disable_status_update` is True, does not update the status of each location
         (but will still retrieve configuration data, if required).
         """
 
-        if reset_config:
+        if _reset_config:
             self._user_info = None
-            self._locn_info = None
+            self._user_locs = None
 
         if self._user_info is None:
             url = "userAccount"
@@ -98,27 +94,27 @@ class EvohomeClientNew:
 
         assert self._user_info is not None  # mypy hint
 
-        if self._locn_info is None:
+        if self._user_locs is None:
             url = f"location/installationInfo?userId={self._user_info[SZ_USER_ID]}"
             url += "&includeTemperatureControlSystems=True"
 
-            self._locn_info = await self.auth.get(url, schema=SCH_USER_LOCATIONS)  # type: ignore[assignment]
+            self._user_locs = await self.auth.get(url, schema=SCH_USER_LOCATIONS)  # type: ignore[assignment]
 
             self._locations = None
             self._location_by_id = None
 
-        assert self._locn_info is not None  # mypy hint
+        assert self._user_locs is not None  # mypy hint
 
         if self._locations is None:
             self._locations = []
             self._location_by_id = {}
 
-            for loc_config in self._locn_info:
+            for loc_config in self._user_locs:
                 loc = Location(self, loc_config)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 
-            if dont_update_status and (num := len(self._locations)) > 1:
+            if _dont_update_status and (num := len(self._locations)) > 1:
                 self._logger.warning(
                     f"There are {num} locations. Reduce the risk of exceeding API rate "
                     "limits by individually updating only the necessary locations."
@@ -126,11 +122,11 @@ class EvohomeClientNew:
 
         assert self._locations is not None  # mypy hint
 
-        if not dont_update_status:
+        if not _dont_update_status:
             for loc in self._locations:
                 await loc.update()
 
-        return self._locn_info
+        return self._user_locs
 
     @property
     def user_account(self) -> _EvoDictT:
@@ -144,21 +140,21 @@ class EvohomeClientNew:
         return self._user_info
 
     @property
-    def installation_info(self) -> _EvoListT:
+    def installation_info(self) -> list[_EvoDictT]:
         """Return the installation info (config) of all the user's locations."""
 
-        if not self._locn_info:
+        if not self._user_locs:
             raise exc.NoSystemConfigError(
                 f"{self}: The installation information is not (yet) available"
             )
 
-        return self._locn_info
+        return self._user_locs
 
     @property
     def locations(self) -> list[Location]:
         """Return the list of locations."""
 
-        if self._locn_info is None:
+        if self._user_locs is None:
             raise exc.NoSystemConfigError(
                 f"{self}: The installation information is not (yet) available"
             )
