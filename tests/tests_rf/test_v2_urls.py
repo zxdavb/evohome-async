@@ -19,15 +19,7 @@ import pytest
 
 import evohomeasync2 as evo2
 from evohomeasync2 import schema
-from evohomeasync2.const import (
-    API_STRFTIME,
-    SZ_IS_PERMANENT,
-    SZ_MODE,
-    SZ_PERMANENT,
-    SZ_SYSTEM_MODE,
-    SystemMode,
-    ZoneMode,
-)
+from evohomeasync2.const import API_STRFTIME, SystemMode, ZoneMode
 
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
@@ -160,7 +152,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
     Also tests /temperatureControlSystem/{tcs.id}/mode
     """
 
-    # TODO: remove .update() and use URLs only
+    # TODO: remove .update() and use URLs only?
     await evo.update(dont_update_status=True)
 
     tcs: evo2.ControlSystem
@@ -168,47 +160,87 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
     if not (tcs := evo.locations[0].gateways[0].control_systems[0]):
         pytest.skip("No available zones found")
 
-    # TODO: remove .update() and use URLs only
-    _ = await tcs.location.update()  # NOTE: below is snake_case
-    old_mode: _EvoDictT = tcs.system_mode_status  # type: ignore[assignment]
-
+    #
     url = f"{tcs._TYPE}/{tcs.id}/status"
-    _ = await should_work_v2(evo, HTTPMethod.GET, url, schema=schema.SCH_GET_TCS_STATUS)
+    old_status = await should_work_v2(
+        evo, HTTPMethod.GET, url, schema=schema.SCH_GET_TCS_STATUS
+    )
+    # {
+    #      'systemId': '1234567',
+    #      'zones': [...]
+    #      'systemModeStatus': {...}
+    #      'activeFaults': [],
+    # }
 
+    old_mode = {
+        "systemMode": old_status["systemModeStatus"]["mode"],
+        "permanent": old_status["systemModeStatus"]["isPermanent"],
+    }
+    if "timeUntil" in old_status["systemModeStatus"]:
+        old_mode["timeUntil"] = old_status["systemModeStatus"]["timeUntil"]
+
+    #
     url = f"{tcs._TYPE}/{tcs.id}/mode"
     _ = await should_fail_v2(
         evo, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
-    # FIXME: old_mode is snack_case
+    # {'message': "The requested resource does not support http method 'GET'."}
+
+    #
     _ = await should_fail_v2(
-        evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.BAD_REQUEST
+        evo, HTTPMethod.PUT, url, json={}, status=HTTPStatus.BAD_REQUEST
     )
+    # [  # NOTE: keys are (case-insensitive) PascalCase, not camelCase!!
+    #     {'code': 'ParameterIsMissing', 'parameterName': 'SystemMode', 'message': 'Parameter is missing.'},
+    #     {'code': 'ParameterIsMissing', 'parameterName': 'Permanent',  'message': 'Parameter is missing.'}
+    # ]
 
-    old_mode[SZ_SYSTEM_MODE] = old_mode.pop(SZ_MODE)
-    old_mode[SZ_PERMANENT] = old_mode.pop(SZ_IS_PERMANENT)
+    #
+    new_mode: _EvoDictT = {"systemMode": "xxxxx", "permanent": True}
+    _ = await should_fail_v2(
+        evo, HTTPMethod.PUT, url, json=new_mode, status=HTTPStatus.BAD_REQUEST
+    )
+    # [{'code': 'InvalidInput', 'message': 'Error converting value "xxxxx" to...'}]
 
-    assert SystemMode.AUTO in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
-    new_mode: _EvoDictT = {
-        "systemMode": SystemMode.AUTO,
-        "permanent": True,
-    }
+    #
+    assert SystemMode.COOL not in tcs.modes
+    new_mode: _EvoDictT = {"systemMode": "Cool", "permanent": True}
+    _ = await should_fail_v2(
+        evo, HTTPMethod.PUT, url, json=new_mode, status=HTTPStatus.INTERNAL_SERVER_ERROR
+    )
+    # {'message': 'An error has occurred.'}
+
+    #
+    assert SystemMode.AUTO in tcs.modes
+    new_mode: _EvoDictT = {"systemMode": SystemMode.AUTO, "permanent": True}
     _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=new_mode)
+    # {'id': '1588314363'}
 
-    assert SystemMode.AWAY in [m[SZ_SYSTEM_MODE] for m in tcs.allowed_system_modes]
+    #
+    assert SystemMode.AWAY in tcs.modes
     new_mode = {
         "systemMode": SystemMode.AWAY,
         "permanent": True,
         "timeUntil": (dt.now() + td(hours=1)).strftime(API_STRFTIME),
     }
     _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=new_mode)
+    # {'id': '1588315695'}
 
+    #
     _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=old_mode)
+    # {'id': '1588316616'}
 
+    #
     url = f"{tcs._TYPE}/1234567/mode"
     _ = await should_fail_v2(
         evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.UNAUTHORIZED
     )
+    # [{
+    #     'code': 'Unauthorized',
+    #     'message': 'You are not allowed to perform this action.'
+    # }]
 
+    #
     url = f"{tcs._TYPE}/{tcs.id}/systemMode"
     _ = await should_fail_v2(
         evo,
@@ -218,8 +250,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
         status=HTTPStatus.NOT_FOUND,
         content_type="text/html",  # exception to usual content-type
     )
-
-    pass
+    # '<!DOCTYPE html PUBLIC ...
 
 
 async def _test_zone_status(evo: EvohomeClientv2) -> None:
@@ -228,57 +259,90 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
     Also tests /temperatureZone/{zone.id}/heatSetpoint
     """
 
+    zone: evo2.Zone
+    heat_setpoint: dict[str, float | str | None]
+
     # TODO: remove .update() and use URLs only
-    await evo.update()
+    await evo.update(dont_update_status=True)
 
-    for zone in evo.locations[0].gateways[0].control_systems[0].zones:
-        if zone.temperature is None:
-            break
-    else:
+    if not (zone := evo.locations[0].gateways[0].control_systems[0].zones[0]):
         pytest.skip("No available zones found")
-    #
 
+    #
     url = f"{zone._TYPE}/{zone.id}/status"
     _ = await should_work_v2(
         evo, HTTPMethod.GET, url, schema=schema.SCH_GET_ZONE_STATUS
     )
+    # {
+    #     'zoneId': '3432576',
+    #     'temperatureStatus': {'temperature': 25.5, 'isAvailable': True},
+    #     'activeFaults': [],
+    #     'setpointStatus': {'targetHeatTemperature': 18.5, 'setpointMode': 'FollowSchedule'},
+    #     'name': 'Main Room'
+    # }
 
+    #
     url = f"{zone._TYPE}/{zone.id}/heatSetpoint"
 
-    heat_setpoint: dict[str, float | str | None] = {
+    heat_setpoint = {
         "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
-        "HeatSetpointValue": zone.temperature,
+    }
+    _ = await should_fail_v2(
+        evo, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
+    )
+    # [{
+    #     'code': 'HeatSetpointChangeTargetTemperatureNotSet',
+    #     'message': 'Target temperature not specified when required'
+    # }]
+
+    heat_setpoint = {
+        "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
+        "HeatSetpointValue": 19.5 if zone.temperature is None else zone.temperature,
         # "timeUntil": None,
     }
     _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
+    # {'id': '1588359054'}
 
+    #
     heat_setpoint = {
         "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
         "HeatSetpointValue": 99,
         "timeUntil": None,
     }
     _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
+    # {'id': '1588359054'}
 
+    #
     heat_setpoint = {
-        "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
-        "HeatSetpointValue": 19.5,
-    }
-    _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
-
-    heat_setpoint = {
-        "setpointMode": "xxxxxxx",
+        "setpointMode": ZoneMode.TEMPORARY_OVERRIDE,
         "HeatSetpointValue": 19.5,
     }
     _ = await should_fail_v2(
         evo, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
     )
+    # [{
+    #     'code': 'HeatSetpointChangeTimeUntilNotSet',
+    #     'message': 'Time until not specified when required'
+    # }]
 
+    #
+    heat_setpoint = {
+        "setpointMode": "xxxxx",
+        "HeatSetpointValue": 19.5,
+    }
+    _ = await should_fail_v2(
+        evo, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
+    )
+    # [{'code': 'InvalidInput', 'message': 'Error converting value "xxxxxxx" to ..."}]
+
+    #
     heat_setpoint = {
         "setpointMode": ZoneMode.FOLLOW_SCHEDULE,
         "HeatSetpointValue": 0.0,
         "timeUntil": None,
     }
     _ = await should_work_v2(evo, HTTPMethod.PUT, url, json=heat_setpoint)
+    # {'id': '1588365922'}
 
 
 #######################################################################################

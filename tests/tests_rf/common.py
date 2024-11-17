@@ -17,7 +17,7 @@ import voluptuous as vol
 import evohomeasync as evo0
 import evohomeasync2 as evo2
 
-from ..const import URL_BASE_V2
+from ..const import URL_BASE_V0, URL_BASE_V2
 from .const import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
@@ -88,30 +88,25 @@ async def should_work_v0(
     evo: evo0.EvohomeClient,
     method: HTTPMethod,
     url: str,
+    /,
+    *,
     json: dict | None = None,
     content_type: str | None = "application/json",
     schema: vol.Schema | None = None,
 ) -> dict | list | str:
     """Make a request that is expected to succeed."""
 
-    response: aiohttp.ClientResponse
+    response = await evo.auth._raw_request(method, f"{URL_BASE_V0}/{url}", json=json)
 
-    response = await evo.auth._raw_request(method, url, data=json)
-    response.raise_for_status()
-
-    # TODO: perform this transform in the broker
-    if response.content_type == "application/json":
-        content = await response.json()
-    else:
-        content = await response.text()
-
-    assert response.content_type == content_type, content
+    response.raise_for_status()  # should be 200/OK
+    assert response.content_type == content_type
 
     if response.content_type != "application/json":
-        assert isinstance(content, str), content  # mypy
-        return content
+        return await response.text()
 
-    assert isinstance(content, dict | list), content  # mypy
+    #
+    content = await response.json()
+
     return schema(content) if schema else content
 
 
@@ -119,27 +114,17 @@ async def should_fail_v0(
     evo: evo0.EvohomeClient,
     method: HTTPMethod,
     url: str,
+    /,
+    *,
     json: dict | None = None,
     content_type: str | None = "application/json",
     status: HTTPStatus | None = None,
-) -> dict | list | str | None:
+) -> dict | list | str:
     """Make a request that is expected to fail."""
 
-    response: aiohttp.ClientResponse
+    response = await evo.auth._raw_request(method, f"{URL_BASE_V0}/{url}", data=json)
 
-    try:
-        response = await evo.auth._raw_request(method, url, data=json)
-        response.raise_for_status()
-
-    except aiohttp.ClientResponseError as err:
-        assert err.status == status, err.status
-    else:
-        assert False, response.status
-
-    if _DBG_DISABLE_STRICT_ASSERTS:
-        return None
-
-    # TODO: perform this transform in the broker
+    # need to do this before raise_for_status()
     if response.content_type == "application/json":
         content = await response.json()
     else:
@@ -147,12 +132,25 @@ async def should_fail_v0(
 
     assert response.content_type == content_type, content
 
+    try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
+        response.raise_for_status()
+    except aiohttp.ClientResponseError as err:
+        assert err.status == status, err.status
+    else:
+        assert False, response.status
+
+    if _DBG_DISABLE_STRICT_ASSERTS:
+        return content  # type: ignore[no-any-return]
+
     if isinstance(content, dict):
         assert "message" in content, content
+
     elif isinstance(content, list):
         assert "message" in content[0], content[0]
+
     elif isinstance(content, str):
-        pass
+        assert status in (HTTPStatus.OK,), status  # TODO; what tuple[status] here?
+
     else:
         assert False, response.content_type
 
@@ -179,7 +177,18 @@ async def should_work_v2(
 
     response = await evo.auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
 
-    assert response.content_type == content_type
+    # need to do this before raise_for_status()
+    if response.content_type == "application/json":
+        content = await response.json()
+    else:
+        content = await response.text()
+
+    assert response.content_type == content_type, content
+
+    try:
+        response.raise_for_status()  # should be 200/OK
+    except aiohttp.ClientResponseError as err:
+        raise RuntimeError(f"{err.status}/{err.message}: {content}") from err
 
     if response.content_type != "application/json":
         return await response.text()
@@ -205,28 +214,29 @@ async def should_fail_v2(
     Used to validate the faked server against a 'real' server.
     """
 
-    try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
-        response = await evo.auth._raw_request(
-            method, f"{URL_BASE_V2}/{url}", json=json
-        )
+    response = await evo.auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
 
-    except aiohttp.ClientResponseError:
-        assert False  # err.status == status, err.status
-    else:
-        assert response.status == status, response.status
-
-    if _DBG_DISABLE_STRICT_ASSERTS:
-        return None
-
-    assert response.content_type == content_type
-
+    # need to do this before raise_for_status()
     if response.content_type == "application/json":
         content = await response.json()
     else:
         content = await response.text()
 
+    assert response.content_type == content_type, content
+
+    try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
+        response.raise_for_status()
+    except aiohttp.ClientResponseError as err:
+        assert err.status == status, err.status
+    else:
+        assert False, response.status
+
+    if _DBG_DISABLE_STRICT_ASSERTS:
+        return content  # type: ignore[no-any-return]
+
     if isinstance(content, dict):
         assert status in (
+            HTTPStatus.INTERNAL_SERVER_ERROR,
             HTTPStatus.NOT_FOUND,
             HTTPStatus.METHOD_NOT_ALLOWED,
         ), content
@@ -246,7 +256,7 @@ async def should_fail_v2(
     else:
         assert False, response.content_type
 
-    return content
+    return content  # type: ignore[no-any-return]
 
 
 async def wait_for_comm_task_v2(evo: EvohomeClientv2, task_id: str) -> bool:
