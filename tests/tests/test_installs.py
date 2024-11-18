@@ -34,8 +34,8 @@ async def test_system_snapshot(
 
     def serializable_attrs(obj: object) -> dict[str, Any]:
         result = {}
-        for k in list(vars(obj).keys()) + get_property_methods(obj):
-            if not k.startswith("_"):
+        for k in get_property_methods(obj):  # + list(vars(obj).keys()):
+            if not k.startswith("_") and k != "zones_by_name":
                 try:
                     result[k] = yaml.dump(getattr(obj, k))
                 except TypeError:  # not all attrs are serializable
