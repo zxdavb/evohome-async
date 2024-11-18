@@ -24,21 +24,22 @@ if TYPE_CHECKING:
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def client_session(
-    use_fake_aiohttp: bool,
+    use_real_aiohttp: bool,
 ) -> AsyncGenerator[aiohttp.ClientSession, None]:
     """Yield an aiohttp.ClientSession, which may be faked."""
 
-    if use_fake_aiohttp:
-        from .tests_rf.faked_server import aiohttp
-    else:
+    if use_real_aiohttp:
         import aiohttp  # type: ignore[no-redef]
+    else:
+        from .tests_rf.faked_server import aiohttp
 
-    if use_fake_aiohttp:
+    if use_real_aiohttp:
+        client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+
+    else:
         from .tests_rf.faked_server import FakedServer
 
         client_session = aiohttp.ClientSession(faked_server=FakedServer(None, None))
-    else:
-        client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
 
     try:
         yield client_session  # type: ignore[misc]
@@ -79,12 +80,12 @@ def token_data(credentials: tuple[str, str]) -> dict[str, Any]:
 def cache_file(
     token_data: dict[str, int | str],
     tmp_path_factory: pytest.TempPathFactory,
-    use_fake_aiohttp: bool,
+    use_real_aiohttp: bool,
 ) -> Path:
     """Return the path to the token cache."""
 
-    # don't pollute the real token cache with fake tokens
-    if not use_fake_aiohttp:
+    # don't pollute the cache of real tokens (from the vendor) with fake tokens
+    if use_real_aiohttp:
         from cli.client import CACHE_FILE
 
         return CACHE_FILE

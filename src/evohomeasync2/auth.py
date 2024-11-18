@@ -151,6 +151,7 @@ class AbstractTokenManager(ABC):
 
     def _clear_auth_tokens(self) -> None:
         """Clear the auth tokens."""
+
         self._access_token = ""
         self._access_token_expires = dt.min
         self._refresh_token = ""
@@ -253,6 +254,7 @@ class AbstractTokenManager(ABC):
 
         try:  # the dict _should_ be the expected schema...
             SCH_OAUTH_TOKEN(response)  # can't use this result, due to obsfucation
+
         except vol.Invalid as err:
             self._logger.debug(f"Response JSON may be invalid: POST {url}: {err}")
 

@@ -118,8 +118,11 @@ def broker_get(install: str) -> Callable:
 
 
 @pytest.fixture(scope="session")
-def use_fake_aiohttp() -> bool:
-    """Return True is using the real aiohttp library."""
+def use_real_aiohttp() -> bool:
+    """Return True if using the real aiohttp library.
+
+    This indicates testing is against the vendor's servers rather than a faked server.
+    """
     return False
 
 

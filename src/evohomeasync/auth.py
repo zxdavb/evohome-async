@@ -99,6 +99,7 @@ class AbstractSessionManager(ABC):
 
     def _clear_session_id(self) -> None:
         """Clear the session id."""
+
         self._session_id = ""
         self._session_expires = dt.min
         #
