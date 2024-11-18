@@ -123,7 +123,7 @@ class EvohomeClientNew:
             #
 
         if self._user_info is None:
-            url = "api/accountInfo"
+            url = "accountInfo"
             self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT_RESPONSE)
 
         # assert self._user_info is not None  # mypy hint
