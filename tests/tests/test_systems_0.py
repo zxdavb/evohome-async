@@ -7,12 +7,15 @@ from pathlib import Path
 
 import pytest
 
-import evohomeasync2 as evo2
-from evohomeasync2.schema import SCH_GET_USER_ACCOUNT, SCH_GET_USER_LOCATIONS
+from evohomeasync2.schema import (
+    SCH_GET_USER_ACCOUNT,
+    SCH_GET_USER_LOCATIONS,
+    factory_loc_status,
+)
 
-from .common import TEST_DIR, test_schema
+from .common import TEST_DIR, assert_schema
 
-WORK_DIR = f"{TEST_DIR}/systems_0"
+WORK_DIR = f"{TEST_DIR}/fixtures"
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -27,15 +30,20 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 def test_user_account(folder: Path) -> None:
     """Test the user account schema against the corresponding JSON."""
-    test_schema(folder, SCH_GET_USER_ACCOUNT, "user_account.json")
+
+    assert_schema(folder, SCH_GET_USER_ACCOUNT, "user_account.json")
 
 
 def test_user_locations(folder: Path) -> None:
     """Test the user locations config schema against the corresponding JSON."""
-    test_schema(folder, SCH_GET_USER_LOCATIONS, "user_locations.json")
+
+    assert_schema(folder, SCH_GET_USER_LOCATIONS, "user_locations.json")
 
 
 def test_location_status(folder: Path) -> None:
     """Test the location status schema against the corresponding JSON."""
+
+    STATUS_SCHEMA = factory_loc_status()
+
     for p in Path(folder).glob("status_*.json"):
-        test_schema(folder, evo2.Location.STATUS_SCHEMA, p.name)
+        assert_schema(folder, STATUS_SCHEMA, p.name)
