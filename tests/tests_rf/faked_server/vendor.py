@@ -95,7 +95,7 @@ def validate_id_of_url(
     return decorator
 
 
-class FakedServer:
+class FakedServerBase:
     """Mocked vendor server for provision via a hacked aiohttp."""
 
     def __init__(
@@ -132,6 +132,7 @@ class FakedServer:
             if re.search(pattern, url):
                 self.body = fnc(self)
                 break
+            # self.status = HTTPStatus.INTERNAL_SERVER_ERROR
         else:
             self.status = HTTPStatus.NOT_FOUND
             return """
@@ -144,6 +145,32 @@ class FakedServer:
         if not self.status:
             self.status = HTTPStatus.OK if self.body else HTTPStatus.NOT_FOUND
         return self.body
+
+
+class FakedServerV0(FakedServerBase):
+    """Mocked vendor server for provision of v0 URL responses."""
+
+    def v0_session(self) -> _bodyT | None:
+        raise NotImplementedError
+
+    def v0_account_info(self) -> _bodyT | None:
+        raise NotImplementedError
+
+    def v0_locations(self) -> _bodyT | None:
+        raise NotImplementedError
+
+    def v0_evo_touch_systems(self) -> _bodyT | None:
+        raise NotImplementedError
+
+    def v0_heat_setpoint(self) -> _bodyT | None:
+        raise NotImplementedError
+
+    def v0_changeable_values(self) -> _bodyT | None:
+        raise NotImplementedError
+
+
+class FakedServerV2(FakedServerBase):
+    """Mocked vendor server for provision of v2 URL responses."""
 
     def oauth_token(self) -> _bodyT | None:
         if self._method != HTTPMethod.POST:
@@ -278,13 +305,30 @@ class FakedServer:
         return _user_config_from_full_config(full_config)
 
 
-REQUEST_MAP: dict[str, Callable] = {
+class FakedServer(FakedServerV2, FakedServerV0):
+    """Mocked vendor server for provision via a hacked aiohttp."""
+
+
+REQUEST_MAP_V0: dict[str, Callable] = {
     #
-    r"/Auth/OAuth/Token": FakedServer.oauth_token,
+    r"/session": FakedServer.v0_session,  # authentication
+    #
+    r"/accountInfo$": FakedServer.v0_account_info,
+    #
+    r"/locations?userId=": FakedServer.v0_locations,
+    #
+    r"/evoTouchSystems?locationId=": FakedServer.v0_evo_touch_systems,
+    #
+    r"/devices/.*/thermostat/changeableValues/heatSetpoint": FakedServer.v0_heat_setpoint,
+    r"/devices/.*/thermostat/changeableValues": FakedServer.v0_changeable_values,
+}
+REQUEST_MAP_V2: dict[str, Callable] = {
+    #
+    r"/Auth/OAuth/Token": FakedServer.oauth_token,  # authentication
     #
     r"/userAccount$": FakedServer.usr_account,
-    r"/location/installationInfo": FakedServer.all_config,
     #
+    r"/location/installationInfo": FakedServer.all_config,
     r"/location/.*/installationInfo": FakedServer.loc_config,
     r"/location/.*/status": FakedServer.loc_status,
     #
@@ -299,3 +343,4 @@ REQUEST_MAP: dict[str, Callable] = {
     r"/domesticHotWater/.*/state": FakedServer.dhw_mode,
     r"/domesticHotWater/.*/schedule": FakedServer.dhw_schedule,
 }
+REQUEST_MAP = REQUEST_MAP_V0 | REQUEST_MAP_V2
