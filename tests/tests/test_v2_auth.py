@@ -30,7 +30,7 @@ async def test_get_auth_token(
     cache_manager: CacheManager,
     freezer: FrozenDateTimeFactory,
 ) -> None:
-    """Test .get_acces_token() and .is_access_token_valid() methods."""
+    """Test .get_access_token() and .is_access_token_valid() methods."""
 
     def server_response() -> dict[str, int | str]:
         """Return the server response to a valid authorization request."""
