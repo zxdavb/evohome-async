@@ -177,7 +177,7 @@ async def test_token_manager(
     assert await cache_manager.get_access_token() == access_token
 
     #
-    # TEST 4: more time has passed, and token hs now expired
+    # TEST 4: test save_access_token() method
     freezer.tick(1800)  # advance time by 15 minutes, 20 mins total
     assert cache_manager.is_access_token_valid() is False
 

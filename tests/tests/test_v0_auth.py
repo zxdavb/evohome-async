@@ -172,7 +172,7 @@ async def test_session_manager(
     assert await cache_manager.get_session_id() == session_id
 
     #
-    # TEST 4: more time has passed, and token hs now expired
+    # TEST 4: test save_session_id() method
     freezer.tick(1800)  # advance time by 15 minutes, 20 mins total
     assert cache_manager.is_session_id_valid() is False
 
