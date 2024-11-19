@@ -406,7 +406,9 @@ class Auth:
             """Return the content of the response."""
 
             if not response.content_length:
-                return None
+                raise exc.RequestFailedError(
+                    f"Invalid response (no content): {response}"
+                )
 
             if response.content_type != "application/json":
                 # assume "text/plain" or "text/html"
