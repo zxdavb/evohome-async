@@ -188,6 +188,7 @@ class AbstractSessionManager(ABC):
 
         # try:  # the dict _should_ be the expected schema...
         #     SCH_SESSION_RESPONSE(response)
+
         # except vol.Invalid as err:
         #     self._logger.debug(
         #         f"Response JSON may be invalid: POST {url}: {err})

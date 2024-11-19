@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
+import aiohttp  # type: ignore[no-redef]
 import pytest
 import voluptuous as vol
 from aioresponses import aioresponses
@@ -47,6 +48,18 @@ def block_aiohttp() -> Generator[Callable]:
     """Prevent any actual I/O: will raise ClientConnectionError(Connection refused)."""
     with aioresponses() as m:
         yield m
+
+
+@pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
+async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
+    """Yield an aiohttp.ClientSession (never faked)."""
+
+    client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+
+    try:
+        yield client_session  # type: ignore[misc]
+    finally:
+        await client_session.close()
 
 
 @lru_cache
