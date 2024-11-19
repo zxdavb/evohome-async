@@ -64,15 +64,26 @@ def token_data(credentials: tuple[str, str]) -> dict[str, Any]:
     return {
         credentials[0]: {
             "auth_tokens": {
-                "access_token": "ncWMqPh2yGgAqc...",
+                "access_token": "ncw...",
                 "access_token_expires": (dt.now() + td(hours=1)).isoformat(),
-                "refresh_token": "Ryx9fL34Z5GcNV...",
+                "refresh_token": "ryx...",
             },
             "session_id": {
-                "session_id": "12345...",
+                "session_id": "123...",
                 "session_id_expires": (dt.now() + td(hours=1)).isoformat(),
             },
-        }
+        },
+        "username@gmail.com": {
+            "auth_tokens": {
+                "access_token": "ncw...",
+                "access_token_expires": (dt.now() + td(hours=1)).isoformat(),
+                "refresh_token": "ryx...",
+            },
+            "session_id": {
+                "session_id": "123...",
+                "session_id_expires": (dt.now() - td(hours=1)).isoformat(),
+            },
+        },
     }
 
 
@@ -93,7 +104,7 @@ def cache_file(
     cache_file = tmp_path_factory.getbasetemp() / ".evo-cache.tst"
 
     with cache_file.open("w") as f:
-        f.write(json.dumps(token_data))
+        f.write(json.dumps(token_data, indent=4))
 
     return cache_file
 

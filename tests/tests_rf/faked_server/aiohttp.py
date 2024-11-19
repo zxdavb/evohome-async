@@ -193,7 +193,7 @@ class ClientResponse:
     async def text(self, /, **kwargs: Any) -> str:  # assumes is JSON or plaintext
         """Return the response body as text."""
         if self.content_type == "application/json":
-            return json.dumps(self._body)
+            return json.dumps(self._body, indent=4)
         if self.content_type in ("text/html", "text/plain"):
             return str(self._body)
         raise NotImplementedError

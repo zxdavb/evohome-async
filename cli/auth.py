@@ -95,7 +95,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
     async def _write_cache_to_file(self, cache: TokenCacheT) -> None:
         """Write the supplied cache to file."""
 
-        content = json.dumps(cache)
+        content = json.dumps(cache, indent=4)
 
         async with aiofiles.open(self.cache_file, "w") as fp:
             await fp.write(content)
