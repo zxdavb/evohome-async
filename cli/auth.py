@@ -31,11 +31,11 @@ class UserEntryT(TypedDict):
     session_id: NotRequired[SessionIdT]
 
 
-# class TokenCacheT(TypedDict, total=False):
+# class CacheDataT(TypedDict, total=False):
 #     __root__: dict[str, UserEntry]
 
 
-TokenCacheT = dict[str, UserEntryT]
+CacheDataT = dict[str, UserEntryT]
 
 
 class CacheManager(AbstractTokenManager, AbstractSessionManager):
@@ -58,10 +58,10 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
         return str(self._cache_file)
 
     @staticmethod
-    def _clean_cache(old_cache: TokenCacheT) -> TokenCacheT:
+    def _clean_cache(old_cache: CacheDataT) -> CacheDataT:
         """Clear any expired data from the cache entry."""
 
-        new_cache: TokenCacheT = {}
+        new_cache: CacheDataT = {}
 
         dt_now = (dt.now() + td(seconds=15)).isoformat()
 
@@ -80,7 +80,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
 
         return new_cache  # could be Falsey
 
-    async def _read_cache_from_file(self) -> TokenCacheT:
+    async def _read_cache_from_file(self) -> CacheDataT:
         """Return a copy of the cache as read from file."""
 
         try:
@@ -89,10 +89,10 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
         except FileNotFoundError:
             return {}
 
-        cache: TokenCacheT = json.loads(content)
+        cache: CacheDataT = json.loads(content)
         return cache
 
-    async def _write_cache_to_file(self, cache: TokenCacheT) -> None:
+    async def _write_cache_to_file(self, cache: CacheDataT) -> None:
         """Write the supplied cache to file."""
 
         content = json.dumps(cache, indent=4)
@@ -103,12 +103,12 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
     async def load_cache(self) -> None:
         """Load the user entry from the cache."""
 
-        cache: TokenCacheT = await self._read_cache_from_file()
+        cache: CacheDataT = await self._read_cache_from_file()
 
         await self._load_access_token(cache=cache)
         await self._load_session_id(cache=cache)
 
-    async def _load_access_token(self, cache: TokenCacheT | None = None) -> None:
+    async def _load_access_token(self, cache: CacheDataT | None = None) -> None:
         """Load the (serialized) auth tokens from the cache."""
 
         entry: dict[str, AuthTokensT]
@@ -126,7 +126,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
         if self._access_token_expires.isoformat() < tokens[SZ_ACCESS_TOKEN_EXPIRES]:
             self._import_auth_tokens(tokens)
 
-    async def _load_session_id(self, cache: TokenCacheT | None = None) -> None:
+    async def _load_session_id(self, cache: CacheDataT | None = None) -> None:
         """Load the (serialized) session id from the cache."""
 
         entry: dict[str, SessionIdT]
@@ -147,7 +147,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
     async def save_access_token(self) -> None:
         """Save the (serialized) auth tokens to the cache."""
 
-        cache: TokenCacheT = await self._read_cache_from_file()
+        cache: CacheDataT = await self._read_cache_from_file()
 
         if self.client_id not in cache:
             cache[self.client_id] = {}
@@ -159,7 +159,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
     async def save_session_id(self) -> None:
         """Save the (serialized) session id to the cache."""
 
-        cache: TokenCacheT = await self._read_cache_from_file()
+        cache: CacheDataT = await self._read_cache_from_file()
 
         if self.client_id not in cache:
             cache[self.client_id] = {}

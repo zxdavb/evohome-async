@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
@@ -10,6 +11,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from aioresponses import aioresponses
+from cli.auth import CacheManager
 
 from evohomeasync2 import exceptions as exc
 
@@ -18,9 +20,9 @@ from ..const import HEADERS_AUTH_V2 as HEADERS_AUTH, URL_AUTH_V2 as URL_AUTH
 if TYPE_CHECKING:
     from pathlib import Path
 
+    import aiohttp
+    from cli.auth import CacheDataT
     from freezegun.api import FrozenDateTimeFactory
-
-    from ..conftest import CacheManager
 
 
 async def test_get_auth_token(
@@ -129,29 +131,72 @@ async def test_get_auth_token(
     assert cache_manager.is_access_token_valid() is False
 
 
-async def test_cache(
-    credentials: tuple[str, str],
-    cache_manager: CacheManager,
+async def test_cache_manager(
+    cache_data_expired: CacheDataT,
+    cache_data_valid: CacheDataT,
     cache_file: Path,
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
     freezer: FrozenDateTimeFactory,
+    tmp_path_factory: pytest.TempPathFactory,
 ) -> None:
     """Test the .load_access_token() and .save_access_token() methods."""
 
+    cache_file = tmp_path_factory.getbasetemp() / ".evo-cache.tst"
+
     #
+    # TEST 1: load an invalid cache...
+    with cache_file.open("w") as f:
+        f.write(json.dumps(cache_data_expired, indent=4))
+
+    cache_manager = CacheManager(*credentials, client_session, cache_file=cache_file)
+
     # have not yet called get_access_token (so not loaded cache either)
+    assert cache_manager.is_session_id_valid() is False
+
+    await cache_manager.load_cache()
     assert cache_manager.is_access_token_valid() is False
 
     #
-    # Test 0: null token cache (zero-length content in file)
-    await cache_manager._load_access_token()
+    # TEST 2: load a valid token cache
+    with cache_file.open("w") as f:
+        f.write(json.dumps(cache_data_valid, indent=4))
 
-    # assert not token_manager.is_access_token_valid()
+    cache_manager = CacheManager(*credentials, client_session, cache_file=cache_file)
 
-    # #
-    # # Test 1: valid token cache
-    # with cache_file.open("w") as f:
-    #     f.write(json.dumps(token_data, indent=4))
+    await cache_manager.load_cache()
+    assert cache_manager.is_access_token_valid() is True
 
-    # await token_manager.load_access_token()
+    access_token = await cache_manager.get_access_token()
 
-    # assert token_manager.is_access_token_valid()
+    #
+    # TEST 3: some time has passed, but token is not expired
+    freezer.tick(600)  # advance time by 5 minutes
+    assert cache_manager.is_access_token_valid() is True
+
+    assert await cache_manager.get_access_token() == access_token
+
+    #
+    # TEST 4: more time has passed, and token hs now expired
+    freezer.tick(1800)  # advance time by 15 minutes, 20 mins total
+    assert cache_manager.is_access_token_valid() is False
+
+    with (
+        patch(
+            "evohomeasync2.auth.AbstractTokenManager._post_access_token_request",
+            new_callable=AsyncMock,
+        ) as req,
+        patch("cli.auth.CacheManager.save_access_token", new_callable=AsyncMock) as wrt,
+    ):
+        req.return_value = {
+            "access_token": "new_access_token...",
+            "expires_in": 1800,
+            "refresh_token": "new_refresh_token...",
+        }
+
+        assert await cache_manager.get_access_token() == "new_access_token..."
+
+        req.assert_called_once()
+        wrt.assert_called_once()
+
+    assert cache_manager.is_access_token_valid() is True

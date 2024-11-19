@@ -8,7 +8,7 @@ import os
 from collections.abc import AsyncGenerator
 from datetime import datetime as dt, timedelta as td
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 from cli.auth import CacheManager
@@ -20,6 +20,7 @@ from .const import TEST_PASSWORD, TEST_USERNAME
 
 if TYPE_CHECKING:
     import aiohttp
+    from cli.auth import CacheDataT
 
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
@@ -58,22 +59,22 @@ def credentials() -> tuple[str, str]:
 
 
 @pytest.fixture(scope="session")
-def token_data(credentials: tuple[str, str]) -> dict[str, Any]:
+def cache_data_valid(credentials: tuple[str, str]) -> CacheDataT:
     """Return the path to the token cache."""
 
     return {
         credentials[0]: {
             "auth_tokens": {
                 "access_token": "ncw...",
-                "access_token_expires": (dt.now() + td(hours=1)).isoformat(),
+                "access_token_expires": (dt.now() + td(minutes=15)).isoformat(),
                 "refresh_token": "ryx...",
             },
             "session_id": {
                 "session_id": "123...",
-                "session_id_expires": (dt.now() + td(hours=1)).isoformat(),
+                "session_id_expires": (dt.now() + td(minutes=15)).isoformat(),
             },
         },
-        "username@gmail.com": {
+        "username@gmail.com.xx": {
             "auth_tokens": {
                 "access_token": "ncw...",
                 "access_token_expires": (dt.now() + td(hours=1)).isoformat(),
@@ -88,8 +89,27 @@ def token_data(credentials: tuple[str, str]) -> dict[str, Any]:
 
 
 @pytest.fixture(scope="session")
+def cache_data_expired(credentials: tuple[str, str]) -> CacheDataT:
+    """Return the path to the token cache."""
+
+    return {
+        credentials[0]: {
+            "auth_tokens": {
+                "access_token": "ncw...",
+                "access_token_expires": (dt.now() - td(hours=1)).isoformat(),
+                "refresh_token": "ryx...",
+            },
+            "session_id": {
+                "session_id": "123...",
+                "session_id_expires": (dt.now() - td(hours=1)).isoformat(),
+            },
+        },
+    }
+
+
+@pytest.fixture(scope="session")
 def cache_file(
-    token_data: dict[str, int | str],
+    cache_data_valid: dict[str, int | str],
     tmp_path_factory: pytest.TempPathFactory,
     use_real_aiohttp: bool,
 ) -> Path:
@@ -104,7 +124,7 @@ def cache_file(
     cache_file = tmp_path_factory.getbasetemp() / ".evo-cache.tst"
 
     with cache_file.open("w") as f:
-        f.write(json.dumps(token_data, indent=4))
+        f.write(json.dumps(cache_data_valid, indent=4))
 
     return cache_file
 
