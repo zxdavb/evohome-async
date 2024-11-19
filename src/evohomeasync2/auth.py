@@ -456,7 +456,10 @@ class Auth:
     ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
         """Make a request to the Resideo TCC RESTful API.
 
-        Handles Auth failures appropriately.
+        Checks for ClientErrors and handles Auth failures appropriately.
+
+        Handles when auth tokens are rejected by server (i.e. not expired, but otherwise
+        deemed invalid by the server).
         """
 
         async def _content(
@@ -474,9 +477,11 @@ class Auth:
             content: dict[str, Any] = await response.json()
             return content
 
-        async with self._raw_request(method, url, **kwargs) as rsp:
+        def _raise_for_status(response: aiohttp.ClientResponse) -> None:
+            """Raise an exception if the response is not OK."""
+
             try:
-                rsp.raise_for_status()
+                response.raise_for_status()
 
             except aiohttp.ClientResponseError as err:
                 if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
@@ -485,6 +490,31 @@ class Auth:
 
             except aiohttp.ClientError as err:  # e.g. ClientConnectionError
                 raise exc.RequestFailedError(str(err)) from err
+
+        # async with self._raw_request(method, url, **kwargs) as rsp:
+        #     if rsp.status == HTTPStatus.OK:
+        #         return await _content(rsp)
+
+        #     if (  # if 401/unauthorized, refresh access token and retry
+        #         rsp.status != HTTPStatus.UNAUTHORIZED
+        #         or rsp.content_type != "application/json"
+        #     ):
+        #         _raise_for_status(rsp)
+
+        #     response_json = await rsp.json()
+        #     try:
+        #         if response_json[0]["code"] == "Unauthorized":
+        #             pass
+        #     except LookupError:
+        #         _raise_for_status(rsp)
+
+        # if self._token_manager.is_access_token_valid():
+        #     self._logger.warning("access token was rejected, will clear it and retry")
+
+        # self._token_manager._clear_auth_tokens()  # TODO: private method
+
+        async with self._raw_request(method, url, **kwargs) as rsp:
+            _raise_for_status(rsp)
 
             return await _content(rsp)
 

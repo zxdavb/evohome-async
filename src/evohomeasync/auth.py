@@ -7,7 +7,7 @@ import logging
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Generator
 from datetime import datetime as dt, timedelta as td
-from http import HTTPMethod, HTTPStatus
+from http import HTTPMethod  # , HTTPStatus
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Final, TypedDict
 
@@ -394,47 +394,68 @@ class Auth:
     ) -> aiohttp.ClientResponse:
         """Make a request to the Resideo TCC RESTful API.
 
-        Handles Auth failures appropriately.
+        Checks for ClientErrors and handles Auth failures appropriately.
+
+        Handles when session id is rejected by server (i.e. not expired, but otherwise
+        deemed invalid by the server).
         """
 
+        async def _content(
+            response: aiohttp.ClientResponse,
+        ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
+            """Return the content of the response."""
+
+            if not response.content_length:
+                return None
+
+            if response.content_type != "application/json":
+                # assume "text/plain" or "text/html"
+                return await response.text()
+
+            content: dict[str, Any] = await response.json()
+            return content
+
+        def _raise_for_status(response: aiohttp.ClientResponse) -> None:
+            """Raise an exception if the response is not OK."""
+
+            try:
+                response.raise_for_status()
+
+            except aiohttp.ClientResponseError as err:
+                # if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
+                #     raise exc.RequestFailedError(hint, status=err.status) from err
+                raise exc.RequestFailedError(str(err), status=err.status) from err
+
+            except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+                raise exc.RequestFailedError(str(err)) from err
+
+        # async with self._raw_request(method, url, **kwargs) as rsp:
+        #     if rsp.status == HTTPStatus.OK:
+        #         return _content(rsp)
+
+        #     if (  # if 401/unauthorized, fetch new session_id and retry
+        #         rsp.status != HTTPStatus.UNAUTHORIZED
+        #         or rsp.content_type != "application/json"
+        #     ):
+        #         _raise_for_status(rsp)
+
+        #     response_json = await rsp.json()
+        #     try:
+        #         # looking for invalid session: Unauthorized not EmailOrPasswordIncorrect
+        #         if response_json[0]["code"] == "Unauthorized":
+        #             pass
+        #     except LookupError:
+        #         _raise_for_status(rsp)
+
+        # if self._session_manager.is_session_id_valid():
+        #     self._logger.warning("session id was rejected, will clear it and retry")
+
+        # self._session_manager._clear_session_id()  # TODO: private method
+
         async with self._raw_request(method, url, **kwargs) as rsp:
-            response_text = await rsp.text()  # why can't I move this below the if?
+            _raise_for_status(rsp)
 
-            # if 401/unauthorized, may need to refresh session_id (expires in 15 mins?)
-            if rsp.status != HTTPStatus.UNAUTHORIZED:  # or _dont_reauthenticate:
-                return rsp
-
-            # TODO: use response.content_type to determine whether to use .json()
-            if "code" not in response_text:  # don't use .json() yet: may be plain text
-                return rsp
-
-            response_json = await rsp.json()
-            if response_json[0]["code"] != "Unauthorized":
-                return rsp
-
-            # NOTE: I cannot recall if this is needed, or if it causes a bug
-            # if S2_SESSION_ID not in self._headers:  # no value trying to re-authenticate
-            #     return response  # ...because: the user credentials must be invalid
-
-            self._logger.debug(f"Session now expired/invalid ({self._session_id})...")
-            self._headers = {
-                "content-type": "application/json"
-            }  # remove the session_id
-
-            _, rsp = await self.get_user_data()  # Get a fresh session_id
-            assert self._session_id is not None  # mypy hint
-
-            self._logger.debug(f"... success: new session_id = {self._session_id}")
-            self._headers[S2_SESSION_ID] = self._session_id
-
-            if "session" in str(url):  # retry not needed for /session
-                return rsp
-
-            # NOTE: this is a recursive call, used only after re-authenticating
-            rsp = await self._raw_request(
-                method, url, kwargs=kwargs, _dont_reauthenticate=True
-            )
-            return rsp
+            return await _content(rsp)
 
     def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
