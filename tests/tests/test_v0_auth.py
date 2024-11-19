@@ -126,7 +126,7 @@ async def test_get_session_id(
     assert cache_manager.is_session_id_valid() is False
 
 
-async def test_cache_manager(
+async def test_session_manager(
     cache_data_expired: CacheDataT,
     cache_data_valid: CacheDataT,
     cache_file: Path,

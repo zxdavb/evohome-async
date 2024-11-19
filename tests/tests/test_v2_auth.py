@@ -131,7 +131,7 @@ async def test_get_auth_token(
     assert cache_manager.is_access_token_valid() is False
 
 
-async def test_cache_manager(
+async def test_token_manager(
     cache_data_expired: CacheDataT,
     cache_data_valid: CacheDataT,
     cache_file: Path,
