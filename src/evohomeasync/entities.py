@@ -92,7 +92,7 @@ class EntityBase:
 class Location(EntityBase):
     """Instance of an account's location."""
 
-    def __init__(self, client: EvohomeClient, config: dict[str, Any]) -> None:
+    def __init__(self, client: EvohomeClient, config: LocationResponseT) -> None:
         super().__init__(
             config["location_id"],
             client.auth,

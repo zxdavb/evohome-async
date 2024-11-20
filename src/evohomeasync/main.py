@@ -55,8 +55,6 @@ class EvohomeClientNew:
             logger=self._logger,
         )
 
-        self.location_id: _LocationIdT = None  # type: ignore[assignment]
-
         # self.devices: dict[_ZoneIdT, _DeviceDictT] = {}  # dhw or zone by id
         # self.named_devices: dict[_ZoneNameT, _DeviceDictT] = {}  # zone by name
 
@@ -72,7 +70,7 @@ class EvohomeClientNew:
         *,
         _reset_config: bool = False,
         # _dont_update_status: bool = False,
-    ) -> LocationResponseT | None:
+    ) -> list[LocationResponseT] | None:
         """Retrieve the latest state of the installation and it's locations.
 
         If required, or when `_reset_config` is true, first retrieves the user
@@ -98,7 +96,7 @@ class EvohomeClientNew:
             self._locations = None
             self._location_by_id = None
 
-        # assert self._user_locs is not None  # mypy hint
+        assert self._user_locs is not None  # mypy hint
 
         if self._locations is None:
             self._locations = []
@@ -115,7 +113,6 @@ class EvohomeClientNew:
         assert self._locations is not None  # mypy hint
 
         self._locn_info = self._user_locs[self._LOC_IDX]
-        self.location_id = self._locn_info["location_id"]
 
         return self._user_locs
 
@@ -129,6 +126,17 @@ class EvohomeClientNew:
             )
 
         return self._user_info
+
+    @property
+    def location_id(self) -> _LocationIdT:
+        """Return the list of locations."""
+
+        if self._user_locs is None:
+            raise exc.NoSystemConfigError(
+                f"{self}: The installation information is not (yet) available"
+            )
+
+        return self._user_locs[self._LOC_IDX]["location_id"]
 
     @property
     def locations(self) -> list[Location]:

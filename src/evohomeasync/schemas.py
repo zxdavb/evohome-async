@@ -328,25 +328,25 @@ class TimeZoneResponseT(TypedDict):
 
 
 class LocationResponseT(TypedDict):
-    locationID: int  # is ID, not Id
+    location_id: _LocationIdT  # is ID, not Id
     name: str
-    streetAddress: str
+    street_address: str
     city: str
     state: str
     country: str
     zipcode: str
     type: str  # LocationType: "Commercial" | "Residential"
-    hasStation: bool
+    has_station: bool
     devices: list[DeviceResponseT]
     weather: WeatherResponseT  # WeatherResponse
-    daylightSavingTimeEnabled: bool
-    timeZone: TimeZoneResponseT
-    oneTouchActionsSuspended: bool
-    isLocationOwner: bool
+    daylight_saving_time_enabled: bool
+    time_zone: TimeZoneResponseT
+    one_touch_actions_suspended: bool
+    is_location_owner: bool
     locationOwnerID: int  # ID, not Id
-    locationOwnerName: str
-    locationOwnerUserName: str
-    canSearchForContractors: bool
+    location_owner_name: str
+    location_owner_user_name: str
+    can_searchforcontractors: bool
     contractor: dict[str, Any]  # ContractorResponse
 
 

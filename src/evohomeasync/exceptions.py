@@ -24,6 +24,10 @@ class SystemConfigBaseError(EvohomeError):
     """The system configuration is missing/invalid."""
 
 
+class NoSystemConfigError(EvohomeError):
+    """The system configuration is missing/invalid."""
+
+
 class RequestFailedError(EvohomeError):
     """The API request failed for some reason (no/invalid/unexpected response).
 
