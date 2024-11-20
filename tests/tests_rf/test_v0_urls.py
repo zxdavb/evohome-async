@@ -80,8 +80,12 @@ async def _test_evo_systems(evo: EvohomeClientv0) -> None:
 
     #
     # TEST 0: supported method?
-    json = {"QuickAction": "Auto"}
+    json = {
+        "QuickAction": "Auto",
+        "QuickActionNextTime": None,
+    }
 
+    #       evoTouchSystems?locationId=$locationId
     url = f"evoTouchSystems?locationId={loc_id}"
     _ = await should_fail_v0(
         evo.auth,
