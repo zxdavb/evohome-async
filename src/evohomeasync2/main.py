@@ -34,7 +34,7 @@ _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 class EvohomeClientNew:
     """Provide a client to access the Resideo TCC API."""
 
-    #
+    _LOC_IDX: int = 0  # the index of the default location in _user_locs
 
     _user_info: _EvoDictT | None = None
     _user_locs: list[_EvoDictT] | None = None  # all locations of the user
@@ -54,13 +54,16 @@ class EvohomeClientNew:
             self._logger.setLevel(logging.DEBUG)
             self._logger.debug("Debug mode is explicitly enabled.")
 
-        #
-
         self.auth = Auth(
             token_manager,
             websession or token_manager._websession,
             logger=self._logger,
         )
+
+        #
+
+        #
+        #
 
         self._locations: list[Location] | None = None  # to preserve the order
         self._location_by_id: dict[str, Location] | None = None
@@ -105,7 +108,7 @@ class EvohomeClientNew:
 
         assert self._user_locs is not None  # mypy hint
 
-        if self._locations is None:
+        if self._locations is None:  # create/refresh the configured locations
             self._locations = []
             self._location_by_id = {}
 
@@ -114,7 +117,8 @@ class EvohomeClientNew:
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 
-            if _dont_update_status and (num := len(self._locations)) > 1:
+            # only warn once per config refresh (i.e. not on every status update)
+            if not _dont_update_status and (num := len(self._locations)) > 1:
                 self._logger.warning(
                     f"There are {num} locations. Reduce the risk of exceeding API rate "
                     "limits by individually updating only the necessary locations."
@@ -122,9 +126,10 @@ class EvohomeClientNew:
 
         assert self._locations is not None  # mypy hint
 
-        if not _dont_update_status:
+        if not _dont_update_status:  # see warning, above
             for loc in self._locations:
                 await loc.update()
+        #
 
         return self._user_locs
 
@@ -175,7 +180,7 @@ class EvohomeClientNew:
                 f"{self}: There is not a single location (only) for this account"
             )
 
-        if not (gwys := locs[0].gateways) or len(gwys) != 1:
+        if not (gwys := locs[self._LOC_IDX].gateways) or len(gwys) != 1:
             raise exc.NoSingleTcsError(
                 f"{self}: There is not a single gateway (only) for this account/location"
             )

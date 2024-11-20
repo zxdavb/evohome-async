@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, NoReturn
 
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
-from .location import Location
+from .entities import Location
 from .schema import (
     SCH_LOCATION_RESPONSE,
     SCH_USER_ACCOUNT_RESPONSE,
@@ -39,7 +39,6 @@ from .schema import (
     SZ_TEMPORARY,
     SZ_THERMOSTAT,
     SZ_THERMOSTAT_MODEL_TYPE,
-    SZ_USER_ID as S2_USER_ID,
     SZ_VALUE,
 )
 
@@ -65,7 +64,7 @@ _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 class EvohomeClientNew:
     """Provide a client to access the Resideo TCC API (assumes a single TCS)."""
 
-    _LOC_IDX: int = 0  # the index of the location in the full_data list
+    _LOC_IDX: int = 0  # the index of the default location in _user_locs
 
     _user_info: UserAccountResponseT | None = None
     _user_locs: list[LocationResponseT] | None = None  # all locations of the user
@@ -85,25 +84,22 @@ class EvohomeClientNew:
             self._logger.setLevel(logging.DEBUG)
             self._logger.debug("Debug mode is explicitly enabled.")
 
-        self.location_id: _LocationIdT = None  # type: ignore[assignment]
-
-        self.devices: dict[_ZoneIdT, _DeviceDictT] = {}  # dhw or zone by id
-        self.named_devices: dict[_ZoneNameT, _DeviceDictT] = {}  # zone by name
-
         self.auth = Auth(
             session_manager,
             websession or session_manager._websession,
             logger=self._logger,
         )
 
+        self.location_id: _LocationIdT = None  # type: ignore[assignment]
+
+        # self.devices: dict[_ZoneIdT, _DeviceDictT] = {}  # dhw or zone by id
+        # self.named_devices: dict[_ZoneNameT, _DeviceDictT] = {}  # zone by name
+
         self._locations: list[Location] | None = None  # to preserve the order
         self._location_by_id: dict[str, Location] | None = None
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(auth='{self.auth}')"
-
-    #
-    # New methods...
 
     async def update(
         self,
@@ -120,19 +116,19 @@ class EvohomeClientNew:
 
         if _reset_config:
             self._user_info = None
-            #
+            self._user_locs = None
 
         if self._user_info is None:
             url = "accountInfo"
             self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT_RESPONSE)
 
-        # assert self._user_info is not None  # mypy hint
+        assert self._user_info is not None  # mypy hint
 
         if self._user_locs is None:
-            url = f"locations?userId={self._user_info[S2_USER_ID]}&allData=True"
-            #
+            url = f"locations?userId={self._user_info["user_id"]}"
+            url += "&allData=True"
 
-            self.locn_data = await self.auth.get(url, schema=SCH_LOCATION_RESPONSE)
+            self._user_locs = await self.auth.get(url, schema=SCH_LOCATION_RESPONSE)
 
             self._locations = None
             self._location_by_id = None
@@ -148,12 +144,13 @@ class EvohomeClientNew:
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 
+            #
+            #
+
+        assert self._locations is not None  # mypy hint
+
         self._locn_info = self._user_locs[self._LOC_IDX]
-
-        self.location_id = self._locn_info[SZ_LOCATION_ID]
-
-        self.devices = {d[SZ_DEVICE_ID]: d for d in self._locn_info[SZ_DEVICES]}
-        self.named_devices = {d[SZ_NAME]: d for d in self._locn_info[SZ_DEVICES]}
+        self.location_id = self._locn_info["location_id"]
 
         return self._user_locs
 
@@ -167,6 +164,19 @@ class EvohomeClientNew:
             )
 
         return self._user_info
+
+    @property
+    def locations(self) -> list[Location]:
+        """Return the list of locations."""
+
+        if self._user_locs is None:
+            raise exc.NoSystemConfigError(
+                f"{self}: The installation information is not (yet) available"
+            )
+
+        assert self._locations  # mypy hint
+
+        return self._locations
 
     #
     # Location methods...

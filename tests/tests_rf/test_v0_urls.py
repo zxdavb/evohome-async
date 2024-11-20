@@ -33,7 +33,7 @@ async def _test_usr_locations(evo: EvohomeClientv0) -> None:
 
     await evo.update()
 
-    user_id: int = evo.auth._user_info["userID"]
+    user_id: int = evo.user_account["user_id"]
 
     url = f"locations?userId={user_id}&allData=True"
     _ = await should_work_v0(evo.auth, HTTPMethod.GET, url)  # TODO: add schema
