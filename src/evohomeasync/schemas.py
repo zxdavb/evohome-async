@@ -46,7 +46,7 @@ SZ_DOMAIN_ID: Final = "domainID"  # is ID, not Id
 
 SZ_FIRSTNAME: Final = "firstname"
 SZ_GATEWAY_ID: Final = "gatewayId"
-SZ_INDOOR_TEMPERATURE: Final = "indoorTemperature"
+SZ_INDOOR_TEMPERATURE: Final = "indoor_temperature"
 SZ_IS_ACTIVATED: Final = "isActivated"
 
 SZ_LASTNAME: Final = "lastname"
@@ -254,77 +254,77 @@ def factory_location_response_list(
 
 
 class WeatherResponseT(TypedDict):
-    Condition: str  # an enum
-    Temperature: float
-    Units: str  # Fahrenheit (precision 1.0) or Celsius (0.5)
-    Humidity: int
-    Phrase: str
+    condition: str  # an enum
+    temperature: float
+    units: str  # Fahrenheit (precision 1.0) or Celsius (0.5)
+    humidity: int
+    phrase: str
 
 
 class ThermostatResponseT(TypedDict):
-    Units: str  # displayedUnits: Fahrenheit or Celsius
-    IndoorTemperature: float
-    OutdoorTemperature: float
-    OutdoorTemperatureAvailable: bool
-    OutdoorHumidity: float
-    OutdootHumidityAvailable: bool
-    IndoorHumidity: float
-    IndoorTemperatureStatus: str  # Measured | NotAvailable | SensorError | SensorFault
-    IndoorHumidityStatus: str
-    OutdoorTemperatureStatus: str
-    OutdoorHumidityStatus: str
-    IsCommercial: bool
-    AllowedModes: list[str]  # ThermostatMode
-    Deadband: float
-    MinHeatSetpoint: float
-    MaxHeatSetpoint: float
-    MinCoolSetpoint: float
-    MaxCoolSetpoint: float
-    CoolRate: float
-    HeatRate: float
-    IsPreCoolCapable: bool
-    ChangeableValues: Any  # thermostatChangeableValues
-    EquipmentOutputStatus: str  # Off | Heating | Cooling
-    ScheduleCapable: bool
-    VacationHoldChangeable: bool
-    VacationHoldCancelable: bool
-    ScheduleHeatSp: float
-    ScheduleCoolSp: float
-    SerialNumber: str
-    PcbNumber: str
+    units: str  # displayedUnits: Fahrenheit or Celsius
+    indoor_temperature: float
+    outdoor_temperature: float
+    outdoor_temperature_available: bool
+    outdoor_humidity: float
+    outdoor_Humidity_available: bool
+    indoor_humidity: float
+    indoor_temperature_status: str  # Measured|NotAvailable|SensorError|SensorFault
+    indoor_humidity_status: str
+    outdoor_temperature_status: str
+    outdoor_humidity_status: str
+    is_commercial: bool
+    allowed_modes: list[str]  # ThermostatMode
+    deadband: float
+    min_heat_setpoint: float
+    max_heat_setpoint: float
+    min_cool_setpoint: float
+    max_cool_setpoint: float
+    cool_rate: float
+    heat_rate: float
+    is_pre_cool_capable: bool
+    changeable_values: Any  # thermostatChangeableValues
+    equipment_output_status: str  # Off | Heating | Cooling
+    schedule_capable: bool
+    vacation_hold_changeable: bool
+    vacation_hold_cancelable: bool
+    schedule_heat_sp: float
+    schedule_cool_sp: float
+    serial_number: str
+    pcb_number: str
 
 
 class DeviceResponseT(TypedDict):
-    GatewayId: int
-    DeviceID: int
-    ThermostatModelType: str
-    DeviceType: int
-    Name: str
-    ScheduleCapable: bool
-    HoldUntilCapable: bool
-    Thermostat: ThermostatResponseT
-    Humidifier: dict[str, Any]  # HumidifierResponse
-    Dehumidifier: dict[str, Any]  # DehumidifierResponse
-    Fan: dict[str, Any]  # FanResponse
-    Schedule: dict[str, Any]  # ScheduleResponse
-    AlertSettings: dict[str, Any]  # AlertSettingsResponse
-    IsUpgrading: bool
-    IsAlive: bool
-    ThermostatVersion: str
-    macID: str
-    LocationId: int
-    DomainID: int
-    Instance: int
-    SerialNumber: str
-    PcbNumber: str
+    gateway_id: int
+    device_id: int
+    thermostat_model_type: str
+    device_type: int
+    name: str
+    schedule_capable: bool
+    hold_until_capable: bool
+    thermostat: ThermostatResponseT
+    humidifier: dict[str, Any]  # HumidifierResponse
+    dehumidifier: dict[str, Any]  # DehumidifierResponse
+    fan: dict[str, Any]  # FanResponse
+    schedule: dict[str, Any]  # ScheduleResponse
+    alert_settings: dict[str, Any]  # AlertSettingsResponse
+    is_upgrading: bool
+    is_alive: bool
+    thermostat_version: str
+    mac_id: str
+    location_id: int
+    domain_id: int
+    instance: int
+    serial_number: str
+    pcb_number: str
 
 
 class TimeZoneResponseT(TypedDict):
-    ID: str
-    DisplayName: str
-    OffsetMinutes: int
-    CurrentOffsetMinutes: int
-    UsingDaylightSavingTime: bool
+    id: str
+    display_name: str
+    offset_minutes: int
+    current_offset_minutes: int
+    using_daylight_saving_time: bool
 
 
 class LocationResponseT(TypedDict):

@@ -40,7 +40,12 @@ from .schemas import (
 )
 
 if TYPE_CHECKING:
+    import logging
+
+    from . import _EvohomeClientNew as EvohomeClient
+    from .auth import Auth
     from .schemas import (
+        DeviceResponseT,
         LocationResponseT,
         SystemMode,
         _DeviceDictT,
@@ -49,12 +54,6 @@ if TYPE_CHECKING:
         _ZoneIdT,
         _ZoneNameT,
     )
-
-if TYPE_CHECKING:
-    import logging
-
-    from . import _EvohomeClientNew as EvohomeClient
-    from .auth import Auth
 
     _EvoDictT = dict[str, Any]
 
@@ -65,7 +64,7 @@ class EntityBase:
     _config: _EvoDictT
     _status: _EvoDictT
 
-    def __init__(self, id: str, auth: Auth, logger: logging.Logger) -> None:
+    def __init__(self, id: int, auth: Auth, logger: logging.Logger) -> None:
         self._id: Final = id
 
         self._auth = auth
@@ -76,7 +75,7 @@ class EntityBase:
 
     @property
     def id(self) -> str:
-        return self._id
+        return str(self._id)
 
     @property
     def config(self) -> _EvoDictT:
@@ -101,7 +100,7 @@ class Location(EntityBase):
 
         self._cli = client  # proxy for parent
 
-        self._config: Final[_EvoDictT] = config
+        self._config: _EvoDictT = config
         self._status: _EvoDictT = {}
 
         self.gateways: list[Gateway] = []
@@ -283,7 +282,7 @@ class Location(EntityBase):
 class Gateway(EntityBase):
     """Instance of a location's gateway."""
 
-    def __init__(self, location: Location, config: dict[str, Any]) -> None:
+    def __init__(self, location: Location, config: DeviceResponseT) -> None:
         super().__init__(
             config["gateway_id"],
             location._auth,
@@ -292,7 +291,7 @@ class Gateway(EntityBase):
 
         self._loc = location  # parent
 
-        self._config: Final[_EvoDictT] = config
+        self._config: _EvoDictT = config
         self._status: _EvoDictT = {}
 
         self.mac_address = config["mac_id"]
@@ -306,7 +305,7 @@ class Gateway(EntityBase):
 class Zone(EntityBase):
     """Instance of a location's gateway."""
 
-    def __init__(self, gateway: Gateway, config: dict[str, Any]) -> None:
+    def __init__(self, gateway: Gateway, config: DeviceResponseT) -> None:
         super().__init__(
             config["device_id"],
             gateway._auth,
@@ -315,7 +314,7 @@ class Zone(EntityBase):
 
         self._gwy = gateway  # parent
 
-        self._config: Final[_EvoDictT] = config
+        self._config: _EvoDictT = config
         self._status: _EvoDictT = {}
 
     @property
@@ -377,7 +376,7 @@ class Zone(EntityBase):
 class Hotwater(EntityBase):
     """Instance of a location's gateway."""
 
-    def __init__(self, gateway: Gateway, config: dict[str, Any]) -> None:
+    def __init__(self, gateway: Gateway, config: DeviceResponseT) -> None:
         super().__init__(
             config["device_id"],
             gateway._auth,
@@ -386,7 +385,7 @@ class Hotwater(EntityBase):
 
         self._gwy = gateway  # parent
 
-        self._config: Final[_EvoDictT] = config
+        self._config: _EvoDictT = config
         self._status: _EvoDictT = {}
 
     @property
