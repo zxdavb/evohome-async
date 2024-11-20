@@ -129,22 +129,22 @@ async def should_fail_v0(
 ) -> dict | list | str:
     """Make a request that is expected to fail."""
 
-    response = await auth._raw_request(method, f"{URL_BASE_V0}/{url}", data=json)
+    rsp = await auth._raw_request(method, f"{URL_BASE_V0}/{url}", data=json)
 
     # need to do this before raise_for_status()
-    if response.content_type == "application/json":
-        content = await response.json()
+    if rsp.content_type == "application/json":
+        content = await rsp.json()
     else:
-        content = await response.text()
+        content = await rsp.text()
 
-    assert response.content_type == content_type, content
+    assert rsp.content_type == content_type, content
 
     try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
-        response.raise_for_status()
+        rsp.raise_for_status()
     except aiohttp.ClientResponseError as err:
         assert err.status == status, err.status
     else:
-        assert False, response.status
+        assert False, rsp.status
 
     if _DBG_DISABLE_STRICT_ASSERTS:
         return content  # type: ignore[no-any-return]
@@ -160,7 +160,7 @@ async def should_fail_v0(
         # '<!DOCTYPE html PUBLIC ... not found ...'
 
     else:
-        assert False, response.content_type
+        assert False, rsp.content_type
 
     return content  # type: ignore[no-any-return]
 
@@ -218,22 +218,22 @@ async def should_fail_v2(
     Used to validate the faked server against a 'real' server.
     """
 
-    response = await auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
+    rsp = await auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
 
     # need to do this before raise_for_status()
-    if response.content_type == "application/json":
-        content = await response.json()
+    if rsp.content_type == "application/json":
+        content = await rsp.json()
     else:
-        content = await response.text()
+        content = await rsp.text()
 
     try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
-        response.raise_for_status()
+        rsp.raise_for_status()
     except aiohttp.ClientResponseError as err:
         assert err.status == status, err.status
     else:
-        assert False, response.status
+        assert False, rsp.status
 
-    assert response.content_type == content_type, content
+    assert rsp.content_type == content_type, content
 
     if _DBG_DISABLE_STRICT_ASSERTS:
         return content  # type: ignore[no-any-return]
@@ -270,27 +270,27 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
     # async with asyncio.timeout(2):
     #     await wait_for_comm_task()
 
-    response: aiohttp.ClientResponse  # TODO: shouldn't be needed; isn't via async with
+    rsp: aiohttp.ClientResponse  # TODO: shouldn't be needed; isn't via async with
 
     url = f"commTasks?commTaskId={task_id}"
 
     while True:
-        response = await auth._raw_request(HTTPMethod.GET, f"{URL_BASE_V2}/{url}")
+        rsp = await auth._raw_request(HTTPMethod.GET, f"{URL_BASE_V2}/{url}")
 
         # need to do this before raise_for_status()
-        if response.content_type == "application/json":
-            content = await response.json()
+        if rsp.content_type == "application/json":
+            content = await rsp.json()
         else:
-            content = await response.text()
+            content = await rsp.text()
 
         try:
-            response.raise_for_status()  # should be 200/OK
+            rsp.raise_for_status()  # should be 200/OK
         except aiohttp.ClientResponseError as err:
             raise AssertionError(f"status={err.status}: {content}") from err
 
-        assert response.content_type == "application/json", content
+        assert rsp.content_type == "application/json", content
 
-        task = response[0] if isinstance(response, list) else response
+        task = rsp[0] if isinstance(rsp, list) else rsp
 
         if task["state"] == "Succeeded":
             return True

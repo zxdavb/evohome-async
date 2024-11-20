@@ -144,17 +144,17 @@ def factory_user_account_info_response(
 
 
 class UserAccountInfoResponseT(TypedDict):  # NOT UserAccountResponseT
-    userID: int
+    user_id: int
     username: str  # email address
     firstname: str
     lastname: str
-    streetAddress: str
+    street_address: str
     city: str
     # state: str  # missing?
     zipcode: str
     country: str  # GB
     telephone: str
-    userLanguage: str
+    user_language: str
 
 
 #######################################################################################
@@ -191,18 +191,18 @@ def factory_session_response(
 
 
 class UserAccountResponseT(UserAccountInfoResponseT):  # NOT UserAccountInfoResponseT
-    isActivated: bool
-    deviceCount: int  # NotRequired?
-    tenantID: int  # NotRequired?
-    securityQuestion1: str  # NotRequired?
-    securityQuestion2: str  # NotRequired?
-    securityQuestion3: str  # NotRequired?
-    latestEulaAccepted: bool  # NotRequired?
+    is_activated: bool
+    device_count: int  # NotRequired?
+    tenant_id: int  # NotRequired?
+    security_question1: str  # NotRequired?
+    security_question2: str  # NotRequired?
+    security_question3: str  # NotRequired?
+    latest_eula_accepted: bool  # NotRequired?
 
 
 class SessionResponseT(TypedDict):
-    sessionId: str
-    userInfo: UserAccountResponseT
+    session_id: str
+    user_info: UserAccountResponseT
 
 
 #######################################################################################

@@ -16,6 +16,7 @@ import voluptuous as vol
 
 from . import exceptions as exc
 from .schemas import (
+    SCH_USER_SESSION_RESPONSE,
     SZ_LATEST_EULA_ACCEPTED,
     SZ_SESSION_ID as S2_SESSION_ID,
     SZ_USER_INFO as S2_USER_INFO,
@@ -186,25 +187,25 @@ class AbstractSessionManager(ABC):
             url, headers=HEADERS_AUTH, data=credentials
         )
 
-        # try:  # the dict _should_ be the expected schema...
-        #     SCH_SESSION_RESPONSE(response)
+        try:  # the dict _should_ be the expected schema...
+            self._logger.debug(f"POST {url}: {SCH_USER_SESSION_RESPONSE(response)}")
 
-        # except vol.Invalid as err:
-        #     self._logger.debug(
-        #         f"Response JSON may be invalid: POST {url}: {err})
-        #     )
+        except vol.Invalid as err:
+            self._logger.warning(f"Response JSON may be invalid: POST {url}: {err}")
+
+        session: SessionResponseT = convert_keys_to_snake_case(response)
 
         try:
-            self._session_id: str = response[S2_SESSION_ID]
+            self._session_id: str = session[S2_SESSION_ID]
             self._session_expires = dt.now() + td(minutes=15)
-            self._user_info = response[S2_USER_INFO]
+            self._user_info = session[S2_USER_INFO]
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
                 f"Invalid response from server: {err}"
             ) from err
 
-        if response.get(SZ_LATEST_EULA_ACCEPTED):
+        if session.get(SZ_LATEST_EULA_ACCEPTED):
             self._logger.warning("The latest EULA has not been accepted by the user")
 
     async def _post_session_id_request(
@@ -225,9 +226,9 @@ class AbstractSessionManager(ABC):
         except aiohttp.ContentTypeError as err:
             #
             #
-            content = await rsp.text()
+            response = await rsp.text()
             raise exc.AuthenticationFailedError(
-                f"Server response is not JSON: POST {url}: {content}"
+                f"Server response is not JSON: POST {url}: {response}"
             ) from err
 
         except aiohttp.ClientResponseError as err:
@@ -332,19 +333,19 @@ class Auth:
         warning if it doesn't match.
         """
 
-        content: dict[str, Any]
+        response: dict[str, Any]
 
-        content = await self.request(  # type: ignore[assignment]
+        response = await self.request(  # type: ignore[assignment]
             HTTPMethod.GET, f"{self._url_base}/{url}"
         )
 
         if schema:
             try:
-                content = schema(content)
+                response = schema(response)
             except vol.Invalid as err:
                 self._logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
 
-        return content
+        return response
 
     async def put(
         self,
@@ -358,7 +359,7 @@ class Auth:
         warning if it doesn't match.
         """
 
-        content: dict[str, Any] | list[dict[str, Any]]
+        response: dict[str, Any] | list[dict[str, Any]]
 
         if schema:
             try:
@@ -366,11 +367,11 @@ class Auth:
             except vol.Invalid as err:
                 self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
 
-        content = await self.request(  # type: ignore[assignment]
+        response = await self.request(  # type: ignore[assignment]
             HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
         )
 
-        return content
+        return response
 
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
@@ -383,11 +384,13 @@ class Auth:
         # TODO: if method == HTTPMethod.PUT and "json" in kwargs:
         #     kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
-        content = await self._request(method, url, **kwargs)
+        response = await self._request(method, url, **kwargs)
+
+        self._logger.debug(f"{method} {url}: {response}")
 
         if method == HTTPMethod.GET:
-            return convert_keys_to_snake_case(content)
-        return content
+            return convert_keys_to_snake_case(response)
+        return response
 
     async def _request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
@@ -401,21 +404,19 @@ class Auth:
         """
 
         async def _content(
-            response: aiohttp.ClientResponse,
+            rsp: aiohttp.ClientResponse,
         ) -> dict[str, Any] | list[dict[str, Any]] | str:
-            """Return the content of the response."""
+            """Return the response from the web server."""
 
-            if not response.content_length:
-                raise exc.RequestFailedError(
-                    f"Invalid response (no content): {response}"
-                )
+            if not rsp.content_length:
+                raise exc.RequestFailedError(f"Invalid response (no content): {rsp}")
 
-            if response.content_type != "application/json":
+            if rsp.content_type != "application/json":
                 # assume "text/plain" or "text/html"
-                return await response.text()
+                return await rsp.text()
 
-            content: dict[str, Any] = await response.json()
-            return content
+            response: dict[str, Any] = await rsp.json()
+            return response
 
         def _raise_for_status(response: aiohttp.ClientResponse) -> None:
             """Raise an exception if the response is not OK."""
@@ -441,10 +442,10 @@ class Auth:
         #     ):
         #         _raise_for_status(rsp)
 
-        #     response_json = await rsp.json()
+        #     response = await rsp.json()
         #     try:
         #         # looking for invalid session: Unauthorized not EmailOrPasswordIncorrect
-        #         if response_json[0]["code"] == "Unauthorized":
+        #         if response[0]["code"] == "Unauthorized":
         #             pass
         #     except LookupError:
         #         _raise_for_status(rsp)

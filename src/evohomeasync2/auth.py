@@ -253,15 +253,17 @@ class AbstractTokenManager(ABC):
         )
 
         try:  # the dict _should_ be the expected schema...
-            SCH_OAUTH_TOKEN(response)  # can't use this result, due to obsfucation
+            self._logger.debug(f"POST {url}: {SCH_OAUTH_TOKEN(response)}")
 
         except vol.Invalid as err:
-            self._logger.debug(f"Response JSON may be invalid: POST {url}: {err}")
+            self._logger.warning(f"Response JSON may be invalid: POST {url}: {err}")
+
+        tokens: AuthTokenResponseT = convert_keys_to_snake_case(response)
 
         try:
-            self._access_token = response[SZ_ACCESS_TOKEN]
-            self._access_token_expires = dt.now() + td(seconds=response[SZ_EXPIRES_IN])
-            self._refresh_token = response[SZ_REFRESH_TOKEN]
+            self._access_token = tokens[SZ_ACCESS_TOKEN]
+            self._access_token_expires = dt.now() + td(seconds=tokens[SZ_EXPIRES_IN])
+            self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
@@ -288,9 +290,9 @@ class AbstractTokenManager(ABC):
         except aiohttp.ContentTypeError as err:
             # <title>Authorize error <h1>Authorization failed
             # <p>The authorization server have encoutered an error while processing...  # codespell:ignore encoutered
-            content = await rsp.text()
+            response = await rsp.text()
             raise exc.AuthenticationFailedError(
-                f"Server response is not JSON: POST {url}: {content}"
+                f"Server response is not JSON: POST {url}: {response}"
             ) from err
 
         except aiohttp.ClientResponseError as err:
@@ -393,19 +395,19 @@ class Auth:
         warning if it doesn't match.
         """
 
-        content: _EvoSchemaT
+        response: _EvoSchemaT
 
-        content = await self.request(  # type: ignore[assignment]
+        response = await self.request(  # type: ignore[assignment]
             HTTPMethod.GET, f"{self._url_base}/{url}"
         )
 
         if schema:
             try:
-                content = schema(content)
+                response = schema(response)
             except vol.Invalid as err:
                 self._logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
 
-        return content
+        return response
 
     async def put(
         self,
@@ -419,7 +421,7 @@ class Auth:
         warning if it doesn't match.
         """
 
-        content: dict[str, Any] | list[dict[str, Any]]
+        response: dict[str, Any] | list[dict[str, Any]]
 
         if schema:
             try:
@@ -427,11 +429,11 @@ class Auth:
             except vol.Invalid as err:
                 self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
 
-        content = await self.request(  # type: ignore[assignment]
+        response = await self.request(  # type: ignore[assignment]
             HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
         )
 
-        return content
+        return response
 
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
@@ -444,11 +446,13 @@ class Auth:
         # TODO: if method == HTTPMethod.PUT and "json" in kwargs:
         #     kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
-        content = await self._request(method, url, **kwargs)
+        response = await self._request(method, url, **kwargs)
+
+        self._logger.debug(f"{method} {url}: {response}")
 
         if method == HTTPMethod.GET:
-            return convert_keys_to_snake_case(content)
-        return content
+            return convert_keys_to_snake_case(response)
+        return response
 
     async def _request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
@@ -462,21 +466,19 @@ class Auth:
         """
 
         async def _content(
-            response: aiohttp.ClientResponse,
+            rsp: aiohttp.ClientResponse,
         ) -> dict[str, Any] | list[dict[str, Any]] | str:
-            """Return the content of the response."""
+            """Return the response from the webserver."""
 
-            if not response.content_length:
-                raise exc.RequestFailedError(
-                    f"Invalid response (no content): {response}"
-                )
+            if not rsp.content_length:
+                raise exc.RequestFailedError(f"Invalid response (no content): {rsp}")
 
-            if response.content_type != "application/json":
+            if rsp.content_type != "application/json":
                 # assume "text/plain" or "text/html"
-                return await response.text()
+                return await rsp.text()
 
-            content: dict[str, Any] = await response.json()
-            return content
+            response: dict[str, Any] = await rsp.json()
+            return response
 
         def _raise_for_status(response: aiohttp.ClientResponse) -> None:
             """Raise an exception if the response is not OK."""
@@ -502,9 +504,9 @@ class Auth:
         #     ):
         #         _raise_for_status(rsp)
 
-        #     response_json = await rsp.json()
+        #     response = await rsp.json()
         #     try:
-        #         if response_json[0]["code"] == "Unauthorized":
+        #         if response[0]["code"] == "Unauthorized":
         #             pass
         #     except LookupError:
         #         _raise_for_status(rsp)

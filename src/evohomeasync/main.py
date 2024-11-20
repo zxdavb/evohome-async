@@ -85,7 +85,7 @@ class EvohomeClientNew:
 
         if self._user_info is None:
             url = "accountInfo"
-            self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
+            self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)  # type: ignore[assignment]
 
         assert self._user_info is not None  # mypy hint
 
@@ -93,7 +93,7 @@ class EvohomeClientNew:
             url = f"locations?userId={self._user_info["user_id"]}"
             url += "&allData=True"
 
-            self._user_locs = await self.auth.get(url, schema=SCH_GET_ACCOUNT_LOCS)
+            self._user_locs = await self.auth.get(url, schema=SCH_GET_ACCOUNT_LOCS)  # type: ignore[assignment]
 
             self._locations = None
             self._location_by_id = None
