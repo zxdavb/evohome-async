@@ -57,7 +57,7 @@ class ControlSystem(ActiveFaultsBase):
     def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
         super().__init__(
             config[SZ_SYSTEM_ID],
-            gateway._broker,
+            gateway._auth,
             gateway._logger,
         )
 
@@ -176,7 +176,7 @@ class ControlSystem(ActiveFaultsBase):
                 f"{self}: Unsupported/unknown {S2_SYSTEM_MODE}: {mode}"
             )
 
-        await self._broker.put(f"{self._TYPE}/{self.id}/mode", json=mode)
+        await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=mode)
 
     async def reset(self) -> None:
         """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""

@@ -119,7 +119,7 @@ class Location(EntityBase):
         Returns the raw JSON of the latest state.
         """
 
-        status: _EvoDictT = await self._broker.get(
+        status: _EvoDictT = await self._auth.get(
             f"{self._TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
             schema=self.STATUS_SCHEMA,
         )  # type: ignore[assignment]

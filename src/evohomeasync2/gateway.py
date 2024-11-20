@@ -31,7 +31,7 @@ class Gateway(ActiveFaultsBase):
     def __init__(self, location: Location, config: _EvoDictT) -> None:
         super().__init__(
             config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID],
-            location._broker,
+            location._auth,
             location._logger,
         )
 

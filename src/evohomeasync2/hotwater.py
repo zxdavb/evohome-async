@@ -124,7 +124,7 @@ class HotWater(_ZoneBase):
                 f"{self}: Unsupported/unknown {S2_STATE}: {mode}"
             )
 
-        await self._broker.put(f"{self._TYPE}/{self.id}/state", json=mode)
+        await self._auth.put(f"{self._TYPE}/{self.id}/state", json=mode)
 
     async def reset(self) -> None:
         """Cancel any override and allow the DHW to follow its schedule."""

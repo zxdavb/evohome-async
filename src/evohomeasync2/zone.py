@@ -71,10 +71,10 @@ class EntityBase:
     _config: _EvoDictT
     _status: _EvoDictT
 
-    def __init__(self, id: str, broker: Auth, logger: logging.Logger) -> None:
+    def __init__(self, id: str, auth: Auth, logger: logging.Logger) -> None:
         self._id: Final = id
 
-        self._broker = broker
+        self._auth = auth
         self._logger = logger
 
     def __str__(self) -> str:
@@ -157,7 +157,7 @@ class _ZoneBase(ActiveFaultsBase):
     SCH_SCHEDULE_PUT: Final  # type: ignore[misc]
 
     def __init__(self, id: str, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(id, tcs._broker, tcs._logger)
+        super().__init__(id, tcs._auth, tcs._logger)
 
         self.tcs = tcs  # parent
 
@@ -174,7 +174,7 @@ class _ZoneBase(ActiveFaultsBase):
         Returns the raw JSON of the latest state.
         """
 
-        status: _EvoDictT = await self._broker.get(
+        status: _EvoDictT = await self._auth.get(
             f"{self._TYPE}/{self.id}/status", schema=self.STATUS_SCHEMA
         )  # type: ignore[assignment]
 
@@ -212,7 +212,7 @@ class _ZoneBase(ActiveFaultsBase):
         self._logger.debug(f"{self}: Getting schedule...")
 
         try:
-            schedule: _EvoDictT = await self._broker.get(
+            schedule: _EvoDictT = await self._auth.get(
                 f"{self._TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE_GET
             )  # type: ignore[assignment]
 
@@ -259,7 +259,7 @@ class _ZoneBase(ActiveFaultsBase):
 
         assert isinstance(schedule, dict)  # mypy check
 
-        await self._broker.put(
+        await self._auth.put(
             f"{self._TYPE}/{self.id}/schedule",
             json=schedule,
             schema=self.SCH_SCHEDULE_PUT,
@@ -402,7 +402,7 @@ class Zone(_ZoneBase):
                 f"{self}: Unsupported/invalid {S2_HEAT_SETPOINT_VALUE}: {mode}"
             )
 
-        await self._broker.put(f"{self._TYPE}/{self.id}/heatSetpoint", json=mode)
+        await self._auth.put(f"{self._TYPE}/{self.id}/heatSetpoint", json=mode)
 
     async def reset(self) -> None:
         """Cancel any override and allow the zone to follow its schedule"""
