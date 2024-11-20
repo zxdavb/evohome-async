@@ -64,11 +64,13 @@ async def _test_usr_locations(evo: EvohomeClientv0) -> None:
     )
 
 
-# NOTE: this URL is tested with authentication tests
+# GET /accountInfo (is also in test_v0_urls_auth.py)
+# @skipif_auth_failed
 # async def test_usr_account(evohome_v0: EvohomeClientv0) -> None:
-#     """Test /session"""
+#     """Test /accountInfo"""
 
 
+# GET /locations?userId={user_id}&allData=True
 @skipif_auth_failed
 async def test_usr_locations(evohome_v0: EvohomeClientv0) -> None:
     """Test /locations?userId={user_id}&allData=True"""
@@ -83,6 +85,11 @@ async def test_usr_locations(evohome_v0: EvohomeClientv0) -> None:
         if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate with real server")
+
+
+# PUT /evoTouchSystems?locationId={loc_id}
+# PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
+# PUT /devices/{dhw_id}/thermostat/changeableValues
 
 
 USER_DATA = {

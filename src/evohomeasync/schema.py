@@ -134,7 +134,7 @@ class UserAccountResponseT(TypedDict):
     latestEulaAccepted: bool
 
 
-def factory_user_account_response(
+def factory_user_account_info_response(
     fnc: Callable[[str], str] = _do_nothing,
 ) -> vol.Schema:
     """Factory for the user account schema."""
@@ -154,6 +154,18 @@ def factory_user_account_response(
             vol.Required(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
             vol.Required(fnc(SZ_TELEPHONE)): str,
             vol.Required(fnc(SZ_USER_LANGUAGE)): str,
+        },
+        extra=vol.ALLOW_EXTRA,
+    )
+
+
+def factory_user_account_response(
+    fnc: Callable[[str], str] = _do_nothing,
+) -> vol.Schema:
+    """Factory for the user account schema."""
+
+    return factory_user_account_info_response(fnc).extend(
+        {
             vol.Required(fnc(SZ_IS_ACTIVATED)): bool,
             vol.Required(fnc(SZ_DEVICE_COUNT)): int,
             vol.Required(fnc("tenantID")): int,
@@ -166,6 +178,7 @@ def factory_user_account_response(
     )
 
 
+SCH_USER_ACCOUNT_INFO_RESPONSE: Final = factory_user_account_info_response()
 SCH_USER_ACCOUNT_RESPONSE: Final = factory_user_account_response()
 
 

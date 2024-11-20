@@ -19,7 +19,10 @@ from typing import TYPE_CHECKING
 import pytest
 
 from evohomeasync.auth import _APPLICATION_ID
-from evohomeasync.schema import SCH_LOCATION_RESPONSE, SCH_USER_ACCOUNT_RESPONSE
+from evohomeasync.schema import (
+    SCH_USER_ACCOUNT_INFO_RESPONSE,
+    SCH_USER_ACCOUNT_RESPONSE,
+)
 
 from ..const import URL_AUTH_V0 as URL_AUTH, URL_BASE_V0 as URL_BASE
 from .const import _DBG_USE_REAL_AIOHTTP
@@ -51,7 +54,8 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
 ) -> None:
     """Test the authentication flow with bad credentials."""
 
-    # invalid credentials -> HTTPStatus.UNAUTHORIZED
+    #
+    # TEST 1: invalid credentials -> HTTPStatus.UNAUTHORIZED
     data = {
         "applicationId": _APPLICATION_ID,
         "username": random.choice(string.ascii_letters),  # noqa: S311
@@ -82,10 +86,10 @@ async def test_url_auth_bad2(  # invalid/expired session id
 
     # pre-requisite data
     session_id = "bad/expired session id " + random.choice(string.ascii_letters)  # noqa: S311
-    user_id = 1234567
 
-    # invalid/expired session id -> HTTPStatus.UNAUTHORIZED
-    url = URL_BASE + f"locations?userId={user_id}&allData=True"
+    #
+    # TEST 2: invalid/expired session id -> HTTPStatus.UNAUTHORIZED
+    url = URL_BASE + "accountInfo"
     headers = HEADERS_BASE | {"sessionId": session_id}
 
     async with client_session.get(url, headers=headers) as rsp:
@@ -111,7 +115,7 @@ async def test_url_auth_good(
 ) -> None:
     """Test the authentication flow (and authorization) with good credentials."""
 
-    # valid credentials -> HTTPStatus.OK
+    # TEST 1: valid credentials -> HTTPStatus.OK
     data = {
         "applicationId": _APPLICATION_ID,
         "username": credentials[0],
@@ -168,14 +172,12 @@ async def test_url_auth_good(
 
     assert SCH_USER_ACCOUNT_RESPONSE(user_auth["userInfo"]), user_auth["userInfo"]
 
-    # #################################################################################
-
-    # Check the session id by accessing a resource...
+    #
+    # TEST 2: Check the session id by accessing a resource...
     session_id = user_auth["sessionId"]
-    user_id = user_auth["userInfo"]["userID"]
 
     # valid session id -> HTTPStatus.OK
-    url = URL_BASE + f"locations?userId={user_id}&allData=True"
+    url = URL_BASE + "accountInfo"
     headers = HEADERS_BASE | {"sessionId": session_id}
 
     async with client_session.get(url, headers=headers) as rsp:
@@ -236,7 +238,4 @@ async def test_url_auth_good(
             ]
         """
 
-    assert response[0]["locationID"] and isinstance(response[0]["locationID"], int)
-    assert response[0]["devices"] and isinstance(response[0]["devices"], list)
-
-    assert SCH_LOCATION_RESPONSE(response[0]), response[0]
+    assert SCH_USER_ACCOUNT_INFO_RESPONSE(response), response
