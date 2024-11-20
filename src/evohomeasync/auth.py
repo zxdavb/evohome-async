@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Generator
+from collections.abc import Awaitable, Callable, Generator
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod  # , HTTPStatus
 from types import TracebackType
@@ -45,7 +45,7 @@ HEADERS_AUTH = {
 HEADERS_BASE = {
     "Accept": "application/json",
     "Content-Type": "application/json",
-    "SessionId": None,
+    "SessionId": "",  # falsey value will invoke get_session_id()
 }
 
 SZ_SESSION_ID: Final = "session_id"
@@ -245,7 +245,7 @@ class _RequestContextManager:
 
     def __init__(
         self,
-        session_id_getter: Awaitable[str],
+        session_id_getter: Callable[[], Awaitable[str]],
         websession: aiohttp.ClientSession,
         method: HTTPMethod,
         url: StrOrURL,
@@ -286,11 +286,10 @@ class _RequestContextManager:
         Will handle authorisation by inserting a session id into the header.
         """
 
-        headers = self.kwargs.pop("headers", None) or HEADERS_BASE
+        headers: dict[str, str] = self.kwargs.pop("headers", "") or HEADERS_BASE
 
         if not headers.get(S2_SESSION_ID):
-            session_id = await self._get_session_id()
-            headers[S2_SESSION_ID] = session_id
+            headers[S2_SESSION_ID] = await self._get_session_id()
 
         return await self.websession.request(
             self.method, self.url, headers=headers, **self.kwargs
@@ -462,7 +461,7 @@ class Auth:
 
     def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> aiohttp.ClientResponse:
+    ) -> _RequestContextManager:
         """Return a context handler that can make the request."""
 
         return _RequestContextManager(

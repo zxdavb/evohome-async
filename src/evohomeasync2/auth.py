@@ -6,7 +6,7 @@ from __future__ import annotations
 import base64
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Generator
+from collections.abc import Awaitable, Callable, Generator
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from types import TracebackType
@@ -42,7 +42,7 @@ HEADERS_AUTH = {
 HEADERS_BASE = {
     "Accept": "application/json",
     "Content-Type": "application/json",
-    "Authorization": None,  # "Bearer " + access_token
+    "Authorization": "",  # falsey value will invoke get_access_token()
 }
 
 SZ_USERNAME: Final = "Username"
@@ -308,7 +308,7 @@ class _RequestContextManager:
 
     def __init__(
         self,
-        access_token_getter: Awaitable[str],
+        access_token_getter: Callable[[], Awaitable[str]],
         websession: aiohttp.ClientSession,
         method: HTTPMethod,
         url: StrOrURL,
@@ -349,11 +349,10 @@ class _RequestContextManager:
         Will handle authorisation by inserting an access token into the header.
         """
 
-        headers = self.kwargs.pop("headers", None) or HEADERS_BASE
+        headers: dict[str, str] = self.kwargs.pop("headers", "") or HEADERS_BASE
 
         if not headers.get("Authorization"):
-            access_token = await self._get_access_token()
-            headers["Authorization"] = "bearer " + access_token
+            headers["Authorization"] = "bearer " + await self._get_access_token()
 
         return await self.websession.request(
             self.method, self.url, headers=headers, **self.kwargs
@@ -522,7 +521,7 @@ class Auth:
 
     def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> aiohttp.ClientResponse:
+    ) -> _RequestContextManager:
         """Return a context handler that can make the request."""
 
         return _RequestContextManager(

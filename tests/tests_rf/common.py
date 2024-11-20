@@ -129,8 +129,6 @@ async def should_fail_v0(
 ) -> dict | list | str:
     """Make a request that is expected to fail."""
 
-    response: aiohttp.ClientResponse  # TODO: shouldn't be needed; isn't via async with
-
     response = await auth._raw_request(method, f"{URL_BASE_V0}/{url}", data=json)
 
     # need to do this before raise_for_status()
@@ -219,8 +217,6 @@ async def should_fail_v2(
 
     Used to validate the faked server against a 'real' server.
     """
-
-    response: aiohttp.ClientResponse  # TODO: shouldn't be needed; isn't via async with
 
     response = await auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
 

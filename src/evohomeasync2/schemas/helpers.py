@@ -47,7 +47,7 @@ def _do_nothing(s: str) -> str:
     return s
 
 
-def _convert_keys(data: _T, fnc: Callable) -> _T:
+def _convert_keys(data: _T, fnc: Callable[[str], str]) -> _T:
     """Convert all keys in a dictionary to snake_case.
 
     Used after retreiiving JSON data from the vendor API.
