@@ -17,9 +17,7 @@ import voluptuous as vol
 from . import exceptions as exc
 from .schemas import (
     SCH_USER_SESSION_RESPONSE,
-    SZ_LATEST_EULA_ACCEPTED,
     SZ_SESSION_ID as S2_SESSION_ID,
-    SZ_USER_INFO as S2_USER_INFO,
     convert_keys_to_snake_case,
 )
 
@@ -51,6 +49,7 @@ HEADERS_BASE = {
 
 SZ_SESSION_ID: Final = "session_id"
 SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
+SZ_USER_INFO: Final = "user_info"
 
 
 class SessionIdT(TypedDict):
@@ -196,16 +195,16 @@ class AbstractSessionManager(ABC):
         session: SessionResponseT = convert_keys_to_snake_case(response)
 
         try:
-            self._session_id: str = session[S2_SESSION_ID]
+            self._session_id: str = session[SZ_SESSION_ID]
             self._session_expires = dt.now() + td(minutes=15)
-            self._user_info = session[S2_USER_INFO]
+            self._user_info = session[SZ_USER_INFO]
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
                 f"Invalid response from server: {err}"
             ) from err
 
-        if session.get(SZ_LATEST_EULA_ACCEPTED):
+        if session.get("latest_eula_accepted"):
             self._logger.warning("The latest EULA has not been accepted by the user")
 
     async def _post_session_id_request(
