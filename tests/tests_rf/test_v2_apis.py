@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync2 as evo2
-from evohomeasync2.schema import (
+from evohomeasync2.schemas import (
     SCH_PUT_SCHEDULE_DHW,
     SCH_PUT_SCHEDULE_ZONE,
     SYSTEM_MODES,
     SystemMode,
 )
-from evohomeasync2.schema.const import S2_MODE
+from evohomeasync2.schemas.const import S2_MODE
 from evohomeasync2.zone import Zone
 
 from . import faked_server as faked

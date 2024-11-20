@@ -35,14 +35,14 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
-from .schema import (
+from .schemas import (
     camel_to_snake,
     convert_to_put_schedule,
     factory_put_schedule_zone,
     factory_schedule_zone,
     factory_zone_status,
 )
-from .schema.const import (
+from .schemas.const import (
     S2_HEAT_SETPOINT_VALUE,
     S2_SETPOINT_MODE,
     S2_TIME_UNTIL,
@@ -59,7 +59,7 @@ if TYPE_CHECKING:
 
     from . import ControlSystem
     from .auth import Auth
-    from .schema import _EvoDictT, _EvoListT
+    from .schemas import _EvoDictT, _EvoListT
 
 
 _ONE_DAY = td(days=1)

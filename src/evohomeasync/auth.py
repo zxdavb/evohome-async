@@ -15,7 +15,7 @@ import aiohttp
 import voluptuous as vol
 
 from . import exceptions as exc
-from .schema import (
+from .schemas import (
     SZ_LATEST_EULA_ACCEPTED,
     SZ_SESSION_ID as S2_SESSION_ID,
     SZ_USER_INFO as S2_USER_INFO,
@@ -25,7 +25,7 @@ from .schema import (
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
 
-    from .schema import SessionResponseT, UserAccountResponseT
+    from .schemas import SessionResponseT, UserAccountResponseT
 
 
 # For docs, enter this App ID on the following website under 'Session login':

@@ -10,9 +10,9 @@ from typing import Final
 import pytest
 
 from evohomeasync2 import Location
-from evohomeasync2.schema import SCH_GET_LOCN_STATUS, convert_keys_to_snake_case
-from evohomeasync2.schema.config import factory_tcs, factory_time_zone
-from evohomeasync2.schema.const import (
+from evohomeasync2.schemas import SCH_GET_LOCN_STATUS, convert_keys_to_snake_case
+from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
+from evohomeasync2.schemas.const import (
     S2_GATEWAYS,
     S2_LOCATION_INFO,
     S2_TEMPERATURE_CONTROL_SYSTEMS,

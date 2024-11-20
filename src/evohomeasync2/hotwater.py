@@ -19,13 +19,13 @@ from .const import (
     SZ_STATE,
     SZ_STATE_STATUS,
 )
-from .schema import (
+from .schemas import (
     camel_to_snake,
     factory_dhw_status,
     factory_put_schedule_dhw,
     factory_schedule_dhw,
 )
-from .schema.const import (
+from .schemas.const import (
     S2_MODE,
     S2_STATE,
     S2_UNTIL_TIME,
@@ -37,7 +37,7 @@ from .zone import _ZoneBase
 
 if TYPE_CHECKING:
     from . import ControlSystem
-    from .schema import _EvoDictT
+    from .schemas import _EvoDictT
 
 
 class HotWater(_ZoneBase):

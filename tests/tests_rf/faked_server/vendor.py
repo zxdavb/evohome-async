@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 import voluptuous as vol
 
-from evohomeasync2.schema import (
+from evohomeasync2.schemas import (
     SCH_PUT_SCHEDULE_DHW,
     SCH_PUT_SCHEDULE_ZONE,
     const as sch,

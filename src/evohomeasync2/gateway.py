@@ -13,13 +13,13 @@ from .const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
 from .control_system import ControlSystem
-from .schema import camel_to_snake, factory_gwy_status
-from .schema.const import EntityType
+from .schemas import camel_to_snake, factory_gwy_status
+from .schemas.const import EntityType
 from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:
     from . import Location
-    from .schema import _EvoDictT
+    from .schemas import _EvoDictT
 
 
 class Gateway(ActiveFaultsBase):

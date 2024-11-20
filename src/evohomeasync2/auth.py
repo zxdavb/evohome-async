@@ -16,12 +16,12 @@ import aiohttp
 import voluptuous as vol
 
 from . import exceptions as exc
-from .schema import convert_keys_to_snake_case, obfuscate as _obfuscate
+from .schemas import convert_keys_to_snake_case, obfuscate as _obfuscate
 
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
 
-    from .schema import _EvoDictT, _EvoSchemaT  # pragma: no cover
+    from .schemas import _EvoDictT, _EvoSchemaT  # pragma: no cover
 
 
 _APPLICATION_ID: Final = base64.b64encode(

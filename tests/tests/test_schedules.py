@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from evohomeasync2.schema import (
+from evohomeasync2.schemas import (
     SCH_GET_SCHEDULE_DHW,
     SCH_GET_SCHEDULE_ZONE,
     SCH_PUT_SCHEDULE_DHW,

@@ -10,9 +10,9 @@ from typing import Final
 import pytest
 
 from evohomeasync2 import Location
-from evohomeasync2.schema import convert_keys_to_snake_case
-from evohomeasync2.schema.config import factory_tcs, factory_time_zone
-from evohomeasync2.schema.const import (
+from evohomeasync2.schemas import convert_keys_to_snake_case
+from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
+from evohomeasync2.schemas.const import (
     S2_GATEWAY_ID,
     S2_GATEWAY_INFO,
     S2_GATEWAYS,
@@ -21,7 +21,7 @@ from evohomeasync2.schema.const import (
     S2_TEMPERATURE_CONTROL_SYSTEMS,
     S2_TIME_ZONE,
 )
-from evohomeasync2.schema.status import factory_loc_status
+from evohomeasync2.schemas.status import factory_loc_status
 
 from .common import TEST_DIR
 from .conftest import ClientStub

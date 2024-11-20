@@ -17,13 +17,13 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
-from .schema import camel_to_snake, factory_loc_status
-from .schema.const import EntityType
+from .schemas import camel_to_snake, factory_loc_status
+from .schemas.const import EntityType
 from .zone import EntityBase
 
 if TYPE_CHECKING:
     from . import _EvohomeClientNew as EvohomeClient
-    from .schema import _EvoDictT
+    from .schemas import _EvoDictT
 
 
 class Location(EntityBase):

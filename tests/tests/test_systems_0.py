@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from evohomeasync2.schema import (
+from evohomeasync2.schemas import (
     SCH_GET_USER_ACCOUNT,
     SCH_GET_USER_LOCATIONS,
     factory_loc_status,

@@ -21,7 +21,7 @@ from .exceptions import (  # noqa: F401
     RequestFailedError,
 )
 from .main import EvohomeClientNew as _EvohomeClientNew
-from .schema import (  # noqa: F401
+from .schemas import (  # noqa: F401
     SZ_ALLOWED_MODES,
     SZ_CHANGEABLE_VALUES,
     SZ_DEVICE_ID,

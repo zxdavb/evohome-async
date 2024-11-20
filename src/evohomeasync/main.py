@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, NoReturn
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
 from .entities import Location
-from .schema import (
+from .schemas import (
     SCH_LOCATION_RESPONSE,
     SCH_USER_ACCOUNT_RESPONSE,
     SZ_ALLOWED_MODES,
@@ -45,7 +45,7 @@ from .schema import (
 if TYPE_CHECKING:
     import aiohttp
 
-    from .schema import (
+    from .schemas import (
         LocationResponseT,
         SystemMode,
         UserAccountResponseT,

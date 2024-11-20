@@ -18,14 +18,14 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync2 as evo2
-from evohomeasync2 import schema
+from evohomeasync2 import schemas
 from evohomeasync2.const import API_STRFTIME, SystemMode, ZoneMode
 
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
-    from evohomeasync2.schema import _EvoDictT
+    from evohomeasync2.schemas import _EvoDictT
 
     from ..conftest import EvohomeClientv2
 
@@ -39,7 +39,7 @@ async def _test_usr_account(evo: EvohomeClientv2) -> None:
     # STEP 1:
     url = "userAccount"
     _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schema.SCH_GET_USER_ACCOUNT
+        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_USER_ACCOUNT
     )
     # {
     #     'userId': '2263181',
@@ -91,7 +91,7 @@ async def _test_user_locations(evo: EvohomeClientv2) -> None:
     #
     url += "&includeTemperatureControlSystems=True"
     _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schema.SCH_GET_USER_LOCATIONS
+        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_USER_LOCATIONS
     )
 
     #
@@ -139,7 +139,7 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
 
     url += "?includeTemperatureControlSystems=True"
     _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schema.SCH_GET_LOCN_STATUS
+        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_LOCN_STATUS
     )
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
@@ -191,7 +191,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
     #
     url = f"{tcs._TYPE}/{tcs.id}/status"
     old_status = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schema.SCH_GET_TCS_STATUS
+        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_TCS_STATUS
     )
     # {
     #      'systemId': '1234567',
@@ -303,7 +303,7 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
     #
     url = f"{zone._TYPE}/{zone.id}/status"
     _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schema.SCH_GET_ZONE_STATUS
+        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_ZONE_STATUS
     )
     # {
     #     'zoneId': '3432576',

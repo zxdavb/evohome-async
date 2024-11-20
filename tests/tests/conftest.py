@@ -17,7 +17,7 @@ import voluptuous as vol
 from aioresponses import aioresponses
 
 from evohomeasync2 import _EvohomeClientNew as EvohomeClientv2
-from evohomeasync2.schema import (
+from evohomeasync2.schemas import (
     SCH_GET_LOCN_STATUS,
     SCH_GET_USER_ACCOUNT,
     SCH_GET_USER_LOCATIONS,

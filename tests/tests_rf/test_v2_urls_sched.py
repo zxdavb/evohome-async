@@ -14,7 +14,7 @@ from __future__ import annotations
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
 
-from evohomeasync2 import schema
+from evohomeasync2 import schemas
 
 from . import faked_server as faked
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
@@ -47,7 +47,7 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
     # STEP 0: GET the current schedule
     url = f"{zone._TYPE}/{zone.id}/schedule"
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
+        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_SCHEDULE
     )  # {'dailySchedules': [...]}
 
     #
@@ -83,7 +83,7 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
     #
     # STEP 3: check the new schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
+        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_SCHEDULE
     )
     assert (
         schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]  # type: ignore[call-overload]
@@ -101,7 +101,7 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
     #
     # STEP 6: check the new schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schema.SCH_GET_SCHEDULE
+        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_SCHEDULE
     )
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp  # type: ignore[call-overload]
 

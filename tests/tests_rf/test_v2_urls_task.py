@@ -20,14 +20,14 @@ import pytest
 import evohomeasync2 as evo2
 from evohomeasync2 import ControlSystem, Gateway, HotWater, Location, Zone
 from evohomeasync2.const import API_STRFTIME, DhwState, ZoneMode
-from evohomeasync2.schema.const import (
+from evohomeasync2.schemas.const import (
     S2_MODE,
     S2_STATE,
     S2_STATE_STATUS,
     S2_UNTIL,
     S2_UNTIL_TIME,
 )
-from evohomeasync2.schema.helpers import pascal_case
+from evohomeasync2.schemas.helpers import pascal_case
 
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP

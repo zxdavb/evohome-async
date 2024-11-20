@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from evohomeasync.auth import _APPLICATION_ID
-from evohomeasync.schema import (
+from evohomeasync.schemas import (
     SCH_USER_ACCOUNT_INFO_RESPONSE,
     SCH_USER_ACCOUNT_RESPONSE,
 )
@@ -30,7 +30,7 @@ from .const import _DBG_USE_REAL_AIOHTTP
 if TYPE_CHECKING:
     import aiohttp
 
-    from evohomeasync.schema import ErrorResponse
+    from evohomeasync.schemas import ErrorResponse
 
 
 HEADERS_AUTH = {

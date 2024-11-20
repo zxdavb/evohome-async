@@ -12,7 +12,7 @@ from .auth import AbstractTokenManager, Auth
 from .const import SZ_USER_ID
 from .control_system import ControlSystem
 from .location import Location
-from .schema import (
+from .schemas import (
     camel_to_snake,
     factory_user_account,
     factory_user_locations_installation_info,
@@ -21,7 +21,7 @@ from .schema import (
 if TYPE_CHECKING:
     import aiohttp
 
-    from .schema import _EvoDictT, _ScheduleT
+    from .schemas import _EvoDictT, _ScheduleT
 
 
 SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)
