@@ -108,50 +108,34 @@ def convert_keys_to_snake_case(data: _T) -> _T:
     return _convert_keys(data, camel_to_snake)
 
 
-class ErrorResponse(TypedDict):
+class ErrorResponseT(TypedDict):
     code: str
     message: str
 
 
-class UserAccountResponseT(TypedDict):
-    userID: int
-    username: str  # email address
-    firstname: str
-    lastname: str
-    streetAddress: str
-    city: str
-    # state: str
-    zipcode: str
-    country: str  # GB
-    telephone: str
-    userLanguage: str
-    isActivated: bool
-    deviceCount: int
-    tenantID: int
-    securityQuestion1: str  # "notUsed"
-    securityQuestion2: str
-    securityQuestion3: str
-    latestEulaAccepted: bool
+#######################################################################################
 
 
+# GET api/accountInfo -> userAccountInfoResponse
 def factory_user_account_info_response(
     fnc: Callable[[str], str] = _do_nothing,
 ) -> vol.Schema:
-    """Factory for the user account schema."""
+    """Schema for the response to GET /accountInfo."""
+
+    # username: an email address
+    # country:  ISO 3166-1 alpha-2 format (e.g. GB)
 
     return vol.Schema(
         {
             vol.Required(fnc(SZ_USER_ID)): int,
-            vol.Required(fnc(SZ_USERNAME)): vol.All(
-                str, vol.Length(min=1)
-            ),  # email address
+            vol.Required(fnc(SZ_USERNAME)): vol.All(str, vol.Length(min=1)),
             vol.Required(fnc(SZ_FIRSTNAME)): str,
             vol.Required(fnc(SZ_LASTNAME)): str,
             vol.Required(fnc(SZ_STREET_ADDRESS)): str,
             vol.Required(fnc(SZ_CITY)): str,
-            # l.Optional(fnc(SZ_STATE)): str,  # Uncomment if state is used
+            # l.Optional(fnc(SZ_STATE)): str,  # missing?
             vol.Required(fnc(SZ_ZIPCODE)): str,
-            vol.Required(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
+            vol.Required(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),
             vol.Required(fnc(SZ_TELEPHONE)): str,
             vol.Required(fnc(SZ_USER_LANGUAGE)): str,
         },
@@ -159,32 +143,122 @@ def factory_user_account_info_response(
     )
 
 
-def factory_user_account_response(
+class UserAccountInfoResponseT(TypedDict):  # NOT UserAccountResponseT
+    userID: int
+    username: str  # email address
+    firstname: str
+    lastname: str
+    streetAddress: str
+    city: str
+    # state: str  # missing?
+    zipcode: str
+    country: str  # GB
+    telephone: str
+    userLanguage: str
+
+
+#######################################################################################
+
+
+# POST api/session -> sessionResponse
+def factory_session_response(
     fnc: Callable[[str], str] = _do_nothing,
 ) -> vol.Schema:
-    """Factory for the user account schema."""
+    """Schema for the response to POST /session."""
 
-    return factory_user_account_info_response(fnc).extend(
+    # securityQuestionX: usu. "notUsed", a sentinel value
+
+    SCH_USER_ACCOUNT_RESPONSE = factory_user_account_info_response(fnc).extend(
         {
             vol.Required(fnc(SZ_IS_ACTIVATED)): bool,
-            vol.Required(fnc(SZ_DEVICE_COUNT)): int,
-            vol.Required(fnc("tenantID")): int,
-            vol.Required(fnc("securityQuestion1")): str,
-            vol.Required(fnc("securityQuestion2")): str,
-            vol.Required(fnc("securityQuestion3")): str,
+            vol.Optional(fnc(SZ_DEVICE_COUNT)): int,
+            vol.Optional(fnc("tenantID")): int,
+            vol.Optional(fnc("securityQuestion1")): str,
+            vol.Optional(fnc("securityQuestion2")): str,
+            vol.Optional(fnc("securityQuestion3")): str,
             vol.Required(fnc(SZ_LATEST_EULA_ACCEPTED)): bool,
         },
         extra=vol.ALLOW_EXTRA,
     )
 
+    return vol.Schema(
+        {
+            vol.Required(fnc(SZ_SESSION_ID)): str,
+            vol.Required(fnc(SZ_USER_INFO)): SCH_USER_ACCOUNT_RESPONSE,
+        },
+        extra=vol.ALLOW_EXTRA,
+    )
 
-SCH_USER_ACCOUNT_INFO_RESPONSE: Final = factory_user_account_info_response()
-SCH_USER_ACCOUNT_RESPONSE: Final = factory_user_account_response()
+
+class UserAccountResponseT(UserAccountInfoResponseT):  # NOT UserAccountInfoResponseT
+    isActivated: bool
+    deviceCount: int  # NotRequired?
+    tenantID: int  # NotRequired?
+    securityQuestion1: str  # NotRequired?
+    securityQuestion2: str  # NotRequired?
+    securityQuestion3: str  # NotRequired?
+    latestEulaAccepted: bool  # NotRequired?
 
 
 class SessionResponseT(TypedDict):
     sessionId: str
     userInfo: UserAccountResponseT
+
+
+#######################################################################################
+
+
+def factory_location_response(
+    fnc: Callable[[str], str] = _do_nothing,
+) -> vol.Schema:
+    """Factory for the user account schema."""
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(SZ_LOCATION_ID)): int,  # is ID, not Id
+            vol.Required(fnc(SZ_NAME)): vol.All(str, vol.Length(min=1)),
+            vol.Required(fnc(SZ_STREET_ADDRESS)): str,
+            vol.Required(fnc(SZ_CITY)): str,
+            vol.Optional(fnc(SZ_STATE)): str,  # Optional
+            vol.Required(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
+            vol.Required(fnc(SZ_ZIPCODE)): str,
+            vol.Required(fnc("type")): vol.In(["Commercial", "Residential"]),
+            vol.Required(fnc("hasStation")): bool,
+            vol.Required(fnc(SZ_DEVICES)): [dict],  # TODO: [DeviceResponse]
+            vol.Required(fnc("oneTouchButtons")): list,
+            vol.Required(fnc("weather")): {str: object},  # WeatherResponse
+            vol.Required(fnc("daylightSavingTimeEnabled")): bool,
+            vol.Required(fnc("timeZone")): {str: object},  # TimeZoneResponse
+            vol.Required(fnc("oneTouchActionsSuspended")): bool,
+            vol.Required(fnc("isLocationOwner")): bool,
+            vol.Required(fnc("locationOwnerID")): int,  # ID, not Id
+            vol.Required(fnc("locationOwnerName")): str,
+            vol.Required(fnc("locationOwnerUserName")): vol.All(str, vol.Length(min=1)),
+            vol.Required(fnc("canSearchForContractors")): bool,
+            vol.Required(fnc("contractor")): {str: dict},  # ContractorResponse
+        },
+        extra=vol.ALLOW_EXTRA,
+    )
+
+
+# GET api/locations?userId={userId}&allData=True -> list[locationResponse]
+def factory_location_response_list(
+    fnc: Callable[[str], str] = _do_nothing,
+) -> vol.Schema:
+    """Schema for the response to GET api/locations?userId={userId}&allData=True."""
+
+    return vol.Schema(
+        vol.All([factory_location_response(fnc)], vol.Length(min=0)),
+        extra=vol.ALLOW_EXTRA,
+    )
+
+
+class WeatherResponseT(TypedDict):
+    Condition: str  # an enum
+    Temperature: float
+    Units: str  # Fahrenheit (precision 1.0) or Celsius (0.5)
+    Humidity: int
+    Phrase: str
 
 
 class ThermostatResponseT(TypedDict):
@@ -264,7 +338,7 @@ class LocationResponseT(TypedDict):
     type: str  # LocationType: "Commercial" | "Residential"
     hasStation: bool
     devices: list[DeviceResponseT]
-    weather: dict[str, Any]  # WeatherResponse
+    weather: WeatherResponseT  # WeatherResponse
     daylightSavingTimeEnabled: bool
     timeZone: TimeZoneResponseT
     oneTouchActionsSuspended: bool
@@ -276,40 +350,10 @@ class LocationResponseT(TypedDict):
     contractor: dict[str, Any]  # ContractorResponse
 
 
-def factory_user_account_response(
-    fnc: Callable[[str], str] = _do_nothing,
-) -> vol.Schema:
-    """Factory for the user account schema."""
-
-    return vol.Schema(
-        {
-            vol.Required(fnc(SZ_LOCATION_ID)): int,  # is ID, not Id
-            vol.Required(fnc(SZ_NAME)): vol.All(str, vol.Length(min=1)),
-            vol.Required(fnc(SZ_STREET_ADDRESS)): str,
-            vol.Required(fnc(SZ_CITY)): str,
-            vol.Optional(fnc(SZ_STATE)): str,  # Optional
-            vol.Required(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
-            vol.Required(fnc(SZ_ZIPCODE)): str,
-            vol.Required(fnc("type")): vol.In(["Commercial", "Residential"]),
-            vol.Required(fnc("hasStation")): bool,
-            vol.Required(fnc(SZ_DEVICES)): [dict],  # TODO: [DeviceResponse]
-            vol.Required(fnc("oneTouchButtons")): list,
-            vol.Required(fnc("weather")): {str: object},  # WeatherResponse
-            vol.Required(fnc("daylightSavingTimeEnabled")): bool,
-            vol.Required(fnc("timeZone")): {str: object},  # TimeZoneResponse
-            vol.Required(fnc("oneTouchActionsSuspended")): bool,
-            vol.Required(fnc("isLocationOwner")): bool,
-            vol.Required(fnc("locationOwnerID")): int,  # ID, not Id
-            vol.Required(fnc("locationOwnerName")): str,
-            vol.Required(fnc("locationOwnerUserName")): vol.All(str, vol.Length(min=1)),
-            vol.Required(fnc("canSearchForContractors")): bool,
-            vol.Required(fnc("contractor")): {str: object},  # ContractorResponse
-        },
-        extra=vol.ALLOW_EXTRA,
-    )
-
-
-SCH_LOCATION_RESPONSE: Final = factory_user_account_response()
+#######################################################################################
+SCH_USER_ACCOUNT_INFO_RESPONSE: Final = factory_user_account_info_response()
+SCH_USER_SESSION_RESPONSE: Final = factory_session_response()
+SCH_USER_LOCATIONS_RESPONSE: Final = factory_location_response_list()
 
 
 # schema keys (start with a lower case letter)

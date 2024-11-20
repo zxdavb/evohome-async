@@ -21,7 +21,9 @@ import pytest
 from evohomeasync.auth import _APPLICATION_ID
 from evohomeasync.schemas import (
     SCH_USER_ACCOUNT_INFO_RESPONSE,
-    SCH_USER_ACCOUNT_RESPONSE,
+    SCH_USER_SESSION_RESPONSE,
+    SessionResponseT,
+    UserAccountInfoResponseT,
 )
 
 from ..const import URL_AUTH_V0 as URL_AUTH, URL_BASE_V0 as URL_BASE
@@ -30,7 +32,7 @@ from .const import _DBG_USE_REAL_AIOHTTP
 if TYPE_CHECKING:
     import aiohttp
 
-    from evohomeasync.schemas import ErrorResponse
+    from evohomeasync.schemas import ErrorResponseT
 
 
 HEADERS_AUTH = {
@@ -65,7 +67,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
         assert rsp.status == HTTPStatus.UNAUTHORIZED
 
-        response: list[ErrorResponse] = await rsp.json()
+        response: list[ErrorResponseT] = await rsp.json()
 
         """
             [{
@@ -95,7 +97,7 @@ async def test_url_auth_bad2(  # invalid/expired session id
     async with client_session.get(url, headers=headers) as rsp:
         assert rsp.status == HTTPStatus.UNAUTHORIZED
 
-        response: list[ErrorResponse] = await rsp.json()
+        response: list[ErrorResponseT] = await rsp.json()
 
         """
             [{
@@ -125,7 +127,7 @@ async def test_url_auth_good(
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
         assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
 
-        user_auth: dict | list = await rsp.json()
+        user_auth: SessionResponseT = await rsp.json()
 
         """
             [{
@@ -139,8 +141,6 @@ async def test_url_auth_good(
             assert user_auth[0]["code"] == "TooManyRequests"
             assert user_auth[0]["message"] and isinstance(user_auth[0]["message"], str)
             pytest.skip("Too many requests")
-
-        assert isinstance(user_auth, dict)  # mypy hint
 
         """
             {
@@ -167,10 +167,8 @@ async def test_url_auth_good(
             }
         """
 
-    assert user_auth["sessionId"] and isinstance(user_auth["sessionId"], str)
+    assert SCH_USER_SESSION_RESPONSE(user_auth), user_auth
     assert user_auth["userInfo"]["username"] == credentials[0]
-
-    assert SCH_USER_ACCOUNT_RESPONSE(user_auth["userInfo"]), user_auth["userInfo"]
 
     #
     # TEST 2: Check the session id by accessing a resource...
@@ -183,11 +181,11 @@ async def test_url_auth_good(
     async with client_session.get(url, headers=headers) as rsp:
         assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
 
-        response: list = await rsp.json()
+        user_info: UserAccountInfoResponseT = await rsp.json()
 
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert response[0]["code"] == "TooManyRequests"
-            assert response[0]["message"] and isinstance(response[0]["message"], str)
+            assert user_info[0]["code"] == "TooManyRequests"
+            assert user_info[0]["message"] and isinstance(user_info[0]["message"], str)
             pytest.skip("Too many requests")
 
         """
@@ -238,4 +236,4 @@ async def test_url_auth_good(
             ]
         """
 
-    assert SCH_USER_ACCOUNT_INFO_RESPONSE(response), response
+    assert SCH_USER_ACCOUNT_INFO_RESPONSE(user_info), user_info
