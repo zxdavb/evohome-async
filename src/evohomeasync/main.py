@@ -6,14 +6,12 @@ from __future__ import annotations
 import logging
 from datetime import datetime as dt
 from http import HTTPMethod
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, Final, NoReturn
 
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
 from .entities import Location
 from .schemas import (
-    SCH_LOCATION_RESPONSE,
-    SCH_USER_ACCOUNT_RESPONSE,
     SZ_ALLOWED_MODES,
     SZ_CHANGEABLE_VALUES,
     SZ_DEVICE_ID,
@@ -40,6 +38,9 @@ from .schemas import (
     SZ_THERMOSTAT,
     SZ_THERMOSTAT_MODEL_TYPE,
     SZ_VALUE,
+    camel_to_snake,
+    factory_location_response_list,
+    factory_user_account_info_response,
 )
 
 if TYPE_CHECKING:
@@ -57,6 +58,8 @@ if TYPE_CHECKING:
         _ZoneNameT,
     )
 
+SCH_GET_ACCOUNT_INFO: Final = factory_user_account_info_response(camel_to_snake)
+SCH_GET_ACCOUNT_LOCS: Final = factory_location_response_list(camel_to_snake)
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 
@@ -120,7 +123,7 @@ class EvohomeClientNew:
 
         if self._user_info is None:
             url = "accountInfo"
-            self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT_RESPONSE)
+            self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
 
         assert self._user_info is not None  # mypy hint
 
@@ -128,7 +131,7 @@ class EvohomeClientNew:
             url = f"locations?userId={self._user_info["user_id"]}"
             url += "&allData=True"
 
-            self._user_locs = await self.auth.get(url, schema=SCH_LOCATION_RESPONSE)
+            self._user_locs = await self.auth.get(url, schema=SCH_GET_ACCOUNT_LOCS)
 
             self._locations = None
             self._location_by_id = None

@@ -112,9 +112,8 @@ async def should_work_v0(
         assert rsp.content_type == content_type
 
         if rsp.content_type != "application/json":
-            return await rsp.text()
+            return content
 
-        content = await rsp.json()
         return schema(content) if schema else content
 
 
@@ -201,9 +200,8 @@ async def should_work_v2(
         assert rsp.content_type == content_type, content
 
         if rsp.content_type != "application/json":
-            return await rsp.text()
+            return content
 
-        content = await rsp.json()
         return schema(content) if schema else content
 
 
@@ -275,6 +273,8 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
     # invoke via:
     # async with asyncio.timeout(2):
     #     await wait_for_comm_task()
+
+    response: aiohttp.ClientResponse  # TODO: shouldn't be needed; isn't via async with
 
     url = f"commTasks?commTaskId={task_id}"
 

@@ -28,20 +28,16 @@ if TYPE_CHECKING:
 async def _test_usr_locations(evo: EvohomeClientv0) -> None:
     """Test /locations?userId={user_id}&allData=True"""
 
-    _ = await evo.auth._session_manager.get_session_id()
-    assert evo.auth._session_manager.is_session_id_valid()
+    usr_id: int = evo.user_account["user_id"]
+    # loc_id: int = evo.location_id
 
-    await evo.update()
-
-    user_id: int = evo.user_account["user_id"]
-
-    url = f"locations?userId={user_id}&allData=True"
+    url = f"locations?userId={usr_id}&allData=True"
     _ = await should_work_v0(evo.auth, HTTPMethod.GET, url)  # TODO: add schema
 
     # why isn't this one METHOD_NOT_ALLOWED?
     _ = await should_fail_v0(evo.auth, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
 
-    url = f"locations?userId={user_id}"
+    url = f"locations?userId={usr_id}"
     _ = await should_work_v0(evo.auth, HTTPMethod.GET, url, schema=None)
 
     url = "locations?userId=123456"
@@ -64,6 +60,40 @@ async def _test_usr_locations(evo: EvohomeClientv0) -> None:
     )
 
 
+async def _test_evo_systems(evo: EvohomeClientv0) -> None:
+    """Test /evoTouchSystems?locationId={loc_id}"""
+
+    # usr_id: int = evo.user_account["user_id"]
+    loc_id: int = evo.location_id
+
+    #
+    # TEST 0: unsupported method?
+    url = f"evoTouchSystems?locationId={loc_id}"
+    _ = await should_fail_v0(
+        evo.auth,
+        HTTPMethod.GET,
+        url,
+        content_type="text/html",  # not the usual content-type
+        status=HTTPStatus.NOT_FOUND,
+    )
+    # '<!DOCTYPE html PUBLIC ... not found ...'
+
+    #
+    # TEST 0: supported method?
+    json = {"QuickAction": "Auto"}
+
+    url = f"evoTouchSystems?locationId={loc_id}"
+    _ = await should_fail_v0(
+        evo.auth,
+        HTTPMethod.PUT,
+        url,
+        json=json,
+        content_type="text/html",  # not the usual content-type
+        status=HTTPStatus.NOT_FOUND,
+    )
+    # '<!DOCTYPE html PUBLIC ... not found ...'
+
+
 # GET /accountInfo (is also in test_v0_urls_auth.py)
 # @skipif_auth_failed
 # async def test_usr_account(evohome_v0: EvohomeClientv0) -> None:
@@ -79,6 +109,8 @@ async def test_usr_locations(evohome_v0: EvohomeClientv0) -> None:
         pytest.skip("Mocked server not implemented for this test")
 
     try:
+        await evohome_v0.update()  # get user_id and location_id
+
         await _test_usr_locations(evohome_v0)
 
     except evo0.AuthenticationFailedError:
@@ -88,6 +120,24 @@ async def test_usr_locations(evohome_v0: EvohomeClientv0) -> None:
 
 
 # PUT /evoTouchSystems?locationId={loc_id}
+@skipif_auth_failed
+async def test_evo_systems(evohome_v0: EvohomeClientv0) -> None:
+    """Test /evoTouchSystems?locationId={loc_id}"""
+
+    if not _DBG_USE_REAL_AIOHTTP:
+        pytest.skip("Mocked server not implemented for this test")
+
+    try:
+        await evohome_v0.update()  # get user_id and location_id
+
+        await _test_evo_systems(evohome_v0)
+
+    except evo0.AuthenticationFailedError:
+        if not _DBG_USE_REAL_AIOHTTP:
+            raise
+        pytest.skip("Unable to authenticate with real server")
+
+
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
 # PUT /devices/{dhw_id}/thermostat/changeableValues
 
