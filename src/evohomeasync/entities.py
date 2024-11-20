@@ -40,7 +40,6 @@ from .schemas import (
 )
 
 if TYPE_CHECKING:
-
     from .schemas import (
         LocationResponseT,
         SystemMode,
