@@ -70,11 +70,6 @@ def convert_keys_to_snake_case(data: _T) -> _T:
     return _convert_keys(data, camel_to_snake)
 
 
-def _OUT_camel_case(s: str) -> str:
-    """Convert a PascalCase string to camelCase."""
-    return s[:1].lower() + s[1:]
-
-
 def pascal_case(s: str) -> str:
     """Convert a camelCase string to PascalCase."""
     return s[:1].upper() + s[1:]

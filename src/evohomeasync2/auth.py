@@ -463,7 +463,7 @@ class Auth:
 
         async def _content(
             response: aiohttp.ClientResponse,
-        ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
+        ) -> dict[str, Any] | list[dict[str, Any]] | str:
             """Return the content of the response."""
 
             if not response.content_length:

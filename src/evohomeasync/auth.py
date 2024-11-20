@@ -391,7 +391,7 @@ class Auth:
 
     async def _request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> aiohttp.ClientResponse:
+    ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
         """Make a request to the Resideo TCC RESTful API.
 
         Checks for ClientErrors and handles Auth failures appropriately.
@@ -402,7 +402,7 @@ class Auth:
 
         async def _content(
             response: aiohttp.ClientResponse,
-        ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
+        ) -> dict[str, Any] | list[dict[str, Any]] | str:
             """Return the content of the response."""
 
             if not response.content_length:
