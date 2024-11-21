@@ -201,7 +201,7 @@ async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> 
     evo: EvohomeClientNew = ctx.obj[SZ_EVO]
 
     result = {
-        "config": evo.installation_config,
+        "config": evo.user_installation,
         "status": await evo.locations[loc_idx].update(),
     }
 

@@ -133,7 +133,7 @@ class EvohomeClientNew:
 
     @property
     def user_account(self) -> _EvoDictT:
-        """Return the information of the user account."""
+        """Return the (config) information of the user account."""
 
         if not self._user_info:
             raise exc.NoSystemConfigError(
@@ -143,8 +143,8 @@ class EvohomeClientNew:
         return self._user_info
 
     @property
-    def installation_info(self) -> list[_EvoDictT]:
-        """Return the installation info (config) of all the user's locations."""
+    def user_installation(self) -> list[_EvoDictT]:
+        """Return the (config) information of all the user's locations."""
 
         if not self._user_locs:
             raise exc.NoSystemConfigError(
@@ -155,15 +155,14 @@ class EvohomeClientNew:
 
     @property
     def locations(self) -> list[Location]:
-        """Return the list of locations."""
+        """Return the list of location entities."""
 
-        if self._user_locs is None:
+        if not self._user_locs:
             raise exc.NoSystemConfigError(
                 f"{self}: The installation information is not (yet) available"
             )
 
-        assert self._locations  # mypy hint
-
+        assert self._locations is not None  # mypy hint
         return self._locations
 
     # Most users only have exactly one TCS, thus these convenience methods...

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -72,12 +72,12 @@ async def _test_user_locations(evo: EvohomeClientv2) -> None:
 
     # TODO: can't use .update(); in any case, should use URLs only
     url = "userAccount"
-    user_info = await should_work_v2(
+    user_info: dict[str, Any] = await should_work_v2(
         evo.auth,
         HTTPMethod.GET,
         url,
         schema=None,  # schema not re-tested here
-    )
+    )  # type: ignore[assignment]
 
     #
     url = f"location/installationInfo?userId={user_info["userId"]}"
@@ -190,9 +190,9 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
 
     #
     url = f"{tcs._TYPE}/{tcs.id}/status"
-    old_status = await should_work_v2(
+    old_status: dict[str, Any] = await should_work_v2(
         evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_TCS_STATUS
-    )
+    )  # type: ignore[assignment]
     # {
     #      'systemId': '1234567',
     #      'zones': [...]
@@ -232,7 +232,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
 
     #
     assert SystemMode.COOL not in tcs.modes
-    new_mode: _EvoDictT = {"systemMode": "Cool", "permanent": True}
+    new_mode = {"systemMode": "Cool", "permanent": True}
     _ = await should_fail_v2(
         evo.auth,
         HTTPMethod.PUT,
@@ -244,7 +244,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
 
     #
     assert SystemMode.AUTO in tcs.modes
-    new_mode: _EvoDictT = {"systemMode": SystemMode.AUTO, "permanent": True}
+    new_mode = {"systemMode": SystemMode.AUTO, "permanent": True}
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=new_mode)
     # {'id': '1588314363'}
 

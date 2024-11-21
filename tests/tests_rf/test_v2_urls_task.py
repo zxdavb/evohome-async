@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync2 as evo2
+from common.helpers import camel_to_pascal
 from evohomeasync2 import ControlSystem, Gateway, HotWater, Location, Zone
 from evohomeasync2.const import API_STRFTIME, DhwState, ZoneMode
 from evohomeasync2.schemas.const import (
@@ -27,7 +28,6 @@ from evohomeasync2.schemas.const import (
     S2_UNTIL,
     S2_UNTIL_TIME,
 )
-from evohomeasync2.schemas.helpers import pascal_case
 
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 from .const import _DBG_USE_REAL_AIOHTTP
@@ -140,9 +140,9 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     status = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time
-        pascal_case(S2_MODE): ZoneMode.TEMPORARY_OVERRIDE,
-        pascal_case(S2_STATE): DhwState.ON,
-        pascal_case(S2_UNTIL_TIME): (dt.now() + td(hours=2)).strftime(API_STRFTIME),
+        camel_to_pascal(S2_MODE): ZoneMode.TEMPORARY_OVERRIDE,
+        camel_to_pascal(S2_STATE): DhwState.ON,
+        camel_to_pascal(S2_UNTIL_TIME): (dt.now() + td(hours=2)).strftime(API_STRFTIME),
     }
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
 

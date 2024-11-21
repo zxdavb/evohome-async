@@ -43,13 +43,29 @@ HEADERS_BASE = {
 }
 
 
+async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
+    assert rsp.status == HTTPStatus.TOO_MANY_REQUESTS
+
+    response: dict = await rsp.json()
+
+    # the expected response for TOO_MANY_REQUESTS
+    """
+        {"error": "attempt_limit_exceeded"}
+    """
+
+    assert response["error"] == "attempt_limit_exceeded"
+
+    pytest.skip("Too many requests")
+
+
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_url_auth_bad1(  # invalid/unknown credentials
     client_session: aiohttp.ClientSession,
 ) -> None:
     """Test authentication flow with invalid credentials."""
 
-    # invalid credentials -> HTTPStatus.UNAUTHORIZED
+    #
+    # TEST 1: invalid credentials -> HTTPStatus.UNAUTHORIZED
     data = {
         "grant_type": "password",
         "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # EMEA-V1-Get-Current-User-Account",
@@ -58,13 +74,12 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
     }
 
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            await handle_too_many_requests(rsp)
+
         assert rsp.status == HTTPStatus.BAD_REQUEST
 
-        response: dict = await rsp.json()
-
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert response["error"] == "attempt_limit_exceeded"
-            pytest.skip("Too many requests")
+        response: dict = await rsp.json()  # TODO: needs TypedDict
 
         # the expected response for bad credentials
         """
@@ -72,6 +87,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
         """
 
     assert response["error"] == "invalid_grant"
+    #
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -82,24 +98,19 @@ async def test_url_auth_bad2(  # invalid/expired access token
 
     # pre-requisite data
     access_token = "invalid access token " + random.choice(string.ascii_letters)  # noqa: S311
-    #
 
-    # invalid/expired access token -> HTTPStatus.UNAUTHORIZED
+    #
+    # TEST 2: invalid/expired access token -> HTTPStatus.UNAUTHORIZED
     url = URL_BASE + "userAccount"
     headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
 
     async with client_session.get(url, headers=headers) as rsp:
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            await handle_too_many_requests(rsp)
+
         assert rsp.status == HTTPStatus.UNAUTHORIZED
 
-        response: dict | list = await rsp.json()
-
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert isinstance(response, dict)  # mypy hint
-
-            assert response["error"] == "attempt_limit_exceeded"
-            pytest.skip("Too many requests")
-
-        assert isinstance(response, list)  # mypy hint
+        response: list = await rsp.json()
 
         # the expected response for bad access tokens
         """
@@ -108,6 +119,8 @@ async def test_url_auth_bad2(  # invalid/expired access token
                 "message": "Unauthorized."
             }]
         """
+
+    assert isinstance(response, list)  # mypy hint
 
     assert response[0]["code"] == "Unauthorized"
     assert response[0]["message"] and isinstance(response[0]["message"], str)
@@ -123,7 +136,7 @@ async def test_url_auth_bad3(  # invalid/expired refresh token
     refresh_token = "invalid refresh token " + random.choice(string.ascii_letters)  # noqa: S311
     #
 
-    # invalid/expired refresh token -> HTTPStatus.UNAUTHORIZED
+    # TEST 3: invalid/expired refresh token -> HTTPStatus.UNAUTHORIZED
     data = {
         "grant_type": "refresh_token",
         "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
@@ -131,13 +144,12 @@ async def test_url_auth_bad3(  # invalid/expired refresh token
     }
 
     async with client_session.get(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            await handle_too_many_requests(rsp)
+
         assert rsp.status == HTTPStatus.BAD_REQUEST
 
         response: dict = await rsp.json()
-
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert response["error"] == "attempt_limit_exceeded"
-            pytest.skip("Too many requests")
 
         # the expected response for bad refresh tokens
         """
@@ -145,6 +157,7 @@ async def test_url_auth_bad3(  # invalid/expired refresh token
         """
 
     assert response["error"] == "invalid_grant"
+    #
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -154,7 +167,7 @@ async def test_url_auth_good(
 ) -> None:
     """Test authentication flow (and authorization) with good credentials."""
 
-    # valid credentials -> HTTPStatus.OK
+    # TEST 1: valid credentials -> HTTPStatus.OK
     data = {
         "grant_type": "password",
         "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # EMEA-V1-Get-Current-User-Account",
@@ -163,18 +176,12 @@ async def test_url_auth_good(
     }
 
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
-        assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
-
-        user_auth: dict = await rsp.json()
-
-        # the expected response for TOO_MANY_REQUESTS
-        """
-            {"error": "attempt_limit_exceeded"}
-        """
-
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert user_auth["error"] == "attempt_limit_exceeded"
-            pytest.skip("Too many requests")
+            await handle_too_many_requests(rsp)
+
+        assert rsp.status == HTTPStatus.OK
+
+        user_auth: dict = await rsp.json()  # TODO: needs TypedDict
 
         # the expected response for good credentials
         """
@@ -198,18 +205,17 @@ async def test_url_auth_good(
     access_token = user_auth["access_token"]
     #
 
-    # valid access token -> HTTPStatus.OK
+    # TEST 2: valid access token -> HTTPStatus.OK
     url = URL_BASE + "userAccount"
     headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
 
     async with client_session.get(url, headers=headers) as rsp:
-        assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
-
-        response: dict = await rsp.json()
-
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert response["error"] == "attempt_limit_exceeded"
-            pytest.skip("Too many requests")
+            await handle_too_many_requests(rsp)
+
+        assert rsp.status == HTTPStatus.OK
+
+        response: dict = await rsp.json()  # TODO: needs TypedDict
 
         # the expected response for good access token
         """
@@ -237,7 +243,7 @@ async def test_url_auth_good(
     refresh_token = user_auth["refresh_token"]
     #
 
-    # valid credentials -> HTTPStatus.OK
+    # TEST 3: valid credentials -> HTTPStatus.OK
     data = {
         "grant_type": "refresh_token",
         "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
@@ -245,13 +251,12 @@ async def test_url_auth_good(
     }
 
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
-        assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+            await handle_too_many_requests(rsp)
+
+        assert rsp.status == HTTPStatus.OK
 
         user_auth = await rsp.json()
-
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert user_auth["error"] == "attempt_limit_exceeded"
-            pytest.skip("Too many requests")
 
         # the expected response for good refresh tokens
         """

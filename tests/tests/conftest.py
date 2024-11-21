@@ -11,17 +11,17 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
-import aiohttp  # type: ignore[no-redef]
+import aiohttp
 import pytest
 import voluptuous as vol
 from aioresponses import aioresponses
 
+from common.helpers import convert_keys_to_snake_case
 from evohomeasync2 import _EvohomeClientNew as EvohomeClientv2
 from evohomeasync2.schemas import (
     SCH_GET_LOCN_STATUS,
     SCH_GET_USER_ACCOUNT,
     SCH_GET_USER_LOCATIONS,
-    convert_keys_to_snake_case,
 )
 
 if TYPE_CHECKING:
@@ -57,7 +57,7 @@ async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
     client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
 
     try:
-        yield client_session  # type: ignore[misc]
+        yield client_session
     finally:
         await client_session.close()
 

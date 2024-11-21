@@ -111,15 +111,15 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
     async def _load_access_token(self, cache: CacheDataT | None = None) -> None:
         """Load the (serialized) auth tokens from the cache."""
 
-        entry: dict[str, AuthTokensT]
-        tokens: AuthTokensT
-
         cache = cache or await self._read_cache_from_file()
 
-        if not (entry := cache.get(self.client_id)):
+        entry: UserEntryT | None = cache.get(self.client_id)
+        if not entry:
             return
 
-        if not (tokens := entry.get(SZ_AUTH_TOKENS)):
+        # assert isinstance(entry, dict)  # mypy
+        tokens: AuthTokensT | None = entry.get(SZ_AUTH_TOKENS)
+        if not tokens:
             return
 
         # if not self._access_token:  # not needed as dt.min is sentinel for this
@@ -129,15 +129,15 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
     async def _load_session_id(self, cache: CacheDataT | None = None) -> None:
         """Load the (serialized) session id from the cache."""
 
-        entry: dict[str, SessionIdT]
-        session: SessionIdT
-
         cache = cache or await self._read_cache_from_file()
 
-        if not (entry := cache.get(self.client_id)):
+        entry: UserEntryT | None = cache.get(self.client_id)
+        if not entry:
             return
 
-        if not (session := entry.get(SZ_SESSION_ID)):
+        # assert isinstance(entry, dict)  # mypy
+        session: SessionIdT | None = entry.get(SZ_SESSION_ID)
+        if not session:
             return
 
         # if not self._session_id:  # not needed as dt.min is sentinel for this

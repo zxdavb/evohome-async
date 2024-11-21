@@ -22,8 +22,6 @@ from evohomeasync.auth import _APPLICATION_ID
 from evohomeasync.schemas import (
     SCH_USER_ACCOUNT_INFO_RESPONSE,
     SCH_USER_SESSION_RESPONSE,
-    SessionResponseT,
-    UserAccountInfoResponseT,
 )
 
 from ..const import URL_AUTH_V0 as URL_AUTH, URL_BASE_V0 as URL_BASE
@@ -50,6 +48,25 @@ HEADERS_BASE = {
 }
 
 
+async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
+    assert rsp.status == HTTPStatus.TOO_MANY_REQUESTS
+
+    response: list[ErrorResponseT] = await rsp.json()
+
+    # the expected response for TOO_MANY_REQUESTS
+    """
+        [{
+            "code": "TooManyRequests",
+            "message": "Request count limitation exceeded, please try again later."
+        }]
+    """
+
+    assert response[0]["code"] == "TooManyRequests"
+    assert response[0]["message"] and isinstance(response[0]["message"], str)
+
+    pytest.skip("Too many requests")
+
+
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_url_auth_bad1(  # invalid/unknown credentials
     client_session: aiohttp.ClientSession,
@@ -65,10 +82,11 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
     }
 
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
-        assert rsp.status == HTTPStatus.UNAUTHORIZED
-
         response: list[ErrorResponseT] = await rsp.json()
 
+        assert rsp.status == HTTPStatus.UNAUTHORIZED
+
+        # the expected response for bad credentials
         """
             [{
                 "code": "EmailOrPasswordIncorrect",
@@ -99,6 +117,7 @@ async def test_url_auth_bad2(  # invalid/expired session id
 
         response: list[ErrorResponseT] = await rsp.json()
 
+        # the expected response for expired session id
         """
             [{
                 "code": "Unauthorized",
@@ -125,23 +144,12 @@ async def test_url_auth_good(
     }
 
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
-        assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
-
-        user_auth: SessionResponseT = await rsp.json()
-
-        """
-            [{
-                "code": "TooManyRequests",
-                "message": "Request count limitation exceeded, please try again later."
-            }]
-        """
-
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert isinstance(user_auth, list)  # mypy hint
-            assert user_auth[0]["code"] == "TooManyRequests"
-            assert user_auth[0]["message"] and isinstance(user_auth[0]["message"], str)
-            pytest.skip("Too many requests")
+            await handle_too_many_requests(rsp)
 
+        assert rsp.status == HTTPStatus.OK
+
+        # the expected response
         """
             {
                 "sessionId": "A80FF794-C042-42BC-A63E-7A509C9AA6C9",
@@ -167,27 +175,28 @@ async def test_url_auth_good(
             }
         """
 
+        user_auth: dict = await rsp.json()
+
     assert SCH_USER_SESSION_RESPONSE(user_auth), user_auth
     assert user_auth["userInfo"]["username"] == credentials[0]
 
     #
-    # TEST 2: Check the session id by accessing a resource...
+    # Check the session id by accessing a resource...
     session_id = user_auth["sessionId"]
 
-    # valid session id -> HTTPStatus.OK
+    # TEST 2: valid session id -> HTTPStatus.OK
     url = URL_BASE + "accountInfo"
     headers = HEADERS_BASE | {"sessionId": session_id}
 
     async with client_session.get(url, headers=headers) as rsp:
-        assert rsp.status in [HTTPStatus.OK, HTTPStatus.TOO_MANY_REQUESTS]
-
-        user_info: UserAccountInfoResponseT = await rsp.json()
-
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
-            assert user_info[0]["code"] == "TooManyRequests"
-            assert user_info[0]["message"] and isinstance(user_info[0]["message"], str)
-            pytest.skip("Too many requests")
+            await handle_too_many_requests(rsp)
 
+        assert rsp.status == HTTPStatus.OK
+
+        user_info: dict = await rsp.json()
+
+        # the expected response
         """
             [
                 {

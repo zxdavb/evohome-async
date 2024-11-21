@@ -35,7 +35,7 @@ async def _test_basics_apis(evo: EvohomeClientv2) -> None:
     await evo.update(_dont_update_status=False)
 
     assert evo2.main.SCH_USER_ACCOUNT(evo.user_account)
-    assert evo2.main.SCH_USER_LOCATIONS(evo.installation_info)
+    assert evo2.main.SCH_USER_LOCATIONS(evo.user_installation)
 
     # STEP 4: Status, GET /location/{loc.id}/status
     for loc in evo.locations:

@@ -30,20 +30,20 @@ async def client_session(
     """Yield an aiohttp.ClientSession, which may be faked."""
 
     if use_real_aiohttp:
-        import aiohttp  # type: ignore[no-redef]
-    else:
-        from .tests_rf.faked_server import aiohttp
+        import aiohttp
 
-    if use_real_aiohttp:
         client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
 
     else:
-        from .tests_rf.faked_server import FakedServer
+        from .tests_rf import faked_server as fake
+        from .tests_rf.faked_server import aiohttp  # type: ignore[no-redef]
 
-        client_session = aiohttp.ClientSession(faked_server=FakedServer(None, None))
+        client_session = aiohttp.ClientSession(
+            faked_server=fake.FakedServer(None, None)
+        )  # type: ignore[call-arg]
 
     try:
-        yield client_session  # type: ignore[misc]
+        yield client_session
     finally:
         await client_session.close()
 
