@@ -7,7 +7,7 @@ import functools
 import re
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
 
@@ -113,7 +113,7 @@ class FakedServerBase:
         self._dhw_schedule = dhw_schedule or MOCK_SCHEDULE_DHW
 
         self._schedules: dict[str, dict] = {}
-        self._user_config = self._user_config_from_full_config(self._full_config)
+        self._user_config: dict[str, Any] = {}
 
         self.body: _bodyT | None = None
         self._method: _methodT | None = None
@@ -171,6 +171,23 @@ class FakedServerV0(FakedServerBase):
 
 class FakedServerV2(FakedServerBase):
     """Mocked vendor server for provision of v2 URL responses."""
+
+    def __init__(
+        self,
+        full_config: dict,
+        locn_status: dict,
+        /,
+        *,
+        zone_schedule: dict | None = None,
+        dhw_schedule: dict | None = None,
+    ) -> None:
+        super().__init__(
+            full_config,
+            locn_status,
+            zone_schedule=zone_schedule,
+            dhw_schedule=dhw_schedule,
+        )
+        self._user_config = self._user_config_from_full_config(self._full_config)
 
     def oauth_token(self) -> _bodyT | None:
         if self._method != HTTPMethod.POST:
