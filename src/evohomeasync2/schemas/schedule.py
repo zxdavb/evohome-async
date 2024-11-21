@@ -8,7 +8,7 @@ from typing import Any, Final
 
 import voluptuous as vol
 
-from common.helpers import camel_to_pascal, do_nothing
+from common.helpers import camel_to_pascal, noop
 
 from .. import exceptions as exc
 from .const import (
@@ -30,7 +30,7 @@ _ScheduleT = dict[str, dict[str, Any]]
 
 #
 # These are returned from vendor's API (GET)...
-def factory_schedule_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def factory_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the DHW schedule schema."""
 
     SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
@@ -57,7 +57,7 @@ def factory_schedule_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     )
 
 
-def factory_schedule_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def factory_schedule_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_GET_SWITCHPOINT_ZONE: Final = vol.Schema(
@@ -91,7 +91,7 @@ def factory_schedule_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
 #
 # These are as to be provided to the vendor's API (PUT)...
 # This is after modified by evohome-client (PUT), an evohome-client anachronism?
-def factory_put_schedule_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def factory_put_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_PUT_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
@@ -120,7 +120,7 @@ def factory_put_schedule_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Sche
     )
 
 
-def factory_put_schedule_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
+def factory_put_schedule_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_PUT_SWITCHPOINT_ZONE: Final = vol.Schema(

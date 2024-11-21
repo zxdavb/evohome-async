@@ -7,7 +7,7 @@ from collections.abc import Callable
 
 import voluptuous as vol
 
-from common.helpers import do_nothing as _do_nothing, obfuscate as _obfuscate
+from common.helpers import noop, obfuscate
 
 from .const import (
     S2_CITY,
@@ -22,18 +22,18 @@ from .const import (
 )
 
 
-def factory_user_account(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_user_account(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the user account schema."""
 
     return vol.Schema(
         {
             vol.Required(fnc(S2_USER_ID)): str,
-            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), _obfuscate),
+            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), obfuscate),
             vol.Required(fnc(S2_FIRSTNAME)): str,
-            vol.Required(fnc(S2_LASTNAME)): vol.All(str, _obfuscate),
-            vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, _obfuscate),
-            vol.Required(fnc(S2_CITY)): vol.All(str, _obfuscate),
-            vol.Required(fnc(S2_POSTCODE)): vol.All(str, _obfuscate),
+            vol.Required(fnc(S2_LASTNAME)): vol.All(str, obfuscate),
+            vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, obfuscate),
+            vol.Required(fnc(S2_CITY)): vol.All(str, obfuscate),
+            vol.Required(fnc(S2_POSTCODE)): vol.All(str, obfuscate),
             vol.Required(fnc(S2_COUNTRY)): str,
             vol.Required(fnc(S2_LANGUAGE)): str,
         },

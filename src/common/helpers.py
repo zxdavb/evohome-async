@@ -7,13 +7,13 @@ import re
 from collections.abc import Callable
 from typing import TypeVar
 
-from .const import _DBG_DONT_OBSFUCATE, REGEX_EMAIL_ADDRESS
+from .const import _DBG_DONT_OBFUSCATE, REGEX_EMAIL_ADDRESS
 
 _T = TypeVar("_T")
 
 
 def obfuscate(value: bool | int | str) -> bool | int | str | None:
-    if _DBG_DONT_OBSFUCATE:
+    if _DBG_DONT_OBFUSCATE:
         return value
     if isinstance(value, bool):
         return None
@@ -49,7 +49,7 @@ def snake_to_camel(s: str) -> str:
     return components[0] + "".join(x.title() for x in components[1:])
 
 
-def do_nothing(s: str) -> str:
+def noop(s: str) -> str:
     """Return a string unconverted."""
     return s
 

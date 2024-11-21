@@ -10,7 +10,7 @@ from typing import Final
 
 import voluptuous as vol
 
-from common.helpers import do_nothing as _do_nothing, obfuscate as _obfuscate
+from common.helpers import noop, obfuscate
 
 from .const import (
     REGEX_DHW_ID,
@@ -101,7 +101,7 @@ MIN_HEAT_SETPOINT_LOWER: Final = 4.5
 MIN_HEAT_SETPOINT_UPPER: Final = 21.0
 
 
-def factory_system_mode_perm(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_system_mode_perm(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the permanent system modes schema."""
 
     return vol.Schema(
@@ -121,7 +121,7 @@ def factory_system_mode_perm(fnc: Callable[[str], str] = _do_nothing) -> vol.Sch
     )
 
 
-def factory_system_mode_temp(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_system_mode_temp(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the temporary system modes schema."""
 
     return vol.Schema(
@@ -143,7 +143,7 @@ def factory_system_mode_temp(fnc: Callable[[str], str] = _do_nothing) -> vol.Sch
 
 
 def factory_schedule_capabilities_response(
-    fnc: Callable[[str], str] = _do_nothing,
+    fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
     """Factory for the schedule_capabilities_response schema."""
 
@@ -159,7 +159,7 @@ def factory_schedule_capabilities_response(
     )
 
 
-def factory_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the DHW schema."""
 
     SCH_DHW_STATE_CAPABILITIES_RESPONSE: Final = vol.Schema(
@@ -186,7 +186,7 @@ def factory_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-def factory_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone schema."""
 
     SCH_FAN_MODE: Final = vol.Schema(  # noqa: F841
@@ -260,7 +260,7 @@ def factory_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-def factory_tcs(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_tcs(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the TCS schema."""
 
     SCH_ALLOWED_SYSTEM_MODES: Final = vol.Any(
@@ -281,14 +281,14 @@ def factory_tcs(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-def factory_gateway(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_gateway(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the gateway schema."""
 
     SCH_GATEWAY_INFO: Final = vol.Schema(
         {
             vol.Required(fnc(S2_GATEWAY_ID)): str,
             vol.Required(fnc(S2_MAC)): str,
-            vol.Required(fnc(S2_CRC)): vol.All(str, _obfuscate),
+            vol.Required(fnc(S2_CRC)): vol.All(str, obfuscate),
             vol.Required(fnc(S2_IS_WI_FI)): bool,
         },
         extra=vol.PREVENT_EXTRA,
@@ -303,7 +303,7 @@ def factory_gateway(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-def factory_time_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_time_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the time zone schema."""
 
     return vol.Schema(
@@ -319,16 +319,16 @@ def factory_time_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
 
 
 def factory_locations_installation_info(
-    fnc: Callable[[str], str] = _do_nothing,
+    fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
     """Factory for the location (config) schema."""
 
     SCH_LOCATION_OWNER: Final = vol.Schema(
         {
             vol.Required(fnc(S2_USER_ID)): str,
-            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), _obfuscate),
+            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), obfuscate),
             vol.Required(fnc(S2_FIRSTNAME)): str,
-            vol.Required(fnc(S2_LASTNAME)): vol.All(str, _obfuscate),
+            vol.Required(fnc(S2_LASTNAME)): vol.All(str, obfuscate),
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -337,10 +337,10 @@ def factory_locations_installation_info(
         {
             vol.Required(fnc(S2_LOCATION_ID)): str,
             vol.Required(fnc(S2_NAME)): str,  # e.g. "My Home"
-            vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, _obfuscate),
-            vol.Required(fnc(S2_CITY)): vol.All(str, _obfuscate),
+            vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, obfuscate),
+            vol.Required(fnc(S2_CITY)): vol.All(str, obfuscate),
             vol.Required(fnc(S2_COUNTRY)): str,
-            vol.Required(fnc(S2_POSTCODE)): vol.All(str, _obfuscate),
+            vol.Required(fnc(S2_POSTCODE)): vol.All(str, obfuscate),
             vol.Required(fnc(S2_LOCATION_TYPE)): vol.In(
                 [m.value for m in LocationType]
             ),  # "Residential"
@@ -361,7 +361,7 @@ def factory_locations_installation_info(
 
 
 def factory_user_locations_installation_info(
-    fnc: Callable[[str], str] = _do_nothing,
+    fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
     """Factory for the user locations (config) schema."""
 

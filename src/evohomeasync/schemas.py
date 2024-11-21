@@ -9,7 +9,7 @@ from typing import Any, Final, NewType, TypedDict, TypeVar
 
 import voluptuous as vol
 
-from common.helpers import do_nothing as _do_nothing
+from common.helpers import noop
 
 _T = TypeVar("_T")
 
@@ -79,7 +79,7 @@ class ErrorResponseT(TypedDict):
 
 # GET api/accountInfo -> userAccountInfoResponse
 def factory_user_account_info_response(
-    fnc: Callable[[str], str] = _do_nothing,
+    fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
     """Schema for the response to GET /accountInfo."""
 
@@ -123,7 +123,7 @@ class UserAccountInfoResponseT(TypedDict):  # NOT UserAccountResponseT
 
 # POST api/session -> sessionResponse
 def factory_session_response(
-    fnc: Callable[[str], str] = _do_nothing,
+    fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
     """Schema for the response to POST /session."""
 
@@ -170,7 +170,7 @@ class SessionResponseT(TypedDict):
 
 
 def factory_location_response(
-    fnc: Callable[[str], str] = _do_nothing,
+    fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
     """Factory for the user account schema."""
 
@@ -204,7 +204,7 @@ def factory_location_response(
 
 # GET api/locations?userId={userId}&allData=True -> list[locationResponse]
 def factory_location_response_list(
-    fnc: Callable[[str], str] = _do_nothing,
+    fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
     """Schema for the response to GET api/locations?userId={userId}&allData=True."""
 

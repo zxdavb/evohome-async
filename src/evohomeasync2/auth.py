@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 import aiohttp
 import voluptuous as vol
 
-from common.helpers import convert_keys_to_snake_case, obfuscate as _obfuscate
+from common.helpers import convert_keys_to_snake_case, obfuscate
 
 from . import exceptions as exc
 
@@ -57,9 +57,9 @@ SZ_REFRESH_TOKEN: Final = "refresh_token"
 
 SCH_OAUTH_TOKEN: Final = vol.Schema(
     {
-        vol.Required(SZ_ACCESS_TOKEN): vol.All(str, _obfuscate),
+        vol.Required(SZ_ACCESS_TOKEN): vol.All(str, obfuscate),
         vol.Required(SZ_EXPIRES_IN): int,  # 1800 seconds
-        vol.Required(SZ_REFRESH_TOKEN): vol.All(str, _obfuscate),
+        vol.Required(SZ_REFRESH_TOKEN): vol.All(str, obfuscate),
         vol.Required("token_type"): str,
         vol.Optional("scope"): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
     }

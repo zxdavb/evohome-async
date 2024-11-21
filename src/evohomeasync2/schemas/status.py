@@ -8,7 +8,7 @@ from typing import Final
 
 import voluptuous as vol
 
-from common.helpers import do_nothing as _do_nothing
+from common.helpers import noop as noop
 
 from .const import (
     REGEX_DHW_ID,
@@ -56,7 +56,7 @@ from .const import (
 _DTM_FORMAT = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{1,7}$"
 
 
-def factory_active_faults(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_active_faults(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the active faults schema."""
 
     return vol.Schema(
@@ -72,7 +72,7 @@ def factory_active_faults(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema
     )
 
 
-def factory_temp_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Any:
+def factory_temp_status(fnc: Callable[[str], str] = noop) -> vol.Any:
     """Factory for the temperature status schema."""
 
     return vol.Any(
@@ -91,7 +91,7 @@ def factory_temp_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Any:
     )
 
 
-def factory_zone_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_zone_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone status schema."""
 
     SCH_SETPOINT_STATUS: Final = vol.Schema(
@@ -124,7 +124,7 @@ def factory_zone_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-def factory_dhw_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_dhw_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the DHW status schema."""
 
     SCH_STATE_STATUS: Final = vol.Schema(
@@ -147,7 +147,7 @@ def factory_dhw_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-def factory_system_mode_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Any:
+def factory_system_mode_status(fnc: Callable[[str], str] = noop) -> vol.Any:
     """Factory for the system mode status schema."""
 
     return vol.Any(
@@ -175,7 +175,7 @@ def factory_system_mode_status(fnc: Callable[[str], str] = _do_nothing) -> vol.A
     )
 
 
-def factory_tcs_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_tcs_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the TCS status schema."""
 
     return vol.Schema(
@@ -190,7 +190,7 @@ def factory_tcs_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-def factory_gwy_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_gwy_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the gateway status schema."""
 
     return vol.Schema(
@@ -205,7 +205,7 @@ def factory_gwy_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-def factory_loc_status(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_loc_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the locations status schema."""
 
     return vol.Schema(
