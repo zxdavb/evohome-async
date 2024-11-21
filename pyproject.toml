@@ -52,7 +52,11 @@
   sources = ["src"]
 
 [tool.hatch.build.targets.wheel]
-  packages = ["src/evohomeasync", "src/evohomeasync2"]
+  packages = [
+    "src/evohomeasync",
+    "src/evohomeasync2",
+    "src/evocommon"
+  ]
 
 [tool.hatch.version]
   path = "src/evohomeasync2/__init__.py"

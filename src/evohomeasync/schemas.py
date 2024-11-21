@@ -9,7 +9,7 @@ from typing import Any, Final, NewType, TypedDict, TypeVar
 
 import voluptuous as vol
 
-from common.helpers import noop
+from evocommon.helpers import noop
 
 _T = TypeVar("_T")
 

@@ -8,7 +8,7 @@ from typing import Any, Final
 
 import voluptuous as vol
 
-from common.helpers import camel_to_pascal, noop
+from evocommon.helpers import camel_to_pascal, noop
 
 from .. import exceptions as exc
 from .const import (

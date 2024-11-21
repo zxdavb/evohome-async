@@ -7,7 +7,7 @@ from collections.abc import Callable
 
 import voluptuous as vol
 
-from common.helpers import noop, obfuscate
+from evocommon.helpers import noop, obfuscate
 
 from .const import (
     S2_CITY,

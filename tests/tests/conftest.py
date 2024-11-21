@@ -16,7 +16,7 @@ import pytest
 import voluptuous as vol
 from aioresponses import aioresponses
 
-from common.helpers import convert_keys_to_snake_case
+from evocommon.helpers import convert_keys_to_snake_case
 from evohomeasync2 import _EvohomeClientNew as EvohomeClientv2
 from evohomeasync2.schemas import (
     SCH_GET_LOCN_STATUS,

@@ -8,7 +8,7 @@ from typing import Final
 
 import voluptuous as vol
 
-from common.helpers import noop as noop
+from evocommon.helpers import noop as noop
 
 from .const import (
     REGEX_DHW_ID,
