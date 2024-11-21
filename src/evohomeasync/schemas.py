@@ -3,12 +3,13 @@
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable
 from enum import EnumCheck, StrEnum, verify
 from typing import Any, Final, NewType, TypedDict, TypeVar
 
 import voluptuous as vol
+
+from common.helpers import do_nothing as _do_nothing
 
 _T = TypeVar("_T")
 
@@ -66,46 +67,6 @@ SZ_USER_LANGUAGE: Final = "userLanguage"
 SZ_USERNAME: Final = "username"
 
 SZ_ZIPCODE: Final = "zipcode"
-
-
-def camel_to_snake(s: str) -> str:
-    """Return a string converted from camelCase to snake_case."""
-    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", s)
-    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
-
-
-def snake_to_camel(s: str) -> str:
-    """Return a string converted from snake_case to camelCase."""
-    components = s.split("_")
-    return components[0] + "".join(x.title() for x in components[1:])
-
-
-def _do_nothing(s: str) -> str:
-    """Return a string unconverted."""
-    return s
-
-
-def _convert_keys(data: _T, fnc: Callable[[str], str]) -> _T:
-    """Convert all keys in a dictionary to snake_case.
-
-    Used after retreiiving JSON data from the vendor API.
-    """
-
-    if isinstance(data, list):
-        return [convert_keys_to_snake_case(item) for item in data]  # type: ignore[return-value]
-
-    if not isinstance(data, dict):
-        return data
-
-    return {fnc(k): convert_keys_to_snake_case(v) for k, v in data.items()}  # type: ignore[return-value]
-
-
-def convert_keys_to_camel_case(data: _T) -> _T:
-    return _convert_keys(data, camel_to_snake)
-
-
-def convert_keys_to_snake_case(data: _T) -> _T:
-    return _convert_keys(data, camel_to_snake)
 
 
 class ErrorResponseT(TypedDict):
@@ -297,7 +258,7 @@ class ThermostatResponseT(TypedDict):
 class DeviceResponseT(TypedDict):
     gateway_id: int
     device_id: int
-    thermostat_model_type: str
+    thermostat_model_type: str  # DOMESTIC_HOT_WATER or a zone
     device_type: int
     name: str
     schedule_capable: bool

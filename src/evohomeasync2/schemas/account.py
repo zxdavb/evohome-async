@@ -7,6 +7,8 @@ from collections.abc import Callable
 
 import voluptuous as vol
 
+from common.helpers import do_nothing as _do_nothing, obfuscate as _obfuscate
+
 from .const import (
     S2_CITY,
     S2_COUNTRY,
@@ -18,7 +20,6 @@ from .const import (
     S2_USER_ID,
     S2_USERNAME,
 )
-from .helpers import _do_nothing, obfuscate as _obfuscate
 
 
 def factory_user_account(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:

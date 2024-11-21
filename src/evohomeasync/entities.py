@@ -11,31 +11,19 @@ from typing import TYPE_CHECKING, Any, Final, NoReturn
 from . import exceptions as exc
 from .auth import Auth
 from .schemas import (
-    SZ_ALLOWED_MODES,
-    SZ_CHANGEABLE_VALUES,
-    SZ_DEVICE_ID,
-    SZ_DEVICES,
     SZ_DHW_OFF,
     SZ_DHW_ON,
-    SZ_DOMESTIC_HOT_WATER,
-    SZ_EMEA_ZONE,
-    SZ_HEAT_SETPOINT,
     SZ_HOLD,
-    SZ_ID,
     SZ_INDOOR_TEMPERATURE,
-    SZ_LOCATION_ID,
     SZ_MODE,
     SZ_NAME,
     SZ_NEXT_TIME,
     SZ_QUICK_ACTION,
     SZ_QUICK_ACTION_NEXT_TIME,
     SZ_SCHEDULED,
-    SZ_SETPOINT,
     SZ_STATUS,
-    SZ_TEMP,
     SZ_TEMPORARY,
     SZ_THERMOSTAT,
-    SZ_THERMOSTAT_MODEL_TYPE,
     SZ_VALUE,
 )
 
@@ -44,16 +32,7 @@ if TYPE_CHECKING:
 
     from . import _EvohomeClientNew as EvohomeClient
     from .auth import Auth
-    from .schemas import (
-        DeviceResponseT,
-        LocationResponseT,
-        SystemMode,
-        _DeviceDictT,
-        _DhwIdT,
-        _EvoListT,
-        _ZoneIdT,
-        _ZoneNameT,
-    )
+    from .schemas import DeviceResponseT, LocationResponseT, SystemMode, _EvoListT
 
     _EvoDictT = dict[str, Any]
 
@@ -100,14 +79,27 @@ class Location(EntityBase):
 
         self._cli = client  # proxy for parent
 
-        self._config: _EvoDictT = config
+        self._config: LocationResponseT = config  # type: ignore[assignment]
         self._status: _EvoDictT = {}
 
         self.gateways: list[Gateway] = []
         self.gateway_by_id: dict[str, Gateway] = {}
 
+        self.devices: list[Hotwater | Zone] = []
+
+        self.devices_by_id: dict[str, Hotwater | Zone] = {}
+        self.devices_by_idx: dict[str, Hotwater | Zone] = {}
+        self.devices_by_name: dict[str, Hotwater | Zone] = {}
+
+        def add_device(dev: Hotwater | Zone) -> None:
+            self.devices.append(dev)
+
+            self.devices_by_id[dev.id] = dev
+            self.devices_by_name[dev.name] = dev
+            self.devices_by_idx[dev.idx] = dev
+
         for dev_config in config["devices"]:
-            if dev_config["gateway_id"] not in self.gateway_by_id:
+            if str(dev_config["gateway_id"]) not in self.gateway_by_id:
                 gwy = Gateway(self, dev_config)
 
                 self.gateways.append(gwy)
@@ -118,31 +110,25 @@ class Location(EntityBase):
 
                 self.gateway_by_id[gwy.id].hotwater = dhw
 
-            elif dev_config["thermostat_model_type"] == "EMEA_ZONE":
+                add_device(dhw)
+
+            elif dev_config["thermostat_model_type"].startswith("EMEA_"):
                 zon = Zone(gwy, dev_config)
 
                 self.gateway_by_id[gwy.id].zones.append(zon)
-                self.gateway_by_id[gwy.id].zone_by_id[zon.id] = zon  # domain_id
+                self.gateway_by_id[gwy.id].zone_by_id[zon.id] = zon
 
-            else:
+                add_device(zon)
+
+            else:  # assume everything else is a zone
                 self._logger.warning("Unknown device type: %s", dev_config)
 
-    async def _get_locn_data(self, force_refresh: bool = True) -> LocationResponseT:
-        """Retrieve the latest system data.
+                zon = Zone(gwy, dev_config)
 
-        Pull the latest JSON from the web unless force_refresh is False.
-        """
+                self.gateway_by_id[gwy.id].zones.append(zon)
+                self.gateway_by_id[gwy.id].zone_by_id[zon.id] = zon
 
-        if not self.locn_data or force_refresh:
-            full_data = await self.auth.get_locn_data()
-            self.locn_data = full_data[self._LOC_IDX]
-
-            self.location_id = self.locn_data[SZ_LOCATION_ID]
-
-            self.devices = {d[SZ_DEVICE_ID]: d for d in self.locn_data[SZ_DEVICES]}
-            self.named_devices = {d[SZ_NAME]: d for d in self.locn_data[SZ_DEVICES]}
-
-        return self.locn_data
+                add_device(zon)
 
     async def get_temperatures(
         self, force_refresh: bool = True
@@ -152,37 +138,33 @@ class Location(EntityBase):
         set_point: float
         status: str
 
-        await self._get_locn_data(force_refresh=force_refresh)
+        await self._cli.update()
 
         result = []
 
-        try:
-            for device in self.locn_data[SZ_DEVICES]:
-                temp = float(device[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE])
-                values = device[SZ_THERMOSTAT][SZ_CHANGEABLE_VALUES]
+        for dev in self.devices:
+            temp = float(dev._config["thermostat"]["indoor_temperature"])
+            values = dev._config["thermostat"]["changeable_values"]
 
-                if SZ_HEAT_SETPOINT in values:
-                    set_point = float(values[SZ_HEAT_SETPOINT][SZ_VALUE])
-                    status = values[SZ_HEAT_SETPOINT][SZ_STATUS]
-                else:
-                    set_point = 0
-                    status = values[SZ_STATUS]
+            if "heat_setpoint" in values:
+                set_point = float(values["heat_setpoint"]["value"])
+                status = values["heat_setpoint"]["status"]
+            else:
+                set_point = 0
+                status = values["status"]
 
-                result.append(
-                    {
-                        SZ_THERMOSTAT: device[SZ_THERMOSTAT_MODEL_TYPE],
-                        SZ_ID: device[SZ_DEVICE_ID],
-                        SZ_NAME: device[SZ_NAME],
-                        SZ_TEMP: None if temp == 128 else temp,
-                        SZ_SETPOINT: set_point,
-                        SZ_STATUS: status,
-                        SZ_MODE: values[SZ_MODE],
-                    }
-                )
+            result.append(
+                {
+                    "device_id": dev.id,
+                    "thermostat": dev._config["thermostat_model_type"],
+                    "name": dev._config["name"],
+                    "temperature": None if temp == 128 else temp,
+                    "setpoint": set_point,
+                    "status": status,
+                    "mode": values["mode"],
+                }
+            )
 
-        # harden code against unexpected schema (JSON structure)
-        except (LookupError, TypeError, ValueError) as err:
-            raise exc.InvalidSchemaError(str(err)) from err
         return result  # type: ignore[return-value]
 
     async def get_system_modes(self) -> NoReturn:
@@ -195,14 +177,14 @@ class Location(EntityBase):
         """Set the system mode."""
 
         # just want id, so retrieve the config data only if we don't already have it
-        await self._get_locn_data(force_refresh=False)  # get self.location_id
+        # await self._cli.update(force_refresh=False)  # get self.location_id
 
         data: dict[str, str] = {SZ_QUICK_ACTION: system_mode}
         if until:
             data |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
-        url = f"evoTouchSystems?locationId={self.location_id}"
-        await self.auth.request(HTTPMethod.PUT, url, data=data)
+        url = f"evoTouchSystems?locationId={self.id}"
+        await self._auth.request(HTTPMethod.PUT, url, data=data)
 
     async def set_auto(self) -> None:
         """Set the system to normal operation."""
@@ -228,55 +210,45 @@ class Location(EntityBase):
         """Set the system to the heating off mode."""
         await self._set_system_mode(SystemMode.HEATING_OFF, until=until)
 
-    #
-    # Zone methods...
+    def _get_zone(self, id: int | str) -> Zone:
+        """Return the location's zone by its id, idx or name."""
 
-    async def _get_zone(self, id_or_name: _ZoneIdT | _ZoneNameT) -> _DeviceDictT:
-        """Return the location's zone by its id or name (if needed, get the JSON).
-
-        Raise an exception if the zone is not found.
-        """
-
-        device_dict: _DeviceDictT | None
+        dev: Zone | None
 
         # just want id, so retrieve the config data only if we don't already have it
-        await self._get_locn_data(force_refresh=False)
+        # await self._cli.update(force_refresh=False)
 
-        if isinstance(id_or_name, int):
-            device_dict = self.devices.get(id_or_name)
-        else:
-            device_dict = self.named_devices.get(id_or_name)
+        if isinstance(id, int):
+            id = str(id)
 
-        if device_dict is None:
-            raise exc.InvalidSchemaError(
-                f"No zone {id_or_name} in location {self.location_id}"
-            )
+        dev = self.devices_by_id.get(id)  # type: ignore[assignment]
 
-        if (model := device_dict[SZ_THERMOSTAT_MODEL_TYPE]) != SZ_EMEA_ZONE:
-            raise exc.InvalidSchemaError(
-                f"Zone {id_or_name} is not an EMEA_ZONE: {model}"
-            )
+        if dev is None:
+            dev = self.devices_by_idx.get(id)  # type: ignore[assignment]
 
-        return device_dict
+        if dev is None:
+            dev = self.devices_by_name.get(id)  # type: ignore[assignment]
 
-    #
-    # DHW methods...
+        if dev is None:
+            raise exc.InvalidSchemaError(f"No zone {id} in location {self.id}")
 
-    async def _get_dhw(self) -> _DeviceDictT:
-        """Return the locations's DHW, if there is one (if needed, get the JSON).
+        if not isinstance(dev, Zone):
+            raise exc.InvalidSchemaError(f"Zone {id} is not an EMEA_ZONE")
 
-        Raise an exception if the DHW is not found.
-        """
+        return dev
+
+    def _get_dhw(self) -> Hotwater:
+        """Return the locations's DHW, if there is one."""
 
         # just want id, so retrieve the config data only if we don't already have it
-        await self._get_locn_data(force_refresh=False)
+        # await self._cli.update(force_refresh=False)
 
-        for device in self.locn_data[SZ_DEVICES]:
-            if device[SZ_THERMOSTAT_MODEL_TYPE] == SZ_DOMESTIC_HOT_WATER:
-                ret: _DeviceDictT = device
-                return ret
+        dev: Hotwater | None = self.devices_by_id.get("HW")  # type: ignore[assignment]
 
-        raise exc.InvalidSchemaError(f"No DHW in location {self.location_id}")
+        if dev is None:
+            raise exc.InvalidSchemaError(f"No DHW in location {self.id}")
+
+        return dev
 
 
 class Gateway(EntityBase):
@@ -291,15 +263,18 @@ class Gateway(EntityBase):
 
         self._loc = location  # parent
 
-        self._config: _EvoDictT = config
+        self._config: DeviceResponseT = config  # type: ignore[assignment]
         self._status: _EvoDictT = {}
 
         self.mac_address = config["mac_id"]
 
-        self.hotwater: Hotwater = None
+        self.hotwater: Hotwater | None = None
 
         self.zones: list[Zone] = []
+
         self.zone_by_id: dict[str, Zone] = {}
+        self.zone_by_idx: dict[str, Zone] = {}
+        self.zone_by_name: dict[str, Zone] = {}
 
 
 class Zone(EntityBase):
@@ -314,7 +289,7 @@ class Zone(EntityBase):
 
         self._gwy = gateway  # parent
 
-        self._config: _EvoDictT = config
+        self._config: DeviceResponseT = config  # type: ignore[assignment]
         self._status: _EvoDictT = {}
 
     @property
@@ -325,24 +300,17 @@ class Zone(EntityBase):
     def idx(self) -> str:
         return f"{self._config["instance"]:02X}"
 
-    async def get_zone_modes(self, zone: _ZoneNameT) -> list[str]:
+    async def get_zone_modes(self) -> list[str]:
         """Return the set of modes the zone can be assigned."""
-
-        device = await self._get_zone(zone)
-
-        ret: list[str] = device[SZ_THERMOSTAT][SZ_ALLOWED_MODES]
-        return ret
+        return self._config["thermostat"]["allowed_modes"]
 
     async def _set_heat_setpoint(
         self,
-        zone: _ZoneIdT | _ZoneNameT,
         status: str,  # "Scheduled" | "Temporary" | "Hold
         value: float | None = None,
         next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
     ) -> None:
         """Set zone setpoint, either indefinitely, or until a set time."""
-
-        zone_id: _ZoneIdT = (await self._get_zone(zone))[SZ_DEVICE_ID]
 
         if next_time is None:
             data = {SZ_STATUS: SZ_HOLD, SZ_VALUE: value}
@@ -353,24 +321,28 @@ class Zone(EntityBase):
                 SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             }
 
-        url = f"devices/{zone_id}/thermostat/changeableValues/heatSetpoint"
-        await self.auth.request(HTTPMethod.PUT, url, data=data)
+        url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
+        await self._auth.request(HTTPMethod.PUT, url, data=data)
 
     async def set_temperature(
-        self, zone: _ZoneIdT | _ZoneNameT, temperature: float, until: dt | None = None
+        self, temperature: float, until: dt | None = None
     ) -> None:
         """Override the setpoint of a zone, for a period of time, or indefinitely."""
 
         if until:
             await self._set_heat_setpoint(
-                zone, SZ_TEMPORARY, value=temperature, next_time=until
+                SZ_TEMPORARY, value=temperature, next_time=until
             )
         else:
-            await self._set_heat_setpoint(zone, SZ_HOLD, value=temperature)
+            await self._set_heat_setpoint(SZ_HOLD, value=temperature)
 
-    async def set_zone_auto(self, zone: _ZoneIdT | _ZoneNameT) -> None:
+    async def set_zone_auto(self) -> None:
         """Set a zone to follow its schedule."""
-        await self._set_heat_setpoint(zone, status=SZ_SCHEDULED)
+        await self._set_heat_setpoint(status=SZ_SCHEDULED)
+
+    @property
+    def temperature(self) -> float:
+        return float(self._config[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE])
 
 
 class Hotwater(EntityBase):
@@ -385,7 +357,7 @@ class Hotwater(EntityBase):
 
         self._gwy = gateway  # parent
 
-        self._config: _EvoDictT = config
+        self._config: DeviceResponseT = config  # type: ignore[assignment]
         self._status: _EvoDictT = {}
 
     @property
@@ -404,8 +376,6 @@ class Hotwater(EntityBase):
     ) -> None:
         """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
 
-        dhw_id: _DhwIdT = (await self._get_dhw())[SZ_DEVICE_ID]
-
         data = {
             SZ_STATUS: status,
             SZ_MODE: mode,
@@ -417,8 +387,8 @@ class Hotwater(EntityBase):
         if next_time:
             data |= {SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
-        url = f"devices/{dhw_id}/thermostat/changeableValues"
-        await self.auth.request(HTTPMethod.PUT, url, data=data)
+        url = f"devices/{self.id}/thermostat/changeableValues"
+        await self._auth.request(HTTPMethod.PUT, url, data=data)
 
     async def set_dhw_on(self, until: dt | None = None) -> None:
         """Set DHW to On, either indefinitely, or until a specified time.

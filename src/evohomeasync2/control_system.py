@@ -10,6 +10,8 @@ import json
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final
 
+from common.helpers import camel_to_snake
+
 from . import exceptions as exc
 from .const import (
     API_STRFTIME,
@@ -33,7 +35,7 @@ from .const import (
     SystemMode,
 )
 from .hotwater import HotWater
-from .schemas import camel_to_snake, factory_tcs_status
+from .schemas import factory_tcs_status
 from .schemas.const import (
     S2_PERMANENT,
     S2_SYSTEM_MODE,

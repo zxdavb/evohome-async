@@ -15,8 +15,9 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 import aiohttp
 import voluptuous as vol
 
+from common.helpers import convert_keys_to_snake_case, obfuscate as _obfuscate
+
 from . import exceptions as exc
-from .schemas import convert_keys_to_snake_case, obfuscate as _obfuscate
 
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL

@@ -13,6 +13,8 @@ from typing import TYPE_CHECKING, Final
 
 import voluptuous as vol
 
+from common.helpers import camel_to_snake
+
 from . import exceptions as exc
 from .const import (
     API_STRFTIME,
@@ -36,7 +38,6 @@ from .const import (
     SZ_ZONE_TYPE,
 )
 from .schemas import (
-    camel_to_snake,
     convert_to_put_schedule,
     factory_put_schedule_zone,
     factory_schedule_zone,

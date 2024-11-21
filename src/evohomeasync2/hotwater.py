@@ -8,6 +8,8 @@ from __future__ import annotations
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final
 
+from common.helpers import camel_to_snake
+
 from . import exceptions as exc
 from .const import (
     API_STRFTIME,
@@ -19,12 +21,7 @@ from .const import (
     SZ_STATE,
     SZ_STATE_STATUS,
 )
-from .schemas import (
-    camel_to_snake,
-    factory_dhw_status,
-    factory_put_schedule_dhw,
-    factory_schedule_dhw,
-)
+from .schemas import factory_dhw_status, factory_put_schedule_dhw, factory_schedule_dhw
 from .schemas.const import (
     S2_MODE,
     S2_STATE,

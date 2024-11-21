@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """evohomeasync schema - shared constants."""
 
+from __future__ import annotations
+
 from enum import EnumCheck, StrEnum, verify
 from typing import Final
 
 # Various useful regex forms
 REGEX_DHW_ID = r"[0-9]*"
-REGEX_EMAIL_ADDRESS = r"^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$"
 REGEX_GATEWAY_ID = r"[0-9]*"
 REGEX_LOCATION_ID = r"[0-9]*"
 REGEX_SYSTEM_ID = r"[0-9]*"

@@ -8,6 +8,8 @@ from typing import Final
 
 import voluptuous as vol
 
+from common.helpers import do_nothing
+
 from .account import factory_user_account
 from .config import (
     factory_locations_installation_info,
@@ -20,13 +22,6 @@ from .const import (  # noqa: F401
     DhwState,
     SystemMode,
     ZoneMode,
-)
-from .helpers import (  # noqa: F401
-    _do_nothing,
-    camel_to_snake,
-    convert_keys_to_camel_case,
-    convert_keys_to_snake_case,
-    obfuscate,
 )
 from .schedule import (  # noqa: F401
     SCH_PUT_SCHEDULE_DHW,
@@ -89,7 +84,7 @@ SCH_GET_SCHEDULE_ZONE: Final = factory_schedule_zone()
 
 
 # for convenience...
-def factory_get_schedule(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_get_schedule(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the schedule schema."""
 
     from . import SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE
@@ -101,7 +96,7 @@ def factory_get_schedule(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
 
 
 # TODO: anachronism? Is PUT schema no longer required?
-def factory_put_schedule(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_put_schedule(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the schedule schema."""
 
     return vol.Schema(

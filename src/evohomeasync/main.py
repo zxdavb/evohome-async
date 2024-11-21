@@ -6,14 +6,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Final
 
+from common.helpers import camel_to_snake
+
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
 from .entities import Location
-from .schemas import (
-    camel_to_snake,
-    factory_location_response_list,
-    factory_user_account_info_response,
-)
+from .schemas import factory_location_response_list, factory_user_account_info_response
 
 if TYPE_CHECKING:
     import aiohttp

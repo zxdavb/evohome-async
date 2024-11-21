@@ -8,6 +8,8 @@ from typing import Any, Final
 
 import voluptuous as vol
 
+from common.helpers import camel_to_pascal, do_nothing
+
 from .. import exceptions as exc
 from .const import (
     DAYS_OF_WEEK,
@@ -21,7 +23,6 @@ from .const import (
     S2_SWITCHPOINTS,
     S2_TIME_OF_DAY,
 )
-from .helpers import _do_nothing, pascal_case
 from .typedefs import _EvoDictT, _EvoListT
 
 _ScheduleT = dict[str, dict[str, Any]]
@@ -29,7 +30,7 @@ _ScheduleT = dict[str, dict[str, Any]]
 
 #
 # These are returned from vendor's API (GET)...
-def factory_schedule_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_schedule_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the DHW schedule schema."""
 
     SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
@@ -56,7 +57,7 @@ def factory_schedule_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
     )
 
 
-def factory_schedule_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_schedule_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_GET_SWITCHPOINT_ZONE: Final = vol.Schema(
@@ -90,7 +91,7 @@ def factory_schedule_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema
 #
 # These are as to be provided to the vendor's API (PUT)...
 # This is after modified by evohome-client (PUT), an evohome-client anachronism?
-def factory_put_schedule_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_put_schedule_dhw(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_PUT_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
@@ -119,7 +120,7 @@ def factory_put_schedule_dhw(fnc: Callable[[str], str] = _do_nothing) -> vol.Sch
     )
 
 
-def factory_put_schedule_zone(fnc: Callable[[str], str] = _do_nothing) -> vol.Schema:
+def factory_put_schedule_zone(fnc: Callable[[str], str] = do_nothing) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_PUT_SWITCHPOINT_ZONE: Final = vol.Schema(
@@ -168,10 +169,10 @@ def convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
         raise exc.InvalidScheduleError(f"Invalid schedule: {err}") from err
 
     put_schedule: dict[str, _EvoListT] = {}
-    put_schedule[pascal_case(S2_DAILY_SCHEDULES)] = []
+    put_schedule[camel_to_pascal(S2_DAILY_SCHEDULES)] = []
 
     for day_of_week, day_schedule in enumerate(schedule[S2_DAILY_SCHEDULES]):
-        put_day_schedule: _EvoDictT = {pascal_case(S2_DAY_OF_WEEK): day_of_week}
+        put_day_schedule: _EvoDictT = {camel_to_pascal(S2_DAY_OF_WEEK): day_of_week}
         put_switchpoints: _EvoListT = []
 
         for get_sp in day_schedule[S2_SWITCHPOINTS]:
@@ -179,13 +180,13 @@ def convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
                 # NOTE: this key is not converted to PascalCase
                 put_sp = {S2_HEAT_SETPOINT: get_sp[S2_HEAT_SETPOINT]}  #  camelCase
             else:
-                put_sp = {pascal_case(S2_DHW_STATE): get_sp[S2_DHW_STATE]}
+                put_sp = {camel_to_pascal(S2_DHW_STATE): get_sp[S2_DHW_STATE]}
 
-            put_sp[pascal_case(S2_TIME_OF_DAY)] = get_sp[S2_TIME_OF_DAY]
+            put_sp[camel_to_pascal(S2_TIME_OF_DAY)] = get_sp[S2_TIME_OF_DAY]
             put_switchpoints.append(put_sp)
 
-        put_day_schedule[pascal_case(S2_SWITCHPOINTS)] = put_switchpoints
-        put_schedule[pascal_case(S2_DAILY_SCHEDULES)].append(put_day_schedule)
+        put_day_schedule[camel_to_pascal(S2_SWITCHPOINTS)] = put_switchpoints
+        put_schedule[camel_to_pascal(S2_DAILY_SCHEDULES)].append(put_day_schedule)
 
     return put_schedule
 
@@ -203,19 +204,19 @@ def convert_to_get_schedule(schedule: _EvoDictT) -> _EvoDictT:
     get_schedule: dict[str, _EvoListT] = {}
     get_schedule[S2_DAILY_SCHEDULES] = []
 
-    for put_day_schedule in schedule[pascal_case(S2_DAILY_SCHEDULES)]:
-        day_of_week = put_day_schedule[pascal_case(S2_DAY_OF_WEEK)]
+    for put_day_schedule in schedule[camel_to_pascal(S2_DAILY_SCHEDULES)]:
+        day_of_week = put_day_schedule[camel_to_pascal(S2_DAY_OF_WEEK)]
         get_day_schedule: _EvoDictT = {S2_DAY_OF_WEEK: DAYS_OF_WEEK[day_of_week]}
         get_switchpoints: _EvoListT = []
 
-        for put_sp in put_day_schedule[pascal_case(S2_SWITCHPOINTS)]:
+        for put_sp in put_day_schedule[camel_to_pascal(S2_SWITCHPOINTS)]:
             if S2_HEAT_SETPOINT in put_sp:
                 # NOTE: this key is not converted to pascal_case in evohomeclient2
                 get_sp = {S2_HEAT_SETPOINT: put_sp[S2_HEAT_SETPOINT]}
             else:
-                get_sp = {S2_DHW_STATE: put_sp[pascal_case(S2_DHW_STATE)]}
+                get_sp = {S2_DHW_STATE: put_sp[camel_to_pascal(S2_DHW_STATE)]}
 
-            get_sp[S2_TIME_OF_DAY] = put_sp[pascal_case(S2_TIME_OF_DAY)]
+            get_sp[S2_TIME_OF_DAY] = put_sp[camel_to_pascal(S2_TIME_OF_DAY)]
             get_switchpoints.append(get_sp)
 
         get_day_schedule[S2_SWITCHPOINTS] = get_switchpoints
@@ -225,5 +226,5 @@ def convert_to_get_schedule(schedule: _EvoDictT) -> _EvoDictT:
 
 
 # TODO: anachronisms? Is PUT schema no longer required?
-SCH_PUT_SCHEDULE_DHW: Final = factory_put_schedule_dhw(pascal_case)
-SCH_PUT_SCHEDULE_ZONE: Final = factory_put_schedule_zone(pascal_case)
+SCH_PUT_SCHEDULE_DHW: Final = factory_put_schedule_dhw(camel_to_pascal)
+SCH_PUT_SCHEDULE_ZONE: Final = factory_put_schedule_zone(camel_to_pascal)

@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
+from common.helpers import camel_to_snake
+
 from .const import (
     SZ_COUNTRY,
     SZ_GATEWAY_ID,
@@ -17,7 +19,7 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
-from .schemas import camel_to_snake, factory_loc_status
+from .schemas import factory_loc_status
 from .schemas.const import EntityType
 from .zone import EntityBase
 

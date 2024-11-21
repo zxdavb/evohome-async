@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
+from common.helpers import camel_to_snake
+
 from .const import (
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
@@ -13,7 +15,7 @@ from .const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
 from .control_system import ControlSystem
-from .schemas import camel_to_snake, factory_gwy_status
+from .schemas import factory_gwy_status
 from .schemas.const import EntityType
 from .zone import ActiveFaultsBase
 

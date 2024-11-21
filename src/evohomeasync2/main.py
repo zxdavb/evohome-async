@@ -7,16 +7,14 @@ import logging
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final
 
+from common.helpers import camel_to_snake
+
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import SZ_USER_ID
 from .control_system import ControlSystem
 from .location import Location
-from .schemas import (
-    camel_to_snake,
-    factory_user_account,
-    factory_user_locations_installation_info,
-)
+from .schemas import factory_user_account, factory_user_locations_installation_info
 
 if TYPE_CHECKING:
     import aiohttp

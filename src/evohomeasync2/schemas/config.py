@@ -10,6 +10,8 @@ from typing import Final
 
 import voluptuous as vol
 
+from common.helpers import do_nothing as _do_nothing, obfuscate as _obfuscate
+
 from .const import (
     REGEX_DHW_ID,
     REGEX_SYSTEM_ID,
@@ -90,7 +92,6 @@ from .const import (
     ZoneModelType,
     ZoneType,
 )
-from .helpers import _do_nothing, obfuscate as _obfuscate
 
 # These are best guess
 MAX_HEAT_SETPOINT_LOWER: Final = 21.0

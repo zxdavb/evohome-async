@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync schema - shared helpers."""
+"""evohomeasync provides an async client for the v0 Resideo TCC API."""
 
 from __future__ import annotations
 
@@ -7,13 +7,9 @@ import re
 from collections.abc import Callable
 from typing import TypeVar
 
-from .const import REGEX_EMAIL_ADDRESS
+from .const import _DBG_DONT_OBSFUCATE, REGEX_EMAIL_ADDRESS
 
 _T = TypeVar("_T")
-
-
-# all _DBG_* flags should be False for published code
-_DBG_DONT_OBSFUCATE = False  # default is to obsfucate JSON in debug output
 
 
 def obfuscate(value: bool | int | str) -> bool | int | str | None:
@@ -30,19 +26,30 @@ def obfuscate(value: bool | int | str) -> bool | int | str | None:
     return "********"
 
 
+def camel_to_pascal(s: str) -> str:
+    """Convert a camelCase string to PascalCase."""
+    if " " in s:
+        raise ValueError("Input string should not contain spaces")
+    return s[:1].upper() + s[1:]
+
+
 def camel_to_snake(s: str) -> str:
     """Return a string converted from camelCase to snake_case."""
+    if " " in s:
+        raise ValueError("Input string should not contain spaces")
     s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", s)
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
 
 
 def snake_to_camel(s: str) -> str:
     """Return a string converted from snake_case to camelCase."""
+    if " " in s:
+        raise ValueError("Input string should not contain spaces")
     components = s.split("_")
     return components[0] + "".join(x.title() for x in components[1:])
 
 
-def _do_nothing(s: str) -> str:
+def do_nothing(s: str) -> str:
     """Return a string unconverted."""
     return s
 
@@ -68,8 +75,3 @@ def convert_keys_to_camel_case(data: _T) -> _T:
 
 def convert_keys_to_snake_case(data: _T) -> _T:
     return _convert_keys(data, camel_to_snake)
-
-
-def pascal_case(s: str) -> str:
-    """Convert a camelCase string to PascalCase."""
-    return s[:1].upper() + s[1:]

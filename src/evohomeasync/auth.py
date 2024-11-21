@@ -14,12 +14,10 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 import aiohttp
 import voluptuous as vol
 
+from common.helpers import convert_keys_to_snake_case
+
 from . import exceptions as exc
-from .schemas import (
-    SCH_USER_SESSION_RESPONSE,
-    SZ_SESSION_ID as S2_SESSION_ID,
-    convert_keys_to_snake_case,
-)
+from .schemas import SCH_USER_SESSION_RESPONSE, SZ_SESSION_ID as S2_SESSION_ID
 
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
