@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
-from evocommon.helpers import camel_to_snake
+from evohome.helpers import camel_to_snake
 
 from .const import (
     SZ_COUNTRY,

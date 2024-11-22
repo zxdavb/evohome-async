@@ -7,7 +7,7 @@ import logging
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final
 
-from evocommon.helpers import camel_to_snake
+from evohome.helpers import camel_to_snake
 
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth

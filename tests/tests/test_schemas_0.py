@@ -9,7 +9,7 @@ from typing import Final
 
 import pytest
 
-from evocommon.helpers import convert_keys_to_snake_case
+from evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2 import Location
 from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
 from evohomeasync2.schemas.const import (

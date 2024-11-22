@@ -8,7 +8,7 @@ from typing import Final
 
 import voluptuous as vol
 
-from evocommon.helpers import noop
+from evohome.helpers import noop
 
 from .account import factory_user_account
 from .config import (

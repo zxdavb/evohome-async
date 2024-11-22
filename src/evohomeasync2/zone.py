@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Final
 
 import voluptuous as vol
 
-from evocommon.helpers import camel_to_snake
+from evohome.helpers import camel_to_snake
 
 from . import exceptions as exc
 from .const import (

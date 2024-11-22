@@ -10,7 +10,7 @@ from typing import Final
 
 import voluptuous as vol
 
-from evocommon.helpers import noop, obfuscate
+from evohome.helpers import noop, obfuscate
 
 from .const import (
     REGEX_DHW_ID,

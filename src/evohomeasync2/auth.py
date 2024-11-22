@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 import aiohttp
 import voluptuous as vol
 
-from evocommon.helpers import convert_keys_to_snake_case, obfuscate
+from evohome.helpers import convert_keys_to_snake_case, obfuscate
 
 from . import exceptions as exc
 

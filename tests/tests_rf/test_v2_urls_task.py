@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync2 as evo2
-from evocommon.helpers import camel_to_pascal
+from evohome.helpers import camel_to_pascal
 from evohomeasync2 import ControlSystem, Gateway, HotWater, Location, Zone
 from evohomeasync2.const import API_STRFTIME, DhwState, ZoneMode
 from evohomeasync2.schemas.const import (
