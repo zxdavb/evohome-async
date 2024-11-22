@@ -47,7 +47,7 @@ SZ_DOMAIN_ID: Final = "domainID"  # is ID, not Id
 
 SZ_FIRSTNAME: Final = "firstname"
 SZ_GATEWAY_ID: Final = "gatewayId"
-SZ_INDOOR_TEMPERATURE: Final = "indoor_temperature"
+SZ_INDOOR_TEMPERATURE: Final = "indoorTemperature"
 SZ_IS_ACTIVATED: Final = "isActivated"
 
 SZ_LASTNAME: Final = "lastname"
