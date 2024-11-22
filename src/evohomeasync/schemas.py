@@ -69,11 +69,6 @@ SZ_USERNAME: Final = "username"
 SZ_ZIPCODE: Final = "zipcode"
 
 
-class ErrorResponseT(TypedDict):
-    code: str
-    message: str
-
-
 #######################################################################################
 
 
@@ -104,23 +99,6 @@ def factory_user_account_info_response(
     )
 
 
-class UserAccountInfoResponseT(TypedDict):  # NOT UserAccountResponseT
-    user_id: int
-    username: str  # email address
-    firstname: str
-    lastname: str
-    street_address: str
-    city: str
-    # state: str  # missing?
-    zipcode: str
-    country: str  # GB
-    telephone: str
-    user_language: str
-
-
-#######################################################################################
-
-
 # POST api/session -> sessionResponse
 def factory_session_response(
     fnc: Callable[[str], str] = noop,
@@ -149,24 +127,6 @@ def factory_session_response(
         },
         extra=vol.ALLOW_EXTRA,
     )
-
-
-class UserAccountResponseT(UserAccountInfoResponseT):  # NOT UserAccountInfoResponseT
-    is_activated: bool
-    device_count: int  # NotRequired?
-    tenant_id: int  # NotRequired?
-    security_question1: str  # NotRequired?
-    security_question2: str  # NotRequired?
-    security_question3: str  # NotRequired?
-    latest_eula_accepted: bool  # NotRequired?
-
-
-class SessionResponseT(TypedDict):
-    session_id: str
-    user_info: UserAccountResponseT
-
-
-#######################################################################################
 
 
 def factory_location_response(
@@ -214,104 +174,9 @@ def factory_location_response_list(
     )
 
 
-class WeatherResponseT(TypedDict):
-    condition: str  # an enum
-    temperature: float
-    units: str  # Fahrenheit (precision 1.0) or Celsius (0.5)
-    humidity: int
-    phrase: str
-
-
-class ThermostatResponseT(TypedDict):
-    units: str  # displayedUnits: Fahrenheit or Celsius
-    indoor_temperature: float
-    outdoor_temperature: float
-    outdoor_temperature_available: bool
-    outdoor_humidity: float
-    outdoor_Humidity_available: bool
-    indoor_humidity: float
-    indoor_temperature_status: str  # Measured|NotAvailable|SensorError|SensorFault
-    indoor_humidity_status: str
-    outdoor_temperature_status: str
-    outdoor_humidity_status: str
-    is_commercial: bool
-    allowed_modes: list[str]  # ThermostatMode
-    deadband: float
-    min_heat_setpoint: float
-    max_heat_setpoint: float
-    min_cool_setpoint: float
-    max_cool_setpoint: float
-    cool_rate: float
-    heat_rate: float
-    is_pre_cool_capable: bool
-    changeable_values: Any  # thermostatChangeableValues
-    equipment_output_status: str  # Off | Heating | Cooling
-    schedule_capable: bool
-    vacation_hold_changeable: bool
-    vacation_hold_cancelable: bool
-    schedule_heat_sp: float
-    schedule_cool_sp: float
-    serial_number: str
-    pcb_number: str
-
-
-class DeviceResponseT(TypedDict):
-    gateway_id: int
-    device_id: int
-    thermostat_model_type: str  # DOMESTIC_HOT_WATER or a zone
-    device_type: int
-    name: str
-    schedule_capable: bool
-    hold_until_capable: bool
-    thermostat: ThermostatResponseT
-    humidifier: dict[str, Any]  # HumidifierResponse
-    dehumidifier: dict[str, Any]  # DehumidifierResponse
-    fan: dict[str, Any]  # FanResponse
-    schedule: dict[str, Any]  # ScheduleResponse
-    alert_settings: dict[str, Any]  # AlertSettingsResponse
-    is_upgrading: bool
-    is_alive: bool
-    thermostat_version: str
-    mac_id: str
-    location_id: int
-    domain_id: int
-    instance: int
-    serial_number: str
-    pcb_number: str
-
-
-class TimeZoneResponseT(TypedDict):
-    id: str
-    display_name: str
-    offset_minutes: int
-    current_offset_minutes: int
-    using_daylight_saving_time: bool
-
-
-class LocationResponseT(TypedDict):
-    location_id: _LocationIdT  # is ID, not Id
-    name: str
-    street_address: str
-    city: str
-    state: str
-    country: str
-    zipcode: str
-    type: str  # LocationType: "Commercial" | "Residential"
-    has_station: bool
-    devices: list[DeviceResponseT]
-    weather: WeatherResponseT  # WeatherResponse
-    daylight_saving_time_enabled: bool
-    time_zone: TimeZoneResponseT
-    one_touch_actions_suspended: bool
-    is_location_owner: bool
-    locationOwnerID: int  # ID, not Id
-    location_owner_name: str
-    location_owner_user_name: str
-    can_searchforcontractors: bool
-    contractor: dict[str, Any]  # ContractorResponse
-
-
 #######################################################################################
+
+
 SCH_USER_ACCOUNT_INFO_RESPONSE: Final = factory_user_account_info_response()
 SCH_USER_SESSION_RESPONSE: Final = factory_session_response()
 SCH_USER_LOCATIONS_RESPONSE: Final = factory_location_response_list()
@@ -367,3 +232,275 @@ SZ_TEMPORARY: Final = "Temporary"
 #
 SZ_HEAT: Final = "Heat"
 SZ_OFF: Final = "Off"
+
+
+#######################################################################################
+# These the responses via the vendor's API; they have camelCase keys...
+
+
+class TccErrorResponseT(TypedDict):
+    code: str
+    message: str
+
+
+class TccUserAccountInfoResponseT(TypedDict):  # NOTE: is not  UserAccountResponseT
+    userId: int
+    username: str  # email address
+    firstname: str
+    lastname: str
+    streetAddress: str
+    city: str
+    # state: str  # missing?
+    zipcode: str
+    country: str  # GB
+    telephone: str
+    userLanguage: str
+
+
+class TccUserAccountResponseT(  # NOTE: is not TccUserAccountInfoResponseT
+    TccUserAccountInfoResponseT
+):
+    isActivated: bool
+    deviceCount: int  # NotRequired?
+    tenantId: int  # NotRequired?
+    securityQuestion1: str  # NotRequired?
+    securityQuestion2: str  # NotRequired?
+    securityQuestion3: str  # NotRequired?
+    latestEulaAccepted: bool  # NotRequired?
+
+
+class TccSessionResponseT(TypedDict):
+    sessionId: str
+    userInfo: TccUserAccountResponseT
+
+
+class TccWeatherResponseT(TypedDict):
+    condition: str  # an enum
+    temperature: float
+    units: str  # Fahrenheit (precision 1.0) or Celsius (0.5)
+    humidity: int
+    phrase: str
+
+
+class TccThermostatResponseT(TypedDict):
+    units: str  # displayedUnits: Fahrenheit or Celsius
+    indoorTemperature: float
+    outdoorTemperature: float
+    outdoorTemperatureAvailable: bool
+    outdoorHumidity: float
+    outdoorHumidityAvailable: bool
+    indoorHumidity: float
+    indoorTemperatureStatus: str  # Measured|NotAvailable|SensorError|SensorFault
+    indoorHumidityStatus: str
+    outdoorTemperatureStatus: str
+    outdoorHumidityStatus: str
+    isCommercial: bool
+    allowedModes: list[str]  # ThermostatMode
+    deadband: float
+    minHeatSetpoint: float
+    maxHeatSetpoint: float
+    minCoolSetpoint: float
+    maxCoolSetpoint: float
+    coolRate: float
+    heatRate: float
+    is_pre_cool_capable: bool
+    changeable_values: Any  # thermostatChangeableValues
+    equipment_outputStatus: str  # Off | Heating | Cooling
+    schedule_capable: bool
+    vacationHoldChangeable: bool
+    vacationHoldCancelable: bool
+    scheduleHeatSp: float
+    scheduleCoolSp: float
+    serialNumber: str
+    pcbNumber: str
+
+
+class TccDeviceResponseT(TypedDict):
+    gatewayId: int
+    deviceId: int
+    thermostatModelType: str  # DOMESTIC_HOT_WATER or a zone
+    deviceType: int
+    name: str
+    scheduleCapable: bool
+    holdUntilCapable: bool
+    thermostat: TccThermostatResponseT
+    humidifier: dict[str, Any]  # HumidifierResponse
+    dehumidifier: dict[str, Any]  # DehumidifierResponse
+    fan: dict[str, Any]  # FanResponse
+    schedule: dict[str, Any]  # ScheduleResponse
+    alertSettings: dict[str, Any]  # AlertSettingsResponse
+    isUpgrading: bool
+    isAlive: bool
+    thermostatVersion: str
+    macId: str
+    locationId: int
+    domainId: int
+    instance: int
+    serialNumber: str
+    pcbNumber: str
+
+
+class TccTimeZoneResponseT(TypedDict):
+    id: str
+    displayName: str
+    offsetMinutes: int
+    currentOffsetMinutes: int
+    usingDaylightSavingTime: bool
+
+
+class TccLocationResponseT(TypedDict):
+    locationID: _LocationIdT  # TODO: check is ID, not Id
+    name: str
+    streetAddress: str
+    city: str
+    state: str
+    country: str
+    zipcode: str
+    type: str  # LocationType: "Commercial" | "Residential"
+    hasStation: bool
+    devices: list[TccDeviceResponseT]
+    weather: TccWeatherResponseT  # WeatherResponse
+    daylightSavingTimeEnabled: bool
+    timeZone: TccTimeZoneResponseT
+    oneTouchActionsSuspended: bool
+    isLocationOwner: bool
+    locationOwnerID: int  # TODO: check is ID, not Id
+    locationOwnerName: str
+    locationOwnerUserName: str
+    canSearchforcontractors: bool
+    contractor: dict[str, Any]  # ContractorResponse
+
+
+#######################################################################################
+# These are identical but have snake_case keys, not camelCase keys...
+
+
+class EvoErrorDictT(TypedDict):
+    code: str
+    message: str
+
+
+class EvoUserAccountInfoDictT(TypedDict):  # NOT UserAccountResponseScT
+    user_id: int
+    username: str  # email address
+    firstname: str
+    lastname: str
+    street_address: str
+    city: str
+    # state: str  # missing?
+    zipcode: str
+    country: str  # GB
+    telephone: str
+    user_language: str
+
+
+class EvoUserAccountDictT(EvoUserAccountInfoDictT):  # NOT EvoUserAccountInfoT
+    is_activated: bool
+    device_count: int  # NotRequired?
+    tenant_id: int  # NotRequired?
+    security_question_1: str  # NotRequired?
+    security_question_2: str  # NotRequired?
+    security_question_3: str  # NotRequired?
+    latest_eula_accepted: bool  # NotRequired?
+
+
+class EvoSessionDictT(TypedDict):
+    session_id: str
+    user_info: EvoUserAccountDictT
+
+
+class EvoWeatherDictT(TypedDict):
+    condition: str  # an enum
+    temperature: float
+    units: str  # Fahrenheit (precision 1.0) or Celsius (0.5)
+    humidity: int
+    phrase: str
+
+
+class EvoThermostatDictT(TypedDict):
+    units: str  # displayedUnits: Fahrenheit or Celsius
+    indoor_temperature: float
+    outdoor_temperature: float
+    outdoor_temperature_available: bool
+    outdoor_humidity: float
+    outdoor_Humidity_available: bool
+    indoor_humidity: float
+    indoor_temperature_status: str  # Measured|NotAvailable|SensorError|SensorFault
+    indoor_humidity_status: str
+    outdoor_temperature_status: str
+    outdoor_humidity_status: str
+    is_commercial: bool
+    allowed_modes: list[str]  # ThermostatMode
+    deadband: float
+    min_heat_setpoint: float
+    max_heat_setpoint: float
+    min_cool_setpoint: float
+    max_cool_setpoint: float
+    cool_rate: float
+    heat_rate: float
+    is_pre_cool_capable: bool
+    changeable_values: Any  # thermostatChangeableValues
+    equipment_output_status: str  # Off | Heating | Cooling
+    schedule_capable: bool
+    vacation_hold_changeable: bool
+    vacation_hold_cancelable: bool
+    schedule_heat_sp: float
+    schedule_cool_sp: float
+    serial_number: str
+    pcb_number: str
+
+
+class EvoDeviceDictT(TypedDict):
+    gateway_id: int
+    device_id: int
+    thermostat_model_type: str  # DOMESTIC_HOT_WATER or a zone
+    device_type: int
+    name: str
+    schedule_capable: bool
+    hold_until_capable: bool
+    thermostat: EvoThermostatDictT
+    humidifier: dict[str, Any]  # HumidifierResponse
+    dehumidifier: dict[str, Any]  # DehumidifierResponse
+    fan: dict[str, Any]  # FanResponse
+    schedule: dict[str, Any]  # ScheduleResponse
+    alert_settings: dict[str, Any]  # AlertSettingsResponse
+    is_upgrading: bool
+    is_alive: bool
+    thermostat_version: str
+    mac_id: str
+    location_id: int
+    domain_id: int
+    instance: int
+    serial_number: str
+    pcb_number: str
+
+
+class EvoTimeZoneDictT(TypedDict):
+    id: str
+    display_name: str
+    offset_minutes: int
+    current_offset_minutes: int
+    using_daylight_saving_time: bool
+
+
+class EvoLocationDictT(TypedDict):
+    location_id: _LocationIdT
+    name: str
+    street_address: str
+    city: str
+    state: str
+    country: str
+    zipcode: str
+    type: str  # LocationType: "Commercial" | "Residential"
+    has_station: bool
+    devices: list[EvoDeviceDictT]
+    weather: EvoWeatherDictT  # WeatherResponse
+    daylight_saving_time_enabled: bool
+    time_zone: EvoTimeZoneDictT
+    one_touch_actions_suspended: bool
+    is_location_owner: bool
+    locationOwner_id: int
+    location_owner_name: str
+    location_owner_user_name: str
+    can_searchforcontractors: bool
+    contractor: dict[str, Any]  # ContractorResponse

@@ -30,7 +30,7 @@ from .const import _DBG_USE_REAL_AIOHTTP
 if TYPE_CHECKING:
     import aiohttp
 
-    from evohomeasync.schemas import ErrorResponseT
+    from evohomeasync.schemas import TccErrorResponseT
 
 
 HEADERS_AUTH = {
@@ -51,7 +51,7 @@ HEADERS_BASE = {
 async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     assert rsp.status == HTTPStatus.TOO_MANY_REQUESTS
 
-    response: list[ErrorResponseT] = await rsp.json()
+    response: list[TccErrorResponseT] = await rsp.json()
 
     # the expected response for TOO_MANY_REQUESTS
     """
@@ -82,7 +82,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
     }
 
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
-        response: list[ErrorResponseT] = await rsp.json()
+        response: list[TccErrorResponseT] = await rsp.json()
 
         assert rsp.status == HTTPStatus.UNAUTHORIZED
 
@@ -115,7 +115,7 @@ async def test_url_auth_bad2(  # invalid/expired session id
     async with client_session.get(url, headers=headers) as rsp:
         assert rsp.status == HTTPStatus.UNAUTHORIZED
 
-        response: list[ErrorResponseT] = await rsp.json()
+        response: list[TccErrorResponseT] = await rsp.json()
 
         # the expected response for expired session id
         """

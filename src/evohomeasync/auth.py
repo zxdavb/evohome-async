@@ -22,7 +22,7 @@ from .schemas import SCH_USER_SESSION_RESPONSE, SZ_SESSION_ID as S2_SESSION_ID
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
 
-    from .schemas import SessionResponseT, UserAccountResponseT
+    from .schemas import EvoSessionDictT, EvoUserAccountDictT, TccSessionResponseT
 
 
 # For docs, enter this App ID on the following website under 'Session login':
@@ -60,7 +60,7 @@ class AbstractSessionManager(ABC):
 
     _session_id: str
     _session_expires: dt  # TODO: should be in Auth class?
-    _user_info: UserAccountResponseT | None  # TODO: should not publicise?
+    _user_info: EvoUserAccountDictT | None  # TODO: should not publicise?
 
     def __init__(
         self,
@@ -113,7 +113,7 @@ class AbstractSessionManager(ABC):
         return self._session_expires
 
     @property
-    def user_info(self) -> UserAccountResponseT | None:
+    def user_info(self) -> EvoUserAccountDictT | None:
         """Return the user account information."""
         return self._user_info
 
@@ -180,7 +180,7 @@ class AbstractSessionManager(ABC):
 
         url = f"https://{self._hostname}/WebAPI/api/session"
 
-        response: SessionResponseT = await self._post_session_id_request(
+        response: TccSessionResponseT = await self._post_session_id_request(
             url, headers=HEADERS_AUTH, data=credentials
         )
 
@@ -190,7 +190,7 @@ class AbstractSessionManager(ABC):
         except vol.Invalid as err:
             self._logger.warning(f"Response JSON may be invalid: POST {url}: {err}")
 
-        session: SessionResponseT = convert_keys_to_snake_case(response)
+        session: EvoSessionDictT = convert_keys_to_snake_case(response)  # type: ignore[assignment]
 
         try:
             self._session_id: str = session[SZ_SESSION_ID]
@@ -207,7 +207,7 @@ class AbstractSessionManager(ABC):
 
     async def _post_session_id_request(
         self, url: StrOrURL, **kwargs: Any
-    ) -> SessionResponseT:
+    ) -> TccSessionResponseT:
         """Obtain a session id via a POST to the vendor's web API.
 
         Raise AuthenticationFailedError if unable to obtain a session id.

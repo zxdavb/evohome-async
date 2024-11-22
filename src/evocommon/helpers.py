@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync provides an async client for the v0 Resideo TCC API."""
+"""evohomeasync provides an async client for the Resideo TCC API."""
 
 from __future__ import annotations
 
@@ -42,6 +42,11 @@ def camel_to_snake(s: str) -> str:
     if " " in s:
         raise ValueError("Input string should not contain spaces")
     return _STEP_2.sub(r"\1_\2", _STEP_1.sub(r"\1_\2", s)).lower()
+
+
+# assert camel_to_snake("camel2_camel2_case") == "camel2_camel2_case"
+# assert camel_to_snake("getHTTPResponseCode") == "get_http_response_code"
+# assert camel_to_snake("HTTPResponseCodeXYZ") == "http_response_code_xyz"
 
 
 def snake_to_camel(s: str) -> str:
