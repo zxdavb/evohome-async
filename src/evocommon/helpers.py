@@ -21,7 +21,7 @@ def obfuscate(value: bool | int | str) -> bool | int | str | None:
         return 0
     if not isinstance(value, str):
         raise TypeError(f"obfuscate() expects bool | int | str, got {type(value)}")
-    if re.match(REGEX_EMAIL_ADDRESS, value):
+    if REGEX_EMAIL_ADDRESS.match(value):
         return "nobody@nowhere.com"
     return "********"
 
@@ -33,12 +33,15 @@ def camel_to_pascal(s: str) -> str:
     return s[:1].upper() + s[1:]
 
 
+_STEP_1 = re.compile(r"(.)([A-Z][a-z]+)")
+_STEP_2 = re.compile(r"([a-z0-9])([A-Z])")
+
+
 def camel_to_snake(s: str) -> str:
     """Return a string converted from camelCase to snake_case."""
     if " " in s:
         raise ValueError("Input string should not contain spaces")
-    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", s)
-    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+    return _STEP_2.sub(r"\1_\2", _STEP_1.sub(r"\1_\2", s)).lower()
 
 
 def snake_to_camel(s: str) -> str:
