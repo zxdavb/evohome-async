@@ -189,7 +189,7 @@ async def should_work_v2(
             return response
 
         assert isinstance(response, dict | list)  # mypy
-        return schema(response) if schema else response
+        return schema(response) if schema else response  # may raise vol.Invalid
 
 
 async def should_fail_v2(
