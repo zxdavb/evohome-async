@@ -47,7 +47,7 @@ HEADERS_BASE = {
 
 
 async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
-    assert rsp.status == HTTPStatus.TOO_MANY_REQUESTS
+    assert rsp.status == HTTPStatus.TOO_MANY_REQUESTS  # 429
 
     response: dict = await rsp.json()
 
@@ -77,10 +77,10 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
     }
 
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 
-        assert rsp.status == HTTPStatus.BAD_REQUEST
+        assert rsp.status == HTTPStatus.BAD_REQUEST  # 400
 
         response: dict = await rsp.json()  # TODO: needs TypedDict
 
@@ -108,10 +108,10 @@ async def test_url_auth_bad2(  # invalid/expired access token
     headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
 
     async with client_session.get(url, headers=headers) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 
-        assert rsp.status == HTTPStatus.UNAUTHORIZED
+        assert rsp.status == HTTPStatus.UNAUTHORIZED  # 401
 
         response: list = await rsp.json()
 
@@ -147,10 +147,10 @@ async def test_url_auth_bad3(  # invalid/expired refresh token
     }
 
     async with client_session.get(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 
-        assert rsp.status == HTTPStatus.BAD_REQUEST
+        assert rsp.status == HTTPStatus.BAD_REQUEST  # 400
 
         response: dict = await rsp.json()
 
@@ -179,10 +179,10 @@ async def test_url_auth_good(
     }
 
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 
-        assert rsp.status == HTTPStatus.OK
+        assert rsp.status == HTTPStatus.OK  # 200 (400 is bad credentials)
 
         user_auth: dict = await rsp.json()  # TODO: needs TypedDict
 
@@ -208,15 +208,15 @@ async def test_url_auth_good(
     access_token = user_auth["access_token"]
     #
 
-    # TEST 2: valid access token -> HTTPStatus.OK
+    # TEST 2: valid access token -> HTTPStatus.OK  # 200 (401 is bad token)
     url = URL_BASE + "userAccount"
     headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
 
     async with client_session.get(url, headers=headers) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 
-        assert rsp.status == HTTPStatus.OK
+        assert rsp.status == HTTPStatus.OK  # 200
 
         response: dict = await rsp.json()  # TODO: needs TypedDict
 
@@ -254,10 +254,10 @@ async def test_url_auth_good(
     }
 
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 
-        assert rsp.status == HTTPStatus.OK
+        assert rsp.status == HTTPStatus.OK  # 200
 
         user_auth = await rsp.json()
 
