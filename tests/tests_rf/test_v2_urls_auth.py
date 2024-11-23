@@ -21,8 +21,11 @@ import pytest
 from evohomeasync2.auth import _APPLICATION_ID, SCH_OAUTH_TOKEN
 from evohomeasync2.schemas import SCH_GET_USER_ACCOUNT
 
-from ..const import URL_AUTH_V2 as URL_AUTH, URL_BASE_V2 as URL_BASE
-from .const import _DBG_USE_REAL_AIOHTTP
+from ..const import (
+    _DBG_USE_REAL_AIOHTTP,
+    URL_AUTH_V2 as URL_AUTH,
+    URL_BASE_V2 as URL_BASE,
+)
 
 if TYPE_CHECKING:
     import aiohttp

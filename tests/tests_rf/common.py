@@ -15,8 +15,12 @@ import voluptuous as vol
 import evohomeasync as evo0
 import evohomeasync2 as evo2
 
-from ..const import URL_BASE_V0, URL_BASE_V2
-from .const import _DBG_DISABLE_STRICT_ASSERTS, _DBG_USE_REAL_AIOHTTP
+from ..const import (
+    _DBG_DISABLE_STRICT_ASSERTS,
+    _DBG_USE_REAL_AIOHTTP,
+    URL_BASE_V0,
+    URL_BASE_V2,
+)
 
 if _DBG_USE_REAL_AIOHTTP:
     import aiohttp

@@ -18,8 +18,8 @@ import pytest
 
 import evohomeasync as evo0
 
+from ..const import _DBG_USE_REAL_AIOHTTP
 from .common import should_fail_v0, should_work_v0, skipif_auth_failed
-from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
     from ..conftest import EvohomeClientv0

@@ -16,9 +16,9 @@ from typing import TYPE_CHECKING
 
 from evohomeasync2 import schemas
 
+from ..const import _DBG_USE_REAL_AIOHTTP
 from . import faked_server as faked
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
-from .const import _DBG_USE_REAL_AIOHTTP
 
 if TYPE_CHECKING:
     from ..conftest import EvohomeClientv2

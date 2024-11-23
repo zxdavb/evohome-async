@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 
-from .const import _DBG_USE_REAL_AIOHTTP
+from ..const import _DBG_USE_REAL_AIOHTTP
 
 
 @pytest.fixture(autouse=False)

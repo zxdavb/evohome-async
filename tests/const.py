@@ -8,6 +8,12 @@ from typing import Final
 from evohomeasync.auth import HOSTNAME as HOSTNAME_V0
 from evohomeasync2.auth import _APPLICATION_ID, HOSTNAME as HOSTNAME_V2
 
+#
+# normally, we want debug flags to be False
+_DBG_USE_REAL_AIOHTTP = False
+_DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
+
+#
 # used to construct the default token cache
 TEST_USERNAME: Final = "username@email.com"
 TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
