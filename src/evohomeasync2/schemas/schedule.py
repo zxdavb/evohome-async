@@ -22,6 +22,7 @@ from .const import (
     S2_ON,
     S2_SWITCHPOINTS,
     S2_TIME_OF_DAY,
+    DayOfWeek,
 )
 from .typedefs import _EvoDictT, _EvoListT
 
@@ -43,7 +44,7 @@ def factory_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_GET_DAY_OF_WEEK_DHW: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DAYS_OF_WEEK),
+            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DayOfWeek),
             vol.Required(fnc(S2_SWITCHPOINTS)): [SCH_GET_SWITCHPOINT_DHW],
         },
         extra=vol.PREVENT_EXTRA,
@@ -74,7 +75,7 @@ def factory_schedule_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
     SCH_GET_DAY_OF_WEEK_ZONE: Final = vol.Schema(
         {
             # l.Required(fnc(S2_DAY_OF_WEEK)): vol.All(int, vol.Range(min=0, max=6)),  # 0 is Monday
-            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DAYS_OF_WEEK),
+            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DayOfWeek),
             vol.Required(fnc(S2_SWITCHPOINTS)): [SCH_GET_SWITCHPOINT_ZONE],
         },
         extra=vol.PREVENT_EXTRA,

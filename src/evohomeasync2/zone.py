@@ -54,6 +54,7 @@ from .schemas.const import (
     ZoneModelType,
     ZoneType,
 )
+from .schemas.schedule import DayOfWeek
 
 if TYPE_CHECKING:
     import logging
@@ -267,6 +268,25 @@ class _ZoneBase(ActiveFaultsBase):
         )
 
         self._schedule = schedule
+
+    def _switchpoint(self, day_of_week: DayOfWeek, time_of_day: str) -> dict[str, str]:
+        """Return the next switchpoint for the given day and time, or None."""
+
+        if day_of_week not in DayOfWeek:
+            raise TypeError(f"Invalid parameter: {day_of_week}")
+
+        if self._schedule is None:
+            raise exc.InvalidScheduleError(f"{self}: No schedule retrieved")
+
+        for sched in self._schedule:
+            if sched["day_of_week"] == day_of_week:
+                for switchpoint in sched["switchpoints"]:
+                    if switchpoint["time_of_day"] < time_of_day:
+                        continue
+                    if switchpoint["time_of_day"] == time_of_day:
+                        return switchpoint
+
+        return {}
 
 
 # Currently, cooling (e.g. target_heat_temperature) is not supported by the API

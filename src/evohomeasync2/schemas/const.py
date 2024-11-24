@@ -156,6 +156,18 @@ S2_FRIDAY: Final = "Friday"
 S2_SATURDAY: Final = "Saturday"
 S2_SUNDAY: Final = "Sunday"
 
+
+@verify(EnumCheck.UNIQUE)
+class DayOfWeek(StrEnum):
+    MONDAY = S2_MONDAY
+    TUESDAY = S2_TUESDAY
+    WEDNESDAY = S2_WEDNESDAY
+    THURSDAY = S2_THURSDAY
+    FRIDAY = S2_FRIDAY
+    SATURDAY = S2_SATURDAY
+    SUNDAY = S2_SUNDAY
+
+
 DAYS_OF_WEEK: Final = (
     S2_MONDAY,
     S2_TUESDAY,
