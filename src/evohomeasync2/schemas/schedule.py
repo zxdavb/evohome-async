@@ -92,7 +92,7 @@ def factory_schedule_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
 #
 # These are as to be provided to the vendor's API (PUT)...
 # This is after modified by evohome-client (PUT), an evohome-client anachronism?
-def factory_put_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def _factory_put_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_PUT_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
@@ -121,7 +121,7 @@ def factory_put_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
     )
 
 
-def factory_put_schedule_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def _factory_put_schedule_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_PUT_SWITCHPOINT_ZONE: Final = vol.Schema(
@@ -153,7 +153,7 @@ def factory_put_schedule_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
 #
 # Converters (NOTE: potential for circular imports)...
-def convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
+def _convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
     """Convert a schedule to the format used by our get/set_schedule() methods.
 
     The 'raw' schedule format is the one returned by the vendor's RESTful API (GET).
@@ -192,7 +192,7 @@ def convert_to_put_schedule(schedule: _EvoDictT) -> _EvoDictT:
     return put_schedule
 
 
-def convert_to_get_schedule(schedule: _EvoDictT) -> _EvoDictT:
+def _convert_to_get_schedule(schedule: _EvoDictT) -> _EvoDictT:
     """Convert a schedule to the format returned by the vendor's RESTful API (GET)."""
 
     from . import SCH_PUT_SCHEDULE
@@ -224,8 +224,3 @@ def convert_to_get_schedule(schedule: _EvoDictT) -> _EvoDictT:
         get_schedule[S2_DAILY_SCHEDULES].append(get_day_schedule)
 
     return get_schedule
-
-
-# TODO: anachronisms? Is PUT schema no longer required?
-SCH_PUT_SCHEDULE_DHW: Final = factory_put_schedule_dhw(camel_to_pascal)
-SCH_PUT_SCHEDULE_ZONE: Final = factory_put_schedule_zone(camel_to_pascal)

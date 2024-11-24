@@ -35,11 +35,7 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
-from .schemas import (
-    factory_put_schedule_zone,
-    factory_schedule_zone,
-    factory_zone_status,
-)
+from .schemas import factory_schedule_zone, factory_zone_status
 from .schemas.const import (
     S2_HEAT_SETPOINT_VALUE,
     S2_SETPOINT_MODE,
@@ -65,6 +61,8 @@ if TYPE_CHECKING:
         DayOfWeekDhwT,
         DayOfWeekZoneT,
         EvoZonConfigT,
+        SwitchpointDhwT,
+        SwitchpointZoneT,
     )
 
 
@@ -265,7 +263,7 @@ class _ZoneBase(ActiveFaultsBase):
 
         assert isinstance(schedule, list)  # mypy check
 
-        task_id = await self._auth.put(
+        _ = await self._auth.put(
             f"{self._TYPE}/{self.id}/schedule",
             json={"daily_schedules": schedule},
             schema=self.SCH_SCHEDULE_PUT,
@@ -275,7 +273,9 @@ class _ZoneBase(ActiveFaultsBase):
 
         self._schedule = schedule
 
-    def _switchpoint(self, day_of_week: DayOfWeek, time_of_day: str) -> dict[str, str]:
+    def _switchpoint(
+        self, day_of_week: DayOfWeek, time_of_day: str
+    ) -> SwitchpointDhwT | SwitchpointZoneT:
         """Return the next switchpoint for the given day and time, or None."""
 
         if day_of_week not in DayOfWeek:
@@ -292,7 +292,7 @@ class _ZoneBase(ActiveFaultsBase):
                     if switchpoint["time_of_day"] == time_of_day:
                         return switchpoint
 
-        return {}
+        raise exc.InvalidScheduleError("No switchpoint found")
 
 
 # Currently, cooling (e.g. target_heat_temperature) is not supported by the API
@@ -303,7 +303,6 @@ class Zone(_ZoneBase):
     _TYPE: Final = EntityType.ZON  # type: ignore[misc]
 
     SCH_SCHEDULE_GET: Final = factory_schedule_zone(camel_to_snake)  # type: ignore[misc]
-    SCH_SCHEDULE_PUT: Final = factory_put_schedule_zone(camel_to_snake)  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: EvoZonConfigT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs)
@@ -311,7 +310,7 @@ class Zone(_ZoneBase):
         self._config: Final[EvoZonConfigT] = config  # type: ignore[assignment,misc]
         self._status: _EvoDictT = {}
 
-        self._schedule: list[DayOfWeekZoneT] | None = None  # type: ignore[assignment]
+        self._schedule: list[DayOfWeekZoneT] | None = None
 
         if not self.model or self.model == ZoneModelType.UNKNOWN:
             raise exc.InvalidSchemaError(

@@ -21,7 +21,7 @@ from .const import (
     SZ_STATE,
     SZ_STATE_STATUS,
 )
-from .schemas import factory_dhw_status, factory_put_schedule_dhw, factory_schedule_dhw
+from .schemas import factory_dhw_status, factory_schedule_dhw
 from .schemas.const import (
     S2_MODE,
     S2_STATE,
@@ -45,7 +45,6 @@ class HotWater(_ZoneBase):
     _TYPE: Final = EntityType.DHW  # type: ignore[misc]
 
     SCH_SCHEDULE_GET: Final = factory_schedule_dhw(camel_to_snake)  # type: ignore[misc]
-    SCH_SCHEDULE_PUT: Final = factory_put_schedule_dhw(camel_to_snake)  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: EvoDhwConfigT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs)
@@ -53,7 +52,7 @@ class HotWater(_ZoneBase):
         self._config: Final[EvoDhwConfigT] = config  # type: ignore[assignment,misc]
         self._status: _EvoDictT = {}
 
-        self._schedule: list[DayOfWeekDhwT] | None = None  # type: ignore[assignment]
+        self._schedule: list[DayOfWeekDhwT] | None = None
 
     @property  # a for convenience attr
     def mode(self) -> ZoneMode | None:

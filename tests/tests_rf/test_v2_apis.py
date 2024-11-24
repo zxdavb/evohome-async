@@ -9,8 +9,8 @@ import pytest
 
 import evohomeasync2 as evo2
 from evohomeasync2.schemas import (
-    SCH_PUT_SCHEDULE_DHW,
-    SCH_PUT_SCHEDULE_ZONE,
+    SCH_GET_SCHEDULE_DHW,
+    SCH_GET_SCHEDULE_ZONE,
     SYSTEM_MODES,
     SystemMode,
 )
@@ -54,14 +54,14 @@ async def _test_sched__apis(evo: EvohomeClientv2) -> None:
     # STEP 2: GET & PUT /{x._TYPE}/{x.id}/schedule
     if dhw := evo._get_single_tcs().hotwater:
         schedule = await dhw.get_schedule()
-        assert SCH_PUT_SCHEDULE_DHW(schedule)
+        assert SCH_GET_SCHEDULE_DHW(schedule)
         await dhw.set_schedule(schedule)
 
     zone: Zone | None
 
     if (zone := evo._get_single_tcs().zones[0]) and zone.id != faked.GHOST_ZONE_ID:
         schedule = await zone.get_schedule()
-        assert SCH_PUT_SCHEDULE_ZONE(schedule)
+        assert SCH_GET_SCHEDULE_ZONE(schedule)
         await zone.set_schedule(schedule)
 
     if zone := evo._get_single_tcs().zones_by_id.get(faked.GHOST_ZONE_ID):

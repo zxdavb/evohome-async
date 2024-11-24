@@ -12,10 +12,9 @@ from typing import TYPE_CHECKING, Any
 import voluptuous as vol
 
 from evohomeasync2.schemas import (
-    SCH_PUT_SCHEDULE_DHW,
-    SCH_PUT_SCHEDULE_ZONE,
+    SCH_GET_SCHEDULE_DHW,
+    SCH_GET_SCHEDULE_ZONE,
     const as sch,
-    convert_to_get_schedule,
 )
 
 from .const import (
@@ -257,12 +256,12 @@ class FakedServerV2(FakedServerBase):
             return [{"message": "Bad Request (invalid schedule: not a dict)"}]
 
         try:
-            SCH_PUT_SCHEDULE_ZONE(self._data)
+            SCH_GET_SCHEDULE_ZONE(self._data)
         except vol.Invalid:
             self.status = HTTPStatus.BAD_REQUEST
             return {"message": "Bad Request (invalid schedule: invalid schema)"}
 
-        self._schedules[zon_id] = convert_to_get_schedule(self._data)
+        self._schedules[zon_id] = self._data
         return {"id": "1234567890"}
 
     def zon_mode(self) -> _bodyT | None:
@@ -294,12 +293,12 @@ class FakedServerV2(FakedServerBase):
             return [{"message": "Bad Request (invalid schedule: not a dict)"}]
 
         try:
-            SCH_PUT_SCHEDULE_DHW(self._data)
+            SCH_GET_SCHEDULE_DHW(self._data)
         except vol.Invalid:
             self.status = HTTPStatus.BAD_REQUEST
             return {"message": "Bad Request (invalid schedule: invalid schema)"}
 
-        self._schedules[dhw_id] = convert_to_get_schedule(self._data)
+        self._schedules[dhw_id] = self._data
         return {"id": "1234567890"}
 
     @validate_id_of_url(_dhw_id)

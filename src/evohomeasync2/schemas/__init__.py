@@ -23,17 +23,7 @@ from .const import (  # noqa: F401
     SystemMode,
     ZoneMode,
 )
-from .schedule import (  # noqa: F401
-    SCH_PUT_SCHEDULE_DHW,
-    SCH_PUT_SCHEDULE_ZONE,
-    _ScheduleT,
-    convert_to_get_schedule,
-    convert_to_put_schedule,
-    factory_put_schedule_dhw,
-    factory_put_schedule_zone,
-    factory_schedule_dhw,
-    factory_schedule_zone,
-)
+from .schedule import factory_schedule_dhw, factory_schedule_zone  # noqa: F401
 from .status import (
     factory_dhw_status,
     factory_gwy_status,  # noqa: F401
@@ -95,15 +85,4 @@ def factory_get_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
     )
 
 
-# TODO: anachronism? Is PUT schema no longer required?
-def factory_put_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
-    """Factory for the schedule schema."""
-
-    return vol.Schema(
-        vol.Any(factory_put_schedule_dhw(fnc), factory_put_schedule_zone(fnc)),
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
 SCH_GET_SCHEDULE: Final = factory_get_schedule()
-SCH_PUT_SCHEDULE: Final = factory_put_schedule()
