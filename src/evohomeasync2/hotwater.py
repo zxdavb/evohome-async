@@ -35,6 +35,7 @@ from .zone import _ZoneBase
 if TYPE_CHECKING:
     from . import ControlSystem
     from .schemas import _EvoDictT
+    from .schemas.typedefs import DayOfWeekDhwT, EvoDhwConfigT
 
 
 class HotWater(_ZoneBase):
@@ -46,8 +47,13 @@ class HotWater(_ZoneBase):
     SCH_SCHEDULE_GET: Final = factory_schedule_dhw(camel_to_snake)  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final = factory_put_schedule_dhw(camel_to_snake)  # type: ignore[misc]
 
-    def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(config[SZ_DHW_ID], tcs, config)
+    def __init__(self, tcs: ControlSystem, config: EvoDhwConfigT) -> None:
+        super().__init__(config[SZ_DHW_ID], tcs)
+
+        self._config: Final[EvoDhwConfigT] = config  # type: ignore[assignment,misc]
+        self._status: _EvoDictT = {}
+
+        self._schedule: list[DayOfWeekDhwT] | None = None  # type: ignore[assignment]
 
     @property  # a for convenience attr
     def mode(self) -> ZoneMode | None:

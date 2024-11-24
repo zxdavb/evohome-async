@@ -26,6 +26,13 @@ from .zone import EntityBase
 if TYPE_CHECKING:
     from . import _EvohomeClientNew as EvohomeClient
     from .schemas import _EvoDictT
+    from .schemas.typedefs import (
+        EvoGwyEntryT,
+        EvoLocationOwnerInfoT,
+        EvoLocConfigT,
+        EvoLocEntryT,
+        EvoTimeZoneInfoT,
+    )
 
 
 class Location(EntityBase):
@@ -34,25 +41,26 @@ class Location(EntityBase):
     STATUS_SCHEMA: Final = factory_loc_status(camel_to_snake)
     _TYPE: Final = EntityType.LOC  # type: ignore[misc]
 
-    def __init__(self, client: EvohomeClient, config: _EvoDictT) -> None:
+    def __init__(self, client: EvohomeClient, config: EvoLocEntryT) -> None:
         super().__init__(
             config[SZ_LOCATION_INFO][SZ_LOCATION_ID],
             client.auth,
             client._logger,
         )
 
-        self.client = client  # proxy for location's parent
+        self.client = client  # proxy for parent
+        #
 
-        self._config: Final[_EvoDictT] = config[SZ_LOCATION_INFO]  # type: ignore[misc]
+        self._config: Final[EvoLocConfigT] = config[SZ_LOCATION_INFO]  # type: ignore[assignment,misc]
         self._status: _EvoDictT = {}
 
         # children
         self.gateways: list[Gateway] = []
         self.gateway_by_id: dict[str, Gateway] = {}  # gwy by id
 
-        gwy_config: _EvoDictT
-        for gwy_config in config[SZ_GATEWAYS]:
-            gwy = Gateway(self, gwy_config)
+        gwy_entry: EvoGwyEntryT
+        for gwy_entry in config[SZ_GATEWAYS]:
+            gwy = Gateway(self, gwy_entry)
 
             self.gateways.append(gwy)
             self.gateway_by_id[gwy.id] = gwy
@@ -64,16 +72,14 @@ class Location(EntityBase):
         # "Netherlands"
         # "UnitedKingdom"
 
-        ret: str = self._config[SZ_COUNTRY]
-        return ret
+        return self._config[SZ_COUNTRY]
 
     @property
     def name(self) -> str:
-        ret: str = self._config[SZ_NAME]
-        return ret
+        return self._config[SZ_NAME]
 
     @property
-    def owner(self) -> _EvoDictT:
+    def owner(self) -> EvoLocationOwnerInfoT:
         """
         "locationOwner": {
             "userId": "1234567",
@@ -83,11 +89,10 @@ class Location(EntityBase):
         }
         """
 
-        ret: _EvoDictT = self._config[SZ_LOCATION_OWNER]
-        return ret
+        return self._config[SZ_LOCATION_OWNER]
 
     @property
-    def time_zone(self) -> _EvoDictT:
+    def time_zone(self) -> EvoTimeZoneInfoT:
         """
         "timeZone": {
             "timeZoneId": "GMTStandardTime",
@@ -105,13 +110,11 @@ class Location(EntityBase):
         # "FLEStandardTime":           "(UTC+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius",
         # "AUSEasternStandardTime":    "(UTC+10:00) Canberra, Melbourne, Sydney",
 
-        ret: _EvoDictT = self._config[SZ_TIME_ZONE]
-        return ret
+        return self._config[SZ_TIME_ZONE]
 
     @property
     def use_daylight_save_switching(self) -> bool:
-        ret: bool = self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
-        return ret
+        return self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
 
     async def update(self) -> _EvoDictT:
         """Get the latest state of the location and update its status.

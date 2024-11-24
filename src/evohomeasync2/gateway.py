@@ -22,6 +22,7 @@ from .zone import ActiveFaultsBase
 if TYPE_CHECKING:
     from . import Location
     from .schemas import _EvoDictT
+    from .schemas.typedefs import EvoGwyConfigT, EvoGwyEntryT, EvoTcsEntryT
 
 
 class Gateway(ActiveFaultsBase):
@@ -30,7 +31,7 @@ class Gateway(ActiveFaultsBase):
     STATUS_SCHEMA: Final = factory_gwy_status(camel_to_snake)
     _TYPE: Final = EntityType.GWY  # type: ignore[misc]
 
-    def __init__(self, location: Location, config: _EvoDictT) -> None:
+    def __init__(self, location: Location, config: EvoGwyEntryT) -> None:
         super().__init__(
             config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID],
             location._auth,
@@ -38,25 +39,25 @@ class Gateway(ActiveFaultsBase):
         )
 
         self.location = location  # parent
+        #
 
-        self._config: Final[_EvoDictT] = config[SZ_GATEWAY_INFO]  # type: ignore[misc]
+        self._config: Final[EvoGwyConfigT] = config[SZ_GATEWAY_INFO]  # type: ignore[assignment,misc]
         self._status: _EvoDictT = {}
 
         # children
         self.control_systems: list[ControlSystem] = []
         self.control_system_by_id: dict[str, ControlSystem] = {}  # tcs by id
 
-        tcs_config: _EvoDictT
-        for tcs_config in config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
-            tcs = ControlSystem(self, tcs_config)
+        tcs_entry: EvoTcsEntryT
+        for tcs_entry in config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+            tcs = ControlSystem(self, tcs_entry)
 
             self.control_systems.append(tcs)
             self.control_system_by_id[tcs.id] = tcs
 
     @property
     def mac_address(self) -> str:
-        ret: str = self._config[SZ_MAC]
-        return ret
+        return self._config[SZ_MAC]
 
     def _update_status(self, status: _EvoDictT) -> None:
         super()._update_status(status)  # process active faults

@@ -19,7 +19,8 @@ from .schemas import factory_user_account, factory_user_locations_installation_i
 if TYPE_CHECKING:
     import aiohttp
 
-    from .schemas import _EvoDictT, _ScheduleT
+    from .schemas import _ScheduleT
+    from .schemas.typedefs import EvoLocEntryT, EvoUsrConfigT
 
 
 SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)
@@ -34,8 +35,8 @@ class EvohomeClientNew:
 
     _LOC_IDX: int = 0  # the index of the default location in _user_locs
 
-    _user_info: _EvoDictT | None = None
-    _user_locs: list[_EvoDictT] | None = None  # all locations of the user
+    _user_info: EvoUsrConfigT | None = None
+    _user_locs: list[EvoLocEntryT] | None = None  # all locations of the user
 
     def __init__(
         self,
@@ -75,7 +76,7 @@ class EvohomeClientNew:
         *,
         _reset_config: bool = False,
         _dont_update_status: bool = False,
-    ) -> list[_EvoDictT]:
+    ) -> list[EvoLocEntryT]:
         """Retrieve the latest state of the installation and it's locations.
 
         If required, or when `_reset_config` is true, first retrieves the user
@@ -110,8 +111,8 @@ class EvohomeClientNew:
             self._locations = []
             self._location_by_id = {}
 
-            for loc_config in self._user_locs:
-                loc = Location(self, loc_config)
+            for loc_entry in self._user_locs:
+                loc = Location(self, loc_entry)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 
@@ -132,7 +133,7 @@ class EvohomeClientNew:
         return self._user_locs
 
     @property
-    def user_account(self) -> _EvoDictT:
+    def user_account(self) -> EvoUsrConfigT:
         """Return the (config) information of the user account."""
 
         if not self._user_info:
@@ -143,7 +144,7 @@ class EvohomeClientNew:
         return self._user_info
 
     @property
-    def user_installation(self) -> list[_EvoDictT]:
+    def user_installation(self) -> list[EvoLocEntryT]:
         """Return the (config) information of all the user's locations."""
 
         if not self._user_locs:

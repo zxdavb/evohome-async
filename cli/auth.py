@@ -7,17 +7,17 @@ import json
 import tempfile
 from datetime import datetime as dt, timedelta as td
 from pathlib import Path
-from typing import Any, Final, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
 
 import aiofiles
 import aiofiles.os
 
 from evohomeasync.auth import SZ_SESSION_ID_EXPIRES, AbstractSessionManager, SessionIdT
-from evohomeasync2.auth import (
-    SZ_ACCESS_TOKEN_EXPIRES,
-    AbstractTokenManager,
-    AuthTokensT,
-)
+from evohomeasync2.auth import SZ_ACCESS_TOKEN_EXPIRES, AbstractTokenManager
+
+if TYPE_CHECKING:
+    from evohomeasync2.auth import AuthTokensT
+
 
 CACHE_FILE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tmp")
 

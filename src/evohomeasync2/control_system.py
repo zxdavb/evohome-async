@@ -48,6 +48,14 @@ from .zone import ActiveFaultsBase, Zone
 if TYPE_CHECKING:
     from . import Gateway, Location
     from .schemas import _EvoDictT, _ScheduleT
+    from .schemas.typedefs import (
+        EvoAllowedSystemModeT,
+        EvoDhwConfigT,
+        EvoSystemModeStatusT,
+        EvoTcsConfigT,
+        EvoTcsEntryT,
+        EvoZonConfigT,
+    )
 
 
 class ControlSystem(ActiveFaultsBase):
@@ -56,7 +64,7 @@ class ControlSystem(ActiveFaultsBase):
     STATUS_SCHEMA: Final = factory_tcs_status(camel_to_snake)
     _TYPE: Final = EntityType.TCS  # type: ignore[misc]
 
-    def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
+    def __init__(self, gateway: Gateway, config: EvoTcsEntryT) -> None:
         super().__init__(
             config[SZ_SYSTEM_ID],
             gateway._auth,
@@ -66,7 +74,7 @@ class ControlSystem(ActiveFaultsBase):
         self.gateway = gateway  # parent
         self.location: Location = gateway.location
 
-        self._config: Final[_EvoDictT] = {  # type: ignore[misc]
+        self._config: Final[EvoTcsConfigT] = {  # type: ignore[assignment,misc]
             k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
         }
         self._status: _EvoDictT = {}
@@ -77,22 +85,22 @@ class ControlSystem(ActiveFaultsBase):
 
         self.hotwater: HotWater | None = None
 
-        zon_config: _EvoDictT
-        for zon_config in config[SZ_ZONES]:
+        zon_entry: EvoZonConfigT
+        for zon_entry in config[SZ_ZONES]:
             try:
-                zone = Zone(self, zon_config)
+                zone = Zone(self, zon_entry)
             except exc.InvalidSchemaError as err:
                 self._logger.warning(
-                    f"{self}: zone_id='{zon_config[SZ_ZONE_ID]}' ignored: {err}"
+                    f"{self}: zone_id='{zon_entry[SZ_ZONE_ID]}' ignored: {err}"
                 )
             else:
                 self.zones.append(zone)
                 self.zones_by_name[zone.name] = zone
                 self.zones_by_id[zone.id] = zone
 
-        dhw_config: _EvoDictT
-        if dhw_config := config.get(SZ_DHW):  # type: ignore[assignment]
-            self.hotwater = HotWater(self, dhw_config)
+        dhw_entry: EvoDhwConfigT
+        if dhw_entry := config.get(SZ_DHW):  # type: ignore[assignment]
+            self.hotwater = HotWater(self, dhw_entry)
 
     def _update_status(self, status: _EvoDictT) -> None:
         super()._update_status(status)  # process active faults
@@ -120,7 +128,7 @@ class ControlSystem(ActiveFaultsBase):
                 )
 
     @property
-    def allowed_system_modes(self) -> list[_EvoDictT]:
+    def allowed_system_modes(self) -> list[EvoAllowedSystemModeT]:
         """
         "allowedSystemModes": [
             {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
@@ -133,28 +141,24 @@ class ControlSystem(ActiveFaultsBase):
         ]
         """
 
-        ret: list[_EvoDictT] = self._config[SZ_ALLOWED_SYSTEM_MODES]
-        return ret
+        return self._config[SZ_ALLOWED_SYSTEM_MODES]
 
     @property  # a convenience attr
     def mode(self) -> SystemMode | None:
         if self.system_mode_status is None:
             return None
-        ret: SystemMode = self.system_mode_status[SZ_MODE]
-        return ret
+        return self.system_mode_status[SZ_MODE]
 
     @property  # a convenience attr
     def modes(self) -> tuple[SystemMode]:
-        ret = tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
-        return ret
+        return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)  # type: ignore[return-value]
 
     @property
     def model(self) -> TcsModelType:
-        ret: TcsModelType = self._config[SZ_MODEL_TYPE]
-        return ret
+        return self._config[SZ_MODEL_TYPE]
 
     @property
-    def system_mode_status(self) -> _EvoDictT | None:
+    def system_mode_status(self) -> EvoSystemModeStatusT | None:
         """
         "systemModeStatus": {
             "mode": "AutoWithEco",
@@ -162,8 +166,7 @@ class ControlSystem(ActiveFaultsBase):
         }
         """
 
-        ret: _EvoDictT | None = self._status.get(SZ_SYSTEM_MODE_STATUS)
-        return ret
+        return self._status.get(SZ_SYSTEM_MODE_STATUS)
 
     @property
     def zones_by_name(self) -> dict[str, Zone]:

@@ -30,6 +30,8 @@ async def _test_schedule(evo: EvohomeClientv2) -> None:
     Also test commTasks?commTaskId={task_id}
     """
 
+    schedule: dict[str, list]  # {'dailySchedules': [...]}
+
     # TODO: remove .update() and use URLs only
     await evo.update()
 

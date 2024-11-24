@@ -10,7 +10,7 @@ from collections.abc import Awaitable, Callable, Generator
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Final, TypedDict
+from typing import TYPE_CHECKING, Any, Final
 
 import aiohttp
 import voluptuous as vol
@@ -23,6 +23,10 @@ if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
 
     from .schemas import _EvoDictT, _EvoSchemaT  # pragma: no cover
+    from .schemas.typedefs import (
+        EvoAuthTokensDictT as AuthTokensT,
+        TccAuthTokensResponseT as AuthTokenResponseT,
+    )
 
 
 _APPLICATION_ID: Final = base64.b64encode(
@@ -97,18 +101,6 @@ _ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # GET/PUT url_b
     HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
     HTTPStatus.UNAUTHORIZED: "Unauthorized (expired access token/unknown entity id?)",
 }
-
-
-class AuthTokensT(TypedDict):
-    access_token: str
-    access_token_expires: str  # dt.isoformat()
-    refresh_token: str
-
-
-class AuthTokenResponseT(TypedDict):
-    access_token: str
-    expires_in: int  # number of seconds
-    refresh_token: str
 
 
 class AbstractTokenManager(ABC):
@@ -394,6 +386,8 @@ class Auth:
 
         Optionally checks the response JSON against the expected schema and logs a
         warning if it doesn't match.
+
+        Any keys in the response JSON will have been converted to snake_case.
         """
 
         response: _EvoSchemaT
@@ -420,6 +414,8 @@ class Auth:
 
         Optionally checks the payload JSON against the expected schema and logs a
         warning if it doesn't match.
+
+        Any snake_case keys in the request JSON will be converted to camelCase.
         """
 
         response: dict[str, Any] | list[dict[str, Any]]

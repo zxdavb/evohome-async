@@ -9,9 +9,7 @@ from __future__ import annotations
 import json
 from datetime import datetime as dt, timedelta as td
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Final
-
-import voluptuous as vol
+from typing import TYPE_CHECKING, Any, Final
 
 from evohome.helpers import camel_to_snake
 
@@ -38,7 +36,6 @@ from .const import (
     SZ_ZONE_TYPE,
 )
 from .schemas import (
-    convert_to_put_schedule,
     factory_put_schedule_zone,
     factory_schedule_zone,
     factory_zone_status,
@@ -62,6 +59,13 @@ if TYPE_CHECKING:
     from . import ControlSystem
     from .auth import Auth
     from .schemas import _EvoDictT, _EvoListT
+    from .schemas.typedefs import (
+        DailySchedulesDhwT,
+        DailySchedulesZoneT,
+        DayOfWeekDhwT,
+        DayOfWeekZoneT,
+        EvoZonConfigT,
+    )
 
 
 _ONE_DAY = td(days=1)
@@ -70,7 +74,7 @@ _ONE_DAY = td(days=1)
 class EntityBase:
     _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
 
-    _config: _EvoDictT
+    _config: dict[str, Any]
     _status: _EvoDictT
 
     def __init__(self, id: str, auth: Auth, logger: logging.Logger) -> None:
@@ -158,14 +162,12 @@ class _ZoneBase(ActiveFaultsBase):
     SCH_SCHEDULE_GET: Final  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final  # type: ignore[misc]
 
-    def __init__(self, id: str, tcs: ControlSystem, config: _EvoDictT) -> None:
+    _schedule: list[DayOfWeekDhwT] | list[DayOfWeekZoneT] | None
+
+    def __init__(self, id: str, tcs: ControlSystem) -> None:
         super().__init__(id, tcs._auth, tcs._logger)
 
         self.tcs = tcs  # parent
-
-        self._config: Final[_EvoDictT] = config  # type: ignore[misc]
-        self._schedule: _EvoDictT = {}
-        self._status: _EvoDictT = {}
 
     async def _update(self) -> _EvoDictT:
         """Get the latest state of the DHW/zone and update its status.
@@ -208,13 +210,17 @@ class _ZoneBase(ActiveFaultsBase):
         ret: float = status[SZ_TEMPERATURE]
         return ret
 
-    async def get_schedule(self) -> _EvoDictT:
+    async def get_schedule(
+        self,
+    ) -> list[DayOfWeekDhwT] | list[DayOfWeekZoneT]:
         """Get the schedule for this DHW/zone object."""
+
+        schedule: DailySchedulesDhwT | DailySchedulesZoneT
 
         self._logger.debug(f"{self}: Getting schedule...")
 
         try:
-            schedule: _EvoDictT = await self._auth.get(
+            schedule = await self._auth.get(
                 f"{self._TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE_GET
             )  # type: ignore[assignment]
 
@@ -225,20 +231,18 @@ class _ZoneBase(ActiveFaultsBase):
                 ) from err
             raise exc.RequestFailedError(f"{self}: Unexpected error") from err
 
-        except vol.Invalid as err:
-            raise exc.InvalidScheduleError(
-                f"{self}: No Schedule / Schedule is invalid"
-            ) from err
-
-        self._schedule = convert_to_put_schedule(schedule)
+        self._schedule = schedule["daily_schedules"]
         return self._schedule
 
-    async def set_schedule(self, schedule: _EvoDictT | str) -> None:
+    async def set_schedule(
+        self,
+        schedule: list[DayOfWeekDhwT] | list[DayOfWeekZoneT] | str,
+    ) -> None:
         """Set the schedule for this DHW/zone object."""
 
         self._logger.debug(f"{self}: Setting schedule...")
 
-        if isinstance(schedule, dict):
+        if isinstance(schedule, list):
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
@@ -259,13 +263,15 @@ class _ZoneBase(ActiveFaultsBase):
                 f"{self}: Invalid schedule type: {type(schedule)}"
             )
 
-        assert isinstance(schedule, dict)  # mypy check
+        assert isinstance(schedule, list)  # mypy check
 
-        await self._auth.put(
+        task_id = await self._auth.put(
             f"{self._TYPE}/{self.id}/schedule",
-            json=schedule,
+            json={"daily_schedules": schedule},
             schema=self.SCH_SCHEDULE_PUT,
         )
+
+        # TODO: check the status of the task
 
         self._schedule = schedule
 
@@ -299,8 +305,13 @@ class Zone(_ZoneBase):
     SCH_SCHEDULE_GET: Final = factory_schedule_zone(camel_to_snake)  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final = factory_put_schedule_zone(camel_to_snake)  # type: ignore[misc]
 
-    def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(config[SZ_ZONE_ID], tcs, config)
+    def __init__(self, tcs: ControlSystem, config: EvoZonConfigT) -> None:
+        super().__init__(config[SZ_ZONE_ID], tcs)
+
+        self._config: Final[EvoZonConfigT] = config  # type: ignore[assignment,misc]
+        self._status: _EvoDictT = {}
+
+        self._schedule: list[DayOfWeekZoneT] | None = None  # type: ignore[assignment]
 
         if not self.model or self.model == ZoneModelType.UNKNOWN:
             raise exc.InvalidSchemaError(
