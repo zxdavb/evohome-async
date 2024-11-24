@@ -65,6 +65,9 @@ if TYPE_CHECKING:
         SwitchpointZoneT,
     )
 
+    SwitchpointT = SwitchpointDhwT | SwitchpointZoneT
+    DayOfWeekT = DayOfWeekDhwT | DayOfWeekZoneT
+
 
 _ONE_DAY = td(days=1)
 
@@ -150,6 +153,53 @@ class ActiveFaultsBase(EntityBase):
         """
 
         return self._active_faults
+
+
+def find_switchpoints(
+    schedule: list[DayOfWeekDhwT] | list[DayOfWeekZoneT],
+    day_of_week: DayOfWeek,
+    time_of_day: str,
+) -> tuple[dict[str, float | str], dict[str, float | str]]:
+    """Find the current and next switchpoints for a given day and time of day."""
+
+    # assumes >1 switchpoint per day, which could be this_sp or next_sp only
+
+    try:
+        day_idx = list(DayOfWeek).index(day_of_week)
+    except ValueError as err:
+        raise TypeError(f"Invalid parameter: {day_of_week}") from err
+
+    this_sp: SwitchpointT | None = None
+    next_sp: SwitchpointT | None = None
+
+    this_offset = "+00:00"
+    next_offset = "+00:00"
+
+    # Check the switchpoints of the given day of week
+    for sp in schedule[day_idx]["switchpoints"]:
+        if sp["time_of_day"] <= time_of_day:
+            this_sp = sp
+            continue
+
+        elif sp["time_of_day"] > time_of_day:
+            if this_sp is None:
+                this_sp = schedule[(day_idx + 6) % 7]["switchpoints"][-1]
+                this_offset = "-24:00"
+
+            next_sp = sp
+            break
+
+    else:
+        if next_sp is None:
+            next_sp = schedule[(day_idx + 1) % 7]["switchpoints"][0]
+            next_offset = "+24:00"
+
+        assert this_sp is not None  # mypy
+
+    this_sp["offset"] = this_offset  # type: ignore[typeddict-unknown-key]
+    next_sp["offset"] = next_offset  # type: ignore[typeddict-unknown-key]
+
+    return this_sp, next_sp  # type: ignore[return-value]
 
 
 class _ZoneBase(ActiveFaultsBase):
@@ -273,26 +323,15 @@ class _ZoneBase(ActiveFaultsBase):
 
         self._schedule = schedule
 
-    def _switchpoint(
+    def find_switchpoints(
         self, day_of_week: DayOfWeek, time_of_day: str
-    ) -> SwitchpointDhwT | SwitchpointZoneT:
-        """Return the next switchpoint for the given day and time, or None."""
+    ) -> tuple[SwitchpointT, SwitchpointT]:
+        """Find the current and next switchpoints for a given day and time of day."""
 
-        if day_of_week not in DayOfWeek:
-            raise TypeError(f"Invalid parameter: {day_of_week}")
+        if not self._schedule:
+            raise exc.InvalidScheduleError("No schedule retrieved")
 
-        if self._schedule is None:
-            raise exc.InvalidScheduleError(f"{self}: No schedule retrieved")
-
-        for sched in self._schedule:
-            if sched["day_of_week"] == day_of_week:
-                for switchpoint in sched["switchpoints"]:
-                    if switchpoint["time_of_day"] < time_of_day:
-                        continue
-                    if switchpoint["time_of_day"] == time_of_day:
-                        return switchpoint
-
-        raise exc.InvalidScheduleError("No switchpoint found")
+        return find_switchpoints(self._schedule, day_of_week, time_of_day)
 
 
 # Currently, cooling (e.g. target_heat_temperature) is not supported by the API

@@ -5,11 +5,82 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2.schemas import SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE
 
 from .conftest import JsonObjectType, load_fixture
 
 SCHEDULES_DIR = Path(__file__).parent / "schedules"
+
+SCHEDULE = convert_keys_to_snake_case(
+    {
+        "dailySchedules": [
+            {
+                "dayOfWeek": "Monday",
+                "switchpoints": [
+                    {"heatSetpoint": 23.2, "timeOfDay": "06:30:00"},
+                    {"heatSetpoint": 18.0, "timeOfDay": "08:00:00"},
+                    {"heatSetpoint": 19.1, "timeOfDay": "17:00:00"},
+                    {"heatSetpoint": 14.9, "timeOfDay": "21:30:00"},
+                ],
+            },
+            {
+                "dayOfWeek": "Tuesday",
+                "switchpoints": [
+                    {"heatSetpoint": 19.2, "timeOfDay": "06:30:00"},
+                    {"heatSetpoint": 18.2, "timeOfDay": "08:00:00"},
+                    {"heatSetpoint": 19.3, "timeOfDay": "17:00:00"},
+                    {"heatSetpoint": 14.9, "timeOfDay": "21:30:00"},
+                ],
+            },
+            {
+                "dayOfWeek": "Wednesday",
+                "switchpoints": [
+                    {"heatSetpoint": 19.1, "timeOfDay": "06:30:00"},
+                    {"heatSetpoint": 18.0, "timeOfDay": "08:00:00"},
+                    {"heatSetpoint": 19.1, "timeOfDay": "17:00:00"},
+                    {"heatSetpoint": 14.9, "timeOfDay": "21:30:00"},
+                ],
+            },
+            {
+                "dayOfWeek": "Thursday",
+                "switchpoints": [
+                    {"heatSetpoint": 19.1, "timeOfDay": "06:30:00"},
+                    {"heatSetpoint": 18.0, "timeOfDay": "08:00:00"},
+                    {"heatSetpoint": 19.1, "timeOfDay": "17:00:00"},
+                    {"heatSetpoint": 14.9, "timeOfDay": "21:30:00"},
+                ],
+            },
+            {
+                "dayOfWeek": "Friday",
+                "switchpoints": [
+                    {"heatSetpoint": 19.1, "timeOfDay": "06:30:00"},
+                    {"heatSetpoint": 18.0, "timeOfDay": "08:00:00"},
+                    {"heatSetpoint": 19.1, "timeOfDay": "17:00:00"},
+                    {"heatSetpoint": 14.9, "timeOfDay": "21:30:00"},
+                ],
+            },
+            {
+                "dayOfWeek": "Saturday",
+                "switchpoints": [
+                    {"heatSetpoint": 19.1, "timeOfDay": "07:30:00"},
+                    {"heatSetpoint": 18.5, "timeOfDay": "11:00:00"},
+                    {"heatSetpoint": 19.1, "timeOfDay": "17:00:00"},
+                    {"heatSetpoint": 14.9, "timeOfDay": "21:30:00"},
+                ],
+            },
+            {
+                "dayOfWeek": "Sunday",
+                "switchpoints": [
+                    {"heatSetpoint": 19.1, "timeOfDay": "07:30:00"},
+                    {"heatSetpoint": 18.5, "timeOfDay": "11:00:00"},
+                    {"heatSetpoint": 19.1, "timeOfDay": "17:00:00"},
+                    {"heatSetpoint": 14.8, "timeOfDay": "21:30:00"},
+                ],
+            },
+        ]
+    }
+)
 
 
 def schedule_fixture(filename: str) -> JsonObjectType:
@@ -40,3 +111,36 @@ def _test_schema_schedule_zone() -> None:
 
     # assert put_sched == convert_to_put_schedule(get_sched)
     # assert get_sched == convert_to_get_schedule(put_sched)
+
+
+def test_find_switchpoints() -> None:
+    """Test the find_switchpoints method."""
+
+    from evohomeasync2.zone import find_switchpoints
+
+    schedule = SCHEDULE["daily_schedules"]
+
+    assert find_switchpoints(schedule, "Monday", "00:00:00") == (
+        {"heat_setpoint": 14.8, "time_of_day": "21:30:00", "offset": "-24:00"},
+        {"heat_setpoint": 23.2, "time_of_day": "06:30:00", "offset": "+00:00"},
+    )
+
+    assert find_switchpoints(schedule, "Tuesday", "07:59:59") == (
+        {"heat_setpoint": 19.2, "time_of_day": "06:30:00", "offset": "+00:00"},
+        {"heat_setpoint": 18.2, "time_of_day": "08:00:00", "offset": "+00:00"},
+    )
+
+    assert find_switchpoints(schedule, "Tuesday", "08:00:00") == (
+        {"heat_setpoint": 18.2, "time_of_day": "08:00:00", "offset": "+00:00"},
+        {"heat_setpoint": 19.3, "time_of_day": "17:00:00", "offset": "+00:00"},
+    )
+
+    assert find_switchpoints(schedule, "Tuesday", "08:00:01") == (
+        {"heat_setpoint": 18.2, "time_of_day": "08:00:00", "offset": "+00:00"},
+        {"heat_setpoint": 19.3, "time_of_day": "17:00:00", "offset": "+00:00"},
+    )
+
+    assert find_switchpoints(schedule, "Sunday", "23:59:59") == (
+        {"heat_setpoint": 14.8, "time_of_day": "21:30:00", "offset": "+00:00"},
+        {"heat_setpoint": 23.2, "time_of_day": "06:30:00", "offset": "+24:00"},
+    )
