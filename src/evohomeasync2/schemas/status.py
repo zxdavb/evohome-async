@@ -61,7 +61,7 @@ def factory_active_faults(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required(fnc(S2_FAULT_TYPE)): vol.In([m.value for m in FaultType]),
+            vol.Required(fnc(S2_FAULT_TYPE)): vol.In(FaultType),
             vol.Required(fnc(S2_SINCE)): vol.Any(
                 vol.Datetime(format="%Y-%m-%dT%H:%M:%S"),  # faults for zones
                 vol.Datetime(format="%Y-%m-%dT%H:%M:%S.%f"),
@@ -97,7 +97,7 @@ def factory_zone_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
     SCH_SETPOINT_STATUS: Final = vol.Schema(
         {
             vol.Required(fnc(S2_TARGET_HEAT_TEMPERATURE)): float,
-            vol.Required(fnc(S2_SETPOINT_MODE)): vol.In([m.value for m in ZoneMode]),
+            vol.Required(fnc(S2_SETPOINT_MODE)): vol.In(ZoneMode),
             vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
         },
         extra=vol.PREVENT_EXTRA,
@@ -105,7 +105,7 @@ def factory_zone_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_FAN_STATUS: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_FAN_MODE)): vol.In([m.value for m in FanMode]),
+            vol.Required(fnc(S2_FAN_MODE)): vol.In(FanMode),
             vol.Required(fnc(S2_CAN_BE_CHANGED)): bool,
         },
         extra=vol.PREVENT_EXTRA,
@@ -129,8 +129,8 @@ def factory_dhw_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_STATE_STATUS: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_STATE)): vol.In([m.value for m in DhwState]),
-            vol.Required(fnc(S2_MODE)): vol.In([m.value for m in ZoneMode]),
+            vol.Required(fnc(S2_STATE)): vol.In(DhwState),
+            vol.Required(fnc(S2_MODE)): vol.In(ZoneMode),
             vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
         },
         extra=vol.PREVENT_EXTRA,
@@ -153,7 +153,7 @@ def factory_system_mode_status(fnc: Callable[[str], str] = noop) -> vol.Any:
     return vol.Any(
         vol.Schema(
             {
-                vol.Required(fnc(S2_MODE)): vol.In([m.value for m in SystemMode]),
+                vol.Required(fnc(S2_MODE)): vol.In(SystemMode),
                 vol.Required(fnc(S2_IS_PERMANENT)): True,
             }
         ),

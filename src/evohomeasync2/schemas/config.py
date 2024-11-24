@@ -191,7 +191,7 @@ def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_FAN_MODE: Final = vol.Schema(  # noqa: F841
         {
-            vol.Required(fnc(S2_FAN_MODE)): vol.In([m.value for m in FanMode]),
+            vol.Required(fnc(S2_FAN_MODE)): vol.In(FanMode),
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -249,11 +249,11 @@ def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_ZONE_ID)): vol.Match(REGEX_ZONE_ID),
-            vol.Required(fnc(S2_MODEL_TYPE)): vol.In([m.value for m in ZoneModelType]),
+            vol.Required(fnc(S2_MODEL_TYPE)): vol.In(ZoneModelType),
             vol.Required(fnc(S2_NAME)): str,
             vol.Required(fnc(S2_SETPOINT_CAPABILITIES)): SCH_SETPOINT_CAPABILITIES,
             vol.Optional(fnc(S2_SCHEDULE_CAPABILITIES)): SCH_SCHEDULE_CAPABILITIES,
-            vol.Required(fnc(S2_ZONE_TYPE)): vol.In([m.value for m in ZoneType]),
+            vol.Required(fnc(S2_ZONE_TYPE)): vol.In(ZoneType),
             vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): list,  # FocusProWifiRetail
         },
         extra=vol.PREVENT_EXTRA,
@@ -270,7 +270,7 @@ def factory_tcs(fnc: Callable[[str], str] = noop) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
-            vol.Required(fnc(S2_MODEL_TYPE)): vol.In([m.value for m in TcsModelType]),
+            vol.Required(fnc(S2_MODEL_TYPE)): vol.In(TcsModelType),
             vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [SCH_ALLOWED_SYSTEM_MODES],
             vol.Required(fnc(S2_ZONES)): vol.All(
                 [factory_zone(fnc)], vol.Length(min=1, max=12)
@@ -341,9 +341,7 @@ def factory_locations_installation_info(
             vol.Required(fnc(S2_CITY)): vol.All(str, obfuscate),
             vol.Required(fnc(S2_COUNTRY)): str,
             vol.Required(fnc(S2_POSTCODE)): vol.All(str, obfuscate),
-            vol.Required(fnc(S2_LOCATION_TYPE)): vol.In(
-                [m.value for m in LocationType]
-            ),  # "Residential"
+            vol.Required(fnc(S2_LOCATION_TYPE)): vol.In(LocationType),  # "Residential"
             vol.Required(fnc(S2_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
             vol.Required(fnc(S2_TIME_ZONE)): factory_time_zone(fnc),
             vol.Required(fnc(S2_LOCATION_OWNER)): SCH_LOCATION_OWNER,
