@@ -164,6 +164,7 @@ class Location(EntityBase):
                 )
 
 
+# it is ostensibly optional to provide this data to our TzInfo object
 _DEFAULT_TIME_ZONE_INFO: EvoTimeZoneInfoT = {
     "time_zone_id": "GMTStandardTime",
     "display_name": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
