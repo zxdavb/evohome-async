@@ -81,12 +81,20 @@ async def _test_user_locations(evo: EvohomeClientv2) -> None:
 
     #
     url = f"location/installationInfo?userId={user_info["userId"]}"
-    await should_work_v2(
+    _ = await should_work_v2(
         evo.auth,
         HTTPMethod.GET,
         url,
         schema=None,  # schema not tested here
     )
+
+    # url = f"location/{loc_id}/installationInfo"  # no TCS info
+    # _ = await should_work_v2(
+    #     evo.auth,
+    #     HTTPMethod.GET,
+    #     url,
+    #     schema=None,  # schema not tested here
+    # )
 
     #
     url += "&includeTemperatureControlSystems=True"
@@ -175,7 +183,7 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
 
 
 async def _test_tcs_status(evo: EvohomeClientv2) -> None:
-    """Test /temperatureControlSystem/{tcs.id}/statis
+    """Test /temperatureControlSystem/{tcs.id}/status
 
     Also tests /temperatureControlSystem/{tcs.id}/mode
     """

@@ -18,8 +18,10 @@ from evohomeasync2.schemas.const import (
     S2_GATEWAYS,
     S2_LOCATION_ID,
     S2_LOCATION_INFO,
+    S2_SUPPORTS_DAYLIGHT_SAVING,
     S2_TEMPERATURE_CONTROL_SYSTEMS,
     S2_TIME_ZONE,
+    S2_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from evohomeasync2.schemas.status import factory_loc_status
 
@@ -66,6 +68,12 @@ def test_config_refresh(folder: Path) -> None:
     # hack because old JSON from HA's evohome integration didn't have location_id, etc.
     if not config[S2_LOCATION_INFO].get(S2_LOCATION_ID):
         config[S2_LOCATION_INFO][S2_LOCATION_ID] = status[S2_LOCATION_ID]
+
+    # hack because old JSON from HA's evohome integration didn't include this data
+    if config[S2_LOCATION_INFO].get(S2_USE_DAYLIGHT_SAVE_SWITCHING) is None:
+        config[S2_LOCATION_INFO][S2_USE_DAYLIGHT_SAVE_SWITCHING] = config[
+            S2_LOCATION_INFO
+        ][S2_TIME_ZONE][S2_SUPPORTS_DAYLIGHT_SAVING]
 
     # hack because the JSON is from HA's evohome integration, not vendor's TCC servers
     if not config[S2_GATEWAYS][0].get(S2_GATEWAY_ID):

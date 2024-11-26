@@ -16,8 +16,10 @@ from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
 from evohomeasync2.schemas.const import (
     S2_GATEWAYS,
     S2_LOCATION_INFO,
+    S2_SUPPORTS_DAYLIGHT_SAVING,
     S2_TEMPERATURE_CONTROL_SYSTEMS,
     S2_TIME_ZONE,
+    S2_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 
 from .common import TEST_DIR
@@ -56,6 +58,12 @@ def test_config_refresh(folder: Path) -> None:
 
     with open(Path(folder).joinpath(CONFIG_FILE_NAME)) as f:
         config: dict = json.load(f)  # is camelCase, as per vendor's schema
+
+    # hack because old JSON from HA's evohome integration didn't include this data
+    if config[S2_LOCATION_INFO].get(S2_USE_DAYLIGHT_SAVE_SWITCHING) is None:
+        config[S2_LOCATION_INFO][S2_USE_DAYLIGHT_SAVE_SWITCHING] = config[
+            S2_LOCATION_INFO
+        ][S2_TIME_ZONE][S2_SUPPORTS_DAYLIGHT_SAVING]
 
     with open(Path(folder).joinpath(STATUS_FILE_NAME)) as f:
         status: dict = json.load(f)  # is camelCase, as per vendor's schema
