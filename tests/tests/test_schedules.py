@@ -116,31 +116,41 @@ def _test_schema_schedule_zone() -> None:
 def test_find_switchpoints() -> None:
     """Test the find_switchpoints method."""
 
-    from evohomeasync2.zone import find_switchpoints
+    from evohomeasync2.zone import _find_switchpoints
 
     schedule = SCHEDULE["daily_schedules"]
 
-    assert find_switchpoints(schedule, "Monday", "00:00:00") == (
-        {"heat_setpoint": 14.8, "time_of_day": "21:30:00", "offset": "-24:00"},
-        {"heat_setpoint": 23.2, "time_of_day": "06:30:00", "offset": "+00:00"},
+    assert _find_switchpoints(schedule, "Monday", "00:00:00") == (
+        {"heat_setpoint": 14.8, "time_of_day": "21:30:00"},
+        -1,
+        {"heat_setpoint": 23.2, "time_of_day": "06:30:00"},
+        0,
     )
 
-    assert find_switchpoints(schedule, "Tuesday", "07:59:59") == (
-        {"heat_setpoint": 19.2, "time_of_day": "06:30:00", "offset": "+00:00"},
-        {"heat_setpoint": 18.2, "time_of_day": "08:00:00", "offset": "+00:00"},
+    assert _find_switchpoints(schedule, "Tuesday", "07:59:59") == (
+        {"heat_setpoint": 19.2, "time_of_day": "06:30:00"},
+        0,
+        {"heat_setpoint": 18.2, "time_of_day": "08:00:00"},
+        0,
     )
 
-    assert find_switchpoints(schedule, "Tuesday", "08:00:00") == (
-        {"heat_setpoint": 18.2, "time_of_day": "08:00:00", "offset": "+00:00"},
-        {"heat_setpoint": 19.3, "time_of_day": "17:00:00", "offset": "+00:00"},
+    assert _find_switchpoints(schedule, "Tuesday", "08:00:00") == (
+        {"heat_setpoint": 18.2, "time_of_day": "08:00:00"},
+        0,
+        {"heat_setpoint": 19.3, "time_of_day": "17:00:00"},
+        0,
     )
 
-    assert find_switchpoints(schedule, "Tuesday", "08:00:01") == (
-        {"heat_setpoint": 18.2, "time_of_day": "08:00:00", "offset": "+00:00"},
-        {"heat_setpoint": 19.3, "time_of_day": "17:00:00", "offset": "+00:00"},
+    assert _find_switchpoints(schedule, "Tuesday", "08:00:01") == (
+        {"heat_setpoint": 18.2, "time_of_day": "08:00:00"},
+        0,
+        {"heat_setpoint": 19.3, "time_of_day": "17:00:00"},
+        0,
     )
 
-    assert find_switchpoints(schedule, "Sunday", "23:59:59") == (
-        {"heat_setpoint": 14.8, "time_of_day": "21:30:00", "offset": "+00:00"},
-        {"heat_setpoint": 23.2, "time_of_day": "06:30:00", "offset": "+24:00"},
+    assert _find_switchpoints(schedule, "Sunday", "23:59:59") == (
+        {"heat_setpoint": 14.8, "time_of_day": "21:30:00"},
+        0,
+        {"heat_setpoint": 23.2, "time_of_day": "06:30:00"},
+        1,
     )

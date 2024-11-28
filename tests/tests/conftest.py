@@ -51,7 +51,7 @@ def block_aiohttp() -> Generator[Callable]:
 
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
-async def client_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
+async def client_session() -> AsyncGenerator[aiohttp.ClientSession]:
     """Yield an aiohttp.ClientSession (never faked)."""
 
     client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
@@ -143,7 +143,7 @@ def use_real_aiohttp() -> bool:
 async def evohome_v2(
     install: str,
     cache_manager: CacheManager,
-) -> AsyncGenerator[EvohomeClientv2, None]:
+) -> AsyncGenerator[EvohomeClientv2]:
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync2.auth.Auth.get", broker_get(install)):

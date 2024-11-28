@@ -178,3 +178,11 @@ class HotWater(_ZoneBase):
             }
 
         await self._set_state(mode)
+
+    async def get_schedule(self) -> list[DayOfWeekDhwT]:
+        """Get the schedule for this DHW."""  # mypy hint
+        return await super().get_schedule()  # type: ignore[return-value]
+
+    async def set_schedule(self, schedule: list[DayOfWeekDhwT] | str) -> None:  # type: ignore[override]
+        """Set the schedule for this DHW."""  # mypy hint
+        await super().set_schedule(schedule)

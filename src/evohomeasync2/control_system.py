@@ -16,13 +16,13 @@ from . import exceptions as exc
 from .const import (
     API_STRFTIME,
     SZ_ALLOWED_SYSTEM_MODES,
+    SZ_DAILY_SCHEDULES,
     SZ_DHW,
     SZ_DHW_ID,
     SZ_ID,  # remove?
     SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_NAME,
-    SZ_SCHEDULE,
     SZ_SETPOINT,  # remove?
     SZ_STATE,
     SZ_SYSTEM_ID,
@@ -47,10 +47,14 @@ from .zone import ActiveFaultsBase, Zone
 
 if TYPE_CHECKING:
     from . import Gateway, Location
-    from .schemas import _EvoDictT, _ScheduleT
+    from .schemas import _EvoDictT
     from .schemas.typedefs import (
+        DayOfWeekDhwT,
+        DayOfWeekZoneT,
         EvoAllowedSystemModeT,
         EvoDhwConfigT,
+        EvoScheduleDhwT,
+        EvoScheduleZoneT,
         EvoSystemModeStatusT,
         EvoTcsConfigT,
         EvoTcsEntryT,
@@ -272,56 +276,66 @@ class ControlSystem(ActiveFaultsBase):
 
         return result
 
-    async def get_schedules(self) -> _ScheduleT:
+    async def get_schedules(self) -> list[EvoScheduleDhwT | EvoScheduleZoneT]:
         """Backup all schedules from the control system."""
 
-        async def get_schedule(child: HotWater | Zone) -> _ScheduleT:
+        async def get_schedule(
+            child: HotWater | Zone,
+        ) -> list[DayOfWeekDhwT] | list[DayOfWeekZoneT]:
             try:
                 return await child.get_schedule()
             except exc.InvalidScheduleError:
                 self._logger.warning(
                     f"Ignoring schedule of {child.id} ({child.name}): missing/invalid"
                 )
-            return {}
+            return []
 
         self._logger.info(
             f"Schedules: Backing up from {self.id} ({self.location.name})"
         )
 
-        schedules = {}
+        schedules: list[EvoScheduleDhwT | EvoScheduleZoneT] = []
 
         for zone in self.zones:
-            schedules[zone.id] = {
-                SZ_NAME: zone.name,
-                SZ_SCHEDULE: await get_schedule(zone),
-            }
-
+            schedules.append(
+                {
+                    SZ_ZONE_ID: zone.id,
+                    SZ_NAME: zone.name,
+                    SZ_DAILY_SCHEDULES: await get_schedule(zone),  # type: ignore[typeddict-item]
+                }
+            )
         if self.hotwater:
-            schedules[self.hotwater.id] = {
-                SZ_NAME: self.hotwater.name,
-                SZ_SCHEDULE: await get_schedule(self.hotwater),
-            }
+            schedules.append(
+                {
+                    SZ_ZONE_ID: self.hotwater.id,
+                    SZ_NAME: self.hotwater.name,
+                    SZ_DAILY_SCHEDULES: await get_schedule(self.hotwater),  # type: ignore[typeddict-item]
+                }
+            )
 
         return schedules
 
     async def set_schedules(
-        self, schedules: _ScheduleT, match_by_name: bool = False
+        self,
+        schedules: list[EvoScheduleDhwT | EvoScheduleZoneT],
+        match_by_name: bool = False,
     ) -> bool:
         """Restore all schedules to the control system and return True if success.
 
         The default is to match a schedule to its zone/dhw by id.
         """
 
-        async def restore_by_id(id: str, schedule: _ScheduleT) -> bool:
+        async def restore_by_id(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
             """Restore schedule by id and return False if there was no match."""
 
-            name = schedule.get(SZ_NAME)
+            id: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
+            name: str = sched["name"]
 
             if self.hotwater and self.hotwater.id == id:
-                await self.hotwater.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
+                await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
 
             elif zone := self.zones_by_id.get(id):
-                await zone.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
+                await zone.set_schedule(json.dumps(sched["daily_schedules"]))
 
             else:
                 self._logger.warning(
@@ -332,16 +346,17 @@ class ControlSystem(ActiveFaultsBase):
 
             return True
 
-        async def restore_by_name(id: str, schedule: _ScheduleT) -> bool:
+        async def restore_by_name(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
             """Restore schedule by name and return False if there was no match."""
 
-            name: str = schedule[SZ_NAME]  # type: ignore[assignment]
+            id: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
+            name: str = sched["name"]
 
             if self.hotwater and name == self.hotwater.name:
-                await self.hotwater.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
+                await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
 
             elif zone := self.zones_by_name.get(name):
-                await zone.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
+                await zone.set_schedule(json.dumps(sched["daily_schedules"]))
 
             else:
                 self._logger.warning(
@@ -359,13 +374,11 @@ class ControlSystem(ActiveFaultsBase):
 
         with_errors = False
 
-        for id, schedule in schedules.items():
-            assert isinstance(schedule, dict)  # mypy
-
+        for sch in schedules:
             if match_by_name:
-                matched = await restore_by_name(id, schedule)
+                matched = await restore_by_name(sch)
             else:
-                matched = await restore_by_id(id, schedule)
+                matched = await restore_by_id(sch)
 
             with_errors = with_errors and not matched
 

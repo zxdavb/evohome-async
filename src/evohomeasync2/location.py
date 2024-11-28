@@ -3,10 +3,17 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime as dt, timedelta as td, tzinfo
 from typing import TYPE_CHECKING, Any, Final
+from zoneinfo import ZoneInfo
 
 from evohome.helpers import camel_to_snake
+from evohome.windows_zones import (
+    WINDOWS_TO_IANA_APAC,
+    WINDOWS_TO_IANA_ASIA,
+    WINDOWS_TO_IANA_EMEA,
+)
 
 from .const import (
     SZ_COUNTRY,
@@ -36,6 +43,18 @@ if TYPE_CHECKING:
     )
 
 
+_LOGGER = logging.getLogger(__name__.rpartition(".")[0])
+
+
+# TCC seen in EMEA and APAC (not Americas)
+WINDOWS_TO_IANA = {
+    k.replace(" ", "").replace(".", ""): v
+    for k, v in (
+        WINDOWS_TO_IANA_EMEA | WINDOWS_TO_IANA_ASIA | WINDOWS_TO_IANA_APAC
+    ).items()
+}
+
+
 class Location(EntityBase):
     """Instance of an account's location."""
 
@@ -55,7 +74,7 @@ class Location(EntityBase):
         self._config: EvoLocConfigT = config[SZ_LOCATION_INFO]  # type: ignore[assignment]
         self._status: _EvoDictT = {}
 
-        self._tzinfo = EvoTzInfo(self.time_zone_info, self.use_dst_switching)
+        self._tzinfo = create_tzinfo(self.time_zone_info, self.dst_enabled)
 
         # children
         self.gateways: list[Gateway] = []
@@ -101,19 +120,23 @@ class Location(EntityBase):
         return self._config[SZ_TIME_ZONE]
 
     @property
-    def use_dst_switching(self) -> bool:
+    def dst_enabled(self) -> bool:
+        """Return True if the location uses daylight saving time.
+
+        Not the same as the location's TZ supporting DST, nor the current DST status.
+        """
         return self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
 
     @property
-    def tzinfo(self) -> EvoTzInfo:
+    def tzinfo(self) -> tzinfo:
         """Return a tzinfo-compliant object for this Location."""
         return self._tzinfo
 
-    def now(self) -> dt:
+    def now(self) -> dt:  # TZ-aware
         """Return the current time as a local TZ-aware datetime object."""
         return dt.now(self.tzinfo)
 
-    async def update(self, update_tz_info: bool = False) -> _EvoDictT:
+    async def update(self, update_time_zone_info: bool = False) -> _EvoDictT:
         """Get the latest state of the location and update its status.
 
         Will also update the status of its gateways, their TCSs, and their DHW/zones.
@@ -121,7 +144,7 @@ class Location(EntityBase):
         Returns the raw JSON of the latest state.
         """
 
-        if update_tz_info:
+        if update_time_zone_info:
             await self._update_config()
 
         status: _EvoDictT = await self._auth.get(
@@ -144,7 +167,7 @@ class Location(EntityBase):
         self._config = config[SZ_LOCATION_INFO]
 
         # new TzInfo object, or update the existing one?
-        self._tzinfo = EvoTzInfo(self.time_zone_info, self.use_dst_switching)
+        self._tzinfo = EvoZoneInfo(self.time_zone_info, self.dst_enabled)
         # lf._tzinfo._update(self.time_zone_info, self.use_dst_switching)
 
     def _update_status(self, status: _EvoDictT) -> None:
@@ -174,7 +197,24 @@ _DEFAULT_TIME_ZONE_INFO: EvoTimeZoneInfoT = {
 }
 
 
-class EvoTzInfo(tzinfo):
+def create_tzinfo(time_zone_info: EvoTimeZoneInfoT, dst_enabled: bool) -> tzinfo:
+    """Create a tzinfo object based on the time zone information."""
+
+    time_zone_id = time_zone_info["time_zone_id"]
+
+    try:
+        return ZoneInfo(WINDOWS_TO_IANA[time_zone_id])
+    except (KeyError, ModuleNotFoundError):
+        pass
+
+    _LOGGER.warning(
+        "Unable to find IANA TZ for '%s'; DST transitions will not be automatic",
+        time_zone_id,
+    )
+    return EvoZoneInfo(time_zone_info, dst_enabled)
+
+
+class EvoZoneInfo(tzinfo):
     """Return a tzinfo object based on a TCC location's time zone information.
 
     The location does not know its IANA time zone, only its offsets, so:
@@ -207,6 +247,7 @@ class EvoTzInfo(tzinfo):
         time_zone_info: EvoTimeZoneInfoT | None = _DEFAULT_TIME_ZONE_INFO,
         use_dst_switching: bool | None = True,
     ) -> None:
+        """Initialise the class."""
         super().__init__()
 
         self._update(
@@ -218,6 +259,7 @@ class EvoTzInfo(tzinfo):
     # loc.tzinfo.dst(dt | None)
     # loc.tzinfo.tzname(dt | None)
     # loc.tzinfo.fromutc(loc.now())
+    # loc.now().astimezone(loc.tzinfo | None)
 
     def __repr__(self) -> str:
         return "{}({!r}, '{}', is_dst={})".format(
@@ -251,15 +293,6 @@ class EvoTzInfo(tzinfo):
             " (DST)" if self._dst else " (STD)"
         )
 
-    def utcoffset(self, dtm: dt | None) -> td:
-        """Return offset of local time from UTC, as a timedelta object.
-
-        The timedelta is positive east of UTC. If local time is west of UTC, this
-        should be negative.
-        """
-
-        return self._utcoffset
-
     def dst(self, dtm: dt | None) -> td:
         """Return the daylight saving time adjustment, as a timedelta object.
 
@@ -271,3 +304,12 @@ class EvoTzInfo(tzinfo):
     def tzname(self, dtm: dt | None) -> str:
         "datetime -> string name of time zone."
         return self._tzname
+
+    def utcoffset(self, dtm: dt | None) -> td:
+        """Return offset of local time from UTC, as a timedelta object.
+
+        The timedelta is positive east of UTC. If local time is west of UTC, this
+        should be negative.
+        """
+
+        return self._utcoffset

@@ -470,6 +470,11 @@
       ...
   
     ''',
+    'dst_enabled': '''
+      true
+      ...
+  
+    ''',
     'id': '''
       '2738909'
   
@@ -591,29 +596,9 @@
   
     ''',
     'tzinfo': '''
-      !!python/object/apply:evohomeasync2.location.EvoTzInfo
-      state:
-        _dst: !!python/object/apply:datetime.timedelta
-        - 0
-        - 3600
-        - 0
-        _time_zone_info:
-          current_offset_minutes: 60
-          display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
-          offset_minutes: 0
-          supports_daylight_saving: true
-          time_zone_id: GMTStandardTime
-        _tzname: GMTStandardTime (DST)
-        _use_dst_switching: true
-        _utcoffset: !!python/object/apply:datetime.timedelta
-        - 0
-        - 3600
-        - 0
-  
-    ''',
-    'use_dst_switching': '''
-      true
-      ...
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
   
     ''',
   })
@@ -2064,6 +2049,11 @@
       ...
   
     ''',
+    'dst_enabled': '''
+      true
+      ...
+  
+    ''',
     'id': '''
       '2738909'
   
@@ -2185,29 +2175,9 @@
   
     ''',
     'tzinfo': '''
-      !!python/object/apply:evohomeasync2.location.EvoTzInfo
-      state:
-        _dst: !!python/object/apply:datetime.timedelta
-        - 0
-        - 3600
-        - 0
-        _time_zone_info:
-          current_offset_minutes: 60
-          display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
-          offset_minutes: 0
-          supports_daylight_saving: true
-          time_zone_id: GMTStandardTime
-        _tzname: GMTStandardTime (DST)
-        _use_dst_switching: true
-        _utcoffset: !!python/object/apply:datetime.timedelta
-        - 0
-        - 3600
-        - 0
-  
-    ''',
-    'use_dst_switching': '''
-      true
-      ...
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
   
     ''',
   })
@@ -3663,6 +3633,11 @@
       ...
   
     ''',
+    'dst_enabled': '''
+      true
+      ...
+  
+    ''',
     'id': '''
       '2738909'
   
@@ -3786,29 +3761,9 @@
   
     ''',
     'tzinfo': '''
-      !!python/object/apply:evohomeasync2.location.EvoTzInfo
-      state:
-        _dst: !!python/object/apply:datetime.timedelta
-        - 0
-        - 3600
-        - 0
-        _time_zone_info:
-          current_offset_minutes: 60
-          display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
-          offset_minutes: 0
-          supports_daylight_saving: true
-          time_zone_id: GMTStandardTime
-        _tzname: GMTStandardTime (DST)
-        _use_dst_switching: true
-        _utcoffset: !!python/object/apply:datetime.timedelta
-        - 0
-        - 3600
-        - 0
-  
-    ''',
-    'use_dst_switching': '''
-      true
-      ...
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
   
     ''',
   })
@@ -4981,6 +4936,11 @@
       ...
   
     ''',
+    'dst_enabled': '''
+      true
+      ...
+  
+    ''',
     'id': '''
       '2664492'
   
@@ -5031,30 +4991,9 @@
   
     ''',
     'tzinfo': '''
-      !!python/object/apply:evohomeasync2.location.EvoTzInfo
-      state:
-        _dst: !!python/object/apply:datetime.timedelta
-        - 0
-        - 3600
-        - 0
-        _time_zone_info:
-          current_offset_minutes: 120
-          display_name: "(UTC+01:00) Praha, Bratislava, Budape\u0161\u0165, B\u011Blehrad,\
-            \ Lubla\u0148"
-          offset_minutes: 60
-          supports_daylight_saving: true
-          time_zone_id: CentralEuropeStandardTime
-        _tzname: CentralEuropeStandardTime (DST)
-        _use_dst_switching: true
-        _utcoffset: !!python/object/apply:datetime.timedelta
-        - 0
-        - 7200
-        - 0
-  
-    ''',
-    'use_dst_switching': '''
-      true
-      ...
+      !!python/object/apply:None._unpickle
+      - Europe/Budapest
+      - 1
   
     ''',
   })

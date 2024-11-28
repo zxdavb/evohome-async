@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def client_session(
     use_real_aiohttp: bool,
-) -> AsyncGenerator[aiohttp.ClientSession, None]:
+) -> AsyncGenerator[aiohttp.ClientSession]:
     """Yield an aiohttp.ClientSession, which may be faked."""
 
     if use_real_aiohttp:
@@ -134,7 +134,7 @@ async def cache_manager(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
     cache_file: Path,
-) -> AsyncGenerator[CacheManager, None]:
+) -> AsyncGenerator[CacheManager]:
     """Yield a token manager for the v2 API."""
 
     manager = CacheManager(*credentials, client_session, cache_file=cache_file)
@@ -150,7 +150,7 @@ async def cache_manager(
 @pytest.fixture
 async def evohome_v0(
     cache_manager: CacheManager,
-) -> AsyncGenerator[EvohomeClientv0, None]:
+) -> AsyncGenerator[EvohomeClientv0]:
     """Yield an instance of a v0 EvohomeClient."""
 
     await cache_manager.load_cache()
@@ -168,7 +168,7 @@ async def evohome_v0(
 @pytest.fixture
 async def evohome_v2(
     cache_manager: CacheManager,
-) -> AsyncGenerator[EvohomeClientv2, None]:
+) -> AsyncGenerator[EvohomeClientv2]:
     """Yield an instance of a v2 EvohomeClient."""
 
     await cache_manager.load_cache()

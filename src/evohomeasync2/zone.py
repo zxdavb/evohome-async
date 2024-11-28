@@ -18,6 +18,7 @@ from .const import (
     API_STRFTIME,
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SETPOINT_MODES,
+    SZ_DAILY_SCHEDULES,
     SZ_FAULT_TYPE,
     SZ_IS_AVAILABLE,
     SZ_MAX_HEAT_SETPOINT,
@@ -51,6 +52,7 @@ from .schemas.schedule import DayOfWeek
 
 if TYPE_CHECKING:
     import logging
+    from datetime import tzinfo
 
     from . import ControlSystem
     from .auth import Auth
@@ -155,12 +157,23 @@ class ActiveFaultsBase(EntityBase):
         return self._active_faults
 
 
-def find_switchpoints(
+def as_local_time(dtm: dt, tzinfo: tzinfo) -> dt:
+    """Convert a datetime into a aware datetime in the given TZ."""
+    return dtm.replace(tzinfo=tzinfo) if dtm.tzinfo is None else dtm.astimezone(tzinfo)
+
+
+def dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
+    """Return a pair of strings representing the local day of week and time of day."""
+    dtm = as_local_time(dtm, tzinfo)
+    return dtm.strftime("%A"), dtm.strftime("%H:%M")  # type: ignore[return-value]
+
+
+def _find_switchpoints(
     schedule: list[DayOfWeekDhwT] | list[DayOfWeekZoneT],
     day_of_week: DayOfWeek,
     time_of_day: str,
-) -> tuple[dict[str, float | str], dict[str, float | str]]:
-    """Find the current and next switchpoints for a given day and time of day."""
+) -> tuple[SwitchpointT, int, SwitchpointT, int]:
+    """Find this/next switchpoints for a given day of week and time of day."""
 
     # assumes >1 switchpoint per day, which could be this_sp or next_sp only
 
@@ -172,8 +185,8 @@ def find_switchpoints(
     this_sp: SwitchpointT | None = None
     next_sp: SwitchpointT | None = None
 
-    this_offset = "+00:00"
-    next_offset = "+00:00"
+    this_offset = 0
+    next_offset = 0
 
     # Check the switchpoints of the given day of week
     for sp in schedule[day_idx]["switchpoints"]:
@@ -184,7 +197,7 @@ def find_switchpoints(
         elif sp["time_of_day"] > time_of_day:
             if this_sp is None:
                 this_sp = schedule[(day_idx + 6) % 7]["switchpoints"][-1]
-                this_offset = "-24:00"
+                this_offset = -1
 
             next_sp = sp
             break
@@ -192,20 +205,15 @@ def find_switchpoints(
     else:
         if next_sp is None:
             next_sp = schedule[(day_idx + 1) % 7]["switchpoints"][0]
-            next_offset = "+24:00"
+            next_offset = +1
 
         assert this_sp is not None  # mypy
 
-    this_sp["offset"] = this_offset  # type: ignore[typeddict-unknown-key]
-    next_sp["offset"] = next_offset  # type: ignore[typeddict-unknown-key]
-
-    return this_sp, next_sp  # type: ignore[return-value]
+    return this_sp, this_offset, next_sp, next_offset
 
 
-class _ZoneBase(ActiveFaultsBase):
+class _ScheduleBase(ActiveFaultsBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
-
-    STATUS_SCHEMA: Final  # type: ignore[misc]
 
     SCH_SCHEDULE_GET: Final  # type: ignore[misc]
     SCH_SCHEDULE_PUT: Final  # type: ignore[misc]
@@ -215,48 +223,7 @@ class _ZoneBase(ActiveFaultsBase):
     def __init__(self, id: str, tcs: ControlSystem) -> None:
         super().__init__(id, tcs._auth, tcs._logger)
 
-        self.tcs = tcs  # parent
-
-    async def _update(self) -> _EvoDictT:
-        """Get the latest state of the DHW/zone and update its status.
-
-        It is more efficient to call Location.update() as all zones are updated
-        with a single GET.
-
-        Returns the raw JSON of the latest state.
-        """
-
-        status: _EvoDictT = await self._auth.get(
-            f"{self._TYPE}/{self.id}/status", schema=self.STATUS_SCHEMA
-        )  # type: ignore[assignment]
-
-        self._update_status(status)
-        return status
-
-    def _update_status(self, status: _EvoDictT) -> None:
-        super()._update_status(status)  # process active faults
-
-        self._status = status
-
-    @property
-    def temperature_status(self) -> _EvoDictT | None:
-        """
-        "temperatureStatus": {
-            "temperature": 20.0,
-            "isAvailable": true
-        }
-        """
-
-        ret: _EvoDictT | None = self._status.get(SZ_TEMPERATURE_STATUS)
-        return ret
-
-    @property  # a convenience attr
-    def temperature(self) -> float | None:
-        if not (status := self.temperature_status) or not status[SZ_IS_AVAILABLE]:
-            return None
-
-        ret: float = status[SZ_TEMPERATURE]
-        return ret
+        self.location = tcs.location
 
     async def get_schedule(
         self,
@@ -279,7 +246,7 @@ class _ZoneBase(ActiveFaultsBase):
                 ) from err
             raise exc.RequestFailedError(f"{self}: Unexpected error") from err
 
-        self._schedule = schedule["daily_schedules"]
+        self._schedule = schedule[SZ_DAILY_SCHEDULES]
         return self._schedule
 
     async def set_schedule(
@@ -323,15 +290,89 @@ class _ZoneBase(ActiveFaultsBase):
 
         self._schedule = schedule
 
-    def find_switchpoints(
-        self, day_of_week: DayOfWeek, time_of_day: str
-    ) -> tuple[SwitchpointT, SwitchpointT]:
+    def _find_switchpoints(self, dtm: dt | str) -> dict[dt, float | str]:
         """Find the current and next switchpoints for a given day and time of day."""
 
         if not self._schedule:
-            raise exc.InvalidScheduleError("No schedule retrieved")
+            raise exc.InvalidScheduleError("No schedule available")
 
-        return find_switchpoints(self._schedule, day_of_week, time_of_day)
+        if isinstance(dtm, str):
+            dtm = dt.fromisoformat(dtm)
+
+        dtm = as_local_time(dtm, self.location.tzinfo)
+
+        this_sp, this_offset, next_sp, next_offset = _find_switchpoints(
+            self._schedule, *dt_to_dow_and_tod(dtm, self.location.tzinfo)
+        )
+
+        this_tod = dt.strptime(this_sp["time_of_day"], "%H:%M").time()
+        next_tod = dt.strptime(next_sp["time_of_day"], "%H:%M").time()
+
+        this_dtm = dt.combine(dtm + td(days=this_offset), this_tod)
+        next_dtm = dt.combine(dtm + td(days=next_offset), next_tod)
+
+        this_val = this_sp.get("dhw_state") or this_sp["heat_setpoint"]  # type: ignore[typeddict-item]
+        next_val = next_sp.get("dhw_state") or next_sp["heat_setpoint"]  # type: ignore[typeddict-item]
+
+        # this_dtm, this_val = next(iter(result.items()))
+        # next_dtm, next_val = next(islice(result.items(), 1, 2))
+
+        return {
+            this_dtm: this_val,  # type: ignore[dict-item]
+            next_dtm: next_val,  # type: ignore[dict-item]
+        }
+
+
+class _ZoneBase(_ScheduleBase):
+    """Provide the base for temperatureZone / domesticHotWater Zones."""
+
+    STATUS_SCHEMA: Final  # type: ignore[misc]
+
+    def __init__(self, id: str, tcs: ControlSystem) -> None:
+        super().__init__(id, tcs)
+
+        self.location = tcs.location
+
+    async def _update(self) -> _EvoDictT:
+        """Get the latest state of the DHW/zone and update its status.
+
+        It is more efficient to call Location.update() as all zones are updated
+        with a single GET.
+
+        Returns the raw JSON of the latest state.
+        """
+
+        status: _EvoDictT = await self._auth.get(
+            f"{self._TYPE}/{self.id}/status", schema=self.STATUS_SCHEMA
+        )  # type: ignore[assignment]
+
+        self._update_status(status)
+        return status
+
+    def _update_status(self, status: _EvoDictT) -> None:
+        super()._update_status(status)  # process active faults
+
+        self._status = status
+
+    @property
+    def temperature_status(self) -> _EvoDictT | None:
+        """
+        "temperatureStatus": {
+            "temperature": 20.0,
+            "isAvailable": true
+        }
+        """
+
+        ret: _EvoDictT | None = self._status.get(SZ_TEMPERATURE_STATUS)
+        return ret
+
+    @property  # a convenience attr
+    def temperature(self) -> float | None:
+        if not (status := self.temperature_status) or not status[SZ_IS_AVAILABLE]:
+            return None
+
+        ret: float = status[SZ_TEMPERATURE]
+        return ret
 
 
 # Currently, cooling (e.g. target_heat_temperature) is not supported by the API
@@ -507,3 +548,11 @@ class Zone(_ZoneBase):
             }
 
         await self._set_mode(mode)
+
+    async def get_schedule(self) -> list[DayOfWeekZoneT]:
+        """Get the schedule for this zone."""  # mypy hint
+        return await super().get_schedule()  # type: ignore[return-value]
+
+    async def set_schedule(self, schedule: list[DayOfWeekZoneT] | str) -> None:  # type: ignore[override]
+        """Set the schedule for this zone."""  # mypy hint
+        await super().set_schedule(schedule)
