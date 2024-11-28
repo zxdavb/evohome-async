@@ -1,19 +1,20 @@
 # see: https://stackoverflow.com/questions/17348807/how-to-translate-between-windows-and-iana-time-zones
 
+# def extract_timezones(file_path: str) -> dict[str, str]:
+#     """Extract all timezones from the XML file where territory is equal to '001'."""
 
-def extract_timezones(file_path: str) -> dict[str, str]:
-    """Extract all timezones from the XML file where territory is equal to '001'."""
+#     # e.g. extract_timezones(windows_zones.xml)
 
-    import defusedxml.ElementTree as ET
+#     import defusedxml.ElementTree as ET
 
-    tree = ET.parse(file_path)
-    root = tree.getroot()
+#     tree = ET.parse(file_path)
+#     root = tree.getroot()
 
-    timezones = {}
-    for mapZone in root.findall(".//mapZone[@territory='001']"):
-        timezones[mapZone.get("other")] = mapZone.get("type")
+#     timezones = {}
+#     for mapZone in root.findall(".//mapZone[@territory='001']"):
+#         timezones[mapZone.get("other")] = mapZone.get("type")
 
-    return timezones  # type: ignore[return-value]
+#     return timezones  # type: ignore[return-value]
 
 
 WINDOWS_TO_IANA_APAC = {
