@@ -53,9 +53,9 @@ async def _test_sched__apis(evo: EvohomeClientv2) -> None:
 
     # STEP 2: GET & PUT /{x._TYPE}/{x.id}/schedule
     if dhw := evo._get_single_tcs().hotwater:
-        schedule = await dhw.get_schedule()
-        assert SCH_GET_SCHEDULE_DHW(schedule)
-        await dhw.set_schedule(schedule)
+        sched_hw = await dhw.get_schedule()
+        assert SCH_GET_SCHEDULE_DHW(sched_hw)
+        await dhw.set_schedule(sched_hw)
 
     zone: Zone | None
 
