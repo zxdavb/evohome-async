@@ -7,7 +7,7 @@ evohome-async
 
 Python client to _asynchronously_ access the [Total Connect Comfort](https://international.mytotalconnectcomfort.com/Account/Login) RESTful API.
 
-It is based upon https://github.com/watchforstock/evohome-client, but async-aware.  That is, it exposes a superset of the **evohome-client** schema (same namespace, same JSON), but with some notable differences between the two (see below).
+It is based upon https://github.com/watchforstock/evohome-client, but async-aware.  That is, it exposes a superset of the **evohome-client** schema (similar namespace, similar JSON), but with some notable differences between the two (see below).
 
 It provides support for Honeywell/Resideo TCC-based systems, such as **Evohome**, **Round Thermostat**, **VisionPro** and others:
  - it supports _only_ EU/EMEA-based systems, please use [somecomfort](https://github.com/mkmer/AIOSomecomfort) for US-based systems
@@ -32,7 +32,7 @@ To avoid exceeding the vendor's API rate limit, you can cache the access tokens 
 
 > Beware that the above switch will save your tokens to **.evo-cache.tmp**: this presents a small security concern.
 
-### Differences from non-async version
+### Differences from non-async version (out of date)
 The difference between the **evohomeasync** and **evohomeclient** libraries have been kept to the minimum, and it is planned for existing docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
 
 The non-async documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
