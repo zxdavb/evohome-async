@@ -28,10 +28,10 @@ repos:
     hooks:
       - id: codespell
         args:
-          # --ignore-words-list=
-          - --skip="./.*,*.csv,*.json,*.ambr,*.xml"
+          - --ignore-words-list=FLE
+          - --skip="./.*,*.csv,*.json,*.ambr"
           - --quiet-level=2
-        exclude_types: [csv, json, html]
+        exclude_types: [csv, json, html, xml]
         exclude: ^(tests/.+/fixtures|tests/.+/snapshots)/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
