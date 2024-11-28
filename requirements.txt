@@ -10,6 +10,6 @@
 # also required if using the the library via the CLI, client.py
   aiofiles >= 24.1.0
   asyncclick >= 8.1.7                            # NOTE: async version (not used by HA)
-  debugpy >= 1.8.7                               # can invoke via CLI
+  debugpy >= 1.8.9                               # can invoke via CLI
 
 # check via: pip list | grep -E 'aiofiles|click|debugpy'
