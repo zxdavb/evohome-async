@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
     from .schemas import _EvoDictT, _EvoSchemaT  # pragma: no cover
     from .schemas.typedefs import (
-        EvoAuthTokensDictT as AuthTokensT,
+        EvoAuthTokensDictT as AccessTokenEntryT,
         TccAuthTokensResponseT as AuthTokenResponseT,
     )
 
@@ -132,7 +132,7 @@ class AbstractTokenManager(ABC):
         self._was_authenticated = False
 
         # the following is specific to auth tokens (vs session id)...
-        self._clear_auth_tokens()
+        self._clear_access_token()
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(client_id='{self.client_id}')"
@@ -142,7 +142,7 @@ class AbstractTokenManager(ABC):
         """Return the client id used for HTTP authentication."""
         return self._client_id
 
-    def _clear_auth_tokens(self) -> None:
+    def _clear_access_token(self) -> None:
         """Clear the auth tokens."""
 
         self._access_token = ""
@@ -172,13 +172,13 @@ class AbstractTokenManager(ABC):
     async def save_access_token(self) -> None:
         """Save the (serialized) authentication tokens to a cache."""
 
-    def _import_auth_tokens(self, tokens: AuthTokensT) -> None:
+    def _import_access_token(self, tokens: AccessTokenEntryT) -> None:
         """Deserialize the token data from a dictionary."""
         self._access_token = tokens[SZ_ACCESS_TOKEN]
         self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
         self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
-    def _export_auth_tokens(self) -> AuthTokensT:
+    def _export_access_token(self) -> AccessTokenEntryT:
         """Serialize the token data to a dictionary."""
         return {
             SZ_ACCESS_TOKEN: self._access_token,
@@ -511,7 +511,7 @@ class Auth:
         # if self._token_manager.is_access_token_valid():
         #     self._logger.warning("access token was rejected, will clear it and retry")
 
-        # self._token_manager._clear_auth_tokens()  # TODO: private method
+        # self._token_manager._clear_access_token()  # TODO: private method
 
         async with self._raw_request(method, url, **kwargs) as rsp:
             _raise_for_status(rsp)

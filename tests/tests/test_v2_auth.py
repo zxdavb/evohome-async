@@ -125,8 +125,8 @@ async def test_get_auth_token(
     assert cache_manager.is_access_token_valid() is True
 
     #
-    # test _clear_auth_tokens()
-    cache_manager._clear_auth_tokens()
+    # test _clear_access_token()
+    cache_manager._clear_access_token()
 
     assert cache_manager.is_access_token_valid() is False
 

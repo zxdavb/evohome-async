@@ -24,6 +24,7 @@ from .schemas import (
     SZ_TEMPORARY,
     SZ_THERMOSTAT,
     SZ_VALUE,
+    SystemMode,
 )
 
 if TYPE_CHECKING:
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
 
     from . import _EvohomeClientNew as EvohomeClient
     from .auth import Auth
-    from .schemas import EvoDeviceDictT, EvoLocationDictT, SystemMode, _EvoListT
+    from .schemas import EvoDeviceDictT, EvoLocationDictT, _EvoListT
 
     _EvoDictT = dict[str, Any]
 

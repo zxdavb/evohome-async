@@ -16,30 +16,44 @@ from evohomeasync.auth import (
     SZ_SESSION_ID,
     SZ_SESSION_ID_EXPIRES,
     AbstractSessionManager,
-    SessionIdT,
 )
-from evohomeasync2.auth import SZ_ACCESS_TOKEN_EXPIRES, AbstractTokenManager
+from evohomeasync2.auth import (
+    SZ_ACCESS_TOKEN,
+    SZ_ACCESS_TOKEN_EXPIRES,
+    AbstractTokenManager,
+)
 
 if TYPE_CHECKING:
-    from evohomeasync2.auth import AuthTokensT
+    from evohomeasync.auth import SessionIdEntryT
+    from evohomeasync2.auth import AccessTokenEntryT
 
 
 CACHE_FILE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tmp")
 
 
-SZ_AUTH_TOKENS: Final = "auth_tokens"
-
-
 class UserEntryT(TypedDict):
-    auth_tokens: NotRequired[AuthTokensT]
-    session_id: NotRequired[SessionIdT]
+    access_token: NotRequired[AccessTokenEntryT]
+    session_id: NotRequired[SessionIdEntryT]
 
 
-# class CacheDataT(TypedDict, total=False):
-#     __root__: dict[str, UserEntry]
+CacheDataT = dict[str, UserEntryT]  # str is the client_id
 
-
-CacheDataT = dict[str, UserEntryT]
+"""
+{
+    "username@gmail.com": {
+        "access_token": {
+            "access_token": "iiuyz2-...",
+            "access_token_expires": "2024-09-24T10:25:12+01:00",
+            "refresh_token": "dfsadgf..."
+            },
+        "session_id": {
+            "session_id": "94A76CB4-8BD4-4600-AAE4-...",
+            "session_id_expires": "2024-09-24T10:25:12+01:00"
+        }
+    },
+    "username@email.com": {}
+  }
+"""
 
 
 class CacheManager(AbstractTokenManager, AbstractSessionManager):
@@ -53,7 +67,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
 
         self._cache_file: Final = cache_file
 
-        self._clear_auth_tokens()  # set to initial (falsey) state
+        self._clear_access_token()  # set to initial (falsey) state
         self._clear_session_id()
 
     @property
@@ -72,8 +86,10 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
         for user_id, entry in old_cache.items():
             user_data: UserEntryT = {}
 
-            if (t := entry.get(SZ_AUTH_TOKENS)) and t[SZ_ACCESS_TOKEN_EXPIRES] > dt_now:
-                user_data[SZ_AUTH_TOKENS] = t
+            if (t := entry.get(SZ_ACCESS_TOKEN)) and t[
+                SZ_ACCESS_TOKEN_EXPIRES
+            ] > dt_now:
+                user_data[SZ_ACCESS_TOKEN] = t
 
             # session_id is not used by evohomeasync2
             if (s := entry.get(SZ_SESSION_ID)) and s[SZ_SESSION_ID_EXPIRES] > dt_now:
@@ -122,13 +138,13 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
             return
 
         # assert isinstance(entry, dict)  # mypy
-        tokens: AuthTokensT | None = entry.get(SZ_AUTH_TOKENS)
+        tokens: AccessTokenEntryT | None = entry.get(SZ_ACCESS_TOKEN)
         if not tokens:
             return
 
         # if not self._access_token:  # not needed as dt.min is sentinel for this
         if self._access_token_expires.isoformat() < tokens[SZ_ACCESS_TOKEN_EXPIRES]:
-            self._import_auth_tokens(tokens)
+            self._import_access_token(tokens)
 
     async def _load_session_id(self, cache: CacheDataT | None = None) -> None:
         """Load the (serialized) session id from the cache."""
@@ -140,7 +156,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
             return
 
         # assert isinstance(entry, dict)  # mypy
-        session: SessionIdT | None = entry.get(SZ_SESSION_ID)
+        session: SessionIdEntryT | None = entry.get(SZ_SESSION_ID)
         if not session:
             return
 
@@ -149,19 +165,25 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
             self._import_session_id(session)
 
     async def save_access_token(self) -> None:
-        """Save the (serialized) auth tokens to the cache."""
+        """Save the (serialized) access token to the cache.
+
+        Includes the access token expiry datetime, and the refresh token.
+        """
 
         cache: CacheDataT = await self._read_cache_from_file()
 
         if self.client_id not in cache:
             cache[self.client_id] = {}
 
-        cache[self.client_id][SZ_AUTH_TOKENS] = self._export_auth_tokens()
+        cache[self.client_id][SZ_ACCESS_TOKEN] = self._export_access_token()
 
         await self._write_cache_to_file(self._clean_cache(cache))
 
     async def save_session_id(self) -> None:
-        """Save the (serialized) session id to the cache."""
+        """Save the (serialized) session id to the cache.
+
+        Includes the session id expiry datetime.
+        """
 
         cache: CacheDataT = await self._read_cache_from_file()
 

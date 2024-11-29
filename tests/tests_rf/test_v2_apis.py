@@ -15,13 +15,14 @@ from evohomeasync2.schemas import (
     SystemMode,
 )
 from evohomeasync2.schemas.const import S2_MODE
-from evohomeasync2.zone import Zone
 
 from ..const import _DBG_USE_REAL_AIOHTTP
 from . import faked_server as faked
 from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
+    from evohomeasync2.zone import Zone
+
     from ..conftest import EvohomeClientv2
 
 

@@ -50,7 +50,7 @@ SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
 SZ_USER_INFO: Final = "user_info"
 
 
-class SessionIdT(TypedDict):
+class SessionIdEntryT(TypedDict):
     session_id: str
     session_id_expires: str  # dt.isoformat()
 
@@ -125,13 +125,13 @@ class AbstractSessionManager(ABC):
     async def save_session_id(self) -> None:
         """Save the (serialized) session id to a cache."""
 
-    def _import_session_id(self, session: SessionIdT) -> None:
+    def _import_session_id(self, session: SessionIdEntryT) -> None:
         """Deserialize the session id from a dictionary."""
         self._session_id = session[SZ_SESSION_ID]
         self._session_expires = dt.fromisoformat(session[SZ_SESSION_ID_EXPIRES])
         #
 
-    def _export_session_id(self) -> SessionIdT:
+    def _export_session_id(self) -> SessionIdEntryT:
         """Serialize the session id to a dictionary."""
         return {
             SZ_SESSION_ID: self._session_id,

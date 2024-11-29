@@ -11,13 +11,13 @@ from evohome.helpers import camel_to_snake
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import SZ_USER_ID
-from .control_system import ControlSystem
 from .location import Location
 from .schemas import factory_user_account, factory_user_locations_installation_info
 
 if TYPE_CHECKING:
     import aiohttp
 
+    from .control_system import ControlSystem
     from .schemas.typedefs import EvoLocEntryT, EvoUsrConfigT
 
 

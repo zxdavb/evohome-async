@@ -64,7 +64,7 @@ def cache_data_valid(credentials: tuple[str, str]) -> CacheDataT:
 
     return {
         credentials[0]: {
-            "auth_tokens": {
+            "access_token": {
                 "access_token": "ncw...",
                 "access_token_expires": (dt.now() + td(minutes=15)).isoformat(),
                 "refresh_token": "ryx...",
@@ -75,7 +75,7 @@ def cache_data_valid(credentials: tuple[str, str]) -> CacheDataT:
             },
         },
         "username@gmail.com.xx": {
-            "auth_tokens": {
+            "access_token": {
                 "access_token": "ncw...",
                 "access_token_expires": (dt.now() + td(hours=1)).isoformat(),
                 "refresh_token": "ryx...",
@@ -94,7 +94,7 @@ def cache_data_expired(credentials: tuple[str, str]) -> CacheDataT:
 
     return {
         credentials[0]: {
-            "auth_tokens": {
+            "access_token": {
                 "access_token": "ncw...",
                 "access_token_expires": (dt.now() - td(hours=1)).isoformat(),
                 "refresh_token": "ryx...",
