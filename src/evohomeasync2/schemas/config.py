@@ -166,8 +166,8 @@ def factory_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_DHW_STATE_CAPABILITIES_RESPONSE: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_ALLOWED_STATES)): list(m.value for m in DhwState),
-            vol.Required(fnc(S2_ALLOWED_MODES)): list(m.value for m in ZoneMode),
+            vol.Required(fnc(S2_ALLOWED_STATES)): [m.value for m in DhwState],
+            vol.Required(fnc(S2_ALLOWED_MODES)): [m.value for m in ZoneMode],
             vol.Required(fnc(S2_MAX_DURATION)): str,
             vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),
         },
@@ -223,9 +223,7 @@ def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
             vol.Required(fnc(S2_CAN_CONTROL_COOL)): bool,
             vol.Optional(fnc(S2_MAX_COOL_SETPOINT)): float,  # TODO
             vol.Optional(fnc(S2_MIN_COOL_SETPOINT)): float,  # TODO
-            vol.Required(fnc(S2_ALLOWED_SETPOINT_MODES)): list(
-                m.value for m in ZoneMode
-            ),
+            vol.Required(fnc(S2_ALLOWED_SETPOINT_MODES)): [m.value for m in ZoneMode],
             vol.Required(fnc(S2_VALUE_RESOLUTION)): float,  # 0.5
             vol.Required(fnc(S2_MAX_DURATION)): str,  # "1.00:00:00"
             vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(

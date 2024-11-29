@@ -148,6 +148,8 @@ target-version = "py313"
 select = [
   "ASYNC", # flake8-async
   "B",     # flake8-bugbear
+  "BLE",   # flake8-blind-except
+  "C4",    # flake8-comprehensions
   "E",     # pycodestyle
   "F",     # Pyflakes
   # "FBT", # flake8-boolean-trap
@@ -157,11 +159,12 @@ select = [
   "N",     # pep8-naming
   "PGH",   # pygrep hooks
   "PT",    # flake8-pytest-style
-  "SIM",   # flake8-simplify
+  "RET",   # flake8-return
   "S",     # flake8-bandit
+  "SIM",   # flake8-simplify
   "TC",    # flake8-tidy-imports
   "UP",    # pyupgrade
-  "RET",   # flake8-return
+  "C90",   #
 ]
 
 ignore = ["E501", "G004", "N806", "S101", "SIM102", "SIM114"]
