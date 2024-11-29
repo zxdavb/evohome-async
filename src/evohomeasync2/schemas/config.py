@@ -5,8 +5,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import voluptuous as vol
 
@@ -92,6 +91,9 @@ from .const import (
     ZoneModelType,
     ZoneType,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # These are best guess
 MAX_HEAT_SETPOINT_LOWER: Final = 21.0

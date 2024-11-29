@@ -7,10 +7,9 @@ import asyncio
 import functools
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import pytest
-import voluptuous as vol
 
 import evohomeasync as evo0
 import evohomeasync2 as evo2
@@ -21,6 +20,9 @@ from ..const import (
     URL_BASE_V0,
     URL_BASE_V2,
 )
+
+if TYPE_CHECKING:
+    import voluptuous as vol
 
 if _DBG_USE_REAL_AIOHTTP:
     import aiohttp

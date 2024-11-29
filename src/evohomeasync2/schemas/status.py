@@ -3,8 +3,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import voluptuous as vol
 
@@ -51,6 +50,9 @@ from .const import (
     SystemMode,
     ZoneMode,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # HACK: "2023-05-04T18:47:36.7727046" (7, not 6 digits) seen with gateway fault
 _DTM_FORMAT = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{1,7}$"

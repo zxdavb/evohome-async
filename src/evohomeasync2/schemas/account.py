@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import voluptuous as vol
 
@@ -20,6 +20,9 @@ from .const import (
     S2_USER_ID,
     S2_USERNAME,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def factory_user_account(fnc: Callable[[str], str] = noop) -> vol.Schema:

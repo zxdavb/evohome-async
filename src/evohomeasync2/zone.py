@@ -194,7 +194,7 @@ def _find_switchpoints(
             this_sp = sp
             continue
 
-        elif sp["time_of_day"] > time_of_day:
+        if sp["time_of_day"] > time_of_day:
             if this_sp is None:
                 this_sp = schedule[(day_idx + 6) % 7]["switchpoints"][-1]
                 this_offset = -1
@@ -436,8 +436,7 @@ class Zone(_ZoneBase):
         ]
         """
 
-        ret = tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
-        return ret
+        return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
 
     @property
     def name(self) -> str:

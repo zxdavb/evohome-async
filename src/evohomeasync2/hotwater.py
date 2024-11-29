@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final
 
 from evohome.helpers import camel_to_snake
@@ -33,6 +32,8 @@ from .schemas.const import (
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
+    from datetime import datetime as dt
+
     from . import ControlSystem
     from .schemas import _EvoDictT
     from .schemas.typedefs import DayOfWeekDhwT, EvoDhwConfigT
@@ -58,13 +59,11 @@ class HotWater(_ZoneBase):
     def mode(self) -> ZoneMode | None:
         if (state_status := self.state_status) is None:
             return None
-        ret: ZoneMode = state_status[SZ_MODE]
-        return ret
+        return state_status[SZ_MODE]  # type: ignore[no-any-return]
 
     @property  # a convenience attr
     def modes(self) -> tuple[ZoneMode]:
-        ret = tuple(self.state_capabilities[SZ_ALLOWED_MODES])
-        return ret
+        return tuple(self.state_capabilities[SZ_ALLOWED_MODES])
 
     @property
     def name(self) -> str:

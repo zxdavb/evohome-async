@@ -5,13 +5,13 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import Generator
 from enum import EnumCheck, StrEnum, verify
-from types import TracebackType
 from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
     from asyncio.streams import _ReaduntilBuffer
+    from collections.abc import Generator
+    from types import TracebackType
 
     from .const import _bodyT, _methodT, _statusT, _urlT
     from .vendor import FakedServer

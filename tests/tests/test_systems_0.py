@@ -4,8 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-
-import pytest
+from typing import TYPE_CHECKING
 
 from evohomeasync2.schemas import (
     SCH_GET_USER_ACCOUNT,
@@ -14,6 +13,9 @@ from evohomeasync2.schemas import (
 )
 
 from .common import TEST_DIR, assert_schema
+
+if TYPE_CHECKING:
+    import pytest
 
 WORK_DIR = f"{TEST_DIR}/fixtures"
 

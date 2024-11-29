@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import AsyncGenerator, Callable, Generator
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -13,7 +12,6 @@ from unittest.mock import patch
 
 import aiohttp
 import pytest
-import voluptuous as vol
 from aioresponses import aioresponses
 
 from evohome.helpers import convert_keys_to_snake_case
@@ -25,6 +23,10 @@ from evohomeasync2.schemas import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator, Callable, Generator
+
+    import voluptuous as vol
+
     from ..conftest import CacheManager
 
 
@@ -112,12 +114,12 @@ def broker_get(install: str) -> Callable:
                 SCH_GET_USER_ACCOUNT(user_account_fixture(install))
             )
 
-        elif "installationInfo" in url:
+        if "installationInfo" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
                 SCH_GET_USER_LOCATIONS(user_locations_config_fixture(install))
             )
 
-        elif "status" in url:
+        if "status" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
                 SCH_GET_LOCN_STATUS(location_status_fixture(install, url.split("/")[1]))
             )

@@ -3,8 +3,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import voluptuous as vol
 
@@ -32,6 +31,9 @@ from .status import (
     factory_zone_status,
 )
 from .typedefs import _EvoDictT, _EvoLeafT, _EvoListT, _EvoSchemaT, _ModeT  # noqa: F401
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 #
 # HTTP GET/PUT (& POST) schemas are camelCase, not snake_case...

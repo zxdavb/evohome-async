@@ -3,13 +3,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from enum import EnumCheck, StrEnum, verify
-from typing import Any, Final, NewType, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Any, Final, NewType, TypedDict, TypeVar
 
 import voluptuous as vol
 
 from evohome.helpers import noop
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 _T = TypeVar("_T")
 

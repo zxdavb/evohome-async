@@ -5,9 +5,7 @@ from __future__ import annotations
 
 import json
 import os
-from collections.abc import AsyncGenerator
 from datetime import datetime as dt, timedelta as td
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -19,6 +17,9 @@ from evohomeasync2 import _EvohomeClientNew as EvohomeClientv2
 from .const import TEST_PASSWORD, TEST_USERNAME
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+    from pathlib import Path
+
     import aiohttp
     from cli.auth import CacheDataT
 

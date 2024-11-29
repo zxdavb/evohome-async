@@ -6,10 +6,8 @@ from __future__ import annotations
 import base64
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Callable, Generator
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from types import TracebackType
 from typing import TYPE_CHECKING, Any, Final
 
 import aiohttp
@@ -20,6 +18,9 @@ from evohome.helpers import convert_keys_to_snake_case, obfuscate
 from . import exceptions as exc
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable, Generator
+    from types import TracebackType
+
     from aiohttp.typedefs import StrOrURL
 
     from .schemas import _EvoDictT, _EvoSchemaT  # pragma: no cover

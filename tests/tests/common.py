@@ -6,9 +6,12 @@ from __future__ import annotations
 import inspect
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
-import voluptuous as vol
+
+if TYPE_CHECKING:
+    import voluptuous as vol
 
 TEST_DIR = Path(__file__).resolve().parent
 

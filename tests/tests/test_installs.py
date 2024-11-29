@@ -6,14 +6,15 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-import pytest
 import yaml
-from syrupy import SnapshotAssertion
 
 from .common import get_property_methods
 from .conftest import FIXTURES_DIR
 
 if TYPE_CHECKING:
+    import pytest
+    from syrupy import SnapshotAssertion
+
     from ..conftest import EvohomeClientv2
 
 

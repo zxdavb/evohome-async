@@ -7,8 +7,7 @@ import asyncio
 import json
 import logging
 import sys
-from io import TextIOWrapper
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 import aiofiles
 import aiofiles.os
@@ -26,6 +25,9 @@ from evohomeasync2 import (
 from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE
 
 from .auth import CACHE_FILE, CacheManager
+
+if TYPE_CHECKING:
+    from io import TextIOWrapper
 
 # all _DBG_* flags should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of click

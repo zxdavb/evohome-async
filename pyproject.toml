@@ -1,6 +1,5 @@
 #
 ### project ##########################################################################
-# last checked/updated: 2024-09-10
 #
 
 [project]
@@ -8,10 +7,7 @@ name = "evohome-async"
 dynamic = ["version"]
 description = "An async client for connecting to Honeywell's TCC RESTful API."
 readme = "README.md"
-authors = [
-  { name = "David Bonnes", email = "zxdavb@bonnes.me" },
-  { name = "Andrew Stock", email = "evohome@andrew-stock.com" },
-]
+authors = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
 maintainers = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
 dependencies = ["aiohttp>=3.10.5", "voluptuous>=0.15.2"]
 requires-python = ">=3.12"
@@ -146,38 +142,28 @@ disable_error_code = [
 [tool.ruff]
 exclude = ["docs/*.py", "tests/tests_cc"]
 src = ["cli", "src", "tests"]
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = [
   "ASYNC", # flake8-async
-  "B",     #     flake8-bugbear
-  "E",     #     pycodestyle
-  "F",     #     Pyflakes
-  "G",     #     flake8-logging-format
-  "I",     #     isort
-  "LOG",   #   flake8-logging
-  "PGH",   #   pygrep hooks
-  "SIM",   #   flake8-simplify
-  "S",     #     flake8-bandit
-  "TC",    #    flake8-tidy-imports
-  "UP",    #    pyupgrade
+  "B",     # flake8-bugbear
+  "E",     # pycodestyle
+  "F",     # Pyflakes
+  # "FBT", # flake8-boolean-trap
+  "G",     # flake8-logging-format
+  "I",     # isort
+  "LOG",   # flake8-logging
+  "PGH",   # pygrep hooks
+  # "PT",  # flake8-pytest-style
+  "SIM",   # flake8-simplify
+  "S",     # flake8-bandit
+  "TC",    # flake8-tidy-imports
+  "UP",    # pyupgrade
+  "RET",   # flake8-return
 ]
-#   "FBT",  #   flake8-boolean-trap
-#   "PT",  #    flake8-pytest-style
-#   "RET",  #   flake8-return
 
-ignore = [
-  "B011",
-  "G004",
-  "E501",
-  "S101",
-  "SIM102",
-  "SIM114",
-  "TC002",
-  "TC003",
-  "UP009",
-]
+ignore = ["B011", "G004", "E501", "S101", "SIM102", "SIM114", "UP009"]
 # B011   - Do not call assert False since python -O removes these calls
 # E501   - Line too long
 # G004   - Logging statement uses f-string

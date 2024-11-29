@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime as dt
 from typing import TYPE_CHECKING, Final
 
 from evohome.helpers import camel_to_snake
@@ -46,6 +45,8 @@ from .schemas.const import (
 from .zone import ActiveFaultsBase, Zone
 
 if TYPE_CHECKING:
+    from datetime import datetime as dt
+
     from . import Gateway, Location
     from .schemas import _EvoDictT
     from .schemas.typedefs import (

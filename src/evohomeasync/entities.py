@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime as dt
 from http import HTTPMethod
 from typing import TYPE_CHECKING, Any, Final, NoReturn
 
@@ -29,6 +28,7 @@ from .schemas import (
 
 if TYPE_CHECKING:
     import logging
+    from datetime import datetime as dt
 
     from . import _EvohomeClientNew as EvohomeClient
     from .auth import Auth

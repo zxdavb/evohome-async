@@ -5,10 +5,8 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Awaitable, Callable, Generator
 from datetime import datetime as dt, timedelta as td
 from http import HTTPMethod  # , HTTPStatus
-from types import TracebackType
 from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import aiohttp
@@ -20,6 +18,9 @@ from . import exceptions as exc
 from .schemas import SCH_USER_SESSION_RESPONSE, SZ_SESSION_ID as S2_SESSION_ID
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable, Generator
+    from types import TracebackType
+
     from aiohttp.typedefs import StrOrURL
 
     from .schemas import EvoSessionDictT, EvoUserAccountDictT, TccSessionResponseT

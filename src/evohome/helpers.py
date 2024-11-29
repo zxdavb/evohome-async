@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Callable
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from .const import _DBG_DONT_OBFUSCATE, REGEX_EMAIL_ADDRESS
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 _T = TypeVar("_T")
 

@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import functools
 import re
-from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any
 
@@ -30,6 +29,8 @@ from .const import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from .const import _bodyT, _methodT, _statusT, _urlT
 
 
@@ -200,7 +201,7 @@ class FakedServerV2(FakedServerBase):
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
             return {"message": "Method not allowed"}
 
-        elif self._url == f"{URL_BASE}/userAccount":
+        if self._url == f"{URL_BASE}/userAccount":
             return self._user_config
 
         self.status = HTTPStatus.NOT_FOUND
