@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime as dt, timedelta as td
+from datetime import UTC, datetime as dt, timedelta as td
 from typing import TYPE_CHECKING
 
 import pytest
@@ -67,23 +67,23 @@ def cache_data_valid(credentials: tuple[str, str]) -> CacheDataT:
         credentials[0]: {
             "access_token": {
                 "access_token": "ncw...",
-                "access_token_expires": (dt.now() + td(minutes=15)).isoformat(),
+                "access_token_expires": (dt.now(tz=UTC) + td(minutes=15)).isoformat(),
                 "refresh_token": "ryx...",
             },
             "session_id": {
                 "session_id": "123...",
-                "session_id_expires": (dt.now() + td(minutes=15)).isoformat(),
+                "session_id_expires": (dt.now(tz=UTC) + td(minutes=15)).isoformat(),
             },
         },
         "username@gmail.com.xx": {
             "access_token": {
                 "access_token": "ncw...",
-                "access_token_expires": (dt.now() + td(hours=1)).isoformat(),
+                "access_token_expires": (dt.now(tz=UTC) + td(hours=1)).isoformat(),
                 "refresh_token": "ryx...",
             },
             "session_id": {
                 "session_id": "123...",
-                "session_id_expires": (dt.now() - td(hours=1)).isoformat(),
+                "session_id_expires": (dt.now(tz=UTC) - td(hours=1)).isoformat(),
             },
         },
     }
@@ -97,12 +97,12 @@ def cache_data_expired(credentials: tuple[str, str]) -> CacheDataT:
         credentials[0]: {
             "access_token": {
                 "access_token": "ncw...",
-                "access_token_expires": (dt.now() - td(hours=1)).isoformat(),
+                "access_token_expires": (dt.now(tz=UTC) - td(hours=1)).isoformat(),
                 "refresh_token": "ryx...",
             },
             "session_id": {
                 "session_id": "123...",
-                "session_id_expires": (dt.now() - td(hours=1)).isoformat(),
+                "session_id_expires": (dt.now(tz=UTC) - td(hours=1)).isoformat(),
             },
         },
     }

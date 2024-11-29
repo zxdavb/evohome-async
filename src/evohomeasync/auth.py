@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime as dt, timedelta as td
+from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod  # , HTTPStatus
 from typing import TYPE_CHECKING, Any, Final, TypedDict
 
@@ -60,7 +60,7 @@ class AbstractSessionManager(ABC):
     """An ABC for managing the session id used for HTTP authentication."""
 
     _session_id: str
-    _session_expires: dt  # TODO: should be in Auth class?
+    _session_id_expires: dt  # TODO: should be in Auth class?
     _user_info: EvoUserAccountDictT | None  # TODO: should not publicise?
 
     def __init__(
@@ -100,7 +100,7 @@ class AbstractSessionManager(ABC):
         """Clear the session id."""
 
         self._session_id = ""
-        self._session_expires = dt.min
+        self._session_id_expires = dt.min
         #
 
     @property
@@ -111,7 +111,7 @@ class AbstractSessionManager(ABC):
     @property
     def session_id_expires(self) -> dt:
         """Return the expiration datetime of the session id."""
-        return self._session_expires
+        return self._session_id_expires
 
     @property
     def user_info(self) -> EvoUserAccountDictT | None:
@@ -120,7 +120,7 @@ class AbstractSessionManager(ABC):
 
     def is_session_id_valid(self) -> bool:
         """Return True if the session id is valid."""
-        return self.session_id_expires > dt.now() + td(seconds=15)
+        return self.session_id_expires > dt.now(tz=UTC) + td(seconds=15)
 
     @abstractmethod
     async def save_session_id(self) -> None:
@@ -129,14 +129,14 @@ class AbstractSessionManager(ABC):
     def _import_session_id(self, session: SessionIdEntryT) -> None:
         """Deserialize the session id from a dictionary."""
         self._session_id = session[SZ_SESSION_ID]
-        self._session_expires = dt.fromisoformat(session[SZ_SESSION_ID_EXPIRES])
+        self._session_id_expires = dt.fromisoformat(session[SZ_SESSION_ID_EXPIRES])
         #
 
     def _export_session_id(self) -> SessionIdEntryT:
         """Serialize the session id to a dictionary."""
         return {
             SZ_SESSION_ID: self._session_id,
-            SZ_SESSION_ID_EXPIRES: self._session_expires.isoformat(),
+            SZ_SESSION_ID_EXPIRES: self._session_id_expires.isoformat(),
             #
         }
 
@@ -170,7 +170,7 @@ class AbstractSessionManager(ABC):
         await self.save_session_id()
 
         self._logger.debug(f" - session_id = {self._session_id}")
-        self._logger.debug(f" - session_id_expires = {self._session_expires}")
+        self._logger.debug(f" - session_id_expires = {self._session_id_expires}")
         self._logger.debug(f" - user_info = {self._user_info}")
 
     async def _request_session_id(self, credentials: dict[str, str]) -> None:
@@ -195,7 +195,7 @@ class AbstractSessionManager(ABC):
 
         try:
             self._session_id: str = session[SZ_SESSION_ID]
-            self._session_expires = dt.now() + td(minutes=15)
+            self._session_id_expires = dt.now(tz=UTC) + td(minutes=15)
             self._user_info = session[SZ_USER_INFO]
 
         except (KeyError, TypeError) as err:

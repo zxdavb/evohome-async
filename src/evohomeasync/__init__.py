@@ -8,7 +8,7 @@ Further information at: https://evohome-client.readthedocs.io
 
 from __future__ import annotations
 
-from datetime import datetime as dt, timedelta as td
+from datetime import UTC, datetime as dt, timedelta as td
 
 import aiohttp
 
@@ -71,7 +71,7 @@ class SessionManager(AbstractSessionManager):  # used only by EvohomeClientOld
         # to maintain compatibility, allow these to be passed in here
         if session_id:
             self._session_id = session_id
-            self._session_id_expires = dt.now() + td(minutes=15)  # best guess
+            self._session_id_expires = dt.now(tz=UTC) + td(minutes=15)  # best scenario
 
     async def load_session_id(self) -> None:
         raise NotImplementedError

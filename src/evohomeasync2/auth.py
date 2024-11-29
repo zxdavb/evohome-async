@@ -6,7 +6,7 @@ from __future__ import annotations
 import base64
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime as dt, timedelta as td
+from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
@@ -167,7 +167,7 @@ class AbstractTokenManager(ABC):
 
     def is_access_token_valid(self) -> bool:
         """Return True if the access token is valid."""
-        return self.access_token_expires > dt.now() + td(seconds=15)
+        return self.access_token_expires > dt.now(tz=UTC) + td(seconds=15)
 
     @abstractmethod
     async def save_access_token(self) -> None:
@@ -256,7 +256,9 @@ class AbstractTokenManager(ABC):
 
         try:
             self._access_token = tokens[SZ_ACCESS_TOKEN]
-            self._access_token_expires = dt.now() + td(seconds=tokens[SZ_EXPIRES_IN])
+            self._access_token_expires = dt.now(tz=UTC) + td(
+                seconds=tokens[SZ_EXPIRES_IN]
+            )
             self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
         except (KeyError, TypeError) as err:

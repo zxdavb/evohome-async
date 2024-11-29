@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import tempfile
-from datetime import datetime as dt, timedelta as td
+from datetime import UTC, datetime as dt, timedelta as td
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
 
@@ -81,7 +81,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
 
         new_cache: CacheDataT = {}
 
-        dt_now = (dt.now() + td(seconds=15)).isoformat()
+        dt_now = (dt.now(tz=UTC) + td(seconds=15)).isoformat()
 
         for user_id, entry in old_cache.items():
             user_data: UserEntryT = {}
@@ -161,7 +161,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
             return
 
         # if not self._session_id:  # not needed as dt.min is sentinel for this
-        if self._session_expires.isoformat() < session[SZ_SESSION_ID_EXPIRES]:
+        if self._session_id_expires.isoformat() < session[SZ_SESSION_ID_EXPIRES]:
             self._import_session_id(session)
 
     async def save_access_token(self) -> None:
