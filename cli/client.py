@@ -105,14 +105,14 @@ async def _write(output_file: TextIOWrapper | Any, content: str) -> None:
 @click.group()
 @click.option("--username", "-u", required=True, help="The TCC account username.")
 @click.option("--password", "-p", required=True, help="The TCC account password.")
-@click.option("--cache-tokens", "-c", is_flag=True, help="Load the token cache.")
+@click.option("--no-tokens", "-c", is_flag=True, help="Dont load the token cache.")
 @click.option("--debug", "-d", is_flag=True, help="Enable debug logging.")
 @click.pass_context
 async def cli(
     ctx: click.Context,
     username: str,
     password: str,
-    cache_tokens: bool | None = None,
+    no_tokens: bool | None = None,
     debug: bool | None = None,
 ) -> None:
     """A demonstration CLI for the evohomeasync2 client library."""
@@ -139,7 +139,7 @@ async def cli(
     websession = aiohttp.ClientSession()  # timeout=aiohttp.ClientTimeout(total=30))
     token_manager = CacheManager(username, password, websession, cache_file=CACHE_FILE)
 
-    if cache_tokens:  # restore cached tokens, if any
+    if not no_tokens:  # then restore cached tokens, if any
         await token_manager._load_access_token()
 
     evo = EvohomeClientNew(token_manager, debug=bool(debug))
