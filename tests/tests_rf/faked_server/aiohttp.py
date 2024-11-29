@@ -21,7 +21,7 @@ _DEFAULT_LIMIT = 2**16  # 64 KiB
 
 
 @verify(EnumCheck.UNIQUE)
-class hdrs(StrEnum):  # a la aiohttp
+class hdrs(StrEnum):  # noqa: N801  # is a la aiohttp
     METH_GET = "GET"
     METH_POST = "POST"
     METH_PUT = "PUT"

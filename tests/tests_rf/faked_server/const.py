@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import Final, Literal
+from typing import Final
 
 HOSTNAME: Final = "tccna.honeywell.com"
 
@@ -679,9 +679,3 @@ def user_config_from_full_config(full_config: list) -> dict:
 
 
 MOCK_USER_CONFIG = user_config_from_full_config(MOCK_FULL_CONFIG)
-
-
-_bodyT = list | dict | str
-_methodT = Literal["GET", "POST", "PUT"]
-_statusT = int
-_urlT = str

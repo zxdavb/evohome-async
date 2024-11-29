@@ -154,6 +154,7 @@ select = [
   "G",     # flake8-logging-format
   "I",     # isort
   "LOG",   # flake8-logging
+  "N",     # pep8-naming
   "PGH",   # pygrep hooks
   "PT",    # flake8-pytest-style
   "SIM",   # flake8-simplify
@@ -163,7 +164,7 @@ select = [
   "RET",   # flake8-return
 ]
 
-ignore = ["E501", "G004", "S101", "SIM102", "SIM114"]
+ignore = ["E501", "G004", "N806", "S101", "SIM102", "SIM114"]
 # E501   - Line too long
 # G004   - Logging statement uses f-string
 # S101   - Assertions are removed when Python is run with optimization
