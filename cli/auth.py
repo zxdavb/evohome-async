@@ -12,7 +12,12 @@ from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
 import aiofiles
 import aiofiles.os
 
-from evohomeasync.auth import SZ_SESSION_ID_EXPIRES, AbstractSessionManager, SessionIdT
+from evohomeasync.auth import (
+    SZ_SESSION_ID,
+    SZ_SESSION_ID_EXPIRES,
+    AbstractSessionManager,
+    SessionIdT,
+)
 from evohomeasync2.auth import SZ_ACCESS_TOKEN_EXPIRES, AbstractTokenManager
 
 if TYPE_CHECKING:
@@ -23,7 +28,6 @@ CACHE_FILE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tmp")
 
 
 SZ_AUTH_TOKENS: Final = "auth_tokens"
-SZ_SESSION_ID: Final = "session_id"
 
 
 class UserEntryT(TypedDict):
