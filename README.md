@@ -28,9 +28,9 @@ python client.py -u username@gmail.com -p password get-schedules --loc-idx 2 > s
 python client.py -u username@gmail.com -p password set-schedules --loc-idx 2 -f schedules.json
 ```
 
-To avoid exceeding the vendor's API rate limit, you can cache the access tokens via the `--cache-tokens` switch.
+To avoid exceeding the vendor's API rate limit, it will restore the access token cache, unless you use the the `--no-tokens` switch.
 
-> Beware that the above switch will save your tokens to **.evo-cache.tmp**: this presents a small security concern.
+> Beware that the client will always save your tokens to **.evo-cache.tmp**: this presents a small security concern.
 
 ### Differences from non-async version (out of date)
 The difference between the **evohomeasync** and **evohomeclient** libraries have been kept to the minimum, and it is planned for existing docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
