@@ -126,12 +126,10 @@ async def should_fail_v0(
 
     assert rsp.content_type == content_type, response
 
-    try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
+    # beware if JSON not passed in (i.e. is None, c.f. should_work())
+    with pytest.raises(aiohttp.ClientResponseError) as exc_info:
         rsp.raise_for_status()
-    except aiohttp.ClientResponseError as err:
-        assert err.status == status, err.status
-    else:
-        assert False, rsp.status
+    assert exc_info.value.status == status, exc_info.value.status
 
     if _DBG_DISABLE_STRICT_ASSERTS:
         return response
@@ -147,7 +145,7 @@ async def should_fail_v0(
         # '<!DOCTYPE html PUBLIC ... not found ...'
 
     else:
-        assert False, rsp.content_type
+        pytest.fail(f"Did not return expected response: {rsp.content_type}")
 
     return response
 
@@ -219,12 +217,10 @@ async def should_fail_v2(
     else:
         response = await rsp.text()
 
-    try:  # beware if JSON not passed in (i.e. is None, c.f. should_work())
+    # beware if JSON not passed in (i.e. is None, c.f. should_work())
+    with pytest.raises(aiohttp.ClientResponseError) as exc_info:
         rsp.raise_for_status()
-    except aiohttp.ClientResponseError as err:
-        assert err.status == status, err.status
-    else:
-        assert False, rsp.status
+    assert exc_info.value.status == status, exc_info.value.status
 
     assert rsp.content_type == content_type, response
 

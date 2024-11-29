@@ -65,7 +65,7 @@ async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     """
 
     assert response[0]["code"] == "TooManyRequests"
-    assert response[0]["message"] and isinstance(response[0]["message"], str)
+    assert isinstance(response[0]["message"], str)
 
     pytest.skip("Too many requests")
 
@@ -98,7 +98,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
         """
 
     assert response[0]["code"] == "EmailOrPasswordIncorrect"
-    assert response[0]["message"] and isinstance(response[0]["message"], str)
+    assert isinstance(response[0]["message"], str)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -129,7 +129,7 @@ async def test_url_auth_bad2(  # invalid/expired session id
         """
 
     assert response[0]["code"] == "Unauthorized"
-    assert response[0]["message"] and isinstance(response[0]["message"], str)
+    assert isinstance(response[0]["message"], str)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")

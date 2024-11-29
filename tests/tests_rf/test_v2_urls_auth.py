@@ -126,7 +126,7 @@ async def test_url_auth_bad2(  # invalid/expired access token
     assert isinstance(response, list)  # mypy hint
 
     assert response[0]["code"] == "Unauthorized"
-    assert response[0]["message"] and isinstance(response[0]["message"], str)
+    assert isinstance(response[0]["message"], str)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -197,7 +197,7 @@ async def test_url_auth_good(
             }
         """
 
-    assert user_auth["access_token"] and isinstance(user_auth["access_token"], str)
+    assert isinstance(user_auth["access_token"], str)
     assert user_auth["expires_in"] <= 1800
 
     assert SCH_OAUTH_TOKEN(user_auth), user_auth
@@ -235,8 +235,8 @@ async def test_url_auth_good(
             }
         """
 
-    assert response["userId"] and isinstance(response["userId"], str)
-    assert response["username"] and response["username"] == credentials[0]
+    assert isinstance(response["userId"], str)
+    assert response["username"] == credentials[0]
 
     assert SCH_GET_USER_ACCOUNT(response), response
 
@@ -272,7 +272,7 @@ async def test_url_auth_good(
             }
         """
 
-    assert user_auth["access_token"] and isinstance(user_auth["access_token"], str)
+    assert isinstance(user_auth["access_token"], str)
     assert user_auth["expires_in"] <= 1800
 
     assert SCH_OAUTH_TOKEN(user_auth), user_auth

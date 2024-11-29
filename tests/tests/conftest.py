@@ -45,7 +45,7 @@ class ClientStub:
     _logger = logging.getLogger(__name__)
 
 
-@pytest.fixture()  # autouse=True)
+@pytest.fixture  # (autouse=True)
 def block_aiohttp() -> Generator[Callable]:
     """Prevent any actual I/O: will raise ClientConnectionError(Connection refused)."""
     with aioresponses() as m:

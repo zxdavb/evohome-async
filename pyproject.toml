@@ -99,7 +99,7 @@ disallow_incomplete_defs = true
 disallow_untyped_defs = true
 
 # This one isn't too hard to get passing, but return on investment is lower
-# no_implicit_reexport = true  # WIP
+# no_implicit_reexport = true
 
 # This one can be tricky to get passing if you use a lot of untyped libraries
 warn_return_any = true
@@ -155,7 +155,7 @@ select = [
   "I",     # isort
   "LOG",   # flake8-logging
   "PGH",   # pygrep hooks
-  # "PT",  # flake8-pytest-style
+  "PT",    # flake8-pytest-style
   "SIM",   # flake8-simplify
   "S",     # flake8-bandit
   "TC",    # flake8-tidy-imports
@@ -163,15 +163,12 @@ select = [
   "RET",   # flake8-return
 ]
 
-ignore = ["B011", "G004", "E501", "S101", "SIM102", "SIM114", "UP009"]
-# B011   - Do not call assert False since python -O removes these calls
+ignore = ["E501", "G004", "S101", "SIM102", "SIM114"]
 # E501   - Line too long
 # G004   - Logging statement uses f-string
+# S101   - Assertions are removed when Python is run with optimization
 # SIM102 - Use a single `if` statement instead of nested `if` statements
 # SIM114 - Combine `if` branches using logical `or` operator
-# TC002  - Move third-party import {} into a type-checking block
-# TC003  - Move standard library import {} into a type-checking block
-# UP009  - UTF-8 encoding declaration is unnecessary
 
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]

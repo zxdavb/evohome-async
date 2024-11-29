@@ -71,7 +71,7 @@ async def _test_sched__apis(evo: EvohomeClientv2) -> None:
         except evo2.InvalidScheduleError:
             pass
         else:
-            assert False
+            pytest.fail("Did not raise expected exception")
 
 
 async def _test_update_apis(evo: EvohomeClientv2) -> None:
