@@ -275,11 +275,20 @@ async def get_schedules(
     print("\r\nclient.py: Starting backup of schedules...")
     evo: EvohomeClientNew = ctx.obj[SZ_EVO]
 
-    schedules = await _get_tcs(evo, loc_idx).get_schedules()
+    try:
+        tcs = _get_tcs(evo, loc_idx)
 
-    await _write(output_file, json.dumps(schedules, indent=4) + "\r\n\r\n")
+    except IndexError:
+        _LOGGER.error("No TCS found at location idx: %s", loc_idx)
 
-    await ctx.obj[SZ_CLEANUP]
+    else:
+        schedules = await tcs.get_schedules()
+
+        await _write(output_file, json.dumps(schedules, indent=4) + "\r\n\r\n")
+
+    finally:
+        await ctx.obj[SZ_CLEANUP]
+
     print(" - finished.\r\n")
 
 
@@ -307,13 +316,22 @@ async def set_schedules(
     print("\r\nclient.py: Starting restore of schedules...")
     evo: EvohomeClientNew = ctx.obj[SZ_EVO]
 
-    # will TypeError if input_file is sys.stdin
-    async with aiofiles.open(input_file.name) as fp:
-        content = await fp.read()
+    try:
+        tcs = _get_tcs(evo, loc_idx)
 
-    success = await _get_tcs(evo, loc_idx).set_schedules(json.loads(content))
+    except IndexError:
+        _LOGGER.error("No TCS found at location idx: %s", loc_idx)
 
-    await ctx.obj[SZ_CLEANUP]
+    else:
+        # will TypeError if input_file is sys.stdin
+        async with aiofiles.open(input_file.name) as fp:
+            content = await fp.read()
+
+        success = await tcs.set_schedules(json.loads(content))
+
+    finally:
+        await ctx.obj[SZ_CLEANUP]
+
     print(f" - finished{'' if success else ' (with errors)'}.\r\n")
 
 
