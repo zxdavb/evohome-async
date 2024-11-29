@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime as dt, timedelta as td
+from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
@@ -121,7 +121,7 @@ class ActiveFaultsBase(EntityBase):
             self._logger.warning(
                 f"Active fault: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
             )
-            last_logged[hash(fault)] = dt.now()
+            last_logged[hash(fault)] = dt.now(tz=UTC)
 
         def log_as_resolved(fault: _EvoDictT) -> None:
             self._logger.info(
@@ -137,7 +137,7 @@ class ActiveFaultsBase(EntityBase):
             if fault not in status[SZ_ACTIVE_FAULTS]:  # fault resolved
                 log_as_resolved(fault)
 
-            elif dt.now() - self._last_logged[hash(fault)] > _ONE_DAY:
+            elif dt.now(tz=UTC) - self._last_logged[hash(fault)] > _ONE_DAY:
                 log_as_active(fault)
 
         self._active_faults = status[SZ_ACTIVE_FAULTS]
