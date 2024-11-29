@@ -120,7 +120,7 @@ class AbstractSessionManager(ABC):
 
     def is_session_id_valid(self) -> bool:
         """Return True if the session id is valid."""
-        return self.session_id_expires > dt.now(tz=UTC) + td(seconds=15)
+        return self._session_id_expires > dt.now(tz=UTC) + td(seconds=15)
 
     @abstractmethod
     async def save_session_id(self) -> None:
@@ -169,9 +169,9 @@ class AbstractSessionManager(ABC):
 
         await self.save_session_id()
 
-        self._logger.debug(f" - session_id = {self._session_id}")
-        self._logger.debug(f" - session_id_expires = {self._session_id_expires}")
-        self._logger.debug(f" - user_info = {self._user_info}")
+        self._logger.debug(f" - session_id = {self.session_id}")
+        self._logger.debug(f" - session_id_expires = {self.session_id_expires}")
+        self._logger.debug(f" - user_info = {self.user_info}")
 
     async def _request_session_id(self, credentials: dict[str, str]) -> None:
         """Obtain an session id using the supplied credentials.

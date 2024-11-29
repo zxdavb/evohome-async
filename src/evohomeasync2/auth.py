@@ -167,7 +167,7 @@ class AbstractTokenManager(ABC):
 
     def is_access_token_valid(self) -> bool:
         """Return True if the access token is valid."""
-        return self.access_token_expires > dt.now(tz=UTC) + td(seconds=15)
+        return self._access_token_expires > dt.now(tz=UTC) + td(seconds=15)
 
     @abstractmethod
     async def save_access_token(self) -> None:
@@ -207,7 +207,7 @@ class AbstractTokenManager(ABC):
         if self._refresh_token:
             self._logger.warning("Authenticating with the refresh_token...")
 
-            credentials = {SZ_REFRESH_TOKEN: self.refresh_token}
+            credentials = {SZ_REFRESH_TOKEN: self._refresh_token}
 
             try:
                 await self._request_access_token(CREDS_REFRESH_TOKEN | credentials)
