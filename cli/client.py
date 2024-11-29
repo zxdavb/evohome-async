@@ -95,11 +95,11 @@ def _get_tcs(evo: EvohomeClientNew, loc_idx: int | None) -> ControlSystem:
 async def _write(output_file: TextIOWrapper | Any, content: str) -> None:
     """Write to a file, async if possible and sync otherwise."""
 
-    try:
+    if output_file.name == "<stdout>":
+        output_file.write(content)
+    else:
         async with aiofiles.open(output_file.name, "w") as fp:
             await fp.write(content)
-    except TypeError:  # if output_file is sys.stdout:
-        output_file.write(content)
 
 
 @click.group()
