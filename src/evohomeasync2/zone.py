@@ -121,7 +121,7 @@ class ActiveFaultsBase(EntityBase):
             self._logger.warning(
                 f"Active fault: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
             )
-            last_logged[hash(fault)] = dt.now(tz=UTC)
+            last_logged[hash(fault)] = dt.now(tz=UTC)  # aware dtm not required
 
         def log_as_resolved(fault: _EvoDictT) -> None:
             self._logger.info(
@@ -305,8 +305,8 @@ class _ScheduleBase(ActiveFaultsBase):
             self._schedule, *dt_to_dow_and_tod(dtm, self.location.tzinfo)
         )
 
-        this_tod = dt.strptime(this_sp["time_of_day"], "%H:%M").time()
-        next_tod = dt.strptime(next_sp["time_of_day"], "%H:%M").time()
+        this_tod = dt.strptime(this_sp["time_of_day"], "%H:%M").time()  # noqa: DTZ007
+        next_tod = dt.strptime(next_sp["time_of_day"], "%H:%M").time()  # noqa: DTZ007
 
         this_dtm = dt.combine(dtm + td(days=this_offset), this_tod)
         next_dtm = dt.combine(dtm + td(days=next_offset), next_tod)
