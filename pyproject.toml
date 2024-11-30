@@ -111,29 +111,21 @@ warn_unreachable = true
 
 #
 [[tool.mypy.overrides]]
-module = ["tests.*", "tests_rf.*"]
+module = ["tests.tests.*"]
 
 disable_error_code = [
-  "arg-type", #  7
-  "index",    # 18
-  "type-arg", # 15
+  "arg-type", # 14
+  "type-arg", # 12
 ]
 
 #
 [[tool.mypy.overrides]]
-module = "tests_rf.faked_server.*"
+module = ["tests.tests_rf.*"]
 
 disable_error_code = [
-  "no-any-return",  #  5 (aiohttp,const,vendor)
-  "no-untyped-def", #  9 (aiohttp)
-  "return-value",   #  2 (aiohttp): high risk, low benefit to fix
-]
-#
-[[tool.mypy.overrides]]
-module = "tests_rf.helpers"
-
-disable_error_code = [
-  "call-arg", # high risk, low benefit to fix
+  "arg-type", #  5
+  "index",    #  9
+  "type-arg", # 50
 ]
 
 #

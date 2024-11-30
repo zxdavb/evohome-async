@@ -39,9 +39,7 @@ async def client_session(
         from .tests_rf import faked_server as fake
         from .tests_rf.faked_server import aiohttp  # type: ignore[no-redef]
 
-        client_session = aiohttp.ClientSession(
-            faked_server=fake.FakedServer(None, None)
-        )  # type: ignore[call-arg]
+        client_session = aiohttp.ClientSession(faked_server=fake.FakedServer({}, {}))  # type: ignore[call-arg]
 
     try:
         yield client_session
