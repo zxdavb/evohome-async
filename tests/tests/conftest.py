@@ -138,7 +138,9 @@ def broker_get(install: str) -> Callable:
     """Return a mock of Broker.get()."""
 
     async def get(  # type: ignore[no-untyped-def]
-        self, url: str, schema: vol.Schema | None = None
+        self,  # noqa: ANN001
+        url: str,
+        schema: vol.Schema | None = None,
     ) -> JsonArrayType | JsonObjectType:
         if "userAccount" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]

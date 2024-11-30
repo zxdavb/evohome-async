@@ -75,12 +75,12 @@ def validate_id_of_url(
 
             assert svr._url  # mypy
             try:
-                id: str = id_fnc(svr._url)
+                id_: str = id_fnc(svr._url)
             except IndexError:
                 svr.status = HTTPStatus.NOT_FOUND
                 return {"message": "Not Found"}
 
-            if not id.isdigit():
+            if not id_.isdigit():
                 svr.status = HTTPStatus.BAD_REQUEST
                 return [{"message": "Bad request"}]
 

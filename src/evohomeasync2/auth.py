@@ -312,7 +312,7 @@ class _RequestContextManager:
         url: StrOrURL,
         /,
         **kwargs: Any,
-    ):
+    ) -> None:
         """Initialize the request context manager."""
 
         self._get_access_token = access_token_getter

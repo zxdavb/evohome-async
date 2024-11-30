@@ -43,14 +43,14 @@ class EntityBase:
     _config: _EvoDictT
     _status: _EvoDictT
 
-    def __init__(self, id: int, auth: Auth, logger: logging.Logger) -> None:
-        self._id: Final = id
+    def __init__(self, entity_id: int, auth: Auth, logger: logging.Logger) -> None:
+        self._id: Final = entity_id
 
         self._auth = auth
         self._logger = logger
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__}(id='{self.id}')"
+        return f"{self.__class__.__name__}(id='{self._id}')"
 
     @property
     def id(self) -> str:
@@ -210,7 +210,7 @@ class Location(EntityBase):
         """Set the system to the heating off mode."""
         await self._set_system_mode(SystemMode.HEATING_OFF, until=until)
 
-    def _get_zone(self, id: int | str) -> Zone:
+    def _get_zone(self, zon_id: int | str) -> Zone:
         """Return the location's zone by its id, idx or name."""
 
         dev: Zone | None
@@ -218,22 +218,22 @@ class Location(EntityBase):
         # just want id, so retrieve the config data only if we don't already have it
         # await self._cli.update(force_refresh=False)
 
-        if isinstance(id, int):
-            id = str(id)
+        if isinstance(zon_id, int):
+            zon_id = str(zon_id)
 
-        dev = self.devices_by_id.get(id)  # type: ignore[assignment]
-
-        if dev is None:
-            dev = self.devices_by_idx.get(id)  # type: ignore[assignment]
+        dev = self.devices_by_id.get(zon_id)  # type: ignore[assignment]
 
         if dev is None:
-            dev = self.devices_by_name.get(id)  # type: ignore[assignment]
+            dev = self.devices_by_idx.get(zon_id)  # type: ignore[assignment]
 
         if dev is None:
-            raise exc.InvalidSchemaError(f"No zone {id} in location {self.id}")
+            dev = self.devices_by_name.get(zon_id)  # type: ignore[assignment]
+
+        if dev is None:
+            raise exc.InvalidSchemaError(f"No zone {zon_id} in location {self.id}")
 
         if not isinstance(dev, Zone):
-            raise exc.InvalidSchemaError(f"Zone {id} is not an EMEA_ZONE")
+            raise exc.InvalidSchemaError(f"Zone {zon_id} is not an EMEA_ZONE")
 
         return dev
 

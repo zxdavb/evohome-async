@@ -42,8 +42,6 @@ async def _test_basics_apis(evo: EvohomeClientv2) -> None:
         loc_status = await loc.update()
         assert evo2.Location.STATUS_SCHEMA(loc_status)
 
-    pass
-
 
 async def _test_sched__apis(evo: EvohomeClientv2) -> None:
     """Test `get_schedule()` and `get_schedule()`."""
@@ -88,8 +86,6 @@ async def _test_update_apis(evo: EvohomeClientv2) -> None:
         zone_status = await zone._update()
         assert evo2.Zone.STATUS_SCHEMA(zone_status)
 
-    pass
-
 
 async def _test_system_apis(evo: EvohomeClientv2) -> None:
     """Test `set_mode()` for TCS."""
@@ -110,8 +106,6 @@ async def _test_system_apis(evo: EvohomeClientv2) -> None:
     await evo.update()
 
     await tcs.set_mode(mode)
-
-    pass
 
 
 #######################################################################################

@@ -327,20 +327,19 @@ class ControlSystem(ActiveFaultsBase):
         """
 
         async def restore_by_id(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
-            """Restore schedule by id and return False if there was no match."""
+            """Restore a schedule by id and return False if there was no match."""
 
-            id: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
-            name: str = sched["name"]
+            id_: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
 
-            if self.hotwater and self.hotwater.id == id:
+            if self.hotwater and self.hotwater.id == id_:
                 await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
 
-            elif zone := self.zones_by_id.get(id):
+            elif zone := self.zones_by_id.get(id_):
                 await zone.set_schedule(json.dumps(sched["daily_schedules"]))
 
             else:
                 self._logger.warning(
-                    f"Ignoring schedule of {id} ({name}): unknown id"
+                    f"Ignoring schedule of {id_} ({sched.get("name")}): unknown id"
                     ", consider matching by name rather than by id"
                 )
                 return False
@@ -348,20 +347,21 @@ class ControlSystem(ActiveFaultsBase):
             return True
 
         async def restore_by_name(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
-            """Restore schedule by name and return False if there was no match."""
+            """Restore a schedule by name and return False if there was no match."""
 
-            id: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
-            name: str = sched["name"]
+            name: str | None = sched.get("name")  # name is NotRequired[str]
 
-            if self.hotwater and name == self.hotwater.name:
+            if name and self.hotwater and name == self.hotwater.name:
                 await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
 
-            elif zone := self.zones_by_name.get(name):
+            elif name and (zone := self.zones_by_name.get(name)):
                 await zone.set_schedule(json.dumps(sched["daily_schedules"]))
 
             else:
+                id_: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
+
                 self._logger.warning(
-                    f"Ignoring schedule of {id} ({name}): unknown name"
+                    f"Ignoring schedule of {id_} ({name}): unknown name"
                     ", consider matching by id rather than by name"
                 )
                 return False

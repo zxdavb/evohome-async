@@ -228,8 +228,6 @@ class ClientResponse:
 
     async def wait_for_close(self) -> None:
         """Wait for the response to close."""
-        pass
 
     def release(self) -> None:
         """Release the response."""
-        pass

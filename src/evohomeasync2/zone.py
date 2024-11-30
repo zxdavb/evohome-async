@@ -80,14 +80,14 @@ class EntityBase:
     _config: dict[str, Any]
     _status: _EvoDictT
 
-    def __init__(self, id: str, auth: Auth, logger: logging.Logger) -> None:
-        self._id: Final = id
+    def __init__(self, entity_id: str, auth: Auth, logger: logging.Logger) -> None:
+        self._id: Final = entity_id
 
         self._auth = auth
         self._logger = logger
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__}(id='{self.id}')"
+        return f"{self.__class__.__name__}(id='{self._id}')"
 
     @property
     def id(self) -> str:
@@ -105,8 +105,8 @@ class EntityBase:
 
 
 class ActiveFaultsBase(EntityBase):
-    def __init__(self, id: str, broker: Auth, logger: logging.Logger) -> None:
-        super().__init__(id, broker, logger)
+    def __init__(self, entity_id: str, broker: Auth, logger: logging.Logger) -> None:
+        super().__init__(entity_id, broker, logger)
 
         self._active_faults: _EvoListT = []
         self._last_logged: dict[str, dt] = {}
@@ -114,20 +114,20 @@ class ActiveFaultsBase(EntityBase):
     def _update_status(self, status: _EvoDictT) -> None:
         last_logged = {}
 
-        def hash(fault: _EvoDictT) -> str:
+        def hash_(fault: _EvoDictT) -> str:
             return f"{fault[SZ_FAULT_TYPE]}_{fault[SZ_SINCE]}"
 
         def log_as_active(fault: _EvoDictT) -> None:
             self._logger.warning(
                 f"Active fault: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
             )
-            last_logged[hash(fault)] = dt.now(tz=UTC)  # aware dtm not required
+            last_logged[hash_(fault)] = dt.now(tz=UTC)  # aware dtm not required
 
         def log_as_resolved(fault: _EvoDictT) -> None:
             self._logger.info(
                 f"Fault cleared: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
             )
-            del self._last_logged[hash(fault)]
+            del self._last_logged[hash_(fault)]
 
         for fault in status[SZ_ACTIVE_FAULTS]:
             if fault not in self.active_faults:  # new active fault
@@ -137,7 +137,7 @@ class ActiveFaultsBase(EntityBase):
             if fault not in status[SZ_ACTIVE_FAULTS]:  # fault resolved
                 log_as_resolved(fault)
 
-            elif dt.now(tz=UTC) - self._last_logged[hash(fault)] > _ONE_DAY:
+            elif dt.now(tz=UTC) - self._last_logged[hash_(fault)] > _ONE_DAY:
                 log_as_active(fault)
 
         self._active_faults = status[SZ_ACTIVE_FAULTS]
@@ -220,8 +220,8 @@ class _ScheduleBase(ActiveFaultsBase):
 
     _schedule: list[DayOfWeekDhwT] | list[DayOfWeekZoneT] | None
 
-    def __init__(self, id: str, tcs: ControlSystem) -> None:
-        super().__init__(id, tcs._auth, tcs._logger)
+    def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
+        super().__init__(entity_id, tcs._auth, tcs._logger)
 
         self.location = tcs.location
 
@@ -328,8 +328,8 @@ class _ZoneBase(_ScheduleBase):
 
     STATUS_SCHEMA: Final  # type: ignore[misc]
 
-    def __init__(self, id: str, tcs: ControlSystem) -> None:
-        super().__init__(id, tcs)
+    def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
+        super().__init__(entity_id, tcs)
 
         self.location = tcs.location
 
