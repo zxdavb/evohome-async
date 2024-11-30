@@ -6,10 +6,10 @@ try:
     from cli.client import main
 
 except ModuleNotFoundError:
-    import os
+    from pathlib import Path
 
-    sys.path.append(f"{os.path.dirname(__file__)}/cli")
-    sys.path.append(f"{os.path.dirname(__file__)}/src")
+    sys.path.append(str(Path(__file__).parent / "cli"))
+    sys.path.append(str(Path(__file__).parent / "src"))
 
     from cli.client import main
 

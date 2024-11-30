@@ -36,8 +36,6 @@ type JsonValueType = (
 type JsonArrayType = list[JsonValueType]
 type JsonObjectType = dict[str, JsonValueType]
 
-FIXTURES_DIR = Path(__file__).parent / "fixtures"
-
 
 class ClientStub:
     auth = None
@@ -73,8 +71,41 @@ def load_fixture(file: Path) -> JsonArrayType | JsonObjectType:
     return json.loads(text)  # type: ignore[no-any-return]
 
 
+# NOTE: JSON from HA is not compliant with vendor schema, but is useful to test against
+CONFIG_FILE_NAME = "config.json"
+STATUS_FILE_NAME = "status.json"
+
+
+@pytest.fixture  # used by test_schemas_0.py, test_schemas_1.py
+def config(folder: Path) -> dict:
+    """Fixture to load the configuration file."""
+    # is camelCase, as per vendor's schema
+
+    config_path = folder / CONFIG_FILE_NAME
+    if not config_path.is_file():
+        pytest.skip(f"No {CONFIG_FILE_NAME} in: {folder.name}")
+
+    return load_fixture(config_path)  # type: ignore[return-value]
+
+
+@pytest.fixture  # used by test_schemas_0.py, test_schemas_1.py
+def status(folder: Path) -> dict:
+    """Fixture to load the status file."""
+    # is camelCase, as per vendor's schema
+
+    status_path = folder / STATUS_FILE_NAME
+    if not status_path.is_file():
+        pytest.skip(f"No {STATUS_FILE_NAME} in: {folder.name}")
+
+    return load_fixture(status_path)  # type: ignore[return-value]
+
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+# wrapper for FIXTURES_DIR to enable default fixtures
 def _load_fixture(install: str, file_name: str) -> JsonArrayType | JsonObjectType:
-    """Load a file fixture."""
+    """Load a file fixture and use a default fixture if not found."""
 
     try:
         try:

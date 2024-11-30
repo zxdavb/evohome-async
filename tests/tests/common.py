@@ -20,7 +20,7 @@ def assert_schema(folder: Path, schema: vol.Schema, file_name: str) -> None:
     if not Path(folder).joinpath(file_name).is_file():
         pytest.skip(f"No {file_name} in: {folder.name}")
 
-    with open(Path(folder).joinpath(file_name)) as f:
+    with Path(folder).joinpath(file_name).open() as f:
         data: dict = json.load(f)  # is camelCase, as per vendor's schema
 
     _ = schema(data)

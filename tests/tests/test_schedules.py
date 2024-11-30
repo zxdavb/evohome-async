@@ -12,6 +12,11 @@ from .conftest import JsonObjectType, load_fixture
 
 SCHEDULES_DIR = Path(__file__).parent / "schedules"
 
+
+def schedule_file(filename: str) -> JsonObjectType:
+    return load_fixture(SCHEDULES_DIR / filename)  # type: ignore[return-value]
+
+
 SCHEDULE = convert_keys_to_snake_case(
     {
         "dailySchedules": [
@@ -83,15 +88,11 @@ SCHEDULE = convert_keys_to_snake_case(
 )
 
 
-def schedule_fixture(filename: str) -> JsonObjectType:
-    return load_fixture(SCHEDULES_DIR / filename)  # type: ignore[return-value]
-
-
 def _test_schema_schedule_dhw() -> None:
     """Test the schedule schema for dhw."""
 
-    get_sched = schedule_fixture("schedule_dhw_get.json")
-    _ = schedule_fixture("schedule_dhw_put.json")
+    get_sched = schedule_file("schedule_dhw_get.json")
+    _ = schedule_file("schedule_dhw_put.json")
 
     assert get_sched == SCH_GET_SCHEDULE_DHW(get_sched)
     # assert put_sched == SCH_PUT_SCHEDULE_DHW(put_sched)
@@ -103,8 +104,8 @@ def _test_schema_schedule_dhw() -> None:
 def _test_schema_schedule_zone() -> None:
     """Test the schedule schema for zones."""
 
-    get_sched = schedule_fixture("schedule_zone_get.json")
-    _ = schedule_fixture("schedule_zone_put.json")
+    get_sched = schedule_file("schedule_zone_get.json")
+    _ = schedule_file("schedule_zone_put.json")
 
     assert get_sched == SCH_GET_SCHEDULE_ZONE(get_sched)
     # assert put_sched == SCH_PUT_SCHEDULE_ZONE(put_sched)

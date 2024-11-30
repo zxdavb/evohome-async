@@ -3,11 +3,8 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
-from typing import Final
-
-import pytest
+from typing import TYPE_CHECKING, Final
 
 from evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2 import Location
@@ -25,16 +22,10 @@ from evohomeasync2.schemas.const import (
 from .common import TEST_DIR
 from .conftest import ClientStub
 
+if TYPE_CHECKING:
+    import pytest
+
 WORK_DIR = f"{TEST_DIR}/schemas_1"
-
-# NOTE: JSON from HA is not compliant with vendor schema, but is useful to test against
-CONFIG_FILE_NAME = "config.json"
-STATUS_FILE_NAME = "status.json"
-
-
-# These schemas have camelCase keys, as per the vendor's schema
-SCH_TCS_CONFIG: Final = factory_tcs()
-SCH_TIME_ZONE: Final = factory_time_zone()
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -47,26 +38,19 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     metafunc.parametrize("folder", sorted(folders), ids=id_fnc)
 
 
-def test_config_refresh(folder: Path) -> None:
+# These schemas have camelCase keys, as per the vendor's schema
+SCH_TCS_CONFIG: Final = factory_tcs()
+SCH_TIME_ZONE: Final = factory_time_zone()
+
+
+def test_config_refresh(config: dict, status: dict) -> None:
     """Test the loading a config, then an update_status() on top of that."""
-
-    if not Path(folder).joinpath(CONFIG_FILE_NAME).is_file():
-        pytest.skip(f"No {CONFIG_FILE_NAME} in: {folder.name}")
-
-    if not Path(folder).joinpath(STATUS_FILE_NAME).is_file():
-        pytest.skip(f"No {STATUS_FILE_NAME} in: {folder.name}")
-
-    with open(Path(folder).joinpath(CONFIG_FILE_NAME)) as f:
-        config: dict = json.load(f)  # is camelCase, as per vendor's schema
 
     # hack because old JSON from HA's evohome integration didn't include this data
     if config[S2_LOCATION_INFO].get(S2_USE_DAYLIGHT_SAVE_SWITCHING) is None:
         config[S2_LOCATION_INFO][S2_USE_DAYLIGHT_SAVE_SWITCHING] = config[
             S2_LOCATION_INFO
         ][S2_TIME_ZONE][S2_SUPPORTS_DAYLIGHT_SAVING]
-
-    with open(Path(folder).joinpath(STATUS_FILE_NAME)) as f:
-        status: dict = json.load(f)  # is camelCase, as per vendor's schema
 
     config = convert_keys_to_snake_case(config)
     status = convert_keys_to_snake_case(status)
@@ -76,14 +60,8 @@ def test_config_refresh(folder: Path) -> None:
     loc._update_status(status)
 
 
-def test_config_schemas(folder: Path) -> None:
+def test_config_schemas(config: dict) -> None:
     """Test the config schema for a location."""
-
-    if not Path(folder).joinpath(CONFIG_FILE_NAME).is_file():
-        pytest.skip(f"No {CONFIG_FILE_NAME} in: {folder.name}")
-
-    with open(Path(folder).joinpath(CONFIG_FILE_NAME)) as f:
-        config: dict = json.load(f)  # is camelCase, as per vendor's schema
 
     _ = SCH_TIME_ZONE(config[S2_LOCATION_INFO][S2_TIME_ZONE])
 
@@ -92,13 +70,7 @@ def test_config_schemas(folder: Path) -> None:
             _ = SCH_TCS_CONFIG(tcs_config)
 
 
-def test_status_schemas(folder: Path) -> None:
+def test_status_schemas(status: dict) -> None:
     """Test the status schema for a location."""
-
-    if not Path(folder).joinpath(STATUS_FILE_NAME).is_file():
-        pytest.skip(f"No {STATUS_FILE_NAME} in: {folder.name}")
-
-    with open(Path(folder).joinpath(STATUS_FILE_NAME)) as f:
-        status: dict = json.load(f)  # is camelCase, as per vendor's schema
 
     _ = SCH_GET_LOCN_STATUS(status)
