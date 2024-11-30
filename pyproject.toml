@@ -114,8 +114,7 @@ warn_unreachable = true
 module = ["tests.tests.*"]
 
 disable_error_code = [
-  "arg-type", # 14
-  "type-arg", # 12
+  # "arg-type", # 14
 ]
 
 #
@@ -123,9 +122,17 @@ disable_error_code = [
 module = ["tests.tests_rf.*"]
 
 disable_error_code = [
-  "arg-type", #  5
-  "index",    #  9
-  "type-arg", # 50
+  "type-arg", # 35
+]
+
+#
+[[tool.mypy.overrides]]
+module = ["tests.tests_rf.faked_server.*"]
+
+disable_error_code = [
+  "arg-type", # 2
+  "index",    # 3
+  "type-arg", # 4
 ]
 
 #

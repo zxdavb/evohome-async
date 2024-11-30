@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import uuid
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -32,7 +32,7 @@ async def test_get_session_id(
 ) -> None:
     """Test .get_session_id() and .is_session_valid() methods."""
 
-    def server_response() -> dict[str, dict | str]:
+    def server_response() -> dict[str, dict[str, Any] | str]:
         """Return the server response to a valid authorization request."""
         return {"sessionId": str(uuid.uuid4()), "userInfo": {}}
 

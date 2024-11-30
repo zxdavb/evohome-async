@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Any, Final
 
 from evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2 import Location
@@ -43,7 +43,7 @@ SCH_TCS_CONFIG: Final = factory_tcs()
 SCH_TIME_ZONE: Final = factory_time_zone()
 
 
-def test_config_refresh(config: dict, status: dict) -> None:
+def test_config_refresh(config: dict[str, Any], status: dict[str, Any]) -> None:
     """Test the loading a config, then an update_status() on top of that."""
 
     # hack because old JSON from HA's evohome integration didn't include this data
@@ -60,7 +60,7 @@ def test_config_refresh(config: dict, status: dict) -> None:
     loc._update_status(status)
 
 
-def test_config_schemas(config: dict) -> None:
+def test_config_schemas(config: dict[str, Any]) -> None:
     """Test the config schema for a location."""
 
     _ = SCH_TIME_ZONE(config[S2_LOCATION_INFO][S2_TIME_ZONE])
@@ -70,7 +70,7 @@ def test_config_schemas(config: dict) -> None:
             _ = SCH_TCS_CONFIG(tcs_config)
 
 
-def test_status_schemas(status: dict) -> None:
+def test_status_schemas(status: dict[str, Any]) -> None:
     """Test the status schema for a location."""
 
     _ = SCH_GET_LOCN_STATUS(status)

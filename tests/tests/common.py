@@ -6,7 +6,7 @@ from __future__ import annotations
 import inspect
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -21,7 +21,7 @@ def assert_schema(folder: Path, schema: vol.Schema, file_name: str) -> None:
         pytest.skip(f"No {file_name} in: {folder.name}")
 
     with Path(folder).joinpath(file_name).open() as f:
-        data: dict = json.load(f)  # is camelCase, as per vendor's schema
+        data: dict[str, Any] = json.load(f)  # is camelCase, as per vendor's schema
 
     _ = schema(data)
 

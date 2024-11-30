@@ -46,7 +46,7 @@ HEADERS_AUTH = {
 HEADERS_BASE = {
     "Accept": "application/json",
     "Content-Type": "application/json",  # json=
-    "SessionId": None,  # "e163b069-1234-..."
+    "SessionId": "",  # "e163b069-1234-..."
 }
 
 

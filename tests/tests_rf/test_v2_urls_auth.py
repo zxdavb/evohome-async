@@ -41,7 +41,7 @@ HEADERS_AUTH = {
 HEADERS_BASE = {
     "Accept": "application/json",
     "Content-Type": "application/json",  # json=
-    "Authorization": None,  # "Bearer " + access_token
+    "Authorization": "Bearer ...",  # "Bearer " + access_token
 }
 
 

@@ -7,7 +7,7 @@ import json
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
 import aiohttp
@@ -44,7 +44,7 @@ class ClientStub:
 
 
 @pytest.fixture  # (autouse=True)
-def block_aiohttp() -> Generator[Callable]:
+def block_aiohttp() -> Generator[Callable]:  # type: ignore[type-arg]
     """Prevent any actual I/O: will raise ClientConnectionError(Connection refused)."""
     with aioresponses() as m:
         yield m
@@ -77,7 +77,7 @@ STATUS_FILE_NAME = "status.json"
 
 
 @pytest.fixture  # used by test_schemas_0.py, test_schemas_1.py
-def config(folder: Path) -> dict:
+def config(folder: Path) -> dict[str, Any]:
     """Fixture to load the configuration file."""
     # is camelCase, as per vendor's schema
 
@@ -89,7 +89,7 @@ def config(folder: Path) -> dict:
 
 
 @pytest.fixture  # used by test_schemas_0.py, test_schemas_1.py
-def status(folder: Path) -> dict:
+def status(folder: Path) -> dict[str, Any]:
     """Fixture to load the status file."""
     # is camelCase, as per vendor's schema
 
@@ -134,7 +134,7 @@ def location_status_fixture(install: str, loc_id: str) -> JsonObjectType:
     return _load_fixture(install, f"status_{loc_id}.json")  # type: ignore[return-value]
 
 
-def broker_get(install: str) -> Callable:
+def broker_get(install: str) -> Callable[[Any, str, vol.Schema | None], Any]:
     """Return a mock of Broker.get()."""
 
     async def get(  # type: ignore[no-untyped-def]

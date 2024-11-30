@@ -134,6 +134,8 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
         evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_SCHEDULE
     )  # type: ignore[assignment]
 
+    assert isinstance(schedule, dict | list)  # mypy
+
     if not _DBG_USE_REAL_AIOHTTP:  # TODO: faked server using old schema
         return
 
@@ -143,6 +145,8 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp + 1
 
     status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
+
+    assert isinstance(status, dict | list)  # mypy
 
     #
     # STEP 2: check the status of the task
