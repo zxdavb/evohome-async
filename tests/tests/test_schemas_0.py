@@ -69,7 +69,7 @@ def test_config_refresh(config: dict[str, Any], status: dict[str, Any]) -> None:
     config = convert_keys_to_snake_case(config)
     status = convert_keys_to_snake_case(status)
 
-    loc = Location(ClientStub(), config)
+    loc = Location(ClientStub(), config)  # type: ignore[arg-type]
     loc._update_status(status)
 
 

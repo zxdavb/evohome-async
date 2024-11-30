@@ -121,35 +121,35 @@ def test_find_switchpoints() -> None:
 
     schedule = SCHEDULE["daily_schedules"]
 
-    assert _find_switchpoints(schedule, "Monday", "00:00:00") == (
+    assert _find_switchpoints(schedule, "Monday", "00:00:00") == (  # type: ignore[arg-type]
         {"heat_setpoint": 14.8, "time_of_day": "21:30:00"},
         -1,
         {"heat_setpoint": 23.2, "time_of_day": "06:30:00"},
         0,
     )
 
-    assert _find_switchpoints(schedule, "Tuesday", "07:59:59") == (
+    assert _find_switchpoints(schedule, "Tuesday", "07:59:59") == (  # type: ignore[arg-type]
         {"heat_setpoint": 19.2, "time_of_day": "06:30:00"},
         0,
         {"heat_setpoint": 18.2, "time_of_day": "08:00:00"},
         0,
     )
 
-    assert _find_switchpoints(schedule, "Tuesday", "08:00:00") == (
+    assert _find_switchpoints(schedule, "Tuesday", "08:00:00") == (  # type: ignore[arg-type]
         {"heat_setpoint": 18.2, "time_of_day": "08:00:00"},
         0,
         {"heat_setpoint": 19.3, "time_of_day": "17:00:00"},
         0,
     )
 
-    assert _find_switchpoints(schedule, "Tuesday", "08:00:01") == (
+    assert _find_switchpoints(schedule, "Tuesday", "08:00:01") == (  # type: ignore[arg-type]
         {"heat_setpoint": 18.2, "time_of_day": "08:00:00"},
         0,
         {"heat_setpoint": 19.3, "time_of_day": "17:00:00"},
         0,
     )
 
-    assert _find_switchpoints(schedule, "Sunday", "23:59:59") == (
+    assert _find_switchpoints(schedule, "Sunday", "23:59:59") == (  # type: ignore[arg-type]
         {"heat_setpoint": 14.8, "time_of_day": "21:30:00"},
         0,
         {"heat_setpoint": 23.2, "time_of_day": "06:30:00"},

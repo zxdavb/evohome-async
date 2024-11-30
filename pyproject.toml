@@ -111,14 +111,6 @@ warn_unreachable = true
 
 #
 [[tool.mypy.overrides]]
-module = ["tests.tests.*"]
-
-disable_error_code = [
-  # "arg-type", # 14
-]
-
-#
-[[tool.mypy.overrides]]
 module = ["tests.tests_rf.*"]
 
 disable_error_code = [

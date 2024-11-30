@@ -56,7 +56,7 @@ def test_config_refresh(config: dict[str, Any], status: dict[str, Any]) -> None:
     status = convert_keys_to_snake_case(status)
 
     # for this, we need snake_case keys
-    loc = Location(ClientStub(), config)
+    loc = Location(ClientStub(), config)  # type: ignore[arg-type]
     loc._update_status(status)
 
 
