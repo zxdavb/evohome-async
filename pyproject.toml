@@ -146,28 +146,61 @@ target-version = "py313"
 
 [tool.ruff.lint]
 select = [
+  "A",   # flake8-builtins
+  "ANN", # flake8-annotations
+  # "ARG", # flake8-unused-args
   "ASYNC", # flake8-async
-  "B",     # flake8-bugbear
+  "B",     # flake8-bugbear (opinionated anti-patterns)
   "BLE",   # flake8-blind-except
   "C4",    # flake8-comprehensions
-  "E",     # pycodestyle
-  "F",     # Pyflakes
+  "C90",   # mccabe complexity
+  "DTZ",   # flake8-datetimez
+  # "D",   # pydocstyle
+  "E",   # pycodestyle
+  "EXE", # flake8-executable (shebang)
+  "F",   # Pyflakes
+  "FA",  # flake8-future-annotations
   # "FBT", # flake8-boolean-trap
-  "G",     # flake8-logging-format
-  "I",     # isort
-  "LOG",   # flake8-logging
-  "N",     # pep8-naming
-  "PGH",   # pygrep hooks
-  "PT",    # flake8-pytest-style
-  "RET",   # flake8-return
-  "S",     # flake8-bandit
-  "SIM",   # flake8-simplify
-  "TC",    # flake8-tidy-imports
-  "UP",    # pyupgrade
-  "C90",   #
+  "FURB", # refurb (misc anti-patterns)
+  "G",    # flake8-logging-format
+  "I",    # isort
+  "ICN",  # flake8-import-conventions
+  "INP",  # flake8-no-pep420
+  "ISC",  # flake8-implicit-str-concat
+  "LOG",  # flake8-logging
+  "N",    # pep8-naming
+  "PERF", # perflint (performance anti-patterns)
+  "PGH",  # pygrep hooks
+  "PIE",  # flake8-pie (misc lint)
+  "PT",   # flake8-pytest-style
+  "PTH",  # flake8-use-pathlib
+  "RET",  # flake8-return
+  "RUF",  # ruff (misc lint/anti-patterns)
+  "S",    # flake8-bandit (security)
+  "SIM",  # flake8-simplify
+  # "SLF", # flake8-self (aka private-member-access)
+  "TC",  # flake8-type-checking
+  "TID", # flake8-tidy-imports
+  "TRY", # tryceratops (try/except anti-patterns)
+  # "T10", # flake8-debugger
+  "T20", # flake8-print
+  "UP",  # pyupgrade
+  "W",   # pycodestyle
+  "YTT", # flake8-2020
 ]
 
-ignore = ["E501", "G004", "N806", "S101", "SIM102", "SIM114"]
+ignore = [
+  "ANN401",
+  "D202",
+  "E501",
+  "G004",
+  "ISC001",
+  "N806",
+  "S101",
+  "SIM102",
+  "SIM114",
+  "TRY003",
+]
 # E501   - Line too long
 # G004   - Logging statement uses f-string
 # S101   - Assertions are removed when Python is run with optimization

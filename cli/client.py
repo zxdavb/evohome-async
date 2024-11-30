@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """evohomeasync - a CLI utility that is not a core part of the library."""
 
+# flake8: noqa: T201
+
 from __future__ import annotations
 
 import asyncio
@@ -281,7 +283,7 @@ async def get_schedules(
         tcs = _get_tcs(evo, loc_idx)
 
     except IndexError:
-        _LOGGER.error("No TCS found at location idx: %s", loc_idx)
+        print("Aborted: No TCS found at location idx: %s", loc_idx)
 
     else:
         schedules = await tcs.get_schedules()
@@ -322,7 +324,7 @@ async def set_schedules(
         tcs = _get_tcs(evo, loc_idx)
 
     except IndexError:
-        _LOGGER.error("No TCS found at location idx: %s", loc_idx)
+        print("Aborted: No TCS found at location idx: %s", loc_idx)
 
     else:
         # will TypeError if input_file is sys.stdin
