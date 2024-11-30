@@ -197,7 +197,7 @@ async def test_url_auth_good(
         """
 
     assert isinstance(user_auth["access_token"], str)
-    assert user_auth["expires_in"] <= 1800
+    assert user_auth["expires_in"] <= 1800  # noqa: PLR2004
 
     assert SCH_OAUTH_TOKEN(user_auth), user_auth
 
@@ -272,6 +272,6 @@ async def test_url_auth_good(
         """
 
     assert isinstance(user_auth["access_token"], str)
-    assert user_auth["expires_in"] <= 1800
+    assert user_auth["expires_in"] <= 1800  # noqa: PLR2004
 
     assert SCH_OAUTH_TOKEN(user_auth), user_auth

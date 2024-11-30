@@ -213,7 +213,7 @@ class AbstractTokenManager(ABC):
                 await self._request_access_token(CREDS_REFRESH_TOKEN | credentials)
 
             except exc.AuthenticationFailedError as err:
-                if err.status != HTTPStatus.BAD_REQUEST:  # e.g. invalid tokens
+                if err.status != HTTPStatus.BAD_REQUEST:  # 400, e.g. invalid tokens
                     raise
 
                 self._logger.warning(" - invalid/expired refresh_token")
@@ -495,11 +495,11 @@ class Auth:
                 raise exc.RequestFailedError(str(err)) from err
 
         # async with self._raw_request(method, url, **kwargs) as rsp:
-        #     if rsp.status == HTTPStatus.OK:
+        #     if rsp.status == HTTPStatus.OK:  # 200
         #         return await _content(rsp)
 
         #     if (  # if 401/unauthorized, refresh access token and retry
-        #         rsp.status != HTTPStatus.UNAUTHORIZED
+        #         rsp.status != HTTPStatus.UNAUTHORIZED  # 401
         #         or rsp.content_type != "application/json"
         #     ):
         #         _raise_for_status(rsp)

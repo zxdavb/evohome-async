@@ -240,7 +240,7 @@ class _ScheduleBase(ActiveFaultsBase):
             )  # type: ignore[assignment]
 
         except exc.RequestFailedError as err:
-            if err.status == HTTPStatus.BAD_REQUEST:
+            if err.status == HTTPStatus.BAD_REQUEST:  # 400
                 raise exc.InvalidScheduleError(
                     f"{self}: No Schedule / Schedule is invalid"
                 ) from err

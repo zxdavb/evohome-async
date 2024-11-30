@@ -37,6 +37,9 @@ if TYPE_CHECKING:
     _EvoDictT = dict[str, Any]
 
 
+_TEMP_IS_NA: Final = 128
+
+
 class EntityBase:
     # _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
 
@@ -158,7 +161,7 @@ class Location(EntityBase):
                     "device_id": dev.id,
                     "thermostat": dev._config["thermostat_model_type"],
                     "name": dev._config["name"],
-                    "temperature": None if temp == 128 else temp,
+                    "temperature": None if temp == _TEMP_IS_NA else temp,
                     "setpoint": set_point,
                     "status": status,
                     "mode": values["mode"],

@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import json
 from enum import EnumCheck, StrEnum, verify
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
@@ -163,7 +164,7 @@ class ClientResponse:
         self.status = self._faked_server.status  # type: ignore[assignment]
 
     def raise_for_status(self) -> None:
-        if self.status >= 300:
+        if self.status >= HTTPStatus.MULTIPLE_CHOICES:  # 300
             raise ClientResponseError(
                 f"{self.method} {self.url}: {self.status}", status=self.status
             )

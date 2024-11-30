@@ -308,9 +308,8 @@ class FakedServerV2(FakedServerBase):
 
         for gwy in self._locn_status[sch.S2_GATEWAYS]:
             for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
-                if dhw := tcs.get(sch.S2_DHW):
-                    if dhw[sch.S2_DHW_ID] == dhw_id:
-                        return dhw  # type: ignore[no-any-return]
+                if (dhw := tcs.get(sch.S2_DHW)) and dhw[sch.S2_DHW_ID] == dhw_id:
+                    return dhw  # type: ignore[no-any-return]
         return None
 
     def dhw_mode(self) -> _bodyT | None:

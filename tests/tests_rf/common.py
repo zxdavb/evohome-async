@@ -31,7 +31,7 @@ else:
 _FNC = TypeVar("_FNC", bound=Callable[..., Any])
 
 
-# Global flag to indicate if AuthenticationFailedError has been encountered
+# NOTE: Global flag to indicate if AuthenticationFailedError has been encountered
 global_auth_failed = False
 
 
@@ -41,7 +41,7 @@ def skipif_auth_failed(fnc: _FNC) -> _FNC:
 
     @functools.wraps(fnc)
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
-        global global_auth_failed
+        global global_auth_failed  # noqa: PLW0603
 
         if global_auth_failed:
             pytest.skip("Unable to authenticate")

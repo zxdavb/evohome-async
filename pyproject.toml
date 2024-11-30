@@ -172,9 +172,12 @@ select = [
   "PERF", # perflint (performance anti-patterns)
   "PGH",  # pygrep hooks
   "PIE",  # flake8-pie (misc lint)
+  "PL",   # pylint
   "PT",   # flake8-pytest-style
   "PTH",  # flake8-use-pathlib
+  "Q",    # flake8-quotes
   "RET",  # flake8-return
+  "RSE",  # flake8-raise
   "RUF",  # ruff (misc lint/anti-patterns)
   "S",    # flake8-bandit (security)
   "SIM",  # flake8-simplify
@@ -194,11 +197,11 @@ ignore = [
   "D202",
   "E501",
   "G004",
-  "ISC001",
+  "ISC001",  # conflicts with ruff
   "N806",
-  "S101",
-  "SIM102",
-  "SIM114",
+  "PLR0913", # Too many arguments in function definition
+  "PLR2044", # Line with empty comment
+  "S101",    # asserts used as mypy hints
   "TRY003",
 ]
 # E501   - Line too long
@@ -206,6 +209,9 @@ ignore = [
 # S101   - Assertions are removed when Python is run with optimization
 # SIM102 - Use a single `if` statement instead of nested `if` statements
 # SIM114 - Combine `if` branches using logical `or` operator
+
+[tool.ruff.lint.per-file-ignores]
+"./tests/*" = ["S101"]
 
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]

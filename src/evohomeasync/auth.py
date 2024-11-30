@@ -431,11 +431,11 @@ class Auth:
                 raise exc.RequestFailedError(str(err)) from err
 
         # async with self._raw_request(method, url, **kwargs) as rsp:
-        #     if rsp.status == HTTPStatus.OK:
+        #     if rsp.status == HTTPStatus.OK:  # 200
         #         return _content(rsp)
 
         #     if (  # if 401/unauthorized, fetch new session_id and retry
-        #         rsp.status != HTTPStatus.UNAUTHORIZED
+        #         rsp.status != HTTPStatus.UNAUTHORIZED  # 401
         #         or rsp.content_type != "application/json"
         #     ):
         #         _raise_for_status(rsp)

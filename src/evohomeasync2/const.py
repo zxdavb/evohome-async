@@ -3,11 +3,7 @@
 
 from typing import Final
 
-from .schemas import (
-    DhwState as DhwState,
-    SystemMode as SystemMode,
-    ZoneMode as ZoneMode,
-)
+from .schemas import DhwState, SystemMode, ZoneMode  # noqa: F401
 
 # HDR_STRFTIME: Final = "%Y-%m-%d %H:%M:%S"  # used by HTTP headers
 API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"  # used by API
