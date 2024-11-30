@@ -89,7 +89,7 @@ async def should_work_v0(
         try:
             rsp.raise_for_status()  # should be 200/OK
         except aiohttp.ClientResponseError as err:
-            raise AssertionError(f"status={err.status}: {response}") from err
+            pytest.fail(f"status={err.status}: {response}")
 
         assert rsp.content_type == content_type
 
@@ -179,7 +179,7 @@ async def should_work_v2(
         try:
             rsp.raise_for_status()  # should be 200/OK
         except aiohttp.ClientResponseError as err:
-            raise AssertionError(f"status={err.status}: {response}") from err
+            pytest.fail(f"status={err.status}: {response}")
 
         assert rsp.content_type == content_type, response
 
@@ -246,7 +246,7 @@ async def should_fail_v2(
         assert status in (HTTPStatus.NOT_FOUND,), status
 
     else:
-        raise AssertionError(f"status={status}: {response}")
+        pytest.fail(f"status={status}: {response}")
 
     return response
 
@@ -267,16 +267,16 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
 
         # need to do this before raise_for_status()
         if rsp.content_type == "application/json":
-            content = await rsp.json()
+            response = await rsp.json()
         else:
-            content = await rsp.text()
+            response = await rsp.text()
 
         try:
             rsp.raise_for_status()  # should be 200/OK
         except aiohttp.ClientResponseError as err:
-            raise AssertionError(f"status={err.status}: {content}") from err
+            pytest.fail(f"status={err.status}: {response}")
 
-        assert rsp.content_type == "application/json", content
+        assert rsp.content_type == "application/json", response
 
         task = rsp[0] if isinstance(rsp, list) else rsp
 
@@ -287,4 +287,4 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
             await asyncio.sleep(0.3)
             continue
 
-        raise AssertionError(f"Unexpected task state: {task}")
+        pytest.fail(f"Unexpected task state: {task}")

@@ -298,7 +298,7 @@ class ControlSystem(ActiveFaultsBase):
         schedules: list[EvoScheduleDhwT | EvoScheduleZoneT] = []
 
         for zone in self.zones:
-            schedules.append(
+            schedules.append(  # noqa: PERF401
                 {
                     SZ_ZONE_ID: zone.id,
                     SZ_NAME: zone.name,
