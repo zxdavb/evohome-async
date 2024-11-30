@@ -22,7 +22,7 @@ from .const import (  # noqa: F401
     SystemMode,
     ZoneMode,
 )
-from .schedule import factory_schedule_dhw, factory_schedule_zone  # noqa: F401
+from .schedule import factory_schedule_dhw, factory_schedule_zone
 from .status import (
     factory_dhw_status,
     factory_gwy_status,  # noqa: F401

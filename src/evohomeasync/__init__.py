@@ -12,7 +12,7 @@ from datetime import UTC, datetime as dt, timedelta as td
 
 import aiohttp
 
-from .auth import AbstractSessionManager  # noqa: F401
+from .auth import AbstractSessionManager
 from .exceptions import (  # noqa: F401
     AuthenticationFailedError,
     EvohomeError,
