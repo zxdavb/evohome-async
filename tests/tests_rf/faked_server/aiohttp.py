@@ -201,12 +201,12 @@ class ClientResponse:
 
     async def json(
         self, /, **kwargs: Any
-    ) -> dict | list:  # assumes is JSON or plaintext
+    ) -> dict[str, Any] | list[Any]:  # assumes is JSON or plaintext
         """Return the response body as json (a dict)."""
         if self.content_type == "application/json":
             return self._body  # type: ignore[return-value]
         assert not isinstance(self._body, (dict | list))  # mypy
-        return json.loads(self._body)  # type: ignore[no-any-return]
+        return json.loads(self._body)  # type: ignore[arg-type,no-any-return]
 
     async def __aenter__(self, *args: Any, **kwargs: Any) -> Self:
         return self

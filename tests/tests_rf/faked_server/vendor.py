@@ -187,7 +187,7 @@ class FakedServerV2(FakedServerBase):
             zone_schedule=zone_schedule,
             dhw_schedule=dhw_schedule,
         )
-        self._user_config = self._user_config_from_full_config(self._full_config)
+        self._user_config = self._user_config_from_full_config(self._full_config)  # type: ignore[arg-type]
 
     def oauth_token(self) -> _bodyT | None:
         if self._method != HTTPMethod.POST:
@@ -234,7 +234,7 @@ class FakedServerV2(FakedServerBase):
         tcs_id = _tcs_id(self._url)  # type: ignore[arg-type]
 
         for gwy in self._locn_status[sch.S2_GATEWAYS]:
-            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
+            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:  # type: ignore[index]
                 if tcs[sch.S2_SYSTEM_ID] == tcs_id:
                     return tcs  # type: ignore[no-any-return]
         return None
@@ -273,7 +273,7 @@ class FakedServerV2(FakedServerBase):
         zon_id = _zon_id(self._url)  # type: ignore[arg-type]
 
         for gwy in self._locn_status[sch.S2_GATEWAYS]:
-            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
+            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:  # type: ignore[index]
                 for zone in tcs[sch.S2_ZONES]:
                     if zone[sch.S2_ZONE_ID] == zon_id:
                         return zone  # type: ignore[no-any-return]
@@ -307,7 +307,7 @@ class FakedServerV2(FakedServerBase):
         dhw_id = _dhw_id(self._url)  # type: ignore[arg-type]
 
         for gwy in self._locn_status[sch.S2_GATEWAYS]:
-            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
+            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:  # type: ignore[index]
                 if (dhw := tcs.get(sch.S2_DHW)) and dhw[sch.S2_DHW_ID] == dhw_id:
                     return dhw  # type: ignore[no-any-return]
         return None

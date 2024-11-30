@@ -26,7 +26,8 @@ if TYPE_CHECKING:
 async def _test_schedule_put(evo: EvohomeClientv2) -> None:
     """Test /{x._TYPE}/{x.id}/schedule"""
 
-    schedule: dict[str, list[dict[str, list[dict]]]]  # {'dailySchedules': [...]}
+    schedule: dict[str, list[dict[str, list[dict]]]]  # type: ignore[type-arg]
+    # {'dailySchedules': [...]}
 
     # TODO: remove .update() and use URLs only
     await evo.update()
@@ -120,7 +121,8 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
     Also test commTasks?commTaskId={task_id}
     """
 
-    schedule: dict[str, list[dict[str, list[dict]]]]  # {'dailySchedules': [...]}
+    schedule: dict[str, list[dict[str, list[dict]]]]  # type: ignore[type-arg]
+    # {'dailySchedules': [...]}
 
     # TODO: remove .update() and use URLs only
     await evo.update()

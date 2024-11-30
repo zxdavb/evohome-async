@@ -111,21 +111,15 @@ warn_unreachable = true
 
 #
 [[tool.mypy.overrides]]
-module = ["tests.tests_rf.*"]
+module = ["tests.tests_rf.common"]
 
-disable_error_code = [
-  "type-arg", # 35
-]
+disable_error_code = ["type-arg"]  # 21
 
 #
 [[tool.mypy.overrides]]
-module = ["tests.tests_rf.faked_server.*"]
+module = ["tests.tests_rf.faked_server.vendor"]
 
-disable_error_code = [
-  "arg-type", # 2
-  "index",    # 3
-  "type-arg", # 4
-]
+disable_error_code = ["type-arg"]  # 14
 
 #
 ## ruff ##############################################################################
@@ -184,22 +178,18 @@ select = [
 ]
 
 ignore = [
-  "ANN401",
-  "D202",
-  "E501",
-  "G004",
-  "ISC001",  # conflicts with ruff
-  "N806",
+  "ANN401",  # Don't use type Any
+  "D202",    # No blank lines allowed after function docstring
+  "E501",    # Line too long
+  "G004",    # Logging statement uses f-string
+  "ISC001",  # Implicitly concatenated strings on a single line (conflicts with ruff)
+  "N806",    # Variable in function should be lowercase
   "PLR0913", # Too many arguments in function definition
   "PLR2044", # Line with empty comment
-  "S101",    # asserts used as mypy hints
-  "TRY003",
+  "S101",    # Assertions are removed when Python is run with optimization
+  "TRY003",  # Long exception messages
 ]
-# E501   - Line too long
-# G004   - Logging statement uses f-string
-# S101   - Assertions are removed when Python is run with optimization
-# SIM102 - Use a single `if` statement instead of nested `if` statements
-# SIM114 - Combine `if` branches using logical `or` operator
+
 
 [tool.ruff.lint.per-file-ignores]
 "./tests/*" = ["S101"]

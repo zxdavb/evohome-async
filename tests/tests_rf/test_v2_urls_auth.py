@@ -14,7 +14,7 @@ from __future__ import annotations
 import random
 import string
 from http import HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -48,7 +48,7 @@ HEADERS_BASE = {
 async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     assert rsp.status == HTTPStatus.TOO_MANY_REQUESTS  # 429
 
-    response: dict = await rsp.json()
+    response: dict[str, Any] = await rsp.json()
 
     # the expected response for TOO_MANY_REQUESTS
     """
@@ -81,7 +81,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
 
         assert rsp.status == HTTPStatus.BAD_REQUEST  # 400
 
-        response: dict = await rsp.json()  # TODO: needs TypedDict
+        response: dict[str, Any] = await rsp.json()  # TODO: needs TypedDict
 
         # the expected response for bad credentials
         """
@@ -112,7 +112,7 @@ async def test_url_auth_bad2(  # invalid/expired access token
 
         assert rsp.status == HTTPStatus.UNAUTHORIZED  # 401
 
-        response: list = await rsp.json()
+        response: list[dict[str, Any]] = await rsp.json()
 
         # the expected response for bad access tokens
         """
@@ -151,7 +151,7 @@ async def test_url_auth_bad3(  # invalid/expired refresh token
 
         assert rsp.status == HTTPStatus.BAD_REQUEST  # 400
 
-        response: dict = await rsp.json()
+        response: dict[str, Any] = await rsp.json()
 
         # the expected response for bad refresh tokens
         """
@@ -183,7 +183,7 @@ async def test_url_auth_good(
 
         assert rsp.status == HTTPStatus.OK  # 200 (400 is bad credentials)
 
-        user_auth: dict = await rsp.json()  # TODO: needs TypedDict
+        user_auth: dict[str, Any] = await rsp.json()  # TODO: needs TypedDict
 
         # the expected response for good credentials
         """
@@ -217,7 +217,7 @@ async def test_url_auth_good(
 
         assert rsp.status == HTTPStatus.OK  # 200
 
-        response: dict = await rsp.json()  # TODO: needs TypedDict
+        response: dict[str, Any] = await rsp.json()  # TODO: needs TypedDict
 
         # the expected response for good access token
         """

@@ -14,7 +14,7 @@ from __future__ import annotations
 import random
 import string
 from http import HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -177,7 +177,7 @@ async def test_url_auth_good(
             }
         """
 
-        user_auth: dict = await rsp.json()
+        user_auth: dict[str, Any] = await rsp.json()
 
     assert SCH_USER_SESSION_RESPONSE(user_auth), user_auth
     assert user_auth["userInfo"]["username"] == credentials[0]
@@ -196,7 +196,7 @@ async def test_url_auth_good(
 
         assert rsp.status == HTTPStatus.OK
 
-        user_info: dict = await rsp.json()
+        user_info: dict[str, Any] = await rsp.json()
 
         # the expected response
         """
