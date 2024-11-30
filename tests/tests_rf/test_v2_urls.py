@@ -11,7 +11,7 @@ Everything to/from the RESTful API is in camelCase (so those schemas are used).
 
 from __future__ import annotations
 
-from datetime import datetime as dt, timedelta as td
+from datetime import timedelta as td
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any
 
@@ -261,7 +261,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
     new_mode = {
         "systemMode": SystemMode.AWAY,
         "permanent": True,
-        "timeUntil": (dt.now() + td(hours=1)).strftime(API_STRFTIME),
+        "timeUntil": (tcs.location.now() + td(hours=1)).strftime(API_STRFTIME),
     }
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=new_mode)
     # {'id': '1588315695'}

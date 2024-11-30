@@ -100,7 +100,7 @@ class AbstractSessionManager(ABC):
         """Clear the session id."""
 
         self._session_id = ""
-        self._session_id_expires = dt.min
+        self._session_id_expires = dt.min.replace(tzinfo=UTC)
         #
 
     @property

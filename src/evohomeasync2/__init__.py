@@ -8,7 +8,7 @@ Further information at: https://evohome-client.readthedocs.io
 
 from __future__ import annotations
 
-from datetime import datetime as dt
+from datetime import UTC, datetime as dt
 
 import aiohttp
 
@@ -47,15 +47,18 @@ class TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
         /,
         *,
         access_token: str | None = None,
+        access_token_expires: dt | None = None,  # should be aware
         refresh_token: str | None = None,
-        access_token_expires: dt | None = None,
     ) -> None:
         super().__init__(username, password, websession)
 
         # to maintain compatibility, allow these to be passed in here
-        self._refresh_token = refresh_token or ""
+        if access_token_expires is not None and not access_token_expires.tzinfo:
+            access_token_expires = access_token_expires.replace(tzinfo=UTC)
+
+        self._access_token_expires = access_token_expires or dt.min.replace(tzinfo=UTC)
         self._access_token = access_token or ""
-        self._access_token_expires = access_token_expires or dt.min
+        self._refresh_token = refresh_token or ""
 
     async def load_access_token(self) -> None:
         raise NotImplementedError

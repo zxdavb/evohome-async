@@ -132,9 +132,9 @@ class Location(EntityBase):
         """Return a tzinfo-compliant object for this Location."""
         return self._tzinfo
 
-    def now(self) -> dt:  # TZ-aware
-        """Return the current time as a local TZ-aware datetime object."""
-        return dt.now(self.tzinfo)
+    def now(self) -> dt:  # always returns a TZ-aware dtm
+        """Return the current local time as a aware datetime in this location's TZ."""
+        return dt.now(self.client.tzinfo).astimezone(self.tzinfo)
 
     async def update(self, update_time_zone_info: bool = False) -> _EvoDictT:
         """Get the latest state of the location and update its status.

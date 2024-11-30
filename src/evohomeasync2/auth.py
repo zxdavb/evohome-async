@@ -147,7 +147,7 @@ class AbstractTokenManager(ABC):
         """Clear the auth tokens."""
 
         self._access_token = ""
-        self._access_token_expires = dt.min
+        self._access_token_expires = dt.min.replace(tzinfo=UTC)
         self._refresh_token = ""
 
     @property

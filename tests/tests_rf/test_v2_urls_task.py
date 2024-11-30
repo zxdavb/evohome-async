@@ -11,7 +11,7 @@ Everything to/from the RESTful API is in camelCase (so those schemas are used).
 
 from __future__ import annotations
 
-from datetime import datetime as dt, timedelta as td
+from datetime import timedelta as td
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
 
@@ -100,7 +100,7 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     new_mode = {
         S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
         S2_STATE: DhwState.ON,
-        S2_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
+        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(API_STRFTIME),
     }
 
     result = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
@@ -128,7 +128,7 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     new_mode = {
         S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
         S2_STATE: DhwState.ON,
-        S2_UNTIL_TIME: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
+        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(API_STRFTIME),
     }
     _ = await should_work_v2(
         evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode
@@ -142,7 +142,9 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     new_mode = {  # NOTE: different capitalisation, until time
         camel_to_pascal(S2_MODE): ZoneMode.TEMPORARY_OVERRIDE,
         camel_to_pascal(S2_STATE): DhwState.ON,
-        camel_to_pascal(S2_UNTIL_TIME): (dt.now() + td(hours=2)).strftime(API_STRFTIME),
+        camel_to_pascal(S2_UNTIL_TIME): (loc.now() + td(hours=2)).strftime(
+            API_STRFTIME
+        ),
     }
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
 

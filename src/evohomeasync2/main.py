@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, Final
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from evohome.helpers import camel_to_snake
 
@@ -57,10 +58,10 @@ class EvohomeClientNew:
             logger=self._logger,
         )
 
-        #
-
-        #
-        #
+        try:
+            self._tzinfo: ZoneInfo | None = ZoneInfo("localtime")
+        except ZoneInfoNotFoundError:  # e.g. on Windows
+            self._tzinfo = None
 
         self._locations: list[Location] | None = None  # to preserve the order
         self._location_by_id: dict[str, Location] | None = None
@@ -191,3 +192,8 @@ class EvohomeClientNew:
     @property
     def tcs(self) -> ControlSystem:
         return self._get_single_tcs()
+
+    @property
+    def tzinfo(self) -> ZoneInfo | None:
+        """Return a tzinfo-compliant object for this running instance of evohome."""
+        return self._tzinfo
