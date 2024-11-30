@@ -15,8 +15,7 @@ from cli.auth import CacheManager
 
 from evohomeasync import exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
-
-from ..const import HEADERS_AUTH_V0 as HEADERS_AUTH, URL_AUTH_V0 as URL_AUTH
+from tests.const import HEADERS_AUTH_V0 as HEADERS_AUTH, URL_AUTH_V0 as URL_AUTH
 
 if TYPE_CHECKING:
     from pathlib import Path

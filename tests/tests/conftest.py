@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     import voluptuous as vol
 
-    from ..conftest import CacheManager
+    from tests.conftest import CacheManager
 
 
 type JsonValueType = (

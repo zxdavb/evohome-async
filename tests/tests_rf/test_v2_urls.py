@@ -20,14 +20,13 @@ import pytest
 import evohomeasync2 as evo2
 from evohomeasync2 import schemas
 from evohomeasync2.const import API_STRFTIME, SystemMode, ZoneMode
+from tests.const import _DBG_USE_REAL_AIOHTTP
 
-from ..const import _DBG_USE_REAL_AIOHTTP
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohomeasync2.schemas import _EvoDictT
-
-    from ..conftest import EvohomeClientv2
+    from tests.conftest import EvohomeClientv2
 
 
 #######################################################################################

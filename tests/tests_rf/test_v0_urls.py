@@ -17,12 +17,12 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync as evo0
+from tests.const import _DBG_USE_REAL_AIOHTTP
 
-from ..const import _DBG_USE_REAL_AIOHTTP
 from .common import should_fail_v0, should_work_v0, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from ..conftest import EvohomeClientv0
+    from tests.conftest import EvohomeClientv0
 
 
 async def _test_usr_locations(evo: EvohomeClientv0) -> None:

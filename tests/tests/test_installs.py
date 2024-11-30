@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     import pytest
     from syrupy import SnapshotAssertion
 
-    from ..conftest import EvohomeClientv2
+    from tests.conftest import EvohomeClientv2
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:

@@ -28,12 +28,12 @@ from evohomeasync2.schemas.const import (
     S2_UNTIL,
     S2_UNTIL_TIME,
 )
+from tests.const import _DBG_USE_REAL_AIOHTTP
 
-from ..const import _DBG_USE_REAL_AIOHTTP
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from ..conftest import EvohomeClientv2
+    from tests.conftest import EvohomeClientv2
 
 #######################################################################################
 

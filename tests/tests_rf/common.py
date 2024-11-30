@@ -13,8 +13,7 @@ import pytest
 
 import evohomeasync as evo0
 import evohomeasync2 as evo2
-
-from ..const import (
+from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
     _DBG_USE_REAL_AIOHTTP,
     URL_BASE_V0,

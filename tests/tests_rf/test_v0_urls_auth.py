@@ -23,8 +23,7 @@ from evohomeasync.schemas import (
     SCH_USER_ACCOUNT_INFO_RESPONSE,
     SCH_USER_SESSION_RESPONSE,
 )
-
-from ..const import (
+from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     URL_AUTH_V0 as URL_AUTH,
     URL_BASE_V0 as URL_BASE,
