@@ -55,7 +55,6 @@ if TYPE_CHECKING:
         DayOfWeekDhwT,
         DayOfWeekZoneT,
         EvoAllowedSystemModeT,
-        EvoDhwConfigT,
         EvoScheduleDhwT,
         EvoScheduleZoneT,
         EvoSystemModeStatusT,
@@ -105,9 +104,8 @@ class ControlSystem(ActiveFaultsBase):
                 self.zones_by_name[zone.name] = zone
                 self.zones_by_id[zone.id] = zone
 
-        dhw_entry: EvoDhwConfigT
-        if dhw_entry := config.get(SZ_DHW):  # type: ignore[assignment]
-            self.hotwater = HotWater(self, dhw_entry)
+        if dhw_entry := config.get(SZ_DHW):
+            self.hotwater = HotWater(self, dhw_entry)  # type: ignore[arg-type]
 
     def _update_status(self, status: _EvoDictT) -> None:
         super()._update_status(status)  # process active faults
