@@ -45,7 +45,7 @@ SZ_USERNAME: Final = "username"
 _LOGGER: Final = logging.getLogger(__name__)
 
 
-def _start_debugging(wait_for_client: bool) -> None:
+def _start_debugging(wait_for_client: bool | None = None) -> None:
     try:
         debugpy.listen(address=(DEBUG_ADDR, DEBUG_PORT))
     except RuntimeError:
@@ -61,7 +61,7 @@ def _start_debugging(wait_for_client: bool) -> None:
 
 
 if _DBG_DEBUG_CLI:
-    _start_debugging(True)
+    _start_debugging(wait_for_client=True)
 
 
 def _check_zone_id(ctx: click.Context, param: click.Option, value: str) -> str:
@@ -122,7 +122,7 @@ async def cli(
     """A demonstration CLI for the evohomeasync2 client library."""
 
     if debug:  # Do first
-        _start_debugging(True)
+        _start_debugging(wait_for_client=True)
 
     async def cleanup(
         websession: aiohttp.ClientSession,

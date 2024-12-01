@@ -80,7 +80,7 @@ class Location(EntityBase):
             client._logger,
         )
 
-        self._cli = client  # proxy for parent
+        self._evo = client  # proxy for parent
 
         self._config: EvoLocationDictT = config  # type: ignore[assignment]
         self._status: _EvoDictT = {}
@@ -133,15 +133,17 @@ class Location(EntityBase):
 
                 add_device(zon)
 
+    # TODO: needs a tidy-up
     async def get_temperatures(
-        self, force_refresh: bool = True
+        self, disable_refresh: bool | None = None
     ) -> _EvoListT:  # a convenience function
         """Retrieve the latest details for each zone (incl. DHW)."""
 
         set_point: float
         status: str
 
-        await self._cli.update()
+        if not disable_refresh:
+            await self._evo.update()
 
         result = []
 

@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def client_session(
-    use_real_aiohttp: bool,
+    use_real_aiohttp: bool,  # noqa: FBT001 (is a fixture)
 ) -> AsyncGenerator[aiohttp.ClientSession]:
     """Yield an aiohttp.ClientSession, which may be faked."""
 
@@ -110,7 +110,7 @@ def cache_data_expired(credentials: tuple[str, str]) -> CacheDataT:
 def cache_file(
     cache_data_valid: dict[str, int | str],
     tmp_path_factory: pytest.TempPathFactory,
-    use_real_aiohttp: bool,
+    use_real_aiohttp: bool,  # noqa: FBT001 (is a fixture)
 ) -> Path:
     """Return the path to the token cache."""
 

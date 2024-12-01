@@ -74,7 +74,7 @@ class Location(EntityBase):
         self._config: EvoLocConfigT = config[SZ_LOCATION_INFO]  # type: ignore[assignment]
         self._status: _EvoDictT = {}
 
-        self._tzinfo = create_tzinfo(self.time_zone_info, self.dst_enabled)
+        self._tzinfo = _create_tzinfo(self.time_zone_info, dst_enabled=self.dst_enabled)
 
         # children
         self.gateways: list[Gateway] = []
@@ -136,7 +136,7 @@ class Location(EntityBase):
         """Return the current local time as a aware datetime in this location's TZ."""
         return dt.now(self.client.tzinfo).astimezone(self.tzinfo)
 
-    async def update(self, update_time_zone_info: bool = False) -> _EvoDictT:
+    async def update(self, *, _update_time_zone_info: bool = False) -> _EvoDictT:
         """Get the latest state of the location and update its status.
 
         Will also update the status of its gateways, their TCSs, and their DHW/zones.
@@ -144,7 +144,7 @@ class Location(EntityBase):
         Returns the raw JSON of the latest state.
         """
 
-        if update_time_zone_info:
+        if _update_time_zone_info:
             await self._update_config()
 
         status: _EvoDictT = await self._auth.get(
@@ -167,8 +167,8 @@ class Location(EntityBase):
         self._config = config[SZ_LOCATION_INFO]
 
         # new TzInfo object, or update the existing one?
-        self._tzinfo = EvoZoneInfo(self.time_zone_info, self.dst_enabled)
-        # lf._tzinfo._update(self.time_zone_info, self.use_dst_switching)
+        self._tzinfo = _create_tzinfo(self.time_zone_info, dst_enabled=self.dst_enabled)
+        # lf._tzinfo._update(time_zone_info=time_zone_info, use_dst_switching=use_dst_switching)
 
     def _update_status(self, status: _EvoDictT) -> None:
         """Update the location's latest status (and its gateways and their TCSs)."""
@@ -187,17 +187,7 @@ class Location(EntityBase):
                 )
 
 
-# it is ostensibly optional to provide this data to our TzInfo object
-_DEFAULT_TIME_ZONE_INFO: EvoTimeZoneInfoT = {
-    "time_zone_id": "GMTStandardTime",
-    "display_name": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
-    "offset_minutes": 0,
-    "current_offset_minutes": 60,
-    "supports_daylight_saving": True,
-}
-
-
-def create_tzinfo(time_zone_info: EvoTimeZoneInfoT, dst_enabled: bool) -> tzinfo:
+def _create_tzinfo(time_zone_info: EvoTimeZoneInfoT, /, *, dst_enabled: bool) -> tzinfo:
     """Create a tzinfo object based on the time zone information."""
 
     time_zone_id = time_zone_info["time_zone_id"]
@@ -207,11 +197,23 @@ def create_tzinfo(time_zone_info: EvoTimeZoneInfoT, dst_enabled: bool) -> tzinfo
     except (KeyError, ModuleNotFoundError):
         pass
 
-    _LOGGER.warning(
-        "Unable to find IANA TZ for '%s'; DST transitions will not be automatic",
-        time_zone_id,
-    )
-    return EvoZoneInfo(time_zone_info, dst_enabled)
+    if dst_enabled:
+        _LOGGER.warning(
+            "Unable to find IANA TZ for '%s'; DST transitions will not be automatic",
+            time_zone_id,
+        )
+    return EvoZoneInfo(time_zone_info=time_zone_info, use_dst_switching=dst_enabled)
+
+
+# it is ostensibly optional to provide this data to our TzInfo object
+_DEFAULT_TIME_ZONE_INFO: EvoTimeZoneInfoT = {
+    "time_zone_id": "GMTStandardTime",
+    "display_name": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+    "offset_minutes": 0,
+    "current_offset_minutes": 0,
+    "supports_daylight_saving": True,
+}
+_DEFAULT_USE_DST_SWITCHING = False
 
 
 class EvoZoneInfo(tzinfo):
@@ -244,16 +246,14 @@ class EvoZoneInfo(tzinfo):
 
     def __init__(  #
         self,
-        time_zone_info: EvoTimeZoneInfoT | None = _DEFAULT_TIME_ZONE_INFO,
-        use_dst_switching: bool | None = True,
+        *,
+        time_zone_info: EvoTimeZoneInfoT | None,
+        use_dst_switching: bool | None,
     ) -> None:
         """Initialise the class."""
         super().__init__()
 
-        self._update(
-            time_zone_info if time_zone_info is not None else _DEFAULT_TIME_ZONE_INFO,
-            use_dst_switching if use_dst_switching is not None else True,
-        )
+        self._update(time_zone_info=time_zone_info, use_dst_switching=use_dst_switching)
 
     # loc.tzinfo.utcoffset(dt | None)
     # loc.tzinfo.dst(dt | None)
@@ -270,7 +270,10 @@ class EvoZoneInfo(tzinfo):
         )
 
     def _update(
-        self, time_zone_info: EvoTimeZoneInfoT, use_dst_switching: bool
+        self,
+        *,
+        time_zone_info: EvoTimeZoneInfoT | None = _DEFAULT_TIME_ZONE_INFO,
+        use_dst_switching: bool | None = _DEFAULT_USE_DST_SWITCHING,
     ) -> None:
         """Update the TZ information and DST configuration.
 
@@ -283,13 +286,19 @@ class EvoZoneInfo(tzinfo):
         - when the location starts or stops using DST
         """
 
+        if time_zone_info is None:
+            time_zone_info = _DEFAULT_TIME_ZONE_INFO
+
+        if use_dst_switching is None:
+            use_dst_switching = _DEFAULT_USE_DST_SWITCHING
+
         self._time_zone_info = time_zone_info
         self._use_dst_switching = use_dst_switching
 
         self._utcoffset = td(minutes=time_zone_info[SZ_CURRENT_OFFSET_MINUTES])
         self._dst = self._utcoffset - td(minutes=time_zone_info[SZ_OFFSET_MINUTES])
 
-        self._tzname = self._time_zone_info["time_zone_id"] + (
+        self._tzname = time_zone_info["time_zone_id"] + (
             " (DST)" if self._dst else " (STD)"
         )
 

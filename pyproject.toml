@@ -113,13 +113,13 @@ warn_unreachable = true
 [[tool.mypy.overrides]]
 module = ["tests.tests_rf.common"]
 
-disable_error_code = ["type-arg"]  # 21
+disable_error_code = ["type-arg"] # 21
 
 #
 [[tool.mypy.overrides]]
 module = ["tests.tests_rf.faked_server.vendor"]
 
-disable_error_code = ["type-arg"]  # 14
+disable_error_code = ["type-arg"] # 14
 
 #
 ## ruff ##############################################################################
@@ -141,11 +141,11 @@ select = [
   "C90",   # mccabe complexity
   "DTZ",   # flake8-datetimez
   # "D",   # pydocstyle
-  "E",   # pycodestyle
-  "EXE", # flake8-executable (shebang)
-  "F",   # Pyflakes
-  "FA",  # flake8-future-annotations
-  # "FBT", # flake8-boolean-trap
+  "E",    # pycodestyle
+  "EXE",  # flake8-executable (shebang)
+  "F",    # Pyflakes
+  "FA",   # flake8-future-annotations
+  "FBT",  # flake8-boolean-trap
   "FURB", # refurb (misc anti-patterns)
   "G",    # flake8-logging-format
   "I",    # isort

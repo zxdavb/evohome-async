@@ -319,7 +319,7 @@ class ControlSystem(ActiveFaultsBase):
     async def set_schedules(
         self,
         schedules: list[EvoScheduleDhwT | EvoScheduleZoneT],
-        match_by_name: bool = False,
+        match_by_name: bool | None = None,
     ) -> bool:
         """Restore all schedules to the control system and return True if success.
 
@@ -373,24 +373,12 @@ class ControlSystem(ActiveFaultsBase):
             f" to {self.id} ({self.location.name})"
         )
 
-        with_errors = False
+        fnc = restore_by_name if match_by_name else restore_by_id
+        all_restored = all([await fnc(sch) for sch in schedules])
 
-        for sch in schedules:
-            if match_by_name:
-                matched = await restore_by_name(sch)
-            else:
-                matched = await restore_by_id(sch)
+        same_count = len(schedules) == len(self.zones) + (1 if self.hotwater else 0)
 
-            with_errors = with_errors and not matched
-
-        success = not with_errors or len(schedules) == len(self.zones_by_name) + (
-            1 if self.hotwater else 0
-        )
-
-        if not success:
-            self._logger.warning(
-                f"Schedules: Some entities not restored:"
-                f" not matched by {'name' if match_by_name else 'id'}"
-            )
+        if not (success := same_count and all_restored):
+            self._logger.debug("Some schedules not restored (DHW?)")
 
         return success
