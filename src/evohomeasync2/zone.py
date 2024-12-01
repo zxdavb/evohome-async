@@ -67,6 +67,8 @@ if TYPE_CHECKING:
         SwitchpointT,
     )
 
+    ScheduleT = list[DayOfWeekT]
+
 
 _ONE_DAY = td(days=1)
 
@@ -166,7 +168,7 @@ def dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
 
 
 def _find_switchpoints(
-    schedule: list[DayOfWeekT],
+    schedule: ScheduleT,
     day_of_week: DayOfWeek,
     time_of_day: str,
 ) -> tuple[SwitchpointT, int, SwitchpointT, int]:
@@ -214,16 +216,14 @@ class _ScheduleBase(ActiveFaultsBase):
 
     SCH_SCHEDULE: vol.Schema
 
-    _schedule: list[DayOfWeekT] | None
+    _schedule: ScheduleT | None
 
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id, tcs._auth, tcs._logger)
 
         self.location = tcs.location
 
-    async def get_schedule(
-        self,
-    ) -> list[DayOfWeekT]:
+    async def get_schedule(self) -> ScheduleT:
         """Get the schedule for this DHW/zone object."""
 
         self._logger.debug(f"{self}: Getting schedule...")
@@ -245,7 +245,7 @@ class _ScheduleBase(ActiveFaultsBase):
 
     async def set_schedule(
         self,
-        schedule: list[DayOfWeekT] | str,
+        schedule: ScheduleT | str,
     ) -> None:
         """Set the schedule for this DHW/zone object."""
 
