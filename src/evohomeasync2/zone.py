@@ -547,7 +547,7 @@ class Zone(_ZoneBase):
 
     # NOTE: this wrapper exists for typing purposes
     async def get_schedule(self) -> list[DayOfWeekZoneT]:  # type: ignore[override]
-        """Get the schedule for this heating zone."""  # mypy hint
+        """Get the schedule for this heating zone."""
         return await super().get_schedule()  # type: ignore[return-value]
 
     # NOTE: this wrapper exists for typing purposes

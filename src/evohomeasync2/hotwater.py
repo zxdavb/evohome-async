@@ -182,7 +182,7 @@ class HotWater(_ZoneBase):
 
     # NOTE: this wrapper exists for typing purposes
     async def get_schedule(self) -> list[DayOfWeekDhwT]:  # type: ignore[override]
-        """Get the schedule for this DHW zone."""  # mypy hint
+        """Get the schedule for this DHW zone."""
         return await super().get_schedule()  # type: ignore[return-value]
 
     # NOTE: this wrapper exists for typing purposes
