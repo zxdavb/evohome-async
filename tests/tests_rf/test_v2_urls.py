@@ -182,21 +182,22 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
 
 
 async def _test_tcs_status(evo: EvohomeClientv2) -> None:
-    """Test /temperatureControlSystem/{tcs.id}/status
+    """Test GET /temperatureControlSystem/{tcs.id}/status
 
-    Also tests /temperatureControlSystem/{tcs.id}/mode
+    Also tests PUT /temperatureControlSystem/{tcs.id}/mode
     """
 
     # TODO: remove .update() and use URLs only?
     await evo.update(_dont_update_status=True)
 
     tcs: evo2.ControlSystem
-
     if not (tcs := evo.locations[0].gateways[0].control_systems[0]):
-        pytest.skip("No available zones found")
+        pytest.skip("No available TCS found")
 
     #
+    # STEP 0: Get/keep the current mode, so we can restore it later
     url = f"{tcs._TYPE}/{tcs.id}/status"
+
     old_status: dict[str, Any] = await should_work_v2(
         evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_TCS_STATUS
     )  # type: ignore[assignment]
@@ -215,13 +216,16 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
         old_mode["timeUntil"] = old_status["systemModeStatus"]["timeUntil"]
 
     #
+    # STEP 1: Change the mode, but with the wrong method
     url = f"{tcs._TYPE}/{tcs.id}/mode"
+
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
     # {'message': "The requested resource does not support http method 'GET'."}
 
     #
+    # STEP 2: Change the mode, but with missing request data (JSON)
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, json={}, status=HTTPStatus.BAD_REQUEST
     )
@@ -231,15 +235,19 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
     # ]
 
     #
+    # STEP 3: Change the mode, but with invalid request data (JSON)
     new_mode: _EvoDictT = {"systemMode": "xxxxx", "permanent": True}
+
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, json=new_mode, status=HTTPStatus.BAD_REQUEST
     )
     # [{'code': 'InvalidInput', 'message': 'Error converting value "xxxxx" to...'}]
 
     #
+    # STEP 4: Change the mode, but with semi-invalid request data (JSON)
     assert SystemMode.COOL not in tcs.modes
     new_mode = {"systemMode": "Cool", "permanent": True}
+
     _ = await should_fail_v2(
         evo.auth,
         HTTPMethod.PUT,
@@ -250,27 +258,34 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
     # {'message': 'An error has occurred.'}
 
     #
+    # STEP 4: Change the mode, with valid request data (JSON) (permanent)
     assert SystemMode.AUTO in tcs.modes
     new_mode = {"systemMode": SystemMode.AUTO, "permanent": True}
+
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=new_mode)
     # {'id': '1588314363'}
 
     #
+    # STEP 4: Change the mode, with valid request data (JSON) (temporary)
     assert SystemMode.AWAY in tcs.modes
     new_mode = {
         "systemMode": SystemMode.AWAY,
-        "permanent": True,
+        "permanent": False,
         "timeUntil": (tcs.location.now() + td(hours=1)).strftime(API_STRFTIME),
     }
+
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=new_mode)
     # {'id': '1588315695'}
 
     #
+    # STEP 5: Restore the original mode
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=old_mode)
     # {'id': '1588316616'}
 
     #
+    # STEP 6: Change the mode, but without permission
     url = f"{tcs._TYPE}/1234567/mode"
+
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.UNAUTHORIZED
     )
@@ -280,6 +295,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
     # }]
 
     #
+    # STEP 7: hange the mode, but with invalid URL
     url = f"{tcs._TYPE}/{tcs.id}/systemMode"
     _ = await should_fail_v2(
         evo.auth,
@@ -416,9 +432,9 @@ async def test_loc_status(evohome_v2: EvohomeClientv2) -> None:
 
 @skipif_auth_failed  # GET, PUT
 async def test_tcs_status(evohome_v2: EvohomeClientv2) -> None:
-    """Test /temperatureControlSystem/{tcs.id}/statis
+    """Test GET /temperatureControlSystem/{tcs.id}/statis
 
-    Also tests /temperatureControlSystem/{tcs.id}/mode
+    Also tests PUT /temperatureControlSystem/{tcs.id}/mode
     """
 
     try:
