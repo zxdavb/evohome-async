@@ -393,11 +393,7 @@ class Auth:
         Any keys in the response JSON will have been converted to snake_case.
         """
 
-        response: _EvoSchemaT
-
-        response = await self.request(  # type: ignore[assignment]
-            HTTPMethod.GET, f"{self._url_base}/{url}"
-        )
+        response = await self.request(HTTPMethod.GET, f"{self._url_base}/{url}")
 
         if schema:
             try:
@@ -405,7 +401,7 @@ class Auth:
             except vol.Invalid as err:
                 self._logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
 
-        return response
+        return response  # type: ignore[return-value]
 
     async def put(
         self,
@@ -421,19 +417,15 @@ class Auth:
         Any snake_case keys in the request JSON will be converted to camelCase.
         """
 
-        response: dict[str, Any] | list[dict[str, Any]]
-
         if schema:
             try:
                 schema(json)
             except vol.Invalid as err:
                 self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
 
-        response = await self.request(  # type: ignore[assignment]
+        return await self.request(  # type: ignore[return-value]
             HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
         )
-
-        return response
 
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
