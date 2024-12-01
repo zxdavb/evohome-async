@@ -65,23 +65,31 @@ def noop(s: str) -> str:
 
 
 def _convert_keys(data: _T, fnc: Callable[[str], str]) -> _T:
-    """Convert all keys in a dictionary to snake_case.
+    """Recursively convert all dict keys snake_case (or CamelCase).
 
-    Used after retreiiving JSON data from the vendor API.
+    Used after retrieving (or before sending) JSON via the vendor API.
     """
 
     if isinstance(data, list):
-        return [convert_keys_to_snake_case(item) for item in data]  # type: ignore[return-value]
+        return [_convert_keys(item, fnc) for item in data]  # type:ignore[return-value]
 
     if not isinstance(data, dict):
         return data
 
-    return {fnc(k): convert_keys_to_snake_case(v) for k, v in data.items()}  # type: ignore[return-value]
+    return {fnc(k): _convert_keys(v, fnc) for k, v in data.items()}  # type:ignore[return-value]
 
 
 def convert_keys_to_camel_case(data: _T) -> _T:
+    """Recursively convert all dict keys from snake_case to camelCase.
+
+    Used before sending JSON to the vendor API.
+    """
     return _convert_keys(data, camel_to_snake)
 
 
 def convert_keys_to_snake_case(data: _T) -> _T:
+    """Recursively convert all dict keys from camelCase to snake_case.
+
+    Used after retrieving JSON from the vendor API.
+    """
     return _convert_keys(data, camel_to_snake)
