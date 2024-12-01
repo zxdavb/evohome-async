@@ -12,7 +12,7 @@ Everything to/from the RESTful API is in camelCase (so those schemas are used).
 from __future__ import annotations
 
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NotRequired, TypedDict
 
 from evohomeasync2 import schemas
 from tests.const import _DBG_USE_REAL_AIOHTTP
@@ -23,11 +23,25 @@ if TYPE_CHECKING:
     from tests.conftest import EvohomeClientv2
 
 
+class SwitchpointT(TypedDict):
+    timeOfDay: str
+    dhwState: NotRequired[str]  # mutex with heat_setpoint
+    heatSetpoint: NotRequired[float]
+
+
+class DayOfWeekT(TypedDict):
+    day_of_week: str
+    switchpoints: list[SwitchpointT]
+
+
+class DailySchedulesT(TypedDict):
+    dailySchedules: list[DayOfWeekT]
+
+
 async def _test_schedule_put(evo: EvohomeClientv2) -> None:
     """Test /{x._TYPE}/{x.id}/schedule"""
 
-    schedule: dict[str, list[dict[str, list[dict]]]]  # type: ignore[type-arg]
-    # {'dailySchedules': [...]}
+    schedule: DailySchedulesT  # {'dailySchedules': [...]}
 
     # TODO: remove .update() and use URLs only
     await evo.update()
@@ -107,7 +121,7 @@ async def _test_schedule_put(evo: EvohomeClientv2) -> None:
 
     #
     # STEP 4: PUT a valid schedule
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
+    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
 
     # an example of the expected response:
     """
@@ -121,8 +135,7 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
     Also test commTasks?commTaskId={task_id}
     """
 
-    schedule: dict[str, list[dict[str, list[dict]]]]  # type: ignore[type-arg]
-    # {'dailySchedules': [...]}
+    schedule: DailySchedulesT  # {'dailySchedules': [...]}
 
     # TODO: remove .update() and use URLs only
     await evo.update()
@@ -146,7 +159,7 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
     temp = schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp + 1
 
-    status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
+    status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
 
     assert isinstance(status, dict | list)  # mypy
 
@@ -177,7 +190,7 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
 
     #
     # STEP 4: PUT the original schedule back
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
+    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
 
     #
     # STEP 5: (optional) check the status of the task
