@@ -182,8 +182,8 @@ class AbstractTokenManager(ABC):
     def _export_access_token(self) -> AccessTokenEntryT:
         """Serialize the token data to a dictionary."""
         return {
-            SZ_ACCESS_TOKEN: self._access_token,
             SZ_ACCESS_TOKEN_EXPIRES: self._access_token_expires.isoformat(),
+            SZ_ACCESS_TOKEN: self._access_token,
             SZ_REFRESH_TOKEN: self._refresh_token,
         }
 

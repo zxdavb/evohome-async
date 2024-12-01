@@ -130,14 +130,12 @@ class AbstractSessionManager(ABC):
         """Deserialize the session id from a dictionary."""
         self._session_id = session[SZ_SESSION_ID]
         self._session_id_expires = dt.fromisoformat(session[SZ_SESSION_ID_EXPIRES])
-        #
 
     def _export_session_id(self) -> SessionIdEntryT:
         """Serialize the session id to a dictionary."""
         return {
-            SZ_SESSION_ID: self._session_id,
             SZ_SESSION_ID_EXPIRES: self._session_id_expires.isoformat(),
-            #
+            SZ_SESSION_ID: self._session_id,
         }
 
     async def get_session_id(self) -> str:
