@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 import aiohttp
 import voluptuous as vol
 
-from evohome.helpers import convert_keys_to_snake_case
+from evohome.helpers import convert_keys_to_camel_case, convert_keys_to_snake_case
 
 from . import exceptions as exc
 from .schemas import SCH_USER_SESSION_RESPONSE, SZ_SESSION_ID as S2_SESSION_ID
@@ -189,7 +189,7 @@ class AbstractSessionManager(ABC):
         except vol.Invalid as err:
             self._logger.warning(f"Response JSON may be invalid: POST {url}: {err}")
 
-        session: EvoSessionDictT = convert_keys_to_snake_case(response)  # type: ignore[assignment]
+        session: EvoSessionDictT = convert_keys_to_snake_case(response)  # type:ignore[assignment]
 
         try:
             self._session_id: str = session[SZ_SESSION_ID]
@@ -217,7 +217,7 @@ class AbstractSessionManager(ABC):
                 rsp.raise_for_status()
 
                 self._was_authenticated = True  # i.e. the credentials are valid
-                return await rsp.json()  # type: ignore[no-any-return]
+                return await rsp.json()  # type:ignore[no-any-return]
 
         except aiohttp.ContentTypeError as err:
             #
@@ -322,16 +322,14 @@ class Auth:
 
     async def get(
         self, url: StrOrURL, schema: vol.Schema | None = None
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Call the Resideo TCC API with a GET.
 
         Optionally checks the response JSON against the expected schema and logs a
         warning if it doesn't match.
         """
 
-        response: dict[str, Any]
-
-        response = await self.request(  # type: ignore[assignment]
+        response = await self.request(  # xtype:ignore[assignment]
             HTTPMethod.GET, f"{self._url_base}/{url}"
         )
 
@@ -341,6 +339,7 @@ class Auth:
             except vol.Invalid as err:
                 self._logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
 
+        assert isinstance(response, dict | list)  # mypy
         return response
 
     async def put(
@@ -355,18 +354,17 @@ class Auth:
         warning if it doesn't match.
         """
 
-        response: dict[str, Any] | list[dict[str, Any]]
-
         if schema:
             try:
                 schema(json)
             except vol.Invalid as err:
                 self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
 
-        response = await self.request(  # type: ignore[assignment]
+        response = await self.request(
             HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
         )
 
+        assert isinstance(response, dict | list)  # mypy
         return response
 
     async def request(
@@ -377,8 +375,8 @@ class Auth:
         Converts keys to/from snake_case as required.
         """
 
-        # TODO: if method == HTTPMethod.PUT and "json" in kwargs:
-        #     kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
+        if method == HTTPMethod.PUT and "json" in kwargs:
+            kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
         response = await self._request(method, url, **kwargs)
 
@@ -427,29 +425,6 @@ class Auth:
 
             except aiohttp.ClientError as err:  # e.g. ClientConnectionError
                 raise exc.RequestFailedError(str(err)) from err
-
-        # async with self._raw_request(method, url, **kwargs) as rsp:
-        #     if rsp.status == HTTPStatus.OK:  # 200
-        #         return _content(rsp)
-
-        #     if (  # if 401/unauthorized, fetch new session_id and retry
-        #         rsp.status != HTTPStatus.UNAUTHORIZED  # 401
-        #         or rsp.content_type != "application/json"
-        #     ):
-        #         _raise_for_status(rsp)
-
-        #     response = await rsp.json()
-        #     try:
-        #         # looking for invalid session: Unauthorized not EmailOrPasswordIncorrect
-        #         if response[0]["code"] == "Unauthorized":
-        #             pass
-        #     except LookupError:
-        #         _raise_for_status(rsp)
-
-        # if self._session_manager.is_session_id_valid():
-        #     self._logger.warning("session id was rejected, will clear it and retry")
-
-        # self._session_manager._clear_session_id()  # TODO: private method
 
         async with self._raw_request(method, url, **kwargs) as rsp:
             _raise_for_status(rsp)
