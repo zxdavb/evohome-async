@@ -58,17 +58,12 @@ if TYPE_CHECKING:
     from .auth import Auth
     from .schemas import _EvoDictT, _EvoListT
     from .schemas.typedefs import (
-        DailySchedulesDhwT,
-        DailySchedulesZoneT,
-        DayOfWeekDhwT,
+        DailySchedulesT,
+        DayOfWeekT,
         DayOfWeekZoneT,
         EvoZonConfigT,
-        SwitchpointDhwT,
-        SwitchpointZoneT,
+        SwitchpointT,
     )
-
-    SwitchpointT = SwitchpointDhwT | SwitchpointZoneT
-    DayOfWeekT = DayOfWeekDhwT | DayOfWeekZoneT
 
 
 _ONE_DAY = td(days=1)
@@ -169,7 +164,7 @@ def dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
 
 
 def _find_switchpoints(
-    schedule: list[DayOfWeekDhwT] | list[DayOfWeekZoneT],
+    schedule: list[DayOfWeekT],
     day_of_week: DayOfWeek,
     time_of_day: str,
 ) -> tuple[SwitchpointT, int, SwitchpointT, int]:
@@ -215,10 +210,9 @@ def _find_switchpoints(
 class _ScheduleBase(ActiveFaultsBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    SCH_SCHEDULE_GET: Final  # type: ignore[misc]
-    SCH_SCHEDULE_PUT: Final  # type: ignore[misc]
+    SCH_SCHEDULE: Final  # type: ignore[misc]
 
-    _schedule: list[DayOfWeekDhwT] | list[DayOfWeekZoneT] | None
+    _schedule: list[DayOfWeekT] | None
 
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id, tcs._auth, tcs._logger)
@@ -227,16 +221,16 @@ class _ScheduleBase(ActiveFaultsBase):
 
     async def get_schedule(
         self,
-    ) -> list[DayOfWeekDhwT] | list[DayOfWeekZoneT]:
+    ) -> list[DayOfWeekT]:
         """Get the schedule for this DHW/zone object."""
 
-        schedule: DailySchedulesDhwT | DailySchedulesZoneT
+        schedule: DailySchedulesT
 
         self._logger.debug(f"{self}: Getting schedule...")
 
         try:
             schedule = await self._auth.get(
-                f"{self._TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE_GET
+                f"{self._TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE
             )  # type: ignore[assignment]
 
         except exc.RequestFailedError as err:
@@ -251,7 +245,7 @@ class _ScheduleBase(ActiveFaultsBase):
 
     async def set_schedule(
         self,
-        schedule: list[DayOfWeekDhwT] | list[DayOfWeekZoneT] | str,
+        schedule: list[DayOfWeekT] | str,
     ) -> None:
         """Set the schedule for this DHW/zone object."""
 
@@ -283,7 +277,7 @@ class _ScheduleBase(ActiveFaultsBase):
         _ = await self._auth.put(
             f"{self._TYPE}/{self.id}/schedule",
             json={"daily_schedules": schedule},
-            schema=self.SCH_SCHEDULE_PUT,
+            schema=self.SCH_SCHEDULE,
         )
 
         # TODO: check the status of the task
@@ -311,22 +305,23 @@ class _ScheduleBase(ActiveFaultsBase):
         this_dtm = dt.combine(dtm + td(days=this_offset), this_tod)
         next_dtm = dt.combine(dtm + td(days=next_offset), next_tod)
 
-        this_val = this_sp.get("dhw_state") or this_sp["heat_setpoint"]  # type: ignore[typeddict-item]
-        next_val = next_sp.get("dhw_state") or next_sp["heat_setpoint"]  # type: ignore[typeddict-item]
+        this_val = this_sp.get("dhw_state") or this_sp["heat_setpoint"]
+        next_val = next_sp.get("dhw_state") or next_sp["heat_setpoint"]
 
+        # NOTE: this is a convenience return...
         # this_dtm, this_val = next(iter(result.items()))
         # next_dtm, next_val = next(islice(result.items(), 1, 2))
 
         return {
-            this_dtm: this_val,  # type: ignore[dict-item]
-            next_dtm: next_val,  # type: ignore[dict-item]
+            this_dtm: this_val,
+            next_dtm: next_val,
         }
 
 
 class _ZoneBase(_ScheduleBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    STATUS_SCHEMA: Final  # type: ignore[misc]
+    SCH_STATUS: Final  # type: ignore[misc]
 
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id, tcs)
@@ -343,7 +338,7 @@ class _ZoneBase(_ScheduleBase):
         """
 
         status: _EvoDictT = await self._auth.get(
-            f"{self._TYPE}/{self.id}/status", schema=self.STATUS_SCHEMA
+            f"{self._TYPE}/{self.id}/status", schema=self.SCH_STATUS
         )  # type: ignore[assignment]
 
         self._update_status(status)
@@ -379,10 +374,10 @@ class _ZoneBase(_ScheduleBase):
 class Zone(_ZoneBase):
     """Instance of a TCS's heating zone (temperatureZone)."""
 
-    STATUS_SCHEMA: Final = factory_zone_status(camel_to_snake)  # type: ignore[misc]
     _TYPE: Final = EntityType.ZON  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET: Final = factory_schedule_zone(camel_to_snake)  # type: ignore[misc]
+    SCH_SCHEDULE: Final = factory_schedule_zone(camel_to_snake)  # type: ignore[misc]
+    SCH_STATUS: Final = factory_zone_status(camel_to_snake)  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: EvoZonConfigT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs)
@@ -390,7 +385,7 @@ class Zone(_ZoneBase):
         self._config: Final[EvoZonConfigT] = config  # type: ignore[assignment,misc]
         self._status: _EvoDictT = {}
 
-        self._schedule: list[DayOfWeekZoneT] | None = None
+        self._schedule: list[DayOfWeekZoneT] | None = None  # type: ignore[assignment]
 
         if not self.model or self.model == ZoneModelType.UNKNOWN:
             raise exc.InvalidSchemaError(
@@ -548,10 +543,12 @@ class Zone(_ZoneBase):
 
         await self._set_mode(mode)
 
-    async def get_schedule(self) -> list[DayOfWeekZoneT]:
-        """Get the schedule for this zone."""  # mypy hint
+    # NOTE: this wrapper exists for typing purposes
+    async def get_schedule(self) -> list[DayOfWeekZoneT]:  # type: ignore[override]
+        """Get the schedule for this heating zone."""  # mypy hint
         return await super().get_schedule()  # type: ignore[return-value]
 
+    # NOTE: this wrapper exists for typing purposes
     async def set_schedule(self, schedule: list[DayOfWeekZoneT] | str) -> None:  # type: ignore[override]
-        """Set the schedule for this zone."""  # mypy hint
-        await super().set_schedule(schedule)
+        """Set the schedule for this heating zone."""
+        await super().set_schedule(schedule)  # type: ignore[arg-type]

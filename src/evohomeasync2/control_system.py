@@ -66,7 +66,7 @@ if TYPE_CHECKING:
 class ControlSystem(ActiveFaultsBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
-    STATUS_SCHEMA: Final = factory_tcs_status(camel_to_snake)
+    SCH_STATUS: Final = factory_tcs_status(camel_to_snake)
     _TYPE: Final = EntityType.TCS  # type: ignore[misc]
 
     def __init__(self, gateway: Gateway, config: EvoTcsEntryT) -> None:

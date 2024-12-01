@@ -40,7 +40,7 @@ async def _test_basics_apis(evo: EvohomeClientv2) -> None:
     # STEP 4: Status, GET /location/{loc.id}/status
     for loc in evo.locations:
         loc_status = await loc.update()
-        assert evo2.Location.STATUS_SCHEMA(loc_status)
+        assert evo2.Location.SCH_STATUS(loc_status)
 
 
 async def _test_sched__apis(evo: EvohomeClientv2) -> None:
@@ -80,11 +80,11 @@ async def _test_update_apis(evo: EvohomeClientv2) -> None:
     # STEP 2: GET /{x._TYPE}/{x.id}/status
     if dhw := evo._get_single_tcs().hotwater:
         dhw_status = await dhw._update()
-        assert evo2.HotWater.STATUS_SCHEMA(dhw_status)
+        assert evo2.HotWater.SCH_STATUS(dhw_status)
 
     if zone := evo._get_single_tcs().zones[0]:
         zone_status = await zone._update()
-        assert evo2.Zone.STATUS_SCHEMA(zone_status)
+        assert evo2.Zone.SCH_STATUS(zone_status)
 
 
 async def _test_system_apis(evo: EvohomeClientv2) -> None:

@@ -58,7 +58,7 @@ WINDOWS_TO_IANA = {
 class Location(EntityBase):
     """Instance of an account's location."""
 
-    STATUS_SCHEMA: Final = factory_loc_status(camel_to_snake)
+    SCH_STATUS: Final = factory_loc_status(camel_to_snake)
     _TYPE: Final = EntityType.LOC  # type: ignore[misc]
 
     def __init__(self, client: EvohomeClient, config: EvoLocEntryT) -> None:
@@ -149,7 +149,7 @@ class Location(EntityBase):
 
         status: _EvoDictT = await self._auth.get(
             f"{self._TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
-            schema=self.STATUS_SCHEMA,
+            schema=self.SCH_STATUS,
         )  # type: ignore[assignment]
 
         self._update_status(status)

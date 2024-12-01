@@ -174,8 +174,6 @@ class DayOfWeekDhwT(TypedDict):
     switchpoints: list[SwitchpointDhwT]
 
 
-# GET /domesticHotWater/{dhw_id}/schedule
-# PUT /domesticHotWater/{dhw_id}/schedule
 class DailySchedulesDhwT(TypedDict):
     daily_schedules: list[DayOfWeekDhwT]
 
@@ -184,6 +182,9 @@ class DailySchedulesDhwT(TypedDict):
 class EvoScheduleDhwT(DailySchedulesDhwT):
     dhw_id: str
     name: NotRequired[str]
+
+
+#######################################################################################
 
 
 class SwitchpointZoneT(TypedDict):
@@ -196,8 +197,6 @@ class DayOfWeekZoneT(TypedDict):
     switchpoints: list[SwitchpointZoneT]
 
 
-# GET /temperatureZone/{zone_id}/schedule
-# PUT /temperatureZone/{zone_id}/schedule
 class DailySchedulesZoneT(TypedDict):
     daily_schedules: list[DayOfWeekZoneT]
 
@@ -205,4 +204,28 @@ class DailySchedulesZoneT(TypedDict):
 # for export/import to/from file
 class EvoScheduleZoneT(DailySchedulesZoneT):
     zone_id: str
+    name: NotRequired[str]
+
+
+#######################################################################################
+
+
+class SwitchpointT(TypedDict):
+    time_of_day: str
+    dhw_state: NotRequired[str]  # mutex with heat_setpoint
+    heat_setpoint: NotRequired[float]
+
+
+class DayOfWeekT(TypedDict):
+    day_of_week: str
+    switchpoints: list[SwitchpointT]
+
+
+class DailySchedulesT(TypedDict):
+    daily_schedules: list[DayOfWeekT]
+
+
+# for export/import to/from file
+class EvoScheduleT(DailySchedulesT):
+    dhw_id: str
     name: NotRequired[str]

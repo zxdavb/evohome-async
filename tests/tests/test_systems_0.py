@@ -45,7 +45,7 @@ def test_user_locations(folder: Path) -> None:
 def test_location_status(folder: Path) -> None:
     """Test the location status schema against the corresponding JSON."""
 
-    STATUS_SCHEMA = factory_loc_status()
+    SCH_STATUS = factory_loc_status()
 
     for p in Path(folder).glob("status_*.json"):
-        assert_schema(folder, STATUS_SCHEMA, p.name)
+        assert_schema(folder, SCH_STATUS, p.name)

@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 class Gateway(ActiveFaultsBase):
     """Instance of a location's gateway."""
 
-    STATUS_SCHEMA: Final = factory_gwy_status(camel_to_snake)
+    SCH_STATUS: Final = factory_gwy_status(camel_to_snake)
     _TYPE: Final = EntityType.GWY  # type: ignore[misc]
 
     def __init__(self, location: Location, config: EvoGwyEntryT) -> None:

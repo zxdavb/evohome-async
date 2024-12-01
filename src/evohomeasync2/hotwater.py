@@ -42,10 +42,10 @@ if TYPE_CHECKING:
 class HotWater(_ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
-    STATUS_SCHEMA: Final = factory_dhw_status(camel_to_snake)  # type: ignore[misc]
     _TYPE: Final = EntityType.DHW  # type: ignore[misc]
 
-    SCH_SCHEDULE_GET: Final = factory_schedule_dhw(camel_to_snake)  # type: ignore[misc]
+    SCH_SCHEDULE: Final = factory_schedule_dhw(camel_to_snake)  # type: ignore[misc]
+    SCH_STATUS: Final = factory_dhw_status(camel_to_snake)  # type: ignore[misc]
 
     def __init__(self, tcs: ControlSystem, config: EvoDhwConfigT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs)
@@ -53,7 +53,7 @@ class HotWater(_ZoneBase):
         self._config: Final[EvoDhwConfigT] = config  # type: ignore[assignment,misc]
         self._status: _EvoDictT = {}
 
-        self._schedule: list[DayOfWeekDhwT] | None = None
+        self._schedule: list[DayOfWeekDhwT] | None = None  # type: ignore[assignment]
 
     @property  # a for convenience attr
     def mode(self) -> ZoneMode | None:
@@ -178,10 +178,12 @@ class HotWater(_ZoneBase):
 
         await self._set_state(mode)
 
-    async def get_schedule(self) -> list[DayOfWeekDhwT]:
-        """Get the schedule for this DHW."""  # mypy hint
+    # NOTE: this wrapper exists for typing purposes
+    async def get_schedule(self) -> list[DayOfWeekDhwT]:  # type: ignore[override]
+        """Get the schedule for this DHW zone."""  # mypy hint
         return await super().get_schedule()  # type: ignore[return-value]
 
+    # NOTE: this wrapper exists for typing purposes
     async def set_schedule(self, schedule: list[DayOfWeekDhwT] | str) -> None:  # type: ignore[override]
-        """Set the schedule for this DHW."""  # mypy hint
-        await super().set_schedule(schedule)
+        """Set the schedule for this DHW zone."""
+        await super().set_schedule(schedule)  # type: ignore[arg-type]
