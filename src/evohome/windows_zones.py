@@ -14,7 +14,7 @@
 #     for mapZone in root.findall(".//mapZone[@territory='001']"):
 #         timezones[mapZone.get("other")] = mapZone.get("type")
 
-#     return timezones  # type: ignore[return-value]
+#     return timezones
 
 
 WINDOWS_TO_IANA_APAC = {
