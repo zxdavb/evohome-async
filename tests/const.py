@@ -16,7 +16,7 @@ _DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 #
 # used to construct the default token cache
 TEST_USERNAME: Final = "username@email.com"
-TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
+TEST_PASSWORD: Final = "P@ssw0rd!!"
 
 # vendors API URLs - the older API
 URL_AUTH_V0 = f"https://{HOSTNAME_V0}/WebAPI/api/session"
