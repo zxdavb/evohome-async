@@ -34,6 +34,8 @@ from .zone import _ZoneBase
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
+    import voluptuous as vol
+
     from . import ControlSystem
     from .schemas import _EvoDictT
     from .schemas.typedefs import DayOfWeekDhwT, EvoDhwConfigT
@@ -42,10 +44,10 @@ if TYPE_CHECKING:
 class HotWater(_ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
-    _TYPE: Final = EntityType.DHW  # type: ignore[misc]
+    _TYPE = EntityType.DHW
 
-    SCH_SCHEDULE: Final = factory_schedule_dhw(camel_to_snake)  # type: ignore[misc]
-    SCH_STATUS: Final = factory_dhw_status(camel_to_snake)  # type: ignore[misc]
+    SCH_SCHEDULE: vol.Schema = factory_schedule_dhw(camel_to_snake)
+    SCH_STATUS: vol.Schema = factory_dhw_status(camel_to_snake)
 
     def __init__(self, tcs: ControlSystem, config: EvoDhwConfigT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs)

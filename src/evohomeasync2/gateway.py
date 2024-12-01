@@ -20,6 +20,8 @@ from .schemas.const import EntityType
 from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:
+    import voluptuous as vol
+
     from . import Location
     from .schemas import _EvoDictT
     from .schemas.typedefs import EvoGwyConfigT, EvoGwyEntryT, EvoTcsEntryT
@@ -28,8 +30,8 @@ if TYPE_CHECKING:
 class Gateway(ActiveFaultsBase):
     """Instance of a location's gateway."""
 
-    SCH_STATUS: Final = factory_gwy_status(camel_to_snake)
-    _TYPE: Final = EntityType.GWY  # type: ignore[misc]
+    SCH_STATUS: vol.Schema = factory_gwy_status(camel_to_snake)
+    _TYPE = EntityType.GWY
 
     def __init__(self, location: Location, config: EvoGwyEntryT) -> None:
         super().__init__(

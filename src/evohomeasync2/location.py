@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime as dt, timedelta as td, tzinfo
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
 from evohome.helpers import camel_to_snake
@@ -33,6 +33,8 @@ from .schemas.const import EntityType
 from .zone import EntityBase
 
 if TYPE_CHECKING:
+    import voluptuous as vol
+
     from . import _EvohomeClientNew as EvohomeClient
     from .schemas import _EvoDictT
     from .schemas.typedefs import (
@@ -58,8 +60,8 @@ WINDOWS_TO_IANA = {
 class Location(EntityBase):
     """Instance of an account's location."""
 
-    SCH_STATUS: Final = factory_loc_status(camel_to_snake)
-    _TYPE: Final = EntityType.LOC  # type: ignore[misc]
+    SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
+    _TYPE = EntityType.LOC
 
     def __init__(self, client: EvohomeClient, config: EvoLocEntryT) -> None:
         super().__init__(

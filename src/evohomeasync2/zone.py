@@ -54,6 +54,8 @@ if TYPE_CHECKING:
     import logging
     from datetime import tzinfo
 
+    import voluptuous as vol
+
     from . import ControlSystem
     from .auth import Auth
     from .schemas import _EvoDictT, _EvoListT
@@ -210,7 +212,7 @@ def _find_switchpoints(
 class _ScheduleBase(ActiveFaultsBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    SCH_SCHEDULE: Final  # type: ignore[misc]
+    SCH_SCHEDULE: vol.Schema
 
     _schedule: list[DayOfWeekT] | None
 
@@ -321,7 +323,7 @@ class _ScheduleBase(ActiveFaultsBase):
 class _ZoneBase(_ScheduleBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    SCH_STATUS: Final  # type: ignore[misc]
+    SCH_STATUS: vol.Schema
 
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id, tcs)
@@ -374,10 +376,10 @@ class _ZoneBase(_ScheduleBase):
 class Zone(_ZoneBase):
     """Instance of a TCS's heating zone (temperatureZone)."""
 
-    _TYPE: Final = EntityType.ZON  # type: ignore[misc]
+    _TYPE = EntityType.ZON
 
-    SCH_SCHEDULE: Final = factory_schedule_zone(camel_to_snake)  # type: ignore[misc]
-    SCH_STATUS: Final = factory_zone_status(camel_to_snake)  # type: ignore[misc]
+    SCH_SCHEDULE: vol.Schema = factory_schedule_zone(camel_to_snake)
+    SCH_STATUS: vol.Schema = factory_zone_status(camel_to_snake)
 
     def __init__(self, tcs: ControlSystem, config: EvoZonConfigT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs)
