@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
     from aiohttp.typedefs import StrOrURL
 
-    from .schemas import _EvoDictT, _EvoSchemaT  # pragma: no cover
+    from .schemas import _EvoDictT, _EvoSchemaT
     from .schemas.typedefs import (
         EvoAuthTokensDictT as AccessTokenEntryT,
         TccAuthTokensResponseT as AuthTokenResponseT,
