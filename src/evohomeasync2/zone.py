@@ -226,12 +226,10 @@ class _ScheduleBase(ActiveFaultsBase):
     ) -> list[DayOfWeekT]:
         """Get the schedule for this DHW/zone object."""
 
-        schedule: DailySchedulesT
-
         self._logger.debug(f"{self}: Getting schedule...")
 
         try:
-            schedule = await self._auth.get(
+            schedule: DailySchedulesT = await self._auth.get(
                 f"{self._TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE
             )  # type: ignore[assignment]
 
