@@ -452,12 +452,20 @@ class EvoThermostatDictT(TypedDict):
     pcb_number: str
 
 
-class EvoDeviceDictT(TypedDict):
+class EvoGwyConfigDictT(TypedDict):
     gateway_id: int
-    device_id: int
-    thermostat_model_type: str  # DOMESTIC_HOT_WATER or a zone
     device_type: int
     name: str
+    mac_id: str
+    location_id: int
+    domain_id: int
+    serial_number: str
+    pcb_number: str
+
+
+class EvoDevConfigDictT(EvoGwyConfigDictT):
+    device_id: int
+    thermostat_model_type: str  # DOMESTIC_HOT_WATER or a zone
     schedule_capable: bool
     hold_until_capable: bool
     thermostat: EvoThermostatDictT
@@ -469,12 +477,7 @@ class EvoDeviceDictT(TypedDict):
     is_upgrading: bool
     is_alive: bool
     thermostat_version: str
-    mac_id: str
-    location_id: int
-    domain_id: int
     instance: int
-    serial_number: str
-    pcb_number: str
 
 
 class EvoTimeZoneDictT(TypedDict):
@@ -485,7 +488,7 @@ class EvoTimeZoneDictT(TypedDict):
     using_daylight_saving_time: bool
 
 
-class EvoLocationDictT(TypedDict):
+class EvoLocConfigDictT(TypedDict):
     location_id: _LocationIdT
     name: str
     street_address: str
@@ -495,7 +498,7 @@ class EvoLocationDictT(TypedDict):
     zipcode: str
     type: str  # LocationType: "Commercial" | "Residential"
     has_station: bool
-    devices: list[EvoDeviceDictT]
+    devices: list[EvoDevConfigDictT]
     weather: EvoWeatherDictT  # WeatherResponse
     daylight_saving_time_enabled: bool
     time_zone: EvoTimeZoneDictT

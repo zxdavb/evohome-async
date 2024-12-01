@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
     from . import _EvohomeClientNew as EvohomeClient
     from .auth import Auth
-    from .schemas import EvoDeviceDictT, EvoLocationDictT, _EvoListT
+    from .schemas import EvoDevConfigDictT, EvoGwyConfigDictT, EvoLocConfigDictT
 
     _EvoDictT = dict[str, Any]
 
@@ -43,7 +43,7 @@ _TEMP_IS_NA: Final = 128
 class EntityBase:
     # _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
 
-    _config: _EvoDictT
+    _config: EvoDevConfigDictT | EvoGwyConfigDictT | EvoLocConfigDictT
     _status: _EvoDictT
 
     def __init__(self, entity_id: int, auth: Auth, logger: logging.Logger) -> None:
@@ -60,7 +60,7 @@ class EntityBase:
         return str(self._id)
 
     @property
-    def config(self) -> _EvoDictT:
+    def config(self) -> EvoDevConfigDictT | EvoGwyConfigDictT | EvoLocConfigDictT:
         """Return the latest config of the entity."""
         return self._config
 
@@ -73,7 +73,7 @@ class EntityBase:
 class Location(EntityBase):
     """Instance of an account's location."""
 
-    def __init__(self, client: EvohomeClient, config: EvoLocationDictT) -> None:
+    def __init__(self, client: EvohomeClient, config: EvoLocConfigDictT) -> None:
         super().__init__(
             config["location_id"],
             client.auth,
@@ -82,7 +82,7 @@ class Location(EntityBase):
 
         self._evo = client  # proxy for parent
 
-        self._config: EvoLocationDictT = config  # type: ignore[assignment]
+        self._config: EvoLocConfigDictT = config
         self._status: _EvoDictT = {}
 
         self.gateways: list[Gateway] = []
@@ -136,7 +136,7 @@ class Location(EntityBase):
     # TODO: needs a tidy-up
     async def get_temperatures(
         self, disable_refresh: bool | None = None
-    ) -> _EvoListT:  # a convenience function
+    ) -> list[dict[str, Any]]:  # a convenience function
         """Retrieve the latest details for each zone (incl. DHW)."""
 
         set_point: float
@@ -170,7 +170,7 @@ class Location(EntityBase):
                 }
             )
 
-        return result  # type: ignore[return-value]
+        return result
 
     async def get_system_modes(self) -> NoReturn:
         """Return the set of modes the system can be assigned."""
@@ -218,21 +218,19 @@ class Location(EntityBase):
     def _get_zone(self, zon_id: int | str) -> Zone:
         """Return the location's zone by its id, idx or name."""
 
-        dev: Zone | None
-
         # just want id, so retrieve the config data only if we don't already have it
         # await self._cli.update(force_refresh=False)
 
         if isinstance(zon_id, int):
             zon_id = str(zon_id)
 
-        dev = self.devices_by_id.get(zon_id)  # type: ignore[assignment]
+        dev = self.devices_by_id.get(zon_id)
 
         if dev is None:
-            dev = self.devices_by_idx.get(zon_id)  # type: ignore[assignment]
+            dev = self.devices_by_idx.get(zon_id)
 
         if dev is None:
-            dev = self.devices_by_name.get(zon_id)  # type: ignore[assignment]
+            dev = self.devices_by_name.get(zon_id)
 
         if dev is None:
             raise exc.InvalidSchemaError(f"No zone {zon_id} in location {self.id}")
@@ -248,10 +246,12 @@ class Location(EntityBase):
         # just want id, so retrieve the config data only if we don't already have it
         # await self._cli.update(force_refresh=False)
 
-        dev: Hotwater | None = self.devices_by_id.get("HW")  # type: ignore[assignment]
+        dev = self.devices_by_id.get("HW")
 
         if dev is None:
             raise exc.InvalidSchemaError(f"No DHW in location {self.id}")
+
+        assert isinstance(dev, Hotwater)  # mypy
 
         return dev
 
@@ -259,7 +259,7 @@ class Location(EntityBase):
 class Gateway(EntityBase):
     """Instance of a location's gateway."""
 
-    def __init__(self, location: Location, config: EvoDeviceDictT) -> None:
+    def __init__(self, location: Location, config: EvoGwyConfigDictT) -> None:
         super().__init__(
             config["gateway_id"],
             location._auth,
@@ -268,7 +268,7 @@ class Gateway(EntityBase):
 
         self._loc = location  # parent
 
-        self._config: EvoDeviceDictT = config  # type: ignore[assignment]
+        self._config: EvoGwyConfigDictT = config  # is of one of its devices
         self._status: _EvoDictT = {}
 
         self.mac_address = config["mac_id"]
@@ -283,9 +283,9 @@ class Gateway(EntityBase):
 
 
 class Zone(EntityBase):
-    """Instance of a location's gateway."""
+    """Instance of a location's heating zone."""
 
-    def __init__(self, gateway: Gateway, config: EvoDeviceDictT) -> None:
+    def __init__(self, gateway: Gateway, config: EvoDevConfigDictT) -> None:
         super().__init__(
             config["device_id"],
             gateway._auth,
@@ -294,7 +294,7 @@ class Zone(EntityBase):
 
         self._gwy = gateway  # parent
 
-        self._config: EvoDeviceDictT = config  # type: ignore[assignment]
+        self._config: EvoDevConfigDictT = config
         self._status: _EvoDictT = {}
 
     @property
@@ -351,9 +351,9 @@ class Zone(EntityBase):
 
 
 class Hotwater(EntityBase):
-    """Instance of a location's gateway."""
+    """Instance of a location's DHW zone."""
 
-    def __init__(self, gateway: Gateway, config: EvoDeviceDictT) -> None:
+    def __init__(self, gateway: Gateway, config: EvoDevConfigDictT) -> None:
         super().__init__(
             config["device_id"],
             gateway._auth,
@@ -362,7 +362,7 @@ class Hotwater(EntityBase):
 
         self._gwy = gateway  # parent
 
-        self._config: EvoDeviceDictT = config  # type: ignore[assignment]
+        self._config: EvoDevConfigDictT = config
         self._status: _EvoDictT = {}
 
     @property

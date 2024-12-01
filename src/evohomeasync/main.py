@@ -16,7 +16,7 @@ from .schemas import factory_location_response_list, factory_user_account_info_r
 if TYPE_CHECKING:
     import aiohttp
 
-    from .schemas import EvoLocationDictT, EvoUserAccountDictT, _LocationIdT
+    from .schemas import EvoLocConfigDictT, EvoUserAccountDictT, _LocationIdT
 
 SCH_GET_ACCOUNT_INFO: Final = factory_user_account_info_response(camel_to_snake)
 SCH_GET_ACCOUNT_LOCS: Final = factory_location_response_list(camel_to_snake)
@@ -30,7 +30,7 @@ class EvohomeClientNew:
     _LOC_IDX: int = 0  # the index of the default location in _user_locs
 
     _user_info: EvoUserAccountDictT | None = None
-    _user_locs: list[EvoLocationDictT] | None = None  # all locations of the user
+    _user_locs: list[EvoLocConfigDictT] | None = None  # all locations of the user
 
     def __init__(
         self,
@@ -68,7 +68,7 @@ class EvohomeClientNew:
         *,
         _reset_config: bool = False,
         # _dont_update_status: bool = False,
-    ) -> list[EvoLocationDictT] | None:
+    ) -> list[EvoLocConfigDictT] | None:
         """Retrieve the latest state of the installation and it's locations.
 
         If required, or when `_reset_config` is true, first retrieves the user
