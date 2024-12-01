@@ -105,13 +105,9 @@ class EvohomeClientNew:
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 
-            #
-            #
-
         assert self._locations is not None  # mypy hint
 
         self._locn_info = self._user_locs[self._LOC_IDX]
-
         return self._user_locs
 
     @property

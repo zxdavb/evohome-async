@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime as dt, timedelta as td, tzinfo
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from evohome.helpers import camel_to_snake
@@ -155,7 +155,6 @@ class Location(EntityBase):
         )  # type: ignore[assignment]
 
         self._update_status(status)
-
         return status
 
     async def _update_config(self) -> None:
@@ -164,7 +163,7 @@ class Location(EntityBase):
         # it is assumed that only the location's TZ/DST info can change
 
         url = f"location/{self._id}/installationInfo"
-        config: dict[str, Any] = await self._auth.get(url)  # type: ignore[assignment]
+        config: EvoLocEntryT = await self._auth.get(url)  # type: ignore[assignment]
 
         self._config = config[SZ_LOCATION_INFO]
 
