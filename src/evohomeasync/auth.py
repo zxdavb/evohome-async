@@ -6,20 +6,20 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
-from http import HTTPMethod  # , HTTPStatus
 from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import aiohttp
 import voluptuous as vol
 
-from evohome.helpers import convert_keys_to_camel_case, convert_keys_to_snake_case
+from evohome.auth import HOSTNAME, AbstractAuth, AbstractRequestContextManager
+from evohome.helpers import convert_keys_to_snake_case
 
 from . import exceptions as exc
 from .schemas import SCH_USER_SESSION_RESPONSE, SZ_SESSION_ID as S2_SESSION_ID
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable, Generator
-    from types import TracebackType
+    from collections.abc import Awaitable, Callable
+    from http import HTTPMethod
 
     from aiohttp.typedefs import StrOrURL
 
@@ -30,8 +30,6 @@ if TYPE_CHECKING:
 #  - https://mytotalconnectcomfort.com/WebApi/Help/LogIn
 _APPLICATION_ID: Final = "91db1612-73fd-4500-91b2-e63b069b185c"
 #
-
-HOSTNAME: Final = "tccna.honeywell.com"
 
 HEADERS_AUTH = {
     "Accept": "application/json",
@@ -101,7 +99,6 @@ class AbstractSessionManager(ABC):
 
         self._session_id = ""
         self._session_id_expires = dt.min.replace(tzinfo=UTC)
-        #
 
     @property
     def session_id(self) -> str:
@@ -180,7 +177,9 @@ class AbstractSessionManager(ABC):
         url = f"https://{self._hostname}/WebAPI/api/session"
 
         response: TccSessionResponseT = await self._post_session_id_request(
-            url, headers=HEADERS_AUTH, data=credentials
+            url,
+            headers=HEADERS_AUTH,
+            data=credentials,  # NOTE: is camelCase
         )
 
         try:  # the dict _should_ be the expected schema...
@@ -204,8 +203,8 @@ class AbstractSessionManager(ABC):
         if session.get("latest_eula_accepted"):
             self._logger.warning("The latest EULA has not been accepted by the user")
 
-    async def _post_session_id_request(
-        self, url: StrOrURL, **kwargs: Any
+    async def _post_session_id_request(  # no method, as POST only
+        self, url: StrOrURL, /, **kwargs: Any
     ) -> TccSessionResponseT:
         """Obtain a session id via a POST to the vendor's web API.
 
@@ -228,15 +227,15 @@ class AbstractSessionManager(ABC):
             ) from err
 
         except aiohttp.ClientResponseError as err:
-            #
+            # TODO: add a hint for 401 (Unauthorized), others
             raise exc.AuthenticationFailedError(str(err), status=err.status) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
             raise exc.AuthenticationFailedError(str(err)) from err
 
 
-class _RequestContextManager:
-    """A context manager for an aiohttp request."""
+class _RequestContextManager(AbstractRequestContextManager):
+    """A context manager for authorized aiohttp request."""
 
     _response: aiohttp.ClientResponse | None = None
 
@@ -250,32 +249,9 @@ class _RequestContextManager:
         **kwargs: Any,
     ) -> None:
         """Initialize the request context manager."""
+        super().__init__(websession, method, url, **kwargs)
 
         self._get_session_id = session_id_getter
-        self.websession = websession
-        self.method = method
-        self.url = url
-        self.kwargs = kwargs
-
-    async def __aenter__(self) -> aiohttp.ClientResponse:
-        """Async context manager entry."""
-        self._response = await self._await_impl()
-        return self._response
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc: BaseException | None,
-        tb: TracebackType | None,
-    ) -> None:
-        """Async context manager exit."""
-        if self._response:
-            self._response.release()
-            await self._response.wait_for_close()
-
-    def __await__(self) -> Generator[Any, Any, aiohttp.ClientResponse]:
-        """Make this class awaitable."""
-        return self._await_impl().__await__()
 
     async def _await_impl(self) -> aiohttp.ClientResponse:
         """Make an aiohttp request to the vendor's servers.
@@ -293,8 +269,8 @@ class _RequestContextManager:
         )
 
 
-class Auth:
-    """A class to provide to access the Resideo TCC API."""
+class Auth(AbstractAuth):
+    """A class to provide to access the v0 Resideo TCC API."""
 
     def __init__(
         self,
@@ -302,134 +278,28 @@ class Auth:
         websession: aiohttp.ClientSession,
         /,
         *,
-        _hostname: str = HOSTNAME,
+        _hostname: str | None = None,
         logger: logging.Logger | None = None,
     ) -> None:
         """A class for interacting with the v0 Resideo TCC API."""
+        super().__init__(websession, _hostname=_hostname, logger=logger)
 
+        self._url_base = f"https://{self._hostname}/WebAPI/api"
         self._session_manager = session_manager
-        self._websession: Final = websession
-        self._hostname: Final = _hostname
-        self._logger: Final = logger or logging.getLogger(__name__)
 
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}(base='{self._url_base}')"
+    def _raise_for_status(self, response: aiohttp.ClientResponse) -> None:
+        """Raise an exception if the response is not OK."""
 
-    @property
-    def _url_base(self) -> StrOrURL:
-        """Return the URL base used for GET/PUT."""
-        return f"https://{self._hostname}/WebAPI/api"
+        try:
+            response.raise_for_status()
 
-    async def get(
-        self, url: StrOrURL, schema: vol.Schema | None = None
-    ) -> dict[str, Any] | list[dict[str, Any]]:
-        """Call the Resideo TCC API with a GET.
+        except aiohttp.ClientResponseError as err:
+            # if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
+            #     raise exc.RequestFailedError(hint, status=err.status) from err
+            raise exc.RequestFailedError(str(err), status=err.status) from err
 
-        Optionally checks the response JSON against the expected schema and logs a
-        warning if it doesn't match.
-        """
-
-        response = await self.request(  # xtype:ignore[assignment]
-            HTTPMethod.GET, f"{self._url_base}/{url}"
-        )
-
-        if schema:
-            try:
-                response = schema(response)
-            except vol.Invalid as err:
-                self._logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
-
-        assert isinstance(response, dict | list)  # mypy
-        return response
-
-    async def put(
-        self,
-        url: StrOrURL,
-        json: dict[str, Any],
-        schema: vol.Schema | None = None,
-    ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
-        """Call the vendor's API with a PUT.
-
-        Optionally checks the payload JSON against the expected schema and logs a
-        warning if it doesn't match.
-        """
-
-        if schema:
-            try:
-                schema(json)
-            except vol.Invalid as err:
-                self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
-
-        response = await self.request(
-            HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
-        )
-
-        assert isinstance(response, dict | list)  # mypy
-        return response
-
-    async def request(
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
-        """Make a request to the Resideo TCC RESTful API.
-
-        Converts keys to/from snake_case as required.
-        """
-
-        if method == HTTPMethod.PUT and "json" in kwargs:
-            kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
-
-        response = await self._request(method, url, **kwargs)
-
-        self._logger.debug(f"{method} {url}: {response}")
-
-        if method == HTTPMethod.GET:
-            return convert_keys_to_snake_case(response)
-        return response
-
-    async def _request(
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
-        """Make a request to the Resideo TCC RESTful API.
-
-        Checks for ClientErrors and handles Auth failures appropriately.
-
-        Handles when session id is rejected by server (i.e. not expired, but otherwise
-        deemed invalid by the server).
-        """
-
-        async def _content(
-            rsp: aiohttp.ClientResponse,
-        ) -> dict[str, Any] | list[dict[str, Any]] | str:
-            """Return the response from the web server."""
-
-            if not rsp.content_length:
-                raise exc.RequestFailedError(f"Invalid response (no content): {rsp}")
-
-            if rsp.content_type != "application/json":
-                # assume "text/plain" or "text/html"
-                return await rsp.text()
-
-            response: dict[str, Any] = await rsp.json()
-            return response
-
-        def _raise_for_status(response: aiohttp.ClientResponse) -> None:
-            """Raise an exception if the response is not OK."""
-
-            try:
-                response.raise_for_status()
-
-            except aiohttp.ClientResponseError as err:
-                # if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
-                #     raise exc.RequestFailedError(hint, status=err.status) from err
-                raise exc.RequestFailedError(str(err), status=err.status) from err
-
-            except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-                raise exc.RequestFailedError(str(err)) from err
-
-        async with self._raw_request(method, url, **kwargs) as rsp:
-            _raise_for_status(rsp)
-
-            return await _content(rsp)
+        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+            raise exc.RequestFailedError(str(err)) from err
 
     def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any

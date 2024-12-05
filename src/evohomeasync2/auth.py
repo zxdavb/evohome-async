@@ -13,17 +13,16 @@ from typing import TYPE_CHECKING, Any, Final
 import aiohttp
 import voluptuous as vol
 
+from evohome.auth import HOSTNAME, AbstractAuth, AbstractRequestContextManager
 from evohome.helpers import convert_keys_to_snake_case, obfuscate
 
 from . import exceptions as exc
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable, Generator
-    from types import TracebackType
+    from collections.abc import Awaitable, Callable
 
     from aiohttp.typedefs import StrOrURL
 
-    from .schemas import _EvoDictT, _EvoSchemaT
     from .schemas.typedefs import (
         EvoAuthTokensDictT as AccessTokenEntryT,
         TccAuthTokensResponseT as AuthTokenResponseT,
@@ -34,8 +33,6 @@ _APPLICATION_ID: Final = base64.b64encode(
     b"4a231089-d2b6-41bd-a5eb-16a0a422b999:"  # fmt: off
     b"1a15cdb8-42de-407b-add0-059f92c530cb"
 ).decode("utf-8")
-
-HOSTNAME: Final = "tccna.honeywell.com"
 
 HEADERS_AUTH = {
     "Accept": "application/json",
@@ -50,9 +47,6 @@ HEADERS_BASE = {
     "Content-Type": "application/json",
     "Authorization": "",  # falsey value will invoke get_access_token()
 }
-
-SZ_USERNAME: Final = "Username"
-SZ_PASSWORD: Final = "Password"
 
 SZ_ACCESS_TOKEN: Final = "access_token"
 SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"
@@ -148,12 +142,7 @@ class AbstractTokenManager(ABC):
 
         self._access_token = ""
         self._access_token_expires = dt.min.replace(tzinfo=UTC)
-        self._refresh_token = ""
-
-    @property
-    def refresh_token(self) -> str:
-        """Return the refresh token."""
-        return self._refresh_token
+        self._refresh_token = ""  # TODO: remove this?
 
     @property
     def access_token(self) -> str:
@@ -164,6 +153,11 @@ class AbstractTokenManager(ABC):
     def access_token_expires(self) -> dt:
         """Return the expiration datetime of the access token."""
         return self._access_token_expires
+
+    @property
+    def refresh_token(self) -> str:
+        """Return the refresh token."""
+        return self._refresh_token
 
     def is_access_token_valid(self) -> bool:
         """Return True if the access token is valid."""
@@ -222,7 +216,8 @@ class AbstractTokenManager(ABC):
         if not self._refresh_token:
             self._logger.warning("Authenticating with username/password...")
 
-            credentials = {SZ_USERNAME: self._client_id, SZ_PASSWORD: self._secret}
+            # NOTE: the keys are case-sensitive: 'Username' and 'Password'
+            credentials = {"Username": self._client_id, "Password": self._secret}
 
             # allow underlying exceptions through (as client_id/secret invalid)...
             await self._request_access_token(CREDS_USER_PASSWORD | credentials)
@@ -242,8 +237,10 @@ class AbstractTokenManager(ABC):
 
         url = f"https://{self._hostname}/Auth/OAuth/Token"
 
-        response: AuthTokenResponseT = await self._request(
-            url, headers=HEADERS_AUTH, data=credentials
+        response: AuthTokenResponseT = await self._post_access_token_request(
+            url,
+            headers=HEADERS_AUTH,
+            data=credentials,  # NOTE: is snake_case
         )
 
         try:  # the dict _should_ be the expected schema...
@@ -268,7 +265,7 @@ class AbstractTokenManager(ABC):
 
         # if response.get(SZ_LATEST_EULA_ACCEPTED):
 
-    async def _request(  # no method, as POST only
+    async def _post_access_token_request(  # no method, as POST only
         self, url: StrOrURL, /, **kwargs: Any
     ) -> AuthTokenResponseT:
         """Obtain an access token via a POST to the vendor's web API.
@@ -299,8 +296,8 @@ class AbstractTokenManager(ABC):
             raise exc.AuthenticationFailedError(str(err)) from err
 
 
-class _RequestContextManager:
-    """A context manager for an aiohttp request."""
+class _RequestContextManager(AbstractRequestContextManager):
+    """A context manager for authorized aiohttp request."""
 
     _response: aiohttp.ClientResponse | None = None
 
@@ -314,32 +311,9 @@ class _RequestContextManager:
         **kwargs: Any,
     ) -> None:
         """Initialize the request context manager."""
+        super().__init__(websession, method, url, **kwargs)
 
         self._get_access_token = access_token_getter
-        self.websession = websession
-        self.method = method
-        self.url = url
-        self.kwargs = kwargs
-
-    async def __aenter__(self) -> aiohttp.ClientResponse:
-        """Async context manager entry."""
-        self._response = await self._await_impl()
-        return self._response
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc: BaseException | None,
-        tb: TracebackType | None,
-    ) -> None:
-        """Async context manager exit."""
-        if self._response:
-            self._response.release()
-            await self._response.wait_for_close()
-
-    def __await__(self) -> Generator[Any, Any, aiohttp.ClientResponse]:
-        """Make this class awaitable."""
-        return self._await_impl().__await__()
 
     async def _await_impl(self) -> aiohttp.ClientResponse:
         """Make an aiohttp request to the vendor's servers.
@@ -357,8 +331,8 @@ class _RequestContextManager:
         )
 
 
-class Auth:
-    """A class for interacting with the Resideo TCC API."""
+class Auth(AbstractAuth):
+    """A class for interacting with the v2 Resideo TCC API."""
 
     def __init__(
         self,
@@ -366,130 +340,28 @@ class Auth:
         websession: aiohttp.ClientSession,
         /,
         *,
-        _hostname: str = HOSTNAME,
+        _hostname: str | None = None,
         logger: logging.Logger | None = None,
     ) -> None:
         """A class for interacting with the v2 Resideo TCC API."""
+        super().__init__(websession, _hostname=_hostname, logger=logger)
 
+        self._url_base = f"https://{self._hostname}/WebAPI/emea/api/v1/"
         self._token_manager = token_manager
-        self._websession: Final = websession
-        self._hostname: Final = _hostname
-        self._logger: Final = logger or logging.getLogger(__name__)
 
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}(base='{self._url_base}')"
+    def _raise_for_status(self, response: aiohttp.ClientResponse) -> None:
+        """Raise an exception if the response is not OK."""
 
-    @property
-    def _url_base(self) -> StrOrURL:
-        """Return the URL base used for GET/PUT."""
-        return f"https://{self._hostname}/WebAPI/emea/api/v1/"
+        try:
+            response.raise_for_status()
 
-    async def get(self, url: StrOrURL, schema: vol.Schema | None = None) -> _EvoSchemaT:
-        """Call the Resideo TCC API with a GET.
+        except aiohttp.ClientResponseError as err:
+            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
+                raise exc.RequestFailedError(hint, status=err.status) from err
+            raise exc.RequestFailedError(str(err), status=err.status) from err
 
-        Optionally checks the response JSON against the expected schema and logs a
-        warning if it doesn't match.
-
-        Any keys in the response JSON will have been converted to snake_case.
-        """
-
-        response = await self.request(HTTPMethod.GET, f"{self._url_base}/{url}")
-
-        if schema:
-            try:
-                response = schema(response)
-            except vol.Invalid as err:
-                self._logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
-
-        return response  # type: ignore[return-value]
-
-    async def put(
-        self,
-        url: StrOrURL,
-        json: _EvoDictT,
-        schema: vol.Schema | None = None,
-    ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
-        """Call the vendor's API with a PUT.
-
-        Optionally checks the payload JSON against the expected schema and logs a
-        warning if it doesn't match.
-
-        Any snake_case keys in the request JSON will be converted to camelCase.
-        """
-
-        if schema:
-            try:
-                schema(json)
-            except vol.Invalid as err:
-                self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
-
-        return await self.request(  # type: ignore[return-value]
-            HTTPMethod.PUT, f"{self._url_base}/{url}", json=json
-        )
-
-    async def request(
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
-        """Make a request to the Resideo TCC RESTful API.
-
-        Converts keys to/from snake_case as required.
-        """
-
-        # TODO: if method == HTTPMethod.PUT and "json" in kwargs:
-        #     kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
-
-        response = await self._request(method, url, **kwargs)
-
-        self._logger.debug(f"{method} {url}: {response}")
-
-        if method == HTTPMethod.GET:
-            return convert_keys_to_snake_case(response)
-        return response
-
-    async def _request(  # method is GET or PUT (POST is used for authentication)
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
-        """Make a request to the Resideo TCC RESTful API.
-
-        Checks for ClientErrors and handles Auth failures appropriately.
-
-        Handles when auth tokens are rejected by server (i.e. not expired, but otherwise
-        deemed invalid by the server).
-        """
-
-        async def _content(
-            rsp: aiohttp.ClientResponse,
-        ) -> dict[str, Any] | list[dict[str, Any]] | str:
-            """Return the response from the webserver."""
-
-            if not rsp.content_length:
-                raise exc.RequestFailedError(f"Invalid response (no content): {rsp}")
-
-            if rsp.content_type != "application/json":
-                # assume "text/plain" or "text/html"
-                return await rsp.text()
-
-            response: dict[str, Any] = await rsp.json()
-            return response
-
-        def _raise_for_status(response: aiohttp.ClientResponse) -> None:
-            """Raise an exception if the response is not OK."""
-
-            try:
-                response.raise_for_status()
-
-            except aiohttp.ClientResponseError as err:
-                if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
-                    raise exc.RequestFailedError(hint, status=err.status) from err
-                raise exc.RequestFailedError(str(err), status=err.status) from err
-
-            except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-                raise exc.RequestFailedError(str(err)) from err
-
-        async with self._raw_request(method, url, **kwargs) as rsp:
-            _raise_for_status(rsp)
-
-            return await _content(rsp)  # return await rsp.json()
+        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+            raise exc.RequestFailedError(str(err)) from err
 
     def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any

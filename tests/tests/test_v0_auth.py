@@ -180,7 +180,7 @@ async def test_session_manager(
             "evohomeasync.auth.AbstractSessionManager._post_session_id_request",
             new_callable=AsyncMock,
         ) as req,
-        patch("cli.auth.CacheManager.save_session_id", new_callable=AsyncMock) as wrt,
+        patch("cli.auth.TokenManager.save_session_id", new_callable=AsyncMock) as wrt,
     ):
         req.return_value = {
             "sessionId": "new_session_id...",

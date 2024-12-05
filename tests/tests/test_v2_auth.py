@@ -185,7 +185,7 @@ async def test_token_manager(
             "evohomeasync2.auth.AbstractTokenManager._post_access_token_request",
             new_callable=AsyncMock,
         ) as req,
-        patch("cli.auth.CacheManager.save_access_token", new_callable=AsyncMock) as wrt,
+        patch("cli.auth.TokenManager.save_access_token", new_callable=AsyncMock) as wrt,
     ):
         req.return_value = {
             "access_token": "new_access_token...",
