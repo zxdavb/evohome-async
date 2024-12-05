@@ -9,7 +9,7 @@ from datetime import UTC, datetime as dt, timedelta as td
 from typing import TYPE_CHECKING
 
 import pytest
-from cli.auth import CacheManager
+from cli.auth import TokenManager
 
 from evohomeasync import _EvohomeClientNew as EvohomeClientv0
 from evohomeasync2 import _EvohomeClientNew as EvohomeClientv2
@@ -133,10 +133,10 @@ async def cache_manager(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
     cache_file: Path,
-) -> AsyncGenerator[CacheManager]:
+) -> AsyncGenerator[TokenManager]:
     """Yield a token manager for the v2 API."""
 
-    manager = CacheManager(*credentials, client_session, cache_file=cache_file)
+    manager = TokenManager(*credentials, client_session, cache_file=cache_file)
 
     # await cache_manager.load_cache()
 
@@ -148,7 +148,7 @@ async def cache_manager(
 
 @pytest.fixture
 async def evohome_v0(
-    cache_manager: CacheManager,
+    cache_manager: TokenManager,
 ) -> AsyncGenerator[EvohomeClientv0]:
     """Yield an instance of a v0 EvohomeClient."""
 
@@ -166,7 +166,7 @@ async def evohome_v0(
 
 @pytest.fixture
 async def evohome_v2(
-    cache_manager: CacheManager,
+    cache_manager: TokenManager,
 ) -> AsyncGenerator[EvohomeClientv2]:
     """Yield an instance of a v2 EvohomeClient."""
 

@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from aioresponses import aioresponses
-from cli.auth import CacheManager
+from cli.auth import TokenManager
 
 from evohomeasync import exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 async def test_get_session_id(
     credentials: tuple[str, str],
-    cache_manager: CacheManager,
+    cache_manager: TokenManager,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test .get_session_id() and .is_session_valid() methods."""
@@ -143,7 +143,7 @@ async def test_session_manager(
     with cache_file.open("w") as f:
         f.write(json.dumps(cache_data_expired, indent=4))
 
-    cache_manager = CacheManager(*credentials, client_session, cache_file=cache_file)
+    cache_manager = TokenManager(*credentials, client_session, cache_file=cache_file)
 
     # have not yet called get_access_token (so not loaded cache either)
     assert cache_manager.is_session_id_valid() is False
@@ -156,7 +156,7 @@ async def test_session_manager(
     with cache_file.open("w") as f:
         f.write(json.dumps(cache_data_valid, indent=4))
 
-    cache_manager = CacheManager(*credentials, client_session, cache_file=cache_file)
+    cache_manager = TokenManager(*credentials, client_session, cache_file=cache_file)
 
     await cache_manager.load_cache()
     assert cache_manager.is_session_id_valid() is True

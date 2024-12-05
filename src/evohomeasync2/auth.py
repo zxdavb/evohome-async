@@ -242,7 +242,7 @@ class AbstractTokenManager(ABC):
 
         url = f"https://{self._hostname}/Auth/OAuth/Token"
 
-        response: AuthTokenResponseT = await self._post_access_token_request(
+        response: AuthTokenResponseT = await self._request(
             url, headers=HEADERS_AUTH, data=credentials
         )
 
@@ -268,8 +268,8 @@ class AbstractTokenManager(ABC):
 
         # if response.get(SZ_LATEST_EULA_ACCEPTED):
 
-    async def _post_access_token_request(
-        self, url: StrOrURL, **kwargs: Any
+    async def _request(  # no method, as POST only
+        self, url: StrOrURL, /, **kwargs: Any
     ) -> AuthTokenResponseT:
         """Obtain an access token via a POST to the vendor's web API.
 
@@ -446,7 +446,7 @@ class Auth:
             return convert_keys_to_snake_case(response)
         return response
 
-    async def _request(
+    async def _request(  # method is GET or PUT (POST is used for authentication)
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
         """Make a request to the Resideo TCC RESTful API.
@@ -486,32 +486,10 @@ class Auth:
             except aiohttp.ClientError as err:  # e.g. ClientConnectionError
                 raise exc.RequestFailedError(str(err)) from err
 
-        # async with self._raw_request(method, url, **kwargs) as rsp:
-        #     if rsp.status == HTTPStatus.OK:  # 200
-        #         return await _content(rsp)
-
-        #     if (  # if 401/unauthorized, refresh access token and retry
-        #         rsp.status != HTTPStatus.UNAUTHORIZED  # 401
-        #         or rsp.content_type != "application/json"
-        #     ):
-        #         _raise_for_status(rsp)
-
-        #     response = await rsp.json()
-        #     try:
-        #         if response[0]["code"] == "Unauthorized":
-        #             pass
-        #     except LookupError:
-        #         _raise_for_status(rsp)
-
-        # if self._token_manager.is_access_token_valid():
-        #     self._logger.warning("access token was rejected, will clear it and retry")
-
-        # self._token_manager._clear_access_token()  # TODO: private method
-
         async with self._raw_request(method, url, **kwargs) as rsp:
             _raise_for_status(rsp)
 
-            return await _content(rsp)
+            return await _content(rsp)  # return await rsp.json()
 
     def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any

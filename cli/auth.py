@@ -56,7 +56,7 @@ CacheDataT = dict[str, UserEntryT]  # str is the client_id
 """
 
 
-class CacheManager(AbstractTokenManager, AbstractSessionManager):
+class TokenManager(AbstractTokenManager, AbstractSessionManager):
     """A token manager that uses a cache file to store the tokens."""
 
     def __init__(
@@ -67,7 +67,8 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
 
         self._cache_file: Final = cache_file
 
-        self._clear_access_token()  # set to initial (falsey) state
+        # set cache to initial (falsey) state
+        self._clear_access_token()
         self._clear_session_id()
 
     @property
@@ -77,7 +78,7 @@ class CacheManager(AbstractTokenManager, AbstractSessionManager):
 
     @staticmethod
     def _clean_cache(old_cache: CacheDataT) -> CacheDataT:
-        """Clear any expired data from the cache entry."""
+        """Return a copy of a cache with any expired data removed."""
 
         new_cache: CacheDataT = {}
 
