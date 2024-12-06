@@ -104,7 +104,7 @@ class AbstractAuth(ABC):
         warning if it doesn't match.
         """
 
-        response = await self.request(HTTPMethod.GET, f"{self.url_base}/{url}")
+        response = await self.request(HTTPMethod.GET, url)
 
         if schema:
             try:
@@ -184,6 +184,8 @@ class AbstractAuth(ABC):
 
             response: dict[str, Any] = await rsp.json()
             return response
+
+        url = f"{self.url_base}/{url}"
 
         async with self._raw_request(method, url, **kwargs) as rsp:
             self._raise_for_status(rsp)

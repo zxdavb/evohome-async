@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from evohomeasync2.auth import AccessTokenEntryT
 
 
-CACHE_FILE: Final = Path(tempfile.gettempdir() + "/.evo-cache.tmp")
+CACHE_FILE: Final = Path(tempfile.gettempdir()) / ".evo-cache.tmp"
 
 
 class UserEntryT(TypedDict):

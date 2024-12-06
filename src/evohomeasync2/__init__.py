@@ -36,7 +36,7 @@ from .zone import Zone  # noqa: F401
 __version__ = "1.2.0"
 
 
-class TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
+class _TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
     """A TokenManager wrapper to help expose the refactored EvohomeClient."""
 
     def __init__(
@@ -67,7 +67,7 @@ class TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
         pass
 
 
-class _EvohomeClientOld(_EvohomeClientNew):
+class EvohomeClientOld(_EvohomeClientNew):
     """A wrapper to use EvohomeClient without passing in a TokenManager.
 
     Also allows auth tokens to be passed in.
@@ -88,7 +88,7 @@ class _EvohomeClientOld(_EvohomeClientNew):
         """Construct the v2 EvohomeClient object."""
         websession = websession or aiohttp.ClientSession()
 
-        self._token_manager = TokenManager(
+        self._token_manager = _TokenManager(
             username,
             password,
             websession,
@@ -119,5 +119,5 @@ class _EvohomeClientOld(_EvohomeClientNew):
         return self._token_manager.client_id
 
 
-class EvohomeClient(_EvohomeClientOld):
+class EvohomeClient(_EvohomeClientNew):
     """An async client for v2 of the Resideo TCC API."""

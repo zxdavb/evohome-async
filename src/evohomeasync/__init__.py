@@ -54,7 +54,7 @@ from .schemas import (  # noqa: F401
 __version__ = "1.2.0"
 
 
-class SessionManager(AbstractSessionManager):  # used only by EvohomeClientOld
+class _SessionManager(AbstractSessionManager):  # used only by EvohomeClientOld
     """A TokenManager wrapper to help expose the refactored EvohomeClient."""
 
     def __init__(
@@ -80,7 +80,7 @@ class SessionManager(AbstractSessionManager):  # used only by EvohomeClientOld
         pass
 
 
-class _EvohomeClientOld(_EvohomeClientNew):
+class EvohomeClientOld(_EvohomeClientNew):
     """A wrapper to use EvohomeClient without passing in a SessionManager.
 
     Also permits a session_id to be passed in.
@@ -99,7 +99,7 @@ class _EvohomeClientOld(_EvohomeClientNew):
         """Construct the v0 EvohomeClient object."""
         websession = websession or aiohttp.ClientSession()
 
-        self._session_manager = SessionManager(
+        self._session_manager = _SessionManager(
             username,
             password,
             websession,
@@ -108,5 +108,5 @@ class _EvohomeClientOld(_EvohomeClientNew):
         super().__init__(self._session_manager, debug=debug)
 
 
-class EvohomeClient(_EvohomeClientOld):
+class EvohomeClient(_EvohomeClientNew):
     """An async client for v0 of the Resideo TCC API."""
