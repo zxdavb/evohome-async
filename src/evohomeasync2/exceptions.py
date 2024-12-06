@@ -1,50 +1,50 @@
 #!/usr/bin/env python3
-"""evohomeasync provides an async client for the v2 Resideo TCC API."""
+"""An async client for the v2 Resideo TCC API."""
 
 from __future__ import annotations
 
 
-class EvohomeBaseError(Exception):
-    """The base exception class for evohome-async."""
+class _EvohomeBaseError(Exception):
+    """The base class for all exceptions."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
         self.message = message
 
 
-class EvohomeError(EvohomeBaseError):
-    """The base exception class for evohome-async."""
+class EvohomeError(_EvohomeBaseError):
+    """The base class for all exceptions."""
 
 
-class InvalidSchemaError(EvohomeError):
-    """The config/status JSON is invalid (e.g. missing an entity id)."""
+class InvalidSchemaError(EvohomeError):  # a base exception
+    """The received JSON is not as expected (e.g. missing a required key)."""
 
 
-class InvalidParameterError(EvohomeError):
+class InvalidParameterError(InvalidSchemaError):
     """The supplied parameter(s) is/are invalid (e.g. unknown/unsupported mode)."""
 
 
-class InvalidScheduleError(InvalidSchemaError):
-    """The schedule has an invalid schema."""
+class InvalidScheduleError(InvalidParameterError):
+    """The supplied schedule JSON is not as expected."""
 
 
-class SystemConfigBaseError(EvohomeError):
-    """The system configuration is missing/invalid."""
+class SystemConfigError(EvohomeError):  # a base exception
+    """The system config JSON is missing or somehow invalid."""
 
 
-class NoSystemConfigError(SystemConfigBaseError):
-    """The system configuration is not currently available.
+class NoSystemConfigError(SystemConfigError):
+    """The system config JSON is missing (has it been fetched?).
 
     This is likely because the user has not yet been authenticated (or authentication
     has failed).
     """
 
 
-class NoSingleTcsError(SystemConfigBaseError):
-    """There is not exactly one TCS in the system."""
+class NoSingleTcsError(SystemConfigError):
+    """There is no default TCS (e.g. more than one location)."""
 
 
-class RequestFailedError(EvohomeError):
+class ApiRequestFailedError(EvohomeError):  # a base exception
     """The API request failed for some reason (no/invalid/unexpected response).
 
     Could be caused by any aiohttp.ClientError, for example: ConnectionError.  If the
@@ -56,12 +56,12 @@ class RequestFailedError(EvohomeError):
         self.status = status  # iff cause was aiohttp.ClientResponseError
 
 
-class RateLimitExceededError(RequestFailedError):
-    """API request failed because the vendor's API rate limit was exceeded."""
+class RateLimitExceededError(ApiRequestFailedError):
+    """The API request failed because the vendor's API rate limit was exceeded."""
 
 
-class AuthenticationFailedError(RequestFailedError):
-    """Unable to authenticate (unable to obtain an access token).
+class AuthenticationFailedError(ApiRequestFailedError):
+    """Unable to authenticate the user credentials (unable to obtain an access token).
 
-    The cause could be any FailedRequest, including RateLimitExceeded.
+    The cause could be any ApiRequestFailedError, including RateLimitExceeded.
     """

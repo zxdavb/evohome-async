@@ -15,8 +15,8 @@ import aiohttp
 from .auth import AbstractTokenManager
 from .control_system import ControlSystem  # noqa: F401
 from .exceptions import (  # noqa: F401
+    ApiRequestFailedError,
     AuthenticationFailedError,
-    EvohomeBaseError,
     EvohomeError,
     InvalidParameterError,
     InvalidScheduleError,
@@ -24,8 +24,7 @@ from .exceptions import (  # noqa: F401
     NoSingleTcsError,
     NoSystemConfigError,
     RateLimitExceededError,
-    RequestFailedError,
-    SystemConfigBaseError,
+    SystemConfigError,
 )
 from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401

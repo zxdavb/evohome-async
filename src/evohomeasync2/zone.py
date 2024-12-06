@@ -233,12 +233,12 @@ class _ScheduleBase(ActiveFaultsBase):
                 f"{self._TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE
             )  # type: ignore[assignment]
 
-        except exc.RequestFailedError as err:
+        except exc.ApiRequestFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
                 raise exc.InvalidScheduleError(
                     f"{self}: No Schedule / Schedule is invalid"
                 ) from err
-            raise exc.RequestFailedError(f"{self}: Unexpected error") from err
+            raise exc.ApiRequestFailedError(f"{self}: Unexpected error") from err
 
         self._schedule = schedule[SZ_DAILY_SCHEDULES]
         return self._schedule

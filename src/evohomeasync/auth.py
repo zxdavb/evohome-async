@@ -296,10 +296,10 @@ class Auth(AbstractAuth):
         except aiohttp.ClientResponseError as err:
             # if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
             #     raise exc.RequestFailedError(hint, status=err.status) from err
-            raise exc.RequestFailedError(str(err), status=err.status) from err
+            raise exc.ApiRequestFailedError(str(err), status=err.status) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            raise exc.RequestFailedError(str(err)) from err
+            raise exc.ApiRequestFailedError(str(err)) from err
 
     def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any

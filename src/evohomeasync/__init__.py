@@ -14,11 +14,15 @@ import aiohttp
 
 from .auth import AbstractSessionManager
 from .exceptions import (  # noqa: F401
+    ApiRequestFailedError,
     AuthenticationFailedError,
     EvohomeError,
+    InvalidParameterError,
     InvalidSchemaError,
+    NoSingleTcsError,
+    NoSystemConfigError,
     RateLimitExceededError,
-    RequestFailedError,
+    SystemConfigError,
 )
 from .main import EvohomeClientNew as _EvohomeClientNew
 from .schemas import (  # noqa: F401
