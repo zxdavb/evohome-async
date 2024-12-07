@@ -84,7 +84,7 @@ def convert_keys_to_camel_case(data: _T) -> _T:
 
     Used before sending JSON to the vendor API.
     """
-    return _convert_keys(data, camel_to_snake)
+    return _convert_keys(data, snake_to_camel)
 
 
 def convert_keys_to_snake_case(data: _T) -> _T:
