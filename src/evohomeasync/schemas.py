@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, NewType, TypedDict, TypeVar
 
 import voluptuous as vol
 
-from evohome.helpers import noop
+from evohome.helpers import noop, obfuscate
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -86,15 +86,15 @@ def factory_user_account_info_response(
     return vol.Schema(
         {
             vol.Required(fnc(SZ_USER_ID)): int,
-            vol.Required(fnc(SZ_USERNAME)): vol.All(str, vol.Length(min=1)),
+            vol.Required(fnc(SZ_USERNAME)): vol.All(str, vol.Length(min=1), obfuscate),
             vol.Required(fnc(SZ_FIRSTNAME)): str,
-            vol.Required(fnc(SZ_LASTNAME)): str,
-            vol.Required(fnc(SZ_STREET_ADDRESS)): str,
-            vol.Required(fnc(SZ_CITY)): str,
+            vol.Required(fnc(SZ_LASTNAME)): vol.All(str, obfuscate),
+            vol.Required(fnc(SZ_STREET_ADDRESS)): vol.All(str, obfuscate),
+            vol.Required(fnc(SZ_CITY)): vol.All(str, obfuscate),
             # l.Optional(fnc(SZ_STATE)): str,  # missing?
-            vol.Required(fnc(SZ_ZIPCODE)): str,
+            vol.Required(fnc(SZ_ZIPCODE)): vol.All(str, obfuscate),
             vol.Required(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),
-            vol.Required(fnc(SZ_TELEPHONE)): str,
+            vol.Required(fnc(SZ_TELEPHONE)): vol.All(str, obfuscate),
             vol.Required(fnc(SZ_USER_LANGUAGE)): str,
         },
         extra=vol.ALLOW_EXTRA,
@@ -108,15 +108,16 @@ def factory_session_response(
     """Schema for the response to POST /session."""
 
     # securityQuestionX: usu. "notUsed", a sentinel value
+    SCH_SECURITY_QUESTION = vol.Any("notUsed", vol.All(str, obfuscate))
 
     SCH_USER_ACCOUNT_RESPONSE = factory_user_account_info_response(fnc).extend(
         {
             vol.Required(fnc(SZ_IS_ACTIVATED)): bool,
             vol.Optional(fnc(SZ_DEVICE_COUNT)): int,
             vol.Optional(fnc("tenantID")): int,
-            vol.Optional(fnc("securityQuestion1")): str,
-            vol.Optional(fnc("securityQuestion2")): str,
-            vol.Optional(fnc("securityQuestion3")): str,
+            vol.Optional(fnc("securityQuestion1")): SCH_SECURITY_QUESTION,
+            vol.Optional(fnc("securityQuestion2")): SCH_SECURITY_QUESTION,
+            vol.Optional(fnc("securityQuestion3")): SCH_SECURITY_QUESTION,
             vol.Required(fnc(SZ_LATEST_EULA_ACCEPTED)): bool,
         },
         extra=vol.ALLOW_EXTRA,
@@ -124,7 +125,7 @@ def factory_session_response(
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_SESSION_ID)): str,
+            vol.Required(fnc(SZ_SESSION_ID)): vol.All(str, obfuscate),
             vol.Required(fnc(SZ_USER_INFO)): SCH_USER_ACCOUNT_RESPONSE,
         },
         extra=vol.ALLOW_EXTRA,

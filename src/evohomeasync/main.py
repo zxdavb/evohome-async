@@ -42,15 +42,15 @@ class EvohomeClientNew:
     ) -> None:
         """Construct the v0 EvohomeClient object."""
 
-        self._logger = _LOGGER
+        self.logger = _LOGGER
         if debug:
-            self._logger.setLevel(logging.DEBUG)
-            self._logger.debug("Debug mode is explicitly enabled.")
+            self.logger.setLevel(logging.DEBUG)
+            self.logger.debug("Debug mode is explicitly enabled.")
 
         self.auth = Auth(
             session_manager,
             websession or session_manager.websession,
-            logger=self._logger,
+            logger=self.logger,
         )
 
         # self.devices: dict[_ZoneIdT, _DeviceDictT] = {}  # dhw or zone by id

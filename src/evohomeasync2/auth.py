@@ -90,15 +90,15 @@ _ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
     HTTPStatus.NOT_FOUND: "Not Found (invalid URL?)",
     HTTPStatus.UNAUTHORIZED: "Invalid access token (dev/test only?)",
 }
-URL_AUTH: Final = "/Auth/OAuth/Token"
+URL_AUTH: Final = "Auth/OAuth/Token"
 
-# GET/PUT url_base, authorization url
+# GET/PUT url_base, authorization url (e.g. /"WebAPI/emea/api/v1/...)
 _ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
     HTTPStatus.BAD_REQUEST: "Bad request (invalid data/json?)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
     HTTPStatus.UNAUTHORIZED: "Unauthorized (expired access token/unknown entity id?)",
 }
-URL_BASE: Final = "/WebAPI/emea/api/v1"
+URL_BASE: Final = "WebAPI/emea/api/v1"
 
 
 class AbstractTokenManager(ABC):
@@ -245,7 +245,9 @@ class AbstractTokenManager(ABC):
         )
 
         try:  # the dict _should_ be the expected schema...
-            self.logger.debug(f"POST {url}: {SCH_OAUTH_TOKEN(response)}")
+            self.logger.debug(  # tokens will be obfuscated
+                f"POST {url}: {SCH_OAUTH_TOKEN(response)}"
+            )
 
         except vol.Invalid as err:
             self.logger.warning(
@@ -355,7 +357,7 @@ class Auth(AbstractAuth):
         """A class for interacting with the v2 Resideo TCC API."""
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
-        self._url_base = f"https://{self._hostname}/{URL_BASE}"
+        self._url_base = f"https://{self.hostname}/{URL_BASE}"
         self._token_manager = token_manager
 
     def _raise_for_status(self, response: aiohttp.ClientResponse) -> None:
@@ -379,7 +381,7 @@ class Auth(AbstractAuth):
 
         return _RequestContextManager(
             self._token_manager.get_access_token,
-            self._websession,
+            self.websession,
             method,
             url,
             **kwargs,

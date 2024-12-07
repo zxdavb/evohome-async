@@ -47,15 +47,15 @@ class EvohomeClientNew:
     ) -> None:
         """Construct the v2 EvohomeClient object."""
 
-        self._logger = _LOGGER
+        self.logger = _LOGGER
         if debug:
-            self._logger.setLevel(logging.DEBUG)
-            self._logger.debug("Debug mode is explicitly enabled.")
+            self.logger.setLevel(logging.DEBUG)
+            self.logger.debug("Debug mode is explicitly enabled.")
 
         self.auth = Auth(
             token_manager,
             websession or token_manager.websession,
-            logger=self._logger,
+            logger=self.logger,
         )
 
         try:
@@ -115,7 +115,7 @@ class EvohomeClientNew:
 
             # only warn once per config refresh (i.e. not on every status update)
             if not _dont_update_status and (num := len(self._locations)) > 1:
-                self._logger.warning(
+                self.logger.warning(
                     f"There are {num} locations. Reduce the risk of exceeding API rate "
                     "limits by individually updating only the necessary locations."
                 )

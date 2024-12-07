@@ -56,11 +56,11 @@ SZ_USER_INFO: Final = "user_info"
 
 # POST url_auth, authentication url (i.e. /WebAPI/api/session)
 _ERR_MSG_LOOKUP_AUTH = _ERR_MSG_LOOKUP_BOTH
-URL_AUTH: Final = "/WebAPI/api/session"
+URL_AUTH: Final = "WebAPI/api/session"
 
-# GET/PUT url_base, authorization url
+# GET/PUT url_base, authorization url (i.e. /WebAPI/api/...)
 _ERR_MSG_LOOKUP_BASE = _ERR_MSG_LOOKUP_BOTH
-URL_BASE: Final = "/WebAPI/api"
+URL_BASE: Final = "WebAPI/api"
 
 
 class SessionIdEntryT(TypedDict):
@@ -196,7 +196,9 @@ class AbstractSessionManager(ABC):
         )
 
         try:  # the dict _should_ be the expected schema...
-            self.logger.debug(f"POST {url}: {SCH_USER_SESSION_RESPONSE(response)}")
+            self.logger.debug(  # session_id will be obfuscated
+                f"POST {url}: {SCH_USER_SESSION_RESPONSE(response)}"
+            )
 
         except vol.Invalid as err:
             self.logger.warning(
@@ -305,7 +307,7 @@ class Auth(AbstractAuth):
         """A class for interacting with the v0 Resideo TCC API."""
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
-        self._url_base = f"https://{self._hostname}/{URL_BASE}"
+        self._url_base = f"https://{self.hostname}/{URL_BASE}"
         self._session_manager = session_manager
 
     def _raise_for_status(self, response: aiohttp.ClientResponse) -> None:
@@ -329,7 +331,7 @@ class Auth(AbstractAuth):
 
         return _RequestContextManager(
             self._session_manager.get_session_id,
-            self._websession,
+            self.websession,
             method,
             url,
             **kwargs,

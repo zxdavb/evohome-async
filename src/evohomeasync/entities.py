@@ -76,7 +76,7 @@ class Location(EntityBase):
         super().__init__(
             config["location_id"],
             client.auth,
-            client._logger,
+            client.logger,
         )
 
         self._evo = client  # proxy for parent

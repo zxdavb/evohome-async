@@ -91,9 +91,9 @@ class AbstractAuth(ABC):
     ) -> None:
         """A class for interacting with the Resideo TCC API."""
 
-        self._websession: Final = websession
-        self._hostname: Final = _hostname or HOSTNAME
-        self._logger: Final = logger or logging.getLogger(__name__)
+        self.websession: Final = websession
+        self.hostname: Final = _hostname or HOSTNAME
+        self.logger: Final = logger or logging.getLogger(__name__)
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(base='{self.url_base}')"
@@ -118,7 +118,7 @@ class AbstractAuth(ABC):
             try:
                 response = schema(response)
             except vol.Invalid as err:
-                self._logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
+                self.logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
 
         assert isinstance(response, dict | list)  # mypy
         return response
@@ -141,7 +141,7 @@ class AbstractAuth(ABC):
             try:
                 schema(json)
             except vol.Invalid as err:
-                self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
+                self.logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
 
         response = await self.request(HTTPMethod.PUT, url, json=json)
 
@@ -161,7 +161,7 @@ class AbstractAuth(ABC):
 
         response = await self._request(method, url, **kwargs)
 
-        self._logger.debug(f"{method} {url}: {response}")
+        self.logger.debug(f"{method} {url}: {response}")
 
         if method == HTTPMethod.GET:
             return convert_keys_to_snake_case(response)
