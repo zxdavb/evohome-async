@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import base64
+import json
 import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
@@ -13,7 +14,12 @@ from typing import TYPE_CHECKING, Any, Final
 import aiohttp
 import voluptuous as vol
 
-from evohome.auth import HOSTNAME, AbstractAuth, AbstractRequestContextManager
+from evohome.auth import (
+    _ERR_MSG_LOOKUP_BOTH,
+    HOSTNAME,
+    AbstractAuth,
+    AbstractRequestContextManager,
+)
 from evohome.helpers import convert_keys_to_snake_case, obfuscate
 
 from . import exceptions as exc
@@ -78,24 +84,21 @@ CREDS_USER_PASSWORD: Final = {
 }
 
 
-_ERR_MSG_LOOKUP_BOTH: dict[int, str] = {  # common to both url_auth & url_base
-    HTTPStatus.INTERNAL_SERVER_ERROR: "Can't reach server (check vendor's status page)",
-    HTTPStatus.METHOD_NOT_ALLOWED: "Method not allowed (dev/test?)",
-    HTTPStatus.SERVICE_UNAVAILABLE: "Can't reach server (check vendor's status page)",
-    HTTPStatus.TOO_MANY_REQUESTS: "Vendor's API rate limit exceeded (wait a while)",
-}
-
-_ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # POST url_auth
+# POST url_auth, authentication url (i.e. /Auth/OAuth/Token)
+_ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
     HTTPStatus.BAD_REQUEST: "Invalid user credentials (check the username/password)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid URL?)",
-    HTTPStatus.UNAUTHORIZED: "Invalid access token (dev/test only)",
+    HTTPStatus.UNAUTHORIZED: "Invalid access token (dev/test only?)",
 }
+URL_AUTH: Final = "/Auth/OAuth/Token"
 
-_ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {  # GET/PUT url_base
+# GET/PUT url_base, authorization url
+_ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
     HTTPStatus.BAD_REQUEST: "Bad request (invalid data/json?)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
     HTTPStatus.UNAUTHORIZED: "Unauthorized (expired access token/unknown entity id?)",
 }
+URL_BASE: Final = "/WebAPI/emea/api/v1"
 
 
 class AbstractTokenManager(ABC):
@@ -103,7 +106,7 @@ class AbstractTokenManager(ABC):
 
     _access_token: str
     _access_token_expires: dt
-    _refresh_token: str
+    _refresh_token: str = ""
 
     def __init__(
         self,
@@ -118,19 +121,20 @@ class AbstractTokenManager(ABC):
 
         self._client_id = client_id
         self._secret = secret
-        self._websession = websession
+        self.websession = websession
 
-        self._hostname = _hostname or HOSTNAME
-        self._logger = logger or logging.getLogger(__name__)
+        self.hostname = _hostname or HOSTNAME
+        self.logger = logger or logging.getLogger(__name__)
 
-        # set True once the credentials are validated the first time
-        self._was_authenticated = False
+        self._was_authenticated = False  # True once credentials are proven validated
 
-        # the following is specific to auth tokens (vs session id)...
         self._clear_access_token()
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__}(client_id='{self.client_id}')"
+        return (
+            f"{self.__class__.__name__}"
+            f"(client_id='{self.client_id}, hostname='{self.hostname}')"
+        )
 
     @property
     def client_id(self) -> str:
@@ -138,11 +142,10 @@ class AbstractTokenManager(ABC):
         return self._client_id
 
     def _clear_access_token(self) -> None:
-        """Clear the auth tokens."""
+        """Clear the auth tokens (set to falsey state)."""
 
         self._access_token = ""
-        self._access_token_expires = dt.min.replace(tzinfo=UTC)
-        self._refresh_token = ""  # TODO: remove this?
+        self._access_token_expires = dt.min.replace(tzinfo=UTC)  # don't need local TZ
 
     @property
     def access_token(self) -> str:
@@ -188,9 +191,7 @@ class AbstractTokenManager(ABC):
         """
 
         if not self.is_access_token_valid():  # may be invalid for other reasons
-            self._logger.warning(
-                "Missing/Expired/Invalid access_token, re-authenticating."
-            )
+            self.logger.warning("Null/Expired/Invalid access_token, re-authenticating.")
             await self._update_access_token()
 
         return self.access_token
@@ -199,7 +200,7 @@ class AbstractTokenManager(ABC):
         """Update the access token and save it to the store/cache."""
 
         if self._refresh_token:
-            self._logger.warning("Authenticating with the refresh_token...")
+            self.logger.warning("Authenticating with the refresh_token...")
 
             credentials = {SZ_REFRESH_TOKEN: self._refresh_token}
 
@@ -210,11 +211,11 @@ class AbstractTokenManager(ABC):
                 if err.status != HTTPStatus.BAD_REQUEST:  # 400, e.g. invalid tokens
                     raise
 
-                self._logger.warning(" - invalid/expired refresh_token")
+                self.logger.warning(" - expired/invalid refresh_token")
                 self._refresh_token = ""
 
         if not self._refresh_token:
-            self._logger.warning("Authenticating with username/password...")
+            self.logger.warning("Authenticating with client_id/secret...")
 
             # NOTE: the keys are case-sensitive: 'Username' and 'Password'
             credentials = {"Username": self._client_id, "Password": self._secret}
@@ -225,9 +226,9 @@ class AbstractTokenManager(ABC):
 
         await self.save_access_token()
 
-        self._logger.debug(f" - access_token = {self.access_token}")
-        self._logger.debug(f" - access_token_expires = {self.access_token_expires}")
-        self._logger.debug(f" - refresh_token = {self.refresh_token}")
+        self.logger.debug(f" - access_token = {self.access_token}")
+        self.logger.debug(f" - access_token_expires = {self.access_token_expires}")
+        self.logger.debug(f" - refresh_token = {self.refresh_token}")
 
     async def _request_access_token(self, credentials: dict[str, str]) -> None:
         """Obtain an access token using the supplied credentials.
@@ -235,7 +236,7 @@ class AbstractTokenManager(ABC):
         The credentials are either a refresh token or the user's client_id/secret.
         """
 
-        url = f"https://{self._hostname}/Auth/OAuth/Token"
+        url = f"https://{self.hostname}/{URL_AUTH}"
 
         response: AuthTokenResponseT = await self._post_access_token_request(
             url,
@@ -244,10 +245,12 @@ class AbstractTokenManager(ABC):
         )
 
         try:  # the dict _should_ be the expected schema...
-            self._logger.debug(f"POST {url}: {SCH_OAUTH_TOKEN(response)}")
+            self.logger.debug(f"POST {url}: {SCH_OAUTH_TOKEN(response)}")
 
         except vol.Invalid as err:
-            self._logger.warning(f"Response JSON may be invalid: POST {url}: {err}")
+            self.logger.warning(
+                f"Authenticator response may be invalid: POST {url}: {err}"
+            )
 
         tokens: AuthTokenResponseT = convert_keys_to_snake_case(response)
 
@@ -259,9 +262,12 @@ class AbstractTokenManager(ABC):
             self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
         except (KeyError, TypeError) as err:
+            self.logger.error(f"Authenticator response is invalid: {tokens}")  # noqa: TRY400
             raise exc.AuthenticationFailedError(
-                f"Invalid response from server: {err}"
+                f"Authenticator response is invalid: {err}"
             ) from err
+
+        self._was_authenticated = True  # i.e. the credentials are valid
 
         # if response.get(SZ_LATEST_EULA_ACCEPTED):
 
@@ -274,18 +280,21 @@ class AbstractTokenManager(ABC):
         """
 
         try:
-            async with self._websession.post(url, **kwargs) as rsp:
+            async with self.websession.post(url, **kwargs) as rsp:
                 rsp.raise_for_status()
 
-                self._was_authenticated = True  # i.e. the credentials are valid
-                return await rsp.json()  # type: ignore[no-any-return]
+                if (response := await rsp.json()) is None:  # an unexpected edge-case
+                    raise exc.AuthenticationFailedError(
+                        f"Authenticator response is null: POST {url}"
+                    )
+                return response  # type: ignore[no-any-return]
 
-        except aiohttp.ContentTypeError as err:
+        except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
             # <title>Authorize error <h1>Authorization failed
             # <p>The authorization server have encoutered an error while processing...  # codespell:ignore encoutered
             response = await rsp.text()
             raise exc.AuthenticationFailedError(
-                f"Server response is not JSON: POST {url}: {response}"
+                f"Authenticator response is not JSON: POST {url}: {response}"
             ) from err
 
         except aiohttp.ClientResponseError as err:
@@ -346,7 +355,7 @@ class Auth(AbstractAuth):
         """A class for interacting with the v2 Resideo TCC API."""
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
-        self._url_base = f"https://{self._hostname}/WebAPI/emea/api/v1/"
+        self._url_base = f"https://{self._hostname}/{URL_BASE}"
         self._token_manager = token_manager
 
     def _raise_for_status(self, response: aiohttp.ClientResponse) -> None:

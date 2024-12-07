@@ -54,7 +54,7 @@ class EvohomeClientNew:
 
         self.auth = Auth(
             token_manager,
-            websession or token_manager._websession,
+            websession or token_manager.websession,
             logger=self._logger,
         )
 
@@ -96,9 +96,7 @@ class EvohomeClientNew:
         assert self._user_info is not None  # mypy hint
 
         if self._user_locs is None:
-            url = f"location/installationInfo?userId={self._user_info[SZ_USER_ID]}"
-            url += "&includeTemperatureControlSystems=True"
-
+            url = f"location/installationInfo?userId={self._user_info[SZ_USER_ID]}&includeTemperatureControlSystems=True"
             self._user_locs = await self.auth.get(url, schema=SCH_USER_LOCATIONS)  # type: ignore[assignment]
 
             self._locations = None

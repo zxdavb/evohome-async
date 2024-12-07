@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import logging
-from http import HTTPMethod
 from typing import TYPE_CHECKING, Any, Final, NoReturn
 
 from . import exceptions as exc
@@ -189,7 +188,7 @@ class Location(EntityBase):
             data |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
         url = f"evoTouchSystems?locationId={self.id}"
-        await self._auth.request(HTTPMethod.PUT, url, data=data)
+        await self._auth.put(url, json=data)
 
     async def set_auto(self) -> None:
         """Set the system to normal operation."""
@@ -327,7 +326,7 @@ class Zone(EntityBase):
             }
 
         url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
-        await self._auth.request(HTTPMethod.PUT, url, data=data)
+        await self._auth.put(url, json=data)
 
     async def set_temperature(
         self, temperature: float, until: dt | None = None
@@ -393,7 +392,7 @@ class Hotwater(EntityBase):
             data |= {SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
 
         url = f"devices/{self.id}/thermostat/changeableValues"
-        await self._auth.request(HTTPMethod.PUT, url, data=data)
+        await self._auth.put(url, json=data)
 
     async def set_dhw_on(self, until: dt | None = None) -> None:
         """Set DHW to On, either indefinitely, or until a specified time.

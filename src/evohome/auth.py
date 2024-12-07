@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from http import HTTPMethod
+from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
 import voluptuous as vol
@@ -21,6 +21,14 @@ if TYPE_CHECKING:
 
 
 HOSTNAME: Final = "tccna.honeywell.com"
+
+
+_ERR_MSG_LOOKUP_BOTH: dict[int, str] = {  # common to both url_auth & url_base
+    HTTPStatus.INTERNAL_SERVER_ERROR: "Can't reach server (check vendor's status page)",
+    HTTPStatus.METHOD_NOT_ALLOWED: "Method not allowed (dev/test only?)",
+    HTTPStatus.SERVICE_UNAVAILABLE: "Can't reach server (check vendor's status page)",
+    HTTPStatus.TOO_MANY_REQUESTS: "Vendor's API rate limit exceeded (wait a while)",
+}
 
 
 class AbstractRequestContextManager(ABC):
@@ -96,9 +104,9 @@ class AbstractAuth(ABC):
         return self._url_base
 
     async def get(
-        self, url: StrOrURL, schema: vol.Schema | None = None
+        self, url: StrOrURL, /, schema: vol.Schema | None = None
     ) -> dict[str, Any] | list[dict[str, Any]]:
-        """Call the Resideo TCC API with a GET.
+        """Call the vendor's TCC API with a GET.
 
         Optionally checks the response JSON against the expected schema and logs a
         warning if it doesn't match.
@@ -118,7 +126,9 @@ class AbstractAuth(ABC):
     async def put(
         self,
         url: StrOrURL,
+        /,
         json: dict[str, Any],
+        *,
         schema: vol.Schema | None = None,
     ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
         """Call the vendor's API with a PUT.
@@ -133,9 +143,7 @@ class AbstractAuth(ABC):
             except vol.Invalid as err:
                 self._logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
 
-        response = await self.request(
-            HTTPMethod.PUT, f"{self.url_base}/{url}", json=json
-        )
+        response = await self.request(HTTPMethod.PUT, url, json=json)
 
         assert isinstance(response, dict | list)  # mypy
         return response
@@ -143,7 +151,7 @@ class AbstractAuth(ABC):
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
-        """Make a request to the Resideo TCC RESTful API.
+        """Make a request to the vendor's TCC RESTful API.
 
         Converts keys to/from snake_case as required.
         """
@@ -187,7 +195,7 @@ class AbstractAuth(ABC):
 
         url = f"{self.url_base}/{url}"
 
-        async with self._raw_request(method, url, **kwargs) as rsp:
+        async with self._raw_request(method, f"{self.url_base}/{url}", **kwargs) as rsp:
             self._raise_for_status(rsp)
 
             return await _content(rsp)
