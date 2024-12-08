@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import voluptuous as vol
 
+from evohome import exceptions as exc
 from evohome.helpers import convert_keys_to_camel_case, convert_keys_to_snake_case
 
 if TYPE_CHECKING:
@@ -183,17 +184,18 @@ class AbstractAuth(ABC):
         ) -> dict[str, Any] | list[dict[str, Any]] | str:
             """Return the response from the web server."""
 
-            # if not rsp.content_length:
-            #     raise exc.RequestFailedError(f"Invalid response (no content): {rsp}")
+            if not rsp.content_length or rsp.content_type != "application/json":
+                # usually "text/plain", "text/html"
+                raise exc.ApiRequestFailedError(
+                    f"Server response is invalid (not JSON): {await rsp.text()}"
+                )
 
-            if rsp.content_type != "application/json":
-                # assume "text/plain" or "text/html"
-                return await rsp.text()
+            if (response := await rsp.json()) is None:  # an unanticipated edge-case
+                raise exc.AuthenticationFailedError(
+                    f"Server response is null: POST {url}"
+                )
 
-            response: dict[str, Any] = await rsp.json()
-            return response
-
-        url = f"{self.url_base}/{url}"
+            return response  # type: ignore[no-any-return]
 
         async with self._raw_request(method, f"{self.url_base}/{url}", **kwargs) as rsp:
             self._raise_for_status(rsp)
