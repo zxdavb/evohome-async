@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 from evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2 import Location
-from evohomeasync2.schemas import SCH_GET_LOCN_STATUS
+from evohomeasync2.schemas import TCC_GET_LOC_STATUS
 from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
 from evohomeasync2.schemas.const import (
     S2_GATEWAYS,
@@ -73,4 +73,4 @@ def test_config_schemas(config: dict[str, Any]) -> None:
 def test_status_schemas(status: dict[str, Any]) -> None:
     """Test the status schema for a location."""
 
-    _ = SCH_GET_LOCN_STATUS(status)
+    _ = TCC_GET_LOC_STATUS(status)

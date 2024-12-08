@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from evohomeasync2.auth import _APPLICATION_ID, SCH_OAUTH_TOKEN
-from evohomeasync2.schemas import SCH_GET_USER_ACCOUNT
+from evohomeasync2.schemas import TCC_GET_USR_ACCOUNT
 from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     URL_AUTH_V2 as URL_AUTH,
@@ -237,7 +237,7 @@ async def test_url_auth_good(
     assert isinstance(response["userId"], str)
     assert response["username"] == credentials[0]
 
-    assert SCH_GET_USER_ACCOUNT(response), response
+    assert TCC_GET_USR_ACCOUNT(response), response
 
     # #################################################################################
 

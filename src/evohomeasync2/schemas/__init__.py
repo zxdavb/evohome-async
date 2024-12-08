@@ -25,66 +25,72 @@ from .const import (  # noqa: F401
 from .schedule import factory_schedule_dhw, factory_schedule_zone
 from .status import (
     factory_dhw_status,
-    factory_gwy_status,  # noqa: F401
+    factory_gwy_status,
     factory_loc_status,
     factory_tcs_status,
     factory_zone_status,
 )
-from .typedefs import _EvoDictT, _EvoLeafT, _EvoListT, _EvoSchemaT, _ModeT  # noqa: F401
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 #
-# HTTP GET/PUT (& POST) schemas are camelCase, not snake_case...
+# HTTP GET/PUT & POST schemas are camelCase, not snake_case...
+
+# POST /Auth/OAuth/Token  # TODO: add this
+# TCC_POST_OAUTH_TOKEN: Final = factory_post_oauth_token()
 
 # GET /userAccount
-SCH_GET_USER_ACCOUNT: Final = factory_user_account()
+TCC_GET_USR_ACCOUNT: Final = factory_user_account()
 
 # GET /location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True
-SCH_GET_USER_LOCATIONS: Final = factory_user_locations_installation_info()
+TCC_GET_USR_LOCATIONS: Final = factory_user_locations_installation_info()
 
 # GET /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True
-SCH_GET_LOCATION_INSTALLATION_INFO: Final = factory_locations_installation_info()
+TCC_GET_LOC_INSTALLATION_INFO: Final = factory_locations_installation_info()
 
 # GET /location/{loc_id}/status?includeTemperatureControlSystems=True
-SCH_GET_LOCN_STATUS: Final = factory_loc_status()
+TCC_GET_LOC_STATUS: Final = factory_loc_status()
 
-# GET /temperatureControlSystem/{tcs_id}/status"
-SCH_GET_TCS_STATUS: Final = factory_tcs_status()
+# GET /gateway/{gwy_id}/status...
+TCC_GET_GWY_STATUS: Final = factory_gwy_status()
 
-# GET /domesticHotWater/{dhw_id}/status"
-SCH_GET_DHW_STATUS: Final = factory_dhw_status()
+# GET /temperatureControlSystem/{tcs_id}/status
+TCC_GET_TCS_STATUS: Final = factory_tcs_status()
 
-# GET /temperatureZone/{zone_id}/heatSetpoint"
+# GET /domesticHotWater/{dhw_id}/status
+TCC_GET_DHW_STATUS: Final = factory_dhw_status()
+
+# GET /temperatureZone/{zone_id}/heatSetpoint
 # TODO:
 
-# GET /temperatureZone/{zone_id}/status"
-SCH_GET_ZONE_STATUS: Final = factory_zone_status()
+# GET /temperatureZone/{zone_id}/status
+TCC_GET_ZON_STATUS: Final = factory_zone_status()
 
-# GET /domesticHotWater/{dhw_id}/schedule"
-SCH_GET_SCHEDULE_DHW: Final = factory_schedule_dhw()
+# GET /domesticHotWater/{dhw_id}/schedule
+TCC_GET_DHW_SCHEDULE: Final = factory_schedule_dhw()
 
-# PUT /domesticHotWater/{dhw_id}/schedule"
-# TODO: same as SCH_GET_SCHEDULE_DHW?
+# PUT /domesticHotWater/{dhw_id}/schedule
+TCC_PUT_DHW_SCHEDULE: Final = TCC_GET_DHW_SCHEDULE
 
-# GET /temperatureZone/{zone_id}/schedule"
-SCH_GET_SCHEDULE_ZONE: Final = factory_schedule_zone()
+# GET /temperatureZone/{zone_id}/schedule
+TCC_GET_ZON_SCHEDULE: Final = factory_schedule_zone()
 
-# PUT /temperatureZone/{zone_id}/schedule"
-# TODO: same as SCH_GET_SCHEDULE_ZONE?
+# PUT /temperatureZone/{zone_id}/schedule
+TCC_PUT_ZON_SCHEDULE: Final = TCC_GET_ZON_SCHEDULE
 
 
 # for convenience...
 def factory_get_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the schedule schema."""
 
-    from . import SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE
+    from . import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE
 
     return vol.Schema(
-        vol.Any(SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE),
+        vol.Any(TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE),
         extra=vol.PREVENT_EXTRA,
     )
 
 
-SCH_GET_SCHEDULE: Final = factory_get_schedule()
+TCC_GET_SCHEDULE: Final = factory_get_schedule()
+TCC_PUT_SCHEDULE: Final = TCC_GET_SCHEDULE

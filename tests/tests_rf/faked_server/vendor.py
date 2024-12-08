@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING, Any
 import voluptuous as vol
 
 from evohomeasync2.schemas import (
-    SCH_GET_SCHEDULE_DHW,
-    SCH_GET_SCHEDULE_ZONE,
+    TCC_GET_DHW_SCHEDULE,
+    TCC_GET_ZON_SCHEDULE,
     const as sch,
 )
 
@@ -257,7 +257,7 @@ class FakedServerV2(FakedServerBase):
             return [{"message": "Bad Request (invalid schedule: not a dict)"}]
 
         try:
-            SCH_GET_SCHEDULE_ZONE(self._data)
+            TCC_GET_ZON_SCHEDULE(self._data)
         except vol.Invalid:
             self.status = HTTPStatus.BAD_REQUEST
             return {"message": "Bad Request (invalid schedule: invalid schema)"}
@@ -294,7 +294,7 @@ class FakedServerV2(FakedServerBase):
             return [{"message": "Bad Request (invalid schedule: not a dict)"}]
 
         try:
-            SCH_GET_SCHEDULE_DHW(self._data)
+            TCC_GET_DHW_SCHEDULE(self._data)
         except vol.Invalid:
             self.status = HTTPStatus.BAD_REQUEST
             return {"message": "Bad Request (invalid schedule: invalid schema)"}

@@ -17,9 +17,9 @@ from aioresponses import aioresponses
 from evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2 import _EvohomeClientNew as EvohomeClientv2
 from evohomeasync2.schemas import (
-    SCH_GET_LOCN_STATUS,
-    SCH_GET_USER_ACCOUNT,
-    SCH_GET_USER_LOCATIONS,
+    TCC_GET_LOC_STATUS,
+    TCC_GET_USR_ACCOUNT,
+    TCC_GET_USR_LOCATIONS,
 )
 
 if TYPE_CHECKING:
@@ -143,17 +143,17 @@ def broker_get(install: str) -> Callable[[Any, str, vol.Schema | None], Any]:
     ) -> JsonArrayType | JsonObjectType:
         if "userAccount" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                SCH_GET_USER_ACCOUNT(user_account_fixture(install))
+                TCC_GET_USR_ACCOUNT(user_account_fixture(install))
             )
 
         if "installationInfo" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                SCH_GET_USER_LOCATIONS(user_locations_config_fixture(install))
+                TCC_GET_USR_LOCATIONS(user_locations_config_fixture(install))
             )
 
         if "status" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                SCH_GET_LOCN_STATUS(location_status_fixture(install, url.split("/")[1]))
+                TCC_GET_LOC_STATUS(location_status_fixture(install, url.split("/")[1]))
             )
 
         pytest.fail(f"Unexpected/unknown URL: {url}")

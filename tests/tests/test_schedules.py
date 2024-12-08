@@ -6,7 +6,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from evohome.helpers import convert_keys_to_snake_case
-from evohomeasync2.schemas import SCH_GET_SCHEDULE_DHW, SCH_GET_SCHEDULE_ZONE
+from evohomeasync2.schemas import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE
 
 from .conftest import JsonObjectType, load_fixture
 
@@ -94,8 +94,8 @@ def _test_schema_schedule_dhw() -> None:
     get_sched = schedule_file("schedule_dhw_get.json")
     _ = schedule_file("schedule_dhw_put.json")
 
-    assert get_sched == SCH_GET_SCHEDULE_DHW(get_sched)
-    # assert put_sched == SCH_PUT_SCHEDULE_DHW(put_sched)
+    assert get_sched == TCC_GET_DHW_SCHEDULE(get_sched)
+    # assert put_sched == TCC_PUT_DHW_SCHEDULE(put_sched)
 
     # assert put_sched == convert_to_put_schedule(get_sched)
     # assert get_sched == convert_to_get_schedule(put_sched)
@@ -107,8 +107,8 @@ def _test_schema_schedule_zone() -> None:
     get_sched = schedule_file("schedule_zone_get.json")
     _ = schedule_file("schedule_zone_put.json")
 
-    assert get_sched == SCH_GET_SCHEDULE_ZONE(get_sched)
-    # assert put_sched == SCH_PUT_SCHEDULE_ZONE(put_sched)
+    assert get_sched == TCC_GET_ZON_SCHEDULE(get_sched)
+    # assert put_sched == TCC_PUT_ZON_SCHEDULE(put_sched)
 
     # assert put_sched == convert_to_put_schedule(get_sched)
     # assert get_sched == convert_to_get_schedule(put_sched)

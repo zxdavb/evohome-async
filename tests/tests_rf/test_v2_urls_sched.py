@@ -52,7 +52,7 @@ async def _test_schedule_put(evo: EvohomeClientv2) -> None:
     #
     # STEP 1: GET the current schedule
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_SCHEDULE
+        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_SCHEDULE
     )  # type: ignore[assignment]
 
     # an example of the expected response:
@@ -146,7 +146,7 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
     #
     # STEP 1: GET the current schedule
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_SCHEDULE
+        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_SCHEDULE
     )  # type: ignore[assignment]
 
     assert isinstance(schedule, dict | list)  # mypy
@@ -182,7 +182,7 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
     #
     # STEP 3: check the new schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_SCHEDULE
+        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_SCHEDULE
     )  # type: ignore[assignment]
 
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp + 1
@@ -198,7 +198,7 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
     #
     # STEP 6: check the original schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_SCHEDULE
+        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_SCHEDULE
     )  # type: ignore[assignment]
 
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp

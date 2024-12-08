@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from evohomeasync2.schemas import (
-    SCH_GET_USER_ACCOUNT,
-    SCH_GET_USER_LOCATIONS,
+    TCC_GET_USR_ACCOUNT,
+    TCC_GET_USR_LOCATIONS,
     factory_loc_status,
 )
 
@@ -33,13 +33,13 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 def test_user_account(folder: Path) -> None:
     """Test the user account schema against the corresponding JSON."""
 
-    assert_schema(folder, SCH_GET_USER_ACCOUNT, "user_account.json")
+    assert_schema(folder, TCC_GET_USR_ACCOUNT, "user_account.json")
 
 
 def test_user_locations(folder: Path) -> None:
     """Test the user locations config schema against the corresponding JSON."""
 
-    assert_schema(folder, SCH_GET_USER_LOCATIONS, "user_locations.json")
+    assert_schema(folder, TCC_GET_USR_LOCATIONS, "user_locations.json")
 
 
 def test_location_status(folder: Path) -> None:

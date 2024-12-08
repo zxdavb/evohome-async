@@ -38,7 +38,7 @@ async def _test_usr_account(evo: EvohomeClientv2) -> None:
     # STEP 1:
     url = "userAccount"
     _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_USER_ACCOUNT
+        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_USR_ACCOUNT
     )
     # {
     #     'userId': '2263181',
@@ -98,7 +98,7 @@ async def _test_user_locations(evo: EvohomeClientv2) -> None:
     #
     url += "&includeTemperatureControlSystems=True"
     _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_USER_LOCATIONS
+        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_USR_LOCATIONS
     )
 
     #
@@ -146,7 +146,7 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
 
     url += "?includeTemperatureControlSystems=True"
     _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_LOCN_STATUS
+        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_LOC_STATUS
     )
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
@@ -199,7 +199,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
     url = f"{tcs._TYPE}/{tcs.id}/status"
 
     old_status: dict[str, Any] = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_TCS_STATUS
+        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_TCS_STATUS
     )  # type: ignore[assignment]
     # {
     #      'systemId': '1234567',
@@ -326,7 +326,7 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
     #
     url = f"{zone._TYPE}/{zone.id}/status"
     _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.SCH_GET_ZONE_STATUS
+        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_ZON_STATUS
     )
     # {
     #     'zoneId': '3432576',
