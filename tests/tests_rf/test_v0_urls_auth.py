@@ -84,6 +84,9 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
     }
 
     async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
+            await handle_too_many_requests(rsp)
+
         response: list[TccErrorResponseT] = await rsp.json()
 
         assert rsp.status == HTTPStatus.UNAUTHORIZED
@@ -115,6 +118,9 @@ async def test_url_auth_bad2(  # invalid/expired session id
     headers = HEADERS_BASE | {"sessionId": session_id}
 
     async with client_session.get(url, headers=headers) as rsp:
+        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
+            await handle_too_many_requests(rsp)
+
         assert rsp.status == HTTPStatus.UNAUTHORIZED
 
         response: list[TccErrorResponseT] = await rsp.json()
