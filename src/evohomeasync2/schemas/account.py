@@ -116,7 +116,7 @@ def factory_status_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     entry_schema = vol.Schema(
         {
-            vol.Required("error"): str,
+            vol.Required("code"): str,
             vol.Required("message"): str,
         },
         extra=vol.PREVENT_EXTRA,

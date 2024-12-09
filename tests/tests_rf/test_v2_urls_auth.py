@@ -67,7 +67,7 @@ async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     """
 
     assert response["error"] == "attempt_limit_exceeded"
-    assert TCC_ERROR_RESPONSE(response), response
+    TCC_ERROR_RESPONSE(response)
 
     pytest.skip("Too many requests")
 
@@ -101,7 +101,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
         """
 
     assert response["error"] == "invalid_grant"
-    assert TCC_ERROR_RESPONSE(response), response
+    TCC_ERROR_RESPONSE(response)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -137,7 +137,7 @@ async def test_url_auth_bad2(  # invalid/expired access token
     assert isinstance(response, list)  # mypy hint
 
     assert response[0]["code"] == "Unauthorized"
-    assert TCC_STATUS_RESPONSE(response), response
+    TCC_STATUS_RESPONSE(response)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -171,7 +171,7 @@ async def test_url_auth_bad3(  # invalid/expired refresh token
         """
 
     assert response["error"] == "invalid_grant"
-    assert TCC_ERROR_RESPONSE(response), response
+    TCC_ERROR_RESPONSE(response)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -209,7 +209,7 @@ async def test_url_auth_good(
         """
 
     assert user_auth["expires_in"] <= 1800  # noqa: PLR2004
-    assert TCC_POST_OAUTH_TOKEN(user_auth), user_auth
+    TCC_POST_OAUTH_TOKEN(user_auth)
 
     # #################################################################################
 
@@ -245,7 +245,7 @@ async def test_url_auth_good(
         """
 
     assert response["username"] == credentials[0]
-    assert TCC_GET_USR_ACCOUNT(response), response
+    TCC_GET_USR_ACCOUNT(response)
 
     # #################################################################################
 
@@ -266,7 +266,7 @@ async def test_url_auth_good(
 
         assert rsp.status == HTTPStatus.OK  # 200
 
-        user_auth = await rsp.json()
+        user_auth = await rsp.json()  # TODO: add TypedDict
 
         # the expected response for good refresh tokens
         """
@@ -280,4 +280,4 @@ async def test_url_auth_good(
         """
 
     assert user_auth["expires_in"] <= 1800  # noqa: PLR2004
-    assert TCC_POST_OAUTH_TOKEN(user_auth), user_auth
+    TCC_POST_OAUTH_TOKEN(user_auth)
