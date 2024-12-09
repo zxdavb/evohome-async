@@ -9,7 +9,16 @@ import voluptuous as vol
 
 from evohome.helpers import noop
 
-from .account import factory_user_account
+from .account import (  # noqa: F401
+    TccErrorResponseT,
+    TccOAuthTokenResponseT,
+    TccStatusResponseT,
+    TccUsrAccountResponseT,
+    factory_error_response,
+    factory_post_oauth_token,
+    factory_status_response,
+    factory_user_account,
+)
 from .config import (
     factory_locations_installation_info,
     factory_user_locations_installation_info,
@@ -37,8 +46,11 @@ if TYPE_CHECKING:
 #
 # HTTP GET/PUT & POST schemas are camelCase, not snake_case...
 
+TCC_ERROR_RESPONSE: Final = factory_error_response()
+TCC_STATUS_RESPONSE: Final = factory_status_response()
+
 # POST /Auth/OAuth/Token  # TODO: add this
-# TCC_POST_OAUTH_TOKEN: Final = factory_post_oauth_token()
+TCC_POST_OAUTH_TOKEN: Final = factory_post_oauth_token()
 
 # GET /userAccount
 TCC_GET_USR_ACCOUNT: Final = factory_user_account()

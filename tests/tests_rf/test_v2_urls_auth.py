@@ -14,12 +14,23 @@ from __future__ import annotations
 import random
 import string
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 
-from evohomeasync2.auth import _APPLICATION_ID, SCH_OAUTH_TOKEN
-from evohomeasync2.schemas import TCC_GET_USR_ACCOUNT
+from evohomeasync2.auth import _APPLICATION_ID
+
+# TODO: needs TypedDict
+from evohomeasync2.schemas import (
+    TCC_ERROR_RESPONSE,
+    TCC_GET_USR_ACCOUNT,
+    TCC_POST_OAUTH_TOKEN,
+    TCC_STATUS_RESPONSE,
+    TccErrorResponseT,
+    TccOAuthTokenResponseT,
+    TccStatusResponseT,
+    TccUsrAccountResponseT,
+)
 from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     URL_AUTH_V2 as URL_AUTH,
@@ -48,7 +59,7 @@ HEADERS_BASE = {
 async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     assert rsp.status == HTTPStatus.TOO_MANY_REQUESTS  # 429
 
-    response: dict[str, Any] = await rsp.json()
+    response: TccErrorResponseT = await rsp.json()
 
     # the expected response for TOO_MANY_REQUESTS
     """
@@ -56,6 +67,7 @@ async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     """
 
     assert response["error"] == "attempt_limit_exceeded"
+    assert TCC_ERROR_RESPONSE(response), response
 
     pytest.skip("Too many requests")
 
@@ -81,7 +93,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
 
         assert rsp.status == HTTPStatus.BAD_REQUEST  # 400
 
-        response: dict[str, Any] = await rsp.json()  # TODO: needs TypedDict
+        response: TccErrorResponseT = await rsp.json()
 
         # the expected response for bad credentials
         """
@@ -89,7 +101,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
         """
 
     assert response["error"] == "invalid_grant"
-    #
+    assert TCC_ERROR_RESPONSE(response), response
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -112,7 +124,7 @@ async def test_url_auth_bad2(  # invalid/expired access token
 
         assert rsp.status == HTTPStatus.UNAUTHORIZED  # 401
 
-        response: list[dict[str, Any]] = await rsp.json()
+        response: list[TccStatusResponseT] = await rsp.json()
 
         # the expected response for bad access tokens
         """
@@ -125,7 +137,7 @@ async def test_url_auth_bad2(  # invalid/expired access token
     assert isinstance(response, list)  # mypy hint
 
     assert response[0]["code"] == "Unauthorized"
-    assert isinstance(response[0]["message"], str)
+    assert TCC_STATUS_RESPONSE(response), response
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -151,7 +163,7 @@ async def test_url_auth_bad3(  # invalid/expired refresh token
 
         assert rsp.status == HTTPStatus.BAD_REQUEST  # 400
 
-        response: dict[str, Any] = await rsp.json()
+        response: TccErrorResponseT = await rsp.json()
 
         # the expected response for bad refresh tokens
         """
@@ -159,7 +171,7 @@ async def test_url_auth_bad3(  # invalid/expired refresh token
         """
 
     assert response["error"] == "invalid_grant"
-    #
+    assert TCC_ERROR_RESPONSE(response), response
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -169,7 +181,7 @@ async def test_url_auth_good(
 ) -> None:
     """Test authentication flow (and authorization) with good credentials."""
 
-    # TEST 1: valid credentials -> HTTPStatus.OK
+    # TEST 1: valid credentials (username/password) -> HTTPStatus.OK
     data = {
         "grant_type": "password",
         "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # EMEA-V1-Get-Current-User-Account",
@@ -183,7 +195,7 @@ async def test_url_auth_good(
 
         assert rsp.status == HTTPStatus.OK  # 200 (400 is bad credentials)
 
-        user_auth: dict[str, Any] = await rsp.json()  # TODO: needs TypedDict
+        user_auth: TccOAuthTokenResponseT = await rsp.json()
 
         # the expected response for good credentials
         """
@@ -196,10 +208,8 @@ async def test_url_auth_good(
             }
         """
 
-    assert isinstance(user_auth["access_token"], str)
     assert user_auth["expires_in"] <= 1800  # noqa: PLR2004
-
-    assert SCH_OAUTH_TOKEN(user_auth), user_auth
+    assert TCC_POST_OAUTH_TOKEN(user_auth), user_auth
 
     # #################################################################################
 
@@ -217,7 +227,7 @@ async def test_url_auth_good(
 
         assert rsp.status == HTTPStatus.OK  # 200
 
-        response: dict[str, Any] = await rsp.json()  # TODO: needs TypedDict
+        response: TccUsrAccountResponseT = await rsp.json()
 
         # the expected response for good access token
         """
@@ -234,9 +244,7 @@ async def test_url_auth_good(
             }
         """
 
-    assert isinstance(response["userId"], str)
     assert response["username"] == credentials[0]
-
     assert TCC_GET_USR_ACCOUNT(response), response
 
     # #################################################################################
@@ -245,7 +253,7 @@ async def test_url_auth_good(
     refresh_token = user_auth["refresh_token"]
     #
 
-    # TEST 3: valid credentials -> HTTPStatus.OK
+    # TEST 3: valid credentials (refresh token)-> HTTPStatus.OK
     data = {
         "grant_type": "refresh_token",
         "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
@@ -271,7 +279,5 @@ async def test_url_auth_good(
             }
         """
 
-    assert isinstance(user_auth["access_token"], str)
     assert user_auth["expires_in"] <= 1800  # noqa: PLR2004
-
-    assert SCH_OAUTH_TOKEN(user_auth), user_auth
+    assert TCC_POST_OAUTH_TOKEN(user_auth), user_auth
