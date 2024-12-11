@@ -78,7 +78,7 @@ SZ_ZIPCODE: Final = "zipcode"
 def factory_user_account_info_response(
     fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
-    """Schema for the response to GET /accountInfo."""
+    """Schema for the response to GET api/accountInfo."""
 
     # username: an email address
     # country:  ISO 3166-1 alpha-2 format (e.g. GB)
@@ -105,7 +105,7 @@ def factory_user_account_info_response(
 def factory_session_response(
     fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
-    """Schema for the response to POST /session."""
+    """Schema for the response to POST api/session."""
 
     # securityQuestionX: usu. "notUsed", a sentinel value
     SCH_SECURITY_QUESTION = vol.Any("notUsed", vol.All(str, obfuscate))
@@ -135,7 +135,7 @@ def factory_session_response(
 def factory_location_response(
     fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
-    """Factory for the user account schema."""
+    """Factory for the user's location schema."""
 
     return vol.Schema(
         {
@@ -241,12 +241,16 @@ SZ_OFF: Final = "Off"
 # These the responses via the vendor's API; they have camelCase keys...
 
 
-class TccErrorResponseT(TypedDict):
+class TccFailureResponseT(TypedDict):
+    """Typed dict for code/message responses from the vendor servers."""
+
     code: str
     message: str
 
 
-class TccUserAccountInfoResponseT(TypedDict):  # NOTE: is not  UserAccountResponseT
+class TccUserAccountInfoResponseT(TypedDict):  # NOTE: is not TccUserAccountResponseT
+    """GET api/accountInfo"""
+
     userId: int
     username: str  # email address
     firstname: str
@@ -260,9 +264,9 @@ class TccUserAccountInfoResponseT(TypedDict):  # NOTE: is not  UserAccountRespon
     userLanguage: str
 
 
-class TccUserAccountResponseT(  # NOTE: is not TccUserAccountInfoResponseT
-    TccUserAccountInfoResponseT
-):
+class TccUserAccountResponseT(TccUserAccountInfoResponseT):
+    """GET api/userAccounts?userId={userId}"""
+
     isActivated: bool
     deviceCount: int  # NotRequired?
     tenantId: int  # NotRequired?
@@ -273,6 +277,8 @@ class TccUserAccountResponseT(  # NOTE: is not TccUserAccountInfoResponseT
 
 
 class TccSessionResponseT(TypedDict):
+    """POST api/session"""
+
     sessionId: str
     userInfo: TccUserAccountResponseT
 
@@ -352,6 +358,8 @@ class TccTimeZoneResponseT(TypedDict):
 
 
 class TccLocationResponseT(TypedDict):
+    """GET api/locations?locationId={locationId}&allData=True"""
+
     locationID: _LocationIdT  # TODO: check is ID, not Id
     name: str
     streetAddress: str
@@ -378,12 +386,16 @@ class TccLocationResponseT(TypedDict):
 # These are identical but have snake_case keys, not camelCase keys...
 
 
-class EvoErrorDictT(TypedDict):
+class EvoFailureDictT(TypedDict):
+    """Typed dict for code/message responses from the vendor servers."""
+
     code: str
     message: str
 
 
-class EvoUserAccountInfoDictT(TypedDict):  # NOT UserAccountResponseScT
+class EvoUserAccountInfoDictT(TypedDict):  # NOTE: is not EvoUserAccountDictT
+    """GET api/accountInfo"""
+
     user_id: int
     username: str  # email address
     firstname: str
@@ -398,6 +410,8 @@ class EvoUserAccountInfoDictT(TypedDict):  # NOT UserAccountResponseScT
 
 
 class EvoUserAccountDictT(EvoUserAccountInfoDictT):  # NOT EvoUserAccountInfoT
+    """GET api/userAccounts?userId={userId}"""
+
     is_activated: bool
     device_count: int  # NotRequired?
     tenant_id: int  # NotRequired?
@@ -408,6 +422,8 @@ class EvoUserAccountDictT(EvoUserAccountInfoDictT):  # NOT EvoUserAccountInfoT
 
 
 class EvoSessionDictT(TypedDict):
+    """POST api/session"""
+
     session_id: str
     user_info: EvoUserAccountDictT
 
@@ -490,6 +506,8 @@ class EvoTimeZoneDictT(TypedDict):
 
 
 class EvoLocConfigDictT(TypedDict):
+    """GET api/locations?locationId={locationId}&allData=True"""
+
     location_id: _LocationIdT
     name: str
     street_address: str
