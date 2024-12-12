@@ -21,7 +21,7 @@ _UserDataT: TypeAlias = dict[str, _SessionIdT | _UserInfoT]
 _LocnDataT: TypeAlias = dict[str, Any]
 
 
-URL_HOST = "https://tccna.honeywell.com"
+URL_HOST = "https://tccna.resideo.com"
 
 # For docs, see:
 #  - https://mytotalconnectcomfort.com/WebApi/Help/LogIn and enter this Session Login:

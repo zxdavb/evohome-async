@@ -5,7 +5,7 @@ from typing import Final
 
 from .schema import DhwState as DhwState, SystemMode as SystemMode, ZoneMode as ZoneMode
 
-URL_HOST: Final = "https://tccna.honeywell.com"
+URL_HOST: Final = "https://tccna.resideo.com"
 
 AUTH_URL: Final = f"{URL_HOST}/Auth/OAuth/Token"
 URL_BASE: Final = f"{URL_HOST}/WebAPI/emea/api/v1"
