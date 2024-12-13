@@ -87,7 +87,7 @@ def factory_user_account_info_response(
         {
             vol.Required(fnc(SZ_USER_ID)): int,
             vol.Required(fnc(SZ_USERNAME)): vol.All(str, vol.Length(min=1), obfuscate),
-            vol.Required(fnc(SZ_FIRSTNAME)): str,
+            vol.Required(fnc(SZ_FIRSTNAME)): vol.All(str, obfuscate),
             vol.Required(fnc(SZ_LASTNAME)): vol.All(str, obfuscate),
             vol.Required(fnc(SZ_STREET_ADDRESS)): vol.All(str, obfuscate),
             vol.Required(fnc(SZ_CITY)): vol.All(str, obfuscate),
@@ -132,7 +132,7 @@ def factory_session_response(
     )
 
 
-def factory_location_response(
+def _factory_location_response(
     fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
     """Factory for the user's location schema."""
@@ -172,7 +172,7 @@ def factory_location_response_list(
     """Schema for the response to GET api/locations?userId={userId}&allData=True."""
 
     return vol.Schema(
-        vol.All([factory_location_response(fnc)], vol.Length(min=0)),
+        vol.All([_factory_location_response(fnc)], vol.Length(min=0)),
         extra=vol.ALLOW_EXTRA,
     )
 
