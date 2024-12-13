@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Any, Final, Literal
 
-HOSTNAME: Final = "tccna.honeywell.com"
+HOSTNAME: Final = "tccna.resideo.com"
 
 # vendors API URLs - the older API
 URL_AUTH_V0 = f"https://{HOSTNAME}/WebAPI/api/session"

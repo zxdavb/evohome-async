@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
 
 
-HOSTNAME: Final = "tccna.honeywell.com"
+HOSTNAME: Final = "tccna.resideo.com"
 
 
 _ERR_MSG_LOOKUP_BOTH: dict[int, str] = {  # common to both url_auth & url_base
