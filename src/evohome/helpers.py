@@ -65,7 +65,7 @@ def noop(s: str) -> str:
 
 
 def _convert_keys(data: _T, fnc: Callable[[str], str]) -> _T:
-    """Recursively convert all dict keys snake_case (or CamelCase).
+    """Recursively convert all dict keys to snake_case (or CamelCase).
 
     Used after retrieving (or before sending) JSON via the vendor API.
     """
@@ -77,6 +77,56 @@ def _convert_keys(data: _T, fnc: Callable[[str], str]) -> _T:
         return data
 
     return {fnc(k): _convert_keys(v, fnc) for k, v in data.items()}  # type:ignore[return-value]
+
+
+_KEYS_TO_OBSCURE = (
+    "name",
+    "username",
+    "firstname",
+    "lastname",
+    "streetAddress",
+    "city",
+    "postcode",
+    "zipcode",
+    "telephone",
+    "securityQuestion1",
+    "securityQuestion2",
+    "securityQuestion3",
+    "mac",
+    "crc",
+)
+
+
+def obscure_secrets(data: _T) -> _T:
+    """Recursively obsfucate all dict/list values that might be secrets.
+
+    Used for logging JSON received from the vendor API.
+    """
+
+    def _obfuscate(key: str, val: bool | int | str) -> bool | int | str | None:
+        if key not in _KEYS_TO_OBSCURE:
+            return val
+        if not isinstance(val, str):
+            return obfuscate(val)
+        if REGEX_EMAIL_ADDRESS.match(val):
+            return "nobody@nowhere.com"
+        if "name" in key:
+            return val[:2].ljust(len(val), "*")
+        return "".join("*" if char != " " else " " for char in val)
+
+    if isinstance(data, str):
+        return data  # type:ignore[return-value]
+
+    if isinstance(data, list):
+        return [obscure_secrets(item) for item in data]  # type:ignore[return-value]
+
+    if not isinstance(data, dict):
+        return data
+
+    return {
+        k: _obfuscate(k, v) if k in _KEYS_TO_OBSCURE else obscure_secrets(v)
+        for k, v in data.items()
+    }  # type:ignore[return-value]
 
 
 def convert_keys_to_camel_case(data: _T) -> _T:

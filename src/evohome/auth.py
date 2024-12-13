@@ -11,7 +11,11 @@ from typing import TYPE_CHECKING, Any, Final
 import voluptuous as vol
 
 from evohome import exceptions as exc
-from evohome.helpers import convert_keys_to_camel_case, convert_keys_to_snake_case
+from evohome.helpers import (
+    convert_keys_to_camel_case,
+    convert_keys_to_snake_case,
+    obscure_secrets,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -162,7 +166,8 @@ class AbstractAuth(ABC):
 
         response = await self._request(method, url, **kwargs)
 
-        self.logger.debug(f"{method} {url}: {response}")
+        if self.logger.isEnabledFor(logging.DEBUG):
+            self.logger.debug(f"{method} {url}: {obscure_secrets(response)}")
 
         if method == HTTPMethod.GET:
             return convert_keys_to_snake_case(response)
