@@ -407,13 +407,7 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
 async def test_usr_account(evohome_v2: EvohomeClientv2) -> None:
     """Test /userAccount"""
 
-    try:
-        await _test_usr_account(evohome_v2)
-
-    except evo2.AuthenticationFailedError:
-        if not _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Unable to authenticate")
+    await _test_usr_account(evohome_v2)
 
 
 @skipif_auth_failed  # GET
