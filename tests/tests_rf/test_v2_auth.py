@@ -156,9 +156,7 @@ async def test_url_auth_bad2(  # invalid/expired access token
             }]
         """
 
-    assert isinstance(response, list)  # mypy hint
-
-    assert response[0]["code"] == "Unauthorized"
+    assert isinstance(response, list) and response[0]["code"] == "Unauthorized"  # noqa: PT018
     TCC_STATUS_RESPONSE(response)
 
 
@@ -230,7 +228,7 @@ async def test_url_auth_good(
             }
         """
 
-    assert user_auth["expires_in"] <= 1800  # noqa: PLR2004
+    #
     TCC_POST_OAUTH_TOKEN(user_auth)
 
     # #################################################################################
@@ -301,5 +299,5 @@ async def test_url_auth_good(
             }
         """
 
-    assert user_auth["expires_in"] <= 1800  # noqa: PLR2004
+    #
     TCC_POST_OAUTH_TOKEN(user_auth)

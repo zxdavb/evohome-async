@@ -15,14 +15,18 @@ import random
 import socket
 import string
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 import aiohttp
 import pytest
 
 from evohomeasync.auth import _APPLICATION_ID
-from evohomeasync.schemas import TCC_GET_USR_ACCOUNT_INFO, TCC_POST_USR_SESSION
+from evohomeasync.schemas import (
+    TCC_FAILURE_RESPONSE,
+    TCC_GET_USR_ACCOUNT_INFO,
+    TCC_POST_USR_SESSION,
+)
 from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     URL_AUTH_V0 as URL_AUTH,
@@ -30,7 +34,11 @@ from tests.const import (
 )
 
 if TYPE_CHECKING:
-    from evohomeasync.schemas import TccFailureResponseT
+    from evohomeasync.schemas import (
+        TccFailureResponseT,
+        TccSessionResponseT,
+        TccUserAccountInfoResponseT,
+    )
 
 
 HEADERS_AUTH = {
@@ -62,7 +70,7 @@ async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     """
 
     assert response[0]["code"] == "TooManyRequests"
-    assert isinstance(response[0]["message"], str)
+    TCC_FAILURE_RESPONSE(response)
 
     pytest.skip("Too many requests")
 
@@ -119,7 +127,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
         """
 
     assert response[0]["code"] == "EmailOrPasswordIncorrect"
-    assert isinstance(response[0]["message"], str)
+    TCC_FAILURE_RESPONSE(response)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -153,7 +161,7 @@ async def test_url_auth_bad2(  # invalid/expired session id
         """
 
     assert response[0]["code"] == "Unauthorized"
-    assert isinstance(response[0]["message"], str)
+    TCC_FAILURE_RESPONSE(response)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -202,7 +210,7 @@ async def test_url_auth_good(
             }
         """
 
-        user_auth: dict[str, Any] = await rsp.json()
+        user_auth: TccSessionResponseT = await rsp.json()
 
     assert user_auth["userInfo"]["username"] == credentials[0]
     TCC_POST_USR_SESSION(user_auth)
@@ -221,7 +229,7 @@ async def test_url_auth_good(
 
         assert rsp.status == HTTPStatus.OK
 
-        user_info: dict[str, Any] = await rsp.json()
+        user_info: TccUserAccountInfoResponseT = await rsp.json()
 
         # the expected response
         """
@@ -272,4 +280,5 @@ async def test_url_auth_good(
             ]
         """
 
+    assert user_auth["userInfo"]["username"] == credentials[0]
     TCC_GET_USR_ACCOUNT_INFO(user_info)

@@ -16,13 +16,6 @@ if TYPE_CHECKING:
 _T = TypeVar("_T")
 
 
-# TCC config, status dicts
-_EvoLeafT = bool | float | int | str | list[str]  # Any
-_DeviceDictT = NewType("_DeviceDictT", dict[str, Any])  # '_EvoDeviceT' | _EvoLeafT]
-_EvoDictT = NewType("_EvoDictT", dict[str, Any])  # '_EvoDictT' | _EvoLeafT]
-_EvoListT = NewType("_EvoListT", list[_EvoDictT])
-_EvoSchemaT = _EvoDictT | _EvoListT
-
 # TCC identifiers (Usr, Loc, Gwy, Sys, Zon|Dhw)
 _DhwIdT = NewType("_DhwIdT", int)
 _GatewayIdT = NewType("_GatewayIdT", int)
@@ -30,7 +23,6 @@ _LocationIdT = NewType("_LocationIdT", int)
 _SystemIdT = NewType("_SystemIdT", int)
 _UserIdT = NewType("_UserIdT", int)
 _ZoneIdT = NewType("_ZoneIdT", int)
-_ZoneNameT = NewType("_ZoneNameT", str)
 
 # TCC other
 _TaskIdT = NewType("_TaskIdT", str)  # TODO: int or str?
@@ -72,6 +64,20 @@ SZ_ZIPCODE: Final = "zipcode"
 
 
 #######################################################################################
+
+
+def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
+    """Factory for the code/message response schema."""
+
+    entry = vol.Schema(
+        {
+            vol.Required("code"): str,
+            vol.Required("message"): str,
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+    return vol.Schema(vol.All([entry], vol.Length(min=1)))
 
 
 # GET api/accountInfo -> userAccountInfoResponse
@@ -180,6 +186,7 @@ def factory_location_response_list(
 #######################################################################################
 
 
+TCC_FAILURE_RESPONSE: Final = factory_failure_response()
 TCC_GET_USR_ACCOUNT_INFO: Final = factory_user_account_info_response()
 TCC_GET_USR_LOCATIONS: Final = factory_location_response_list()
 TCC_POST_USR_SESSION: Final = factory_session_response()
