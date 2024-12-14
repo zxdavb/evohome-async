@@ -20,11 +20,11 @@ TEST_PASSWORD: Final = "P@ssw0rd!!"
 
 # vendors API URLs - the older API
 URL_AUTH_V0 = f"https://{HOSTNAME_V0}/WebAPI/api/session"
-URL_BASE_V0 = f"https://{HOSTNAME_V0}/WebAPI/api/"
+URL_BASE_V0 = f"https://{HOSTNAME_V0}/WebAPI/api"
 
 # - the newer API
 URL_AUTH_V2 = f"https://{HOSTNAME_V2}/Auth/OAuth/Token"
-URL_BASE_V2 = f"https://{HOSTNAME_V2}/WebAPI/emea/api/v1/"
+URL_BASE_V2 = f"https://{HOSTNAME_V2}/WebAPI/emea/api/v1"
 
 HEADERS_AUTH_V0 = {
     "Accept": "application/json",
