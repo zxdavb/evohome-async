@@ -288,7 +288,7 @@ async def test_url_auth_good(
 
         assert rsp.status == HTTPStatus.OK  # 200
 
-        user_auth = await rsp.json()  # TODO: add TypedDict
+        user_auth = await rsp.json()  # TccOAuthTokenResponseT
 
         # the expected response for good refresh tokens
         """
