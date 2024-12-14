@@ -11,8 +11,8 @@ from evohome.helpers import noop
 
 from .account import (  # noqa: F401
     TccErrorResponseT,
+    TccFailureResponseT,
     TccOAuthTokenResponseT,
-    TccStatusResponseT,
     TccUsrAccountResponseT,
     factory_error_response,
     factory_post_oauth_token,

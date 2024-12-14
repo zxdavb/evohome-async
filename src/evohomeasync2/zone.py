@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 
 from evohome.helpers import camel_to_snake
 
@@ -63,11 +63,21 @@ if TYPE_CHECKING:
         DailySchedulesT,
         DayOfWeekT,
         DayOfWeekZoneT,
+        EvoDhwConfigT,
+        EvoGwyConfigT,
+        EvoLocConfigT,
+        EvoTcsConfigT,
+        EvoTcsStatusT,
         EvoZonConfigT,
         SwitchpointT,
     )
 
     ScheduleT = list[DayOfWeekT]
+
+    _EvoConfigDictT = (
+        EvoLocConfigT | EvoGwyConfigT | EvoTcsConfigT | EvoZonConfigT | EvoDhwConfigT
+    )
+    _EvoStatusDictT = EvoTcsStatusT
 
 
 _ONE_DAY = td(days=1)
@@ -76,8 +86,8 @@ _ONE_DAY = td(days=1)
 class EntityBase:
     _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
 
-    _config: dict[str, Any]
-    _status: _EvoDictT
+    _config: _EvoConfigDictT
+    _status: _EvoStatusDictT
 
     def __init__(self, entity_id: str, auth: Auth, logger: logging.Logger) -> None:
         self._id: Final = entity_id
@@ -93,12 +103,12 @@ class EntityBase:
         return self._id
 
     @property
-    def config(self) -> _EvoDictT:
+    def config(self) -> _EvoConfigDictT:
         """Return the latest config of the entity."""
         return self._config
 
     @property
-    def status(self) -> _EvoDictT | None:
+    def status(self) -> _EvoStatusDictT | None:
         """Return the latest status of the entity."""
         return self._status
 

@@ -21,7 +21,7 @@ from evohome.auth import (
 from evohome.helpers import convert_keys_to_snake_case
 
 from . import exceptions as exc
-from .schemas import SCH_USER_SESSION_RESPONSE, SZ_SESSION_ID as S2_SESSION_ID
+from .schemas import SZ_SESSION_ID as S2_SESSION_ID, TCC_POST_USR_SESSION
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -197,7 +197,7 @@ class AbstractSessionManager(ABC):
 
         try:  # the dict _should_ be the expected schema...
             self.logger.debug(  # session_id will be obfuscated
-                f"POST {url}: {SCH_USER_SESSION_RESPONSE(response)}"
+                f"POST {url}: {TCC_POST_USR_SESSION(response)}"
             )
 
         except vol.Invalid as err:

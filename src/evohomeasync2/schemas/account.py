@@ -104,7 +104,7 @@ def factory_user_account(fnc: Callable[[str], str] = noop) -> vol.Schema:
     )
 
 
-class TccStatusResponseT(TypedDict):
+class TccFailureResponseT(TypedDict):
     """Typed dict for code/message responses from the vendor servers."""
 
     code: str

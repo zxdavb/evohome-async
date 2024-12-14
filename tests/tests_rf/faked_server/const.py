@@ -9,11 +9,11 @@ HOSTNAME: Final = "tccna.resideo.com"
 
 # vendors API URLs - the older API
 URL_AUTH_V0 = f"https://{HOSTNAME}/WebAPI/api/session"
-URL_BASE_V0 = f"https://{HOSTNAME}/WebAPI/api/"
+URL_BASE_V0 = f"https://{HOSTNAME}/WebAPI/api"
 
 # - the newer API
 URL_AUTH_V2 = f"https://{HOSTNAME}/Auth/OAuth/Token"
-URL_BASE_V2 = f"https://{HOSTNAME}/WebAPI/emea/api/v1/"
+URL_BASE_V2 = f"https://{HOSTNAME}/WebAPI/emea/api/v1"
 
 
 GHOST_ZONE_ID = "0000000"  # "3432521"

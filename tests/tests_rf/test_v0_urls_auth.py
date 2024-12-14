@@ -12,17 +12,17 @@ Everything to/from the RESTful API is in camelCase (so those schemas are used).
 from __future__ import annotations
 
 import random
+import socket
 import string
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
+from urllib.parse import urlparse
 
+import aiohttp
 import pytest
 
 from evohomeasync.auth import _APPLICATION_ID
-from evohomeasync.schemas import (
-    SCH_USER_ACCOUNT_INFO_RESPONSE,
-    SCH_USER_SESSION_RESPONSE,
-)
+from evohomeasync.schemas import TCC_GET_USR_ACCOUNT_INFO, TCC_POST_USR_SESSION
 from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     URL_AUTH_V0 as URL_AUTH,
@@ -30,9 +30,7 @@ from tests.const import (
 )
 
 if TYPE_CHECKING:
-    import aiohttp
-
-    from evohomeasync.schemas import TccErrorResponseT
+    from evohomeasync.schemas import TccFailureResponseT
 
 
 HEADERS_AUTH = {
@@ -53,7 +51,7 @@ HEADERS_BASE = {
 async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     assert rsp.status == HTTPStatus.TOO_MANY_REQUESTS
 
-    response: list[TccErrorResponseT] = await rsp.json()
+    response: list[TccFailureResponseT] = await rsp.json()
 
     # the expected response for TOO_MANY_REQUESTS
     """
@@ -67,6 +65,27 @@ async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     assert isinstance(response[0]["message"], str)
 
     pytest.skip("Too many requests")
+
+
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def _test_url_auth_bad0(  # invalid server certificate
+    client_session: aiohttp.ClientSession,
+) -> None:
+    """Test authentication flow with invalid server certificate."""
+
+    #
+    # TEST 0: invalid certificate -> HTTPStatus.UNAUTHORIZED
+    parsed_url = urlparse(URL_AUTH)
+    ip_address = socket.gethostbyname(parsed_url.hostname)  # type: ignore[arg-type]
+    url = f"{parsed_url.scheme}://{ip_address}{parsed_url.path}"  # path[:1] == "/"
+
+    # aiohttp.client_exceptions.ClientConnectorCertificateError:
+    # Cannot connect to host 135.224.164.118:443 ssl:True
+    # [SSLCertVerificationError: ... certificate is not valid for ...]
+
+    with pytest.raises(aiohttp.ClientConnectorCertificateError):
+        async with client_session.post(url, headers=HEADERS_AUTH, data={}) as rsp:
+            rsp.raise_for_status()  # raises ClientResponseError
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -87,7 +106,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 
-        response: list[TccErrorResponseT] = await rsp.json()
+        response: list[TccFailureResponseT] = await rsp.json()
 
         assert rsp.status == HTTPStatus.UNAUTHORIZED
 
@@ -114,7 +133,7 @@ async def test_url_auth_bad2(  # invalid/expired session id
 
     #
     # TEST 2: invalid/expired session id -> HTTPStatus.UNAUTHORIZED
-    url = URL_BASE + "accountInfo"
+    url = f"{URL_BASE}/accountInfo"
     headers = HEADERS_BASE | {"sessionId": session_id}
 
     async with client_session.get(url, headers=headers) as rsp:
@@ -123,7 +142,7 @@ async def test_url_auth_bad2(  # invalid/expired session id
 
         assert rsp.status == HTTPStatus.UNAUTHORIZED
 
-        response: list[TccErrorResponseT] = await rsp.json()
+        response: list[TccFailureResponseT] = await rsp.json()
 
         # the expected response for expired session id
         """
@@ -185,15 +204,15 @@ async def test_url_auth_good(
 
         user_auth: dict[str, Any] = await rsp.json()
 
-    assert SCH_USER_SESSION_RESPONSE(user_auth), user_auth
     assert user_auth["userInfo"]["username"] == credentials[0]
+    TCC_POST_USR_SESSION(user_auth)
 
     #
     # Check the session id by accessing a resource...
     session_id = user_auth["sessionId"]
 
     # TEST 2: valid session id -> HTTPStatus.OK
-    url = URL_BASE + "accountInfo"
+    url = f"{URL_BASE}/accountInfo"
     headers = HEADERS_BASE | {"sessionId": session_id}
 
     async with client_session.get(url, headers=headers) as rsp:
@@ -253,4 +272,4 @@ async def test_url_auth_good(
             ]
         """
 
-    assert SCH_USER_ACCOUNT_INFO_RESPONSE(user_info), user_info
+    TCC_GET_USR_ACCOUNT_INFO(user_info)

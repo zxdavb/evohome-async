@@ -180,9 +180,9 @@ def factory_location_response_list(
 #######################################################################################
 
 
-SCH_USER_ACCOUNT_INFO_RESPONSE: Final = factory_user_account_info_response()
-SCH_USER_SESSION_RESPONSE: Final = factory_session_response()
-SCH_USER_LOCATIONS_RESPONSE: Final = factory_location_response_list()
+TCC_GET_USR_ACCOUNT_INFO: Final = factory_user_account_info_response()
+TCC_GET_USR_LOCATIONS: Final = factory_location_response_list()
+TCC_POST_USR_SESSION: Final = factory_session_response()
 
 
 # schema keys (start with a lower case letter)

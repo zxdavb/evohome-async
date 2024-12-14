@@ -12,24 +12,21 @@ Everything to/from the RESTful API is in camelCase (so those schemas are used).
 from __future__ import annotations
 
 import random
+import socket
 import string
 from http import HTTPStatus
 from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
+import aiohttp
 import pytest
 
 from evohomeasync2.auth import _APPLICATION_ID
-
-# TODO: needs TypedDict
 from evohomeasync2.schemas import (
     TCC_ERROR_RESPONSE,
     TCC_GET_USR_ACCOUNT,
     TCC_POST_OAUTH_TOKEN,
     TCC_STATUS_RESPONSE,
-    TccErrorResponseT,
-    TccOAuthTokenResponseT,
-    TccStatusResponseT,
-    TccUsrAccountResponseT,
 )
 from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
@@ -38,8 +35,12 @@ from tests.const import (
 )
 
 if TYPE_CHECKING:
-    import aiohttp
-
+    from evohomeasync2.schemas import (
+        TccErrorResponseT,
+        TccFailureResponseT,
+        TccOAuthTokenResponseT,
+        TccUsrAccountResponseT,
+    )
 
 HEADERS_AUTH = {
     "Accept": "application/json",
@@ -70,6 +71,27 @@ async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     TCC_ERROR_RESPONSE(response)
 
     pytest.skip("Too many requests")
+
+
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def _test_url_auth_bad0(  # invalid server certificate
+    client_session: aiohttp.ClientSession,
+) -> None:
+    """Test authentication flow with invalid server certificate."""
+
+    #
+    # TEST 0: invalid certificate -> HTTPStatus.UNAUTHORIZED
+    parsed_url = urlparse(URL_AUTH)
+    ip_address = socket.gethostbyname(parsed_url.hostname)  # type: ignore[arg-type]
+    url = f"{parsed_url.scheme}://{ip_address}{parsed_url.path}"  # path[:1] == "/"
+
+    # aiohttp.client_exceptions.ClientConnectorCertificateError:
+    # Cannot connect to host 135.224.164.118:443 ssl:True
+    # [SSLCertVerificationError: ... certificate is not valid for ...]
+
+    with pytest.raises(aiohttp.ClientConnectorCertificateError):
+        async with client_session.post(url, headers=HEADERS_AUTH, data={}) as rsp:
+            rsp.raise_for_status()  # raises ClientResponseError
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -115,7 +137,7 @@ async def test_url_auth_bad2(  # invalid/expired access token
 
     #
     # TEST 2: invalid/expired access token -> HTTPStatus.UNAUTHORIZED
-    url = URL_BASE + "userAccount"
+    url = f"{URL_BASE}/userAccount"
     headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
 
     async with client_session.get(url, headers=headers) as rsp:
@@ -124,7 +146,7 @@ async def test_url_auth_bad2(  # invalid/expired access token
 
         assert rsp.status == HTTPStatus.UNAUTHORIZED  # 401
 
-        response: list[TccStatusResponseT] = await rsp.json()
+        response: list[TccFailureResponseT] = await rsp.json()
 
         # the expected response for bad access tokens
         """
@@ -218,7 +240,7 @@ async def test_url_auth_good(
     #
 
     # TEST 2: valid access token -> HTTPStatus.OK  # 200 (401 is bad token)
-    url = URL_BASE + "userAccount"
+    url = f"{URL_BASE}/userAccount"
     headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
 
     async with client_session.get(url, headers=headers) as rsp:

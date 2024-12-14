@@ -122,7 +122,7 @@ class EvoTcsEntryT(EvoTcsConfigT):
     # model_type: str
     # allowed_system_modes: list[dict[str, Any]]
     zones: list[EvoZonConfigT]
-    dhw: dict[str, Any]
+    dhw: EvoDhwConfigT
 
 
 class EvoZonConfigT(TypedDict):
