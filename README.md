@@ -47,40 +47,19 @@ await token_manager.save_access_token()
 await websession.close()
 ```
 
-### Differences from non-async version (out of date)
-The difference between the **evohomeasync** and **evohomeclient** libraries have been kept to the minimum, and it is planned for existing docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
+### Differences from non-async version
+The difference between the **evohomeasync** and **evohomeclient** libraries are significant, but it should be relatively straightforward to port your code over to this async library should you wish.
+
+Differences include:
+ - uses the aiohttp client and not requests
+ - namespace is simpler (different) and is snake_case and not camelCase
+ - parochial exceptions (e.g. AuthenticationFailedError) rather than generics (TypeError)
+ - uses a TokenManager and an Auth class
+ - is fully typed, including TypedDicts and py.typed
+ - additional functionality (e.g. throws a warning for any active faults)
+ - extended compatability beyond pure evohome systems
+ - more extensive testing via pytest
+ - uses best of class linting/typing via ruff/mypy
+ - schedule JSON import by name as well as by zone/dhw id
 
 The non-async documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
-
-#### Technical differences (out of date)
-Some additional functionality has been added to the methods that wrap the vendor APIs (e.g. restore schedules by name, as an alternative to by id). Note that this library is not able to expose more _core_ functionality than it's non-async cousin (i.e. they both use the same vendor API).
-
-Note that since **0.4.0**, some attributes have been renamed, and a few have been deprecated altogether (when required, an informative exception will be thrown).
-
-In both cases (`evohomeclient2` and `evohomeclient`):
- - requires **aiohttp** instead of **requests**:
- - added a new instantiation argument, `session` to allow the client to utilize the consumer's **aiohttp** session
- ```python
-    self._session = kwargs.get('session', aiohttp.ClientSession(
-        timeout=aiohttp.ClientTimeout(total=30)
-    ))
-```
-
-For the newer evohome API (evohomeclient2):
- - `import evohomeasync2` instead of `import evohomeclient2`
- - must invoke `await client.login()` after instntiating `EvohomeClient`
- - generic `Exceptions` have changed...
-    `requests.ConnectionError` becomes: `aiohttp.ClientConnectionError`
-    `requests.HTTPError` becomes `aiohttp.ClientResponseError`
- - but in most case, exceptions are no longer generic (since **0.4.0**)...
-    `RateLimitExceeded`, and `AuthenticationFailed` (among others)
-
-For the older evohome API (evohomeclient):
- - `import evohomeasync` instead of `import evohomeclient`
- - Exceptions change similar to the above
-
-Other minor changes:
- - some attrs/methods have been renamed (invoking the old name will advise the new name)
- - `Hotwater.zoneId` is deprecated (can use `.dhwId`, or `_id`)
- - `ZoneBase.zone_type` is deprecated (use `.TYPE`))
- - some sentinel values are now `None`
