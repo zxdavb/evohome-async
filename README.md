@@ -51,7 +51,7 @@ The difference between the **evohome-async** and **evohome-client** libraries ar
 
 For example, entity ID attrs are `.id` and no longer `.dhwId`, `zoneId`, etc.
 
-Differences include:
+Other differences include:
  - uses the **aiohttp** client and not **requests**
  - namespace is simpler (different) and is `snake_case` and not `camelCase`
  - parochial exceptions (e.g. **AuthenticationFailedError**) rather than generics (**TypeError**)
