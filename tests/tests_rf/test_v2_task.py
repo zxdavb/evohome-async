@@ -18,7 +18,8 @@ import pytest
 
 import evohomeasync2 as evo2
 from evohome.helpers import camel_to_pascal
-from evohomeasync2.const import API_STRFTIME, DhwState, ZoneMode
+from evohomeasync2.const import API_STRFTIME
+from evohomeasync2.schemas import DhwState, ZoneMode
 from evohomeasync2.schemas.const import (
     S2_MODE,
     S2_STATE,
@@ -64,7 +65,7 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     #
     # PART 0: Get initial state...
     old_status = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
-    assert isinstance(old_status, dict)  # mypy
+    assert isinstance(old_status, dict)  # mypy  TODO: use a SCHEMA
     # {
     #     'dhwId': '3933910',
     #     'temperatureStatus': {'isAvailable': False},

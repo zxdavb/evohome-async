@@ -248,11 +248,11 @@ def _find_switchpoints(
             break
 
     else:
+        assert this_sp is not None  # mypy (internal hint)
+
         if next_sp is None:
             next_sp = schedule[(day_idx + 1) % 7]["switchpoints"][0]
             next_offset = +1
-
-        assert this_sp is not None  # mypy
 
     return this_sp, this_offset, next_sp, next_offset
 
@@ -316,12 +316,12 @@ class _ScheduleBase(ActiveFaultsBase):
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
+            assert isinstance(schedule, list)  # mypy (internal hint)
+
         else:
             raise exc.InvalidScheduleError(
                 f"{self}: Invalid schedule type: {type(schedule)}"
             )
-
-        assert isinstance(schedule, list)  # mypy check
 
         _ = await self._auth.put(
             f"{self._TYPE}/{self.id}/schedule",

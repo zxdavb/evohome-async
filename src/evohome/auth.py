@@ -124,8 +124,7 @@ class AbstractAuth(ABC):
             except vol.Invalid as err:
                 self.logger.warning(f"Response JSON may be invalid: GET {url}: {err}")
 
-        assert isinstance(response, dict | list)  # mypy
-        return response
+        return response  # type: ignore[return-value]
 
     async def put(
         self,
@@ -147,10 +146,7 @@ class AbstractAuth(ABC):
             except vol.Invalid as err:
                 self.logger.warning(f"Payload JSON may be invalid: PUT {url}: {err}")
 
-        response = await self.request(HTTPMethod.PUT, url, json=json)
-
-        assert isinstance(response, dict | list)  # mypy
-        return response
+        return await self.request(HTTPMethod.PUT, url, json=json)  # type: ignore[return-value]
 
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any

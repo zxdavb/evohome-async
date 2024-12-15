@@ -82,7 +82,7 @@ class EvohomeClientNew:
             url = "accountInfo"
             self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)  # type: ignore[assignment]
 
-        assert self._user_info is not None  # mypy hint
+        assert self._user_info is not None  # mypy (internal hint)
 
         if self._user_locs is None:
             url = f"locations?userId={self._user_info["user_id"]}&allData=True"
@@ -91,7 +91,7 @@ class EvohomeClientNew:
             self._locations = None
             self._location_by_id = None
 
-        assert self._user_locs is not None  # mypy hint
+        assert self._user_locs is not None  # mypy (internal hint)
 
         if self._locations is None:
             self._locations = []
@@ -102,7 +102,7 @@ class EvohomeClientNew:
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 
-        assert self._locations is not None  # mypy hint
+        assert self._locations is not None  # mypy (internal hint)
 
         self._locn_info = self._user_locs[self._LOC_IDX]
         return self._user_locs
@@ -138,5 +138,4 @@ class EvohomeClientNew:
                 f"{self}: The installation information is not (yet) available"
             )
 
-        assert self._locations  # mypy hint
-        return self._locations
+        return self._locations  # type: ignore[return-value]

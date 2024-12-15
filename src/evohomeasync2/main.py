@@ -92,7 +92,7 @@ class EvohomeClientNew:
             url = "userAccount"
             self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
 
-        assert self._user_info is not None  # mypy hint
+        assert self._user_info is not None  # mypy (internal hint)
 
         if self._user_locs is None:
             url = f"location/installationInfo?userId={self._user_info[SZ_USER_ID]}&includeTemperatureControlSystems=True"
@@ -101,7 +101,7 @@ class EvohomeClientNew:
             self._locations = None
             self._location_by_id = None
 
-        assert self._user_locs is not None  # mypy hint
+        assert self._user_locs is not None  # mypy (internal hint)
 
         if self._locations is None:  # create/refresh the configured locations
             self._locations = []
@@ -119,12 +119,11 @@ class EvohomeClientNew:
                     "limits by individually updating only the necessary locations."
                 )
 
-        assert self._locations is not None  # mypy hint
+        assert self._locations is not None  # mypy (internal hint)
 
         if not _dont_update_status:  # see warning, above
             for loc in self._locations:
                 await loc.update()
-        #
 
         return self._user_locs
 
@@ -159,8 +158,7 @@ class EvohomeClientNew:
                 f"{self}: The installation information is not (yet) available"
             )
 
-        assert self._locations is not None  # mypy hint
-        return self._locations
+        return self._locations  # type: ignore[return-value]
 
     # A significant majority of users will have exactly one TCS, thus for convenience...
     def _get_single_tcs(self) -> ControlSystem:

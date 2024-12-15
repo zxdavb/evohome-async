@@ -137,7 +137,6 @@ class TokenManager(AbstractTokenManager, AbstractSessionManager):
         if not entry:
             return
 
-        # assert isinstance(entry, dict)  # mypy
         tokens: AccessTokenEntryT | None = entry.get(SZ_ACCESS_TOKEN)
         if not tokens:
             return
@@ -155,7 +154,6 @@ class TokenManager(AbstractTokenManager, AbstractSessionManager):
         if not entry:
             return
 
-        # assert isinstance(entry, dict)  # mypy
         session: SessionIdEntryT | None = entry.get(SZ_SESSION_ID)
         if not session:
             return

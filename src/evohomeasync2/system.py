@@ -29,10 +29,9 @@ from .const import (
     SZ_THERMOSTAT,  # remove?
     SZ_ZONE_ID,
     SZ_ZONES,
-    SystemMode,
 )
 from .hotwater import HotWater
-from .schemas import factory_tcs_status
+from .schemas import SystemMode, factory_tcs_status
 from .schemas.const import (
     S2_PERMANENT,
     S2_SYSTEM_MODE,

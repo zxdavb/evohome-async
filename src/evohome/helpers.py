@@ -45,11 +45,6 @@ def camel_to_snake(s: str) -> str:
     return _STEP_2.sub(r"\1_\2", _STEP_1.sub(r"\1_\2", s)).lower()
 
 
-# assert camel_to_snake("camel2_camel2_case") == "camel2_camel2_case"
-# assert camel_to_snake("getHTTPResponseCode") == "get_http_response_code"
-# assert camel_to_snake("HTTPResponseCodeXYZ") == "http_response_code_xyz"
-
-
 def snake_to_camel(s: str) -> str:
     """Return a string converted from snake_case to camelCase."""
     if " " in s:

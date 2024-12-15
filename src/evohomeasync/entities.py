@@ -247,9 +247,7 @@ class Location(EntityBase):
         if dev is None:
             raise exc.InvalidSchemaError(f"No DHW in location {self.id}")
 
-        assert isinstance(dev, Hotwater)  # mypy
-
-        return dev
+        return dev  # type: ignore[return-value]
 
 
 class Gateway(EntityBase):

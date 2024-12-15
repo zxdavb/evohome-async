@@ -86,3 +86,8 @@ def test_status_schemas(status: dict[str, Any]) -> None:
     """Test the status schema for a location."""
 
     _ = SCH_LOCN_STATUS(status)
+
+
+# assert camel_to_snake("camel2_camel2_case") == "camel2_camel2_case"
+# assert camel_to_snake("getHTTPResponseCode") == "get_http_response_code"
+# assert camel_to_snake("HTTPResponseCodeXYZ") == "http_response_code_xyz"

@@ -174,7 +174,7 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
         # {'commtaskId': '840367013', 'state': 'Running'}
         # {'commtaskId': '840367013', 'state': 'Succeeded'}
 
-        assert isinstance(status, dict)  # mypy
+        assert isinstance(status, dict)  # mypy  # TODO: use a SCHEMA
         assert status["commtaskId"] == task_id
         assert status["state"] in ("Created", "Running", "Succeeded")
 
