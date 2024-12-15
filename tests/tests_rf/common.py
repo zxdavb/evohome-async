@@ -257,8 +257,6 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
     # async with asyncio.timeout(2):
     #     await wait_for_comm_task()
 
-    rsp: aiohttp.ClientResponse  # TODO: shouldn't be needed; isn't via async with
-
     url = f"commTasks?commTaskId={task_id}"
 
     while True:

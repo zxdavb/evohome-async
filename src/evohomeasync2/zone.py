@@ -1,7 +1,6 @@
 """Provides handling of TCC zones (heating and DHW)."""
 
-# TODO: add provision for cooling zones, when vendor's API adds support for such
-# TODO: add set_mode() for non-evohome modes (e.g. "VacationHold")
+# TODO: extend set_mode() for non-evohome modes (e.g. "VacationHold")
 
 from __future__ import annotations
 

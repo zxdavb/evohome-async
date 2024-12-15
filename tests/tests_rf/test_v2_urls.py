@@ -312,8 +312,7 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
     Also tests /temperatureZone/{zone.id}/heatSetpoint
     """
 
-    zone: evo2.Zone
-    heat_setpoint: dict[str, float | str | None]
+    heat_setpoint: dict[str, float | str | None]  # TODO: TypedDict
 
     # TODO: remove .update() and use URLs only
     await evo.update(_dont_update_status=True)

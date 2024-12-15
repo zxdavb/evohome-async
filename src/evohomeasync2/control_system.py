@@ -1,6 +1,6 @@
 """Provides handling of TCC temperature control systems."""
 
-# TODO: add set_mode() for non-evohome modes (e.g. "Heat", "Off")
+# TODO: extend set_mode() for non-evohome modes (e.g. "Heat", "Off")
 
 from __future__ import annotations
 
@@ -242,7 +242,7 @@ class ControlSystem(ActiveFaultsBase):
 
     async def get_temperatures(
         self,
-    ) -> list[dict[str, float | str | None]]:  # TODO: remove?
+    ) -> list[dict[str, float | str | None]]:  # TODO: remove this convenience function?
         """A convenience function to return the latest temperatures and setpoints."""
 
         await self.location.update()

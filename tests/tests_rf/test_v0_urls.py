@@ -31,7 +31,7 @@ async def _test_usr_locations(evo: EvohomeClientv0) -> None:
     # loc_id: int = evo.location_id
 
     url = f"locations?userId={usr_id}&allData=True"
-    _ = await should_work_v0(evo.auth, HTTPMethod.GET, url)  # TODO: add schema
+    _ = await should_work_v0(evo.auth, HTTPMethod.GET, url)  # FIXME: add schema
 
     # why isn't this one METHOD_NOT_ALLOWED?
     _ = await should_fail_v0(evo.auth, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)

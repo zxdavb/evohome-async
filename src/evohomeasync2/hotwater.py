@@ -1,6 +1,6 @@
 """Provides handling of TCC DHW zones."""
 
-# TODO: add set_mode() for non-evohome modes
+# TODO: extend set_mode() for non-evohome modes
 
 from __future__ import annotations
 

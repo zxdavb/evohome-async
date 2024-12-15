@@ -18,7 +18,6 @@ import pytest
 
 import evohomeasync2 as evo2
 from evohome.helpers import camel_to_pascal
-from evohomeasync2 import ControlSystem, Gateway, HotWater, Location, Zone
 from evohomeasync2.const import API_STRFTIME, DhwState, ZoneMode
 from evohomeasync2.schemas.const import (
     S2_MODE,
@@ -44,13 +43,7 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
     """
 
-    loc: Location
-    gwy: Gateway
-    tcs: ControlSystem
-
     await evo.update(_dont_update_status=True)
-
-    dhw: HotWater | None = None
 
     for loc in evo.locations:
         for gwy in loc.gateways:
@@ -208,13 +201,7 @@ async def _test_task_id_zone(evo: EvohomeClientv2) -> None:
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
     """
 
-    loc: Location
-    gwy: Gateway
-    tcs: ControlSystem
-
     await evo.update(_dont_update_status=True)
-
-    zone: Zone | None = None
 
     for loc in evo.locations:
         for gwy in loc.gateways:
