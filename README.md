@@ -38,7 +38,7 @@ websession = aiohttp.ClientSession()
 token_manager = TokenManager(username, password, websession, cache_file=CACHE_FILE)
 await token_manager.load_access_token()
 
-evo = EvohomeClientNew(token_manager)
+evo = EvohomeClient(token_manager)
 await evo.update()
 
 ...
