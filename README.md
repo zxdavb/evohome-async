@@ -63,4 +63,4 @@ Other differences include:
  - uses best of class linting/typing via **ruff**/**mypy**
  - can import schedule JSON by name as well as by zone/dhw id
 
-The non-async documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
+> **TIP:** the non-async documentation (from **evohome-client**) is available at http://evohome-client.readthedocs.org/en/latest/
