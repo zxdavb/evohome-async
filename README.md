@@ -58,7 +58,7 @@ Other differences include:
  - is fully typed, including **TypedDict**s and `py.typed`
  - additional functionality (e.g. logs a warning for any active faults)
  - better error messages when things do go wrong
- - extended compatability beyond pure evohome systems (e.g. VisionPro)
+ - extended compatibility beyond pure evohome systems (e.g. VisionPro)
  - more extensive testing via **pytest**
  - uses best of class linting/typing via **ruff**/**mypy**
  - can import schedule JSON by name as well as by zone/dhw id
