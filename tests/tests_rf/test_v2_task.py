@@ -45,9 +45,11 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
 
     await evo.update(_dont_update_status=True)
 
+    dhw: evo2.HotWater | None = None
+
     for loc in evo.locations:
         for gwy in loc.gateways:
-            for tcs in gwy.control_systems:
+            for tcs in gwy.systems:
                 if tcs.hotwater:
                     # if (dhw := tcs.hotwater) and dhw.temperatureStatus['isAvailable']:
                     dhw = tcs.hotwater
@@ -205,7 +207,7 @@ async def _test_task_id_zone(evo: EvohomeClientv2) -> None:
 
     for loc in evo.locations:
         for gwy in loc.gateways:
-            for tcs in gwy.control_systems:
+            for tcs in gwy.systems:
                 if not tcs.zones:
                     continue
                 zone = tcs.zones[0]

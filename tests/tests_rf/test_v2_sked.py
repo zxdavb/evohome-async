@@ -45,7 +45,7 @@ async def _test_schedule_put(evo: EvohomeClientv2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update()
 
-    zone = evo.locations[0].gateways[0].control_systems[0].zones[0]
+    zone = evo.locations[0].gateways[0].systems[0].zones[0]
     url = f"{zone._TYPE}/{zone.id}/schedule"
 
     #
@@ -139,7 +139,7 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update()
 
-    zone = evo.locations[0].gateways[0].control_systems[0].zones[0]
+    zone = evo.locations[0].gateways[0].systems[0].zones[0]
     url = f"{zone._TYPE}/{zone.id}/schedule"
 
     #

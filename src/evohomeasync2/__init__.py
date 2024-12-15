@@ -12,7 +12,6 @@ from datetime import UTC, datetime as dt
 import aiohttp
 
 from .auth import AbstractTokenManager
-from .control_system import ControlSystem  # noqa: F401
 from .exceptions import (  # noqa: F401
     ApiRequestFailedError,
     AuthenticationFailedError,
@@ -29,6 +28,7 @@ from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401
 from .location import Location  # noqa: F401
 from .main import EvohomeClientNew as _EvohomeClientNew
+from .system import ControlSystem  # noqa: F401
 from .zone import Zone  # noqa: F401
 
 __version__ = "1.2.0"

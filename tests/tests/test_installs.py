@@ -49,7 +49,7 @@ async def test_system_snapshot(
     gwy = loc.gateways[0]
     assert serializable_attrs(gwy) == snapshot(name="gateway")
 
-    tcs = gwy.control_systems[0]
+    tcs = gwy.systems[0]
     assert serializable_attrs(tcs) == snapshot(name="control_system")
 
     if dhw := tcs.hotwater:

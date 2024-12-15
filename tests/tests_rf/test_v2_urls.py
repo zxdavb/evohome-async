@@ -189,7 +189,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
     await evo.update(_dont_update_status=True)
 
     tcs: evo2.ControlSystem
-    if not (tcs := evo.locations[0].gateways[0].control_systems[0]):
+    if not (tcs := evo.locations[0].gateways[0].systems[0]):
         pytest.skip("No available TCS found")
 
     #
@@ -317,7 +317,7 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(_dont_update_status=True)
 
-    if not (zone := evo.locations[0].gateways[0].control_systems[0].zones[0]):
+    if not (zone := evo.locations[0].gateways[0].systems[0].zones[0]):
         pytest.skip("No available zones found")
 
     #

@@ -13,9 +13,9 @@ from .const import (
     SZ_SYSTEM_ID,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
-from .control_system import ControlSystem
 from .schemas import factory_gwy_status
 from .schemas.const import EntityType
+from .system import ControlSystem
 from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:
@@ -49,14 +49,14 @@ class Gateway(ActiveFaultsBase):
         self._status: EvoGwyStatusResponseT | None = None
 
         # children
-        self.control_systems: list[ControlSystem] = []
-        self.control_system_by_id: dict[str, ControlSystem] = {}  # tcs by id
+        self.systems: list[ControlSystem] = []
+        self.system_by_id: dict[str, ControlSystem] = {}  # tcs by id
 
         for tcs_entry in config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             tcs = ControlSystem(self, tcs_entry)
 
-            self.control_systems.append(tcs)
-            self.control_system_by_id[tcs.id] = tcs
+            self.systems.append(tcs)
+            self.system_by_id[tcs.id] = tcs
 
     @property
     def mac_address(self) -> str:
@@ -67,7 +67,7 @@ class Gateway(ActiveFaultsBase):
         self._status = status
 
         for tcs_status in self._status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
-            if tcs := self.control_system_by_id.get(tcs_status[SZ_SYSTEM_ID]):
+            if tcs := self.system_by_id.get(tcs_status[SZ_SYSTEM_ID]):
                 tcs._update_status(tcs_status)
 
             else:

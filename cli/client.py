@@ -91,7 +91,7 @@ def _get_tcs(evo: EvohomeClientNew, loc_idx: int | None) -> ControlSystem:
     if loc_idx is None:
         return evo._get_single_tcs()
 
-    return evo.locations[int(loc_idx)].gateways[0].control_systems[0]
+    return evo.locations[int(loc_idx)].gateways[0].systems[0]
 
 
 async def _write(output_file: TextIOWrapper | Any, content: str) -> None:

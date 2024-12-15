@@ -17,8 +17,8 @@ from .schemas import factory_user_account, factory_user_locations_installation_i
 if TYPE_CHECKING:
     import aiohttp
 
-    from .control_system import ControlSystem
     from .schemas.typedefs import EvoLocConfigResponseT, EvoUsrConfigResponseT
+    from .system import ControlSystem
 
 
 SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)
@@ -179,7 +179,7 @@ class EvohomeClientNew:
                 f"{self}: There is not a single gateway (only) for this account/location"
             )
 
-        if not (tcss := gwys[0].control_systems) or len(tcss) != 1:
+        if not (tcss := gwys[0].systems) or len(tcss) != 1:
             raise exc.NoSingleTcsError(
                 f"{self}: There is not a single TCS (only) for this account/location/gateway"
             )

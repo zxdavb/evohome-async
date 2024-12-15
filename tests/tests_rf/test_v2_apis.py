@@ -91,7 +91,7 @@ async def _test_system_apis(evo: EvohomeClientv2) -> None:
     try:
         tcs = evo._get_single_tcs()
     except evo2.NoSingleTcsError:
-        tcs = evo.locations[0].gateways[0].control_systems[0]
+        tcs = evo.locations[0].gateways[0].systems[0]
 
     assert tcs.system_mode_status is not None
     mode = tcs.system_mode_status[S2_MODE]
