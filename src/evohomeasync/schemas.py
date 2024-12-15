@@ -20,7 +20,7 @@ _T = TypeVar("_T")
 _DhwIdT = NewType("_DhwIdT", int)
 _GatewayIdT = NewType("_GatewayIdT", int)
 _LocationIdT = NewType("_LocationIdT", int)
-_SystemIdT = NewType("_SystemIdT", int)
+_SystemIdT = NewType("_SystemIdT", int)  # domainId ??
 _UserIdT = NewType("_UserIdT", int)
 _ZoneIdT = NewType("_ZoneIdT", int)
 
@@ -255,10 +255,17 @@ class TccFailureResponseT(TypedDict):
     message: str
 
 
+class TccSessionResponseT(TypedDict):
+    """POST api/session"""
+
+    sessionId: str
+    userInfo: TccUserAccountResponseT
+
+
 class TccUserAccountInfoResponseT(TypedDict):  # NOTE: is not TccUserAccountResponseT
     """GET api/accountInfo"""
 
-    userId: int
+    userId: _UserIdT
     username: str  # email address
     firstname: str
     lastname: str
@@ -283,19 +290,54 @@ class TccUserAccountResponseT(TccUserAccountInfoResponseT):
     latestEulaAccepted: bool  # NotRequired?
 
 
-class TccSessionResponseT(TypedDict):
-    """POST api/session"""
+class TccLocationResponseT(TypedDict):
+    """GET api/locations?locationId={locationId}&allData=True"""
 
-    sessionId: str
-    userInfo: TccUserAccountResponseT
+    locationID: _LocationIdT  # TODO: check is ID, not Id
+    name: str
+    streetAddress: str
+    city: str
+    state: str
+    country: str
+    zipcode: str
+    type: str  # LocationType: "Commercial" | "Residential"
+    hasStation: bool
+    devices: list[TccDeviceResponseT]
+    weather: TccWeatherResponseT  # WeatherResponse
+    daylightSavingTimeEnabled: bool
+    timeZone: TccTimeZoneResponseT
+    oneTouchActionsSuspended: bool
+    isLocationOwner: bool
+    locationOwnerID: int  # TODO: check is ID, not Id
+    locationOwnerName: str
+    locationOwnerUserName: str
+    canSearchforcontractors: bool
+    contractor: dict[str, Any]  # ContractorResponse
 
 
-class TccWeatherResponseT(TypedDict):
-    condition: str  # an enum
-    temperature: float
-    units: str  # Fahrenheit (precision 1.0) or Celsius (0.5)
-    humidity: int
-    phrase: str
+class TccDeviceResponseT(TypedDict):
+    gatewayId: _GatewayIdT
+    deviceId: _DhwIdT | _ZoneIdT
+    thermostatModelType: str  # DOMESTIC_HOT_WATER or a zone
+    deviceType: int
+    name: str
+    scheduleCapable: bool
+    holdUntilCapable: bool
+    thermostat: TccThermostatResponseT
+    humidifier: dict[str, Any]  # HumidifierResponse
+    dehumidifier: dict[str, Any]  # DehumidifierResponse
+    fan: dict[str, Any]  # FanResponse
+    schedule: dict[str, Any]  # ScheduleResponse
+    alertSettings: dict[str, Any]  # AlertSettingsResponse
+    isUpgrading: bool
+    isAlive: bool
+    thermostatVersion: str
+    macId: str
+    locationId: _LocationIdT
+    domainId: int
+    instance: int
+    serialNumber: str
+    pcbNumber: str
 
 
 class TccThermostatResponseT(TypedDict):
@@ -331,29 +373,12 @@ class TccThermostatResponseT(TypedDict):
     pcbNumber: str
 
 
-class TccDeviceResponseT(TypedDict):
-    gatewayId: int
-    deviceId: int
-    thermostatModelType: str  # DOMESTIC_HOT_WATER or a zone
-    deviceType: int
-    name: str
-    scheduleCapable: bool
-    holdUntilCapable: bool
-    thermostat: TccThermostatResponseT
-    humidifier: dict[str, Any]  # HumidifierResponse
-    dehumidifier: dict[str, Any]  # DehumidifierResponse
-    fan: dict[str, Any]  # FanResponse
-    schedule: dict[str, Any]  # ScheduleResponse
-    alertSettings: dict[str, Any]  # AlertSettingsResponse
-    isUpgrading: bool
-    isAlive: bool
-    thermostatVersion: str
-    macId: str
-    locationId: int
-    domainId: int
-    instance: int
-    serialNumber: str
-    pcbNumber: str
+class TccWeatherResponseT(TypedDict):
+    condition: str  # an enum
+    temperature: float
+    units: str  # Fahrenheit (precision 1.0) or Celsius (0.5)
+    humidity: int
+    phrase: str
 
 
 class TccTimeZoneResponseT(TypedDict):
@@ -362,31 +387,6 @@ class TccTimeZoneResponseT(TypedDict):
     offsetMinutes: int
     currentOffsetMinutes: int
     usingDaylightSavingTime: bool
-
-
-class TccLocationResponseT(TypedDict):
-    """GET api/locations?locationId={locationId}&allData=True"""
-
-    locationID: _LocationIdT  # TODO: check is ID, not Id
-    name: str
-    streetAddress: str
-    city: str
-    state: str
-    country: str
-    zipcode: str
-    type: str  # LocationType: "Commercial" | "Residential"
-    hasStation: bool
-    devices: list[TccDeviceResponseT]
-    weather: TccWeatherResponseT  # WeatherResponse
-    daylightSavingTimeEnabled: bool
-    timeZone: TccTimeZoneResponseT
-    oneTouchActionsSuspended: bool
-    isLocationOwner: bool
-    locationOwnerID: int  # TODO: check is ID, not Id
-    locationOwnerName: str
-    locationOwnerUserName: str
-    canSearchforcontractors: bool
-    contractor: dict[str, Any]  # ContractorResponse
 
 
 #######################################################################################
@@ -400,10 +400,17 @@ class EvoFailureDictT(TypedDict):
     message: str
 
 
+class EvoSessionDictT(TypedDict):
+    """POST api/session"""
+
+    session_id: str
+    user_info: EvoUserAccountDictT
+
+
 class EvoUserAccountInfoDictT(TypedDict):  # NOTE: is not EvoUserAccountDictT
     """GET api/accountInfo"""
 
-    user_id: int
+    user_id: _UserIdT
     username: str  # email address
     firstname: str
     lastname: str
@@ -428,19 +435,57 @@ class EvoUserAccountDictT(EvoUserAccountInfoDictT):  # NOT EvoUserAccountInfoT
     latest_eula_accepted: bool  # NotRequired?
 
 
-class EvoSessionDictT(TypedDict):
-    """POST api/session"""
+class EvoLocConfigDictT(TypedDict):
+    """GET api/locations?locationId={locationId}&allData=True"""
 
-    session_id: str
-    user_info: EvoUserAccountDictT
+    location_id: _LocationIdT
+    name: str
+    street_address: str
+    city: str
+    state: str
+    country: str
+    zipcode: str
+    type: str  # LocationType: "Commercial" | "Residential"
+    has_station: bool
+    devices: list[EvoDevConfigDictT]
+    weather: EvoWeatherDictT  # WeatherResponse
+    daylight_saving_time_enabled: bool
+    time_zone: EvoTimeZoneDictT
+    one_touch_actions_suspended: bool
+    is_location_owner: bool
+    locationOwner_id: int
+    location_owner_name: str
+    location_owner_user_name: str
+    can_searchforcontractors: bool
+    contractor: dict[str, Any]  # ContractorResponse
 
 
-class EvoWeatherDictT(TypedDict):
-    condition: str  # an enum
-    temperature: float
-    units: str  # Fahrenheit (precision 1.0) or Celsius (0.5)
-    humidity: int
-    phrase: str
+class EvoGwyConfigDictT(TypedDict):
+    gateway_id: _GatewayIdT
+    device_type: int
+    name: str
+    mac_id: str
+    location_id: int
+    domain_id: int
+    serial_number: str
+    pcb_number: str
+
+
+class EvoDevConfigDictT(EvoGwyConfigDictT):
+    device_id: _DhwIdT | _ZoneIdT
+    thermostat_model_type: str  # DOMESTIC_HOT_WATER or a zone
+    schedule_capable: bool
+    hold_until_capable: bool
+    thermostat: EvoThermostatDictT
+    humidifier: dict[str, Any]  # HumidifierResponse
+    dehumidifier: dict[str, Any]  # DehumidifierResponse
+    fan: dict[str, Any]  # FanResponse
+    schedule: dict[str, Any]  # ScheduleResponse
+    alert_settings: dict[str, Any]  # AlertSettingsResponse
+    is_upgrading: bool
+    is_alive: bool
+    thermostat_version: str
+    instance: int
 
 
 class EvoThermostatDictT(TypedDict):
@@ -476,32 +521,12 @@ class EvoThermostatDictT(TypedDict):
     pcb_number: str
 
 
-class EvoGwyConfigDictT(TypedDict):
-    gateway_id: int
-    device_type: int
-    name: str
-    mac_id: str
-    location_id: int
-    domain_id: int
-    serial_number: str
-    pcb_number: str
-
-
-class EvoDevConfigDictT(EvoGwyConfigDictT):
-    device_id: int
-    thermostat_model_type: str  # DOMESTIC_HOT_WATER or a zone
-    schedule_capable: bool
-    hold_until_capable: bool
-    thermostat: EvoThermostatDictT
-    humidifier: dict[str, Any]  # HumidifierResponse
-    dehumidifier: dict[str, Any]  # DehumidifierResponse
-    fan: dict[str, Any]  # FanResponse
-    schedule: dict[str, Any]  # ScheduleResponse
-    alert_settings: dict[str, Any]  # AlertSettingsResponse
-    is_upgrading: bool
-    is_alive: bool
-    thermostat_version: str
-    instance: int
+class EvoWeatherDictT(TypedDict):
+    condition: str  # an enum
+    temperature: float
+    units: str  # Fahrenheit (precision 1.0) or Celsius (0.5)
+    humidity: int
+    phrase: str
 
 
 class EvoTimeZoneDictT(TypedDict):
@@ -510,28 +535,3 @@ class EvoTimeZoneDictT(TypedDict):
     offset_minutes: int
     current_offset_minutes: int
     using_daylight_saving_time: bool
-
-
-class EvoLocConfigDictT(TypedDict):
-    """GET api/locations?locationId={locationId}&allData=True"""
-
-    location_id: _LocationIdT
-    name: str
-    street_address: str
-    city: str
-    state: str
-    country: str
-    zipcode: str
-    type: str  # LocationType: "Commercial" | "Residential"
-    has_station: bool
-    devices: list[EvoDevConfigDictT]
-    weather: EvoWeatherDictT  # WeatherResponse
-    daylight_saving_time_enabled: bool
-    time_zone: EvoTimeZoneDictT
-    one_touch_actions_suspended: bool
-    is_location_owner: bool
-    locationOwner_id: int
-    location_owner_name: str
-    location_owner_user_name: str
-    can_searchforcontractors: bool
-    contractor: dict[str, Any]  # ContractorResponse

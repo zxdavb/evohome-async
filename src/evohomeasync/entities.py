@@ -33,8 +33,6 @@ if TYPE_CHECKING:
     from .auth import Auth
     from .schemas import EvoDevConfigDictT, EvoGwyConfigDictT, EvoLocConfigDictT
 
-    _EvoDictT = dict[str, Any]
-
 
 _TEMP_IS_NA: Final = 128
 
@@ -43,7 +41,7 @@ class EntityBase:
     # _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
 
     _config: EvoDevConfigDictT | EvoGwyConfigDictT | EvoLocConfigDictT
-    _status: _EvoDictT
+    # _status: _EvoDictT
 
     def __init__(self, entity_id: int, auth: Auth, logger: logging.Logger) -> None:
         self._id: Final = entity_id
@@ -63,10 +61,10 @@ class EntityBase:
         """Return the latest config of the entity."""
         return self._config
 
-    @property
-    def status(self) -> _EvoDictT | None:
-        """Return the latest status of the entity."""
-        return self._status
+    # @property  # TODO: split status out from config
+    # def status(self) -> _EvoDictT | None:
+    #     """Return the latest status of the entity."""
+    #     return self._status
 
 
 class Location(EntityBase):
@@ -82,7 +80,7 @@ class Location(EntityBase):
         self._evo = client  # proxy for parent
 
         self._config: EvoLocConfigDictT = config
-        self._status: _EvoDictT = {}
+        # lf._status: _EvoDictT = {}
 
         self.gateways: list[Gateway] = []
         self.gateway_by_id: dict[str, Gateway] = {}
@@ -268,7 +266,7 @@ class Gateway(EntityBase):
         self._loc = location  # parent
 
         self._config: EvoGwyConfigDictT = config  # is of one of its devices
-        self._status: _EvoDictT = {}
+        # lf._status: _EvoDictT = {}
 
         self.mac_address = config["mac_id"]
 
@@ -294,7 +292,7 @@ class Zone(EntityBase):
         self._gwy = gateway  # parent
 
         self._config: EvoDevConfigDictT = config
-        self._status: _EvoDictT = {}
+        # lf._status: _EvoDictT = {}
 
     @property
     def name(self) -> str:
@@ -362,7 +360,7 @@ class Hotwater(EntityBase):
         self._gwy = gateway  # parent
 
         self._config: EvoDevConfigDictT = config
-        self._status: _EvoDictT = {}
+        # lf._status: _EvoDictT = {}
 
     @property
     def name(self) -> str:
