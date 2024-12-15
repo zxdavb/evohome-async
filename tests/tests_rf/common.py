@@ -275,7 +275,7 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
 
         assert rsp.content_type == "application/json", response
 
-        task: dict = response[0] if isinstance(response, list) else response
+        task: dict[str, str] = response[0] if isinstance(response, list) else response
 
         if task["state"] == "Succeeded":
             return True

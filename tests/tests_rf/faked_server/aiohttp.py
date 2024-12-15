@@ -49,7 +49,7 @@ class StreamReader(asyncio.StreamReader):
         """Read exactly `n` bytes."""
         raise NotImplementedError
 
-    async def readuntil(self, separator: _ReaduntilBuffer = b"\n") -> bytes:  # type: ignore[override]
+    async def readuntil(self, separator: _ReaduntilBuffer = b"\n") -> bytes:
         """Read data from the stream until ``separator`` is found."""
         raise NotImplementedError
 

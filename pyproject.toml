@@ -68,6 +68,11 @@ norecursedirs = "deprecated/*"
 ###  mypy ############################################################################
 
 [tool.mypy]
+python_version = "3.12"
+
+# strict = true
+# enable_incomplete_feature = ["NewGenericSyntax"]
+
 exclude = ["docs", "tests/tests_cc"]
 files = ["cli", "src", "tests"]
 
@@ -108,12 +113,6 @@ disallow_any_unimported = true
 warn_no_return = true
 warn_unreachable = true
 
-
-#
-[[tool.mypy.overrides]]
-module = ["tests.tests_rf.common"]
-
-disable_error_code = ["type-arg"] # 21
 
 #
 [[tool.mypy.overrides]]

@@ -30,10 +30,10 @@ if TYPE_CHECKING:
 
 
 type JsonValueType = (
-    dict[str, JsonValueType] | list[JsonValueType] | str | int | float | bool | None
+    dict[str, "JsonValueType"] | list["JsonValueType"] | str | int | float | bool | None
 )
-type JsonArrayType = list[JsonValueType]
-type JsonObjectType = dict[str, JsonValueType]
+type JsonArrayType = list["JsonValueType"]
+type JsonObjectType = dict[str, "JsonValueType"]
 
 
 class ClientStub:
