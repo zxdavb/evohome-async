@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 from datetime import UTC, datetime as dt, timedelta as td
 from typing import TYPE_CHECKING
 
@@ -50,8 +49,8 @@ async def client_session(
 def credentials() -> tuple[str, str]:
     """Return a username and a password."""
 
-    username: str = os.getenv("TEST_USERNAME") or TEST_USERNAME
-    password: str = os.getenv("TEST_PASSWORD") or TEST_PASSWORD
+    username: str = TEST_USERNAME
+    password: str = TEST_PASSWORD
 
     return username, password
 
