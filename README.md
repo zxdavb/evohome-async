@@ -50,16 +50,19 @@ await websession.close()
 ### Differences from non-async version
 The difference between the **evohomeasync** and **evohomeclient** libraries are significant, but it should be relatively straightforward to port your code over to this async library should you wish.
 
+For example, entity ID attrs are `.id` and no longer `.dhwId`, `zoneId`, etc.
+
 Differences include:
- - uses the aiohttp client and not requests
- - namespace is simpler (different) and is snake_case and not camelCase
- - parochial exceptions (e.g. AuthenticationFailedError) rather than generics (TypeError)
- - uses a TokenManager and an Auth class
- - is fully typed, including TypedDicts and py.typed
+ - uses the **aiohttp** client and not **requests**
+ - namespace is simpler (different) and is `snake_case` and not `camelCase`
+ - parochial exceptions (e.g. **AuthenticationFailedError**) rather than generics (**TypeError**)
+ - uses a **TokenManager** (for authentication) and an **Auth** (for authorization) class
+ - is fully typed, including **TypedDict**s and `py.typed`
  - additional functionality (e.g. throws a warning for any active faults)
+ - better error messages when things go wrong
  - extended compatability beyond pure evohome systems
- - more extensive testing via pytest
- - uses best of class linting/typing via ruff/mypy
+ - more extensive testing via **pytest**
+ - uses best of class linting/typing via **ruff**/**mypy**
  - schedule JSON import by name as well as by zone/dhw id
 
 The non-async documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
