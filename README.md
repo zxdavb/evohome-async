@@ -27,7 +27,7 @@ python client.py -u username@gmail.com -p password set-schedules --loc-idx 2 -f 
 
 To avoid exceeding the vendor's API rate limit, it will restore the access token cache, unless you use the the `--no-tokens` switch.
 
-> **NOTE:** the client will always save your tokens to **.evo-cache.tmp**: this presents a small security concern.
+> **NOTE:** the client may save your access tokens to **.evo-cache.tmp**: this presents a small security concern.
 
 ### Example code...
 ```python
