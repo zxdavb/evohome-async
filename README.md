@@ -52,16 +52,15 @@ The difference between the **evohome-async** and **evohome-client** libraries ar
 For example, entity ID attrs are `.id` and no longer `.dhwId`, `zoneId`, etc.
 
 Other differences include:
- - uses the **aiohttp** client and not **requests**
- - namespace is simpler (different) and is `snake_case` and not `camelCase`
- - parochial exceptions (e.g. **AuthenticationFailedError**) rather than generics (**TypeError**)
- - uses a **TokenManager** (for authentication) and an **Auth** (for authorization) class
+ - namespace is different (simpler) and is `snake_case` and not `camelCase`
+ - exceptions are parochial (e.g. **AuthenticationFailedError**) rather than generic (**TypeError**)
+ - exposes a **TokenManager** class (for authentication) and uses an **Auth** class (for authorization)
  - is fully typed, including **TypedDict**s and `py.typed`
- - additional functionality (e.g. throws a warning for any active faults)
- - better error messages when things go wrong
- - extended compatability beyond pure evohome systems
+ - additional functionality (e.g. logs a warning for any active faults)
+ - better error messages when things do go wrong
+ - extended compatability beyond pure evohome systems (e.g. VisionPro)
  - more extensive testing via **pytest**
  - uses best of class linting/typing via **ruff**/**mypy**
- - schedule JSON import by name as well as by zone/dhw id
+ - can import schedule JSON by name as well as by zone/dhw id
 
 The non-async documentation (from **evohomeclient**) is available at http://evohome-client.readthedocs.org/en/latest/
