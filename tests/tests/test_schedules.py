@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Tests for evohome-async - validate the schedule schemas."""
 
 from __future__ import annotations

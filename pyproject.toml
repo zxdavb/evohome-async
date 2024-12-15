@@ -193,8 +193,10 @@ ignore = [
 
 
 [tool.ruff.lint.per-file-ignores]
-"./tests/*" = ["S101"]  # Assertions are removed when Python is run with optimization
+"./client.py" = ["EXE001"]  #  shebang directive in a file that is not executable
+"./cli/client.py" = ["EXE001", "T201"]  # prints should typically be omitted
 "./src/*/schemas/typedefs.py" = ["UP040"]  # PEP695 says use type rather that TypeAlias
+"./tests/*" = ["S101"]  # Assertions are removed when Python is run with optimization
 
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Mocked vendor RESTful API via a hacked aiohttp."""
 
 from __future__ import annotations

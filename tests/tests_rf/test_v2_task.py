@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """evohome-async - validate the handling of vendor APIs (URLs) for task management.
 
 This is used to:

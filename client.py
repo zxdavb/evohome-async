@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """A CLI for the evohome-sync2 library."""
 
 import sys

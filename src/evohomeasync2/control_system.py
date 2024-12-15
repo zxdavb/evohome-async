@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Provides handling of TCC temperature control systems."""
 
 # TODO: add set_mode() for non-evohome modes (e.g. "Heat", "Off")

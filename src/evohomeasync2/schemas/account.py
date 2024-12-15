@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """evohomeasync schema - for Account JSON of RESTful API."""
 
 from __future__ import annotations

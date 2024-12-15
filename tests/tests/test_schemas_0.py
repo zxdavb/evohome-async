@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Tests for evohome-async - validate the schema of HA's debug JSON (older ver)."""
 
 from __future__ import annotations

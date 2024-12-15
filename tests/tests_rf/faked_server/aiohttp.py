@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """A hacked aiohttp to provide a faked server."""
 
 from __future__ import annotations

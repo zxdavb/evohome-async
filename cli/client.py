@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """evohomeasync - a CLI utility that is not a core part of the library."""
 
-# flake8: noqa: T201
-
 from __future__ import annotations
 
 import asyncio

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """evohomeasync provides an async client for the v2 Resideo TCC API."""
 
 from typing import Final

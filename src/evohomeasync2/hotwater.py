@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Provides handling of TCC DHW zones."""
 
 # TODO: add set_mode() for non-evohome modes

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """An async client for the v0 Resideo TCC API."""
 
 from __future__ import annotations

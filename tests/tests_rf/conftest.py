@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """evohome-async - test config."""
 
 from __future__ import annotations

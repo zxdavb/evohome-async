@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """evohomeasync schema - for Config JSON of RESTful API."""
 # ruff: noqa: E501
 # ruff: line-length=120

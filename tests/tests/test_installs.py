@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Tests for evohome-async - validate the schemas of vendor's RESTful JSON."""
 
 from __future__ import annotations

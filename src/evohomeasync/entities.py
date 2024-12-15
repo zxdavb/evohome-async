@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Provides handling of TCC v0 locations."""
 
 from __future__ import annotations

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """evohome-async - validate the v0 API session manager."""
 
 from __future__ import annotations

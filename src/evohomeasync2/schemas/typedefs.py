@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """evohomeasync schema - shared types (WIP)."""
 
 from __future__ import annotations

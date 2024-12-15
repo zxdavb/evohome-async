@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """evohome-async - validate the evohome-async APIs (methods)."""
 
 from __future__ import annotations
