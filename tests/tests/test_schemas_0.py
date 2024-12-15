@@ -70,7 +70,7 @@ def test_config_refresh(config: dict[str, Any], status: dict[str, Any]) -> None:
     status = convert_keys_to_snake_case(status)
 
     loc = Location(ClientStub(), config)  # type: ignore[arg-type]
-    loc._update_status(status)
+    loc._update_status(status)  # type: ignore[arg-type]
 
 
 def test_config_schemas(config: dict[str, Any]) -> None:

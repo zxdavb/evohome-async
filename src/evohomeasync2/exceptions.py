@@ -10,6 +10,7 @@ from evohome.exceptions import (  # noqa: F401
     InvalidParameterError,
     InvalidScheduleError,
     InvalidSchemaError,
+    LocationStatusError,
     NoSingleTcsError,
     NoSystemConfigError,
     RateLimitExceededError,

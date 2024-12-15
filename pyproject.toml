@@ -188,11 +188,13 @@ ignore = [
   "PLR2044", # Line with empty comment
   "S101",    # Assertions are removed when Python is run with optimization
   "TRY003",  # Long exception messages
+  "UP040",
 ]
 
 
 [tool.ruff.lint.per-file-ignores]
-"./tests/*" = ["S101"]
+"./tests/*" = ["S101"]  # Assertions are removed when Python is run with optimization
+"./src/*/schemas/typedefs.py" = ["UP040"]  # PEP695 says use type rather that TypeAlias
 
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]

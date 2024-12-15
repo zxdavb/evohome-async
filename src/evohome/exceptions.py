@@ -52,7 +52,7 @@ class InvalidScheduleError(InvalidParameterError):
 
 
 class SystemConfigError(EvohomeError):  # a base exception
-    """The system config JSON is missing or somehow invalid."""
+    """The system's config JSON is missing or somehow invalid."""
 
 
 class NoSystemConfigError(SystemConfigError):
@@ -65,3 +65,7 @@ class NoSystemConfigError(SystemConfigError):
 
 class NoSingleTcsError(SystemConfigError):
     """There is no default TCS (e.g. more than one location)."""
+
+
+class LocationStatusError(EvohomeError):  # a base exception
+    """The entity's status JSON is missing or somehow invalid."""

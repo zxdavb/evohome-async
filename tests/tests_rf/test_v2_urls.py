@@ -25,7 +25,6 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas import _EvoDictT
     from tests.conftest import EvohomeClientv2
 
 
@@ -236,7 +235,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
 
     #
     # STEP 3: Change the mode, but with invalid request data (JSON)
-    new_mode: _EvoDictT = {"systemMode": "xxxxx", "permanent": True}
+    new_mode = {"systemMode": "xxxxx", "permanent": True}
 
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, json=new_mode, status=HTTPStatus.BAD_REQUEST

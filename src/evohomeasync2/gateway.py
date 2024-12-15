@@ -23,8 +23,11 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import Location
-    from .schemas import _EvoDictT
-    from .schemas.typedefs import EvoGwyConfigT, EvoGwyEntryT, EvoTcsEntryT
+    from .schemas.typedefs import (
+        EvoGwyConfigEntryT,
+        EvoGwyConfigResponseT,
+        EvoGwyStatusResponseT,
+    )
 
 
 class Gateway(ActiveFaultsBase):
@@ -33,7 +36,7 @@ class Gateway(ActiveFaultsBase):
     SCH_STATUS: vol.Schema = factory_gwy_status(camel_to_snake)
     _TYPE = EntityType.GWY
 
-    def __init__(self, location: Location, config: EvoGwyEntryT) -> None:
+    def __init__(self, location: Location, config: EvoGwyConfigResponseT) -> None:
         super().__init__(
             config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID],
             location._auth,
@@ -43,14 +46,13 @@ class Gateway(ActiveFaultsBase):
         self.location = location  # parent
         #
 
-        self._config: Final[EvoGwyConfigT] = config[SZ_GATEWAY_INFO]  # type: ignore[assignment,misc]
-        self._status: _EvoDictT = {}
+        self._config: Final[EvoGwyConfigEntryT] = config[SZ_GATEWAY_INFO]  # type: ignore[misc]
+        self._status: EvoGwyStatusResponseT | None = None
 
         # children
         self.control_systems: list[ControlSystem] = []
         self.control_system_by_id: dict[str, ControlSystem] = {}  # tcs by id
 
-        tcs_entry: EvoTcsEntryT
         for tcs_entry in config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             tcs = ControlSystem(self, tcs_entry)
 
@@ -61,9 +63,8 @@ class Gateway(ActiveFaultsBase):
     def mac_address(self) -> str:
         return self._config[SZ_MAC]
 
-    def _update_status(self, status: _EvoDictT) -> None:
-        super()._update_status(status)  # process active faults
-
+    def _update_status(self, status: EvoGwyStatusResponseT) -> None:
+        self._update_faults(status["active_faults"])
         self._status = status
 
         for tcs_status in self._status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:

@@ -36,11 +36,10 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import _EvohomeClientNew as EvohomeClient
-    from .schemas import _EvoDictT
     from .schemas.typedefs import (
-        EvoGwyEntryT,
-        EvoLocConfigT,
-        EvoLocEntryT,
+        EvoLocConfigEntryT,
+        EvoLocConfigResponseT,
+        EvoLocStatusResponseT,
         EvoTimeZoneInfoT,
     )
 
@@ -63,7 +62,7 @@ class Location(EntityBase):
     SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
     _TYPE = EntityType.LOC
 
-    def __init__(self, client: EvohomeClient, config: EvoLocEntryT) -> None:
+    def __init__(self, client: EvohomeClient, config: EvoLocConfigResponseT) -> None:
         super().__init__(
             config[SZ_LOCATION_INFO][SZ_LOCATION_ID],
             client.auth,
@@ -73,8 +72,8 @@ class Location(EntityBase):
         self.client = client  # proxy for parent
         #
 
-        self._config: EvoLocConfigT = config[SZ_LOCATION_INFO]  # type: ignore[assignment]
-        self._status: _EvoDictT = {}
+        self._config: EvoLocConfigEntryT = config[SZ_LOCATION_INFO]
+        self._status: EvoLocStatusResponseT | None = None
 
         self._tzinfo = _create_tzinfo(self.time_zone_info, dst_enabled=self.dst_enabled)
 
@@ -82,7 +81,6 @@ class Location(EntityBase):
         self.gateways: list[Gateway] = []
         self.gateway_by_id: dict[str, Gateway] = {}  # gwy by id
 
-        gwy_entry: EvoGwyEntryT
         for gwy_entry in config[SZ_GATEWAYS]:
             gwy = Gateway(self, gwy_entry)
 
@@ -138,7 +136,9 @@ class Location(EntityBase):
         """Return the current local time as a aware datetime in this location's TZ."""
         return dt.now(self.client.tzinfo).astimezone(self.tzinfo)
 
-    async def update(self, *, _update_time_zone_info: bool = False) -> _EvoDictT:
+    async def update(
+        self, *, _update_time_zone_info: bool = False
+    ) -> EvoLocStatusResponseT:
         """Get the latest state of the location and update its status.
 
         Will also update the status of its gateways, their TCSs, and their DHW/zones.
@@ -149,7 +149,7 @@ class Location(EntityBase):
         if _update_time_zone_info:
             await self._update_config()
 
-        status: _EvoDictT = await self._auth.get(
+        status: EvoLocStatusResponseT = await self._auth.get(
             f"{self._TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
             schema=self.SCH_STATUS,
         )  # type: ignore[assignment]
@@ -162,8 +162,8 @@ class Location(EntityBase):
 
         # it is assumed that only the location's TZ/DST info can change
 
-        url = f"location/{self._id}/installationInfo"
-        config: EvoLocEntryT = await self._auth.get(url)  # type: ignore[assignment]
+        url = f"location/{self._id}/installationInfo"  # TODO: add schema
+        config: EvoLocConfigResponseT = await self._auth.get(url)  # type: ignore[assignment]
 
         self._config = config[SZ_LOCATION_INFO]
 
@@ -171,10 +171,9 @@ class Location(EntityBase):
         self._tzinfo = _create_tzinfo(self.time_zone_info, dst_enabled=self.dst_enabled)
         # lf._tzinfo._update(time_zone_info=time_zone_info, use_dst_switching=use_dst_switching)
 
-    def _update_status(self, status: _EvoDictT) -> None:
+    def _update_status(self, status: EvoLocStatusResponseT) -> None:
         """Update the location's latest status (and its gateways and their TCSs)."""
         # No ActiveFaults in location node of status
-
         self._status = status
 
         for gwy_status in self._status[SZ_GATEWAYS]:

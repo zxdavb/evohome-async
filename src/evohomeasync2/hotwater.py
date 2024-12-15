@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Any, Final
 
 from evohome.helpers import camel_to_snake
 
@@ -37,8 +37,13 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import ControlSystem
-    from .schemas import _EvoDictT
-    from .schemas.typedefs import DayOfWeekDhwT, EvoDhwConfigT
+    from .schemas.typedefs import (
+        DayOfWeekDhwT,
+        EvoDhwConfigEntryT,
+        EvoDhwConfigResponseT,
+        EvoDhwStateStatusResponseT,
+        EvoDhwStatusResponseT,
+    )
 
 
 class HotWater(_ZoneBase):
@@ -49,19 +54,19 @@ class HotWater(_ZoneBase):
     SCH_SCHEDULE: vol.Schema = factory_schedule_dhw(camel_to_snake)
     SCH_STATUS: vol.Schema = factory_dhw_status(camel_to_snake)
 
-    def __init__(self, tcs: ControlSystem, config: EvoDhwConfigT) -> None:
+    def __init__(self, tcs: ControlSystem, config: EvoDhwConfigResponseT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs)
 
-        self._config: Final[EvoDhwConfigT] = config  # type: ignore[assignment,misc]
-        self._status: _EvoDictT = {}
+        self._config: Final[EvoDhwConfigEntryT] = config  # type: ignore[misc]
+        self._status: EvoDhwStatusResponseT | None = None
 
         self._schedule: list[DayOfWeekDhwT] | None = None  # type: ignore[assignment]
 
     @property  # a for convenience attr
     def mode(self) -> ZoneMode | None:
-        if (state_status := self.state_status) is None:
+        if self.state_status is None:
             return None
-        return state_status[SZ_MODE]  # type: ignore[no-any-return]
+        return self.state_status[SZ_MODE]
 
     @property  # a convenience attr
     def modes(self) -> tuple[ZoneMode]:
@@ -72,24 +77,21 @@ class HotWater(_ZoneBase):
         return "Domestic Hot Water"
 
     @property
-    def schedule_capabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
-        return ret
+    def schedule_capabilities(self) -> dict[str, Any]:
+        return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
 
     @property  # a convenience attr
     def state(self) -> DhwState | None:
         if (state_status := self.state_status) is None:
             return None
-        ret: DhwState = state_status[SZ_STATE]
-        return ret
+        return state_status[SZ_STATE]
 
     @property  # a convenience attr
-    def states(self) -> tuple[DhwState]:
-        ret: tuple[DhwState] = tuple(x.value for x in DhwState)  # type: ignore[assignment]
-        return ret
+    def states(self) -> tuple[DhwState, ...]:
+        return tuple(x.value for x in DhwState)  # type: ignore[misc]  # TODO: fix
 
     @property
-    def state_capabilities(self) -> _EvoDictT:
+    def state_capabilities(self) -> dict[str, Any]:
         """
         "dhwStateCapabilitiesResponse": {
             "allowedStates": ["On", "Off"],
@@ -99,12 +101,13 @@ class HotWater(_ZoneBase):
         },
         """
 
-        ret: _EvoDictT = self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
-        return ret
+        return self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
 
     @property
-    def state_status(self) -> _EvoDictT | None:
-        return self._status.get(SZ_STATE_STATUS)
+    def state_status(self) -> EvoDhwStateStatusResponseT | None:
+        if self._status is None:
+            return None
+        return self._status[SZ_STATE_STATUS]
 
     @property
     def type(self) -> str:

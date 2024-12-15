@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     import aiohttp
 
     from .control_system import ControlSystem
-    from .schemas.typedefs import EvoLocEntryT, EvoUsrConfigT
+    from .schemas.typedefs import EvoLocConfigResponseT, EvoUsrConfigResponseT
 
 
 SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)
@@ -34,8 +34,8 @@ class EvohomeClientNew:
 
     _LOC_IDX: int = 0  # the index of the default location in _user_locs
 
-    _user_info: EvoUsrConfigT | None = None
-    _user_locs: list[EvoLocEntryT] | None = None  # all locations of the user
+    _user_info: EvoUsrConfigResponseT | None = None
+    _user_locs: list[EvoLocConfigResponseT] | None = None  # all locations of the user
 
     def __init__(
         self,
@@ -75,7 +75,7 @@ class EvohomeClientNew:
         *,
         _reset_config: bool = False,
         _dont_update_status: bool = False,
-    ) -> list[EvoLocEntryT]:
+    ) -> list[EvoLocConfigResponseT]:
         """Retrieve the latest state of the installation and it's locations.
 
         If required, or when `_reset_config` is true, first retrieves the user
@@ -130,7 +130,7 @@ class EvohomeClientNew:
         return self._user_locs
 
     @property
-    def user_account(self) -> EvoUsrConfigT:
+    def user_account(self) -> EvoUsrConfigResponseT:
         """Return the (config) information of the user account."""
 
         if not self._user_info:
@@ -141,7 +141,7 @@ class EvohomeClientNew:
         return self._user_info
 
     @property
-    def user_installation(self) -> list[EvoLocEntryT]:
+    def user_installation(self) -> list[EvoLocConfigResponseT]:
         """Return the (config) information of all the user's locations."""
 
         if not self._user_locs:

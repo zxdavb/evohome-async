@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Provides handling of TCC temperature control systems."""
 
-# TODO: add provision for cooling
 # TODO: add set_mode() for non-evohome modes (e.g. "Heat", "Off")
 
 from __future__ import annotations
@@ -50,7 +49,6 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import Gateway, Location
-    from .schemas import _EvoDictT
     from .schemas.typedefs import (
         DayOfWeekDhwT,
         DayOfWeekZoneT,
@@ -58,9 +56,9 @@ if TYPE_CHECKING:
         EvoScheduleDhwT,
         EvoScheduleZoneT,
         EvoSystemModeStatusT,
-        EvoTcsConfigT,
-        EvoTcsEntryT,
-        EvoZonConfigT,
+        EvoTcsConfigEntryT,
+        EvoTcsConfigResponseT,
+        EvoTcsStatusResponseT,
     )
 
 
@@ -70,7 +68,7 @@ class ControlSystem(ActiveFaultsBase):
     SCH_STATUS: vol.Schema = factory_tcs_status(camel_to_snake)
     _TYPE = EntityType.TCS
 
-    def __init__(self, gateway: Gateway, config: EvoTcsEntryT) -> None:
+    def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:
         super().__init__(
             config[SZ_SYSTEM_ID],
             gateway._auth,
@@ -80,10 +78,10 @@ class ControlSystem(ActiveFaultsBase):
         self.gateway = gateway  # parent
         self.location: Location = gateway.location
 
-        self._config: Final[EvoTcsConfigT] = {  # type: ignore[assignment,misc]
+        self._config: Final[EvoTcsConfigEntryT] = {  # type: ignore[assignment,misc]
             k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
         }
-        self._status: _EvoDictT = {}
+        self._status: EvoTcsStatusResponseT | None = None
 
         # children
         self.zones: list[Zone] = []
@@ -91,7 +89,6 @@ class ControlSystem(ActiveFaultsBase):
 
         self.hotwater: HotWater | None = None
 
-        zon_entry: EvoZonConfigT
         for zon_entry in config[SZ_ZONES]:
             try:
                 zone = Zone(self, zon_entry)
@@ -105,11 +102,10 @@ class ControlSystem(ActiveFaultsBase):
                 self.zones_by_id[zone.id] = zone
 
         if dhw_entry := config.get(SZ_DHW):
-            self.hotwater = HotWater(self, dhw_entry)  # type: ignore[arg-type]
+            self.hotwater = HotWater(self, dhw_entry)
 
-    def _update_status(self, status: _EvoDictT) -> None:
-        super()._update_status(status)  # process active faults
-
+    def _update_status(self, status: EvoTcsStatusResponseT) -> None:
+        self._update_faults(status["active_faults"])
         self._status = status
 
         for zon_status in self._status[SZ_ZONES]:
@@ -155,8 +151,8 @@ class ControlSystem(ActiveFaultsBase):
         return self.system_mode_status[SZ_MODE]
 
     @property  # a convenience attr
-    def modes(self) -> tuple[SystemMode]:
-        return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)  # type: ignore[return-value]
+    def modes(self) -> tuple[SystemMode, ...]:
+        return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
 
     @property
     def model(self) -> TcsModelType:
@@ -170,8 +166,9 @@ class ControlSystem(ActiveFaultsBase):
             "isPermanent": true
         }
         """
-
-        return self._status.get(SZ_SYSTEM_MODE_STATUS)
+        if self._status is None:
+            return None
+        return self._status[SZ_SYSTEM_MODE_STATUS]
 
     @property
     def zones_by_name(self) -> dict[str, Zone]:
@@ -205,8 +202,6 @@ class ControlSystem(ActiveFaultsBase):
     async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
         """Set the system to a mode, either indefinitely, or for a set time."""
 
-        request: _EvoDictT
-
         if until is None:
             request = {
                 S2_SYSTEM_MODE: mode,
@@ -220,7 +215,7 @@ class ControlSystem(ActiveFaultsBase):
                 S2_TIME_UNTIL: until.strftime(API_STRFTIME),
             }
 
-        await self._set_mode(request)
+        await self._set_mode(request)  # type: ignore[arg-type]
 
     async def set_auto(self) -> None:
         """Set the system into normal mode."""
