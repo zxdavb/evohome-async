@@ -15,10 +15,10 @@ It provides support for Resideo TCC-based systems, such as **Evohome**, **Round 
 
 This client requires the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead.
 
-The evohome API does not currently support cooling.
+> **NOTE:** The evohome API does not currently support cooling.
 
-### CLI for schedules
 
+### CLI for schedules (currently WIP)
 If you download the git repo you can use a basic CLI for backup/restore of schedules (incl. DHW, if any), for example:
 ```
 python client.py -u username@gmail.com -p password get-schedules --loc-idx 2 > schedules.json
@@ -31,6 +31,21 @@ python client.py -u username@gmail.com -p password set-schedules --loc-idx 2 -f 
 To avoid exceeding the vendor's API rate limit, it will restore the access token cache, unless you use the the `--no-tokens` switch.
 
 > Beware that the client will always save your tokens to **.evo-cache.tmp**: this presents a small security concern.
+
+### Example code...
+```python
+websession = aiohttp.ClientSession()
+token_manager = TokenManager(username, password, websession, cache_file=CACHE_FILE)
+await token_manager.load_access_token()
+
+evo = EvohomeClientNew(token_manager)
+await evo.update()
+
+...
+
+await token_manager.save_access_token()
+await websession.close()
+```
 
 ### Differences from non-async version (out of date)
 The difference between the **evohomeasync** and **evohomeclient** libraries have been kept to the minimum, and it is planned for existing docs to be useful.  Thus, it should be relatively easy to port your code over to this async library should you wish.
