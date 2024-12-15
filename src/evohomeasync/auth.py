@@ -72,7 +72,7 @@ class AbstractSessionManager(ABC):
 
     _session_id: str
     _session_id_expires: dt
-    _user_info: EvoUserAccountDictT | None  # TODO: should not publicise here?
+    _user_info: EvoUserAccountDictT | None
 
     def __init__(
         self,
@@ -124,11 +124,6 @@ class AbstractSessionManager(ABC):
         """Return the expiration datetime of the session id."""
         return self._session_id_expires
 
-    @property
-    def user_info(self) -> EvoUserAccountDictT | None:
-        """Return the user account information."""
-        return self._user_info
-
     def is_session_id_valid(self) -> bool:
         """Return True if the session id is valid."""
         return self._session_id_expires > dt.now(tz=UTC) + td(seconds=15)
@@ -178,7 +173,7 @@ class AbstractSessionManager(ABC):
 
         self.logger.debug(f" - session_id = {self.session_id}")
         self.logger.debug(f" - session_id_expires = {self.session_id_expires}")
-        self.logger.debug(f" - user_info = {self.user_info}")
+        self.logger.debug(f" - user_info = {self._user_info}")
 
     async def _request_session_id(self, credentials: dict[str, str]) -> None:
         """Obtain an session id using the supplied credentials.
