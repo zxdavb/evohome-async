@@ -2,10 +2,11 @@
 # name: test_system_snapshot[default][control_system]
   dict({
     'active_faults': '''
-      []
+      !!python/tuple []
   
     ''',
     'allowed_system_modes': '''
+      !!python/tuple
       - can_be_permanent: true
         can_be_temporary: false
         system_mode: HeatingOff
@@ -213,7 +214,7 @@
 # name: test_system_snapshot[default][gateway]
   dict({
     'active_faults': '''
-      []
+      !!python/tuple []
   
     ''',
     'config': '''
@@ -338,7 +339,7 @@
 # name: test_system_snapshot[default][hot_water]
   dict({
     'active_faults': '''
-      []
+      !!python/tuple []
   
     ''',
     'config': '''
@@ -409,8 +410,8 @@
     ''',
     'states': '''
       !!python/tuple
-      - 'Off'
       - 'On'
+      - 'Off'
   
     ''',
     'status': '''
@@ -606,7 +607,7 @@
 # name: test_system_snapshot[default][zones]
   '''
   '3432521':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Dead Zone\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -712,7 +713,7 @@
   
           '
   '3432576':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Main Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -820,7 +821,7 @@
   
           '
   '3432577':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Front Room\nschedule_capabilities:\n \
@@ -928,7 +929,7 @@
   
           '
   '3432578':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Kitchen\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -1036,7 +1037,7 @@
   
           '
   '3432579':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Dn\nschedule_capabilities:\n\
@@ -1144,7 +1145,7 @@
   
           '
   '3432580':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Main Bedroom\nschedule_capabilities:\n\
@@ -1252,7 +1253,7 @@
   
           '
   '3449703':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Kids Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -1360,7 +1361,7 @@
   
           '
   '3449740':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Up\nschedule_capabilities:\n\
@@ -1468,7 +1469,7 @@
   
           '
   '3450733':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Spare Room\nschedule_capabilities:\n \
@@ -1581,10 +1582,11 @@
 # name: test_system_snapshot[hass_118169][control_system]
   dict({
     'active_faults': '''
-      []
+      !!python/tuple []
   
     ''',
     'allowed_system_modes': '''
+      !!python/tuple
       - can_be_permanent: true
         can_be_temporary: false
         system_mode: HeatingOff
@@ -1792,7 +1794,7 @@
 # name: test_system_snapshot[hass_118169][gateway]
   dict({
     'active_faults': '''
-      []
+      !!python/tuple []
   
     ''',
     'config': '''
@@ -1917,7 +1919,7 @@
 # name: test_system_snapshot[hass_118169][hot_water]
   dict({
     'active_faults': '''
-      []
+      !!python/tuple []
   
     ''',
     'config': '''
@@ -1988,8 +1990,8 @@
     ''',
     'states': '''
       !!python/tuple
-      - 'Off'
       - 'On'
+      - 'Off'
   
     ''',
     'status': '''
@@ -2185,7 +2187,7 @@
 # name: test_system_snapshot[hass_118169][zones]
   '''
   '3432521':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Dead Zone\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -2291,7 +2293,7 @@
   
           '
   '3432576':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Main Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -2399,7 +2401,7 @@
   
           '
   '3432577':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Front Room\nschedule_capabilities:\n \
@@ -2507,7 +2509,7 @@
   
           '
   '3432578':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Kitchen\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -2615,7 +2617,7 @@
   
           '
   '3432579':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Dn\nschedule_capabilities:\n\
@@ -2723,7 +2725,7 @@
   
           '
   '3432580':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Main Bedroom\nschedule_capabilities:\n\
@@ -2831,7 +2833,7 @@
   
           '
   '3449703':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Kids Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -2939,7 +2941,7 @@
   
           '
   '3449740':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Up\nschedule_capabilities:\n\
@@ -3047,7 +3049,7 @@
   
           '
   '3450733':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Spare Room\nschedule_capabilities:\n \
@@ -3160,10 +3162,11 @@
 # name: test_system_snapshot[system_002][control_system]
   dict({
     'active_faults': '''
-      []
+      !!python/tuple []
   
     ''',
     'allowed_system_modes': '''
+      !!python/tuple
       - can_be_permanent: true
         can_be_temporary: false
         system_mode: HeatingOff
@@ -3373,7 +3376,7 @@
 # name: test_system_snapshot[system_002][gateway]
   dict({
     'active_faults': '''
-      []
+      !!python/tuple []
   
     ''',
     'config': '''
@@ -3500,6 +3503,7 @@
 # name: test_system_snapshot[system_002][hot_water]
   dict({
     'active_faults': '''
+      !!python/tuple
       - fault_type: DHWSensorCommunicationLost
         since: '2023-11-30T18:48:40'
   
@@ -3572,8 +3576,8 @@
     ''',
     'states': '''
       !!python/tuple
-      - 'Off'
       - 'On'
+      - 'Off'
   
     ''',
     'status': '''
@@ -3771,7 +3775,7 @@
 # name: test_system_snapshot[system_002][zones]
   '''
   '3432521':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Dead Zone\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -3877,7 +3881,7 @@
   
           '
   '3432576':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Main Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -3985,7 +3989,7 @@
   
           '
   '3432577':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Front Room\nschedule_capabilities:\n \
@@ -4093,7 +4097,7 @@
   
           '
   '3432578':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Kitchen\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -4201,7 +4205,7 @@
   
           '
   '3432579':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Dn\nschedule_capabilities:\n\
@@ -4309,7 +4313,7 @@
   
           '
   '3432580':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Main Bedroom\nschedule_capabilities:\n\
@@ -4419,7 +4423,7 @@
   
           '
   '3449703':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Kids Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
@@ -4527,7 +4531,7 @@
   
           '
   '3449740':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Bathroom Up\nschedule_capabilities:\n\
@@ -4635,7 +4639,7 @@
   
           '
   '3450733':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: HeatingZone\nname: Spare Room\nschedule_capabilities:\n \
@@ -4748,10 +4752,11 @@
 # name: test_system_snapshot[system_004][control_system]
   dict({
     'active_faults': '''
-      []
+      !!python/tuple []
   
     ''',
     'allowed_system_modes': '''
+      !!python/tuple
       - can_be_permanent: true
         can_be_temporary: false
         system_mode: Auto
@@ -4855,7 +4860,7 @@
 # name: test_system_snapshot[system_004][gateway]
   dict({
     'active_faults': '''
-      []
+      !!python/tuple []
   
     ''',
     'config': '''
@@ -5001,7 +5006,7 @@
 # name: test_system_snapshot[system_004][zones]
   '''
   '3935922':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: RoundWireless\nname: Pokoj Honzicek\nschedule_capabilities:\n\
@@ -5109,7 +5114,7 @@
   
           '
   '4368406':
-      active_faults: '[]
+      active_faults: '!!python/tuple []
   
           '
       config: "model_type: RoundWireless\nname: Kuchyne\nschedule_capabilities:\n  max_switchpoints_per_day:\

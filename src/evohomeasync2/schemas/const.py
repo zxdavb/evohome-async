@@ -301,13 +301,3 @@ class ZoneType(StrEnum):
     UNKNOWN = S2_UNKNOWN
     ZONE_TEMPERATURE_CONTROL = S2_ZONE_TEMPERATURE_CONTROL
     ZONE_VALVES = S2_ZONE_VALVES
-
-
-# these may not be required with Python 3.12+ (used for 'if mode in ZONE_MODES'...)
-DHW_STATES = tuple(x.value for x in DhwState)
-FAULT_TYPES = tuple(x.value for x in FaultType)
-SYSTEM_MODES = tuple(x.value for x in SystemMode)
-TCS_MODEL_TYPES = tuple(x.value for x in TcsModelType)
-ZONE_MODEL_TYPES = tuple(x.value for x in ZoneModelType)
-ZONE_MODES = tuple(x.value for x in ZoneMode)
-ZONE_TYPES = tuple(x.value for x in ZoneType)

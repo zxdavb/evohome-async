@@ -7,12 +7,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync2 as evo2
-from evohomeasync2.schemas import (
-    SYSTEM_MODES,
-    TCC_GET_DHW_SCHEDULE,
-    TCC_GET_ZON_SCHEDULE,
-    SystemMode,
-)
+from evohomeasync2.schemas import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE, SystemMode
 from evohomeasync2.schemas.const import S2_MODE
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
@@ -101,7 +96,7 @@ async def _test_system_apis(evo: EvohomeClientv2) -> None:
     assert tcs.system_mode_status is not None
     mode = tcs.system_mode_status[S2_MODE]
 
-    assert mode in SYSTEM_MODES
+    assert mode in SystemMode
 
     await tcs.set_mode(SystemMode.AWAY)
     await evo.update()

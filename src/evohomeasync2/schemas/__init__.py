@@ -22,14 +22,7 @@ from .config import (
     factory_locations_installation_info,
     factory_user_locations_installation_info,
 )
-from .const import (  # noqa: F401
-    DHW_STATES,
-    SYSTEM_MODES,
-    ZONE_MODES,
-    DhwState,
-    SystemMode,
-    ZoneMode,
-)
+from .const import DhwState, SystemMode, ZoneMode  # noqa: F401
 from .schedule import factory_schedule_dhw, factory_schedule_zone
 from .status import (
     factory_dhw_status,

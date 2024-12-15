@@ -89,7 +89,7 @@ class HotWater(_ZoneBase):
 
     @property  # a convenience attr
     def states(self) -> tuple[DhwState, ...]:
-        return tuple(x.value for x in DhwState)  # type: ignore[misc]  # TODO: fix
+        return tuple(self.state_capabilities["allowed_states"])
 
     @property
     def state_capabilities(self) -> EvoDhwStateCapabilitiesResponseT:

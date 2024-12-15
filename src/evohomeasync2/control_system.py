@@ -128,7 +128,7 @@ class ControlSystem(ActiveFaultsBase):
                 )
 
     @property
-    def allowed_system_modes(self) -> list[EvoAllowedSystemModeT]:
+    def allowed_system_modes(self) -> tuple[EvoAllowedSystemModeT, ...]:
         """
         "allowedSystemModes": [
             {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
@@ -141,7 +141,7 @@ class ControlSystem(ActiveFaultsBase):
         ]
         """
 
-        return self._config[SZ_ALLOWED_SYSTEM_MODES]
+        return tuple(self._config[SZ_ALLOWED_SYSTEM_MODES])
 
     @property  # a convenience attr
     def mode(self) -> SystemMode | None:

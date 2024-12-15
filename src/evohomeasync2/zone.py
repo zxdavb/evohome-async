@@ -39,8 +39,6 @@ from .schemas.const import (
     S2_HEAT_SETPOINT_VALUE,
     S2_SETPOINT_MODE,
     S2_TIME_UNTIL,
-    ZONE_MODEL_TYPES,
-    ZONE_TYPES,
     EntityType,
     ZoneMode,
     ZoneModelType,
@@ -192,7 +190,7 @@ class ActiveFaultsBase(EntityBase):
         self._last_logged |= last_logged
 
     @property
-    def active_faults(self) -> list[EvoActiveFaultResponseT]:
+    def active_faults(self) -> tuple[EvoActiveFaultResponseT, ...]:
         """
         "activeFaults": [
             {
@@ -202,7 +200,7 @@ class ActiveFaultsBase(EntityBase):
         ]
         """
 
-        return self._active_faults
+        return tuple(self._active_faults)
 
 
 def as_local_time(dtm: dt, tzinfo: tzinfo) -> dt:
@@ -447,9 +445,9 @@ class Zone(_ZoneBase):
                 f"{self}: Invalid zone type '{self.type}' (is it a ghost zone?)"
             )
 
-        if self.model not in ZONE_MODEL_TYPES:
+        if self.model not in ZoneModelType:
             self._logger.warning("%s: Unknown model type '%s' (YMMV)", self, self.model)
-        if self.type not in ZONE_TYPES:
+        if self.type not in ZoneType:
             self._logger.warning("%s: Unknown zone type '%s' (YMMV)", self, self.type)
 
     @property  # convenience attr
