@@ -7,8 +7,6 @@ evohome-async
 
 Python client to _asynchronously_ access the [Total Connect Comfort](https://international.mytotalconnectcomfort.com/Account/Login) RESTful API.
 
-It is loosely based upon https://github.com/watchforstock/evohome-client, but async-aware.
-
 It provides support for Resideo TCC-based systems, such as **Evohome**, **Round Thermostat**, **VisionPro** and others:
  - it supports _only_ EU/EMEA-based systems, please use (e.g.) [somecomfort](https://github.com/mkmer/AIOSomecomfort) for US-based systems
  - it provides Evohome support for [Home Assistant](https://www.home-assistant.io/integrations/evohome) and other automation platforms
@@ -47,7 +45,9 @@ await websession.close()
 ```
 
 ### Differences from non-async version
-The difference between the **evohomeasync** and **evohomeclient** libraries are significant, but it should be relatively straightforward to port your code over to this async library should you wish.
+It is loosely based upon https://github.com/watchforstock/evohome-client, but async-aware.
+
+The difference between the **evohome-async** and **evohome-client** libraries are significant, but it should be relatively straightforward to port your code over to this async library should you wish.
 
 For example, entity ID attrs are `.id` and no longer `.dhwId`, `zoneId`, etc.
 
