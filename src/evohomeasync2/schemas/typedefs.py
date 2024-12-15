@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal, NotRequired, TypeAlias, TypedDict
+from typing import Any, Literal, NotRequired, TypedDict
 
 from .config import (  # noqa: TC001
     DhwState,
@@ -150,8 +150,19 @@ class EvoZonConfigEntryT(EvoZonConfigResponseT):
 
 class EvoDhwConfigResponseT(TypedDict):
     dhw_id: str
-    schedule_capabilities_response: dict[str, Any]
-    dhw_state_capabilities_response: dict[str, Any]
+    schedule_capabilities_response: EvoDhwScheduleCapabilitiesResponseT
+    dhw_state_capabilities_response: EvoDhwStateCapabilitiesResponseT
+
+
+class EvoDhwScheduleCapabilitiesResponseT(TypedDict):
+    pass
+
+
+class EvoDhwStateCapabilitiesResponseT(TypedDict):
+    allowed_states: list[DhwState]
+    allowed_modes: list[ZoneMode]
+    max_duration: str
+    timing_resolution: str
 
 
 class EvoDhwConfigEntryT(EvoDhwConfigResponseT):
@@ -225,15 +236,6 @@ class EvoDhwStateStatusResponseT(TypedDict):
     state: DhwState
 
 
-# namespace for the above GET status responses
-class EvoStatusResponse:
-    LOC: TypeAlias = EvoLocStatusResponseT
-    GWY: TypeAlias = EvoGwyStatusResponseT
-    TCS: TypeAlias = EvoTcsStatusResponseT
-    ZON: TypeAlias = EvoZonStatusResponseT
-    DHW: TypeAlias = EvoDhwStatusResponseT
-
-
 #######################################################################################
 
 
@@ -249,7 +251,7 @@ class EvoSystemModeStatusT(TypedDict):
 
 class EvoTcsStatusT(TypedDict):
     system_id: str
-    system_mode_status: dict[str, Any]
+    system_mode_status: dict[str, Any]  # TODO
 
 
 #######################################################################################

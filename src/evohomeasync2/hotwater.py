@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 
 from evohome.helpers import camel_to_snake
 
@@ -41,6 +41,8 @@ if TYPE_CHECKING:
         DayOfWeekDhwT,
         EvoDhwConfigEntryT,
         EvoDhwConfigResponseT,
+        EvoDhwScheduleCapabilitiesResponseT,
+        EvoDhwStateCapabilitiesResponseT,
         EvoDhwStateStatusResponseT,
         EvoDhwStatusResponseT,
     )
@@ -69,7 +71,7 @@ class HotWater(_ZoneBase):
         return self.state_status[SZ_MODE]
 
     @property  # a convenience attr
-    def modes(self) -> tuple[ZoneMode]:
+    def modes(self) -> tuple[ZoneMode, ...]:
         return tuple(self.state_capabilities[SZ_ALLOWED_MODES])
 
     @property
@@ -77,21 +79,21 @@ class HotWater(_ZoneBase):
         return "Domestic Hot Water"
 
     @property
-    def schedule_capabilities(self) -> dict[str, Any]:
+    def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesResponseT:
         return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
 
     @property  # a convenience attr
     def state(self) -> DhwState | None:
-        if (state_status := self.state_status) is None:
+        if self.state_status is None:
             return None
-        return state_status[SZ_STATE]
+        return self.state_status[SZ_STATE]
 
     @property  # a convenience attr
     def states(self) -> tuple[DhwState, ...]:
         return tuple(x.value for x in DhwState)  # type: ignore[misc]  # TODO: fix
 
     @property
-    def state_capabilities(self) -> dict[str, Any]:
+    def state_capabilities(self) -> EvoDhwStateCapabilitiesResponseT:
         """
         "dhwStateCapabilitiesResponse": {
             "allowedStates": ["On", "Off"],
