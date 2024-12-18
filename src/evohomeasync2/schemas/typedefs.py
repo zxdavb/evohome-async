@@ -139,8 +139,13 @@ class EvoZonScheduleCapabilitiesResponseT(TypedDict):
 
 class EvoZonSetpointCapabilitiesResponseT(TypedDict):
     allowed_setpoint_modes: list[ZoneMode]
+    can_control_cool: bool
+    can_control_heat: bool
     max_heat_setpoint: float
     min_heat_setpoint: float
+    value_resolution: float
+    max_duration: str
+    timing_resolution: str
 
 
 class EvoZonConfigEntryT(EvoZonConfigResponseT):
