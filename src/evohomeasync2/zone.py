@@ -147,6 +147,8 @@ class EntityBase:
 
 
 class ActiveFaultsBase(EntityBase):
+    """Provide the base for active faults."""
+
     def __init__(self, entity_id: str, broker: Auth, logger: logging.Logger) -> None:
         super().__init__(entity_id, broker, logger)
 
@@ -376,6 +378,7 @@ class _ZoneBase(_ScheduleBase):
         super().__init__(entity_id, tcs)
 
         self.location = tcs.location
+        self.tcs = tcs
 
     async def _update(self) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
         """Get the latest state of the DHW/zone and update its status.
