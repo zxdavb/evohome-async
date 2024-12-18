@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
+import aiohttp
 import voluptuous as vol
 
 from evohome import exceptions as exc
@@ -20,7 +21,6 @@ if TYPE_CHECKING:
     from collections.abc import Generator
     from types import TracebackType
 
-    import aiohttp
     from aiohttp.typedefs import StrOrURL
 
 
@@ -35,7 +35,7 @@ _ERR_MSG_LOOKUP_BOTH: dict[int, str] = {  # common to both url_auth & url_base
 }
 
 
-class AbstractRequestContextManager(ABC):
+class RequestContextManager:
     """A context manager for authorized aiohttp request."""
 
     _response: aiohttp.ClientResponse | None = None
@@ -75,9 +75,13 @@ class AbstractRequestContextManager(ABC):
         """Make this class awaitable."""
         return self._await_impl().__await__()
 
-    @abstractmethod
     async def _await_impl(self) -> aiohttp.ClientResponse:
-        """Make an aiohttp request to the vendor's servers."""
+        """Make an aiohttp request to the vendor's servers.
+
+        Assumes there are valid credentials in the header.
+        """
+
+        return await self.websession.request(self.method, self.url, **self.kwargs)
 
 
 class AbstractAuth(ABC):
@@ -173,10 +177,7 @@ class AbstractAuth(ABC):
     ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
         """Make a request to the Resideo TCC RESTful API.
 
-        Checks for ClientErrors and handles Auth failures appropriately.
-
-        Handles when session id is rejected by server (i.e. not expired, but otherwise
-        deemed invalid by the server).
+        Checks for authentication failures and other ClientErrors.
         """
 
         async def _content(
@@ -197,17 +198,42 @@ class AbstractAuth(ABC):
 
             return response  # type: ignore[no-any-return]
 
-        async with self._raw_request(method, f"{self.url_base}/{url}", **kwargs) as rsp:
+        headers = await self._headers(kwargs.pop("headers", {}))
+
+        async with self._raw_request(
+            method, f"{self.url_base}/{url}", headers=headers, **kwargs
+        ) as rsp:
             self._raise_for_status(rsp)
 
             return await _content(rsp)
 
     @abstractmethod
-    def _raise_for_status(self, response: aiohttp.ClientResponse) -> None:
-        """Raise an exception if the response is not OK."""
+    async def _headers(self, headers: dict[str, str]) -> dict[str, str]:
+        """Ensure the authorization header is valid.
 
-    @abstractmethod
+        This could take the form of an access token, or a session id.
+        """
+
+    def _raise_for_status(self, response: aiohttp.ClientResponse) -> None:
+        """Raise an exception if the response is not < 400."""
+
+        try:
+            response.raise_for_status()
+
+        except aiohttp.ClientResponseError as err:
+            raise exc.ApiRequestFailedError(str(err), status=err.status) from err
+
+        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+            raise exc.ApiRequestFailedError(str(err)) from err
+
     def _raw_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> AbstractRequestContextManager:
+    ) -> RequestContextManager:
         """Return a context handler that can make the request."""
+
+        return RequestContextManager(
+            self.websession,
+            method,
+            url,
+            **kwargs,
+        )

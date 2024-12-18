@@ -74,11 +74,16 @@ async def should_work_v0(
     content_type: str | None = "application/json",
     schema: vol.Schema | None = None,
 ) -> dict[str, Any] | list[dict[str, Any]] | str:
-    """Make a request that is expected to succeed."""
+    """Make a request that is expected to succeed.
 
-    response: dict[str, Any] | list[dict[str, Any]] | str
+    Used to document the behaviour of a 'real' server and to validate the faked server.
+    """
 
-    async with auth._raw_request(method, f"{URL_BASE_V0}/{url}", json=json) as rsp:
+    response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
+
+    async with auth._raw_request(
+        method, f"{URL_BASE_V0}/{url}", json=json, headers=await auth._headers()
+    ) as rsp:
         # need to do this before raise_for_status()
         if rsp.content_type == "application/json":
             response = await rsp.json()
@@ -110,11 +115,16 @@ async def should_fail_v0(
     content_type: str | None = "application/json",
     status: HTTPStatus | None = None,
 ) -> dict[str, Any] | list[dict[str, Any]] | str:
-    """Make a request that is expected to fail."""
+    """Make a request that is expected to fail.
 
-    response: dict[str, Any] | list[dict[str, Any]] | str
+    Used to document the behaviour of a 'real' server and to validate the faked server.
+    """
 
-    rsp = await auth._raw_request(method, f"{URL_BASE_V0}/{url}", data=json)
+    response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
+
+    rsp = await auth._raw_request(
+        method, f"{URL_BASE_V0}/{url}", data=json, headers=await auth._headers()
+    )
 
     # need to do this before raise_for_status()
     if rsp.content_type == "application/json":
@@ -163,12 +173,14 @@ async def should_work_v2(
 ) -> dict[str, Any] | list[dict[str, Any]] | str:
     """Make a HTTP request and check it succeeds as expected.
 
-    Used to validate the faked server against a 'real' server.
+    Used to document the behaviour of a 'real' server and to validate the faked server.
     """
 
-    response: dict[str, Any] | list[dict[str, Any]] | str
+    response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
 
-    async with auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json) as rsp:
+    async with auth._raw_request(
+        method, f"{URL_BASE_V2}/{url}", json=json, headers=await auth._headers()
+    ) as rsp:
         # need to do this before raise_for_status()
         if rsp.content_type == "application/json":
             response = await rsp.json()
@@ -202,12 +214,14 @@ async def should_fail_v2(
 ) -> dict[str, Any] | list[dict[str, Any]] | str:
     """Make a HTTP request and check it fails as expected.
 
-    Used to validate the faked server against a 'real' server.
+    Used to document the behaviour of a 'real' server and to validate the faked server.
     """
 
-    response: dict[str, Any] | list[dict[str, Any]] | str
+    response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
 
-    rsp = await auth._raw_request(method, f"{URL_BASE_V2}/{url}", json=json)
+    rsp = await auth._raw_request(
+        method, f"{URL_BASE_V2}/{url}", json=json, headers=await auth._headers()
+    )
 
     # need to do this before raise_for_status()
     if rsp.content_type == "application/json":

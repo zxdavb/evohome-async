@@ -7,25 +7,18 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
-from http import HTTPMethod, HTTPStatus
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
 import aiohttp
 import voluptuous as vol
 
-from evohome.auth import (
-    _ERR_MSG_LOOKUP_BOTH,
-    HOSTNAME,
-    AbstractAuth,
-    AbstractRequestContextManager,
-)
+from evohome.auth import _ERR_MSG_LOOKUP_BOTH, HOSTNAME, AbstractAuth
 from evohome.helpers import convert_keys_to_snake_case, obfuscate
 
 from . import exceptions as exc
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
     from aiohttp.typedefs import StrOrURL
 
     from .schemas.typedefs import (
@@ -306,41 +299,6 @@ class AbstractTokenManager(ABC):
             raise exc.AuthenticationFailedError(str(err)) from err
 
 
-class _RequestContextManager(AbstractRequestContextManager):
-    """A context manager for authorized aiohttp request."""
-
-    _response: aiohttp.ClientResponse | None = None
-
-    def __init__(
-        self,
-        access_token_getter: Callable[[], Awaitable[str]],
-        websession: aiohttp.ClientSession,
-        method: HTTPMethod,
-        url: StrOrURL,
-        /,
-        **kwargs: Any,
-    ) -> None:
-        """Initialize the request context manager."""
-        super().__init__(websession, method, url, **kwargs)
-
-        self._get_access_token = access_token_getter
-
-    async def _await_impl(self) -> aiohttp.ClientResponse:
-        """Make an aiohttp request to the vendor's servers.
-
-        Will handle authorisation by inserting an access token into the header.
-        """
-
-        headers: dict[str, str] = self.kwargs.pop("headers", "") or HEADERS_BASE
-
-        if not headers.get("Authorization"):
-            headers["Authorization"] = "bearer " + await self._get_access_token()
-
-        return await self.websession.request(
-            self.method, self.url, headers=headers, **self.kwargs
-        )
-
-
 class Auth(AbstractAuth):
     """A class for interacting with the v2 Resideo TCC API."""
 
@@ -357,10 +315,16 @@ class Auth(AbstractAuth):
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
-        self._token_manager = token_manager
+        self._get_access_token = token_manager.get_access_token
+
+    async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
+        """Ensure the authorization header has a valid access token."""
+        return (headers or HEADERS_BASE) | {
+            "Authorization": "bearer " + await self._get_access_token()
+        }
 
     def _raise_for_status(self, response: aiohttp.ClientResponse) -> None:
-        """Raise an exception if the response is not OK."""
+        """Raise an exception if the response is not < 400."""
 
         try:
             response.raise_for_status()
@@ -372,16 +336,3 @@ class Auth(AbstractAuth):
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
             raise exc.ApiRequestFailedError(str(err)) from err
-
-    def _raw_request(
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> _RequestContextManager:
-        """Return a context handler that can make the request."""
-
-        return _RequestContextManager(
-            self._token_manager.get_access_token,
-            self.websession,
-            method,
-            url,
-            **kwargs,
-        )

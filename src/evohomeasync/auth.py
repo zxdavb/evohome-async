@@ -11,21 +11,13 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 import aiohttp
 import voluptuous as vol
 
-from evohome.auth import (
-    _ERR_MSG_LOOKUP_BOTH,
-    HOSTNAME,
-    AbstractAuth,
-    AbstractRequestContextManager,
-)
+from evohome.auth import _ERR_MSG_LOOKUP_BOTH, HOSTNAME, AbstractAuth
 from evohome.helpers import convert_keys_to_snake_case
 
 from . import exceptions as exc
-from .schemas import SZ_SESSION_ID as S2_SESSION_ID, TCC_POST_USR_SESSION
+from .schemas import TCC_POST_USR_SESSION
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-    from http import HTTPMethod
-
     from aiohttp.typedefs import StrOrURL
 
     from .schemas import EvoSessionDictT, EvoUserAccountDictT, TccSessionResponseT
@@ -236,8 +228,6 @@ class AbstractSessionManager(ABC):
                 return response  # type: ignore[no-any-return]
 
         except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
-            #
-            #
             response = await rsp.text()
             raise exc.AuthenticationFailedError(
                 f"Authenticator response is not JSON: POST {url}: {response}"
@@ -249,41 +239,6 @@ class AbstractSessionManager(ABC):
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
             raise exc.AuthenticationFailedError(str(err)) from err
-
-
-class _RequestContextManager(AbstractRequestContextManager):
-    """A context manager for authorized aiohttp request."""
-
-    _response: aiohttp.ClientResponse | None = None
-
-    def __init__(
-        self,
-        session_id_getter: Callable[[], Awaitable[str]],
-        websession: aiohttp.ClientSession,
-        method: HTTPMethod,
-        url: StrOrURL,
-        /,
-        **kwargs: Any,
-    ) -> None:
-        """Initialize the request context manager."""
-        super().__init__(websession, method, url, **kwargs)
-
-        self._get_session_id = session_id_getter
-
-    async def _await_impl(self) -> aiohttp.ClientResponse:
-        """Make an aiohttp request to the vendor's servers.
-
-        Will handle authorisation by inserting a session id into the header.
-        """
-
-        headers: dict[str, str] = self.kwargs.pop("headers", "") or HEADERS_BASE
-
-        if not headers.get(S2_SESSION_ID):
-            headers[S2_SESSION_ID] = await self._get_session_id()
-
-        return await self.websession.request(
-            self.method, self.url, headers=headers, **self.kwargs
-        )
 
 
 class Auth(AbstractAuth):
@@ -302,10 +257,14 @@ class Auth(AbstractAuth):
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
-        self._session_manager = session_manager
+        self._get_session_id = session_manager.get_session_id
+
+    async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
+        """Ensure the authorization header has a valid session id."""
+        return (headers or HEADERS_BASE) | {"sessionId": await self._get_session_id()}
 
     def _raise_for_status(self, response: aiohttp.ClientResponse) -> None:
-        """Raise an exception if the response is not OK."""
+        """Raise an exception if the response is not < 400."""
 
         try:
             response.raise_for_status()
@@ -317,16 +276,3 @@ class Auth(AbstractAuth):
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
             raise exc.ApiRequestFailedError(str(err)) from err
-
-    def _raw_request(
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> _RequestContextManager:
-        """Return a context handler that can make the request."""
-
-        return _RequestContextManager(
-            self._session_manager.get_session_id,
-            self.websession,
-            method,
-            url,
-            **kwargs,
-        )
