@@ -18,6 +18,8 @@ from . import exceptions as exc
 from .schemas import TCC_POST_USR_SESSION
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
     from aiohttp.typedefs import StrOrURL
 
     from .schemas import EvoSessionDictT, EvoUserAccountDictT, TccSessionResponseT
@@ -246,7 +248,7 @@ class Auth(AbstractAuth):
 
     def __init__(
         self,
-        session_manager: AbstractSessionManager,
+        session_id_getter: Callable[[], Awaitable[str]],
         websession: aiohttp.ClientSession,
         /,
         *,
@@ -257,7 +259,7 @@ class Auth(AbstractAuth):
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
-        self._get_session_id = session_manager.get_session_id
+        self._get_session_id = session_id_getter
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
         """Ensure the authorization header has a valid session id."""

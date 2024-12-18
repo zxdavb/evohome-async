@@ -51,8 +51,10 @@ class EvohomeClientNew:
             self.logger.setLevel(logging.DEBUG)
             self.logger.debug("Debug mode is explicitly enabled.")
 
+        self._token_manager = token_manager
+
         self.auth = Auth(
-            token_manager,
+            token_manager.get_access_token,
             websession or token_manager.websession,
             logger=self.logger,
         )
