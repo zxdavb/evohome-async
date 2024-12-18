@@ -58,6 +58,10 @@ class Gateway(ActiveFaultsBase):
             self.systems.append(tcs)
             self.system_by_id[tcs.id] = tcs
 
+    @property  # TODO: deprecate in favour of .id attr
+    def gatewayId(self) -> str:  # noqa: N802
+        return self._id
+
     @property
     def mac_address(self) -> str:
         return self._config[SZ_MAC]

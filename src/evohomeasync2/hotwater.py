@@ -63,6 +63,10 @@ class HotWater(_ZoneBase):
 
         self._schedule: list[DayOfWeekDhwT] | None = None  # type: ignore[assignment]
 
+    @property  # TODO: deprecate in favour of .id attr
+    def dhwId(self) -> str:  # noqa: N802
+        return self._id
+
     @property  # a for convenience attr
     def mode(self) -> ZoneMode | None:
         if self.state_status is None:

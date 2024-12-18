@@ -86,6 +86,10 @@ class Location(EntityBase):
             self.gateways.append(gwy)
             self.gateway_by_id[gwy.id] = gwy
 
+    @property  # TODO: deprecate in favour of .id attr
+    def locationId(self) -> str:  # noqa: N802
+        return self._id
+
     @property
     def country(self) -> str:
         # "Belgium"

@@ -452,6 +452,10 @@ class Zone(_ZoneBase):
         if self.type not in ZoneType:
             self._logger.warning("%s: Unknown zone type '%s' (YMMV)", self, self.type)
 
+    @property  # TODO: deprecate in favour of .id attr
+    def zoneId(self) -> str:  # noqa: N802
+        return self._id
+
     @property  # convenience attr
     def max_heat_setpoint(self) -> float:
         return self.setpoint_capabilities[SZ_MAX_HEAT_SETPOINT]

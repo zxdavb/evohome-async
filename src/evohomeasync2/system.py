@@ -126,6 +126,10 @@ class ControlSystem(ActiveFaultsBase):
                     ", (has the system configuration been changed?)"
                 )
 
+    @property  # TODO: deprecate in favour of .id attr
+    def systemId(self) -> str:  # noqa: N802
+        return self._id
+
     @property
     def allowed_system_modes(self) -> tuple[EvoAllowedSystemModeT, ...]:
         """
