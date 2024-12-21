@@ -140,8 +140,8 @@ class EntityBase:
     ):
         """Return the latest status of the entity."""
         if self._status is None:
-            raise exc.LocationStatusError(
-                "No status available (have not invokes .update()?)"
+            raise exc.InvalidStatusError(
+                "No status available (have not invoked Location.update()?)"
             )
         return self._status
 
@@ -306,7 +306,7 @@ class _ScheduleBase(ActiveFaultsBase):
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
-                raise exc.InvalidScheduleError(
+                raise exc.BadScheduleUploadedError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
@@ -314,15 +314,15 @@ class _ScheduleBase(ActiveFaultsBase):
             try:
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as err:
-                raise exc.InvalidScheduleError(
+                raise exc.BadScheduleUploadedError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
             assert isinstance(schedule, list)  # mypy (internal hint)
 
         else:
-            raise exc.InvalidScheduleError(
-                f"{self}: Invalid schedule type: {type(schedule)}"
+            raise exc.BadScheduleUploadedError(
+                f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable"
             )
 
         _ = await self._auth.put(
@@ -439,11 +439,11 @@ class Zone(_ZoneBase):
         self._schedule: list[DayOfWeekZoneT] | None = None  # type: ignore[assignment]
 
         if not self.model or self.model == ZoneModelType.UNKNOWN:
-            raise exc.InvalidSchemaError(
+            raise exc.InvalidConfigError(
                 f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)"
             )
         if not self.type or self.type == ZoneType.UNKNOWN:
-            raise exc.InvalidSchemaError(
+            raise exc.InvalidConfigError(
                 f"{self}: Invalid zone type '{self.type}' (is it a ghost zone?)"
             )
 
@@ -545,13 +545,13 @@ class Zone(_ZoneBase):
         """Set the zone mode (heat_setpoint, cooling is TBD)."""
 
         if mode[S2_SETPOINT_MODE] not in self.modes:
-            raise exc.InvalidParameterError(
+            raise exc.BadApiRequestError(
                 f"{self}: Unsupported/unknown {S2_SETPOINT_MODE}: {mode}"
             )
 
         temp: float | None = mode.get(S2_HEAT_SETPOINT_VALUE)  # type: ignore[assignment]
         if temp is not None and self.min_heat_setpoint > temp > self.max_heat_setpoint:
-            raise exc.InvalidParameterError(
+            raise exc.BadApiRequestError(
                 f"{self}: Unsupported/invalid {S2_HEAT_SETPOINT_VALUE}: {mode}"
             )
 

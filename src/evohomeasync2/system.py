@@ -90,7 +90,7 @@ class ControlSystem(ActiveFaultsBase):
         for zon_entry in config[SZ_ZONES]:
             try:
                 zone = Zone(self, zon_entry)
-            except exc.InvalidSchemaError as err:
+            except exc.ConfigError as err:
                 self._logger.warning(
                     f"{self}: zone_id='{zon_entry[SZ_ZONE_ID]}' ignored: {err}"
                 )
@@ -169,7 +169,7 @@ class ControlSystem(ActiveFaultsBase):
         }
         """
         if self._status is None:
-            return None
+            raise exc.InvalidStatusError("No system mode status, has it been fetched?")
         return self._status[SZ_SYSTEM_MODE_STATUS]
 
     @property
@@ -181,7 +181,7 @@ class ControlSystem(ActiveFaultsBase):
         """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
 
         if mode[S2_SYSTEM_MODE] not in self.modes:
-            raise exc.InvalidParameterError(
+            raise exc.BadApiRequestError(
                 f"{self}: Unsupported/unknown {S2_SYSTEM_MODE}: {mode}"
             )
 
@@ -284,7 +284,7 @@ class ControlSystem(ActiveFaultsBase):
                 return await child.get_schedule()
             except exc.InvalidScheduleError:
                 self._logger.warning(
-                    f"Ignoring schedule of {child.id} ({child.name}): missing/invalid"
+                    f"Ignoring {child.id} ({child.name}): missing/invalid schedule"
                 )
             return []
 

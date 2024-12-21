@@ -126,12 +126,12 @@ class HotWater(_ZoneBase):
         """Set the DHW mode (state)."""
 
         if mode[S2_MODE] not in self.modes:
-            raise exc.InvalidParameterError(
-                f"{self}: Unsupported/unknown {S2_MODE}: {mode}"
+            raise exc.BadApiRequestError(
+                f"{self}: nsupported/unknown {S2_MODE}: {mode}"
             )
 
         if mode[S2_STATE] not in self.states:
-            raise exc.InvalidParameterError(
+            raise exc.BadApiRequestError(
                 f"{self}: Unsupported/unknown {S2_STATE}: {mode}"
             )
 

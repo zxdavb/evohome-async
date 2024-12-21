@@ -15,7 +15,12 @@ class EvohomeError(_EvohomeBaseError):
     """The base class for all exceptions."""
 
 
-class ApiRequestFailedError(EvohomeError):  # a base exception
+# These occur whilst a RESTful API call is being made
+class _ApiRequestFailedError(EvohomeError):
+    """The API request failed for some reason (no/invalid/unexpected response)."""
+
+
+class ApiRequestFailedError(_ApiRequestFailedError):  # a base exception, API failed
     """The API request failed for some reason (no/invalid/unexpected response).
 
     Could be caused by any aiohttp.ClientError, for example: ConnectionError.  If the
@@ -27,7 +32,7 @@ class ApiRequestFailedError(EvohomeError):  # a base exception
         self.status = status  # iff cause was aiohttp.ClientResponseError
 
 
-class RateLimitExceededError(ApiRequestFailedError):
+class ApiRateLimitExceededError(ApiRequestFailedError):
     """The API request failed because the vendor's API rate limit was exceeded."""
 
 
@@ -38,33 +43,56 @@ class AuthenticationFailedError(ApiRequestFailedError):
     """
 
 
-class InvalidSchemaError(EvohomeError):  # a base exception
+class BadApiSchemaError(ApiRequestFailedError):  # a base exception, API data bad
+    """The received/supplied JSON is not as expected (e.g. missing a required key)."""
+
+
+class BadApiResponseError(BadApiSchemaError):
     """The received JSON is not as expected (e.g. missing a required key)."""
 
 
-class InvalidParameterError(InvalidSchemaError):
-    """The supplied parameter(s) is/are invalid (e.g. unknown/unsupported mode)."""
+class BadApiRequestError(BadApiSchemaError):
+    """The supplied parameter(s) are as expected (e.g. unknown/unsupported mode)."""
 
 
-class InvalidScheduleError(InvalidParameterError):
-    """The supplied schedule JSON is not as expected."""
+class BadScheduleUploadedError(BadApiRequestError):
+    """The supplied schedule JSON is invalid / was not accepted by the vendor."""
 
 
-class SystemConfigError(EvohomeError):  # a base exception
-    """The system's config JSON is missing or somehow invalid."""
+# These occur without / after a RESTful API call (e.g. a necessary call was not made)
+class _ConfigStatusError(EvohomeError):  # bad/missing data
+    """The config/status JSON is missing or somehow invalid (has it been fetched?)."""
 
 
-class NoSystemConfigError(SystemConfigError):
-    """The system config JSON is missing (has it been fetched?).
+class ConfigError(_ConfigStatusError):  # a base exception, bad config JSON
+    """The config JSON is missing or somehow invalid (e.g. InvalidSchemaError)."""
+
+
+class InvalidConfigError(ConfigError):
+    """The system config JSON is missing/invalid (has it been fetched?).
 
     This is likely because the user has not yet been authenticated (or authentication
     has failed).
     """
 
 
-class NoSingleTcsError(SystemConfigError):
-    """There is no default TCS (e.g. more than one location)."""
+class NoSingleTcsError(ConfigError):
+    """There is no default TCS (e.g. the user has more than one location)."""
 
 
-class LocationStatusError(EvohomeError):  # a base exception
-    """The entity's status JSON is missing or somehow invalid."""
+class StatusError(_ConfigStatusError):  # a base exception, bad status/schedule JSON
+    """The status JSON is missing or somehow invalid (e.g. BadApiResponseSchemaError)."""
+
+
+class InvalidStatusError(StatusError):
+    """The status JSON is missing/invalid (has it been fetched?).
+
+    This is likely because the user has not yet called `Location.update()`.
+    """
+
+
+class InvalidScheduleError(StatusError):
+    """The schedule JSON is missing/invalid (has it been fetched?).
+
+    This is likely because the user has not yet called `Zone.get_schedule()`.
+    """

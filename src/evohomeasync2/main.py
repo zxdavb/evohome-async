@@ -134,7 +134,7 @@ class EvohomeClientNew:
         """Return the (config) information of the user account."""
 
         if not self._user_info:
-            raise exc.NoSystemConfigError(
+            raise exc.InvalidConfigError(
                 f"{self}: The account information is not (yet) available"
             )
 
@@ -145,7 +145,7 @@ class EvohomeClientNew:
         """Return the (config) information of all the user's locations."""
 
         if not self._user_locs:
-            raise exc.NoSystemConfigError(
+            raise exc.InvalidConfigError(
                 f"{self}: The installation information is not (yet) available"
             )
 
@@ -156,7 +156,7 @@ class EvohomeClientNew:
         """Return the list of location entities."""
 
         if not self._user_locs:
-            raise exc.NoSystemConfigError(
+            raise exc.InvalidConfigError(
                 f"{self}: The installation information is not (yet) available"
             )
 

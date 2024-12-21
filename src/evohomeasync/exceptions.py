@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 from evohome.exceptions import (  # noqa: F401
+    ApiRateLimitExceededError,
     ApiRequestFailedError,
     AuthenticationFailedError,
+    BadApiRequestError,
+    BadApiResponseError,
+    BadApiSchemaError,
+    BadScheduleUploadedError,
+    ConfigError,
     EvohomeError,
-    InvalidParameterError,
-    InvalidSchemaError,
+    InvalidConfigError,
+    InvalidScheduleError,
+    InvalidStatusError,
     NoSingleTcsError,
-    NoSystemConfigError,
-    RateLimitExceededError,
-    SystemConfigError,
+    StatusError,
 )

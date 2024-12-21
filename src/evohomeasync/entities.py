@@ -229,10 +229,10 @@ class Location(EntityBase):
             dev = self.devices_by_name.get(zon_id)
 
         if dev is None:
-            raise exc.InvalidSchemaError(f"No zone {zon_id} in location {self.id}")
+            raise exc.ConfigError(f"no zone {zon_id} in location {self.id}")
 
         if not isinstance(dev, Zone):
-            raise exc.InvalidSchemaError(f"Zone {zon_id} is not an EMEA_ZONE")
+            raise exc.ConfigError(f"zone {zon_id} is not an EMEA_ZONE")
 
         return dev
 
@@ -245,7 +245,7 @@ class Location(EntityBase):
         dev = self.devices_by_id.get("HW")
 
         if dev is None:
-            raise exc.InvalidSchemaError(f"No DHW in location {self.id}")
+            raise exc.ConfigError(f"no DHW in location {self.id}")
 
         return dev  # type: ignore[return-value]
 
