@@ -48,10 +48,10 @@ HEADERS_BASE = {
     "Authorization": "",  # falsey value will invoke get_access_token()
 }
 
-SZ_ACCESS_TOKEN: Final = "access_token"
-SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"
+SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
+SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"  # noqa: S105
 SZ_EXPIRES_IN: Final = "expires_in"
-SZ_REFRESH_TOKEN: Final = "refresh_token"
+SZ_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
 
 
 SCH_OAUTH_TOKEN: Final = vol.Schema(
