@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Final
 
-from evohomeasync.auth import HOSTNAME as HOSTNAME_V0
-from evohomeasync2.auth import _APPLICATION_ID, HOSTNAME as HOSTNAME_V2
+from evohome.auth import HOSTNAME
+from evohomeasync2.auth import _APPLICATION_ID
 
 #
 # normally, we want debug flags to be False
@@ -18,12 +18,12 @@ TEST_USERNAME: Final = "username@email.com"
 TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
 
 # vendors API URLs - the older API
-URL_AUTH_V0 = f"https://{HOSTNAME_V0}/WebAPI/api/session"
-URL_BASE_V0 = f"https://{HOSTNAME_V0}/WebAPI/api"
+URL_AUTH_V0 = f"https://{HOSTNAME}/WebAPI/api/session"
+URL_BASE_V0 = f"https://{HOSTNAME}/WebAPI/api"
 
 # - the newer API
-URL_AUTH_V2 = f"https://{HOSTNAME_V2}/Auth/OAuth/Token"
-URL_BASE_V2 = f"https://{HOSTNAME_V2}/WebAPI/emea/api/v1"
+URL_AUTH_V2 = f"https://{HOSTNAME}/Auth/OAuth/Token"
+URL_BASE_V2 = f"https://{HOSTNAME}/WebAPI/emea/api/v1"
 
 HEADERS_AUTH_V0 = {
     "Accept": "application/json",

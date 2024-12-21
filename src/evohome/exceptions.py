@@ -29,7 +29,7 @@ class ApiRequestFailedError(_ApiRequestFailedError):  # a base exception, API fa
 
     def __init__(self, message: str, status: int | None = None) -> None:
         super().__init__(message)
-        self.status = status  # iff cause was aiohttp.ClientResponseError
+        self.status = status  # useful, available if via aiohttp.ClientResponseError
 
 
 class ApiRateLimitExceededError(ApiRequestFailedError):

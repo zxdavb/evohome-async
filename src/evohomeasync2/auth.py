@@ -3,29 +3,34 @@
 from __future__ import annotations
 
 import base64
-import json
-import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
-import aiohttp
 import voluptuous as vol
 
-from evohome.auth import _ERR_MSG_LOOKUP_BOTH, HOSTNAME, AbstractAuth
+from evohome.auth import (
+    _ERR_MSG_LOOKUP_BOTH,
+    HEADERS_AUTH,
+    HEADERS_BASE,
+    AbstractAuth,
+    CredentialsManagerBase,
+)
 from evohome.helpers import convert_keys_to_snake_case, obfuscate
 
 from . import exceptions as exc
 
 if TYPE_CHECKING:
+    import logging
     from collections.abc import Awaitable, Callable
 
+    import aiohttp
     from aiohttp.typedefs import StrOrURL
 
     from .schemas.typedefs import (
         EvoAuthTokensDictT as AccessTokenEntryT,
-        TccAuthTokensResponseT as AuthTokenResponseT,
+        TccAuthTokensResponseT as AuthTokenResponseT,  # TCC is snake_case anyway
     )
 
 
@@ -34,19 +39,6 @@ _APPLICATION_ID: Final = base64.b64encode(
     b"1a15cdb8-42de-407b-add0-059f92c530cb"
 ).decode("utf-8")
 
-HEADERS_AUTH = {
-    "Accept": "application/json",
-    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-    "Cache-Control": "no-cache, no-store",
-    "Pragma": "no-cache",
-    "Connection": "Keep-Alive",
-    "Authorization": "Basic " + _APPLICATION_ID,
-}
-HEADERS_BASE = {
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-    "Authorization": "",  # falsey value will invoke get_access_token()
-}
 
 SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
 SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"  # noqa: S105
@@ -86,7 +78,7 @@ _ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
 }
 URL_AUTH: Final = "Auth/OAuth/Token"
 
-# GET/PUT url_base, authorization url (e.g. /"WebAPI/emea/api/v1/...)
+# GET/PUT url_base, authorization url (e.g. /WebAPI/emea/api/v1/...)
 _ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
     HTTPStatus.BAD_REQUEST: "Bad request (invalid data/json?)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
@@ -95,7 +87,7 @@ _ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
 URL_BASE: Final = "WebAPI/emea/api/v1"
 
 
-class AbstractTokenManager(ABC):
+class AbstractTokenManager(CredentialsManagerBase, ABC):
     """An ABC for managing the auth tokens used for HTTP authentication."""
 
     _access_token: str
@@ -113,27 +105,10 @@ class AbstractTokenManager(ABC):
     ) -> None:
         """Initialize the token manager."""
 
-        self._client_id = client_id
-        self._secret = secret
-        self.websession = websession
-
-        self.hostname = _hostname or HOSTNAME
-        self.logger = logger or logging.getLogger(__name__)
-
-        self._was_authenticated = False  # True once credentials are proven validated
-
-        self._clear_access_token()
-
-    def __str__(self) -> str:
-        return (
-            f"{self.__class__.__name__}"
-            f"(client_id='{self.client_id}, hostname='{self.hostname}')"
+        super().__init__(
+            client_id, secret, websession, _hostname=_hostname, logger=logger
         )
-
-    @property
-    def client_id(self) -> str:
-        """Return the client id used for HTTP authentication."""
-        return self._client_id
+        self._clear_access_token()
 
     def _clear_access_token(self) -> None:
         """Clear the auth tokens (set to falsey state)."""
@@ -228,25 +203,24 @@ class AbstractTokenManager(ABC):
         """Obtain an access token using the supplied credentials.
 
         The credentials are either a refresh token or the user's client_id/secret.
+        Raise AuthenticationFailedError if unable to obtain an access token.
         """
 
         url = f"https://{self.hostname}/{URL_AUTH}"
 
         response: AuthTokenResponseT = await self._post_access_token_request(
             url,
-            headers=HEADERS_AUTH,
+            headers=HEADERS_AUTH | {"Authorization": "Basic " + _APPLICATION_ID},
             data=credentials,  # NOTE: is snake_case
         )
 
         try:  # the dict _should_ be the expected schema...
-            self.logger.debug(  # tokens will be obfuscated
-                f"POST {url}: {SCH_OAUTH_TOKEN(response)}"
+            self.logger.debug(
+                f"POST {url}: {SCH_OAUTH_TOKEN(response)}"  # should be obfuscated
             )
 
         except vol.Invalid as err:
-            self.logger.warning(
-                f"Authenticator response may be invalid: POST {url}: {err}"
-            )
+            self.logger.warning(f"POST {url}: payload may be invalid: {err}")
 
         tokens: AuthTokenResponseT = convert_keys_to_snake_case(response)
 
@@ -258,47 +232,19 @@ class AbstractTokenManager(ABC):
             self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
         except (KeyError, TypeError) as err:
-            self.logger.error(f"Authenticator response is invalid: {tokens}")  # noqa: TRY400
             raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {err}"
+                f"Authenticator response is invalid: {err}, payload={response}"
             ) from err
 
         self._was_authenticated = True  # i.e. the credentials are valid
 
         # if response.get(SZ_LATEST_EULA_ACCEPTED):
 
-    async def _post_access_token_request(  # no method, as POST only
+    async def _post_access_token_request(
         self, url: StrOrURL, /, **kwargs: Any
     ) -> AuthTokenResponseT:
-        """Obtain an access token via a POST to the vendor's web API.
-
-        Raise AuthenticationFailedError if unable to obtain an access token.
-        """
-
-        try:
-            async with self.websession.post(url, **kwargs) as rsp:
-                rsp.raise_for_status()
-
-                if (response := await rsp.json()) is None:  # an unexpected edge-case
-                    raise exc.AuthenticationFailedError(
-                        f"Authenticator response is null: POST {url}"
-                    )
-                return response  # type: ignore[no-any-return]
-
-        except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
-            # <title>Authorize error <h1>Authorization failed
-            # <p>The authorization server have encoutered an error while processing...  # codespell:ignore encoutered
-            response = await rsp.text()
-            raise exc.AuthenticationFailedError(
-                f"Authenticator response is not JSON: POST {url}: {response}"
-            ) from err
-
-        except aiohttp.ClientResponseError as err:
-            hint = _ERR_MSG_LOOKUP_AUTH.get(err.status) or str(err)
-            raise exc.AuthenticationFailedError(hint, status=err.status) from err
-
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            raise exc.AuthenticationFailedError(str(err)) from err
+        """Wrap the POST request to the vendor's TCC RESTful API."""
+        return await self._post_request(url, **kwargs)  # type: ignore[return-value]
 
 
 class Auth(AbstractAuth):
@@ -314,6 +260,7 @@ class Auth(AbstractAuth):
         logger: logging.Logger | None = None,
     ) -> None:
         """A class for interacting with the v2 Resideo TCC API."""
+
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
@@ -321,20 +268,7 @@ class Auth(AbstractAuth):
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
         """Ensure the authorization header has a valid access token."""
+
         return (headers or HEADERS_BASE) | {
-            "Authorization": "bearer " + await self._get_access_token()
+            "Authorization": "bearer " + await self._get_access_token(),
         }
-
-    def _raise_for_status(self, response: aiohttp.ClientResponse) -> None:
-        """Raise an exception if the response is not < 400."""
-
-        try:
-            response.raise_for_status()
-
-        except aiohttp.ClientResponseError as err:
-            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
-                raise exc.ApiRequestFailedError(hint, status=err.status) from err
-            raise exc.ApiRequestFailedError(str(err), status=err.status) from err
-
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            raise exc.ApiRequestFailedError(str(err)) from err

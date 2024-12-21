@@ -2,46 +2,38 @@
 
 from __future__ import annotations
 
-import json
-import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from typing import TYPE_CHECKING, Any, Final, TypedDict
 
-import aiohttp
 import voluptuous as vol
 
-from evohome.auth import _ERR_MSG_LOOKUP_BOTH, HOSTNAME, AbstractAuth
+from evohome.auth import (
+    _ERR_MSG_LOOKUP_BOTH,
+    HEADERS_AUTH,
+    HEADERS_BASE,
+    AbstractAuth,
+    CredentialsManagerBase,
+)
 from evohome.helpers import convert_keys_to_snake_case
 
 from . import exceptions as exc
 from .schemas import TCC_POST_USR_SESSION
 
 if TYPE_CHECKING:
+    import logging
     from collections.abc import Awaitable, Callable
 
+    import aiohttp
     from aiohttp.typedefs import StrOrURL
 
     from .schemas import EvoSessionDictT, EvoUserAccountDictT, TccSessionResponseT
 
 
-# For docs, enter this App ID on the following website under 'Session login':
+# For API docs, enter this App ID on the following website under 'Session login':
 #  - https://mytotalconnectcomfort.com/WebApi/Help/LogIn
 _APPLICATION_ID: Final = "91db1612-73fd-4500-91b2-e63b069b185c"
 #
-
-HEADERS_AUTH = {
-    "Accept": "application/json",
-    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-    "Cache-Control": "no-cache, no-store",
-    "Pragma": "no-cache",
-    "Connection": "Keep-Alive",
-}
-HEADERS_BASE = {
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-    "SessionId": "",  # falsey value will invoke get_session_id()
-}
 
 SZ_SESSION_ID: Final = "session_id"
 SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
@@ -61,7 +53,7 @@ class SessionIdEntryT(TypedDict):
     session_id_expires: str  # dt.isoformat()
 
 
-class AbstractSessionManager(ABC):
+class AbstractSessionManager(CredentialsManagerBase, ABC):
     """An ABC for managing the session id used for HTTP authentication."""
 
     _session_id: str
@@ -80,27 +72,10 @@ class AbstractSessionManager(ABC):
     ) -> None:
         """Initialise the session manager."""
 
-        self._client_id = client_id
-        self._secret = secret
-        self.websession = websession
-
-        self.hostname = _hostname or HOSTNAME
-        self.logger = logger or logging.getLogger(__name__)
-
-        self._was_authenticated = False  # True once credentials are proven validated
-
-        self._clear_session_id()
-
-    def __str__(self) -> str:
-        return (
-            f"{self.__class__.__name__}"
-            f"(client_id='{self.client_id}, hostname='{self.hostname}')"
+        super().__init__(
+            client_id, secret, websession, _hostname=_hostname, logger=logger
         )
-
-    @property
-    def client_id(self) -> str:
-        """Return the client id used for HTTP authentication."""
-        return self._client_id
+        self._clear_session_id()
 
     def _clear_session_id(self) -> None:
         """Clear the session id (set to falsey state)."""
@@ -173,6 +148,7 @@ class AbstractSessionManager(ABC):
         """Obtain an session id using the supplied credentials.
 
         The credentials are the user's client_id/secret.
+        Raise AuthenticationFailedError if unable to obtain a session id.
         """
 
         url = f"https://{self.hostname}/{URL_AUTH}"
@@ -184,14 +160,12 @@ class AbstractSessionManager(ABC):
         )
 
         try:  # the dict _should_ be the expected schema...
-            self.logger.debug(  # session_id will be obfuscated
-                f"POST {url}: {TCC_POST_USR_SESSION(response)}"
+            self.logger.debug(
+                f"POST {url}: {TCC_POST_USR_SESSION(response)}"  # should be obfuscated
             )
 
         except vol.Invalid as err:
-            self.logger.warning(
-                f"Authenticator response may be invalid: POST {url}: {err}"
-            )
+            self.logger.warning(f"POST {url}: payload may be invalid: {err}")
 
         session: EvoSessionDictT = convert_keys_to_snake_case(response)  # type:ignore[assignment]
 
@@ -201,9 +175,8 @@ class AbstractSessionManager(ABC):
             self._user_info = session[SZ_USER_INFO]
 
         except (KeyError, TypeError) as err:
-            self.logger.error(f"Authenticator response is invalid: {session}")  # noqa: TRY400
             raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {err}"
+                f"Authenticator response is invalid: {err}, payload={response}"
             ) from err
 
         self._was_authenticated = True  # i.e. the credentials are valid
@@ -211,36 +184,11 @@ class AbstractSessionManager(ABC):
         if session.get("latest_eula_accepted"):
             self.logger.warning("The latest EULA has not been accepted by the user")
 
-    async def _post_session_id_request(  # no method, as POST only
+    async def _post_session_id_request(
         self, url: StrOrURL, /, **kwargs: Any
     ) -> TccSessionResponseT:
-        """Obtain a session id via a POST to the vendor's web API.
-
-        Raise AuthenticationFailedError if unable to obtain a session id.
-        """
-
-        try:
-            async with self.websession.post(url, **kwargs) as rsp:
-                rsp.raise_for_status()
-
-                if (response := await rsp.json()) is None:  # an unexpected edge-case
-                    raise exc.AuthenticationFailedError(
-                        f"Authenticator response is null: POST {url}"
-                    )
-                return response  # type: ignore[no-any-return]
-
-        except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
-            response = await rsp.text()
-            raise exc.AuthenticationFailedError(
-                f"Authenticator response is not JSON: POST {url}: {response}"
-            ) from err
-
-        except aiohttp.ClientResponseError as err:
-            hint = _ERR_MSG_LOOKUP_AUTH.get(err.status) or str(err)
-            raise exc.AuthenticationFailedError(hint, status=err.status) from err
-
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            raise exc.AuthenticationFailedError(str(err)) from err
+        """Wrap the POST request to the vendor's TCC RESTful API."""
+        return await self._post_request(url, **kwargs)  # type: ignore[return-value]
 
 
 class Auth(AbstractAuth):
@@ -256,6 +204,7 @@ class Auth(AbstractAuth):
         logger: logging.Logger | None = None,
     ) -> None:
         """A class for interacting with the v0 Resideo TCC API."""
+
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
@@ -263,18 +212,7 @@ class Auth(AbstractAuth):
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
         """Ensure the authorization header has a valid session id."""
-        return (headers or HEADERS_BASE) | {"sessionId": await self._get_session_id()}
 
-    def _raise_for_status(self, response: aiohttp.ClientResponse) -> None:
-        """Raise an exception if the response is not < 400."""
-
-        try:
-            response.raise_for_status()
-
-        except aiohttp.ClientResponseError as err:
-            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
-                raise exc.ApiRequestFailedError(hint, status=err.status) from err
-            raise exc.ApiRequestFailedError(str(err), status=err.status) from err
-
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            raise exc.ApiRequestFailedError(str(err)) from err
+        return (headers or HEADERS_BASE) | {
+            "sessionId": await self._get_session_id(),
+        }
