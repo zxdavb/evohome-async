@@ -326,5 +326,6 @@ class DailySchedulesT(TypedDict):
 
 # for export/import to/from file
 class EvoScheduleT(DailySchedulesT):
-    dhw_id: str
-    name: NotRequired[str]
+    dhw_id: NotRequired[str]  # exactly one of these two IDs will be present
+    zone_id: NotRequired[str]
+    name: NotRequired[str]  # would normally be present, but be OK if not
