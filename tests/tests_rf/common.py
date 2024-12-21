@@ -81,7 +81,7 @@ async def should_work_v0(
 
     response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
 
-    async with auth._raw_request(
+    async with auth.websession.request(
         method, f"{URL_BASE_V0}/{url}", json=json, headers=await auth._headers()
     ) as rsp:
         # need to do this before raise_for_status()
@@ -122,8 +122,8 @@ async def should_fail_v0(
 
     response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
 
-    rsp = await auth._raw_request(
-        method, f"{URL_BASE_V0}/{url}", data=json, headers=await auth._headers()
+    rsp = await auth.websession.request(
+        method, f"{URL_BASE_V0}/{url}", json=json, headers=await auth._headers()
     )
 
     # need to do this before raise_for_status()
@@ -178,7 +178,7 @@ async def should_work_v2(
 
     response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
 
-    async with auth._raw_request(
+    async with auth.websession.request(
         method, f"{URL_BASE_V2}/{url}", json=json, headers=await auth._headers()
     ) as rsp:
         # need to do this before raise_for_status()
@@ -219,7 +219,7 @@ async def should_fail_v2(
 
     response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
 
-    rsp = await auth._raw_request(
+    rsp = await auth.websession.request(
         method, f"{URL_BASE_V2}/{url}", json=json, headers=await auth._headers()
     )
 
@@ -274,7 +274,7 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
     url = f"commTasks?commTaskId={task_id}"
 
     while True:
-        rsp = await auth._raw_request(HTTPMethod.GET, f"{URL_BASE_V2}/{url}")
+        rsp = await auth.websession.request(HTTPMethod.GET, f"{URL_BASE_V2}/{url}")
 
         # need to do this before raise_for_status()
         if rsp.content_type == "application/json":
