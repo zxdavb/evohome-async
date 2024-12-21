@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
@@ -135,6 +136,7 @@ async def test_token_manager(
     cache_file: Path,
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
+    caplog: pytest.LogCaptureFixture,
     freezer: FrozenDateTimeFactory,
     tmp_path_factory: pytest.TempPathFactory,
 ) -> None:
@@ -190,9 +192,61 @@ async def test_token_manager(
             "access_token": "new_access_token...",
             "expires_in": 1800,
             "refresh_token": "new_refresh_token...",
+            "token_type": "bearer",
         }
 
-        assert await cache_manager.get_access_token() == "new_access_token..."
+        with caplog.at_level(logging.DEBUG):
+            assert await cache_manager.get_access_token() == "new_access_token..."
+
+            assert caplog.records[0].message == (
+                "Null/Expired/Invalid access_token, re-authenticating."
+            )
+            assert caplog.records[1].message == (
+                "Authenticating with the refresh_token..."
+            )
+            assert caplog.records[2].message.startswith(
+                "POST https://tccna.resideo.com/Auth/OAuth/Token"
+            )
+            assert caplog.records[3].message == (
+                " - access_token = new_access_token..."
+            )
+            assert caplog.records[4].message.startswith(
+                " - access_token_expires = ",
+            )
+            assert caplog.records[5].message == (
+                " - refresh_token = new_refresh_token..."
+            )
+
+        req.assert_called_once()
+        wrt.assert_called_once()
+
+    assert cache_manager.is_access_token_valid() is True
+
+    #
+    # TEST 5: look for warning message
+    freezer.tick(2400)  # advance time by another 20 minutes
+    assert cache_manager.is_access_token_valid() is False
+
+    with (
+        patch(
+            "evohomeasync2.auth.AbstractTokenManager._post_access_token_request",
+            new_callable=AsyncMock,
+        ) as req,
+        patch("cli.auth.TokenManager.save_access_token", new_callable=AsyncMock) as wrt,
+    ):
+        req.return_value = {
+            "access_token": "newer_access_token...",
+            "expires_in": 1800,
+            "refresh_token": "newer_refresh_token...",
+            # "token_type": "bearer",  # should throw a warning
+        }
+
+        caplog.clear()
+        with caplog.at_level(logging.DEBUG):
+            assert await cache_manager.get_access_token() == "newer_access_token..."
+
+            # required key not provided @ data['token_type']
+            assert "payload may be invalid" in caplog.records[2].message
 
         req.assert_called_once()
         wrt.assert_called_once()
