@@ -424,7 +424,7 @@ async def test_loc_status(evohome_v2: EvohomeClientv2) -> None:
 
 @skipif_auth_failed  # GET, PUT
 async def test_tcs_status(evohome_v2: EvohomeClientv2) -> None:
-    """Test GET /temperatureControlSystem/{tcs.id}/statis
+    """Test GET /temperatureControlSystem/{tcs.id}/status
 
     Also tests PUT /temperatureControlSystem/{tcs.id}/mode
     """
