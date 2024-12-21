@@ -251,6 +251,7 @@ class EvoZoneStatusT(TypedDict):
 class EvoSystemModeStatusT(TypedDict):
     mode: SystemMode
     is_permanent: bool
+    time_until: NotRequired[str]
 
 
 class EvoTcsStatusT(TypedDict):
