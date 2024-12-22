@@ -45,7 +45,7 @@ class EvoUsrConfigResponseT(TypedDict):
 
 # GET /locations?userId={user_id}&allData=True returns list of these dicts
 class EvoLocConfigResponseT(TypedDict):
-    """Response to GET /locations?userId={user_id}&allData=True.
+    """Response to GET /locations?userId={user_id}&allData=True
 
     The response is a list of these dicts.
     """
@@ -103,10 +103,10 @@ class EvoGwyConfigEntryT(TypedDict):
 class EvoTcsConfigEntryT(TypedDict):
     system_id: str
     model_type: TcsModelType
-    allowed_system_modes: list[EvoAllowedSystemModeT]
+    allowed_system_modes: list[EvoAllowedSystemModeResponseT]
 
 
-class EvoAllowedSystemModeT(TypedDict):
+class EvoAllowedSystemModeResponseT(TypedDict):
     system_mode: SystemMode
     can_be_permanent: Literal[True]
     can_be_temporary: bool
@@ -180,6 +180,11 @@ class EvoDhwConfigEntryT(EvoDhwConfigResponseT):
 
 # GET /location/{loc_id}/status?includeTemperatureControlSystems=True returns this dict
 class EvoLocStatusResponseT(TypedDict):
+    """Response to /location/{loc_id}/status?includeTemperatureControlSystems=True
+
+    The response is a dict of of a single location.
+    """
+
     location_id: str
     gateways: list[EvoGwyStatusResponseT]
 
@@ -206,7 +211,7 @@ class EvoTcsStatusResponseT(TypedDict):
 class EvoSystemModeStatusResponseT(TypedDict):
     mode: SystemMode
     is_permanent: bool
-    until: NotRequired[str]
+    time_until: NotRequired[str]
 
 
 class EvoZonStatusResponseT(TypedDict):
@@ -241,19 +246,23 @@ class EvoDhwStateStatusResponseT(TypedDict):
 
 
 #######################################################################################
+# WIP: These are setters, PUT, url, jason=json...
 
 
+# PUT
 class EvoZoneStatusT(TypedDict):
     mode: str
     is_permanent: bool
 
 
+# PUT
 class EvoSystemModeStatusT(TypedDict):
     mode: SystemMode
     is_permanent: bool
     time_until: NotRequired[str]
 
 
+# PUT
 class EvoTcsStatusT(TypedDict):
     system_id: str
     system_mode_status: dict[str, Any]  # TODO

@@ -17,6 +17,7 @@ from .const import (
     SZ_DHW,
     SZ_DHW_ID,
     SZ_ID,  # remove?
+    SZ_IS_PERMANENT,
     SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_NAME,
@@ -27,6 +28,7 @@ from .const import (
     SZ_SYSTEM_MODE_STATUS,
     SZ_TEMPERATURE,  # remove?
     SZ_THERMOSTAT,  # remove?
+    SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONES,
 )
@@ -39,7 +41,7 @@ from .schemas.const import (
     EntityType,
     TcsModelType,
 )
-from .zone import ActiveFaultsBase, Zone
+from .zone import ActiveFaultsBase, Zone, as_local_time
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
@@ -50,10 +52,10 @@ if TYPE_CHECKING:
     from .schemas.typedefs import (
         DayOfWeekDhwT,
         DayOfWeekZoneT,
-        EvoAllowedSystemModeT,
+        EvoAllowedSystemModeResponseT,
         EvoScheduleDhwT,
         EvoScheduleZoneT,
-        EvoSystemModeStatusT,
+        EvoSystemModeStatusResponseT,
         EvoTcsConfigEntryT,
         EvoTcsConfigResponseT,
         EvoTcsStatusResponseT,
@@ -131,7 +133,16 @@ class ControlSystem(ActiveFaultsBase):
         return self._id
 
     @property
-    def allowed_system_modes(self) -> tuple[EvoAllowedSystemModeT, ...]:
+    def model(self) -> TcsModelType:
+        return self._config[SZ_MODEL_TYPE]
+
+    @property
+    def zones_by_name(self) -> dict[str, Zone]:
+        """Return the zones by name (names are not fixed attrs)."""
+        return {zone.name: zone for zone in self.zones}
+
+    @property
+    def allowed_system_modes(self) -> tuple[EvoAllowedSystemModeResponseT, ...]:
         """
         "allowedSystemModes": [
             {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
@@ -147,35 +158,32 @@ class ControlSystem(ActiveFaultsBase):
         return tuple(self._config[SZ_ALLOWED_SYSTEM_MODES])
 
     @property  # a convenience attr
-    def mode(self) -> SystemMode | None:
-        if self.system_mode_status is None:
-            return None
-        return self.system_mode_status[SZ_MODE]
-
-    @property  # a convenience attr
     def modes(self) -> tuple[SystemMode, ...]:
         return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
 
     @property
-    def model(self) -> TcsModelType:
-        return self._config[SZ_MODEL_TYPE]
-
-    @property
-    def system_mode_status(self) -> EvoSystemModeStatusT | None:
+    def system_mode_status(self) -> EvoSystemModeStatusResponseT:
         """
-        "systemModeStatus": {
-            "mode": "AutoWithEco",
-            "isPermanent": true
-        }
+        "systemModeStatus": {"mode": "AutoWithEco", "isPermanent": true}
+        "systemModeStatus": {'mode': 'AutoWithEco', 'isPermanent': false, 'timeUntil': '2024-12-21T15:55:00Z'}}
         """
         if self._status is None:
             raise exc.InvalidStatusError("No system mode status, has it been fetched?")
         return self._status[SZ_SYSTEM_MODE_STATUS]
 
-    @property
-    def zones_by_name(self) -> dict[str, Zone]:
-        """Return the zones by name (names are not fixed attrs)."""
-        return {zone.name: zone for zone in self.zones}
+    @property  # a convenience attr (could have a setter in future)
+    def mode(self) -> SystemMode | None:
+        return self.system_mode_status[SZ_MODE]
+
+    @property  # a convenience attr (could have a setter in future)
+    def is_permanent(self) -> bool | None:
+        return self.system_mode_status[SZ_IS_PERMANENT]
+
+    @property  # a convenience attr (could have a setter in future)
+    def until(self) -> dt | None:  # aka timeUntil
+        if (until := self.system_mode_status.get(SZ_TIME_UNTIL)) is None:
+            return None
+        return as_local_time(until, self.location.tzinfo)
 
     async def _set_mode(self, mode: dict[str, str | bool]) -> None:
         """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
@@ -184,6 +192,8 @@ class ControlSystem(ActiveFaultsBase):
             raise exc.BadApiRequestError(
                 f"{self}: Unsupported/unknown {S2_SYSTEM_MODE}: {mode}"
             )
+
+        mode[S2_SYSTEM_MODE] = str(mode[S2_SYSTEM_MODE])
 
         await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=mode)
 

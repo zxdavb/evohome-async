@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 
     import voluptuous as vol
 
-    from . import ControlSystem
+    from . import ControlSystem, Location
     from .auth import Auth
     from .schemas.typedefs import (
         DailySchedulesT,
@@ -149,11 +149,13 @@ class EntityBase:
 class ActiveFaultsBase(EntityBase):
     """Provide the base for active faults."""
 
+    location: Location
+
     def __init__(self, entity_id: str, broker: Auth, logger: logging.Logger) -> None:
         super().__init__(entity_id, broker, logger)
 
         self._active_faults: list[EvoActiveFaultResponseT] = []
-        self._last_logged: dict[str, dt] = {}
+        self._last_logged: dict[str, dt] = {}  # OK to use a tz=UTC datetimes
 
     def _update_faults(
         self,
@@ -187,6 +189,10 @@ class ActiveFaultsBase(EntityBase):
             elif dt.now(tz=UTC) - self._last_logged[hash_(fault)] > _ONE_DAY:
                 log_as_active(fault)
 
+        # self._active_faults = [
+        #     {**fault, "since": as_local_time(fault["since"], self.location.tzinfo)}
+        #     for fault in active_faults
+        # ]
         self._active_faults = active_faults
         self._last_logged |= last_logged
 
@@ -204,12 +210,14 @@ class ActiveFaultsBase(EntityBase):
         return tuple(self._active_faults)
 
 
-def as_local_time(dtm: dt, tzinfo: tzinfo) -> dt:
+def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
     """Convert a datetime into a aware datetime in the given TZ."""
+    if isinstance(dtm, str):
+        dtm = dt.fromisoformat(dtm)
     return dtm.replace(tzinfo=tzinfo) if dtm.tzinfo is None else dtm.astimezone(tzinfo)
 
 
-def dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
+def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
     """Return a pair of strings representing the local day of week and time of day."""
     dtm = as_local_time(dtm, tzinfo)
     return dtm.strftime("%A"), dtm.strftime("%H:%M")  # type: ignore[return-value]
@@ -222,7 +230,9 @@ def _find_switchpoints(
 ) -> tuple[SwitchpointT, int, SwitchpointT, int]:
     """Find this/next switchpoints for a given day of week and time of day."""
 
-    # assumes >1 switchpoint per day, which could be this_sp or next_sp only
+    # TODO: schedule can be [], i.e. response was {'DailySchedules': []}
+
+    # assumes 1+ switchpoint per day, which could be this_sp or next_sp only
 
     try:
         day_idx = list(DayOfWeek).index(day_of_week)
@@ -347,7 +357,7 @@ class _ScheduleBase(ActiveFaultsBase):
         dtm = as_local_time(dtm, self.location.tzinfo)
 
         this_sp, this_offset, next_sp, next_offset = _find_switchpoints(
-            self._schedule, *dt_to_dow_and_tod(dtm, self.location.tzinfo)
+            self._schedule, *_dt_to_dow_and_tod(dtm, self.location.tzinfo)
         )
 
         this_tod = dt.strptime(this_sp["time_of_day"], "%H:%M").time()  # noqa: DTZ007
@@ -356,6 +366,7 @@ class _ScheduleBase(ActiveFaultsBase):
         this_dtm = dt.combine(dtm + td(days=this_offset), this_tod)
         next_dtm = dt.combine(dtm + td(days=next_offset), next_tod)
 
+        # either "dhw_state" or "heat_setpoint" _will_ be present...
         this_val = this_sp.get("dhw_state") or this_sp["heat_setpoint"]
         next_val = next_sp.get("dhw_state") or next_sp["heat_setpoint"]
 
@@ -456,33 +467,13 @@ class Zone(_ZoneBase):
     def zoneId(self) -> str:  # noqa: N802
         return self._id
 
-    @property  # convenience attr
-    def max_heat_setpoint(self) -> float:
-        return self.setpoint_capabilities[SZ_MAX_HEAT_SETPOINT]
-
-    @property  # convenience attr
-    def min_heat_setpoint(self) -> float:
-        return self.setpoint_capabilities[SZ_MIN_HEAT_SETPOINT]
-
     @property
     def model(self) -> ZoneModelType:
         return self._config[SZ_MODEL_TYPE]
 
-    @property  # a convenience attr
-    def mode(self) -> ZoneMode | None:
-        if not self.setpoint_status:
-            return None
-        return self.setpoint_status[SZ_SETPOINT_MODE]
-
-    @property  # a convenience attr
-    def modes(self) -> tuple[ZoneMode, ...]:
-        """
-        "allowedSetpointModes": [
-            "PermanentOverride", "FollowSchedule", "TemporaryOverride"
-        ]
-        """
-
-        return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
+    @property
+    def type(self) -> ZoneType:
+        return self._config[SZ_ZONE_TYPE]
 
     @property
     def name(self) -> str:
@@ -519,6 +510,26 @@ class Zone(_ZoneBase):
         """
         return self._config[SZ_SETPOINT_CAPABILITIES]
 
+    @property  # convenience attr
+    def max_heat_setpoint(self) -> float:
+        # consider: if not self.setpoint_capabilities["can_control_heat"]: return None
+        return self.setpoint_capabilities[SZ_MAX_HEAT_SETPOINT]
+
+    @property  # convenience attr
+    def min_heat_setpoint(self) -> float:
+        # consider: if not self.setpoint_capabilities["can_control_heat"]: return None
+        return self.setpoint_capabilities[SZ_MIN_HEAT_SETPOINT]
+
+    @property  # a convenience attr
+    def modes(self) -> tuple[ZoneMode, ...]:
+        """
+        "allowedSetpointModes": [
+            "PermanentOverride", "FollowSchedule", "TemporaryOverride"
+        ]
+        """
+
+        return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
+
     @property
     def setpoint_status(self) -> EvoZonSetpointStatusResponseT | None:
         """
@@ -532,14 +543,16 @@ class Zone(_ZoneBase):
         return self._status[SZ_SETPOINT_STATUS]
 
     @property  # a convenience attr
+    def mode(self) -> ZoneMode | None:
+        if not self.setpoint_status:
+            return None
+        return self.setpoint_status[SZ_SETPOINT_MODE]
+
+    @property  # a convenience attr (one day a target_cool_temperature may be added?)
     def target_heat_temperature(self) -> float | None:
         if self.setpoint_status is None:
             return None
         return self.setpoint_status[SZ_TARGET_HEAT_TEMPERATURE]
-
-    @property
-    def type(self) -> ZoneType:
-        return self._config[SZ_ZONE_TYPE]
 
     async def _set_mode(self, mode: dict[str, str | float]) -> None:
         """Set the zone mode (heat_setpoint, cooling is TBD)."""
