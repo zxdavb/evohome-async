@@ -164,9 +164,11 @@ class Location(EntityBase):
         """Usually called when DST starts/stops or the location's DST config changes."""
 
         # it is assumed that only the location's TZ/DST info can change
+        # so no ?includeTemperatureControlSystems=True
 
-        url = f"location/{self._id}/installationInfo"  # TODO: add schema
-        config: EvoLocConfigResponseT = await self._auth.get(url)  # type: ignore[assignment]
+        config: EvoLocConfigResponseT = await self._auth.get(
+            f"location/{self._id}/installationInfo"  # TODO: add schema
+        )  # type: ignore[assignment]
 
         self._config = config[SZ_LOCATION_INFO]
 
