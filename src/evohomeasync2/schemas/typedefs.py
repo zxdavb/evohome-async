@@ -43,7 +43,7 @@ class EvoUsrConfigResponseT(TypedDict):
     user_id: str
 
 
-# GET /locations?userId={user_id}&allData=True returns list of these dicts
+# GET /location/installationInfo?userId={user_id}&include... returns list of these dicts
 class EvoLocConfigResponseT(TypedDict):
     """Response to GET /locations?userId={user_id}&allData=True
 
@@ -178,7 +178,7 @@ class EvoDhwConfigEntryT(EvoDhwConfigResponseT):
 # NOTE: dicts are not completely typed, but all referenced keys should be present
 
 
-# GET /location/{loc_id}/status?includeTemperatureControlSystems=True returns this dict
+# GET /location/{loc_id}/status?include... returns this dict
 class EvoLocStatusResponseT(TypedDict):
     """Response to /location/{loc_id}/status?includeTemperatureControlSystems=True
 
