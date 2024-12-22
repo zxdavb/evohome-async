@@ -403,21 +403,21 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
 
 @skipif_auth_failed  # GET
 async def test_usr_account(evohome_v2: EvohomeClientv2) -> None:
-    """Test /userAccount"""
+    """Test GET /userAccount"""
 
     await _test_usr_account(evohome_v2)
 
 
 @skipif_auth_failed  # GET
 async def test_usr_locations(evohome_v2: EvohomeClientv2) -> None:
-    """Test /location/installationInfo"""
+    """Test GET /location/installationInfo"""
 
     await _test_user_locations(evohome_v2)
 
 
 @skipif_auth_failed  # GET
 async def test_loc_status(evohome_v2: EvohomeClientv2) -> None:
-    """Test /location/{loc.id}/status"""
+    """Test GET /location/{loc.id}/status"""
 
     await _test_loc_status(evohome_v2)
 
@@ -440,9 +440,9 @@ async def test_tcs_status(evohome_v2: EvohomeClientv2) -> None:
 
 @skipif_auth_failed  # GET, PUT
 async def test_zone_status(evohome_v2: EvohomeClientv2) -> None:
-    """Test /temperatureZone/{zone.id}/status
+    """Test GET /temperatureZone/{zone.id}/status
 
-    Also tests /temperatureZone/{zone.id}/heatSetpoint
+    Also tests PUT /temperatureZone/{zone.id}/heatSetpoint
     """
 
     try:
@@ -454,5 +454,4 @@ async def test_zone_status(evohome_v2: EvohomeClientv2) -> None:
         pytest.skip("Mocked server API not implemented")
 
 
-# TODO: test_oauth_token(
 # TODO: test_get_dhw_status( & test_put_dhw_state(
