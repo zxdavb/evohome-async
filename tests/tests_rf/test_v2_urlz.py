@@ -15,7 +15,7 @@ from evohomeasync2.schemas.config import (
     factory_location_installation_info,
     factory_user_locations_installation_info,
 )
-from evohomeasync2.schemas.schedule import factory_zon_schedule
+from evohomeasync2.schemas.schedule import factory_dhw_schedule, factory_zon_schedule
 from evohomeasync2.schemas.status import (
     factory_dhw_status,
     factory_loc_status,
@@ -283,4 +283,21 @@ async def test_dhw_urls(
         HTTPMethod.PUT,
         f"domesticHotWater/{dhw_id}/state",
         json={"mode": "FollowSchedule"},  # , "state": None},
+    )  # type: ignore[assignment]
+
+    #
+    # STEP C: GET /domesticHotWater/{dhw_id}/schedule
+    dhw_schedule: TccDailySchedulesZoneT = await auth._make_request(
+        HTTPMethod.GET,
+        f"domesticHotWater/{dhw_id}/schedule",
+    )  # type: ignore[assignment]
+
+    factory_dhw_schedule()(dhw_schedule)
+
+    #
+    # STEP D: PUT /domesticHotWater/{dhw_id}/schedule
+    _ = await auth._make_request(
+        HTTPMethod.PUT,
+        f"domesticHotWater/{dhw_id}/schedule",
+        json=dhw_schedule,
     )  # type: ignore[assignment]

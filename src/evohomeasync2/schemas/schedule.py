@@ -8,15 +8,13 @@ import voluptuous as vol
 
 from evohome.helpers import noop
 
-from .config import DhwState  # noqa: TC001
+from .config import DhwState
 from .const import (
     S2_COOL_SETPOINT,
     S2_DAILY_SCHEDULES,
     S2_DAY_OF_WEEK,
     S2_DHW_STATE,
     S2_HEAT_SETPOINT,
-    S2_OFF,
-    S2_ON,
     S2_SWITCHPOINTS,
     S2_TIME_OF_DAY,
     DayOfWeek,
@@ -66,7 +64,7 @@ def factory_dhw_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
         {
-            vol.Required(fnc(S2_DHW_STATE)): vol.Any(S2_ON, S2_OFF),
+            vol.Required(fnc(S2_DHW_STATE)): vol.In(DhwState),
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
         },
         extra=vol.PREVENT_EXTRA,
@@ -122,12 +120,12 @@ def factory_zon_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
 #
 # These are as to be provided to the vendor's API (PUT)...
 # This is after modified by evohome-client (PUT), an evohome-client anachronism?
-def _factory_put_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def _out_factory_put_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_PUT_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
         {
-            vol.Required(fnc(S2_DHW_STATE)): vol.Any(S2_ON, S2_OFF),
+            vol.Required(fnc(S2_DHW_STATE)): vol.In(DhwState),
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
         },
         extra=vol.PREVENT_EXTRA,
@@ -151,7 +149,7 @@ def _factory_put_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
     )
 
 
-def _factory_put_schedule_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def _out_factory_put_schedule_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_PUT_SWITCHPOINT_ZONE: Final = vol.Schema(
