@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict
 
 import voluptuous as vol
 
@@ -100,6 +100,136 @@ MAX_HEAT_SETPOINT_UPPER: Final = 35.0
 
 MIN_HEAT_SETPOINT_LOWER: Final = 4.5
 MIN_HEAT_SETPOINT_UPPER: Final = 21.0
+
+
+# GET /location/installationInfo?userId={user_id} returns list of these dicts
+class TccLocConfigResponseT(TypedDict):
+    """Response to GET /locations?userId={user_id}&allData=True
+
+    The response is a list of these dicts.
+    """
+
+    locationInfo: TccLocConfigEntryT
+    gateways: list[TccGwyConfigResponseT]
+
+
+class TccLocConfigEntryT(TypedDict):
+    """Location configuration information."""
+
+    locationId: str
+    name: str
+    streetAddress: str
+    city: str
+    state: str
+    country: str
+    postcode: str
+    type: str
+    locationType: LocationType
+    useDaylightSaveSwitching: bool
+    timeZone: TccTimeZoneInfoT
+    locationOwner: TccLocationOwnerInfoT
+
+
+class TccTimeZoneInfoT(TypedDict):
+    """Time zone information."""
+
+    timeZoneId: str
+    displayName: str
+    offsetMinutes: int
+    currentOffsetMinutes: int
+    supportsDaylightSaving: bool
+
+
+class TccLocationOwnerInfoT(TypedDict):
+    userId: str
+    username: str
+    firstname: str
+    lastname: str
+
+
+class TccGwyConfigResponseT(TypedDict):
+    gatewayInfo: TccGwyConfigEntryT
+    temperatureControlSystems: list[TccTcsConfigResponseT]
+
+
+class TccGwyConfigEntryT(TypedDict):
+    gatewayId: str
+    mac: str
+    crc: str
+    isWiFi: bool
+
+
+class TccTcsConfigEntryT(TypedDict):
+    systemId: str
+    modelType: TcsModelType
+    allowedSystemModes: list[TccAllowedSystemModeResponseT]
+
+
+class TccAllowedSystemModeResponseT(TypedDict):
+    systemMode: SystemMode
+    canBePermanent: Literal[True]
+    canBeTemporary: bool
+    maxDuration: NotRequired[str]
+    timingResolution: NotRequired[str]
+    timingMode: NotRequired[str]
+
+
+class TccTcsConfigResponseT(TccTcsConfigEntryT):
+    # system_id: str
+    # model_type: str
+    # allowed_system_modes: list[dict[str, Any]]
+    zones: list[TccZonConfigResponseT]
+    dhw: NotRequired[TccDhwConfigResponseT]
+
+
+class TccZonConfigResponseT(TypedDict):
+    zoneId: str
+    modelType: ZoneModelType
+    name: str
+    setpointCapabilities: TccZonSetpointCapabilitiesResponseT
+    scheduleCapabilities: TccZonScheduleCapabilitiesResponseT
+    zoneType: ZoneType
+    allowedFanModes: list[str]
+
+
+class TccZonScheduleCapabilitiesResponseT(TypedDict):
+    pass
+
+
+class TccZonSetpointCapabilitiesResponseT(TypedDict):
+    allowedSetpointModes: list[ZoneMode]
+    canControlCool: bool
+    canControlHeat: bool
+    maxHeatSetpoint: float
+    minHeatSetpoint: float
+    valueResolution: float
+    maxDuration: str
+    timingResolution: str
+
+
+class TccZonConfigEntryT(TccZonConfigResponseT):
+    pass
+
+
+class TccDhwConfigResponseT(TypedDict):
+    dhwId: str
+    scheduleCapabilitiesResponse: TccDhwScheduleCapabilitiesResponseT
+    dhwStateCapabilitiesResponse: TccDhwStateCapabilitiesResponseT
+
+
+class TccDhwScheduleCapabilitiesResponseT(TypedDict):
+    pass
+
+
+class TccDhwStateCapabilitiesResponseT(TypedDict):
+    allowedStates: list[DhwState]
+    allowedModes: list[ZoneMode]
+    maxDuration: str
+    timingResolution: str
+
+
+class TccDhwConfigEntryT(TccDhwConfigResponseT):
+    pass
 
 
 def factory_system_mode_perm(fnc: Callable[[str], str] = noop) -> vol.Schema:
@@ -320,7 +450,7 @@ def factory_time_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
     )
 
 
-def factory_locations_installation_info(
+def factory_location_installation_info(
     fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
     """Factory for the location (config) schema."""
@@ -366,6 +496,6 @@ def factory_user_locations_installation_info(
     """Factory for the user locations (config) schema."""
 
     return vol.Schema(
-        [factory_locations_installation_info(fnc)],
+        [factory_location_installation_info(fnc)],
         extra=vol.PREVENT_EXTRA,
     )

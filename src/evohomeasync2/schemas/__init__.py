@@ -19,17 +19,17 @@ from .account import (  # noqa: F401
     factory_user_account,
 )
 from .config import (
-    factory_locations_installation_info,
+    factory_location_installation_info,
     factory_user_locations_installation_info,
 )
 from .const import DhwState, SystemMode, ZoneMode  # noqa: F401
-from .schedule import factory_schedule_dhw, factory_schedule_zone
+from .schedule import factory_dhw_schedule, factory_zon_schedule
 from .status import (
     factory_dhw_status,
     factory_gwy_status,
     factory_loc_status,
     factory_tcs_status,
-    factory_zone_status,
+    factory_zon_status,
 )
 
 if TYPE_CHECKING:
@@ -51,7 +51,7 @@ TCC_GET_USR_ACCOUNT: Final = factory_user_account()
 TCC_GET_USR_LOCATIONS: Final = factory_user_locations_installation_info()
 
 # GET /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True
-TCC_GET_LOC_INSTALLATION_INFO: Final = factory_locations_installation_info()
+TCC_GET_LOC_INSTALLATION_INFO: Final = factory_location_installation_info()
 
 # GET /location/{loc_id}/status?includeTemperatureControlSystems=True
 TCC_GET_LOC_STATUS: Final = factory_loc_status()
@@ -69,16 +69,16 @@ TCC_GET_DHW_STATUS: Final = factory_dhw_status()
 # TODO:
 
 # GET /temperatureZone/{zone_id}/status
-TCC_GET_ZON_STATUS: Final = factory_zone_status()
+TCC_GET_ZON_STATUS: Final = factory_zon_status()
 
 # GET /domesticHotWater/{dhw_id}/schedule
-TCC_GET_DHW_SCHEDULE: Final = factory_schedule_dhw()
+TCC_GET_DHW_SCHEDULE: Final = factory_dhw_schedule()
 
 # PUT /domesticHotWater/{dhw_id}/schedule
 TCC_PUT_DHW_SCHEDULE: Final = TCC_GET_DHW_SCHEDULE
 
 # GET /temperatureZone/{zone_id}/schedule
-TCC_GET_ZON_SCHEDULE: Final = factory_schedule_zone()
+TCC_GET_ZON_SCHEDULE: Final = factory_zon_schedule()
 
 # PUT /temperatureZone/{zone_id}/schedule
 TCC_PUT_ZON_SCHEDULE: Final = TCC_GET_ZON_SCHEDULE

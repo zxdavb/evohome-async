@@ -10,8 +10,8 @@ import voluptuous as vol
 
 from evohome.auth import (
     _ERR_MSG_LOOKUP_BOTH,
-    HEADERS_AUTH,
     HEADERS_BASE,
+    HEADERS_CRED,
     AbstractAuth,
     CredentialsManagerBase,
 )
@@ -39,11 +39,11 @@ SZ_SESSION_ID: Final = "session_id"
 SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
 SZ_USER_INFO: Final = "user_info"
 
-# POST url_auth, authentication url (i.e. /WebAPI/api/session)
-_ERR_MSG_LOOKUP_AUTH = _ERR_MSG_LOOKUP_BOTH
-URL_AUTH: Final = "WebAPI/api/session"
+# POST authentication url (i.e. /WebAPI/api/session)
+_ERR_MSG_LOOKUP_CRED = _ERR_MSG_LOOKUP_BOTH
+URL_CRED: Final = "WebAPI/api/session"
 
-# GET/PUT url_base, authorization url (i.e. /WebAPI/api/...)
+# GET/PUT resource url (i.e. /WebAPI/api/...)
 _ERR_MSG_LOOKUP_BASE = _ERR_MSG_LOOKUP_BOTH
 URL_BASE: Final = "WebAPI/api"
 
@@ -151,11 +151,11 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         Raise AuthenticationFailedError if unable to obtain a session id.
         """
 
-        url = f"https://{self.hostname}/{URL_AUTH}"
+        url = f"https://{self.hostname}/{URL_CRED}"
 
         response: TccSessionResponseT = await self._post_session_id_request(
             url,
-            headers=HEADERS_AUTH,
+            headers=HEADERS_CRED,
             data=credentials,  # NOTE: is camelCase
         )
 

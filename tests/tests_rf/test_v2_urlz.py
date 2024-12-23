@@ -15,7 +15,7 @@ from evohomeasync2.schemas.config import (
     factory_location_installation_info,
     factory_user_locations_installation_info,
 )
-from evohomeasync2.schemas.schedule import factory_schedule_zone
+from evohomeasync2.schemas.schedule import factory_zon_schedule
 from evohomeasync2.schemas.status import (
     factory_dhw_status,
     factory_loc_status,
@@ -48,6 +48,8 @@ async def test_tcs_urls(
     cache_manager: TokenManager,
 ) -> None:
     """Test Location, Gateway and TCS URLs."""
+
+    await cache_manager.load_cache()
 
     #
     # STEP 0: Create the Auth client
@@ -137,6 +139,8 @@ async def test_zon_urls(
 ) -> None:
     """Test Zone URLs"""
 
+    await cache_manager.load_cache()
+
     #
     # STEP 0: Create the Auth client, get the TCS config
     auth = Auth(
@@ -199,7 +203,7 @@ async def test_zon_urls(
         f"temperatureZone/{zon_id}/schedule",
     )  # type: ignore[assignment]
 
-    factory_schedule_zone()(zon_schedule)
+    factory_zon_schedule()(zon_schedule)
 
     #
     # STEP B: PUT /temperatureZone/{zon_id}/schedule
@@ -216,6 +220,8 @@ async def test_dhw_urls(
     cache_manager: TokenManager,
 ) -> None:
     """Test DHW URLs"""
+
+    await cache_manager.load_cache()
 
     #
     # STEP 0: Create the Auth client, get the TCS config

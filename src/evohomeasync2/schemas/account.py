@@ -71,17 +71,17 @@ def factory_error_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
 
 class TccUsrAccountResponseT(TypedDict):
-    """Typed dict for the user account schema."""
+    """Response to GET /userAccount"""
 
-    userId: str
-    username: str
+    userId: str  # '12345678' (i.e. str, not int)
+    username: str  # user@mailbox.com
     firstname: str
     lastname: str
     streetAddress: str
     city: str
     postcode: str
-    country: str
-    language: str
+    country: str  # UnitedKingdom
+    language: str  # enGB
 
 
 def factory_user_account(fnc: Callable[[str], str] = noop) -> vol.Schema:
@@ -122,3 +122,9 @@ def factory_status_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
     )
 
     return vol.Schema(vol.All([entry_schema], vol.Length(min=1)))
+
+
+class TccTaskResponseT(TypedDict):
+    """Typed dict for code/message responses from the vendor servers."""
+
+    id: str  # {'id': '1668279943'}

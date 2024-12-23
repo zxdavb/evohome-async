@@ -24,13 +24,16 @@ if TYPE_CHECKING:
 
 HOSTNAME: Final = "tccna.resideo.com"
 
+# No need to indicate "Content-Type" as default is "charset=utf-8", with:
+# - POST: "Content-Type": "application/json"                  (default)
+# - GETs: "Content-Type": "application/x-www-form-urlencoded" (not required)
+# - PUTs: "Content-Type": "application/json"                  (as used here)
 
 HEADERS_BASE = {
     "Accept": "application/json",
-    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
     "Connection": "Keep-Alive",
 }
-HEADERS_AUTH = HEADERS_BASE | {
+HEADERS_CRED = HEADERS_BASE | {
     "Cache-Control": "no-cache, no-store",
     "Pragma": "no-cache",
 }
@@ -218,10 +221,7 @@ class AbstractAuth(ABC):
         if method == HTTPMethod.PUT and "json" in kwargs:
             kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
-        headers = await self._headers(kwargs.pop("headers", {}))
-        response = await self._make_request(
-            method, f"{self.url_base}/{url}", headers=headers, **kwargs
-        )
+        response = await self._make_request(method, url, **kwargs)
 
         if self.logger.isEnabledFor(logging.DEBUG):
             self.logger.debug(f"{method} {url}: {obscure_secrets(response)}")
@@ -247,8 +247,12 @@ class AbstractAuth(ABC):
 
         rsp: aiohttp.ClientResponse | None = None
 
+        headers = await self._headers(kwargs.pop("headers", {}))
+
         try:
-            rsp = await self.websession.request(method, url, **kwargs)
+            rsp = await self.websession.request(
+                method, f"{self.url_base}/{url}", headers=headers, **kwargs
+            )
             assert rsp is not None  # mypy
 
             rsp.raise_for_status()

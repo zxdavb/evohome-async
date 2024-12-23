@@ -7,18 +7,18 @@ from typing import Any, Final, Literal
 HOSTNAME: Final = "tccna.resideo.com"
 
 # vendors API URLs - the older API
-URL_AUTH_V0 = f"https://{HOSTNAME}/WebAPI/api/session"
+URL_CRED_V0 = f"https://{HOSTNAME}/WebAPI/api/session"
 URL_BASE_V0 = f"https://{HOSTNAME}/WebAPI/api"
 
 # - the newer API
-URL_AUTH_V2 = f"https://{HOSTNAME}/Auth/OAuth/Token"
+URL_CRED_V2 = f"https://{HOSTNAME}/Auth/OAuth/Token"
 URL_BASE_V2 = f"https://{HOSTNAME}/WebAPI/emea/api/v1"
 
 
 GHOST_ZONE_ID = "0000000"  # "3432521"
 
 # Sample responses from evohome-client
-MOCK_AUTH_RESPONSE = {  # can use this for all
+MOCK_CRED_RESPONSE = {  # can use this for all
     "access_token": "ncWMqPh2yGgAqc...",
     "token_type": "bearer",
     "expires_in": 1800,

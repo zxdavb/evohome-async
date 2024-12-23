@@ -14,7 +14,7 @@ from aioresponses import aioresponses
 from cli.auth import TokenManager
 
 from evohomeasync2 import exceptions as exc
-from tests.const import HEADERS_AUTH_V2 as HEADERS_AUTH, URL_AUTH_V2 as URL_AUTH
+from tests.const import HEADERS_CRED_V2 as HEADERS_CRED, URL_CRED_V2 as URL_CRED
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -60,13 +60,13 @@ async def test_get_auth_token(
         response = {
             "error": "invalid_grant",
         }
-        rsp.post(URL_AUTH, status=HTTPStatus.UNAUTHORIZED, payload=response)
+        rsp.post(URL_CRED, status=HTTPStatus.UNAUTHORIZED, payload=response)
 
         with pytest.raises(exc.AuthenticationFailedError):
             await cache_manager.get_access_token()
 
         rsp.assert_called_once_with(
-            URL_AUTH, HTTPMethod.POST, headers=HEADERS_AUTH, data=data_password
+            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
         )
 
     assert cache_manager.is_access_token_valid() is False
@@ -76,12 +76,12 @@ async def test_get_auth_token(
     payload = server_response()
 
     with aioresponses() as rsp:
-        rsp.post(URL_AUTH, payload=payload)
+        rsp.post(URL_CRED, payload=payload)
 
         assert await cache_manager.get_access_token() == payload["access_token"]
 
         rsp.assert_called_once_with(
-            URL_AUTH, HTTPMethod.POST, headers=HEADERS_AUTH, data=data_password
+            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
         )
 
     assert cache_manager.is_access_token_valid() is True
@@ -113,12 +113,12 @@ async def test_get_auth_token(
     payload = server_response()
 
     with aioresponses() as rsp:
-        rsp.post(URL_AUTH, payload=payload)
+        rsp.post(URL_CRED, payload=payload)
 
         assert await cache_manager.get_access_token() == payload["access_token"]
 
         rsp.assert_called_once_with(
-            URL_AUTH, HTTPMethod.POST, headers=HEADERS_AUTH, data=data_token
+            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_token
         )
 
     assert cache_manager.is_access_token_valid() is True

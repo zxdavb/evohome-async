@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, TypedDict
 
 import voluptuous as vol
 
 from evohome.helpers import noop
 
+from .config import DhwState  # noqa: TC001
 from .const import (
     S2_COOL_SETPOINT,
     S2_DAILY_SCHEDULES,
@@ -25,9 +26,42 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+#######################################################################################
+# GET/PUT DHW / Zone Schedules...
+#
+
+
+class TccSwitchpointDhwT(TypedDict):
+    dhwState: DhwState  # Off, On
+    timeOfDay: str
+
+
+class TccDayOfWeekDhwT(TypedDict):
+    dayOfWeek: str
+    switchpoints: list[TccSwitchpointDhwT]
+
+
+class TccDailySchedulesDhwT(TypedDict):
+    dailySchedules: list[TccDayOfWeekDhwT]
+
+
+class TccSwitchpointZoneT(TypedDict):
+    heatSetpoint: float
+    timeOfDay: str
+
+
+class TccDayOfWeekZoneT(TypedDict):
+    dayOfWeek: str
+    switchpoints: list[TccSwitchpointZoneT]
+
+
+class TccDailySchedulesZoneT(TypedDict):
+    dailySchedules: list[TccDayOfWeekZoneT]
+
+
 #
 # These are returned from vendor's API (GET)...
-def factory_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_dhw_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the DHW schedule schema."""
 
     SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
@@ -54,7 +88,7 @@ def factory_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
     )
 
 
-def factory_schedule_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_zon_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_GET_SWITCHPOINT_ZONE: Final = vol.Schema(

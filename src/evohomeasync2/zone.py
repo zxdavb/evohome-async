@@ -33,7 +33,7 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
-from .schemas import factory_schedule_zone, factory_zone_status
+from .schemas import factory_zon_schedule, factory_zon_status
 from .schemas.const import (
     S2_HEAT_SETPOINT_VALUE,
     S2_SETPOINT_MODE,
@@ -438,8 +438,8 @@ class Zone(_ZoneBase):
 
     _TYPE = EntityType.ZON
 
-    SCH_SCHEDULE: vol.Schema = factory_schedule_zone(camel_to_snake)
-    SCH_STATUS: vol.Schema = factory_zone_status(camel_to_snake)
+    SCH_SCHEDULE: vol.Schema = factory_zon_schedule(camel_to_snake)
+    SCH_STATUS: vol.Schema = factory_zon_status(camel_to_snake)
 
     def __init__(self, tcs: ControlSystem, config: EvoZonConfigResponseT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs)

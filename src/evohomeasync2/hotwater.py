@@ -19,7 +19,7 @@ from .const import (
     SZ_STATE,
     SZ_STATE_STATUS,
 )
-from .schemas import factory_dhw_status, factory_schedule_dhw
+from .schemas import factory_dhw_schedule, factory_dhw_status
 from .schemas.const import (
     S2_MODE,
     S2_STATE,
@@ -52,7 +52,7 @@ class HotWater(_ZoneBase):
 
     _TYPE = EntityType.DHW
 
-    SCH_SCHEDULE: vol.Schema = factory_schedule_dhw(camel_to_snake)
+    SCH_SCHEDULE: vol.Schema = factory_dhw_schedule(camel_to_snake)
     SCH_STATUS: vol.Schema = factory_dhw_status(camel_to_snake)
 
     def __init__(self, tcs: ControlSystem, config: EvoDhwConfigResponseT) -> None:

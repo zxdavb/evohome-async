@@ -12,8 +12,8 @@ import voluptuous as vol
 
 from evohome.auth import (
     _ERR_MSG_LOOKUP_BOTH,
-    HEADERS_AUTH,
     HEADERS_BASE,
+    HEADERS_CRED,
     AbstractAuth,
     CredentialsManagerBase,
 )
@@ -70,15 +70,15 @@ CREDS_USER_PASSWORD: Final = {
 }
 
 
-# POST url_auth, authentication url (i.e. /Auth/OAuth/Token)
-_ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
+# POST authentication url (i.e. /Auth/OAuth/Token)
+_ERR_MSG_LOOKUP_CRED: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
     HTTPStatus.BAD_REQUEST: "Invalid user credentials (check the username/password)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid URL?)",
     HTTPStatus.UNAUTHORIZED: "Invalid access token (dev/test only?)",
 }
-URL_AUTH: Final = "Auth/OAuth/Token"
+URL_CRED: Final = "Auth/OAuth/Token"
 
-# GET/PUT url_base, authorization url (e.g. /WebAPI/emea/api/v1/...)
+# GET/PUT resource url (e.g. /WebAPI/emea/api/v1/...)
 _ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
     HTTPStatus.BAD_REQUEST: "Bad request (invalid data/json?)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
@@ -206,11 +206,11 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         Raise AuthenticationFailedError if unable to obtain an access token.
         """
 
-        url = f"https://{self.hostname}/{URL_AUTH}"
+        url = f"https://{self.hostname}/{URL_CRED}"
 
         response: AuthTokenResponseT = await self._post_access_token_request(
             url,
-            headers=HEADERS_AUTH | {"Authorization": "Basic " + _APPLICATION_ID},
+            headers=HEADERS_CRED | {"Authorization": "Basic " + _APPLICATION_ID},
             data=credentials,  # NOTE: is snake_case
         )
 

@@ -14,7 +14,7 @@ from cli.auth import TokenManager
 
 from evohomeasync import exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
-from tests.const import HEADERS_AUTH_V0 as HEADERS_AUTH, URL_AUTH_V0 as URL_AUTH
+from tests.const import HEADERS_CRED_V0 as HEADERS_CRED, URL_CRED_V0 as URL_CRED
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -57,13 +57,13 @@ async def test_get_session_id(
                 "message": "The email or password provided is incorrect.",
             }
         ]
-        rsp.post(URL_AUTH, status=HTTPStatus.UNAUTHORIZED, payload=response)
+        rsp.post(URL_CRED, status=HTTPStatus.UNAUTHORIZED, payload=response)
 
         with pytest.raises(exc.AuthenticationFailedError):
             await cache_manager.get_session_id()
 
         rsp.assert_called_once_with(
-            URL_AUTH, HTTPMethod.POST, headers=HEADERS_AUTH, data=data_password
+            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
         )
 
     assert cache_manager.is_session_id_valid() is False
@@ -73,12 +73,12 @@ async def test_get_session_id(
     payload = server_response()
 
     with aioresponses() as rsp:
-        rsp.post(URL_AUTH, payload=payload)
+        rsp.post(URL_CRED, payload=payload)
 
         assert await cache_manager.get_session_id() == payload["sessionId"]
 
         rsp.assert_called_once_with(
-            URL_AUTH, HTTPMethod.POST, headers=HEADERS_AUTH, data=data_password
+            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
         )
 
     assert cache_manager.is_session_id_valid() is True
@@ -107,12 +107,12 @@ async def test_get_session_id(
     payload = server_response()
 
     with aioresponses() as rsp:
-        rsp.post(URL_AUTH, payload=payload)
+        rsp.post(URL_CRED, payload=payload)
 
         assert await cache_manager.get_session_id() == payload["sessionId"]
 
         rsp.assert_called_once_with(
-            URL_AUTH, HTTPMethod.POST, headers=HEADERS_AUTH, data=data_password
+            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
         )
 
     assert cache_manager.is_session_id_valid() is True

@@ -29,8 +29,8 @@ from evohomeasync2.schemas import (
 )
 from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
-    URL_AUTH_V2 as URL_AUTH,
     URL_BASE_V2 as URL_BASE,
+    URL_CRED_V2 as URL_CRED,
 )
 
 if TYPE_CHECKING:
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
         TccUsrAccountResponseT,
     )
 
-HEADERS_AUTH = {
+HEADERS_CRED = {
     "Accept": "application/json",
     "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",  # data=
     "Cache-Control": "no-cache, no-store",
@@ -80,7 +80,7 @@ async def _test_url_auth_bad0(  # invalid server certificate
 
     #
     # TEST 0: invalid certificate -> HTTPStatus.UNAUTHORIZED
-    parsed_url = urlparse(URL_AUTH)
+    parsed_url = urlparse(URL_CRED)
     ip_address = socket.gethostbyname(parsed_url.hostname)  # type: ignore[arg-type]
     url = f"{parsed_url.scheme}://{ip_address}{parsed_url.path}"  # path[:1] == "/"
 
@@ -89,7 +89,7 @@ async def _test_url_auth_bad0(  # invalid server certificate
     # [SSLCertVerificationError: ... certificate is not valid for ...]
 
     with pytest.raises(aiohttp.ClientConnectorCertificateError):
-        async with client_session.post(url, headers=HEADERS_AUTH, data={}) as rsp:
+        async with client_session.post(url, headers=HEADERS_CRED, data={}) as rsp:
             rsp.raise_for_status()  # raises ClientResponseError
 
 
@@ -108,7 +108,7 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
         "Password": "",
     }
 
-    async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+    async with client_session.post(URL_CRED, headers=HEADERS_CRED, data=data) as rsp:
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 
@@ -176,7 +176,7 @@ async def test_url_auth_bad3(  # invalid/expired refresh token
         "refresh_token": refresh_token,
     }
 
-    async with client_session.get(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+    async with client_session.get(URL_CRED, headers=HEADERS_CRED, data=data) as rsp:
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 
@@ -208,7 +208,7 @@ async def test_url_auth_good(
         "Password": credentials[1],
     }
 
-    async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+    async with client_session.post(URL_CRED, headers=HEADERS_CRED, data=data) as rsp:
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 
@@ -279,7 +279,7 @@ async def test_url_auth_good(
         "refresh_token": refresh_token,
     }
 
-    async with client_session.post(URL_AUTH, headers=HEADERS_AUTH, data=data) as rsp:
+    async with client_session.post(URL_CRED, headers=HEADERS_CRED, data=data) as rsp:
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 

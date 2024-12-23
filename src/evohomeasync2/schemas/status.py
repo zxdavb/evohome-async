@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, NotRequired, TypedDict
 
 import voluptuous as vol
 
@@ -57,6 +57,73 @@ if TYPE_CHECKING:
 _DTM_FORMAT = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{1,7}$"
 
 
+# GET /location/{loc_id}/status?include... returns this dict
+class TccLocStatusResponseT(TypedDict):
+    """Response to /location/{loc_id}/status?includeTemperatureControlSystems=True
+
+    The response is a dict of a single location.
+    """
+
+    locationId: str
+    gateways: list[TccGwyStatusResponseT]
+
+
+class TccGwyStatusResponseT(TypedDict):
+    gatewayId: str
+    activeFaults: list[TccActiveFaultResponseT]
+    temperatureControlSystems: list[TccTcsStatusResponseT]
+
+
+class TccActiveFaultResponseT(TypedDict):
+    faultType: str
+    since: str
+
+
+class TccTcsStatusResponseT(TypedDict):
+    systemId: str
+    activeFaults: list[TccActiveFaultResponseT]
+    systemModeStatus: TccSystemModeStatusResponseT
+    zones: list[TccZonStatusResponseT]
+    dhw: NotRequired[TccDhwStatusResponseT]
+
+
+class TccSystemModeStatusResponseT(TypedDict):
+    mode: SystemMode
+    isPermanent: bool
+    timeUntil: NotRequired[str]
+
+
+class TccZonStatusResponseT(TypedDict):
+    zoneId: str
+    activeFaults: list[TccActiveFaultResponseT]
+    setpointStatus: TccZonSetpointStatusResponseT
+    temperatureStatus: TccTemperatureStatusResponseT
+    name: str
+
+
+class TccZonSetpointStatusResponseT(TypedDict):
+    setpointMode: ZoneMode
+    targetHeatTemperature: int
+    until: NotRequired[str]
+
+
+class TccTemperatureStatusResponseT(TypedDict):
+    isAvailable: bool
+    temperature: NotRequired[int]
+
+
+class TccDhwStatusResponseT(TypedDict):
+    dhwId: str
+    activeFaults: list[TccActiveFaultResponseT]
+    stateStatus: TccDhwStateStatusResponseT
+    temperatureStatus: TccTemperatureStatusResponseT
+
+
+class TccDhwStateStatusResponseT(TypedDict):
+    mode: ZoneMode
+    state: DhwState
+
+
 def factory_active_faults(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the active faults schema."""
 
@@ -92,7 +159,7 @@ def factory_temp_status(fnc: Callable[[str], str] = noop) -> vol.Any:
     )
 
 
-def factory_zone_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_zon_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone status schema."""
 
     SCH_SETPOINT_STATUS: Final = vol.Schema(
@@ -183,7 +250,7 @@ def factory_tcs_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
         {
             vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
             vol.Required(fnc(S2_SYSTEM_MODE_STATUS)): factory_system_mode_status(fnc),
-            vol.Required(fnc(S2_ZONES)): [factory_zone_status(fnc)],
+            vol.Required(fnc(S2_ZONES)): [factory_zon_status(fnc)],
             vol.Optional(fnc(S2_DHW)): factory_dhw_status(fnc),
             vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc)],
         },

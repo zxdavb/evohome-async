@@ -135,7 +135,7 @@ S2_TEMPERATURE_ZONE: Final = "temperatureZone"
 S2_USER_ACCOUNT: Final = "userAccount"
 
 S2_COOL_SETPOINT_VALUE: Final = "coolSetpointValue"  # an extrapolation
-S2_HEAT_SETPOINT_VALUE: Final = "HeatSetpointValue"
+S2_HEAT_SETPOINT_VALUE: Final = "heatSetpointValue"
 
 S2_PERMANENT: Final = "permanent"
 S2_UNTIL_TIME: Final = "untilTime"

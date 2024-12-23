@@ -17,13 +17,13 @@ from evohomeasync2.schemas import (
 
 from .const import (
     GHOST_ZONE_ID,
-    MOCK_AUTH_RESPONSE,
+    MOCK_CRED_RESPONSE,
     MOCK_FULL_CONFIG,
     MOCK_LOCN_STATUS,
     MOCK_SCHEDULE_DHW,
     MOCK_SCHEDULE_ZONE,
-    URL_AUTH_V2 as URL_AUTH,
     URL_BASE_V2 as URL_BASE,
+    URL_CRED_V2 as URL_CRED,
     user_config_from_full_config as _user_config_from_full_config,
 )
 
@@ -191,8 +191,8 @@ class FakedServerV2(FakedServerBase):
     def oauth_token(self) -> _bodyT | None:
         if self._method != HTTPMethod.POST:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
-        elif self._url == URL_AUTH:
-            return MOCK_AUTH_RESPONSE
+        elif self._url == URL_CRED:
+            return MOCK_CRED_RESPONSE
         return None
 
     def usr_account(self) -> _bodyT:
