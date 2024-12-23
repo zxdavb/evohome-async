@@ -269,6 +269,7 @@ class Auth(AbstractAuth):
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
         """Ensure the authorization header has a valid access token."""
 
-        return (headers or HEADERS_BASE) | {
+        headers = HEADERS_BASE | (headers or {})
+        return headers | {
             "Authorization": "bearer " + await self._get_access_token(),
         }

@@ -131,6 +131,8 @@ async def test_tcs_urls(
         json={"SystemMode": "Auto", "Permanent": True},
     )  # type: ignore[assignment]
 
+    # factory_tcs_status()(task)  # {'id': '1668279943'}
+
 
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
