@@ -123,15 +123,13 @@ async def test_tcs_urls(
         },
     )  # type: ignore[assignment]
 
-    # factory_tcs_status()(task)  # {'id': '1668279943'}
+    # factory_task()(task)  # {'id': '1668279943'}
 
     _ = await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureControlSystem/{tcs_id}/mode",
         json={"SystemMode": "Auto", "Permanent": True},
     )  # type: ignore[assignment]
-
-    # factory_tcs_status()(task)  # {'id': '1668279943'}
 
 
 @skipif_auth_failed
@@ -243,9 +241,13 @@ async def test_dhw_urls(
         HTTPMethod.GET,
         f"location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True",
     )  # type: ignore[assignment]
-    tcs_config = usr_installs[0]["gateways"][0]["temperatureControlSystems"][0]
+    tcs_config = usr_installs[2]["gateways"][0]["temperatureControlSystems"][0]
 
-    if "dhw" not in tcs_config:
+    for loc_config in usr_installs:
+        tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
+        if "dhw" in tcs_config:
+            break
+    else:
         pytest.skip(f"no DHW in {tcs_config}")
 
     #
