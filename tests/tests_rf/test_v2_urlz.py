@@ -80,7 +80,7 @@ async def test_tcs_urls(
     factory_user_locations_installation_info()(usr_installs)
 
     #
-    # STEP 3: GET /location/{loc_id}/installationInfo
+    # STEP A: GET /location/{loc_id}/installationInfo
     loc_id = usr_installs[0]["locationInfo"]["locationId"]
 
     loc_config: TccLocConfigResponseT = await auth._make_request(
@@ -91,7 +91,7 @@ async def test_tcs_urls(
     factory_location_installation_info()(loc_config)
 
     #
-    # STEP 4: GET /location/{loc_id}/status
+    # STEP B: GET /location/{loc_id}/status
     loc_status: TccLocStatusResponseT = await auth._make_request(
         HTTPMethod.GET,
         f"location/{loc_id}/status?includeTemperatureControlSystems=True",
@@ -100,7 +100,7 @@ async def test_tcs_urls(
     factory_loc_status()(loc_status)
 
     #
-    # STEP 5: GET /temperatureControlSystem/{tcs_id}/status
+    # STEP C: GET /temperatureControlSystem/{tcs_id}/status
     tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
     tcs_id = tcs_config["systemId"]
 
@@ -112,7 +112,7 @@ async def test_tcs_urls(
     factory_tcs_status()(tcs_status)
 
     #
-    # STEP 6: PUT /temperatureControlSystem/{tcs_id}/mode
+    # STEP D: PUT /temperatureControlSystem/{tcs_id}/mode
     _: TccTaskResponseT = await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureControlSystem/{tcs_id}/mode",
@@ -164,7 +164,7 @@ async def test_zon_urls(
     tcs_config = usr_installs[0]["gateways"][0]["temperatureControlSystems"][0]
 
     #
-    # STEP 1: GET /temperatureZone/{zon_id}/status
+    # STEP A: GET /temperatureZone/{zon_id}/status
     zon_id = tcs_config["zones"][0]["zoneId"]
 
     zon_status: TccZonStatusResponseT = await auth._make_request(
@@ -175,7 +175,7 @@ async def test_zon_urls(
     factory_zon_status()(zon_status)
 
     #
-    # STEP 2: PUT /temperatureZone/{zon_id}/heatSetpoint
+    # STEP B: PUT /temperatureZone/{zon_id}/heatSetpoint
     _: TccTaskResponseT = await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureZone/{zon_id}/heatSetpoint",
@@ -199,7 +199,7 @@ async def test_zon_urls(
     )  # type: ignore[assignment]
 
     #
-    # STEP A: GET /temperatureZone/{zon_id}/schedule
+    # STEP C: GET /temperatureZone/{zon_id}/schedule
     zon_schedule: TccDailySchedulesZoneT = await auth._make_request(
         HTTPMethod.GET,
         f"temperatureZone/{zon_id}/schedule",
@@ -208,7 +208,7 @@ async def test_zon_urls(
     factory_zon_schedule()(zon_schedule)
 
     #
-    # STEP B: PUT /temperatureZone/{zon_id}/schedule
+    # STEP D: PUT /temperatureZone/{zon_id}/schedule
     _ = await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureZone/{zon_id}/schedule",
@@ -249,7 +249,7 @@ async def test_dhw_urls(
         pytest.skip(f"no DHW in {tcs_config}")
 
     #
-    # STEP 1: GET /domesticHotWater/{dhw_id}/status
+    # STEP A: GET /domesticHotWater/{dhw_id}/status
     dhw_id = tcs_config["dhw"]["dhwId"]
 
     dhw_status: TccDhwStatusResponseT = await auth._make_request(
@@ -260,7 +260,7 @@ async def test_dhw_urls(
     factory_dhw_status()(dhw_status)
 
     #
-    # STEP 2: PUT /domesticHotWater/{dhw_id}/state
+    # STEP B: PUT /domesticHotWater/{dhw_id}/state
     _: TccTaskResponseT = await auth._make_request(
         HTTPMethod.PUT,
         f"domesticHotWater/{dhw_id}/state",
