@@ -241,8 +241,6 @@ async def test_dhw_urls(
         HTTPMethod.GET,
         f"location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True",
     )  # type: ignore[assignment]
-    tcs_config = usr_installs[2]["gateways"][0]["temperatureControlSystems"][0]
-
     for loc_config in usr_installs:
         tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
         if "dhw" in tcs_config:
