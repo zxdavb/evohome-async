@@ -1,4 +1,10 @@
-"""evohome-async - invoke every known vendor RESful API."""
+"""evohome-async - validate the handling of every v2 APIs (URLs) used by the client.
+
+This is used to document the RESTful API that is provided by the vendor.
+
+Testing is at HTTP request layer (e.g. GET/PUT).
+Everything to/from the RESTful API is in camelCase (so those schemas are used).
+"""
 
 from __future__ import annotations
 

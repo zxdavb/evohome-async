@@ -1,10 +1,10 @@
-"""evohome-async - validate the handling of vendor v2 APIs (URLs) for Authentication.
+"""evohome-async - validate the handling of the v2 APIs (URLs) for Authentication.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor
   b) confirm the faked server (if any) is behaving as per a)
 
-Testing is at HTTP request layer (e.g. GET).
+Testing is at HTTP request layer (e.g. POST).
 Everything to/from the RESTful API is in camelCase (so those schemas are used).
 """
 
