@@ -1,8 +1,8 @@
-"""evohome-async - validate the handling of vendor APIs (URLs) for Authentication.
+"""evohome-async - validate the handling of vendor v0 APIs (URLs) for Authentication.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor
-  b) confirm the faked server is behaving as per a)
+  b) confirm the faked server (if any) is behaving as per a)
 
 Testing is at HTTP request layer (e.g. GET).
 Everything to/from the RESTful API is in camelCase (so those schemas are used).
@@ -152,7 +152,7 @@ async def test_url_auth_bad2(  # invalid/expired session id
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-@pytest.mark.skipif(not _DBG_TEST_CRED_URLS, reason="invalidates the credentials cache")
+@pytest.mark.skipif(not _DBG_TEST_CRED_URLS, reason="may invalidate credentials cache")
 async def test_url_auth_good(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
