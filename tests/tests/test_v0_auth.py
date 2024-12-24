@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from aioresponses import aioresponses
-from cli.auth import TokenManager
+from cli.auth import CredentialsManager
 
 from evohomeasync import exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 async def test_get_session_id(
     credentials: tuple[str, str],
-    cache_manager: TokenManager,
+    credentials_manager: CredentialsManager,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test .get_session_id() and .is_session_valid() methods."""
@@ -40,7 +40,7 @@ async def test_get_session_id(
 
     #
     # have not yet called get_session_id (so not loaded cache either)
-    assert cache_manager.is_session_id_valid() is False
+    assert credentials_manager.is_session_id_valid() is False
 
     #
     # test HTTPStatus.UNAUTHORIZED -> exc.AuthenticationFailedError
@@ -60,13 +60,13 @@ async def test_get_session_id(
         rsp.post(URL_CRED, status=HTTPStatus.UNAUTHORIZED, payload=response)
 
         with pytest.raises(exc.AuthenticationFailedError):
-            await cache_manager.get_session_id()
+            await credentials_manager.get_session_id()
 
         rsp.assert_called_once_with(
             URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
         )
 
-    assert cache_manager.is_session_id_valid() is False
+    assert credentials_manager.is_session_id_valid() is False
 
     #
     # test HTTPStatus.OK
@@ -75,30 +75,30 @@ async def test_get_session_id(
     with aioresponses() as rsp:
         rsp.post(URL_CRED, payload=payload)
 
-        assert await cache_manager.get_session_id() == payload["sessionId"]
+        assert await credentials_manager.get_session_id() == payload["sessionId"]
 
         rsp.assert_called_once_with(
             URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
         )
 
-    assert cache_manager.is_session_id_valid() is True
+    assert credentials_manager.is_session_id_valid() is True
 
     #
     # check doesn't invoke the URL again, as session id still valid
     freezer.tick(600)  # advance time by 5 minutes
 
     with patch("aiohttp.ClientSession.post", new_callable=AsyncMock) as mok:
-        assert await cache_manager.get_session_id() == payload["sessionId"]
+        assert await credentials_manager.get_session_id() == payload["sessionId"]
 
         mok.assert_not_called()
 
-    assert cache_manager.is_session_id_valid() is True
+    assert credentials_manager.is_session_id_valid() is True
 
     #
     # check session id now expired
     freezer.tick(1200)  # advance time by another 10 minutes, 15 total
 
-    assert cache_manager.is_session_id_valid() is False
+    assert credentials_manager.is_session_id_valid() is False
 
     #
     # check does invoke the URL, as session id now expired
@@ -109,19 +109,19 @@ async def test_get_session_id(
     with aioresponses() as rsp:
         rsp.post(URL_CRED, payload=payload)
 
-        assert await cache_manager.get_session_id() == payload["sessionId"]
+        assert await credentials_manager.get_session_id() == payload["sessionId"]
 
         rsp.assert_called_once_with(
             URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
         )
 
-    assert cache_manager.is_session_id_valid() is True
+    assert credentials_manager.is_session_id_valid() is True
 
     #
     # test _clear_session_id()
-    cache_manager._clear_session_id()
+    credentials_manager._clear_session_id()
 
-    assert cache_manager.is_session_id_valid() is False
+    assert credentials_manager.is_session_id_valid() is False
 
 
 async def test_session_manager(
@@ -142,7 +142,9 @@ async def test_session_manager(
     with cache_file.open("w") as f:
         f.write(json.dumps(cache_data_expired, indent=4))
 
-    cache_manager = TokenManager(*credentials, client_session, cache_file=cache_file)
+    cache_manager = CredentialsManager(
+        *credentials, client_session, cache_file=cache_file
+    )
 
     # have not yet called get_access_token (so not loaded cache either)
     assert cache_manager.is_session_id_valid() is False
@@ -155,7 +157,9 @@ async def test_session_manager(
     with cache_file.open("w") as f:
         f.write(json.dumps(cache_data_valid, indent=4))
 
-    cache_manager = TokenManager(*credentials, client_session, cache_file=cache_file)
+    cache_manager = CredentialsManager(
+        *credentials, client_session, cache_file=cache_file
+    )
 
     await cache_manager.load_from_cache()
     assert cache_manager.is_session_id_valid() is True
@@ -179,7 +183,9 @@ async def test_session_manager(
             "evohomeasync.auth.AbstractSessionManager._post_session_id_request",
             new_callable=AsyncMock,
         ) as req,
-        patch("cli.auth.TokenManager.save_session_id", new_callable=AsyncMock) as wrt,
+        patch(
+            "cli.auth.CredentialsManager.save_session_id", new_callable=AsyncMock
+        ) as wrt,
     ):
         req.return_value = {
             "sessionId": "new_session_id...",

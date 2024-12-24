@@ -42,7 +42,7 @@ if TYPE_CHECKING:
         TccTcsStatusResponseT,
         TccZonStatusResponseT,
     )
-    from tests.conftest import TokenManager
+    from tests.conftest import CredentialsManager
 
 
 #######################################################################################
@@ -51,17 +51,17 @@ if TYPE_CHECKING:
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_tcs_urls(
-    cache_manager: TokenManager,
+    credentials_manager: CredentialsManager,
 ) -> None:
     """Test Location, Gateway and TCS URLs."""
 
-    await cache_manager.load_from_cache()
+    await credentials_manager.load_from_cache()
 
     #
     # STEP 0: Create the Auth client
     auth = Auth(
-        cache_manager.get_access_token,
-        cache_manager.websession,
+        credentials_manager.get_access_token,
+        credentials_manager.websession,
         logger=logging.getLogger(__name__),
     )
 
@@ -141,17 +141,17 @@ async def test_tcs_urls(
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_zon_urls(
-    cache_manager: TokenManager,
+    credentials_manager: CredentialsManager,
 ) -> None:
     """Test Zone URLs"""
 
-    await cache_manager.load_from_cache()
+    await credentials_manager.load_from_cache()
 
     #
     # STEP 0: Create the Auth client, get the TCS config
     auth = Auth(
-        cache_manager.get_access_token,
-        cache_manager.websession,
+        credentials_manager.get_access_token,
+        credentials_manager.websession,
         logger=logging.getLogger(__name__),
     )
 
@@ -223,17 +223,17 @@ async def test_zon_urls(
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_dhw_urls(
-    cache_manager: TokenManager,
+    credentials_manager: CredentialsManager,
 ) -> None:
     """Test DHW URLs"""
 
-    await cache_manager.load_from_cache()
+    await credentials_manager.load_from_cache()
 
     #
     # STEP 0: Create the Auth client, get the TCS config
     auth = Auth(
-        cache_manager.get_access_token,
-        cache_manager.websession,
+        credentials_manager.get_access_token,
+        credentials_manager.websession,
         logger=logging.getLogger(__name__),
     )
 

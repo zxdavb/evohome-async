@@ -55,8 +55,8 @@ CacheDataT = dict[str, UserEntryT]  # str is the client_id
 """
 
 
-class TokenManager(AbstractTokenManager, AbstractSessionManager):
-    """A token manager that uses a cache file to store the tokens."""
+class CredentialsManager(AbstractTokenManager, AbstractSessionManager):
+    """A credentials manager that uses a file to cache the tokens."""
 
     def __init__(
         self, *args: Any, cache_file: Path | None = None, **kwargs: Any

@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
     import voluptuous as vol
 
-    from tests.conftest import TokenManager
+    from tests.conftest import CredentialsManager
 
 
 type JsonValueType = (
@@ -175,12 +175,12 @@ def use_real_aiohttp() -> bool:
 @pytest.fixture
 async def evohome_v2(
     install: str,
-    cache_manager: TokenManager,
+    credentials_manager: CredentialsManager,
 ) -> AsyncGenerator[EvohomeClientv2]:
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync2.auth.Auth.get", broker_get(install)):
-        evo = EvohomeClientv2(cache_manager)
+        evo = EvohomeClientv2(credentials_manager)
 
         await evo.update()
 

@@ -24,7 +24,7 @@ from evohomeasync2 import (
 )
 from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE
 
-from .auth import CACHE_FILE, TokenManager
+from .auth import CACHE_FILE, CredentialsManager
 
 if TYPE_CHECKING:
     from io import TextIOWrapper
@@ -124,7 +124,7 @@ async def cli(
 
     async def cleanup(
         websession: aiohttp.ClientSession,
-        token_manager: TokenManager,
+        token_manager: CredentialsManager,
     ) -> None:
         """Close the web session and save the access token to the cache."""
 
@@ -139,7 +139,9 @@ async def cli(
     )
 
     websession = aiohttp.ClientSession()  # timeout=aiohttp.ClientTimeout(total=30))
-    token_manager = TokenManager(username, password, websession, cache_file=CACHE_FILE)
+    token_manager = CredentialsManager(
+        username, password, websession, cache_file=CACHE_FILE
+    )
 
     if not no_tokens:  # then restore cached tokens, if any
         await token_manager._load_access_token()

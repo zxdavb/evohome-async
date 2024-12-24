@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from aioresponses import aioresponses
-from cli.auth import TokenManager
+from cli.auth import CredentialsManager
 
 from evohomeasync2 import exceptions as exc
 from tests.const import HEADERS_CRED_V2 as HEADERS_CRED, URL_CRED_V2 as URL_CRED
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 async def test_get_auth_token(
     credentials: tuple[str, str],
-    cache_manager: TokenManager,
+    credentials_manager: CredentialsManager,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test .get_access_token() and .is_access_token_valid() methods."""
@@ -45,7 +45,7 @@ async def test_get_auth_token(
 
     #
     # have not yet called get_access_token (so not loaded cache either)
-    assert cache_manager.is_access_token_valid() is False
+    assert credentials_manager.is_access_token_valid() is False
 
     #
     # test HTTPStatus.UNAUTHORIZED -> exc.AuthenticationFailedError
@@ -63,13 +63,13 @@ async def test_get_auth_token(
         rsp.post(URL_CRED, status=HTTPStatus.UNAUTHORIZED, payload=response)
 
         with pytest.raises(exc.AuthenticationFailedError):
-            await cache_manager.get_access_token()
+            await credentials_manager.get_access_token()
 
         rsp.assert_called_once_with(
             URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
         )
 
-    assert cache_manager.is_access_token_valid() is False
+    assert credentials_manager.is_access_token_valid() is False
 
     #
     # test HTTPStatus.OK
@@ -78,30 +78,30 @@ async def test_get_auth_token(
     with aioresponses() as rsp:
         rsp.post(URL_CRED, payload=payload)
 
-        assert await cache_manager.get_access_token() == payload["access_token"]
+        assert await credentials_manager.get_access_token() == payload["access_token"]
 
         rsp.assert_called_once_with(
             URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
         )
 
-    assert cache_manager.is_access_token_valid() is True
+    assert credentials_manager.is_access_token_valid() is True
 
     #
     # check doesn't invoke the URL again, as session_id still valid
     freezer.tick(600)  # advance time by 5 minutes
 
     with patch("aiohttp.ClientSession.post", new_callable=AsyncMock) as mok:
-        assert await cache_manager.get_access_token() == payload["access_token"]
+        assert await credentials_manager.get_access_token() == payload["access_token"]
 
         mok.assert_not_called()
 
-    assert cache_manager.is_access_token_valid() is True
+    assert credentials_manager.is_access_token_valid() is True
 
     #
     # check does invoke the URL, as access token now expired
     freezer.tick(1200)  # advance time by another 10 minutes, 15 total
 
-    assert cache_manager.is_access_token_valid() is False
+    assert credentials_manager.is_access_token_valid() is False
 
     #
     # check does invoke the URL, as access token now expired
@@ -115,19 +115,19 @@ async def test_get_auth_token(
     with aioresponses() as rsp:
         rsp.post(URL_CRED, payload=payload)
 
-        assert await cache_manager.get_access_token() == payload["access_token"]
+        assert await credentials_manager.get_access_token() == payload["access_token"]
 
         rsp.assert_called_once_with(
             URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_token
         )
 
-    assert cache_manager.is_access_token_valid() is True
+    assert credentials_manager.is_access_token_valid() is True
 
     #
     # test _clear_access_token()
-    cache_manager._clear_access_token()
+    credentials_manager._clear_access_token()
 
-    assert cache_manager.is_access_token_valid() is False
+    assert credentials_manager.is_access_token_valid() is False
 
 
 async def test_token_manager(
@@ -149,7 +149,9 @@ async def test_token_manager(
     with cache_file.open("w") as f:
         f.write(json.dumps(cache_data_expired, indent=4))
 
-    cache_manager = TokenManager(*credentials, client_session, cache_file=cache_file)
+    cache_manager = CredentialsManager(
+        *credentials, client_session, cache_file=cache_file
+    )
 
     # have not yet called get_access_token (so not loaded cache either)
     assert cache_manager.is_session_id_valid() is False
@@ -162,7 +164,9 @@ async def test_token_manager(
     with cache_file.open("w") as f:
         f.write(json.dumps(cache_data_valid, indent=4))
 
-    cache_manager = TokenManager(*credentials, client_session, cache_file=cache_file)
+    cache_manager = CredentialsManager(
+        *credentials, client_session, cache_file=cache_file
+    )
 
     await cache_manager.load_from_cache()
     assert cache_manager.is_access_token_valid() is True
@@ -186,7 +190,9 @@ async def test_token_manager(
             "evohomeasync2.auth.AbstractTokenManager._post_access_token_request",
             new_callable=AsyncMock,
         ) as req,
-        patch("cli.auth.TokenManager.save_access_token", new_callable=AsyncMock) as wrt,
+        patch(
+            "cli.auth.CredentialsManager.save_access_token", new_callable=AsyncMock
+        ) as wrt,
     ):
         req.return_value = {
             "access_token": "new_access_token...",
@@ -232,7 +238,9 @@ async def test_token_manager(
             "evohomeasync2.auth.AbstractTokenManager._post_access_token_request",
             new_callable=AsyncMock,
         ) as req,
-        patch("cli.auth.TokenManager.save_access_token", new_callable=AsyncMock) as wrt,
+        patch(
+            "cli.auth.CredentialsManager.save_access_token", new_callable=AsyncMock
+        ) as wrt,
     ):
         req.return_value = {
             "access_token": "newer_access_token...",
