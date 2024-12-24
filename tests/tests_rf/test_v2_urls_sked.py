@@ -1,4 +1,4 @@
-"""evohome-async - validate the handling of the v2 APIs (URLs) for Schedules.
+"""Validate the handling of the vendor's v2 APIs (URLs) for Schedules.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor

@@ -1,4 +1,4 @@
-"""evohome-async - validate the handling of vendor v0 APIs (URLs) for Authorization.
+"""Validate the handling of the vendor's v0 APIs (URLs) for Authorization.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor

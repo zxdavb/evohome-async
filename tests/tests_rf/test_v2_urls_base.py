@@ -1,4 +1,4 @@
-"""evohome-async - validate the handling of every v2 APIs (URLs) used by the client.
+"""Validate the handling of all the vendor's v2 APIs (URLs) used by the client.
 
 This is used to document the RESTful API that is provided by the vendor.
 

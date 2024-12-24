@@ -1,10 +1,10 @@
-"""evohome-async - validate the handling of vendor APIs (URLs) for task management.
+"""Validate the handling of the vendor's v2 APIs (URLs) for Task management.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor
-  b) confirm the faked server is behaving as per a)
+  b) confirm the faked server (if any) is behaving as per a)
 
-Testing is at HTTP request layer (e.g. GET).
+Testing is at HTTP request layer (e.g. GET/PUT).
 Everything to/from the RESTful API is in camelCase (so those schemas are used).
 """
 
