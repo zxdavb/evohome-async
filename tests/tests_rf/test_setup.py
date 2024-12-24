@@ -1,4 +1,7 @@
-"""evohome-async - a minimal test of instantiation/update of each client."""
+"""Validate the instantiation/update of each client.
+
+Performs the bare minimum of tests.
+"""
 
 from __future__ import annotations
 

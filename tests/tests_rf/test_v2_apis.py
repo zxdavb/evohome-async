@@ -1,4 +1,4 @@
-"""evohome-async - validate the evohome-async APIs (methods)."""
+"""Validate the evohome-async v2 APIs (methods)."""
 
 from __future__ import annotations
 
