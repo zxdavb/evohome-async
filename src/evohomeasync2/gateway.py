@@ -13,9 +13,9 @@ from .const import (
     SZ_SYSTEM_ID,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
+from .control_system import ControlSystem
 from .schemas import factory_gwy_status
 from .schemas.const import EntityType
-from .system import ControlSystem
 from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:
