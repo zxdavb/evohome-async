@@ -113,9 +113,9 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
         if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
             await handle_too_many_requests(rsp)
 
-        response: list[TccFailureResponseT] = await rsp.json()
-
         assert rsp.status == HTTPStatus.UNAUTHORIZED
+
+        response: list[TccFailureResponseT] = await rsp.json()
 
         # the expected response for bad credentials
         """
@@ -183,6 +183,8 @@ async def test_url_auth_good(
 
         assert rsp.status == HTTPStatus.OK
 
+        user_auth: TccSessionResponseT = await rsp.json()
+
         # the expected response
         """
             {
@@ -208,8 +210,6 @@ async def test_url_auth_good(
                 }
             }
         """
-
-        user_auth: TccSessionResponseT = await rsp.json()
 
     assert user_auth["userInfo"]["username"] == credentials[0]
     TCC_POST_USR_SESSION(user_auth)
