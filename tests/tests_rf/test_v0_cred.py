@@ -27,6 +27,7 @@ from evohomeasync.schemas import (
     TCC_POST_USR_SESSION,
 )
 from tests.const import (
+    _DBG_TEST_CRED_URLS,
     _DBG_USE_REAL_AIOHTTP,
     URL_BASE_V0 as URL_BASE,
     URL_CRED_V0 as URL_CRED,
@@ -75,7 +76,7 @@ async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def _test_url_auth_bad0(  # invalid server certificate
+async def test_url_auth_bad0(  # invalid server certificate
     client_session: aiohttp.ClientSession,
 ) -> None:
     """Test authentication flow with invalid server certificate."""
@@ -164,6 +165,7 @@ async def test_url_auth_bad2(  # invalid/expired session id
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+@pytest.mark.skipif(not _DBG_TEST_CRED_URLS, reason="invalidates the credentials cache")
 async def test_url_auth_good(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
