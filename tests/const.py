@@ -9,9 +9,9 @@ from evohomeasync2.auth import _APPLICATION_ID as _APPLICATION_ID_V2
 
 #
 # normally, we want debug flags to be False
+_DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 _DBG_TEST_CRED_URLS = False  # avoid 429s: dont invalidate the credential cache
 _DBG_USE_REAL_AIOHTTP = False  # use 'real' aiohttp to reach vendor's servers
-_DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 
 #
 # used to construct the default token cache

@@ -81,7 +81,7 @@ class EvohomeClientNew:
             self._user_info = None
             self._user_locs = None
 
-        if self._user_info is None:
+        if self._user_info is None:  # will handle a bad session_id
             url = "accountInfo"
             try:
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)  # type: ignore[assignment]
