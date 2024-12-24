@@ -264,7 +264,7 @@ class TccSessionResponseT(TypedDict):
 class TccUserAccountInfoResponseT(TypedDict):  # NOTE: is not TccUserAccountResponseT
     """GET api/accountInfo"""
 
-    userId: _UserIdT
+    userID: _UserIdT
     username: str  # email address
     firstname: str
     lastname: str

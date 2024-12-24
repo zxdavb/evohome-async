@@ -29,6 +29,8 @@ from evohomeasync.schemas import (
 from tests.const import (
     _DBG_TEST_CRED_URLS,
     _DBG_USE_REAL_AIOHTTP,
+    HEADERS_BASE,
+    HEADERS_CRED_V0 as HEADERS_CRED,
     URL_BASE_V0 as URL_BASE,
     URL_CRED_V0 as URL_CRED,
 )
@@ -39,21 +41,6 @@ if TYPE_CHECKING:
         TccSessionResponseT,
         TccUserAccountInfoResponseT,
     )
-
-
-HEADERS_CRED = {
-    "Accept": "application/json",
-    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",  # data=
-    "Cache-Control": "no-cache, no-store",
-    "Pragma": "no-cache",
-    "Connection": "Keep-Alive",
-    # _APPLICATION_ID is in the data
-}
-HEADERS_BASE = {
-    "Accept": "application/json",
-    "Content-Type": "application/json",  # json=
-    "SessionId": "",  # "e163b069-1234-..."
-}
 
 
 async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:

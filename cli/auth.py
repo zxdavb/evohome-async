@@ -61,7 +61,7 @@ class TokenManager(AbstractTokenManager, AbstractSessionManager):
     def __init__(
         self, *args: Any, cache_file: Path | None = None, **kwargs: Any
     ) -> None:
-        """Initialise the token manager."""
+        """Initialise the credentials manager (for access_token & session_id)."""
         super().__init__(*args, **kwargs)
 
         self._cache_file: Final = cache_file
@@ -120,7 +120,7 @@ class TokenManager(AbstractTokenManager, AbstractSessionManager):
         async with aiofiles.open(self.cache_file, "w") as fp:
             await fp.write(content)
 
-    async def load_cache(self) -> None:
+    async def load_from_cache(self) -> None:
         """Load the user entry from the cache."""
 
         cache: CacheDataT = await self._read_cache_from_file()
@@ -161,6 +161,12 @@ class TokenManager(AbstractTokenManager, AbstractSessionManager):
         # if not self._session_id:  # not needed as dt.min is sentinel for this
         if self._session_id_expires.isoformat() < session[SZ_SESSION_ID_EXPIRES]:
             self._import_session_id(session)
+
+    async def save_to_cache(self) -> None:
+        """Save the user entry to the cache."""
+
+        await self.save_access_token()
+        await self.save_session_id()
 
     async def save_access_token(self) -> None:
         """Save the (serialized) access token to the cache.

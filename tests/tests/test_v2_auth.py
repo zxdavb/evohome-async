@@ -154,7 +154,7 @@ async def test_token_manager(
     # have not yet called get_access_token (so not loaded cache either)
     assert cache_manager.is_session_id_valid() is False
 
-    await cache_manager.load_cache()
+    await cache_manager.load_from_cache()
     assert cache_manager.is_access_token_valid() is False
 
     #
@@ -164,7 +164,7 @@ async def test_token_manager(
 
     cache_manager = TokenManager(*credentials, client_session, cache_file=cache_file)
 
-    await cache_manager.load_cache()
+    await cache_manager.load_from_cache()
     assert cache_manager.is_access_token_valid() is True
 
     access_token = await cache_manager.get_access_token()

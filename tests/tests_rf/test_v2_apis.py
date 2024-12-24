@@ -26,7 +26,7 @@ async def _test_basics_apis(evo: EvohomeClientv2) -> None:
     """Test authentication, `user_account()` and `installation()`."""
 
     # STEP 1: retrieve base data
-    await evo.update(_dont_update_status=False)
+    await evo.update(_dont_update_status=True)
 
     assert evo2.main.SCH_USER_ACCOUNT(evo.user_account)
     assert evo2.main.SCH_USER_LOCATIONS(evo.user_installation)

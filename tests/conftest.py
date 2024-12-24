@@ -132,16 +132,16 @@ async def cache_manager(
     credentials: tuple[str, str],
     cache_file: Path,
 ) -> AsyncGenerator[TokenManager]:
-    """Yield a token manager for the v2 API."""
+    """Yield a credentials manager for access_token & session_id caching."""
 
     manager = TokenManager(*credentials, client_session, cache_file=cache_file)
 
-    # await cache_manager.load_cache()
+    # await manager.load_from_cache()
 
     try:
         yield manager
     finally:
-        await manager.save_access_token()  # for next run of tests
+        await manager.save_to_cache()  # for next run of tests
 
 
 @pytest.fixture
@@ -150,7 +150,7 @@ async def evohome_v0(
 ) -> AsyncGenerator[EvohomeClientv0]:
     """Yield an instance of a v0 EvohomeClient."""
 
-    await cache_manager.load_cache()
+    await cache_manager.load_from_cache()
 
     evo = EvohomeClientv0(cache_manager)
 
@@ -168,7 +168,7 @@ async def evohome_v2(
 ) -> AsyncGenerator[EvohomeClientv2]:
     """Yield an instance of a v2 EvohomeClient."""
 
-    await cache_manager.load_cache()
+    await cache_manager.load_from_cache()
 
     evo = EvohomeClientv2(cache_manager)
 

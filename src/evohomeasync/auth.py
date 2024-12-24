@@ -120,13 +120,15 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         """
 
         if not self.is_session_id_valid():  # may be invalid for other reasons
-            self.logger.warning("Null/Expired/Invalid session_id, re-authenticating.")
+            self.logger.warning(
+                "Null/Expired/Invalid session_id, will re-authenticate..."
+            )
             await self._update_session_id()
 
         return self.session_id
 
     async def _update_session_id(self) -> None:
-        self.logger.warning("Authenticating with client_id/secret...")
+        self.logger.warning("Authenticating with client_id/secret")
 
         credentials = {
             "applicationId": _APPLICATION_ID,

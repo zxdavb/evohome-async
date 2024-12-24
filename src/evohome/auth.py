@@ -221,7 +221,17 @@ class AbstractAuth(ABC):
         if method == HTTPMethod.PUT and "json" in kwargs:
             kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
-        response = await self._make_request(method, url, **kwargs)
+        try:
+            response = await self._make_request(method, url, **kwargs)
+        except exc.ApiRequestFailedError as err:
+            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
+                # leave it up to higher layers to handle the 401 as they can either be
+                # authentication errors: bad access_token, bad session_id
+                # authorization errors: bad URL (e.g. no access to that location)
+                self.logger.debug(
+                    f"The access_token/session_id may be invalid (it shouldn't be): {err}"
+                )
+            raise
 
         if self.logger.isEnabledFor(logging.DEBUG):
             self.logger.debug(f"{method} {url}: {obscure_secrets(response)}")
@@ -247,12 +257,11 @@ class AbstractAuth(ABC):
 
         rsp: aiohttp.ClientResponse | None = None
 
+        url = f"{self.url_base}/{url}"
         headers = await self._headers(kwargs.pop("headers", {}))
 
         try:
-            rsp = await self.websession.request(
-                method, f"{self.url_base}/{url}", headers=headers, **kwargs
-            )
+            rsp = await self.websession.request(method, url, headers=headers, **kwargs)
             assert rsp is not None  # mypy
 
             rsp.raise_for_status()
@@ -270,6 +279,11 @@ class AbstractAuth(ABC):
             raise exc.ApiRequestFailedError(
                 f"{method} {url}: response is not JSON: {await _payload(rsp)}"
             ) from err
+
+        # an invalid access_token / session_id will cause a 401/Unauthorized
+        # so, we'd need to re-authenticate - how do we effect that?
+        # unfortunately, other scenarios cause a 401 (e.g. bad loc_id in URL)
+        # for now, leave it up to the consumer to handle the 401
 
         except aiohttp.ClientResponseError as err:
             # if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):

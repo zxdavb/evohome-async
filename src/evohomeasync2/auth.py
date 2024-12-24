@@ -160,7 +160,9 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """
 
         if not self.is_access_token_valid():  # may be invalid for other reasons
-            self.logger.warning("Null/Expired/Invalid access_token, re-authenticating.")
+            self.logger.warning(
+                "Null/Expired/Invalid access_token, will re-authenticate..."
+            )
             await self._update_access_token()
 
         return self.access_token
@@ -169,7 +171,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """Update the access token and save it to the store/cache."""
 
         if self._refresh_token:
-            self.logger.warning("Authenticating with the refresh_token...")
+            self.logger.warning("Authenticating with the refresh_token")
 
             credentials = {SZ_REFRESH_TOKEN: self._refresh_token}
 
@@ -184,7 +186,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
                 self._refresh_token = ""
 
         if not self._refresh_token:
-            self.logger.warning("Authenticating with client_id/secret...")
+            self.logger.warning("Authenticating with client_id/secret")
 
             # NOTE: the keys are case-sensitive: 'Username' and 'Password'
             credentials = {"Username": self._client_id, "Password": self._secret}

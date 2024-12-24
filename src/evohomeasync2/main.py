@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -70,7 +71,7 @@ class EvohomeClientNew:
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(auth='{self.auth}')"
 
-    async def update(
+    async def update(  # noqa: C901
         self,
         /,
         *,
@@ -92,7 +93,22 @@ class EvohomeClientNew:
 
         if self._user_info is None:
             url = "userAccount"
-            self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
+            try:
+                self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
+            except exc.ApiRequestFailedError as err:
+                if err.status != HTTPStatus.UNAUTHORIZED:  # 401
+                    raise
+
+                # in this case, the 401 must be due to a bad access_token as the
+                # URL is well-known (and there is no no usr_id, loc_id, etc.)
+                # that is, the userAccount URL is open to all authenticated users
+
+                self.logger.warning(
+                    f"The access_token appears invalid (will re-authenticate): {err}"
+                )
+
+                self._token_manager._clear_access_token()
+                self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
 
         assert self._user_info is not None  # mypy (internal hint)
 

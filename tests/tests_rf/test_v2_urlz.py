@@ -49,7 +49,7 @@ async def test_tcs_urls(
 ) -> None:
     """Test Location, Gateway and TCS URLs."""
 
-    await cache_manager.load_cache()
+    await cache_manager.load_from_cache()
 
     #
     # STEP 0: Create the Auth client
@@ -139,7 +139,7 @@ async def test_zon_urls(
 ) -> None:
     """Test Zone URLs"""
 
-    await cache_manager.load_cache()
+    await cache_manager.load_from_cache()
 
     #
     # STEP 0: Create the Auth client, get the TCS config
@@ -221,7 +221,7 @@ async def test_dhw_urls(
 ) -> None:
     """Test DHW URLs"""
 
-    await cache_manager.load_cache()
+    await cache_manager.load_from_cache()
 
     #
     # STEP 0: Create the Auth client, get the TCS config

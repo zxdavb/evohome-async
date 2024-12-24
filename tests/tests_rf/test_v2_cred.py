@@ -20,7 +20,6 @@ from urllib.parse import urlparse
 import aiohttp
 import pytest
 
-from evohomeasync2.auth import _APPLICATION_ID
 from evohomeasync2.schemas import (
     TCC_ERROR_RESPONSE,
     TCC_GET_USR_ACCOUNT,
@@ -30,6 +29,8 @@ from evohomeasync2.schemas import (
 from tests.const import (
     _DBG_TEST_CRED_URLS,
     _DBG_USE_REAL_AIOHTTP,
+    HEADERS_BASE,
+    HEADERS_CRED_V2 as HEADERS_CRED,
     URL_BASE_V2 as URL_BASE,
     URL_CRED_V2 as URL_CRED,
 )
@@ -41,20 +42,6 @@ if TYPE_CHECKING:
         TccOAuthTokenResponseT,
         TccUsrAccountResponseT,
     )
-
-HEADERS_CRED = {
-    "Accept": "application/json",
-    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",  # data=
-    "Cache-Control": "no-cache, no-store",
-    "Pragma": "no-cache",
-    "Connection": "Keep-Alive",
-    "Authorization": "Basic " + _APPLICATION_ID,
-}
-HEADERS_BASE = {
-    "Accept": "application/json",
-    "Content-Type": "application/json",  # json=
-    "Authorization": "Bearer ...",  # "Bearer " + access_token
-}
 
 
 async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
