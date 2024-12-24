@@ -158,8 +158,8 @@ class Location(EntityBase):
         return self._tzinfo
 
     def now(self) -> dt:  # always returns a TZ-aware dtm
-        """Return the current local time as a aware datetime in this location's TZ."""
-        return dt.now(self.client.tzinfo).astimezone(self.tzinfo)
+        """Return the current local time as an aware datetime in this location's TZ."""
+        return dt.now(self.client._tzinfo).astimezone(self.tzinfo)
 
     async def update(
         self, *, _update_time_zone_info: bool = False

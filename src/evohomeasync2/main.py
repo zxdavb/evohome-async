@@ -60,6 +60,10 @@ class EvohomeClientNew:
             logger=self.logger,
         )
 
+        # NOTE: below is an attempt to determine the local TZ of the host running this
+        # client, and is not necessarily the TZ of each location known to this client;
+        # locations each have their own TZ
+
         try:
             self._tzinfo: ZoneInfo | None = ZoneInfo("localtime")
         except ZoneInfoNotFoundError:  # e.g. on Windows
@@ -69,6 +73,7 @@ class EvohomeClientNew:
         self._location_by_id: dict[str, Location] | None = None
 
     def __str__(self) -> str:
+        """Return a string representation of this object."""
         return f"{self.__class__.__name__}(auth='{self.auth}')"
 
     async def update(
@@ -182,7 +187,7 @@ class EvohomeClientNew:
         return self._user_locs
 
     @property
-    def locations(self) -> list[Location]:
+    def locations(self) -> list[Location]:  # also, ._locations_by_id[]
         """Return the list of location entities."""
 
         if not self._user_locs:
@@ -218,9 +223,5 @@ class EvohomeClientNew:
 
     @property
     def tcs(self) -> ControlSystem:
+        """Return the single TCS (if there is only one)."""
         return self._get_single_tcs()
-
-    @property
-    def tzinfo(self) -> ZoneInfo | None:
-        """Return a tzinfo-compliant object for this running instance of evohome."""
-        return self._tzinfo

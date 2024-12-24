@@ -109,6 +109,7 @@ class EntityBase:
         self._logger = logger
 
     def __str__(self) -> str:
+        """Return a string representation of the entity."""
         return f"{self.__class__.__name__}(id='{self._id}')"
 
     @property
