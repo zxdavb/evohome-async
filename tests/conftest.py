@@ -136,7 +136,7 @@ async def credentials_manager(
 
     manager = CredentialsManager(*credentials, client_session, cache_file=cache_file)
 
-    # await manager.load_from_cache()
+    await manager.load_from_cache()
 
     try:
         yield manager
@@ -149,8 +149,6 @@ async def evohome_v0(
     credentials_manager: CredentialsManager,
 ) -> AsyncGenerator[EvohomeClientv0]:
     """Yield an instance of a v0 EvohomeClient."""
-
-    await credentials_manager.load_from_cache()
 
     evo = EvohomeClientv0(credentials_manager)
 
@@ -167,8 +165,6 @@ async def evohome_v2(
     credentials_manager: CredentialsManager,
 ) -> AsyncGenerator[EvohomeClientv2]:
     """Yield an instance of a v2 EvohomeClient."""
-
-    await credentials_manager.load_from_cache()
 
     evo = EvohomeClientv2(credentials_manager)
 

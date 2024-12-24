@@ -55,8 +55,6 @@ async def test_tcs_urls(
 ) -> None:
     """Test Location, Gateway and TCS URLs."""
 
-    await credentials_manager.load_from_cache()
-
     #
     # STEP 0: Create the Auth client
     auth = Auth(
@@ -145,8 +143,6 @@ async def test_zon_urls(
 ) -> None:
     """Test Zone URLs"""
 
-    await credentials_manager.load_from_cache()
-
     #
     # STEP 0: Create the Auth client, get the TCS config
     auth = Auth(
@@ -226,8 +222,6 @@ async def test_dhw_urls(
     credentials_manager: CredentialsManager,
 ) -> None:
     """Test DHW URLs"""
-
-    await credentials_manager.load_from_cache()
 
     #
     # STEP 0: Create the Auth client, get the TCS config
