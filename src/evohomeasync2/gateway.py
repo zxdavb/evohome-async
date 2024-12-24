@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, NoReturn
 
 from evohome.helpers import camel_to_snake
 
@@ -66,7 +66,18 @@ class Gateway(ActiveFaultsBase):
     def mac_address(self) -> str:
         return self._config[SZ_MAC]
 
+    async def _get_status(self) -> NoReturn:
+        """Get the latest state of the gateway and update its status attr.
+
+        It is more efficient to call Location.update() as all descendants are updated
+        with a single GET. Returns the raw JSON of the latest state.
+        """
+
+        raise NotImplementedError
+
     def _update_status(self, status: EvoGwyStatusResponseT) -> None:
+        """Update the GWY's status and cascade to its descendants."""
+
         self._update_faults(status["active_faults"])
         self._status = status
 

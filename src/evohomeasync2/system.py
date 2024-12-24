@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, NoReturn
 
 from evohome.helpers import camel_to_snake
 
@@ -104,7 +104,51 @@ class ControlSystem(ActiveFaultsBase):
         if dhw_entry := config.get(SZ_DHW):
             self.hotwater = HotWater(self, dhw_entry)
 
+    @property  # TODO: deprecate in favour of .id attr
+    def systemId(self) -> str:  # noqa: N802
+        return self._id
+
+    @property
+    def model(self) -> TcsModelType:
+        return self._config[SZ_MODEL_TYPE]
+
+    @property
+    def allowed_system_modes(self) -> tuple[EvoAllowedSystemModeResponseT, ...]:
+        """
+        "allowedSystemModes": [
+            {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "Auto",          "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "AutoWithReset", "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "AutoWithEco",   "canBePermanent": true, "canBeTemporary": true, "maxDuration":  "1.00:00:00", "timingResolution":   "01:00:00", "timingMode": "Duration"},
+            {"systemMode": "Away",          "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"systemMode": "DayOff",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"systemMode": "Custom",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"}
+        ]
+        """
+
+        return tuple(self._config[SZ_ALLOWED_SYSTEM_MODES])
+
+    @property  # a convenience attr
+    def modes(self) -> tuple[SystemMode, ...]:
+        return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
+
+    @property
+    def zones_by_name(self) -> dict[str, Zone]:
+        """Return the zones by name (names are not fixed attrs)."""
+        return {zone.name: zone for zone in self.zones}
+
+    async def _get_status(self) -> NoReturn:
+        """Get the latest state of the control system and update its status attrs.
+
+        It is more efficient to call Location.update() as all descendants are updated
+        with a single GET. Returns the raw JSON of the latest state.
+        """
+
+        raise NotImplementedError
+
     def _update_status(self, status: EvoTcsStatusResponseT) -> None:
+        """Update the TCS's status and cascade to its descendants."""
+
         self._update_faults(status["active_faults"])
         self._status = status
 
@@ -127,39 +171,6 @@ class ControlSystem(ActiveFaultsBase):
                     f"{self}: dhw_id='{dhw_status[SZ_DHW_ID]}' not known"
                     ", (has the system configuration been changed?)"
                 )
-
-    @property  # TODO: deprecate in favour of .id attr
-    def systemId(self) -> str:  # noqa: N802
-        return self._id
-
-    @property
-    def model(self) -> TcsModelType:
-        return self._config[SZ_MODEL_TYPE]
-
-    @property
-    def zones_by_name(self) -> dict[str, Zone]:
-        """Return the zones by name (names are not fixed attrs)."""
-        return {zone.name: zone for zone in self.zones}
-
-    @property
-    def allowed_system_modes(self) -> tuple[EvoAllowedSystemModeResponseT, ...]:
-        """
-        "allowedSystemModes": [
-            {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
-            {"systemMode": "Auto",          "canBePermanent": true, "canBeTemporary": false},
-            {"systemMode": "AutoWithReset", "canBePermanent": true, "canBeTemporary": false},
-            {"systemMode": "AutoWithEco",   "canBePermanent": true, "canBeTemporary": true, "maxDuration":  "1.00:00:00", "timingResolution":   "01:00:00", "timingMode": "Duration"},
-            {"systemMode": "Away",          "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
-            {"systemMode": "DayOff",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
-            {"systemMode": "Custom",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"}
-        ]
-        """
-
-        return tuple(self._config[SZ_ALLOWED_SYSTEM_MODES])
-
-    @property  # a convenience attr
-    def modes(self) -> tuple[SystemMode, ...]:
-        return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
 
     @property
     def system_mode_status(self) -> EvoSystemModeStatusResponseT:

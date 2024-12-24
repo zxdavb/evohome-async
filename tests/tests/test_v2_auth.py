@@ -199,10 +199,10 @@ async def test_token_manager(
             assert await cache_manager.get_access_token() == "new_access_token..."
 
             assert caplog.records[0].message == (
-                "Null/Expired/Invalid access_token, re-authenticating."
+                "Null/Expired/Invalid access_token, will re-authenticate..."
             )
             assert caplog.records[1].message == (
-                "Authenticating with the refresh_token..."
+                "Authenticating with the refresh_token"
             )
             assert caplog.records[2].message.startswith(
                 "POST https://tccna.resideo.com/Auth/OAuth/Token"

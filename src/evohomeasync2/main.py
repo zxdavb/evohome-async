@@ -71,16 +71,16 @@ class EvohomeClientNew:
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(auth='{self.auth}')"
 
-    async def update(  # noqa: C901
+    async def update(
         self,
         /,
         *,
         _reset_config: bool = False,
         _dont_update_status: bool = False,
     ) -> list[EvoLocConfigResponseT]:
-        """Retrieve the latest state of the installation and it's locations.
+        """Retrieve the latest state of the user's' locations.
 
-        If required, or when `_reset_config` is true, first retrieves the user
+        If required, or whenever `_reset_config` is true, first retrieves the user
         information & installation configuration.
 
         If `_disable_status_update` is True, does not update the status of each location
@@ -89,7 +89,27 @@ class EvohomeClientNew:
 
         if _reset_config:
             self._user_info = None
-            self._user_locs = None
+            self._user_locs = None  # and thus self._locations, etc.
+
+        await self._get_config(_dont_update_status=_dont_update_status)
+
+        assert self._locations is not None  # mypy (internal hint)
+
+        if not _dont_update_status:  # see warning, above
+            for loc in self._locations:
+                await loc.update()
+
+        assert self._user_locs is not None  # mypy (internal hint)
+
+        return self._user_locs
+
+    async def _get_config(
+        self, /, *, _dont_update_status: bool = False
+    ) -> list[EvoLocConfigResponseT]:
+        """Ensures the config of the user and their locations.
+
+        If required, first retrieves the user information & installation configuration.
+        """
 
         if self._user_info is None:  # will handle a bad access_token
             url = "userAccount"
@@ -136,12 +156,6 @@ class EvohomeClientNew:
                     f"There are {num} locations. Reduce the risk of exceeding API rate "
                     "limits by individually updating only the necessary locations."
                 )
-
-        assert self._locations is not None  # mypy (internal hint)
-
-        if not _dont_update_status:  # see warning, above
-            for loc in self._locations:
-                await loc.update()
 
         return self._user_locs
 

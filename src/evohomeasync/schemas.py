@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import EnumCheck, StrEnum, verify
-from typing import TYPE_CHECKING, Any, Final, NewType, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Any, Final, NewType, NotRequired, TypedDict, TypeVar
 
 import voluptuous as vol
 
@@ -164,7 +164,7 @@ def _factory_location_response(
             vol.Required(fnc("locationOwnerName")): str,
             vol.Required(fnc("locationOwnerUserName")): vol.All(str, vol.Length(min=1)),
             vol.Required(fnc("canSearchForContractors")): bool,
-            vol.Required(fnc("contractor")): {str: dict},  # ContractorResponse
+            vol.Optional(fnc("contractor")): {str: dict},  # ContractorResponse
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -311,7 +311,7 @@ class TccLocationResponseT(TypedDict):
     locationOwnerName: str
     locationOwnerUserName: str
     canSearchforcontractors: bool
-    contractor: dict[str, Any]  # ContractorResponse
+    contractor: NotRequired[dict[str, Any]]  # ContractorResponse
 
 
 class TccDeviceResponseT(TypedDict):
@@ -456,7 +456,7 @@ class EvoLocConfigDictT(TypedDict):
     location_owner_name: str
     location_owner_user_name: str
     can_searchforcontractors: bool
-    contractor: dict[str, Any]  # ContractorResponse
+    contractor: NotRequired[dict[str, Any]]  # ContractorResponse
 
 
 class EvoGwyConfigDictT(TypedDict):

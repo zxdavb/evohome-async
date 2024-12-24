@@ -391,13 +391,11 @@ class _ZoneBase(_ScheduleBase):
         self.location = tcs.location
         self.tcs = tcs
 
-    async def _update(self) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
-        """Get the latest state of the DHW/zone and update its status.
+    async def _get_status(self) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
+        """Get the latest state of the DHW/zone and update its status attrs.
 
-        It is more efficient to call Location.update() as all zones are updated
-        with a single GET.
-
-        Returns the raw JSON of the latest state.
+        It is more efficient to call Location.update() as all descendants are updated
+        with a single GET. Returns the raw JSON of the latest state.
         """
 
         status: EvoDhwStatusResponseT | EvoZonStatusResponseT = await self._auth.get(  # type: ignore[assignment]
@@ -410,6 +408,8 @@ class _ZoneBase(_ScheduleBase):
     def _update_status(
         self, status: EvoDhwStatusResponseT | EvoZonStatusResponseT
     ) -> None:
+        """Update the DHW/ZON's status."""
+
         self._update_faults(status["active_faults"])
         self._status = status
 

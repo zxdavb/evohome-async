@@ -103,6 +103,28 @@ class Location(EntityBase):
     def name(self) -> str:
         return self._config[SZ_NAME]
 
+    async def _get_config(self) -> EvoLocConfigResponseT:
+        """Get the latest state of the gateway and update its status attr.
+
+        Usually called when DST starts/stops or the location's DST config changes (i.e.
+        there is no _update_config() method). Returns the raw JSON of the latest config.
+        """
+
+        # it is assumed that only the location's TZ/DST info can change
+        # so no ?includeTemperatureControlSystems=True
+
+        config: EvoLocConfigResponseT = await self._auth.get(
+            f"location/{self._id}/installationInfo"  # TODO: add schema
+        )  # type: ignore[assignment]
+
+        self._config = config[SZ_LOCATION_INFO]
+
+        # new TzInfo object, or update the existing one?
+        self._tzinfo = _create_tzinfo(self.time_zone_info, dst_enabled=self.dst_enabled)
+        # lf._tzinfo._update(time_zone_info=time_zone_info, use_dst_switching=use_dst_switching)
+
+        return config
+
     @property
     def time_zone_info(self) -> EvoTimeZoneInfoT:
         """Return the time zone information for the location.
@@ -142,15 +164,25 @@ class Location(EntityBase):
     async def update(
         self, *, _update_time_zone_info: bool = False
     ) -> EvoLocStatusResponseT:
-        """Get the latest state of the location and update its status.
+        """Get the latest state of the location and update its status attrs.
 
         Will also update the status of its gateways, their TCSs, and their DHW/zones.
-
         Returns the raw JSON of the latest state.
         """
 
         if _update_time_zone_info:
-            await self._update_config()
+            await self._get_config()
+
+        status = await self._get_status()
+
+        self._update_status(status)
+        return status
+
+    async def _get_status(self) -> EvoLocStatusResponseT:
+        """Get the latest state of the location and update its status attr.
+
+        Returns the raw JSON of the latest state.
+        """
 
         status: EvoLocStatusResponseT = await self._auth.get(
             f"{self._TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
@@ -160,24 +192,9 @@ class Location(EntityBase):
         self._update_status(status)
         return status
 
-    async def _update_config(self) -> None:
-        """Usually called when DST starts/stops or the location's DST config changes."""
-
-        # it is assumed that only the location's TZ/DST info can change
-        # so no ?includeTemperatureControlSystems=True
-
-        config: EvoLocConfigResponseT = await self._auth.get(
-            f"location/{self._id}/installationInfo"  # TODO: add schema
-        )  # type: ignore[assignment]
-
-        self._config = config[SZ_LOCATION_INFO]
-
-        # new TzInfo object, or update the existing one?
-        self._tzinfo = _create_tzinfo(self.time_zone_info, dst_enabled=self.dst_enabled)
-        # lf._tzinfo._update(time_zone_info=time_zone_info, use_dst_switching=use_dst_switching)
-
     def _update_status(self, status: EvoLocStatusResponseT) -> None:
-        """Update the location's latest status (and its gateways and their TCSs)."""
+        """Update the LOC's status and cascade to its descendants."""
+
         # No ActiveFaults in location node of status
         self._status = status
 

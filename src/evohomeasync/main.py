@@ -69,9 +69,8 @@ class EvohomeClientNew:
         /,
         *,
         _reset_config: bool = False,
-        # _dont_update_status: bool = False,
     ) -> list[EvoLocConfigDictT] | None:
-        """Retrieve the latest state of the installation and it's locations.
+        """Retrieve the latest state of the user's locations.
 
         If required, or when `_reset_config` is true, first retrieves the user
         information.
