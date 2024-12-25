@@ -207,6 +207,12 @@ class ClientResponse:
         assert not isinstance(self._body, (dict | list))  # mypy
         return json.loads(self._body)  # type: ignore[arg-type,no-any-return]
 
+    async def read(self) -> bytes:
+        """Read response payload."""
+        if self._body is None:
+            raise NotImplementedError
+        return b""
+
     async def __aenter__(self, *args: Any, **kwargs: Any) -> Self:
         return self
 
