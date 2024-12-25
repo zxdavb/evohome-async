@@ -1,4 +1,4 @@
-"""Validate the handling of all the vendor's v2 APIs (URLs) used by the client.
+"""Invoke every vendor RESTful API (URL) used by the v2 client.
 
 This is used to document the RESTful API that is provided by the vendor.
 
