@@ -6,6 +6,9 @@
 
 # -e .
 
+# used by the library
+  aiozoneinfo >= 0.2.1
+
 
 # also required if using the the library via the CLI, client.py
   aiofiles >= 24.1.0

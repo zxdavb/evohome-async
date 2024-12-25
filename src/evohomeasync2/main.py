@@ -12,7 +12,7 @@ from evohome.helpers import camel_to_snake
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import SZ_USER_ID
-from .location import Location
+from .location import Location, create_location
 from .schemas import factory_user_account, factory_user_locations_installation_info
 
 if TYPE_CHECKING:
@@ -151,7 +151,7 @@ class EvohomeClientNew:
             self._location_by_id = {}
 
             for loc_entry in self._user_locs:
-                loc = Location(self, loc_entry)
+                loc = await create_location(self, loc_entry)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 

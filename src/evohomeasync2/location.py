@@ -5,7 +5,8 @@ from __future__ import annotations
 import logging
 from datetime import datetime as dt, timedelta as td, tzinfo
 from typing import TYPE_CHECKING
-from zoneinfo import ZoneInfo
+
+from aiozoneinfo import async_get_time_zone
 
 from evohome.helpers import camel_to_snake
 from evohome.windows_zones import (
@@ -55,13 +56,37 @@ WINDOWS_TO_IANA = {
 }
 
 
+async def create_location(
+    client: EvohomeClient,
+    config: EvoLocConfigResponseT,
+) -> Location:
+    """Create a Location entity and return it.
+
+    We use a constructor function to allow for the async creation of a tzinfo object.
+    """
+
+    tzinfo = await _create_tzinfo(
+        config[SZ_LOCATION_INFO][SZ_TIME_ZONE],
+        dst_enabled=config[SZ_LOCATION_INFO][SZ_USE_DAYLIGHT_SAVE_SWITCHING],
+    )
+
+    return Location(client, config, tzinfo=tzinfo)
+
+
 class Location(EntityBase):
     """Instance of an account's location."""
 
     SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
     _TYPE = EntityType.LOC
 
-    def __init__(self, client: EvohomeClient, config: EvoLocConfigResponseT) -> None:
+    def __init__(
+        self,
+        client: EvohomeClient,
+        config: EvoLocConfigResponseT,
+        /,
+        *,
+        tzinfo: tzinfo | None = None,
+    ) -> None:
         super().__init__(
             config[SZ_LOCATION_INFO][SZ_LOCATION_ID],
             client.auth,
@@ -74,7 +99,10 @@ class Location(EntityBase):
         self._config: EvoLocConfigEntryT = config[SZ_LOCATION_INFO]
         self._status: EvoLocStatusResponseT | None = None
 
-        self._tzinfo = _create_tzinfo(self.time_zone_info, dst_enabled=self.dst_enabled)
+        self._tzinfo = tzinfo or EvoZoneInfo(
+            time_zone_info=self.time_zone_info,
+            use_dst_switching=self.dst_enabled,
+        )
 
         # children
         self.gateways: list[Gateway] = []
@@ -120,10 +148,20 @@ class Location(EntityBase):
         self._config = config[SZ_LOCATION_INFO]
 
         # new TzInfo object, or update the existing one?
-        self._tzinfo = _create_tzinfo(self.time_zone_info, dst_enabled=self.dst_enabled)
+        self._tzinfo = await _create_tzinfo(
+            self.time_zone_info, dst_enabled=self.dst_enabled
+        )
         # lf._tzinfo._update(time_zone_info=time_zone_info, use_dst_switching=use_dst_switching)
 
         return config
+
+    @property
+    def dst_enabled(self) -> bool:
+        """Return True if the location uses daylight saving time.
+
+        Not the same as the location's TZ supporting DST, nor the current DST status.
+        """
+        return self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
 
     @property
     def time_zone_info(self) -> EvoTimeZoneInfoT:
@@ -143,14 +181,6 @@ class Location(EntityBase):
         """
 
         return self._config[SZ_TIME_ZONE]
-
-    @property
-    def dst_enabled(self) -> bool:
-        """Return True if the location uses daylight saving time.
-
-        Not the same as the location's TZ supporting DST, nor the current DST status.
-        """
-        return self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
 
     @property
     def tzinfo(self) -> tzinfo:
@@ -209,13 +239,15 @@ class Location(EntityBase):
                 )
 
 
-def _create_tzinfo(time_zone_info: EvoTimeZoneInfoT, /, *, dst_enabled: bool) -> tzinfo:
+async def _create_tzinfo(
+    time_zone_info: EvoTimeZoneInfoT, /, *, dst_enabled: bool
+) -> tzinfo:
     """Create a tzinfo object based on the time zone information."""
 
     time_zone_id = time_zone_info["time_zone_id"]
 
     try:
-        return ZoneInfo(WINDOWS_TO_IANA[time_zone_id])
+        return await async_get_time_zone(WINDOWS_TO_IANA[time_zone_id])
     except (KeyError, ModuleNotFoundError):
         pass
 
