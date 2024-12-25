@@ -292,7 +292,7 @@ class TccUserAccountResponseT(TccUserAccountInfoResponseT):
 class TccLocationResponseT(TypedDict):
     """GET api/locations?locationId={locationId}&allData=True"""
 
-    locationID: _LocationIdT  # TODO: check is ID, not Id
+    locationID: _LocationIdT  # is ID, not Id
     name: str
     streetAddress: str
     city: str
@@ -316,7 +316,7 @@ class TccLocationResponseT(TypedDict):
 
 class TccDeviceResponseT(TypedDict):
     gatewayId: _GatewayIdT
-    deviceId: _DhwIdT | _ZoneIdT
+    deviceID: _DhwIdT | _ZoneIdT  # is ID, not Id
     thermostatModelType: str  # DOMESTIC_HOT_WATER or a zone
     deviceType: int
     name: str
@@ -331,9 +331,9 @@ class TccDeviceResponseT(TypedDict):
     isUpgrading: bool
     isAlive: bool
     thermostatVersion: str
-    macId: str
-    locationId: _LocationIdT
-    domainId: int
+    macID: str  # is ID, not Id
+    locationID: _LocationIdT  # is ID, not Id
+    domainID: int  # is ID, not Id
     instance: int
     serialNumber: str
     pcbNumber: str
