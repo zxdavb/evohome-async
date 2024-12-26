@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 import pytest
 from cli.auth import CredentialsManager
 
-from evohomeasync import _EvohomeClientNew as EvohomeClientv0
-from evohomeasync2 import _EvohomeClientNew as EvohomeClientv2
+from evohomeasync import EvohomeClient as EvohomeClientv0
+from evohomeasync2 import EvohomeClient as EvohomeClientv2
 
 from .const import TEST_PASSWORD, TEST_USERNAME
 

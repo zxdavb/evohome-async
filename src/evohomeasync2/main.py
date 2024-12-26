@@ -29,7 +29,7 @@ SCH_USER_LOCATIONS: Final = factory_user_locations_installation_info(camel_to_sn
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 
 
-class EvohomeClientNew:
+class EvohomeClient:
     """Provide a client to access the Resideo TCC API."""
 
     _user_info: EvoUsrConfigResponseT | None = None

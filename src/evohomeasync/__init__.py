@@ -28,7 +28,7 @@ from .exceptions import (  # noqa: F401
     NoSingleTcsError,
     StatusError,
 )
-from .main import EvohomeClientNew as _EvohomeClientNew
+from .main import EvohomeClient
 from .schemas import (  # noqa: F401
     SZ_ALLOWED_MODES,
     SZ_CHANGEABLE_VALUES,
@@ -88,7 +88,7 @@ class _SessionManager(AbstractSessionManager):  # used only by EvohomeClientOld
         pass
 
 
-class EvohomeClientOld(_EvohomeClientNew):
+class EvohomeClientOld(EvohomeClient):
     """A wrapper to use EvohomeClient without passing in a SessionManager.
 
     Also permits a session_id to be passed in.
@@ -114,7 +114,3 @@ class EvohomeClientOld(_EvohomeClientNew):
             session_id=session_id,
         )
         super().__init__(self._session_manager, debug=debug)
-
-
-class EvohomeClient(_EvohomeClientNew):
-    """An async client for v0 of the Resideo TCC API."""

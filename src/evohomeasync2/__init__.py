@@ -32,7 +32,7 @@ from .exceptions import (  # noqa: F401
 from .gateway import Gateway  # noqa: F401
 from .hotwater import HotWater  # noqa: F401
 from .location import Location  # noqa: F401
-from .main import EvohomeClientNew as _EvohomeClientNew
+from .main import EvohomeClient
 from .zone import Zone  # noqa: F401
 
 __version__ = "1.2.0"
@@ -69,7 +69,7 @@ class _TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
         pass
 
 
-class EvohomeClientOld(_EvohomeClientNew):
+class EvohomeClientOld(EvohomeClient):
     """A wrapper to use EvohomeClient without passing in a TokenManager.
 
     Also allows auth tokens to be passed in.
@@ -119,7 +119,3 @@ class EvohomeClientOld(_EvohomeClientNew):
     def username(self) -> str:
         """Return the username attr."""
         return self._token_manager.client_id
-
-
-class EvohomeClient(_EvohomeClientNew):
-    """An async client for v2 of the Resideo TCC API."""

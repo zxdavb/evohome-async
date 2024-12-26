@@ -24,7 +24,7 @@ SCH_GET_ACCOUNT_LOCS: Final = factory_location_response_list(camel_to_snake)
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 
 
-class EvohomeClientNew:
+class EvohomeClient:
     """Provide a client to access the Resideo TCC API (assumes one TCS/Location)."""
 
     _user_info: EvoUserAccountDictT | None = None

@@ -17,9 +17,9 @@ import debugpy  # type: ignore[import-untyped]
 
 from evohomeasync2 import (
     ControlSystem,
+    EvohomeClient,
     HotWater,
     Zone,
-    _EvohomeClientNew as EvohomeClientNew,
     exceptions as exc,
 )
 from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE
@@ -85,7 +85,7 @@ def _check_positive_int(ctx: click.Context, param: click.Option, value: int) -> 
     return value
 
 
-def _get_tcs(evo: EvohomeClientNew, loc_idx: int | None) -> ControlSystem:
+def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
     """Get the ControlSystem object for the specified location idx."""
 
     if loc_idx is None:
@@ -145,7 +145,7 @@ async def cli(
     if not no_tokens:  # then restore cached tokens, if any
         await token_manager._load_access_token()
 
-    evo = EvohomeClientNew(token_manager, debug=bool(debug))
+    evo = EvohomeClient(token_manager, debug=bool(debug))
 
     try:
         await evo.update()
@@ -172,7 +172,7 @@ async def mode(ctx: click.Context, loc_idx: int) -> None:
     """Retrieve the system mode."""
 
     print("\r\nclient.py: Retrieving the system mode...")
-    evo: EvohomeClientNew = ctx.obj[SZ_EVO]
+    evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     await _write(sys.stdout, "\r\n" + str(_get_tcs(evo, loc_idx).mode) + "\r\n\r\n")
 
@@ -201,7 +201,7 @@ async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> 
     """Download all the global config and the location status."""
 
     print("\r\nclient.py: Starting dump of config and status...")
-    evo: EvohomeClientNew = ctx.obj[SZ_EVO]
+    evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     result = {
         "config": evo.locations[loc_idx].config,
@@ -276,7 +276,7 @@ async def get_schedules(
     """Download all the schedules from a TCS."""
 
     print("\r\nclient.py: Starting backup of schedules...")
-    evo: EvohomeClientNew = ctx.obj[SZ_EVO]
+    evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     try:
         tcs = _get_tcs(evo, loc_idx)
@@ -317,7 +317,7 @@ async def set_schedules(
     """Upload schedules to a TCS."""
 
     print("\r\nclient.py: Starting restore of schedules...")
-    evo: EvohomeClientNew = ctx.obj[SZ_EVO]
+    evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     try:
         tcs = _get_tcs(evo, loc_idx)

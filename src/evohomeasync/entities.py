@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     import logging
     from datetime import datetime as dt
 
-    from . import _EvohomeClientNew as EvohomeClient
+    from . import EvohomeClient
     from .auth import Auth
     from .schemas import (
         EvoDevConfigDictT,

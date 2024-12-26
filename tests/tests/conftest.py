@@ -14,7 +14,7 @@ import pytest
 from aioresponses import aioresponses
 
 from evohome.helpers import convert_keys_to_snake_case
-from evohomeasync2 import _EvohomeClientNew as EvohomeClientv2
+from evohomeasync2 import EvohomeClient as EvohomeClientv2
 from evohomeasync2.schemas import (
     TCC_GET_LOC_STATUS,
     TCC_GET_USR_ACCOUNT,

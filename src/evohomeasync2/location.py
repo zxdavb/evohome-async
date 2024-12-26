@@ -38,7 +38,7 @@ from .zone import EntityBase
 if TYPE_CHECKING:
     import voluptuous as vol
 
-    from . import _EvohomeClientNew as EvohomeClient
+    from . import EvohomeClient
     from .schemas.typedefs import (
         EvoLocConfigEntryT,
         EvoLocConfigResponseT,
