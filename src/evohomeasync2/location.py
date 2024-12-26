@@ -1,4 +1,7 @@
-"""Provides handling of TCC v2 locations."""
+"""Provides handling of TCC v2 locations.
+
+It appears the schema is: Location -> Gateway -> TCS -> DHW | Zone.
+"""
 
 from __future__ import annotations
 
@@ -62,7 +65,8 @@ async def create_location(
 ) -> Location:
     """Create a Location entity and return it.
 
-    We use a constructor function to allow for the async creation of a tzinfo object.
+    We use a constructor function to keep the async creation of a tzinfo object tightly
+    coupled with the instantiation of its Location.
     """
 
     tzinfo = await _create_tzinfo(

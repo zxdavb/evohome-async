@@ -197,14 +197,7 @@ class ControlSystem(ActiveFaultsBase):
         return as_local_time(until, self.location.tzinfo)
 
     async def _set_mode(self, mode: dict[str, str | bool]) -> None:
-        """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
-
-        if mode[S2_SYSTEM_MODE] not in self.modes:
-            raise exc.BadApiRequestError(
-                f"{self}: Unsupported/unknown {S2_SYSTEM_MODE}: {mode}"
-            )
-
-        mode[S2_SYSTEM_MODE] = str(mode[S2_SYSTEM_MODE])
+        """Set the TCS mode."""  # e.g. {'mode': 'Auto', 'isPermanent': True}
 
         await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=mode)
 
@@ -223,7 +216,7 @@ class ControlSystem(ActiveFaultsBase):
             await self.hotwater.reset()
 
     async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
-        """Set the system to a mode, either indefinitely, or for a set time."""
+        """Set the TCS to a mode, either indefinitely, or for a set time."""
 
         if until is None:
             request = {
@@ -241,27 +234,27 @@ class ControlSystem(ActiveFaultsBase):
         await self._set_mode(request)  # type: ignore[arg-type]
 
     async def set_auto(self) -> None:
-        """Set the system into normal mode."""
+        """Set the TCS to normal mode."""
         await self.set_mode(SystemMode.AUTO)
 
     async def set_away(self, /, *, until: dt | None = None) -> None:
-        """Set the system into away mode."""
+        """Set the TCS to away mode."""
         await self.set_mode(SystemMode.AWAY, until=until)
 
     async def set_custom(self, /, *, until: dt | None = None) -> None:
-        """Set the system into custom mode."""
+        """Set the TCS to custom mode."""
         await self.set_mode(SystemMode.CUSTOM, until=until)
 
     async def set_dayoff(self, /, *, until: dt | None = None) -> None:
-        """Set the system into dayoff mode."""
+        """Set the TCS to dayoff mode."""
         await self.set_mode(SystemMode.DAY_OFF, until=until)
 
     async def set_eco(self, /, *, until: dt | None = None) -> None:
-        """Set the system into eco mode."""
+        """Set the TCS to economy mode."""
         await self.set_mode(SystemMode.AUTO_WITH_ECO, until=until)
 
     async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
-        """Set the system into heating off mode."""
+        """Set the TCS to heating off mode."""
         await self.set_mode(SystemMode.HEATING_OFF, until=until)
 
     async def get_temperatures(
@@ -296,7 +289,7 @@ class ControlSystem(ActiveFaultsBase):
         return result
 
     async def get_schedules(self) -> list[EvoScheduleDhwT | EvoScheduleZoneT]:
-        """Backup all schedules from the control system."""
+        """Backup all schedules from the TCS."""
 
         async def get_schedule(
             child: HotWater | Zone,
@@ -339,7 +332,7 @@ class ControlSystem(ActiveFaultsBase):
         schedules: list[EvoScheduleDhwT | EvoScheduleZoneT],
         match_by_name: bool | None = None,
     ) -> bool:
-        """Restore all schedules to the control system and return True if success.
+        """Restore all schedules to the TCS and return True if success.
 
         The default is to match a schedule to its zone/dhw by id.
         """

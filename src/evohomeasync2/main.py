@@ -32,8 +32,6 @@ _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 class EvohomeClientNew:
     """Provide a client to access the Resideo TCC API."""
 
-    _LOC_IDX: int = 0  # the index of the default location in _user_locs
-
     _user_info: EvoUsrConfigResponseT | None = None
     _user_locs: list[EvoLocConfigResponseT] | None = None  # all locations of the user
 
@@ -177,18 +175,7 @@ class EvohomeClientNew:
         return self._user_info
 
     @property
-    def user_installation(self) -> list[EvoLocConfigResponseT]:
-        """Return the (config) information of all the user's locations."""
-
-        if not self._user_locs:
-            raise exc.InvalidConfigError(
-                f"{self}: The installation information is not (yet) available"
-            )
-
-        return self._user_locs
-
-    @property
-    def locations(self) -> list[Location]:  # also, ._locations_by_id[]
+    def locations(self) -> list[Location]:
         """Return the list of location entities."""
 
         if not self._user_locs:
@@ -198,9 +185,21 @@ class EvohomeClientNew:
 
         return self._locations  # type: ignore[return-value]
 
+    @property
+    def location_by_id(self) -> dict[str, Location]:
+        """Return the list of location entities."""
+
+        if not self._user_locs:
+            raise exc.InvalidConfigError(
+                f"{self}: The installation information is not (yet) available"
+            )
+
+        return self._location_by_id  # type: ignore[return-value]
+
     # A significant majority of users will have exactly one TCS, thus for convenience...
-    def _get_single_tcs(self) -> ControlSystem:
-        """If there is a single location/gateway/TCS, return it, or raise an exception.
+    @property
+    def tcs(self) -> ControlSystem:
+        """If there is a single TCS, return it, or raise an exception.
 
         The majority of users will have only one TCS.
         """
@@ -210,7 +209,7 @@ class EvohomeClientNew:
                 f"{self}: There is not a single location (only) for this account"
             )
 
-        if not (gwys := locs[self._LOC_IDX].gateways) or len(gwys) != 1:
+        if not (gwys := locs[0].gateways) or len(gwys) != 1:
             raise exc.NoSingleTcsError(
                 f"{self}: There is not a single gateway (only) for this account/location"
             )
@@ -221,8 +220,3 @@ class EvohomeClientNew:
             )
 
         return tcss[0]
-
-    @property
-    def tcs(self) -> ControlSystem:
-        """Return the single TCS (if there is only one)."""
-        return self._get_single_tcs()

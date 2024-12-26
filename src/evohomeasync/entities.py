@@ -1,9 +1,15 @@
-"""Provides handling of TCC v0 locations."""
+"""Provides handling of TCC v0 entities.
+
+It appears the schema is: Location(TCS) -> Gateway -> DHW | Zone, but here it is
+implemented as Location(TCS) -> DHW | Zone and Location -> Gateway.
+
+That is, that the Location is also the TCS.
+"""
 
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Final, NoReturn
+from typing import TYPE_CHECKING, Any, Final
 
 from . import exceptions as exc
 from .auth import Auth
@@ -30,7 +36,13 @@ if TYPE_CHECKING:
 
     from . import _EvohomeClientNew as EvohomeClient
     from .auth import Auth
-    from .schemas import EvoDevConfigDictT, EvoGwyConfigDictT, EvoLocConfigDictT
+    from .schemas import (
+        EvoDevConfigDictT,
+        EvoGwyConfigDictT,
+        EvoLocConfigDictT,
+        EvoTimeZoneDictT,
+        EvoWeatherDictT,
+    )
 
 
 _TEMP_IS_NA: Final = 128
@@ -60,14 +72,9 @@ class EntityBase:
         """Return the latest config of the entity."""
         return self._config
 
-    # @property  # TODO: split status out from config
-    # def status(self) -> _EvoDictT | None:
-    #     """Return the latest status of the entity."""
-    #     return self._status
 
-
-class Location(EntityBase):
-    """Instance of an account's location."""
+class ControlSystem(EntityBase):  # TCS portion of a Location
+    """Instance of a location's TCS."""
 
     def __init__(self, client: EvohomeClient, config: EvoLocConfigDictT) -> None:
         super().__init__(
@@ -76,26 +83,104 @@ class Location(EntityBase):
             client.logger,
         )
 
-        self._evo = client  # proxy for parent
+        self.hotwater: Hotwater | None = None
+        self.zones: list[Zone] = []
 
+        self.zones_by_id: dict[str, Zone] = {}
+        self.zones_by_idx: dict[str, Zone] = {}
+        self.zones_by_name: dict[str, Zone] = {}
+
+    async def _set_mode(self, mode: dict[str, str]) -> None:
+        """Set the TCS mode."""
+
+        await self._auth.put(f"evoTouchSystems?locationId={self.id}", json=mode)
+
+    async def reset(self) -> None:
+        """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
+
+        raise NotImplementedError
+
+    async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
+        """Set the TCS to a mode, either indefinitely, or for a set time."""
+
+        request: dict[str, str] = {SZ_QUICK_ACTION: mode}
+        if until:
+            request |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime("%Y-%m-%dT%H:%M:%SZ")}
+
+        await self._set_mode(request)
+
+    async def set_auto(self) -> None:
+        """Set the TCS to normal mode."""
+        await self.set_mode(SystemMode.AUTO)
+
+    async def set_away(self, /, *, until: dt | None = None) -> None:
+        """Set the TCS to away mode."""
+        await self.set_mode(SystemMode.AWAY, until=until)
+
+    async def set_custom(self, /, *, until: dt | None = None) -> None:
+        """Set the TCS to custom mode."""
+        await self.set_mode(SystemMode.CUSTOM, until=until)
+
+    async def set_dayoff(self, /, *, until: dt | None = None) -> None:
+        """Set the TCS to dayoff mode."""
+        await self.set_mode(SystemMode.DAY_OFF, until=until)
+
+    async def set_eco(self, /, *, until: dt | None = None) -> None:
+        """Set the TCS to economy mode."""
+        await self.set_mode(SystemMode.AUTO_WITH_ECO, until=until)
+
+    async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
+        """Set the system to heating off mode."""
+        await self.set_mode(SystemMode.HEATING_OFF, until=until)
+
+    def _get_zone(self, zon_id: int | str) -> Zone:
+        """Return the TCS's zone by its id, idx or name."""
+
+        if isinstance(zon_id, int):
+            zon_id = str(zon_id)
+
+        dev = self.zones_by_id.get(zon_id)
+
+        if dev is None:
+            dev = self.zones_by_idx.get(zon_id)
+
+        if dev is None:
+            dev = self.zones_by_name.get(zon_id)
+
+        if dev is None:
+            raise exc.ConfigError(f"no zone {zon_id} in {self}")
+
+        return dev
+
+    def _get_dhw(self) -> Hotwater:
+        """Return the TCS's DHW, if there is one."""
+
+        dev = self.zones_by_id.get("HW")
+
+        if dev is None:
+            raise exc.ConfigError(f"no DHW in {self}")
+
+        return dev  # type: ignore[return-value]
+
+
+class Location(ControlSystem):  # a combined Location/TCS
+    """Instance of an account's location/TCS."""
+
+    def __init__(self, client: EvohomeClient, config: EvoLocConfigDictT) -> None:
+        super().__init__(client, config)
+
+        self._evo = client  # proxy for parent
         self._config: EvoLocConfigDictT = config
-        # lf._status: _EvoDictT = {}
 
         self.gateways: list[Gateway] = []
         self.gateway_by_id: dict[str, Gateway] = {}
 
-        self.devices: list[Hotwater | Zone] = []
+        def add_device(zone: Zone) -> None:
+            self.zones.append(zone)
 
-        self.devices_by_id: dict[str, Hotwater | Zone] = {}
-        self.devices_by_idx: dict[str, Hotwater | Zone] = {}
-        self.devices_by_name: dict[str, Hotwater | Zone] = {}
-
-        def add_device(dev: Hotwater | Zone) -> None:
-            self.devices.append(dev)
-
-            self.devices_by_id[dev.id] = dev
-            self.devices_by_name[dev.name] = dev
-            self.devices_by_idx[dev.idx] = dev
+            self.zones_by_id[zone.id] = zone
+            self.zones_by_name[zone.name] = zone
+            self.zones_by_idx[zone.idx] = zone
 
         for dev_config in config["devices"]:
             if str(dev_config["gateway_id"]) not in self.gateway_by_id:
@@ -105,29 +190,41 @@ class Location(EntityBase):
                 self.gateway_by_id[gwy.id] = gwy
 
             if dev_config["thermostat_model_type"] == "DOMESTIC_HOT_WATER":
-                dhw = Hotwater(gwy, dev_config)
+                gwy = self.gateway_by_id[str(dev_config["gateway_id"])]
 
-                self.gateway_by_id[gwy.id].hotwater = dhw
-
-                add_device(dhw)
+                self.hotwater = Hotwater(self, dev_config)
 
             elif dev_config["thermostat_model_type"].startswith("EMEA_"):
-                zon = Zone(gwy, dev_config)
-
-                self.gateway_by_id[gwy.id].zones.append(zon)
-                self.gateway_by_id[gwy.id].zone_by_id[zon.id] = zon
-
-                add_device(zon)
+                add_device(Zone(self, dev_config))
 
             else:  # assume everything else is a zone
-                self._logger.warning("Unknown device type: %s", dev_config)
+                self._logger.warning(
+                    "Unknown device type, assuming is a zone: %s", dev_config
+                )
 
-                zon = Zone(gwy, dev_config)
+                add_device(Zone(self, dev_config))
 
-                self.gateway_by_id[gwy.id].zones.append(zon)
-                self.gateway_by_id[gwy.id].zone_by_id[zon.id] = zon
+    @property
+    def country(self) -> str:
+        # "GB", "NL"
+        return self._config["country"]
 
-                add_device(zon)
+    @property
+    def name(self) -> str:
+        return self._config[SZ_NAME]
+
+    @property
+    def dst_enabled(self) -> bool:
+        """Return True if the location uses daylight saving time."""
+        return self._config["daylight_saving_time_enabled"]
+
+    @property
+    def time_zone_info(self) -> EvoTimeZoneDictT:
+        return self._config["time_zone"]
+
+    @property
+    def weather(self) -> EvoWeatherDictT:
+        return self._config["weather"]
 
     # TODO: needs a tidy-up
     async def get_temperatures(
@@ -143,7 +240,7 @@ class Location(EntityBase):
 
         result = []
 
-        for dev in self.devices:
+        for dev in self.zones:
             temp = float(dev._config["thermostat"]["indoor_temperature"])
             values = dev._config["thermostat"]["changeable_values"]
 
@@ -168,87 +265,6 @@ class Location(EntityBase):
 
         return result
 
-    async def get_system_modes(self) -> NoReturn:
-        """Return the set of modes the system can be assigned."""
-        raise NotImplementedError
-
-    async def _set_system_mode(
-        self, system_mode: SystemMode, until: dt | None = None
-    ) -> None:
-        """Set the system mode."""
-
-        # just want id, so retrieve the config data only if we don't already have it
-        # await self._cli.update(force_refresh=False)  # get self.location_id
-
-        data: dict[str, str] = {SZ_QUICK_ACTION: system_mode}
-        if until:
-            data |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime("%Y-%m-%dT%H:%M:%SZ")}
-
-        url = f"evoTouchSystems?locationId={self.id}"
-        await self._auth.put(url, json=data)
-
-    async def set_auto(self) -> None:
-        """Set the system to normal operation."""
-        await self._set_system_mode(SystemMode.AUTO)
-
-    async def set_away(self, /, *, until: dt | None = None) -> None:
-        """Set the system to the away mode."""
-        await self._set_system_mode(SystemMode.AWAY, until=until)
-
-    async def set_custom(self, /, *, until: dt | None = None) -> None:
-        """Set the system to the custom programme."""
-        await self._set_system_mode(SystemMode.CUSTOM, until=until)
-
-    async def set_dayoff(self, /, *, until: dt | None = None) -> None:
-        """Set the system to the day off mode."""
-        await self._set_system_mode(SystemMode.DAY_OFF, until=until)
-
-    async def set_eco(self, /, *, until: dt | None = None) -> None:
-        """Set the system to the eco mode."""
-        await self._set_system_mode(SystemMode.AUTO_WITH_ECO, until=until)
-
-    async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
-        """Set the system to the heating off mode."""
-        await self._set_system_mode(SystemMode.HEATING_OFF, until=until)
-
-    def _get_zone(self, zon_id: int | str) -> Zone:
-        """Return the location's zone by its id, idx or name."""
-
-        # just want id, so retrieve the config data only if we don't already have it
-        # await self._cli.update(force_refresh=False)
-
-        if isinstance(zon_id, int):
-            zon_id = str(zon_id)
-
-        dev = self.devices_by_id.get(zon_id)
-
-        if dev is None:
-            dev = self.devices_by_idx.get(zon_id)
-
-        if dev is None:
-            dev = self.devices_by_name.get(zon_id)
-
-        if dev is None:
-            raise exc.ConfigError(f"no zone {zon_id} in location {self.id}")
-
-        if not isinstance(dev, Zone):
-            raise exc.ConfigError(f"zone {zon_id} is not an EMEA_ZONE")
-
-        return dev
-
-    def _get_dhw(self) -> Hotwater:
-        """Return the locations's DHW, if there is one."""
-
-        # just want id, so retrieve the config data only if we don't already have it
-        # await self._cli.update(force_refresh=False)
-
-        dev = self.devices_by_id.get("HW")
-
-        if dev is None:
-            raise exc.ConfigError(f"no DHW in location {self.id}")
-
-        return dev  # type: ignore[return-value]
-
 
 class Gateway(EntityBase):
     """Instance of a location's gateway."""
@@ -261,41 +277,39 @@ class Gateway(EntityBase):
         )
 
         self._loc = location  # parent
-
         self._config: EvoGwyConfigDictT = config  # is of one of its devices
-        # lf._status: _EvoDictT = {}
 
-        self.mac_address = config["mac_id"]
+    @property
+    def id(self) -> str:  # 2678129 (same)
+        return str(self._config["gateway_id"])
 
-        self.hotwater: Hotwater | None = None
-
-        self.zones: list[Zone] = []
-
-        self.zone_by_id: dict[str, Zone] = {}
-        self.zone_by_idx: dict[str, Zone] = {}
-        self.zone_by_name: dict[str, Zone] = {}
+    @property
+    def mac_address(self) -> str:
+        return self._config["mac_id"]
 
 
 class Zone(EntityBase):
     """Instance of a location's heating zone."""
 
-    def __init__(self, gateway: Gateway, config: EvoDevConfigDictT) -> None:
+    def __init__(self, location: Location, config: EvoDevConfigDictT) -> None:
         super().__init__(
             config["device_id"],
-            gateway._auth,
-            gateway._logger,
+            location._auth,
+            location._logger,
         )
 
-        self._gwy = gateway  # parent
-
+        self._loc = location  # aka TCS
         self._config: EvoDevConfigDictT = config
-        # lf._status: _EvoDictT = {}
+
+    @property
+    def id(self) -> str:  # 3744415 (same)
+        return str(self._config["device_id"])
 
     @property
     def name(self) -> str:
         return self._config[SZ_NAME]
 
-    @property
+    @property  # appears to be the zone idx (not in evohomeclientv2)
     def idx(self) -> str:
         return f"{self._config["instance"]:02X}"
 
@@ -347,17 +361,19 @@ class Zone(EntityBase):
 class Hotwater(EntityBase):
     """Instance of a location's DHW zone."""
 
-    def __init__(self, gateway: Gateway, config: EvoDevConfigDictT) -> None:
+    def __init__(self, location: Location, config: EvoDevConfigDictT) -> None:
         super().__init__(
             config["device_id"],
-            gateway._auth,
-            gateway._logger,
+            location._auth,
+            location._logger,
         )
 
-        self._gwy = gateway  # parent
-
+        self._gwy = location  # aka TCS
         self._config: EvoDevConfigDictT = config
-        # lf._status: _EvoDictT = {}
+
+    @property
+    def id(self) -> str:  # 6860918 (same0)
+        return str(self._config["device_id"])
 
     @property
     def name(self) -> str:

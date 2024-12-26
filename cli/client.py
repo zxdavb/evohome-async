@@ -89,9 +89,8 @@ def _get_tcs(evo: EvohomeClientNew, loc_idx: int | None) -> ControlSystem:
     """Get the ControlSystem object for the specified location idx."""
 
     if loc_idx is None:
-        return evo._get_single_tcs()
-
-    return evo.locations[int(loc_idx)].gateways[0].systems[0]
+        loc_idx = 0
+    return evo.locations[loc_idx].gateways[0].systems[0]
 
 
 async def _write(output_file: TextIOWrapper | Any, content: str) -> None:
@@ -205,7 +204,7 @@ async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> 
     evo: EvohomeClientNew = ctx.obj[SZ_EVO]
 
     result = {
-        "config": evo.user_installation,
+        "config": evo.locations[loc_idx].config,
         "status": await evo.locations[loc_idx].update(),
     }
 

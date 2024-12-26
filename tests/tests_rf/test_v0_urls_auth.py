@@ -63,7 +63,7 @@ async def _test_evo_systems(evo: EvohomeClientv0) -> None:
     """Test /evoTouchSystems?locationId={loc_id}"""
 
     # usr_id: int = evo.user_account["user_id"]
-    loc_id: int = evo.location_id
+    loc_id = evo.locations[0].id
 
     #
     # TEST 0: unsupported method?

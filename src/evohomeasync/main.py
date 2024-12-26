@@ -16,7 +16,7 @@ from .schemas import factory_location_response_list, factory_user_account_info_r
 if TYPE_CHECKING:
     import aiohttp
 
-    from .schemas import EvoLocConfigDictT, EvoUserAccountDictT, _LocationIdT
+    from .schemas import EvoLocConfigDictT, EvoUserAccountDictT
 
 SCH_GET_ACCOUNT_INFO: Final = factory_user_account_info_response(camel_to_snake)
 SCH_GET_ACCOUNT_LOCS: Final = factory_location_response_list(camel_to_snake)
@@ -25,9 +25,7 @@ _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 
 
 class EvohomeClientNew:
-    """Provide a client to access the Resideo TCC API (assumes a single TCS)."""
-
-    _LOC_IDX: int = 0  # the index of the default location in _user_locs
+    """Provide a client to access the Resideo TCC API (assumes one TCS/Location)."""
 
     _user_info: EvoUserAccountDictT | None = None
     _user_locs: list[EvoLocConfigDictT] | None = None  # all locations of the user
@@ -80,11 +78,25 @@ class EvohomeClientNew:
             self._user_info = None
             self._user_locs = None
 
+        await self._get_config()
+
+        assert self._locations is not None  # mypy (internal hint)
+        assert self._user_info is not None  # mypy (internal hint)
+
+        return self._user_locs
+
+    async def _get_config(self) -> list[EvoLocConfigDictT]:
+        """Ensures the config of the user and their locations.
+
+        If required, first retrieves the user information & installation configuration.
+        """
+
         if self._user_info is None:  # will handle a bad session_id
             url = "accountInfo"
             try:
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)  # type: ignore[assignment]
-            except exc.ApiRequestFailedError as err:
+
+            except exc.ApiRequestFailedError as err:  # check if 401 - bad session_id
                 if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                     raise
 
@@ -119,9 +131,6 @@ class EvohomeClientNew:
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 
-        assert self._locations is not None  # mypy (internal hint)
-
-        self._locn_info = self._user_locs[self._LOC_IDX]
         return self._user_locs
 
     @property
@@ -136,17 +145,6 @@ class EvohomeClientNew:
         return self._user_info
 
     @property
-    def location_id(self) -> _LocationIdT:
-        """Return the list of locations."""
-
-        if self._user_locs is None:
-            raise exc.InvalidConfigError(
-                f"{self}: The installation information is not (yet) available"
-            )
-
-        return self._user_locs[self._LOC_IDX]["location_id"]
-
-    @property
     def locations(self) -> list[Location]:
         """Return the list of locations."""
 
@@ -156,3 +154,29 @@ class EvohomeClientNew:
             )
 
         return self._locations  # type: ignore[return-value]
+
+    @property
+    def location_by_id(self) -> dict[str, Location]:
+        """Return the list of locations."""
+
+        if self._user_locs is None:
+            raise exc.InvalidConfigError(
+                f"{self}: The installation information is not (yet) available"
+            )
+
+        return self._location_by_id  # type: ignore[return-value]
+
+    # A significant majority of users will have exactly one TCS, thus for convenience...
+    @property
+    def tcs(self) -> Location:
+        """If there is a single location/TCS, return it, or raise an exception.
+
+        The majority of users will have only one location/TCS.
+        """
+
+        if not (locs := self.locations) or len(locs) != 1:
+            raise exc.NoSingleTcsError(
+                f"{self}: There is not a single location (only) for this account"
+            )
+
+        return locs[0]
