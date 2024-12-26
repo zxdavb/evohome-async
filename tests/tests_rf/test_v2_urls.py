@@ -48,7 +48,7 @@ if TYPE_CHECKING:
     from tests.conftest import CredentialsManager
 
 
-async def _test_get_usr_account(auth: Auth) -> TccUsrAccountResponseT:
+async def get_usr_account(auth: Auth) -> TccUsrAccountResponseT:
     """Test GET /userAccount"""
 
     return await auth._make_request(
@@ -57,9 +57,7 @@ async def _test_get_usr_account(auth: Auth) -> TccUsrAccountResponseT:
     )  # type: ignore[return-value]
 
 
-async def _test_get_usr_locations(
-    auth: Auth, usr_id: str
-) -> list[TccLocConfigResponseT]:
+async def get_usr_locations(auth: Auth, usr_id: str) -> list[TccLocConfigResponseT]:
     """Test GET /location/installationInfo?userId={user_id}"""
 
     return await auth._make_request(
@@ -84,24 +82,24 @@ async def test_tcs_urls(
 
     #
     # STEP 1: GET /userAccount
-    usr_info = await _test_get_usr_account(auth)
+    usr_info = await get_usr_account(auth)
     factory_user_account()(usr_info)
 
     #
     # STEP 2: GET /location/installationInfo?userId={user_id}
-    usr_locs = await _test_get_usr_locations(auth, usr_info["userId"])
+    usr_locs = await get_usr_locations(auth, usr_info["userId"])
     factory_user_locations_installation_info()(usr_locs)
 
     #
     # STEP 3: GET /location/{loc_id}/installationInfo
     loc_id = usr_locs[0]["locationInfo"]["locationId"]
 
-    loc_config = await _test_get_loc_config(auth, loc_id)
+    loc_config = await get_loc_config(auth, loc_id)
     factory_location_installation_info()(loc_config)
 
     #
     # STEP 4: GET /location/{loc_id}/status
-    loc_status = await _test_get_loc_status(auth, loc_id)
+    loc_status = await get_loc_status(auth, loc_id)
     factory_loc_status()(loc_status)
 
     #
@@ -111,16 +109,16 @@ async def test_tcs_urls(
 
     #
     # STEP A: GET /temperatureControlSystem/{tcs_id}/status
-    tcs_status = await _test_get_tcs_status(auth, tcs_id)
+    tcs_status = await get_tcs_status(auth, tcs_id)
     factory_tcs_status()(tcs_status)
 
     #
     # STEP B: PUT /temperatureControlSystem/{tcs_id}/mode
-    _ = await _test_put_tcs_mode(auth, tcs_id)
+    _ = await put_tcs_mode(auth, tcs_id)
     # factory_tcs_status()(task)  # e.g. {'id': '1668279943'}
 
 
-async def _test_get_loc_config(auth: Auth, loc_id: str) -> TccLocConfigResponseT:
+async def get_loc_config(auth: Auth, loc_id: str) -> TccLocConfigResponseT:
     """Test GET /location/{loc_id}/installationInfo"""
 
     return await auth._make_request(
@@ -129,7 +127,7 @@ async def _test_get_loc_config(auth: Auth, loc_id: str) -> TccLocConfigResponseT
     )  # type: ignore[return-value]
 
 
-async def _test_get_loc_status(auth: Auth, loc_id: str) -> TccLocStatusResponseT:
+async def get_loc_status(auth: Auth, loc_id: str) -> TccLocStatusResponseT:
     """Test GET /location/{loc_id}/status"""
 
     return await auth._make_request(
@@ -138,7 +136,7 @@ async def _test_get_loc_status(auth: Auth, loc_id: str) -> TccLocStatusResponseT
     )  # type: ignore[return-value]
 
 
-async def _test_get_tcs_status(auth: Auth, tcs_id: str) -> TccTcsStatusResponseT:
+async def get_tcs_status(auth: Auth, tcs_id: str) -> TccTcsStatusResponseT:
     """Test GET /temperatureControlSystem/{tcs_id}/status"""
 
     return await auth._make_request(
@@ -147,7 +145,7 @@ async def _test_get_tcs_status(auth: Auth, tcs_id: str) -> TccTcsStatusResponseT
     )  # type: ignore[return-value]
 
 
-async def _test_put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
+async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
     """Test PUT /temperatureControlSystem/{tcs_id}/mode"""
 
     _ = await auth._make_request(
@@ -182,8 +180,8 @@ async def test_zon_urls(
         logger=logging.getLogger(__name__),
     )
 
-    usr_info = await _test_get_usr_account(auth)
-    usr_locs = await _test_get_usr_locations(auth, usr_info["userId"])
+    usr_info = await get_usr_account(auth)
+    usr_locs = await get_usr_locations(auth, usr_info["userId"])
 
     #
     #
@@ -192,26 +190,26 @@ async def test_zon_urls(
 
     #
     # STEP A: GET /temperatureZone/{zon_id}/status
-    zon_status = await _test_get_zon_status(auth, zon_id)
+    zon_status = await get_zon_status(auth, zon_id)
     factory_zon_status()(zon_status)
 
     #
     # STEP B: PUT /temperatureZone/{zon_id}/heatSetpoint
-    _ = await _test_put_zon_heat_setpoint(auth, zon_id)
+    _ = await put_zon_heat_setpoint(auth, zon_id)
     # factory_zon_status()(task)  # e.g. {'id': '1668279943'}
 
     #
     # STEP C: GET /temperatureZone/{zon_id}/schedule
-    zon_schedule = await _test_get_zon_schedule(auth, zon_id)
+    zon_schedule = await get_zon_schedule(auth, zon_id)
     factory_zon_schedule()(zon_schedule)
 
     #
     # STEP D: PUT /temperatureZone/{zon_id}/schedule
-    _ = _test_put_zon_schedule(auth, zon_id, zon_schedule)
+    _ = await put_zon_schedule(auth, zon_id, zon_schedule)
     # factory_zon_status()(task)  # e.g. {'id': '1668279943'}
 
 
-async def _test_get_zon_schedule(auth: Auth, zon_id: str) -> TccZonDailySchedulesT:
+async def get_zon_schedule(auth: Auth, zon_id: str) -> TccZonDailySchedulesT:
     """Test GET /temperatureZone/{zon_id}/schedule"""
 
     return await auth._make_request(
@@ -220,7 +218,7 @@ async def _test_get_zon_schedule(auth: Auth, zon_id: str) -> TccZonDailySchedule
     )  # type: ignore[return-value]
 
 
-async def _test_get_zon_status(auth: Auth, zon_id: str) -> TccZonStatusResponseT:
+async def get_zon_status(auth: Auth, zon_id: str) -> TccZonStatusResponseT:
     """Test GET /temperatureZone/{zon_id}/status"""
 
     return await auth._make_request(
@@ -229,7 +227,7 @@ async def _test_get_zon_status(auth: Auth, zon_id: str) -> TccZonStatusResponseT
     )  # type: ignore[return-value]
 
 
-async def _test_put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
+async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
     """Test PUT /temperatureZone/{zon_id}/heatSetpoint"""
 
     _: TccTaskResponseT = await auth._make_request(
@@ -255,7 +253,7 @@ async def _test_put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskRespons
     )  # type: ignore[return-value]
 
 
-async def _test_put_zon_schedule(
+async def put_zon_schedule(
     auth: Auth, zon_id: str, schedule: TccZonDailySchedulesT
 ) -> TccTaskResponseT:
     """Test GET /temperatureZone/{zon_id}/schedule"""
@@ -282,8 +280,8 @@ async def test_dhw_urls(
         logger=logging.getLogger(__name__),
     )
 
-    usr_info = await _test_get_usr_account(auth)
-    usr_locs = await _test_get_usr_locations(auth, usr_info["userId"])
+    usr_info = await get_usr_account(auth)
+    usr_locs = await get_usr_locations(auth, usr_info["userId"])
 
     #
     #
@@ -298,26 +296,26 @@ async def test_dhw_urls(
 
     #
     # STEP A: GET /domesticHotWater/{dhw_id}/status
-    dhw_status = await _test_get_dhw_status(auth, dhw_id)
+    dhw_status = await get_dhw_status(auth, dhw_id)
     factory_dhw_status()(dhw_status)
 
     #
     # STEP B: PUT /domesticHotWater/{dhw_id}/state
-    _ = await _test_put_dhw_state(auth, dhw_id)
+    _ = await put_dhw_state(auth, dhw_id)
     # factory_zon_status()(task)  # e.g. {'id': '1668279943'}
 
     #
     # STEP C: GET /domesticHotWater/{dhw_id}/schedule
-    dhw_schedule = await _test_get_dhw_schedule(auth, dhw_id)
+    dhw_schedule = await get_dhw_schedule(auth, dhw_id)
     factory_dhw_schedule()(dhw_schedule)
 
     #
     # STEP D: PUT /domesticHotWater/{dhw_id}/schedule
-    _ = await _test_put_dhw_schedule(auth, dhw_id, dhw_schedule)
+    _ = await put_dhw_schedule(auth, dhw_id, dhw_schedule)
     # factory_zon_status()(task)  # e.g. {'id': '1668279943'}
 
 
-async def _test_get_dhw_schedule(auth: Auth, dhw_id: str) -> TccDhwDailySchedulesT:
+async def get_dhw_schedule(auth: Auth, dhw_id: str) -> TccDhwDailySchedulesT:
     """Test GET /domesticHotWater/{dhw_id}/schedule"""
 
     return await auth._make_request(
@@ -326,7 +324,7 @@ async def _test_get_dhw_schedule(auth: Auth, dhw_id: str) -> TccDhwDailySchedule
     )  # type: ignore[return-value]
 
 
-async def _test_get_dhw_status(auth: Auth, dhw_id: str) -> TccDhwStatusResponseT:
+async def get_dhw_status(auth: Auth, dhw_id: str) -> TccDhwStatusResponseT:
     """Test GET /domesticHotWater/{dhw_id}/status"""
 
     return await auth._make_request(
@@ -335,7 +333,7 @@ async def _test_get_dhw_status(auth: Auth, dhw_id: str) -> TccDhwStatusResponseT
     )  # type: ignore[return-value]
 
 
-async def _test_put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
+async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
     """Test PUT /domesticHotWater/{dhw_id}/state"""
 
     _: TccTaskResponseT = await auth._make_request(
@@ -361,7 +359,7 @@ async def _test_put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
     )  # type: ignore[return-value]
 
 
-async def _test_put_dhw_schedule(
+async def put_dhw_schedule(
     auth: Auth, dhw_id: str, schedule: TccDhwDailySchedulesT
 ) -> TccTaskResponseT:
     """Test GET /domesticHotWater/{dhw_id}/schedule"""
