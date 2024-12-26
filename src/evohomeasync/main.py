@@ -80,9 +80,6 @@ class EvohomeClient:
 
         await self._get_config()
 
-        assert self._locations is not None  # mypy (internal hint)
-        assert self._user_info is not None  # mypy (internal hint)
-
         return self._user_locs
 
     async def _get_config(self) -> list[EvoLocConfigDictT]:

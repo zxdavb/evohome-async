@@ -96,14 +96,11 @@ class EvohomeClient:
 
         await self._get_config(_dont_update_status=_dont_update_status)
 
-        assert self._locations is not None  # mypy (internal hint)
-
         if not _dont_update_status:  # see warning, above
-            for loc in self._locations:
+            for loc in self.locations:
                 await loc.update()
 
         assert self._user_locs is not None  # mypy (internal hint)
-
         return self._user_locs
 
     async def _get_config(
