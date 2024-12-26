@@ -48,6 +48,12 @@ if TYPE_CHECKING:
     from tests.conftest import CredentialsManager
 
 
+async def _post_auth_oauth_oken(auth: Auth) -> dict[str, int | str]:
+    """Test POST /Auth/OAuth/Token"""
+
+    raise NotImplementedError
+
+
 async def get_usr_account(auth: Auth) -> TccUsrAccountResponseT:
     """Test GET /userAccount"""
 
