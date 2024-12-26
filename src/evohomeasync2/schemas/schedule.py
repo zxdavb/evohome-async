@@ -29,32 +29,32 @@ if TYPE_CHECKING:
 #
 
 
-class TccSwitchpointDhwT(TypedDict):
+class TccDhwSwitchpointT(TypedDict):
     dhwState: DhwState  # Off, On
     timeOfDay: str
 
 
-class TccDayOfWeekDhwT(TypedDict):
+class TccDhwDayOfWeekT(TypedDict):
     dayOfWeek: str
-    switchpoints: list[TccSwitchpointDhwT]
+    switchpoints: list[TccDhwSwitchpointT]
 
 
-class TccDailySchedulesDhwT(TypedDict):
-    dailySchedules: list[TccDayOfWeekDhwT]
+class TccDhwDailySchedulesT(TypedDict):
+    dailySchedules: list[TccDhwDayOfWeekT]
 
 
-class TccSwitchpointZoneT(TypedDict):
+class TccZonSwitchpointT(TypedDict):
     heatSetpoint: float
     timeOfDay: str
 
 
-class TccDayOfWeekZoneT(TypedDict):
+class TccZonDayOfWeekT(TypedDict):
     dayOfWeek: str
-    switchpoints: list[TccSwitchpointZoneT]
+    switchpoints: list[TccZonSwitchpointT]
 
 
-class TccDailySchedulesZoneT(TypedDict):
-    dailySchedules: list[TccDayOfWeekZoneT]
+class TccZonDailySchedulesT(TypedDict):
+    dailySchedules: list[TccZonDayOfWeekT]
 
 
 #
