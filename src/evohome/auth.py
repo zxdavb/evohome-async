@@ -32,6 +32,7 @@ HOSTNAME: Final = "tccna.resideo.com"
 HEADERS_BASE = {
     "Accept": "application/json",
     "Connection": "Keep-Alive",
+    # "Content-Type": "application/json",
 }
 HEADERS_CRED = HEADERS_BASE | {
     "Cache-Control": "no-cache, no-store",
@@ -50,8 +51,14 @@ _ERR_MSG_LOOKUP_BOTH: dict[int, str] = {  # common to both url_auth & url_base
 async def _payload(r: aiohttp.ClientResponse | None) -> str | None:
     if r is None:
         return None
+
     try:
-        return await r.text()
+        if r.content_type == "application/json":
+            return json.dumps(await r.json())
+        if r.content_type == "text/plain":
+            return await r.text()
+        return await r.text()  # text/html?
+
     except aiohttp.ClientPayloadError:
         return None
     except aiohttp.ClientError:
@@ -105,6 +112,7 @@ class CredentialsManagerBase:
             rsp = await self.websession.post(url, **kwargs)
             assert rsp is not None  # mypy
 
+            await rsp.read()  # so we can use rsp.json(), below
             rsp.raise_for_status()
 
             # can't assert content_length != 0 with aioresponses, so skip that check
@@ -264,6 +272,7 @@ class AbstractAuth(ABC):
             rsp = await self.websession.request(method, url, headers=headers, **kwargs)
             assert rsp is not None  # mypy
 
+            await rsp.read()  # so we can use rsp.json(), below
             rsp.raise_for_status()
 
             # can't assert content_length != 0 with aioresponses, so skip that check
