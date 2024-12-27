@@ -230,7 +230,7 @@ class AbstractAuth(ABC):
             kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
         try:
-            response = await self._make_request(method, url, **kwargs)
+            response = await self._request(method, url, **kwargs)
         except exc.ApiRequestFailedError as err:
             if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                 # leave it up to higher layers to handle the 401 as they can either be
@@ -255,7 +255,7 @@ class AbstractAuth(ABC):
         This could take the form of an access token, or a session id.
         """
 
-    async def _make_request(
+    async def _request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> dict[str, Any] | list[dict[str, Any]]:
         """Make a GET/PUT request to the Resideo TCC RESTful API.
