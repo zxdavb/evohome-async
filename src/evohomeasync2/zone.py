@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Any, Final
 
 from evohome.helpers import camel_to_snake
 
@@ -112,6 +112,8 @@ class EntityBase:
         """Return a string representation of the entity."""
         return f"{self.__class__.__name__}(id='{self._id}')"
 
+    # Config attrs...
+
     @property
     def id(self) -> str:
         return self._id
@@ -128,6 +130,8 @@ class EntityBase:
     ):
         """Return the latest config of the entity."""
         return self._config
+
+    # Status (state) attrs & methods...
 
     @property
     def status(
@@ -150,13 +154,15 @@ class EntityBase:
 class ActiveFaultsBase(EntityBase):
     """Provide the base for active faults."""
 
-    location: Location
+    location: Location  # used to get tzinfo
 
-    def __init__(self, entity_id: str, broker: Auth, logger: logging.Logger) -> None:
-        super().__init__(entity_id, broker, logger)
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
 
         self._active_faults: list[EvoActiveFaultResponseT] = []
         self._last_logged: dict[str, dt] = {}  # OK to use a tz=UTC datetimes
+
+    # Status (state) attrs & methods...
 
     def _update_faults(
         self,
@@ -270,20 +276,16 @@ def _find_switchpoints(
     return this_sp, this_offset, next_sp, next_offset
 
 
-class _ScheduleBase(ActiveFaultsBase):
+class _ScheduleBase(EntityBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     SCH_SCHEDULE: vol.Schema
 
-    _config: EvoDhwConfigEntryT | EvoZonConfigEntryT | None  # type: ignore[assignment]
-    _status: EvoDhwStatusResponseT | EvoZonStatusResponseT | None
-
     _schedule: ScheduleT | None
 
-    def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
-        super().__init__(entity_id, tcs._auth, tcs._logger)
+    location: Location  # used to get tzinfo
 
-        self.location = tcs.location
+    # Status (state) attrs & methods...
 
     async def get_schedule(self) -> ScheduleT:
         """Get the schedule for this DHW/zone object."""
@@ -381,16 +383,20 @@ class _ScheduleBase(ActiveFaultsBase):
         }
 
 
-class _ZoneBase(_ScheduleBase):
+class _ZoneBase(_ScheduleBase, ActiveFaultsBase, EntityBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     SCH_STATUS: vol.Schema
 
+    _status: EvoDhwStatusResponseT | EvoZonStatusResponseT | None
+
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
-        super().__init__(entity_id, tcs)
+        super().__init__(entity_id, tcs._auth, tcs._logger)
 
         self.location = tcs.location
         self.tcs = tcs
+
+    # Status (state) attrs & methods...
 
     async def _get_status(self) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
         """Get the latest state of the DHW/zone and update its status attrs.
@@ -422,8 +428,9 @@ class _ZoneBase(_ScheduleBase):
             "isAvailable": true
         }
         """
+
         if self._status is None:
-            return None
+            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
         return self._status[SZ_TEMPERATURE_STATUS]
 
     @property  # a convenience attr
@@ -464,6 +471,8 @@ class Zone(_ZoneBase):
         if self.type not in ZoneType:
             self._logger.warning("%s: Unknown zone type '%s' (YMMV)", self, self.type)
 
+    # Config attrs...
+
     @property  # TODO: deprecate in favour of .id attr
     def zoneId(self) -> str:  # noqa: N802
         return self._id
@@ -473,14 +482,14 @@ class Zone(_ZoneBase):
         return self._config[SZ_MODEL_TYPE]
 
     @property
-    def type(self) -> ZoneType:
-        return self._config[SZ_ZONE_TYPE]
-
-    @property
     def name(self) -> str:
         if self._status is not None:
             return self._status[SZ_NAME]
         return self._config[SZ_NAME]
+
+    @property
+    def type(self) -> ZoneType:
+        return self._config[SZ_ZONE_TYPE]
 
     @property
     def schedule_capabilities(self) -> EvoZonScheduleCapabilitiesResponseT:
@@ -509,6 +518,7 @@ class Zone(_ZoneBase):
             "timingResolution": "00:10:00"
         }
         """
+
         return self._config[SZ_SETPOINT_CAPABILITIES]
 
     @property  # convenience attr
@@ -521,44 +531,48 @@ class Zone(_ZoneBase):
         # consider: if not self.setpoint_capabilities["can_control_heat"]: return None
         return self.setpoint_capabilities[SZ_MIN_HEAT_SETPOINT]
 
-    @property  # a convenience attr
-    def modes(self) -> tuple[ZoneMode, ...]:
-        """
-        "allowedSetpointModes": [
-            "PermanentOverride", "FollowSchedule", "TemporaryOverride"
-        ]
-        """
-
+    @property
+    def allowed_modes(self) -> tuple[ZoneMode, ...]:
         return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
 
+    # Status (state) attrs & methods...
+
     @property
-    def setpoint_status(self) -> EvoZonSetpointStatusResponseT | None:
+    def setpoint_status(self) -> EvoZonSetpointStatusResponseT:
         """
         "setpointStatus": {
             "targetHeatTemperature": 17.0,
             "setpointMode": "FollowSchedule"
         }
+        "setpointStatus": {
+            "targetHeatTemperature": 20.5,
+            "setpointMode": "TemporaryOverride",
+            "until": "2023-11-30T22:10:00Z"
+        }
         """
+
         if self._status is None:
-            return None
+            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
         return self._status[SZ_SETPOINT_STATUS]
 
-    @property  # a convenience attr
-    def mode(self) -> ZoneMode | None:
-        if not self.setpoint_status:
-            return None
+    @property
+    def mode(self) -> ZoneMode:
         return self.setpoint_status[SZ_SETPOINT_MODE]
 
-    @property  # a convenience attr (one day a target_cool_temperature may be added?)
-    def target_heat_temperature(self) -> float | None:
-        if self.setpoint_status is None:
-            return None
+    @property
+    def target_heat_temperature(self) -> float:
         return self.setpoint_status[SZ_TARGET_HEAT_TEMPERATURE]
+
+    @property
+    def until(self) -> dt | None:
+        if (until := self.setpoint_status.get("until")) is None:
+            return None
+        return as_local_time(until, self.location.tzinfo)
 
     async def _set_mode(self, mode: dict[str, str | float]) -> None:
         """Set the zone mode (heat_setpoint, cooling is TBD)."""
 
-        if mode[S2_SETPOINT_MODE] not in self.modes:
+        if mode[S2_SETPOINT_MODE] not in self.allowed_modes:
             raise exc.BadApiRequestError(
                 f"{self}: Unsupported/unknown {S2_SETPOINT_MODE}: {mode}"
             )
@@ -605,12 +619,12 @@ class Zone(_ZoneBase):
 
         await self._set_mode(mode)
 
-    # NOTE: this wrapper exists for typing purposes
+    # NOTE: this wrapper exists only for typing purposes
     async def get_schedule(self) -> list[DayOfWeekZoneT]:  # type: ignore[override]
         """Get the schedule for this heating zone."""
         return await super().get_schedule()  # type: ignore[return-value]
 
-    # NOTE: this wrapper exists for typing purposes
+    # NOTE: this wrapper exists only for typing purposes
     async def set_schedule(self, schedule: list[DayOfWeekZoneT] | str) -> None:  # type: ignore[override]
         """Set the schedule for this heating zone."""
         await super().set_schedule(schedule)  # type: ignore[arg-type]

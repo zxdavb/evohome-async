@@ -16,18 +16,13 @@ from .const import (
     SZ_DAILY_SCHEDULES,
     SZ_DHW,
     SZ_DHW_ID,
-    SZ_ID,  # remove?
     SZ_IS_PERMANENT,
     SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_NAME,
-    SZ_SETPOINT,  # remove?
-    SZ_STATE,
     SZ_SYSTEM_ID,
     SZ_SYSTEM_MODE,
     SZ_SYSTEM_MODE_STATUS,
-    SZ_TEMPERATURE,  # remove?
-    SZ_THERMOSTAT,  # remove?
     SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONES,
@@ -41,7 +36,7 @@ from .schemas.const import (
     EntityType,
     TcsModelType,
 )
-from .zone import ActiveFaultsBase, Zone, as_local_time
+from .zone import ActiveFaultsBase, EntityBase, Zone, as_local_time
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
@@ -52,7 +47,7 @@ if TYPE_CHECKING:
     from .schemas.typedefs import (
         DayOfWeekDhwT,
         DayOfWeekZoneT,
-        EvoAllowedSystemModeResponseT,
+        EvoAllowedSystemModesResponseT,
         EvoScheduleDhwT,
         EvoScheduleZoneT,
         EvoSystemModeStatusResponseT,
@@ -62,7 +57,7 @@ if TYPE_CHECKING:
     )
 
 
-class ControlSystem(ActiveFaultsBase):
+class ControlSystem(ActiveFaultsBase, EntityBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
     SCH_STATUS: vol.Schema = factory_tcs_status(camel_to_snake)
@@ -104,16 +99,23 @@ class ControlSystem(ActiveFaultsBase):
         if dhw_entry := config.get(SZ_DHW):
             self.hotwater = HotWater(self, dhw_entry)
 
+    @property
+    def zones_by_name(self) -> dict[str, Zone]:
+        """Return the zones by name (names are not fixed attrs)."""
+        return {zone.name: zone for zone in self.zones}
+
+    # Config attrs...
+
     @property  # TODO: deprecate in favour of .id attr
     def systemId(self) -> str:  # noqa: N802
         return self._id
 
-    @property
+    @property  # RENAMED val: was model_type
     def model(self) -> TcsModelType:
         return self._config[SZ_MODEL_TYPE]
 
     @property
-    def allowed_system_modes(self) -> tuple[EvoAllowedSystemModeResponseT, ...]:
+    def allowed_system_modes(self) -> tuple[EvoAllowedSystemModesResponseT, ...]:
         """
         "allowedSystemModes": [
             {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
@@ -128,14 +130,11 @@ class ControlSystem(ActiveFaultsBase):
 
         return tuple(self._config[SZ_ALLOWED_SYSTEM_MODES])
 
-    @property  # a convenience attr
+    @property  # a convenience attr, derived from allowed_system_modes
     def modes(self) -> tuple[SystemMode, ...]:
         return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
 
-    @property
-    def zones_by_name(self) -> dict[str, Zone]:
-        """Return the zones by name (names are not fixed attrs)."""
-        return {zone.name: zone for zone in self.zones}
+    # Status (state) attrs & methods...
 
     async def _get_status(self) -> NoReturn:
         """Get the latest state of the control system and update its status attrs.
@@ -178,19 +177,20 @@ class ControlSystem(ActiveFaultsBase):
         "systemModeStatus": {"mode": "AutoWithEco", "isPermanent": true}
         "systemModeStatus": {'mode': 'AutoWithEco', 'isPermanent': false, 'timeUntil': '2024-12-21T15:55:00Z'}}
         """
+
         if self._status is None:
-            raise exc.InvalidStatusError("No system mode status, has it been fetched?")
+            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
         return self._status[SZ_SYSTEM_MODE_STATUS]
 
-    @property  # a convenience attr (could have a setter in future)
-    def mode(self) -> SystemMode | None:
-        return self.system_mode_status[SZ_MODE]
-
-    @property  # a convenience attr (could have a setter in future)
-    def is_permanent(self) -> bool | None:
+    @property  # could have a setter in future
+    def is_permanent(self) -> bool:
         return self.system_mode_status[SZ_IS_PERMANENT]
 
-    @property  # a convenience attr (could have a setter in future)
+    @property  # could have a setter in future
+    def mode(self) -> SystemMode:
+        return self.system_mode_status[SZ_MODE]
+
+    @property  # could have a setter in future
     def until(self) -> dt | None:  # aka timeUntil
         if (until := self.system_mode_status.get(SZ_TIME_UNTIL)) is None:
             return None
@@ -256,37 +256,6 @@ class ControlSystem(ActiveFaultsBase):
     async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
         """Set the TCS to heating off mode."""
         await self.set_mode(SystemMode.HEATING_OFF, until=until)
-
-    async def get_temperatures(
-        self,
-    ) -> list[dict[str, float | str | None]]:  # TODO: remove this convenience function?
-        """A convenience function to return the latest temperatures and setpoints."""
-
-        await self.location.update()
-
-        result = [
-            {
-                SZ_THERMOSTAT: zone.type,
-                SZ_ID: zone.id,
-                SZ_NAME: zone.name,
-                SZ_SETPOINT: zone.target_heat_temperature,
-                SZ_TEMPERATURE: zone.temperature,
-            }
-            for zone in self.zones
-        ]
-
-        if dhw := self.hotwater:
-            dhw_status = {
-                SZ_THERMOSTAT: dhw.type,
-                SZ_ID: dhw.id,
-                SZ_NAME: dhw.name,
-                SZ_STATE: dhw.state,
-                SZ_TEMPERATURE: dhw.temperature,
-            }
-
-            result.append(dhw_status)
-
-        return result
 
     async def get_schedules(self) -> list[EvoScheduleDhwT | EvoScheduleZoneT]:
         """Backup all schedules from the TCS."""

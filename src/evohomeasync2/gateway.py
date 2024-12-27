@@ -16,7 +16,7 @@ from .const import (
 from .control_system import ControlSystem
 from .schemas import factory_gwy_status
 from .schemas.const import EntityType
-from .zone import ActiveFaultsBase
+from .zone import ActiveFaultsBase, EntityBase
 
 if TYPE_CHECKING:
     import voluptuous as vol
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     )
 
 
-class Gateway(ActiveFaultsBase):
+class Gateway(ActiveFaultsBase, EntityBase):
     """Instance of a location's gateway."""
 
     SCH_STATUS: vol.Schema = factory_gwy_status(camel_to_snake)
@@ -58,13 +58,17 @@ class Gateway(ActiveFaultsBase):
             self.systems.append(tcs)
             self.system_by_id[tcs.id] = tcs
 
+    # Config attrs...
+
     @property  # TODO: deprecate in favour of .id attr
     def gatewayId(self) -> str:  # noqa: N802
         return self._id
 
-    @property
+    @property  # RENAMED val: was mac
     def mac_address(self) -> str:
         return self._config[SZ_MAC]
+
+    # Status (state) attrs & methods...
 
     async def _get_status(self) -> NoReturn:
         """Get the latest state of the gateway and update its status attr.

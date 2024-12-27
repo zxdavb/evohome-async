@@ -1,6 +1,6 @@
 """Provides handling of TCC v2 locations.
 
-It appears the schema is: Location -> Gateway -> TCS -> DHW | Zone.
+The entity hierarchy is: Location -> Gateway -> TCS -> DHW | Zone.
 """
 
 from __future__ import annotations
@@ -118,6 +118,8 @@ class Location(EntityBase):
             self.gateways.append(gwy)
             self.gateway_by_id[gwy.id] = gwy
 
+    # Config attrs...
+
     @property  # TODO: deprecate in favour of .id attr
     def locationId(self) -> str:  # noqa: N802
         return self._id
@@ -167,7 +169,7 @@ class Location(EntityBase):
         """
         return self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
 
-    @property
+    @property  # NOTE: renamed config key: was time_zone
     def time_zone_info(self) -> EvoTimeZoneInfoT:
         """Return the time zone information for the location.
 
@@ -194,6 +196,8 @@ class Location(EntityBase):
     def now(self) -> dt:  # always returns a TZ-aware dtm
         """Return the current local time as an aware datetime in this location's TZ."""
         return dt.now(self.client._tzinfo).astimezone(self.tzinfo)
+
+    # Status (state) attrs & methods...
 
     async def update(
         self, *, _update_time_zone_info: bool = False

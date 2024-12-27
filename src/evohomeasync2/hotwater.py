@@ -28,7 +28,7 @@ from .schemas.const import (
     EntityType,
     ZoneMode,
 )
-from .zone import _ZoneBase
+from .zone import _ZoneBase, as_local_time
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
@@ -63,39 +63,33 @@ class HotWater(_ZoneBase):
 
         self._schedule: list[DayOfWeekDhwT] | None = None  # type: ignore[assignment]
 
+    # Config attrs...
+
     @property  # TODO: deprecate in favour of .id attr
     def dhwId(self) -> str:  # noqa: N802
         return self._id
-
-    @property  # a for convenience attr
-    def mode(self) -> ZoneMode | None:
-        if self.state_status is None:
-            return None
-        return self.state_status[SZ_MODE]
-
-    @property  # a convenience attr
-    def modes(self) -> tuple[ZoneMode, ...]:
-        return tuple(self.state_capabilities[SZ_ALLOWED_MODES])
 
     @property
     def name(self) -> str:
         return "Domestic Hot Water"
 
     @property
+    def type(self) -> str:
+        return "DomesticHotWater"
+
+    @property  # NOTE: renamed config key: was schedule_capabilities_response
     def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesResponseT:
+        """
+        "scheduleCapabilitiesResponse": {
+          "maxSwitchpointsPerDay": 6,
+          "minSwitchpointsPerDay": 1,
+          "timingResolution": "00:10:00"
+        }
+        """
+
         return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
 
-    @property  # a convenience attr
-    def state(self) -> DhwState | None:
-        if self.state_status is None:
-            return None
-        return self.state_status[SZ_STATE]
-
-    @property  # a convenience attr
-    def states(self) -> tuple[DhwState, ...]:
-        return tuple(self.state_capabilities["allowed_states"])
-
-    @property
+    @property  # NOTE: renamed config key: was dhw_state_capabilities_response
     def state_capabilities(self) -> EvoDhwStateCapabilitiesResponseT:
         """
         "dhwStateCapabilitiesResponse": {
@@ -109,28 +103,57 @@ class HotWater(_ZoneBase):
         return self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
 
     @property
-    def state_status(self) -> EvoDhwStateStatusResponseT | None:
+    def allowed_modes(self) -> tuple[ZoneMode, ...]:
+        return tuple(self.state_capabilities[SZ_ALLOWED_MODES])
+
+    @property
+    def allowed_states(self) -> tuple[DhwState, ...]:
+        return tuple(self.state_capabilities["allowed_states"])
+
+    # Status (state) attrs & methods...
+
+    @property
+    def state_status(self) -> EvoDhwStateStatusResponseT:
+        """
+        "stateStatus": {"state": "Off", "mode": "PermanentOverride"}
+        "stateStatus": {
+            "state": "Off",
+            "mode": "TemporaryOverride",
+            until": "2023-11-30T22:10:00Z"
+        }
+        """
+
         if self._status is None:
-            return None
+            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
         return self._status[SZ_STATE_STATUS]
 
     @property
-    def type(self) -> str:
-        return "DomesticHotWater"
+    def mode(self) -> ZoneMode:
+        return self.state_status[SZ_MODE]
 
-    def _next_setpoint(self) -> tuple[dt, str] | None:  # WIP: for convenience (new)
+    @property
+    def state(self) -> DhwState:
+        return self.state_status[SZ_STATE]
+
+    @property
+    def until(self) -> dt | None:
+        if (until := self.state_status.get("until")) is None:
+            return None
+        return as_local_time(until, self.location.tzinfo)
+
+    def _next_setpoint(self) -> tuple[dt, str] | None:  # WIP: for convenience
         """Return the datetime and state of the next setpoint."""
         raise NotImplementedError
 
     async def _set_state(self, mode: dict[str, str | None]) -> None:
         """Set the DHW mode (state)."""
 
-        if mode[S2_MODE] not in self.modes:
+        if mode[S2_MODE] not in self.allowed_modes:
             raise exc.BadApiRequestError(
                 f"{self}: nsupported/unknown {S2_MODE}: {mode}"
             )
 
-        if mode[S2_STATE] not in self.states:
+        if mode[S2_STATE] not in self.allowed_states:
             raise exc.BadApiRequestError(
                 f"{self}: Unsupported/unknown {S2_STATE}: {mode}"
             )
@@ -188,12 +211,12 @@ class HotWater(_ZoneBase):
 
         await self._set_state(mode)
 
-    # NOTE: this wrapper exists for typing purposes
+    # NOTE: this wrapper exists only for typing purposes
     async def get_schedule(self) -> list[DayOfWeekDhwT]:  # type: ignore[override]
         """Get the schedule for this DHW zone."""
         return await super().get_schedule()  # type: ignore[return-value]
 
-    # NOTE: this wrapper exists for typing purposes
+    # NOTE: this wrapper exists only for typing purposes
     async def set_schedule(self, schedule: list[DayOfWeekDhwT] | str) -> None:  # type: ignore[override]
         """Set the schedule for this DHW zone."""
         await super().set_schedule(schedule)  # type: ignore[arg-type]

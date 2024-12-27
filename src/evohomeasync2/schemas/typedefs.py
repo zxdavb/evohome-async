@@ -103,10 +103,10 @@ class EvoGwyConfigEntryT(TypedDict):
 class EvoTcsConfigEntryT(TypedDict):
     system_id: str
     model_type: TcsModelType
-    allowed_system_modes: list[EvoAllowedSystemModeResponseT]
+    allowed_system_modes: list[EvoAllowedSystemModesResponseT]
 
 
-class EvoAllowedSystemModeResponseT(TypedDict):
+class EvoAllowedSystemModesResponseT(TypedDict):
     system_mode: SystemMode
     can_be_permanent: Literal[True]
     can_be_temporary: bool
@@ -243,6 +243,7 @@ class EvoDhwStatusResponseT(TypedDict):
 class EvoDhwStateStatusResponseT(TypedDict):
     mode: ZoneMode
     state: DhwState
+    until: NotRequired[str]
 
 
 #######################################################################################
