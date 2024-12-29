@@ -421,7 +421,7 @@ class _ZoneBase(_ScheduleBase, ActiveFaultsBase, EntityBase):
         self._status = status
 
     @property
-    def temperature_status(self) -> EvoTemperatureStatusResponseT | None:
+    def temperature_status(self) -> EvoTemperatureStatusResponseT:
         """
         "temperatureStatus": {
             "temperature": 20.0,

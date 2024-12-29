@@ -1689,6 +1689,16 @@
       idx: '''00''
   
           '
+      max_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
       name: 'Dead Zone
   
           ...
@@ -1716,9 +1726,14 @@
           \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
           \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
           thermostat_version: 02.00.19.33\n"
-      temperature: '128.0
+      temperature: 'null
   
           ...
+  
+          '
+      temperature_status: 'is_available: false
+  
+          temperature: null
   
           '
   '3432576':
@@ -1747,6 +1762,16 @@
   
           '
       idx: '''01''
+  
+          '
+      max_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
   
           '
       name: 'Main Room
@@ -1780,6 +1805,11 @@
           ...
   
           '
+      temperature_status: 'is_available: true
+  
+          temperature: 16.78
+  
+          '
   '3432577':
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
@@ -1806,6 +1836,16 @@
   
           '
       idx: '''02''
+  
+          '
+      max_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
   
           '
       name: 'Front Room
@@ -1839,6 +1879,11 @@
           ...
   
           '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.78
+  
+          '
   '3432578':
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
@@ -1865,6 +1910,16 @@
   
           '
       idx: '''03''
+  
+          '
+      max_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
   
           '
       name: 'Kitchen
@@ -1898,6 +1953,11 @@
           ...
   
           '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.32
+  
+          '
   '3432579':
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
@@ -1924,6 +1984,16 @@
   
           '
       idx: '''04''
+  
+          '
+      max_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
   
           '
       name: 'Bathroom Dn
@@ -1957,6 +2027,11 @@
           ...
   
           '
+      temperature_status: 'is_available: true
+  
+          temperature: 16.94
+  
+          '
   '3432580':
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
@@ -1983,6 +2058,16 @@
   
           '
       idx: '''05''
+  
+          '
+      max_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
   
           '
       name: 'Main Bedroom
@@ -2016,6 +2101,11 @@
           ...
   
           '
+      temperature_status: 'is_available: true
+  
+          temperature: 18.54
+  
+          '
   '3449703':
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
@@ -2042,6 +2132,16 @@
   
           '
       idx: '''06''
+  
+          '
+      max_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
   
           '
       name: 'Kids Room
@@ -2075,6 +2175,11 @@
           ...
   
           '
+      temperature_status: 'is_available: true
+  
+          temperature: 16.36
+  
+          '
   '3449740':
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
@@ -2101,6 +2206,16 @@
   
           '
       idx: '''07''
+  
+          '
+      max_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
   
           '
       name: 'Bathroom Up
@@ -2134,6 +2249,11 @@
           ...
   
           '
+      temperature_status: 'is_available: true
+  
+          temperature: 18.93
+  
+          '
   '3450733':
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
@@ -2160,6 +2280,16 @@
   
           '
       idx: '08
+  
+          ...
+  
+          '
+      max_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
   
           ...
   
@@ -2193,6 +2323,11 @@
       temperature: '15.26
   
           ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 15.26
   
           '
   
@@ -2879,6 +3014,16 @@
       idx: '''02''
   
           '
+      max_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
       name: 'Front Room
   
           ...
@@ -2908,6 +3053,11 @@
       temperature: '19.78
   
           ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.78
   
           '
   

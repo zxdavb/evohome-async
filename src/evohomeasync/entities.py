@@ -185,6 +185,14 @@ class Zone(_DeviceBase):  # Zone version of a Device
     def idx(self) -> str:
         return f"{self._config["instance"]:02X}"
 
+    @property  # convenience attr
+    def max_heat_setpoint(self) -> float:
+        return self._status[SZ_THERMOSTAT]["min_heat_setpoint"]
+
+    @property  # convenience attr
+    def min_heat_setpoint(self) -> float:
+        return self._status[SZ_THERMOSTAT]["min_heat_setpoint"]
+
     async def get_zone_modes(self) -> list[str]:
         """Return the set of modes the zone can be assigned."""
         return self._config["thermostat"]["allowed_modes"]
@@ -192,8 +200,28 @@ class Zone(_DeviceBase):  # Zone version of a Device
     # Status (state) attrs & methods...
 
     @property
-    def temperature(self) -> float:
-        return float(self._config[SZ_THERMOSTAT]["indoor_temperature"])
+    def temperature_status(self) -> dict[str, Any]:
+        """Expose the temperature_status as per the v2 API."""
+
+        if self._status is None:
+            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
+
+        temp = self._status[SZ_THERMOSTAT]["indoor_temperature"]
+        temp_status = self._status[SZ_THERMOSTAT]["indoor_temperature_status"]
+
+        return {
+            "temperature": temp if temp != _TEMP_IS_NA else None,
+            "is_available": temp_status != "NotAvailable",
+        }
+
+    @property
+    def temperature(self) -> float | None:
+        """Expose the thermostat temperature, if any."""
+        if self._status is None:
+            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
+
+        temp = self._status[SZ_THERMOSTAT]["indoor_temperature"]
+        return temp if temp != _TEMP_IS_NA else None
 
     async def _set_heat_setpoint(
         self,
@@ -235,6 +263,8 @@ class Zone(_DeviceBase):  # Zone version of a Device
 class ControlSystem(_EntityBase):  # TCS portion of a Location
     """Instance of a TCS (a portion of a location)."""
 
+    _cli: EvohomeClient  # proxy for parent
+
     _config: Final[EvoTcsInfoDictT]  # type: ignore[misc]
     _status: EvoTcsInfoDictT
 
@@ -244,9 +274,13 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
         self.hotwater: Hotwater | None = None
         self.zones: list[Zone] = []
 
-        self.zone_by_id: dict[str, Zone] = {}
-        self.zone_by_idx: dict[str, Zone] = {}
-        self.zone_by_name: dict[str, Zone] = {}
+        self.zone_by_id: dict[str, Zone] = {}  # id is fixed to zone
+        self.zone_by_idx: dict[str, Zone] = {}  #  not sure if fixed, or attr like name
+
+    @property
+    def zone_by_name(self) -> dict[str, Zone]:
+        """Return the zones by name (names are not fixed attrs)."""
+        return {zone.name: zone for zone in self.zones}
 
     # Status (state) attrs & methods...
 
@@ -326,6 +360,19 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
         return dev  # type: ignore[return-value]
 
+    async def get_temperatures(
+        self,
+        /,
+        *,
+        _dont_update_status: bool = False,  # used by test suite
+    ) -> dict[str, float | None]:
+        """A convenience function to obtain the high-precision temperatures."""
+
+        if not _dont_update_status:
+            await self._cli.update()
+
+        return {z.id: z.temperature for z in self.zones}
+
 
 class Gateway(_DeviceBase):  # Gateway portion of a Device
     """Instance of a location's gateway."""
@@ -382,7 +429,6 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
         self.zones.append(zone)
 
         self.zone_by_id[zone.id] = zone
-        self.zone_by_name[zone.name] = zone
         self.zone_by_idx[zone.idx] = zone
 
     # Config attrs...
@@ -410,45 +456,6 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     @property
     def weather(self) -> EvoWeatherDictT:
         return self._config["weather"]
-
-    # TODO: needs a tidy-up
-    async def get_temperatures(
-        self, disable_refresh: bool | None = None
-    ) -> list[dict[str, Any]]:  # a convenience function
-        """Retrieve the latest details for each zone (incl. DHW)."""
-
-        set_point: float
-        status: str
-
-        if not disable_refresh:
-            await self._cli.update()
-
-        result = []
-
-        for dev in self.zones:
-            temp = float(dev._config["thermostat"]["indoor_temperature"])
-            values = dev._config["thermostat"]["changeable_values"]
-
-            if "heat_setpoint" in values:
-                set_point = float(values["heat_setpoint"]["value"])
-                status = values["heat_setpoint"]["status"]
-            else:
-                set_point = 0
-                status = values["status"]
-
-            result.append(
-                {
-                    "device_id": dev.id,
-                    "thermostat": dev._config["thermostat_model_type"],
-                    "name": dev._config["name"],
-                    "temperature": None if temp == _TEMP_IS_NA else temp,
-                    "setpoint": set_point,
-                    "status": status,
-                    "mode": values["mode"],
-                }
-            )
-
-        return result
 
     def _update_status(self, status: EvoTcsInfoDictT) -> None:
         """Update the LOC's status and cascade to its descendants."""

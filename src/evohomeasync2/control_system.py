@@ -93,7 +93,6 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                 )
             else:
                 self.zones.append(zone)
-                self.zone_by_name[zone.name] = zone
                 self.zone_by_id[zone.id] = zone
 
         if dhw_entry := config.get(SZ_DHW):
