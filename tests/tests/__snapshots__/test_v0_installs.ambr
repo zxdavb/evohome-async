@@ -1,0 +1,2915 @@
+# serializer version: 1
+# name: test_system_snapshot[default][gateway]
+  dict({
+    'config': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+    'id': '''
+      '3933910'
+  
+    ''',
+    'mac_address': '''
+      00D02DEE4E22
+      ...
+  
+    ''',
+    'status': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[default][hot_water]
+  dict({
+    'config': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+    'id': '''
+      '3933910'
+  
+    ''',
+    'idx': '''
+      HW
+      ...
+  
+    ''',
+    'name': '''
+      Domestic Hot Water
+      ...
+  
+    ''',
+    'status': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[default][location]
+  dict({
+    'config': '''
+      can_search_for_contractors: true
+      city: London
+      contractor:
+        info:
+          contractor_id: 1839
+        monitoring:
+          contact_preferences: []
+          level_of_access: Partial
+      country: GB
+      daylight_saving_time_enabled: true
+      devices:
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3933910
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3933910
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 250
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: ''
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - DHWOn
+          - DHWOff
+          changeable_values:
+            mode: DHWOff
+            status: Scheduled
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 38.91
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 30.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: DOMESTIC_HOT_WATER
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432579
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432579
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 4
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Bathroom Dn
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 16.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 16.94
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3449740
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3449740
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 7
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Bathroom Up
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 18.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 18.93
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432521
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432521
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 0
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Dead Zone
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Hold
+              value: 5.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 128.0
+          indoor_temperature_status: NotAvailable
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432577
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432577
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 2
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Front Room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 19.5
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 19.78
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3449703
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3449703
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 6
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Kids Room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 16.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 16.36
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432578
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432578
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 3
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Kitchen
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 19.5
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 19.32
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432580
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432580
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 5
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Main Bedroom
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 16.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 18.54
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432576
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432576
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 1
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Main Room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 19.5
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 16.78
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3450733
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3450733
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 8
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Spare Room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Hold
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 15.26
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      has_station: true
+      is_location_owner: true
+      location_id: 2738909
+      location_owner_id: 2263181
+      location_owner_name: David Smith
+      location_owner_user_name: username@gmail.com
+      name: My Home
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: 1 Main Road
+      time_zone:
+        current_offset_minutes: 0
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        id: GMT Standard Time
+        offset_minutes: 0
+        using_daylight_saving_time: true
+      type: Residential
+      weather:
+        condition: MostlyCloudy
+        humidity: 92
+        phrase: Mostly cloudy
+        temperature: 0.0
+        units: Celsius
+      zipcode: E1 1AA
+  
+    ''',
+    'country': '''
+      GB
+      ...
+  
+    ''',
+    'dst_enabled': '''
+      true
+      ...
+  
+    ''',
+    'id': '''
+      '2738909'
+  
+    ''',
+    'name': '''
+      My Home
+      ...
+  
+    ''',
+    'one_touch_actions_suspended': '''
+      false
+      ...
+  
+    ''',
+    'status': '''
+      can_search_for_contractors: true
+      city: London
+      contractor:
+        info:
+          contractor_id: 1839
+        monitoring:
+          contact_preferences: []
+          level_of_access: Partial
+      country: GB
+      daylight_saving_time_enabled: true
+      devices:
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3933910
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3933910
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 250
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: ''
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - DHWOn
+          - DHWOff
+          changeable_values:
+            mode: DHWOff
+            status: Scheduled
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 38.91
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 30.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: DOMESTIC_HOT_WATER
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432579
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432579
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 4
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Bathroom Dn
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 16.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 16.94
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3449740
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3449740
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 7
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Bathroom Up
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 18.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 18.93
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432521
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432521
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 0
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Dead Zone
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Hold
+              value: 5.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 128.0
+          indoor_temperature_status: NotAvailable
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432577
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432577
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 2
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Front Room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 19.5
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 19.78
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3449703
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3449703
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 6
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Kids Room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 16.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 16.36
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432578
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432578
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 3
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Kitchen
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 19.5
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 19.32
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432580
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432580
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 5
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Main Bedroom
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 16.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 18.54
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432576
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432576
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 1
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Main Room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 19.5
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 16.78
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3450733
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3450733
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 8
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Spare Room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Hold
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 15.26
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      has_station: true
+      is_location_owner: true
+      location_id: 2738909
+      location_owner_id: 2263181
+      location_owner_name: David Smith
+      location_owner_user_name: username@gmail.com
+      name: My Home
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: 1 Main Road
+      time_zone:
+        current_offset_minutes: 0
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        id: GMT Standard Time
+        offset_minutes: 0
+        using_daylight_saving_time: true
+      type: Residential
+      weather:
+        condition: MostlyCloudy
+        humidity: 92
+        phrase: Mostly cloudy
+        temperature: 0.0
+        units: Celsius
+      zipcode: E1 1AA
+  
+    ''',
+    'time_zone_info': '''
+      current_offset_minutes: 0
+      display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+      id: GMT Standard Time
+      offset_minutes: 0
+      using_daylight_saving_time: true
+  
+    ''',
+    'weather': '''
+      condition: MostlyCloudy
+      humidity: 92
+      phrase: Mostly cloudy
+      temperature: 0.0
+      units: Celsius
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[default][zones]
+  '''
+  '3432521':
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432521\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432521\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 0\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Dead Zone\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Hold\n      value: 5.0\n    mode: 'Off'\n    vacation_hold_days: 0\n  deadband:\
+          \ 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 128.0\n  indoor_temperature_status: NotAvailable\n\
+          \  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n\
+          \  min_cool_setpoint: 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 02.00.19.33\n"
+      id: '''3432521''
+  
+          '
+      idx: '''00''
+  
+          '
+      name: 'Dead Zone
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432521\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432521\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 0\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Dead Zone\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Hold\n      value: 5.0\n    mode: 'Off'\n    vacation_hold_days: 0\n  deadband:\
+          \ 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 128.0\n  indoor_temperature_status: NotAvailable\n\
+          \  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n\
+          \  min_cool_setpoint: 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 02.00.19.33\n"
+      temperature: '128.0
+  
+          ...
+  
+          '
+  '3432576':
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432576\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432576\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 1\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Main Room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 19.5\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 16.78\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      id: '''3432576''
+  
+          '
+      idx: '''01''
+  
+          '
+      name: 'Main Room
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432576\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432576\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 1\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Main Room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 19.5\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 16.78\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      temperature: '16.78
+  
+          ...
+  
+          '
+  '3432577':
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432577\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432577\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 2\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Front Room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 19.5\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 19.78\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      id: '''3432577''
+  
+          '
+      idx: '''02''
+  
+          '
+      name: 'Front Room
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432577\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432577\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 2\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Front Room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 19.5\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 19.78\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      temperature: '19.78
+  
+          ...
+  
+          '
+  '3432578':
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432578\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432578\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 3\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Kitchen\nschedule_capable: false\nthermostat:\n  allowed_modes:\n  -\
+          \ Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 19.5\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 19.32\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      id: '''3432578''
+  
+          '
+      idx: '''03''
+  
+          '
+      name: 'Kitchen
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432578\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432578\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 3\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Kitchen\nschedule_capable: false\nthermostat:\n  allowed_modes:\n  -\
+          \ Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 19.5\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 19.32\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      temperature: '19.32
+  
+          ...
+  
+          '
+  '3432579':
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432579\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432579\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 4\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Bathroom Dn\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 16.0\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 16.94\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      id: '''3432579''
+  
+          '
+      idx: '''04''
+  
+          '
+      name: 'Bathroom Dn
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432579\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432579\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 4\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Bathroom Dn\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 16.0\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 16.94\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      temperature: '16.94
+  
+          ...
+  
+          '
+  '3432580':
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432580\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432580\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 5\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Main Bedroom\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 16.0\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 18.54\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      id: '''3432580''
+  
+          '
+      idx: '''05''
+  
+          '
+      name: 'Main Bedroom
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432580\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432580\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 5\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Main Bedroom\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 16.0\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 18.54\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      temperature: '18.54
+  
+          ...
+  
+          '
+  '3449703':
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3449703\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3449703\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 6\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Kids Room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 16.0\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 16.36\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      id: '''3449703''
+  
+          '
+      idx: '''06''
+  
+          '
+      name: 'Kids Room
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3449703\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3449703\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 6\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Kids Room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 16.0\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 16.36\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      temperature: '16.36
+  
+          ...
+  
+          '
+  '3449740':
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3449740\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3449740\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 7\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Bathroom Up\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 18.0\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 18.93\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      id: '''3449740''
+  
+          '
+      idx: '''07''
+  
+          '
+      name: 'Bathroom Up
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3449740\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3449740\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 7\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Bathroom Up\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 18.0\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 18.93\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      temperature: '18.93
+  
+          ...
+  
+          '
+  '3450733':
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3450733\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3450733\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 8\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Spare Room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Hold\n      value: 10.0\n    mode: 'Off'\n    vacation_hold_days: 0\n  deadband:\
+          \ 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 15.26\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      id: '''3450733''
+  
+          '
+      idx: '08
+  
+          ...
+  
+          '
+      name: 'Spare Room
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3450733\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3450733\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 8\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Spare Room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Hold\n      value: 10.0\n    mode: 'Off'\n    vacation_hold_days: 0\n  deadband:\
+          \ 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 15.26\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      temperature: '15.26
+  
+          ...
+  
+          '
+  
+  '''
+# ---
+# name: test_system_snapshot[minimal][gateway]
+  dict({
+    'config': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+    'id': '''
+      '3933910'
+  
+    ''',
+    'mac_address': '''
+      00D02DEE4E22
+      ...
+  
+    ''',
+    'status': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[minimal][hot_water]
+  dict({
+    'config': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+    'id': '''
+      '3933910'
+  
+    ''',
+    'idx': '''
+      HW
+      ...
+  
+    ''',
+    'name': '''
+      Domestic Hot Water
+      ...
+  
+    ''',
+    'status': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[minimal][location]
+  dict({
+    'config': '''
+      can_search_for_contractors: true
+      city: London
+      contractor:
+        info:
+          contractor_id: 1839
+        monitoring:
+          contact_preferences: []
+          level_of_access: Partial
+      country: GB
+      daylight_saving_time_enabled: true
+      devices:
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3933910
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3933910
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 250
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: ''
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - DHWOn
+          - DHWOff
+          changeable_values:
+            mode: DHWOff
+            status: Scheduled
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 38.91
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 30.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: DOMESTIC_HOT_WATER
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432577
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432577
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 2
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Front Room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 19.5
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 19.78
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      has_station: true
+      is_location_owner: true
+      location_id: 2738909
+      location_owner_id: 2263181
+      location_owner_name: David Smith
+      location_owner_user_name: username@gmail.com
+      name: My Home
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: 1 Main Road
+      time_zone:
+        current_offset_minutes: 0
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        id: GMT Standard Time
+        offset_minutes: 0
+        using_daylight_saving_time: true
+      type: Residential
+      weather:
+        condition: MostlyCloudy
+        humidity: 92
+        phrase: Mostly cloudy
+        temperature: 0.0
+        units: Celsius
+      zipcode: E1 1AA
+  
+    ''',
+    'country': '''
+      GB
+      ...
+  
+    ''',
+    'dst_enabled': '''
+      true
+      ...
+  
+    ''',
+    'id': '''
+      '2738909'
+  
+    ''',
+    'name': '''
+      My Home
+      ...
+  
+    ''',
+    'one_touch_actions_suspended': '''
+      false
+      ...
+  
+    ''',
+    'status': '''
+      can_search_for_contractors: true
+      city: London
+      contractor:
+        info:
+          contractor_id: 1839
+        monitoring:
+          contact_preferences: []
+          level_of_access: Partial
+      country: GB
+      daylight_saving_time_enabled: true
+      devices:
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3933910
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3933910
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 250
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: ''
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - DHWOn
+          - DHWOff
+          changeable_values:
+            mode: DHWOff
+            status: Scheduled
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 38.91
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 30.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: DOMESTIC_HOT_WATER
+        thermostat_version: 02.00.19.33
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432577
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432577
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 2
+        is_alive: true
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E22
+        name: Front Room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 19.5
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 19.78
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.00.19.33
+      has_station: true
+      is_location_owner: true
+      location_id: 2738909
+      location_owner_id: 2263181
+      location_owner_name: David Smith
+      location_owner_user_name: username@gmail.com
+      name: My Home
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: 1 Main Road
+      time_zone:
+        current_offset_minutes: 0
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        id: GMT Standard Time
+        offset_minutes: 0
+        using_daylight_saving_time: true
+      type: Residential
+      weather:
+        condition: MostlyCloudy
+        humidity: 92
+        phrase: Mostly cloudy
+        temperature: 0.0
+        units: Celsius
+      zipcode: E1 1AA
+  
+    ''',
+    'time_zone_info': '''
+      current_offset_minutes: 0
+      display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+      id: GMT Standard Time
+      offset_minutes: 0
+      using_daylight_saving_time: true
+  
+    ''',
+    'weather': '''
+      condition: MostlyCloudy
+      humidity: 92
+      phrase: Mostly cloudy
+      temperature: 0.0
+      units: Celsius
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[minimal][zones]
+  '''
+  '3432577':
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432577\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432577\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 2\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Front Room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 19.5\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 19.78\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      id: '''3432577''
+  
+          '
+      idx: '''02''
+  
+          '
+      name: 'Front Room
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432577\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432577\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 2\nis_alive: true\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E22\n\
+          name: Front Room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 19.5\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 19.78\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.00.19.33\n"
+      temperature: '19.78
+  
+          ...
+  
+          '
+  
+  '''
+# ---

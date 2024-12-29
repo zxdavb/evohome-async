@@ -80,7 +80,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         # children
         self.zones: list[Zone] = []
-        self.zones_by_id: dict[str, Zone] = {}
+        self.zone_by_id: dict[str, Zone] = {}
 
         self.hotwater: HotWater | None = None
 
@@ -93,14 +93,14 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                 )
             else:
                 self.zones.append(zone)
-                self.zones_by_name[zone.name] = zone
-                self.zones_by_id[zone.id] = zone
+                self.zone_by_name[zone.name] = zone
+                self.zone_by_id[zone.id] = zone
 
         if dhw_entry := config.get(SZ_DHW):
             self.hotwater = HotWater(self, dhw_entry)
 
     @property
-    def zones_by_name(self) -> dict[str, Zone]:
+    def zone_by_name(self) -> dict[str, Zone]:
         """Return the zones by name (names are not fixed attrs)."""
         return {zone.name: zone for zone in self.zones}
 
@@ -152,7 +152,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         self._status = status
 
         for zon_status in self._status[SZ_ZONES]:
-            if zone := self.zones_by_id.get(zon_status[SZ_ZONE_ID]):
+            if zone := self.zone_by_id.get(zon_status[SZ_ZONE_ID]):
                 zone._update_status(zon_status)
 
             else:
@@ -314,7 +314,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             if self.hotwater and self.hotwater.id == id_:
                 await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
 
-            elif zone := self.zones_by_id.get(id_):
+            elif zone := self.zone_by_id.get(id_):
                 await zone.set_schedule(json.dumps(sched["daily_schedules"]))
 
             else:
@@ -334,7 +334,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             if name and self.hotwater and name == self.hotwater.name:
                 await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
 
-            elif name and (zone := self.zones_by_name.get(name)):
+            elif name and (zone := self.zone_by_name.get(name)):
                 await zone.set_schedule(json.dumps(sched["daily_schedules"]))
 
             else:

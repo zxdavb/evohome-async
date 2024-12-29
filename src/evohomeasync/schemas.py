@@ -186,8 +186,8 @@ def factory_location_response_list(
 
 
 TCC_FAILURE_RESPONSE: Final = factory_failure_response()
-TCC_GET_USR_ACCOUNT_INFO: Final = factory_user_account_info_response()
-TCC_GET_USR_LOCATIONS: Final = factory_location_response_list()
+TCC_GET_USR_INFO: Final = factory_user_account_info_response()
+TCC_GET_USR_LOCS: Final = factory_location_response_list()
 TCC_POST_USR_SESSION: Final = factory_session_response()
 
 
@@ -315,8 +315,8 @@ class TccLocationResponseT(TypedDict):
 
 
 class TccDeviceResponseT(TypedDict):
-    gatewayId: _GatewayIdT
     deviceID: _DhwIdT | _ZoneIdT  # is ID, not Id
+    gatewayId: _GatewayIdT
     thermostatModelType: str  # DOMESTIC_HOT_WATER or a zone
     deviceType: int
     name: str
@@ -434,9 +434,7 @@ class EvoUserAccountDictT(EvoUserAccountInfoDictT):  # NOT EvoUserAccountInfoT
     latest_eula_accepted: bool  # NotRequired?
 
 
-class EvoLocConfigDictT(TypedDict):
-    """GET api/locations?locationId={locationId}&allData=True"""
-
+class EvoLocInfoDictT(TypedDict):  # c.f. TccLocationResponseT
     location_id: _LocationIdT
     name: str
     street_address: str
@@ -446,11 +444,10 @@ class EvoLocConfigDictT(TypedDict):
     zipcode: str
     type: str  # LocationType: "Commercial" | "Residential"
     has_station: bool
-    devices: list[EvoDevConfigDictT]
+    devices: list[EvoDevInfoDictT]
     weather: EvoWeatherDictT  # WeatherResponse
     daylight_saving_time_enabled: bool
-    time_zone: EvoTimeZoneDictT
-    one_touch_actions_suspended: bool
+    time_zone: EvoTimeZoneInfoDictT
     is_location_owner: bool
     locationOwner_id: int
     location_owner_name: str
@@ -459,7 +456,7 @@ class EvoLocConfigDictT(TypedDict):
     contractor: NotRequired[dict[str, Any]]  # ContractorResponse
 
 
-class EvoGwyConfigDictT(TypedDict):
+class EvoGwyInfoDictT(TypedDict):  # c.f. TccDeviceResponseT
     gateway_id: _GatewayIdT
     device_type: int
     name: str
@@ -470,12 +467,16 @@ class EvoGwyConfigDictT(TypedDict):
     pcb_number: str
 
 
-class EvoDevConfigDictT(EvoGwyConfigDictT):
+class EvoTcsInfoDictT(EvoLocInfoDictT):
+    one_touch_actions_suspended: bool
+
+
+class EvoDevInfoDictT(EvoGwyInfoDictT):
     device_id: _DhwIdT | _ZoneIdT
     thermostat_model_type: str  # DOMESTIC_HOT_WATER or a zone
     schedule_capable: bool
     hold_until_capable: bool
-    thermostat: EvoThermostatDictT
+    thermostat: EvoThermostatInfoDictT
     humidifier: dict[str, Any]  # HumidifierResponse
     dehumidifier: dict[str, Any]  # DehumidifierResponse
     fan: dict[str, Any]  # FanResponse
@@ -487,7 +488,7 @@ class EvoDevConfigDictT(EvoGwyConfigDictT):
     instance: int
 
 
-class EvoThermostatDictT(TypedDict):
+class EvoThermostatInfoDictT(TypedDict):
     units: str  # displayedUnits: Fahrenheit or Celsius
     indoor_temperature: float
     outdoor_temperature: float
@@ -528,7 +529,7 @@ class EvoWeatherDictT(TypedDict):
     phrase: str
 
 
-class EvoTimeZoneDictT(TypedDict):
+class EvoTimeZoneInfoDictT(TypedDict):
     id: str
     display_name: str
     offset_minutes: int

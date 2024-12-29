@@ -16,7 +16,7 @@ from .schemas import factory_location_response_list, factory_user_account_info_r
 if TYPE_CHECKING:
     import aiohttp
 
-    from .schemas import EvoLocConfigDictT, EvoUserAccountDictT
+    from .schemas import EvoTcsInfoDictT, EvoUserAccountDictT
 
 SCH_GET_ACCOUNT_INFO: Final = factory_user_account_info_response(camel_to_snake)
 SCH_GET_ACCOUNT_LOCS: Final = factory_location_response_list(camel_to_snake)
@@ -25,10 +25,10 @@ _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 
 
 class EvohomeClient:
-    """Provide a client to access the Resideo TCC API (assumes one TCS/Location)."""
+    """Provide a client to access the Resideo TCC API."""
 
     _user_info: EvoUserAccountDictT | None = None
-    _user_locs: list[EvoLocConfigDictT] | None = None  # all locations of the user
+    _user_locs: list[EvoTcsInfoDictT] | None = None  # all locations of the user
 
     def __init__(
         self,
@@ -66,23 +66,38 @@ class EvohomeClient:
         self,
         /,
         *,
-        _reset_config: bool = False,
-    ) -> list[EvoLocConfigDictT] | None:
+        _reset_config: bool = False,  # used by test suite
+        _dont_update_status: bool = False,  # used by test suite
+    ) -> list[EvoTcsInfoDictT]:
         """Retrieve the latest state of the user's locations.
 
         If required, or when `_reset_config` is true, first retrieves the user
         information.
+
+        If `_disable_status_update` is True, does not update the status of each
+        location (but will still retrieve configuration data, if required).
         """
 
         if _reset_config:
             self._user_info = None
             self._user_locs = None
 
-        await self._get_config()
+            self._locations = None
+            self._location_by_id = None
 
+        if self._user_locs is None:
+            await self._get_config()  # and will do equivalent of loc._update_status()
+
+        elif not _dont_update_status:
+            assert self._location_by_id
+            for loc_config in self._user_locs:
+                loc_id = str(loc_config["location_id"])
+                self._location_by_id[loc_id]._update_status(loc_config)
+
+        assert self._user_locs is not None  # mypy (internal hint)
         return self._user_locs
 
-    async def _get_config(self) -> list[EvoLocConfigDictT]:
+    async def _get_config(self) -> list[EvoTcsInfoDictT]:
         """Ensures the config of the user and their locations.
 
         If required, first retrieves the user information & installation configuration.
@@ -113,9 +128,6 @@ class EvohomeClient:
         if self._user_locs is None:
             url = f"locations?userId={self._user_info["user_id"]}&allData=True"
             self._user_locs = await self.auth.get(url, schema=SCH_GET_ACCOUNT_LOCS)  # type: ignore[assignment]
-
-            self._locations = None
-            self._location_by_id = None
 
         assert self._user_locs is not None  # mypy (internal hint)
 

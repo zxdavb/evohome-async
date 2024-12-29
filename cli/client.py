@@ -244,7 +244,7 @@ async def get_schedule(
     print("\r\nclient.py: Starting backup of zone schedule (WIP)...")
     evo = ctx.obj[SZ_EVO]
 
-    zon: HotWater | Zone = _get_tcs(evo, loc_idx).zones_by_id[zone_id]
+    zon: HotWater | Zone = _get_tcs(evo, loc_idx).zone_by_id[zone_id]
     schedule = {zon.id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
 
     await _write(output_file, json.dumps(schedule, indent=4) + "\r\n\r\n")

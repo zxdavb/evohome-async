@@ -78,23 +78,27 @@ class EvohomeClient:
         self,
         /,
         *,
-        _reset_config: bool = False,
-        _dont_update_status: bool = False,
+        _reset_config: bool = False,  # used by test suite
+        _dont_update_status: bool = False,  # used by test suite
     ) -> list[EvoLocConfigResponseT]:
         """Retrieve the latest state of the user's' locations.
 
-        If required, or whenever `_reset_config` is true, first retrieves the user
+        If required, or when `_reset_config` is true, first retrieves the user
         information & installation configuration.
 
-        If `_disable_status_update` is True, does not update the status of each location
-        (but will still retrieve configuration data, if required).
+        If `_disable_status_update` is True, does not update the status of each
+        location (but will still retrieve configuration data, if required).
         """
 
         if _reset_config:
             self._user_info = None
             self._user_locs = None  # and thus self._locations, etc.
 
-        await self._get_config(_dont_update_status=_dont_update_status)
+            self._locations = None
+            self._location_by_id = None
+
+        if self._user_locs is None:
+            await self._get_config(_dont_update_status=_dont_update_status)
 
         if not _dont_update_status:  # see warning, above
             for loc in self.locations:
@@ -137,9 +141,6 @@ class EvohomeClient:
             url = f"location/installationInfo?userId={self._user_info[SZ_USER_ID]}&includeTemperatureControlSystems=True"
             self._user_locs = await self.auth.get(url, schema=SCH_USER_LOCATIONS)  # type: ignore[assignment]
 
-            self._locations = None
-            self._location_by_id = None
-
         assert self._user_locs is not None  # mypy (internal hint)
 
         if self._locations is None:  # create/refresh the configured locations
@@ -155,7 +156,7 @@ class EvohomeClient:
             if not _dont_update_status and (num := len(self._locations)) > 1:
                 self.logger.warning(
                     f"There are {num} locations. Reduce the risk of exceeding API rate "
-                    "limits by individually updating only the necessary locations."
+                    "limits by individually updating only necessary locations."
                 )
 
         return self._user_locs

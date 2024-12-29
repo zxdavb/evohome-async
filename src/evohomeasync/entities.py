@@ -1,9 +1,8 @@
 """Provides handling of TCC v0 entities.
 
-It appears the schema is: Location(TCS) -> Gateway -> DHW | Zone, but here it is
-implemented as Location(TCS) -> DHW | Zone and Location -> Gateway.
+The entity hierarchy is flattened, similar to: Location(TCS) -> DHW | Zone
 
-That is, that the Location is also the TCS.
+But here it is implemented as: Location -> Gateway -> TCS -> DHW | Zone
 """
 
 from __future__ import annotations
@@ -37,10 +36,11 @@ if TYPE_CHECKING:
     from . import EvohomeClient
     from .auth import Auth
     from .schemas import (
-        EvoDevConfigDictT,
-        EvoGwyConfigDictT,
-        EvoLocConfigDictT,
-        EvoTimeZoneDictT,
+        EvoDevInfoDictT,
+        EvoGwyInfoDictT,
+        EvoLocInfoDictT,
+        EvoTcsInfoDictT,
+        EvoTimeZoneInfoDictT,
         EvoWeatherDictT,
     )
 
@@ -48,11 +48,11 @@ if TYPE_CHECKING:
 _TEMP_IS_NA: Final = 128
 
 
-class EntityBase:
-    # _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
+class _EntityBase:
+    """Base class for all entities."""
 
-    _config: EvoDevConfigDictT | EvoGwyConfigDictT | EvoLocConfigDictT
-    # _status: _EvoDictT
+    _config: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
+    _status: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
 
     def __init__(self, entity_id: int, auth: Auth, logger: logging.Logger) -> None:
         self._id: Final = entity_id
@@ -68,27 +68,191 @@ class EntityBase:
         return str(self._id)
 
     @property
-    def config(self) -> EvoDevConfigDictT | EvoGwyConfigDictT | EvoLocConfigDictT:
-        """Return the latest config of the entity."""
+    def config(
+        self,
+    ) -> EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT:
+        """Return the config of the entity."""
         return self._config
 
+    @property
+    def status(
+        self,
+    ) -> EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT:
+        """Return the latest config of the entity."""
+        return self._status
 
-class ControlSystem(EntityBase):  # TCS portion of a Location
-    """Instance of a location's TCS."""
 
-    def __init__(self, client: EvohomeClient, config: EvoLocConfigDictT) -> None:
+class _DeviceBase(_EntityBase):
+    """Base class for all devices."""
+
+    _config: EvoDevInfoDictT | EvoGwyInfoDictT
+    _status: EvoDevInfoDictT | EvoGwyInfoDictT
+
+    def __init__(self, location: Location, config: EvoDevInfoDictT) -> None:
         super().__init__(
-            config["location_id"],
-            client.auth,
-            client.logger,
+            config["device_id"],
+            location._auth,
+            location._logger,
         )
+
+        self._loc = location  # parent
+
+        self._config = config
+        self._status = config  # initial state
+
+    def _update_status(self, status: EvoDevInfoDictT | EvoGwyInfoDictT) -> None:
+        """Update the device's status."""
+        self._status = status
+
+
+class Hotwater(_DeviceBase):  # Hotwater version of a Device
+    """Instance of a location's DHW zone."""
+
+    _config: Final[EvoDevInfoDictT]  # type: ignore[misc]
+    _status: EvoDevInfoDictT
+
+    # Config attrs...
+
+    @property
+    def name(self) -> str:
+        return "Domestic Hot Water"
+
+    @property
+    def idx(self) -> str:
+        return "HW"
+
+    # Status (state) attrs & methods...
+
+    async def _set_dhw(
+        self,
+        status: str,  # "Scheduled" | "Hold"
+        mode: str | None = None,  # "DHWOn" | "DHWOff"
+        next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
+    ) -> None:
+        """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
+
+        data = {
+            SZ_STATUS: status,
+            SZ_MODE: mode,
+            # SZ_NEXT_TIME: None,
+            # SZ_SPECIAL_TIMES: None,
+            # SZ_HEAT_SETPOINT: None,
+            # SZ_COOL_SETPOINT: None,
+        }
+        if next_time:
+            data |= {SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
+
+        url = f"devices/{self.id}/thermostat/changeableValues"
+        await self._auth.put(url, json=data)
+
+    async def set_dhw_on(self, until: dt | None = None) -> None:
+        """Set DHW to On, either indefinitely, or until a specified time.
+
+        When On, the DHW controller will work to keep its target temperature at/above
+        its target temperature.  After the specified time, it will revert to its
+        scheduled behaviour.
+        """
+
+        await self._set_dhw(status=SZ_HOLD, mode=SZ_DHW_ON, next_time=until)
+
+    async def set_dhw_off(self, until: dt | None = None) -> None:
+        """Set DHW to Off, either indefinitely, or until a specified time.
+
+        When Off, the DHW controller will ignore its target temperature. After the
+        specified time, it will revert to its scheduled behaviour.
+        """
+
+        await self._set_dhw(status=SZ_HOLD, mode=SZ_DHW_OFF, next_time=until)
+
+    async def set_dhw_auto(self) -> None:
+        """Allow DHW to switch between On and Off, according to its schedule."""
+        await self._set_dhw(status=SZ_SCHEDULED)
+
+
+class Zone(_DeviceBase):  # Zone version of a Device
+    """Instance of a location's heating zone."""
+
+    _config: Final[EvoDevInfoDictT]  # type: ignore[misc]
+    _status: EvoDevInfoDictT
+
+    # Config attrs...
+
+    @property
+    def name(self) -> str:
+        return self._config[SZ_NAME]
+
+    @property  # appears to be the zone idx (not in evohomeclientv2)
+    def idx(self) -> str:
+        return f"{self._config["instance"]:02X}"
+
+    async def get_zone_modes(self) -> list[str]:
+        """Return the set of modes the zone can be assigned."""
+        return self._config["thermostat"]["allowed_modes"]
+
+    # Status (state) attrs & methods...
+
+    @property
+    def temperature(self) -> float:
+        return float(self._config[SZ_THERMOSTAT]["indoor_temperature"])
+
+    async def _set_heat_setpoint(
+        self,
+        status: str,  # "Scheduled" | "Temporary" | "Hold
+        value: float | None = None,
+        next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
+    ) -> None:
+        """Set zone setpoint, either indefinitely, or until a set time."""
+
+        if next_time is None:
+            data = {SZ_STATUS: SZ_HOLD, SZ_VALUE: value}
+        else:
+            data = {
+                SZ_STATUS: status,
+                SZ_VALUE: value,
+                SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
+
+        url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
+        await self._auth.put(url, json=data)
+
+    async def set_temperature(
+        self, temperature: float, until: dt | None = None
+    ) -> None:
+        """Override the setpoint of a zone, for a period of time, or indefinitely."""
+
+        if until:
+            await self._set_heat_setpoint(
+                SZ_TEMPORARY, value=temperature, next_time=until
+            )
+        else:
+            await self._set_heat_setpoint(SZ_HOLD, value=temperature)
+
+    async def set_zone_auto(self) -> None:
+        """Set a zone to follow its schedule."""
+        await self._set_heat_setpoint(status=SZ_SCHEDULED)
+
+
+class ControlSystem(_EntityBase):  # TCS portion of a Location
+    """Instance of a TCS (a portion of a location)."""
+
+    _config: Final[EvoTcsInfoDictT]  # type: ignore[misc]
+    _status: EvoTcsInfoDictT
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
 
         self.hotwater: Hotwater | None = None
         self.zones: list[Zone] = []
 
-        self.zones_by_id: dict[str, Zone] = {}
-        self.zones_by_idx: dict[str, Zone] = {}
-        self.zones_by_name: dict[str, Zone] = {}
+        self.zone_by_id: dict[str, Zone] = {}
+        self.zone_by_idx: dict[str, Zone] = {}
+        self.zone_by_name: dict[str, Zone] = {}
+
+    # Status (state) attrs & methods...
+
+    @property
+    def one_touch_actions_suspended(self) -> bool:
+        return bool(self._status["one_touch_actions_suspended"])
 
     async def _set_mode(self, mode: dict[str, str]) -> None:
         """Set the TCS mode."""
@@ -139,13 +303,13 @@ class ControlSystem(EntityBase):  # TCS portion of a Location
         if isinstance(zon_id, int):
             zon_id = str(zon_id)
 
-        dev = self.zones_by_id.get(zon_id)
+        dev = self.zone_by_id.get(zon_id)
 
         if dev is None:
-            dev = self.zones_by_idx.get(zon_id)
+            dev = self.zone_by_idx.get(zon_id)
 
         if dev is None:
-            dev = self.zones_by_name.get(zon_id)
+            dev = self.zone_by_name.get(zon_id)
 
         if dev is None:
             raise exc.ConfigError(f"no zone {zon_id} in {self}")
@@ -155,7 +319,7 @@ class ControlSystem(EntityBase):  # TCS portion of a Location
     def _get_dhw(self) -> Hotwater:
         """Return the TCS's DHW, if there is one."""
 
-        dev = self.zones_by_id.get("HW")
+        dev = self.zone_by_id.get("HW")
 
         if dev is None:
             raise exc.ConfigError(f"no DHW in {self}")
@@ -163,25 +327,38 @@ class ControlSystem(EntityBase):  # TCS portion of a Location
         return dev  # type: ignore[return-value]
 
 
-class Location(ControlSystem):  # a combined Location/TCS
+class Gateway(_DeviceBase):  # Gateway portion of a Device
+    """Instance of a location's gateway."""
+
+    _config: Final[EvoGwyInfoDictT]  # type: ignore[misc]
+    _status: EvoGwyInfoDictT  # initial state
+
+    # Config attrs...
+
+    @property
+    def mac_address(self) -> str:
+        return self._config["mac_id"]
+
+
+class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     """Instance of an account's location/TCS."""
 
-    def __init__(self, client: EvohomeClient, config: EvoLocConfigDictT) -> None:
-        super().__init__(client, config)
+    def __init__(self, client: EvohomeClient, config: EvoTcsInfoDictT) -> None:
+        super().__init__(
+            config["location_id"],
+            client.auth,
+            client.logger,
+        )
 
-        self._evo = client  # proxy for parent
-        self._config: EvoLocConfigDictT = config
+        self._cli = client  # proxy for parent
+
+        self._config: Final[EvoTcsInfoDictT] = config  # type: ignore[misc]
+        self._status: EvoTcsInfoDictT = config  # initial state
 
         self.gateways: list[Gateway] = []
         self.gateway_by_id: dict[str, Gateway] = {}
 
-        def add_device(zone: Zone) -> None:
-            self.zones.append(zone)
-
-            self.zones_by_id[zone.id] = zone
-            self.zones_by_name[zone.name] = zone
-            self.zones_by_idx[zone.idx] = zone
-
+        # process config["devices"]...
         for dev_config in config["devices"]:
             if str(dev_config["gateway_id"]) not in self.gateway_by_id:
                 gwy = Gateway(self, dev_config)
@@ -190,19 +367,25 @@ class Location(ControlSystem):  # a combined Location/TCS
                 self.gateway_by_id[gwy.id] = gwy
 
             if dev_config["thermostat_model_type"] == "DOMESTIC_HOT_WATER":
-                gwy = self.gateway_by_id[str(dev_config["gateway_id"])]
-
                 self.hotwater = Hotwater(self, dev_config)
 
             elif dev_config["thermostat_model_type"].startswith("EMEA_"):
-                add_device(Zone(self, dev_config))
+                self._add_zone(Zone(self, dev_config))
 
             else:  # assume everything else is a zone
                 self._logger.warning(
                     "Unknown device type, assuming is a zone: %s", dev_config
                 )
+                self._add_zone(Zone(self, dev_config))
 
-                add_device(Zone(self, dev_config))
+    def _add_zone(self, zone: Zone) -> None:
+        self.zones.append(zone)
+
+        self.zone_by_id[zone.id] = zone
+        self.zone_by_name[zone.name] = zone
+        self.zone_by_idx[zone.idx] = zone
+
+    # Config attrs...
 
     @property
     def country(self) -> str:
@@ -219,8 +402,10 @@ class Location(ControlSystem):  # a combined Location/TCS
         return self._config["daylight_saving_time_enabled"]
 
     @property
-    def time_zone_info(self) -> EvoTimeZoneDictT:
+    def time_zone_info(self) -> EvoTimeZoneInfoDictT:
         return self._config["time_zone"]
+
+    # Status (state) attrs & methods...
 
     @property
     def weather(self) -> EvoWeatherDictT:
@@ -236,7 +421,7 @@ class Location(ControlSystem):  # a combined Location/TCS
         status: str
 
         if not disable_refresh:
-            await self._evo.update()
+            await self._cli.update()
 
         result = []
 
@@ -265,165 +450,31 @@ class Location(ControlSystem):  # a combined Location/TCS
 
         return result
 
+    def _update_status(self, status: EvoTcsInfoDictT) -> None:
+        """Update the LOC's status and cascade to its descendants."""
 
-class Gateway(EntityBase):
-    """Instance of a location's gateway."""
+        self._status = status
 
-    def __init__(self, location: Location, config: EvoGwyConfigDictT) -> None:
-        super().__init__(
-            config["gateway_id"],
-            location._auth,
-            location._logger,
-        )
+        for dev_status in status["devices"]:
+            if (gwy_id := str(dev_status["gateway_id"])) in self.gateway_by_id:
+                self.gateway_by_id[gwy_id]._update_status(dev_status)
 
-        self._loc = location  # parent
-        self._config: EvoGwyConfigDictT = config  # is of one of its devices
+            else:
+                self._logger.warning(
+                    f"{self}: ognoring gateway_id='{gwy_id}'"
+                    ", (has the location configuration changed?)"
+                )
+                continue
 
-    @property
-    def id(self) -> str:  # 2678129 (same)
-        return str(self._config["gateway_id"])
+            if (dev_id := str(dev_status["device_id"])) in self.zone_by_id:
+                self.zone_by_id[dev_id]._update_status(dev_status)
 
-    @property
-    def mac_address(self) -> str:
-        return self._config["mac_id"]
+            elif self.hotwater and self.hotwater.id == dev_id:
+                self.hotwater._update_status(dev_status)
 
-
-class Zone(EntityBase):
-    """Instance of a location's heating zone."""
-
-    def __init__(self, location: Location, config: EvoDevConfigDictT) -> None:
-        super().__init__(
-            config["device_id"],
-            location._auth,
-            location._logger,
-        )
-
-        self._loc = location  # aka TCS
-        self._config: EvoDevConfigDictT = config
-
-    @property
-    def id(self) -> str:  # 3744415 (same)
-        return str(self._config["device_id"])
-
-    @property
-    def name(self) -> str:
-        return self._config[SZ_NAME]
-
-    @property  # appears to be the zone idx (not in evohomeclientv2)
-    def idx(self) -> str:
-        return f"{self._config["instance"]:02X}"
-
-    async def get_zone_modes(self) -> list[str]:
-        """Return the set of modes the zone can be assigned."""
-        return self._config["thermostat"]["allowed_modes"]
-
-    async def _set_heat_setpoint(
-        self,
-        status: str,  # "Scheduled" | "Temporary" | "Hold
-        value: float | None = None,
-        next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
-    ) -> None:
-        """Set zone setpoint, either indefinitely, or until a set time."""
-
-        if next_time is None:
-            data = {SZ_STATUS: SZ_HOLD, SZ_VALUE: value}
-        else:
-            data = {
-                SZ_STATUS: status,
-                SZ_VALUE: value,
-                SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            }
-
-        url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
-        await self._auth.put(url, json=data)
-
-    async def set_temperature(
-        self, temperature: float, until: dt | None = None
-    ) -> None:
-        """Override the setpoint of a zone, for a period of time, or indefinitely."""
-
-        if until:
-            await self._set_heat_setpoint(
-                SZ_TEMPORARY, value=temperature, next_time=until
-            )
-        else:
-            await self._set_heat_setpoint(SZ_HOLD, value=temperature)
-
-    async def set_zone_auto(self) -> None:
-        """Set a zone to follow its schedule."""
-        await self._set_heat_setpoint(status=SZ_SCHEDULED)
-
-    @property
-    def temperature(self) -> float:
-        return float(self._config[SZ_THERMOSTAT]["indoor_temperature"])
-
-
-class Hotwater(EntityBase):
-    """Instance of a location's DHW zone."""
-
-    def __init__(self, location: Location, config: EvoDevConfigDictT) -> None:
-        super().__init__(
-            config["device_id"],
-            location._auth,
-            location._logger,
-        )
-
-        self._gwy = location  # aka TCS
-        self._config: EvoDevConfigDictT = config
-
-    @property
-    def id(self) -> str:  # 6860918 (same0)
-        return str(self._config["device_id"])
-
-    @property
-    def name(self) -> str:
-        return "Domestic Hot Water"
-
-    @property
-    def idx(self) -> str:
-        return "HW"
-
-    async def _set_dhw(
-        self,
-        status: str,  # "Scheduled" | "Hold"
-        mode: str | None = None,  # "DHWOn" | "DHWOff"
-        next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
-    ) -> None:
-        """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
-
-        data = {
-            SZ_STATUS: status,
-            SZ_MODE: mode,
-            # SZ_NEXT_TIME: None,
-            # SZ_SPECIAL_TIMES: None,
-            # SZ_HEAT_SETPOINT: None,
-            # SZ_COOL_SETPOINT: None,
-        }
-        if next_time:
-            data |= {SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
-
-        url = f"devices/{self.id}/thermostat/changeableValues"
-        await self._auth.put(url, json=data)
-
-    async def set_dhw_on(self, until: dt | None = None) -> None:
-        """Set DHW to On, either indefinitely, or until a specified time.
-
-        When On, the DHW controller will work to keep its target temperature at/above
-        its target temperature.  After the specified time, it will revert to its
-        scheduled behaviour.
-        """
-
-        await self._set_dhw(status=SZ_HOLD, mode=SZ_DHW_ON, next_time=until)
-
-    async def set_dhw_off(self, until: dt | None = None) -> None:
-        """Set DHW to Off, either indefinitely, or until a specified time.
-
-        When Off, the DHW controller will ignore its target temperature. After the
-        specified time, it will revert to its scheduled behaviour.
-        """
-
-        await self._set_dhw(status=SZ_HOLD, mode=SZ_DHW_OFF, next_time=until)
-
-    async def set_dhw_auto(self) -> None:
-        """Allow DHW to switch between On and Off, according to its schedule."""
-        await self._set_dhw(status=SZ_SCHEDULED)
+            else:
+                self._logger.warning(
+                    f"{self}: ignoring device_id='{dev_id}'"
+                    ", (has the location configuration changed?)"
+                )
+                continue

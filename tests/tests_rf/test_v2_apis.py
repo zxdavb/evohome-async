@@ -134,7 +134,7 @@ async def _test_zon_apis(evo: EvohomeClientv2) -> None:
 
         await zone.set_schedule(schedule)
 
-    if zone := zone.tcs.zones_by_id.get(faked.GHOST_ZONE_ID):
+    if zone := zone.tcs.zone_by_id.get(faked.GHOST_ZONE_ID):
         try:
             schedule = await zone.get_schedule()
         except evo2.InvalidScheduleError:

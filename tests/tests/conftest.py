@@ -14,6 +14,8 @@ import pytest
 from aioresponses import aioresponses
 
 from evohome.helpers import convert_keys_to_snake_case
+from evohomeasync import EvohomeClient as EvohomeClientv0
+from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS
 from evohomeasync2 import EvohomeClient as EvohomeClientv2
 from evohomeasync2.schemas import (
     TCC_GET_LOC_STATUS,
@@ -98,18 +100,19 @@ def status(folder: Path) -> dict[str, Any]:
     return load_fixture(status_path)  # type: ignore[return-value]
 
 
-FIXTURES_DIR = Path(__file__).parent / "fixtures"
+FIXTURES_V0 = Path(__file__).parent / "fixtures_v0"
+FIXTURES_V2 = Path(__file__).parent / "fixtures"
 
 
 # wrapper for FIXTURES_DIR to enable default fixtures
-def _load_fixture(install: str, file_name: str) -> JsonArrayType | JsonObjectType:
+def _load_fixture(folder: Path, file_name: str) -> JsonArrayType | JsonObjectType:
     """Load a file fixture and use a default fixture if not found."""
 
     try:
         try:
-            result = load_fixture(FIXTURES_DIR / install / file_name)
+            result = load_fixture(folder / file_name)
         except FileNotFoundError:
-            result = load_fixture(FIXTURES_DIR / "default" / file_name)
+            result = load_fixture(folder.parent / "default" / file_name)
 
     except FileNotFoundError:
         pytest.xfail(f"Fixture file not found: {file_name}")
@@ -117,22 +120,32 @@ def _load_fixture(install: str, file_name: str) -> JsonArrayType | JsonObjectTyp
     return result
 
 
-def user_account_fixture(install: str) -> JsonObjectType:
+def user_info_fixture(folder: Path) -> JsonObjectType:
+    """Load the JSON of the v0 user information."""
+    return _load_fixture(folder, "user_info.json")  # type: ignore[return-value]
+
+
+def user_locs_fixture(folder: Path) -> JsonObjectType:
+    """Load the JSON of the v0 user installation (locations)."""
+    return _load_fixture(folder, "user_locs.json")  # type: ignore[return-value]
+
+
+def user_account_fixture(folder: Path) -> JsonObjectType:
     """Load the JSON of the user installation."""
-    return _load_fixture(install, "user_account.json")  # type: ignore[return-value]
+    return _load_fixture(folder, "user_account.json")  # type: ignore[return-value]
 
 
-def user_locations_config_fixture(install: str) -> JsonArrayType:
+def user_locations_config_fixture(folder: Path) -> JsonArrayType:
     """Load the JSON of the config of a user's installation (a list of locations)."""
-    return _load_fixture(install, "user_locations.json")  # type: ignore[return-value]
+    return _load_fixture(folder, "user_locations.json")  # type: ignore[return-value]
 
 
-def location_status_fixture(install: str, loc_id: str) -> JsonObjectType:
+def location_status_fixture(folder: Path, loc_id: str) -> JsonObjectType:
     """Load the JSON of the status of a location."""
-    return _load_fixture(install, f"status_{loc_id}.json")  # type: ignore[return-value]
+    return _load_fixture(folder, f"status_{loc_id}.json")  # type: ignore[return-value]
 
 
-def broker_get(install: str) -> Callable[[Any, str, vol.Schema | None], Any]:
+def broker_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
     """Return a mock of Broker.get()."""
 
     async def get(  # type: ignore[no-untyped-def]
@@ -140,19 +153,34 @@ def broker_get(install: str) -> Callable[[Any, str, vol.Schema | None], Any]:
         url: str,
         schema: vol.Schema | None = None,
     ) -> JsonArrayType | JsonObjectType:
+        # "accountInfo"
+        if "accountInfo" in url:
+            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
+                TCC_GET_USR_INFO(user_info_fixture(fixture)["userInfo"])
+            )
+
+        # f"locations?userId={usr_id}&allData=True"
+        if "locations" in url:
+            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
+                TCC_GET_USR_LOCS(user_locs_fixture(fixture))
+            )
+
+        # "userAccount"
         if "userAccount" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_USR_ACCOUNT(user_account_fixture(install))
+                TCC_GET_USR_ACCOUNT(user_account_fixture(fixture))
             )
 
+        # f"location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True"
         if "installationInfo" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_USR_LOCATIONS(user_locations_config_fixture(install))
+                TCC_GET_USR_LOCATIONS(user_locations_config_fixture(fixture))
             )
 
+        # f"{xxx_type}/{xxx_id}/status?includeTemperatureControlSystems=True"
         if "status" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_LOC_STATUS(location_status_fixture(install, url.split("/")[1]))
+                TCC_GET_LOC_STATUS(location_status_fixture(fixture, url.split("/")[1]))
             )
 
         pytest.fail(f"Unexpected/unknown URL: {url}")
@@ -173,13 +201,31 @@ def use_real_aiohttp() -> bool:
 
 
 @pytest.fixture
-async def evohome_v2(
-    install: str,
+async def evohome_v0(
     credentials_manager: CredentialsManager,
+    fixture_folder: Path,
+) -> AsyncGenerator[EvohomeClientv0]:
+    """Yield an instance of a v2 EvohomeClient."""
+
+    with patch("evohomeasync.auth.Auth.get", broker_get(fixture_folder)):
+        evo = EvohomeClientv0(credentials_manager)
+
+        await evo.update()
+
+        try:
+            yield evo
+        finally:
+            pass
+
+
+@pytest.fixture
+async def evohome_v2(
+    credentials_manager: CredentialsManager,
+    fixture_folder: Path,
 ) -> AsyncGenerator[EvohomeClientv2]:
     """Yield an instance of a v2 EvohomeClient."""
 
-    with patch("evohomeasync2.auth.Auth.get", broker_get(install)):
+    with patch("evohomeasync2.auth.Auth.get", broker_get(fixture_folder)):
         evo = EvohomeClientv2(credentials_manager)
 
         await evo.update()

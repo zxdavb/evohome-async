@@ -23,7 +23,7 @@ import pytest
 from evohomeasync.auth import _APPLICATION_ID
 from evohomeasync.schemas import (
     TCC_FAILURE_RESPONSE,
-    TCC_GET_USR_ACCOUNT_INFO,
+    TCC_GET_USR_INFO,
     TCC_POST_USR_SESSION,
 )
 from tests.const import (
@@ -269,4 +269,4 @@ async def test_url_auth_good(
         """
 
     assert user_auth["userInfo"]["username"] == credentials[0]
-    TCC_GET_USR_ACCOUNT_INFO(user_info)
+    TCC_GET_USR_INFO(user_info)
