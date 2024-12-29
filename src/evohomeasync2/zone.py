@@ -437,7 +437,6 @@ class _ZoneBase(_ScheduleBase, ActiveFaultsBase, EntityBase):
     def temperature(self) -> float | None:
         if not (status := self.temperature_status) or not status[SZ_IS_AVAILABLE]:
             return None
-
         return status[SZ_TEMPERATURE]
 
 
@@ -521,6 +520,10 @@ class Zone(_ZoneBase):
 
         return self._config[SZ_SETPOINT_CAPABILITIES]
 
+    @property
+    def allowed_modes(self) -> tuple[ZoneMode, ...]:
+        return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
+
     @property  # convenience attr
     def max_heat_setpoint(self) -> float:
         # consider: if not self.setpoint_capabilities["can_control_heat"]: return None
@@ -530,10 +533,6 @@ class Zone(_ZoneBase):
     def min_heat_setpoint(self) -> float:
         # consider: if not self.setpoint_capabilities["can_control_heat"]: return None
         return self.setpoint_capabilities[SZ_MIN_HEAT_SETPOINT]
-
-    @property
-    def allowed_modes(self) -> tuple[ZoneMode, ...]:
-        return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
 
     # Status (state) attrs & methods...
 

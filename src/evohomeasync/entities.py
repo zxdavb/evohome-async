@@ -33,6 +33,8 @@ if TYPE_CHECKING:
     import logging
     from datetime import datetime as dt
 
+    from evohomeasync2.schemas.typedefs import EvoTemperatureStatusResponseT
+
     from . import EvohomeClient
     from .auth import Auth
     from .schemas import (
@@ -185,11 +187,11 @@ class Zone(_DeviceBase):  # Zone version of a Device
     def idx(self) -> str:
         return f"{self._config["instance"]:02X}"
 
-    @property  # convenience attr
+    @property
     def max_heat_setpoint(self) -> float:
         return self._status[SZ_THERMOSTAT]["min_heat_setpoint"]
 
-    @property  # convenience attr
+    @property
     def min_heat_setpoint(self) -> float:
         return self._status[SZ_THERMOSTAT]["min_heat_setpoint"]
 
@@ -199,8 +201,8 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
     # Status (state) attrs & methods...
 
-    @property
-    def temperature_status(self) -> dict[str, Any]:
+    @property  # emulate v2 API...
+    def temperature_status(self) -> EvoTemperatureStatusResponseT:
         """Expose the temperature_status as per the v2 API."""
 
         if self._status is None:
@@ -210,18 +212,14 @@ class Zone(_DeviceBase):  # Zone version of a Device
         temp_status = self._status[SZ_THERMOSTAT]["indoor_temperature_status"]
 
         return {
-            "temperature": temp if temp != _TEMP_IS_NA else None,
-            "is_available": temp_status != "NotAvailable",
-        }
+            "is_available": temp_status == "Measured",
+        } | ({} if temp != _TEMP_IS_NA else {"temperature": temp})  # type: ignore[return-value]
 
     @property
     def temperature(self) -> float | None:
-        """Expose the thermostat temperature, if any."""
-        if self._status is None:
-            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
-
-        temp = self._status[SZ_THERMOSTAT]["indoor_temperature"]
-        return temp if temp != _TEMP_IS_NA else None
+        if not (status := self.temperature_status) or not status["is_available"]:
+            return None
+        return status["temperature"]
 
     async def _set_heat_setpoint(
         self,
@@ -287,6 +285,10 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
     @property
     def one_touch_actions_suspended(self) -> bool:
         return bool(self._status["one_touch_actions_suspended"])
+
+    @property
+    def one_touch_buttons(self) -> tuple[str, ...]:
+        return tuple(self._status["one_touch_buttons"])
 
     async def _set_mode(self, mode: dict[str, str]) -> None:
         """Set the TCS mode."""

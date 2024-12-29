@@ -361,7 +361,7 @@ class TccThermostatResponseT(TypedDict):
     coolRate: float
     heatRate: float
     is_pre_cool_capable: bool
-    changeable_values: Any  # thermostatChangeableValues
+    changeable_values: TccThermostatChangeableValues
     equipment_outputStatus: str  # Off | Heating | Cooling
     schedule_capable: bool
     vacationHoldChangeable: bool
@@ -370,6 +370,25 @@ class TccThermostatResponseT(TypedDict):
     scheduleCoolSp: float
     serialNumber: str
     pcbNumber: str
+
+
+class TccThermostatChangeableValues(TypedDict):
+    """
+    "changeableValues": {
+        "mode": "Off",
+        "heatSetpoint": {"value": 21.0, "status": "Scheduled"},
+        "vacationHoldDays": 0,
+    },
+    """
+
+    mode: str  # Off
+    heatSetpoint: _TccSetpointDict
+    vacationHoldDays: int
+
+
+class _TccSetpointDict(TypedDict):
+    value: float
+    status: str  # Scheduled, Temporary, Hold, VacationHold
 
 
 class TccWeatherResponseT(TypedDict):
@@ -467,8 +486,10 @@ class EvoGwyInfoDictT(TypedDict):  # c.f. TccDeviceResponseT
     pcb_number: str
 
 
+# These keys are in the JSON, but not in the developer docs for the API
 class EvoTcsInfoDictT(EvoLocInfoDictT):
     one_touch_actions_suspended: bool
+    one_touch_buttons: list[str]
 
 
 class EvoDevInfoDictT(EvoGwyInfoDictT):
