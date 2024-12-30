@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from evohome.exceptions import (  # noqa: F401
+from evohome.exceptions import (
     ApiRateLimitExceededError,
     ApiRequestFailedError,
     AuthenticationFailedError,
@@ -18,3 +18,20 @@ from evohome.exceptions import (  # noqa: F401
     NoSingleTcsError,
     StatusError,
 )
+
+__all__ = [
+    "ApiRateLimitExceededError",
+    "ApiRequestFailedError",
+    "AuthenticationFailedError",
+    "BadApiRequestError",
+    "BadApiResponseError",
+    "BadApiSchemaError",
+    "BadScheduleUploadedError",
+    "ConfigError",
+    "EvohomeError",
+    "InvalidConfigError",
+    "InvalidScheduleError",
+    "InvalidStatusError",
+    "NoSingleTcsError",
+    "StatusError",
+]

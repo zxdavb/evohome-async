@@ -12,8 +12,8 @@ from datetime import UTC, datetime as dt
 import aiohttp
 
 from .auth import AbstractTokenManager
-from .control_system import ControlSystem  # noqa: F401
-from .exceptions import (  # noqa: F401
+from .control_system import ControlSystem
+from .exceptions import (
     ApiRateLimitExceededError,
     ApiRequestFailedError,
     AuthenticationFailedError,
@@ -29,11 +29,11 @@ from .exceptions import (  # noqa: F401
     NoSingleTcsError,
     StatusError,
 )
-from .gateway import Gateway  # noqa: F401
-from .hotwater import HotWater  # noqa: F401
-from .location import Location  # noqa: F401
+from .gateway import Gateway
+from .hotwater import HotWater
+from .location import Location
 from .main import EvohomeClient
-from .zone import Zone  # noqa: F401
+from .zone import Zone
 
 __version__ = "1.2.0"
 
@@ -119,3 +119,30 @@ class EvohomeClientOld(EvohomeClient):
     def username(self) -> str:
         """Return the username attr."""
         return self._token_manager.client_id
+
+
+__all__ = [  # noqa: RUF022
+    "EvohomeClient",
+    "AbstractTokenManager",
+    #
+    "Location",
+    "Gateway",
+    "ControlSystem",
+    "Zone",
+    "HotWater",
+    #
+    "ApiRateLimitExceededError",
+    "ApiRequestFailedError",
+    "AuthenticationFailedError",
+    "BadApiRequestError",
+    "BadApiResponseError",
+    "BadApiSchemaError",
+    "BadScheduleUploadedError",
+    "ConfigError",
+    "EvohomeError",
+    "InvalidConfigError",
+    "InvalidScheduleError",
+    "InvalidStatusError",
+    "NoSingleTcsError",
+    "StatusError",
+]

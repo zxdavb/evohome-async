@@ -107,7 +107,7 @@ class _DeviceBase(_EntityBase):
         self._status = status
 
 
-class Hotwater(_DeviceBase):  # Hotwater version of a Device
+class HotWater(_DeviceBase):  # Hotwater version of a Device
     """Instance of a location's DHW zone."""
 
     _config: Final[EvoDevInfoDictT]  # type: ignore[misc]
@@ -269,7 +269,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
-        self.hotwater: Hotwater | None = None
+        self.hotwater: HotWater | None = None
         self.zones: list[Zone] = []
 
         self.zone_by_id: dict[str, Zone] = {}  # id is fixed to zone
@@ -352,7 +352,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
         return dev
 
-    def _get_dhw(self) -> Hotwater:
+    def _get_dhw(self) -> HotWater:
         """Return the TCS's DHW, if there is one."""
 
         dev = self.zone_by_id.get("HW")
@@ -416,7 +416,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
                 self.gateway_by_id[gwy.id] = gwy
 
             if dev_config["thermostat_model_type"] == "DOMESTIC_HOT_WATER":
-                self.hotwater = Hotwater(self, dev_config)
+                self.hotwater = HotWater(self, dev_config)
 
             elif dev_config["thermostat_model_type"].startswith("EMEA_"):
                 self._add_zone(Zone(self, dev_config))

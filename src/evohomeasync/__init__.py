@@ -12,7 +12,8 @@ from datetime import UTC, datetime as dt, timedelta as td
 import aiohttp
 
 from .auth import AbstractSessionManager
-from .exceptions import (  # noqa: F401
+from .entities import ControlSystem, Gateway, HotWater, Location, Zone
+from .exceptions import (
     ApiRateLimitExceededError,
     ApiRequestFailedError,
     AuthenticationFailedError,
@@ -114,3 +115,30 @@ class EvohomeClientOld(EvohomeClient):
             session_id=session_id,
         )
         super().__init__(self._session_manager, debug=debug)
+
+
+__all__ = [  # noqa: RUF022
+    "EvohomeClient",
+    "AbstractSessionManager",
+    #
+    "Location",
+    "Gateway",
+    "ControlSystem",
+    "Zone",
+    "HotWater",
+    #
+    "ApiRateLimitExceededError",
+    "ApiRequestFailedError",
+    "AuthenticationFailedError",
+    "BadApiRequestError",
+    "BadApiResponseError",
+    "BadApiSchemaError",
+    "BadScheduleUploadedError",
+    "ConfigError",
+    "EvohomeError",
+    "InvalidConfigError",
+    "InvalidScheduleError",
+    "InvalidStatusError",
+    "NoSingleTcsError",
+    "StatusError",
+]
