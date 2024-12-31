@@ -125,6 +125,26 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
 
     # Status (state) attrs & methods...
 
+    @property  # emulate v2 API...
+    def temperature_status(self) -> EvoTemperatureStatusResponseT:
+        """Expose the temperature_status as per the v2 API."""
+
+        if self._status is None:
+            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
+
+        temp = self._status[SZ_THERMOSTAT]["indoor_temperature"]
+        temp_status = self._status[SZ_THERMOSTAT]["indoor_temperature_status"]
+
+        return {
+            "is_available": temp_status == "Measured",
+        } | ({} if temp == _TEMP_IS_NA else {"temperature": temp})  # type: ignore[return-value]
+
+    @property
+    def temperature(self) -> float | None:
+        if not (status := self.temperature_status) or not status["is_available"]:
+            return None
+        return status["temperature"]
+
     async def _set_dhw(
         self,
         status: str,  # "Scheduled" | "Hold"

@@ -280,6 +280,16 @@
       thermostat_version: 02.00.19.33
   
     ''',
+    'temperature': '''
+      38.91
+      ...
+  
+    ''',
+    'temperature_status': '''
+      is_available: true
+      temperature: 38.91
+  
+    ''',
   })
 # ---
 # name: test_system_snapshot[default][location]
@@ -2614,6 +2624,16 @@
         vacation_hold_changeable: false
       thermostat_model_type: DOMESTIC_HOT_WATER
       thermostat_version: 02.00.19.33
+  
+    ''',
+    'temperature': '''
+      38.91
+      ...
+  
+    ''',
+    'temperature_status': '''
+      is_available: true
+      temperature: 38.91
   
     ''',
   })
