@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from abc import ABC, abstractmethod
+from functools import cached_property
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
@@ -82,23 +83,29 @@ class CredentialsManagerBase:
 
         self._client_id = client_id
         self._secret = secret
-        self.websession = websession
+        self.websession: Final = websession
 
-        self.hostname = _hostname or HOSTNAME
+        self._hostname: Final = _hostname or HOSTNAME
         self.logger = logger or logging.getLogger(__name__)
 
         self._was_authenticated = False  # True once credentials are proven validated
 
     def __str__(self) -> str:
+        """Return a string representation of the object."""
         return (
             f"{self.__class__.__name__}"
             f"(client_id='{self.client_id}, hostname='{self.hostname}')"
         )
 
-    @property
+    @cached_property
     def client_id(self) -> str:
         """Return the client id used for HTTP authentication."""
         return self._client_id
+
+    @cached_property
+    def hostname(self) -> str:
+        """Return the hostname used for HTTP authentication."""
+        return self._hostname
 
     async def _post_request(self, url: StrOrURL, /, **kwargs: Any) -> dict[str, Any]:
         """Make an authentication request to the Resideo TCC RESTful API.
@@ -166,15 +173,22 @@ class AbstractAuth(ABC):
         """A class for interacting with the Resideo TCC API."""
 
         self.websession: Final = websession
-        self.hostname: Final = _hostname or HOSTNAME
+
+        self._hostname: Final = _hostname or HOSTNAME
         self.logger: Final = logger or logging.getLogger(__name__)
 
     def __str__(self) -> str:
+        """Return a string representation of the object."""
         return f"{self.__class__.__name__}(base='{self.url_base}')"
+
+    @cached_property
+    def hostname(self) -> str:
+        """Return the hostname used for GET/PUT requests."""
+        return self._hostname
 
     @property
     def url_base(self) -> StrOrURL:
-        """Return the URL base used for GET/PUT."""
+        """Return the URL base used for GET/PUT requests."""
         return self._url_base
 
     async def get(
@@ -289,10 +303,10 @@ class AbstractAuth(ABC):
                 f"{method} {url}: response is not JSON: {await _payload(rsp)}"
             ) from err
 
-        # an invalid access_token / session_id will cause a 401/Unauthorized
-        # so, we'd need to re-authenticate - how do we effect that?
-        # unfortunately, other scenarios cause a 401 (e.g. bad loc_id in URL)
-        # for now, leave it up to the consumer to handle the 401
+        # An invalid access_token / session_id will cause a 401 and we'd need to
+        # re-authenticate; unfortunately, other scenarios cause 401s (e.g. wrong
+        # usr_id/loc_id in URL). So leave it up to the consumer to detect/handle
+        # such 401s as they can tell if was well-known URL (e.g. without usr_id)
 
         except aiohttp.ClientResponseError as err:
             # if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
