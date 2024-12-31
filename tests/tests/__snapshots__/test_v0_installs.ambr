@@ -974,6 +974,10 @@
       ...
   
     ''',
+    'one_touch_buttons': '''
+      !!python/tuple []
+  
+    ''',
     'status': '''
       can_search_for_contractors: true
       city: London
@@ -1732,8 +1736,6 @@
   
           '
       temperature_status: 'is_available: false
-  
-          temperature: null
   
           '
   '3432576':
@@ -2802,6 +2804,10 @@
     'one_touch_actions_suspended': '''
       false
       ...
+  
+    ''',
+    'one_touch_buttons': '''
+      !!python/tuple []
   
     ''',
     'status': '''

@@ -213,7 +213,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
         return {
             "is_available": temp_status == "Measured",
-        } | ({} if temp != _TEMP_IS_NA else {"temperature": temp})  # type: ignore[return-value]
+        } | ({} if temp == _TEMP_IS_NA else {"temperature": temp})  # type: ignore[return-value]
 
     @property
     def temperature(self) -> float | None:
