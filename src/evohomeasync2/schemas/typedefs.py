@@ -110,9 +110,9 @@ class EvoAllowedSystemModesResponseT(TypedDict):
     system_mode: SystemMode
     can_be_permanent: Literal[True]
     can_be_temporary: bool
-    max_duration: NotRequired[str]
-    timing_resolution: NotRequired[str]
-    timing_mode: NotRequired[str]
+    max_duration: NotRequired[str]  # when can_be_temporary is True
+    timing_resolution: NotRequired[str]  # when can_be_temporary is True
+    timing_mode: NotRequired[str]  # when can_be_temporary is True
 
 
 class EvoTcsConfigResponseT(EvoTcsConfigEntryT):
