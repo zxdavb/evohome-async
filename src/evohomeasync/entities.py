@@ -8,6 +8,7 @@ But here it is implemented as: Location -> Gateway -> TCS -> DHW | Zone
 from __future__ import annotations
 
 import logging
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, Final
 
 from . import exceptions as exc
@@ -65,7 +66,7 @@ class _EntityBase:
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(id='{self._id}')"
 
-    @property
+    @cached_property
     def id(self) -> str:
         return str(self._id)
 
@@ -404,7 +405,7 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
 
     # Config attrs...
 
-    @property
+    @cached_property
     def mac_address(self) -> str:
         return self._config["mac_id"]
 

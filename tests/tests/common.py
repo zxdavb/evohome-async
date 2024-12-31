@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import json
+from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -30,5 +31,5 @@ def get_property_methods(obj: object) -> list[str]:
     return [
         name
         for name, value in inspect.getmembers(obj.__class__)
-        if isinstance(value, property)
+        if isinstance(value, property | cached_property)
     ]

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import cached_property
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from evohome.helpers import camel_to_snake
@@ -60,11 +61,11 @@ class Gateway(ActiveFaultsBase, EntityBase):
 
     # Config attrs...
 
-    @property  # TODO: deprecate in favour of .id attr
+    @cached_property  # TODO: deprecate in favour of .id attr
     def gatewayId(self) -> str:  # noqa: N802
         return self._id
 
-    @property  # RENAMED val: was mac
+    @cached_property  # RENAMED val: was mac
     def mac_address(self) -> str:
         return self._config[SZ_MAC]
 

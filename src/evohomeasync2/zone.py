@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime as dt, timedelta as td
+from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
@@ -114,7 +115,7 @@ class EntityBase:
 
     # Config attrs...
 
-    @property
+    @cached_property
     def id(self) -> str:
         return self._id
 
@@ -472,11 +473,11 @@ class Zone(_ZoneBase):
 
     # Config attrs...
 
-    @property  # TODO: deprecate in favour of .id attr
+    @cached_property  # TODO: deprecate in favour of .id attr
     def zoneId(self) -> str:  # noqa: N802
         return self._id
 
-    @property
+    @cached_property
     def model(self) -> ZoneModelType:
         return self._config[SZ_MODEL_TYPE]
 
@@ -486,11 +487,11 @@ class Zone(_ZoneBase):
             return self._status[SZ_NAME]
         return self._config[SZ_NAME]
 
-    @property
+    @cached_property
     def type(self) -> ZoneType:
         return self._config[SZ_ZONE_TYPE]
 
-    @property
+    @cached_property
     def schedule_capabilities(self) -> EvoZonScheduleCapabilitiesResponseT:
         """
         "scheduleCapabilities": {
@@ -503,7 +504,7 @@ class Zone(_ZoneBase):
 
         return self._config[SZ_SCHEDULE_CAPABILITIES]
 
-    @property
+    @cached_property
     def setpoint_capabilities(self) -> EvoZonSetpointCapabilitiesResponseT:
         """
         "setpointCapabilities": {
@@ -520,7 +521,7 @@ class Zone(_ZoneBase):
 
         return self._config[SZ_SETPOINT_CAPABILITIES]
 
-    @property
+    @cached_property
     def allowed_modes(self) -> tuple[ZoneMode, ...]:
         return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
 

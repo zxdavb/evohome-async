@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+from functools import cached_property
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from evohome.helpers import camel_to_snake
@@ -105,15 +106,15 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
     # Config attrs...
 
-    @property  # TODO: deprecate in favour of .id attr
+    @cached_property  # TODO: deprecate in favour of .id attr
     def systemId(self) -> str:  # noqa: N802
         return self._id
 
-    @property  # RENAMED val: was model_type
+    @cached_property  # RENAMED val: was model_type
     def model(self) -> TcsModelType:
         return self._config[SZ_MODEL_TYPE]
 
-    @property
+    @cached_property
     def allowed_system_modes(self) -> tuple[EvoAllowedSystemModesResponseT, ...]:
         """
         "allowedSystemModes": [
@@ -129,7 +130,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         return tuple(self._config[SZ_ALLOWED_SYSTEM_MODES])
 
-    @property  # a convenience attr, derived from allowed_system_modes
+    @cached_property  # a convenience attr, derived from allowed_system_modes
     def modes(self) -> tuple[SystemMode, ...]:
         return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
 

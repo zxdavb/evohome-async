@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
 from evohome.helpers import camel_to_snake
@@ -65,19 +66,19 @@ class HotWater(_ZoneBase):
 
     # Config attrs...
 
-    @property  # TODO: deprecate in favour of .id attr
+    @cached_property  # TODO: deprecate in favour of .id attr
     def dhwId(self) -> str:  # noqa: N802
         return self._id
 
-    @property
+    @cached_property
     def name(self) -> str:
         return "Domestic Hot Water"
 
-    @property
+    @cached_property
     def type(self) -> str:
         return "DomesticHotWater"
 
-    @property  # NOTE: renamed config key: was schedule_capabilities_response
+    @cached_property  # NOTE: renamed config key: was schedule_capabilities_response
     def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesResponseT:
         """
         "scheduleCapabilitiesResponse": {
@@ -89,7 +90,7 @@ class HotWater(_ZoneBase):
 
         return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
 
-    @property  # NOTE: renamed config key: was dhw_state_capabilities_response
+    @cached_property  # NOTE: renamed config key: was dhw_state_capabilities_response
     def state_capabilities(self) -> EvoDhwStateCapabilitiesResponseT:
         """
         "dhwStateCapabilitiesResponse": {
@@ -102,11 +103,11 @@ class HotWater(_ZoneBase):
 
         return self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
 
-    @property
+    @cached_property
     def allowed_modes(self) -> tuple[ZoneMode, ...]:
         return tuple(self.state_capabilities[SZ_ALLOWED_MODES])
 
-    @property
+    @cached_property
     def allowed_states(self) -> tuple[DhwState, ...]:
         return tuple(self.state_capabilities["allowed_states"])
 
