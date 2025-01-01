@@ -120,7 +120,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         """
 
         if not self.is_session_id_valid():  # may be invalid for other reasons
-            self.logger.warning(
+            self.logger.debug(
                 "Null/Expired/Invalid session_id, will re-authenticate..."
             )
             await self._update_session_id()
@@ -128,7 +128,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         return self.session_id
 
     async def _update_session_id(self) -> None:
-        self.logger.warning("Authenticating with client_id/secret")
+        self.logger.debug("Authenticating with client_id/secret")
 
         credentials = {
             "applicationId": _APPLICATION_ID,
@@ -150,7 +150,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         """Obtain an session id using the supplied credentials.
 
         The credentials are the user's client_id/secret.
-        Raise AuthenticationFailedError if unable to obtain a session id.
+        Will raise AuthenticationFailedError if unable to obtain a session id.
         """
 
         url = f"https://{self.hostname}/{URL_CRED}"
@@ -186,7 +186,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         if session.get("latest_eula_accepted"):
             self.logger.warning("The latest EULA has not been accepted by the user")
 
-    async def _post_session_id_request(
+    async def _post_session_id_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any
     ) -> TccSessionResponseT:
         """Wrap the POST request to the vendor's TCC RESTful API."""

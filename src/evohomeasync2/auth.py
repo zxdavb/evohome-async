@@ -160,7 +160,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """
 
         if not self.is_access_token_valid():  # may be invalid for other reasons
-            self.logger.warning(
+            self.logger.debug(
                 "Null/Expired/Invalid access_token, will re-authenticate..."
             )
             await self._update_access_token()
@@ -171,7 +171,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """Update the access token and save it to the store/cache."""
 
         if self._refresh_token:
-            self.logger.warning("Authenticating with the refresh_token")
+            self.logger.debug("Authenticating with the refresh_token")
 
             credentials = {SZ_REFRESH_TOKEN: self._refresh_token}
 
@@ -182,11 +182,11 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
                 if err.status != HTTPStatus.BAD_REQUEST:  # 400, e.g. invalid tokens
                     raise
 
-                self.logger.warning(" - expired/invalid refresh_token")
+                self.logger.debug(" - expired/invalid refresh_token")
                 self._refresh_token = ""
 
         if not self._refresh_token:
-            self.logger.warning("Authenticating with client_id/secret")
+            self.logger.debug("Authenticating with client_id/secret")
 
             # NOTE: the keys are case-sensitive: 'Username' and 'Password'
             credentials = {"Username": self._client_id, "Password": self._secret}
@@ -205,7 +205,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """Obtain an access token using the supplied credentials.
 
         The credentials are either a refresh token or the user's client_id/secret.
-        Raise AuthenticationFailedError if unable to obtain an access token.
+        Will raise AuthenticationFailedError if unable to obtain an access token.
         """
 
         url = f"https://{self.hostname}/{URL_CRED}"
@@ -242,7 +242,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
         # if response.get(SZ_LATEST_EULA_ACCEPTED):
 
-    async def _post_access_token_request(
+    async def _post_access_token_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any
     ) -> AuthTokenResponseT:
         """Wrap the POST request to the vendor's TCC RESTful API."""

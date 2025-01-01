@@ -110,7 +110,7 @@ class CredentialsManagerBase:
     async def _post_request(self, url: StrOrURL, /, **kwargs: Any) -> dict[str, Any]:
         """Make an authentication request to the Resideo TCC RESTful API.
 
-        Raises an exception if the authentication is not successful.
+        Will raise an exception if the authentication is not successful.
         """
 
         rsp: aiohttp.ClientResponse | None = None
@@ -133,7 +133,7 @@ class CredentialsManagerBase:
 
         except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
             raise exc.AuthenticationFailedError(
-                f"Authenticator response is not JSON: {await _payload(rsp)}"
+                f"Authenticator response is not valid JSON: {await _payload(rsp)}"
             ) from err
 
         except aiohttp.ClientResponseError as err:
@@ -197,7 +197,7 @@ class AbstractAuth(ABC):
         """Call the vendor's TCC API with a GET.
 
         Optionally checks the response JSON against the expected schema and logs a
-        warning if it doesn't match.
+        debug message if it doesn't match.
         """
 
         response = await self.request(HTTPMethod.GET, url)
@@ -206,7 +206,7 @@ class AbstractAuth(ABC):
             try:
                 response = schema(response)
             except vol.Invalid as err:
-                self.logger.warning(f"GET {url}: payload may be invalid: {err}")
+                self.logger.debug(f"GET {url}: payload may be invalid: {err}")
 
         return response  # type: ignore[return-value]
 
@@ -221,14 +221,14 @@ class AbstractAuth(ABC):
         """Call the vendor's API with a PUT.
 
         Optionally checks the payload JSON against the expected schema and logs a
-        warning if it doesn't match.
+        debug message if it doesn't match.
         """
 
         if schema:
             try:
                 schema(json)
             except vol.Invalid as err:
-                self.logger.warning(f"PUT {url}: payload may be invalid: {err}")
+                self.logger.debug(f"PUT {url}: payload may be invalid: {err}")
 
         return await self.request(HTTPMethod.PUT, url, json=json)  # type: ignore[return-value]
 
@@ -274,7 +274,7 @@ class AbstractAuth(ABC):
     ) -> dict[str, Any] | list[dict[str, Any]]:
         """Make a GET/PUT request to the Resideo TCC RESTful API.
 
-        Raises an exception if the request is not successful.
+        Will raise an exception if the request is not successful.
         """
 
         rsp: aiohttp.ClientResponse | None = None
