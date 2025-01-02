@@ -48,7 +48,7 @@ async def _post_session(auth: Auth) -> TccSessionResponseT:
 async def get_account_info(auth: Auth) -> TccUserAccountInfoResponseT:
     """Test GET /accountInfo"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.GET,
         "accountInfo",
     )  # type: ignore[return-value]
@@ -57,7 +57,7 @@ async def get_account_info(auth: Auth) -> TccUserAccountInfoResponseT:
 async def get_comm_tasks(auth: Auth, tsk_id: int) -> dict[str, Any]:
     """Test GET /commTasks?commTaskId={tsk_id}"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.PUT,
         f"commTasks?commTaskId={tsk_id}",
     )  # type: ignore[return-value]
@@ -66,7 +66,7 @@ async def get_comm_tasks(auth: Auth, tsk_id: int) -> dict[str, Any]:
 async def get_locations(auth: Auth, usr_id: int) -> list[TccLocationResponseT]:
     """Test GET /locations?userId={usr_id}&allData=True"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.GET,
         f"locations?userId={usr_id}&allData=True",
     )  # type: ignore[return-value]
@@ -86,7 +86,7 @@ async def put_devices_dhw(auth: Auth, dhw_id: int) -> dict[str, Any]:
 
     data = {"Status": "Scheduled"}
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.PUT,
         f"devices/{dhw_id}/thermostat/changeableValues",
         data=data,
@@ -106,7 +106,7 @@ async def put_devices_zon(auth: Auth, zon_id: int) -> dict[str, Any]:
 
     data = {"Status": "Scheduled"}  # , "NextTime": None, "Value": None}
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.PUT,
         f"devices/{zon_id}/thermostat/changeableValues/heatSetpoint",
         data=data,
@@ -123,7 +123,7 @@ async def put_evo_touch_systems(auth: Auth, loc_id: int) -> dict[str, Any]:
 
     data = {"QuickAction": "Auto", "QuickActionNextTime": None}
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.PUT,
         f"evoTouchSystems?locationId={loc_id}",
         data=data,

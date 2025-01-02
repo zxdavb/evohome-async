@@ -48,7 +48,7 @@ if TYPE_CHECKING:
     from tests.conftest import CredentialsManager
 
 
-async def _post_auth_oauth_oken(auth: Auth) -> dict[str, int | str]:
+async def _post_auth_oauth_token(auth: Auth) -> dict[str, int | str]:
     """Test POST /Auth/OAuth/Token"""
 
     raise NotImplementedError
@@ -57,7 +57,7 @@ async def _post_auth_oauth_oken(auth: Auth) -> dict[str, int | str]:
 async def get_usr_account(auth: Auth) -> TccUsrAccountResponseT:
     """Test GET /userAccount"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.GET,
         "userAccount",
     )  # type: ignore[return-value]
@@ -66,7 +66,7 @@ async def get_usr_account(auth: Auth) -> TccUsrAccountResponseT:
 async def get_usr_locations(auth: Auth, usr_id: str) -> list[TccLocConfigResponseT]:
     """Test GET /location/installationInfo?userId={user_id}"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.GET,
         f"location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True",
     )  # type: ignore[return-value]
@@ -127,7 +127,7 @@ async def test_tcs_urls(
 async def get_loc_config(auth: Auth, loc_id: str) -> TccLocConfigResponseT:
     """Test GET /location/{loc_id}/installationInfo"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.GET,
         f"location/{loc_id}/installationInfo?includeTemperatureControlSystems=True",
     )  # type: ignore[return-value]
@@ -136,7 +136,7 @@ async def get_loc_config(auth: Auth, loc_id: str) -> TccLocConfigResponseT:
 async def get_loc_status(auth: Auth, loc_id: str) -> TccLocStatusResponseT:
     """Test GET /location/{loc_id}/status"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.GET,
         f"location/{loc_id}/status?includeTemperatureControlSystems=True",
     )  # type: ignore[return-value]
@@ -145,7 +145,7 @@ async def get_loc_status(auth: Auth, loc_id: str) -> TccLocStatusResponseT:
 async def get_tcs_status(auth: Auth, tcs_id: str) -> TccTcsStatusResponseT:
     """Test GET /temperatureControlSystem/{tcs_id}/status"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.GET,
         f"temperatureControlSystem/{tcs_id}/status",
     )  # type: ignore[return-value]
@@ -154,7 +154,7 @@ async def get_tcs_status(auth: Auth, tcs_id: str) -> TccTcsStatusResponseT:
 async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
     """Test PUT /temperatureControlSystem/{tcs_id}/mode"""
 
-    _ = await auth._request(
+    _ = await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureControlSystem/{tcs_id}/mode",
         json={
@@ -164,7 +164,7 @@ async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
         },
     )
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureControlSystem/{tcs_id}/mode",
         json={"SystemMode": "Auto", "Permanent": True},
@@ -218,7 +218,7 @@ async def test_zon_urls(
 async def get_zon_schedule(auth: Auth, zon_id: str) -> TccZonDailySchedulesT:
     """Test GET /temperatureZone/{zon_id}/schedule"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.GET,
         f"temperatureZone/{zon_id}/schedule",
     )  # type: ignore[return-value]
@@ -227,7 +227,7 @@ async def get_zon_schedule(auth: Auth, zon_id: str) -> TccZonDailySchedulesT:
 async def get_zon_status(auth: Auth, zon_id: str) -> TccZonStatusResponseT:
     """Test GET /temperatureZone/{zon_id}/status"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.GET,
         f"temperatureZone/{zon_id}/status",
     )  # type: ignore[return-value]
@@ -236,7 +236,7 @@ async def get_zon_status(auth: Auth, zon_id: str) -> TccZonStatusResponseT:
 async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
     """Test PUT /temperatureZone/{zon_id}/heatSetpoint"""
 
-    _: TccTaskResponseT = await auth._request(
+    _: TccTaskResponseT = await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureZone/{zon_id}/heatSetpoint",
         json={
@@ -246,13 +246,13 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
         },
     )  # type: ignore[assignment]
 
-    _ = await auth._request(
+    _ = await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureZone/{zon_id}/heatSetpoint",
         json={"setpointMode": "PermanentOverride", "HeatSetpointValue": 20.5},
     )  # type: ignore[assignment]
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureZone/{zon_id}/heatSetpoint",
         json={"setpointMode": "FollowSchedule"},  # , "HeatSetpointValue": None},
@@ -264,7 +264,7 @@ async def put_zon_schedule(
 ) -> TccTaskResponseT:
     """Test GET /temperatureZone/{zon_id}/schedule"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureZone/{zon_id}/schedule",
         json=schedule,
@@ -324,7 +324,7 @@ async def test_dhw_urls(
 async def get_dhw_schedule(auth: Auth, dhw_id: str) -> TccDhwDailySchedulesT:
     """Test GET /domesticHotWater/{dhw_id}/schedule"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.GET,
         f"domesticHotWater/{dhw_id}/schedule",
     )  # type: ignore[return-value]
@@ -333,7 +333,7 @@ async def get_dhw_schedule(auth: Auth, dhw_id: str) -> TccDhwDailySchedulesT:
 async def get_dhw_status(auth: Auth, dhw_id: str) -> TccDhwStatusResponseT:
     """Test GET /domesticHotWater/{dhw_id}/status"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.GET,
         f"domesticHotWater/{dhw_id}/status",
     )  # type: ignore[return-value]
@@ -342,7 +342,7 @@ async def get_dhw_status(auth: Auth, dhw_id: str) -> TccDhwStatusResponseT:
 async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
     """Test PUT /domesticHotWater/{dhw_id}/state"""
 
-    _: TccTaskResponseT = await auth._request(
+    _: TccTaskResponseT = await auth._make_request(
         HTTPMethod.PUT,
         f"domesticHotWater/{dhw_id}/state",
         json={
@@ -352,13 +352,13 @@ async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
         },
     )  # type: ignore[assignment]
 
-    _ = await auth._request(
+    _ = await auth._make_request(
         HTTPMethod.PUT,
         f"domesticHotWater/{dhw_id}/state",
         json={"mode": "PermanentOverride", "state": "Off"},
     )  # type: ignore[assignment]
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.PUT,
         f"domesticHotWater/{dhw_id}/state",
         json={"mode": "FollowSchedule"},  # , "state": None},
@@ -370,7 +370,7 @@ async def put_dhw_schedule(
 ) -> TccTaskResponseT:
     """Test GET /domesticHotWater/{dhw_id}/schedule"""
 
-    return await auth._request(
+    return await auth._make_request(
         HTTPMethod.PUT,
         f"domesticHotWater/{dhw_id}/schedule",
         json=schedule,
