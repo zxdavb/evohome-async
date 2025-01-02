@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Any, Final
 import voluptuous as vol
 
 from evohome.auth import (
-    _ERR_MSG_LOOKUP_BOTH,
     HEADERS_BASE,
     HEADERS_CRED,
     AbstractAuth,
@@ -71,19 +70,9 @@ CREDS_USER_PASSWORD: Final = {
 
 
 # POST authentication url (i.e. /Auth/OAuth/Token)
-_ERR_MSG_LOOKUP_CRED: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
-    HTTPStatus.BAD_REQUEST: "Invalid user credentials (check the username/password)",
-    HTTPStatus.NOT_FOUND: "Not Found (invalid URL?)",
-    HTTPStatus.UNAUTHORIZED: "Invalid access token (dev/test only?)",
-}
 URL_CRED: Final = "Auth/OAuth/Token"
 
 # GET/PUT resource url (e.g. /WebAPI/emea/api/v1/...)
-_ERR_MSG_LOOKUP_BASE: dict[int, str] = _ERR_MSG_LOOKUP_BOTH | {
-    HTTPStatus.BAD_REQUEST: "Bad request (invalid data/json?)",
-    HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
-    HTTPStatus.UNAUTHORIZED: "Unauthorized (expired access token/unknown entity id?)",
-}
 URL_BASE: Final = "WebAPI/emea/api/v1"
 
 

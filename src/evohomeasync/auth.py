@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 import voluptuous as vol
 
 from evohome.auth import (
-    _ERR_MSG_LOOKUP_BOTH,
     HEADERS_BASE,
     HEADERS_CRED,
     AbstractAuth,
@@ -40,11 +39,9 @@ SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
 SZ_USER_INFO: Final = "user_info"
 
 # POST authentication url (i.e. /WebAPI/api/session)
-_ERR_MSG_LOOKUP_CRED = _ERR_MSG_LOOKUP_BOTH
 URL_CRED: Final = "WebAPI/api/session"
 
 # GET/PUT resource url (i.e. /WebAPI/api/...)
-_ERR_MSG_LOOKUP_BASE = _ERR_MSG_LOOKUP_BOTH
 URL_BASE: Final = "WebAPI/api"
 
 
