@@ -116,10 +116,9 @@ class CredentialsManagerBase:
         rsp: aiohttp.ClientResponse | None = None
 
         try:
-            rsp = await self.websession.post(url, **kwargs)
-            assert rsp is not None  # mypy
+            rsp = await self._request(HTTPMethod.POST, url, **kwargs)
 
-            await rsp.read()  # so we can use rsp.json(), below
+            await rsp.read()  # so we can use rsp.json()/rsp.text(), below
             rsp.raise_for_status()
 
             # can't assert content_length != 0 with aioresponses, so skip that check
@@ -155,6 +154,12 @@ class CredentialsManagerBase:
         finally:
             if rsp is not None:
                 rsp.release()
+
+    async def _request(  # dev/test wrapper
+        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+    ) -> aiohttp.ClientResponse:
+        """Wrap the request to the ClientSession (useful for dev/test)."""
+        return await self.websession.request(method, url, **kwargs)
 
 
 class AbstractAuth(ABC):
@@ -244,7 +249,7 @@ class AbstractAuth(ABC):
             kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
         try:
-            response = await self._request(method, url, **kwargs)
+            response = await self._make_request(method, url, **kwargs)
         except exc.ApiRequestFailedError as err:
             if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                 # leave it up to higher layers to handle the 401 as they can either be
@@ -269,7 +274,7 @@ class AbstractAuth(ABC):
         This could take the form of an access token, or a session id.
         """
 
-    async def _request(
+    async def _make_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> dict[str, Any] | list[dict[str, Any]]:
         """Make a GET/PUT request to the Resideo TCC RESTful API.
@@ -283,8 +288,7 @@ class AbstractAuth(ABC):
         headers = await self._headers(kwargs.pop("headers", {}))
 
         try:
-            rsp = await self.websession.request(method, url, headers=headers, **kwargs)
-            assert rsp is not None  # mypy
+            rsp = await self._request(method, url, headers=headers, **kwargs)
 
             await rsp.read()  # so we can use rsp.json(), below
             rsp.raise_for_status()
@@ -327,3 +331,9 @@ class AbstractAuth(ABC):
         finally:
             if rsp is not None:
                 rsp.release()
+
+    async def _request(  # dev/test wrapper
+        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+    ) -> aiohttp.ClientResponse:
+        """Wrap the request to the ClientSession (useful for dev/test)."""
+        return await self.websession.request(method, url, **kwargs)
