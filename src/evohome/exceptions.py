@@ -19,6 +19,10 @@ class EvohomeError(_EvohomeBaseError):
 class _ApiRequestFailedError(EvohomeError):
     """The API request failed for some reason (no/invalid/unexpected response)."""
 
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status  # useful, available if via aiohttp.ClientResponseError
+
 
 class ApiRequestFailedError(_ApiRequestFailedError):  # a base exception, API failed
     """The API request failed for some reason (no/invalid/unexpected response).
@@ -27,19 +31,22 @@ class ApiRequestFailedError(_ApiRequestFailedError):  # a base exception, API fa
     cause was a ClientResponseError, then the `status` attr will have an integer value.
     """
 
-    def __init__(self, message: str, status: int | None = None) -> None:
-        super().__init__(message)
-        self.status = status  # useful, available if via aiohttp.ClientResponseError
-
 
 class ApiRateLimitExceededError(ApiRequestFailedError):
     """The API request failed because the vendor's API rate limit was exceeded."""
 
 
-class AuthenticationFailedError(ApiRequestFailedError):
+class AuthenticationFailedError(_ApiRequestFailedError):
     """Unable to authenticate the user credentials (unable to obtain an access token).
 
     The cause could be any ApiRequestFailedError, including RateLimitExceeded.
+    """
+
+
+class BadUserCredentialsError(AuthenticationFailedError):
+    """Unable to authenticate the user credentials (unknown client_id or wrong secret).
+
+    Reauthenticating will not help as the user credentials are proven to be invalid.
     """
 
 
