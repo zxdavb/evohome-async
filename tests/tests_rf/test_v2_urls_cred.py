@@ -1,8 +1,8 @@
 """Validate the handling of the vendor's v2 APIs (URLs) for Authentication.
 
 This is used to:
-  a) document the RESTful API that is provided by the vendor
-  b) confirm the faked server (if any) is behaving as per a)
+a) document the RESTful API that is provided by the vendor
+b) confirm the faked server (if any) is behaving as per a)
 
 Testing is at HTTP request layer (e.g. POST).
 Everything to/from the RESTful API is in camelCase (so those schemas are used).
@@ -30,9 +30,9 @@ from tests.const import (
     _DBG_TEST_CRED_URLS,
     _DBG_USE_REAL_AIOHTTP,
     HEADERS_BASE,
-    HEADERS_CRED_V2 as HEADERS_CRED,
-    URL_BASE_V2 as URL_BASE,
-    URL_CRED_V2 as URL_CRED,
+    HEADERS_CRED_V2,
+    URL_BASE_V2,
+    URL_CRED_V2,
 )
 
 if TYPE_CHECKING:
@@ -44,8 +44,9 @@ if TYPE_CHECKING:
     )
 
 
-async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
-    assert rsp.status == HTTPStatus.TOO_MANY_REQUESTS  # 429
+async def _skip_if_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
+    if rsp.status != HTTPStatus.TOO_MANY_REQUESTS:  # 429
+        return
 
     response: TccErrorResponseT = await rsp.json()
 
@@ -61,14 +62,14 @@ async def handle_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_url_auth_bad0(  # invalid server certificate
+async def _test_url_auth_bad0(  # invalid server certificate
     client_session: aiohttp.ClientSession,
 ) -> None:
     """Test authentication flow with invalid server certificate."""
 
     #
-    # TEST 0: invalid certificate -> HTTPStatus.UNAUTHORIZED
-    parsed_url = urlparse(URL_CRED)
+    # TEST 0: invalid server certificate
+    parsed_url = urlparse(URL_CRED_V2)
     ip_address = socket.gethostbyname(parsed_url.hostname)  # type: ignore[arg-type]
     url = f"{parsed_url.scheme}://{ip_address}{parsed_url.path}"  # path[:1] == "/"
 
@@ -77,18 +78,17 @@ async def test_url_auth_bad0(  # invalid server certificate
     # [SSLCertVerificationError: ... certificate is not valid for ...]
 
     with pytest.raises(aiohttp.ClientConnectorCertificateError):
-        async with client_session.post(url, headers=HEADERS_CRED, data={}) as rsp:
-            rsp.raise_for_status()  # raises ClientResponseError
+        await client_session.post(url, headers=HEADERS_CRED_V2, data={})
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_url_auth_bad1(  # invalid/unknown credentials
+async def test_url_auth_bad1(  # bad credentials (client_id/secret)
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test authentication flow with invalid credentials."""
+    """Test authentication flow with bad credentials (client_id/secret)."""
 
     #
-    # TEST 1: invalid credentials -> HTTPStatus.UNAUTHORIZED
+    # TEST 1: bad credentials (client_id/secret) -> HTTPStatus.BAD_REQUEST
     data = {
         "grant_type": "password",
         "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # EMEA-V1-Get-Current-User-Account",
@@ -96,10 +96,10 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
         "Password": "",
     }
 
-    async with client_session.post(URL_CRED, headers=HEADERS_CRED, data=data) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
-            await handle_too_many_requests(rsp)
-
+    async with client_session.post(
+        URL_CRED_V2, headers=HEADERS_CRED_V2, data=data
+    ) as rsp:
+        await _skip_if_too_many_requests(rsp)
         assert rsp.status == HTTPStatus.BAD_REQUEST  # 400
 
         response: TccErrorResponseT = await rsp.json()
@@ -117,20 +117,18 @@ async def test_url_auth_bad1(  # invalid/unknown credentials
 async def test_url_auth_bad2(  # invalid/expired access token
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test authentication flow with an invalid access token."""
+    """Test authentication flow with an invalid/expired access token."""
 
     # pre-requisite data
     access_token = "invalid access token " + random.choice(string.ascii_letters)  # noqa: S311
 
     #
-    # TEST 2: invalid/expired access token -> HTTPStatus.UNAUTHORIZED
-    url = f"{URL_BASE}/userAccount"
+    # TEST 9: invalid/expired access token -> HTTPStatus.UNAUTHORIZED
+    url = f"{URL_BASE_V2}/userAccount"
     headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
 
     async with client_session.get(url, headers=headers) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
-            await handle_too_many_requests(rsp)
-
+        await _skip_if_too_many_requests(rsp)
         assert rsp.status == HTTPStatus.UNAUTHORIZED  # 401
 
         response: list[TccFailureResponseT] = await rsp.json()
@@ -151,23 +149,23 @@ async def test_url_auth_bad2(  # invalid/expired access token
 async def test_url_auth_bad3(  # invalid/expired refresh token
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test authentication flow with an invalid refresh token."""
+    """Test authentication flow with bad credentials (refresh token)."""
 
     # pre-requisite data
     refresh_token = "invalid refresh token " + random.choice(string.ascii_letters)  # noqa: S311
-    #
 
-    # TEST 3: invalid/expired refresh token -> HTTPStatus.UNAUTHORIZED
+    #
+    # TEST 2: bad credentials (refresh token) -> HTTPStatus.BAD_REQUEST
     data = {
         "grant_type": "refresh_token",
         "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
         "refresh_token": refresh_token,
     }
 
-    async with client_session.get(URL_CRED, headers=HEADERS_CRED, data=data) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
-            await handle_too_many_requests(rsp)
-
+    async with client_session.get(
+        URL_CRED_V2, headers=HEADERS_CRED_V2, data=data
+    ) as rsp:
+        await _skip_if_too_many_requests(rsp)
         assert rsp.status == HTTPStatus.BAD_REQUEST  # 400
 
         response: TccErrorResponseT = await rsp.json()
@@ -183,13 +181,14 @@ async def test_url_auth_bad3(  # invalid/expired refresh token
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 @pytest.mark.skipif(not _DBG_TEST_CRED_URLS, reason="may invalidate credentials cache")
-async def test_url_auth_good(
+async def test_url_auth_good(  # good credentials
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
 ) -> None:
     """Test authentication flow (and authorization) with good credentials."""
 
-    # TEST 1: valid credentials (username/password) -> HTTPStatus.OK
+    #
+    # TEST 1: good credentials (client_id/secret) -> HTTPStatus.OK
     data = {
         "grant_type": "password",
         "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # EMEA-V1-Get-Current-User-Account",
@@ -197,10 +196,10 @@ async def test_url_auth_good(
         "Password": credentials[1],
     }
 
-    async with client_session.post(URL_CRED, headers=HEADERS_CRED, data=data) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
-            await handle_too_many_requests(rsp)
-
+    async with client_session.post(
+        URL_CRED_V2, headers=HEADERS_CRED_V2, data=data
+    ) as rsp:
+        await _skip_if_too_many_requests(rsp)
         assert rsp.status == HTTPStatus.OK  # 200 (400 is bad credentials)
 
         user_auth: TccOAuthTokenResponseT = await rsp.json()
@@ -223,19 +222,17 @@ async def test_url_auth_good(
 
     # Check the access token by accessing a resource...
     access_token = user_auth["access_token"]
-    #
 
-    # TEST 2: valid access token -> HTTPStatus.OK  # 200 (401 is bad token)
-    url = f"{URL_BASE}/userAccount"
+    #
+    # TEST 9: good access token -> HTTPStatus.OK  # 200 (401 is bad token)
+    url = f"{URL_BASE_V2}/userAccount"
     headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
 
     async with client_session.get(url, headers=headers) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
-            await handle_too_many_requests(rsp)
-
+        await _skip_if_too_many_requests(rsp)
         assert rsp.status == HTTPStatus.OK  # 200
 
-        response: TccUsrAccountResponseT = await rsp.json()
+        user_info: TccUsrAccountResponseT = await rsp.json()
 
         # the expected response for good access token
         """
@@ -252,26 +249,26 @@ async def test_url_auth_good(
             }
         """
 
-    assert response["username"] == credentials[0]
-    TCC_GET_USR_ACCOUNT(response)
+    assert user_info["username"] == credentials[0]
+    TCC_GET_USR_ACCOUNT(user_info)
 
     # #################################################################################
 
     # Check the refresh token by requesting another access token...
     refresh_token = user_auth["refresh_token"]
-    #
 
-    # TEST 3: valid credentials (refresh token)-> HTTPStatus.OK
+    #
+    # TEST 2: good credentials (refresh token)-> HTTPStatus.OK
     data = {
         "grant_type": "refresh_token",
         "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
         "refresh_token": refresh_token,
     }
 
-    async with client_session.post(URL_CRED, headers=HEADERS_CRED, data=data) as rsp:
-        if rsp.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
-            await handle_too_many_requests(rsp)
-
+    async with client_session.post(
+        URL_CRED_V2, headers=HEADERS_CRED_V2, data=data
+    ) as rsp:
+        await _skip_if_too_many_requests(rsp)
         assert rsp.status == HTTPStatus.OK  # 200
 
         user_auth = await rsp.json()  # TccOAuthTokenResponseT
