@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Final
 import voluptuous as vol
 
 from evohome.auth import (
+    _HINT_BAD_CREDS,
     HEADERS_BASE,
     HEADERS_CRED,
     AbstractAuth,
@@ -177,11 +178,21 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         if not self._refresh_token:
             self.logger.debug("Authenticating with client_id/secret")
 
-            # NOTE: the keys are case-sensitive: 'Username' and 'Password'
-            credentials = {"Username": self._client_id, "Password": self._secret}
+            credentials = {
+                # NOTE: the keys are case-sensitive: 'Username' and 'Password'
+                "Username": self._client_id,
+                "Password": self._secret,
+            }
 
-            # allow underlying exceptions through (as client_id/secret invalid)...
-            await self._request_access_token(CREDS_USER_PASSWORD | credentials)
+            try:  # check here if the user credentials are invalid...
+                await self._request_access_token(CREDS_USER_PASSWORD | credentials)
+
+            except exc.AuthenticationFailedError as err:
+                if "invalid_grant" not in err.message:
+                    raise
+                self.logger.error(_HINT_BAD_CREDS)  # noqa: TRY400
+                raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
+
             self._was_authenticated = True
 
         await self.save_access_token()

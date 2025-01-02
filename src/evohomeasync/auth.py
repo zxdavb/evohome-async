@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 import voluptuous as vol
 
 from evohome.auth import (
+    _HINT_BAD_CREDS,
     HEADERS_BASE,
     HEADERS_CRED,
     AbstractAuth,
@@ -133,8 +134,15 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
             "password": self._secret,
         }
 
-        # allow underlying exceptions through (as client_id/secret invalid)...
-        await self._request_session_id(credentials)
+        try:  # check here if the user credentials are invalid...
+            await self._request_session_id(credentials)
+
+        except exc.AuthenticationFailedError as err:
+            if "EmailOrPasswordIncorrect" not in err.message:
+                raise
+            self.logger.error(_HINT_BAD_CREDS)  # noqa: TRY400
+            raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
+
         self._was_authenticated = True
 
         await self.save_session_id()
