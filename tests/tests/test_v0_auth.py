@@ -14,7 +14,7 @@ from cli.auth import CredentialsManager
 
 from evohomeasync import exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
-from tests.const import HEADERS_CRED_V0 as HEADERS_CRED, URL_CRED_V0 as URL_CRED
+from tests.const import HEADERS_CRED_V0, URL_CRED_V0
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -60,13 +60,13 @@ async def test_get_session_id(
                 "message": "The email or password provided is incorrect.",
             }
         ]
-        rsp.post(URL_CRED, status=HTTPStatus.UNAUTHORIZED, payload=response)
+        rsp.post(URL_CRED_V0, status=HTTPStatus.UNAUTHORIZED, payload=response)
 
         with pytest.raises(exc.AuthenticationFailedError):
             await session_manager.get_session_id()
 
         rsp.assert_called_once_with(
-            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
+            URL_CRED_V0, HTTPMethod.POST, headers=HEADERS_CRED_V0, data=data_password
         )
 
     assert session_manager.is_session_id_valid() is False
@@ -76,12 +76,12 @@ async def test_get_session_id(
     payload = server_response()
 
     with aioresponses() as rsp:
-        rsp.post(URL_CRED, payload=payload)
+        rsp.post(URL_CRED_V0, payload=payload)
 
         assert await session_manager.get_session_id() == payload["sessionId"]
 
         rsp.assert_called_once_with(
-            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
+            URL_CRED_V0, HTTPMethod.POST, headers=HEADERS_CRED_V0, data=data_password
         )
 
     assert session_manager.is_session_id_valid() is True
@@ -110,12 +110,12 @@ async def test_get_session_id(
     payload = server_response()
 
     with aioresponses() as rsp:
-        rsp.post(URL_CRED, payload=payload)
+        rsp.post(URL_CRED_V0, payload=payload)
 
         assert await session_manager.get_session_id() == payload["sessionId"]
 
         rsp.assert_called_once_with(
-            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
+            URL_CRED_V0, HTTPMethod.POST, headers=HEADERS_CRED_V0, data=data_password
         )
 
     assert session_manager.is_session_id_valid() is True

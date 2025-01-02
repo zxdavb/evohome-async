@@ -14,7 +14,7 @@ from aioresponses import aioresponses
 from cli.auth import CredentialsManager
 
 from evohomeasync2 import exceptions as exc
-from tests.const import HEADERS_CRED_V2 as HEADERS_CRED, URL_CRED_V2 as URL_CRED
+from tests.const import HEADERS_CRED_V2, URL_CRED_V2
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -63,13 +63,13 @@ async def test_get_auth_token(
         response = {
             "error": "invalid_grant",
         }
-        rsp.post(URL_CRED, status=HTTPStatus.UNAUTHORIZED, payload=response)
+        rsp.post(URL_CRED_V2, status=HTTPStatus.UNAUTHORIZED, payload=response)
 
         with pytest.raises(exc.AuthenticationFailedError):
             await token_manager.get_access_token()
 
         rsp.assert_called_once_with(
-            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
+            URL_CRED_V2, HTTPMethod.POST, headers=HEADERS_CRED_V2, data=data_password
         )
 
     assert token_manager.is_access_token_valid() is False
@@ -79,12 +79,12 @@ async def test_get_auth_token(
     payload = server_response()
 
     with aioresponses() as rsp:
-        rsp.post(URL_CRED, payload=payload)
+        rsp.post(URL_CRED_V2, payload=payload)
 
         assert await token_manager.get_access_token() == payload["access_token"]
 
         rsp.assert_called_once_with(
-            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_password
+            URL_CRED_V2, HTTPMethod.POST, headers=HEADERS_CRED_V2, data=data_password
         )
 
     assert token_manager.is_access_token_valid() is True
@@ -116,12 +116,12 @@ async def test_get_auth_token(
     payload = server_response()
 
     with aioresponses() as rsp:
-        rsp.post(URL_CRED, payload=payload)
+        rsp.post(URL_CRED_V2, payload=payload)
 
         assert await token_manager.get_access_token() == payload["access_token"]
 
         rsp.assert_called_once_with(
-            URL_CRED, HTTPMethod.POST, headers=HEADERS_CRED, data=data_token
+            URL_CRED_V2, HTTPMethod.POST, headers=HEADERS_CRED_V2, data=data_token
         )
 
     assert token_manager.is_access_token_valid() is True
