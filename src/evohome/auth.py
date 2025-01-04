@@ -40,23 +40,23 @@ HEADERS_CRED = HEADERS_BASE | {
     "Pragma": "no-cache",
 }
 
-_HINT_CHECK_VENDOR = (
-    "Unable to contact the vendor's server. Check the network and"
+_HINT_CHECK_NETWORK = (
+    "Unable to contact the vendor's server. Check your network and "
     "review the vendor's status page, https://status.resideo.com"
 )
 _HINT_WAIT_A_WHILE = (
-    "You have exceeded the server's API rate limit."
-    "Wait a while and try again (consider reducing the scan_interval)"
+    "You have exceeded the server's API rate limit. "
+    "Wait a while and try again (consider reducing your polling interval)."
 )
 _HINT_BAD_CREDS = (
-    "Failed to authenticate. Check the username/password. Note that some"
+    "Failed to authenticate. Check the username/password. Note that some "
     "special characters accepted via the vendor's website are not valid here."
 )
 
 _ERR_MSG_LOOKUP_BASE: dict[int, str] = {  # common to authentication / authorization
-    HTTPStatus.BAD_GATEWAY: _HINT_CHECK_VENDOR,
-    HTTPStatus.INTERNAL_SERVER_ERROR: _HINT_CHECK_VENDOR,
-    HTTPStatus.SERVICE_UNAVAILABLE: _HINT_CHECK_VENDOR,
+    HTTPStatus.BAD_GATEWAY: _HINT_CHECK_NETWORK,
+    HTTPStatus.INTERNAL_SERVER_ERROR: _HINT_CHECK_NETWORK,
+    HTTPStatus.SERVICE_UNAVAILABLE: _HINT_CHECK_NETWORK,
     HTTPStatus.TOO_MANY_REQUESTS: _HINT_WAIT_A_WHILE,
 }
 # WIP: POST authentication url (i.e. /Auth/OAuth/Token)
@@ -137,7 +137,7 @@ class CredentialsManagerBase:
         Will raise an exception if the authentication is not successful.
         """
 
-        rsp: aiohttp.ClientResponse | None = None
+        rsp: aiohttp.ClientResponse | None = None  # to prevent unbound error
 
         try:
             rsp = await self._request(HTTPMethod.POST, url, **kwargs)
@@ -160,14 +160,19 @@ class CredentialsManagerBase:
             ) from err
 
         except aiohttp.ClientResponseError as err:
-            # if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
-            #     raise exc.AuthenticationFailedError(hint, status=err.status) from err
+            # TODO: process payload and raise BadCredentialsError if code = EmailOrPasswordIncorrect
+            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
+                self.logger.error(hint)  # noqa: TRY400
+
             msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
+
             raise exc.AuthenticationFailedError(
                 f"Authenticator response is invalid: {msg}", status=err.status
             ) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+            self.logger.error(_HINT_CHECK_NETWORK)  # noqa: TRY400
+
             raise exc.AuthenticationFailedError(
                 f"Authenticator response is invalid: {err}",
             ) from err
@@ -276,9 +281,9 @@ class AbstractAuth(ABC):
             response = await self._make_request(method, url, **kwargs)
         except exc.ApiRequestFailedError as err:
             if err.status != HTTPStatus.UNAUTHORIZED:  # 401
-                # leave it up to higher layers to handle the 401 as they can either be
-                # authentication errors: bad access_token, bad session_id
-                # authorization errors: bad URL (e.g. no access to that location)
+                # leave it up to higher layers to handle 401s as they can either be
+                # - authentication errors: bad access_token, bad session_id
+                # - authorization errors:  bad URL (e.g. no access to that loc_id)
                 self.logger.debug(
                     f"The access_token/session_id may be invalid (it shouldn't be): {err}"
                 )
@@ -306,7 +311,7 @@ class AbstractAuth(ABC):
         Will raise an exception if the request is not successful.
         """
 
-        rsp: aiohttp.ClientResponse | None = None
+        rsp: aiohttp.ClientResponse | None = None  # to prevent unbound error
 
         url = f"{self.url_base}/{url}"
         headers = await self._headers(kwargs.pop("headers", {}))
@@ -314,7 +319,7 @@ class AbstractAuth(ABC):
         try:
             rsp = await self._request(method, url, headers=headers, **kwargs)
 
-            await rsp.read()  # so we can use rsp.json(), below
+            await rsp.read()  # so we can use rsp.json()/rsp.text(), below
             rsp.raise_for_status()
 
             # can't assert content_length != 0 with aioresponses, so skip that check
@@ -328,7 +333,7 @@ class AbstractAuth(ABC):
 
         except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
             raise exc.ApiRequestFailedError(
-                f"{method} {url}: response is not JSON: {await _payload(rsp)}"
+                f"{method} {url}: response is not valid JSON: {await _payload(rsp)}"
             ) from err
 
         # An invalid access_token / session_id will cause a 401 and we'd need to
@@ -337,14 +342,18 @@ class AbstractAuth(ABC):
         # such 401s as they can tell if was well-known URL (e.g. without usr_id)
 
         except aiohttp.ClientResponseError as err:
-            # if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
-            #     raise exc.ApiRequestFailedError(hint, status=err.status) from err
+            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
+                self.logger.error(hint)  # noqa: TRY400
+
             msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
+
             raise exc.ApiRequestFailedError(
                 f"{method} {url}: {msg}", status=err.status
             ) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+            self.logger.error(_HINT_CHECK_NETWORK)  # noqa: TRY400
+
             raise exc.ApiRequestFailedError(
                 f"{method} {url}: {err}",
             ) from err

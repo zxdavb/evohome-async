@@ -150,9 +150,6 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """
 
         if not self.is_access_token_valid():  # may be invalid for other reasons
-            self.logger.debug(
-                "Null/Expired/Invalid access_token, will re-authenticate..."
-            )
             await self._update_access_token()
 
         return self.access_token
@@ -160,8 +157,10 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
     async def _update_access_token(self) -> None:
         """Update the access token and save it to the store/cache."""
 
+        self.logger.debug("Null/Expired/Invalid access_token")
+
         if self._refresh_token:
-            self.logger.debug("Authenticating with the refresh_token")
+            self.logger.debug(" - authenticating with the refresh_token")
 
             credentials = {SZ_REFRESH_TOKEN: self._refresh_token}
 
@@ -172,11 +171,11 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
                 if err.status != HTTPStatus.BAD_REQUEST:  # 400, e.g. invalid tokens
                     raise
 
-                self.logger.debug(" - expired/invalid refresh_token")
+                self.logger.debug("Expired/invalid refresh_token")
                 self._refresh_token = ""
 
         if not self._refresh_token:
-            self.logger.debug("Authenticating with client_id/secret")
+            self.logger.debug(" - authenticating with client_id/secret")
 
             credentials = {
                 # NOTE: the keys are case-sensitive: 'Username' and 'Password'
