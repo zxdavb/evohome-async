@@ -128,7 +128,7 @@ class EvohomeClient:
                 # due the (albeit valid) access_token being rejected by the server (why?)
 
                 self.logger.warning(
-                    f"The access_token appears invalid (will re-authenticate): {err}"
+                    f"The access_token has been rejected (will re-authenticate): {err}"
                 )
 
                 self._token_manager._clear_access_token()

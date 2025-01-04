@@ -116,7 +116,7 @@ class EvohomeClient:
                 # due the (albeit valid) session_id being rejected by the server (why?)
 
                 self.logger.warning(
-                    f"The session_id appears invalid (will re-authenticate): {err}"
+                    f"The session_id has been rejected (will re-authenticate): {err}"
                 )
 
                 self._session_manager._clear_session_id()
