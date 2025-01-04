@@ -211,7 +211,7 @@ async def test_bad3(  # bad credentials (refresh token)
             ("evohome.auth", logging.ERROR, _HINT_CHECK_NETWORK),  # Connection refused
         ]
 
-        assert len(rsp.requests) == 1  # , list(rsp.requests.items())[0]
+        assert len(rsp.requests) == 1
 
         # response 0: invalid_grant (bad refresh token)
         rsp.assert_any_call(
@@ -276,7 +276,6 @@ async def test_good(  # good credentials
         ]
 
         assert len(rsp.requests) == 2  # noqa: PLR2004
-        # , list(rsp.requests.items())[0]
 
         # response 0: Successful authentication
         rsp.assert_called_with(
