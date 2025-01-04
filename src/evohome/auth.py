@@ -41,12 +41,12 @@ HEADERS_CRED = HEADERS_BASE | {
 }
 
 _HINT_CHECK_NETWORK = (
-    "Unable to contact the vendor's server. Check your network and "
-    "review the vendor's status page, https://status.resideo.com"
+    "Unable to contact the vendor's server. Check your network "
+    "and review the vendor's status page, https://status.resideo.com."
 )
 _HINT_WAIT_A_WHILE = (
-    "You have exceeded the server's API rate limit. "
-    "Wait a while and try again (consider reducing your polling interval)."
+    "You have exceeded the server's API rate limit. Wait a while "
+    "and try again (consider reducing your polling interval)."
 )
 _HINT_BAD_CREDS = (
     "Failed to authenticate. Check the username/password. Note that some "
@@ -60,13 +60,13 @@ _ERR_MSG_LOOKUP_BASE: dict[int, str] = {  # common to authentication / authoriza
     HTTPStatus.TOO_MANY_REQUESTS: _HINT_WAIT_A_WHILE,
 }
 # WIP: POST authentication url (i.e. /Auth/OAuth/Token)
-_ERR_MSG_LOOKUP_CRED: dict[int, str] = _ERR_MSG_LOOKUP_BASE | {
+_OUT_ERR_MSG_LOOKUP_CRED: dict[int, str] = _ERR_MSG_LOOKUP_BASE | {
     HTTPStatus.BAD_REQUEST: "Invalid user credentials (check the username/password)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid URL?)",
     HTTPStatus.UNAUTHORIZED: "Invalid access token (dev/test only?)",
 }
 # WIP: GET/PUT resource url (e.g. /WebAPI/emea/api/v1/...)
-_ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BASE | {
+_OUT_ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BASE | {
     HTTPStatus.BAD_REQUEST: "Bad request (invalid data/json?)",
     HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
     HTTPStatus.UNAUTHORIZED: "Unauthorized (expired access token/unknown entity id?)",

@@ -118,11 +118,11 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         """
 
         if not self.is_session_id_valid():  # may be invalid for other reasons
-            await self._update_session_id()
+            await self._get_session_id()
 
         return self.session_id
 
-    async def _update_session_id(self) -> None:
+    async def _get_session_id(self) -> None:
         self.logger.debug("Null/Expired/Invalid session_id")
 
         self.logger.debug(" - authenticating with client_id/secret")
@@ -214,12 +214,12 @@ class Auth(AbstractAuth):
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
-        self._get_session_id = session_id_getter
+        self._session_id = session_id_getter
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
         """Ensure the authorization header has a valid session id."""
 
         headers = HEADERS_BASE | (headers or {})
         return headers | {
-            "sessionId": await self._get_session_id(),
+            "sessionId": await self._session_id(),
         }

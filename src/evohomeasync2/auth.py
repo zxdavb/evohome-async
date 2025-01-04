@@ -150,11 +150,11 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """
 
         if not self.is_access_token_valid():  # may be invalid for other reasons
-            await self._update_access_token()
+            await self._get_access_token()
 
         return self.access_token
 
-    async def _update_access_token(self) -> None:
+    async def _get_access_token(self) -> None:
         """Update the access token and save it to the store/cache."""
 
         self.logger.debug("Null/Expired/Invalid access_token")
@@ -265,12 +265,12 @@ class Auth(AbstractAuth):
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
-        self._get_access_token = access_token_getter
+        self._access_token = access_token_getter
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
         """Ensure the authorization header has a valid access token."""
 
         headers = HEADERS_BASE | (headers or {})
         return headers | {
-            "Authorization": "bearer " + await self._get_access_token(),
+            "Authorization": "bearer " + await self._access_token(),
         }
