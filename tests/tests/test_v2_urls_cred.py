@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 MSG_INVALID_TOKEN: Final = (
-    "The access_token appears invalid (will re-authenticate): "  # noqa: S105
+    "The access_token has been rejected (will re-authenticate): "  # noqa: S105
     "GET https://tccna.resideo.com/WebAPI/emea/api/v1/userAccount: "
     '401 Unauthorized, response=[{"code": "Unauthorized", "message": "Unauthorized"}]'
 )

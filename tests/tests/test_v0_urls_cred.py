@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 MSG_INVALID_SESSION: Final = (
-    "The session_id appears invalid (will re-authenticate): "
+    "The session_id has been rejected (will re-authenticate): "
     "GET https://tccna.resideo.com/WebAPI/api/accountInfo: "
     '401 Unauthorized, response=[{"code": "Unauthorized", "message": "Unauthorized"}]'
 )
