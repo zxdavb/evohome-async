@@ -64,10 +64,10 @@ async def _skip_if_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def _test_url_auth_bad0(  # invalid server certificate
+async def _test_bad0(  # invalid server certificate
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test authentication flow with invalid server certificate."""
+    """Test authentication flow with an invalid server certificate."""
 
     #
     # TEST 0: invalid server certificate
@@ -84,10 +84,10 @@ async def _test_url_auth_bad0(  # invalid server certificate
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_url_auth_bad1(  # bad credentials (client_id/secret)
+async def test_bad1(  # bad credentials (client_id/secret)
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test the authentication flow with bad credentials (client_id/secret)."""
+    """Test authentication flow with bad credentials (client_id/secret)."""
 
     #
     # TEST 1: bad credentials (client_id/secret) -> HTTPStatus.UNAUTHORIZED
@@ -118,16 +118,16 @@ async def test_url_auth_bad1(  # bad credentials (client_id/secret)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_url_auth_bad2(  # invalid/expired session id
+async def test_bad2(  # bad session id
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test the authentication flow with an invalid/expired session id."""
+    """Test authentication flow with an invalid/expired session id."""
 
     # pre-requisite data
     session_id = "bad session id " + random.choice(string.ascii_letters)  # noqa: S311
 
     #
-    # TEST 9: invalid/expired session id -> HTTPStatus.UNAUTHORIZED
+    # TEST 9: bad session id -> HTTPStatus.UNAUTHORIZED
     url = f"{URL_BASE_V0}/accountInfo"
     headers = HEADERS_BASE | {"sessionId": session_id}
 
@@ -151,11 +151,11 @@ async def test_url_auth_bad2(  # invalid/expired session id
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 @pytest.mark.skipif(not _DBG_TEST_CRED_URLS, reason="may invalidate credentials cache")
-async def test_url_auth_good(  # good credentials
+async def test_good(  # good credentials
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
 ) -> None:
-    """Test the authentication flow (and authorization) with good credentials."""
+    """Test authentication flow (and authorization) with good credentials."""
 
     #
     # TEST 1: good credentials (client_id/secret) -> HTTPStatus.OK

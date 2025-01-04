@@ -62,10 +62,10 @@ async def _skip_if_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def _test_url_auth_bad0(  # invalid server certificate
+async def _test_bad0(  # invalid server certificate
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test authentication flow with invalid server certificate."""
+    """Test authentication flow with an invalid server certificate."""
 
     #
     # TEST 0: invalid server certificate
@@ -82,7 +82,7 @@ async def _test_url_auth_bad0(  # invalid server certificate
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_url_auth_bad1(  # bad credentials (client_id/secret)
+async def test_bad1(  # bad credentials (client_id/secret)
     client_session: aiohttp.ClientSession,
 ) -> None:
     """Test authentication flow with bad credentials (client_id/secret)."""
@@ -114,16 +114,16 @@ async def test_url_auth_bad1(  # bad credentials (client_id/secret)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_url_auth_bad2(  # invalid/expired access token
+async def test_bad2(  # bad access token
     client_session: aiohttp.ClientSession,
 ) -> None:
     """Test authentication flow with an invalid/expired access token."""
 
     # pre-requisite data
-    access_token = "invalid access token " + random.choice(string.ascii_letters)  # noqa: S311
+    access_token = "bad access token "  # noqa: S105
 
     #
-    # TEST 9: invalid/expired access token -> HTTPStatus.UNAUTHORIZED
+    # TEST 9: bad access token -> HTTPStatus.UNAUTHORIZED
     url = f"{URL_BASE_V2}/userAccount"
     headers = HEADERS_BASE | {"Authorization": "Bearer " + access_token}
 
@@ -146,13 +146,13 @@ async def test_url_auth_bad2(  # invalid/expired access token
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_url_auth_bad3(  # invalid/expired refresh token
+async def test_bad3(  # bad credentials (refresh token)
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test authentication flow with bad credentials (refresh token)."""
+    """Test authentication flow with invalid/unknown credentials (refresh token)."""
 
     # pre-requisite data
-    refresh_token = "invalid refresh token " + random.choice(string.ascii_letters)  # noqa: S311
+    refresh_token = "invalid refresh token "  # noqa: S105
 
     #
     # TEST 2: bad credentials (refresh token) -> HTTPStatus.BAD_REQUEST
@@ -181,7 +181,7 @@ async def test_url_auth_bad3(  # invalid/expired refresh token
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 @pytest.mark.skipif(not _DBG_TEST_CRED_URLS, reason="may invalidate credentials cache")
-async def test_url_auth_good(  # good credentials
+async def test_good(  # good credentials
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
 ) -> None:
