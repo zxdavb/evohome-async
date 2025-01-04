@@ -121,11 +121,11 @@ class EvohomeClient:
                 self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
 
             except exc.ApiRequestFailedError as err:  # check if 401 - bad access_token
-                # as the userAccount URL is open to all authenticated users, any 401 is
-                # due the (albeit valid) access_token being rejected by the server (why?)
-
                 if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                     raise
+
+                # as the userAccount URL is open to all authenticated users, any 401 is
+                # due the (albeit valid) access_token being rejected by the server (why?)
 
                 self.logger.warning(
                     f"The access_token appears invalid (will re-authenticate): {err}"

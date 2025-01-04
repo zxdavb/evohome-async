@@ -109,11 +109,11 @@ class EvohomeClient:
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)  # type: ignore[assignment]
 
             except exc.ApiRequestFailedError as err:  # check if 401 - bad session_id
-                # as the accountInfo URL is open to all authenticated users, any 401 is
-                # due the (albeit valid) session_id being rejected by the server (why?)
-
                 if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                     raise
+
+                # as the accountInfo URL is open to all authenticated users, any 401 is
+                # due the (albeit valid) session_id being rejected by the server (why?)
 
                 self.logger.warning(
                     f"The session_id appears invalid (will re-authenticate): {err}"
