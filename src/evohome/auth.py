@@ -112,7 +112,7 @@ class CredentialsManagerBase:
         self._hostname: Final = _hostname or HOSTNAME
         self.logger = logger or logging.getLogger(__name__)
 
-        self._was_authenticated = False  # True once credentials are proven validated
+        self._was_authenticated = False  # True once credentials are proven valid
 
     def __str__(self) -> str:
         """Return a string representation of the object."""

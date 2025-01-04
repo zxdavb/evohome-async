@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
@@ -22,7 +23,6 @@ from evohome.helpers import convert_keys_to_snake_case, obfuscate
 from . import exceptions as exc
 
 if TYPE_CHECKING:
-    import logging
     from collections.abc import Awaitable, Callable
 
     import aiohttp
@@ -32,6 +32,9 @@ if TYPE_CHECKING:
         EvoAuthTokensDictT as AccessTokenEntryT,
         TccAuthTokensResponseT as AuthTokenResponseT,  # TCC is snake_case anyway
     )
+
+
+_LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 
 
 _APPLICATION_ID: Final = base64.b64encode(
@@ -94,6 +97,9 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         logger: logging.Logger | None = None,
     ) -> None:
         """Initialize the token manager."""
+
+        if logger is None:
+            logger = _LOGGER
 
         super().__init__(
             client_id, secret, websession, _hostname=_hostname, logger=logger

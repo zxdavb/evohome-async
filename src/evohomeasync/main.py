@@ -43,7 +43,7 @@ class EvohomeClient:
         self.logger = _LOGGER
         if debug:
             self.logger.setLevel(logging.DEBUG)
-            self.logger.debug("Debug mode is explicitly enabled.")
+            self.logger.debug("Debug mode explicitly enabled via kwarg.")
 
         self._session_manager = session_manager
 

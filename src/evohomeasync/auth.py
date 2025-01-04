@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from typing import TYPE_CHECKING, Any, Final, TypedDict
@@ -21,13 +22,15 @@ from . import exceptions as exc
 from .schemas import TCC_POST_USR_SESSION
 
 if TYPE_CHECKING:
-    import logging
     from collections.abc import Awaitable, Callable
 
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
     from .schemas import EvoSessionDictT, EvoUserAccountDictT, TccSessionResponseT
+
+
+_LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 
 
 # For API docs, enter this App ID on the following website under 'Session login':
@@ -69,6 +72,9 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         logger: logging.Logger | None = None,
     ) -> None:
         """Initialise the session manager."""
+
+        if logger is None:
+            logger = _LOGGER
 
         super().__init__(
             client_id, secret, websession, _hostname=_hostname, logger=logger
