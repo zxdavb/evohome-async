@@ -78,11 +78,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
         assert err.value.status == HTTPStatus.UNAUTHORIZED
 
         assert caplog.record_tuples == [
-            (
-                "evohome.auth",
-                logging.DEBUG,
-                "Null/Expired/Invalid session_id",
-            ),
+            ("evohome.auth", logging.DEBUG, "Null/Expired/Invalid session_id"),
             ("evohome.auth", logging.DEBUG, " - authenticating with client_id/secret"),
             ("evohome.auth", logging.ERROR, _HINT_BAD_CREDS),
         ]
@@ -133,11 +129,7 @@ async def test_bad2(  # bad session id
 
         assert caplog.record_tuples == [
             ("evohomeasync", logging.WARNING, MSG_INVALID_SESSION),
-            (
-                "evohome.auth",
-                logging.DEBUG,
-                "Null/Expired/Invalid session_id",
-            ),
+            ("evohome.auth", logging.DEBUG, "Null/Expired/Invalid session_id"),
             ("evohome.auth", logging.DEBUG, " - authenticating with client_id/secret"),
             ("evohome.auth", logging.ERROR, _HINT_CHECK_NETWORK),  # Connection refused
         ]

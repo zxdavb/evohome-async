@@ -13,7 +13,13 @@ from cli.auth import CredentialsManager
 
 from evohome.auth import _HINT_BAD_CREDS, _HINT_CHECK_NETWORK
 from evohomeasync2 import EvohomeClient, exceptions as exc
-from tests.const import HEADERS_CRED_V2, URL_CRED_V2
+from tests.const import (
+    HEADERS_BASE,
+    HEADERS_CRED_V2,
+    TEST_PASSWORD,
+    TEST_USERNAME,
+    URL_CRED_V2,
+)
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -38,6 +44,85 @@ def cache_file(
 ) -> Path:
     """Return the path to the token cache."""
     return tmp_path_factory.mktemp(__name__) / ".evo-cache.tst"
+
+
+LOG_00 = ("evohomeasync2", logging.WARNING, MSG_INVALID_TOKEN)
+
+LOG_01 = ("evohome.auth", logging.DEBUG, "Null/Expired/Invalid access_token")
+LOG_02 = ("evohome.auth", logging.DEBUG, " - authenticating with the refresh_token")
+LOG_03 = ("evohome.auth", logging.DEBUG, "Expired/invalid refresh_token")
+LOG_04 = ("evohome.auth", logging.DEBUG, " - authenticating with client_id/secret")
+
+LOG_11 = ("evohome.auth", logging.ERROR, _HINT_BAD_CREDS)
+LOG_12 = ("evohome.auth", logging.ERROR, _HINT_CHECK_NETWORK)
+
+LOG_13 = ("evohomeasync2", logging.ERROR, _HINT_CHECK_NETWORK)
+
+POST_CREDS = (
+    "https://tccna.resideo.com/Auth/OAuth/Token",
+    HTTPMethod.POST,
+    {
+        "headers": HEADERS_CRED_V2,
+        "data": {
+            "grant_type": "password",
+            "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
+            "Username": TEST_USERNAME,
+            "Password": TEST_PASSWORD,
+        },
+    },
+)
+
+POST_REFRESH = (
+    "https://tccna.resideo.com/Auth/OAuth/Token",
+    HTTPMethod.POST,
+    {
+        "headers": HEADERS_CRED_V2,
+        "data": {
+            "grant_type": "refresh_token",
+            "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
+            "refresh_token": _TEST_REFRESH_TOKEN,
+        },
+    },
+)
+
+GET_ACCOUNT = (
+    "https://tccna.resideo.com/WebAPI/emea/api/v1/userAccount",
+    HTTPMethod.GET,
+    {
+        "headers": HEADERS_BASE | {"Authorization": f"bearer {_TEST_ACCESS_TOKEN}"},
+    },
+)
+
+_OUT_TEST_SUITE = {
+    "bad1": (
+        exc.BadUserCredentialsError,
+        HTTPStatus.BAD_REQUEST,
+        [LOG_01, LOG_04, LOG_11],
+        (POST_CREDS,),
+        False,
+    ),
+    "bad2": (
+        exc.AuthenticationFailedError,
+        None,
+        [LOG_00, LOG_01, LOG_02, LOG_12],
+        (GET_ACCOUNT, POST_REFRESH),
+        False,
+    ),
+    "bad3": (
+        exc.AuthenticationFailedError,
+        None,
+        [LOG_01, LOG_02, LOG_03, LOG_04, LOG_12],
+        (POST_REFRESH, POST_CREDS),
+        False,
+    ),
+    "good": (
+        exc.ApiRequestFailedError,
+        None,
+        [LOG_12],
+        (POST_CREDS, GET_ACCOUNT),
+        True,
+    ),
+}
 
 
 # NOTE: using fixture_folder will break these tests, and we don't want .update() either
@@ -77,31 +162,11 @@ async def test_bad1(  # bad credentials (client_id/secret)
             await evohome_v2.update()
 
         assert err.value.status == HTTPStatus.BAD_REQUEST
-
-        assert caplog.record_tuples == [
-            (
-                "evohome.auth",
-                logging.DEBUG,
-                "Null/Expired/Invalid access_token",
-            ),
-            ("evohome.auth", logging.DEBUG, " - authenticating with client_id/secret"),
-            ("evohome.auth", logging.ERROR, _HINT_BAD_CREDS),
-        ]
-
+        assert caplog.record_tuples == [LOG_01, LOG_04, LOG_11]
         assert len(rsp.requests) == 1
 
         # response 0: Unauthorized (bad credentials)
-        rsp.assert_called_once_with(
-            "https://tccna.resideo.com/Auth/OAuth/Token",
-            HTTPMethod.POST,
-            headers=HEADERS_CRED_V2,
-            data={
-                "grant_type": "password",
-                "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
-                "Username": credentials[0],
-                "Password": credentials[1],
-            },
-        )
+        rsp.assert_called_once_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
     assert evohome_v2._token_manager.is_access_token_valid() is False
 
@@ -132,42 +197,14 @@ async def test_bad2(  # bad access token
             await evohome_v2.update()
 
         assert err.value.status is None  # Connection refused
-
-        assert caplog.record_tuples == [
-            ("evohomeasync2", logging.WARNING, MSG_INVALID_TOKEN),
-            (
-                "evohome.auth",
-                logging.DEBUG,
-                "Null/Expired/Invalid access_token",
-            ),
-            ("evohome.auth", logging.DEBUG, " - authenticating with the refresh_token"),
-            ("evohome.auth", logging.ERROR, _HINT_CHECK_NETWORK),  # Connection refused
-        ]
-
+        assert caplog.record_tuples == [LOG_00, LOG_01, LOG_02, LOG_12]
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
         # response 0: Unauthorized (bad access token)
-        rsp.assert_called_with(
-            "https://tccna.resideo.com/WebAPI/emea/api/v1/userAccount",
-            HTTPMethod.GET,
-            headers={
-                "Accept": "application/json",
-                "Connection": "Keep-Alive",
-                "Authorization": f"bearer {_TEST_ACCESS_TOKEN}",
-            },
-        )
+        rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
         # response 1: Connection refused (as no response provided by us)
-        rsp.assert_called_with(
-            "https://tccna.resideo.com/Auth/OAuth/Token",
-            HTTPMethod.POST,
-            headers=HEADERS_CRED_V2,
-            data={
-                "grant_type": "refresh_token",
-                "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
-                "refresh_token": _TEST_REFRESH_TOKEN,
-            },
-        )
+        rsp.assert_called_with(POST_REFRESH[0], POST_REFRESH[1], **POST_REFRESH[2])
 
     assert evohome_v2._token_manager.is_access_token_valid() is False
 
@@ -198,45 +235,14 @@ async def test_bad3(  # bad credentials (refresh token)
             await evohome_v2.update()
 
         assert err.value.status is None  # Connection refused
-
-        assert caplog.record_tuples == [
-            (
-                "evohome.auth",
-                logging.DEBUG,
-                "Null/Expired/Invalid access_token",
-            ),
-            ("evohome.auth", logging.DEBUG, " - authenticating with the refresh_token"),
-            ("evohome.auth", logging.DEBUG, "Expired/invalid refresh_token"),
-            ("evohome.auth", logging.DEBUG, " - authenticating with client_id/secret"),
-            ("evohome.auth", logging.ERROR, _HINT_CHECK_NETWORK),  # Connection refused
-        ]
-
+        assert caplog.record_tuples == [LOG_01, LOG_02, LOG_03, LOG_04, LOG_12]
         assert len(rsp.requests) == 1
 
         # response 0: invalid_grant (bad refresh token)
-        rsp.assert_any_call(
-            "https://tccna.resideo.com/Auth/OAuth/Token",
-            HTTPMethod.POST,
-            headers=HEADERS_CRED_V2,
-            data={
-                "grant_type": "refresh_token",
-                "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
-                "refresh_token": _TEST_REFRESH_TOKEN,
-            },
-        )
+        rsp.assert_any_call(POST_REFRESH[0], POST_REFRESH[1], **POST_REFRESH[2])
 
         # response 1: Connection refused (as no response provided by us)
-        rsp.assert_called_with(
-            "https://tccna.resideo.com/Auth/OAuth/Token",
-            HTTPMethod.POST,
-            headers=HEADERS_CRED_V2,
-            data={
-                "grant_type": "password",
-                "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
-                "Username": credentials[0],
-                "Password": credentials[1],
-            },
-        )
+        rsp.assert_called_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
     assert evohome_v2._token_manager.is_access_token_valid() is False
 
@@ -270,35 +276,13 @@ async def test_good(  # good credentials
             await evohome_v2.update()
 
         assert err.value.status is None  # Connection refused
-
-        assert caplog.record_tuples == [
-            ("evohomeasync2", logging.ERROR, _HINT_CHECK_NETWORK),  # Connection refused
-        ]
-
+        assert caplog.record_tuples == [LOG_13]
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
         # response 0: Successful authentication
-        rsp.assert_called_with(
-            "https://tccna.resideo.com/Auth/OAuth/Token",
-            HTTPMethod.POST,
-            headers=HEADERS_CRED_V2,
-            data={
-                "grant_type": "password",
-                "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
-                "Username": credentials[0],
-                "Password": credentials[1],
-            },
-        )
+        rsp.assert_called_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
         # response 1: Connection refused (as no response provided by us)
-        rsp.assert_called_with(
-            "https://tccna.resideo.com/WebAPI/emea/api/v1/userAccount",
-            HTTPMethod.GET,
-            headers={
-                "Accept": "application/json",
-                "Connection": "Keep-Alive",
-                "Authorization": f"bearer {_TEST_ACCESS_TOKEN}",
-            },
-        )
+        rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
     assert evohome_v2._token_manager.is_access_token_valid() is True
