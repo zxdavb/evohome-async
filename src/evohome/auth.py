@@ -132,7 +132,7 @@ class CredentialsManagerBase:
         return self._hostname
 
     async def _post_request(self, url: StrOrURL, /, **kwargs: Any) -> dict[str, Any]:
-        """Make an authentication request to the Resideo TCC RESTful API.
+        """POST an authentication request and return the response (JSON).
 
         Will raise an exception if the authentication is not successful.
         """
@@ -306,7 +306,7 @@ class AbstractAuth(ABC):
     async def _make_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
     ) -> dict[str, Any] | list[dict[str, Any]]:
-        """Make a GET/PUT request to the Resideo TCC RESTful API.
+        """Make a GET/PUT request and return the response (JSON).
 
         Will raise an exception if the request is not successful.
         """
