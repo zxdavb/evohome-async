@@ -204,7 +204,7 @@ async def test_good(  # good credentials
         assert err.value.status is None  # Connection refused
 
         assert caplog.record_tuples == [
-            ("evohomeasync", logging.ERROR, _HINT_CHECK_NETWORK),  # Connection refused
+            ("evohome.auth", logging.ERROR, _HINT_CHECK_NETWORK),  # Connection refused
         ]
 
         assert len(rsp.requests) == 2  # noqa: PLR2004

@@ -56,7 +56,7 @@ LOG_04 = ("evohome.auth", logging.DEBUG, " - authenticating with client_id/secre
 LOG_11 = ("evohome.auth", logging.ERROR, _HINT_BAD_CREDS)
 LOG_12 = ("evohome.auth", logging.ERROR, _HINT_CHECK_NETWORK)
 
-LOG_13 = ("evohomeasync2", logging.ERROR, _HINT_CHECK_NETWORK)
+LOG_13 = ("evohome.auth", logging.ERROR, _HINT_CHECK_NETWORK)
 
 POST_CREDS = (
     "https://tccna.resideo.com/Auth/OAuth/Token",
