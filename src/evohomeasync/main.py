@@ -50,7 +50,6 @@ class EvohomeClient:
         self.auth = Auth(
             session_manager.get_session_id,
             websession or session_manager.websession,
-            logger=self.logger,
         )
 
         # self.devices: dict[_ZoneIdT, _DeviceDictT] = {}  # dhw or zone by id

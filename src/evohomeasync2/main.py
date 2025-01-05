@@ -55,7 +55,6 @@ class EvohomeClient:
         self.auth = Auth(
             token_manager.get_access_token,
             websession or token_manager.websession,
-            logger=self.logger,
         )
 
         # NOTE: below is an attempt to determine the local TZ of the host running this
