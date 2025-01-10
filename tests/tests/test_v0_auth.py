@@ -43,7 +43,7 @@ async def test_get_session_id(
 
     #
     # have not yet called get_session_id (so not loaded cache either)
-    assert session_manager.is_session_id_valid() is False
+    assert session_manager.is_session_valid() is False
 
     #
     # test HTTPStatus.UNAUTHORIZED -> exc.AuthenticationFailedError
@@ -69,7 +69,7 @@ async def test_get_session_id(
             URL_CRED_V0, HTTPMethod.POST, headers=HEADERS_CRED_V0, data=data_password
         )
 
-    assert session_manager.is_session_id_valid() is False
+    assert session_manager.is_session_valid() is False
 
     #
     # test HTTPStatus.OK
@@ -84,7 +84,7 @@ async def test_get_session_id(
             URL_CRED_V0, HTTPMethod.POST, headers=HEADERS_CRED_V0, data=data_password
         )
 
-    assert session_manager.is_session_id_valid() is True
+    assert session_manager.is_session_valid() is True
 
     #
     # check doesn't invoke the URL again, as session id still valid
@@ -95,13 +95,13 @@ async def test_get_session_id(
 
         mok.assert_not_called()
 
-    assert session_manager.is_session_id_valid() is True
+    assert session_manager.is_session_valid() is True
 
     #
     # check session id now expired
     freezer.tick(1200)  # advance time by another 10 minutes, 15 total
 
-    assert session_manager.is_session_id_valid() is False
+    assert session_manager.is_session_valid() is False
 
     #
     # check does invoke the URL, as session id now expired
@@ -118,13 +118,13 @@ async def test_get_session_id(
             URL_CRED_V0, HTTPMethod.POST, headers=HEADERS_CRED_V0, data=data_password
         )
 
-    assert session_manager.is_session_id_valid() is True
+    assert session_manager.is_session_valid() is True
 
     #
     # test _clear_session_id()
     session_manager._clear_session_id()
 
-    assert session_manager.is_session_id_valid() is False
+    assert session_manager.is_session_valid() is False
 
 
 async def test_session_manager(
@@ -150,10 +150,10 @@ async def test_session_manager(
     )
 
     # have not yet called get_access_token (so not loaded cache either)
-    assert session_manager.is_session_id_valid() is False
+    assert session_manager.is_session_valid() is False
 
     await session_manager.load_from_cache()
-    assert session_manager.is_session_id_valid() is False
+    assert session_manager.is_session_valid() is False
 
     #
     # TEST 2: load a valid token cache
@@ -165,21 +165,21 @@ async def test_session_manager(
     )
 
     await session_manager.load_from_cache()
-    assert session_manager.is_session_id_valid() is True
+    assert session_manager.is_session_valid() is True
 
     session_id = await session_manager.get_session_id()
 
     #
     # TEST 3: some time has passed, but token is not expired
     freezer.tick(600)  # advance time by 5 minutes
-    assert session_manager.is_session_id_valid() is True
+    assert session_manager.is_session_valid() is True
 
     assert await session_manager.get_session_id() == session_id
 
     #
     # TEST 4: test save_session_id() method
     freezer.tick(1800)  # advance time by 15 minutes, 20 mins total
-    assert session_manager.is_session_id_valid() is False
+    assert session_manager.is_session_valid() is False
 
     with (
         patch(
@@ -200,4 +200,4 @@ async def test_session_manager(
         req.assert_called_once()
         wrt.assert_called_once()
 
-    assert session_manager.is_session_id_valid() is True
+    assert session_manager.is_session_valid() is True

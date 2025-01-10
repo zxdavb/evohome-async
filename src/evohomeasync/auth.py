@@ -48,7 +48,7 @@ URL_BASE: Final = "WebAPI/api"
 
 class SessionIdEntryT(TypedDict):
     session_id: str
-    session_id_expires: str  # dt.isoformat()
+    session_id_expires: str  # dt.isoformat()  # TZ-aware
 
 
 class AbstractSessionManager(CredentialsManagerBase, ABC):
@@ -73,10 +73,10 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         super().__init__(
             client_id, secret, websession, _hostname=_hostname, logger=logger
         )
-        self._clear_session_id()
+        self._clear_session_id()  # initialise the attrs
 
     def _clear_session_id(self) -> None:
-        """Clear the session id (set to falsey state)."""
+        """Clear the session id attrs (set to falsey state)."""
 
         self._session_id = ""
         self._session_id_expires = dt.min.replace(tzinfo=UTC)  # don't need local TZ
@@ -91,39 +91,27 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         """Return the expiration datetime of the session id."""
         return self._session_id_expires
 
-    def is_session_id_valid(self) -> bool:
-        """Return True if the session id is valid."""
-        return self._session_id_expires > dt.now(tz=UTC) + td(seconds=15)
+    #
+    #
 
-    @abstractmethod
-    async def save_session_id(self) -> None:
-        """Save the (serialized) session id to a cache."""
-
-    def _import_session_id(self, session: SessionIdEntryT) -> None:
-        """Deserialize the session id from a dictionary."""
-        self._session_id = session[SZ_SESSION_ID]
-        self._session_id_expires = dt.fromisoformat(session[SZ_SESSION_ID_EXPIRES])
-
-    def _export_session_id(self) -> SessionIdEntryT:
-        """Serialize the session id to a dictionary."""
-        return {
-            SZ_SESSION_ID_EXPIRES: self._session_id_expires.isoformat(),
-            SZ_SESSION_ID: self._session_id,
-        }
-
-    async def get_session_id(self) -> str:
+    async def get_session_id(self) -> str:  # convenience wrapper
         """Return a valid session id.
 
-        If required, fetch a new session id via the vendor's web API.
+        If required, fetch (and save) a new session id via the vendor's web API.
         """
 
-        if not self.is_session_id_valid():  # may be invalid for other reasons
-            await self._get_session_id()
+        if not self.is_session_valid():  # may be invalid for other reasons
+            await self.fetch_session_id()
+            await self.save_session_id()
 
         return self.session_id
 
-    async def _get_session_id(self) -> None:
-        self.logger.debug("Null/Expired/Invalid session_id")
+    def is_session_valid(self) -> bool:
+        """Return True if the session id is valid (the server may still reject it)."""
+        return self._session_id_expires > dt.now(tz=UTC) + td(seconds=15)
+
+    async def fetch_session_id(self) -> None:
+        self.logger.debug("Fetching session_id")
 
         self.logger.debug(" - authenticating with client_id/secret")
 
@@ -134,7 +122,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         }
 
         try:  # check here if the user credentials are invalid...
-            await self._request_session_id(credentials)
+            await self._fetch_session_id(credentials)
 
         except exc.AuthenticationFailedError as err:
             if "EmailOrPasswordIncorrect" not in err.message:
@@ -144,13 +132,11 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
         self._was_authenticated = True
 
-        await self.save_session_id()
-
         self.logger.debug(f" - session_id = {self.session_id}")
         self.logger.debug(f" - session_id_expires = {self.session_id_expires}")
         self.logger.debug(f" - user_info = {self._user_info}")
 
-    async def _request_session_id(self, credentials: dict[str, str]) -> None:
+    async def _fetch_session_id(self, credentials: dict[str, str]) -> None:
         """Obtain an session id using the supplied credentials.
 
         The credentials are the user's client_id/secret.
@@ -195,6 +181,25 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
     ) -> TccSessionResponseT:
         """Wrap the POST request to the vendor's TCC RESTful API."""
         return await self._post_request(url, **kwargs)  # type: ignore[return-value]
+
+    @abstractmethod
+    async def save_session_id(self) -> None:
+        """Save the (serialized) session id to a cache.
+
+        Should confirm the session id is valid before saving.
+        """
+
+    def _import_session_id(self, session: SessionIdEntryT) -> None:
+        """Extract the session id from a (deserialized) dictionary."""
+        self._session_id = session[SZ_SESSION_ID]
+        self._session_id_expires = dt.fromisoformat(session[SZ_SESSION_ID_EXPIRES])
+
+    def _export_session_id(self) -> SessionIdEntryT:
+        """Convert the session id to a (serializable) dictionary."""
+        return {
+            SZ_SESSION_ID_EXPIRES: self._session_id_expires.isoformat(),
+            SZ_SESSION_ID: self._session_id,
+        }
 
 
 class Auth(AbstractAuth):

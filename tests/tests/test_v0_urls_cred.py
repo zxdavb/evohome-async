@@ -62,7 +62,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
     """Test authentication flow with bad credentials (client_id/secret)."""
 
     # pre-requisite data (no session_id)
-    assert evohome_v0._session_manager.is_session_id_valid() is False
+    assert evohome_v0._session_manager.is_session_valid() is False
 
     # TEST 1: bad credentials (client_id/secret) -> HTTPStatus.UNAUTHORIZED
     with aioresponses() as rsp, caplog.at_level(logging.DEBUG):
@@ -78,7 +78,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
         assert err.value.status == HTTPStatus.UNAUTHORIZED
 
         assert caplog.record_tuples == [
-            ("evohome.auth", logging.DEBUG, "Null/Expired/Invalid session_id"),
+            ("evohome.auth", logging.DEBUG, "Fetching session_id"),
             ("evohome.auth", logging.DEBUG, " - authenticating with client_id/secret"),
             ("evohome.auth", logging.ERROR, _HINT_BAD_CREDS),
         ]
@@ -97,7 +97,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
             },
         )
 
-    assert evohome_v0._session_manager.is_session_id_valid() is False
+    assert evohome_v0._session_manager.is_session_valid() is False
 
 
 async def test_bad2(  # bad session id
@@ -111,7 +111,7 @@ async def test_bad2(  # bad session id
     evohome_v0._session_manager._session_id = _TEST_SESSION_ID
     evohome_v0._session_manager._session_id_expires = dt.now(tz=UTC) + td(minutes=15)
 
-    assert evohome_v0._session_manager.is_session_id_valid() is True
+    assert evohome_v0._session_manager.is_session_valid() is True
 
     #
     # TEST 9: bad session id -> HTTPStatus.UNAUTHORIZED
@@ -129,7 +129,7 @@ async def test_bad2(  # bad session id
 
         assert caplog.record_tuples == [
             ("evohomeasync", logging.WARNING, MSG_INVALID_SESSION),
-            ("evohome.auth", logging.DEBUG, "Null/Expired/Invalid session_id"),
+            ("evohome.auth", logging.DEBUG, "Fetching session_id"),
             ("evohome.auth", logging.DEBUG, " - authenticating with client_id/secret"),
             ("evohome.auth", logging.ERROR, _HINT_CHECK_NETWORK),  # Connection refused
         ]
@@ -155,7 +155,7 @@ async def test_bad2(  # bad session id
             },
         )
 
-    assert evohome_v0._session_manager.is_session_id_valid() is False
+    assert evohome_v0._session_manager.is_session_valid() is False
 
 
 async def test_good(  # good credentials
@@ -166,7 +166,7 @@ async def test_good(  # good credentials
     """Test authentication flow (and authorization) with good credentials."""
 
     # pre-requisite data (no session_id)
-    assert evohome_v0._session_manager.is_session_id_valid() is False
+    assert evohome_v0._session_manager.is_session_valid() is False
 
     #
     # TEST 9: good session id -> HTTPStatus.OK
@@ -228,4 +228,4 @@ async def test_good(  # good credentials
             headers=HEADERS_BASE | {"sessionId": _TEST_SESSION_ID},
         )
 
-    assert evohome_v0._session_manager.is_session_id_valid() is True
+    assert evohome_v0._session_manager.is_session_valid() is True

@@ -48,7 +48,7 @@ async def test_get_auth_token(
 
     #
     # have not yet called get_access_token (so not loaded cache either)
-    assert token_manager.is_access_token_valid() is False
+    assert token_manager.is_token_valid() is False
 
     #
     # test HTTPStatus.UNAUTHORIZED -> exc.AuthenticationFailedError
@@ -72,7 +72,7 @@ async def test_get_auth_token(
             URL_CRED_V2, HTTPMethod.POST, headers=HEADERS_CRED_V2, data=data_password
         )
 
-    assert token_manager.is_access_token_valid() is False
+    assert token_manager.is_token_valid() is False
 
     #
     # test HTTPStatus.OK
@@ -87,7 +87,7 @@ async def test_get_auth_token(
             URL_CRED_V2, HTTPMethod.POST, headers=HEADERS_CRED_V2, data=data_password
         )
 
-    assert token_manager.is_access_token_valid() is True
+    assert token_manager.is_token_valid() is True
 
     #
     # check doesn't invoke the URL again, as session_id still valid
@@ -98,13 +98,13 @@ async def test_get_auth_token(
 
         mok.assert_not_called()
 
-    assert token_manager.is_access_token_valid() is True
+    assert token_manager.is_token_valid() is True
 
     #
     # check does invoke the URL, as access token now expired
     freezer.tick(1200)  # advance time by another 10 minutes, 15 total
 
-    assert token_manager.is_access_token_valid() is False
+    assert token_manager.is_token_valid() is False
 
     #
     # check does invoke the URL, as access token now expired
@@ -124,13 +124,13 @@ async def test_get_auth_token(
             URL_CRED_V2, HTTPMethod.POST, headers=HEADERS_CRED_V2, data=data_token
         )
 
-    assert token_manager.is_access_token_valid() is True
+    assert token_manager.is_token_valid() is True
 
     #
     # test _clear_access_token()
     token_manager._clear_access_token()
 
-    assert token_manager.is_access_token_valid() is False
+    assert token_manager.is_token_valid() is False
 
 
 async def test_token_manager(
@@ -157,10 +157,10 @@ async def test_token_manager(
     )
 
     # have not yet called get_access_token (so not loaded cache either)
-    assert token_manager.is_session_id_valid() is False
+    assert token_manager.is_session_valid() is False
 
     await token_manager.load_from_cache()
-    assert token_manager.is_access_token_valid() is False
+    assert token_manager.is_token_valid() is False
 
     #
     # TEST 2: load a valid token cache
@@ -172,21 +172,21 @@ async def test_token_manager(
     )
 
     await token_manager.load_from_cache()
-    assert token_manager.is_access_token_valid() is True
+    assert token_manager.is_token_valid() is True
 
     access_token = await token_manager.get_access_token()
 
     #
     # TEST 3: some time has passed, but token is not expired
     freezer.tick(600)  # advance time by 5 minutes
-    assert token_manager.is_access_token_valid() is True
+    assert token_manager.is_token_valid() is True
 
     assert await token_manager.get_access_token() == access_token
 
     #
     # TEST 4: test save_access_token() method
     freezer.tick(1800)  # advance time by 15 minutes, 20 mins total
-    assert token_manager.is_access_token_valid() is False
+    assert token_manager.is_token_valid() is False
 
     with (
         patch(
@@ -207,7 +207,7 @@ async def test_token_manager(
         with caplog.at_level(logging.DEBUG):
             assert await token_manager.get_access_token() == "new_access_token..."
 
-            assert caplog.records[0].message == ("Null/Expired/Invalid access_token")
+            assert caplog.records[0].message == ("Fetching access_token")
             assert caplog.records[1].message == (
                 " - authenticating with the refresh_token"
             )
@@ -227,12 +227,12 @@ async def test_token_manager(
         req.assert_called_once()
         wrt.assert_called_once()
 
-    assert token_manager.is_access_token_valid() is True
+    assert token_manager.is_token_valid() is True
 
     #
     # TEST 5: look for warning message
     freezer.tick(2400)  # advance time by another 20 minutes
-    assert token_manager.is_access_token_valid() is False
+    assert token_manager.is_token_valid() is False
 
     with (
         patch(
@@ -260,4 +260,4 @@ async def test_token_manager(
         req.assert_called_once()
         wrt.assert_called_once()
 
-    assert token_manager.is_access_token_valid() is True
+    assert token_manager.is_token_valid() is True

@@ -98,10 +98,10 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         super().__init__(
             client_id, secret, websession, _hostname=_hostname, logger=logger
         )
-        self._clear_access_token()
+        self._clear_access_token()  # initialise the attrs
 
     def _clear_access_token(self) -> None:
-        """Clear the auth tokens (set to falsey state)."""
+        """Clear the auth tokens attrs (set to falsey state)."""
 
         self._access_token = ""
         self._access_token_expires = dt.min.replace(tzinfo=UTC)  # don't need local TZ
@@ -121,43 +121,26 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """Return the refresh token."""
         return self._refresh_token
 
-    def is_access_token_valid(self) -> bool:
-        """Return True if the access token is valid."""
-        return self._access_token_expires > dt.now(tz=UTC) + td(seconds=15)
-
-    @abstractmethod
-    async def save_access_token(self) -> None:
-        """Save the (serialized) authentication tokens to a cache."""
-
-    def _import_access_token(self, tokens: AccessTokenEntryT) -> None:
-        """Deserialize the token data from a dictionary."""
-        self._access_token = tokens[SZ_ACCESS_TOKEN]
-        self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
-        self._refresh_token = tokens[SZ_REFRESH_TOKEN]
-
-    def _export_access_token(self) -> AccessTokenEntryT:
-        """Serialize the token data to a dictionary."""
-        return {
-            SZ_ACCESS_TOKEN_EXPIRES: self._access_token_expires.isoformat(),
-            SZ_ACCESS_TOKEN: self._access_token,
-            SZ_REFRESH_TOKEN: self._refresh_token,
-        }
-
-    async def get_access_token(self) -> str:
+    async def get_access_token(self) -> str:  # convenience wrapper
         """Return a valid access token.
 
-        If required, fetch a new token via the vendor's web API.
+        If required, fetch (and save) a new token via the vendor's web API.
         """
 
-        if not self.is_access_token_valid():  # may be invalid for other reasons
-            await self._get_access_token()
+        if not self.is_token_valid():  # may be invalid for other reasons
+            await self.fetch_access_token()
+            await self.save_access_token()
 
         return self.access_token
 
-    async def _get_access_token(self) -> None:
+    def is_token_valid(self) -> bool:
+        """Return True if the access token is valid (the server may still reject it)."""
+        return self._access_token_expires > dt.now(tz=UTC) + td(seconds=15)
+
+    async def fetch_access_token(self) -> None:
         """Update the access token and save it to the store/cache."""
 
-        self.logger.debug("Null/Expired/Invalid access_token")
+        self.logger.debug("Fetching access_token")
 
         if self._refresh_token:
             self.logger.debug(" - authenticating with the refresh_token")
@@ -165,7 +148,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
             credentials = {SZ_REFRESH_TOKEN: self._refresh_token}
 
             try:
-                await self._request_access_token(CREDS_REFRESH_TOKEN | credentials)
+                await self._fetch_access_token(CREDS_REFRESH_TOKEN | credentials)
 
             except exc.AuthenticationFailedError as err:
                 if err.status != HTTPStatus.BAD_REQUEST:  # 400, e.g. invalid tokens
@@ -184,23 +167,22 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
             }
 
             try:  # check here if the user credentials are invalid...
-                await self._request_access_token(CREDS_USER_PASSWORD | credentials)
+                await self._fetch_access_token(CREDS_USER_PASSWORD | credentials)
 
             except exc.AuthenticationFailedError as err:
                 if "invalid_grant" not in err.message:
                     raise
                 self.logger.error(_HINT_BAD_CREDS)  # noqa: TRY400
+                # status will be: HTTPStatus.BAD_REQUEST, 400
                 raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
 
             self._was_authenticated = True
-
-        await self.save_access_token()
 
         self.logger.debug(f" - access_token = {self.access_token}")
         self.logger.debug(f" - access_token_expires = {self.access_token_expires}")
         self.logger.debug(f" - refresh_token = {self.refresh_token}")
 
-    async def _request_access_token(self, credentials: dict[str, str]) -> None:
+    async def _fetch_access_token(self, credentials: dict[str, str]) -> None:
         """Obtain an access token using the supplied credentials.
 
         The credentials are either a refresh token or the user's client_id/secret.
@@ -246,6 +228,27 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
     ) -> AuthTokenResponseT:
         """Wrap the POST request to the vendor's TCC RESTful API."""
         return await self._post_request(url, **kwargs)  # type: ignore[return-value]
+
+    @abstractmethod
+    async def save_access_token(self) -> None:
+        """Save the (serialized) token data to a cache.
+
+        Should confirm the access token is valid before saving.
+        """
+
+    def _import_access_token(self, tokens: AccessTokenEntryT) -> None:
+        """Extract the token data from a (deserialized) dictionary."""
+        self._access_token = tokens[SZ_ACCESS_TOKEN]
+        self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
+        self._refresh_token = tokens[SZ_REFRESH_TOKEN]
+
+    def _export_access_token(self) -> AccessTokenEntryT:
+        """Convert the token data to a (serializable) dictionary."""
+        return {
+            SZ_ACCESS_TOKEN_EXPIRES: self._access_token_expires.isoformat(),
+            SZ_ACCESS_TOKEN: self._access_token,
+            SZ_REFRESH_TOKEN: self._refresh_token,
+        }
 
 
 class Auth(AbstractAuth):

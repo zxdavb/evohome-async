@@ -48,7 +48,7 @@ def cache_file(
 
 LOG_00 = ("evohomeasync2", logging.WARNING, MSG_INVALID_TOKEN)
 
-LOG_01 = ("evohome.auth", logging.DEBUG, "Null/Expired/Invalid access_token")
+LOG_01 = ("evohome.auth", logging.DEBUG, "Fetching access_token")
 LOG_02 = ("evohome.auth", logging.DEBUG, " - authenticating with the refresh_token")
 LOG_03 = ("evohome.auth", logging.DEBUG, "Expired/invalid refresh_token")
 LOG_04 = ("evohome.auth", logging.DEBUG, " - authenticating with client_id/secret")
@@ -148,7 +148,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
     """Test authentication flow with bad credentials (client_id/secret)."""
 
     # pre-requisite data (no session_id)
-    assert evohome_v2._token_manager.is_access_token_valid() is False
+    assert evohome_v2._token_manager.is_token_valid() is False
 
     # TEST 1: bad credentials (client_id/secret) -> HTTPStatus.UNAUTHORIZED
     with aioresponses() as rsp, caplog.at_level(logging.DEBUG):
@@ -168,7 +168,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
         # response 0: Unauthorized (bad credentials)
         rsp.assert_called_once_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
-    assert evohome_v2._token_manager.is_access_token_valid() is False
+    assert evohome_v2._token_manager.is_token_valid() is False
 
 
 async def test_bad2(  # bad access token
@@ -183,7 +183,7 @@ async def test_bad2(  # bad access token
     evohome_v2._token_manager._access_token_expires = dt.now(tz=UTC) + td(minutes=15)
     evohome_v2._token_manager._refresh_token = _TEST_REFRESH_TOKEN
 
-    assert evohome_v2._token_manager.is_access_token_valid() is True
+    assert evohome_v2._token_manager.is_token_valid() is True
 
     # TEST 9: bad access token -> HTTPStatus.UNAUTHORIZED
     with aioresponses() as rsp, caplog.at_level(logging.DEBUG):
@@ -206,7 +206,7 @@ async def test_bad2(  # bad access token
         # response 1: Connection refused (as no response provided by us)
         rsp.assert_called_with(POST_REFRESH[0], POST_REFRESH[1], **POST_REFRESH[2])
 
-    assert evohome_v2._token_manager.is_access_token_valid() is False
+    assert evohome_v2._token_manager.is_token_valid() is False
 
 
 async def test_bad3(  # bad credentials (refresh token)
@@ -221,7 +221,7 @@ async def test_bad3(  # bad credentials (refresh token)
     evohome_v2._token_manager._access_token_expires = dt.now(tz=UTC) - td(minutes=15)
     evohome_v2._token_manager._refresh_token = _TEST_REFRESH_TOKEN
 
-    assert evohome_v2._token_manager.is_access_token_valid() is False
+    assert evohome_v2._token_manager.is_token_valid() is False
 
     # TEST 9: bad session id -> HTTPStatus.BAD_REQUEST
     with aioresponses() as rsp, caplog.at_level(logging.DEBUG):
@@ -244,7 +244,7 @@ async def test_bad3(  # bad credentials (refresh token)
         # response 1: Connection refused (as no response provided by us)
         rsp.assert_called_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
-    assert evohome_v2._token_manager.is_access_token_valid() is False
+    assert evohome_v2._token_manager.is_token_valid() is False
 
 
 async def test_good(  # good credentials
@@ -255,7 +255,7 @@ async def test_good(  # good credentials
     """Test authentication flow (and authorization) with good credentials."""
 
     # pre-requisite data (no session_id)
-    assert evohome_v2._token_manager.is_access_token_valid() is False
+    assert evohome_v2._token_manager.is_token_valid() is False
 
     #
     # TEST 1: good credentials (client_id/secret) -> HTTPStatus.OK
@@ -285,4 +285,4 @@ async def test_good(  # good credentials
         # response 1: Connection refused (as no response provided by us)
         rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
-    assert evohome_v2._token_manager.is_access_token_valid() is True
+    assert evohome_v2._token_manager.is_token_valid() is True
