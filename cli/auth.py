@@ -66,10 +66,6 @@ class CredentialsManager(AbstractTokenManager, AbstractSessionManager):
 
         self._cache_file: Final = cache_file
 
-        # set cache to initial (falsey) state
-        self._clear_access_token()
-        self._clear_session_id()
-
     @property
     def cache_file(self) -> str:
         """Return the token cache path."""
