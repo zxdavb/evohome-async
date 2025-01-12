@@ -319,7 +319,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
             else:
                 self._logger.warning(
-                    f"Ignoring schedule of {id_} ({sched.get("name")}): unknown id"
+                    f"Ignoring schedule of {id_} ({sched.get('name')}): unknown id"
                     ", consider matching by name rather than by id"
                 )
                 return False

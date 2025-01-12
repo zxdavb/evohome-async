@@ -124,7 +124,7 @@ class EvohomeClient:
         assert self._user_info is not None  # mypy (internal hint)
 
         if self._user_locs is None:
-            url = f"locations?userId={self._user_info["user_id"]}&allData=True"
+            url = f"locations?userId={self._user_info['user_id']}&allData=True"
             self._user_locs = await self.auth.get(url, schema=SCH_GET_ACCOUNT_LOCS)  # type: ignore[assignment]
 
         assert self._user_locs is not None  # mypy (internal hint)

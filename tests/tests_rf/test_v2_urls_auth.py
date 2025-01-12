@@ -78,7 +78,7 @@ async def _test_user_locations(evo: EvohomeClientv2) -> None:
     )  # type: ignore[assignment]
 
     #
-    url = f"location/installationInfo?userId={user_info["userId"]}"
+    url = f"location/installationInfo?userId={user_info['userId']}"
     _ = await should_work_v2(
         evo.auth,
         HTTPMethod.GET,

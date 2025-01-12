@@ -149,7 +149,7 @@ def location_status_fixture(folder: Path, loc_id: str) -> JsonObjectType:
 def zone_schedule_fixture(folder: Path, zon_type: str) -> JsonObjectType:
     """Load the JSON of the schedule of a dhw/zone."""
     return _load_fixture(
-        folder, f"schedule_{"dhw" if zon_type == "domesticHotWater" else "zone"}.json"
+        folder, f"schedule_{'dhw' if zon_type == 'domesticHotWater' else 'zone'}.json"
     )  # type: ignore[return-value]
 
 

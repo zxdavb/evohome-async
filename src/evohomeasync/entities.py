@@ -206,7 +206,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
     @property  # appears to be the zone idx (not in evohomeclientv2)
     def idx(self) -> str:
-        return f"{self._config["instance"]:02X}"
+        return f"{self._config['instance']:02X}"
 
     @property
     def max_heat_setpoint(self) -> float:
