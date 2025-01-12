@@ -184,21 +184,23 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
     @abstractmethod
     async def save_session_id(self) -> None:
-        """Save the (serialized) session id to a cache.
+        """Save the (serialized) session id (and expiry dtm).
 
-        Should confirm the session id is valid before saving.
+        Should ideally confirm the session id is valid before saving.
         """
 
     def _import_session_id(self, session: SessionIdEntryT) -> None:
-        """Extract the session id from a (deserialized) dictionary."""
+        """Extract the session id from a (serialized) dictionary."""
+
         self._session_id = session[SZ_SESSION_ID]
         self._session_id_expires = dt.fromisoformat(session[SZ_SESSION_ID_EXPIRES])
 
     def _export_session_id(self) -> SessionIdEntryT:
-        """Convert the session id to a (serializable) dictionary."""
+        """Convert the session id to a (serialized) dictionary."""
+
         return {
-            SZ_SESSION_ID_EXPIRES: self._session_id_expires.isoformat(),
             SZ_SESSION_ID: self._session_id,
+            SZ_SESSION_ID_EXPIRES: self._session_id_expires.isoformat(),
         }
 
 

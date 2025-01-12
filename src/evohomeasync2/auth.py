@@ -231,19 +231,21 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
     @abstractmethod
     async def save_access_token(self) -> None:
-        """Save the (serialized) token data to a cache.
+        """Save the (serialized) access token (and expiry dtm, refresh token).
 
-        Should confirm the access token is valid before saving.
+        Should ideally confirm the access token is valid before saving.
         """
 
     def _import_access_token(self, tokens: AccessTokenEntryT) -> None:
-        """Extract the token data from a (deserialized) dictionary."""
+        """Extract the token data from a (serialized) dictionary."""
+
         self._access_token = tokens[SZ_ACCESS_TOKEN]
         self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
         self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
     def _export_access_token(self) -> AccessTokenEntryT:
-        """Convert the token data to a (serializable) dictionary."""
+        """Convert the token data to a (serialized) dictionary."""
+
         return {
             SZ_ACCESS_TOKEN_EXPIRES: self._access_token_expires.isoformat(),
             SZ_ACCESS_TOKEN: self._access_token,
