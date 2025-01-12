@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import yaml
+from freezegun.api import FakeDatetime
 
 from .common import get_property_methods
 from .conftest import FIXTURES_V2
@@ -16,6 +17,15 @@ if TYPE_CHECKING:
     from syrupy import SnapshotAssertion
 
     from tests.conftest import EvohomeClientv2
+
+
+def fake_datetime_representer(
+    dumper: yaml.Dumper, data: FakeDatetime
+) -> yaml.nodes.ScalarNode:
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data.isoformat())
+
+
+yaml.add_representer(FakeDatetime, fake_datetime_representer)
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:

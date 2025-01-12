@@ -411,8 +411,8 @@
     ''',
     'next_switchpoint': '''
       !!python/tuple
-      - 2025-01-11 23:00:00+00:00
-      - 'Off'
+      - '2025-01-01T06:30:00+00:00'
+      - 'On'
   
     ''',
     'schedule': '''
@@ -566,8 +566,8 @@
     ''',
     'this_switchpoint': '''
       !!python/tuple
-      - 2025-01-11 16:30:00+00:00
-      - 'On'
+      - '2024-12-31T22:30:00+00:00'
+      - 'Off'
   
     ''',
     'type': '''
@@ -800,9 +800,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -883,9 +883,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -951,9 +951,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -1036,9 +1036,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -1104,9 +1104,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -1189,9 +1189,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -1257,9 +1257,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -1342,9 +1342,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -1410,9 +1410,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -1495,9 +1495,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -1563,9 +1563,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -1648,9 +1648,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -1716,9 +1716,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -1801,9 +1801,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -1869,9 +1869,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -1954,9 +1954,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -2022,9 +2022,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -2107,9 +2107,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -2540,8 +2540,8 @@
     ''',
     'next_switchpoint': '''
       !!python/tuple
-      - 2025-01-11 23:00:00+00:00
-      - 'Off'
+      - '2025-01-01T06:30:00+00:00'
+      - 'On'
   
     ''',
     'schedule': '''
@@ -2695,8 +2695,8 @@
     ''',
     'this_switchpoint': '''
       !!python/tuple
-      - 2025-01-11 16:30:00+00:00
-      - 'On'
+      - '2024-12-31T22:30:00+00:00'
+      - 'Off'
   
     ''',
     'type': '''
@@ -2929,9 +2929,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -3012,9 +3012,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -3080,9 +3080,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -3165,9 +3165,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -3233,9 +3233,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -3318,9 +3318,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -3386,9 +3386,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -3471,9 +3471,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -3539,9 +3539,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -3624,9 +3624,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -3692,9 +3692,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -3777,9 +3777,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -3845,9 +3845,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -3930,9 +3930,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -3998,9 +3998,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -4083,9 +4083,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -4151,9 +4151,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -4236,9 +4236,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -4675,8 +4675,8 @@
     ''',
     'next_switchpoint': '''
       !!python/tuple
-      - 2025-01-11 23:00:00+00:00
-      - 'Off'
+      - '2025-01-01T06:30:00+00:00'
+      - 'On'
   
     ''',
     'schedule': '''
@@ -4830,8 +4830,8 @@
     ''',
     'this_switchpoint': '''
       !!python/tuple
-      - 2025-01-11 16:30:00+00:00
-      - 'On'
+      - '2024-12-31T22:30:00+00:00'
+      - 'Off'
   
     ''',
     'type': '''
@@ -5066,9 +5066,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -5149,9 +5149,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -5217,9 +5217,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -5302,9 +5302,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -5370,9 +5370,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -5455,9 +5455,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -5523,9 +5523,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -5608,9 +5608,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -5676,9 +5676,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -5761,9 +5761,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -5829,9 +5829,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -5916,9 +5916,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -5926,9 +5926,7 @@
           ...
   
           '
-      until: '2023-11-30 22:10:00+00:00
-  
-          ...
+      until: '''2023-11-30T22:10:00+00:00''
   
           '
       zoneId: '''3432580''
@@ -5984,9 +5982,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -6069,9 +6067,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -6137,9 +6135,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -6222,9 +6220,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -6290,9 +6288,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+00:00
+          - ''2025-01-01T07:00:00+00:00''
   
-          - 15.9
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -6375,9 +6373,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 22:10:00+00:00
+          - ''2024-12-31T23:00:00+00:00''
   
-          - 18.6
+          - 15.9
   
           '
       type: 'RadiatorZone
@@ -6724,9 +6722,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-12 07:00:00+01:00
+          - ''2025-01-01T07:00:00+01:00''
   
-          - 18.5
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -6809,7 +6807,7 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+01:00
+          - ''2024-12-31T23:00:00+01:00''
   
           - 15.9
   
@@ -6877,9 +6875,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - 2025-01-12 07:00:00+01:00
+          - ''2025-01-01T07:00:00+01:00''
   
-          - 18.5
+          - 18.1
   
           '
       schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
@@ -6962,7 +6960,7 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - 2025-01-11 23:00:00+01:00
+          - ''2024-12-31T23:00:00+01:00''
   
           - 15.9
   
