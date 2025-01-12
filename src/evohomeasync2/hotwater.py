@@ -172,27 +172,7 @@ class HotWater(_ZoneBase):
 
         await self._set_state(mode)
 
-    async def set_on(self, /, *, until: dt | None = None) -> None:
-        """Set the DHW on until a given time, or permanently."""
-
-        mode: dict[str, str | None]
-
-        if until is None:
-            mode = {
-                S2_MODE: ZoneMode.PERMANENT_OVERRIDE,
-                S2_STATE: DhwState.ON,
-                S2_UNTIL_TIME: None,
-            }
-        else:
-            mode = {
-                S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-                S2_STATE: DhwState.ON,
-                S2_UNTIL_TIME: until.strftime(API_STRFTIME),
-            }
-
-        await self._set_state(mode)
-
-    async def set_off(self, /, *, until: dt | None = None) -> None:
+    async def off(self, /, *, until: dt | None = None) -> None:
         """Set the DHW off until a given time, or permanently."""
 
         mode: dict[str, str | None]
@@ -207,6 +187,26 @@ class HotWater(_ZoneBase):
             mode = {
                 S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
                 S2_STATE: DhwState.OFF,
+                S2_UNTIL_TIME: until.strftime(API_STRFTIME),
+            }
+
+        await self._set_state(mode)
+
+    async def on(self, /, *, until: dt | None = None) -> None:
+        """Set the DHW on until a given time, or permanently."""
+
+        mode: dict[str, str | None]
+
+        if until is None:
+            mode = {
+                S2_MODE: ZoneMode.PERMANENT_OVERRIDE,
+                S2_STATE: DhwState.ON,
+                S2_UNTIL_TIME: None,
+            }
+        else:
+            mode = {
+                S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
+                S2_STATE: DhwState.ON,
                 S2_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
 
