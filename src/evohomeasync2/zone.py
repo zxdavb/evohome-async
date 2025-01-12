@@ -77,7 +77,8 @@ if TYPE_CHECKING:
         SwitchpointT,
     )
 
-    ScheduleT = list[DayOfWeekT]
+    _ScheduleT = list[DayOfWeekT]
+    _SwitchPoint = tuple[dt, float | str]
 
 
 _ONE_DAY = td(days=1)
@@ -232,7 +233,7 @@ def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
 
 
 def _find_switchpoints(
-    schedule: ScheduleT,
+    schedule: _ScheduleT,
     day_of_week: DayOfWeek,
     time_of_day: str,
 ) -> tuple[SwitchpointT, int, SwitchpointT, int]:
@@ -282,13 +283,52 @@ class _ScheduleBase(EntityBase):
 
     SCH_SCHEDULE: vol.Schema
 
-    _schedule: ScheduleT | None
+    _schedule: _ScheduleT | None
+
+    _this_switchpoint: _SwitchPoint  # is float for zones...
+    _next_switchpoint: _SwitchPoint  # and str for DHW
 
     location: Location  # used to get tzinfo
 
     # Status (state) attrs & methods...
 
-    async def get_schedule(self) -> ScheduleT:
+    @property
+    def schedule(self) -> _ScheduleT:
+        """Return the schedule (assumes it is current)."""
+
+        if not self._schedule:
+            raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
+
+        return self._schedule
+
+    @property
+    def this_switchpoint(self) -> _SwitchPoint:
+        """Return the start datetime and setpoint of the current switchpoint."""
+
+        if not self._schedule:
+            raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
+
+        if self._next_switchpoint[0] > (dt_now := dt.now(tz=UTC)):
+            return self._this_switchpoint
+
+        self._this_switchpoint, self._next_switchpoint = self._find_switchpoints(dt_now)
+        return self._this_switchpoint
+
+    @property
+    def next_switchpoint(self) -> _SwitchPoint:
+        """Return the start datetime and setpoint of the next switchpoint."""
+
+        if not self._schedule:
+            raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
+
+        if self._next_switchpoint[0] > (dt_now := dt.now(tz=UTC)):
+            return self._next_switchpoint
+
+        self._this_switchpoint, self._next_switchpoint = self._find_switchpoints(dt_now)
+
+        return self._next_switchpoint
+
+    async def get_schedule(self) -> _ScheduleT:
         """Get the schedule for this DHW/zone object."""
 
         self._logger.debug(f"{self}: Getting schedule...")
@@ -301,16 +341,54 @@ class _ScheduleBase(EntityBase):
         except exc.ApiRequestFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
                 raise exc.InvalidScheduleError(
-                    f"{self}: No Schedule / Schedule is invalid"
+                    f"{self}: No Schedule, or is invalid"
                 ) from err
             raise exc.ApiRequestFailedError(f"{self}: Unexpected error") from err
 
         self._schedule = schedule[SZ_DAILY_SCHEDULES]
+
+        self._this_switchpoint, self._next_switchpoint = self._find_switchpoints(
+            dt.now(tz=UTC)
+        )
+
         return self._schedule
+
+    def _find_switchpoints(self, dtm: dt) -> tuple[_SwitchPoint, _SwitchPoint]:
+        """Find the current (this) and next switchpoints for a given datetime.
+
+        FYI: HA has traditonally exposed (as an extended_state_attr):
+        {
+            "this_sp_from": "2024-07-10T08:00:00+01:00",
+            "this_sp_temp": 16.0,
+            "next_sp_from": "2024-07-10T22:10:00+01:00",
+            "next_sp_temp": 18.6,
+        }
+        """
+
+        dtm = as_local_time(dtm, self.location.tzinfo)
+
+        this_sp, this_offset, next_sp, next_offset = _find_switchpoints(
+            self.schedule, *_dt_to_dow_and_tod(dtm, self.location.tzinfo)
+        )
+
+        this_tod = dt.strptime(this_sp["time_of_day"], "%H:%M:00").time()  # noqa: DTZ007
+        next_tod = dt.strptime(next_sp["time_of_day"], "%H:%M:00").time()  # noqa: DTZ007
+
+        this_dtm = dt.combine(dtm + td(days=this_offset), this_tod)
+        next_dtm = dt.combine(dtm + td(days=next_offset), next_tod)
+
+        # either "dhw_state" (str) or "heat_setpoint" (float) _will_ be present...
+        this_val = this_sp.get("dhw_state") or this_sp["heat_setpoint"]
+        next_val = next_sp.get("dhw_state") or next_sp["heat_setpoint"]
+
+        return (
+            (this_dtm.replace(tzinfo=self.location.tzinfo), this_val),
+            (next_dtm.replace(tzinfo=self.location.tzinfo), next_val),
+        )
 
     async def set_schedule(
         self,
-        schedule: ScheduleT | str,
+        schedule: _ScheduleT | str,
     ) -> None:
         """Set the schedule for this DHW/zone object."""
 
@@ -348,40 +426,6 @@ class _ScheduleBase(EntityBase):
         # TODO: check the status of the task
 
         self._schedule = schedule
-
-    def _find_switchpoints(self, dtm: dt | str) -> dict[dt, float | str]:
-        """Find the current and next switchpoints for a given day and time of day."""
-
-        if not self._schedule:
-            raise exc.InvalidScheduleError("No schedule available")
-
-        if isinstance(dtm, str):
-            dtm = dt.fromisoformat(dtm)
-
-        dtm = as_local_time(dtm, self.location.tzinfo)
-
-        this_sp, this_offset, next_sp, next_offset = _find_switchpoints(
-            self._schedule, *_dt_to_dow_and_tod(dtm, self.location.tzinfo)
-        )
-
-        this_tod = dt.strptime(this_sp["time_of_day"], "%H:%M").time()  # noqa: DTZ007
-        next_tod = dt.strptime(next_sp["time_of_day"], "%H:%M").time()  # noqa: DTZ007
-
-        this_dtm = dt.combine(dtm + td(days=this_offset), this_tod)
-        next_dtm = dt.combine(dtm + td(days=next_offset), next_tod)
-
-        # either "dhw_state" or "heat_setpoint" _will_ be present...
-        this_val = this_sp.get("dhw_state") or this_sp["heat_setpoint"]
-        next_val = next_sp.get("dhw_state") or next_sp["heat_setpoint"]
-
-        # NOTE: this is a convenience return...
-        # this_dtm, this_val = next(iter(result.items()))
-        # next_dtm, next_val = next(islice(result.items(), 1, 2))
-
-        return {
-            this_dtm: this_val,
-            next_dtm: next_val,
-        }
 
 
 class _ZoneBase(_ScheduleBase, ActiveFaultsBase, EntityBase):

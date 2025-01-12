@@ -12,6 +12,7 @@ from .conftest import FIXTURES_V2
 
 if TYPE_CHECKING:
     import pytest
+    from freezegun.api import FrozenDateTimeFactory
     from syrupy import SnapshotAssertion
 
     from tests.conftest import EvohomeClientv2
@@ -30,6 +31,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 async def test_system_snapshot(
     evohome_v2: EvohomeClientv2,
+    freezer: FrozenDateTimeFactory,
     snapshot: SnapshotAssertion,
 ) -> None:
     """Test the user account schema against the corresponding JSON."""
@@ -45,6 +47,8 @@ async def test_system_snapshot(
 
         return result
 
+    freezer.move_to("2025-01-01T00:00:00Z")
+
     loc = evohome_v2.locations[0]
     assert serializable_attrs(loc) == snapshot(name="location")
 
@@ -55,7 +59,11 @@ async def test_system_snapshot(
     assert serializable_attrs(tcs) == snapshot(name="control_system")
 
     if dhw := tcs.hotwater:
+        await dhw.get_schedule()
         assert serializable_attrs(dhw) == snapshot(name="hot_water")
+
+    for z in tcs.zones:
+        await z.get_schedule()
 
     zones = {z.id: serializable_attrs(z) for z in tcs.zones}
     assert yaml.dump(zones, indent=4) == snapshot(name="zones")
