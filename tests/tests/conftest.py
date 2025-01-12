@@ -19,6 +19,7 @@ from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS
 from evohomeasync2 import EvohomeClient as EvohomeClientv2
 from evohomeasync2.schemas import (
     TCC_GET_LOC_STATUS,
+    TCC_GET_SCHEDULE,
     TCC_GET_USR_ACCOUNT,
     TCC_GET_USR_LOCATIONS,
 )
@@ -145,6 +146,13 @@ def location_status_fixture(folder: Path, loc_id: str) -> JsonObjectType:
     return _load_fixture(folder, f"status_{loc_id}.json")  # type: ignore[return-value]
 
 
+def zone_schedule_fixture(folder: Path, zon_type: str) -> JsonObjectType:
+    """Load the JSON of the schedule of a dhw/zone."""
+    return _load_fixture(
+        folder, f"schedule_{"dhw" if zon_type == "domesticHotWater" else "zone"}.json"
+    )  # type: ignore[return-value]
+
+
 def broker_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
     """Return a mock of Broker.get()."""
 
@@ -177,10 +185,16 @@ def broker_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
                 TCC_GET_USR_LOCATIONS(user_locations_config_fixture(fixture))
             )
 
-        # f"{xxx_type}/{xxx_id}/status?includeTemperatureControlSystems=True"
+        # f"{_TYPE}/{id}/status?includeTemperatureControlSystems=True"
         if "status" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
                 TCC_GET_LOC_STATUS(location_status_fixture(fixture, url.split("/")[1]))
+            )
+
+        # f"{_TYPE}/{id}/schedule"
+        if "schedule" in url:
+            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
+                TCC_GET_SCHEDULE(zone_schedule_fixture(fixture, url.split("/")[0]))
             )
 
         pytest.fail(f"Unexpected/unknown URL: {url}")
