@@ -6,24 +6,24 @@
 
 
 # libraries required for development (lint/type/test)...
-# - pip list | grep -E 'aio|pre-commit|ruff|mypy|types-|voluptuous|pytest|syrup|hatch'
+# - pip list | grep -E 'aio|pre_commit|ruff|mypy|types-|voluptuous|pytest|syrup|hatch'
 
 # used for development (linting)
   pre-commit >= 4.0.1
   ruff >= 0.9.1                                  # also: pre-commit-config.yaml
 
 # used for development (typing)
-  mypy >= 1.13.0
+  mypy >= 1.14.1
   types-aiofiles >= 24.1.0                       # used only by CLI
   types-PyYAML >= 6.0.12                         # used only by tests
   voluptuous >= 0.15.2
 
 # used for testing
   aioresponses >= 0.7.7
-  pytest >= 8.3.3
-  pytest-asyncio >= 0.24.0
-# pytest-cov >= 5.0.0
-  pytest-freezer >= 0.4.8
+  pytest >= 8.3.4
+  pytest-asyncio >= 0.25.2
+# pytest-cov >= 6.0.0
+  pytest-freezer >= 0.4.9
   pytest-sugar >= 1.0.0
   pytest-xdist >= 3.6.1
   syrupy >= 4.8.0
@@ -31,5 +31,5 @@
 # pytest_homeassistant_custom_component >= 0.13.162
 
 # used for build/deploy (not used by HA)
-  hatch >= 1.13.0
-  hatchling >= 1.26.3
+  hatch >= 1.14.0
+  hatchling >= 1.27.0
