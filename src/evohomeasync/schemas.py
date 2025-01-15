@@ -164,7 +164,7 @@ def _factory_location_response(
             vol.Required(fnc("locationOwnerName")): str,
             vol.Required(fnc("locationOwnerUserName")): vol.All(str, vol.Length(min=1)),
             vol.Required(fnc("canSearchForContractors")): bool,
-            vol.Optional(fnc("contractor")): {str: dict},  # ContractorResponse
+            vol.Optional(fnc("contractor")): {str: dict},  # ContractorResponse,Optional
         },
         extra=vol.ALLOW_EXTRA,
     )
