@@ -290,7 +290,9 @@ class AbstractAuth(ABC):
             raise
 
         if self.logger.isEnabledFor(logging.DEBUG):
-            self.logger.debug(f"{method} {url}: {obscure_secrets(response)}")
+            self.logger.debug(
+                f"{method} {self.url_base}/{url}: {obscure_secrets(response)}"
+            )
 
         if method == HTTPMethod.GET:
             return convert_keys_to_snake_case(response)
