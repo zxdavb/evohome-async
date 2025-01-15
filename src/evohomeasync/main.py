@@ -134,7 +134,7 @@ class EvohomeClient:
             self._location_by_id = {}
 
             for loc_config in self._user_locs:
-                loc = Location(self, loc_config)
+                loc = Location(loc_config["location_id"], loc_config, self)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 

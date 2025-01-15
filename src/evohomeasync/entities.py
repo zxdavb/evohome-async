@@ -91,12 +91,10 @@ class _DeviceBase(_EntityBase):
     _config: EvoDevInfoDictT | EvoGwyInfoDictT
     _status: EvoDevInfoDictT | EvoGwyInfoDictT
 
-    def __init__(self, location: Location, config: EvoDevInfoDictT) -> None:
-        super().__init__(
-            config["device_id"],
-            location._auth,
-            location._logger,
-        )
+    def __init__(
+        self, entity_id: int, config: EvoDevInfoDictT, location: Location
+    ) -> None:
+        super().__init__(entity_id, location._auth, location._logger)
 
         self._loc = location  # parent
 
@@ -413,12 +411,10 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
 class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     """Instance of an account's location/TCS."""
 
-    def __init__(self, client: EvohomeClient, config: EvoTcsInfoDictT) -> None:
-        super().__init__(
-            config["location_id"],
-            client.auth,
-            client.logger,
-        )
+    def __init__(
+        self, entity_id: int, config: EvoTcsInfoDictT, client: EvohomeClient
+    ) -> None:
+        super().__init__(entity_id, client.auth, client.logger)
 
         self._cli = client  # proxy for parent
 
@@ -431,22 +427,22 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
         # process config["devices"]...
         for dev_config in config["devices"]:
             if str(dev_config["gateway_id"]) not in self.gateway_by_id:
-                gwy = Gateway(self, dev_config)
+                gwy = Gateway(dev_config["gateway_id"], dev_config, self)
 
                 self.gateways.append(gwy)
                 self.gateway_by_id[gwy.id] = gwy
 
             if dev_config["thermostat_model_type"] == "DOMESTIC_HOT_WATER":
-                self.hotwater = HotWater(self, dev_config)
+                self.hotwater = HotWater(dev_config["device_id"], dev_config, self)
 
             elif dev_config["thermostat_model_type"].startswith("EMEA_"):
-                self._add_zone(Zone(self, dev_config))
+                self._add_zone(Zone(dev_config["device_id"], dev_config, self))
 
             else:  # assume everything else is a zone
                 self._logger.warning(
-                    "Unknown device type, assuming is a zone: %s", dev_config
+                    f"{self}: Unknown device type, assuming is a zone: {dev_config}"
                 )
-                self._add_zone(Zone(self, dev_config))
+                self._add_zone(Zone(dev_config["device_id"], dev_config, self))
 
     def _add_zone(self, zone: Zone) -> None:
         self.zones.append(zone)
@@ -491,7 +487,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
 
             else:
                 self._logger.warning(
-                    f"{self}: ognoring gateway_id='{gwy_id}'"
+                    f"{self}: Ignoring gateway_id={gwy_id}"
                     ", (has the location configuration changed?)"
                 )
                 continue
@@ -504,7 +500,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
 
             else:
                 self._logger.warning(
-                    f"{self}: ignoring device_id='{dev_id}'"
+                    f"{self}: Ignoring device_id={dev_id}"
                     ", (has the location configuration changed?)"
                 )
                 continue
