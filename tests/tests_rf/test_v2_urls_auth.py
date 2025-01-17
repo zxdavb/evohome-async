@@ -130,7 +130,7 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
     """Test /location/{loc.id}/status"""
 
     # TODO: remove .update() and use URLs only
-    await evo.update(_dont_update_status=True)
+    await evo.update(dont_update_status=True)
 
     loc = evo.locations[0]
     #
@@ -187,7 +187,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
     """
 
     # TODO: remove .update() and use URLs only?
-    await evo.update(_dont_update_status=True)
+    await evo.update(dont_update_status=True)
 
     tcs: evo2.ControlSystem
     if not (tcs := evo.locations[0].gateways[0].systems[0]):

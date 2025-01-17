@@ -44,7 +44,7 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
     """
 
-    await evo.update(_dont_update_status=True)
+    await evo.update(dont_update_status=True)
 
     dhw: evo2.HotWater | None = None
 
@@ -204,7 +204,7 @@ async def _test_task_id_zone(evo: EvohomeClientv2) -> None:
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
     """
 
-    await evo.update(_dont_update_status=True)
+    await evo.update(dont_update_status=True)
 
     for loc in evo.locations:
         for gwy in loc.gateways:

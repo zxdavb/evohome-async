@@ -49,7 +49,7 @@ async def _test_usr_apis(evo: EvohomeClientv2) -> None:
     """
 
     # STEP 1: retrieve config only: evo.user_account(), evo.installation()
-    await evo.update(_dont_update_status=True)
+    await evo.update(dont_update_status=True)
 
     assert evo2.main.SCH_USER_ACCOUNT(evo.user_account)
     assert evo2.main.SCH_USER_LOCATIONS(evo._user_locs)
@@ -68,7 +68,7 @@ async def _test_tcs_apis(evo: EvohomeClientv2) -> None:
     """
 
     # STEP 1: retrieve config only
-    await evo.update(_dont_update_status=False)
+    await evo.update(dont_update_status=False)
 
     # STEP 2: GET /temperatureControlSystem/{tcs.id}/status
     tcs = evo.locations[0].gateways[0].systems[0]
@@ -95,7 +95,7 @@ async def _test_dhw_apis(evo: EvohomeClientv2) -> None:
     """
 
     # STEP 1: retrieve config only
-    await evo.update(_dont_update_status=True)
+    await evo.update(dont_update_status=True)
 
     if not (dhw := _get_dhw(evo)):
         pytest.skip("No DHW found in TCS")
@@ -118,7 +118,7 @@ async def _test_zon_apis(evo: EvohomeClientv2) -> None:
     """
 
     # STEP 1: retrieve config only
-    await evo.update(_dont_update_status=True)
+    await evo.update(dont_update_status=True)
 
     if not (zone := _get_zon(evo)):
         pytest.skip("No zones found in TCS")

@@ -42,6 +42,6 @@ async def test_update_v2(evohome_v2: EvohomeClientv2) -> None:
     with pytest.raises(exc.InvalidConfigError):
         assert evohome_v2.user_account
 
-    await evohome_v2.update(_dont_update_status=True)
+    await evohome_v2.update(dont_update_status=True)
 
     assert evohome_v2.user_account

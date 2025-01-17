@@ -65,7 +65,7 @@ class EvohomeClient:
         self,
         /,
         *,
-        _dont_update_status: bool = False,
+        dont_update_status: bool = False,
         _reset_config: bool = False,  # for use by test suite
     ) -> list[EvoTcsInfoDictT]:
         """Retrieve the latest state of the user's locations.
@@ -90,7 +90,7 @@ class EvohomeClient:
         if self._user_locs is None:
             await self._get_config()
 
-        elif not _dont_update_status:  # don't update status of location hierarchy
+        elif not dont_update_status:  # don't update status of location hierarchy
             assert self._location_by_id
             for loc_entry in self._user_locs:  # each entry is both config & status
                 loc_id = str(loc_entry["location_id"])
