@@ -70,11 +70,14 @@ class EvohomeClient:
     ) -> list[EvoTcsInfoDictT]:
         """Retrieve the latest state of the user's locations.
 
-        If required, or when `_reset_config` is true, first retrieves the user
-        information.
+        If required (or when `_reset_config` was true), first retrieves the user
+        information & the configuration of all their locations.
 
-        If `_disable_status_update` is True, does not update the status of each
-        location (but will still retrieve configuration data, if required).
+        There is one API call for the user info, and a second for the config/status of
+        all the user's locations.
+
+        If `disable_status_update` is true, does not update the status of each location
+        hierarchy (note: may have already retrieved the latest version of that data).
         """
 
         if _reset_config:

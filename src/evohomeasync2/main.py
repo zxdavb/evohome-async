@@ -80,13 +80,16 @@ class EvohomeClient:
         _reset_config: bool = False,  # used by test suite
         _dont_update_status: bool = False,  # used by test suite
     ) -> list[EvoLocConfigResponseT]:
-        """Retrieve the latest state of the user's' locations.
+        """Retrieve the latest state of the user's locations.
 
-        If required, or when `_reset_config` is true, first retrieves the user
-        information & installation configuration.
+        If required (or when `_reset_config` was true), first retrieves the user
+        information & the configuration of all their locations.
 
-        If `_disable_status_update` is True, does not update the status of each
-        location (but will still retrieve configuration data, if required).
+        There is one API call for the user info, and a second for the config of all the
+        user's locations; there are additional API calls for each location's status.
+
+        If `disable_status_update` is true, does not update the status of each location
+        hierarchy (and so, does not make those additional API calls).
         """
 
         if _reset_config:
