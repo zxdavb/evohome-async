@@ -472,6 +472,10 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
 
     # Status (state) attrs & methods...
 
+    # async def update(self, *args: Any, **kwargs: Any) -> Any:
+    #     """Get the latest state of the location and update its status attrs."""
+    #     raise NotImplementedError("Use EvohomeClient.update() instead.")
+
     @property
     def weather(self) -> EvoWeatherDictT:
         return self._config["weather"]
