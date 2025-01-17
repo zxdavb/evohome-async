@@ -77,8 +77,8 @@ class EvohomeClient:
         self,
         /,
         *,
-        _reset_config: bool = False,  # used by test suite
-        _dont_update_status: bool = False,  # used by test suite
+        _dont_update_status: bool = False,
+        _reset_config: bool = False,  # for use by test suite
     ) -> list[EvoLocConfigResponseT]:
         """Retrieve the latest state of the user's locations.
 
@@ -94,30 +94,34 @@ class EvohomeClient:
 
         if _reset_config:
             self._user_info = None
-            self._user_locs = None  # and thus self._locations, etc.
+            self._user_locs = None
 
             self._locations = None
             self._location_by_id = None
 
         if self._user_locs is None:
-            await self._get_config(_dont_update_status=_dont_update_status)
+            await self._get_config(dont_update_status=_dont_update_status)
 
-        if not _dont_update_status:  # see warning, above
+        if (
+            not _dont_update_status
+        ):  # don't retrieve/update status of location hierarchy
+            #
             for loc in self.locations:
                 await loc.update()
+                #
 
         assert self._user_locs is not None  # mypy (internal hint)
         return self._user_locs
 
     async def _get_config(
-        self, /, *, _dont_update_status: bool = False
+        self, /, *, dont_update_status: bool = False
     ) -> list[EvoLocConfigResponseT]:
         """Ensures the config of the user and their locations.
 
         If required, first retrieves the user information & installation configuration.
         """
 
-        if self._user_info is None:  # will handle a bad access_token
+        if self._user_info is None:  # will handle access_token rejection
             url = "userAccount"
             try:
                 self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
@@ -127,7 +131,7 @@ class EvohomeClient:
                     raise
 
                 # as the userAccount URL is open to all authenticated users, any 401 is
-                # due the (albeit valid) access_token being rejected by the server (why?)
+                # due the (albeit valid) access_token being rejected by the server
 
                 self.logger.warning(
                     f"The access_token has been rejected (will re-authenticate): {err}"
@@ -144,17 +148,17 @@ class EvohomeClient:
 
         assert self._user_locs is not None  # mypy (internal hint)
 
-        if self._locations is None:  # create/refresh the configured locations
+        if self._locations is None:
             self._locations = []
             self._location_by_id = {}
 
-            for loc_entry in self._user_locs:
-                loc = await create_location(self, loc_entry)
+            for loc_config in self._user_locs:
+                loc = await create_location(self, loc_config)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 
             # only warn once per config refresh (i.e. not on every status update)
-            if not _dont_update_status and (num := len(self._locations)) > 1:
+            if not dont_update_status and (num := len(self._locations)) > 1:
                 self.logger.warning(
                     f"There are {num} locations. Reduce the risk of exceeding API rate "
                     "limits by individually updating only necessary locations."

@@ -65,8 +65,8 @@ class EvohomeClient:
         self,
         /,
         *,
-        _reset_config: bool = False,  # used by test suite
-        _dont_update_status: bool = False,  # used by test suite
+        _dont_update_status: bool = False,
+        _reset_config: bool = False,  # for use by test suite
     ) -> list[EvoTcsInfoDictT]:
         """Retrieve the latest state of the user's locations.
 
@@ -88,13 +88,13 @@ class EvohomeClient:
             self._location_by_id = None
 
         if self._user_locs is None:
-            await self._get_config()  # and will do equivalent of loc._update_status()
+            await self._get_config()
 
-        elif not _dont_update_status:
+        elif not _dont_update_status:  # don't update status of location hierarchy
             assert self._location_by_id
-            for loc_config in self._user_locs:
-                loc_id = str(loc_config["location_id"])
-                self._location_by_id[loc_id]._update_status(loc_config)
+            for loc_entry in self._user_locs:  # each entry is both config & status
+                loc_id = str(loc_entry["location_id"])
+                self._location_by_id[loc_id]._update_status(loc_entry)
 
         assert self._user_locs is not None  # mypy (internal hint)
         return self._user_locs
@@ -105,7 +105,7 @@ class EvohomeClient:
         If required, first retrieves the user information & installation configuration.
         """
 
-        if self._user_info is None:  # will handle a bad session_id
+        if self._user_info is None:  # will handle session_id rejection
             url = "accountInfo"
             try:
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)  # type: ignore[assignment]
@@ -115,7 +115,7 @@ class EvohomeClient:
                     raise
 
                 # as the accountInfo URL is open to all authenticated users, any 401 is
-                # due the (albeit valid) session_id being rejected by the server (why?)
+                # due the (albeit valid) session_id being rejected by the server
 
                 self.logger.warning(
                     f"The session_id has been rejected (will re-authenticate): {err}"
@@ -136,10 +136,13 @@ class EvohomeClient:
             self._locations = []
             self._location_by_id = {}
 
-            for loc_config in self._user_locs:
-                loc = Location(loc_config["location_id"], loc_config, self)
+            for loc_entry in self._user_locs:  # each entry is both config & status
+                loc = Location(loc_entry["location_id"], loc_entry, self)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
+
+            #
+            #
 
         return self._user_locs
 
