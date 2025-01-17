@@ -63,6 +63,20 @@ SZ_ZIPCODE: Final = "zipcode"
 
 
 #######################################################################################
+# [
+#     {
+#         "locationID": l["locationID"],
+#         "devices": [
+#             {
+#                 k: v
+#                 for k, v in d.items()
+#                 if k[-2:].lower() == "id" or k in ("instance", "name")
+#             }
+#             for d in l["devices"]
+#         ],
+#     }
+#     for l in config
+# ]
 
 
 def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
