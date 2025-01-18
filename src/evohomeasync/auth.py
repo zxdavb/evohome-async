@@ -215,8 +215,8 @@ class Auth(AbstractAuth):
 
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
-        self._url_base = f"https://{self.hostname}/{URL_BASE}"
         self._session_id = session_manager.get_session_id
+        self._url_base = f"https://{self.hostname}/{URL_BASE}"
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
         """Ensure the authorization header has a valid session id."""
