@@ -87,16 +87,20 @@ class EvohomeClient:
             self._locations = None
             self._location_by_id = None
 
+        if not dont_update_status:
+            self._user_locs = None
+
         if self._user_locs is None:
             await self._get_config()
 
-        elif not dont_update_status:  # don't update status of location hierarchy
+        assert self._user_locs is not None  # mypy
+
+        if not dont_update_status:  # don't update status of location hierarchy
             assert self._location_by_id
             for loc_entry in self._user_locs:  # each entry is both config & status
                 loc_id = str(loc_entry["location_id"])
                 self._location_by_id[loc_id]._update_status(loc_entry)
 
-        assert self._user_locs is not None  # mypy
         return self._user_locs
 
     async def _get_config(self) -> list[EvoTcsInfoDictT]:
