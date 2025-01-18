@@ -385,11 +385,11 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
         self,
         /,
         *,
-        _dont_update_status: bool = False,  # used by test suite
+        dont_update_status: bool = False,
     ) -> dict[str, float | None]:
         """A convenience function to obtain the high-precision temperatures."""
 
-        if not _dont_update_status:
+        if not dont_update_status:
             await self._cli.update()
 
         return {z.id: z.temperature for z in self.zones}
