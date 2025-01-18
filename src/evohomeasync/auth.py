@@ -100,7 +100,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         If required, fetch (and save) a new session id via the vendor's web API.
         """
 
-        if not self.is_session_valid():  # may be invalid for other reasons
+        if not self.is_session_valid():  # although may be rejected for other reasons
             await self.fetch_session_id()
             await self.save_session_id()
 

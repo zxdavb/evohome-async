@@ -127,7 +127,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         If required, fetch (and save) a new token via the vendor's web API.
         """
 
-        if not self.is_token_valid():  # may be invalid for other reasons
+        if not self.is_token_valid():  # although may be rejected for other reasons
             await self.fetch_access_token()
             await self.save_access_token()
 
