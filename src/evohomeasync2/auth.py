@@ -10,13 +10,9 @@ from typing import TYPE_CHECKING, Any, Final
 
 import voluptuous as vol
 
-from evohome.auth import (
-    _HINT_BAD_CREDS,
-    HEADERS_BASE,
-    HEADERS_CRED,
-    AbstractAuth,
-    CredentialsManagerBase,
-)
+from evohome.auth import AbstractAuth
+from evohome.const import _HINT_BAD_CREDS, HEADERS_BASE, HEADERS_CRED
+from evohome.credentials import CredentialsManagerBase
 from evohome.helpers import convert_keys_to_snake_case, obfuscate
 
 from . import exceptions as exc

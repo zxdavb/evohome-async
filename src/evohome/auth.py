@@ -12,8 +12,9 @@ from typing import TYPE_CHECKING, Any, Final
 import aiohttp
 import voluptuous as vol
 
-from evohome import exceptions as exc
-from evohome.helpers import (
+from . import exceptions as exc
+from .const import _ERR_MSG_LOOKUP_BASE, _HINT_CHECK_NETWORK, HOSTNAME
+from .helpers import (
     convert_keys_to_camel_case,
     convert_keys_to_snake_case,
     obscure_secrets,
@@ -21,56 +22,6 @@ from evohome.helpers import (
 
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
-
-
-HOSTNAME: Final = "tccna.resideo.com"
-
-# No need to indicate "Content-Type" as default is "charset=utf-8", with:
-# - POST: "Content-Type": "application/json"                  (default)
-# - GETs: "Content-Type": "application/x-www-form-urlencoded" (not required)
-# - PUTs: "Content-Type": "application/json"                  (as used here)
-
-HEADERS_BASE = {
-    "Accept": "application/json",
-    "Connection": "Keep-Alive",
-    # "Content-Type": "application/json",
-}
-HEADERS_CRED = HEADERS_BASE | {
-    "Cache-Control": "no-cache, no-store",
-    "Pragma": "no-cache",
-}
-
-_HINT_CHECK_NETWORK = (
-    "Unable to contact the vendor's server. Check your network "
-    "and review the vendor's status page, https://status.resideo.com."
-)
-_HINT_WAIT_A_WHILE = (
-    "You have exceeded the server's API rate limit. Wait a while "
-    "and try again (consider reducing your polling interval)."
-)
-_HINT_BAD_CREDS = (
-    "Failed to authenticate. Check the username/password. Note that some "
-    "special characters accepted via the vendor's website are not valid here."
-)
-
-_ERR_MSG_LOOKUP_BASE: dict[int, str] = {  # common to authentication / authorization
-    HTTPStatus.BAD_GATEWAY: _HINT_CHECK_NETWORK,
-    HTTPStatus.INTERNAL_SERVER_ERROR: _HINT_CHECK_NETWORK,
-    HTTPStatus.SERVICE_UNAVAILABLE: _HINT_CHECK_NETWORK,
-    HTTPStatus.TOO_MANY_REQUESTS: _HINT_WAIT_A_WHILE,
-}
-# WIP: POST authentication url (i.e. /Auth/OAuth/Token)
-_OUT_ERR_MSG_LOOKUP_CRED: dict[int, str] = _ERR_MSG_LOOKUP_BASE | {
-    HTTPStatus.BAD_REQUEST: "Invalid user credentials (check the username/password)",
-    HTTPStatus.NOT_FOUND: "Not Found (invalid URL?)",
-    HTTPStatus.UNAUTHORIZED: "Invalid access token (dev/test only?)",
-}
-# WIP: GET/PUT resource url (e.g. /WebAPI/emea/api/v1/...)
-_OUT_ERR_MSG_LOOKUP_AUTH: dict[int, str] = _ERR_MSG_LOOKUP_BASE | {
-    HTTPStatus.BAD_REQUEST: "Bad request (invalid data/json?)",
-    HTTPStatus.NOT_FOUND: "Not Found (invalid entity type?)",
-    HTTPStatus.UNAUTHORIZED: "Unauthorized (expired access token/unknown entity id?)",
-}
 
 
 async def _payload(r: aiohttp.ClientResponse | None) -> str | None:
@@ -88,107 +39,6 @@ async def _payload(r: aiohttp.ClientResponse | None) -> str | None:
         return None
     except aiohttp.ClientError:
         return None
-
-
-class CredentialsManagerBase:
-    """A base class for managing the credentials used for HTTP authentication."""
-
-    def __init__(
-        self,
-        client_id: str,
-        secret: str,
-        websession: aiohttp.ClientSession,
-        /,
-        *,
-        _hostname: str | None = None,
-        logger: logging.Logger | None = None,
-    ) -> None:
-        """Initialise the session manager."""
-
-        self._client_id = client_id
-        self._secret = secret
-        self.websession: Final = websession
-
-        self._hostname: Final = _hostname or HOSTNAME
-        self.logger = logger or logging.getLogger(__name__)
-
-        self._was_authenticated = False  # True once credentials are proven valid
-
-    def __str__(self) -> str:
-        """Return a string representation of the object."""
-        return (
-            f"{self.__class__.__name__}"
-            f"(client_id='{self.client_id}, hostname='{self.hostname}')"
-        )
-
-    @cached_property
-    def client_id(self) -> str:
-        """Return the client id used for HTTP authentication."""
-        return self._client_id
-
-    @cached_property
-    def hostname(self) -> str:
-        """Return the hostname used for HTTP authentication."""
-        return self._hostname
-
-    async def _post_request(self, url: StrOrURL, /, **kwargs: Any) -> dict[str, Any]:
-        """POST an authentication request and return the response (a dict).
-
-        Will raise an exception if the authentication is not successful.
-        """
-
-        rsp: aiohttp.ClientResponse | None = None  # to prevent unbound error
-
-        try:
-            rsp = await self._request(HTTPMethod.POST, url, **kwargs)
-
-            await rsp.read()  # so we can use rsp.json()/rsp.text(), below
-            rsp.raise_for_status()
-
-            # can't assert content_length != 0 with aioresponses, so skip that check
-            if rsp.content_type != "application/json":  # usu. "text/plain", "text/html"
-                raise exc.AuthenticationFailedError(
-                    f"Authenticator response is not JSON: {await _payload(rsp)}"
-                )
-
-            if (response := await rsp.json()) is None:  # an unanticipated edge-case
-                raise exc.AuthenticationFailedError("Authenticator response is null")
-
-        except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
-            raise exc.AuthenticationFailedError(
-                f"Authenticator response is not valid JSON: {await _payload(rsp)}"
-            ) from err
-
-        except aiohttp.ClientResponseError as err:
-            # TODO: process payload and raise BadCredentialsError if code = EmailOrPasswordIncorrect
-            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
-                self.logger.error(hint)  # noqa: TRY400
-
-            msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
-
-            raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {msg}", status=err.status
-            ) from err
-
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            self.logger.error(_HINT_CHECK_NETWORK)  # noqa: TRY400
-
-            raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {err}",
-            ) from err
-
-        else:
-            return response  # type: ignore[no-any-return]
-
-        finally:
-            if rsp is not None:
-                rsp.release()
-
-    async def _request(  # dev/test wrapper
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> aiohttp.ClientResponse:
-        """Wrap the request to the ClientSession (useful for dev/test)."""
-        return await self.websession.request(method, url, **kwargs)
 
 
 class AbstractAuth(ABC):

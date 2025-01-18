@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Final
 import pytest
 from aioresponses import aioresponses
 
-from evohome.auth import _HINT_BAD_CREDS, _HINT_CHECK_NETWORK
+from evohome.const import _HINT_BAD_CREDS, _HINT_CHECK_NETWORK
 from evohomeasync import EvohomeClient, exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
 from tests.const import HEADERS_BASE, HEADERS_CRED_V0, URL_CRED_V0
@@ -78,10 +78,10 @@ async def test_bad1(  # bad credentials (client_id/secret)
         assert err.value.status == HTTPStatus.UNAUTHORIZED
 
         assert caplog.record_tuples == [
-            ("evohome.auth", logging.DEBUG, "Fetching session_id"),
-            ("evohome.auth", logging.DEBUG, " - authenticating with client_id/secret"),
-            ("evohome.auth", logging.ERROR, _HINT_BAD_CREDS),
-        ]
+            ("evohome.credentials", logging.DEBUG, "Fetching session_id"),
+            ("evohome.credentials", logging.DEBUG, " - authenticating with client_id/secret"),
+            ("evohome.credentials", logging.ERROR, _HINT_BAD_CREDS),
+        ]  # fmt: off
 
         assert len(rsp.requests) == 1
 
@@ -129,10 +129,10 @@ async def test_bad2(  # bad session id
 
         assert caplog.record_tuples == [
             ("evohomeasync", logging.WARNING, MSG_INVALID_SESSION),
-            ("evohome.auth", logging.DEBUG, "Fetching session_id"),
-            ("evohome.auth", logging.DEBUG, " - authenticating with client_id/secret"),
-            ("evohome.auth", logging.ERROR, _HINT_CHECK_NETWORK),  # Connection refused
-        ]
+            ("evohome.credentials", logging.DEBUG, "Fetching session_id"),
+            ("evohome.credentials", logging.DEBUG, " - authenticating with client_id/secret"),
+            ("evohome.credentials", logging.ERROR, _HINT_CHECK_NETWORK),  # Connection refused
+        ]  # fmt: off
 
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
