@@ -81,7 +81,7 @@ async def test_tcs_urls(
 
     # STEP 0: Create the Auth client...
     auth = Auth(
-        credentials_manager.get_access_token,
+        credentials_manager,
         credentials_manager.websession,
         logger=logging.getLogger(__name__),
     )
@@ -181,7 +181,7 @@ async def test_zon_urls(
     #
     # STEP 0: Create the Auth client, get the TCS config...
     auth = Auth(
-        credentials_manager.get_access_token,
+        credentials_manager,
         credentials_manager.websession,
         logger=logging.getLogger(__name__),
     )
@@ -281,7 +281,7 @@ async def test_dhw_urls(
     #
     # STEP 0: Create the Auth client, get the TCS config...
     auth = Auth(
-        credentials_manager.get_access_token,
+        credentials_manager,
         credentials_manager.websession,
         logger=logging.getLogger(__name__),
     )

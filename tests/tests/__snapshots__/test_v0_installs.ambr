@@ -79,7 +79,7 @@
         communication_failure_minutes: 15
         communication_lost_active: false
         communication_lost_hours: 0
-        device_id: 3933910
+        device_id: 3450733
         device_lost_active: false
         device_lost_hours: 0
         fault_condition_exists_active: false
@@ -91,33 +91,36 @@
         temp_lower_than: 5.0
         temp_lower_than_active: true
         temp_lower_than_minutes: 0
-      device_id: 3933910
+      device_id: 3450733
       device_type: 128
       domain_id: 20054
       gateway_id: 2499896
       hold_until_capable: false
-      instance: 250
+      instance: 8
       is_alive: true
       is_upgrading: false
       location_id: 2738909
       mac_id: 00D02DEE4E22
-      name: ''
+      name: Spare Room
       schedule_capable: false
       thermostat:
         allowed_modes:
-        - DHWOn
-        - DHWOff
+        - Heat
+        - 'Off'
         changeable_values:
-          mode: DHWOff
-          status: Scheduled
+          heat_setpoint:
+            status: Hold
+            value: 10.0
+          mode: 'Off'
+          vacation_hold_days: 0
         deadband: 0.0
         indoor_humidity: 128.0
         indoor_humidity_status: NotAvailable
-        indoor_temperature: 38.91
+        indoor_temperature: 15.26
         indoor_temperature_status: Measured
         is_commercial: false
         max_cool_setpoint: 90.0
-        max_heat_setpoint: 30.0
+        max_heat_setpoint: 35.0
         min_cool_setpoint: 50.0
         min_heat_setpoint: 5.0
         outdoor_humidity: 128.0
@@ -132,7 +135,7 @@
         units: Celsius
         vacation_hold_cancelable: false
         vacation_hold_changeable: false
-      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_model_type: EMEA_ZONE
       thermostat_version: 02.00.19.33
   
     ''',
@@ -2425,7 +2428,7 @@
         communication_failure_minutes: 15
         communication_lost_active: false
         communication_lost_hours: 0
-        device_id: 3933910
+        device_id: 3432577
         device_lost_active: false
         device_lost_hours: 0
         fault_condition_exists_active: false
@@ -2437,33 +2440,36 @@
         temp_lower_than: 5.0
         temp_lower_than_active: true
         temp_lower_than_minutes: 0
-      device_id: 3933910
+      device_id: 3432577
       device_type: 128
       domain_id: 20054
       gateway_id: 2499896
       hold_until_capable: false
-      instance: 250
+      instance: 2
       is_alive: true
       is_upgrading: false
       location_id: 2738909
       mac_id: 00D02DEE4E22
-      name: ''
+      name: Front Room
       schedule_capable: false
       thermostat:
         allowed_modes:
-        - DHWOn
-        - DHWOff
+        - Heat
+        - 'Off'
         changeable_values:
-          mode: DHWOff
-          status: Scheduled
+          heat_setpoint:
+            status: Scheduled
+            value: 19.5
+          mode: 'Off'
+          vacation_hold_days: 0
         deadband: 0.0
         indoor_humidity: 128.0
         indoor_humidity_status: NotAvailable
-        indoor_temperature: 38.91
+        indoor_temperature: 19.78
         indoor_temperature_status: Measured
         is_commercial: false
         max_cool_setpoint: 90.0
-        max_heat_setpoint: 30.0
+        max_heat_setpoint: 35.0
         min_cool_setpoint: 50.0
         min_heat_setpoint: 5.0
         outdoor_humidity: 128.0
@@ -2478,7 +2484,7 @@
         units: Celsius
         vacation_hold_cancelable: false
         vacation_hold_changeable: false
-      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_model_type: EMEA_ZONE
       thermostat_version: 02.00.19.33
   
     ''',

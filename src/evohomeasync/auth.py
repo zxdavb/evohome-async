@@ -22,7 +22,6 @@ from .schemas import TCC_POST_USR_SESSION
 
 if TYPE_CHECKING:
     import logging
-    from collections.abc import Awaitable, Callable
 
     import aiohttp
     from aiohttp.typedefs import StrOrURL
@@ -209,7 +208,7 @@ class Auth(AbstractAuth):
 
     def __init__(
         self,
-        session_id_getter: Callable[[], Awaitable[str]],
+        session_manager: AbstractSessionManager,
         websession: aiohttp.ClientSession,
         /,
         *,
@@ -221,7 +220,7 @@ class Auth(AbstractAuth):
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
-        self._session_id = session_id_getter
+        self._session_id = session_manager.get_session_id
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
         """Ensure the authorization header has a valid session id."""

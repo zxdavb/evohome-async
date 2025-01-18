@@ -46,11 +46,7 @@ class EvohomeClient:
             self.logger.debug("Debug mode explicitly enabled via kwarg.")
 
         self._session_manager = session_manager
-
-        self.auth = Auth(
-            session_manager.get_session_id,
-            websession or session_manager.websession,
-        )
+        self.auth = Auth(session_manager, websession or session_manager.websession)
 
         # self.devices: dict[_ZoneIdT, _DeviceDictT] = {}  # dhw or zone by id
         # self.named_devices: dict[_ZoneNameT, _DeviceDictT] = {}  # zone by name

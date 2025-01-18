@@ -51,11 +51,7 @@ class EvohomeClient:
             self.logger.debug("Debug mode explicitly enabled via kwarg.")
 
         self._token_manager = token_manager
-
-        self.auth = Auth(
-            token_manager.get_access_token,
-            websession or token_manager.websession,
-        )
+        self.auth = Auth(token_manager, websession or token_manager.websession)
 
         # NOTE: below is an attempt to determine the local TZ of the host running this
         # client, and is not necessarily the TZ of each location known to this client;

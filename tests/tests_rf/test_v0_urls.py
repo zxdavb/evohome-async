@@ -139,7 +139,7 @@ async def test_tcs_urls(
 
     # Create the Auth client (may POST /session)...
     auth = Auth(
-        credentials_manager.get_session_id,
+        credentials_manager,
         credentials_manager.websession,
         logger=logging.getLogger(__name__),
     )
@@ -174,7 +174,7 @@ async def test_zon_urls(
 
     # Create the Auth client (may POST /session)...
     auth = Auth(
-        credentials_manager.get_session_id,
+        credentials_manager,
         credentials_manager.websession,
         logger=logging.getLogger(__name__),
     )
@@ -212,7 +212,7 @@ async def test_dhw_urls(
 
     # Create the Auth client (may POST /session)...
     auth = Auth(
-        credentials_manager.get_session_id,
+        credentials_manager,
         credentials_manager.websession,
         logger=logging.getLogger(__name__),
     )

@@ -23,7 +23,6 @@ from . import exceptions as exc
 
 if TYPE_CHECKING:
     import logging
-    from collections.abc import Awaitable, Callable
 
     import aiohttp
     from aiohttp.typedefs import StrOrURL
@@ -258,7 +257,7 @@ class Auth(AbstractAuth):
 
     def __init__(
         self,
-        access_token_getter: Callable[[], Awaitable[str]],
+        token_manager: AbstractTokenManager,
         websession: aiohttp.ClientSession,
         /,
         *,
@@ -270,7 +269,7 @@ class Auth(AbstractAuth):
         super().__init__(websession, _hostname=_hostname, logger=logger)
 
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
-        self._access_token = access_token_getter
+        self._access_token = token_manager.get_access_token
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
         """Ensure the authorization header has a valid access token."""
