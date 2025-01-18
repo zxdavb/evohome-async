@@ -12,7 +12,7 @@ import aiohttp
 
 from . import exceptions as exc
 from .auth import _payload
-from .const import _ERR_MSG_LOOKUP_BASE, _HINT_CHECK_NETWORK, HOSTNAME
+from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
 
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
@@ -89,7 +89,7 @@ class CredentialsManagerBase:
 
         except aiohttp.ClientResponseError as err:
             # TODO: process payload and raise BadCredentialsError if code = EmailOrPasswordIncorrect
-            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
+            if hint := ERR_MSG_LOOKUP_BASE.get(err.status):
                 self.logger.error(hint)  # noqa: TRY400
 
             msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
@@ -99,7 +99,7 @@ class CredentialsManagerBase:
             ) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            self.logger.error(_HINT_CHECK_NETWORK)  # noqa: TRY400
+            self.logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
 
             raise exc.AuthenticationFailedError(
                 f"Authenticator response is invalid: {err}",

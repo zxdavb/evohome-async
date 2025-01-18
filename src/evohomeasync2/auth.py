@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Final
 import voluptuous as vol
 
 from evohome.auth import AbstractAuth
-from evohome.const import _HINT_BAD_CREDS, HEADERS_BASE, HEADERS_CRED
+from evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
 from evohome.credentials import CredentialsManagerBase
 from evohome.helpers import convert_keys_to_snake_case, obfuscate
 
@@ -167,7 +167,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
             except exc.AuthenticationFailedError as err:
                 if "invalid_grant" not in err.message:
                     raise
-                self.logger.error(_HINT_BAD_CREDS)  # noqa: TRY400
+                self.logger.error(HINT_BAD_CREDS)  # noqa: TRY400
                 # status will be: HTTPStatus.BAD_REQUEST, 400
                 raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
 

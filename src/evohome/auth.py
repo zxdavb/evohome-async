@@ -13,7 +13,7 @@ import aiohttp
 import voluptuous as vol
 
 from . import exceptions as exc
-from .const import _ERR_MSG_LOOKUP_BASE, _HINT_CHECK_NETWORK, HOSTNAME
+from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
 from .helpers import (
     convert_keys_to_camel_case,
     convert_keys_to_snake_case,
@@ -194,7 +194,7 @@ class AbstractAuth(ABC):
         # such 401s as they can tell if was well-known URL (e.g. without usr_id)
 
         except aiohttp.ClientResponseError as err:
-            if hint := _ERR_MSG_LOOKUP_BASE.get(err.status):
+            if hint := ERR_MSG_LOOKUP_BASE.get(err.status):
                 self.logger.error(hint)  # noqa: TRY400
 
             msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
@@ -204,7 +204,7 @@ class AbstractAuth(ABC):
             ) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            self.logger.error(_HINT_CHECK_NETWORK)  # noqa: TRY400
+            self.logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
 
             raise exc.ApiRequestFailedError(
                 f"{method} {url}: {err}",

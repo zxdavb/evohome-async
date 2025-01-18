@@ -11,7 +11,7 @@ import pytest
 from aioresponses import aioresponses
 from cli.auth import CredentialsManager
 
-from evohome.const import _HINT_BAD_CREDS, _HINT_CHECK_NETWORK
+from evohome.const import HINT_BAD_CREDS, HINT_CHECK_NETWORK
 from evohomeasync2 import EvohomeClient, exceptions as exc
 from tests.const import (
     HEADERS_BASE,
@@ -53,10 +53,10 @@ LOG_02 = ("evohome.credentials", logging.DEBUG, " - authenticating with the refr
 LOG_03 = ("evohome.credentials", logging.DEBUG, "Expired/invalid refresh_token")
 LOG_04 = ("evohome.credentials", logging.DEBUG, " - authenticating with client_id/secret")  # fmt: off
 
-LOG_11 = ("evohome.credentials", logging.ERROR, _HINT_BAD_CREDS)
-LOG_12 = ("evohome.credentials", logging.ERROR, _HINT_CHECK_NETWORK)
+LOG_11 = ("evohome.credentials", logging.ERROR, HINT_BAD_CREDS)
+LOG_12 = ("evohome.credentials", logging.ERROR, HINT_CHECK_NETWORK)
 
-LOG_13 = ("evohome.auth", logging.ERROR, _HINT_CHECK_NETWORK)
+LOG_13 = ("evohome.auth", logging.ERROR, HINT_CHECK_NETWORK)
 
 POST_CREDS = (
     "https://tccna.resideo.com/Auth/OAuth/Token",
