@@ -108,7 +108,7 @@ class EvohomeClient:
                 await loc.update()
                 #
 
-        assert self._user_locs is not None  # mypy (internal hint)
+        assert self._user_locs is not None  # mypy
         return self._user_locs
 
     async def _get_config(
@@ -138,13 +138,13 @@ class EvohomeClient:
                 self._token_manager._clear_access_token()
                 self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
 
-        assert self._user_info is not None  # mypy (internal hint)
+        assert self._user_info is not None  # mypy
 
         if self._user_locs is None:
             url = f"location/installationInfo?userId={self._user_info[SZ_USER_ID]}&includeTemperatureControlSystems=True"
             self._user_locs = await self.auth.get(url, schema=SCH_USER_LOCATIONS)  # type: ignore[assignment]
 
-        assert self._user_locs is not None  # mypy (internal hint)
+        assert self._user_locs is not None  # mypy
 
         if self._locations is None:
             self._locations = []

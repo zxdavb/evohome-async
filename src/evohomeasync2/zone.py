@@ -269,7 +269,7 @@ def _find_switchpoints(
             break
 
     else:
-        assert this_sp is not None  # mypy (internal hint)
+        assert this_sp is not None  # mypy
 
         if next_sp is None:
             next_sp = schedule[(day_idx + 1) % 7]["switchpoints"][0]
@@ -410,7 +410,7 @@ class _ScheduleBase(EntityBase):
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
-            assert isinstance(schedule, list)  # mypy (internal hint)
+            assert isinstance(schedule, list)  # mypy
 
         else:
             raise exc.BadScheduleUploadedError(

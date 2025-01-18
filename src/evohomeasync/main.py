@@ -96,7 +96,7 @@ class EvohomeClient:
                 loc_id = str(loc_entry["location_id"])
                 self._location_by_id[loc_id]._update_status(loc_entry)
 
-        assert self._user_locs is not None  # mypy (internal hint)
+        assert self._user_locs is not None  # mypy
         return self._user_locs
 
     async def _get_config(self) -> list[EvoTcsInfoDictT]:
@@ -124,13 +124,13 @@ class EvohomeClient:
                 self._session_manager._clear_session_id()
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)  # type: ignore[assignment]
 
-        assert self._user_info is not None  # mypy (internal hint)
+        assert self._user_info is not None  # mypy
 
         if self._user_locs is None:
             url = f"locations?userId={self._user_info['user_id']}&allData=True"
             self._user_locs = await self.auth.get(url, schema=SCH_GET_ACCOUNT_LOCS)  # type: ignore[assignment]
 
-        assert self._user_locs is not None  # mypy (internal hint)
+        assert self._user_locs is not None  # mypy
 
         if self._locations is None:
             self._locations = []
