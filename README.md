@@ -52,15 +52,17 @@ The difference between the **evohome-async** and **evohome-client** libraries ar
 For example, entity ID attrs are `.id` and no longer `.dhwId`, `zoneId`, etc.
 
 Other differences include:
- - namespace is different (simpler) and is `snake_case` and not `camelCase`
- - exceptions are parochial (e.g. **AuthenticationFailedError**) rather than generic (**TypeError**)
- - exposes a **TokenManager** class (for authentication) and uses an **Auth** class (for authorization)
- - is fully typed, including **TypedDict**s and `py.typed`
- - additional functionality (e.g. logs a warning for any active faults)
- - better error messages when things do go wrong
- - extended compatibility beyond pure evohome systems (e.g. VisionPro)
- - more extensive testing via **pytest**
- - uses best of class linting/typing via **ruff**/**mypy**
- - can import schedule JSON by name as well as by zone/dhw id
+* namespace is refactored (simpler), and attrs are `snake_case` rather than `camelCase`
+* all datetimes are now TZ-aware internally, and exposed as such
+* can import schedule JSON by name as well as by zone/dhw id
+* newer API exposes a **TokenManager** class (for authentication) and an **Auth** class (for authorization)
+* older API exposes a **SessionManager** (for authentication) and an **Auth** class (for authorization)
+* exceptions are parochial (e.g. `AuthenticationFailedError`) rather than generic (`TypeError`)
+* improved logging: better error messages when things do go wrong
+* additional logging: e.g. logs a warning for any active faults
+* is now fully typed, including TypedDicts and py.typed
+* uses best of class linting/typing via **ruff**/**mypy**
+* more extensive testing via **pytest**
+* (WIP) extended compatibility beyond pure evohome systems (e.g. VisionPro)
 
 > **TIP:** the non-async documentation (from **evohome-client**) is available at http://evohome-client.readthedocs.org/en/latest/
