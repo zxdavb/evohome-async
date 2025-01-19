@@ -33,14 +33,6 @@ _TEST_ACCESS_TOKEN = "-- access token --"  # noqa: S105
 _TEST_REFRESH_TOKEN = "-- refresh token --"  # noqa: S105
 
 
-@pytest.fixture(scope="module")
-def cache_file(
-    tmp_path_factory: pytest.TempPathFactory,
-) -> Path:
-    """Return the path to the token cache."""
-    return tmp_path_factory.mktemp(__name__) / ".evo-cache.tst"
-
-
 POST_CREDS = (
     "https://tccna.resideo.com/Auth/OAuth/Token",
     HTTPMethod.POST,
@@ -108,7 +100,15 @@ _OUT_TEST_SUITE = {
 }
 
 
-# NOTE: using fixture_folder will break these tests, and we don't want .update() either
+@pytest.fixture(scope="module")
+def cache_file(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> Path:
+    """Return the path to the token cache."""
+    return tmp_path_factory.mktemp(__name__) / ".evo-cache.tst"
+
+
+# NOTE: using fixture_folder will break these tests; we don't want evo.update() either
 @pytest.fixture
 async def evohome_v2(
     credentials_manager: CredentialsManager,

@@ -13,7 +13,13 @@ from aioresponses import aioresponses
 from evohome.const import HINT_CHECK_NETWORK
 from evohomeasync import EvohomeClient, exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
-from tests.const import HEADERS_BASE, HEADERS_CRED_V0, URL_CRED_V0
+from tests.const import (
+    HEADERS_BASE,
+    HEADERS_CRED_V0,
+    TEST_PASSWORD,
+    TEST_USERNAME,
+    URL_CRED_V0,
+)
 
 from .const import LOG_04, LOG_11, LOG_12, LOG_90, LOG_91
 
@@ -25,6 +31,27 @@ if TYPE_CHECKING:
 
 
 _TEST_SESSION_ID = "-- session id --"
+#
+
+
+POST_CREDS = (
+    "https://tccna.resideo.com/WebAPI/api/session",
+    HTTPMethod.POST,
+    {
+        "headers": HEADERS_CRED_V0,
+        "data": {
+            "applicationId": _APPLICATION_ID,
+            "username": TEST_USERNAME,
+            "password": TEST_PASSWORD,
+        },
+    },
+)
+
+GET_ACCOUNT = (
+    "https://tccna.resideo.com/WebAPI/api/accountInfo",
+    HTTPMethod.GET,
+    {"headers": HEADERS_BASE | {"sessionId": _TEST_SESSION_ID}},
+)
 
 
 @pytest.fixture(scope="module")
@@ -35,7 +62,7 @@ def cache_file(
     return tmp_path_factory.mktemp(__name__) / ".evo-cache.tst"
 
 
-# NOTE: using fixture_folder will break these tests, and we don't want .update() either
+# NOTE: using fixture_folder will break these tests; we don't want evo.update() either
 @pytest.fixture
 async def evohome_v0(
     credentials_manager: CredentialsManager,
@@ -78,16 +105,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
         assert len(rsp.requests) == 1
 
         # response 0: EmailOrPasswordIncorrect
-        rsp.assert_called_once_with(
-            "https://tccna.resideo.com/WebAPI/api/session",
-            HTTPMethod.POST,
-            headers=HEADERS_CRED_V0,
-            data={
-                "applicationId": _APPLICATION_ID,
-                "username": credentials[0],
-                "password": credentials[1],
-            },
-        )
+        rsp.assert_called_once_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
     assert evohome_v0._session_manager.is_session_valid() is False
 
@@ -124,23 +142,10 @@ async def test_bad2(  # bad session id
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
         # response 0: Unauthorized (bad session id)
-        rsp.assert_called_with(
-            "https://tccna.resideo.com/WebAPI/api/accountInfo",
-            HTTPMethod.GET,
-            headers=HEADERS_BASE | {"sessionId": _TEST_SESSION_ID},
-        )
+        rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
         # response 1: Connection refused (as no response provided by us)
-        rsp.assert_called_with(
-            "https://tccna.resideo.com/WebAPI/api/session",
-            HTTPMethod.POST,
-            headers=HEADERS_CRED_V0,
-            data={
-                "applicationId": _APPLICATION_ID,
-                "username": credentials[0],
-                "password": credentials[1],
-            },
-        )
+        rsp.assert_called_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
     assert evohome_v0._session_manager.is_session_valid() is False
 
@@ -197,22 +202,9 @@ async def test_good(  # good credentials
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
         # response 0: Successful authentication
-        rsp.assert_called_with(
-            "https://tccna.resideo.com/WebAPI/api/session",
-            HTTPMethod.POST,
-            headers=HEADERS_CRED_V0,
-            data={
-                "applicationId": _APPLICATION_ID,
-                "username": credentials[0],
-                "password": credentials[1],
-            },
-        )
+        rsp.assert_called_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
         # response 1: Connection refused (as no response provided by us)
-        rsp.assert_called_with(
-            "https://tccna.resideo.com/WebAPI/api/accountInfo",
-            HTTPMethod.GET,
-            headers=HEADERS_BASE | {"sessionId": _TEST_SESSION_ID},
-        )
+        rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
     assert evohome_v0._session_manager.is_session_valid() is True
