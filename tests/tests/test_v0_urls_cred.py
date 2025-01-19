@@ -5,15 +5,17 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 import pytest
 from aioresponses import aioresponses
 
-from evohome.const import HINT_BAD_CREDS, HINT_CHECK_NETWORK
+from evohome.const import HINT_CHECK_NETWORK
 from evohomeasync import EvohomeClient, exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
 from tests.const import HEADERS_BASE, HEADERS_CRED_V0, URL_CRED_V0
+
+from .const import LOG_04, LOG_11, LOG_12, LOG_90, LOG_91
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -21,12 +23,6 @@ if TYPE_CHECKING:
 
     from cli.auth import CredentialsManager
 
-
-MSG_INVALID_SESSION: Final = (
-    "The session_id has been rejected (will re-authenticate): "
-    "GET https://tccna.resideo.com/WebAPI/api/accountInfo: "
-    '401 Unauthorized, response=[{"code": "Unauthorized", "message": "Unauthorized"}]'
-)
 
 _TEST_SESSION_ID = "-- session id --"
 
@@ -77,11 +73,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
 
         assert err.value.status == HTTPStatus.UNAUTHORIZED
 
-        assert caplog.record_tuples == [
-            ("evohome.credentials", logging.DEBUG, "Fetching session_id..."),
-            ("evohome.credentials", logging.DEBUG, " - authenticating with client_id/secret"),
-            ("evohome.credentials", logging.ERROR, HINT_BAD_CREDS),
-        ]  # fmt: off
+        assert caplog.record_tuples == [LOG_90, LOG_04, LOG_11]
 
         assert len(rsp.requests) == 1
 
@@ -127,12 +119,7 @@ async def test_bad2(  # bad session id
 
         assert err.value.status is None  # Connection refused
 
-        assert caplog.record_tuples == [
-            ("evohomeasync", logging.WARNING, MSG_INVALID_SESSION),
-            ("evohome.credentials", logging.DEBUG, "Fetching session_id..."),
-            ("evohome.credentials", logging.DEBUG, " - authenticating with client_id/secret"),
-            ("evohome.credentials", logging.ERROR, HINT_CHECK_NETWORK),  # Connection refused
-        ]  # fmt: off
+        assert caplog.record_tuples == [LOG_91, LOG_90, LOG_04, LOG_12]
 
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
