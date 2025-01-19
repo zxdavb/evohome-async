@@ -23,7 +23,7 @@ def obfuscate(value: bool | int | str) -> bool | int | str | None:
     if not isinstance(value, str):
         raise TypeError(f"obfuscate() expects bool | int | str, got {type(value)}")
     if REGEX_EMAIL_ADDRESS.match(value):
-        return "******@obfsfucated.com"
+        return "******@obfuscated.com"
     return "********"
 
 
