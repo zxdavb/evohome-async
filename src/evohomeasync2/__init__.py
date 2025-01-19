@@ -36,8 +36,6 @@ from .location import Location
 from .main import EvohomeClient
 from .zone import Zone
 
-__version__ = "1.2.0"
-
 
 class _TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
     """A TokenManager wrapper to help expose the refactored EvohomeClient."""

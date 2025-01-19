@@ -61,8 +61,6 @@ from .schemas import (  # noqa: F401
     SZ_VALUE,
 )
 
-__version__ = "1.2.0"
-
 
 class _SessionManager(AbstractSessionManager):  # used only by EvohomeClientOld
     """A TokenManager wrapper to help expose the refactored EvohomeClient."""

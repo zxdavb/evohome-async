@@ -28,7 +28,7 @@ classifiers = [
 
 #
 [project.scripts]
-evo-client = "evohomeasync2.client:main"
+evo-client = "cli.client:main"
 
 #
 [project.urls]
@@ -48,10 +48,10 @@ build-backend = "hatchling.build"
 sources = ["src"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/evohomeasync", "src/evohomeasync2", "src/evocommon"]
+packages = ["src/evohomeasync", "src/evohomeasync2", "src/evohome"]
 
 [tool.hatch.version]
-path = "src/evohomeasync2/__init__.py"
+path = "src/evohome/__init__.py"
 
 
 #
