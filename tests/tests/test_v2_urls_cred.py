@@ -48,7 +48,7 @@ def cache_file(
 
 LOG_00 = ("evohomeasync2", logging.WARNING, MSG_INVALID_TOKEN)
 
-LOG_01 = ("evohome.credentials", logging.DEBUG, "Fetching access_token")
+LOG_01 = ("evohome.credentials", logging.DEBUG, "Fetching access_token...")
 LOG_02 = ("evohome.credentials", logging.DEBUG, " - authenticating with the refresh_token")  # fmt: off
 LOG_03 = ("evohome.credentials", logging.DEBUG, "Expired/invalid refresh_token")
 LOG_04 = ("evohome.credentials", logging.DEBUG, " - authenticating with client_id/secret")  # fmt: off

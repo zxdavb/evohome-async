@@ -106,7 +106,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         return self._session_id_expires > dt.now(tz=UTC) + td(seconds=15)
 
     async def fetch_session_id(self) -> None:
-        self.logger.debug("Fetching session_id")
+        self.logger.debug("Fetching session_id...")
 
         self.logger.debug(" - authenticating with client_id/secret")
 

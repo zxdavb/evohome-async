@@ -135,7 +135,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
     async def fetch_access_token(self) -> None:
         """Update the access token and save it to the store/cache."""
 
-        self.logger.debug("Fetching access_token")
+        self.logger.debug("Fetching access_token...")
 
         if self._refresh_token:
             self.logger.debug(" - authenticating with the refresh_token")

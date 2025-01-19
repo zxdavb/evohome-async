@@ -78,7 +78,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
         assert err.value.status == HTTPStatus.UNAUTHORIZED
 
         assert caplog.record_tuples == [
-            ("evohome.credentials", logging.DEBUG, "Fetching session_id"),
+            ("evohome.credentials", logging.DEBUG, "Fetching session_id..."),
             ("evohome.credentials", logging.DEBUG, " - authenticating with client_id/secret"),
             ("evohome.credentials", logging.ERROR, HINT_BAD_CREDS),
         ]  # fmt: off
@@ -129,7 +129,7 @@ async def test_bad2(  # bad session id
 
         assert caplog.record_tuples == [
             ("evohomeasync", logging.WARNING, MSG_INVALID_SESSION),
-            ("evohome.credentials", logging.DEBUG, "Fetching session_id"),
+            ("evohome.credentials", logging.DEBUG, "Fetching session_id..."),
             ("evohome.credentials", logging.DEBUG, " - authenticating with client_id/secret"),
             ("evohome.credentials", logging.ERROR, HINT_CHECK_NETWORK),  # Connection refused
         ]  # fmt: off
