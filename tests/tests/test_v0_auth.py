@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from http import HTTPMethod, HTTPStatus
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
@@ -13,8 +13,9 @@ from aioresponses import aioresponses
 from cli.auth import CredentialsManager
 
 from evohomeasync import exceptions as exc
-from evohomeasync.auth import _APPLICATION_ID
-from tests.const import HEADERS_CRED_V0, URL_CRED_V0
+from tests.const import URL_CRED_V0
+
+from .test_v0_urls_cred import POST_CREDS  # HACK, should be in const.py, or a fixture
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -45,14 +46,6 @@ async def test_get_session_id(
     # have not yet called get_session_id (so not loaded cache either)
     assert session_manager.is_session_valid() is False
 
-    #
-    # test HTTPStatus.UNAUTHORIZED -> exc.AuthenticationFailedError
-    data_password = {  # later, we'll assert POST was called with this data
-        "applicationId": _APPLICATION_ID,
-        "username": credentials[0],
-        "password": credentials[1],
-    }
-
     with aioresponses() as rsp:
         response = [
             {
@@ -65,9 +58,7 @@ async def test_get_session_id(
         with pytest.raises(exc.AuthenticationFailedError):
             await session_manager.get_session_id()
 
-        rsp.assert_called_once_with(
-            URL_CRED_V0, HTTPMethod.POST, headers=HEADERS_CRED_V0, data=data_password
-        )
+        rsp.assert_called_once_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
     assert session_manager.is_session_valid() is False
 
@@ -80,9 +71,7 @@ async def test_get_session_id(
 
         assert await session_manager.get_session_id() == payload["sessionId"]
 
-        rsp.assert_called_once_with(
-            URL_CRED_V0, HTTPMethod.POST, headers=HEADERS_CRED_V0, data=data_password
-        )
+        rsp.assert_called_once_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
     assert session_manager.is_session_valid() is True
 
@@ -114,9 +103,7 @@ async def test_get_session_id(
 
         assert await session_manager.get_session_id() == payload["sessionId"]
 
-        rsp.assert_called_once_with(
-            URL_CRED_V0, HTTPMethod.POST, headers=HEADERS_CRED_V0, data=data_password
-        )
+        rsp.assert_called_once_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
     assert session_manager.is_session_valid() is True
 
