@@ -5,13 +5,12 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 import pytest
 from aioresponses import aioresponses
 from cli.auth import CredentialsManager
 
-from evohome.const import HINT_BAD_CREDS, HINT_CHECK_NETWORK
 from evohomeasync2 import EvohomeClient, exceptions as exc
 from tests.const import (
     HEADERS_BASE,
@@ -21,18 +20,14 @@ from tests.const import (
     URL_CRED_V2,
 )
 
+from .const import LOG_00, LOG_01, LOG_02, LOG_03, LOG_04, LOG_11, LOG_12, LOG_13
+
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
     from pathlib import Path
 
     from cli.auth import CredentialsManager
 
-
-MSG_INVALID_TOKEN: Final = (
-    "The access_token has been rejected (will re-authenticate): "  # noqa: S105
-    "GET https://tccna.resideo.com/WebAPI/emea/api/v1/userAccount: "
-    '401 Unauthorized, response=[{"code": "Unauthorized", "message": "Unauthorized"}]'
-)
 
 _TEST_ACCESS_TOKEN = "-- access token --"  # noqa: S105
 _TEST_REFRESH_TOKEN = "-- refresh token --"  # noqa: S105
@@ -45,18 +40,6 @@ def cache_file(
     """Return the path to the token cache."""
     return tmp_path_factory.mktemp(__name__) / ".evo-cache.tst"
 
-
-LOG_00 = ("evohomeasync2", logging.WARNING, MSG_INVALID_TOKEN)
-
-LOG_01 = ("evohome.credentials", logging.DEBUG, "Fetching access_token...")
-LOG_02 = ("evohome.credentials", logging.DEBUG, " - authenticating with the refresh_token")  # fmt: off
-LOG_03 = ("evohome.credentials", logging.DEBUG, "Expired/invalid refresh_token")
-LOG_04 = ("evohome.credentials", logging.DEBUG, " - authenticating with client_id/secret")  # fmt: off
-
-LOG_11 = ("evohome.credentials", logging.ERROR, HINT_BAD_CREDS)
-LOG_12 = ("evohome.credentials", logging.ERROR, HINT_CHECK_NETWORK)
-
-LOG_13 = ("evohome.auth", logging.ERROR, HINT_CHECK_NETWORK)
 
 POST_CREDS = (
     "https://tccna.resideo.com/Auth/OAuth/Token",
