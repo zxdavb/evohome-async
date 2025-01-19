@@ -11,7 +11,8 @@ from evohomeasync2.schemas import (
     factory_loc_status,
 )
 
-from .common import TEST_DIR, assert_schema
+from .common import assert_schema
+from .const import TEST_DIR
 
 if TYPE_CHECKING:
     import pytest

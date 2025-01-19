@@ -21,8 +21,8 @@ from evohomeasync2.schemas.const import (
 )
 from evohomeasync2.schemas.status import factory_loc_status
 
-from .common import TEST_DIR
 from .conftest import ClientStub
+from .const import TEST_DIR
 
 if TYPE_CHECKING:
     import pytest

@@ -13,8 +13,6 @@ import pytest
 if TYPE_CHECKING:
     import voluptuous as vol
 
-TEST_DIR = Path(__file__).resolve().parent
-
 
 def assert_schema(folder: Path, schema: vol.Schema, file_name: str) -> None:
     if not Path(folder).joinpath(file_name).is_file():

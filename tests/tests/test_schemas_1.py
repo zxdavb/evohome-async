@@ -18,8 +18,8 @@ from evohomeasync2.schemas.const import (
     S2_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 
-from .common import TEST_DIR
 from .conftest import ClientStub
+from .const import TEST_DIR
 
 if TYPE_CHECKING:
     import pytest
