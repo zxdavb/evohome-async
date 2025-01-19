@@ -492,23 +492,24 @@ class EvoLocInfoDictT(TypedDict):  # c.f. TccLocationResponseT
 class EvoGwyInfoDictT(TypedDict):  # c.f. TccDeviceResponseT
     gateway_id: _GatewayIdT
     device_type: int
-    name: str
     mac_id: str
     location_id: int
-    domain_id: int
     serial_number: str
     pcb_number: str
 
 
 # These keys are in the JSON, but not in the developer docs for the API
 class EvoTcsInfoDictT(EvoLocInfoDictT):
+    domain_id: int
     one_touch_actions_suspended: bool
     one_touch_buttons: list[str]
+    thermostat_version: str
 
 
 class EvoDevInfoDictT(EvoGwyInfoDictT):
     device_id: _DhwIdT | _ZoneIdT
-    thermostat_model_type: str  # DOMESTIC_HOT_WATER or a zone
+    name: str
+    thermostat_model_type: str  # DOMESTIC_HOT_WATER or a zone, e.g. EMEA_ZONE
     schedule_capable: bool
     hold_until_capable: bool
     thermostat: EvoThermostatInfoDictT
@@ -519,7 +520,6 @@ class EvoDevInfoDictT(EvoGwyInfoDictT):
     alert_settings: dict[str, Any]  # AlertSettingsResponse
     is_upgrading: bool
     is_alive: bool
-    thermostat_version: str
     instance: int
 
 

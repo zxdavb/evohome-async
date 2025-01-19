@@ -27,6 +27,7 @@ from .schemas import (
     SZ_TEMPORARY,
     SZ_THERMOSTAT,
     SZ_VALUE,
+    EvoGwyInfoDictT,
     SystemMode,
 )
 
@@ -40,7 +41,6 @@ if TYPE_CHECKING:
     from .auth import Auth
     from .schemas import (
         EvoDevInfoDictT,
-        EvoGwyInfoDictT,
         EvoLocInfoDictT,
         EvoTcsInfoDictT,
         EvoTimeZoneInfoDictT,
@@ -401,7 +401,27 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
     _config: Final[EvoGwyInfoDictT]  # type: ignore[misc]
     _status: EvoGwyInfoDictT  # initial state
 
+    # list(EvoGwyInfoDictT.__annotations__.keys())
+
     # Config attrs...
+
+    @property
+    def config(self) -> EvoGwyInfoDictT:
+        """Return the config of the entity."""
+        return {
+            k: v
+            for k, v in self._config.items()
+            if k in list(EvoGwyInfoDictT.__annotations__.keys())
+        }  # type: ignore[return-value]
+
+    @property
+    def status(self) -> EvoGwyInfoDictT:
+        """Return the latest config of the entity."""
+        return {
+            k: v
+            for k, v in self._config.items()
+            if k in list(EvoGwyInfoDictT.__annotations__.keys())
+        }  # type: ignore[return-value]
 
     @cached_property
     def mac_address(self) -> str:
