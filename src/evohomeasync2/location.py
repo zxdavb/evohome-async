@@ -75,7 +75,11 @@ async def create_location(
         dst_enabled=config[SZ_LOCATION_INFO][SZ_USE_DAYLIGHT_SAVE_SWITCHING],
     )
 
-    return Location(client, config, tzinfo=tzinfo)
+    loc = Location(client, config, tzinfo=tzinfo)
+
+    _LOGGER.debug(f"Instantiated {loc}")
+
+    return loc
 
 
 class Location(EntityBase):
@@ -255,7 +259,11 @@ class Location(EntityBase):
 async def _create_tzinfo(
     time_zone_info: EvoTimeZoneInfoT, /, *, dst_enabled: bool
 ) -> tzinfo:
-    """Create a tzinfo object based on the time zone information."""
+    """Create a tzinfo object based on the time zone information.
+
+    Note that `dst_enabled` (DST will be active at some times) is distinct from
+    `dst_active` (DST is active now).
+    """
 
     time_zone_id = time_zone_info["time_zone_id"]
 
