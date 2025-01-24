@@ -176,14 +176,16 @@ class ActiveFaultsBase(EntityBase):
             return f"{fault[SZ_FAULT_TYPE]}_{fault[SZ_SINCE]}"
 
         def log_as_active(fault: EvoActiveFaultResponseT) -> None:
+            # the dt is local/naive, leave it as so (but _could_ convert to TZ-aware)
             self._logger.warning(
-                f"Active fault: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
+                f"{self}: Active fault: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
             )
             last_logged[hash_(fault)] = dt.now(tz=UTC)  # aware dtm not required
 
         def log_as_resolved(fault: EvoActiveFaultResponseT) -> None:
+            # the dt is local/naive, leave it as so (but _could_ convert to TZ-aware)
             self._logger.info(
-                f"Fault cleared: {self}: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
+                f"{self}: Fault cleared: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
             )
             del self._last_logged[hash_(fault)]
 
@@ -220,7 +222,11 @@ class ActiveFaultsBase(EntityBase):
 
 
 def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
-    """Convert a datetime into a aware datetime in the given TZ."""
+    """Convert a datetime into a aware datetime in the given TZ.
+
+    If the datetime is naive, assumes it is in the same timezone as tzinfo.
+    """
+
     if isinstance(dtm, str):
         dtm = dt.fromisoformat(dtm)
     return dtm.replace(tzinfo=tzinfo) if dtm.tzinfo is None else dtm.astimezone(tzinfo)
