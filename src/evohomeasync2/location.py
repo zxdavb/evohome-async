@@ -119,6 +119,10 @@ class Location(EntityBase):
             self.gateways.append(gwy)
             self.gateway_by_id[gwy.id] = gwy
 
+    def __str__(self) -> str:
+        """Return a string representation of the entity."""
+        return f"{self.__class__.__name__}(id='{self._id}', tzinfo='{self.tzinfo}')"
+
     # Config attrs...
 
     @cached_property  # TODO: deprecate in favour of .id attr
