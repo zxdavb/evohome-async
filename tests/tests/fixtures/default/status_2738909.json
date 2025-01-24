@@ -10,7 +10,7 @@
             {
               "zoneId": "3432521",
               "temperatureStatus": { "isAvailable": false },
-              "activeFaults": [],
+              "activeFaults": [{"faultType": "TempZoneActuatorCommunicationLost", "since": "2024-12-17T17:10:57"}],
               "setpointStatus": {
                 "targetHeatTemperature": 5.0,
                 "setpointMode": "PermanentOverride"
