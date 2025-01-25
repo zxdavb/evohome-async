@@ -224,7 +224,7 @@ class ActiveFaultsBase(EntityBase):
 def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
     """Convert a datetime into a aware datetime in the given TZ.
 
-    If the datetime is naive, assumes it is in the same timezone as tzinfo.
+    If the datetime is naive, assume it is in the same timezone as tzinfo.
     """
 
     if isinstance(dtm, str):
