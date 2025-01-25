@@ -127,7 +127,9 @@
         is_permanent: true
         mode: AutoWithEco
       zones:
-      - active_faults: []
+      - active_faults:
+        - fault_type: TempZoneActuatorCommunicationLost
+          since: '2024-12-17T17:10:57'
         name: Dead Zone
         setpoint_status:
           setpoint_mode: PermanentOverride
@@ -270,7 +272,9 @@
           is_permanent: true
           mode: AutoWithEco
         zones:
-        - active_faults: []
+        - active_faults:
+          - fault_type: TempZoneActuatorCommunicationLost
+            since: '2024-12-17T17:10:57'
           name: Dead Zone
           setpoint_status:
             setpoint_mode: PermanentOverride
@@ -649,7 +653,9 @@
             is_permanent: true
             mode: AutoWithEco
           zones:
-          - active_faults: []
+          - active_faults:
+            - fault_type: TempZoneActuatorCommunicationLost
+              since: '2024-12-17T17:10:57'
             name: Dead Zone
             setpoint_status:
               setpoint_mode: PermanentOverride
@@ -751,9 +757,8 @@
 # name: test_system_snapshot[default][zones]
   '''
   '3432521':
-      active_faults: '!!python/tuple []
-  
-          '
+      active_faults: "!!python/tuple\n- fault_type: TempZoneActuatorCommunicationLost\n\
+          \  since: '2024-12-17T17:10:57'\n"
       allowed_modes: '!!python/tuple
   
           - PermanentOverride
@@ -865,7 +870,8 @@
           target_heat_temperature: 5.0
   
           '
-      status: "active_faults: []\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
+      status: "active_faults:\n- fault_type: TempZoneActuatorCommunicationLost\n  since:\
+          \ '2024-12-17T17:10:57'\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
           \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
           \  is_available: false\nzone_id: '3432521'\n"
       target_heat_temperature: '5.0
@@ -2256,7 +2262,9 @@
         is_permanent: true
         mode: AutoWithEco
       zones:
-      - active_faults: []
+      - active_faults:
+        - fault_type: TempZoneActuatorCommunicationLost
+          since: '2024-12-17T17:10:57'
         name: Dead Zone
         setpoint_status:
           setpoint_mode: PermanentOverride
@@ -2399,7 +2407,9 @@
           is_permanent: true
           mode: AutoWithEco
         zones:
-        - active_faults: []
+        - active_faults:
+          - fault_type: TempZoneActuatorCommunicationLost
+            since: '2024-12-17T17:10:57'
           name: Dead Zone
           setpoint_status:
             setpoint_mode: PermanentOverride
@@ -2778,7 +2788,9 @@
             is_permanent: true
             mode: AutoWithEco
           zones:
-          - active_faults: []
+          - active_faults:
+            - fault_type: TempZoneActuatorCommunicationLost
+              since: '2024-12-17T17:10:57'
             name: Dead Zone
             setpoint_status:
               setpoint_mode: PermanentOverride
@@ -2880,9 +2892,8 @@
 # name: test_system_snapshot[hass_118169][zones]
   '''
   '3432521':
-      active_faults: '!!python/tuple []
-  
-          '
+      active_faults: "!!python/tuple\n- fault_type: TempZoneActuatorCommunicationLost\n\
+          \  since: '2024-12-17T17:10:57'\n"
       allowed_modes: '!!python/tuple
   
           - PermanentOverride
@@ -2994,7 +3005,8 @@
           target_heat_temperature: 5.0
   
           '
-      status: "active_faults: []\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
+      status: "active_faults:\n- fault_type: TempZoneActuatorCommunicationLost\n  since:\
+          \ '2024-12-17T17:10:57'\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
           \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
           \  is_available: false\nzone_id: '3432521'\n"
       target_heat_temperature: '5.0
