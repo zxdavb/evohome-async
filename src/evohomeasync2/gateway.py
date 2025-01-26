@@ -46,18 +46,19 @@ class Gateway(ActiveFaultsBase, EntityBase):
         self.location = location  # parent
         #
 
-        self._config: Final[EvoGwyConfigEntryT] = config[SZ_GATEWAY_INFO]  # type: ignore[misc]
-        self._status: EvoGwyStatusResponseT | None = None
-
         # children
         self.systems: list[ControlSystem] = []
         self.system_by_id: dict[str, ControlSystem] = {}  # tcs by id
+
+        self._config: Final[EvoGwyConfigEntryT] = config[SZ_GATEWAY_INFO]  # type: ignore[misc]
 
         for tcs_entry in config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             tcs = ControlSystem(self, tcs_entry)
 
             self.systems.append(tcs)
             self.system_by_id[tcs.id] = tcs
+
+        self._status: EvoGwyStatusResponseT | None = None
 
     # Config attrs...
 

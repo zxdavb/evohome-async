@@ -74,17 +74,16 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         self.gateway = gateway  # parent
         self.location: Location = gateway.location
 
-        # break the TypedDict into its parts (so, ignore[misc])...
-        self._config: Final[EvoTcsConfigEntryT] = {  # type: ignore[assignment, misc]
-            k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
-        }
-        self._status: EvoTcsStatusResponseT | None = None
-
         # children
         self.zones: list[Zone] = []
         self.zone_by_id: dict[str, Zone] = {}
 
         self.hotwater: HotWater | None = None
+
+        # break the config TypedDict into its parts...
+        self._config: Final[EvoTcsConfigEntryT] = {  # type: ignore[assignment, misc]
+            k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
+        }
 
         for zon_entry in config[SZ_ZONES]:
             try:
@@ -99,6 +98,8 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         if dhw_entry := config.get(SZ_DHW):
             self.hotwater = HotWater(self, dhw_entry)
+
+        self._status: EvoTcsStatusResponseT | None = None
 
     @property
     def zone_by_name(self) -> dict[str, Zone]:

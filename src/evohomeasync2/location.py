@@ -121,23 +121,24 @@ class Location(EntityBase):
         self.client = client  # proxy for parent
         #
 
-        self._config: EvoLocConfigEntryT = config[SZ_LOCATION_INFO]
-        self._status: EvoLocStatusResponseT | None = None
-
-        self._tzinfo = tzinfo or EvoZoneInfo(
-            time_zone_info=self.time_zone_info,
-            use_dst_switching=self.dst_enabled,
-        )
-
         # children
         self.gateways: list[Gateway] = []
-        self.gateway_by_id: dict[str, Gateway] = {}  # gwy by id
+        self.gateway_by_id: dict[str, Gateway] = {}
+
+        self._config: EvoLocConfigEntryT = config[SZ_LOCATION_INFO]  # ?exclude TZ/DST
+
+        self._tzinfo = tzinfo or EvoZoneInfo(
+            time_zone_info=config[SZ_LOCATION_INFO][SZ_TIME_ZONE],
+            use_dst_switching=config[SZ_LOCATION_INFO][SZ_USE_DAYLIGHT_SAVE_SWITCHING],
+        )
 
         for gwy_entry in config[SZ_GATEWAYS]:
             gwy = Gateway(self, gwy_entry)
 
             self.gateways.append(gwy)
             self.gateway_by_id[gwy.id] = gwy
+
+        self._status: EvoLocStatusResponseT | None = None
 
     def __str__(self) -> str:
         """Return a string representation of the entity."""
@@ -159,55 +160,36 @@ class Location(EntityBase):
         return self._config[SZ_NAME]
 
     async def _get_config(self) -> EvoLocConfigResponseT:
-        """Get the latest state of the gateway and update its status attr.
+        """Get the latest config of the location and update its TZ/DST attrs.
 
         Usually called when DST starts/stops or the location's DST config changes (i.e.
         there is no _update_config() method). Returns the raw JSON of the latest config.
         """
 
-        # it is assumed that only the location's TZ/DST info can change
-        # so no ?includeTemperatureControlSystems=True
+        # it is assumed that *only* the location's TZ/DST info can change
+        # so don't need ?includeTemperatureControlSystems=True
 
         config: EvoLocConfigResponseT = await self._auth.get(
             f"location/{self._id}/installationInfo"  # TODO: add schema
         )  # type: ignore[assignment]
 
-        self._config = config[SZ_LOCATION_INFO]
+        self._config = config[SZ_LOCATION_INFO]  # ?exclude TZ/DST
 
         # new TzInfo object, or update the existing one?
         self._tzinfo = await _create_tzinfo(
-            self.time_zone_info, use_dst_switching=self.dst_enabled
+            config[SZ_LOCATION_INFO][SZ_TIME_ZONE],
+            use_dst_switching=config[SZ_LOCATION_INFO][SZ_USE_DAYLIGHT_SAVE_SWITCHING],
         )
-        # lf._tzinfo._update(time_zone_info=time_zone_info, use_dst_switching=use_dst_switching)
+        # self._tzinfo._update(  # but, only for EvoZoneInfo...
+        #     time_zone_info=config[SZ_LOCATION_INFO][SZ_TIME_ZONE],
+        #     use_dst_switching=config[SZ_LOCATION_INFO][SZ_USE_DAYLIGHT_SAVE_SWITCHING],
+        # )
 
         return config
 
-    @property
-    def dst_enabled(self) -> bool:
-        """Return True if the location uses daylight saving time.
-
-        Not the same as the location's TZ supporting DST, nor the current DST status.
-        """
-        return self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING]
-
-    @property  # NOTE: renamed config key: was time_zone
-    def time_zone_info(self) -> EvoTimeZoneInfoT:
-        """Return the time zone information for the location.
-
-        The time zone id is not IANA-compliant, but is based upon the Windows scheme.
-        """
-
-        """
-            "timeZone": {
-                "timeZoneId": "GMTStandardTime",
-                "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
-                "offsetMinutes": 0,
-                "currentOffsetMinutes": 60,
-                "supportsDaylightSaving": true
-            }
-        """
-
-        return self._config[SZ_TIME_ZONE]
+    def _update_config(self, config: EvoLocConfigResponseT) -> None:
+        """Update the LOC's config and cascade to its descendants."""
+        # pass
 
     @property
     def tzinfo(self) -> tzinfo:

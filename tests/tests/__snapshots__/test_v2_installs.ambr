@@ -413,11 +413,6 @@
       ...
   
     ''',
-    'dst_enabled': '''
-      true
-      ...
-  
-    ''',
     'id': '''
       '2738909'
   
@@ -429,14 +424,6 @@
     ''',
     'status': '''
       location_id: '2738909'
-  
-    ''',
-    'time_zone_info': '''
-      current_offset_minutes: 60
-      display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
-      offset_minutes: 0
-      supports_daylight_saving: true
-      time_zone_id: GMTStandardTime
   
     ''',
     'tzinfo': '''
@@ -2214,11 +2201,6 @@
       ...
   
     ''',
-    'dst_enabled': '''
-      true
-      ...
-  
-    ''',
     'id': '''
       '2738909'
   
@@ -2230,14 +2212,6 @@
     ''',
     'status': '''
       location_id: '2738909'
-  
-    ''',
-    'time_zone_info': '''
-      current_offset_minutes: 60
-      display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
-      offset_minutes: 0
-      supports_daylight_saving: true
-      time_zone_id: GMTStandardTime
   
     ''',
     'tzinfo': '''
@@ -4017,11 +3991,6 @@
       ...
   
     ''',
-    'dst_enabled': '''
-      true
-      ...
-  
-    ''',
     'id': '''
       '2738909'
   
@@ -4033,14 +4002,6 @@
     ''',
     'status': '''
       location_id: '2738909'
-  
-    ''',
-    'time_zone_info': '''
-      current_offset_minutes: 60
-      display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
-      offset_minutes: 0
-      supports_daylight_saving: true
-      time_zone_id: GMTStandardTime
   
     ''',
     'tzinfo': '''
@@ -5562,11 +5523,6 @@
       ...
   
     ''',
-    'dst_enabled': '''
-      true
-      ...
-  
-    ''',
     'id': '''
       '2664492'
   
@@ -5578,14 +5534,6 @@
     ''',
     'status': '''
       location_id: '2664492'
-  
-    ''',
-    'time_zone_info': '''
-      current_offset_minutes: 120
-      display_name: "(UTC+01:00) Praha, Bratislava, Budape\u0161\u0165, B\u011Blehrad, Lubla\u0148"
-      offset_minutes: 60
-      supports_daylight_saving: true
-      time_zone_id: CentralEuropeStandardTime
   
     ''',
     'tzinfo': '''
@@ -6025,11 +5973,6 @@
       ...
   
     ''',
-    'dst_enabled': '''
-      true
-      ...
-  
-    ''',
     'id': '''
       '0001'
   
@@ -6041,14 +5984,6 @@
     ''',
     'status': '''
       location_id: '0002'
-  
-    ''',
-    'time_zone_info': '''
-      current_offset_minutes: 60
-      display_name: (UTC+01:00) Brussels, Copenhagen, Madrid, Paris
-      offset_minutes: 60
-      supports_daylight_saving: true
-      time_zone_id: RomanceStandardTime
   
     ''',
     'tzinfo': '''
