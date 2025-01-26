@@ -215,9 +215,9 @@ class Zone(_DeviceBase):  # Zone version of a Device
     def min_heat_setpoint(self) -> float:
         return self._status[SZ_THERMOSTAT]["min_heat_setpoint"]
 
-    async def get_zone_modes(self) -> list[str]:
+    async def allowed_modes(self) -> tuple[str, ...]:
         """Return the set of modes the zone can be assigned."""
-        return self._config["thermostat"]["allowed_modes"]
+        return tuple(self._config["thermostat"]["allowed_modes"])
 
     # Status (state) attrs & methods...
 
