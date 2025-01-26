@@ -9,8 +9,8 @@
 # - pip list | grep -E 'aio|pre_commit|ruff|mypy|types-|voluptuous|pytest|syrup|hatch'
 
 # used for development (linting)
-  pre-commit >= 4.0.1
-  ruff >= 0.9.1                                  # also: pre-commit-config.yaml
+  pre-commit >= 4.1.0
+  ruff >= 0.9.3                                  # also: pre-commit-config.yaml
 
 # used for development (typing)
   mypy >= 1.14.1
@@ -19,14 +19,14 @@
   voluptuous >= 0.15.2
 
 # used for testing
-  aioresponses >= 0.7.7
+  aioresponses >= 0.7.8
   pytest >= 8.3.4
   pytest-asyncio >= 0.25.2
 # pytest-cov >= 6.0.0
   pytest-freezer >= 0.4.9
   pytest-sugar >= 1.0.0
   pytest-xdist >= 3.6.1
-  syrupy >= 4.8.0
+  syrupy >= 4.8.1
 
 # pytest_homeassistant_custom_component >= 0.13.162
 

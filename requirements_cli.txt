@@ -7,9 +7,9 @@
 # -e .
 
 # used by the library (in absence of CLI) - see pyproject.toml
-  # aiohttp >= 3.10
-  # aiozoneinfo >= 0.2
-  # voluptuous >= 0.15
+  # aiohttp >= 3.11.11
+  # aiozoneinfo >= 0.2.1
+  # voluptuous >= 0.15.2
 
 
 # also required if using the the library via the CLI, client.py
