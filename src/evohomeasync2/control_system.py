@@ -106,10 +106,6 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
     # Config attrs...
 
-    @cached_property  # TODO: deprecate in favour of .id attr
-    def systemId(self) -> str:  # noqa: N802
-        return self._id
-
     @cached_property  # RENAMED val: was model_type
     def model(self) -> TcsModelType:
         return self._config[SZ_MODEL_TYPE]

@@ -66,10 +66,6 @@ class HotWater(_ZoneBase):
 
     # Config attrs...
 
-    @cached_property  # TODO: deprecate in favour of .id attr
-    def dhwId(self) -> str:  # noqa: N802
-        return self._id
-
     @cached_property
     def name(self) -> str:
         return "Domestic Hot Water"

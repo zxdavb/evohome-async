@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime as dt, tzinfo
-from functools import cached_property
 from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
@@ -145,10 +144,6 @@ class Location(EntityBase):
         return f"{self.__class__.__name__}(id='{self._id}', tzinfo='{self.tzinfo}')"
 
     # Config attrs...
-
-    @cached_property  # TODO: deprecate in favour of .id attr
-    def locationId(self) -> str:  # noqa: N802
-        return self._id
 
     @property
     def country(self) -> str:

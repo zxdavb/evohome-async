@@ -213,10 +213,6 @@
         zone_id: '3450733'
   
     ''',
-    'systemId': '''
-      '3432522'
-  
-    ''',
     'system_mode_status': '''
       is_permanent: true
       mode: AutoWithEco
@@ -240,10 +236,6 @@
       gateway_id: '2499896'
       is_wi_fi: false
       mac: 00D02DEE4E56
-  
-    ''',
-    'gatewayId': '''
-      '2499896'
   
     ''',
     'id': '''
@@ -397,10 +389,6 @@
         max_switchpoints_per_day: 6
         min_switchpoints_per_day: 1
         timing_resolution: 00:10:00
-  
-    ''',
-    'dhwId': '''
-      '3933910'
   
     ''',
     'id': '''
@@ -625,10 +613,6 @@
   
     ''',
     'id': '''
-      '2738909'
-  
-    ''',
-    'locationId': '''
       '2738909'
   
     ''',
@@ -910,9 +894,6 @@
           ...
   
           '
-      zoneId: '''3432521''
-  
-          '
   '3432576':
       active_faults: "!!python/tuple\n- fault_type: TempZoneSensorCommunicationLost\n\
           \  since: '2024-05-01T01:00:00+01:00'\n"
@@ -1061,9 +1042,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''3432576''
   
           '
   '3432577':
@@ -1216,9 +1194,6 @@
           ...
   
           '
-      zoneId: '''3432577''
-  
-          '
   '3432578':
       active_faults: '!!python/tuple []
   
@@ -1367,9 +1342,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''3432578''
   
           '
   '3432579':
@@ -1522,9 +1494,6 @@
           ...
   
           '
-      zoneId: '''3432579''
-  
-          '
   '3432580':
       active_faults: '!!python/tuple []
   
@@ -1673,9 +1642,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''3432580''
   
           '
   '3449703':
@@ -1828,9 +1794,6 @@
           ...
   
           '
-      zoneId: '''3449703''
-  
-          '
   '3449740':
       active_faults: '!!python/tuple []
   
@@ -1981,9 +1944,6 @@
           ...
   
           '
-      zoneId: '''3449740''
-  
-          '
   '3450733':
       active_faults: '!!python/tuple []
   
@@ -2132,9 +2092,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''3450733''
   
           '
   
@@ -2354,10 +2311,6 @@
         zone_id: '3450733'
   
     ''',
-    'systemId': '''
-      '3432522'
-  
-    ''',
     'system_mode_status': '''
       is_permanent: true
       mode: AutoWithEco
@@ -2381,10 +2334,6 @@
       gateway_id: '2499896'
       is_wi_fi: false
       mac: 00D02DEE4E56
-  
-    ''',
-    'gatewayId': '''
-      '2499896'
   
     ''',
     'id': '''
@@ -2538,10 +2487,6 @@
         max_switchpoints_per_day: 6
         min_switchpoints_per_day: 1
         timing_resolution: 00:10:00
-  
-    ''',
-    'dhwId': '''
-      '3933910'
   
     ''',
     'id': '''
@@ -2766,10 +2711,6 @@
   
     ''',
     'id': '''
-      '2738909'
-  
-    ''',
-    'locationId': '''
       '2738909'
   
     ''',
@@ -3051,9 +2992,6 @@
           ...
   
           '
-      zoneId: '''3432521''
-  
-          '
   '3432576':
       active_faults: "!!python/tuple\n- fault_type: TempZoneSensorCommunicationLost\n\
           \  since: '2024-05-01T01:00:00+01:00'\n"
@@ -3202,9 +3140,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''3432576''
   
           '
   '3432577':
@@ -3357,9 +3292,6 @@
           ...
   
           '
-      zoneId: '''3432577''
-  
-          '
   '3432578':
       active_faults: '!!python/tuple []
   
@@ -3508,9 +3440,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''3432578''
   
           '
   '3432579':
@@ -3663,9 +3592,6 @@
           ...
   
           '
-      zoneId: '''3432579''
-  
-          '
   '3432580':
       active_faults: '!!python/tuple []
   
@@ -3814,9 +3740,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''3432580''
   
           '
   '3449703':
@@ -3969,9 +3892,6 @@
           ...
   
           '
-      zoneId: '''3449703''
-  
-          '
   '3449740':
       active_faults: '!!python/tuple []
   
@@ -4122,9 +4042,6 @@
           ...
   
           '
-      zoneId: '''3449740''
-  
-          '
   '3450733':
       active_faults: '!!python/tuple []
   
@@ -4273,9 +4190,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''3450733''
   
           '
   
@@ -4493,10 +4407,6 @@
         zone_id: '3450733'
   
     ''',
-    'systemId': '''
-      '3432522'
-  
-    ''',
     'system_mode_status': '''
       is_permanent: true
       mode: Auto
@@ -4520,10 +4430,6 @@
       gateway_id: '2499896'
       is_wi_fi: false
       mac: 00D02DEE4E56
-  
-    ''',
-    'gatewayId': '''
-      '2499896'
   
     ''',
     'id': '''
@@ -4677,10 +4583,6 @@
         max_switchpoints_per_day: 6
         min_switchpoints_per_day: 1
         timing_resolution: 00:10:00
-  
-    ''',
-    'dhwId': '''
-      '3933910'
   
     ''',
     'id': '''
@@ -4905,10 +4807,6 @@
   
     ''',
     'id': '''
-      '2738909'
-  
-    ''',
-    'locationId': '''
       '2738909'
   
     ''',
@@ -5188,9 +5086,6 @@
           ...
   
           '
-      zoneId: '''3432521''
-  
-          '
   '3432576':
       active_faults: '!!python/tuple []
   
@@ -5339,9 +5234,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''3432576''
   
           '
   '3432577':
@@ -5494,9 +5386,6 @@
           ...
   
           '
-      zoneId: '''3432577''
-  
-          '
   '3432578':
       active_faults: '!!python/tuple []
   
@@ -5645,9 +5534,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''3432578''
   
           '
   '3432579':
@@ -5800,9 +5686,6 @@
           ...
   
           '
-      zoneId: '''3432579''
-  
-          '
   '3432580':
       active_faults: '!!python/tuple []
   
@@ -5951,9 +5834,6 @@
   
           '
       until: '''2023-11-30T22:10:00+00:00''
-  
-          '
-      zoneId: '''3432580''
   
           '
   '3449703':
@@ -6106,9 +5986,6 @@
           ...
   
           '
-      zoneId: '''3449703''
-  
-          '
   '3449740':
       active_faults: '!!python/tuple []
   
@@ -6257,9 +6134,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''3449740''
   
           '
   '3450733':
@@ -6412,9 +6286,6 @@
           ...
   
           '
-      zoneId: '''3450733''
-  
-          '
   
   '''
 # ---
@@ -6524,10 +6395,6 @@
         zone_id: '4368406'
   
     ''',
-    'systemId': '''
-      '3935923'
-  
-    ''',
     'system_mode_status': '''
       is_permanent: true
       mode: Auto
@@ -6551,10 +6418,6 @@
       gateway_id: '2820628'
       is_wi_fi: false
       mac: 00D02DF114FD
-  
-    ''',
-    'gatewayId': '''
-      '2820628'
   
     ''',
     'id': '''
@@ -6634,10 +6497,6 @@
   
     ''',
     'id': '''
-      '2664492'
-  
-    ''',
-    'locationId': '''
       '2664492'
   
     ''',
@@ -6846,9 +6705,6 @@
           ...
   
           '
-      zoneId: '''3935922''
-  
-          '
   '4368406':
       active_faults: '!!python/tuple []
   
@@ -6999,9 +6855,6 @@
           ...
   
           '
-      zoneId: '''4368406''
-  
-          '
   
   '''
 # ---
@@ -7073,10 +6926,6 @@
         zone_id: '0004'
   
     ''',
-    'systemId': '''
-      '0003'
-  
-    ''',
     'system_mode_status': '''
       is_permanent: true
       mode: Auto
@@ -7100,10 +6949,6 @@
       gateway_id: '0002'
       is_wi_fi: false
       mac: -REDACTED-
-  
-    ''',
-    'gatewayId': '''
-      '0002'
   
     ''',
     'id': '''
@@ -7177,10 +7022,6 @@
   
     ''',
     'id': '''
-      '0001'
-  
-    ''',
-    'locationId': '''
       '0001'
   
     ''',
@@ -7384,9 +7225,6 @@
       until: 'null
   
           ...
-  
-          '
-      zoneId: '''0004''
   
           '
   

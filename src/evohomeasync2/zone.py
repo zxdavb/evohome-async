@@ -507,10 +507,6 @@ class Zone(_ZoneBase):
 
     # Config attrs...
 
-    @cached_property  # TODO: deprecate in favour of .id attr
-    def zoneId(self) -> str:  # noqa: N802
-        return self._id
-
     @cached_property
     def model(self) -> ZoneModelType:
         return self._config[SZ_MODEL_TYPE]

@@ -61,10 +61,6 @@ class Gateway(ActiveFaultsBase, EntityBase):
 
     # Config attrs...
 
-    @cached_property  # TODO: deprecate in favour of .id attr
-    def gatewayId(self) -> str:  # noqa: N802
-        return self._id
-
     @cached_property  # RENAMED val: was mac
     def mac_address(self) -> str:
         return self._config[SZ_MAC]
