@@ -74,7 +74,8 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         self.gateway = gateway  # parent
         self.location: Location = gateway.location
 
-        self._config: Final[EvoTcsConfigEntryT] = {  # type: ignore[assignment,misc]
+        # break the TypedDict into its parts (so, ignore[misc])...
+        self._config: Final[EvoTcsConfigEntryT] = {  # type: ignore[assignment, misc]
             k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
         }
         self._status: EvoTcsStatusResponseT | None = None
