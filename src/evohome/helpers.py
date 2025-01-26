@@ -208,4 +208,4 @@ def obscure_secrets(data: _T) -> _T:
             for k, v in data_.items()
         }
 
-    return data if _DBG_DONT_OBFUSCATE else recurse(data)  # type:ignore[no-any-return]
+    return data if _DBG_DONT_OBFUSCATE else recurse(data)
