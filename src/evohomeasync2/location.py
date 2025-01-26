@@ -144,6 +144,16 @@ class Location(EntityBase):
         """Return a string representation of the entity."""
         return f"{self.__class__.__name__}(id='{self._id}', tzinfo='{self.tzinfo}')"
 
+    @property
+    def config(self) -> EvoLocConfigEntryT:
+        """Return the latest config of the entity."""
+        return self._config
+
+    @property
+    def status(self) -> EvoLocStatusResponseT:
+        """Return the latest status of the entity."""
+        return super().status  # type: ignore[return-value]
+
     # Config attrs...
 
     @property

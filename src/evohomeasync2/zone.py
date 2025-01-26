@@ -505,6 +505,16 @@ class Zone(_ZoneBase):
         if self.type not in ZoneType:
             self._logger.warning("%s: Unknown zone type '%s' (YMMV)", self, self.type)
 
+    @property
+    def config(self) -> EvoZonConfigEntryT:
+        """Return the latest config of the entity."""
+        return self._config
+
+    @property
+    def status(self) -> EvoZonStatusResponseT:
+        """Return the latest status of the entity."""
+        return super().status  # type: ignore[return-value]
+
     # Config attrs...
 
     @cached_property

@@ -64,6 +64,16 @@ class HotWater(_ZoneBase):
 
         self._schedule: list[DayOfWeekDhwT] | None = None  # type: ignore[assignment]
 
+    @property
+    def config(self) -> EvoDhwConfigEntryT:
+        """Return the latest config of the entity."""
+        return self._config
+
+    @property
+    def status(self) -> EvoDhwStatusResponseT:
+        """Return the latest status of the entity."""
+        return super().status  # type: ignore[return-value]
+
     # Config attrs...
 
     @cached_property

@@ -102,9 +102,19 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         self._status: EvoTcsStatusResponseT | None = None
 
     @property
+    def config(self) -> EvoTcsConfigEntryT:
+        """Return the latest config of the entity."""
+        return self._config
+
+    @property
     def zone_by_name(self) -> dict[str, Zone]:
         """Return the zones by name (names are not fixed attrs)."""
         return {zone.name: zone for zone in self.zones}
+
+    @property
+    def status(self) -> EvoTcsStatusResponseT:
+        """Return the latest status of the entity."""
+        return super().status  # type: ignore[return-value]
 
     # Config attrs...
 

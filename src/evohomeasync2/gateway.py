@@ -60,6 +60,16 @@ class Gateway(ActiveFaultsBase, EntityBase):
 
         self._status: EvoGwyStatusResponseT | None = None
 
+    @property
+    def config(self) -> EvoGwyConfigEntryT:
+        """Return the latest config of the entity."""
+        return self._config
+
+    @property
+    def status(self) -> EvoGwyStatusResponseT:
+        """Return the latest status of the entity."""
+        return super().status  # type: ignore[return-value]
+
     # Config attrs...
 
     @cached_property  # RENAMED val: was mac
