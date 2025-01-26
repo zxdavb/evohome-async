@@ -129,7 +129,7 @@
       zones:
       - active_faults:
         - fault_type: TempZoneActuatorCommunicationLost
-          since: '2024-12-17T17:10:57'
+          since: '2024-12-17T17:10:57+00:00'
         name: Dead Zone
         setpoint_status:
           setpoint_mode: PermanentOverride
@@ -137,7 +137,9 @@
         temperature_status:
           is_available: false
         zone_id: '3432521'
-      - active_faults: []
+      - active_faults:
+        - fault_type: TempZoneSensorCommunicationLost
+          since: '2024-05-01T01:00:00+01:00'
         name: Main Room
         setpoint_status:
           setpoint_mode: FollowSchedule
@@ -274,7 +276,7 @@
         zones:
         - active_faults:
           - fault_type: TempZoneActuatorCommunicationLost
-            since: '2024-12-17T17:10:57'
+            since: '2024-12-17T17:10:57+00:00'
           name: Dead Zone
           setpoint_status:
             setpoint_mode: PermanentOverride
@@ -282,7 +284,9 @@
           temperature_status:
             is_available: false
           zone_id: '3432521'
-        - active_faults: []
+        - active_faults:
+          - fault_type: TempZoneSensorCommunicationLost
+            since: '2024-05-01T01:00:00+01:00'
           name: Main Room
           setpoint_status:
             setpoint_mode: FollowSchedule
@@ -655,7 +659,7 @@
           zones:
           - active_faults:
             - fault_type: TempZoneActuatorCommunicationLost
-              since: '2024-12-17T17:10:57'
+              since: '2024-12-17T17:10:57+00:00'
             name: Dead Zone
             setpoint_status:
               setpoint_mode: PermanentOverride
@@ -663,7 +667,9 @@
             temperature_status:
               is_available: false
             zone_id: '3432521'
-          - active_faults: []
+          - active_faults:
+            - fault_type: TempZoneSensorCommunicationLost
+              since: '2024-05-01T01:00:00+01:00'
             name: Main Room
             setpoint_status:
               setpoint_mode: FollowSchedule
@@ -758,7 +764,7 @@
   '''
   '3432521':
       active_faults: "!!python/tuple\n- fault_type: TempZoneActuatorCommunicationLost\n\
-          \  since: '2024-12-17T17:10:57'\n"
+          \  since: '2024-12-17T17:10:57+00:00'\n"
       allowed_modes: '!!python/tuple
   
           - PermanentOverride
@@ -871,7 +877,7 @@
   
           '
       status: "active_faults:\n- fault_type: TempZoneActuatorCommunicationLost\n  since:\
-          \ '2024-12-17T17:10:57'\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
+          \ '2024-12-17T17:10:57+00:00'\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
           \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
           \  is_available: false\nzone_id: '3432521'\n"
       target_heat_temperature: '5.0
@@ -908,9 +914,8 @@
   
           '
   '3432576':
-      active_faults: '!!python/tuple []
-  
-          '
+      active_faults: "!!python/tuple\n- fault_type: TempZoneSensorCommunicationLost\n\
+          \  since: '2024-05-01T01:00:00+01:00'\n"
       allowed_modes: '!!python/tuple
   
           - PermanentOverride
@@ -1022,7 +1027,8 @@
           target_heat_temperature: 17.0
   
           '
-      status: "active_faults: []\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
+      status: "active_faults:\n- fault_type: TempZoneSensorCommunicationLost\n  since:\
+          \ '2024-05-01T01:00:00+01:00'\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
           \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
           \ is_available: true\n  temperature: 19.0\nzone_id: '3432576'\n"
       target_heat_temperature: '17.0
@@ -2264,7 +2270,7 @@
       zones:
       - active_faults:
         - fault_type: TempZoneActuatorCommunicationLost
-          since: '2024-12-17T17:10:57'
+          since: '2024-12-17T17:10:57+00:00'
         name: Dead Zone
         setpoint_status:
           setpoint_mode: PermanentOverride
@@ -2272,7 +2278,9 @@
         temperature_status:
           is_available: false
         zone_id: '3432521'
-      - active_faults: []
+      - active_faults:
+        - fault_type: TempZoneSensorCommunicationLost
+          since: '2024-05-01T01:00:00+01:00'
         name: Main Room
         setpoint_status:
           setpoint_mode: FollowSchedule
@@ -2409,7 +2417,7 @@
         zones:
         - active_faults:
           - fault_type: TempZoneActuatorCommunicationLost
-            since: '2024-12-17T17:10:57'
+            since: '2024-12-17T17:10:57+00:00'
           name: Dead Zone
           setpoint_status:
             setpoint_mode: PermanentOverride
@@ -2417,7 +2425,9 @@
           temperature_status:
             is_available: false
           zone_id: '3432521'
-        - active_faults: []
+        - active_faults:
+          - fault_type: TempZoneSensorCommunicationLost
+            since: '2024-05-01T01:00:00+01:00'
           name: Main Room
           setpoint_status:
             setpoint_mode: FollowSchedule
@@ -2790,7 +2800,7 @@
           zones:
           - active_faults:
             - fault_type: TempZoneActuatorCommunicationLost
-              since: '2024-12-17T17:10:57'
+              since: '2024-12-17T17:10:57+00:00'
             name: Dead Zone
             setpoint_status:
               setpoint_mode: PermanentOverride
@@ -2798,7 +2808,9 @@
             temperature_status:
               is_available: false
             zone_id: '3432521'
-          - active_faults: []
+          - active_faults:
+            - fault_type: TempZoneSensorCommunicationLost
+              since: '2024-05-01T01:00:00+01:00'
             name: Main Room
             setpoint_status:
               setpoint_mode: FollowSchedule
@@ -2893,7 +2905,7 @@
   '''
   '3432521':
       active_faults: "!!python/tuple\n- fault_type: TempZoneActuatorCommunicationLost\n\
-          \  since: '2024-12-17T17:10:57'\n"
+          \  since: '2024-12-17T17:10:57+00:00'\n"
       allowed_modes: '!!python/tuple
   
           - PermanentOverride
@@ -3006,7 +3018,7 @@
   
           '
       status: "active_faults:\n- fault_type: TempZoneActuatorCommunicationLost\n  since:\
-          \ '2024-12-17T17:10:57'\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
+          \ '2024-12-17T17:10:57+00:00'\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
           \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
           \  is_available: false\nzone_id: '3432521'\n"
       target_heat_temperature: '5.0
@@ -3043,9 +3055,8 @@
   
           '
   '3432576':
-      active_faults: '!!python/tuple []
-  
-          '
+      active_faults: "!!python/tuple\n- fault_type: TempZoneSensorCommunicationLost\n\
+          \  since: '2024-05-01T01:00:00+01:00'\n"
       allowed_modes: '!!python/tuple
   
           - PermanentOverride
@@ -3157,7 +3168,8 @@
           target_heat_temperature: 17.0
   
           '
-      status: "active_faults: []\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
+      status: "active_faults:\n- fault_type: TempZoneSensorCommunicationLost\n  since:\
+          \ '2024-05-01T01:00:00+01:00'\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
           \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
           \ is_available: true\n  temperature: 19.0\nzone_id: '3432576'\n"
       target_heat_temperature: '17.0
@@ -4386,7 +4398,7 @@
       dhw:
         active_faults:
         - fault_type: DHWSensorCommunicationLost
-          since: '2023-11-30T18:48:40'
+          since: '2023-11-30T18:48:40+00:00'
         dhw_id: '3933910'
         state_status:
           mode: FollowSchedule
@@ -4447,7 +4459,7 @@
         setpoint_status:
           setpoint_mode: TemporaryOverride
           target_heat_temperature: 20.5
-          until: '2023-11-30T22:10:00Z'
+          until: '2023-11-30T22:10:00+00:00'
         temperature_status:
           is_available: true
           temperature: 21.0
@@ -4531,7 +4543,7 @@
         dhw:
           active_faults:
           - fault_type: DHWSensorCommunicationLost
-            since: '2023-11-30T18:48:40'
+            since: '2023-11-30T18:48:40+00:00'
           dhw_id: '3933910'
           state_status:
             mode: FollowSchedule
@@ -4592,7 +4604,7 @@
           setpoint_status:
             setpoint_mode: TemporaryOverride
             target_heat_temperature: 20.5
-            until: '2023-11-30T22:10:00Z'
+            until: '2023-11-30T22:10:00+00:00'
           temperature_status:
             is_available: true
             temperature: 21.0
@@ -4633,7 +4645,7 @@
     'active_faults': '''
       !!python/tuple
       - fault_type: DHWSensorCommunicationLost
-        since: '2023-11-30T18:48:40'
+        since: '2023-11-30T18:48:40+00:00'
   
     ''',
     'allowed_modes': '''
@@ -4822,7 +4834,7 @@
     'status': '''
       active_faults:
       - fault_type: DHWSensorCommunicationLost
-        since: '2023-11-30T18:48:40'
+        since: '2023-11-30T18:48:40+00:00'
       dhw_id: '3933910'
       state_status:
         mode: FollowSchedule
@@ -4914,7 +4926,7 @@
           dhw:
             active_faults:
             - fault_type: DHWSensorCommunicationLost
-              since: '2023-11-30T18:48:40'
+              since: '2023-11-30T18:48:40+00:00'
             dhw_id: '3933910'
             state_status:
               mode: FollowSchedule
@@ -4975,7 +4987,7 @@
             setpoint_status:
               setpoint_mode: TemporaryOverride
               target_heat_temperature: 20.5
-              until: '2023-11-30T22:10:00Z'
+              until: '2023-11-30T22:10:00+00:00'
             temperature_status:
               is_available: true
               temperature: 21.0
@@ -5905,11 +5917,11 @@
   
           target_heat_temperature: 20.5
   
-          until: ''2023-11-30T22:10:00Z''
+          until: ''2023-11-30T22:10:00+00:00''
   
           '
       status: "active_faults: []\nname: Main Bedroom\nsetpoint_status:\n  setpoint_mode:\
-          \ TemporaryOverride\n  target_heat_temperature: 20.5\n  until: '2023-11-30T22:10:00Z'\n\
+          \ TemporaryOverride\n  target_heat_temperature: 20.5\n  until: '2023-11-30T22:10:00+00:00'\n\
           temperature_status:\n  is_available: true\n  temperature: 21.0\nzone_id: '3432580'\n"
       target_heat_temperature: '20.5
   
@@ -6988,6 +7000,393 @@
   
           '
       zoneId: '''4368406''
+  
+          '
+  
+  '''
+# ---
+# name: test_system_snapshot[system_006][control_system]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'allowed_system_modes': '''
+      !!python/tuple
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+  
+    ''',
+    'config': '''
+      allowed_system_modes:
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      model_type: EvoTouch
+      system_id: '0003'
+  
+    ''',
+    'id': '''
+      '0003'
+  
+    ''',
+    'is_permanent': '''
+      true
+      ...
+  
+    ''',
+    'mode': '''
+      Auto
+      ...
+  
+    ''',
+    'model': '''
+      EvoTouch
+      ...
+  
+    ''',
+    'modes': '''
+      !!python/tuple
+      - Auto
+  
+    ''',
+    'status': '''
+      active_faults: []
+      system_id: '0003'
+      system_mode_status:
+        is_permanent: true
+        mode: Auto
+      zones:
+      - active_faults:
+        - fault_type: TempZoneActuatorCommunicationLost
+          since: '2024-12-01T01:00:00+01:00'
+        - fault_type: TempZoneSensorCommunicationLost
+          since: '2024-05-01T01:00:00+02:00'
+        name: Main Room
+        setpoint_status:
+          setpoint_mode: FollowSchedule
+          target_heat_temperature: 14.0
+        temperature_status:
+          is_available: true
+          temperature: 19.5
+        zone_id: '0004'
+  
+    ''',
+    'systemId': '''
+      '0003'
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: Auto
+  
+    ''',
+    'until': '''
+      null
+      ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_006][gateway]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'config': '''
+      crc: '********'
+      gateway_id: '0002'
+      is_wi_fi: false
+      mac: -REDACTED-
+  
+    ''',
+    'gatewayId': '''
+      '0002'
+  
+    ''',
+    'id': '''
+      '0002'
+  
+    ''',
+    'mac_address': '''
+      -REDACTED-
+      ...
+  
+    ''',
+    'status': '''
+      active_faults: []
+      gateway_id: '0002'
+      temperature_control_systems:
+      - active_faults: []
+        system_id: '0003'
+        system_mode_status:
+          is_permanent: true
+          mode: Auto
+        zones:
+        - active_faults:
+          - fault_type: TempZoneActuatorCommunicationLost
+            since: '2024-12-01T01:00:00+01:00'
+          - fault_type: TempZoneSensorCommunicationLost
+            since: '2024-05-01T01:00:00+02:00'
+          name: Main Room
+          setpoint_status:
+            setpoint_mode: FollowSchedule
+            target_heat_temperature: 14.0
+          temperature_status:
+            is_available: true
+            temperature: 19.5
+          zone_id: '0004'
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_006][location]
+  dict({
+    'config': '''
+      city: '********'
+      country: Belgium
+      location_id: '0001'
+      location_owner:
+        firstname: -REDACTED-
+        lastname: '********'
+        user_id: -REDACTED-
+        username: '******@obfuscated.com'
+      location_type: Residential
+      name: Home
+      postcode: '********'
+      street_address: '********'
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+01:00) Brussels, Copenhagen, Madrid, Paris
+        offset_minutes: 60
+        supports_daylight_saving: true
+        time_zone_id: RomanceStandardTime
+      use_daylight_save_switching: true
+  
+    ''',
+    'country': '''
+      Belgium
+      ...
+  
+    ''',
+    'dst_enabled': '''
+      true
+      ...
+  
+    ''',
+    'id': '''
+      '0001'
+  
+    ''',
+    'locationId': '''
+      '0001'
+  
+    ''',
+    'name': '''
+      Home
+      ...
+  
+    ''',
+    'status': '''
+      gateways:
+      - active_faults: []
+        gateway_id: '0002'
+        temperature_control_systems:
+        - active_faults: []
+          system_id: '0003'
+          system_mode_status:
+            is_permanent: true
+            mode: Auto
+          zones:
+          - active_faults:
+            - fault_type: TempZoneActuatorCommunicationLost
+              since: '2024-12-01T01:00:00+01:00'
+            - fault_type: TempZoneSensorCommunicationLost
+              since: '2024-05-01T01:00:00+02:00'
+            name: Main Room
+            setpoint_status:
+              setpoint_mode: FollowSchedule
+              target_heat_temperature: 14.0
+            temperature_status:
+              is_available: true
+              temperature: 19.5
+            zone_id: '0004'
+      location_id: '0002'
+  
+    ''',
+    'time_zone_info': '''
+      current_offset_minutes: 60
+      display_name: (UTC+01:00) Brussels, Copenhagen, Madrid, Paris
+      offset_minutes: 60
+      supports_daylight_saving: true
+      time_zone_id: RomanceStandardTime
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/Paris
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_006][zones]
+  '''
+  '0004':
+      active_faults: "!!python/tuple\n- fault_type: TempZoneActuatorCommunicationLost\n\
+          \  since: '2024-12-01T01:00:00+01:00'\n- fault_type: TempZoneSensorCommunicationLost\n\
+          \  since: '2024-05-01T01:00:00+02:00'\n"
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Main Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '0004'\n\
+          zone_type: ZoneTemperatureControl\n"
+      id: '''0004''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Main Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+01:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 14.0
+  
+          '
+      status: "active_faults:\n- fault_type: TempZoneActuatorCommunicationLost\n  since:\
+          \ '2024-12-01T01:00:00+01:00'\n- fault_type: TempZoneSensorCommunicationLost\n\
+          \  since: '2024-05-01T01:00:00+02:00'\nname: Main Room\nsetpoint_status:\n\
+          \  setpoint_mode: FollowSchedule\n  target_heat_temperature: 14.0\ntemperature_status:\n\
+          \  is_available: true\n  temperature: 19.5\nzone_id: '0004'\n"
+      target_heat_temperature: '14.0
+  
+          ...
+  
+          '
+      temperature: '19.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+01:00''
+  
+          - 15.9
+  
+          '
+      type: 'ZoneTemperatureControl
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+      zoneId: '''0004''
   
           '
   

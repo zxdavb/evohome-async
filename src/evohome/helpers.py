@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, TypeVar
+from datetime import datetime as dt
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from .const import _DBG_DONT_OBFUSCATE, REGEX_EMAIL_ADDRESS
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from datetime import tzinfo
 
 _T = TypeVar("_T")
 
@@ -59,18 +61,44 @@ def noop(s: str) -> str:
 
 
 def _convert_keys(data: _T, fnc: Callable[[str], str]) -> _T:
-    """Recursively convert all dict keys to snake_case (or CamelCase).
+    """Recursively convert all dict keys as per some function.
 
+    For example, converts all keys to snake_case, or CamelCase, etc.
     Used after retrieving (or before sending) JSON via the vendor API.
     """
 
-    if isinstance(data, list):
-        return [_convert_keys(item, fnc) for item in data]  # type:ignore[return-value]
+    def recurse(data_: Any) -> Any:
+        if isinstance(data_, list):
+            return [recurse(i) for i in data_]
 
-    if not isinstance(data, dict):
-        return data
+        if not isinstance(data_, dict):
+            return data_
 
-    return {fnc(k): _convert_keys(v, fnc) for k, v in data.items()}  # type:ignore[return-value]
+        return {fnc(k): recurse(v) for k, v in data_.items()}
+
+    return recurse(data)  # type:ignore[no-any-return]
+
+
+def _convert_vals(data: _T, fnc: Callable[[str], str]) -> _T:
+    """Recursively convert all string values as per some function.
+
+    For example, converts all isoformat string values to TZ-aware format.
+    Used after retrieving (or before sending) JSON via the vendor API.
+    """
+
+    def recurse(data_: Any) -> Any:
+        if isinstance(data_, list):
+            return [recurse(i) for i in data_]
+
+        if isinstance(data_, dict):
+            return {fnc(k): recurse(v) for k, v in data_.items()}
+
+        if isinstance(data_, str):
+            return fnc(data_)
+
+        return data_
+
+    return recurse(data)  # type:ignore[no-any-return]
 
 
 _KEYS_TO_OBSCURE = (
@@ -89,6 +117,18 @@ _KEYS_TO_OBSCURE = (
     "mac",
     "crc",
 )
+
+
+def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
+    """Convert a datetime into a aware datetime in the given TZ.
+
+    If the datetime is naive, assume it is in the same timezone as tzinfo.
+    """
+
+    if isinstance(dtm, str):
+        dtm = dt.fromisoformat(dtm)
+
+    return dtm.replace(tzinfo=tzinfo) if dtm.tzinfo is None else dtm.astimezone(tzinfo)
 
 
 def obscure_secrets(data: _T) -> _T:
@@ -137,3 +177,35 @@ def convert_keys_to_snake_case(data: _T) -> _T:
     Used after retrieving JSON from the vendor API.
     """
     return _convert_keys(data, camel_to_snake)
+
+
+def convert_naive_dtm_strs_to_aware(data: _T, tzinfo: tzinfo) -> _T:
+    """Recursively convert TZ-naive datetime strings to TZ-aware.
+
+    Does not convert TZ-aware strings, even if they're from a different TZ.
+    """
+
+    def recurse(data_: Any) -> Any:  # noqa: PLR0911
+        if isinstance(data_, dict):
+            return {k: recurse(v) for k, v in data_.items()}
+
+        if isinstance(data_, list):
+            return [recurse(i) for i in data_]
+
+        if not isinstance(data_, str):
+            return data_
+
+        try:
+            d = dt.fromisoformat(data_)
+        except ValueError:
+            return data_
+
+        if d.tzinfo is None:  # e.g. 2023-11-30T22:10:00
+            return d.replace(tzinfo=tzinfo).isoformat()
+
+        if data_.endswith("Z"):  # e.g. 2023-11-30T22:10:00Z
+            return d.astimezone(tzinfo).isoformat()
+
+        return data_  # e.g. 2023-11-30T22:10:00+00:00
+
+    return recurse(data)  # type:ignore[no-any-return]

@@ -10,7 +10,7 @@ from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
-from evohome.helpers import camel_to_snake
+from evohome.helpers import as_local_time, camel_to_snake
 
 from . import exceptions as exc
 from .const import (
@@ -170,42 +170,37 @@ class ActiveFaultsBase(EntityBase):
         self,
         active_faults: list[EvoActiveFaultResponseT],
     ) -> None:
-        last_logged = {}
+        """Maintain self._active_faults list and self._last_logged dict."""
 
         def hash_(fault: EvoActiveFaultResponseT) -> str:
-            return f"{fault[SZ_FAULT_TYPE]}_{fault[SZ_SINCE]}"
+            return f"{fault[SZ_SINCE]}_{fault[SZ_FAULT_TYPE]}"
 
         def log_as_active(fault: EvoActiveFaultResponseT) -> None:
-            # the dt is local/naive, leave it as so (but _could_ convert to TZ-aware)
             self._logger.warning(
-                f"{self}: Active fault: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
+                f"{self}: Active fault: {fault[SZ_SINCE]} {fault[SZ_FAULT_TYPE]}"
             )
-            last_logged[hash_(fault)] = dt.now(tz=UTC)  # aware dtm not required
+            self._last_logged[hash_(fault)] = dt.now(tz=UTC)  # aware dtm not required
 
         def log_as_resolved(fault: EvoActiveFaultResponseT) -> None:
-            # the dt is local/naive, leave it as so (but _could_ convert to TZ-aware)
             self._logger.info(
-                f"{self}: Fault cleared: {fault[SZ_FAULT_TYPE]}, since {fault[SZ_SINCE]}"
+                f"{self}: Fault cleared: {fault[SZ_SINCE]} {fault[SZ_FAULT_TYPE]}"
             )
             del self._last_logged[hash_(fault)]
 
-        for fault in active_faults:
-            if fault not in self.active_faults:  # new active fault
+        # Remove resolved (non-active) faults
+        for fault in [f for f in self._active_faults if f not in active_faults]:
+            log_as_resolved(fault)
+            self._active_faults.remove(fault)
+
+        # Add new (active) faults
+        for fault in [f for f in active_faults if f not in self._active_faults]:
+            log_as_active(fault)
+            self._active_faults.append(fault)
+
+        # Re-log active faults if necessary
+        for fault in self._active_faults:
+            if dt.now(tz=UTC) - self._last_logged[hash_(fault)] > _ONE_DAY:
                 log_as_active(fault)
-
-        for fault in self.active_faults:
-            if fault not in active_faults:  # fault resolved
-                log_as_resolved(fault)
-
-            elif dt.now(tz=UTC) - self._last_logged[hash_(fault)] > _ONE_DAY:
-                log_as_active(fault)
-
-        # self._active_faults = [
-        #     {**fault, "since": as_local_time(fault["since"], self.location.tzinfo)}
-        #     for fault in active_faults
-        # ]
-        self._active_faults = active_faults
-        self._last_logged |= last_logged
 
     @property
     def active_faults(self) -> tuple[EvoActiveFaultResponseT, ...]:
@@ -219,17 +214,6 @@ class ActiveFaultsBase(EntityBase):
         """
 
         return tuple(self._active_faults)
-
-
-def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
-    """Convert a datetime into a aware datetime in the given TZ.
-
-    If the datetime is naive, assume it is in the same timezone as tzinfo.
-    """
-
-    if isinstance(dtm, str):
-        dtm = dt.fromisoformat(dtm)
-    return dtm.replace(tzinfo=tzinfo) if dtm.tzinfo is None else dtm.astimezone(tzinfo)
 
 
 def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:

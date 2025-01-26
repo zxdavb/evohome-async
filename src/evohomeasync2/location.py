@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
 
-from evohome.helpers import camel_to_snake
+from evohome.helpers import camel_to_snake, convert_naive_dtm_strs_to_aware
 from evohome.windows_zones import (
     WINDOWS_TO_IANA_APAC,
     WINDOWS_TO_IANA_ASIA,
@@ -241,6 +241,9 @@ class Location(EntityBase):
 
     def _update_status(self, status: EvoLocStatusResponseT) -> None:
         """Update the LOC's status and cascade to its descendants."""
+
+        # convert all naive datetimes to TZ-aware datetimes (do when snake_casing?)
+        status = convert_naive_dtm_strs_to_aware(status, self.tzinfo)
 
         # No ActiveFaults in location node of status
         self._status = status
