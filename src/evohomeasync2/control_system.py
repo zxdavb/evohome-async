@@ -145,9 +145,9 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         """Update the TCS's status and cascade to its descendants."""
 
         self._update_faults(status["active_faults"])
-        self._status = status
 
-        for zon_status in self._status[SZ_ZONES]:
+        # break the TypedDict into its parts (so, ignore[misc])...
+        for zon_status in status.pop(SZ_ZONES):  # type: ignore[misc]
             if zone := self.zone_by_id.get(zon_status[SZ_ZONE_ID]):
                 zone._update_status(zon_status)
 
@@ -157,7 +157,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                     ", (has the system configuration been changed?)"
                 )
 
-        if dhw_status := self._status.get(SZ_DHW):
+        if dhw_status := status.pop(SZ_DHW, None):
             if self.hotwater and self.hotwater.id == dhw_status[SZ_DHW_ID]:
                 self.hotwater._update_status(dhw_status)
 
@@ -166,6 +166,8 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                     f"{self}: dhw_id='{dhw_status[SZ_DHW_ID]}' not known"
                     ", (has the system configuration been changed?)"
                 )
+
+        self._status = status
 
     @property
     def system_mode_status(self) -> EvoSystemModeStatusResponseT:

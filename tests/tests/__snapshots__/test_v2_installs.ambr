@@ -113,104 +113,10 @@
     ''',
     'status': '''
       active_faults: []
-      dhw:
-        active_faults: []
-        dhw_id: '3933910'
-        state_status:
-          mode: PermanentOverride
-          state: 'Off'
-        temperature_status:
-          is_available: true
-          temperature: 23.0
       system_id: '3432522'
       system_mode_status:
         is_permanent: true
         mode: AutoWithEco
-      zones:
-      - active_faults:
-        - fault_type: TempZoneActuatorCommunicationLost
-          since: '2024-12-17T17:10:57+00:00'
-        name: Dead Zone
-        setpoint_status:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 5.0
-        temperature_status:
-          is_available: false
-        zone_id: '3432521'
-      - active_faults:
-        - fault_type: TempZoneSensorCommunicationLost
-          since: '2024-05-01T01:00:00+01:00'
-        name: Main Room
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
-        temperature_status:
-          is_available: true
-          temperature: 19.0
-        zone_id: '3432576'
-      - active_faults: []
-        name: Front Room
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
-        temperature_status:
-          is_available: true
-          temperature: 19.0
-        zone_id: '3432577'
-      - active_faults: []
-        name: Kitchen
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
-        temperature_status:
-          is_available: true
-          temperature: 20.0
-        zone_id: '3432578'
-      - active_faults: []
-        name: Bathroom Dn
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.0
-        temperature_status:
-          is_available: true
-          temperature: 20.0
-        zone_id: '3432579'
-      - active_faults: []
-        name: Main Bedroom
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.0
-        temperature_status:
-          is_available: true
-          temperature: 21.0
-        zone_id: '3432580'
-      - active_faults: []
-        name: Kids Room
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
-        temperature_status:
-          is_available: true
-          temperature: 19.5
-        zone_id: '3449703'
-      - active_faults: []
-        name: Bathroom Up
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.5
-        temperature_status:
-          is_available: true
-          temperature: 21.5
-        zone_id: '3449740'
-      - active_faults: []
-        name: Spare Room
-        setpoint_status:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 14.0
-        temperature_status:
-          is_available: true
-          temperature: 19.5
-        zone_id: '3450733'
   
     ''',
     'system_mode_status': '''
@@ -250,106 +156,6 @@
     'status': '''
       active_faults: []
       gateway_id: '2499896'
-      temperature_control_systems:
-      - active_faults: []
-        dhw:
-          active_faults: []
-          dhw_id: '3933910'
-          state_status:
-            mode: PermanentOverride
-            state: 'Off'
-          temperature_status:
-            is_available: true
-            temperature: 23.0
-        system_id: '3432522'
-        system_mode_status:
-          is_permanent: true
-          mode: AutoWithEco
-        zones:
-        - active_faults:
-          - fault_type: TempZoneActuatorCommunicationLost
-            since: '2024-12-17T17:10:57+00:00'
-          name: Dead Zone
-          setpoint_status:
-            setpoint_mode: PermanentOverride
-            target_heat_temperature: 5.0
-          temperature_status:
-            is_available: false
-          zone_id: '3432521'
-        - active_faults:
-          - fault_type: TempZoneSensorCommunicationLost
-            since: '2024-05-01T01:00:00+01:00'
-          name: Main Room
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 17.0
-          temperature_status:
-            is_available: true
-            temperature: 19.0
-          zone_id: '3432576'
-        - active_faults: []
-          name: Front Room
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 17.0
-          temperature_status:
-            is_available: true
-            temperature: 19.0
-          zone_id: '3432577'
-        - active_faults: []
-          name: Kitchen
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 17.0
-          temperature_status:
-            is_available: true
-            temperature: 20.0
-          zone_id: '3432578'
-        - active_faults: []
-          name: Bathroom Dn
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 16.0
-          temperature_status:
-            is_available: true
-            temperature: 20.0
-          zone_id: '3432579'
-        - active_faults: []
-          name: Main Bedroom
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 16.0
-          temperature_status:
-            is_available: true
-            temperature: 21.0
-          zone_id: '3432580'
-        - active_faults: []
-          name: Kids Room
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 17.0
-          temperature_status:
-            is_available: true
-            temperature: 19.5
-          zone_id: '3449703'
-        - active_faults: []
-          name: Bathroom Up
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 16.5
-          temperature_status:
-            is_available: true
-            temperature: 21.5
-          zone_id: '3449740'
-        - active_faults: []
-          name: Spare Room
-          setpoint_status:
-            setpoint_mode: PermanentOverride
-            target_heat_temperature: 14.0
-          temperature_status:
-            is_available: true
-            temperature: 19.5
-          zone_id: '3450733'
   
     ''',
   })
@@ -622,109 +428,6 @@
   
     ''',
     'status': '''
-      gateways:
-      - active_faults: []
-        gateway_id: '2499896'
-        temperature_control_systems:
-        - active_faults: []
-          dhw:
-            active_faults: []
-            dhw_id: '3933910'
-            state_status:
-              mode: PermanentOverride
-              state: 'Off'
-            temperature_status:
-              is_available: true
-              temperature: 23.0
-          system_id: '3432522'
-          system_mode_status:
-            is_permanent: true
-            mode: AutoWithEco
-          zones:
-          - active_faults:
-            - fault_type: TempZoneActuatorCommunicationLost
-              since: '2024-12-17T17:10:57+00:00'
-            name: Dead Zone
-            setpoint_status:
-              setpoint_mode: PermanentOverride
-              target_heat_temperature: 5.0
-            temperature_status:
-              is_available: false
-            zone_id: '3432521'
-          - active_faults:
-            - fault_type: TempZoneSensorCommunicationLost
-              since: '2024-05-01T01:00:00+01:00'
-            name: Main Room
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 17.0
-            temperature_status:
-              is_available: true
-              temperature: 19.0
-            zone_id: '3432576'
-          - active_faults: []
-            name: Front Room
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 17.0
-            temperature_status:
-              is_available: true
-              temperature: 19.0
-            zone_id: '3432577'
-          - active_faults: []
-            name: Kitchen
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 17.0
-            temperature_status:
-              is_available: true
-              temperature: 20.0
-            zone_id: '3432578'
-          - active_faults: []
-            name: Bathroom Dn
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 16.0
-            temperature_status:
-              is_available: true
-              temperature: 20.0
-            zone_id: '3432579'
-          - active_faults: []
-            name: Main Bedroom
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 16.0
-            temperature_status:
-              is_available: true
-              temperature: 21.0
-            zone_id: '3432580'
-          - active_faults: []
-            name: Kids Room
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 17.0
-            temperature_status:
-              is_available: true
-              temperature: 19.5
-            zone_id: '3449703'
-          - active_faults: []
-            name: Bathroom Up
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 16.5
-            temperature_status:
-              is_available: true
-              temperature: 21.5
-            zone_id: '3449740'
-          - active_faults: []
-            name: Spare Room
-            setpoint_status:
-              setpoint_mode: PermanentOverride
-              target_heat_temperature: 14.0
-            temperature_status:
-              is_available: true
-              temperature: 19.5
-            zone_id: '3450733'
       location_id: '2738909'
   
     ''',
@@ -2211,104 +1914,10 @@
     ''',
     'status': '''
       active_faults: []
-      dhw:
-        active_faults: []
-        dhw_id: '3933910'
-        state_status:
-          mode: PermanentOverride
-          state: 'Off'
-        temperature_status:
-          is_available: true
-          temperature: 23.0
       system_id: '3432522'
       system_mode_status:
         is_permanent: true
         mode: AutoWithEco
-      zones:
-      - active_faults:
-        - fault_type: TempZoneActuatorCommunicationLost
-          since: '2024-12-17T17:10:57+00:00'
-        name: Dead Zone
-        setpoint_status:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 5.0
-        temperature_status:
-          is_available: false
-        zone_id: '3432521'
-      - active_faults:
-        - fault_type: TempZoneSensorCommunicationLost
-          since: '2024-05-01T01:00:00+01:00'
-        name: Main Room
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
-        temperature_status:
-          is_available: true
-          temperature: 19.0
-        zone_id: '3432576'
-      - active_faults: []
-        name: Front Room
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
-        temperature_status:
-          is_available: true
-          temperature: 19.0
-        zone_id: '3432577'
-      - active_faults: []
-        name: Kitchen
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
-        temperature_status:
-          is_available: true
-          temperature: 20.0
-        zone_id: '3432578'
-      - active_faults: []
-        name: Bathroom Dn
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.0
-        temperature_status:
-          is_available: true
-          temperature: 20.0
-        zone_id: '3432579'
-      - active_faults: []
-        name: Main Bedroom
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.0
-        temperature_status:
-          is_available: true
-          temperature: 21.0
-        zone_id: '3432580'
-      - active_faults: []
-        name: Kids Room
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 17.0
-        temperature_status:
-          is_available: true
-          temperature: 19.5
-        zone_id: '3449703'
-      - active_faults: []
-        name: Bathroom Up
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 16.5
-        temperature_status:
-          is_available: true
-          temperature: 21.5
-        zone_id: '3449740'
-      - active_faults: []
-        name: Spare Room
-        setpoint_status:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 14.0
-        temperature_status:
-          is_available: true
-          temperature: 19.5
-        zone_id: '3450733'
   
     ''',
     'system_mode_status': '''
@@ -2348,106 +1957,6 @@
     'status': '''
       active_faults: []
       gateway_id: '2499896'
-      temperature_control_systems:
-      - active_faults: []
-        dhw:
-          active_faults: []
-          dhw_id: '3933910'
-          state_status:
-            mode: PermanentOverride
-            state: 'Off'
-          temperature_status:
-            is_available: true
-            temperature: 23.0
-        system_id: '3432522'
-        system_mode_status:
-          is_permanent: true
-          mode: AutoWithEco
-        zones:
-        - active_faults:
-          - fault_type: TempZoneActuatorCommunicationLost
-            since: '2024-12-17T17:10:57+00:00'
-          name: Dead Zone
-          setpoint_status:
-            setpoint_mode: PermanentOverride
-            target_heat_temperature: 5.0
-          temperature_status:
-            is_available: false
-          zone_id: '3432521'
-        - active_faults:
-          - fault_type: TempZoneSensorCommunicationLost
-            since: '2024-05-01T01:00:00+01:00'
-          name: Main Room
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 17.0
-          temperature_status:
-            is_available: true
-            temperature: 19.0
-          zone_id: '3432576'
-        - active_faults: []
-          name: Front Room
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 17.0
-          temperature_status:
-            is_available: true
-            temperature: 19.0
-          zone_id: '3432577'
-        - active_faults: []
-          name: Kitchen
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 17.0
-          temperature_status:
-            is_available: true
-            temperature: 20.0
-          zone_id: '3432578'
-        - active_faults: []
-          name: Bathroom Dn
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 16.0
-          temperature_status:
-            is_available: true
-            temperature: 20.0
-          zone_id: '3432579'
-        - active_faults: []
-          name: Main Bedroom
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 16.0
-          temperature_status:
-            is_available: true
-            temperature: 21.0
-          zone_id: '3432580'
-        - active_faults: []
-          name: Kids Room
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 17.0
-          temperature_status:
-            is_available: true
-            temperature: 19.5
-          zone_id: '3449703'
-        - active_faults: []
-          name: Bathroom Up
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 16.5
-          temperature_status:
-            is_available: true
-            temperature: 21.5
-          zone_id: '3449740'
-        - active_faults: []
-          name: Spare Room
-          setpoint_status:
-            setpoint_mode: PermanentOverride
-            target_heat_temperature: 14.0
-          temperature_status:
-            is_available: true
-            temperature: 19.5
-          zone_id: '3450733'
   
     ''',
   })
@@ -2720,109 +2229,6 @@
   
     ''',
     'status': '''
-      gateways:
-      - active_faults: []
-        gateway_id: '2499896'
-        temperature_control_systems:
-        - active_faults: []
-          dhw:
-            active_faults: []
-            dhw_id: '3933910'
-            state_status:
-              mode: PermanentOverride
-              state: 'Off'
-            temperature_status:
-              is_available: true
-              temperature: 23.0
-          system_id: '3432522'
-          system_mode_status:
-            is_permanent: true
-            mode: AutoWithEco
-          zones:
-          - active_faults:
-            - fault_type: TempZoneActuatorCommunicationLost
-              since: '2024-12-17T17:10:57+00:00'
-            name: Dead Zone
-            setpoint_status:
-              setpoint_mode: PermanentOverride
-              target_heat_temperature: 5.0
-            temperature_status:
-              is_available: false
-            zone_id: '3432521'
-          - active_faults:
-            - fault_type: TempZoneSensorCommunicationLost
-              since: '2024-05-01T01:00:00+01:00'
-            name: Main Room
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 17.0
-            temperature_status:
-              is_available: true
-              temperature: 19.0
-            zone_id: '3432576'
-          - active_faults: []
-            name: Front Room
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 17.0
-            temperature_status:
-              is_available: true
-              temperature: 19.0
-            zone_id: '3432577'
-          - active_faults: []
-            name: Kitchen
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 17.0
-            temperature_status:
-              is_available: true
-              temperature: 20.0
-            zone_id: '3432578'
-          - active_faults: []
-            name: Bathroom Dn
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 16.0
-            temperature_status:
-              is_available: true
-              temperature: 20.0
-            zone_id: '3432579'
-          - active_faults: []
-            name: Main Bedroom
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 16.0
-            temperature_status:
-              is_available: true
-              temperature: 21.0
-            zone_id: '3432580'
-          - active_faults: []
-            name: Kids Room
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 17.0
-            temperature_status:
-              is_available: true
-              temperature: 19.5
-            zone_id: '3449703'
-          - active_faults: []
-            name: Bathroom Up
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 16.5
-            temperature_status:
-              is_available: true
-              temperature: 21.5
-            zone_id: '3449740'
-          - active_faults: []
-            name: Spare Room
-            setpoint_status:
-              setpoint_mode: PermanentOverride
-              target_heat_temperature: 14.0
-            temperature_status:
-              is_available: true
-              temperature: 19.5
-            zone_id: '3450733'
       location_id: '2738909'
   
     ''',
@@ -4309,102 +3715,10 @@
     ''',
     'status': '''
       active_faults: []
-      dhw:
-        active_faults:
-        - fault_type: DHWSensorCommunicationLost
-          since: '2023-11-30T18:48:40+00:00'
-        dhw_id: '3933910'
-        state_status:
-          mode: FollowSchedule
-          state: 'Off'
-        temperature_status:
-          is_available: false
       system_id: '3432522'
       system_mode_status:
         is_permanent: true
         mode: Auto
-      zones:
-      - active_faults: []
-        name: Dead Zone
-        setpoint_status:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 5.0
-        temperature_status:
-          is_available: false
-        zone_id: '3432521'
-      - active_faults: []
-        name: Main Room
-        setpoint_status:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 5.0
-        temperature_status:
-          is_available: true
-          temperature: 17.0
-        zone_id: '3432576'
-      - active_faults: []
-        name: Front Room
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 20.6
-        temperature_status:
-          is_available: true
-          temperature: 20.5
-        zone_id: '3432577'
-      - active_faults: []
-        name: Kitchen
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 20.0
-        temperature_status:
-          is_available: true
-          temperature: 20.0
-        zone_id: '3432578'
-      - active_faults: []
-        name: Bathroom Dn
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 18.5
-        temperature_status:
-          is_available: true
-          temperature: 17.5
-        zone_id: '3432579'
-      - active_faults: []
-        name: Main Bedroom
-        setpoint_status:
-          setpoint_mode: TemporaryOverride
-          target_heat_temperature: 20.5
-          until: '2023-11-30T22:10:00+00:00'
-        temperature_status:
-          is_available: true
-          temperature: 21.0
-        zone_id: '3432580'
-      - active_faults: []
-        name: Kids Room
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 18.6
-        temperature_status:
-          is_available: true
-          temperature: 19.5
-        zone_id: '3449703'
-      - active_faults: []
-        name: Bathroom Up
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 19.0
-        temperature_status:
-          is_available: true
-          temperature: 19.0
-        zone_id: '3449740'
-      - active_faults: []
-        name: Spare Room
-        setpoint_status:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 10.0
-        temperature_status:
-          is_available: true
-          temperature: 15.0
-        zone_id: '3450733'
   
     ''',
     'system_mode_status': '''
@@ -4444,104 +3758,6 @@
     'status': '''
       active_faults: []
       gateway_id: '2499896'
-      temperature_control_systems:
-      - active_faults: []
-        dhw:
-          active_faults:
-          - fault_type: DHWSensorCommunicationLost
-            since: '2023-11-30T18:48:40+00:00'
-          dhw_id: '3933910'
-          state_status:
-            mode: FollowSchedule
-            state: 'Off'
-          temperature_status:
-            is_available: false
-        system_id: '3432522'
-        system_mode_status:
-          is_permanent: true
-          mode: Auto
-        zones:
-        - active_faults: []
-          name: Dead Zone
-          setpoint_status:
-            setpoint_mode: PermanentOverride
-            target_heat_temperature: 5.0
-          temperature_status:
-            is_available: false
-          zone_id: '3432521'
-        - active_faults: []
-          name: Main Room
-          setpoint_status:
-            setpoint_mode: PermanentOverride
-            target_heat_temperature: 5.0
-          temperature_status:
-            is_available: true
-            temperature: 17.0
-          zone_id: '3432576'
-        - active_faults: []
-          name: Front Room
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 20.6
-          temperature_status:
-            is_available: true
-            temperature: 20.5
-          zone_id: '3432577'
-        - active_faults: []
-          name: Kitchen
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 20.0
-          temperature_status:
-            is_available: true
-            temperature: 20.0
-          zone_id: '3432578'
-        - active_faults: []
-          name: Bathroom Dn
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 18.5
-          temperature_status:
-            is_available: true
-            temperature: 17.5
-          zone_id: '3432579'
-        - active_faults: []
-          name: Main Bedroom
-          setpoint_status:
-            setpoint_mode: TemporaryOverride
-            target_heat_temperature: 20.5
-            until: '2023-11-30T22:10:00+00:00'
-          temperature_status:
-            is_available: true
-            temperature: 21.0
-          zone_id: '3432580'
-        - active_faults: []
-          name: Kids Room
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 18.6
-          temperature_status:
-            is_available: true
-            temperature: 19.5
-          zone_id: '3449703'
-        - active_faults: []
-          name: Bathroom Up
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 19.0
-          temperature_status:
-            is_available: true
-            temperature: 19.0
-          zone_id: '3449740'
-        - active_faults: []
-          name: Spare Room
-          setpoint_status:
-            setpoint_mode: PermanentOverride
-            target_heat_temperature: 10.0
-          temperature_status:
-            is_available: true
-            temperature: 15.0
-          zone_id: '3450733'
   
     ''',
   })
@@ -4816,107 +4032,6 @@
   
     ''',
     'status': '''
-      gateways:
-      - active_faults: []
-        gateway_id: '2499896'
-        temperature_control_systems:
-        - active_faults: []
-          dhw:
-            active_faults:
-            - fault_type: DHWSensorCommunicationLost
-              since: '2023-11-30T18:48:40+00:00'
-            dhw_id: '3933910'
-            state_status:
-              mode: FollowSchedule
-              state: 'Off'
-            temperature_status:
-              is_available: false
-          system_id: '3432522'
-          system_mode_status:
-            is_permanent: true
-            mode: Auto
-          zones:
-          - active_faults: []
-            name: Dead Zone
-            setpoint_status:
-              setpoint_mode: PermanentOverride
-              target_heat_temperature: 5.0
-            temperature_status:
-              is_available: false
-            zone_id: '3432521'
-          - active_faults: []
-            name: Main Room
-            setpoint_status:
-              setpoint_mode: PermanentOverride
-              target_heat_temperature: 5.0
-            temperature_status:
-              is_available: true
-              temperature: 17.0
-            zone_id: '3432576'
-          - active_faults: []
-            name: Front Room
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 20.6
-            temperature_status:
-              is_available: true
-              temperature: 20.5
-            zone_id: '3432577'
-          - active_faults: []
-            name: Kitchen
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 20.0
-            temperature_status:
-              is_available: true
-              temperature: 20.0
-            zone_id: '3432578'
-          - active_faults: []
-            name: Bathroom Dn
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 18.5
-            temperature_status:
-              is_available: true
-              temperature: 17.5
-            zone_id: '3432579'
-          - active_faults: []
-            name: Main Bedroom
-            setpoint_status:
-              setpoint_mode: TemporaryOverride
-              target_heat_temperature: 20.5
-              until: '2023-11-30T22:10:00+00:00'
-            temperature_status:
-              is_available: true
-              temperature: 21.0
-            zone_id: '3432580'
-          - active_faults: []
-            name: Kids Room
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 18.6
-            temperature_status:
-              is_available: true
-              temperature: 19.5
-            zone_id: '3449703'
-          - active_faults: []
-            name: Bathroom Up
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 19.0
-            temperature_status:
-              is_available: true
-              temperature: 19.0
-            zone_id: '3449740'
-          - active_faults: []
-            name: Spare Room
-            setpoint_status:
-              setpoint_mode: PermanentOverride
-              target_heat_temperature: 10.0
-            temperature_status:
-              is_available: true
-              temperature: 15.0
-            zone_id: '3450733'
       location_id: '2738909'
   
     ''',
@@ -6374,25 +5489,6 @@
       system_mode_status:
         is_permanent: true
         mode: Auto
-      zones:
-      - active_faults: []
-        name: Name 3935922
-        setpoint_status:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 15.0
-        temperature_status:
-          is_available: true
-          temperature: 21.5
-        zone_id: '3935922'
-      - active_faults: []
-        name: Name 3935922
-        setpoint_status:
-          setpoint_mode: PermanentOverride
-          target_heat_temperature: 15.0
-        temperature_status:
-          is_available: true
-          temperature: 23.0
-        zone_id: '4368406'
   
     ''',
     'system_mode_status': '''
@@ -6432,31 +5528,6 @@
     'status': '''
       active_faults: []
       gateway_id: '2820628'
-      temperature_control_systems:
-      - active_faults: []
-        system_id: '3935923'
-        system_mode_status:
-          is_permanent: true
-          mode: Auto
-        zones:
-        - active_faults: []
-          name: Name 3935922
-          setpoint_status:
-            setpoint_mode: PermanentOverride
-            target_heat_temperature: 15.0
-          temperature_status:
-            is_available: true
-            temperature: 21.5
-          zone_id: '3935922'
-        - active_faults: []
-          name: Name 3935922
-          setpoint_status:
-            setpoint_mode: PermanentOverride
-            target_heat_temperature: 15.0
-          temperature_status:
-            is_available: true
-            temperature: 23.0
-          zone_id: '4368406'
   
     ''',
   })
@@ -6506,34 +5577,6 @@
   
     ''',
     'status': '''
-      gateways:
-      - active_faults: []
-        gateway_id: '2820628'
-        temperature_control_systems:
-        - active_faults: []
-          system_id: '3935923'
-          system_mode_status:
-            is_permanent: true
-            mode: Auto
-          zones:
-          - active_faults: []
-            name: Name 3935922
-            setpoint_status:
-              setpoint_mode: PermanentOverride
-              target_heat_temperature: 15.0
-            temperature_status:
-              is_available: true
-              temperature: 21.5
-            zone_id: '3935922'
-          - active_faults: []
-            name: Name 3935922
-            setpoint_status:
-              setpoint_mode: PermanentOverride
-              target_heat_temperature: 15.0
-            temperature_status:
-              is_available: true
-              temperature: 23.0
-            zone_id: '4368406'
       location_id: '2664492'
   
     ''',
@@ -6910,20 +5953,6 @@
       system_mode_status:
         is_permanent: true
         mode: Auto
-      zones:
-      - active_faults:
-        - fault_type: TempZoneActuatorCommunicationLost
-          since: '2024-12-01T01:00:00+01:00'
-        - fault_type: TempZoneSensorCommunicationLost
-          since: '2024-05-01T01:00:00+02:00'
-        name: Main Room
-        setpoint_status:
-          setpoint_mode: FollowSchedule
-          target_heat_temperature: 14.0
-        temperature_status:
-          is_available: true
-          temperature: 19.5
-        zone_id: '0004'
   
     ''',
     'system_mode_status': '''
@@ -6963,26 +5992,6 @@
     'status': '''
       active_faults: []
       gateway_id: '0002'
-      temperature_control_systems:
-      - active_faults: []
-        system_id: '0003'
-        system_mode_status:
-          is_permanent: true
-          mode: Auto
-        zones:
-        - active_faults:
-          - fault_type: TempZoneActuatorCommunicationLost
-            since: '2024-12-01T01:00:00+01:00'
-          - fault_type: TempZoneSensorCommunicationLost
-            since: '2024-05-01T01:00:00+02:00'
-          name: Main Room
-          setpoint_status:
-            setpoint_mode: FollowSchedule
-            target_heat_temperature: 14.0
-          temperature_status:
-            is_available: true
-            temperature: 19.5
-          zone_id: '0004'
   
     ''',
   })
@@ -7031,29 +6040,6 @@
   
     ''',
     'status': '''
-      gateways:
-      - active_faults: []
-        gateway_id: '0002'
-        temperature_control_systems:
-        - active_faults: []
-          system_id: '0003'
-          system_mode_status:
-            is_permanent: true
-            mode: Auto
-          zones:
-          - active_faults:
-            - fault_type: TempZoneActuatorCommunicationLost
-              since: '2024-12-01T01:00:00+01:00'
-            - fault_type: TempZoneSensorCommunicationLost
-              since: '2024-05-01T01:00:00+02:00'
-            name: Main Room
-            setpoint_status:
-              setpoint_mode: FollowSchedule
-              target_heat_temperature: 14.0
-            temperature_status:
-              is_available: true
-              temperature: 19.5
-            zone_id: '0004'
       location_id: '0002'
   
     ''',

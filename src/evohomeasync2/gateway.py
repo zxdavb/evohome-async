@@ -80,9 +80,9 @@ class Gateway(ActiveFaultsBase, EntityBase):
         """Update the GWY's status and cascade to its descendants."""
 
         self._update_faults(status["active_faults"])
-        self._status = status
 
-        for tcs_status in self._status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
+        # break the TypedDict into its parts (so, ignore[misc])...
+        for tcs_status in status.pop(SZ_TEMPERATURE_CONTROL_SYSTEMS):  # type: ignore[misc]
             if tcs := self.system_by_id.get(tcs_status[SZ_SYSTEM_ID]):
                 tcs._update_status(tcs_status)
 
@@ -91,3 +91,5 @@ class Gateway(ActiveFaultsBase, EntityBase):
                     f"{self}: system_id='{tcs_status[SZ_SYSTEM_ID]}' not known"
                     ", (has the gateway configuration been changed?)"
                 )
+
+        self._status = status

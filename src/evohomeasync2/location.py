@@ -258,9 +258,9 @@ class Location(EntityBase):
         status = convert_naive_dtm_strs_to_aware(status, self.tzinfo)
 
         # No ActiveFaults in location node of status
-        self._status = status
 
-        for gwy_status in self._status[SZ_GATEWAYS]:
+        # break the TypedDict into its parts (so, ignore[misc])...
+        for gwy_status in status.pop(SZ_GATEWAYS):  # type: ignore[misc]
             if gwy := self.gateway_by_id.get(gwy_status[SZ_GATEWAY_ID]):
                 gwy._update_status(gwy_status)
 
@@ -269,3 +269,5 @@ class Location(EntityBase):
                     f"{self}: gateway_id='{gwy_status[SZ_GATEWAY_ID]} not known"
                     ", (has the location configuration changed?)"
                 )
+
+        self._status = status
