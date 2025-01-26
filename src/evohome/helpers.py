@@ -164,11 +164,7 @@ def obfuscate(value: bool | int | str) -> bool | int | str | None:
     return "********"
 
 
-_KEYS_TO_OBSCURE = (
-    "name",
-    "username",
-    "firstname",
-    "lastname",
+_KEYS_TO_OBSCURE = (  # also keys with 'name' in them
     "streetAddress",
     "city",
     "postcode",
@@ -197,6 +193,9 @@ def obscure_secrets(data: _T) -> _T:
             return val[:2].ljust(len(val), "*")
         return "".join("*" if char != " " else " " for char in val)
 
+    def should_obfuscate(key: Any) -> bool:
+        return isinstance(key, str) and ("name" in key or key in _KEYS_TO_OBSCURE)
+
     def recurse(data_: Any) -> Any:
         if isinstance(data_, list):
             return [recurse(i) for i in data_]
@@ -205,10 +204,8 @@ def obscure_secrets(data: _T) -> _T:
             return data_
 
         return {
-            k: _obfuscate(k, v) if k in _KEYS_TO_OBSCURE else recurse(v)
+            k: _obfuscate(k, v) if should_obfuscate(k) else recurse(v)
             for k, v in data_.items()
         }
 
-    if _DBG_DONT_OBFUSCATE:
-        return data
-    return recurse(data)  # type:ignore[no-any-return]
+    return data if _DBG_DONT_OBFUSCATE else recurse(data)  # type:ignore[no-any-return]
