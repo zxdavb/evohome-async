@@ -201,20 +201,6 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=mode)
 
-    async def reset(self) -> None:
-        """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
-
-        if SystemMode.AUTO_WITH_RESET in self.modes:
-            await self.set_mode(SystemMode.AUTO_WITH_RESET)
-            return
-
-        await self.set_mode(SystemMode.AUTO)  # may raise InvalidParameterError
-
-        for zone in self.zones:
-            await zone.reset()
-        if self.hotwater:
-            await self.hotwater.reset()
-
     async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time."""
 
@@ -232,6 +218,22 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             }
 
         await self._set_mode(request)  # type: ignore[arg-type]
+
+    # most, but not all, TCC-compatible systems support these modes...
+
+    async def reset(self) -> None:
+        """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
+
+        if SystemMode.AUTO_WITH_RESET in self.modes:
+            await self.set_mode(SystemMode.AUTO_WITH_RESET)
+            return
+
+        await self.set_mode(SystemMode.AUTO)  # may raise InvalidParameterError
+
+        for zone in self.zones:
+            await zone.reset()
+        if self.hotwater:
+            await self.hotwater.reset()
 
     async def set_auto(self) -> None:
         """Set the TCS to normal mode."""
@@ -256,6 +258,8 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
         """Set the TCS to heating off mode."""
         await self.set_mode(SystemMode.HEATING_OFF, until=until)
+
+    # these are convenience methods
 
     async def get_schedules(self) -> list[EvoScheduleDhwT | EvoScheduleZoneT]:
         """Backup all schedules from the TCS."""
