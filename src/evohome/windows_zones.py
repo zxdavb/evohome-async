@@ -40,6 +40,7 @@ WINDOWS_TO_IANA_APAC = {
     "Samoa Standard Time": "Pacific/Apia",
     "Line Islands Standard Time": "Pacific/Kiritimati",
 }
+
 WINDOWS_TO_IANA_ASIA = {
     "Jordan Standard Time": "Asia/Amman",
     "Middle East Standard Time": "Asia/Beirut",
@@ -87,6 +88,7 @@ WINDOWS_TO_IANA_ASIA = {
     "Sakhalin Standard Time": "Asia/Sakhalin",
     "Russia Time Zone 11": "Asia/Kamchatka",
 }
+
 WINDOWS_TO_IANA_NASA = {
     "Aleutian Standard Time": "America/Adak",
     "Alaskan Standard Time": "America/Anchorage",
@@ -124,6 +126,7 @@ WINDOWS_TO_IANA_NASA = {
     "Saint Pierre Standard Time": "America/Miquelon",
     "Bahia Standard Time": "America/Bahia",
 }
+
 WINDOWS_TO_IANA_EMEA = {
     "Azores Standard Time": "Atlantic/Azores",
     "Cape Verde Standard Time": "Atlantic/Cape_Verde",
@@ -155,4 +158,12 @@ WINDOWS_TO_IANA_EMEA = {
     "Mauritius Standard Time": "Indian/Mauritius",
     "Saratov Standard Time": "Europe/Saratov",
     "Volgograd Standard Time": "Europe/Volgograd",
+}
+
+# TCC is seen in EMEA, ASIA and APAC but not in the Americas
+WINDOWS_TO_IANA_LOOKUP = {
+    k.replace(" ", "").replace(".", ""): v
+    for k, v in (
+        WINDOWS_TO_IANA_EMEA | WINDOWS_TO_IANA_ASIA | WINDOWS_TO_IANA_APAC
+    ).items()
 }

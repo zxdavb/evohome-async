@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
 
 from evohome.helpers import convert_keys_to_snake_case
-from evohomeasync2 import Location
+from evohomeasync2.location import create_location
 from evohomeasync2.schemas import TCC_GET_LOC_STATUS
 from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
 from evohomeasync2.schemas.const import (
@@ -42,7 +42,7 @@ SCH_TCS_CONFIG: Final = factory_tcs()
 SCH_TIME_ZONE: Final = factory_time_zone()
 
 
-def test_config_refresh(config: dict[str, Any], status: dict[str, Any]) -> None:
+async def test_config_refresh(config: dict[str, Any], status: dict[str, Any]) -> None:
     """Test the loading a config, then an update_status() on top of that."""
 
     # hack because old JSON from HA's evohome integration didn't include this data
@@ -55,7 +55,7 @@ def test_config_refresh(config: dict[str, Any], status: dict[str, Any]) -> None:
     status = convert_keys_to_snake_case(status)
 
     # for this, we need snake_case keys
-    loc = Location(ClientStub(), config)  # type: ignore[arg-type]
+    loc = await create_location(ClientStub(), config)  # type: ignore[arg-type]
     loc._update_status(status)  # type: ignore[arg-type]
 
 

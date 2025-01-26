@@ -55,7 +55,7 @@
     tuple(
       'evohomeasync2',
       30,
-      "Unable to find IANA TZ for 'NewYork'; DST transitions will not be automatic",
+      "Unable to find IANA TZ identifier for 'NewYork'; DST support will be very limited",
     ),
     tuple(
       'evohomeasync2',
