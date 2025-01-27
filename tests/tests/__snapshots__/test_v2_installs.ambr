@@ -1,0 +1,6153 @@
+# serializer version: 1
+# name: test_system_snapshot[default][control_system]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'allowed_system_modes': '''
+      !!python/tuple
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: AutoWithReset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: DayOff
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Custom
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+  
+    ''',
+    'config': '''
+      allowed_system_modes:
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: AutoWithReset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: DayOff
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Custom
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      model_type: EvoTouch
+      system_id: '3432522'
+  
+    ''',
+    'id': '''
+      '3432522'
+  
+    ''',
+    'is_permanent': '''
+      true
+      ...
+  
+    ''',
+    'mode': '''
+      AutoWithEco
+      ...
+  
+    ''',
+    'model': '''
+      EvoTouch
+      ...
+  
+    ''',
+    'modes': '''
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
+  
+    ''',
+    'status': '''
+      active_faults: []
+      system_id: '3432522'
+      system_mode_status:
+        is_permanent: true
+        mode: AutoWithEco
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: AutoWithEco
+  
+    ''',
+    'until': '''
+      null
+      ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[default][gateway]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'config': '''
+      crc: '********'
+      gateway_id: '2499896'
+      is_wi_fi: false
+      mac: 00D02DEE4E56
+  
+    ''',
+    'id': '''
+      '2499896'
+  
+    ''',
+    'mac_address': '''
+      00D02DEE4E56
+      ...
+  
+    ''',
+    'status': '''
+      active_faults: []
+      gateway_id: '2499896'
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[default][hot_water]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - FollowSchedule
+      - PermanentOverride
+      - TemporaryOverride
+  
+    ''',
+    'allowed_states': '''
+      !!python/tuple
+      - 'On'
+      - 'Off'
+  
+    ''',
+    'config': '''
+      dhw_id: '3933910'
+      dhw_state_capabilities_response:
+        allowed_modes:
+        - FollowSchedule
+        - PermanentOverride
+        - TemporaryOverride
+        allowed_states:
+        - 'On'
+        - 'Off'
+        max_duration: 1.00:00:00
+        timing_resolution: 00:10:00
+      schedule_capabilities_response:
+        max_switchpoints_per_day: 6
+        min_switchpoints_per_day: 1
+        timing_resolution: 00:10:00
+  
+    ''',
+    'id': '''
+      '3933910'
+  
+    ''',
+    'mode': '''
+      PermanentOverride
+      ...
+  
+    ''',
+    'name': '''
+      Domestic Hot Water
+      ...
+  
+    ''',
+    'next_switchpoint': '''
+      !!python/tuple
+      - '2025-01-01T06:30:00+00:00'
+      - 'On'
+  
+    ''',
+    'schedule': '''
+      - day_of_week: Monday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Tuesday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Wednesday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Thursday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Friday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Saturday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 09:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '23:00:00'
+      - day_of_week: Sunday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 09:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '23:00:00'
+  
+    ''',
+    'schedule_capabilities': '''
+      max_switchpoints_per_day: 6
+      min_switchpoints_per_day: 1
+      timing_resolution: 00:10:00
+  
+    ''',
+    'state': '''
+      'Off'
+  
+    ''',
+    'state_capabilities': '''
+      allowed_modes:
+      - FollowSchedule
+      - PermanentOverride
+      - TemporaryOverride
+      allowed_states:
+      - 'On'
+      - 'Off'
+      max_duration: 1.00:00:00
+      timing_resolution: 00:10:00
+  
+    ''',
+    'state_status': '''
+      mode: PermanentOverride
+      state: 'Off'
+  
+    ''',
+    'status': '''
+      active_faults: []
+      dhw_id: '3933910'
+      state_status:
+        mode: PermanentOverride
+        state: 'Off'
+      temperature_status:
+        is_available: true
+        temperature: 23.0
+  
+    ''',
+    'temperature': '''
+      23.0
+      ...
+  
+    ''',
+    'temperature_status': '''
+      is_available: true
+      temperature: 23.0
+  
+    ''',
+    'this_switchpoint': '''
+      !!python/tuple
+      - '2024-12-31T22:30:00+00:00'
+      - 'Off'
+  
+    ''',
+    'type': '''
+      DomesticHotWater
+      ...
+  
+    ''',
+    'until': '''
+      null
+      ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[default][location]
+  dict({
+    'config': '''
+      city: '********'
+      country: UnitedKingdom
+      location_id: '2738909'
+      location_owner:
+        firstname: David
+        lastname: '********'
+        user_id: '2263181'
+        username: '******@obfuscated.com'
+      location_type: Residential
+      name: My Home
+      postcode: '********'
+      street_address: '********'
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        offset_minutes: 0
+        supports_daylight_saving: true
+        time_zone_id: GMTStandardTime
+      use_daylight_save_switching: true
+  
+    ''',
+    'country': '''
+      UnitedKingdom
+      ...
+  
+    ''',
+    'id': '''
+      '2738909'
+  
+    ''',
+    'name': '''
+      My Home
+      ...
+  
+    ''',
+    'status': '''
+      location_id: '2738909'
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[default][zones]
+  '''
+  '3432521':
+      active_faults: "!!python/tuple\n- fault_type: TempZoneActuatorCommunicationLost\n\
+          \  since: '2024-12-17T17:10:57+00:00'\n"
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Dead Zone\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3432521'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3432521''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'PermanentOverride
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Dead Zone
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 5.0
+  
+          '
+      status: "active_faults:\n- fault_type: TempZoneActuatorCommunicationLost\n  since:\
+          \ '2024-12-17T17:10:57+00:00'\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
+          \  is_available: false\nzone_id: '3432521'\n"
+      target_heat_temperature: '5.0
+  
+          ...
+  
+          '
+      temperature: 'null
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: false
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432576':
+      active_faults: "!!python/tuple\n- fault_type: TempZoneSensorCommunicationLost\n\
+          \  since: '2024-05-01T01:00:00+01:00'\n"
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Main Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3432576'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3432576''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Main Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults:\n- fault_type: TempZoneSensorCommunicationLost\n  since:\
+          \ '2024-05-01T01:00:00+01:00'\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.0\nzone_id: '3432576'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432577':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Front Room\nschedule_capabilities:\n \
+          \ max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3432577'\nzone_type: RadiatorZone\n"
+      id: '''3432577''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Front Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Front Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.0\nzone_id: '3432577'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432578':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Kitchen\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3432578'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3432578''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Kitchen
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Kitchen\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.0\nzone_id: '3432578'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '20.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432579':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Bathroom Dn\nschedule_capabilities:\n\
+          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3432579'\nzone_type: RadiatorZone\n"
+      id: '''3432579''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Bathroom Dn
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.0
+  
+          '
+      status: "active_faults: []\nname: Bathroom Dn\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.0\nzone_id: '3432579'\n"
+      target_heat_temperature: '16.0
+  
+          ...
+  
+          '
+      temperature: '20.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432580':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Main Bedroom\nschedule_capabilities:\n\
+          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3432580'\nzone_type: RadiatorZone\n"
+      id: '''3432580''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Main Bedroom
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.0
+  
+          '
+      status: "active_faults: []\nname: Main Bedroom\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 21.0\nzone_id: '3432580'\n"
+      target_heat_temperature: '16.0
+  
+          ...
+  
+          '
+      temperature: '21.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3449703':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Kids Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3449703'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3449703''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Kids Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Kids Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.5\nzone_id: '3449703'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3449740':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Bathroom Up\nschedule_capabilities:\n\
+          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3449740'\nzone_type: RadiatorZone\n"
+      id: '''3449740''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Bathroom Up
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.5
+  
+          '
+      status: "active_faults: []\nname: Bathroom Up\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.5\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 21.5\nzone_id: '3449740'\n"
+      target_heat_temperature: '16.5
+  
+          ...
+  
+          '
+      temperature: '21.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3450733':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Spare Room\nschedule_capabilities:\n \
+          \ max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3450733'\nzone_type: RadiatorZone\n"
+      id: '''3450733''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'PermanentOverride
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Spare Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 14.0
+  
+          '
+      status: "active_faults: []\nname: Spare Room\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 14.0\ntemperature_status:\n\
+          \  is_available: true\n  temperature: 19.5\nzone_id: '3450733'\n"
+      target_heat_temperature: '14.0
+  
+          ...
+  
+          '
+      temperature: '19.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  
+  '''
+# ---
+# name: test_system_snapshot[hass_118169][control_system]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'allowed_system_modes': '''
+      !!python/tuple
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: AutoWithReset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: DayOff
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Custom
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+  
+    ''',
+    'config': '''
+      allowed_system_modes:
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: AutoWithReset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: DayOff
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Custom
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      model_type: EvoTouch
+      system_id: '3432522'
+  
+    ''',
+    'id': '''
+      '3432522'
+  
+    ''',
+    'is_permanent': '''
+      true
+      ...
+  
+    ''',
+    'mode': '''
+      AutoWithEco
+      ...
+  
+    ''',
+    'model': '''
+      EvoTouch
+      ...
+  
+    ''',
+    'modes': '''
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
+  
+    ''',
+    'status': '''
+      active_faults: []
+      system_id: '3432522'
+      system_mode_status:
+        is_permanent: true
+        mode: AutoWithEco
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: AutoWithEco
+  
+    ''',
+    'until': '''
+      null
+      ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_118169][gateway]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'config': '''
+      crc: '********'
+      gateway_id: '2499896'
+      is_wi_fi: false
+      mac: 00D02DEE4E56
+  
+    ''',
+    'id': '''
+      '2499896'
+  
+    ''',
+    'mac_address': '''
+      00D02DEE4E56
+      ...
+  
+    ''',
+    'status': '''
+      active_faults: []
+      gateway_id: '2499896'
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_118169][hot_water]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - FollowSchedule
+      - PermanentOverride
+      - TemporaryOverride
+  
+    ''',
+    'allowed_states': '''
+      !!python/tuple
+      - 'On'
+      - 'Off'
+  
+    ''',
+    'config': '''
+      dhw_id: '3933910'
+      dhw_state_capabilities_response:
+        allowed_modes:
+        - FollowSchedule
+        - PermanentOverride
+        - TemporaryOverride
+        allowed_states:
+        - 'On'
+        - 'Off'
+        max_duration: 1.00:00:00
+        timing_resolution: 00:10:00
+      schedule_capabilities_response:
+        max_switchpoints_per_day: 6
+        min_switchpoints_per_day: 1
+        timing_resolution: 00:10:00
+  
+    ''',
+    'id': '''
+      '3933910'
+  
+    ''',
+    'mode': '''
+      PermanentOverride
+      ...
+  
+    ''',
+    'name': '''
+      Domestic Hot Water
+      ...
+  
+    ''',
+    'next_switchpoint': '''
+      !!python/tuple
+      - '2025-01-01T06:30:00+00:00'
+      - 'On'
+  
+    ''',
+    'schedule': '''
+      - day_of_week: Monday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Tuesday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Wednesday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Thursday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Friday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Saturday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 09:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '23:00:00'
+      - day_of_week: Sunday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 09:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '23:00:00'
+  
+    ''',
+    'schedule_capabilities': '''
+      max_switchpoints_per_day: 6
+      min_switchpoints_per_day: 1
+      timing_resolution: 00:10:00
+  
+    ''',
+    'state': '''
+      'Off'
+  
+    ''',
+    'state_capabilities': '''
+      allowed_modes:
+      - FollowSchedule
+      - PermanentOverride
+      - TemporaryOverride
+      allowed_states:
+      - 'On'
+      - 'Off'
+      max_duration: 1.00:00:00
+      timing_resolution: 00:10:00
+  
+    ''',
+    'state_status': '''
+      mode: PermanentOverride
+      state: 'Off'
+  
+    ''',
+    'status': '''
+      active_faults: []
+      dhw_id: '3933910'
+      state_status:
+        mode: PermanentOverride
+        state: 'Off'
+      temperature_status:
+        is_available: true
+        temperature: 23.0
+  
+    ''',
+    'temperature': '''
+      23.0
+      ...
+  
+    ''',
+    'temperature_status': '''
+      is_available: true
+      temperature: 23.0
+  
+    ''',
+    'this_switchpoint': '''
+      !!python/tuple
+      - '2024-12-31T22:30:00+00:00'
+      - 'Off'
+  
+    ''',
+    'type': '''
+      DomesticHotWater
+      ...
+  
+    ''',
+    'until': '''
+      null
+      ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_118169][location]
+  dict({
+    'config': '''
+      city: '********'
+      country: UnitedKingdom
+      location_id: '2738909'
+      location_owner:
+        firstname: David
+        lastname: '********'
+        user_id: '2263181'
+        username: '******@obfuscated.com'
+      location_type: Residential
+      name: My Home
+      postcode: '********'
+      street_address: '********'
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        offset_minutes: 0
+        supports_daylight_saving: true
+        time_zone_id: GMTStandardTime
+      use_daylight_save_switching: true
+  
+    ''',
+    'country': '''
+      UnitedKingdom
+      ...
+  
+    ''',
+    'id': '''
+      '2738909'
+  
+    ''',
+    'name': '''
+      My Home
+      ...
+  
+    ''',
+    'status': '''
+      location_id: '2738909'
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_118169][zones]
+  '''
+  '3432521':
+      active_faults: "!!python/tuple\n- fault_type: TempZoneActuatorCommunicationLost\n\
+          \  since: '2024-12-17T17:10:57+00:00'\n"
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Dead Zone\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3432521'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3432521''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'PermanentOverride
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Dead Zone
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 5.0
+  
+          '
+      status: "active_faults:\n- fault_type: TempZoneActuatorCommunicationLost\n  since:\
+          \ '2024-12-17T17:10:57+00:00'\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
+          \  is_available: false\nzone_id: '3432521'\n"
+      target_heat_temperature: '5.0
+  
+          ...
+  
+          '
+      temperature: 'null
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: false
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432576':
+      active_faults: "!!python/tuple\n- fault_type: TempZoneSensorCommunicationLost\n\
+          \  since: '2024-05-01T01:00:00+01:00'\n"
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Main Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3432576'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3432576''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Main Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults:\n- fault_type: TempZoneSensorCommunicationLost\n  since:\
+          \ '2024-05-01T01:00:00+01:00'\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.0\nzone_id: '3432576'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432577':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Front Room\nschedule_capabilities:\n \
+          \ max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3432577'\nzone_type: RadiatorZone\n"
+      id: '''3432577''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Front Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Front Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.0\nzone_id: '3432577'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432578':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Kitchen\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3432578'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3432578''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Kitchen
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Kitchen\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.0\nzone_id: '3432578'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '20.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432579':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Bathroom Dn\nschedule_capabilities:\n\
+          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3432579'\nzone_type: RadiatorZone\n"
+      id: '''3432579''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Bathroom Dn
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.0
+  
+          '
+      status: "active_faults: []\nname: Bathroom Dn\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.0\nzone_id: '3432579'\n"
+      target_heat_temperature: '16.0
+  
+          ...
+  
+          '
+      temperature: '20.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432580':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Main Bedroom\nschedule_capabilities:\n\
+          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3432580'\nzone_type: RadiatorZone\n"
+      id: '''3432580''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Main Bedroom
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.0
+  
+          '
+      status: "active_faults: []\nname: Main Bedroom\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 21.0\nzone_id: '3432580'\n"
+      target_heat_temperature: '16.0
+  
+          ...
+  
+          '
+      temperature: '21.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3449703':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Kids Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3449703'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3449703''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Kids Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 17.0
+  
+          '
+      status: "active_faults: []\nname: Kids Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 17.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.5\nzone_id: '3449703'\n"
+      target_heat_temperature: '17.0
+  
+          ...
+  
+          '
+      temperature: '19.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3449740':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Bathroom Up\nschedule_capabilities:\n\
+          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3449740'\nzone_type: RadiatorZone\n"
+      id: '''3449740''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Bathroom Up
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 16.5
+  
+          '
+      status: "active_faults: []\nname: Bathroom Up\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 16.5\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 21.5\nzone_id: '3449740'\n"
+      target_heat_temperature: '16.5
+  
+          ...
+  
+          '
+      temperature: '21.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3450733':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Spare Room\nschedule_capabilities:\n \
+          \ max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3450733'\nzone_type: RadiatorZone\n"
+      id: '''3450733''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'PermanentOverride
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Spare Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 14.0
+  
+          '
+      status: "active_faults: []\nname: Spare Room\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 14.0\ntemperature_status:\n\
+          \  is_available: true\n  temperature: 19.5\nzone_id: '3450733'\n"
+      target_heat_temperature: '14.0
+  
+          ...
+  
+          '
+      temperature: '19.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  
+  '''
+# ---
+# name: test_system_snapshot[system_002][control_system]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'allowed_system_modes': '''
+      !!python/tuple
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: AutoWithReset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: DayOff
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Custom
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+  
+    ''',
+    'config': '''
+      allowed_system_modes:
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: AutoWithReset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: DayOff
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Custom
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      model_type: EvoTouch
+      system_id: '3432522'
+  
+    ''',
+    'id': '''
+      '3432522'
+  
+    ''',
+    'is_permanent': '''
+      true
+      ...
+  
+    ''',
+    'mode': '''
+      Auto
+      ...
+  
+    ''',
+    'model': '''
+      EvoTouch
+      ...
+  
+    ''',
+    'modes': '''
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
+  
+    ''',
+    'status': '''
+      active_faults: []
+      system_id: '3432522'
+      system_mode_status:
+        is_permanent: true
+        mode: Auto
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: Auto
+  
+    ''',
+    'until': '''
+      null
+      ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_002][gateway]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'config': '''
+      crc: '********'
+      gateway_id: '2499896'
+      is_wi_fi: false
+      mac: 00D02DEE4E56
+  
+    ''',
+    'id': '''
+      '2499896'
+  
+    ''',
+    'mac_address': '''
+      00D02DEE4E56
+      ...
+  
+    ''',
+    'status': '''
+      active_faults: []
+      gateway_id: '2499896'
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_002][hot_water]
+  dict({
+    'active_faults': '''
+      !!python/tuple
+      - fault_type: DHWSensorCommunicationLost
+        since: '2023-11-30T18:48:40+00:00'
+  
+    ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - FollowSchedule
+      - PermanentOverride
+      - TemporaryOverride
+  
+    ''',
+    'allowed_states': '''
+      !!python/tuple
+      - 'On'
+      - 'Off'
+  
+    ''',
+    'config': '''
+      dhw_id: '3933910'
+      dhw_state_capabilities_response:
+        allowed_modes:
+        - FollowSchedule
+        - PermanentOverride
+        - TemporaryOverride
+        allowed_states:
+        - 'On'
+        - 'Off'
+        max_duration: 1.00:00:00
+        timing_resolution: 00:10:00
+      schedule_capabilities_response:
+        max_switchpoints_per_day: 6
+        min_switchpoints_per_day: 1
+        timing_resolution: 00:10:00
+  
+    ''',
+    'id': '''
+      '3933910'
+  
+    ''',
+    'mode': '''
+      FollowSchedule
+      ...
+  
+    ''',
+    'name': '''
+      Domestic Hot Water
+      ...
+  
+    ''',
+    'next_switchpoint': '''
+      !!python/tuple
+      - '2025-01-01T06:30:00+00:00'
+      - 'On'
+  
+    ''',
+    'schedule': '''
+      - day_of_week: Monday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Tuesday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Wednesday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Thursday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Friday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 08:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '22:30:00'
+      - day_of_week: Saturday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 09:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '23:00:00'
+      - day_of_week: Sunday
+        switchpoints:
+        - dhw_state: 'On'
+          time_of_day: 06:30:00
+        - dhw_state: 'Off'
+          time_of_day: 09:30:00
+        - dhw_state: 'On'
+          time_of_day: '12:00:00'
+        - dhw_state: 'Off'
+          time_of_day: '13:00:00'
+        - dhw_state: 'On'
+          time_of_day: '16:30:00'
+        - dhw_state: 'Off'
+          time_of_day: '23:00:00'
+  
+    ''',
+    'schedule_capabilities': '''
+      max_switchpoints_per_day: 6
+      min_switchpoints_per_day: 1
+      timing_resolution: 00:10:00
+  
+    ''',
+    'state': '''
+      'Off'
+  
+    ''',
+    'state_capabilities': '''
+      allowed_modes:
+      - FollowSchedule
+      - PermanentOverride
+      - TemporaryOverride
+      allowed_states:
+      - 'On'
+      - 'Off'
+      max_duration: 1.00:00:00
+      timing_resolution: 00:10:00
+  
+    ''',
+    'state_status': '''
+      mode: FollowSchedule
+      state: 'Off'
+  
+    ''',
+    'status': '''
+      active_faults:
+      - fault_type: DHWSensorCommunicationLost
+        since: '2023-11-30T18:48:40+00:00'
+      dhw_id: '3933910'
+      state_status:
+        mode: FollowSchedule
+        state: 'Off'
+      temperature_status:
+        is_available: false
+  
+    ''',
+    'temperature': '''
+      null
+      ...
+  
+    ''',
+    'temperature_status': '''
+      is_available: false
+  
+    ''',
+    'this_switchpoint': '''
+      !!python/tuple
+      - '2024-12-31T22:30:00+00:00'
+      - 'Off'
+  
+    ''',
+    'type': '''
+      DomesticHotWater
+      ...
+  
+    ''',
+    'until': '''
+      null
+      ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_002][location]
+  dict({
+    'config': '''
+      city: '********'
+      country: UnitedKingdom
+      location_id: '2738909'
+      location_owner:
+        firstname: David
+        lastname: '********'
+        user_id: '2263181'
+        username: '******@obfuscated.com'
+      location_type: Residential
+      name: My Home
+      postcode: '********'
+      street_address: '********'
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        offset_minutes: 0
+        supports_daylight_saving: true
+        time_zone_id: GMTStandardTime
+      use_daylight_save_switching: true
+  
+    ''',
+    'country': '''
+      UnitedKingdom
+      ...
+  
+    ''',
+    'id': '''
+      '2738909'
+  
+    ''',
+    'name': '''
+      My Home
+      ...
+  
+    ''',
+    'status': '''
+      location_id: '2738909'
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_002][zones]
+  '''
+  '3432521':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Dead Zone\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3432521'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3432521''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'PermanentOverride
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Dead Zone
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 5.0
+  
+          '
+      status: "active_faults: []\nname: Dead Zone\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
+          \  is_available: false\nzone_id: '3432521'\n"
+      target_heat_temperature: '5.0
+  
+          ...
+  
+          '
+      temperature: 'null
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: false
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432576':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Main Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3432576'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3432576''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'PermanentOverride
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Main Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 5.0
+  
+          '
+      status: "active_faults: []\nname: Main Room\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 5.0\ntemperature_status:\n\
+          \  is_available: true\n  temperature: 17.0\nzone_id: '3432576'\n"
+      target_heat_temperature: '5.0
+  
+          ...
+  
+          '
+      temperature: '17.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 17.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432577':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Front Room\nschedule_capabilities:\n \
+          \ max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3432577'\nzone_type: RadiatorZone\n"
+      id: '''3432577''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Front Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 20.6
+  
+          '
+      status: "active_faults: []\nname: Front Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 20.6\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.5\nzone_id: '3432577'\n"
+      target_heat_temperature: '20.6
+  
+          ...
+  
+          '
+      temperature: '20.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432578':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Kitchen\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3432578'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3432578''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Kitchen
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 20.0
+  
+          '
+      status: "active_faults: []\nname: Kitchen\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 20.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 20.0\nzone_id: '3432578'\n"
+      target_heat_temperature: '20.0
+  
+          ...
+  
+          '
+      temperature: '20.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432579':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Bathroom Dn\nschedule_capabilities:\n\
+          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3432579'\nzone_type: RadiatorZone\n"
+      id: '''3432579''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Bathroom Dn
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 18.5
+  
+          '
+      status: "active_faults: []\nname: Bathroom Dn\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 18.5\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 17.5\nzone_id: '3432579'\n"
+      target_heat_temperature: '18.5
+  
+          ...
+  
+          '
+      temperature: '17.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 17.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3432580':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Main Bedroom\nschedule_capabilities:\n\
+          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3432580'\nzone_type: RadiatorZone\n"
+      id: '''3432580''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'TemporaryOverride
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Main Bedroom
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: TemporaryOverride
+  
+          target_heat_temperature: 20.5
+  
+          until: ''2023-11-30T22:10:00+00:00''
+  
+          '
+      status: "active_faults: []\nname: Main Bedroom\nsetpoint_status:\n  setpoint_mode:\
+          \ TemporaryOverride\n  target_heat_temperature: 20.5\n  until: '2023-11-30T22:10:00+00:00'\n\
+          temperature_status:\n  is_available: true\n  temperature: 21.0\nzone_id: '3432580'\n"
+      target_heat_temperature: '20.5
+  
+          ...
+  
+          '
+      temperature: '21.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: '''2023-11-30T22:10:00+00:00''
+  
+          '
+  '3449703':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Kids Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '3449703'\n\
+          zone_type: RadiatorZone\n"
+      id: '''3449703''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Kids Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 18.6
+  
+          '
+      status: "active_faults: []\nname: Kids Room\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 18.6\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.5\nzone_id: '3449703'\n"
+      target_heat_temperature: '18.6
+  
+          ...
+  
+          '
+      temperature: '19.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3449740':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Bathroom Up\nschedule_capabilities:\n\
+          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3449740'\nzone_type: RadiatorZone\n"
+      id: '''3449740''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Bathroom Up
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 19.0
+  
+          '
+      status: "active_faults: []\nname: Bathroom Up\nsetpoint_status:\n  setpoint_mode:\
+          \ FollowSchedule\n  target_heat_temperature: 19.0\ntemperature_status:\n \
+          \ is_available: true\n  temperature: 19.0\nzone_id: '3449740'\n"
+      target_heat_temperature: '19.0
+  
+          ...
+  
+          '
+      temperature: '19.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '3450733':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Spare Room\nschedule_capabilities:\n \
+          \ max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3450733'\nzone_type: RadiatorZone\n"
+      id: '''3450733''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'PermanentOverride
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Spare Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 10.0
+  
+          '
+      status: "active_faults: []\nname: Spare Room\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 10.0\ntemperature_status:\n\
+          \  is_available: true\n  temperature: 15.0\nzone_id: '3450733'\n"
+      target_heat_temperature: '10.0
+  
+          ...
+  
+          '
+      temperature: '15.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 15.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'RadiatorZone
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  
+  '''
+# ---
+# name: test_system_snapshot[system_004][control_system]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'allowed_system_modes': '''
+      !!python/tuple
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
+  
+    ''',
+    'config': '''
+      allowed_system_modes:
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: AutoWithEco
+        timing_mode: Duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: Away
+        timing_mode: Period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: HeatingOff
+      model_type: EvoTouch
+      system_id: '3935923'
+  
+    ''',
+    'id': '''
+      '3935923'
+  
+    ''',
+    'is_permanent': '''
+      true
+      ...
+  
+    ''',
+    'mode': '''
+      Auto
+      ...
+  
+    ''',
+    'model': '''
+      EvoTouch
+      ...
+  
+    ''',
+    'modes': '''
+      !!python/tuple
+      - Auto
+      - AutoWithEco
+      - Away
+      - HeatingOff
+  
+    ''',
+    'status': '''
+      active_faults: []
+      system_id: '3935923'
+      system_mode_status:
+        is_permanent: true
+        mode: Auto
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: Auto
+  
+    ''',
+    'until': '''
+      null
+      ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_004][gateway]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'config': '''
+      crc: '********'
+      gateway_id: '2820628'
+      is_wi_fi: false
+      mac: 00D02DF114FD
+  
+    ''',
+    'id': '''
+      '2820628'
+  
+    ''',
+    'mac_address': '''
+      00D02DF114FD
+      ...
+  
+    ''',
+    'status': '''
+      active_faults: []
+      gateway_id: '2820628'
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_004][location]
+  dict({
+    'config': '''
+      city: '********'
+      country: CzechRepublic
+      location_id: '2664492'
+      location_owner:
+        firstname: Jan
+        lastname: '********'
+        user_id: '2224990'
+        username: '******@obfuscated.com'
+      location_type: Residential
+      name: Summer House
+      postcode: '********'
+      street_address: '********'
+      time_zone:
+        current_offset_minutes: 120
+        display_name: "(UTC+01:00) Praha, Bratislava, Budape\u0161\u0165, B\u011Blehrad,\
+          \ Lubla\u0148"
+        offset_minutes: 60
+        supports_daylight_saving: true
+        time_zone_id: CentralEuropeStandardTime
+      use_daylight_save_switching: true
+  
+    ''',
+    'country': '''
+      CzechRepublic
+      ...
+  
+    ''',
+    'id': '''
+      '2664492'
+  
+    ''',
+    'name': '''
+      Summer House
+      ...
+  
+    ''',
+    'status': '''
+      location_id: '2664492'
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/Budapest
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_004][zones]
+  '''
+  '3935922':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: RoundWireless\nname: Pokoj Honzicek\nschedule_capabilities:\n\
+          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 0\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - PermanentOverride\n  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool:\
+          \ false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n  max_heat_setpoint:\
+          \ 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution: 00:10:00\n  value_resolution:\
+          \ 0.5\nzone_id: '3935922'\nzone_type: Thermostat\n"
+      id: '''3935922''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'PermanentOverride
+  
+          ...
+  
+          '
+      model: 'RoundWireless
+  
+          ...
+  
+          '
+      name: 'Name 3935922
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+01:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 0
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 15.0
+  
+          '
+      status: "active_faults: []\nname: Name 3935922\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 15.0\ntemperature_status:\n\
+          \  is_available: true\n  temperature: 21.5\nzone_id: '3935922'\n"
+      target_heat_temperature: '15.0
+  
+          ...
+  
+          '
+      temperature: '21.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+01:00''
+  
+          - 15.9
+  
+          '
+      type: 'Thermostat
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  '4368406':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: RoundWireless\nname: Kuchyne\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 0\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '4368406'\n\
+          zone_type: Thermostat\n"
+      id: '''4368406''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'PermanentOverride
+  
+          ...
+  
+          '
+      model: 'RoundWireless
+  
+          ...
+  
+          '
+      name: 'Name 3935922
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+01:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 0
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: PermanentOverride
+  
+          target_heat_temperature: 15.0
+  
+          '
+      status: "active_faults: []\nname: Name 3935922\nsetpoint_status:\n  setpoint_mode:\
+          \ PermanentOverride\n  target_heat_temperature: 15.0\ntemperature_status:\n\
+          \  is_available: true\n  temperature: 23.0\nzone_id: '4368406'\n"
+      target_heat_temperature: '15.0
+  
+          ...
+  
+          '
+      temperature: '23.0
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 23.0
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+01:00''
+  
+          - 15.9
+  
+          '
+      type: 'Thermostat
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  
+  '''
+# ---
+# name: test_system_snapshot[system_006][control_system]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'allowed_system_modes': '''
+      !!python/tuple
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+  
+    ''',
+    'config': '''
+      allowed_system_modes:
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: Auto
+      model_type: EvoTouch
+      system_id: '0003'
+  
+    ''',
+    'id': '''
+      '0003'
+  
+    ''',
+    'is_permanent': '''
+      true
+      ...
+  
+    ''',
+    'mode': '''
+      Auto
+      ...
+  
+    ''',
+    'model': '''
+      EvoTouch
+      ...
+  
+    ''',
+    'modes': '''
+      !!python/tuple
+      - Auto
+  
+    ''',
+    'status': '''
+      active_faults: []
+      system_id: '0003'
+      system_mode_status:
+        is_permanent: true
+        mode: Auto
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: Auto
+  
+    ''',
+    'until': '''
+      null
+      ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_006][gateway]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'config': '''
+      crc: '********'
+      gateway_id: '0002'
+      is_wi_fi: false
+      mac: -REDACTED-
+  
+    ''',
+    'id': '''
+      '0002'
+  
+    ''',
+    'mac_address': '''
+      -REDACTED-
+      ...
+  
+    ''',
+    'status': '''
+      active_faults: []
+      gateway_id: '0002'
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_006][location]
+  dict({
+    'config': '''
+      city: '********'
+      country: Belgium
+      location_id: '0001'
+      location_owner:
+        firstname: -REDACTED-
+        lastname: '********'
+        user_id: -REDACTED-
+        username: '******@obfuscated.com'
+      location_type: Residential
+      name: Home
+      postcode: '********'
+      street_address: '********'
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+01:00) Brussels, Copenhagen, Madrid, Paris
+        offset_minutes: 60
+        supports_daylight_saving: true
+        time_zone_id: RomanceStandardTime
+      use_daylight_save_switching: true
+  
+    ''',
+    'country': '''
+      Belgium
+      ...
+  
+    ''',
+    'id': '''
+      '0001'
+  
+    ''',
+    'name': '''
+      Home
+      ...
+  
+    ''',
+    'status': '''
+      location_id: '0002'
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/Paris
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_006][zones]
+  '''
+  '0004':
+      active_faults: "!!python/tuple\n- fault_type: TempZoneActuatorCommunicationLost\n\
+          \  since: '2024-12-01T01:00:00+01:00'\n- fault_type: TempZoneSensorCommunicationLost\n\
+          \  since: '2024-05-01T01:00:00+02:00'\n"
+      allowed_modes: '!!python/tuple
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          '
+      config: "model_type: HeatingZone\nname: Main Room\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
+          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - PermanentOverride\n\
+          \  - FollowSchedule\n  - TemporaryOverride\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '0004'\n\
+          zone_type: ZoneTemperatureControl\n"
+      id: '''0004''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: 'FollowSchedule
+  
+          ...
+  
+          '
+      model: 'HeatingZone
+  
+          ...
+  
+          '
+      name: 'Main Room
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+01:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: Monday\n  switchpoints:\n  - heat_setpoint: 18.1\n \
+          \   time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Tuesday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: Thursday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day:\
+          \ 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint:\
+          \ 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day:\
+          \ '23:00:00'\n- day_of_week: Friday\n  switchpoints:\n  - heat_setpoint: 18.1\n\
+          \    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n\
+          \  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n  - heat_setpoint:\
+          \ 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Saturday\n  switchpoints:\n\
+          \  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  - heat_setpoint: 16.0\n\
+          \    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n    time_of_day: '22:10:00'\n\
+          \  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n- day_of_week: Sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: 'allowed_setpoint_modes:
+  
+          - PermanentOverride
+  
+          - FollowSchedule
+  
+          - TemporaryOverride
+  
+          can_control_cool: false
+  
+          can_control_heat: true
+  
+          max_duration: 1.00:00:00
+  
+          max_heat_setpoint: 35.0
+  
+          min_heat_setpoint: 5.0
+  
+          timing_resolution: 00:10:00
+  
+          value_resolution: 0.5
+  
+          '
+      setpoint_status: 'setpoint_mode: FollowSchedule
+  
+          target_heat_temperature: 14.0
+  
+          '
+      status: "active_faults:\n- fault_type: TempZoneActuatorCommunicationLost\n  since:\
+          \ '2024-12-01T01:00:00+01:00'\n- fault_type: TempZoneSensorCommunicationLost\n\
+          \  since: '2024-05-01T01:00:00+02:00'\nname: Main Room\nsetpoint_status:\n\
+          \  setpoint_mode: FollowSchedule\n  target_heat_temperature: 14.0\ntemperature_status:\n\
+          \  is_available: true\n  temperature: 19.5\nzone_id: '0004'\n"
+      target_heat_temperature: '14.0
+  
+          ...
+  
+          '
+      temperature: '19.5
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 19.5
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+01:00''
+  
+          - 15.9
+  
+          '
+      type: 'ZoneTemperatureControl
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  
+  '''
+# ---

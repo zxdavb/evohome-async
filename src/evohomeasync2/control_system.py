@@ -1,167 +1,218 @@
-#!/usr/bin/env python3
 """Provides handling of TCC temperature control systems."""
 
-# TODO: add provision for cooling
-# TODO: add set_mode() for non-evohome modes (e.g. "Heat", "Off")
+# TODO: extend set_mode() for non-evohome modes (e.g. "Heat", "Off")
 
 from __future__ import annotations
 
 import json
-from datetime import datetime as dt
-from typing import TYPE_CHECKING, Final
+from functools import cached_property
+from typing import TYPE_CHECKING, Final, NoReturn
+
+from evohome.helpers import as_local_time, camel_to_snake
 
 from . import exceptions as exc
 from .const import (
     API_STRFTIME,
-    SZ_ID,
+    SZ_ALLOWED_SYSTEM_MODES,
+    SZ_DAILY_SCHEDULES,
+    SZ_DHW,
+    SZ_DHW_ID,
+    SZ_IS_PERMANENT,
+    SZ_MODE,
+    SZ_MODEL_TYPE,
     SZ_NAME,
-    SZ_SCHEDULE,
-    SZ_SETPOINT,
-    SZ_TEMP,
-    SZ_THERMOSTAT,
-    SystemMode,
+    SZ_SYSTEM_ID,
+    SZ_SYSTEM_MODE,
+    SZ_SYSTEM_MODE_STATUS,
+    SZ_TIME_UNTIL,
+    SZ_ZONE_ID,
+    SZ_ZONES,
 )
 from .hotwater import HotWater
-from .schema import SCH_TCS_STATUS, convert_keys_to_snake_case
-from .schema.const import (
-    S2_ALLOWED_SYSTEM_MODES,
-    S2_DHW,
-    S2_DHW_ID,
-    S2_IS_AVAILABLE,
-    S2_MODE,
-    S2_MODEL_TYPE,
+from .schemas import SystemMode, factory_tcs_status
+from .schemas.const import (
     S2_PERMANENT,
-    S2_SYSTEM_ID,
     S2_SYSTEM_MODE,
-    S2_SYSTEM_MODE_STATUS,
-    S2_TARGET_HEAT_TEMPERATURE,
-    S2_TEMPERATURE,
     S2_TIME_UNTIL,
-    S2_ZONE_ID,
-    S2_ZONES,
     EntityType,
+    TcsModelType,
 )
-from .zone import ActiveFaultsBase, Zone
+from .zone import ActiveFaultsBase, EntityBase, Zone
 
 if TYPE_CHECKING:
+    from datetime import datetime as dt
+
     import voluptuous as vol
 
     from . import Gateway, Location
-    from .schema import _EvoDictT, _EvoListT, _ScheduleT
+    from .schemas.typedefs import (
+        DayOfWeekDhwT,
+        DayOfWeekZoneT,
+        EvoAllowedSystemModesResponseT,
+        EvoScheduleDhwT,
+        EvoScheduleZoneT,
+        EvoSystemModeStatusResponseT,
+        EvoTcsConfigEntryT,
+        EvoTcsConfigResponseT,
+        EvoTcsStatusResponseT,
+    )
 
 
-class ControlSystem(ActiveFaultsBase):
+class ControlSystem(ActiveFaultsBase, EntityBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
-    STATUS_SCHEMA: Final[vol.Schema] = SCH_TCS_STATUS
-    TYPE: Final = EntityType.TCS  # type: ignore[misc]
+    SCH_STATUS: vol.Schema = factory_tcs_status(camel_to_snake)
+    _TYPE = EntityType.TCS
 
-    def __init__(self, gateway: Gateway, config: _EvoDictT) -> None:
+    def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:
         super().__init__(
-            config[S2_SYSTEM_ID],
-            gateway._broker,
+            config[SZ_SYSTEM_ID],
+            gateway._auth,
             gateway._logger,
         )
 
         self.gateway = gateway  # parent
         self.location: Location = gateway.location
 
-        self._config: Final[_EvoDictT] = {
-            k: v for k, v in config.items() if k not in (S2_DHW, S2_ZONES)
-        }
-        self._status: _EvoDictT = {}
-
         # children
         self.zones: list[Zone] = []
-        self.zones_by_id: dict[str, Zone] = {}
+        self.zone_by_id: dict[str, Zone] = {}
 
-        self.hotwater: None | HotWater = None
+        self.hotwater: HotWater | None = None
 
-        zon_config: _EvoDictT
-        for zon_config in config[S2_ZONES]:
+        # break the config TypedDict into its parts...
+        self._config: Final[EvoTcsConfigEntryT] = {  # type: ignore[assignment, misc]
+            k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
+        }
+
+        for zon_entry in config[SZ_ZONES]:
             try:
-                zone = Zone(self, zon_config)
-            except exc.InvalidSchemaError as err:
+                zone = Zone(self, zon_entry)
+            except exc.ConfigError as err:
                 self._logger.warning(
-                    f"{self}: zone_id='{zon_config[S2_ZONE_ID]}' ignored: {err}"
+                    f"{self}: zone_id='{zon_entry[SZ_ZONE_ID]}' ignored: {err}"
                 )
             else:
                 self.zones.append(zone)
-                self.zones_by_name[zone.name] = zone
-                self.zones_by_id[zone.id] = zone
+                self.zone_by_id[zone.id] = zone
 
-        dhw_config: _EvoDictT
-        if dhw_config := config.get(S2_DHW):  # type: ignore[assignment]
-            self.hotwater = HotWater(self, dhw_config)
+        if dhw_entry := config.get(SZ_DHW):
+            self.hotwater = HotWater(self, dhw_entry)
 
-    @property
-    def allowed_system_modes(self) -> _EvoListT:
-        ret: _EvoListT = self._config[S2_ALLOWED_SYSTEM_MODES]
-        return convert_keys_to_snake_case(ret)
+        self._status: EvoTcsStatusResponseT | None = None
 
     @property
-    def model_type(self) -> str:
-        ret: str = self._config[S2_MODEL_TYPE]
-        return ret
+    def config(self) -> EvoTcsConfigEntryT:
+        """Return the latest config of the entity."""
+        return self._config
 
-    def _update_status(self, status: _EvoDictT) -> None:
-        super()._update_status(status)  # process active faults
+    @property
+    def zone_by_name(self) -> dict[str, Zone]:
+        """Return the zones by name (names are not fixed attrs)."""
+        return {zone.name: zone for zone in self.zones}
 
-        self._status = status
+    @property
+    def status(self) -> EvoTcsStatusResponseT:
+        """Return the latest status of the entity."""
+        return super().status  # type: ignore[return-value]
 
-        for zon_status in self._status[S2_ZONES]:
-            if zone := self.zones_by_id.get(zon_status[S2_ZONE_ID]):
+    # Config attrs...
+
+    @cached_property  # RENAMED val: was model_type
+    def model(self) -> TcsModelType:
+        return self._config[SZ_MODEL_TYPE]
+
+    @cached_property
+    def allowed_system_modes(self) -> tuple[EvoAllowedSystemModesResponseT, ...]:
+        """
+        "allowedSystemModes": [
+            {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "Auto",          "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "AutoWithReset", "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "AutoWithEco",   "canBePermanent": true, "canBeTemporary": true, "maxDuration":  "1.00:00:00", "timingResolution":   "01:00:00", "timingMode": "Duration"},
+            {"systemMode": "Away",          "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"systemMode": "DayOff",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"systemMode": "Custom",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"}
+        ]
+        """
+
+        return tuple(self._config[SZ_ALLOWED_SYSTEM_MODES])
+
+    @cached_property  # a convenience attr, derived from allowed_system_modes
+    def modes(self) -> tuple[SystemMode, ...]:
+        return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
+
+    # Status (state) attrs & methods...
+
+    async def _get_status(self) -> NoReturn:
+        """Get the latest state of the control system and update its status attrs.
+
+        It is more efficient to call Location.update() as all descendants are updated
+        with a single GET. Returns the raw JSON of the latest state.
+        """
+
+        raise NotImplementedError
+
+    def _update_status(self, status: EvoTcsStatusResponseT) -> None:
+        """Update the TCS's status and cascade to its descendants."""
+
+        self._update_faults(status["active_faults"])
+
+        # break the TypedDict into its parts (so, ignore[misc])...
+        for zon_status in status.pop(SZ_ZONES):  # type: ignore[misc]
+            if zone := self.zone_by_id.get(zon_status[SZ_ZONE_ID]):
                 zone._update_status(zon_status)
 
             else:
                 self._logger.warning(
-                    f"{self}: zone_id='{zon_status[S2_ZONE_ID]}' not known"
+                    f"{self}: zone_id='{zon_status[SZ_ZONE_ID]}' not known"
                     ", (has the system configuration been changed?)"
                 )
 
-        if dhw_status := self._status.get(S2_DHW):
-            if self.hotwater and self.hotwater.id == dhw_status[S2_DHW_ID]:
+        if dhw_status := status.pop(SZ_DHW, None):
+            if self.hotwater and self.hotwater.id == dhw_status[SZ_DHW_ID]:
                 self.hotwater._update_status(dhw_status)
 
             else:
                 self._logger.warning(
-                    f"{self}: dhw_id='{dhw_status[S2_DHW_ID]}' not known"
+                    f"{self}: dhw_id='{dhw_status[SZ_DHW_ID]}' not known"
                     ", (has the system configuration been changed?)"
                 )
 
-    @property
-    def system_mode_status(self) -> _EvoDictT | None:
-        return self._status.get(S2_SYSTEM_MODE_STATUS)
+        self._status = status
 
-    @property  # status attr for convenience (new)
-    def system_mode(self) -> str | None:
-        if (status := self._status.get(S2_SYSTEM_MODE_STATUS)) is None:
+    @property
+    def system_mode_status(self) -> EvoSystemModeStatusResponseT:
+        """
+        "systemModeStatus": {"mode": "AutoWithEco", "isPermanent": true}
+        "systemModeStatus": {'mode': 'AutoWithEco', 'isPermanent': false, 'timeUntil': '2024-12-21T15:55:00Z'}}
+        """
+
+        if self._status is None:
+            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
+        return self._status[SZ_SYSTEM_MODE_STATUS]
+
+    @property  # could have a setter in future
+    def is_permanent(self) -> bool:
+        return self.system_mode_status[SZ_IS_PERMANENT]
+
+    @property  # could have a setter in future
+    def mode(self) -> SystemMode:
+        return self.system_mode_status[SZ_MODE]
+
+    @property  # could have a setter in future
+    def until(self) -> dt | None:  # aka timeUntil
+        if (until := self.system_mode_status.get(SZ_TIME_UNTIL)) is None:
             return None
-        ret: str = status[S2_MODE]
-        return ret
-
-    @property
-    def zones_by_name(self) -> dict[str, Zone]:
-        """Return the zones by name (names are not fixed attrs)."""
-        return {zone.name: zone for zone in self.zones}
+        return as_local_time(until, self.location.tzinfo)
 
     async def _set_mode(self, mode: dict[str, str | bool]) -> None:
-        """Set the TCS mode."""  # {'mode': 'Auto', 'isPermanent': True}
-        _ = await self._broker.put(f"{self.TYPE}/{self.id}/mode", json=mode)
+        """Set the TCS mode."""  # e.g. {'mode': 'Auto', 'isPermanent': True}
 
-    async def reset_mode(self) -> None:
-        """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
-        await self.set_mode(SystemMode.AUTO_WITH_RESET)
+        await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=mode)
 
     async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
-        """Set the system to a mode, either indefinitely, or for a set time."""
-
-        request: _EvoDictT
-
-        if mode not in [
-            m[S2_SYSTEM_MODE] for m in self._config[S2_ALLOWED_SYSTEM_MODES]
-        ]:
-            raise exc.InvalidParameterError(f"{self}: Unsupported/unknown mode: {mode}")
+        """Set the TCS to a mode, either indefinitely, or for a set time."""
 
         if until is None:
             request = {
@@ -176,153 +227,135 @@ class ControlSystem(ActiveFaultsBase):
                 S2_TIME_UNTIL: until.strftime(API_STRFTIME),
             }
 
-        await self._set_mode(request)
+        await self._set_mode(request)  # type: ignore[arg-type]
+
+    # most, but not all, TCC-compatible systems support these modes...
+
+    async def reset(self) -> None:
+        """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
+
+        if SystemMode.AUTO_WITH_RESET in self.modes:
+            await self.set_mode(SystemMode.AUTO_WITH_RESET)
+            return
+
+        await self.set_mode(SystemMode.AUTO)  # may raise InvalidParameterError
+
+        for zone in self.zones:
+            await zone.reset()
+        if self.hotwater:
+            await self.hotwater.reset()
 
     async def set_auto(self) -> None:
-        """Set the system into normal mode."""
+        """Set the TCS to normal mode."""
         await self.set_mode(SystemMode.AUTO)
 
     async def set_away(self, /, *, until: dt | None = None) -> None:
-        """Set the system into away mode."""
+        """Set the TCS to away mode."""
         await self.set_mode(SystemMode.AWAY, until=until)
 
     async def set_custom(self, /, *, until: dt | None = None) -> None:
-        """Set the system into custom mode."""
+        """Set the TCS to custom mode."""
         await self.set_mode(SystemMode.CUSTOM, until=until)
 
     async def set_dayoff(self, /, *, until: dt | None = None) -> None:
-        """Set the system into dayoff mode."""
+        """Set the TCS to dayoff mode."""
         await self.set_mode(SystemMode.DAY_OFF, until=until)
 
     async def set_eco(self, /, *, until: dt | None = None) -> None:
-        """Set the system into eco mode."""
+        """Set the TCS to economy mode."""
         await self.set_mode(SystemMode.AUTO_WITH_ECO, until=until)
 
     async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
-        """Set the system into heating off mode."""
+        """Set the TCS to heating off mode."""
         await self.set_mode(SystemMode.HEATING_OFF, until=until)
 
-    async def temperatures(self) -> _EvoListT:
-        """A convenience function to return the latest temperatures and setpoints."""
+    # these are convenience methods
 
-        await self.location.update()
+    async def get_schedules(self) -> list[EvoScheduleDhwT | EvoScheduleZoneT]:
+        """Backup all schedules from the TCS."""
 
-        result = []
-
-        if dhw := self.hotwater:
-            dhw_status = {
-                SZ_THERMOSTAT: "DOMESTIC_HOT_WATER",
-                SZ_ID: dhw.id,
-                SZ_NAME: dhw.name,
-                SZ_TEMP: None,
-            }
-
-            if (
-                isinstance(dhw.temperature_status, dict)
-                and dhw.temperature_status[S2_IS_AVAILABLE]
-            ):
-                dhw_status[SZ_TEMP] = dhw.temperature_status[S2_TEMPERATURE]
-
-            result.append(dhw_status)
-
-        for zone in self.zones:
-            zone_status = {
-                SZ_THERMOSTAT: "EMEA_ZONE",
-                SZ_ID: zone.id,
-                SZ_NAME: zone.name,
-                SZ_SETPOINT: None,
-                SZ_TEMP: None,
-            }
-
-            if isinstance(zone.setpoint_status, dict):
-                zone_status[SZ_SETPOINT] = zone.setpoint_status[
-                    S2_TARGET_HEAT_TEMPERATURE
-                ]
-
-            if (
-                isinstance(zone.temperature_status, dict)
-                and zone.temperature_status[S2_IS_AVAILABLE]
-            ):
-                zone_status[SZ_TEMP] = zone.temperature_status[S2_TEMPERATURE]
-
-            result.append(zone_status)
-
-        return result
-
-    async def get_schedules(self) -> _ScheduleT:
-        """Backup all schedules from the control system."""
-
-        async def get_schedule(child: HotWater | Zone) -> _ScheduleT:
+        async def get_schedule(
+            child: HotWater | Zone,
+        ) -> list[DayOfWeekDhwT] | list[DayOfWeekZoneT]:
             try:
                 return await child.get_schedule()
             except exc.InvalidScheduleError:
                 self._logger.warning(
-                    f"Ignoring schedule of {child.id} ({child.name}): missing/invalid"
+                    f"Ignoring {child.id} ({child.name}): missing/invalid schedule"
                 )
-            return {}
+            return []
 
         self._logger.info(
             f"Schedules: Backing up from {self.id} ({self.location.name})"
         )
 
-        schedules = {}
+        schedules: list[EvoScheduleDhwT | EvoScheduleZoneT] = []
 
         for zone in self.zones:
-            schedules[zone.id] = {
-                SZ_NAME: zone.name,
-                SZ_SCHEDULE: await get_schedule(zone),
-            }
-
+            schedules.append(  # noqa: PERF401
+                {
+                    SZ_ZONE_ID: zone.id,
+                    SZ_NAME: zone.name,
+                    SZ_DAILY_SCHEDULES: await get_schedule(zone),  # type: ignore[typeddict-item]
+                }
+            )
         if self.hotwater:
-            schedules[self.hotwater.id] = {
-                SZ_NAME: self.hotwater.name,
-                SZ_SCHEDULE: await get_schedule(self.hotwater),
-            }
+            schedules.append(
+                {
+                    SZ_ZONE_ID: self.hotwater.id,
+                    SZ_NAME: self.hotwater.name,
+                    SZ_DAILY_SCHEDULES: await get_schedule(self.hotwater),  # type: ignore[typeddict-item]
+                }
+            )
 
         return schedules
 
     async def set_schedules(
-        self, schedules: _ScheduleT, match_by_name: bool = False
+        self,
+        schedules: list[EvoScheduleDhwT | EvoScheduleZoneT],
+        match_by_name: bool | None = None,
     ) -> bool:
-        """Restore all schedules to the control system and return True if success.
+        """Restore all schedules to the TCS and return True if success.
 
         The default is to match a schedule to its zone/dhw by id.
         """
 
-        async def restore_by_id(id: str, schedule: _ScheduleT) -> bool:
-            """Restore schedule by id and return False if there was no match."""
+        async def restore_by_id(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
+            """Restore a schedule by id and return False if there was no match."""
 
-            name = schedule.get(SZ_NAME)
+            id_: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
 
-            if self.hotwater and self.hotwater.id == id:
-                await self.hotwater.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
+            if self.hotwater and self.hotwater.id == id_:
+                await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
 
-            elif zone := self.zones_by_id.get(id):
-                await zone.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
+            elif zone := self.zone_by_id.get(id_):
+                await zone.set_schedule(json.dumps(sched["daily_schedules"]))
 
             else:
                 self._logger.warning(
-                    f"Ignoring schedule of {id} ({name}): unknown id"
+                    f"Ignoring schedule of {id_} ({sched.get('name')}): unknown id"
                     ", consider matching by name rather than by id"
                 )
                 return False
 
             return True
 
-        async def restore_by_name(id: str, schedule: _ScheduleT) -> bool:
-            """Restore schedule by name and return False if there was no match."""
+        async def restore_by_name(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
+            """Restore a schedule by name and return False if there was no match."""
 
-            name: str = schedule[SZ_NAME]  # type: ignore[assignment]
+            name: str | None = sched.get("name")  # name is NotRequired[str]
 
-            if self.hotwater and name == self.hotwater.name:
-                await self.hotwater.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
+            if name and self.hotwater and name == self.hotwater.name:
+                await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
 
-            elif zone := self.zones_by_name.get(name):
-                await zone.set_schedule(json.dumps(schedule[SZ_SCHEDULE]))
+            elif name and (zone := self.zone_by_name.get(name)):
+                await zone.set_schedule(json.dumps(sched["daily_schedules"]))
 
             else:
+                id_: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
+
                 self._logger.warning(
-                    f"Ignoring schedule of {id} ({name}): unknown name"
+                    f"Ignoring schedule of {id_} ({name}): unknown name"
                     ", consider matching by id rather than by name"
                 )
                 return False
@@ -334,26 +367,12 @@ class ControlSystem(ActiveFaultsBase):
             f" to {self.id} ({self.location.name})"
         )
 
-        with_errors = False
+        fnc = restore_by_name if match_by_name else restore_by_id
+        all_restored = all([await fnc(sch) for sch in schedules])
 
-        for id, schedule in schedules.items():
-            assert isinstance(schedule, dict)  # mypy
+        same_count = len(schedules) == len(self.zones) + (1 if self.hotwater else 0)
 
-            if match_by_name:
-                matched = await restore_by_name(id, schedule)
-            else:
-                matched = await restore_by_id(id, schedule)
-
-            with_errors = with_errors and not matched
-
-        success = not with_errors or len(schedules) == len(self.zones_by_name) + (
-            1 if self.hotwater else 0
-        )
-
-        if not success:
-            self._logger.warning(
-                f"Schedules: Some entities not restored:"
-                f" not matched by {'name' if match_by_name else 'id'}"
-            )
+        if not (success := same_count and all_restored):
+            self._logger.debug("Some schedules not restored (DHW?)")
 
         return success

@@ -1,369 +1,377 @@
-#!/usr/bin/env python3
-"""evohome-async - validate the handling of vendor APIs (URLs)."""
+"""Invoke every vendor RESTful API (URL) used by the v2 client.
+
+This is used to document the RESTful API that is provided by the vendor.
+
+Testing is at HTTP request layer (e.g. GET/PUT).
+Everything to/from the RESTful API is in camelCase (so those schemas are used).
+"""
 
 from __future__ import annotations
 
-from datetime import datetime as dt, timedelta as td
-from http import HTTPMethod, HTTPStatus
+import logging
+from datetime import UTC, datetime as dt, timedelta as td
+from http import HTTPMethod
 from typing import TYPE_CHECKING
 
 import pytest
 
-import evohomeasync2 as evo2
-from evohomeasync2.const import API_STRFTIME, SystemMode, ZoneMode
-from evohomeasync2.schema import (
-    SCH_FULL_CONFIG,
-    SCH_GET_SCHEDULE,
-    SCH_LOCN_STATUS,
-    SCH_TCS_STATUS,
-    SCH_USER_ACCOUNT,
-    SCH_ZONE_STATUS,
+from evohomeasync2.auth import Auth
+from evohomeasync2.schemas.account import factory_user_account
+from evohomeasync2.schemas.config import (
+    factory_location_installation_info,
+    factory_user_locations_installation_info,
 )
-from evohomeasync2.schema.const import (
-    S2_DAILY_SCHEDULES,
-    S2_HEAT_SETPOINT,
-    S2_HEAT_SETPOINT_VALUE,
-    S2_IS_PERMANENT,
-    S2_MODE,
-    S2_PERMANENT,
-    S2_SETPOINT_MODE,
-    S2_SWITCHPOINTS,
-    S2_SYSTEM_MODE,
-    S2_TIME_UNTIL,
-    S2_USER_ID,
+from evohomeasync2.schemas.schedule import factory_dhw_schedule, factory_zon_schedule
+from evohomeasync2.schemas.status import (
+    factory_dhw_status,
+    factory_loc_status,
+    factory_tcs_status,
+    factory_zon_status,
 )
-from evohomeasync2.schema.schedule import convert_to_put_schedule
+from tests.const import _DBG_USE_REAL_AIOHTTP
 
-from . import faked_server as faked
-from .conftest import _DBG_USE_REAL_AIOHTTP, skipif_auth_failed
-from .helpers import should_fail, should_work
+from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
-    from evohomeasync2.schema import _EvoDictT
-
-
-#######################################################################################
-
-
-async def _test_usr_account(evo: evo2.EvohomeClientNew) -> None:
-    """Test /userAccount"""
-
-    url = "userAccount"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_USER_ACCOUNT)
-    _ = await should_fail(
-        evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
+    from evohomeasync2.schemas.account import TccTaskResponseT, TccUsrAccountResponseT
+    from evohomeasync2.schemas.config import TccLocConfigResponseT
+    from evohomeasync2.schemas.schedule import (
+        TccDhwDailySchedulesT,
+        TccZonDailySchedulesT,
     )
+    from evohomeasync2.schemas.status import (
+        TccDhwStatusResponseT,
+        TccLocStatusResponseT,
+        TccTcsStatusResponseT,
+        TccZonStatusResponseT,
+    )
+    from tests.conftest import CredentialsManager
 
-    url = "userXxxxxxx"  # NOTE: is a general test, and not a test specific to this URL
-    _ = await should_fail(
-        evo,
+
+async def _post_auth_oauth_token(auth: Auth) -> dict[str, int | str]:
+    """Test POST /Auth/OAuth/Token"""
+
+    raise NotImplementedError
+
+
+async def get_usr_account(auth: Auth) -> TccUsrAccountResponseT:
+    """Test GET /userAccount"""
+
+    return await auth._make_request(
         HTTPMethod.GET,
-        url,
-        status=HTTPStatus.NOT_FOUND,
-        content_type="text/html",  # exception to usual content-type
+        "userAccount",
+    )  # type: ignore[return-value]
+
+
+async def get_usr_locations(auth: Auth, usr_id: str) -> list[TccLocConfigResponseT]:
+    """Test GET /location/installationInfo?userId={user_id}"""
+
+    return await auth._make_request(
+        HTTPMethod.GET,
+        f"location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True",
+    )  # type: ignore[return-value]
+
+
+@skipif_auth_failed
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_tcs_urls(
+    credentials_manager: CredentialsManager,
+) -> None:
+    """Test Location, Gateway and TCS URLs."""
+
+    # STEP 0: Create the Auth client...
+    auth = Auth(
+        credentials_manager,
+        credentials_manager.websession,
+        logger=logging.getLogger(__name__),
     )
 
-
-async def _test_all_config(evo: evo2.EvohomeClientNew) -> None:
-    """Test /location/installationInfo?userId={user_id}"""
-
-    _ = await evo.update()
     #
+    # STEP 1: GET /userAccount
+    usr_info = await get_usr_account(auth)
+    factory_user_account()(usr_info)
 
-    url = f"location/installationInfo?userId={evo._user_info[S2_USER_ID]}"
-    await should_work(evo, HTTPMethod.GET, url)
-
-    url += "&includeTemperatureControlSystems=True"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_FULL_CONFIG)
-    _ = await should_fail(
-        evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
-    )
-
-    url = "location/installationInfo"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
-
-    url = "location/installationInfo?userId=1230000"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
-
-    url = "location/installationInfo?userId=xxxxxxx"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
-
-    url = "location/installationInfo?xxxxXx=xxxxxxx"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
-
-
-async def _test_loc_status(evo: evo2.EvohomeClientNew) -> None:
-    """Test /location/{loc.id}/status"""
-
-    _ = await evo.update(dont_update_status=True)
-
-    loc = evo.locations[0]
     #
+    # STEP 2: GET /location/installationInfo?userId={user_id}
+    usr_locs = await get_usr_locations(auth, usr_info["userId"])
+    factory_user_locations_installation_info()(usr_locs)
 
-    url = f"location/{loc.id}/status"
-    _ = await should_work(evo, HTTPMethod.GET, url)
+    #
+    # STEP 3: GET /location/{loc_id}/installationInfo
+    loc_id = usr_locs[0]["locationInfo"]["locationId"]
 
-    url += "?includeTemperatureControlSystems=True"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_LOCN_STATUS)
-    _ = await should_fail(
-        evo, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
-    )
+    loc_config = await get_loc_config(auth, loc_id)
+    factory_location_installation_info()(loc_config)
 
-    url = f"location/{loc.id}"
-    await should_fail(
-        evo,
+    #
+    # STEP 4: GET /location/{loc_id}/status
+    loc_status = await get_loc_status(auth, loc_id)
+    factory_loc_status()(loc_status)
+
+    #
+    #
+    tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
+    tcs_id = tcs_config["systemId"]
+
+    #
+    # STEP A: GET /temperatureControlSystem/{tcs_id}/status
+    tcs_status = await get_tcs_status(auth, tcs_id)
+    factory_tcs_status()(tcs_status)
+
+    #
+    # STEP B: PUT /temperatureControlSystem/{tcs_id}/mode
+    _ = await put_tcs_mode(auth, tcs_id)
+    # factory_tcs_status()(task)  # e.g. {'id': '1668279943'}
+
+
+async def get_loc_config(auth: Auth, loc_id: str) -> TccLocConfigResponseT:
+    """Test GET /location/{loc_id}/installationInfo"""
+
+    return await auth._make_request(
         HTTPMethod.GET,
-        url,
-        status=HTTPStatus.NOT_FOUND,
-        content_type="text/html",  # exception to usual content-type
-    )
+        f"location/{loc_id}/installationInfo?includeTemperatureControlSystems=True",
+    )  # type: ignore[return-value]
 
-    url = "location/1230000/status"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED)
 
-    url = "location/xxxxxxx/status"
-    _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
+async def get_loc_status(auth: Auth, loc_id: str) -> TccLocStatusResponseT:
+    """Test GET /location/{loc_id}/status"""
 
-    url = f"location/{loc.id}/xxxxxxx"
-    _ = await should_fail(
-        evo,
+    return await auth._make_request(
         HTTPMethod.GET,
-        url,
-        status=HTTPStatus.NOT_FOUND,
-        content_type="text/html",  # exception to usual content-type
-    )
+        f"location/{loc_id}/status?includeTemperatureControlSystems=True",
+    )  # type: ignore[return-value]
 
 
-async def _test_tcs_mode(evo: evo2.EvohomeClientNew) -> None:
-    """Test /temperatureControlSystem/{tcs.id}/mode"""
+async def get_tcs_status(auth: Auth, tcs_id: str) -> TccTcsStatusResponseT:
+    """Test GET /temperatureControlSystem/{tcs_id}/status"""
 
-    _ = await evo.update(dont_update_status=True)
+    return await auth._make_request(
+        HTTPMethod.GET,
+        f"temperatureControlSystem/{tcs_id}/status",
+    )  # type: ignore[return-value]
 
-    tcs: evo2.ControlSystem
 
-    if not (tcs := evo.locations[0].gateways[0].control_systems[0]):
-        pytest.skip("No available zones found")
+async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
+    """Test PUT /temperatureControlSystem/{tcs_id}/mode"""
 
-    _ = await tcs.location.update()
-    old_mode: _EvoDictT = tcs.system_mode_status  # type: ignore[assignment]
-
-    url = f"{tcs.TYPE}/{tcs.id}/status"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_TCS_STATUS)
-
-    url = f"{tcs.TYPE}/{tcs.id}/mode"
-    _ = await should_fail(
-        evo, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
-    )
-    _ = await should_fail(
-        evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.BAD_REQUEST
-    )
-
-    old_mode[S2_SYSTEM_MODE] = old_mode.pop(S2_MODE)
-    old_mode[S2_PERMANENT] = old_mode.pop(S2_IS_PERMANENT)
-
-    assert SystemMode.AUTO in [m[S2_SYSTEM_MODE] for m in tcs.allowed_system_modes]
-    new_mode: _EvoDictT = {
-        S2_SYSTEM_MODE: SystemMode.AUTO,
-        S2_PERMANENT: True,
-    }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=new_mode)
-
-    assert SystemMode.AWAY in [m[S2_SYSTEM_MODE] for m in tcs.allowed_system_modes]
-    new_mode = {
-        S2_SYSTEM_MODE: SystemMode.AWAY,
-        S2_PERMANENT: True,
-        S2_TIME_UNTIL: (dt.now() + td(hours=1)).strftime(API_STRFTIME),
-    }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=new_mode)
-
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=old_mode)
-
-    url = f"{tcs.TYPE}/1234567/mode"
-    _ = await should_fail(
-        evo, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.UNAUTHORIZED
-    )
-
-    url = f"{tcs.TYPE}/{tcs.id}/systemMode"
-    _ = await should_fail(
-        evo,
+    _ = await auth._make_request(
         HTTPMethod.PUT,
-        url,
-        json=old_mode,
-        status=HTTPStatus.NOT_FOUND,
-        content_type="text/html",  # exception to usual content-type
+        f"temperatureControlSystem/{tcs_id}/mode",
+        json={
+            "SystemMode": "Away",
+            "Permanent": False,
+            "TimeUntil": (dt.now(tz=UTC) + td(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        },
     )
 
-    pass
+    return await auth._make_request(
+        HTTPMethod.PUT,
+        f"temperatureControlSystem/{tcs_id}/mode",
+        json={"SystemMode": "Auto", "Permanent": True},
+    )  # type: ignore[return-value]
 
 
-async def _test_zone_mode(evo: evo2.EvohomeClientNew) -> None:
-    """Test /temperatureZone/{zone.id}/heatSetpoint"""
+@skipif_auth_failed
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_zon_urls(
+    credentials_manager: CredentialsManager,
+) -> None:
+    """Test Zone URLs"""
 
-    _ = await evo.update()
+    #
+    # STEP 0: Create the Auth client, get the TCS config...
+    auth = Auth(
+        credentials_manager,
+        credentials_manager.websession,
+        logger=logging.getLogger(__name__),
+    )
 
-    for zone in evo.locations[0].gateways[0].control_systems[0].zones:
-        if zone.temperature is None:
+    usr_info = await get_usr_account(auth)
+    usr_locs = await get_usr_locations(auth, usr_info["userId"])
+
+    #
+    #
+    tcs_config = usr_locs[0]["gateways"][0]["temperatureControlSystems"][0]
+    zon_id = tcs_config["zones"][0]["zoneId"]
+
+    #
+    # STEP A: GET /temperatureZone/{zon_id}/status
+    zon_status = await get_zon_status(auth, zon_id)
+    factory_zon_status()(zon_status)
+
+    #
+    # STEP B: PUT /temperatureZone/{zon_id}/heatSetpoint
+    _ = await put_zon_heat_setpoint(auth, zon_id)
+    # factory_zon_status()(task)  # e.g. {'id': '1668279943'}
+
+    #
+    # STEP C: GET /temperatureZone/{zon_id}/schedule
+    zon_schedule = await get_zon_schedule(auth, zon_id)
+    factory_zon_schedule()(zon_schedule)
+
+    #
+    # STEP D: PUT /temperatureZone/{zon_id}/schedule
+    _ = await put_zon_schedule(auth, zon_id, zon_schedule)
+    # factory_zon_status()(task)  # e.g. {'id': '1668279943'}
+
+
+async def get_zon_schedule(auth: Auth, zon_id: str) -> TccZonDailySchedulesT:
+    """Test GET /temperatureZone/{zon_id}/schedule"""
+
+    return await auth._make_request(
+        HTTPMethod.GET,
+        f"temperatureZone/{zon_id}/schedule",
+    )  # type: ignore[return-value]
+
+
+async def get_zon_status(auth: Auth, zon_id: str) -> TccZonStatusResponseT:
+    """Test GET /temperatureZone/{zon_id}/status"""
+
+    return await auth._make_request(
+        HTTPMethod.GET,
+        f"temperatureZone/{zon_id}/status",
+    )  # type: ignore[return-value]
+
+
+async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
+    """Test PUT /temperatureZone/{zon_id}/heatSetpoint"""
+
+    _: TccTaskResponseT = await auth._make_request(
+        HTTPMethod.PUT,
+        f"temperatureZone/{zon_id}/heatSetpoint",
+        json={
+            "setpointMode": "TemporaryOverride",
+            "heatSetpointValue": 20.5,
+            "timeUntil": (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        },
+    )  # type: ignore[assignment]
+
+    _ = await auth._make_request(
+        HTTPMethod.PUT,
+        f"temperatureZone/{zon_id}/heatSetpoint",
+        json={"setpointMode": "PermanentOverride", "HeatSetpointValue": 20.5},
+    )  # type: ignore[assignment]
+
+    return await auth._make_request(
+        HTTPMethod.PUT,
+        f"temperatureZone/{zon_id}/heatSetpoint",
+        json={"setpointMode": "FollowSchedule"},  # , "HeatSetpointValue": None},
+    )  # type: ignore[return-value]
+
+
+async def put_zon_schedule(
+    auth: Auth, zon_id: str, schedule: TccZonDailySchedulesT
+) -> TccTaskResponseT:
+    """Test GET /temperatureZone/{zon_id}/schedule"""
+
+    return await auth._make_request(
+        HTTPMethod.PUT,
+        f"temperatureZone/{zon_id}/schedule",
+        json=schedule,
+    )  # type: ignore[return-value]
+
+
+@skipif_auth_failed
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_dhw_urls(
+    credentials_manager: CredentialsManager,
+) -> None:
+    """Test DHW URLs"""
+
+    #
+    # STEP 0: Create the Auth client, get the TCS config...
+    auth = Auth(
+        credentials_manager,
+        credentials_manager.websession,
+        logger=logging.getLogger(__name__),
+    )
+
+    usr_info = await get_usr_account(auth)
+    usr_locs = await get_usr_locations(auth, usr_info["userId"])
+
+    #
+    #
+    for loc_config in usr_locs:
+        tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
+        if "dhw" in tcs_config:
             break
     else:
-        pytest.skip("No available zones found")
+        pytest.skip(f"no DHW in {tcs_config}")
+
+    dhw_id = tcs_config["dhw"]["dhwId"]
+
     #
+    # STEP A: GET /domesticHotWater/{dhw_id}/status
+    dhw_status = await get_dhw_status(auth, dhw_id)
+    factory_dhw_status()(dhw_status)
 
-    url = f"{zone.TYPE}/{zone.id}/status"
-    _ = await should_work(evo, HTTPMethod.GET, url, schema=SCH_ZONE_STATUS)
-
-    url = f"{zone.TYPE}/{zone.id}/heatSetpoint"
-
-    heat_setpoint: dict[str, float | str | None] = {
-        S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
-        S2_HEAT_SETPOINT_VALUE: zone.temperature,
-        # S2_TIME_UNTIL: None,
-    }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
-
-    heat_setpoint = {
-        S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
-        S2_HEAT_SETPOINT_VALUE: 99,
-        S2_TIME_UNTIL: None,
-    }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
-
-    heat_setpoint = {
-        S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
-        S2_HEAT_SETPOINT_VALUE: 19.5,
-    }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
-
-    heat_setpoint = {
-        S2_SETPOINT_MODE: "xxxxxxx",
-        S2_HEAT_SETPOINT_VALUE: 19.5,
-    }
-    _ = await should_fail(
-        evo, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
-    )
-
-    heat_setpoint = {
-        S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
-        S2_HEAT_SETPOINT_VALUE: 0.0,
-        S2_TIME_UNTIL: None,
-    }
-    _ = await should_work(evo, HTTPMethod.PUT, url, json=heat_setpoint)
-
-
-# TODO: Test sending bad schedule
-# TODO: Try with/without convert_to_put_schedule()
-async def _test_schedule(evo: evo2.EvohomeClientNew) -> None:
-    """Test /{x.TYPE}/{x.id}/schedule (of a zone)"""
-
-    _ = await evo.update()
-
-    zone = evo.locations[0].gateways[0].control_systems[0].zones[0]
     #
+    # STEP B: PUT /domesticHotWater/{dhw_id}/state
+    _ = await put_dhw_state(auth, dhw_id)
+    # factory_zon_status()(task)  # e.g. {'id': '1668279943'}
 
-    if zone.id == faked.GHOST_ZONE_ID:
-        url = f"{zone.TYPE}/{faked.GHOST_ZONE_ID}/schedule"
-        _ = await should_fail(evo, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST)
-        return
+    #
+    # STEP C: GET /domesticHotWater/{dhw_id}/schedule
+    dhw_schedule = await get_dhw_schedule(auth, dhw_id)
+    factory_dhw_schedule()(dhw_schedule)
 
-    url = f"{zone.TYPE}/{zone.id}/schedule"
-    schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
+    #
+    # STEP D: PUT /domesticHotWater/{dhw_id}/schedule
+    _ = await put_dhw_schedule(auth, dhw_id, dhw_schedule)
+    # factory_zon_status()(task)  # e.g. {'id': '1668279943'}
 
-    temp = schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT]  # type: ignore[call-overload]
 
-    schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] = temp + 1  # type: ignore[call-overload,operator]
-    _ = await should_work(
-        evo,
+async def get_dhw_schedule(auth: Auth, dhw_id: str) -> TccDhwDailySchedulesT:
+    """Test GET /domesticHotWater/{dhw_id}/schedule"""
+
+    return await auth._make_request(
+        HTTPMethod.GET,
+        f"domesticHotWater/{dhw_id}/schedule",
+    )  # type: ignore[return-value]
+
+
+async def get_dhw_status(auth: Auth, dhw_id: str) -> TccDhwStatusResponseT:
+    """Test GET /domesticHotWater/{dhw_id}/status"""
+
+    return await auth._make_request(
+        HTTPMethod.GET,
+        f"domesticHotWater/{dhw_id}/status",
+    )  # type: ignore[return-value]
+
+
+async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
+    """Test PUT /domesticHotWater/{dhw_id}/state"""
+
+    _: TccTaskResponseT = await auth._make_request(
         HTTPMethod.PUT,
-        url,
-        json=convert_to_put_schedule(schedule),  # type: ignore[arg-type]
-    )
+        f"domesticHotWater/{dhw_id}/state",
+        json={
+            "mode": "TemporaryOverride",
+            "state": "On",
+            "untilTime": (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        },
+    )  # type: ignore[assignment]
 
-    schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
-    assert (
-        schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT]  # type: ignore[call-overload]
-        == temp + 1  # type: ignore[operator]
-    )
-
-    schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] = temp  # type: ignore[call-overload]
-    _ = await should_work(
-        evo,
+    _ = await auth._make_request(
         HTTPMethod.PUT,
-        url,
-        json=convert_to_put_schedule(schedule),  # type: ignore[arg-type]
-    )
+        f"domesticHotWater/{dhw_id}/state",
+        json={"mode": "PermanentOverride", "state": "Off"},
+    )  # type: ignore[assignment]
 
-    schedule = await should_work(evo, HTTPMethod.GET, url, schema=SCH_GET_SCHEDULE)
-    assert schedule[S2_DAILY_SCHEDULES][0][S2_SWITCHPOINTS][0][S2_HEAT_SETPOINT] == temp  # type: ignore[call-overload]
-
-    _ = await should_fail(
-        evo, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST
-    )  # NOTE: json=None
-
-
-#######################################################################################
+    return await auth._make_request(
+        HTTPMethod.PUT,
+        f"domesticHotWater/{dhw_id}/state",
+        json={"mode": "FollowSchedule"},  # , "state": None},
+    )  # type: ignore[return-value]
 
 
-@skipif_auth_failed
-async def test_usr_account(evohome_v2: evo2.EvohomeClientNew) -> None:
-    """Test /userAccount"""
+async def put_dhw_schedule(
+    auth: Auth, dhw_id: str, schedule: TccDhwDailySchedulesT
+) -> TccTaskResponseT:
+    """Test GET /domesticHotWater/{dhw_id}/schedule"""
 
-    try:
-        await _test_usr_account(evohome_v2)
-
-    except evo2.AuthenticationFailedError:
-        if not _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Unable to authenticate")
-
-
-@skipif_auth_failed
-async def test_all_config(evohome_v2: evo2.EvohomeClientNew) -> None:
-    """Test /location/installationInfo"""
-
-    await _test_all_config(evohome_v2)
-
-
-@skipif_auth_failed
-async def test_loc_status(evohome_v2: evo2.EvohomeClientNew) -> None:
-    """Test /location/{loc.id}/status"""
-
-    await _test_loc_status(evohome_v2)
-
-
-@skipif_auth_failed
-async def test_tcs_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
-    """Test /temperatureControlSystem/{tcs.id}/mode"""
-
-    try:
-        await _test_tcs_mode(evohome_v2)
-
-    except NotImplementedError:  # TODO: implement
-        if _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Mocked server API not implemented")
-
-
-@skipif_auth_failed
-async def test_zone_mode(evohome_v2: evo2.EvohomeClientNew) -> None:
-    """Test /temperatureZone/{zone.id}/heatSetpoint"""
-
-    try:
-        await _test_zone_mode(evohome_v2)
-
-    except NotImplementedError:  # TODO: implement
-        if _DBG_USE_REAL_AIOHTTP:
-            raise
-        pytest.skip("Mocked server API not implemented")
-
-
-@skipif_auth_failed
-async def test_schedule(evohome_v2: evo2.EvohomeClientNew) -> None:
-    """Test /{x.TYPE}/{x.id}/schedule"""
-
-    await _test_schedule(evohome_v2)
-
-
-# TODO: test_oauth_token(
-# TODO: test_put_dhw_state(
-# TODO: test_get_dhw_status(
-# TODO: test_set_tcs_mode(
-# TODO: test_get_zon_status(
+    return await auth._make_request(
+        HTTPMethod.PUT,
+        f"domesticHotWater/{dhw_id}/schedule",
+        json=schedule,
+    )  # type: ignore[return-value]

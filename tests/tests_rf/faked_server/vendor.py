@@ -1,31 +1,35 @@
-#!/usr/bin/env python3
 """Mocked vendor server for provision via a hacked aiohttp."""
 
 from __future__ import annotations
 
 import functools
 import re
-from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
 
-from evohomeasync2.const import AUTH_URL, URL_BASE
-from evohomeasync2.schema import const as sch, convert_to_get_schedule
-from evohomeasync2.schema.schedule import SCH_PUT_SCHEDULE_DHW, SCH_PUT_SCHEDULE_ZONE
+from evohomeasync2.schemas import (
+    TCC_GET_DHW_SCHEDULE,
+    TCC_GET_ZON_SCHEDULE,
+    const as sch,
+)
 
 from .const import (
     GHOST_ZONE_ID,
-    MOCK_AUTH_RESPONSE,
+    MOCK_CRED_RESPONSE,
     MOCK_FULL_CONFIG,
     MOCK_LOCN_STATUS,
     MOCK_SCHEDULE_DHW,
     MOCK_SCHEDULE_ZONE,
+    URL_BASE_V2 as URL_BASE,
+    URL_CRED_V2 as URL_CRED,
     user_config_from_full_config as _user_config_from_full_config,
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from .const import _bodyT, _methodT, _statusT, _urlT
 
 
@@ -70,12 +74,12 @@ def validate_id_of_url(
 
             assert svr._url  # mypy
             try:
-                id: str = id_fnc(svr._url)
+                id_: str = id_fnc(svr._url)
             except IndexError:
                 svr.status = HTTPStatus.NOT_FOUND
                 return {"message": "Not Found"}
 
-            if not id.isdigit():
+            if not id_.isdigit():
                 svr.status = HTTPStatus.BAD_REQUEST
                 return [{"message": "Bad request"}]
 
@@ -90,7 +94,7 @@ def validate_id_of_url(
     return decorator
 
 
-class FakedServer:
+class FakedServerBase:
     """Mocked vendor server for provision via a hacked aiohttp."""
 
     def __init__(
@@ -108,7 +112,7 @@ class FakedServer:
         self._dhw_schedule = dhw_schedule or MOCK_SCHEDULE_DHW
 
         self._schedules: dict[str, dict] = {}
-        self._user_config = self._user_config_from_full_config(self._full_config)
+        self._user_config: dict[str, Any] = {}
 
         self.body: _bodyT | None = None
         self._method: _methodT | None = None
@@ -127,6 +131,7 @@ class FakedServer:
             if re.search(pattern, url):
                 self.body = fnc(self)
                 break
+            # self.status = HTTPStatus.INTERNAL_SERVER_ERROR
         else:
             self.status = HTTPStatus.NOT_FOUND
             return """
@@ -140,11 +145,54 @@ class FakedServer:
             self.status = HTTPStatus.OK if self.body else HTTPStatus.NOT_FOUND
         return self.body
 
+
+class FakedServerV0(FakedServerBase):
+    """Mocked vendor server for provision of v0 URL responses."""
+
+    def v0_session(self) -> _bodyT | None:
+        raise NotImplementedError
+
+    def v0_account_info(self) -> _bodyT | None:
+        raise NotImplementedError
+
+    def v0_locations(self) -> _bodyT | None:
+        raise NotImplementedError
+
+    def v0_evo_touch_systems(self) -> _bodyT | None:
+        raise NotImplementedError
+
+    def v0_heat_setpoint(self) -> _bodyT | None:
+        raise NotImplementedError
+
+    def v0_changeable_values(self) -> _bodyT | None:
+        raise NotImplementedError
+
+
+class FakedServerV2(FakedServerBase):
+    """Mocked vendor server for provision of v2 URL responses."""
+
+    def __init__(
+        self,
+        full_config: dict,
+        locn_status: dict,
+        /,
+        *,
+        zone_schedule: dict | None = None,
+        dhw_schedule: dict | None = None,
+    ) -> None:
+        super().__init__(
+            full_config,
+            locn_status,
+            zone_schedule=zone_schedule,
+            dhw_schedule=dhw_schedule,
+        )
+        self._user_config = self._user_config_from_full_config(self._full_config)  # type: ignore[arg-type]
+
     def oauth_token(self) -> _bodyT | None:
         if self._method != HTTPMethod.POST:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
-        elif self._url == AUTH_URL:
-            return MOCK_AUTH_RESPONSE
+        elif self._url == URL_CRED:
+            return MOCK_CRED_RESPONSE
         return None
 
     def usr_account(self) -> _bodyT:
@@ -152,7 +200,7 @@ class FakedServer:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
             return {"message": "Method not allowed"}
 
-        elif self._url == f"{URL_BASE}/userAccount":
+        if self._url == f"{URL_BASE}/userAccount":
             return self._user_config
 
         self.status = HTTPStatus.NOT_FOUND
@@ -185,9 +233,9 @@ class FakedServer:
         tcs_id = _tcs_id(self._url)  # type: ignore[arg-type]
 
         for gwy in self._locn_status[sch.S2_GATEWAYS]:
-            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
+            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:  # type: ignore[index]
                 if tcs[sch.S2_SYSTEM_ID] == tcs_id:
-                    return tcs
+                    return tcs  # type: ignore[no-any-return]
         return None
 
     def zon_schedule(self) -> _bodyT | None:
@@ -208,12 +256,12 @@ class FakedServer:
             return [{"message": "Bad Request (invalid schedule: not a dict)"}]
 
         try:
-            SCH_PUT_SCHEDULE_ZONE(self._data)
+            TCC_GET_ZON_SCHEDULE(self._data)
         except vol.Invalid:
             self.status = HTTPStatus.BAD_REQUEST
             return {"message": "Bad Request (invalid schedule: invalid schema)"}
 
-        self._schedules[zon_id] = convert_to_get_schedule(self._data)
+        self._schedules[zon_id] = self._data
         return {"id": "1234567890"}
 
     def zon_mode(self) -> _bodyT | None:
@@ -224,10 +272,10 @@ class FakedServer:
         zon_id = _zon_id(self._url)  # type: ignore[arg-type]
 
         for gwy in self._locn_status[sch.S2_GATEWAYS]:
-            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
+            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:  # type: ignore[index]
                 for zone in tcs[sch.S2_ZONES]:
                     if zone[sch.S2_ZONE_ID] == zon_id:
-                        return zone
+                        return zone  # type: ignore[no-any-return]
         return None
 
     def dhw_schedule(self) -> _bodyT | None:
@@ -245,12 +293,12 @@ class FakedServer:
             return [{"message": "Bad Request (invalid schedule: not a dict)"}]
 
         try:
-            SCH_PUT_SCHEDULE_DHW(self._data)
+            TCC_GET_DHW_SCHEDULE(self._data)
         except vol.Invalid:
             self.status = HTTPStatus.BAD_REQUEST
             return {"message": "Bad Request (invalid schedule: invalid schema)"}
 
-        self._schedules[dhw_id] = convert_to_get_schedule(self._data)
+        self._schedules[dhw_id] = self._data
         return {"id": "1234567890"}
 
     @validate_id_of_url(_dhw_id)
@@ -258,10 +306,9 @@ class FakedServer:
         dhw_id = _dhw_id(self._url)  # type: ignore[arg-type]
 
         for gwy in self._locn_status[sch.S2_GATEWAYS]:
-            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:
-                if dhw := tcs.get(sch.S2_DHW):
-                    if dhw[sch.S2_DHW_ID] == dhw_id:
-                        return dhw
+            for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:  # type: ignore[index]
+                if (dhw := tcs.get(sch.S2_DHW)) and dhw[sch.S2_DHW_ID] == dhw_id:
+                    return dhw  # type: ignore[no-any-return]
         return None
 
     def dhw_mode(self) -> _bodyT | None:
@@ -273,13 +320,30 @@ class FakedServer:
         return _user_config_from_full_config(full_config)
 
 
-REQUEST_MAP: dict[str, Callable] = {
+class FakedServer(FakedServerV2, FakedServerV0):
+    """Mocked vendor server for provision via a hacked aiohttp."""
+
+
+REQUEST_MAP_V0: dict[str, Callable] = {
     #
-    r"/Auth/OAuth/Token": FakedServer.oauth_token,
+    r"/session": FakedServer.v0_session,  # authentication
+    #
+    r"/accountInfo$": FakedServer.v0_account_info,
+    #
+    r"/locations?userId=": FakedServer.v0_locations,
+    #
+    r"/evoTouchSystems?locationId=": FakedServer.v0_evo_touch_systems,
+    #
+    r"/devices/.*/thermostat/changeableValues/heatSetpoint": FakedServer.v0_heat_setpoint,
+    r"/devices/.*/thermostat/changeableValues": FakedServer.v0_changeable_values,
+}
+REQUEST_MAP_V2: dict[str, Callable] = {
+    #
+    r"/Auth/OAuth/Token": FakedServer.oauth_token,  # authentication
     #
     r"/userAccount$": FakedServer.usr_account,
-    r"/location/installationInfo": FakedServer.all_config,
     #
+    r"/location/installationInfo": FakedServer.all_config,
     r"/location/.*/installationInfo": FakedServer.loc_config,
     r"/location/.*/status": FakedServer.loc_status,
     #
@@ -294,3 +358,4 @@ REQUEST_MAP: dict[str, Callable] = {
     r"/domesticHotWater/.*/state": FakedServer.dhw_mode,
     r"/domesticHotWater/.*/schedule": FakedServer.dhw_schedule,
 }
+REQUEST_MAP = REQUEST_MAP_V0 | REQUEST_MAP_V2

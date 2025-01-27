@@ -1,213 +1,227 @@
-#!/usr/bin/env python3
-"""evohomeasync provides an async client for the *original* Evohome TCC API."""
+"""evohomeasync provides an async client for the v0 Resideo TCC API."""
 
 from __future__ import annotations
 
-import logging
-from http import HTTPMethod, HTTPStatus
-from typing import Any, Final, Never, NewType
+from abc import ABC, abstractmethod
+from datetime import UTC, datetime as dt, timedelta as td
+from typing import TYPE_CHECKING, Any, Final, TypedDict
 
-import aiohttp
+import voluptuous as vol
+
+from evohome.auth import AbstractAuth
+from evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
+from evohome.credentials import CredentialsManagerBase
+from evohome.helpers import convert_keys_to_snake_case
 
 from . import exceptions as exc
-from .schema import SZ_SESSION_ID, SZ_USER_ID, SZ_USER_INFO
+from .schemas import TCC_POST_USR_SESSION
 
-_SessionIdT = NewType("_SessionIdT", str)
-_UserIdT = NewType("_UserIdT", int)
+if TYPE_CHECKING:
+    import logging
 
-_UserInfoT = NewType("_UserInfoT", dict[str, bool | int | str])
-_UserDataT = NewType("_UserDataT", dict[str, _SessionIdT | _UserInfoT])
-_LocnDataT = NewType("_LocnDataT", dict[str, Any])
+    import aiohttp
+    from aiohttp.typedefs import StrOrURL
 
-
-URL_HOST: Final = "https://tccna.honeywell.com"
-
-# For docs, see:
-#  - https://mytotalconnectcomfort.com/WebApi/Help/LogIn and enter this Session Login:
-_APP_ID: Final = "91db1612-73fd-4500-91b2-e63b069b185c"
-
-_LOGGER: Final = logging.getLogger(__name__)
+    from .schemas import EvoSessionDictT, EvoUserAccountDictT, TccSessionResponseT
 
 
-class Auth:
-    """Provide a client to access the Honeywell TCC API (assumes a single TCS)."""
+# For API docs, enter this App ID on the following website under 'Session login':
+#  - https://mytotalconnectcomfort.com/WebApi/Help/LogIn
+_APPLICATION_ID: Final = "91db1612-73fd-4500-91b2-e63b069b185c"
+#
 
-    _user_data: _UserDataT | dict[Never, Never]
-    _full_data: list[_LocnDataT]
+SZ_SESSION_ID: Final = "session_id"
+SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
+SZ_USER_INFO: Final = "user_info"
+
+# POST authentication url (i.e. /WebAPI/api/session)
+URL_CRED: Final = "WebAPI/api/session"
+
+# GET/PUT resource url (i.e. /WebAPI/api/...)
+URL_BASE: Final = "WebAPI/api"
+
+
+class SessionIdEntryT(TypedDict):
+    session_id: str
+    session_id_expires: str  # dt.isoformat()  # TZ-aware
+
+
+class AbstractSessionManager(CredentialsManagerBase, ABC):
+    """An ABC for managing the session id used for HTTP authentication."""
+
+    _session_id: str
+    _session_id_expires: dt
+    _user_info: EvoUserAccountDictT | None
 
     def __init__(
         self,
-        username: str,
-        password: str,
-        logger: logging.Logger,
+        client_id: str,
+        secret: str,
+        websession: aiohttp.ClientSession,
         /,
         *,
-        session_id: _SessionIdT | None = None,
-        hostname: str | None = None,  # is a URL
-        session: aiohttp.ClientSession | None = None,
+        _hostname: str | None = None,
+        logger: logging.Logger | None = None,
     ) -> None:
-        """A class for interacting with the v1 Evohome TCC API."""
+        """Initialise the session manager."""
 
-        self.username = username  # TODO: remove
-        self._logger = logger
-
-        self._session_id: _SessionIdT | None = session_id
-        self._user_id: _UserIdT | None = None
-
-        self.hostname: Final = hostname or URL_HOST
-        self._session = session or aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30)
+        super().__init__(
+            client_id, secret, websession, _hostname=_hostname, logger=logger
         )
+        self._clear_session_id()  # initialise the attrs
 
-        self._headers: dict[str, str] = {
-            "content-type": "application/json"
-        }  # NB: no session_id yet
-        self._POST_DATA: Final[dict[str, str]] = {
-            "Username": self.username,
-            "Password": password,
-            "ApplicationId": _APP_ID,
-        }
+    def _clear_session_id(self) -> None:
+        """Clear the session id attrs (set to falsey state)."""
 
-        self._user_data = {}
-        self._full_data = []
+        self._session_id = ""
+        self._session_id_expires = dt.min.replace(tzinfo=UTC)  # don't need local TZ
 
     @property
-    def session_id(self) -> _SessionIdT | None:
-        """Return the session id used for HTTP authentication."""
+    def session_id(self) -> str:
+        """Return the session id."""
         return self._session_id
 
-    async def populate_user_data(self) -> _UserDataT:
-        """Return the latest user data as retrieved from the web."""
+    @property
+    def session_id_expires(self) -> dt:
+        """Return the expiration datetime of the session id."""
+        return self._session_id_expires
 
-        user_data: _UserDataT
+    #
+    #
 
-        user_data, _ = await self._populate_user_data()
-        return user_data
+    async def get_session_id(self) -> str:  # convenience wrapper
+        """Return a valid session id.
 
-    async def _populate_user_data(self) -> tuple[_UserDataT, aiohttp.ClientResponse]:
-        """Return the latest user data as retrieved from the web."""
+        If required, fetch (and save) a new session id via the vendor's web API.
+        """
 
-        url = "session"
-        response = await self.make_request(HTTPMethod.POST, url, data=self._POST_DATA)
+        if not self.is_session_valid():  # although may be rejected for other reasons
+            await self.fetch_session_id()
+            await self.save_session_id()
 
-        self._user_data: _UserDataT = await response.json()
-        assert self._user_data != {}
+        return self.session_id
 
-        user_id: _UserIdT = self._user_data[SZ_USER_INFO][SZ_USER_ID]  # type: ignore[assignment, index]
-        session_id: _SessionIdT = self._user_data[SZ_SESSION_ID]  # type: ignore[assignment, index]
+    def is_session_valid(self) -> bool:
+        """Return True if the session id is valid (the server may still reject it)."""
+        return self._session_id_expires > dt.now(tz=UTC) + td(seconds=15)
 
-        self._user_id = user_id
-        self._session_id = self._headers[SZ_SESSION_ID] = session_id
+    async def fetch_session_id(self) -> None:
+        self.logger.debug("Fetching session_id...")
 
-        self._logger.info(f"user_data = {self._user_data}")
-        return self._user_data, response  # type: ignore[return-value]
+        self.logger.debug(" - authenticating with client_id/secret")
 
-    async def populate_full_data(self) -> list[_LocnDataT]:
-        """Return the latest location data exactly as retrieved from the web."""
+        credentials = {
+            "applicationId": _APPLICATION_ID,
+            "username": self._client_id,
+            "password": self._secret,
+        }
 
-        if not self._user_id:  # not yet authenticated
-            # maybe was instantiated with a bad session_id, so must check user_id
-            await self.populate_user_data()
+        try:  # check here if the user credentials are invalid...
+            await self._fetch_session_id(credentials)
 
-        url = f"locations?userId={self._user_id}&allData=True"
-        response = await self.make_request(HTTPMethod.GET, url, data=self._POST_DATA)
+        except exc.AuthenticationFailedError as err:
+            if "EmailOrPasswordIncorrect" not in err.message:
+                raise
+            self.logger.error(HINT_BAD_CREDS)  # noqa: TRY400
+            raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
 
-        self._full_data: list[_LocnDataT] = await response.json()
+        self._was_authenticated = True
 
-        self._logger.info(f"full_data = {self._full_data}")
-        return self._full_data
+        self.logger.debug(f" - session_id = {self.session_id}")
+        self.logger.debug(f" - session_id_expires = {self.session_id_expires}")
+        self.logger.debug(f" - user_info = {self._user_info}")
 
-    async def _make_request(
-        self,
-        method: HTTPMethod,
-        url: str,
-        /,
-        *,
-        data: dict[str, Any] | None = None,
-        _dont_reauthenticate: bool = False,  # used only with recursive call
-    ) -> aiohttp.ClientResponse:
-        """Perform an HTTP request, with an optional retry if re-authenticated."""
+    async def _fetch_session_id(self, credentials: dict[str, str]) -> None:
+        """Obtain an session id using the supplied credentials.
 
-        response: aiohttp.ClientResponse
+        The credentials are the user's client_id/secret.
+        Will raise AuthenticationFailedError if unable to obtain a session id.
+        """
 
-        if method == HTTPMethod.GET:
-            func = self._session.get
-        elif method == HTTPMethod.PUT:
-            func = self._session.put
-        elif method == HTTPMethod.POST:
-            func = self._session.post
+        url = f"https://{self.hostname}/{URL_CRED}"
 
-        url_ = self.hostname + "/WebAPI/api/" + url
+        response: TccSessionResponseT = await self._post_session_id_request(
+            url,
+            headers=HEADERS_CRED,
+            data=credentials,  # NOTE: is camelCase
+        )
 
-        async with func(url_, json=data, headers=self._headers) as response:
-            response_text = await response.text()  # why can't I move this below the if?
-
-            # if 401/unauthorized, may need to refresh session_id (expires in 15 mins?)
-            if response.status != HTTPStatus.UNAUTHORIZED or _dont_reauthenticate:
-                return response
-
-            # TODO: use response.content_type to determine whether to use .json()
-            if "code" not in response_text:  # don't use .json() yet: may be plain text
-                return response
-
-            response_json = await response.json()
-            if response_json[0]["code"] != "Unauthorized":
-                return response
-
-            # NOTE: I cannot recall if this is needed, or if it causes a bug
-            # if SZ_SESSION_ID not in self._headers:  # no value trying to re-authenticate
-            #     return response  # ...because: the user credentials must be invalid
-
-            _LOGGER.debug(f"Session now expired/invalid ({self._session_id})...")
-            self._headers = {
-                "content-type": "application/json"
-            }  # remove the session_id
-
-            _, response = await self._populate_user_data()  # Get a fresh session_id
-            assert self._session_id is not None  # mypy hint
-
-            _LOGGER.debug(f"... success: new session_id = {self._session_id}")
-            self._headers[SZ_SESSION_ID] = self._session_id
-
-            if "session" in url_:  # retry not needed for /session
-                return response
-
-            # NOTE: this is a recursive call, used only after re-authenticating
-            response = await self._make_request(
-                method, url, data=data, _dont_reauthenticate=True
+        try:  # the dict _should_ be the expected schema...
+            self.logger.debug(
+                f"POST {url}: {TCC_POST_USR_SESSION(response)}"  # should be obfuscated
             )
-            return response
 
-    async def make_request(
-        self,
-        method: HTTPMethod,
-        url: str,
-        /,
-        *,
-        data: dict[str, Any] | None = None,
-    ) -> aiohttp.ClientResponse:
-        """Perform an HTTP request, will authenticate if required."""
+        except vol.Invalid as err:
+            self.logger.warning(f"POST {url}: payload may be invalid: {err}")
+
+        session: EvoSessionDictT = convert_keys_to_snake_case(response)  # type:ignore[assignment]
 
         try:
-            response = await self._make_request(method, url, data=data)  # ? ClientError
-            response.raise_for_status()  # ? ClientResponseError
+            self._session_id: str = session[SZ_SESSION_ID]
+            self._session_id_expires = dt.now(tz=UTC) + td(minutes=15)
+            self._user_info = session[SZ_USER_INFO]
 
-        # response.method, response.url, response.status, response._body
-        # POST,    /session, 429, [{code: TooManyRequests, message: Request count limitation exceeded...}]
-        # GET/PUT  /???????, 401, [{code: Unauthorized,    message: Unauthorized}]
+        except (KeyError, TypeError) as err:
+            raise exc.AuthenticationFailedError(
+                f"Authenticator response is invalid: {err}, payload={response}"
+            ) from err
 
-        except aiohttp.ClientResponseError as err:
-            if response.method == HTTPMethod.POST:  # POST only used when authenticating
-                raise exc.AuthenticationFailedError(  # includes TOO_MANY_REQUESTS
-                    str(err), status=err.status
-                ) from err
-            if response.status == HTTPStatus.TOO_MANY_REQUESTS:
-                raise exc.RateLimitExceededError(str(err), status=err.status) from err
-            raise exc.RequestFailedError(str(err), status=err.status) from err
+        self._was_authenticated = True  # i.e. the credentials are valid
 
-        except aiohttp.ClientError as err:  # using response causes UnboundLocalError
-            if method == HTTPMethod.POST:  # POST only used when authenticating
-                raise exc.AuthenticationFailedError(str(err)) from err
-            raise exc.RequestFailedError(str(err)) from err
+        if session.get("latest_eula_accepted"):
+            self.logger.warning("The latest EULA has not been accepted by the user")
 
-        return response
+    async def _post_session_id_request(  # dev/test wrapper (also typing)
+        self, url: StrOrURL, /, **kwargs: Any
+    ) -> TccSessionResponseT:
+        """Wrap the POST request to the vendor's TCC RESTful API."""
+        return await self._post_request(url, **kwargs)  # type: ignore[return-value]
+
+    @abstractmethod
+    async def save_session_id(self) -> None:
+        """Save the (serialized) session id (and expiry dtm).
+
+        Should ideally confirm the session id is valid before saving.
+        """
+
+    def _import_session_id(self, session: SessionIdEntryT) -> None:
+        """Extract the session id from a (serialized) dictionary."""
+
+        self._session_id = session[SZ_SESSION_ID]
+        self._session_id_expires = dt.fromisoformat(session[SZ_SESSION_ID_EXPIRES])
+
+    def _export_session_id(self) -> SessionIdEntryT:
+        """Convert the session id to a (serialized) dictionary."""
+
+        return {
+            SZ_SESSION_ID: self._session_id,
+            SZ_SESSION_ID_EXPIRES: self._session_id_expires.isoformat(),
+        }
+
+
+class Auth(AbstractAuth):
+    """A class to provide to access the v0 Resideo TCC API."""
+
+    def __init__(
+        self,
+        session_manager: AbstractSessionManager,
+        websession: aiohttp.ClientSession,
+        /,
+        *,
+        _hostname: str | None = None,
+        logger: logging.Logger | None = None,
+    ) -> None:
+        """A class for interacting with the v0 Resideo TCC API."""
+
+        super().__init__(websession, _hostname=_hostname, logger=logger)
+
+        self._session_id = session_manager.get_session_id
+        self._url_base = f"https://{self.hostname}/{URL_BASE}"
+
+    async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
+        """Ensure the authorization header has a valid session id."""
+
+        headers = HEADERS_BASE | (headers or {})
+        return headers | {
+            "sessionId": await self._session_id(),
+        }

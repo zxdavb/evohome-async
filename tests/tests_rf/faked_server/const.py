@@ -1,14 +1,24 @@
-#!/usr/bin/env python3
 """Mocked vendor RESTful API via a hacked aiohttp."""
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Final, Literal
+
+HOSTNAME: Final = "tccna.resideo.com"
+
+# vendors API URLs - the older API
+URL_CRED_V0 = f"https://{HOSTNAME}/WebAPI/api/session"
+URL_BASE_V0 = f"https://{HOSTNAME}/WebAPI/api"
+
+# - the newer API
+URL_CRED_V2 = f"https://{HOSTNAME}/Auth/OAuth/Token"
+URL_BASE_V2 = f"https://{HOSTNAME}/WebAPI/emea/api/v1"
+
 
 GHOST_ZONE_ID = "0000000"  # "3432521"
 
 # Sample responses from evohome-client
-MOCK_AUTH_RESPONSE = {  # can use this for all
+MOCK_CRED_RESPONSE = {  # can use this for all
     "access_token": "ncWMqPh2yGgAqc...",
     "token_type": "bearer",
     "expires_in": 1800,
@@ -651,12 +661,12 @@ MOCK_SCHEDULE_DHW = {  # of any zone (i.e. no dhw id)
 }
 
 
-def user_config_from_full_config(full_config: list) -> dict:
+def user_config_from_full_config(full_config: list[dict[str, Any]]) -> dict[str, Any]:
     """Create a valid MOCK_USER_CONFIG from a MOCK_FULL_CONFIG."""
 
     # assert schema
     loc_idx = 0
-    return (
+    return (  # type: ignore[no-any-return]
         full_config[loc_idx]["locationInfo"]["locationOwner"]
         | {
             k: v
@@ -670,7 +680,7 @@ def user_config_from_full_config(full_config: list) -> dict:
 MOCK_USER_CONFIG = user_config_from_full_config(MOCK_FULL_CONFIG)
 
 
-_bodyT = list | dict | str
-_methodT = Literal["GET", "POST", "PUT"]
-_statusT = int
-_urlT = str
+_bodyT = list[Any] | dict[str, Any] | str  # noqa: N816
+_methodT = Literal["GET", "POST", "PUT"]  # noqa: N816
+_statusT = int  # noqa: N816
+_urlT = str  # noqa: N816

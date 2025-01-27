@@ -6,6 +6,7 @@ on:
     branches: [ "master", "dev" ]
     paths: [
       ".github/workflows/check-test.yml",
+      "cli/**.py",
       "src/**.py",
       "tests/**",
       "requirements*.txt",
@@ -16,6 +17,7 @@ on:
     branches: [ "master", "dev" ]
     paths: [
       ".github/workflows/check-test.yml",
+      "cli/**.py",
       "src/**.py",
       "tests/**",
       "requirements*.txt",
@@ -35,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13.0-rc.1"]
+        python-version: ["3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4

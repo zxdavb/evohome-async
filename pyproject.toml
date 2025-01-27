@@ -1,198 +1,216 @@
 #
 ### project ##########################################################################
-# last checked/updated: 2024-09-10
 #
 
 [project]
-  name = "evohome-async"
-  dynamic = ["version"]
-  description = "An async client for connecting to Honeywell's TCC RESTful API."
-  readme = "README.md"
-  authors = [
-    {name = "David Bonnes", email = "zxdavb@bonnes.me"},
-    {name = "Andrew Stock", email = "evohome@andrew-stock.com"},
-  ]
-  maintainers = [
-    {name = "David Bonnes", email = "zxdavb@bonnes.me"},
-  ]
-  dependencies = [
-    "aiohttp>=3.10.5",
-    "voluptuous>=0.15.2",
-  ]
-  requires-python = ">=3.12"
-  license = "Apache-2.0"
+name = "evohome-async"
+dynamic = ["version"]
+description = "An async client for connecting to Honeywell's TCC RESTful API."
+readme = "README.md"
+authors = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
+maintainers = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
+dependencies = ["aiohttp>=3.10.5", "aiozoneinfo>=0.2.1", "voluptuous>=0.15.2"]
+requires-python = ">=3.12"
+license = "Apache-2.0"
 
-  keywords = [
-    "evohome", "honeywell", "resideo", "round thermostat", "tcc", "vision pro"
-  ]
-  classifiers = [
-    "Topic :: Home Automation",
-    "License :: OSI Approved :: Apache Software License",
-  ]
+keywords = [
+  "evohome",
+  "honeywell",
+  "resideo",
+  "round thermostat",
+  "tcc",
+  "vision pro",
+]
+classifiers = [
+  "Topic :: Home Automation",
+  "License :: OSI Approved :: Apache Software License",
+]
 
 #
 [project.scripts]
-  evo-client = "evohomeasync2.client:main"
+evo-client = "cli.client:main"
 
 #
 [project.urls]
-  "Homepage" = "https://github.com/zxdavb/evohome-async"
-  "Bug Tracker" = "https://github.com/zxdavb/evohome-async/issues"
-  "Wiki" = "https://github.com/zxdavb/evohome-async/wiki"
+"Homepage" = "https://github.com/zxdavb/evohome-async"
+"Bug Tracker" = "https://github.com/zxdavb/evohome-async/issues"
+"Wiki" = "https://github.com/zxdavb/evohome-async/wiki"
 
 
 #
 ### build-system #####################################################################
 
 [build-system]
-  requires = ["hatchling"]
-  build-backend = "hatchling.build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.hatch.build]
-  sources = ["src"]
+sources = ["src"]
 
 [tool.hatch.build.targets.wheel]
-  packages = ["src/evohomeasync", "src/evohomeasync2"]
+packages = ["src/evohomeasync", "src/evohomeasync2", "src/evohome"]
 
 [tool.hatch.version]
-  path = "src/evohomeasync2/__init__.py"
+path = "src/evohome/__init__.py"
 
 
 #
 ### pytest ###########################################################################
 
 [tool.pytest.ini_options]
-  asyncio_default_fixture_loop_scope = "function"
-  asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
 
-  norecursedirs = "deprecated/*"
+norecursedirs = "deprecated/*"
 
 
 #
 ###  mypy ############################################################################
 
 [tool.mypy]
-  exclude = ["docs", "tests/tests_cc"]
-  files = ["src", "tests"]
+python_version = "3.12"
 
-  no_implicit_optional = true
+# strict = true
+# enable_incomplete_feature = ["NewGenericSyntax"]
 
-  # see: https://mypy.readthedocs.io/en/stable/existing_code.html#introduce-stricter-options
+exclude = ["docs", "tests/tests_cc"]
+files = ["cli", "src", "tests"]
 
-  # Start off with these
-  warn_unused_configs = true
-  warn_redundant_casts = true  # this is not per-module
-  warn_unused_ignores = true
+no_implicit_optional = true
 
-  # Getting these passing should be easy
-  extra_checks = true  # now incl.: strict_concatenate = true
-  strict_equality = true
+# see: https://mypy.readthedocs.io/en/stable/existing_code.html#introduce-stricter-options
 
-  # Strongly recommend enabling this one as soon as you can
-  check_untyped_defs = true
+# Start off with these
+warn_unused_configs = true
+warn_redundant_casts = true # this is not per-module
+warn_unused_ignores = true
 
-  # These shouldn't be too much additional work, but may be tricky to
-  # get passing if you use a lot of untyped libraries
-  disallow_subclassing_any = true
-  disallow_untyped_decorators = true
-  disallow_any_generics = true
+# Getting these passing should be easy
+extra_checks = true    # now incl.: strict_concatenate = true
+strict_equality = true
 
-  # These next few are various gradations of forcing use of type annotations
-  disallow_untyped_calls = true
-  disallow_incomplete_defs = true
-  disallow_untyped_defs = true
+# Strongly recommend enabling this one as soon as you can
+check_untyped_defs = true
 
-  # This one isn't too hard to get passing, but return on investment is lower
-  # no_implicit_reexport = true  # WIP
+# These shouldn't be too much additional work, but may be tricky to
+# get passing if you use a lot of untyped libraries
+disallow_subclassing_any = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
 
-  # This one can be tricky to get passing if you use a lot of untyped libraries
-  warn_return_any = true
+# These next few are various gradations of forcing use of type annotations
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
 
-  disallow_any_unimported = true
-  warn_no_return = true
-  warn_unreachable = true
+# This one isn't too hard to get passing, but return on investment is lower
+# no_implicit_reexport = true
 
+# This one can be tricky to get passing if you use a lot of untyped libraries
+warn_return_any = true
 
-#
-[[tool.mypy.overrides]]
-  module = [
-    "tests.*",
-    "tests_rf.*"
-  ]
+disallow_any_unimported = true
+warn_no_return = true
+warn_unreachable = true
 
-  disable_error_code = [
-    "arg-type",        #  7
-    "index",           # 18
-    "type-arg",        # 15
-  ]
 
 #
 [[tool.mypy.overrides]]
-  module = "tests_rf.faked_server.*"
+module = ["tests.tests_rf.faked_server.vendor"]
 
-  disable_error_code = [
-    "no-any-return",   #  5 (aiohttp,const,vendor)
-    "no-untyped-def",  #  9 (aiohttp)
-    "return-value",    #  2 (aiohttp): high risk, low benefit to fix
-  ]
-#
-[[tool.mypy.overrides]]
-  module = "tests_rf.helpers"
-
-  disable_error_code = [
-    "call-arg",        # high risk, low benefit to fix
-  ]
+disable_error_code = ["type-arg"] # 14
 
 #
 ## ruff ##############################################################################
 
 [tool.ruff]
-  exclude = ["docs/*.py", "tests/tests_cc"]
-  src = ["src", "tests"]
-  target-version = "py312"
+exclude = ["docs/*.py", "tests/tests_cc"]
+src = ["cli", "src", "tests"]
+target-version = "py313"
 
 [tool.ruff.lint]
-  select = [
-    "ASYNC",  # flake8-async
-    "B",  #     flake8-bugbear
-    "E",  #     pycodestyle
-    "F",  #     Pyflakes
-    "G",  #     flake8-logging-format
-    "I",  #     isort
-    "LOG",  #   flake8-logging
-    "PGH",  #   pygrep hooks
-    "SIM",  #   flake8-simplify
-    "S",  #     flake8-bandit
-    "UP",  #    pyupgrade
-  ]
-#   "FBT",  #   flake8-boolean-trap
-#   "PT",  #    flake8-pytest-style
-#   "RET",  #   flake8-return
+select = [
+  "A",   # flake8-builtins
+  "ANN", # flake8-annotations
+  # "ARG", # flake8-unused-args
+  "ASYNC", # flake8-async
+  "B",     # flake8-bugbear (opinionated anti-patterns)
+  "BLE",   # flake8-blind-except
+  "C4",    # flake8-comprehensions
+  "C90",   # mccabe complexity
+  "DTZ",   # flake8-datetimez
+  # "D",   # pydocstyle
+  "E",    # pycodestyle
+  "EXE",  # flake8-executable (shebang)
+  "F",    # Pyflakes
+  "FA",   # flake8-future-annotations
+  "FBT",  # flake8-boolean-trap
+  "FURB", # refurb (misc anti-patterns)
+  "G",    # flake8-logging-format
+  "I",    # isort
+  "ICN",  # flake8-import-conventions
+  "INP",  # flake8-no-pep420
+  "ISC",  # flake8-implicit-str-concat
+  "LOG",  # flake8-logging
+  "N",    # pep8-naming
+  "PERF", # perflint (performance anti-patterns)
+  "PGH",  # pygrep hooks
+  "PIE",  # flake8-pie (misc lint)
+  "PL",   # pylint
+  "PT",   # flake8-pytest-style
+  "PTH",  # flake8-use-pathlib
+  "Q",    # flake8-quotes
+  "RET",  # flake8-return
+  "RSE",  # flake8-raise
+  "RUF",  # ruff (misc lint/anti-patterns)
+  "S",    # flake8-bandit (security)
+  "SIM",  # flake8-simplify
+  # "SLF", # flake8-self (aka private-member-access)
+  "TC",  # flake8-type-checking
+  "TID", # flake8-tidy-imports
+  "TRY", # tryceratops (try/except anti-patterns)
+  # "T10", # flake8-debugger
+  "T20", # flake8-print
+  "UP",  # pyupgrade
+  "W",   # pycodestyle
+  "YTT", # flake8-2020
+]
 
-  ignore = ["B011", "G004", "E501", "S101", "SIM102", "SIM114", "UP009"]
-  # B011   - Do not call assert False since python -O removes these calls
-  # E501   - Line too long
-  # G004   - Logging statement uses f-string
-  # SIM102 - Use a single `if` statement instead of nested `if` statements
-  # SIM114 - Combine `if` branches using logical `or` operator
-  # UP009  - UTF-8 encoding declaration is unnecessary
+ignore = [
+  "ANN401",  # Don't use type Any
+  "D202",    # No blank lines allowed after function docstring
+  "E501",    # Line too long
+  "G004",    # Logging statement uses f-string
+  "ISC001",  # Implicitly concatenated strings on a single line (conflicts with ruff)
+  "N806",    # Variable in function should be lowercase
+  "PLR0913", # Too many arguments in function definition
+  "PLR2044", # Line with empty comment
+  "S101",    # Assertions are removed when Python is run with optimization
+  "TRY003",  # Long exception messages
+  "UP040",
+]
+
+
+[tool.ruff.lint.per-file-ignores]
+"./client.py" = ["EXE001"]  #  shebang directive in a file that is not executable
+"./cli/client.py" = ["EXE001", "T201"]  # prints should typically be omitted
+"./src/*/schemas/typedefs.py" = ["UP040"]  # PEP695 says use type rather that TypeAlias
+"./tests/*" = ["S101"]  # Assertions are removed when Python is run with optimization
 
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]
-  voluptuous = "vol"
+voluptuous = "vol"
 
 
 [tool.ruff.lint.isort]
-  combine-as-imports = true
-  force-sort-within-sections = false
-  split-on-trailing-comma = false
+combine-as-imports = true
+force-sort-within-sections = false
+split-on-trailing-comma = false
 #
 ## coverage ##########################################################################
 
 [tool.coverage.run]
-  omit = [
-    "src/evohomeasync2/client.py",
-    "tests/*",
-    ]
+omit = ["cli/*", "tests*/*"]
+
 [tool.coverage.report]
-  show_missing = true
+show_missing = true

@@ -1,28 +1,29 @@
-#!/usr/bin/env python3
 """Provides handling of TCC DHW zones."""
 
-# TODO: add set_mode() for non-evohome modes
+# TODO: extend set_mode() for non-evohome modes
 
 from __future__ import annotations
 
-from datetime import datetime as dt
+from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
-from .const import API_STRFTIME
-from .schema import (
-    SCH_DHW_STATUS,
-    SCH_GET_SCHEDULE_DHW,
-    SCH_PUT_SCHEDULE_DHW,
-    convert_keys_to_snake_case,
+from evohome.helpers import as_local_time, camel_to_snake
+
+from . import exceptions as exc
+from .const import (
+    API_STRFTIME,
+    SZ_ALLOWED_MODES,
+    SZ_DHW_ID,
+    SZ_DHW_STATE_CAPABILITIES_RESPONSE,
+    SZ_MODE,
+    SZ_SCHEDULE_CAPABILITIES_RESPONSE,
+    SZ_STATE,
+    SZ_STATE_STATUS,
 )
-from .schema.const import (
-    S2_ALLOWED_MODES,
-    S2_DHW_ID,
-    S2_DHW_STATE_CAPABILITIES_RESPONSE,
+from .schemas import factory_dhw_schedule, factory_dhw_status
+from .schemas.const import (
     S2_MODE,
-    S2_SCHEDULE_CAPABILITIES_RESPONSE,
     S2_STATE,
-    S2_STATE_STATUS,
     S2_UNTIL_TIME,
     DhwState,
     EntityType,
@@ -31,103 +32,153 @@ from .schema.const import (
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
+    from datetime import datetime as dt
+
     import voluptuous as vol
 
     from . import ControlSystem
-    from .schema import _EvoDictT, _EvoListT
+    from .schemas.typedefs import (
+        DayOfWeekDhwT,
+        EvoDhwConfigEntryT,
+        EvoDhwConfigResponseT,
+        EvoDhwScheduleCapabilitiesResponseT,
+        EvoDhwStateCapabilitiesResponseT,
+        EvoDhwStateStatusResponseT,
+        EvoDhwStatusResponseT,
+    )
 
 
 class HotWater(_ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
-    STATUS_SCHEMA: Final = SCH_DHW_STATUS  # type: ignore[misc]
-    TYPE: Final = EntityType.DHW  # type: ignore[misc]
+    _TYPE = EntityType.DHW
 
-    SCH_SCHEDULE_GET: Final[vol.Schema] = SCH_GET_SCHEDULE_DHW  # type: ignore[misc]
-    SCH_SCHEDULE_PUT: Final[vol.Schema] = SCH_PUT_SCHEDULE_DHW  # type: ignore[misc]
+    SCH_SCHEDULE: vol.Schema = factory_dhw_schedule(camel_to_snake)
+    SCH_STATUS: vol.Schema = factory_dhw_status(camel_to_snake)
 
-    def __init__(self, tcs: ControlSystem, config: _EvoDictT) -> None:
-        super().__init__(config[S2_DHW_ID], tcs, config)
+    def __init__(self, tcs: ControlSystem, config: EvoDhwConfigResponseT) -> None:
+        super().__init__(config[SZ_DHW_ID], tcs)
 
-    @property
-    def state_capabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[S2_DHW_STATE_CAPABILITIES_RESPONSE]
-        return convert_keys_to_snake_case(ret)
+        self._config: Final[EvoDhwConfigEntryT] = config  # type: ignore[misc]
+        self._status: EvoDhwStatusResponseT | None = None
 
-    @property
-    def schedule_capabilities(self) -> _EvoDictT:
-        ret: _EvoDictT = self._config[S2_SCHEDULE_CAPABILITIES_RESPONSE]
-        return convert_keys_to_snake_case(ret)
-
-    @property  # for convenience (is not a top-level config attribute)
-    def allowed_modes(self) -> _EvoListT:
-        ret: _EvoListT = self._config[S2_DHW_STATE_CAPABILITIES_RESPONSE][
-            S2_ALLOWED_MODES
-        ]
-        return convert_keys_to_snake_case(ret)
+        self._schedule: list[DayOfWeekDhwT] | None = None  # type: ignore[assignment]
 
     @property
+    def config(self) -> EvoDhwConfigEntryT:
+        """Return the latest config of the entity."""
+        return self._config
+
+    @property
+    def status(self) -> EvoDhwStatusResponseT:
+        """Return the latest status of the entity."""
+        return super().status  # type: ignore[return-value]
+
+    # Config attrs...
+
+    @cached_property
     def name(self) -> str:
         return "Domestic Hot Water"
 
+    @cached_property
+    def type(self) -> str:
+        return "DomesticHotWater"
+
+    @cached_property  # NOTE: renamed config key: was schedule_capabilities_response
+    def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesResponseT:
+        """
+        "scheduleCapabilitiesResponse": {
+          "maxSwitchpointsPerDay": 6,
+          "minSwitchpointsPerDay": 1,
+          "timingResolution": "00:10:00"
+        }
+        """
+
+        return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
+
+    @cached_property  # NOTE: renamed config key: was dhw_state_capabilities_response
+    def state_capabilities(self) -> EvoDhwStateCapabilitiesResponseT:
+        """
+        "dhwStateCapabilitiesResponse": {
+            "allowedStates": ["On", "Off"],
+            "allowedModes": ["FollowSchedule", "PermanentOverride", "TemporaryOverride"],
+            "maxDuration": "1.00:00:00",
+            "timingResolution": "00:10:00"
+        },
+        """
+
+        return self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
+
+    @cached_property
+    def allowed_modes(self) -> tuple[ZoneMode, ...]:
+        return tuple(self.state_capabilities[SZ_ALLOWED_MODES])
+
+    @cached_property
+    def allowed_states(self) -> tuple[DhwState, ...]:
+        return tuple(self.state_capabilities["allowed_states"])
+
+    # Status (state) attrs & methods...
+
     @property
-    def state_status(self) -> _EvoDictT | None:
-        return self._status.get(S2_STATE_STATUS)
+    def state_status(self) -> EvoDhwStateStatusResponseT:
+        """
+        "stateStatus": {"state": "Off", "mode": "PermanentOverride"}
+        "stateStatus": {
+            "state": "Off",
+            "mode": "TemporaryOverride",
+            until": "2023-11-30T22:10:00Z"
+        }
+        """
 
-    @property  # status attr for convenience (new)
-    def mode(self) -> str | None:
-        if (state_status := self._status.get(S2_STATE_STATUS)) is None:
+        if self._status is None:
+            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
+        return self._status[SZ_STATE_STATUS]
+
+    @property
+    def mode(self) -> ZoneMode:
+        return self.state_status[SZ_MODE]
+
+    @property
+    def state(self) -> DhwState:
+        return self.state_status[SZ_STATE]
+
+    @property
+    def until(self) -> dt | None:
+        if (until := self.state_status.get("until")) is None:
             return None
-        ret: str = state_status[S2_MODE]
-        return ret
+        return as_local_time(until, self.location.tzinfo)
 
-    @property  # status attr for convenience (new)
-    def state(self) -> str | None:
-        if (state_status := self._status.get(S2_STATE_STATUS)) is None:
-            return None
-        ret: str = state_status[S2_STATE]
-        return ret
-
-    def _next_setpoint(self) -> tuple[dt, str] | None:  # WIP: for convenience (new)
+    def _next_setpoint(self) -> tuple[dt, str] | None:  # WIP: for convenience
         """Return the datetime and state of the next setpoint."""
         raise NotImplementedError
 
-    async def _set_mode(self, mode: dict[str, str | None]) -> None:
+    async def _set_state(self, mode: dict[str, str | None]) -> None:
         """Set the DHW mode (state)."""
-        _ = await self._broker.put(f"{self.TYPE}/{self.id}/state", json=mode)
 
-    async def reset_mode(self) -> None:
+        if mode[S2_MODE] not in self.allowed_modes:
+            raise exc.BadApiRequestError(
+                f"{self}: nsupported/unknown {S2_MODE}: {mode}"
+            )
+
+        if mode[S2_STATE] not in self.allowed_states:
+            raise exc.BadApiRequestError(
+                f"{self}: Unsupported/unknown {S2_STATE}: {mode}"
+            )
+
+        await self._auth.put(f"{self._TYPE}/{self.id}/state", json=mode)
+
+    async def reset(self) -> None:
         """Cancel any override and allow the DHW to follow its schedule."""
 
-        mode: dict[str, str | None] = {  # NOTE: S2_STATE was previously ""
+        mode: dict[str, str | None] = {
             S2_MODE: ZoneMode.FOLLOW_SCHEDULE,
-            S2_STATE: None,
+            S2_STATE: None,  # NOTE: was "state": ""
             S2_UNTIL_TIME: None,
         }
 
-        await self._set_mode(mode)
+        await self._set_state(mode)
 
-    async def set_on(self, /, *, until: dt | None = None) -> None:
-        """Set the DHW on until a given time, or permanently."""
-
-        mode: dict[str, str | None]
-
-        if until is None:
-            mode = {
-                S2_MODE: ZoneMode.PERMANENT_OVERRIDE,
-                S2_STATE: DhwState.ON,
-                S2_UNTIL_TIME: None,
-            }
-        else:
-            mode = {
-                S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-                S2_STATE: DhwState.ON,
-                S2_UNTIL_TIME: until.strftime(API_STRFTIME),
-            }
-
-        await self._set_mode(mode)
-
-    async def set_off(self, /, *, until: dt | None = None) -> None:
+    async def off(self, /, *, until: dt | None = None) -> None:
         """Set the DHW off until a given time, or permanently."""
 
         mode: dict[str, str | None]
@@ -145,4 +196,34 @@ class HotWater(_ZoneBase):
                 S2_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
 
-        await self._set_mode(mode)
+        await self._set_state(mode)
+
+    async def on(self, /, *, until: dt | None = None) -> None:
+        """Set the DHW on until a given time, or permanently."""
+
+        mode: dict[str, str | None]
+
+        if until is None:
+            mode = {
+                S2_MODE: ZoneMode.PERMANENT_OVERRIDE,
+                S2_STATE: DhwState.ON,
+                S2_UNTIL_TIME: None,
+            }
+        else:
+            mode = {
+                S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
+                S2_STATE: DhwState.ON,
+                S2_UNTIL_TIME: until.strftime(API_STRFTIME),
+            }
+
+        await self._set_state(mode)
+
+    # NOTE: this wrapper exists only for typing purposes
+    async def get_schedule(self) -> list[DayOfWeekDhwT]:  # type: ignore[override]
+        """Get the schedule for this DHW zone."""
+        return await super().get_schedule()  # type: ignore[return-value]
+
+    # NOTE: this wrapper exists only for typing purposes
+    async def set_schedule(self, schedule: list[DayOfWeekDhwT] | str) -> None:  # type: ignore[override]
+        """Set the schedule for this DHW zone."""
+        await super().set_schedule(schedule)  # type: ignore[arg-type]

@@ -1,17 +1,17 @@
-#!/usr/bin/env python3
 """A hacked aiohttp to provide a faked server."""
 
 from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import Generator
 from enum import EnumCheck, StrEnum, verify
-from types import TracebackType
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
     from asyncio.streams import _ReaduntilBuffer
+    from collections.abc import Generator
+    from types import TracebackType
 
     from .const import _bodyT, _methodT, _statusT, _urlT
     from .vendor import FakedServer
@@ -21,7 +21,7 @@ _DEFAULT_LIMIT = 2**16  # 64 KiB
 
 
 @verify(EnumCheck.UNIQUE)
-class hdrs(StrEnum):  # a la aiohttp
+class hdrs(StrEnum):  # noqa: N801  # is a la aiohttp
     METH_GET = "GET"
     METH_POST = "POST"
     METH_PUT = "PUT"
@@ -32,7 +32,9 @@ class StreamReader(asyncio.StreamReader):
 
     _buffer = bytearray()
 
-    def __init__(self, limit=_DEFAULT_LIMIT, loop=None):
+    def __init__(
+        self, limit: int = _DEFAULT_LIMIT, loop: asyncio.AbstractEventLoop | None = None
+    ) -> None:
         pass
 
     async def read(self, n: int = -1) -> bytes:
@@ -51,7 +53,7 @@ class StreamReader(asyncio.StreamReader):
         """Read data from the stream until ``separator`` is found."""
         raise NotImplementedError
 
-    async def __aenter__(self, *args, **kwargs) -> Self:
+    async def __aenter__(self, *args: Any, **kwargs: Any) -> Self:
         return self
 
     async def __aexit__(
@@ -70,9 +72,12 @@ class ClientError(Exception):
 class ClientResponseError(ClientError):
     """A faked ClientResponseError."""
 
-    def __init__(self, msg, /, *, status: int | None = None, **kwargs) -> None:
+    def __init__(
+        self, msg: str, /, *, status: int | None = None, **kwargs: Any
+    ) -> None:
         super().__init__(msg)
         self.status = status
+        self.message = msg
 
 
 class ContentTypeError(ClientResponseError):
@@ -82,14 +87,16 @@ class ContentTypeError(ClientResponseError):
 class ClientTimeout:
     """A faked ClientTimeout."""
 
-    def __init__(self, /, *, total: float | None = None, **kwargs) -> None:
+    def __init__(self, /, *, total: float | None = None, **kwargs: Any) -> None:
         self.total: float = total or 30
 
 
 class ClientSession:
     """A faked ClientSession."""
 
-    def __init__(self, /, *, timeout: ClientTimeout | None = None, **kwargs) -> None:
+    def __init__(
+        self, /, *, timeout: ClientTimeout | None = None, **kwargs: Any
+    ) -> None:
         self._timeout = timeout or ClientTimeout()
 
         # this is required, so no .get()
@@ -137,7 +144,7 @@ class ClientResponse:
         data: str | None = None,
         json: dict[str, Any] | None = None,
         session: ClientSession | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         self.method = method
         self.url = url
@@ -156,7 +163,7 @@ class ClientResponse:
         self.status = self._faked_server.status  # type: ignore[assignment]
 
     def raise_for_status(self) -> None:
-        if self.status >= 300:
+        if self.status >= HTTPStatus.MULTIPLE_CHOICES:  # 300
             raise ClientResponseError(
                 f"{self.method} {self.url}: {self.status}", status=self.status
             )
@@ -183,22 +190,30 @@ class ClientResponse:
             return "text/html"
         return "text/plain"
 
-    async def text(self, /, **kwargs) -> str:  # assumes is JSON or plaintext
+    async def text(self, /, **kwargs: Any) -> str:  # assumes is JSON or plaintext
         """Return the response body as text."""
         if self.content_type == "application/json":
-            return json.dumps(self._body)
+            return json.dumps(self._body, indent=4)
         if self.content_type in ("text/html", "text/plain"):
-            return self._body
+            return str(self._body)
         raise NotImplementedError
 
-    async def json(self, /, **kwargs) -> dict | list:  # assumes is JSON or plaintext
+    async def json(
+        self, /, **kwargs: Any
+    ) -> dict[str, Any] | list[Any]:  # assumes is JSON or plaintext
         """Return the response body as json (a dict)."""
         if self.content_type == "application/json":
-            return self._body
+            return self._body  # type: ignore[return-value]
         assert not isinstance(self._body, (dict | list))  # mypy
-        return json.loads(self._body)
+        return json.loads(self._body)  # type: ignore[arg-type,no-any-return]
 
-    async def __aenter__(self, *args, **kwargs) -> Self:
+    async def read(self) -> bytes:
+        """Read response payload."""
+        if self._body is None:
+            raise NotImplementedError
+        return b""
+
+    async def __aenter__(self, *args: Any, **kwargs: Any) -> Self:
         return self
 
     async def __aexit__(
@@ -216,3 +231,9 @@ class ClientResponse:
     async def _await_impl(self) -> Self:
         """Return the actual result."""
         return self
+
+    async def wait_for_close(self) -> None:
+        """Wait for the response to close."""
+
+    def release(self) -> None:
+        """Release the response."""
