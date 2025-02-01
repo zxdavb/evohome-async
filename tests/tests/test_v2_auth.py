@@ -235,7 +235,7 @@ async def test_token_manager(
         with caplog.at_level(logging.DEBUG):
             assert await token_manager.get_access_token() == "newer_access_token..."
 
-            # required key not provided @ data['token_type']
+            # "payload may be invalid: required key not provided @ data['token_type']"
             assert "payload may be invalid" in caplog.records[2].message
 
         req.assert_called_once()
