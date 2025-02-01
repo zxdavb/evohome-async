@@ -148,10 +148,6 @@ class HotWater(_ZoneBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    def _next_setpoint(self) -> tuple[dt, str] | None:  # WIP: for convenience
-        """Return the datetime and state of the next setpoint."""
-        raise NotImplementedError
-
     async def _set_state(self, mode: dict[str, str | None]) -> None:
         """Set the DHW mode (state)."""
 
