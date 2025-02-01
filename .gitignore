@@ -6,11 +6,12 @@ tokens*
 .secrets/
 .vscode/
 
-custom_components
-
 # schedule backups
 /*.json
 
+# temprary: a WIP
+_tests*/
+custom_components
 
 # beware the *.log in github's default .gitignore
 !tests/
@@ -18,8 +19,6 @@ custom_components
 !tests/**/*.json
 !tests/**/*.log
 !tests/**/*.yaml
-
-tests.wip/
 
 
 ### github's default .gitignore file
