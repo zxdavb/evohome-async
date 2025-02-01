@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
 
-from evohome.helpers import convert_keys_to_snake_case
+from evohome.helpers import camel_to_snake, convert_keys_to_snake_case
 from evohomeasync2 import Location
 from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
 from evohomeasync2.schemas.const import (
@@ -88,6 +88,9 @@ def test_status_schemas(status: dict[str, Any]) -> None:
     _ = SCH_LOCN_STATUS(status)
 
 
-# assert camel_to_snake("camel2_camel2_case") == "camel2_camel2_case"
-# assert camel_to_snake("getHTTPResponseCode") == "get_http_response_code"
-# assert camel_to_snake("HTTPResponseCodeXYZ") == "http_response_code_xyz"
+# def test_came_to_snake() -> None:
+#     """Test the status schema for a location."""
+
+assert camel_to_snake("camel2_camel2_case") == "camel2_camel2_case"
+assert camel_to_snake("getHTTPResponseCode") == "get_http_response_code"
+assert camel_to_snake("HTTPResponseCodeXYZ") == "http_response_code_xyz"
