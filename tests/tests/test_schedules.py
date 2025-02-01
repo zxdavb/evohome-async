@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2.schemas import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE
+from evohomeasync2.schemas.const import DayOfWeek
+from evohomeasync2.zone import _find_switchpoints
 
 from .conftest import JsonObjectType, load_fixture
+
+if TYPE_CHECKING:
+    from evohomeasync2.schemas.typedefs import DayOfWeekT
 
 SCHEDULES_DIR = Path(__file__).parent / "schedules"
 
@@ -87,7 +93,7 @@ SCHEDULE = convert_keys_to_snake_case(
 )
 
 
-def _test_schema_schedule_dhw() -> None:
+def test_schema_schedule_dhw() -> None:
     """Test the schedule schema for dhw."""
 
     get_sched = schedule_file("schedule_dhw_get.json")
@@ -100,7 +106,7 @@ def _test_schema_schedule_dhw() -> None:
     # assert get_sched == convert_to_get_schedule(put_sched)
 
 
-def _test_schema_schedule_zone() -> None:
+def test_schema_schedule_zone() -> None:
     """Test the schedule schema for zones."""
 
     get_sched = schedule_file("schedule_zone_get.json")
@@ -116,39 +122,37 @@ def _test_schema_schedule_zone() -> None:
 def test_find_switchpoints() -> None:
     """Test the find_switchpoints method."""
 
-    from evohomeasync2.zone import _find_switchpoints
+    schedule: list[DayOfWeekT] = SCHEDULE["daily_schedules"]  # type: ignore[assignment]
 
-    schedule = SCHEDULE["daily_schedules"]
-
-    assert _find_switchpoints(schedule, "Monday", "00:00:00") == (  # type: ignore[arg-type]
+    assert _find_switchpoints(schedule, DayOfWeek.MONDAY, "00:00:00") == (
         {"heat_setpoint": 14.8, "time_of_day": "21:30:00"},
         -1,
         {"heat_setpoint": 23.2, "time_of_day": "06:30:00"},
         0,
     )
 
-    assert _find_switchpoints(schedule, "Tuesday", "07:59:59") == (  # type: ignore[arg-type]
+    assert _find_switchpoints(schedule, DayOfWeek.TUESDAY, "07:59:59") == (
         {"heat_setpoint": 19.2, "time_of_day": "06:30:00"},
         0,
         {"heat_setpoint": 18.2, "time_of_day": "08:00:00"},
         0,
     )
 
-    assert _find_switchpoints(schedule, "Tuesday", "08:00:00") == (  # type: ignore[arg-type]
+    assert _find_switchpoints(schedule, DayOfWeek.TUESDAY, "08:00:00") == (
         {"heat_setpoint": 18.2, "time_of_day": "08:00:00"},
         0,
         {"heat_setpoint": 19.3, "time_of_day": "17:00:00"},
         0,
     )
 
-    assert _find_switchpoints(schedule, "Tuesday", "08:00:01") == (  # type: ignore[arg-type]
+    assert _find_switchpoints(schedule, DayOfWeek.TUESDAY, "08:00:01") == (
         {"heat_setpoint": 18.2, "time_of_day": "08:00:00"},
         0,
         {"heat_setpoint": 19.3, "time_of_day": "17:00:00"},
         0,
     )
 
-    assert _find_switchpoints(schedule, "Sunday", "23:59:59") == (  # type: ignore[arg-type]
+    assert _find_switchpoints(schedule, DayOfWeek.SUNDAY, "23:59:59") == (
         {"heat_setpoint": 14.8, "time_of_day": "21:30:00"},
         0,
         {"heat_setpoint": 23.2, "time_of_day": "06:30:00"},
