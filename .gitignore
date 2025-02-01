@@ -10,7 +10,7 @@ tokens*
 /*.json
 
 # temprary: a WIP
-_tests*/
+tests.*/
 custom_components
 
 # beware the *.log in github's default .gitignore
