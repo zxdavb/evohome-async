@@ -35,6 +35,7 @@ async def test_get_session_id(
 
     def server_response() -> dict[str, dict[str, Any] | str]:
         """Return the server response to a valid authorization request."""
+        # "payload may be invalid: required key not provided @ data['userInfo']['xxx']"
         return {"sessionId": str(uuid.uuid4()), "userInfo": {}}
 
     # start with an empty cache
@@ -179,7 +180,7 @@ async def test_session_manager(
     ):
         req.return_value = {
             "sessionId": "new_session_id...",
-            "userInfo": None,
+            "userInfo": None,  # "payload may be invalid: expected a dictionary..."
         }
 
         assert await session_manager.get_session_id() == "new_session_id..."
