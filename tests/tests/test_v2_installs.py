@@ -1,14 +1,13 @@
-"""Tests for evohome-async - validate the schemas of vendor's RESTful JSON."""
+"""Tests for evohome-async - validate the instantiation of entities."""
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import yaml
-from freezegun.api import FakeDatetime
 
-from .common import get_property_methods
+from .common import serializable_attrs
 from .conftest import FIXTURES_V2
 
 if TYPE_CHECKING:
@@ -17,15 +16,6 @@ if TYPE_CHECKING:
     from syrupy import SnapshotAssertion
 
     from tests.conftest import EvohomeClientv2
-
-
-def fake_datetime_representer(
-    dumper: yaml.Dumper, data: FakeDatetime
-) -> yaml.nodes.ScalarNode:
-    return dumper.represent_scalar("tag:yaml.org,2002:str", data.isoformat())
-
-
-yaml.add_representer(FakeDatetime, fake_datetime_representer)
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -46,18 +36,9 @@ async def test_system_snapshot(
 ) -> None:
     """Test the user account schema against the corresponding JSON."""
 
-    def serializable_attrs(obj: object) -> dict[str, Any]:
-        result = {}
-        for k in get_property_methods(obj):  # + list(vars(obj).keys()):
-            if not k.startswith("_") and k != "zone_by_name":
-                try:
-                    result[k] = yaml.dump(getattr(obj, k))
-                except TypeError:  # not all attrs are serializable
-                    continue
-
-        return result
-
     freezer.move_to("2025-01-01T00:00:00Z")
+
+    # architecture is: loc -> gwy -> tcs -> dhw|zon
 
     loc = evohome_v2.locations[0]
     assert serializable_attrs(loc) == snapshot(name="location")
