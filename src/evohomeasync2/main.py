@@ -134,13 +134,22 @@ class EvohomeClient:
                 self._token_manager._clear_access_token()
                 self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
 
-        assert self._user_info is not None  # mypy
+            assert self._user_info is not None  # mypy
 
         if self._user_locs is None:
-            url = f"location/installationInfo?userId={self._user_info[SZ_USER_ID]}&includeTemperatureControlSystems=True"
-            self._user_locs = await self.auth.get(url, schema=SCH_USER_LOCATIONS)  # type: ignore[assignment]
+            try:
+                user_id = self._user_info[SZ_USER_ID]
+            except (KeyError, TypeError) as err:
+                raise exc.BadApiResponseError(
+                    f"User info is invalid: {err!r}, user_info={self._user_info}"
+                ) from err
 
-        assert self._user_locs is not None  # mypy
+            self._user_locs = await self.auth.get(
+                f"location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True",
+                schema=SCH_USER_LOCATIONS,
+            )  # type: ignore[assignment]
+
+            assert self._user_locs is not None  # mypy
 
         if self._locations is None:
             self._locations = []
@@ -166,7 +175,7 @@ class EvohomeClient:
 
         if not self._user_info:
             raise exc.InvalidConfigError(
-                f"{self}: The account information is not (yet) available"
+                "The account information is not (yet) available"
             )
 
         return self._user_info
@@ -177,7 +186,7 @@ class EvohomeClient:
 
         if not self._user_locs:
             raise exc.InvalidConfigError(
-                f"{self}: The installation information is not (yet) available"
+                "The installation information is not (yet) available"
             )
 
         return self._locations  # type: ignore[return-value]
@@ -188,7 +197,7 @@ class EvohomeClient:
 
         if not self._user_locs:
             raise exc.InvalidConfigError(
-                f"{self}: The installation information is not (yet) available"
+                "The installation information is not (yet) available"
             )
 
         return self._location_by_id  # type: ignore[return-value]
@@ -203,17 +212,17 @@ class EvohomeClient:
 
         if not (locs := self.locations) or len(locs) != 1:
             raise exc.NoSingleTcsError(
-                f"{self}: There is not a single location (only) for this account"
+                "There is not a single location (only) for this account"
             )
 
         if not (gwys := locs[0].gateways) or len(gwys) != 1:
             raise exc.NoSingleTcsError(
-                f"{self}: There is not a single gateway (only) for this account/location"
+                "There is not a single gateway (only) for this account/location"
             )
 
         if not (tcss := gwys[0].systems) or len(tcss) != 1:
             raise exc.NoSingleTcsError(
-                f"{self}: There is not a single TCS (only) for this account/location/gateway"
+                "There is not a single TCS (only) for this account/location/gateway"
             )
 
         return tcss[0]

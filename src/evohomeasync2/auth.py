@@ -211,7 +211,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {err}, payload={response}"
+                f"Authenticator response is invalid: {err!r}, payload={response}"
             ) from err
 
         self._was_authenticated = True  # i.e. the credentials are valid
