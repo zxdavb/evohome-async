@@ -131,7 +131,7 @@ class EvohomeClient:
                 user_id = self._user_info["user_id"]
             except (KeyError, TypeError) as err:
                 raise exc.BadApiResponseError(
-                    f"User info is invalid: {err!r}, user_info={self._user_info}"
+                    f"No user_id in user_info dict. Received: {self._user_info}"
                 ) from err
 
             self._user_locs = await self.auth.get(
