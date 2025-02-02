@@ -123,7 +123,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
             if "EmailOrPasswordIncorrect" not in err.message:
                 raise
             self.logger.error(HINT_BAD_CREDS)  # noqa: TRY400
-            raise exc.BadUserCredentialsError(f"{err!r}", status=err.status) from err
+            raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
 
         self._was_authenticated = True
 
