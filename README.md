@@ -1,6 +1,8 @@
 ![ruff](https://github.com/zxdavb/evohome-async/actions/workflows/check-lint.yml/badge.svg)
 ![mypy](https://github.com/zxdavb/evohome-async/actions/workflows/check-type.yml/badge.svg)
 ![pytest](https://github.com/zxdavb/evohome-async/actions/workflows/check-test.yml/badge.svg)
+![PyPI](https://img.shields.io/pypi/v/evohome-async?label=pypi%20package)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/evohome-async)
 
 evohome-async
 ==============
