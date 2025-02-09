@@ -154,7 +154,7 @@ def zone_schedule_fixture(folder: Path, zon_type: str) -> JsonObjectType:
 
 
 def auth_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
-    """Return a mock of Broker.get()."""
+    """Return a mock of Auth.get() for both v0 and v2 API."""
 
     async def get(  # type: ignore[no-untyped-def]
         self,  # noqa: ANN001
