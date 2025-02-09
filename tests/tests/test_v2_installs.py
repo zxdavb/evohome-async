@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import yaml
 
@@ -58,3 +59,33 @@ async def test_system_snapshot(
 
     zones = {z.id: serializable_attrs(z) for z in tcs.zones}
     assert yaml.dump(zones, indent=4) == snapshot(name="zones")
+
+
+async def test_system_schedules(
+    evohome_v2: EvohomeClientv2,
+    freezer: FrozenDateTimeFactory,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Test the user account schema against the corresponding JSON."""
+
+    freezer.move_to("2025-01-01T00:00:00+00:00")
+
+    tcs = evohome_v2.locations[0].gateways[0].systems[0]
+
+    schedules = await tcs.get_schedules()
+
+    assert schedules == snapshot(name="schedules")  # needs freezer
+
+    with patch("evohome.auth.AbstractAuth.request"):
+        result = await tcs.set_schedules(schedules)
+    assert result is True
+
+    with patch("evohome.auth.AbstractAuth.request"):
+        result = await tcs.set_schedules(schedules, match_by_name=True)
+    assert result is True
+
+    data = [(z.this_switchpoint, z.next_switchpoint) for z in tcs.zones]
+    if dhw := tcs.hotwater:
+        data.append((dhw.this_switchpoint, dhw.next_switchpoint))
+
+    assert schedules == snapshot(name="switchpoints")  # needs freezer
