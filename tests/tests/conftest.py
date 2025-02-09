@@ -153,7 +153,7 @@ def zone_schedule_fixture(folder: Path, zon_type: str) -> JsonObjectType:
     )  # type: ignore[return-value]
 
 
-def broker_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
+def auth_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
     """Return a mock of Broker.get()."""
 
     async def get(  # type: ignore[no-untyped-def]
@@ -221,7 +221,7 @@ async def evohome_v0(
 ) -> AsyncGenerator[EvohomeClientv0]:
     """Yield an instance of a v2 EvohomeClient."""
 
-    with patch("evohomeasync.auth.Auth.get", broker_get(fixture_folder)):
+    with patch("evohomeasync.auth.Auth.get", auth_get(fixture_folder)):
         evo = EvohomeClientv0(credentials_manager)
 
         await evo.update()
@@ -239,7 +239,7 @@ async def evohome_v2(
 ) -> AsyncGenerator[EvohomeClientv2]:
     """Yield an instance of a v2 EvohomeClient."""
 
-    with patch("evohomeasync2.auth.Auth.get", broker_get(fixture_folder)):
+    with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
         evo = EvohomeClientv2(credentials_manager)
 
         await evo.update()
