@@ -143,7 +143,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
     def temperature(self) -> float | None:
         if not (status := self.temperature_status) or not status["is_available"]:
             return None
-        return status["temperature"]  # type: ignore[reportTypedDictNotRequiredAccess]
+        return status["temperature"]
 
     async def _set_dhw(
         self,
