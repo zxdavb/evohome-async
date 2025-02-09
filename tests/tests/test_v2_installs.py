@@ -36,7 +36,7 @@ async def test_system_snapshot(
 ) -> None:
     """Test the user account schema against the corresponding JSON."""
 
-    freezer.move_to("2025-01-01T00:00:00Z")
+    freezer.move_to("2025-01-01T00:00:00+00:00")
 
     # architecture is: loc -> gwy -> tcs -> dhw|zon
 

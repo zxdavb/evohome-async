@@ -39,7 +39,7 @@ async def test_system_warnings(
 ) -> None:
     """Test the user account schema against the corresponding JSON."""
 
-    freezer.move_to("2025-01-01T00:00:00Z")
+    freezer.move_to("2025-01-01T00:00:00+00:00")
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
         evo = EvohomeClientv2(credentials_manager)
