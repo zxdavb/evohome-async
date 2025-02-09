@@ -13,19 +13,21 @@
   ruff >= 0.9.5                                  # also: pre-commit-config.yaml
 
 # used for development (typing)
-  mypy >= 1.14.1
+  mypy >= 1.15.0
   types-aiofiles >= 24.1.0                       # used only by CLI
   types-PyYAML >= 6.0.12                         # used only by tests
   voluptuous >= 0.15.2
 
 # used for testing
   aioresponses >= 0.7.8
+
   pytest >= 8.3.4
-  pytest-asyncio >= 0.25.2
-# pytest-cov >= 6.0.0
+  pytest-asyncio >= 0.25.3
+  pytest-cov >= 6.0.0
   pytest-freezer >= 0.4.9
   pytest-sugar >= 1.0.0
   pytest-xdist >= 3.6.1
+
   syrupy >= 4.8.1
 
 # pytest_homeassistant_custom_component >= 0.13.162
