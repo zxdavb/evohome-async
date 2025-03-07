@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from aiozoneinfo import async_get_time_zone
 
 from evohome.helpers import camel_to_snake
 
@@ -53,17 +56,11 @@ class EvohomeClient:
         self._token_manager = token_manager
         self.auth = Auth(token_manager, websession or token_manager.websession)
 
-        # NOTE: below is an attempt to determine the local TZ of the host running this
-        # client, and is not necessarily the TZ of each location known to this client;
-        # locations each have their own TZ
-
-        try:
-            self._tzinfo: ZoneInfo | None = ZoneInfo("localtime")
-        except ZoneInfoNotFoundError:  # e.g. on Windows
-            self._tzinfo = None
-
         self._locations: list[Location] | None = None  # to preserve the order
         self._location_by_id: dict[str, Location] | None = None
+
+        self._tzinfo: ZoneInfo | None = None
+        self._init_tzinfo = asyncio.create_task(self._async_init_tzinfo())
 
     def __str__(self) -> str:
         """Return a string representation of this object."""
@@ -96,6 +93,9 @@ class EvohomeClient:
             self._location_by_id = None
 
         if self._user_locs is None:
+            if not self._init_tzinfo.done():
+                await self._init_tzinfo
+
             await self._get_config(dont_update_status=dont_update_status)
 
         if not dont_update_status:  # don't retrieve/update status of location hierarchy
@@ -106,6 +106,18 @@ class EvohomeClient:
 
         assert self._user_locs is not None  # mypy
         return self._user_locs
+
+    async def _async_init_tzinfo(self) -> None:
+        """Initialize timezone info without blocking the event loop."""
+
+        # NOTE: below is an attempt to determine the local TZ of the host running this
+        # client, and is not necessarily the TZ of each location known to this client;
+        # locations each have their own TZ
+
+        try:
+            self._tzinfo = await async_get_time_zone("localtime")
+        except ZoneInfoNotFoundError:  # e.g. on Windows
+            self._tzinfo = None
 
     async def _get_config(
         self, /, *, dont_update_status: bool = False
