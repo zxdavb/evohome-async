@@ -165,16 +165,18 @@ def obfuscate(value: bool | int | str) -> bool | int | str | None:
 
 
 _KEYS_TO_OBSCURE = (  # also keys with 'name' in them
-    "streetAddress",
     "city",
+    "crc",
+    "locationOwnerUserName",
+    "mac",
+    "macID"
     "postcode",
-    "zipcode",
-    "telephone",
     "securityQuestion1",
     "securityQuestion2",
     "securityQuestion3",
-    "mac",
-    "crc",
+    "streetAddress",
+    "telephone",
+    "zipcode",
 )
 
 
@@ -197,10 +199,13 @@ def obscure_secrets(data: _T) -> _T:
         return isinstance(key, str) and ("name" in key or key in _KEYS_TO_OBSCURE)
 
     def recurse(data_: Any) -> Any:
-        if isinstance(data_, list):
+        if isinstance(data_, list):  # or Sequence?
             return [recurse(i) for i in data_]
 
-        if not isinstance(data_, dict):
+        if isinstance(data_, tuple):
+            return tuple(recurse(i) for i in data_)
+
+        if not isinstance(data_, dict):  # Mapping?
             return data_
 
         return {
