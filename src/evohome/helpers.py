@@ -168,7 +168,7 @@ _KEYS_TO_OBSCURE = (  # also keys with 'name' in them
     "city",
     "crc",
     "mac",
-    "macID"
+    "macID",
     "postcode",
     "securityQuestion1",
     "securityQuestion2",
