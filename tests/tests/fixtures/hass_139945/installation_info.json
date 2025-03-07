@@ -1,0 +1,99 @@
+[
+    {
+        "locationInfo": {
+            "locationId": "2080024",
+            "name": "Thuis",
+            "streetAddress": "********* **",
+            "city": "******* *** ******",
+            "country": "Netherlands",
+            "postcode": "**** **",
+            "locationType": "Residential",
+            "useDaylightSaveSwitching": true,
+            "timeZone": {
+                "timeZoneId": "WEuropeStandardTime",
+                "displayName": "(UTC+01:00) Amsterdam, Berlijn, Bern, Rome, Stockholm, Wenen",
+                "offsetMinutes": 60,
+                "currentOffsetMinutes": 60,
+                "supportsDaylightSaving": true
+            },
+            "locationOwner": {
+                "userId": "1234567",
+                "username": "nobody@nowhere.com",
+                "firstname": "St****",
+                "lastname": "va***********"
+            }
+        },
+        "gateways": [
+            {
+                "gatewayInfo": {
+                    "gatewayId": "2080025",
+                    "mac": "00D02DCBDB60",
+                    "crc": "****",
+                    "isWiFi": false
+                },
+                "temperatureControlSystems": [
+                    {
+                        "systemId": "1383195",
+                        "modelType": "EvoTouch",
+                        "zones": [
+                            {
+                                "zoneId": "1383194",
+                                "modelType": "RoundWireless",
+                                "setpointCapabilities": {
+                                    "maxHeatSetpoint": 35.0,
+                                    "minHeatSetpoint": 5.0,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:10:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 6,
+                                    "minSwitchpointsPerDay": 0,
+                                    "timingResolution": "00:10:00",
+                                    "setpointValueResolution": 0.5
+                                },
+                                "name": "Woonkamer",
+                                "zoneType": "Thermostat"
+                            }
+                        ],
+                        "allowedSystemModes": [
+                            {
+                                "systemMode": "Auto",
+                                "canBePermanent": true,
+                                "canBeTemporary": false
+                            },
+                            {
+                                "systemMode": "AutoWithEco",
+                                "canBePermanent": true,
+                                "canBeTemporary": true,
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "01:00:00",
+                                "timingMode": "Duration"
+                            },
+                            {
+                                "systemMode": "Away",
+                                "canBePermanent": true,
+                                "canBeTemporary": true,
+                                "maxDuration": "99.00:00:00",
+                                "timingResolution": "1.00:00:00",
+                                "timingMode": "Period"
+                            },
+                            {
+                                "systemMode": "HeatingOff",
+                                "canBePermanent": true,
+                                "canBeTemporary": false
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

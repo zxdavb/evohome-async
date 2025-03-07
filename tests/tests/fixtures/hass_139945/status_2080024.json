@@ -1,0 +1,34 @@
+{
+    "locationId": "2080024",
+    "gateways": [
+        {
+            "gatewayId": "2080025",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "1383195",
+                    "zones": [
+                        {
+                            "zoneId": "1383194",
+                            "temperatureStatus": {
+                                "temperature": 20.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 5.0,
+                                "setpointMode": "PermanentOverride"
+                            },
+                            "name": "Woonkamer"
+                        }
+                    ],
+                    "activeFaults": [],
+                    "systemModeStatus": {
+                        "mode": "HeatingOff",
+                        "isPermanent": true
+                    }
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}

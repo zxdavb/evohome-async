@@ -1,0 +1,104 @@
+[
+    {
+        "locationID": 2080024,
+        "name": "Thuis",
+        "streetAddress": "********* **",
+        "city": "******* *** ******",
+        "state": "",
+        "country": "NL",
+        "zipcode": "**** **",
+        "type": "Residential",
+        "hasStation": true,
+        "devices": [
+            {
+                "gatewayId": 2080025,
+                "deviceID": 1383194,
+                "thermostatModelType": "EMEA_ROUND_WIRELESS",
+                "deviceType": 96,
+                "name": "Woonkamer",
+                "scheduleCapable": false,
+                "holdUntilCapable": false,
+                "thermostat": {
+                    "units": "Celsius",
+                    "indoorTemperature": 20.24,
+                    "outdoorTemperature": 128.0,
+                    "outdoorTemperatureAvailable": false,
+                    "outdoorHumidity": 128.0,
+                    "outdootHumidityAvailable": false,
+                    "indoorHumidity": 128.0,
+                    "indoorTemperatureStatus": "Measured",
+                    "indoorHumidityStatus": "NotAvailable",
+                    "outdoorTemperatureStatus": "NotAvailable",
+                    "outdoorHumidityStatus": "NotAvailable",
+                    "isCommercial": false,
+                    "allowedModes": ["Heat", "Off"],
+                    "deadband": 0.0,
+                    "minHeatSetpoint": 5.0,
+                    "maxHeatSetpoint": 35.0,
+                    "minCoolSetpoint": 50.0,
+                    "maxCoolSetpoint": 90.0,
+                    "changeableValues": {
+                        "mode": "Off",
+                        "heatSetpoint": {
+                            "value": 5.0,
+                            "status": "Hold"
+                        },
+                        "vacationHoldDays": 0
+                    },
+                    "scheduleCapable": false,
+                    "vacationHoldChangeable": false,
+                    "vacationHoldCancelable": false,
+                    "scheduleHeatSp": 0.0,
+                    "scheduleCoolSp": 0.0
+                },
+                "alertSettings": {
+                    "deviceID": 1383194,
+                    "tempHigherThanActive": true,
+                    "tempHigherThan": 30.0,
+                    "tempHigherThanMinutes": 0,
+                    "tempLowerThanActive": true,
+                    "tempLowerThan": 5.0,
+                    "tempLowerThanMinutes": 0,
+                    "faultConditionExistsActive": false,
+                    "faultConditionExistsHours": 0,
+                    "normalConditionsActive": true,
+                    "communicationLostActive": false,
+                    "communicationLostHours": 0,
+                    "communicationFailureActive": true,
+                    "communicationFailureMinutes": 15,
+                    "deviceLostActive": false,
+                    "deviceLostHours": 0
+                },
+                "isUpgrading": false,
+                "isAlive": true,
+                "thermostatVersion": "03.00.10.06",
+                "macID": "00D02DCBDB60",
+                "locationID": 2080024,
+                "domainID": 12345,
+                "instance": 0
+            }
+        ],
+        "oneTouchButtons": [],
+        "weather": {
+            "condition": "Sunny",
+            "temperature": 15.1,
+            "units": "Celsius",
+            "humidity": 55,
+            "phrase": "Sunny"
+        },
+        "daylightSavingTimeEnabled": true,
+        "timeZone": {
+            "id": "W. Europe Standard Time",
+            "displayName": "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna",
+            "offsetMinutes": 60,
+            "currentOffsetMinutes": 60,
+            "usingDaylightSavingTime": true
+        },
+        "oneTouchActionsSuspended": false,
+        "isLocationOwner": true,
+        "locationOwnerID": 1234567,
+        "locationOwnerName": "St*******",
+        "locationOwnerUserName": "nobody@nowhere.com",
+        "canSearchForContractors": true
+    }
+]
