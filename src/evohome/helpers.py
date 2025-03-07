@@ -167,7 +167,6 @@ def obfuscate(value: bool | int | str) -> bool | int | str | None:
 _KEYS_TO_OBSCURE = (  # also keys with 'name' in them
     "city",
     "crc",
-    "locationOwnerUserName",
     "mac",
     "macID"
     "postcode",
@@ -191,7 +190,7 @@ def obscure_secrets(data: _T) -> _T:
             return obfuscate(val)
         if REGEX_EMAIL_ADDRESS.match(val):
             return "nobody@nowhere.com"
-        if "name" in key:
+        if "name" in key.lower():
             return val[:2].ljust(len(val), "*")
         return "".join("*" if char != " " else " " for char in val)
 
