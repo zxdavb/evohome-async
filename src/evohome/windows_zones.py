@@ -1,4 +1,4 @@
-# see: https://stackoverflow.com/questions/17348807/how-to-translate-between-windows-and-iana-time-zones
+# see: https://github.com/unicode-org/cldr/blob/main/common/supplemental/windowsZones.xml
 
 # def extract_timezones(file_path: str) -> dict[str, str]:
 #     """Extract all timezones from the XML file where territory is equal to '001'."""
@@ -160,10 +160,13 @@ WINDOWS_TO_IANA_EMEA = {
     "Volgograd Standard Time": "Europe/Volgograd",
 }
 
-# TCC is seen in EMEA, ASIA and APAC but not in the Americas
+
 WINDOWS_TO_IANA_LOOKUP = {
     k.replace(" ", "").replace(".", ""): v
     for k, v in (
-        WINDOWS_TO_IANA_EMEA | WINDOWS_TO_IANA_ASIA | WINDOWS_TO_IANA_APAC
+        WINDOWS_TO_IANA_APAC
+        | WINDOWS_TO_IANA_ASIA
+        | WINDOWS_TO_IANA_EMEA
+        | WINDOWS_TO_IANA_NASA
     ).items()
 }
