@@ -195,6 +195,7 @@ def obscure_secrets(data: _T) -> _T:
         return "".join("*" if char != " " else " " for char in val)
 
     def should_obfuscate(key: Any) -> bool:
+        # we don't want to obfuscate 'displayName' (under 'timeZone)
         return isinstance(key, str) and ("name" in key or key in _KEYS_TO_OBSCURE)
 
     def recurse(data_: Any) -> Any:
