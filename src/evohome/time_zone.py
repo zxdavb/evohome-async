@@ -118,7 +118,7 @@ class EvoZoneInfo(tzinfo):
         Return 0 if DST not in effect. utcoffset() must include the DST offset.
         """
 
-        if dtm and self._dst:  # we don't know when DST starts/stops
+        if dtm and self._dst:  # we can't know when DST starts/stops
             raise NotImplementedError("DST transitions are not implemented")
 
         return self._dst
