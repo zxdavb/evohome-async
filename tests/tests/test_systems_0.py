@@ -12,12 +12,10 @@ from evohomeasync2.schemas import (
 )
 
 from .common import assert_schema
-from .const import TEST_DIR
+from .conftest import FIXTURES_V2
 
 if TYPE_CHECKING:
     import pytest
-
-WORK_DIR = f"{TEST_DIR}/fixtures"
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -25,7 +23,9 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
         return folder_path.name
 
     folders = [
-        p for p in Path(WORK_DIR).glob("*") if p.is_dir() and not p.name.startswith("_")
+        p
+        for p in Path(FIXTURES_V2).glob("*")
+        if p.is_dir() and not p.name.startswith("_")
     ]
     metafunc.parametrize("folder", sorted(folders), ids=id_fnc)
 

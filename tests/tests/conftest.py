@@ -28,8 +28,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Generator
 
     import voluptuous as vol
-
-    from tests.conftest import CredentialsManager
+    from cli.auth import CredentialsManager
 
 
 type JsonValueType = (
@@ -102,7 +101,7 @@ def status(folder: Path) -> dict[str, Any]:
 
 
 FIXTURES_V0 = Path(__file__).parent / "fixtures_v0"
-FIXTURES_V2 = Path(__file__).parent / "fixtures"
+FIXTURES_V2 = Path(__file__).parent / "fixtures_v2"
 
 
 # wrapper for FIXTURES_DIR to enable default fixtures
