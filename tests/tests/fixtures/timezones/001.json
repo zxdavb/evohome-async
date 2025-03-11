@@ -1,0 +1,10 @@
+{
+    "useDaylightSaveSwitching": true,
+    "timeZone": {
+        "timeZoneId": "GMTStandardTime",
+        "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+        "offsetMinutes": 0,
+        "currentOffsetMinutes": 60,
+        "supportsDaylightSaving": true
+    }
+}

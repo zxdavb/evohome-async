@@ -1,0 +1,10 @@
+{
+    "use_daylight_save_switching": true,
+    "time_zone": {
+        "time_zone_id": "PacificSAStandardTime",
+        "display_name": "(UTC-04:00) Santiago",
+        "offset_minutes": -240,
+        "current_offset_minutes": -180,
+        "supports_daylight_saving": true
+    }
+}

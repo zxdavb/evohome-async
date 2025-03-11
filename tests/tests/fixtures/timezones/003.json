@@ -1,0 +1,10 @@
+{
+    "useDaylightSaveSwitching": true,
+    "timeZone": {
+        "timeZoneId": "WEuropeStandardTime",
+        "displayName": "(UTC+01:00) Amsterdam, Berlijn, Bern, Rome, Stockholm, Wenen",
+        "offsetMinutes": 60,
+        "currentOffsetMinutes": 60,
+        "supportsDaylightSaving": true
+    }
+}

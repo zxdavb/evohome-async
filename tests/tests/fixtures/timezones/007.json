@@ -1,0 +1,10 @@
+{
+    "useDaylightSaveSwitching": true,
+    "timeZone": {
+        "timeZoneId": "RomanceStandardTime",
+        "displayName": "(UTC+01:00) Brussels, Copenhagen, Madrid, Paris",
+        "offsetMinutes": 60,
+        "currentOffsetMinutes": 60,
+        "supportsDaylightSaving": true
+    }
+}

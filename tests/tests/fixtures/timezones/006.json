@@ -1,0 +1,10 @@
+{
+    "useDaylightSaveSwitching": true,
+    "timeZone": {
+        "timeZoneId": "CentralEuropeStandardTime",
+        "displayName": "(UTC+01:00) Praha, Bratislava, Budapešť, Bělehrad, Lublaň",
+        "offsetMinutes": 60,
+        "currentOffsetMinutes": 120,
+        "supportsDaylightSaving": true
+    }
+}

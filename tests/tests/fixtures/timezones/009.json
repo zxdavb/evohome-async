@@ -1,0 +1,10 @@
+{
+    "time_zone": {
+        "time_zone_id": "ArgentinaStandardTime",
+        "display_name": "(UTC-03:00) City of Buenos Aires",
+        "offset_minutes": -180,
+        "current_offset_minutes": -180,
+        "supports_daylight_saving": true
+    },
+    "use_daylight_save_switching": true
+}
