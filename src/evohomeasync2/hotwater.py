@@ -153,7 +153,7 @@ class HotWater(_ZoneBase):
 
         if mode[S2_MODE] not in self.allowed_modes:
             raise exc.BadApiRequestError(
-                f"{self}: nsupported/unknown {S2_MODE}: {mode}"
+                f"{self}: Unsupported/unknown {S2_MODE}: {mode}"
             )
 
         if mode[S2_STATE] not in self.allowed_states:
