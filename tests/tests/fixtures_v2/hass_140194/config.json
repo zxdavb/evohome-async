@@ -1,0 +1,287 @@
+[
+    {
+        "location_info": {
+            "location_id": "3886561",
+            "time_zone": {
+                "time_zone_id": "PacificSAStandardTime",
+                "display_name": "(UTC-04:00) Santiago",
+                "offset_minutes": -240,
+                "current_offset_minutes": -180,
+                "supports_daylight_saving": true
+            },
+            "use_daylight_save_switching": true
+        },
+        "gateways": [
+            {
+                "gateway_info": {
+                    "gateway_id": "3954744",
+                    "temperature_control_systems": [
+                        {
+                            "system_id": "5522075",
+                            "model_type": "EvoTouch",
+                            "allowed_system_modes": [
+                                {
+                                    "system_mode": "Auto",
+                                    "can_be_permanent": true,
+                                    "can_be_temporary": false
+                                },
+                                {
+                                    "system_mode": "AutoWithEco",
+                                    "can_be_permanent": true,
+                                    "can_be_temporary": true,
+                                    "max_duration": "1.00:00:00",
+                                    "timing_resolution": "01:00:00",
+                                    "timing_mode": "Duration"
+                                },
+                                {
+                                    "system_mode": "AutoWithReset",
+                                    "can_be_permanent": true,
+                                    "can_be_temporary": false
+                                },
+                                {
+                                    "system_mode": "Away",
+                                    "can_be_permanent": true,
+                                    "can_be_temporary": true,
+                                    "max_duration": "99.00:00:00",
+                                    "timing_resolution": "1.00:00:00",
+                                    "timing_mode": "Period"
+                                },
+                                {
+                                    "system_mode": "DayOff",
+                                    "can_be_permanent": true,
+                                    "can_be_temporary": true,
+                                    "max_duration": "99.00:00:00",
+                                    "timing_resolution": "1.00:00:00",
+                                    "timing_mode": "Period"
+                                },
+                                {
+                                    "system_mode": "HeatingOff",
+                                    "can_be_permanent": true,
+                                    "can_be_temporary": false
+                                },
+                                {
+                                    "system_mode": "Custom",
+                                    "can_be_permanent": true,
+                                    "can_be_temporary": true,
+                                    "max_duration": "99.00:00:00",
+                                    "timing_resolution": "1.00:00:00",
+                                    "timing_mode": "Period"
+                                }
+                            ],
+                            "zones": [
+                                {
+                                    "zone_id": "5522074",
+                                    "model_type": "HeatingZone",
+                                    "setpoint_capabilities": {
+                                        "max_heat_setpoint": 35.0,
+                                        "min_heat_setpoint": 5.0,
+                                        "value_resolution": 0.5,
+                                        "can_control_heat": true,
+                                        "can_control_cool": false,
+                                        "allowed_setpoint_modes": [
+                                            "PermanentOverride",
+                                            "FollowSchedule",
+                                            "TemporaryOverride"
+                                        ],
+                                        "max_duration": "1.00:00:00",
+                                        "timing_resolution": "00:10:00"
+                                    },
+                                    "schedule_capabilities": {
+                                        "max_switchpoints_per_day": 6,
+                                        "min_switchpoints_per_day": 1,
+                                        "timing_resolution": "00:10:00",
+                                        "setpoint_value_resolution": 0.5
+                                    },
+                                    "name": "Comedor",
+                                    "zone_type": "UnderfloorHeating"
+                                },
+                                {
+                                    "zone_id": "5522705",
+                                    "model_type": "HeatingZone",
+                                    "setpoint_capabilities": {
+                                        "max_heat_setpoint": 35.0,
+                                        "min_heat_setpoint": 5.0,
+                                        "value_resolution": 0.5,
+                                        "can_control_heat": true,
+                                        "can_control_cool": false,
+                                        "allowed_setpoint_modes": [
+                                            "PermanentOverride",
+                                            "FollowSchedule",
+                                            "TemporaryOverride"
+                                        ],
+                                        "max_duration": "1.00:00:00",
+                                        "timing_resolution": "00:10:00"
+                                    },
+                                    "schedule_capabilities": {
+                                        "max_switchpoints_per_day": 6,
+                                        "min_switchpoints_per_day": 1,
+                                        "timing_resolution": "00:10:00",
+                                        "setpoint_value_resolution": 0.5
+                                    },
+                                    "name": "Living",
+                                    "zone_type": "UnderfloorHeating"
+                                },
+                                {
+                                    "zone_id": "5522706",
+                                    "model_type": "HeatingZone",
+                                    "setpoint_capabilities": {
+                                        "max_heat_setpoint": 35.0,
+                                        "min_heat_setpoint": 5.0,
+                                        "value_resolution": 0.5,
+                                        "can_control_heat": true,
+                                        "can_control_cool": false,
+                                        "allowed_setpoint_modes": [
+                                            "PermanentOverride",
+                                            "FollowSchedule",
+                                            "TemporaryOverride"
+                                        ],
+                                        "max_duration": "1.00:00:00",
+                                        "timing_resolution": "00:10:00"
+                                    },
+                                    "schedule_capabilities": {
+                                        "max_switchpoints_per_day": 6,
+                                        "min_switchpoints_per_day": 1,
+                                        "timing_resolution": "00:10:00",
+                                        "setpoint_value_resolution": 0.5
+                                    },
+                                    "name": "Escritorio",
+                                    "zone_type": "UnderfloorHeating"
+                                },
+                                {
+                                    "zone_id": "5522707",
+                                    "model_type": "HeatingZone",
+                                    "setpoint_capabilities": {
+                                        "max_heat_setpoint": 35.0,
+                                        "min_heat_setpoint": 5.0,
+                                        "value_resolution": 0.5,
+                                        "can_control_heat": true,
+                                        "can_control_cool": false,
+                                        "allowed_setpoint_modes": [
+                                            "PermanentOverride",
+                                            "FollowSchedule",
+                                            "TemporaryOverride"
+                                        ],
+                                        "max_duration": "1.00:00:00",
+                                        "timing_resolution": "00:10:00"
+                                    },
+                                    "schedule_capabilities": {
+                                        "max_switchpoints_per_day": 6,
+                                        "min_switchpoints_per_day": 1,
+                                        "timing_resolution": "00:10:00",
+                                        "setpoint_value_resolution": 0.5
+                                    },
+                                    "name": "Dorm. Atras",
+                                    "zone_type": "UnderfloorHeating"
+                                },
+                                {
+                                    "zone_id": "5522708",
+                                    "model_type": "HeatingZone",
+                                    "setpoint_capabilities": {
+                                        "max_heat_setpoint": 35.0,
+                                        "min_heat_setpoint": 5.0,
+                                        "value_resolution": 0.5,
+                                        "can_control_heat": true,
+                                        "can_control_cool": false,
+                                        "allowed_setpoint_modes": [
+                                            "PermanentOverride",
+                                            "FollowSchedule",
+                                            "TemporaryOverride"
+                                        ],
+                                        "max_duration": "1.00:00:00",
+                                        "timing_resolution": "00:10:00"
+                                    },
+                                    "schedule_capabilities": {
+                                        "max_switchpoints_per_day": 6,
+                                        "min_switchpoints_per_day": 1,
+                                        "timing_resolution": "00:10:00",
+                                        "setpoint_value_resolution": 0.5
+                                    },
+                                    "name": "Dorm. Frente",
+                                    "zone_type": "UnderfloorHeating"
+                                },
+                                {
+                                    "zone_id": "5522709",
+                                    "model_type": "HeatingZone",
+                                    "setpoint_capabilities": {
+                                        "max_heat_setpoint": 35.0,
+                                        "min_heat_setpoint": 5.0,
+                                        "value_resolution": 0.5,
+                                        "can_control_heat": true,
+                                        "can_control_cool": false,
+                                        "allowed_setpoint_modes": [
+                                            "PermanentOverride",
+                                            "FollowSchedule",
+                                            "TemporaryOverride"
+                                        ],
+                                        "max_duration": "1.00:00:00",
+                                        "timing_resolution": "00:10:00"
+                                    },
+                                    "schedule_capabilities": {
+                                        "max_switchpoints_per_day": 6,
+                                        "min_switchpoints_per_day": 1,
+                                        "timing_resolution": "00:10:00",
+                                        "setpoint_value_resolution": 0.5
+                                    },
+                                    "name": "Hall PA",
+                                    "zone_type": "UnderfloorHeating"
+                                },
+                                {
+                                    "zone_id": "5522710",
+                                    "model_type": "HeatingZone",
+                                    "setpoint_capabilities": {
+                                        "max_heat_setpoint": 35.0,
+                                        "min_heat_setpoint": 5.0,
+                                        "value_resolution": 0.5,
+                                        "can_control_heat": true,
+                                        "can_control_cool": false,
+                                        "allowed_setpoint_modes": [
+                                            "PermanentOverride",
+                                            "FollowSchedule",
+                                            "TemporaryOverride"
+                                        ],
+                                        "max_duration": "1.00:00:00",
+                                        "timing_resolution": "00:10:00"
+                                    },
+                                    "schedule_capabilities": {
+                                        "max_switchpoints_per_day": 6,
+                                        "min_switchpoints_per_day": 1,
+                                        "timing_resolution": "00:10:00",
+                                        "setpoint_value_resolution": 0.5
+                                    },
+                                    "name": "Dorm. Princ.",
+                                    "zone_type": "UnderfloorHeating"
+                                },
+                                {
+                                    "zone_id": "5522711",
+                                    "model_type": "HeatingZone",
+                                    "setpoint_capabilities": {
+                                        "max_heat_setpoint": 35.0,
+                                        "min_heat_setpoint": 5.0,
+                                        "value_resolution": 0.5,
+                                        "can_control_heat": true,
+                                        "can_control_cool": false,
+                                        "allowed_setpoint_modes": [
+                                            "PermanentOverride",
+                                            "FollowSchedule",
+                                            "TemporaryOverride"
+                                        ],
+                                        "max_duration": "1.00:00:00",
+                                        "timing_resolution": "00:10:00"
+                                    },
+                                    "schedule_capabilities": {
+                                        "max_switchpoints_per_day": 6,
+                                        "min_switchpoints_per_day": 1,
+                                        "timing_resolution": "00:10:00",
+                                        "setpoint_value_resolution": 0.5
+                                    },
+                                    "name": "Ba o Princ.",
+                                    "zone_type": "UnderfloorHeating"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+]

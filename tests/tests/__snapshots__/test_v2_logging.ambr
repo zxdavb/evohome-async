@@ -55,6 +55,20 @@
     ),
   ])
 # ---
+# name: test_system_warnings[hass_140194]
+  list([
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 TempZoneActuatorCommunicationLost",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 TempZoneSensorCommunicationLost",
+    ),
+  ])
+# ---
 # name: test_system_warnings[system_002]
   list([
     tuple(
