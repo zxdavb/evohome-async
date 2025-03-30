@@ -50,8 +50,9 @@ async def test_ctl_mode_reset(  # TODO: test systems without AutoWithReset
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
 
 
-CTL_APIS_SANS_UNTIL = {  # system mode APIs that can take an until kwarg
+CTL_APIS_SANS_UNTIL = {  # system mode APIs that can not take an until kwarg
     "set_auto": "Auto",  # SystemMode.AUTO,
+    "set_heatingoff": "HeatingOff",  # SystemMode.HEATING_OFF,
 }
 
 
@@ -75,13 +76,18 @@ async def test_ctl_modes_sans_until(
 
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
 
+    with (
+        patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
+        pytest.raises(TypeError),  # got an unexpected keyword argument 'until'
+    ):
+        await getattr(tcs, api_name)(until=dt.now(tz=UTC) + td(days=3))
+
 
 CTL_APIS_WITH_UNTIL = {  # system mode APIs that can take an until kwarg
     "set_away": "Away",  # SystemMode.AWAY,
     "set_custom": "Custom",  # SystemMode.CUSTOM,
     "set_dayoff": "DayOff",  # SystemMode.DAY_OFF,
     "set_eco": "AutoWithEco",  # SystemMode.AUTO_WITH_ECO,
-    "set_heatingoff": "HeatingOff",  # SystemMode.HEATING_OFF,
 }
 
 

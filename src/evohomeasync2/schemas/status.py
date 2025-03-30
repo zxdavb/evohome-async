@@ -122,6 +122,7 @@ class TccDhwStatusResponseT(TypedDict):
 class TccDhwStateStatusResponseT(TypedDict):
     mode: ZoneMode
     state: DhwState
+    until: NotRequired[str]
 
 
 def factory_active_faults(fnc: Callable[[str], str] = noop) -> vol.Schema:

@@ -8,7 +8,7 @@ import json
 from datetime import UTC, datetime as dt, timedelta as td
 from functools import cached_property
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
 
 from evohome.helpers import as_local_time, camel_to_snake
 
@@ -79,6 +79,14 @@ if TYPE_CHECKING:
 
     _ScheduleT = list[DayOfWeekT]
     _SwitchPoint = tuple[dt, float | str]
+
+
+class TccSetZonModeT(TypedDict):
+    """PUT /temperatureZone/{zon_id}/heatSetpoint"""
+
+    setpointMode: ZoneMode
+    heatSetpointValue: NotRequired[float]  # not required for FollowSchedule
+    timeUntil: NotRequired[str]  # only required for TemporaryOverride
 
 
 _ONE_DAY = td(days=1)
@@ -609,26 +617,33 @@ class Zone(_ZoneBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, mode: dict[str, str | float]) -> None:
-        """Set the zone mode (heat_setpoint, cooling is TBD)."""
+    async def _set_mode(self, mode: TccSetZonModeT) -> None:
+        """Set the zone mode (heating only, a cooling is not exposed by the API)."""
 
+        # Do some basic sanity checks...
         if mode[S2_SETPOINT_MODE] not in self.allowed_modes:
-            raise exc.BadApiRequestError(
+            self._logger.warning(
                 f"{self}: Unsupported/unknown {S2_SETPOINT_MODE}: {mode}"
             )
 
-        temp: float | None = mode.get(S2_HEAT_SETPOINT_VALUE)  # type: ignore[assignment]
-        if temp is not None and self.min_heat_setpoint > temp > self.max_heat_setpoint:
-            raise exc.BadApiRequestError(
+        if (temp := mode.get(S2_HEAT_SETPOINT_VALUE)) is None:
+            if mode[S2_SETPOINT_MODE] != ZoneMode.FOLLOW_SCHEDULE:
+                self._logger.warning(
+                    f"{self}: Missing {S2_HEAT_SETPOINT_VALUE}: {mode}"
+                )
+
+        elif self.min_heat_setpoint > temp > self.max_heat_setpoint:
+            self._logger.warning(
                 f"{self}: Unsupported/invalid {S2_HEAT_SETPOINT_VALUE}: {mode}"
             )
 
-        await self._auth.put(f"{self._TYPE}/{self.id}/heatSetpoint", json=mode)
+        # Call the API...
+        await self._auth.put(f"{self._TYPE}/{self.id}/heatSetpoint", json=dict(mode))
 
     async def reset(self) -> None:
         """Cancel any override and allow the zone to follow its schedule"""
 
-        mode: dict[str, str | float] = {
+        mode: TccSetZonModeT = {
             S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
             # S2_HEAT_SETPOINT_VALUE: 0.0,
             # S2_TIME_UNTIL: None,
@@ -642,7 +657,7 @@ class Zone(_ZoneBase):
     ) -> None:
         """Set the temperature of the given zone (no provision for cooling)."""
 
-        mode: dict[str, str | float]
+        mode: TccSetZonModeT
 
         if until is None:  # NOTE: beware that these may be case-sensitive
             mode = {

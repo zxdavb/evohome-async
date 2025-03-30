@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 from functools import cached_property
-from typing import TYPE_CHECKING, Final, NoReturn
+from typing import TYPE_CHECKING, Final, NoReturn, NotRequired, TypedDict
 
 from evohome.helpers import as_local_time, camel_to_snake
 
@@ -56,6 +56,14 @@ if TYPE_CHECKING:
         EvoTcsConfigResponseT,
         EvoTcsStatusResponseT,
     )
+
+
+class TccSetTcsModeT(TypedDict):
+    """PUT /temperatureControlSystem/{tcs_id}/mode"""
+
+    systemMode: SystemMode
+    permanent: bool
+    timeUntil: NotRequired[str]
 
 
 class ControlSystem(ActiveFaultsBase, EntityBase):
@@ -206,10 +214,19 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, mode: dict[str, str | bool]) -> None:
-        """Set the TCS mode."""  # e.g. {'mode': 'Auto', 'isPermanent': True}
+    async def _set_mode(self, mode: TccSetTcsModeT) -> None:
+        """Set the TCS mode."""
 
-        await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=mode)
+        # Do some basic sanity checks...
+        if mode[S2_SYSTEM_MODE] not in [
+            m[SZ_SYSTEM_MODE] for m in self.allowed_system_modes
+        ]:
+            self._logger.warning(
+                f"{self}: Unsupported/unknown {S2_SYSTEM_MODE}: {mode}"
+            )
+
+        # Call the API...
+        await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=dict(mode))
 
     async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time."""
@@ -232,7 +249,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     # most, but not all, TCC-compatible systems support these modes...
 
     async def reset(self) -> None:
-        """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
+        """Set the TCS to auto mode (and set DHW/all zones to FollowSchedule mode)."""
 
         if SystemMode.AUTO_WITH_RESET in self.modes:
             await self.set_mode(SystemMode.AUTO_WITH_RESET)
@@ -246,7 +263,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             await self.hotwater.reset()
 
     async def set_auto(self) -> None:
-        """Set the TCS to normal mode."""
+        """Set the TCS to auto mode."""
         await self.set_mode(SystemMode.AUTO)
 
     async def set_away(self, /, *, until: dt | None = None) -> None:
@@ -265,9 +282,9 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         """Set the TCS to economy mode."""
         await self.set_mode(SystemMode.AUTO_WITH_ECO, until=until)
 
-    async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
+    async def set_heatingoff(self) -> None:
         """Set the TCS to heating off mode."""
-        await self.set_mode(SystemMode.HEATING_OFF, until=until)
+        await self.set_mode(SystemMode.HEATING_OFF)
 
     # these are convenience methods
 

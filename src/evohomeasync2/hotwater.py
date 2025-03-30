@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, NotRequired, TypedDict
 
 from evohome.helpers import as_local_time, camel_to_snake
 
@@ -46,6 +46,14 @@ if TYPE_CHECKING:
         EvoDhwStateStatusResponseT,
         EvoDhwStatusResponseT,
     )
+
+
+class TccSetDhwModeT(TypedDict):  # TODO: timeUntil?
+    """PUT /domesticHotWater/{dhw_id}/state"""
+
+    mode: ZoneMode
+    state: NotRequired[DhwState | None]  # not required for FollowSchedule
+    untilTime: NotRequired[str | None]  # only required for TemporaryOverride
 
 
 class HotWater(_ZoneBase):
@@ -148,71 +156,61 @@ class HotWater(_ZoneBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_state(self, mode: dict[str, str | None]) -> None:
+    async def _set_mode(self, mode: TccSetDhwModeT) -> None:
         """Set the DHW mode (state)."""
 
+        # Do some basic sanity checks...
         if mode[S2_MODE] not in self.allowed_modes:
-            raise exc.BadApiRequestError(
-                f"{self}: Unsupported/unknown {S2_MODE}: {mode}"
-            )
+            self._logger.warning(f"{self}: Unsupported/unknown {S2_MODE}: {mode}")
 
-        if mode[S2_STATE] not in self.allowed_states:
-            raise exc.BadApiRequestError(
-                f"{self}: Unsupported/unknown {S2_STATE}: {mode}"
-            )
+        if not (state := mode.get(S2_STATE)):
+            if mode[S2_MODE] != ZoneMode.FOLLOW_SCHEDULE:
+                self._logger.warning(f"{self}: Missing/invalid {S2_STATE}: {mode}")
 
-        await self._auth.put(f"{self._TYPE}/{self.id}/state", json=mode)
+        elif state not in self.allowed_states:
+            self._logger.warning(f"{self}: Unsupported/unknown {S2_STATE}: {mode}")
+
+        # Call the API...
+        await self._auth.put(f"{self._TYPE}/{self.id}/state", json=dict(mode))
+
+    async def set_mode(self, state: DhwState, /, *, until: dt | None = None) -> None:
+        """Set the DHW mode (state)."""
+
+        mode: TccSetDhwModeT
+
+        if until is None:
+            mode = {
+                S2_MODE: ZoneMode.PERMANENT_OVERRIDE,
+                S2_STATE: state,
+                S2_UNTIL_TIME: None,
+            }
+        else:
+            mode = {
+                S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
+                S2_STATE: state,
+                S2_UNTIL_TIME: until.strftime(API_STRFTIME),  # TODO: S2_TIME_UNTIL?
+            }
+
+        await self._set_mode(mode)
 
     async def reset(self) -> None:
         """Cancel any override and allow the DHW to follow its schedule."""
 
-        mode: dict[str, str | None] = {
+        mode: TccSetDhwModeT = {
             S2_MODE: ZoneMode.FOLLOW_SCHEDULE,
             S2_STATE: None,  # NOTE: was "state": ""
             S2_UNTIL_TIME: None,
         }
 
-        await self._set_state(mode)
+        await self._set_mode(mode)
 
     async def off(self, /, *, until: dt | None = None) -> None:
         """Set the DHW off until a given time, or permanently."""
-
-        mode: dict[str, str | None]
-
-        if until is None:
-            mode = {
-                S2_MODE: ZoneMode.PERMANENT_OVERRIDE,
-                S2_STATE: DhwState.OFF,
-                S2_UNTIL_TIME: None,
-            }
-        else:
-            mode = {
-                S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-                S2_STATE: DhwState.OFF,
-                S2_UNTIL_TIME: until.strftime(API_STRFTIME),
-            }
-
-        await self._set_state(mode)
+        await self.set_mode(DhwState.OFF, until=until)
 
     async def on(self, /, *, until: dt | None = None) -> None:
         """Set the DHW on until a given time, or permanently."""
-
-        mode: dict[str, str | None]
-
-        if until is None:
-            mode = {
-                S2_MODE: ZoneMode.PERMANENT_OVERRIDE,
-                S2_STATE: DhwState.ON,
-                S2_UNTIL_TIME: None,
-            }
-        else:
-            mode = {
-                S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-                S2_STATE: DhwState.ON,
-                S2_UNTIL_TIME: until.strftime(API_STRFTIME),
-            }
-
-        await self._set_state(mode)
+        await self.set_mode(DhwState.ON, until=until)
 
     # NOTE: this wrapper exists only for typing purposes
     async def get_schedule(self) -> list[DayOfWeekDhwT]:  # type: ignore[override]
