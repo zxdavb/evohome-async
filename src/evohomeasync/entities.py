@@ -453,15 +453,15 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
                 self.gateways.append(gwy)
                 self.gateway_by_id[gwy.id] = gwy
 
-            if dev_config["thermostat_model_type"] == "DOMESTIC_HOT_WATER":
+            if (type_ := dev_config["thermostat_model_type"]) == "DOMESTIC_HOT_WATER":
                 self.hotwater = HotWater(dev_config["device_id"], dev_config, self)
 
-            elif dev_config["thermostat_model_type"].startswith("EMEA_"):
+            elif isinstance(type_, str) and type_.startswith("EMEA_"):
                 self._add_zone(Zone(dev_config["device_id"], dev_config, self))
 
             else:  # assume everything else is a zone
                 self._logger.warning(
-                    f"{self}: Unknown device type, assuming is a zone: {dev_config}"
+                    f"{self}: Unknown device type, assuming is a zone: {type_}"
                 )
                 self._add_zone(Zone(dev_config["device_id"], dev_config, self))
 
