@@ -620,7 +620,7 @@ class Zone(_ZoneBase):
     async def _set_mode(self, mode: TccSetZonModeT) -> None:
         """Set the zone mode (heating only, a cooling is not exposed by the API)."""
 
-        # Do some basic sanity checks...
+        # Issue a warning if we fail some basic sanity checks...
         if mode[S2_SETPOINT_MODE] not in self.allowed_modes:
             self._logger.warning(
                 f"{self}: Unsupported/unknown {S2_SETPOINT_MODE}: {mode}"

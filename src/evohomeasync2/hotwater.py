@@ -159,7 +159,7 @@ class HotWater(_ZoneBase):
     async def _set_mode(self, mode: TccSetDhwModeT) -> None:
         """Set the DHW mode (state)."""
 
-        # Do some basic sanity checks...
+        # Issue a warning if we fail some basic sanity checks...
         if mode[S2_MODE] not in self.allowed_modes:
             self._logger.warning(f"{self}: Unsupported/unknown {S2_MODE}: {mode}")
 

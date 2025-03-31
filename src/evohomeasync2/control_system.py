@@ -217,7 +217,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     async def _set_mode(self, mode: TccSetTcsModeT) -> None:
         """Set the TCS mode."""
 
-        # Do some basic sanity checks...
+        # Issue a warning if we fail some basic sanity checks...
         if mode[S2_SYSTEM_MODE] not in [
             m[SZ_SYSTEM_MODE] for m in self.allowed_system_modes
         ]:
