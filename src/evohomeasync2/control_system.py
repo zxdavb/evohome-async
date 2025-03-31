@@ -133,15 +133,20 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     @cached_property
     def allowed_system_modes(self) -> tuple[EvoAllowedSystemModesResponseT, ...]:
         """
-        "allowedSystemModes": [
-            {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
-            {"systemMode": "Auto",          "canBePermanent": true, "canBeTemporary": false},
-            {"systemMode": "AutoWithReset", "canBePermanent": true, "canBeTemporary": false},
-            {"systemMode": "AutoWithEco",   "canBePermanent": true, "canBeTemporary": true, "maxDuration":  "1.00:00:00", "timingResolution":   "01:00:00", "timingMode": "Duration"},
-            {"systemMode": "Away",          "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
-            {"systemMode": "DayOff",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
-            {"systemMode": "Custom",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"}
+        "allowed_system_modes": [
+            {"system_mode": "HeatingOff",    "can_be_permanent": true, "can_be_temporary": false},
+            {"system_mode": "Auto",          "can_be_permanent": true, "can_be_temporary": false},
+            {"system_mode": "AutoWithReset", "can_be_permanent": true, "can_be_temporary": false},
+            {"system_mode": "AutoWithEco",   "can_be_permanent": true, "can_be_temporary": true, "maxDuration":  "1.00:00:00", "timingResolution":   "01:00:00", "timingMode": "Duration"},
+            {"system_mode": "Away",          "can_be_permanent": true, "can_be_temporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"system_mode": "DayOff",        "can_be_permanent": true, "can_be_temporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"system_mode": "Custom",        "can_be_permanent": true, "can_be_temporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"}
         ]
+
+        "allowed_system_modes": [
+            {"system_mode": "Off",           "can_be_permanent": true, "can_be_temporary": false},
+            {"system_mode": "Heat",          "can_be_permanent": true, "can_be_temporary": false}
+        ],
         """
 
         return tuple(self._config[SZ_ALLOWED_SYSTEM_MODES])
@@ -218,9 +223,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         """Set the TCS mode."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if mode[S2_SYSTEM_MODE] not in [
-            m[SZ_SYSTEM_MODE] for m in self.allowed_system_modes
-        ]:
+        if mode[S2_SYSTEM_MODE] not in self.modes:
             self._logger.warning(
                 f"{self}: Unsupported/unknown {S2_SYSTEM_MODE}: {mode}"
             )
@@ -263,7 +266,13 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             await self.hotwater.reset()
 
     async def set_auto(self) -> None:
-        """Set the TCS to auto mode."""
+        """Set the TCS to auto/heat mode."""
+
+        # some systems have "Heat" mode instead of "Auto"...
+        if SystemMode.HEAT in self.modes:
+            await self.set_mode(SystemMode.HEAT)
+            return
+
         await self.set_mode(SystemMode.AUTO)
 
     async def set_away(self, /, *, until: dt | None = None) -> None:
@@ -275,7 +284,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         await self.set_mode(SystemMode.CUSTOM, until=until)
 
     async def set_dayoff(self, /, *, until: dt | None = None) -> None:
-        """Set the TCS to dayoff mode."""
+        """Set the TCS to day_off mode."""
         await self.set_mode(SystemMode.DAY_OFF, until=until)
 
     async def set_eco(self, /, *, until: dt | None = None) -> None:
@@ -283,7 +292,13 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         await self.set_mode(SystemMode.AUTO_WITH_ECO, until=until)
 
     async def set_heatingoff(self) -> None:
-        """Set the TCS to heating off mode."""
+        """Set the TCS to heating_off/off mode."""
+
+        # some systems have "Off" mode instead of "HeatingOff"...
+        if SystemMode.OFF in self.modes:
+            await self.set_mode(SystemMode.OFF)
+            return
+
         await self.set_mode(SystemMode.HEATING_OFF)
 
     # these are convenience methods
