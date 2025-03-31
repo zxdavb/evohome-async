@@ -456,6 +456,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
             if (type_ := dev_config["thermostat_model_type"]) == "DOMESTIC_HOT_WATER":
                 self.hotwater = HotWater(dev_config["device_id"], dev_config, self)
 
+            # check is string to handle edge-case of Honeywell TH9320WF3003
             elif isinstance(type_, str) and type_.startswith("EMEA_"):
                 self._add_zone(Zone(dev_config["device_id"], dev_config, self))
 
