@@ -254,11 +254,12 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     async def reset(self) -> None:
         """Set the TCS to auto mode (and set DHW/all zones to FollowSchedule mode)."""
 
+        # some systems have "AutoWithReset" mode...
         if SystemMode.AUTO_WITH_RESET in self.modes:
             await self.set_mode(SystemMode.AUTO_WITH_RESET)
             return
 
-        await self.set_mode(SystemMode.AUTO)  # may raise InvalidParameterError
+        await self.set_auto()
 
         for zone in self.zones:
             await zone.reset()
