@@ -1,0 +1,371 @@
+[
+    {
+        "locationID": 7680795,
+        "name": "My Home",
+        "streetAddress": "**** ******* *******",
+        "city": "******* **** ",
+        "state": "NSW",
+        "country": "AU",
+        "zipcode": "2820",
+        "type": "Residential",
+        "hasStation": true,
+        "devices": [
+            {
+                "gatewayId": 7242198,
+                "deviceID": 9727448,
+                "thermostatModelType": 36,
+                "deviceType": 48,
+                "name": "THERMOSTAT",
+                "scheduleCapable": true,
+                "holdUntilCapable": true,
+                "thermostat": {
+                    "units": "Celsius",
+                    "indoorTemperature": 25.0,
+                    "outdoorTemperature": 18.0,
+                    "outdoorTemperatureAvailable": true,
+                    "outdoorHumidity": 78.0,
+                    "outdootHumidityAvailable": true,
+                    "indoorHumidity": 43.0,
+                    "indoorTemperatureStatus": "Measured",
+                    "indoorHumidityStatus": "Measured",
+                    "outdoorTemperatureStatus": "Measured",
+                    "outdoorHumidityStatus": "Measured",
+                    "isCommercial": false,
+                    "allowedModes": [
+                        "Heat",
+                        "Off"
+                    ],
+                    "deadband": 0.0,
+                    "minHeatSetpoint": 4.5,
+                    "maxHeatSetpoint": 32.0,
+                    "minCoolSetpoint": 10.0,
+                    "maxCoolSetpoint": 37.0,
+                    "isPreCoolCapable": true,
+                    "changeableValues": {
+                        "mode": "Heat",
+                        "heatSetpoint": {
+                            "value": 26.0,
+                            "status": "Scheduled"
+                        },
+                        "vacationHoldDays": 0
+                    },
+                    "equipmentOutputStatus": "Heating",
+                    "scheduleCapable": true,
+                    "vacationHoldChangeable": false,
+                    "vacationHoldCancelable": true,
+                    "scheduleHeatSp": 26.0,
+                    "scheduleCoolSp": 25.5,
+                    "serialNumber": "2302JMA01830",
+                    "pcbNumber": "02296010401614"
+                },
+                "drEvents": [
+                    {
+                        "eventID": -1,
+                        "startTime": "2000-01-01T00:00:00",
+                        "optOutable": false,
+                        "intervals": [
+                            {
+                                "sequenceNumber": 1,
+                                "durationSeconds": 0
+                            },
+                            {
+                                "sequenceNumber": 2,
+                                "durationSeconds": 0
+                            },
+                            {
+                                "sequenceNumber": 3,
+                                "durationSeconds": 0
+                            }
+                        ],
+                        "phase": "NotStarted",
+                        "optedOut": false,
+                        "properties": {
+                            "hvac": true,
+                            "heaterStripOrBaseboard": false,
+                            "waterHeater": false,
+                            "poolPump": false,
+                            "smartAppliances": false,
+                            "irrigationPump": false,
+                            "managedLoads": false,
+                            "simpleMiscLoads": false,
+                            "exteriorLighting": false,
+                            "interiorLighting": false,
+                            "electricVehicle": false,
+                            "generationSystems": false,
+                            "setpointCapable": false,
+                            "deltaSetpointCapable": true,
+                            "maxPhases": 6,
+                            "dutyCycleCapable": "FullyCapable",
+                            "fan": false,
+                            "maxMessageLength": 0
+                        },
+                        "isAcknowledged": false
+                    }
+                ],
+                "schedule": {
+                    "schedulePeriods": [
+                        {
+                            "day": "Monday",
+                            "periodType": "WakeOcc1",
+                            "startTime": 18,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Monday",
+                            "periodType": "LeaveUnocc1",
+                            "startTime": 26,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Monday",
+                            "periodType": "ReturnOcc2",
+                            "startTime": 66,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Monday",
+                            "periodType": "SleepUnocc2",
+                            "startTime": 74,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Tuesday",
+                            "periodType": "WakeOcc1",
+                            "startTime": 18,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Tuesday",
+                            "periodType": "LeaveUnocc1",
+                            "startTime": 26,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Tuesday",
+                            "periodType": "ReturnOcc2",
+                            "startTime": 66,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Tuesday",
+                            "periodType": "SleepUnocc2",
+                            "startTime": 74,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Wednesday",
+                            "periodType": "WakeOcc1",
+                            "startTime": 18,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Wednesday",
+                            "periodType": "LeaveUnocc1",
+                            "startTime": 26,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Wednesday",
+                            "periodType": "ReturnOcc2",
+                            "startTime": 66,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Wednesday",
+                            "periodType": "SleepUnocc2",
+                            "startTime": 74,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Thursday",
+                            "periodType": "WakeOcc1",
+                            "startTime": 18,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Thursday",
+                            "periodType": "LeaveUnocc1",
+                            "startTime": 26,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Thursday",
+                            "periodType": "ReturnOcc2",
+                            "startTime": 66,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Thursday",
+                            "periodType": "SleepUnocc2",
+                            "startTime": 74,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Friday",
+                            "periodType": "WakeOcc1",
+                            "startTime": 18,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Friday",
+                            "periodType": "LeaveUnocc1",
+                            "startTime": 26,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Friday",
+                            "periodType": "ReturnOcc2",
+                            "startTime": 66,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Friday",
+                            "periodType": "SleepUnocc2",
+                            "startTime": 74,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Saturday",
+                            "periodType": "WakeOcc1",
+                            "startTime": 18,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Saturday",
+                            "periodType": "LeaveUnocc1",
+                            "startTime": 26,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Saturday",
+                            "periodType": "ReturnOcc2",
+                            "startTime": 66,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Saturday",
+                            "periodType": "SleepUnocc2",
+                            "startTime": 74,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Sunday",
+                            "periodType": "WakeOcc1",
+                            "startTime": 18,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Sunday",
+                            "periodType": "LeaveUnocc1",
+                            "startTime": 26,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        },
+                        {
+                            "day": "Sunday",
+                            "periodType": "ReturnOcc2",
+                            "startTime": 66,
+                            "isCancelled": false,
+                            "heatSetpoint": 26.0
+                        },
+                        {
+                            "day": "Sunday",
+                            "periodType": "SleepUnocc2",
+                            "startTime": 74,
+                            "isCancelled": false,
+                            "heatSetpoint": 18.0
+                        }
+                    ],
+                    "maxNumberOfPeriodsInDay": 4,
+                    "unit": "C",
+                    "modifiedDays": []
+                },
+                "alertSettings": {
+                    "deviceID": 9727448,
+                    "tempHigherThanActive": false,
+                    "tempHigherThan": 32.0,
+                    "tempHigherThanMinutes": 60,
+                    "tempLowerThanActive": false,
+                    "tempLowerThan": 10.0,
+                    "tempLowerThanMinutes": 60,
+                    "humidityHigherThanActive": false,
+                    "humidityHigherThan": 80.0,
+                    "humidityHigherThanMinutes": 60,
+                    "humidityLowerThanActive": false,
+                    "humidityLowerThan": 20.0,
+                    "humidityLowerThanMinutes": 60,
+                    "faultConditionExistsActive": false,
+                    "faultConditionExistsHours": 1,
+                    "normalConditionsActive": false,
+                    "communicationLostActive": false,
+                    "communicationLostHours": 1,
+                    "thermostatAlertActive": false,
+                    "communicationFailureActive": false,
+                    "communicationFailureMinutes": 15
+                },
+                "isUpgrading": false,
+                "isAlive": true,
+                "systemConfiguration": {
+                    "heatingSystem": "Hydronic",
+                    "heatingStages": 1,
+                    "coolingSystem": "None",
+                    "coolingStages": 0
+                },
+                "thermostatVersion": "04.00.07.00",
+                "macID": "************",
+                "locationID": 7680795,
+                "domainID": 44449,
+                "instance": 0,
+                "serialNumber": "2302JMA01830",
+                "pcbNumber": "02296010401614"
+            }
+        ],
+        "oneTouchButtons": [],
+        "weather": {
+            "condition": "Cloudy",
+            "temperature": 18.0,
+            "units": "Celsius",
+            "humidity": 79,
+            "phrase": "Cloudy"
+        },
+        "daylightSavingTimeEnabled": true,
+        "timeZone": {
+            "id": "AUS Eastern Standard Time",
+            "displayName": "(UTC+10:00) Canberra, Melbourne, Sydney",
+            "offsetMinutes": 600,
+            "currentOffsetMinutes": 660,
+            "usingDaylightSavingTime": true
+        },
+        "oneTouchActionsSuspended": false,
+        "isLocationOwner": true,
+        "locationOwnerID": 6324020,
+        "locationOwnerName": "Adam Smith",
+        "locationOwnerUserName": "nobody@nowhere.com",
+        "canSearchForContractors": true
+    }
+]
