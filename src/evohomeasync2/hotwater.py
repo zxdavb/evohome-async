@@ -173,6 +173,10 @@ class HotWater(_ZoneBase):
         # Call the API...
         await self._auth.put(f"{self._TYPE}/{self.id}/state", json=dict(mode))
 
+    async def reset(self) -> None:
+        """Cancel any override and allow the DHW to follow its schedule."""
+        await self._set_mode({S2_MODE: ZoneMode.FOLLOW_SCHEDULE})
+
     async def set_mode(self, state: DhwState, /, *, until: dt | None = None) -> None:
         """Set the DHW mode (state)."""
 
@@ -182,25 +186,13 @@ class HotWater(_ZoneBase):
             mode = {
                 S2_MODE: ZoneMode.PERMANENT_OVERRIDE,
                 S2_STATE: state,
-                S2_UNTIL_TIME: None,
             }
         else:
-            mode = {
+            mode = {  # NOTE: S2_TIME_UNTIL, not S2_UNTIL_TIME
                 S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
                 S2_STATE: state,
-                S2_UNTIL_TIME: until.strftime(API_STRFTIME),  # TODO: S2_TIME_UNTIL?
+                S2_UNTIL_TIME: until.strftime(API_STRFTIME),
             }
-
-        await self._set_mode(mode)
-
-    async def reset(self) -> None:
-        """Cancel any override and allow the DHW to follow its schedule."""
-
-        mode: TccSetDhwModeT = {
-            S2_MODE: ZoneMode.FOLLOW_SCHEDULE,
-            S2_STATE: None,  # NOTE: was "state": ""
-            S2_UNTIL_TIME: None,
-        }
 
         await self._set_mode(mode)
 

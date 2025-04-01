@@ -231,23 +231,26 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         # Call the API...
         await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=dict(mode))
 
-    async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
+    async def set_mode(
+        self, system_mode: SystemMode, /, *, until: dt | None = None
+    ) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time."""
 
+        mode: TccSetTcsModeT
+
         if until is None:
-            request = {
-                S2_SYSTEM_MODE: mode,
+            mode = {
+                S2_SYSTEM_MODE: system_mode,
                 S2_PERMANENT: True,
-                # S2_TIME_UNTIL: None,
             }
         else:
-            request = {
-                S2_SYSTEM_MODE: mode,
+            mode = {
+                S2_SYSTEM_MODE: system_mode,
                 S2_PERMANENT: False,
                 S2_TIME_UNTIL: until.strftime(API_STRFTIME),
             }
 
-        await self._set_mode(request)  # type: ignore[arg-type]
+        await self._set_mode(mode)
 
     # most, but not all, TCC-compatible systems support these modes...
 

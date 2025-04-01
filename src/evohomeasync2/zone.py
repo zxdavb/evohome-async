@@ -642,14 +642,7 @@ class Zone(_ZoneBase):
 
     async def reset(self) -> None:
         """Cancel any override and allow the zone to follow its schedule"""
-
-        mode: TccSetZonModeT = {
-            S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE,
-            # S2_HEAT_SETPOINT_VALUE: 0.0,
-            # S2_TIME_UNTIL: None,
-        }
-
-        await self._set_mode(mode)
+        await self._set_mode({S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE})
 
     # NOTE: no provision for cooling (not supported by API)
     async def set_temperature(  # aka. set_mode()
@@ -663,7 +656,6 @@ class Zone(_ZoneBase):
             mode = {
                 S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
                 S2_HEAT_SETPOINT_VALUE: temperature,
-                # S2_TIME_UNTIL: None,
             }
         else:
             mode = {

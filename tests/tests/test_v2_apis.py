@@ -10,6 +10,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from evohomeasync2.schemas.const import DhwState
+
 from .conftest import FIXTURES_V2
 
 if TYPE_CHECKING:
@@ -140,17 +142,16 @@ async def test_dhw_mode_off(
     with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
         await dhw.off()
 
-    MODE = {
+    EXPECTED_JSON = {
         "mode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
         "state": "Off",  # #            DhwState.OFF,
-        "untilTime": None,
     }
 
     mock_put.assert_awaited_once()
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
     assert mock_put.call_args[0][1] == f"domesticHotWater/{dhw.id}/state"
-    assert mock_put.call_args[1] == {"json": MODE}
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
 async def test_dhw_mode_on(
@@ -166,15 +167,14 @@ async def test_dhw_mode_on(
 
     mock_put.assert_awaited_once()
 
-    MODE = {
+    EXPECTED_JSON = {
         "mode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
         "state": "On",  # #             DhwState.ON,
-        "untilTime": None,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
     assert mock_put.call_args[0][1] == f"domesticHotWater/{dhw.id}/state"
-    assert mock_put.call_args[1] == {"json": MODE}
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
 async def test_dhw_mode_reset(
@@ -190,15 +190,54 @@ async def test_dhw_mode_reset(
 
     mock_put.assert_awaited_once()
 
-    MODE = {
+    EXPECTED_JSON = {
         "mode": "FollowSchedule",  # ZoneMode.FOLLOW_SCHEDULE,
-        "state": None,
-        "untilTime": None,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
     assert mock_put.call_args[0][1] == f"domesticHotWater/{dhw.id}/state"
-    assert mock_put.call_args[1] == {"json": MODE}
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
+
+
+async def test_dhw_set_mode(
+    evohome_v2: EvohomeClient,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Test HotWater.on() method."""
+
+    dhw = evohome_v2.tcs.hotwater
+    assert dhw is not None
+
+    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+        await dhw.set_mode(DhwState.OFF)
+
+    mock_put.assert_awaited_once()
+
+    EXPECTED_JSON = {
+        "mode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
+        "state": "Off",  # #            DhwState.OFF,
+    }
+
+    assert mock_put.call_args[0][0] == HTTPMethod.PUT
+    assert mock_put.call_args[0][1] == f"domesticHotWater/{dhw.id}/state"
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
+
+    freezer.move_to("2025-07-10T12:00:00Z")
+
+    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+        await dhw.set_mode(DhwState.ON, until=dt.now(tz=UTC) + td(hours=3))
+
+    mock_put.assert_awaited_once()
+
+    EXPECTED_JSON = {
+        "mode": "TemporaryOverride",  # ZoneMode.TEMPORARY_OVERRIDE,
+        "state": "On",  # #             DhwState.ON,
+        "untilTime": "2025-07-10T15:00:00Z",
+    }
+
+    assert mock_put.call_args[0][0] == HTTPMethod.PUT
+    assert mock_put.call_args[0][1] == f"domesticHotWater/{dhw.id}/state"
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
 # Test the Zone APIs...
@@ -216,13 +255,13 @@ async def test_zon_mode_reset(
 
     mock_put.assert_awaited_once()
 
-    MODE = {
+    EXPECTED_JSON = {
         "setpointMode": "FollowSchedule",  # ZoneMode.FOLLOW_SCHEDULE,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
     assert mock_put.call_args[0][1] == f"temperatureZone/{zone.id}/heatSetpoint"
-    assert mock_put.call_args[1] == {"json": MODE}
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
 async def test_zon_mode_set_temperature(
@@ -238,14 +277,14 @@ async def test_zon_mode_set_temperature(
 
     mock_put.assert_awaited_once()
 
-    MODE = {
+    EXPECTED_JSON = {
         "setpointMode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
         "heatSetpointValue": 19.5,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
     assert mock_put.call_args[0][1] == f"temperatureZone/{zone.id}/heatSetpoint"
-    assert mock_put.call_args[1] == {"json": MODE}
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
     freezer.move_to("2025-07-10T12:00:00Z")
 
@@ -254,7 +293,7 @@ async def test_zon_mode_set_temperature(
 
     mock_put.assert_awaited_once()
 
-    MODE = {
+    EXPECTED_JSON = {
         "setpointMode": "TemporaryOverride",  # ZoneMode.TEMPORARY_OVERRIDE,
         "heatSetpointValue": 20.5,
         "timeUntil": "2025-07-10T13:00:00Z",
@@ -262,4 +301,4 @@ async def test_zon_mode_set_temperature(
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
     assert mock_put.call_args[0][1] == f"temperatureZone/{zone.id}/heatSetpoint"
-    assert mock_put.call_args[1] == {"json": MODE}
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
