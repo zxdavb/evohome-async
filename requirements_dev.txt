@@ -9,8 +9,8 @@
 # - pip list | grep -E 'aio|pre_commit|ruff|mypy|types-|voluptuous|pytest|syrup|hatch'
 
 # used for development (linting)
-  pre-commit >= 4.1.0
-  ruff >= 0.9.5                                  # also: pre-commit-config.yaml
+  pre-commit >= 4.2.0
+  ruff >= 0.11.2                                  # also: pre-commit-config.yaml
 
 # used for development (typing)
   mypy >= 1.15.0
@@ -21,8 +21,8 @@
 # used for testing
   aioresponses >= 0.7.8
 
-  pytest >= 8.3.4
-  pytest-asyncio >= 0.25.3
+  pytest >= 8.3.5
+  pytest-asyncio >= 0.26.0
   pytest-cov >= 6.0.0
   pytest-freezer >= 0.4.9
   pytest-sugar >= 1.0.0
