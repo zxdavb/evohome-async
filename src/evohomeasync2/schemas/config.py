@@ -1,5 +1,4 @@
 """evohomeasync schema - for Config JSON of RESTful API."""
-# ruff: noqa: E501
 # ruff: line-length=120
 
 from __future__ import annotations
