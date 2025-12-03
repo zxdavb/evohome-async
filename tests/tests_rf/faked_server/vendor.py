@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 import re
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import voluptuous as vol
 
@@ -58,16 +58,19 @@ def _zon_id(url: _urlT) -> str:
     return url.split(f"{sch.S2_TEMPERATURE_ZONE}/")[1].split("/")[0]
 
 
+S = TypeVar("S", bound="FakedServerBase")
+
+
 def validate_id_of_url(
     id_fnc: Callable[[_urlT], str],
-) -> Callable[..., Callable[[FakedServer], _bodyT]]:
+) -> Callable[[Callable[[S], _bodyT | None]], Callable[[S], _bodyT]]:
     """Validate the id in the URL and set the status accordingly."""
 
     def decorator(
-        fnc: Callable[[FakedServer], _bodyT | None],
-    ) -> Callable[[FakedServer], _bodyT]:
+        fnc: Callable[[S], _bodyT | None],
+    ) -> Callable[[S], _bodyT]:
         @functools.wraps(fnc)
-        def wrapper(svr: FakedServer) -> _bodyT:
+        def wrapper(svr: S) -> _bodyT:
             if svr._method != HTTPMethod.GET:
                 svr.status = HTTPStatus.METHOD_NOT_ALLOWED
                 return {"message": "Method not allowed"}
