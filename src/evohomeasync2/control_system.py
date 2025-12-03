@@ -349,6 +349,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     async def set_schedules(
         self,
         schedules: list[EvoScheduleDhwT | EvoScheduleZoneT],
+        *,
         match_by_name: bool | None = None,
     ) -> bool:
         """Restore all schedules to the TCS and return True if success.

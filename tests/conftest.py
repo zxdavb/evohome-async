@@ -29,13 +29,13 @@ async def client_session(
     """Yield an aiohttp.ClientSession, which may be faked."""
 
     if use_real_aiohttp:
-        import aiohttp
+        import aiohttp  # noqa: PLC0415
 
         client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
 
     else:
-        from .tests_rf import faked_server as fake
-        from .tests_rf.faked_server import aiohttp  # type: ignore[no-redef]
+        from .tests_rf import faked_server as fake  # noqa: I001, PLC0415
+        from .tests_rf.faked_server import aiohttp  # type: ignore[no-redef] # noqa: PLC0415
 
         client_session = aiohttp.ClientSession(faked_server=fake.FakedServer({}, {}))  # type: ignore[call-arg]
 
@@ -114,7 +114,7 @@ def cache_file(
 
     # don't pollute the cache of real tokens (from the vendor) with fake tokens
     if use_real_aiohttp:
-        from cli.client import CACHE_FILE
+        from cli.client import CACHE_FILE  # noqa: PLC0415
 
         return CACHE_FILE
 

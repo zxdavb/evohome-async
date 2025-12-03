@@ -30,9 +30,9 @@ if TYPE_CHECKING:
 
 
 _APPLICATION_ID: Final = base64.b64encode(
-    b"4a231089-d2b6-41bd-a5eb-16a0a422b999:"  # fmt: off
+    b"4a231089-d2b6-41bd-a5eb-16a0a422b999:"
     b"1a15cdb8-42de-407b-add0-059f92c530cb"
-).decode("utf-8")
+).decode("utf-8")  # fmt: off
 
 
 SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105

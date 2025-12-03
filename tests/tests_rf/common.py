@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import functools
-from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -20,6 +19,8 @@ from tests.const import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
     import voluptuous as vol
 
 if _DBG_USE_REAL_AIOHTTP:
@@ -27,19 +28,19 @@ if _DBG_USE_REAL_AIOHTTP:
 else:
     from .faked_server import aiohttp  # type: ignore[no-redef]
 
-_FNC = TypeVar("_FNC", bound=Callable[..., Any])
-
 
 # NOTE: Global flag to indicate if AuthenticationFailedError has been encountered
 global_auth_failed = False
 
 
 # decorator to skip remaining tests if an AuthenticationFailedError is encountered
-def skipif_auth_failed(fnc: _FNC) -> _FNC:
+def skipif_auth_failed[**P](
+    fnc: Callable[P, Awaitable[Any]],
+) -> Callable[P, Awaitable[Any]]:
     """Decorator to skip tests if AuthenticationFailedError is encountered."""
 
     @functools.wraps(fnc)
-    async def wrapper(*args: Any, **kwargs: Any) -> Any:
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
         global global_auth_failed  # noqa: PLW0603
 
         if global_auth_failed:
@@ -58,7 +59,7 @@ def skipif_auth_failed(fnc: _FNC) -> _FNC:
             global_auth_failed = True
             pytest.fail(f"Unable to authenticate: {err}")
 
-    return wrapper  # type: ignore[return-value]
+    return wrapper
 
 
 # version 1 helpers ###################################################################

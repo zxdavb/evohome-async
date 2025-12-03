@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime as dt
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from .const import _DBG_DONT_OBFUSCATE, REGEX_EMAIL_ADDRESS
 
@@ -12,12 +12,11 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from datetime import tzinfo
 
-_T = TypeVar("_T")
 
 REGEX_DATETIME = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
 
 
-def _convert_keys(data: _T, fnc: Callable[[str], str]) -> _T:
+def _convert_keys[T](data: T, fnc: Callable[[str], str]) -> T:
     """Recursively convert all dict keys as per some function.
 
     For example, converts all keys to snake_case, or CamelCase, etc.
@@ -36,7 +35,7 @@ def _convert_keys(data: _T, fnc: Callable[[str], str]) -> _T:
     return recurse(data)  # type:ignore[no-any-return]
 
 
-def _convert_vals(data: _T, fnc: Callable[[str], str]) -> _T:
+def _convert_vals[T](data: T, fnc: Callable[[str], str]) -> T:
     """Recursively convert all string values as per some function.
 
     For example, converts all isoformat string values to TZ-aware format.
@@ -96,12 +95,12 @@ def snake_to_camel(s: str) -> str:
     return components[0] + "".join(x.title() for x in components[1:])
 
 
-def noop(s: _T) -> _T:
+def noop[T](s: T) -> T:
     """Return a value (usually a string) unconverted."""
     return s
 
 
-def convert_keys_to_camel_case(data: _T) -> _T:
+def convert_keys_to_camel_case[T](data: T) -> T:
     """Recursively convert all dict keys from snake_case to camelCase.
 
     Used before sending JSON to the vendor API.
@@ -109,7 +108,7 @@ def convert_keys_to_camel_case(data: _T) -> _T:
     return _convert_keys(data, snake_to_camel)
 
 
-def convert_keys_to_snake_case(data: _T) -> _T:
+def convert_keys_to_snake_case[T](data: T) -> T:
     """Recursively convert all dict keys from camelCase to snake_case.
 
     Used after retrieving JSON from the vendor API.
@@ -117,7 +116,7 @@ def convert_keys_to_snake_case(data: _T) -> _T:
     return _convert_keys(data, camel_to_snake)
 
 
-def convert_naive_dtm_strs_to_aware(data: _T, tzinfo: tzinfo) -> _T:
+def convert_naive_dtm_strs_to_aware[T](data: T, tzinfo: tzinfo) -> T:
     """Recursively convert TZ-naive datetime strings to TZ-aware.
 
     Does not convert TZ-aware strings, even if they're from a different TZ.
@@ -150,7 +149,7 @@ def convert_naive_dtm_strs_to_aware(data: _T, tzinfo: tzinfo) -> _T:
     return recurse(data)  # type:ignore[no-any-return]
 
 
-def obfuscate(value: bool | int | str) -> bool | int | str | None:
+def obfuscate[T: bool | int | str](value: T) -> T | int | str | None:
     """Obfuscate a value (usually to protect secrets during logging)."""
 
     if _DBG_DONT_OBFUSCATE:
@@ -181,7 +180,7 @@ _KEYS_TO_OBSCURE = (  # also keys with 'name' in them
 )
 
 
-def obscure_secrets(data: _T) -> _T:
+def obscure_secrets[T](data: T) -> T:
     """Recursively obsfucate all dict/list values that might be secrets.
 
     Used when logging JSON received from the vendor API.
