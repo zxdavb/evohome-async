@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 
 _T = TypeVar("_T")
 
+REGEX_DATETIME = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
+
 
 def _convert_keys(data: _T, fnc: Callable[[str], str]) -> _T:
     """Recursively convert all dict keys as per some function.
@@ -129,7 +131,7 @@ def convert_naive_dtm_strs_to_aware(data: _T, tzinfo: tzinfo) -> _T:
         if isinstance(data_, list):
             return [recurse(i) for i in data_]
 
-        if not isinstance(data_, str):
+        if not isinstance(data_, str) or not re.match(REGEX_DATETIME, data_):
             return data_
 
         try:
