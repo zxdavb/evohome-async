@@ -43,7 +43,7 @@ SZ_USERNAME: Final = "username"
 _LOGGER: Final = logging.getLogger(__name__)
 
 
-def _start_debugging(wait_for_client: bool | None = None) -> None:
+def _start_debugging(*, wait_for_client: bool | None = None) -> None:
     try:
         debugpy.listen(address=(DEBUG_ADDR, DEBUG_PORT))
     except RuntimeError:
@@ -113,6 +113,7 @@ async def cli(
     ctx: click.Context,
     username: str,
     password: str,
+    *,
     no_tokens: bool | None = None,
     debug: bool | None = None,
 ) -> None:
