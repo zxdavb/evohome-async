@@ -146,6 +146,8 @@ class FakedServerBase:
 
         if not self.status:
             self.status = HTTPStatus.OK if self.body else HTTPStatus.NOT_FOUND
+
+        assert self.body is not None  # mypy
         return self.body
 
 
