@@ -6,11 +6,11 @@ from enum import EnumCheck, StrEnum, verify
 from typing import Final
 
 # Various useful regex forms
-REGEX_DHW_ID = r"[0-9]*"
-REGEX_GATEWAY_ID = r"[0-9]*"
-REGEX_LOCATION_ID = r"[0-9]*"
-REGEX_SYSTEM_ID = r"[0-9]*"
-REGEX_ZONE_ID = r"[0-9]*"
+REGEX_DHW_ID: Final = r"[0-9]*"
+REGEX_GATEWAY_ID: Final = r"[0-9]*"
+REGEX_LOCATION_ID: Final = r"[0-9]*"
+REGEX_SYSTEM_ID: Final = r"[0-9]*"
+REGEX_ZONE_ID: Final = r"[0-9]*"
 
 
 # These are vendorconstants, used for keys in the vendor's schema
