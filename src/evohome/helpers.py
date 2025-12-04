@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime as dt
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, overload
 
 from .const import _DBG_DONT_OBFUSCATE, REGEX_EMAIL_ADDRESS
 
@@ -149,7 +149,15 @@ def convert_naive_dtm_strs_to_aware[T](data: T, tzinfo: tzinfo) -> T:
     return recurse(data)  # type:ignore[no-any-return]
 
 
-def obfuscate[T: bool | int | str](value: T) -> T | int | str | None:
+@overload
+def obfuscate(value: bool) -> bool | None: ...  # type: ignore[overload-overlap] # noqa: FBT001
+@overload
+def obfuscate(value: int) -> int: ...
+@overload
+def obfuscate(value: str) -> str: ...
+
+
+def obfuscate(value: bool | int | str) -> bool | int | str | None:  # noqa: FBT001
     """Obfuscate a value (usually to protect secrets during logging)."""
 
     if _DBG_DONT_OBFUSCATE:
