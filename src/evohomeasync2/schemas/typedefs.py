@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal, NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 from .config import (  # noqa: TC001
     DhwState,
@@ -36,7 +36,7 @@ class EvoAuthTokensDictT(TypedDict):
 # NOTE: dicts are not completely typed, but all referenced keys should be present
 
 
-# GET /accountInfo returns this dict
+# GET /accountInfo
 class EvoUsrConfigResponseT(TypedDict):
     """Response to GET /accountInfo."""
 
@@ -247,30 +247,33 @@ class EvoDhwStateStatusResponseT(TypedDict):
 
 
 #######################################################################################
-# WIP: These are setters, PUT, url, jason=json...
+# PUT TCS/Zone/DHW State...
+#
 
 
-# PUT
-class EvoZoneStatusT(TypedDict):
-    mode: str
-    is_permanent: bool
+# PUT /domesticHotWater/{dhw_id}/state
+class EvoSetDhwStateT(TypedDict):
+    mode: ZoneMode
+    state: NotRequired[DhwState]  # required by override modes
+    until_time: NotRequired[str]  # required by TemporaryOverride
 
 
-# PUT
-class EvoSystemModeStatusT(TypedDict):
-    mode: SystemMode
-    is_permanent: bool
-    time_until: NotRequired[str]
+# PUT /temperatureControlSystem/{tcs_id}/mode
+class EvoSetSystemModeT(TypedDict):
+    system_mode: SystemMode
+    permanent: bool
+    time_until: NotRequired[str]  # required by TemporaryOverride
 
 
-# PUT
-class EvoTcsStatusT(TypedDict):
-    system_id: str
-    system_mode_status: dict[str, Any]  # TODO
+# PUT /temperatureZone/{zon_id}/heatSetpoint
+class EvoSetZoneHeatSetpointT(TypedDict):
+    setpoint_mode: ZoneMode
+    heat_setpoint_value: NotRequired[float]  # required by override modes
+    time_until: NotRequired[str]  # required by TemporaryOverride
 
 
 #######################################################################################
-# GET/PUT DHW / Zone Schedules...
+# GET/PUT Zone/DHW Schedules...
 #
 
 

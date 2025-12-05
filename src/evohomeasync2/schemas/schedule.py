@@ -1,4 +1,7 @@
-"""evohomeasync schema - for RESTful API Account JSON."""
+"""Schema for vendor's TCC v2 API - for GET/PUT schedule of Zone/DHW.
+
+The convention for JSON keys is camelCase, but the API appears to be case-insensitive.
+"""
 
 from __future__ import annotations
 
@@ -8,7 +11,6 @@ import voluptuous as vol
 
 from evohome.helpers import noop
 
-from .config import DhwState
 from .const import (
     S2_COOL_SETPOINT,
     S2_DAILY_SCHEDULES,
@@ -18,6 +20,7 @@ from .const import (
     S2_SWITCHPOINTS,
     S2_TIME_OF_DAY,
     DayOfWeek,
+    DhwState,
 )
 
 if TYPE_CHECKING:

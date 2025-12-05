@@ -1,4 +1,7 @@
-"""evohomeasync schema - for Account JSON of RESTful API."""
+"""Schema for vendor's TCC v2 API - for GET account of User, etc.
+
+The convention for JSON keys is camelCase, but the API appears to be case-insensitive.
+"""
 
 from __future__ import annotations
 
@@ -90,7 +93,7 @@ def factory_user_account(fnc: Callable[[str], str] = noop) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_USER_ID)): str,
-            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), obfuscate),
+            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), obfuscate),  # pyright: ignore[reportCallIssue]
             vol.Required(fnc(S2_FIRSTNAME)): str,
             vol.Required(fnc(S2_LASTNAME)): vol.All(str, obfuscate),
             vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, obfuscate),

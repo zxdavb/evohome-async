@@ -8,7 +8,7 @@ import json
 from datetime import UTC, datetime as dt, timedelta as td
 from functools import cached_property
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, Final
 
 from evohome.helpers import as_local_time, camel_to_snake
 
@@ -34,13 +34,12 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
-from .schemas import factory_zon_schedule, factory_zon_status
+from .schemas import TccSetZonModeT, ZoneMode, factory_zon_schedule, factory_zon_status
 from .schemas.const import (
     S2_HEAT_SETPOINT_VALUE,
     S2_SETPOINT_MODE,
     S2_TIME_UNTIL,
     EntityType,
-    ZoneMode,
     ZoneModelType,
     ZoneType,
 )
@@ -79,14 +78,6 @@ if TYPE_CHECKING:
 
     _ScheduleT = list[DayOfWeekT]
     _SwitchPoint = tuple[dt, float | str]
-
-
-class TccSetZonModeT(TypedDict):
-    """PUT /temperatureZone/{zon_id}/heatSetpoint"""
-
-    setpointMode: ZoneMode
-    heatSetpointValue: NotRequired[float]  # not required for FollowSchedule
-    timeUntil: NotRequired[str]  # only required for TemporaryOverride
 
 
 _ONE_DAY = td(days=1)

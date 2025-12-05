@@ -1,4 +1,7 @@
-"""evohomeasync schema - for vendor's RESTful API JSON."""
+"""Schema for vendor's TCC v2 API.
+
+The convention for JSON keys is camelCase, but the API appears to be case-insensitive.
+"""
 
 from __future__ import annotations
 
@@ -24,6 +27,7 @@ from .config import (
 )
 from .const import DhwState, SystemMode, ZoneMode  # noqa: F401
 from .schedule import factory_dhw_schedule, factory_zon_schedule
+from .state import TccSetDhwModeT, TccSetTcsModeT, TccSetZonModeT  # noqa: F401
 from .status import (
     factory_dhw_status,
     factory_gwy_status,

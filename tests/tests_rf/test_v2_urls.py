@@ -297,7 +297,7 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
 async def put_zon_schedule(
     auth: Auth, zon_id: str, schedule: TccZonDailySchedulesT
 ) -> TccTaskResponseT:
-    """Test GET /temperatureZone/{zon_id}/schedule"""
+    """Test PUT /temperatureZone/{zon_id}/schedule"""
 
     return await auth._make_request(
         HTTPMethod.PUT,

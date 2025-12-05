@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Final, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Final
 
 from evohome.helpers import as_local_time, camel_to_snake
 
@@ -20,15 +20,14 @@ from .const import (
     SZ_STATE,
     SZ_STATE_STATUS,
 )
-from .schemas import factory_dhw_schedule, factory_dhw_status
-from .schemas.const import (
-    S2_MODE,
-    S2_STATE,
-    S2_UNTIL_TIME,
+from .schemas import (
     DhwState,
-    EntityType,
+    TccSetDhwModeT,
     ZoneMode,
+    factory_dhw_schedule,
+    factory_dhw_status,
 )
+from .schemas.const import S2_MODE, S2_STATE, S2_UNTIL_TIME, EntityType
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
@@ -46,14 +45,6 @@ if TYPE_CHECKING:
         EvoDhwStateStatusResponseT,
         EvoDhwStatusResponseT,
     )
-
-
-class TccSetDhwModeT(TypedDict):  # TODO: timeUntil?
-    """PUT /domesticHotWater/{dhw_id}/state"""
-
-    mode: ZoneMode
-    state: NotRequired[DhwState | None]  # not required for FollowSchedule
-    untilTime: NotRequired[str | None]  # only required for TemporaryOverride
 
 
 class HotWater(_ZoneBase):

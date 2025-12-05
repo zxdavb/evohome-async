@@ -1,4 +1,8 @@
-"""evohomeasync schema - for Config JSON of RESTful API."""
+"""Schema for vendor's TCC v2 API - for GET config of user's Installation.
+
+The convention for JSON keys is camelCase, but the API appears to be case-insensitive.
+"""
+
 # ruff: line-length=120
 
 from __future__ import annotations

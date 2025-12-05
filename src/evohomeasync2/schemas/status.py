@@ -1,4 +1,7 @@
-"""evohomeasync schema - for Status JSON of RESTful API."""
+"""Schema for vendor's TCC v2 API - for GET status of Location.
+
+The convention for JSON keys is camelCase, but the API appears to be case-insensitive.
+"""
 
 from __future__ import annotations
 

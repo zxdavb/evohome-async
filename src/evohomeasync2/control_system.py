@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 from functools import cached_property
-from typing import TYPE_CHECKING, Final, NoReturn, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Final, NoReturn
 
 from evohome.helpers import as_local_time, camel_to_snake
 
@@ -29,7 +29,7 @@ from .const import (
     SZ_ZONES,
 )
 from .hotwater import HotWater
-from .schemas import SystemMode, factory_tcs_status
+from .schemas import SystemMode, TccSetTcsModeT, factory_tcs_status
 from .schemas.const import (
     S2_PERMANENT,
     S2_SYSTEM_MODE,
@@ -56,14 +56,6 @@ if TYPE_CHECKING:
         EvoTcsConfigResponseT,
         EvoTcsStatusResponseT,
     )
-
-
-class TccSetTcsModeT(TypedDict):
-    """PUT /temperatureControlSystem/{tcs_id}/mode"""
-
-    systemMode: SystemMode
-    permanent: bool
-    timeUntil: NotRequired[str]
 
 
 class ControlSystem(ActiveFaultsBase, EntityBase):
