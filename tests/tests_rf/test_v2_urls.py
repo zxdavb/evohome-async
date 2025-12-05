@@ -155,8 +155,6 @@ async def get_tcs_status(auth: Auth, tcs_id: str) -> TccTcsStatusResponseT:
 async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
     """Test PUT /temperatureControlSystem/{tcs_id}/mode"""
 
-    _: TccTaskResponseT
-
     until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     _ = await auth._make_request(
@@ -167,7 +165,7 @@ async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
             "permanent": False,
             "timeUntil": until,
         },
-    )  # type: ignore[assignment]
+    )
 
     # for TCSs/zones, TemporaryOverride requires timeUntil (but DHW uses untilTime)
     with pytest.raises(ApiRequestFailedError) as exc_info:
@@ -256,8 +254,6 @@ async def get_zon_status(auth: Auth, zon_id: str) -> TccZonStatusResponseT:
 async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
     """Test PUT /temperatureZone/{zon_id}/heatSetpoint"""
 
-    _: TccTaskResponseT
-
     until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     _ = await auth._make_request(
@@ -268,7 +264,7 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
             "heatSetpointValue": 20.5,
             "timeUntil": until,
         },
-    )  # type: ignore[assignment]
+    )
 
     # for TCSs/zones, TemporaryOverride requires timeUntil (but DHW uses untilTime)
     with pytest.raises(ApiRequestFailedError) as exc_info:
@@ -289,7 +285,7 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
         HTTPMethod.PUT,
         f"temperatureZone/{zon_id}/heatSetpoint",
         json={"setpointMode": "PermanentOverride", "HeatSetpointValue": 20.5},
-    )  # type: ignore[assignment]
+    )
 
     return await auth._make_request(
         HTTPMethod.PUT,
@@ -384,8 +380,6 @@ async def get_dhw_status(auth: Auth, dhw_id: str) -> TccDhwStatusResponseT:
 async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
     """Test PUT /domesticHotWater/{dhw_id}/state"""
 
-    _: TccTaskResponseT
-
     until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     _ = await auth._make_request(
@@ -396,7 +390,7 @@ async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
             "state": "On",
             "untilTime": until,
         },
-    )  # type: ignore[assignment]
+    )
 
     # for DHW, TemporaryOverride requires untilTime (but zones use timeUntil)
     with pytest.raises(ApiRequestFailedError) as exc_info:
@@ -417,7 +411,7 @@ async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
         HTTPMethod.PUT,
         f"domesticHotWater/{dhw_id}/state",
         json={"mode": "PermanentOverride", "state": "Off"},
-    )  # type: ignore[assignment]
+    )
 
     return await auth._make_request(
         HTTPMethod.PUT,
