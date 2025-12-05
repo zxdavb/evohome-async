@@ -10,11 +10,12 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime as dt, timedelta as td
-from http import HTTPMethod
+from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
 
+from evohomeasync2 import ApiRequestFailedError
 from evohomeasync2.auth import Auth
 from evohomeasync2.schemas.account import factory_user_account
 from evohomeasync2.schemas.config import (
@@ -154,20 +155,39 @@ async def get_tcs_status(auth: Auth, tcs_id: str) -> TccTcsStatusResponseT:
 async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
     """Test PUT /temperatureControlSystem/{tcs_id}/mode"""
 
+    _: TccTaskResponseT
+
+    until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
     _ = await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureControlSystem/{tcs_id}/mode",
         json={
-            "SystemMode": "Away",
-            "Permanent": False,
-            "TimeUntil": (dt.now(tz=UTC) + td(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "systemMode": "Away",
+            "permanent": False,
+            "timeUntil": until,
         },
-    )
+    )  # type: ignore[assignment]
+
+    # for TCSs/zones, TemporaryOverride requires timeUntil (but DHW uses untilTime)
+    with pytest.raises(ApiRequestFailedError) as exc_info:
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"temperatureControlSystem/{tcs_id}/mode",
+            json={
+                "systemMode": "Away",
+                "permanent": False,
+                "untilTime": until,
+            },
+        )
+
+    assert exc_info.value.status == HTTPStatus.BAD_REQUEST
+    assert "SystemModeChangeTimeUntilNotSet" in exc_info.value.message
 
     return await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureControlSystem/{tcs_id}/mode",
-        json={"SystemMode": "Auto", "Permanent": True},
+        json={"systemMode": "Auto", "permanent": True},
     )  # type: ignore[return-value]
 
 
@@ -236,15 +256,34 @@ async def get_zon_status(auth: Auth, zon_id: str) -> TccZonStatusResponseT:
 async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
     """Test PUT /temperatureZone/{zon_id}/heatSetpoint"""
 
-    _: TccTaskResponseT = await auth._make_request(
+    _: TccTaskResponseT
+
+    until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    _ = await auth._make_request(
         HTTPMethod.PUT,
         f"temperatureZone/{zon_id}/heatSetpoint",
         json={
             "setpointMode": "TemporaryOverride",
             "heatSetpointValue": 20.5,
-            "timeUntil": (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "timeUntil": until,
         },
     )  # type: ignore[assignment]
+
+    # for TCSs/zones, TemporaryOverride requires timeUntil (but DHW uses untilTime)
+    with pytest.raises(ApiRequestFailedError) as exc_info:
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"temperatureZone/{zon_id}/heatSetpoint",
+            json={
+                "setpointMode": "TemporaryOverride",
+                "heatSetpointValue": 20.5,
+                "untilTime": until,
+            },
+        )
+
+    assert exc_info.value.status == HTTPStatus.BAD_REQUEST
+    assert "HeatSetpointChangeTimeUntilNotSet" in exc_info.value.message
 
     _ = await auth._make_request(
         HTTPMethod.PUT,
@@ -292,9 +331,12 @@ async def test_dhw_urls(
     #
     #
     for loc_config in usr_locs:
-        tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
-        if "dhw" in tcs_config:
-            break
+        try:
+            tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
+            if "dhw" in tcs_config:
+                break
+        except (KeyError, IndexError):
+            continue
     else:
         pytest.skip(f"no DHW in {tcs_config}")
 
@@ -342,15 +384,34 @@ async def get_dhw_status(auth: Auth, dhw_id: str) -> TccDhwStatusResponseT:
 async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
     """Test PUT /domesticHotWater/{dhw_id}/state"""
 
-    _: TccTaskResponseT = await auth._make_request(
+    _: TccTaskResponseT
+
+    until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    _ = await auth._make_request(
         HTTPMethod.PUT,
         f"domesticHotWater/{dhw_id}/state",
         json={
             "mode": "TemporaryOverride",
             "state": "On",
-            "untilTime": (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "untilTime": until,
         },
     )  # type: ignore[assignment]
+
+    # for DHW, TemporaryOverride requires untilTime (but zones use timeUntil)
+    with pytest.raises(ApiRequestFailedError) as exc_info:
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"domesticHotWater/{dhw_id}/state",
+            json={
+                "mode": "TemporaryOverride",
+                "state": "On",
+                "timeUntil": until,
+            },
+        )
+
+    assert exc_info.value.status == HTTPStatus.BAD_REQUEST
+    assert "DHWUntilTimeNotSet" in exc_info.value.message
 
     _ = await auth._make_request(
         HTTPMethod.PUT,
