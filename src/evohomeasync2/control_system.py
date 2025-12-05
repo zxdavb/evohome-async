@@ -244,7 +244,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                 S2_PERMANENT: True,
             }
         else:
-            mode = {
+            mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
                 S2_SYSTEM_MODE: system_mode,
                 S2_PERMANENT: False,
                 S2_TIME_UNTIL: until.strftime(API_STRFTIME),

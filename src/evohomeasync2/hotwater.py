@@ -188,7 +188,7 @@ class HotWater(_ZoneBase):
                 S2_STATE: state,
             }
         else:
-            mode = {  # NOTE: S2_TIME_UNTIL, not S2_UNTIL_TIME
+            mode = {  # NOTE: UNTIL_TIME, not TIME_UNTIL
                 S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
                 S2_STATE: state,
                 S2_UNTIL_TIME: until.strftime(API_STRFTIME),

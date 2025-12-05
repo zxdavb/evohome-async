@@ -658,7 +658,7 @@ class Zone(_ZoneBase):
                 S2_HEAT_SETPOINT_VALUE: temperature,
             }
         else:
-            mode = {
+            mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
                 S2_SETPOINT_MODE: ZoneMode.TEMPORARY_OVERRIDE,
                 S2_HEAT_SETPOINT_VALUE: temperature,
                 S2_TIME_UNTIL: until.strftime(API_STRFTIME),
