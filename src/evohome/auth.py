@@ -170,6 +170,7 @@ class AbstractAuth(ABC):
 
         try:
             rsp = await self._request(method, url, headers=headers, **kwargs)
+            assert rsp is not None  # mypy hint
 
             await rsp.read()  # so we can use rsp.json()/rsp.text(), below
             rsp.raise_for_status()

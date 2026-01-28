@@ -69,6 +69,7 @@ class CredentialsManagerBase:
 
         try:
             rsp = await self._request(HTTPMethod.POST, url, **kwargs)
+            assert rsp is not None  # mypy hint
 
             await rsp.read()  # so we can use rsp.json()/rsp.text(), below
             rsp.raise_for_status()
