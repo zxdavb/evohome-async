@@ -18,7 +18,7 @@ repos:
       - id: python-typing-update
         stages: [manual]
         args:
-          - --py311-plus
+          - --py313-plus
           - --force
           - --keep-updates
         files: ^(src|tests)/.+\.py$
