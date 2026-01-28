@@ -68,7 +68,7 @@ norecursedirs = ["tests.out/*", "tests.wip/*"]
 ###  mypy ############################################################################
 
 [tool.mypy]
-python_version = "3.13.2"
+python_version = "3.13"
 
 # strict = true
 # enable_incomplete_feature = ["NewGenericSyntax"]
