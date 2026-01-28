@@ -13,7 +13,7 @@ It provides support for Resideo TCC-based systems, such as **Evohome**, **Round 
  - it supports _only_ EU/EMEA-based systems, please use (e.g.) [somecomfort](https://github.com/mkmer/AIOSomecomfort) for US-based systems
  - it provides Evohome support for [Home Assistant](https://www.home-assistant.io/integrations/evohome) and other automation platforms
 
-> **NOTE:** the TCC API used by the library does not currently support cooling.
+> **NOTE:** the TCC API used by this library does not currently support cooling.
 
 This client _requires_ the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead.
 
