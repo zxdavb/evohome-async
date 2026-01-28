@@ -122,7 +122,7 @@ ruff format --check .
 mypy
 
 # Run tests
-pytest
+pytest --log-cli-level=DEBUG --cov=src --cov-report=term-missing
 
 # Run pre-commit hooks (includes ruff)
 prek run --all-files
