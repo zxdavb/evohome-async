@@ -13,7 +13,7 @@
   ruff >= 0.14.13                                # also see pre-commit-config.yaml
 
 # used for development (typing)
-  mypy >= 1.15.0
+  mypy >= 1.19.1
   types-aiofiles >= 24.1.0.20250822              # used only by CLI
   types-PyYAML >= 6.0.12.20250915                # used only by tests
   voluptuous >= 0.15.2
