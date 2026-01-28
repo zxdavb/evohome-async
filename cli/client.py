@@ -13,7 +13,7 @@ import aiofiles
 import aiofiles.os
 import aiohttp
 import asyncclick as click
-import debugpy  # type: ignore[import-untyped]
+import debugpy
 
 from evohomeasync2 import (
     ControlSystem,
@@ -45,7 +45,7 @@ _LOGGER: Final = logging.getLogger(__name__)
 
 def _start_debugging(*, wait_for_client: bool | None = None) -> None:
     try:
-        debugpy.listen(address=(DEBUG_ADDR, DEBUG_PORT))
+        debugpy.listen((DEBUG_ADDR, DEBUG_PORT))
     except RuntimeError:
         print(f" - Debugging is already enabled on: {DEBUG_ADDR}:{DEBUG_PORT}")
         raise
