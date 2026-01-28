@@ -9,7 +9,7 @@
 # - pip list | grep -E 'aio|pre_commit|ruff|mypy|types-|voluptuous|pytest|syrup|hatch'
 
 # used for development (linting)
-  pre-commit >= 4.2.0
+  pre-commit >= 4.5.1
   ruff >= 0.14.13                                # also see pre-commit-config.yaml
 
 # used for development (typing)
@@ -33,5 +33,5 @@
 # pytest_homeassistant_custom_component >= 0.13.162
 
 # used for build/deploy (not used by HA)
-  hatch >= 1.14.0
-  hatchling >= 1.27.0
+  hatch >= 1.16.3
+  hatchling >= 1.28.0
