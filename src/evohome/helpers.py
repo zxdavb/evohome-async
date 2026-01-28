@@ -33,7 +33,6 @@ _REDACTED_KEYS = (  # also keys with 'name' in them
 )
 
 
-
 def _convert_keys[T](data: T, fnc: Callable[[str], str]) -> T:
     """Recursively convert all dict keys as per some function.
 
