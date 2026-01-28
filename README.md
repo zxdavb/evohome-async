@@ -20,11 +20,11 @@ This client _requires_ the [aiohttp](https://pypi.org/project/aiohttp/) library.
 ### CLI for schedules (currently WIP)
 If you download the git repo you can use a basic CLI for backup/restore of schedules (incl. DHW, if any), for example:
 ```
-python client.py -u username@gmail.com -p password get-schedules --loc-idx 2 > schedules.json
+evo-client -u username@gmail.com -p password get-schedules --loc-idx 2 > schedules.json
 ```
 ... and to restore:
 ```
-python client.py -u username@gmail.com -p password set-schedules --loc-idx 2 -f schedules.json
+evo-client -u username@gmail.com -p password set-schedules --loc-idx 2 -f schedules.json
 ```
 
 To avoid exceeding the vendor's API rate limit, it will restore the access token cache, unless you use the the `--no-tokens` switch.
@@ -74,7 +74,7 @@ Other differences include:
 ## Development
 
 ### Prerequisites
-- Python 3.13.2+ (on *nix)
+- Python 3.13.2+ (on *nix recommended, use WSL on Windows)
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
 ### Setup
