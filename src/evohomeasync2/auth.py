@@ -194,7 +194,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
         try:  # the dict _should_ be the expected schema...
             self.logger.debug(
-                f"POST {url}: {SCH_OAUTH_TOKEN(response)}"  # should be redacted via validator
+                f"POST {url}: {SCH_OAUTH_TOKEN(response)}"  # secrets are redacted via validator
             )
 
         except vol.Invalid as err:

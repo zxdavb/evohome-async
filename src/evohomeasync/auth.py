@@ -148,7 +148,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
         try:  # the dict _should_ be the expected schema...
             self.logger.debug(
-                f"POST {url}: {TCC_POST_USR_SESSION(response)}"  # should be redacted via validator
+                f"POST {url}: {TCC_POST_USR_SESSION(response)}"  # secrets are redacted via validator
             )
 
         except vol.Invalid as err:
