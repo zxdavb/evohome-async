@@ -130,7 +130,6 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         # session_id is short-lived (but not safe to log self._user_info here)...
         self.logger.debug(f" - session_id = {self.session_id}")
         self.logger.debug(f" - session_id_expires = {self.session_id_expires}")
-        self.logger.debug(f" - user_info = {self._user_info}")
 
     async def _fetch_session_id(self, credentials: dict[str, str]) -> None:
         """Obtain an session id using the supplied credentials.
