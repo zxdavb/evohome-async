@@ -29,7 +29,7 @@ from .auth import CACHE_FILE, CredentialsManager
 if TYPE_CHECKING:
     from io import TextIOWrapper
 
-# all _DBG_* flags should be False for published code
+# all _DBG_* flags are only for dev/test and should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of click
 
 DEBUG_ADDR = "0.0.0.0"  # noqa: S104

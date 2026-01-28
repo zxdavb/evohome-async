@@ -6,8 +6,8 @@ import re
 from http import HTTPStatus
 from typing import Final
 
-# all _DBG_* flags should be False for published code
-_DBG_DONT_OBFUSCATE = False  # default is to obfuscate sensitive JSON in debug output
+# all _DBG_* flags are only for dev/test and should be False for published code
+_DBG_DONT_OBFUSCATE = False  # default is to redact sensitive JSON in debug output
 
 HOSTNAME: Final = "tccna.resideo.com"
 
