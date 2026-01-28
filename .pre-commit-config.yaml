@@ -50,10 +50,9 @@ repos:
 
     - id: debugs
       name: check for DEBUG flags  # should be False for published code
-      entry: '_DBG_.*=.*True'
+      entry: '_DBG_\w+ = (?!False)'
       language: pygrep
-      args: [-i]
-      exclude: .pre-commit-config.yaml  # avoid false +ve
+      types: [python]
 
     - id: secrets
       name: check secrets
