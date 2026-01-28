@@ -92,9 +92,9 @@ source .venv/bin/activate
 uv pip install -e .
 ```
 
-### Using the CLI
+#### Using the CLI
 
-To use the CLI:
+... then, to use the CLI:
 
 ```bash
 uv pip install -r requirements_cli.txt
@@ -102,14 +102,16 @@ uv pip install -r requirements_cli.txt
 evo-client --help
 ```
 
-### Doing test/dev
+#### Doing test/dev
+
+... or, to do development:
 ```bash
 uv pip install -r requirements_dev.txt
 
 prek install  # install pre-commit git hooks
 ```
 
-### Running tests and linting
+#### Running tests and linting
 
 ```bash
 # Run linting
