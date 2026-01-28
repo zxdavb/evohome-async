@@ -15,6 +15,9 @@ if TYPE_CHECKING:
 
 REGEX_DATETIME = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
 
+_REDACTED_EMAIL_ADDRESS = "no-reply@redacted.xxx"
+_REDACTED_STRING = "*** redacted ***"
+
 
 def _convert_keys[T](data: T, fnc: Callable[[str], str]) -> T:
     """Recursively convert all dict keys as per some function.
@@ -169,27 +172,27 @@ def obfuscate(value: bool | int | str) -> bool | int | str | None:  # noqa: FBT0
     if not isinstance(value, str):
         raise TypeError(f"obfuscate() expects bool | int | str, got {type(value)}")
     if REGEX_EMAIL_ADDRESS.match(value):
-        return "******@obfuscated.com"
-    return "********"
+        return _REDACTED_EMAIL_ADDRESS
+    return _REDACTED_STRING
 
 
 _KEYS_TO_OBSCURE = (  # also keys with 'name' in them
     "city",
     "crc",
     "mac",
-    "macID",
+    "macid",
     "postcode",
-    "securityQuestion1",
-    "securityQuestion2",
-    "securityQuestion3",
-    "streetAddress",
+    "securityquestion1",
+    "securityquestion2",
+    "securityquestion3",
+    "streetaddress",
     "telephone",
     "zipcode",
 )
 
 
 def obscure_secrets[T](data: T) -> T:
-    """Recursively obsfucate all dict/list values that might be secrets.
+    """Recursively obfuscate all dict/list values that might be secrets.
 
     Used when logging JSON received from the vendor API.
     """
@@ -198,14 +201,16 @@ def obscure_secrets[T](data: T) -> T:
         if not isinstance(val, str):
             return obfuscate(val)
         if REGEX_EMAIL_ADDRESS.match(val):
-            return "nobody@nowhere.com"
+            return _REDACTED_EMAIL_ADDRESS
         if "name" in key.lower():
             return val[:2].ljust(len(val), "*")
         return "".join("*" if char != " " else " " for char in val)
 
     def should_obfuscate(key: Any) -> bool:
-        # we don't want to obfuscate 'displayName' (under 'timeZone')
-        return isinstance(key, str) and ("name" in key or key in _KEYS_TO_OBSCURE)
+        # unfortunately, also redacts 'displayName' (is under 'timeZone')
+        return isinstance(key, str) and (
+            "name" in key.lower() or key.lower() in _KEYS_TO_OBSCURE
+        )
 
     def recurse(data_: Any) -> Any:
         if isinstance(data_, list):  # or Sequence?
