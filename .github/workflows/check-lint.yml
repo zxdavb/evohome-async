@@ -57,4 +57,11 @@ jobs:
       - name: Check with ruff (format)
         run: ruff format --check .
 
+      - name: Check all _DBG_* flags are False
+        run: |
+          if grep -rPn '_DBG_\w+ = (?!False)' --include='*.py' .; then
+            echo "ERROR: Found _DBG_* flags not set to False"
+            exit 1
+          fi
+
       - run: echo "🍏 This job's status is ${{ job.status }}."
