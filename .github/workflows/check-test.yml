@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v6
@@ -48,13 +48,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
           check-latest: true
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements_dev.txt
+        run: uv pip install --system -r requirements_dev.txt
 
       - name: Install the package (and its dependencies)
-        run: pip install -e .
+        run: uv pip install --system -e .
 
       - name: Test with pytest
         env:
