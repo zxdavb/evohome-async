@@ -127,5 +127,3 @@ pytest
 # Run pre-commit hooks (includes ruff)
 prek run --all-files
 ```
-
-```
