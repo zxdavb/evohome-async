@@ -9,8 +9,8 @@
 # - pip list | grep -E 'aio|pre_commit|ruff|mypy|types-|voluptuous|pytest|syrup|hatch'
 
 # used for development (linting)
-  pre-commit >= 4.5.1
-  ruff >= 0.14.13                                # also see pre-commit-config.yaml
+  prek >= 0.2.28                                 # pre-commit replacement (used by HA)
+  ruff >= 0.14.13                                # also see .pre-commit-config.yaml (or .prek.toml)
 
 # used for development (typing)
   mypy >= 1.19.1                                 # HA tends to use mypy-dev
