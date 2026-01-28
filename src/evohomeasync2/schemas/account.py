@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, TypedDict
 
 import voluptuous as vol
 
-from evohome.helpers import noop, obfuscate
+from evohome.helpers import noop, redact
 
 from .const import (
     S2_CITY,
@@ -47,9 +47,9 @@ def factory_post_oauth_token(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required("access_token"): vol.All(str, obfuscate),
+            vol.Required("access_token"): vol.All(str, redact),
             vol.Required("expires_in"): vol.Range(min=1770, max=1800),  # usu. 179x
-            vol.Required("refresh_token"): vol.All(str, obfuscate),
+            vol.Required("refresh_token"): vol.All(str, redact),
             vol.Required("token_type"): str,
             vol.Optional("scope"): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
         }
@@ -93,12 +93,12 @@ def factory_user_account(fnc: Callable[[str], str] = noop) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_USER_ID)): str,
-            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), obfuscate),  # pyright: ignore[reportCallIssue]
+            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), redact),  # pyright: ignore[reportCallIssue]
             vol.Required(fnc(S2_FIRSTNAME)): str,
-            vol.Required(fnc(S2_LASTNAME)): vol.All(str, obfuscate),
-            vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, obfuscate),
-            vol.Required(fnc(S2_CITY)): vol.All(str, obfuscate),
-            vol.Required(fnc(S2_POSTCODE)): vol.All(str, obfuscate),
+            vol.Required(fnc(S2_LASTNAME)): vol.All(str, redact),
+            vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, redact),
+            vol.Required(fnc(S2_CITY)): vol.All(str, redact),
+            vol.Required(fnc(S2_POSTCODE)): vol.All(str, redact),
             vol.Required(fnc(S2_COUNTRY)): str,
             vol.Required(fnc(S2_LANGUAGE)): str,
         },

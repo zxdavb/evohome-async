@@ -7,7 +7,7 @@ from http import HTTPStatus
 from typing import Final
 
 # all _DBG_* flags are only for dev/test and should be False for published code
-_DBG_DONT_OBFUSCATE = False  # default is to redact sensitive JSON in debug output
+_DBG_DONT_REDACT_SECRETS = False  # default is to redact sensitive JSON in debug output
 
 HOSTNAME: Final = "tccna.resideo.com"
 

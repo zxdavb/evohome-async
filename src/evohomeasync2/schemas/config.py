@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict
 
 import voluptuous as vol
 
-from evohome.helpers import noop, obfuscate
+from evohome.helpers import noop, redact
 
 from .const import (
     REGEX_DHW_ID,
@@ -423,7 +423,7 @@ def factory_gateway(fnc: Callable[[str], str] = noop) -> vol.Schema:
         {
             vol.Required(fnc(S2_GATEWAY_ID)): str,
             vol.Required(fnc(S2_MAC)): str,
-            vol.Required(fnc(S2_CRC)): vol.All(str, obfuscate),
+            vol.Required(fnc(S2_CRC)): vol.All(str, redact),
             vol.Required(fnc(S2_IS_WI_FI)): bool,
         },
         extra=vol.PREVENT_EXTRA,
@@ -461,9 +461,9 @@ def factory_location_installation_info(
     SCH_LOCATION_OWNER: Final = vol.Schema(
         {
             vol.Required(fnc(S2_USER_ID)): str,
-            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), obfuscate),  # pyright: ignore[reportCallIssue]
+            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), redact),  # pyright: ignore[reportCallIssue]
             vol.Required(fnc(S2_FIRSTNAME)): str,
-            vol.Required(fnc(S2_LASTNAME)): vol.All(str, obfuscate),
+            vol.Required(fnc(S2_LASTNAME)): vol.All(str, redact),
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -472,10 +472,10 @@ def factory_location_installation_info(
         {
             vol.Required(fnc(S2_LOCATION_ID)): str,
             vol.Required(fnc(S2_NAME)): str,  # e.g. "My Home"
-            vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, obfuscate),
-            vol.Required(fnc(S2_CITY)): vol.All(str, obfuscate),
+            vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, redact),
+            vol.Required(fnc(S2_CITY)): vol.All(str, redact),
             vol.Required(fnc(S2_COUNTRY)): str,
-            vol.Required(fnc(S2_POSTCODE)): vol.All(str, obfuscate),
+            vol.Required(fnc(S2_POSTCODE)): vol.All(str, redact),
             vol.Required(fnc(S2_LOCATION_TYPE)): vol.In(LocationType),  # "Residential"
             vol.Required(fnc(S2_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
             vol.Required(fnc(S2_TIME_ZONE)): factory_time_zone(fnc),

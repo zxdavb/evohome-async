@@ -6,7 +6,7 @@ import re
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Any, overload
 
-from .const import _DBG_DONT_OBFUSCATE, REGEX_EMAIL_ADDRESS
+from .const import _DBG_DONT_REDACT_SECRETS, REGEX_EMAIL_ADDRESS
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -153,24 +153,24 @@ def convert_naive_dtm_strs_to_aware[T](data: T, tzinfo: tzinfo) -> T:
 
 
 @overload
-def obfuscate(value: bool) -> bool | None: ...  # type: ignore[overload-overlap] # noqa: FBT001
+def redact(value: bool) -> bool | None: ...  # type: ignore[overload-overlap] # noqa: FBT001
 @overload
-def obfuscate(value: int) -> int: ...
+def redact(value: int) -> int: ...
 @overload
-def obfuscate(value: str) -> str: ...
+def redact(value: str) -> str: ...
 
 
-def obfuscate(value: bool | int | str) -> bool | int | str | None:  # noqa: FBT001
-    """Obfuscate a value (usually to protect secrets during logging)."""
+def redact(value: bool | int | str) -> bool | int | str | None:  # noqa: FBT001
+    """Redact a value (usually to protect secrets when logging)."""
 
-    if _DBG_DONT_OBFUSCATE:
+    if _DBG_DONT_REDACT_SECRETS:
         return value
     if isinstance(value, bool):
         return None
     if isinstance(value, int):
         return 0
     if not isinstance(value, str):
-        raise TypeError(f"obfuscate() expects bool | int | str, got {type(value)}")
+        raise TypeError(f"redact() expects bool | int | str, got {type(value)}")
     if REGEX_EMAIL_ADDRESS.match(value):
         return _REDACTED_EMAIL_ADDRESS
     return _REDACTED_STRING
@@ -192,21 +192,21 @@ _KEYS_TO_OBSCURE = (  # also keys with 'name' in them
 
 
 def obscure_secrets[T](data: T) -> T:
-    """Recursively obfuscate all dict/list values that might be secrets.
+    """Recursively redact all dict/list values that might be secrets.
 
     Used when logging JSON received from the vendor API.
     """
 
-    def _obfuscate(key: str, val: Any) -> Any:
+    def _redact(key: str, val: Any) -> Any:
         if not isinstance(val, str):
-            return obfuscate(val)
+            return redact(val)
         if REGEX_EMAIL_ADDRESS.match(val):
             return _REDACTED_EMAIL_ADDRESS
         if "name" in key.lower():
             return val[:2].ljust(len(val), "*")
         return "".join("*" if char != " " else " " for char in val)
 
-    def should_obfuscate(key: Any) -> bool:
+    def should_redact(key: Any) -> bool:
         # unfortunately, also redacts 'displayName' (is under 'timeZone')
         return isinstance(key, str) and (
             "name" in key.lower() or key.lower() in _KEYS_TO_OBSCURE
@@ -223,8 +223,8 @@ def obscure_secrets[T](data: T) -> T:
             return data_
 
         return {
-            k: _obfuscate(k, v) if should_obfuscate(k) else recurse(v)
+            k: _redact(k, v) if should_redact(k) else recurse(v)
             for k, v in data_.items()
         }
 
-    return data if _DBG_DONT_OBFUSCATE else recurse(data)
+    return data if _DBG_DONT_REDACT_SECRETS else recurse(data)

@@ -13,7 +13,7 @@ import voluptuous as vol
 from evohome.auth import AbstractAuth
 from evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
 from evohome.credentials import CredentialsManagerBase
-from evohome.helpers import convert_keys_to_snake_case, obfuscate
+from evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
 
@@ -43,9 +43,9 @@ SZ_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
 
 SCH_OAUTH_TOKEN: Final = vol.Schema(
     {
-        vol.Required(SZ_ACCESS_TOKEN): vol.All(str, obfuscate),
+        vol.Required(SZ_ACCESS_TOKEN): vol.All(str, redact),
         vol.Required(SZ_EXPIRES_IN): int,  # 1800 seconds
-        vol.Required(SZ_REFRESH_TOKEN): vol.All(str, obfuscate),
+        vol.Required(SZ_REFRESH_TOKEN): vol.All(str, redact),
         vol.Required("token_type"): str,
         vol.Optional("scope"): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
     }
@@ -194,7 +194,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
         try:  # the dict _should_ be the expected schema...
             self.logger.debug(
-                f"POST {url}: {SCH_OAUTH_TOKEN(response)}"  # should be obfuscated
+                f"POST {url}: {SCH_OAUTH_TOKEN(response)}"  # should be redacted via validator
             )
 
         except vol.Invalid as err:
