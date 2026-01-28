@@ -104,7 +104,7 @@ ruff check .
 ruff format --check .
 
 # Run type checking
-mypy .
+mypy
 
 # Run pre-commit hooks
 prek run --all-files
