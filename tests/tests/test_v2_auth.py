@@ -202,8 +202,9 @@ async def test_token_manager(
             assert caplog.records[2].message.startswith("POST https://tccna.resideo.com/Auth/OAuth/Token")
             assert caplog.records[3].message == (" - access_token = new_access_token...")
             assert caplog.records[4].message.startswith(" - access_token_expires = ")
-            assert caplog.records[5].message == (" - refresh_token = new_refresh_token...")
             # fmt: on
+
+            assert len(caplog.records) == 5  # noqa: PLR2004
 
         req.assert_called_once()
         wrt.assert_called_once()

@@ -23588,7 +23588,7 @@
         firstname: David
         lastname: '********'
         user_id: '2263181'
-        username: '******@obfuscated.com'
+        username: no-reply@redacted.xxx
       location_type: Residential
       name: My Home
       postcode: '********'
@@ -25376,7 +25376,7 @@
         firstname: David
         lastname: '********'
         user_id: '2263181'
-        username: '******@obfuscated.com'
+        username: no-reply@redacted.xxx
       location_type: Residential
       name: My Home
       postcode: '********'
@@ -27164,7 +27164,7 @@
         firstname: David
         lastname: '********'
         user_id: '2263181'
-        username: '******@obfuscated.com'
+        username: no-reply@redacted.xxx
       location_type: Residential
       name: My Home
       postcode: '********'
@@ -28952,7 +28952,7 @@
         firstname: David
         lastname: '********'
         user_id: '2263181'
-        username: '******@obfuscated.com'
+        username: no-reply@redacted.xxx
       location_type: Residential
       name: My Home
       postcode: '********'
@@ -30740,7 +30740,7 @@
         firstname: David
         lastname: '********'
         user_id: '2263181'
-        username: '******@obfuscated.com'
+        username: no-reply@redacted.xxx
       location_type: Residential
       name: My Home
       postcode: '********'
@@ -32528,7 +32528,7 @@
         firstname: David
         lastname: '********'
         user_id: '2263181'
-        username: '******@obfuscated.com'
+        username: no-reply@redacted.xxx
       location_type: Residential
       name: My Home
       postcode: '********'
@@ -34318,7 +34318,7 @@
         firstname: David
         lastname: '********'
         user_id: '2263181'
-        username: '******@obfuscated.com'
+        username: no-reply@redacted.xxx
       location_type: Residential
       name: My Home
       postcode: '********'
@@ -35849,7 +35849,7 @@
         firstname: Jan
         lastname: '********'
         user_id: '2224990'
-        username: '******@obfuscated.com'
+        username: no-reply@redacted.xxx
       location_type: Residential
       name: Summer House
       postcode: '********'
@@ -36300,7 +36300,7 @@
         firstname: -REDACTED-
         lastname: '********'
         user_id: -REDACTED-
-        username: '******@obfuscated.com'
+        username: no-reply@redacted.xxx
       location_type: Residential
       name: Home
       postcode: '********'

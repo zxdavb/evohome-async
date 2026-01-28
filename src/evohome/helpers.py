@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 REGEX_DATETIME = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
 
 _REDACTED_EMAIL_ADDRESS = "no-reply@redacted.xxx"
-_REDACTED_STRING = "*** redacted ***"
+_REDACTED_STRING = "********"
 
 
 def _convert_keys[T](data: T, fnc: Callable[[str], str]) -> T:
