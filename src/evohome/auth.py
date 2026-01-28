@@ -17,7 +17,7 @@ from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
 from .helpers import (
     convert_keys_to_camel_case,
     convert_keys_to_snake_case,
-    obscure_secrets,
+    redact_secrets,
 )
 
 if TYPE_CHECKING:
@@ -141,7 +141,7 @@ class AbstractAuth(ABC):
 
         if self.logger.isEnabledFor(logging.DEBUG):
             self.logger.debug(
-                f"{method} {self.url_base}/{url}: {obscure_secrets(response)}"
+                f"{method} {self.url_base}/{url}: {redact_secrets(response)}"
             )
 
         if method == HTTPMethod.GET:

@@ -18,6 +18,21 @@ REGEX_DATETIME = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
 _REDACTED_EMAIL_ADDRESS = "no-reply@redacted.xxx"
 _REDACTED_STRING = "********"
 
+_REDACTED_KEYS = (  # also keys with 'name' in them
+    "city",
+    "crc",
+    "mac",
+    "macid",
+    "postcode",
+    "securityquestion1",
+    "securityquestion2",
+    "securityquestion3",
+    "streetaddress",
+    "telephone",
+    "zipcode",
+)
+
+
 
 def _convert_keys[T](data: T, fnc: Callable[[str], str]) -> T:
     """Recursively convert all dict keys as per some function.
@@ -176,22 +191,7 @@ def redact(value: bool | int | str) -> bool | int | str | None:  # noqa: FBT001
     return _REDACTED_STRING
 
 
-_KEYS_TO_OBSCURE = (  # also keys with 'name' in them
-    "city",
-    "crc",
-    "mac",
-    "macid",
-    "postcode",
-    "securityquestion1",
-    "securityquestion2",
-    "securityquestion3",
-    "streetaddress",
-    "telephone",
-    "zipcode",
-)
-
-
-def obscure_secrets[T](data: T) -> T:
+def redact_secrets[T](data: T) -> T:
     """Recursively redact all dict/list values that might be secrets.
 
     Used when logging JSON received from the vendor API.
@@ -209,7 +209,7 @@ def obscure_secrets[T](data: T) -> T:
     def should_redact(key: Any) -> bool:
         # unfortunately, also redacts 'displayName' (is under 'timeZone')
         return isinstance(key, str) and (
-            "name" in key.lower() or key.lower() in _KEYS_TO_OBSCURE
+            "name" in key.lower() or key.lower() in _REDACTED_KEYS
         )
 
     def recurse(data_: Any) -> Any:
