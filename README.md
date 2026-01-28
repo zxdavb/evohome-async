@@ -89,16 +89,29 @@ cd evohome-async
 uv venv --python 3.13  # or: python3.13 -m venv venv
 source .venv/bin/activate
 
-uv pip install -r requirements_dev.txt
 uv pip install -e .
+```
+
+### Using the CLI
+
+To use the CLI:
+
+```bash
+uv pip install -r requirements_cli.txt
+
+evo-client --help
+```
+
+### Doing test/dev
+```bash
+uv pip install -r requirements_dev.txt
+
+prek install  # install pre-commit git hooks
 ```
 
 ### Running tests and linting
 
 ```bash
-# Run tests
-pytest
-
 # Run linting
 ruff check .
 ruff format --check .
@@ -106,14 +119,11 @@ ruff format --check .
 # Run type checking
 mypy
 
-# Run pre-commit hooks
+# Run tests
+pytest
+
+# Run pre-commit hooks (includes ruff)
 prek run --all-files
 ```
 
-### Using the CLI
-
-The CLI requires additional dependencies:
-```bash
-uv pip install -r requirements_cli.txt
-uv pip install -e .
 ```
