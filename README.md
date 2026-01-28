@@ -68,3 +68,52 @@ Other differences include:
 * (WIP) extended compatibility beyond pure evohome systems (e.g. VisionPro)
 
 > **TIP:** the non-async documentation (from **evohome-client**) is available at http://evohome-client.readthedocs.org/en/latest/
+
+---
+
+## Development
+
+### Prerequisites
+- Python 3.13.2+ (on *nix)
+- [uv](https://docs.astral.sh/uv/) (recommended) or pip
+
+### Setup
+
+Clone the repository and set up your development environment (using uv):
+
+```bash
+git clone https://github.com/zxdavb/evohome-async
+cd evohome-async
+
+# Create virtual environment and install dependencies
+uv venv --python 3.13  # or: python3.13 -m venv venv
+source .venv/bin/activate
+
+uv pip install -r requirements_dev.txt
+uv pip install -e .
+```
+
+### Running tests and linting
+
+```bash
+# Run tests
+pytest
+
+# Run linting
+ruff check .
+ruff format --check .
+
+# Run type checking
+mypy .
+
+# Run pre-commit hooks
+prek run --all-files
+```
+
+### Using the CLI
+
+The CLI requires additional dependencies:
+```bash
+uv pip install -r requirements_cli.txt
+uv pip install -e .
+```
