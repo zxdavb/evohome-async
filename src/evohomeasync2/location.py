@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
 
-from evohome.helpers import camel_to_snake, convert_naive_dtm_strs_to_aware
-from evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
+from _evohome.helpers import camel_to_snake, convert_naive_dtm_strs_to_aware
+from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
 from .const import (
     SZ_COUNTRY,

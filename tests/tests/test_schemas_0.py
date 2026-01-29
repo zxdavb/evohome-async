@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
 
-from evohome.helpers import camel_to_snake, convert_keys_to_snake_case
+from _evohome.helpers import camel_to_snake, convert_keys_to_snake_case
 from evohomeasync2 import Location
 from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
 from evohomeasync2.schemas.const import (

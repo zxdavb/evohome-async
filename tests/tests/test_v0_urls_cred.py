@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import pytest
 from aioresponses import aioresponses
 
-from evohome.const import HINT_CHECK_NETWORK
+from _evohome.const import HINT_CHECK_NETWORK
 from evohomeasync import EvohomeClient, exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
 from tests.const import (
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
     from pathlib import Path
 
-    from cli.auth import CredentialsManager
+    from evohome_cli.auth import CredentialsManager
 
 
 _TEST_SESSION_ID = "-- session id --"

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict
 
 import voluptuous as vol
 
-from evohome.helpers import noop, redact
+from _evohome.helpers import noop, redact
 
 from .const import (
     REGEX_DHW_ID,

@@ -7,7 +7,7 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
-from evohome.helpers import as_local_time, camel_to_snake
+from _evohome.helpers import as_local_time, camel_to_snake
 
 from . import exceptions as exc
 from .const import (

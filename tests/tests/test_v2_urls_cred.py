@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 from aioresponses import aioresponses
-from cli.auth import CredentialsManager
 
+from evohome_cli.auth import CredentialsManager
 from evohomeasync2 import EvohomeClient, exceptions as exc
 from tests.const import (
     HEADERS_BASE,
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
     from pathlib import Path
 
-    from cli.auth import CredentialsManager
+    from evohome_cli.auth import CredentialsManager
 
 
 _TEST_ACCESS_TOKEN = "-- access token --"  # noqa: S105

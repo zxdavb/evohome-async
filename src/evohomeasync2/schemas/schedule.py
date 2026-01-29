@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Final, TypedDict
 
 import voluptuous as vol
 
-from evohome.helpers import noop
+from _evohome.helpers import noop
 
 from .const import (
     S2_COOL_SETPOINT,

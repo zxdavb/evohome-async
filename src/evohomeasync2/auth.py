@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
@@ -10,16 +11,14 @@ from typing import TYPE_CHECKING, Any, Final
 
 import voluptuous as vol
 
-from evohome.auth import AbstractAuth
-from evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
-from evohome.credentials import CredentialsManagerBase
-from evohome.helpers import convert_keys_to_snake_case, redact
+from _evohome.auth import AbstractAuth
+from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
+from _evohome.credentials import CredentialsManagerBase
+from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
 
 if TYPE_CHECKING:
-    import logging
-
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
@@ -89,6 +88,8 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         logger: logging.Logger | None = None,
     ) -> None:
         """Initialize the token manager."""
+
+        logger = logger or logging.getLogger(__name__)
 
         super().__init__(
             client_id, secret, websession, _hostname=_hostname, logger=logger

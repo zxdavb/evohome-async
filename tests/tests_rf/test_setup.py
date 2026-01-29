@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from evohome import exceptions as exc
+from _evohome import exceptions as exc
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import skipif_auth_failed

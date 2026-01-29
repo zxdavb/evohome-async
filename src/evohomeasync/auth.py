@@ -2,23 +2,22 @@
 
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import voluptuous as vol
 
-from evohome.auth import AbstractAuth
-from evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
-from evohome.credentials import CredentialsManagerBase
-from evohome.helpers import convert_keys_to_snake_case
+from _evohome.auth import AbstractAuth
+from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
+from _evohome.credentials import CredentialsManagerBase
+from _evohome.helpers import convert_keys_to_snake_case
 
 from . import exceptions as exc
 from .schemas import TCC_POST_USR_SESSION
 
 if TYPE_CHECKING:
-    import logging
-
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
@@ -64,6 +63,8 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         logger: logging.Logger | None = None,
     ) -> None:
         """Initialise the session manager."""
+
+        logger = logger or logging.getLogger(__name__)
 
         super().__init__(
             client_id, secret, websession, _hostname=_hostname, logger=logger

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 import evohomeasync2 as evo2
-from evohome.helpers import camel_to_snake
+from _evohome.helpers import camel_to_snake
 from evohomeasync2.schemas import SystemMode, factory_dhw_schedule, factory_zon_schedule
 from evohomeasync2.schemas.const import S2_MODE
 from tests.const import _DBG_USE_REAL_AIOHTTP

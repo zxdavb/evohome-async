@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from aioresponses import aioresponses
-from cli.auth import CredentialsManager
 
+from evohome_cli.auth import CredentialsManager
 from evohomeasync import exceptions as exc
 from tests.const import URL_CRED_V0
 
@@ -21,8 +21,9 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     import aiohttp
-    from cli.auth import CacheDataT
     from freezegun.api import FrozenDateTimeFactory
+
+    from evohome_cli.auth import CacheDataT
 
 
 async def test_get_session_id(
@@ -175,7 +176,8 @@ async def test_session_manager(
             new_callable=AsyncMock,
         ) as req,
         patch(
-            "cli.auth.CredentialsManager.save_session_id", new_callable=AsyncMock
+            "evohome_cli.auth.CredentialsManager.save_session_id",
+            new_callable=AsyncMock,
         ) as wrt,
     ):
         req.return_value = {

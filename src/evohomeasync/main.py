@@ -6,7 +6,7 @@ import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 
-from evohome.helpers import camel_to_snake
+from _evohome.helpers import camel_to_snake
 
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth

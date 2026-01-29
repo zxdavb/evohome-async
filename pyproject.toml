@@ -28,7 +28,7 @@ classifiers = [
 
 #
 [project.scripts]
-evo-client = "cli.client:main"
+evo-client = "evohome_cli.client:main"
 
 #
 [project.urls]
@@ -48,10 +48,10 @@ build-backend = "hatchling.build"
 sources = ["src"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/evohomeasync", "src/evohomeasync2", "src/evohome"]
+packages = ["src/evohomeasync", "src/evohomeasync2", "src/_evohome", "src/evohome_cli"]
 
 [tool.hatch.version]
-path = "src/evohome/__init__.py"
+path = "src/_evohome/__init__.py"
 
 
 #
@@ -74,7 +74,7 @@ python_version = "3.13"
 # enable_incomplete_feature = ["NewGenericSyntax"]
 
 exclude = ["docs", "tests/tests_cc"]
-files = ["cli", "src", "tests"]
+files = ["src", "tests"]
 
 no_implicit_optional = true
 
@@ -125,7 +125,7 @@ disable_error_code = ["type-arg"] # 14
 
 [tool.ruff]
 exclude = ["docs/*.py", "tests/tests_cc"]
-src = ["cli", "src", "tests"]
+src = ["src", "tests"]
 target-version = "py313"
 required-version = ">=0.14.13"
 
@@ -193,8 +193,7 @@ ignore = [
 
 
 [tool.ruff.lint.per-file-ignores]
-"./client.py" = ["EXE001"]  #  shebang directive in a file that is not executable
-"./cli/client.py" = ["EXE001", "T201"]  # prints should typically be omitted
+"./src/evohome_cli/client.py" = ["EXE001", "T201"]  # prints should typically be omitted
 "./src/*/schemas/typedefs.py" = ["UP040"]  # PEP695 says use type rather that TypeAlias
 "./tests/*" = ["S101"]  # Assertions are removed when Python is run with optimization
 
@@ -211,7 +210,7 @@ split-on-trailing-comma = false
 ## coverage ##########################################################################
 
 [tool.coverage.run]
-omit = ["cli/*", "tests*/*"]
+omit = ["src/evohome_cli/*", "tests*/*"]
 
 [tool.coverage.report]
 show_missing = true

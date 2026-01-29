@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from evohome.auth import HOSTNAME
+from _evohome.auth import HOSTNAME
 from evohomeasync2.auth import _APPLICATION_ID as _APPLICATION_ID_V2
 
 #

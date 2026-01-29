@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from evohome.helpers import convert_keys_to_snake_case
+from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2.schemas import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE
 from evohomeasync2.schemas.const import DayOfWeek
 from evohomeasync2.zone import _find_switchpoints

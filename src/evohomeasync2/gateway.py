@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from evohome.helpers import camel_to_snake
+from _evohome.helpers import camel_to_snake
 
 from .const import (
     SZ_GATEWAY_ID,

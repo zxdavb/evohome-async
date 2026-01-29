@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from aioresponses import aioresponses
-from cli.auth import CredentialsManager
 
+from evohome_cli.auth import CredentialsManager
 from evohomeasync2 import exceptions as exc
 from tests.const import HEADERS_CRED_V2, URL_CRED_V2
 
@@ -22,8 +22,9 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     import aiohttp
-    from cli.auth import CacheDataT
     from freezegun.api import FrozenDateTimeFactory
+
+    from evohome_cli.auth import CacheDataT
 
 
 async def test_get_auth_token(
@@ -183,7 +184,8 @@ async def test_token_manager(
             new_callable=AsyncMock,
         ) as req,
         patch(
-            "cli.auth.CredentialsManager.save_access_token", new_callable=AsyncMock
+            "evohome_cli.auth.CredentialsManager.save_access_token",
+            new_callable=AsyncMock,
         ) as wrt,
     ):
         req.return_value = {
@@ -222,7 +224,8 @@ async def test_token_manager(
             new_callable=AsyncMock,
         ) as req,
         patch(
-            "cli.auth.CredentialsManager.save_access_token", new_callable=AsyncMock
+            "evohome_cli.auth.CredentialsManager.save_access_token",
+            new_callable=AsyncMock,
         ) as wrt,
     ):
         req.return_value = {

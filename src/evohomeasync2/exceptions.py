@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from evohome.exceptions import (
+from _evohome.exceptions import (
     ApiRateLimitExceededError,
     ApiRequestFailedError,
     AuthenticationFailedError,

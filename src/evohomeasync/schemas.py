@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Final, NewType, NotRequired, TypedDict, T
 
 import voluptuous as vol
 
-from evohome.helpers import noop, redact
+from _evohome.helpers import noop, redact
 
 if TYPE_CHECKING:
     from collections.abc import Callable

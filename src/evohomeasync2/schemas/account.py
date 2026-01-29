@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, TypedDict
 
 import voluptuous as vol
 
-from evohome.helpers import noop, redact
+from _evohome.helpers import noop, redact
 
 from .const import (
     S2_CITY,

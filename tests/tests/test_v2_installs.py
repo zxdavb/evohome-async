@@ -76,11 +76,11 @@ async def test_system_schedules(
 
     assert schedules == snapshot(name="schedules")  # needs freezer
 
-    with patch("evohome.auth.AbstractAuth.request"):
+    with patch("_evohome.auth.AbstractAuth.request"):
         result = await tcs.set_schedules(schedules)
     assert result is True
 
-    with patch("evohome.auth.AbstractAuth.request"):
+    with patch("_evohome.auth.AbstractAuth.request"):
         result = await tcs.set_schedules(schedules, match_by_name=True)
     assert result is True
 

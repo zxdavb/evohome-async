@@ -13,7 +13,7 @@ import aiohttp
 import pytest
 from aioresponses import aioresponses
 
-from evohome.helpers import convert_keys_to_snake_case
+from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync import EvohomeClient as EvohomeClientv0
 from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS
 from evohomeasync2 import EvohomeClient as EvohomeClientv2
@@ -28,7 +28,8 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Generator
 
     import voluptuous as vol
-    from cli.auth import CredentialsManager
+
+    from evohome_cli.auth import CredentialsManager
 
 
 type JsonValueType = (

@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from evohome import exceptions as exc
+from _evohome import exceptions as exc
 from evohomeasync.auth import Auth
 from evohomeasync.schemas import (
     factory_location_response_list,

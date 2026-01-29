@@ -46,7 +46,9 @@ async def test_ctl_mode_reset(  # TODO: test systems without AutoWithReset
         "permanent": True,
     }
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await tcs.reset()
 
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
@@ -73,13 +75,15 @@ async def test_ctl_modes_sans_until(
         "permanent": True,
     }
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await getattr(tcs, api_name)()
 
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
 
     with (
-        patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
+        patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
         pytest.raises(TypeError),  # got an unexpected keyword argument 'until'
     ):
         await getattr(tcs, api_name)(until=dt.now(tz=UTC) + td(days=3))
@@ -109,7 +113,9 @@ async def test_ctl_modes_with_until(
         "permanent": True,
     }
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await getattr(tcs, api_name)()
 
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
@@ -122,7 +128,9 @@ async def test_ctl_modes_with_until(
         "timeUntil": "2025-07-13T12:00:00Z",
     }
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await getattr(tcs, api_name)(until=dt.now(tz=UTC) + td(days=3))
 
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
@@ -139,7 +147,9 @@ async def test_dhw_mode_off(
     dhw = evohome_v2.tcs.hotwater
     assert dhw is not None
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await dhw.off()
 
     EXPECTED_JSON = {
@@ -162,7 +172,9 @@ async def test_dhw_mode_on(
     dhw = evohome_v2.tcs.hotwater
     assert dhw is not None
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await dhw.on()
 
     mock_put.assert_awaited_once()
@@ -185,7 +197,9 @@ async def test_dhw_mode_reset(
     dhw = evohome_v2.tcs.hotwater
     assert dhw is not None
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await dhw.reset()
 
     mock_put.assert_awaited_once()
@@ -208,7 +222,9 @@ async def test_dhw_set_mode(
     dhw = evohome_v2.tcs.hotwater
     assert dhw is not None
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await dhw.set_mode(DhwState.OFF)
 
     mock_put.assert_awaited_once()
@@ -224,7 +240,9 @@ async def test_dhw_set_mode(
 
     freezer.move_to("2025-07-10T12:00:00Z")
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await dhw.set_mode(DhwState.ON, until=dt.now(tz=UTC) + td(hours=3))
 
     mock_put.assert_awaited_once()
@@ -250,7 +268,9 @@ async def test_zon_mode_reset(
 
     zone = evohome_v2.tcs.zones[0]
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await zone.reset()
 
     mock_put.assert_awaited_once()
@@ -272,7 +292,9 @@ async def test_zon_mode_set_temperature(
 
     zone = evohome_v2.tcs.zones[0]
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await zone.set_temperature(19.5)
 
     mock_put.assert_awaited_once()
@@ -288,7 +310,9 @@ async def test_zon_mode_set_temperature(
 
     freezer.move_to("2025-07-10T12:00:00Z")
 
-    with patch("evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put:
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
         await zone.set_temperature(20.5, until=dt.now(tz=UTC) + td(hours=1))
 
     mock_put.assert_awaited_once()

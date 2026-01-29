@@ -7,8 +7,8 @@ from datetime import UTC, datetime as dt, timedelta as td
 from typing import TYPE_CHECKING
 
 import pytest
-from cli.auth import CredentialsManager
 
+from evohome_cli.auth import CredentialsManager
 from evohomeasync import EvohomeClient as EvohomeClientv0
 from evohomeasync2 import EvohomeClient as EvohomeClientv2
 
@@ -19,7 +19,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     import aiohttp
-    from cli.auth import CacheDataT
+
+    from evohome_cli.auth import CacheDataT
 
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
@@ -114,7 +115,7 @@ def cache_file(
 
     # don't pollute the cache of real tokens (from the vendor) with fake tokens
     if use_real_aiohttp:
-        from cli.client import CACHE_FILE  # noqa: PLC0415
+        from evohome_cli.client import CACHE_FILE  # noqa: PLC0415
 
         return CACHE_FILE
 

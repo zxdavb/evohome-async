@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from aiozoneinfo import async_get_time_zone
 
-from evohome.helpers import camel_to_snake
+from _evohome.helpers import camel_to_snake
 
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
