@@ -67,7 +67,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         logger = logger or logging.getLogger(__name__)
 
         super().__init__(
-            client_id, secret, websession, _hostname=_hostname, logger=logger
+            client_id, secret, websession, logger=logger, _hostname=_hostname
         )
         self._clear_session_id()  # initialise the attrs
 
@@ -214,7 +214,7 @@ class Auth(AbstractAuth):
     ) -> None:
         """A class for interacting with the v0 Resideo TCC API."""
 
-        super().__init__(websession, _hostname=_hostname, logger=logger)
+        super().__init__(websession, logger=logger, _hostname=_hostname)
 
         self._session_id = session_manager.get_session_id
         self._url_base = f"https://{self.hostname}/{URL_BASE}"

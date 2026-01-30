@@ -37,8 +37,8 @@ class CredentialsManagerBase:
         self._secret = secret
         self.websession: Final = websession
 
-        self._hostname: Final = _hostname or HOSTNAME
         self.logger = logger or logging.getLogger(__name__)
+        self._hostname: Final = _hostname or HOSTNAME
 
         self._was_authenticated = False  # True once credentials are proven valid
 
