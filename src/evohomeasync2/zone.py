@@ -367,8 +367,8 @@ class _ScheduleBase(EntityBase):
         next_dtm = dt.combine(dtm + td(days=next_offset), next_tod)
 
         # either "dhw_state" (str) or "heat_setpoint" (float) _will_ be present...
-        this_val = this_sp.get("dhw_state") or this_sp["heat_setpoint"]
-        next_val = next_sp.get("dhw_state") or next_sp["heat_setpoint"]
+        this_val = this_sp.get("dhw_state") or this_sp["heat_setpoint"]  # pyright: ignore[reportTypedDictNotRequiredAccess]
+        next_val = next_sp.get("dhw_state") or next_sp["heat_setpoint"]  # pyright: ignore[reportTypedDictNotRequiredAccess]
 
         return (
             (this_dtm.replace(tzinfo=self.location.tzinfo), this_val),
@@ -471,6 +471,8 @@ class _ZoneBase(_ScheduleBase, ActiveFaultsBase, EntityBase):
     def temperature(self) -> float | None:
         if not (status := self.temperature_status) or not status[SZ_IS_AVAILABLE]:
             return None
+
+        assert SZ_TEMPERATURE in status  # mypy hint
         return status[SZ_TEMPERATURE]
 
 
