@@ -51,15 +51,15 @@ class AbstractAuth(ABC):
         websession: aiohttp.ClientSession,
         /,
         *,
-        _hostname: str | None = None,
         logger: logging.Logger | None = None,
+        _hostname: str | None = None,
     ) -> None:
         """A class for interacting with the Resideo TCC API."""
 
         self.websession: Final = websession
 
-        self._hostname: Final = _hostname or HOSTNAME
         self.logger: Final = logger or logging.getLogger(__name__)
+        self._hostname: Final = _hostname or HOSTNAME
 
     def __str__(self) -> str:
         """Return a string representation of the object."""
