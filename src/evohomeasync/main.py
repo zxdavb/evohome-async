@@ -40,10 +40,10 @@ class EvohomeClient:
     ) -> None:
         """Construct the v0 EvohomeClient object."""
 
-        self.logger = _LOGGER
+        self._logger = _LOGGER
         if debug:
-            self.logger.setLevel(logging.DEBUG)
-            self.logger.debug("Debug mode explicitly enabled via kwarg.")
+            self._logger.setLevel(logging.DEBUG)
+            self._logger.debug("Debug mode explicitly enabled via kwarg.")
 
         self._session_manager = session_manager
         self.auth = Auth(session_manager, websession or session_manager.websession)
@@ -117,7 +117,7 @@ class EvohomeClient:
                 # as the accountInfo URL is open to all authenticated users, any 401 is
                 # due the (albeit valid) session_id being rejected by the server
 
-                self.logger.warning(
+                self._logger.warning(
                     f"The session_id has been rejected (will re-authenticate): {err}"
                 )
 

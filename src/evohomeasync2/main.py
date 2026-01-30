@@ -48,10 +48,10 @@ class EvohomeClient:
     ) -> None:
         """Construct the v2 EvohomeClient object."""
 
-        self.logger = _LOGGER
+        self._logger = _LOGGER
         if debug:
-            self.logger.setLevel(logging.DEBUG)
-            self.logger.debug("Debug mode explicitly enabled via kwarg.")
+            self._logger.setLevel(logging.DEBUG)
+            self._logger.debug("Debug mode explicitly enabled via kwarg.")
 
         self._token_manager = token_manager
         self.auth = Auth(token_manager, websession or token_manager.websession)
@@ -139,7 +139,7 @@ class EvohomeClient:
                 # as the userAccount URL is open to all authenticated users, any 401 is
                 # due the (albeit valid) access_token being rejected by the server
 
-                self.logger.warning(
+                self._logger.warning(
                     f"The access_token has been rejected (will re-authenticate): {err}"
                 )
 
@@ -174,7 +174,7 @@ class EvohomeClient:
 
             # only warn once per config refresh (i.e. not on every status update)
             if not dont_update_status and (num := len(self._locations)) > 1:
-                self.logger.warning(
+                self._logger.warning(
                     f"There are {num} locations. Reduce the risk of exceeding API rate "
                     "limits by individually updating only necessary locations."
                 )

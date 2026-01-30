@@ -115,7 +115,7 @@ class Location(EntityBase):
         super().__init__(
             config[SZ_LOCATION_INFO][SZ_LOCATION_ID],
             client.auth,
-            client.logger,
+            client._logger,
         )
 
         self.client = client  # proxy for parent

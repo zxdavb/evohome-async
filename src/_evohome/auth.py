@@ -58,7 +58,7 @@ class AbstractAuth(ABC):
 
         self.websession: Final = websession
 
-        self.logger: Final = logger or logging.getLogger(__name__)
+        self._logger: Final = logger or logging.getLogger(__name__)
         self._hostname: Final = _hostname or HOSTNAME
 
     def __str__(self) -> str:
@@ -90,7 +90,7 @@ class AbstractAuth(ABC):
             try:
                 response = schema(response)
             except vol.Invalid as err:
-                self.logger.debug(f"GET {url}: payload may be invalid: {err}")
+                self._logger.debug(f"GET {url}: payload may be invalid: {err}")
 
         return response  # type: ignore[return-value]
 
@@ -112,7 +112,7 @@ class AbstractAuth(ABC):
             try:
                 schema(json)
             except vol.Invalid as err:
-                self.logger.debug(f"PUT {url}: payload may be invalid: {err}")
+                self._logger.debug(f"PUT {url}: payload may be invalid: {err}")
 
         return await self.request(HTTPMethod.PUT, url, json=json)  # type: ignore[return-value]
 
@@ -134,13 +134,13 @@ class AbstractAuth(ABC):
                 # leave it up to higher layers to handle 401s as they can either be
                 # - authentication errors: bad access_token, bad session_id
                 # - authorization errors:  bad URL (e.g. no access to that loc_id)
-                self.logger.debug(
+                self._logger.debug(
                     f"The access_token/session_id may be invalid (it shouldn't be): {err}"
                 )
             raise
 
-        if self.logger.isEnabledFor(logging.DEBUG):
-            self.logger.debug(
+        if self._logger.isEnabledFor(logging.DEBUG):
+            self._logger.debug(
                 f"{method} {self.url_base}/{url}: {redact_secrets(response)}"
             )
 
@@ -196,7 +196,7 @@ class AbstractAuth(ABC):
 
         except aiohttp.ClientResponseError as err:
             if hint := ERR_MSG_LOOKUP_BASE.get(err.status):
-                self.logger.error(hint)  # noqa: TRY400
+                self._logger.error(hint)  # noqa: TRY400
 
             msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
 
@@ -205,7 +205,7 @@ class AbstractAuth(ABC):
             ) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            self.logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
+            self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
 
             raise exc.ApiRequestFailedError(
                 f"{method} {url}: {err}",

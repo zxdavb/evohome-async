@@ -37,7 +37,7 @@ class CredentialsManagerBase:
         self._secret = secret
         self.websession: Final = websession
 
-        self.logger = logger or logging.getLogger(__name__)
+        self._logger = logger or logging.getLogger(__name__)
         self._hostname: Final = _hostname or HOSTNAME
 
         self._was_authenticated = False  # True once credentials are proven valid
@@ -91,7 +91,7 @@ class CredentialsManagerBase:
         except aiohttp.ClientResponseError as err:
             # TODO: process payload and raise BadCredentialsError if code = EmailOrPasswordIncorrect
             if hint := ERR_MSG_LOOKUP_BASE.get(err.status):
-                self.logger.error(hint)  # noqa: TRY400
+                self._logger.error(hint)  # noqa: TRY400
 
             msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
 
@@ -100,7 +100,7 @@ class CredentialsManagerBase:
             ) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
-            self.logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
+            self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
 
             raise exc.AuthenticationFailedError(
                 f"Authenticator response is invalid: {err}",

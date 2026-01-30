@@ -136,10 +136,10 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
     async def fetch_access_token(self) -> None:
         """Update the access token and save it to the store/cache."""
 
-        self.logger.debug("Fetching access_token...")
+        self._logger.debug("Fetching access_token...")
 
         if self._refresh_token:
-            self.logger.debug(" - authenticating with the refresh_token")
+            self._logger.debug(" - authenticating with the refresh_token")
 
             credentials = {SZ_REFRESH_TOKEN: self._refresh_token}
 
@@ -150,11 +150,11 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
                 if err.status != HTTPStatus.BAD_REQUEST:  # 400, e.g. invalid tokens
                     raise
 
-                self.logger.debug("Expired/invalid refresh_token")
+                self._logger.debug("Expired/invalid refresh_token")
                 self._refresh_token = ""
 
         if not self._refresh_token:
-            self.logger.debug(" - authenticating with client_id/secret")
+            self._logger.debug(" - authenticating with client_id/secret")
 
             credentials = {
                 # NOTE: the keys are case-sensitive: 'Username' and 'Password'
@@ -168,15 +168,15 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
             except exc.AuthenticationFailedError as err:
                 if "invalid_grant" not in err.message:
                     raise
-                self.logger.error(HINT_BAD_CREDS)  # noqa: TRY400
+                self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
                 # status will be: HTTPStatus.BAD_REQUEST, 400
                 raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
 
             self._was_authenticated = True
 
         # access_token is short-lived (but not safe to log refresh_token here)...
-        self.logger.debug(f" - access_token = {self.access_token}")
-        self.logger.debug(f" - access_token_expires = {self.access_token_expires}")
+        self._logger.debug(f" - access_token = {self.access_token}")
+        self._logger.debug(f" - access_token_expires = {self.access_token_expires}")
 
     async def _fetch_access_token(self, credentials: dict[str, str]) -> None:
         """Obtain an access token using the supplied credentials.
@@ -194,12 +194,12 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         )
 
         try:  # the dict _should_ be the expected schema...
-            self.logger.debug(
+            self._logger.debug(
                 f"POST {url}: {SCH_OAUTH_TOKEN(response)}"  # secrets are redacted via validator
             )
 
         except vol.Invalid as err:
-            self.logger.warning(f"POST {url}: payload may be invalid: {err}")
+            self._logger.warning(f"POST {url}: payload may be invalid: {err}")
 
         tokens: AuthTokenResponseT = convert_keys_to_snake_case(response)
 

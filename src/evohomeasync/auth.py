@@ -107,9 +107,9 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         return self._session_id_expires > dt.now(tz=UTC) + td(seconds=15)
 
     async def fetch_session_id(self) -> None:
-        self.logger.debug("Fetching session_id...")
+        self._logger.debug("Fetching session_id...")
 
-        self.logger.debug(" - authenticating with client_id/secret")
+        self._logger.debug(" - authenticating with client_id/secret")
 
         credentials = {
             "applicationId": _APPLICATION_ID,
@@ -123,14 +123,14 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         except exc.AuthenticationFailedError as err:
             if "EmailOrPasswordIncorrect" not in err.message:
                 raise
-            self.logger.error(HINT_BAD_CREDS)  # noqa: TRY400
+            self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
             raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
 
         self._was_authenticated = True
 
         # session_id is short-lived (but not safe to log self._user_info here)...
-        self.logger.debug(f" - session_id = {self.session_id}")
-        self.logger.debug(f" - session_id_expires = {self.session_id_expires}")
+        self._logger.debug(f" - session_id = {self.session_id}")
+        self._logger.debug(f" - session_id_expires = {self.session_id_expires}")
 
     async def _fetch_session_id(self, credentials: dict[str, str]) -> None:
         """Obtain an session id using the supplied credentials.
@@ -148,12 +148,12 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         )
 
         try:  # the dict _should_ be the expected schema...
-            self.logger.debug(
+            self._logger.debug(
                 f"POST {url}: {TCC_POST_USR_SESSION(response)}"  # secrets are redacted via validator
             )
 
         except vol.Invalid as err:
-            self.logger.warning(f"POST {url}: payload may be invalid: {err}")
+            self._logger.warning(f"POST {url}: payload may be invalid: {err}")
 
         session: EvoSessionDictT = convert_keys_to_snake_case(response)  # type:ignore[assignment]
 
@@ -170,7 +170,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         self._was_authenticated = True  # i.e. the credentials are valid
 
         if session.get("latest_eula_accepted"):
-            self.logger.warning("The latest EULA has not been accepted by the user")
+            self._logger.warning("The latest EULA has not been accepted by the user")
 
     async def _post_session_id_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any
