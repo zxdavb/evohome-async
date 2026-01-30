@@ -51,6 +51,25 @@ if TYPE_CHECKING:
 
 _TEMP_IS_NA: Final = 128
 
+SZ_ALLOWED_MODES: Final = "allowed_modes"
+SZ_COUNTRY: Final = "country"
+SZ_DAYLIGHT_SAVING_TIME_ENABLED: Final = "daylight_saving_time_enabled"
+SZ_DEVICE_ID: Final = "device_id"
+SZ_DEVICES: Final = "devices"
+SZ_GATEWAY_ID: Final = "gateway_id"
+SZ_INDOOR_TEMPERATURE: Final = "indoor_temperature"
+SZ_INDOOR_TEMPERATURE_STATUS: Final = "indoor_temperature_status"
+SZ_INSTANCE: Final = "instance"
+SZ_IS_AVAILABLE: Final = "is_available"
+SZ_MAC_ID: Final = "mac_id"
+SZ_MIN_HEAT_SETPOINT: Final = "min_heat_setpoint"
+SZ_ONE_TOUCH_ACTIONS_SUSPENDED: Final = "one_touch_actions_suspended"
+SZ_ONE_TOUCH_BUTTONS: Final = "one_touch_buttons"
+SZ_TEMPERATURE: Final = "temperature"
+SZ_THERMOSTAT_MODEL_TYPE: Final = "thermostat_model_type"
+SZ_TIME_ZONE: Final = "time_zone"
+SZ_WEATHER: Final = "weather"
+
 
 class _EntityBase:
     """Base class for all entities."""
@@ -132,18 +151,20 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         if self._status is None:
             raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
 
-        temp = self._status[SZ_THERMOSTAT]["indoor_temperature"]
-        temp_status = self._status[SZ_THERMOSTAT]["indoor_temperature_status"]
+        temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
+        temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
 
         return {
-            "is_available": temp_status == "Measured",
-        } | ({} if temp == _TEMP_IS_NA else {"temperature": temp})  # type: ignore[return-value]
+            SZ_IS_AVAILABLE: temp_status == "Measured",
+        } | ({} if temp == _TEMP_IS_NA else {SZ_TEMPERATURE: temp})  # type: ignore[return-value]
 
     @property
     def temperature(self) -> float | None:
-        if not (status := self.temperature_status) or not status["is_available"]:
+        if not (status := self.temperature_status) or not status[SZ_IS_AVAILABLE]:
             return None
-        return status["temperature"]
+
+        assert SZ_TEMPERATURE in status  # mypy hint
+        return status[SZ_TEMPERATURE]
 
     async def _set_dhw(
         self,
@@ -205,19 +226,19 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
     @property  # appears to be the zone idx (not in evohomeclientv2)
     def idx(self) -> str:
-        return f"{self._config['instance']:02X}"
+        return f"{self._config[SZ_INSTANCE]:02X}"
 
     @property
     def max_heat_setpoint(self) -> float:
-        return self._status[SZ_THERMOSTAT]["min_heat_setpoint"]
+        return self._status[SZ_THERMOSTAT][SZ_MIN_HEAT_SETPOINT]
 
     @property
     def min_heat_setpoint(self) -> float:
-        return self._status[SZ_THERMOSTAT]["min_heat_setpoint"]
+        return self._status[SZ_THERMOSTAT][SZ_MIN_HEAT_SETPOINT]
 
     async def allowed_modes(self) -> tuple[str, ...]:
         """Return the set of modes the zone can be assigned."""
-        return tuple(self._config["thermostat"]["allowed_modes"])
+        return tuple(self._config[SZ_THERMOSTAT][SZ_ALLOWED_MODES])
 
     # Status (state) attrs & methods...
 
@@ -228,18 +249,20 @@ class Zone(_DeviceBase):  # Zone version of a Device
         if self._status is None:
             raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
 
-        temp = self._status[SZ_THERMOSTAT]["indoor_temperature"]
-        temp_status = self._status[SZ_THERMOSTAT]["indoor_temperature_status"]
+        temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
+        temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
 
         return {
-            "is_available": temp_status == "Measured",
-        } | ({} if temp == _TEMP_IS_NA else {"temperature": temp})  # type: ignore[return-value]
+            SZ_IS_AVAILABLE: temp_status == "Measured",
+        } | ({} if temp == _TEMP_IS_NA else {SZ_TEMPERATURE: temp})  # type: ignore[return-value]
 
     @property
     def temperature(self) -> float | None:
-        if not (status := self.temperature_status) or not status["is_available"]:
+        if not (status := self.temperature_status) or not status[SZ_IS_AVAILABLE]:
             return None
-        return status["temperature"]
+
+        assert SZ_TEMPERATURE in status  # mypy hint
+        return status[SZ_TEMPERATURE]
 
     async def _set_heat_setpoint(
         self,
@@ -304,11 +327,11 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
     @property
     def one_touch_actions_suspended(self) -> bool:
-        return bool(self._status["one_touch_actions_suspended"])
+        return bool(self._status[SZ_ONE_TOUCH_ACTIONS_SUSPENDED])
 
     @property
     def one_touch_buttons(self) -> tuple[str, ...]:
-        return tuple(self._status["one_touch_buttons"])
+        return tuple(self._status[SZ_ONE_TOUCH_BUTTONS])
 
     async def _set_mode(self, mode: dict[str, str]) -> None:
         """Set the TCS mode."""
@@ -426,7 +449,7 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
 
     @cached_property
     def mac_address(self) -> str:
-        return self._config["mac_id"]
+        return self._config[SZ_MAC_ID]
 
 
 class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
@@ -435,7 +458,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     def __init__(
         self, entity_id: int, config: EvoTcsInfoDictT, client: EvohomeClient
     ) -> None:
-        super().__init__(entity_id, client.auth, client.logger)
+        super().__init__(entity_id, client.auth, client._logger)
 
         self._cli = client  # proxy for parent
 
@@ -445,26 +468,26 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
         self.gateways: list[Gateway] = []
         self.gateway_by_id: dict[str, Gateway] = {}
 
-        # process config["devices"]...
-        for dev_config in config["devices"]:
-            if str(dev_config["gateway_id"]) not in self.gateway_by_id:
-                gwy = Gateway(dev_config["gateway_id"], dev_config, self)
+        # process config[SZ_DEVICES]...
+        for dev_config in config[SZ_DEVICES]:
+            if str(dev_config[SZ_GATEWAY_ID]) not in self.gateway_by_id:
+                gwy = Gateway(dev_config[SZ_GATEWAY_ID], dev_config, self)
 
                 self.gateways.append(gwy)
                 self.gateway_by_id[gwy.id] = gwy
 
-            if (type_ := dev_config["thermostat_model_type"]) == "DOMESTIC_HOT_WATER":
-                self.hotwater = HotWater(dev_config["device_id"], dev_config, self)
+            if (type_ := dev_config[SZ_THERMOSTAT_MODEL_TYPE]) == "DOMESTIC_HOT_WATER":
+                self.hotwater = HotWater(dev_config[SZ_DEVICE_ID], dev_config, self)
 
             # check is string to handle edge-case of Honeywell TH9320WF3003
             elif isinstance(type_, str) and type_.startswith("EMEA_"):
-                self._add_zone(Zone(dev_config["device_id"], dev_config, self))
+                self._add_zone(Zone(dev_config[SZ_DEVICE_ID], dev_config, self))
 
             else:  # assume everything else is a zone
                 self._logger.warning(
                     f"{self}: Unknown device type, assuming is a zone: {type_}"
                 )
-                self._add_zone(Zone(dev_config["device_id"], dev_config, self))
+                self._add_zone(Zone(dev_config[SZ_DEVICE_ID], dev_config, self))
 
     def _add_zone(self, zone: Zone) -> None:
         self.zones.append(zone)
@@ -477,7 +500,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     @property
     def country(self) -> str:
         # "GB", "NL"
-        return self._config["country"]
+        return self._config[SZ_COUNTRY]
 
     @property
     def name(self) -> str:
@@ -486,11 +509,11 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     @property
     def dst_enabled(self) -> bool:
         """Return True if the location uses daylight saving time."""
-        return self._config["daylight_saving_time_enabled"]
+        return self._config[SZ_DAYLIGHT_SAVING_TIME_ENABLED]
 
     @property
     def time_zone_info(self) -> EvoTimeZoneInfoDictT:
-        return self._config["time_zone"]
+        return self._config[SZ_TIME_ZONE]
 
     # Status (state) attrs & methods...
 
@@ -500,15 +523,15 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
 
     @property
     def weather(self) -> EvoWeatherDictT:
-        return self._config["weather"]
+        return self._config[SZ_WEATHER]
 
     def _update_status(self, status: EvoTcsInfoDictT) -> None:
         """Update the LOC's status and cascade to its descendants."""
 
         self._status = status
 
-        for dev_status in status["devices"]:
-            if (gwy_id := str(dev_status["gateway_id"])) in self.gateway_by_id:
+        for dev_status in status[SZ_DEVICES]:
+            if (gwy_id := str(dev_status[SZ_GATEWAY_ID])) in self.gateway_by_id:
                 self.gateway_by_id[gwy_id]._update_status(dev_status)
 
             else:
@@ -518,7 +541,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
                 )
                 continue
 
-            if (dev_id := str(dev_status["device_id"])) in self.zone_by_id:
+            if (dev_id := str(dev_status[SZ_DEVICE_ID])) in self.zone_by_id:
                 self.zone_by_id[dev_id]._update_status(dev_status)
 
             elif self.hotwater and self.hotwater.id == dev_id:
