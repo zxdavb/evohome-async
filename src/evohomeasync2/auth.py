@@ -263,6 +263,8 @@ class Auth(AbstractAuth):
     ) -> None:
         """A class for interacting with the v2 Resideo TCC API."""
 
+        logger = logger or logging.getLogger(__name__)
+
         super().__init__(websession, logger=logger, _hostname=_hostname)
 
         self._access_token = token_manager.get_access_token

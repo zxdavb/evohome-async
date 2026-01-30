@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import tempfile
 from datetime import UTC, datetime as dt, timedelta as td
 from pathlib import Path
@@ -62,6 +63,10 @@ class CredentialsManager(AbstractTokenManager, AbstractSessionManager):
         self, *args: Any, cache_file: Path | None = None, **kwargs: Any
     ) -> None:
         """Initialise the credentials manager (for access_token & session_id)."""
+
+        # ensure default logger as we've merged the two ABCs
+        kwargs["logger"] = kwargs.get("logger") or logging.getLogger(__name__)
+
         super().__init__(*args, **kwargs)
 
         self._cache_file: Final = cache_file
