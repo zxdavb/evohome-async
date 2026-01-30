@@ -10,6 +10,7 @@ from _evohome.helpers import camel_to_snake
 
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
+from .const import SZ_LOCATION_ID, SZ_USER_ID
 from .entities import Location
 from .schemas import factory_location_response_list, factory_user_account_info_response
 
@@ -94,7 +95,7 @@ class EvohomeClient:
         if not dont_update_status:  # don't update status of location hierarchy
             assert self._location_by_id
             for loc_entry in self._user_locs:  # each entry is both config & status
-                loc_id = str(loc_entry["location_id"])
+                loc_id = str(loc_entry[SZ_LOCATION_ID])
                 self._location_by_id[loc_id]._update_status(loc_entry)
 
         return self._user_locs
@@ -128,7 +129,7 @@ class EvohomeClient:
 
         if self._user_locs is None:
             try:
-                user_id = self._user_info["user_id"]
+                user_id = self._user_info[SZ_USER_ID]
             except (KeyError, TypeError) as err:
                 raise exc.BadApiResponseError(
                     f"No user_id in user_info dict. Received: {self._user_info}"
@@ -145,7 +146,7 @@ class EvohomeClient:
             self._location_by_id = {}
 
             for loc_entry in self._user_locs:  # each entry is both config & status
-                loc = Location(loc_entry["location_id"], loc_entry, self)
+                loc = Location(loc_entry[SZ_LOCATION_ID], loc_entry, self)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 

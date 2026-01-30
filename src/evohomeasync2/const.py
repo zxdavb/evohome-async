@@ -1,4 +1,4 @@
-"""evohomeasync provides an async client for the v2 Resideo TCC API."""
+"""Constants for evohomeasync2."""
 
 from typing import Final
 

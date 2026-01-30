@@ -13,6 +13,26 @@ from typing import TYPE_CHECKING, Any, Final
 
 from . import exceptions as exc
 from .auth import Auth
+from .const import (
+    SZ_ALLOWED_MODES,
+    SZ_COUNTRY,
+    SZ_DAYLIGHT_SAVING_TIME_ENABLED,
+    SZ_DEVICE_ID,
+    SZ_DEVICES,
+    SZ_GATEWAY_ID,
+    SZ_INDOOR_TEMPERATURE,
+    SZ_INDOOR_TEMPERATURE_STATUS,
+    SZ_INSTANCE,
+    SZ_IS_AVAILABLE,
+    SZ_MAC_ID,
+    SZ_MIN_HEAT_SETPOINT,
+    SZ_ONE_TOUCH_ACTIONS_SUSPENDED,
+    SZ_ONE_TOUCH_BUTTONS,
+    SZ_TEMPERATURE,
+    SZ_THERMOSTAT_MODEL_TYPE,
+    SZ_TIME_ZONE,
+    SZ_WEATHER,
+)
 from .schemas import (
     SZ_DHW_OFF,
     SZ_DHW_ON,
@@ -50,25 +70,6 @@ if TYPE_CHECKING:
 
 
 _TEMP_IS_NA: Final = 128
-
-SZ_ALLOWED_MODES: Final = "allowed_modes"
-SZ_COUNTRY: Final = "country"
-SZ_DAYLIGHT_SAVING_TIME_ENABLED: Final = "daylight_saving_time_enabled"
-SZ_DEVICE_ID: Final = "device_id"
-SZ_DEVICES: Final = "devices"
-SZ_GATEWAY_ID: Final = "gateway_id"
-SZ_INDOOR_TEMPERATURE: Final = "indoor_temperature"
-SZ_INDOOR_TEMPERATURE_STATUS: Final = "indoor_temperature_status"
-SZ_INSTANCE: Final = "instance"
-SZ_IS_AVAILABLE: Final = "is_available"
-SZ_MAC_ID: Final = "mac_id"
-SZ_MIN_HEAT_SETPOINT: Final = "min_heat_setpoint"
-SZ_ONE_TOUCH_ACTIONS_SUSPENDED: Final = "one_touch_actions_suspended"
-SZ_ONE_TOUCH_BUTTONS: Final = "one_touch_buttons"
-SZ_TEMPERATURE: Final = "temperature"
-SZ_THERMOSTAT_MODEL_TYPE: Final = "thermostat_model_type"
-SZ_TIME_ZONE: Final = "time_zone"
-SZ_WEATHER: Final = "weather"
 
 
 class _EntityBase:
