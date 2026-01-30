@@ -41,7 +41,7 @@ type JsonObjectType = dict[str, "JsonValueType"]
 
 class ClientStub:
     auth = None
-    logger = logging.getLogger(__name__)
+    _logger = logging.getLogger(__name__)
 
 
 @pytest.fixture  # (autouse=True)
