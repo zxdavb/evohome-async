@@ -59,8 +59,8 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         websession: aiohttp.ClientSession,
         /,
         *,
-        _hostname: str | None = None,
         logger: logging.Logger | None = None,
+        _hostname: str | None = None,
     ) -> None:
         """Initialise the session manager."""
 
@@ -209,8 +209,8 @@ class Auth(AbstractAuth):
         websession: aiohttp.ClientSession,
         /,
         *,
-        _hostname: str | None = None,
         logger: logging.Logger | None = None,
+        _hostname: str | None = None,
     ) -> None:
         """A class for interacting with the v0 Resideo TCC API."""
 

@@ -84,8 +84,8 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         secret: str,
         websession: aiohttp.ClientSession,
         /,
-        _hostname: str | None = None,
         logger: logging.Logger | None = None,
+        _hostname: str | None = None,
     ) -> None:
         """Initialize the token manager."""
 
@@ -258,8 +258,8 @@ class Auth(AbstractAuth):
         websession: aiohttp.ClientSession,
         /,
         *,
-        _hostname: str | None = None,
         logger: logging.Logger | None = None,
+        _hostname: str | None = None,
     ) -> None:
         """A class for interacting with the v2 Resideo TCC API."""
 

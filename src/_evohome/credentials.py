@@ -28,8 +28,8 @@ class CredentialsManagerBase:
         websession: aiohttp.ClientSession,
         /,
         *,
-        _hostname: str | None = None,
         logger: logging.Logger | None = None,
+        _hostname: str | None = None,
     ) -> None:
         """Initialise the session manager."""
 
