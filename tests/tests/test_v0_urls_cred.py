@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 import pytest
 from aioresponses import aioresponses
 
-from _evohome.const import HINT_CHECK_NETWORK
 from evohomeasync import EvohomeClient, exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
 from tests.const import (
@@ -21,7 +20,7 @@ from tests.const import (
     URL_CRED_V0,
 )
 
-from .const import LOG_04, LOG_11, LOG_12, LOG_90, LOG_91
+from .const import LOG_00, LOG_09, LOG_21, LOG_24, LOG_90, LOG_99
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -100,7 +99,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
 
         assert err.value.status == HTTPStatus.UNAUTHORIZED
 
-        assert caplog.record_tuples == [LOG_90, LOG_04, LOG_11]
+        assert caplog.record_tuples == [LOG_21, LOG_24, LOG_90]
 
         assert len(rsp.requests) == 1
 
@@ -137,7 +136,7 @@ async def test_bad2(  # bad session id
 
         assert err.value.status is None  # Connection refused
 
-        assert caplog.record_tuples == [LOG_91, LOG_90, LOG_04, LOG_12]
+        assert caplog.record_tuples == [LOG_00, LOG_21, LOG_24, LOG_99]
 
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
@@ -195,16 +194,14 @@ async def test_good(  # good credentials
 
         assert err.value.status is None  # Connection refused
 
-        assert caplog.record_tuples == [
-            ("evohome.auth", logging.ERROR, HINT_CHECK_NETWORK),  # Connection refused
-        ]
+        assert caplog.record_tuples == [LOG_09]
 
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
-        # response 0: Successful authentication
+        # response 0: Successful authentication (initially)
         rsp.assert_called_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
-        # response 1: Connection refused (as no response provided by us)
+        # response 1: Connection refused (as no subsequent response)
         rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
     assert evohome_v0._session_manager.is_session_valid() is True

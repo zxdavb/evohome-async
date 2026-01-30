@@ -20,7 +20,7 @@ from tests.const import (
     URL_CRED_V2,
 )
 
-from .const import LOG_00, LOG_01, LOG_02, LOG_03, LOG_04, LOG_11, LOG_12, LOG_13
+from .const import LOG_01, LOG_02, LOG_03, LOG_04, LOG_20, LOG_29, LOG_90, LOG_99
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -68,37 +68,6 @@ GET_ACCOUNT = (
     },
 )
 
-_WIP_TEST_SUITE = {
-    "bad1": (
-        exc.BadUserCredentialsError,
-        HTTPStatus.BAD_REQUEST,
-        [LOG_01, LOG_04, LOG_11],
-        (POST_CREDS,),
-        False,
-    ),
-    "bad2": (
-        exc.AuthenticationFailedError,
-        None,
-        [LOG_00, LOG_01, LOG_02, LOG_12],
-        (GET_ACCOUNT, POST_REFRESH),
-        False,
-    ),
-    "bad3": (
-        exc.AuthenticationFailedError,
-        None,
-        [LOG_01, LOG_02, LOG_03, LOG_04, LOG_12],
-        (POST_REFRESH, POST_CREDS),
-        False,
-    ),
-    "good": (
-        exc.ApiRequestFailedError,
-        None,
-        [LOG_12],
-        (POST_CREDS, GET_ACCOUNT),
-        True,
-    ),
-}
-
 
 @pytest.fixture(scope="module")
 def cache_file(
@@ -145,7 +114,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
             await evohome_v2.update()
 
         assert err.value.status == HTTPStatus.BAD_REQUEST
-        assert caplog.record_tuples == [LOG_01, LOG_04, LOG_11]
+        assert caplog.record_tuples == [LOG_01, LOG_04, LOG_90]
         assert len(rsp.requests) == 1
 
         # response 0: Unauthorized (bad credentials)
@@ -180,7 +149,7 @@ async def test_bad2(  # bad access token
             await evohome_v2.update()
 
         assert err.value.status is None  # Connection refused
-        assert caplog.record_tuples == [LOG_00, LOG_01, LOG_02, LOG_12]
+        assert caplog.record_tuples == [LOG_20, LOG_01, LOG_02, LOG_99]
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
         # response 0: Unauthorized (bad access token)
@@ -218,7 +187,7 @@ async def test_bad3(  # bad credentials (refresh token)
             await evohome_v2.update()
 
         assert err.value.status is None  # Connection refused
-        assert caplog.record_tuples == [LOG_01, LOG_02, LOG_03, LOG_04, LOG_12]
+        assert caplog.record_tuples == [LOG_01, LOG_02, LOG_03, LOG_04, LOG_99]
         assert len(rsp.requests) == 1
 
         # response 0: invalid_grant (bad refresh token)
@@ -259,7 +228,7 @@ async def test_good(  # good credentials
             await evohome_v2.update()
 
         assert err.value.status is None  # Connection refused
-        assert caplog.record_tuples == [LOG_13]
+        assert caplog.record_tuples == [LOG_29]
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
         # response 0: Successful authentication

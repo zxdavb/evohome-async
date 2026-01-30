@@ -25,18 +25,19 @@ MSG_INVALID_TOKEN: Final = (
 )
 
 
-LOG_00 = ("evohomeasync2", logging.WARNING, MSG_INVALID_TOKEN)
+LOG_01 = ("evohome_cli.auth", logging.DEBUG, "Fetching access_token...")
+LOG_02 = ("evohome_cli.auth", logging.DEBUG, " - authenticating with the refresh_token")  # fmt: off
+LOG_03 = ("evohome_cli.auth", logging.DEBUG, "Expired/invalid refresh_token")
+LOG_04 = ("evohome_cli.auth", logging.DEBUG, " - authenticating with client_id/secret")  # fmt: off
 
-LOG_01 = ("evohome.credentials", logging.DEBUG, "Fetching access_token...")
-LOG_02 = ("evohome.credentials", logging.DEBUG, " - authenticating with the refresh_token")  # fmt: off
-LOG_03 = ("evohome.credentials", logging.DEBUG, "Expired/invalid refresh_token")
-LOG_04 = ("evohome.credentials", logging.DEBUG, " - authenticating with client_id/secret")  # fmt: off
+LOG_21 = ("evohome_cli.auth", logging.DEBUG, "Fetching session_id...")
+LOG_24 = ("evohome_cli.auth", logging.DEBUG, " - authenticating with client_id/secret")  # fmt: off
 
-LOG_11 = ("evohome.credentials", logging.ERROR, HINT_BAD_CREDS)
-LOG_12 = ("evohome.credentials", logging.ERROR, HINT_CHECK_NETWORK)  # usu. Conn refused
+LOG_90 = ("evohome_cli.auth", logging.ERROR, HINT_BAD_CREDS)
+LOG_99 = ("evohome_cli.auth", logging.ERROR, HINT_CHECK_NETWORK)
 
-LOG_13 = ("evohome.auth", logging.ERROR, HINT_CHECK_NETWORK)
+LOG_00 = ("evohomeasync", logging.WARNING, MSG_INVALID_SESSION)
+LOG_09 = ("evohomeasync.auth", logging.ERROR, HINT_CHECK_NETWORK)
 
-
-LOG_90 = ("evohome.credentials", logging.DEBUG, "Fetching session_id...")
-LOG_91 = ("evohomeasync", logging.WARNING, MSG_INVALID_SESSION)
+LOG_20 = ("evohomeasync2", logging.WARNING, MSG_INVALID_TOKEN)
+LOG_29 = ("evohomeasync2.auth", logging.ERROR, HINT_CHECK_NETWORK)
