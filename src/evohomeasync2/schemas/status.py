@@ -12,6 +12,7 @@ import voluptuous as vol
 from _evohome.helpers import noop
 
 from .const import (
+    API_STRFTIME,
     REGEX_DHW_ID,
     REGEX_GATEWAY_ID,
     REGEX_LOCATION_ID,
@@ -170,7 +171,7 @@ def factory_zon_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
         {
             vol.Required(fnc(S2_TARGET_HEAT_TEMPERATURE)): float,
             vol.Required(fnc(S2_SETPOINT_MODE)): vol.In(ZoneMode),
-            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
+            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=API_STRFTIME),
         },
         extra=vol.PREVENT_EXTRA,
     )  # NOTE: S2_UNTIL is present only for some modes
@@ -203,7 +204,7 @@ def factory_dhw_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
         {
             vol.Required(fnc(S2_STATE)): vol.In(DhwState),
             vol.Required(fnc(S2_MODE)): vol.In(ZoneMode),
-            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format="%Y-%m-%dT%H:%M:%SZ"),
+            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=API_STRFTIME),
         },
         extra=vol.PREVENT_EXTRA,
     )  # NOTE: S2_UNTIL is present only for some modes
@@ -237,9 +238,7 @@ def factory_system_mode_status(fnc: Callable[[str], str] = noop) -> vol.Any:
                     str(SystemMode.CUSTOM),
                     str(SystemMode.DAY_OFF),
                 ),
-                vol.Required(fnc(S2_TIME_UNTIL)): vol.Datetime(
-                    format="%Y-%m-%dT%H:%M:%SZ"
-                ),
+                vol.Required(fnc(S2_TIME_UNTIL)): vol.Datetime(format=API_STRFTIME),
                 vol.Required(fnc(S2_IS_PERMANENT)): False,
             }
         ),

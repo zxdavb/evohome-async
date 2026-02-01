@@ -34,6 +34,7 @@ from .const import (
     SZ_WEATHER,
 )
 from .schemas import (
+    API_STRFTIME,
     SZ_DHW_OFF,
     SZ_DHW_ON,
     SZ_HOLD,
@@ -184,7 +185,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
             # SZ_COOL_SETPOINT: None,
         }
         if next_time:
-            data |= {SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ")}
+            data |= {SZ_NEXT_TIME: next_time.strftime(API_STRFTIME)}
 
         url = f"devices/{self.id}/thermostat/changeableValues"
         await self._auth.put(url, json=data)
@@ -279,7 +280,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
             data = {
                 SZ_STATUS: status,
                 SZ_VALUE: value,
-                SZ_NEXT_TIME: next_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                SZ_NEXT_TIME: next_time.strftime(API_STRFTIME),
             }
 
         url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
@@ -349,7 +350,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
         request: dict[str, str] = {SZ_QUICK_ACTION: mode}
         if until:
-            request |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime("%Y-%m-%dT%H:%M:%SZ")}
+            request |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime(API_STRFTIME)}
 
         await self._set_mode(request)
 

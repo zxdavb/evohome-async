@@ -14,6 +14,9 @@ if TYPE_CHECKING:
 
 _T = TypeVar("_T")
 
+# Datetime format used by the vendor's API
+API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
+
 
 # TCC identifiers (Usr, Loc, Gwy, Sys, Zon|Dhw)
 _DhwIdT = NewType("_DhwIdT", int)
