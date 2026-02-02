@@ -3,7 +3,7 @@ name: Typing (via mypy)
 
 on:
   push:
-    branches: [ "master", "dev" ]
+    branches: [ "main", "dev" ]
     paths: [
       ".github/workflows/check-type.yml",
       "src/**.py",
@@ -14,7 +14,7 @@ on:
     ]
 
   pull_request:
-    branches: [ "master", "dev" ]
+    branches: [ "main", "dev" ]
     paths: [
       ".github/workflows/check-type.yml",
       "src/**.py",

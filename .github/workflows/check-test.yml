@@ -3,7 +3,7 @@ name: Testing (via pytest)
 
 on:
   push:
-    branches: [ "master", "dev" ]
+    branches: [ "main", "dev" ]
     paths: [
       ".github/workflows/check-test.yml",
       "src/**.py",
@@ -13,7 +13,7 @@ on:
     ]
 
   pull_request:
-    branches: [ "master", "dev" ]
+    branches: [ "main", "dev" ]
     paths: [
       ".github/workflows/check-test.yml",
       "src/**.py",
