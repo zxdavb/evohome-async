@@ -1,4 +1,4 @@
-name: Typing
+name: Typing (via mypy)
 
 
 on:
@@ -6,7 +6,6 @@ on:
     branches: [ "master", "dev" ]
     paths: [
       ".github/workflows/check-type.yml",
-      "cli/**.py",
       "src/**.py",
       "src/**/py.typed",
       "tests/**.py",
@@ -18,7 +17,6 @@ on:
     branches: [ "master", "dev" ]
     paths: [
       ".github/workflows/check-type.yml",
-      "cli/**.py",
       "src/**.py",
       "src/**/py.typed",
       "tests/**.py",
@@ -36,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.13"]
+        python-version: ["3.14"]
 
     steps:
       - uses: actions/checkout@v6

@@ -1,4 +1,4 @@
-name: Testing
+name: Testing (via pytest)
 
 
 on:
@@ -6,7 +6,6 @@ on:
     branches: [ "master", "dev" ]
     paths: [
       ".github/workflows/check-test.yml",
-      "cli/**.py",
       "src/**.py",
       "tests/**",
       "requirements*.txt",
@@ -17,7 +16,6 @@ on:
     branches: [ "master", "dev" ]
     paths: [
       ".github/workflows/check-test.yml",
-      "cli/**.py",
       "src/**.py",
       "tests/**",
       "requirements*.txt",
@@ -25,7 +23,7 @@ on:
     ]
 
   schedule:
-    - cron: "0 18 * * 5"
+    - cron: "0 18 * * 5"  # Weekly on Friday - includes 3.15
 
   workflow_dispatch:
 
@@ -38,6 +36,12 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.13", "3.14"]
+        include:
+          - python-version: "3.15"
+            scheduled-only: true
+        exclude:
+          - python-version: "3.15"
+            scheduled-only: ${{ github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
 
     steps:
       - uses: actions/checkout@v6
