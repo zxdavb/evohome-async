@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import logging
 from functools import cached_property
 from http import HTTPMethod
 from typing import TYPE_CHECKING, Any, Final
@@ -15,6 +14,8 @@ from .auth import _payload
 from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
 
 if TYPE_CHECKING:
+    import logging
+
     from aiohttp.typedefs import StrOrURL
 
 
@@ -28,7 +29,7 @@ class CredentialsManagerBase:
         websession: aiohttp.ClientSession,
         /,
         *,
-        logger: logging.Logger | None = None,
+        logger: logging.Logger,
         _hostname: str | None = None,
     ) -> None:
         """Initialise the session manager."""
@@ -37,7 +38,7 @@ class CredentialsManagerBase:
         self._secret = secret
         self.websession: Final = websession
 
-        self._logger = logger or logging.getLogger(__name__)
+        self._logger = logger
         self._hostname: Final = _hostname or HOSTNAME
 
         self._was_authenticated = False  # True once credentials are proven valid
