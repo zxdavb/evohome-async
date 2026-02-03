@@ -1,4 +1,4 @@
-name: Typing (via mypy)
+name: Typing (mypy)
 
 
 on:

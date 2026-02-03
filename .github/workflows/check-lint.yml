@@ -1,4 +1,4 @@
-name: Linting (via ruff)
+name: Linting (ruff)
 
 
 on:

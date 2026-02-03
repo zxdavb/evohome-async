@@ -2,7 +2,7 @@
 # Uses Trusted Publishing (OIDC) - no API tokens needed
 # For more information see: https://docs.pypi.org/trusted-publishers/
 
-name: Publish to PyPI (via hatch)
+name: Publish to PyPI (hatch)
 
 on:
   release:
