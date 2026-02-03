@@ -9,6 +9,11 @@ on:
 
   workflow_dispatch:
     inputs:
+      ha_repo:
+        description: "Home Assistant repository (owner/repo)"
+        required: false
+        default: "home-assistant/core"
+        type: string
       ha_version:
         description: "Home Assistant version/branch to test against"
         required: false
@@ -17,7 +22,7 @@ on:
 
 
 env:
-  HA_REPO: "home-assistant/core"
+  HA_REPO: ${{ github.event.inputs.ha_repo || 'home-assistant/core' }}
   HA_VERSION: ${{ github.event.inputs.ha_version || 'dev' }}
 
 
