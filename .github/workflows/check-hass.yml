@@ -22,15 +22,32 @@ env:
 
 
 jobs:
-  test-with-hass:
-    name: Test with HA (${{ matrix.ha-version }})
+  get-python-version:
+    name: Get Python version from HA
     runs-on: ubuntu-latest
+    outputs:
+      python-version: ${{ steps.get-version.outputs.python-version }}
+    steps:
+      - name: Check out Home Assistant core
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.HA_REPO }}
+          ref: ${{ env.HA_VERSION }}
+          sparse-checkout: pyproject.toml
+          sparse-checkout-cone-mode: false
 
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.13"]
-        ha-version: ["dev"]  # Can add specific versions like "2024.12.0"
+      - name: Extract Python version from pyproject.toml
+        id: get-version
+        run: |
+          # Extract requires-python, e.g., ">=3.13.2" -> "3.13.2"
+          python_version=$(grep -oP 'requires-python\s*=\s*"[><=]*\K[0-9]+\.[0-9]+(\.[0-9]+)?' pyproject.toml)
+          echo "python-version=${python_version}" >> $GITHUB_OUTPUT
+          echo "Detected Python version: ${python_version}"
+
+  test-with-hass:
+    name: Test with HA (Python ${{ needs.get-python-version.outputs.python-version }})
+    runs-on: ubuntu-latest
+    needs: get-python-version
 
     steps:
       - name: Check out evohome-async
@@ -45,10 +62,11 @@ jobs:
           ref: ${{ env.HA_VERSION }}
           path: home-assistant-core
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ needs.get-python-version.outputs.python-version }}
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ needs.get-python-version.outputs.python-version }}
+          allow-prereleases: true
           check-latest: true
 
       - name: Install uv
