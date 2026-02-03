@@ -39,6 +39,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Fetch all history for tags
+
+      - name: Checkout latest tag (scheduled runs only)
+        if: github.event_name == 'schedule'
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "Checking out latest tag: $LATEST_TAG"
+          git checkout "$LATEST_TAG"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
