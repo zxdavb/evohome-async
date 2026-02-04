@@ -194,7 +194,9 @@ def auth_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
         # f"{_TYPE}/{id}/schedule"
         if "schedule" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_SCHEDULE(zone_schedule_fixture(fixture, url.split("/")[0]))
+                TCC_GET_SCHEDULE(
+                    zone_schedule_fixture(fixture, url.split("/", maxsplit=1)[0])
+                )
             )
 
         pytest.fail(f"Unexpected/unknown URL: {url}")
