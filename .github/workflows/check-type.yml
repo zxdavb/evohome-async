@@ -54,6 +54,9 @@ jobs:
       - name: Install the package (its dependencies are needed for typing)
         run: uv pip install --system -e .
 
+      - name: Log mypy version
+        run: mypy --version
+
       - name: Check with mypy
         run: mypy
 

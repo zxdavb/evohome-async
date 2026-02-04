@@ -51,13 +51,18 @@ jobs:
       - name: Install dependencies
         run: uv pip install --system ruff
 
+      - name: Log ruff version
+        run: ruff --version
+
       - name: Check with ruff
         run: ruff check --output-format=github .
 
       - name: Check with ruff (format)
+        if: always()
         run: ruff format --check .
 
       - name: Check all _DBG_* flags are False
+        if: always()
         run: |
           if grep -rPn '_DBG_\w+ = (?!False)' --include='*.py' .; then
             echo "ERROR: Found _DBG_* flags not set to False"
