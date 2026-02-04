@@ -150,7 +150,7 @@ async def should_fail_v0(
         assert "message" in response[0], response[0]
 
     elif isinstance(response, str):
-        assert status in (HTTPStatus.NOT_FOUND,), status
+        assert status == HTTPStatus.NOT_FOUND, status
         # '<!DOCTYPE html PUBLIC ... not found ...'
 
     else:
@@ -257,7 +257,7 @@ async def should_fail_v2(
         assert "message" in response[0], response[0]  # sometimes "code" too
 
     elif isinstance(response, str):  # 404
-        assert status in (HTTPStatus.NOT_FOUND,), status
+        assert status == HTTPStatus.NOT_FOUND, status
 
     else:
         pytest.fail(f"status={status}: {response}")
