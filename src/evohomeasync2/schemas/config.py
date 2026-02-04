@@ -3,8 +3,6 @@
 The convention for JSON keys is camelCase, but the API appears to be case-insensitive.
 """
 
-# ruff: line-length=120
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict
