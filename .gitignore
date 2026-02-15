@@ -167,3 +167,5 @@ dmypy.json
 
 # pytype static type analyzer
 .pytype/
+docs/issues/*
+!docs/issues/.gitkeep

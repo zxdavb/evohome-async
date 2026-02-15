@@ -1,11 +1,5 @@
-"""Tests for evohome-async CLI schedule commands and format conversion."""
-
-from __future__ import annotations
-
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -16,8 +10,21 @@ from evohome_cli.schedule_parser import (
     parse_text_schedule,
 )
 
-if TYPE_CHECKING:
-    from io import StringIO
+# Constants for magic values
+LEN_1 = 1
+LEN_2 = 2
+LEN_3 = 3
+LEN_4 = 4
+LEN_7 = 7
+TEMP_15 = 15.0
+TEMP_16 = 16.0
+TEMP_17_5 = 17.5
+TEMP_18 = 18.0
+TEMP_20 = 20.0
+TEMP_21 = 21.0
+ZONE_ID_LIVINGROOM = "5262675"
+ZONE_ID_KITCHEN = "5262678"
+ZONE_ID_TEST = "12345"
 
 # Sample test data
 SAMPLE_TEXT_SCHEDULE = """1. Livingroom (5262675)
@@ -152,9 +159,9 @@ def test_parse_temperature_time() -> None:
     text = "16C @ 06:00 to 17.5C @ 21:50"
     result = parse_temperature_time(text)
 
-    assert len(result) == 2
-    assert result[0] == (16.0, "06:00:00")
-    assert result[1] == (17.5, "21:50:00")
+    assert len(result) == LEN_2
+    assert result[0] == (TEMP_16, "06:00:00")
+    assert result[1] == (TEMP_17_5, "21:50:00")
 
 
 def test_parse_temperature_time_multiple() -> None:
@@ -162,11 +169,11 @@ def test_parse_temperature_time_multiple() -> None:
     text = "21C @ 06:30 to 18C @ 08:00 to 21C @ 18:00 to 16C @ 22:30"
     result = parse_temperature_time(text)
 
-    assert len(result) == 4
-    assert result[0] == (21.0, "06:30:00")
-    assert result[1] == (18.0, "08:00:00")
-    assert result[2] == (21.0, "18:00:00")
-    assert result[3] == (16.0, "22:30:00")
+    assert len(result) == LEN_4
+    assert result[0] == (TEMP_21, "06:30:00")
+    assert result[1] == (TEMP_18, "08:00:00")
+    assert result[2] == (TEMP_21, "18:00:00")
+    assert result[3] == (TEMP_16, "22:30:00")
 
 
 def test_parse_day_spec_weekdays() -> None:
@@ -184,7 +191,7 @@ def test_parse_day_spec_weekends() -> None:
 def test_parse_day_spec_all_days() -> None:
     """Test parsing 'All days' specification."""
     result = parse_day_spec("All days")
-    assert len(result) == 7
+    assert len(result) == LEN_7
     assert "Monday" in result
     assert "Sunday" in result
 
@@ -209,29 +216,29 @@ Weekends: 15C @ 07:00 to 15C @ 22:30"""
 
     result = parse_text_schedule(text)
 
-    assert len(result) == 1
-    assert result[0]["zone_id"] == "12345"
+    assert len(result) == LEN_1
+    assert result[0]["zone_id"] == ZONE_ID_TEST
     assert result[0]["name"] == "Test Zone"
-    assert len(result[0]["daily_schedules"]) == 7
+    assert len(result[0]["daily_schedules"]) == LEN_7
 
     # Check weekdays
     monday = next(d for d in result[0]["daily_schedules"] if d["day_of_week"] == "Monday")
-    assert len(monday["switchpoints"]) == 2
-    assert monday["switchpoints"][0]["heat_setpoint"] == 16.0
+    assert len(monday["switchpoints"]) == LEN_2
+    assert monday["switchpoints"][0]["heat_setpoint"] == TEMP_16
     assert monday["switchpoints"][0]["time_of_day"] == "06:00:00"
 
     # Check weekends
     saturday = next(d for d in result[0]["daily_schedules"] if d["day_of_week"] == "Saturday")
-    assert saturday["switchpoints"][0]["heat_setpoint"] == 15.0
+    assert saturday["switchpoints"][0]["heat_setpoint"] == TEMP_15
 
 
 def test_parse_text_schedule_multiple_zones() -> None:
     """Test parsing multiple zones."""
     result = parse_text_schedule(SAMPLE_TEXT_SCHEDULE)
 
-    assert len(result) == 2
-    assert result[0]["zone_id"] == "5262675"
-    assert result[1]["zone_id"] == "5262678"
+    assert len(result) == LEN_2
+    assert result[0]["zone_id"] == ZONE_ID_LIVINGROOM
+    assert result[1]["zone_id"] == ZONE_ID_KITCHEN
 
 
 def test_parse_text_schedule_special_days() -> None:
@@ -243,10 +250,10 @@ Weekends: 15C @ 07:00 to 15C @ 22:30"""
 
     result = parse_text_schedule(text)
 
-    assert len(result) == 1
+    assert len(result) == LEN_1
     # Check Wednesday has 3 switchpoints
     wednesday = next(d for d in result[0]["daily_schedules"] if d["day_of_week"] == "Wednesday")
-    assert len(wednesday["switchpoints"]) == 3
+    assert len(wednesday["switchpoints"]) == LEN_3
 
 
 def test_json_to_text_schedule_basic() -> None:
@@ -254,11 +261,12 @@ def test_json_to_text_schedule_basic() -> None:
     result = json_to_text_schedule(SAMPLE_JSON_SCHEDULE)
 
     assert "Livingroom" in result
-    assert "5262675" in result
+    assert ZONE_ID_LIVINGROOM in result
     assert "Weekdays:" in result
     assert "Weekends:" in result
     # Check for temperature format (can be 16C or 16.0C depending on formatting)
-    assert "16" in result and "C @ 06:00" in result
+    assert "16" in result
+    assert "C @ 06:00" in result
 
 
 def test_json_to_text_schedule_all_days() -> None:
@@ -297,7 +305,7 @@ def test_round_trip_conversion() -> None:
 
     # Compare zone IDs and names (schedules should be equivalent)
     assert len(json_result) == len(json_result2)
-    for zone1, zone2 in zip(json_result, json_result2):
+    for zone1, zone2 in zip(json_result, json_result2, strict=True):
         assert zone1["zone_id"] == zone2["zone_id"]
         assert zone1["name"] == zone2["name"]
         assert len(zone1["daily_schedules"]) == len(zone2["daily_schedules"])
@@ -326,102 +334,93 @@ def tmp_json_file(tmp_path: Path) -> Path:
 
 def test_convert_schedule_to_json_command(tmp_text_file: Path, tmp_path: Path) -> None:
     """Test convert-schedule-to-json CLI command."""
-    from evohome_cli.schedule_parser import parse_text_schedule
-    import json
 
     # Test the underlying functionality directly
-    with open(tmp_text_file, "r") as input_fp:
+    with tmp_text_file.open() as input_fp:
         content = input_fp.read()
         schedules = parse_text_schedule(content)
 
     output_file = tmp_path / "output.json"
-    with open(output_file, "w") as output_fp:
+    with output_file.open("w") as output_fp:
         json.dump(schedules, output_fp, indent=4)
 
     # Verify output
     assert output_file.exists()
-    with open(output_file) as f:
+    with output_file.open() as f:
         result = json.load(f)
 
-    assert len(result) == 2
-    assert result[0]["zone_id"] == "5262675"
+    assert len(result) == LEN_2
+    assert result[0]["zone_id"] == ZONE_ID_LIVINGROOM
 
 
 def test_convert_schedule_to_text_command(tmp_json_file: Path, tmp_path: Path) -> None:
     """Test convert-schedule-to-text CLI command."""
-    from evohome_cli.schedule_parser import json_to_text_schedule
 
     # Test the underlying functionality directly
-    with open(tmp_json_file, "r") as input_fp:
+    with tmp_json_file.open() as input_fp:
         schedules = json.load(input_fp)
         text_content = json_to_text_schedule(schedules)
 
     output_file = tmp_path / "output.txt"
-    with open(output_file, "w") as output_fp:
+    with output_file.open("w") as output_fp:
         output_fp.write(text_content)
 
     # Verify output
     assert output_file.exists()
     content = output_file.read_text()
     assert "Livingroom" in content
-    assert "5262675" in content
+    assert ZONE_ID_LIVINGROOM in content
 
 
 def test_get_schedules_json_format_logic() -> None:
     """Test get_schedules JSON format conversion logic."""
-    from evohome_cli.schedule_parser import json_to_text_schedule
-    import json
 
     # Test the format conversion logic directly
     schedules = SAMPLE_JSON_SCHEDULE
     json_content = json.dumps(schedules, indent=4)
-    
+
     # Verify JSON is valid
     result = json.loads(json_content)
-    assert len(result) == 2
-    assert result[0]["zone_id"] == "5262675"
+    assert len(result) == LEN_2
+    assert result[0]["zone_id"] == ZONE_ID_LIVINGROOM
 
 
 def test_get_schedules_text_format_logic() -> None:
     """Test get_schedules text format conversion logic."""
-    from evohome_cli.schedule_parser import json_to_text_schedule
 
     # Test the format conversion logic directly
     schedules = SAMPLE_JSON_SCHEDULE
     text_content = json_to_text_schedule(schedules)
-    
+
     # Verify text output
     assert "Livingroom" in text_content
-    assert "5262675" in text_content
+    assert ZONE_ID_LIVINGROOM in text_content
     assert "Weekdays:" in text_content
 
 
 def test_set_schedules_json_format_logic(tmp_json_file: Path) -> None:
     """Test set_schedules JSON format parsing logic."""
-    from evohome_cli.schedule_parser import parse_text_schedule
-    import json
 
     # Test the format parsing logic directly
-    with open(tmp_json_file, "r") as f:
+    with tmp_json_file.open() as f:
         schedules = json.load(f)
-    
+
     # Verify JSON is parsed correctly
-    assert len(schedules) == 2
-    assert schedules[0]["zone_id"] == "5262675"
+    assert len(schedules) == LEN_2
+    assert schedules[0]["zone_id"] == ZONE_ID_LIVINGROOM
 
 
 def test_set_schedules_text_format_logic(tmp_text_file: Path) -> None:
     """Test set_schedules text format parsing logic."""
-    from evohome_cli.schedule_parser import parse_text_schedule
 
     # Test the format parsing logic directly
-    with open(tmp_text_file, "r") as f:
+    with tmp_text_file.open() as f:
         content = f.read()
         schedules = parse_text_schedule(content)
-    
+
     # Verify text is parsed correctly
-    assert len(schedules) == 2
-    assert schedules[0]["zone_id"] == "5262675"
+    assert len(schedules) == LEN_2
+    assert schedules[0]["zone_id"] == ZONE_ID_LIVINGROOM
     assert schedules[0]["name"] == "Livingroom"
 
 
@@ -462,7 +461,8 @@ def test_json_to_text_schedule_single_switchpoint() -> None:
 
     result = json_to_text_schedule(schedule)
     assert "Test" in result
-    assert "12345" in result
+    assert ZONE_ID_TEST in result
     # Check for temperature format (can be 20C or 20.0C depending on formatting)
-    assert "20" in result and "C @ 07:00" in result
+    assert "20" in result
+    assert "C @ 07:00" in result
 
