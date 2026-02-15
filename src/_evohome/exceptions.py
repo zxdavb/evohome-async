@@ -111,4 +111,3 @@ class CredentialStorageError(EvohomeError):
     This could be caused by the keyring backend being unavailable, permissions issues,
     or other system-level credential storage failures.
     """
-

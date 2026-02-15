@@ -364,7 +364,6 @@ async def set_schedules(
     print(f" - finished{'' if success else ' (with errors)'}.\r\n")
 
 
-
 @click.command("login")
 @click.option("--username", "-u", default=None, help="The TCC account username.")
 @click.option("--password", "-p", default=None, help="The TCC account password.")
@@ -412,6 +411,7 @@ def login(username: str | None, password: str | None, *, delete: bool) -> None:
         print(f"\r\n✗ Failed to store credentials: {err}\r\n")
         sys.exit(1)
 
+
 def main() -> None:
     """Run the CLI."""
 
@@ -426,7 +426,6 @@ def main() -> None:
     except click.ClickException as err:
         print(f"Error: {err}")
         sys.exit(-1)
-
 
 
 if __name__ == "__main__":

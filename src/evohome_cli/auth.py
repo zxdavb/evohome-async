@@ -210,7 +210,7 @@ except ImportError:
 
 CREDENTIAL_SERVICE_NAME: Final = "evohome-async"
 CREDENTIAL_USERNAME_KEY: Final = "username"
-CREDENTIAL_PASSWORD_KEY: Final = "password"
+CREDENTIAL_PASSWORD_KEY: Final = "password"  # noqa: S105
 
 
 class KeyringCredentialManager:
@@ -220,8 +220,7 @@ class KeyringCredentialManager:
         """Initialize the keyring credential manager."""
         if keyring is None:
             raise CredentialStorageError(
-                "keyring package is not installed. "
-                "Install it with: pip install keyring"
+                "keyring package is not installed. Install it with: pip install keyring"
             )
 
     def get_credentials(self) -> tuple[str, str] | None:
@@ -246,12 +245,12 @@ class KeyringCredentialManager:
             if not password:
                 return None
 
-            return (username, password)
-
         except keyring.errors.KeyringError as err:
             raise CredentialStorageError(
                 f"Failed to retrieve credentials from keyring: {err}"
             ) from err
+        else:
+            return (username, password)
 
     def store_credentials(self, username: str, password: str) -> None:
         """Store credentials securely in the system keyring.
@@ -326,9 +325,8 @@ class KeyringCredentialManager:
             if hasattr(backend, "filename"):
                 return f"Encrypted file: {backend.filename}"
 
-            return f"Keyring backend: {backend_name}"
-
         except Exception:  # noqa: BLE001
             # Fallback if we can't determine the backend
             return "System credential store (backend unknown)"
-
+        else:
+            return f"Keyring backend: {backend_name}"

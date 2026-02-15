@@ -76,12 +76,12 @@ def test_get_credentials_keyring_error() -> None:
         "Keyring error"
     )
 
-    with (
-        patch("evohome_cli.auth.keyring", mock_keyring),
-        pytest.raises(CredentialStorageError, match="Failed to retrieve credentials"),
-    ):
+    with patch("evohome_cli.auth.keyring", mock_keyring):
         manager = KeyringCredentialManager()
-        manager.get_credentials()
+        with pytest.raises(
+            CredentialStorageError, match="Failed to retrieve credentials"
+        ):
+            manager.get_credentials()
 
 
 def test_store_credentials_success() -> None:
@@ -108,12 +108,10 @@ def test_store_credentials_keyring_error() -> None:
         "Storage error"
     )
 
-    with (
-        patch("evohome_cli.auth.keyring", mock_keyring),
-        pytest.raises(CredentialStorageError, match="Failed to store credentials"),
-    ):
+    with patch("evohome_cli.auth.keyring", mock_keyring):
         manager = KeyringCredentialManager()
-        manager.store_credentials("testuser@example.com", "testpass123")
+        with pytest.raises(CredentialStorageError, match="Failed to store credentials"):
+            manager.store_credentials("testuser@example.com", "testpass123")
 
 
 def test_delete_credentials_success() -> None:
@@ -148,8 +146,10 @@ def test_delete_credentials_not_found() -> None:
 def test_delete_credentials_keyring_error() -> None:
     """Test deleting credentials when keyring raises a non-PasswordDeleteError."""
     mock_keyring = MagicMock()
-    mock_keyring.errors.PasswordDeleteError = type('PasswordDeleteError', (Exception,), {})
-    mock_keyring.errors.KeyringError = type('KeyringError', (Exception,), {})
+    mock_keyring.errors.PasswordDeleteError = type(
+        "PasswordDeleteError", (Exception,), {}
+    )
+    mock_keyring.errors.KeyringError = type("KeyringError", (Exception,), {})
 
     # First delete succeeds, second fails with KeyringError
     def delete_side_effect(service: str, key: str) -> None:
@@ -158,12 +158,10 @@ def test_delete_credentials_keyring_error() -> None:
 
     mock_keyring.delete_password.side_effect = delete_side_effect
 
-    with (
-        patch("evohome_cli.auth.keyring", mock_keyring),
-        pytest.raises(CredentialStorageError, match="Failed to delete password"),
-    ):
+    with patch("evohome_cli.auth.keyring", mock_keyring):
         manager = KeyringCredentialManager()
-        manager.delete_credentials()
+        with pytest.raises(CredentialStorageError, match="Failed to delete password"):
+            manager.delete_credentials()
 
 
 def test_storage_location_macos() -> None:
