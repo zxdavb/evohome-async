@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 def test_parse_interval_seconds() -> None:
     """Test parsing interval in seconds."""
-    from cli.poll_evohome import _parse_interval
+    from evohome_cli.poll_evohome import _parse_interval
 
     assert _parse_interval("30s") == 30.0
     assert _parse_interval("60s") == 60.0
@@ -25,7 +25,7 @@ def test_parse_interval_seconds() -> None:
 
 def test_parse_interval_minutes() -> None:
     """Test parsing interval in minutes."""
-    from cli.poll_evohome import _parse_interval
+    from evohome_cli.poll_evohome import _parse_interval
 
     assert _parse_interval("1m") == 60.0
     assert _parse_interval("2m") == 120.0
@@ -34,7 +34,7 @@ def test_parse_interval_minutes() -> None:
 
 def test_parse_interval_case_insensitive() -> None:
     """Test parsing interval is case insensitive."""
-    from cli.poll_evohome import _parse_interval
+    from evohome_cli.poll_evohome import _parse_interval
 
     assert _parse_interval("30S") == 30.0
     assert _parse_interval("1M") == 60.0
@@ -42,7 +42,7 @@ def test_parse_interval_case_insensitive() -> None:
 
 def test_parse_interval_invalid_format() -> None:
     """Test parsing invalid interval format."""
-    from cli.poll_evohome import _parse_interval
+    from evohome_cli.poll_evohome import _parse_interval
     import asyncclick
 
     with pytest.raises(asyncclick.exceptions.BadParameter, match="Invalid interval format"):
@@ -51,7 +51,7 @@ def test_parse_interval_invalid_format() -> None:
 
 def test_parse_interval_too_short() -> None:
     """Test parsing interval below minimum."""
-    from cli.poll_evohome import _parse_interval
+    from evohome_cli.poll_evohome import _parse_interval
     import asyncclick
 
     with pytest.raises(asyncclick.exceptions.BadParameter, match="at least 30 seconds"):
@@ -60,7 +60,7 @@ def test_parse_interval_too_short() -> None:
 
 def test_parse_interval_too_long() -> None:
     """Test parsing interval above maximum."""
-    from cli.poll_evohome import _parse_interval
+    from evohome_cli.poll_evohome import _parse_interval
     import asyncclick
 
     with pytest.raises(asyncclick.exceptions.BadParameter, match="at most 120 minutes"):
@@ -69,7 +69,7 @@ def test_parse_interval_too_long() -> None:
 
 def test_format_zone_key() -> None:
     """Test formatting zone key."""
-    from cli.poll_evohome import _format_zone_key
+    from evohome_cli.poll_evohome import _format_zone_key
 
     assert _format_zone_key("5262675", "Livingroom") == "5262675_Livingroom"
     assert _format_zone_key("5262676", "Hall upstairs") == "5262676_Hall_upstairs"
@@ -78,7 +78,7 @@ def test_format_zone_key() -> None:
 
 def test_poll_basic_functionality_logic(tmp_path: Path) -> None:
     """Test poll command logic (CSV writing, zone key formatting)."""
-    from cli.poll_evohome import _format_zone_key
+    from evohome_cli.poll_evohome import _format_zone_key
     import csv
 
     # Test CSV writing logic
@@ -120,7 +120,7 @@ def test_poll_basic_functionality_logic(tmp_path: Path) -> None:
 
 def test_poll_file_exists_append_logic(tmp_path: Path) -> None:
     """Test poll command logic when file exists and appending."""
-    from cli.poll_evohome import _format_zone_key
+    from evohome_cli.poll_evohome import _format_zone_key
     import csv
 
     # Create existing file with some data
@@ -165,7 +165,7 @@ def test_poll_file_exists_append_logic(tmp_path: Path) -> None:
 
 def test_poll_file_exists_overwrite_logic(tmp_path: Path) -> None:
     """Test poll command logic when file exists and overwriting."""
-    from cli.poll_evohome import _format_zone_key
+    from evohome_cli.poll_evohome import _format_zone_key
     import csv
 
     # Create existing file with some data
@@ -220,7 +220,7 @@ def test_poll_no_zones_logic() -> None:
 
 def test_poll_unavailable_temperature_logic(tmp_path: Path) -> None:
     """Test poll command logic with unavailable temperature."""
-    from cli.poll_evohome import _format_zone_key
+    from evohome_cli.poll_evohome import _format_zone_key
     import csv
 
     # Test CSV writing with N/A for unavailable temperature
@@ -254,7 +254,7 @@ def test_poll_unavailable_temperature_logic(tmp_path: Path) -> None:
 
 def test_poll_interval_validation() -> None:
     """Test interval validation in click callback."""
-    from cli.poll_evohome import _parse_interval
+    from evohome_cli.poll_evohome import _parse_interval
     import asyncclick
 
     # Test valid intervals

@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from cli.schedule_parser import (
+from evohome_cli.schedule_parser import (
     json_to_text_schedule,
     parse_day_spec,
     parse_temperature_time,
@@ -326,7 +326,7 @@ def tmp_json_file(tmp_path: Path) -> Path:
 
 def test_convert_schedule_to_json_command(tmp_text_file: Path, tmp_path: Path) -> None:
     """Test convert-schedule-to-json CLI command."""
-    from cli.schedule_parser import parse_text_schedule
+    from evohome_cli.schedule_parser import parse_text_schedule
     import json
 
     # Test the underlying functionality directly
@@ -349,7 +349,7 @@ def test_convert_schedule_to_json_command(tmp_text_file: Path, tmp_path: Path) -
 
 def test_convert_schedule_to_text_command(tmp_json_file: Path, tmp_path: Path) -> None:
     """Test convert-schedule-to-text CLI command."""
-    from cli.schedule_parser import json_to_text_schedule
+    from evohome_cli.schedule_parser import json_to_text_schedule
 
     # Test the underlying functionality directly
     with open(tmp_json_file, "r") as input_fp:
@@ -369,7 +369,7 @@ def test_convert_schedule_to_text_command(tmp_json_file: Path, tmp_path: Path) -
 
 def test_get_schedules_json_format_logic() -> None:
     """Test get_schedules JSON format conversion logic."""
-    from cli.schedule_parser import json_to_text_schedule
+    from evohome_cli.schedule_parser import json_to_text_schedule
     import json
 
     # Test the format conversion logic directly
@@ -384,7 +384,7 @@ def test_get_schedules_json_format_logic() -> None:
 
 def test_get_schedules_text_format_logic() -> None:
     """Test get_schedules text format conversion logic."""
-    from cli.schedule_parser import json_to_text_schedule
+    from evohome_cli.schedule_parser import json_to_text_schedule
 
     # Test the format conversion logic directly
     schedules = SAMPLE_JSON_SCHEDULE
@@ -398,7 +398,7 @@ def test_get_schedules_text_format_logic() -> None:
 
 def test_set_schedules_json_format_logic(tmp_json_file: Path) -> None:
     """Test set_schedules JSON format parsing logic."""
-    from cli.schedule_parser import parse_text_schedule
+    from evohome_cli.schedule_parser import parse_text_schedule
     import json
 
     # Test the format parsing logic directly
@@ -412,7 +412,7 @@ def test_set_schedules_json_format_logic(tmp_json_file: Path) -> None:
 
 def test_set_schedules_text_format_logic(tmp_text_file: Path) -> None:
     """Test set_schedules text format parsing logic."""
-    from cli.schedule_parser import parse_text_schedule
+    from evohome_cli.schedule_parser import parse_text_schedule
 
     # Test the format parsing logic directly
     with open(tmp_text_file, "r") as f:

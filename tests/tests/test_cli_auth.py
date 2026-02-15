@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cli.auth import (
+from evohome_cli.auth import (
     delete_stored_credentials,
     get_credential_storage_location,
     get_stored_credentials,
@@ -232,7 +232,7 @@ def test_get_credential_storage_location_error() -> None:
 
 def test_login_command_stores_credentials() -> None:
     """Test login command stores credentials."""
-    from cli.auth import store_credentials, get_credential_storage_location
+    from evohome_cli.auth import store_credentials, get_credential_storage_location
     from unittest.mock import patch
 
     # Test the underlying functionality directly
@@ -247,7 +247,7 @@ def test_login_command_stores_credentials() -> None:
 
 def test_login_command_with_parameters() -> None:
     """Test login command with provided credentials."""
-    from cli.auth import store_credentials
+    from evohome_cli.auth import store_credentials
     from unittest.mock import patch
 
     # Test the underlying functionality directly
@@ -263,7 +263,7 @@ def test_login_command_with_parameters() -> None:
 
 def test_login_command_with_u_p_options() -> None:
     """Test login command accepts -u and -p options."""
-    from cli.auth import store_credentials
+    from evohome_cli.auth import store_credentials
     from unittest.mock import patch
 
     # Test that when login command receives -u and -p options,
@@ -287,7 +287,7 @@ def test_login_command_with_u_p_options() -> None:
 
 def test_login_command_delete() -> None:
     """Test login command deletes credentials."""
-    from cli.auth import delete_stored_credentials
+    from evohome_cli.auth import delete_stored_credentials
     from unittest.mock import patch
 
     # Test the underlying functionality directly
@@ -300,7 +300,7 @@ def test_login_command_delete() -> None:
 
 def test_login_command_keyring_error() -> None:
     """Test login command handles keyring errors."""
-    from cli.auth import store_credentials
+    from evohome_cli.auth import store_credentials
     from unittest.mock import patch
 
     # Test the underlying functionality directly
@@ -359,7 +359,7 @@ def test_cli_credential_resolution_priority() -> None:
 
 def test_cli_missing_credentials_logic() -> None:
     """Test CLI credential resolution logic when no credentials are available."""
-    from cli.auth import get_stored_credentials
+    from evohome_cli.auth import get_stored_credentials
 
     # Test that None is returned when no credentials are stored
     with patch("cli.auth.keyring", None):
