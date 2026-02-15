@@ -25,6 +25,7 @@ from evohomeasync2 import (
 from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE
 
 from .auth import CACHE_FILE, CredentialsManager
+from .poll_evohome import register_command as register_poll
 
 if TYPE_CHECKING:
     from io import TextIOWrapper
@@ -157,6 +158,10 @@ async def cli(
     # TODO: use a typed dict for ctx.obj
     ctx.obj[SZ_EVO] = evo
     ctx.obj[SZ_CLEANUP] = cleanup(websession, token_manager)
+
+
+# Register commands from separate modules
+register_poll(cli)
 
 
 @cli.command()
