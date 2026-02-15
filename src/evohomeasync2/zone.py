@@ -641,7 +641,7 @@ class Zone(_ZoneBase):
     async def set_temperature(  # aka. set_mode()
         self, temperature: float, /, *, until: dt | None = None
     ) -> None:
-        """Set the temperature of the given zone (no provision for cooling)."""
+        """Set the temperature of the zone (no provision for cooling)."""
 
         mode: TccSetZonModeT
 
