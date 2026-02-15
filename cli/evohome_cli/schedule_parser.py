@@ -87,6 +87,10 @@ def parse_day_spec(day_spec: str) -> list[str]:
     return res
 
 
+# Sequence constants
+NUM_PARTS_DAY_SCHED = 2
+
+
 def parse_text_schedule(text: str) -> list[dict[str, Any]]:
     """Parse the text schedule format and return JSON structure."""
     lines = text.strip().split("\n")
@@ -112,7 +116,7 @@ def parse_text_schedule(text: str) -> list[dict[str, Any]]:
         # Check if this is a schedule line
         if current_zone and ":" in line:
             parts = line.split(":", 1)
-            if len(parts) != 2:  # noqa: PLR2004
+            if len(parts) != NUM_PARTS_DAY_SCHED:
                 continue
 
             day_spec, schedule_text = parts[0].strip(), parts[1].strip()
@@ -128,7 +132,9 @@ def parse_text_schedule(text: str) -> list[dict[str, Any]]:
                 daily_schedule = {"day_of_week": day, "switchpoints": switchpoints}
                 # Replace existing schedule for this day if it exists
                 current_zone["daily_schedules"] = [
-                    ds for ds in current_zone["daily_schedules"] if ds["day_of_week"] != day
+                    ds
+                    for ds in current_zone["daily_schedules"]
+                    if ds["day_of_week"] != day
                 ]
                 current_zone["daily_schedules"].append(daily_schedule)
 

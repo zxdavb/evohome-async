@@ -421,7 +421,7 @@ async def set_schedules(
 
         click.echo("Uploading schedules...", err=True)
 
-        success = await tcs.set_schedules(cast(list[Any], schedules))
+        success = await tcs.set_schedules(cast("list[Any]", schedules))
         if not success:
             raise click.ClickException("Schedule restore completed with errors.")
 
@@ -481,7 +481,7 @@ def convert_schedule_to_json(
 ) -> None:
     """Convert text schedule format to JSON format."""
 
-    print("\r\nConverting text schedule to JSON format...")
+    click.echo("\r\nConverting text schedule to JSON format...")
 
     try:
         content = input_file.read()
@@ -494,11 +494,11 @@ def convert_schedule_to_json(
             # For file output, we need to write synchronously since it's not async
             Path(output_file.name).write_text(json_content)
 
-        print(f" - Converted {len(schedules)} zones to JSON format.")
-        print(" - finished.\r\n")
+        click.echo(f" - Converted {len(schedules)} zones to JSON format.")
+        click.echo(" - finished.\r\n")
 
     except (ValueError, OSError, KeyError) as e:
-        print(f"Error: {e}\r\n")
+        click.echo(f"Error: {e}\r\n")
         sys.exit(1)
 
 
@@ -522,7 +522,7 @@ def convert_schedule_to_text(
 ) -> None:
     """Convert JSON schedule format to text format."""
 
-    print("\r\nConverting JSON schedule to text format...")
+    click.echo("\r\nConverting JSON schedule to text format...")
 
     try:
         content = input_file.read()
@@ -535,11 +535,11 @@ def convert_schedule_to_text(
             # For file output, we need to write synchronously since it's not async
             Path(output_file.name).write_text(text_content)
 
-        print(f" - Converted {len(schedules)} zones to text format.")
-        print(" - finished.\r\n")
+        click.echo(f" - Converted {len(schedules)} zones to text format.")
+        click.echo(" - finished.\r\n")
 
     except (ValueError, OSError, KeyError) as e:
-        print(f"Error: {e}\r\n")
+        click.echo(f"Error: {e}\r\n")
         sys.exit(1)
 
 
@@ -555,7 +555,7 @@ def main() -> None:
         try:
             convert_cli()
         except click.ClickException as err:
-            print(f"Error: {err}")
+            click.echo(f"Error: {err}")
             sys.exit(-1)
     else:
         # Handle main CLI commands (require auth)

@@ -158,3 +158,7 @@ dmypy.json
 
 # pytype static type analyzer
 .pytype/
+
+# Agent files WIP - ignore for now
+docs/
+!docs/issues/.gitkeep
