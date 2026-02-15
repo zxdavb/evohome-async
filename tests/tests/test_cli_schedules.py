@@ -222,13 +222,17 @@ Weekends: 15C @ 07:00 to 15C @ 22:30"""
     assert len(result[0]["daily_schedules"]) == LEN_7
 
     # Check weekdays
-    monday = next(d for d in result[0]["daily_schedules"] if d["day_of_week"] == "Monday")
+    monday = next(
+        d for d in result[0]["daily_schedules"] if d["day_of_week"] == "Monday"
+    )
     assert len(monday["switchpoints"]) == LEN_2
     assert monday["switchpoints"][0]["heat_setpoint"] == TEMP_16
     assert monday["switchpoints"][0]["time_of_day"] == "06:00:00"
 
     # Check weekends
-    saturday = next(d for d in result[0]["daily_schedules"] if d["day_of_week"] == "Saturday")
+    saturday = next(
+        d for d in result[0]["daily_schedules"] if d["day_of_week"] == "Saturday"
+    )
     assert saturday["switchpoints"][0]["heat_setpoint"] == TEMP_15
 
 
@@ -252,7 +256,9 @@ Weekends: 15C @ 07:00 to 15C @ 22:30"""
 
     assert len(result) == LEN_1
     # Check Wednesday has 3 switchpoints
-    wednesday = next(d for d in result[0]["daily_schedules"] if d["day_of_week"] == "Wednesday")
+    wednesday = next(
+        d for d in result[0]["daily_schedules"] if d["day_of_week"] == "Wednesday"
+    )
     assert len(wednesday["switchpoints"]) == LEN_3
 
 
@@ -283,7 +289,15 @@ def test_json_to_text_schedule_all_days() -> None:
                         {"heat_setpoint": 15.0, "time_of_day": "22:30:00"},
                     ],
                 }
-                for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                for day in [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
+                ]
             ],
         }
     ]
@@ -453,7 +467,9 @@ def test_json_to_text_schedule_single_switchpoint() -> None:
             "daily_schedules": [
                 {
                     "day_of_week": "Monday",
-                    "switchpoints": [{"heat_setpoint": 20.0, "time_of_day": "07:00:00"}],
+                    "switchpoints": [
+                        {"heat_setpoint": 20.0, "time_of_day": "07:00:00"}
+                    ],
                 }
             ],
         }
@@ -465,4 +481,3 @@ def test_json_to_text_schedule_single_switchpoint() -> None:
     # Check for temperature format (can be 20C or 20.0C depending on formatting)
     assert "20" in result
     assert "C @ 07:00" in result
-

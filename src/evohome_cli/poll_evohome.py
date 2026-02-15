@@ -243,9 +243,7 @@ async def import_csv_to_influxdb(
 
                 # Parse timestamp
                 try:
-                    timestamp = datetime.fromisoformat(
-                        timestamp_str
-                    )
+                    timestamp = datetime.fromisoformat(timestamp_str)
                 except (ValueError, AttributeError):
                     continue
 
@@ -485,7 +483,9 @@ def register_command(cli_group: click.Group) -> None:
             for zid in zone_order:
                 header += f" {zid:<{temp_width}}"
 
-        def print_row(timestamp: str, mode: str, temps: dict[str, float | None]) -> None:
+        def print_row(
+            timestamp: str, mode: str, temps: dict[str, float | None]
+        ) -> None:
             """Print a row of temperatures."""
             time_width = 19
             mode_width = 15
@@ -520,7 +520,12 @@ def register_command(cli_group: click.Group) -> None:
                         await evo.locations[loc_idx].update()
                         update_successful = True
                         break
-                    except (TimeoutError, ApiRequestFailedError, ConnectionError, OSError):
+                    except (
+                        TimeoutError,
+                        ApiRequestFailedError,
+                        ConnectionError,
+                        OSError,
+                    ):
                         retry_count += 1
                         if retry_count <= max_retries:
                             # Wait a bit before retrying (exponential backoff: 1s, 2s)

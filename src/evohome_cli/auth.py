@@ -218,11 +218,15 @@ def get_stored_credentials() -> tuple[str, str] | None:
         return None
 
     try:
-        username = keyring.get_password(CREDENTIAL_SERVICE_NAME, CREDENTIAL_USERNAME_KEY)
+        username = keyring.get_password(
+            CREDENTIAL_SERVICE_NAME, CREDENTIAL_USERNAME_KEY
+        )
         if not username:
             return None
 
-        password = keyring.get_password(CREDENTIAL_SERVICE_NAME, CREDENTIAL_PASSWORD_KEY)
+        password = keyring.get_password(
+            CREDENTIAL_SERVICE_NAME, CREDENTIAL_PASSWORD_KEY
+        )
         if not password:
             return None
 
@@ -241,8 +245,7 @@ def store_credentials(username: str, password: str) -> None:
     """
     if keyring is None:
         raise RuntimeError(
-            "keyring package is not installed. "
-            "Install it with: pip install keyring"
+            "keyring package is not installed. Install it with: pip install keyring"
         )
 
     try:

@@ -97,8 +97,9 @@ def test_store_credentials_with_keyring() -> None:
 
 def test_store_credentials_no_keyring() -> None:
     """Test storing credentials when keyring is not available."""
-    with patch("evohome_cli.auth.keyring", None), pytest.raises(
-        RuntimeError, match="keyring package is not installed"
+    with (
+        patch("evohome_cli.auth.keyring", None),
+        pytest.raises(RuntimeError, match="keyring package is not installed"),
     ):
         store_credentials("testuser@example.com", "testpass123")
 
@@ -108,8 +109,9 @@ def test_store_credentials_keyring_error() -> None:
     mock_keyring = MagicMock()
     mock_keyring.set_password.side_effect = Exception("Storage error")
 
-    with patch("evohome_cli.auth.keyring", mock_keyring), pytest.raises(
-        RuntimeError, match="Failed to store credentials"
+    with (
+        patch("evohome_cli.auth.keyring", mock_keyring),
+        pytest.raises(RuntimeError, match="Failed to store credentials"),
     ):
         store_credentials("testuser@example.com", "testpass123")
 
@@ -238,8 +240,12 @@ def test_get_credential_storage_location_error() -> None:
 def test_login_command_stores_credentials() -> None:
     """Test login command stores credentials."""
     # Test the underlying functionality directly
-    with patch("evohome_cli.auth.keyring") as mock_keyring, patch(
-        "evohome_cli.auth.get_credential_storage_location", return_value="Test Keyring"
+    with (
+        patch("evohome_cli.auth.keyring") as mock_keyring,
+        patch(
+            "evohome_cli.auth.get_credential_storage_location",
+            return_value="Test Keyring",
+        ),
     ):
         mock_keyring.set_password = MagicMock()
         store_credentials("testuser@example.com", "testpass123")
@@ -265,8 +271,12 @@ def test_login_command_with_u_p_options() -> None:
     # Test that when login command receives -u and -p options,
     # it calls store_credentials with those values
     # This tests the integration: login command -> store_credentials
-    with patch("evohome_cli.auth.keyring") as mock_keyring, patch(
-        "evohome_cli.auth.get_credential_storage_location", return_value="Test Keyring"
+    with (
+        patch("evohome_cli.auth.keyring") as mock_keyring,
+        patch(
+            "evohome_cli.auth.get_credential_storage_location",
+            return_value="Test Keyring",
+        ),
     ):
         mock_keyring.set_password = MagicMock()
 
@@ -347,4 +357,3 @@ def test_cli_missing_credentials_logic() -> None:
     with patch("evohome_cli.auth.keyring", None):
         result = get_stored_credentials()
         assert result is None
-

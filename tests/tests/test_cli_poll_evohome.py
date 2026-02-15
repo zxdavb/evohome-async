@@ -57,7 +57,9 @@ def test_parse_interval_case_insensitive() -> None:
 
 def test_parse_interval_invalid_format() -> None:
     """Test parsing invalid interval format."""
-    with pytest.raises(asyncclick.exceptions.BadParameter, match="Invalid interval format"):
+    with pytest.raises(
+        asyncclick.exceptions.BadParameter, match="Invalid interval format"
+    ):
         _parse_interval("invalid")
 
 
@@ -75,7 +77,10 @@ def test_parse_interval_too_long() -> None:
 
 def test_format_zone_key() -> None:
     """Test formatting zone key."""
-    assert _format_zone_key(ZONE_ID_LIVINGROOM, "Livingroom") == f"{ZONE_ID_LIVINGROOM}_Livingroom"
+    assert (
+        _format_zone_key(ZONE_ID_LIVINGROOM, "Livingroom")
+        == f"{ZONE_ID_LIVINGROOM}_Livingroom"
+    )
     assert _format_zone_key("5262676", "Hall upstairs") == "5262676_Hall_upstairs"
     assert _format_zone_key("5262677", "Room 1") == "5262677_Room_1"
 
@@ -135,23 +140,27 @@ def test_poll_file_exists_append_logic(tmp_path: Path) -> None:
     with output_file.open("w") as f:
         writer = csv.DictWriter(f, fieldnames=csv_columns)
         writer.writeheader()
-        writer.writerow({
-            "timestamp": "2025-01-15T10:30:00",
-            "system_mode": "AutoWithEco",
-            f"{ZONE_ID_LIVINGROOM}_Livingroom": str(LIVINGROOM_TEMP),
-            f"{ZONE_ID_KITCHEN}_Kitchen": str(KITCHEN_TEMP),
-        })
+        writer.writerow(
+            {
+                "timestamp": "2025-01-15T10:30:00",
+                "system_mode": "AutoWithEco",
+                f"{ZONE_ID_LIVINGROOM}_Livingroom": str(LIVINGROOM_TEMP),
+                f"{ZONE_ID_KITCHEN}_Kitchen": str(KITCHEN_TEMP),
+            }
+        )
 
     # When appending, we should NOT write header again
     # Just append new row
     with output_file.open("a") as f:
         writer = csv.DictWriter(f, fieldnames=csv_columns)
-        writer.writerow({
-            "timestamp": "2025-01-15T10:31:00",
-            "system_mode": "Auto",
-            f"{ZONE_ID_LIVINGROOM}_Livingroom": str(LIVINGROOM_TEMP_NEW),
-            f"{ZONE_ID_KITCHEN}_Kitchen": str(KITCHEN_TEMP_NEW),
-        })
+        writer.writerow(
+            {
+                "timestamp": "2025-01-15T10:31:00",
+                "system_mode": "Auto",
+                f"{ZONE_ID_LIVINGROOM}_Livingroom": str(LIVINGROOM_TEMP_NEW),
+                f"{ZONE_ID_KITCHEN}_Kitchen": str(KITCHEN_TEMP_NEW),
+            }
+        )
 
     # Verify CSV content has 2 rows (not 3, because header wasn't duplicated)
     with output_file.open() as f:
@@ -177,21 +186,25 @@ def test_poll_file_exists_overwrite_logic(tmp_path: Path) -> None:
     with output_file.open("w") as f:
         writer = csv.DictWriter(f, fieldnames=csv_columns)
         writer.writeheader()
-        writer.writerow({
-            "timestamp": "2025-01-15T10:30:00",
-            "system_mode": "AutoWithEco",
-            f"{ZONE_ID_LIVINGROOM}_Livingroom": str(LIVINGROOM_TEMP),
-        })
+        writer.writerow(
+            {
+                "timestamp": "2025-01-15T10:30:00",
+                "system_mode": "AutoWithEco",
+                f"{ZONE_ID_LIVINGROOM}_Livingroom": str(LIVINGROOM_TEMP),
+            }
+        )
 
     # When overwriting, we write header again and replace content
     with output_file.open("w") as f:
         writer = csv.DictWriter(f, fieldnames=csv_columns)
         writer.writeheader()
-        writer.writerow({
-            "timestamp": "2025-01-15T10:35:00",
-            "system_mode": "Away",
-            f"{ZONE_ID_LIVINGROOM}_Livingroom": str(TEMP_17),
-        })
+        writer.writerow(
+            {
+                "timestamp": "2025-01-15T10:35:00",
+                "system_mode": "Away",
+                f"{ZONE_ID_LIVINGROOM}_Livingroom": str(TEMP_17),
+            }
+        )
 
     # Verify CSV content has only 1 row (old data was overwritten)
     with output_file.open() as f:
@@ -264,4 +277,3 @@ def test_poll_interval_validation() -> None:
         _parse_interval("29s")
     with pytest.raises(asyncclick.exceptions.BadParameter):
         _parse_interval("121m")
-

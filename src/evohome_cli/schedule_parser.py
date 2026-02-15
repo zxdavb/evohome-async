@@ -165,7 +165,9 @@ def parse_text_schedule(text: str) -> list[dict[str, Any]]:
     # Sort daily schedules by day of week
     day_order = {day: idx for idx, day in enumerate(ALL_DAYS)}
     for schedule in schedules:
-        schedule["daily_schedules"].sort(key=lambda x: day_order.get(x["day_of_week"], 999))
+        schedule["daily_schedules"].sort(
+            key=lambda x: day_order.get(x["day_of_week"], 999)
+        )
 
     return schedules
 
@@ -209,8 +211,7 @@ def _group_days_by_schedule(
         switchpoints = daily["switchpoints"]
         # Create a tuple key from switchpoints
         key = tuple(
-            (sp.get("heat_setpoint"), sp.get("time_of_day"))
-            for sp in switchpoints
+            (sp.get("heat_setpoint"), sp.get("time_of_day")) for sp in switchpoints
         )
         if key not in groups:
             groups[key] = []
@@ -238,12 +239,22 @@ def _format_day_spec(days: list[str]) -> str:
     # Check if it's a subset of weekdays
     if days_set.issubset(set(WEEKDAYS)) and len(days) > 1:
         # Try to use abbreviations
-        abbrs = [DAY_ABBREVIATIONS.get(day, day) for day in sorted(days, key=lambda d: WEEKDAYS.index(d) if d in WEEKDAYS else 999)]
+        abbrs = [
+            DAY_ABBREVIATIONS.get(day, day)
+            for day in sorted(
+                days, key=lambda d: WEEKDAYS.index(d) if d in WEEKDAYS else 999
+            )
+        ]
         return "/".join(abbrs)
 
     # Check if it's a subset of weekends
     if days_set.issubset(set(WEEKENDS)) and len(days) > 1:
-        abbrs = [DAY_ABBREVIATIONS.get(day, day) for day in sorted(days, key=lambda d: WEEKENDS.index(d) if d in WEEKENDS else 999)]
+        abbrs = [
+            DAY_ABBREVIATIONS.get(day, day)
+            for day in sorted(
+                days, key=lambda d: WEEKENDS.index(d) if d in WEEKENDS else 999
+            )
+        ]
         return "/".join(abbrs)
 
     # Single day - use full name
@@ -306,4 +317,3 @@ def json_to_text_schedule(schedules: list[dict[str, Any]]) -> str:
             lines.append("")
 
     return "\n".join(lines)
-
