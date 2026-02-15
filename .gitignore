@@ -6,6 +6,9 @@ tokens*
 .secrets/
 .vscode/
 
+# issue documentation (local only)
+docs/issues/
+
 # schedule backups
 /*.json
 
