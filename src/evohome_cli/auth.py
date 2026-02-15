@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
 import aiofiles
 import aiofiles.os
 
+from _evohome.exceptions import CredentialStorageError
 from evohomeasync.auth import (
     SZ_SESSION_ID,
     SZ_SESSION_ID_EXPIRES,
@@ -198,3 +199,136 @@ class CredentialsManager(AbstractTokenManager, AbstractSessionManager):
         cache[self.client_id][SZ_SESSION_ID] = self._export_session_id()
 
         await self._write_cache_to_file(self._clean_cache(cache))
+
+
+# Keyring-based credential storage
+try:
+    import keyring
+    import keyring.errors
+except ImportError:
+    keyring = None  # type: ignore[assignment]
+
+CREDENTIAL_SERVICE_NAME: Final = "evohome-async"
+CREDENTIAL_USERNAME_KEY: Final = "username"
+CREDENTIAL_PASSWORD_KEY: Final = "password"
+
+
+class KeyringCredentialManager:
+    """Manager for storing and retrieving TCC credentials using system keyring."""
+
+    def __init__(self) -> None:
+        """Initialize the keyring credential manager."""
+        if keyring is None:
+            raise CredentialStorageError(
+                "keyring package is not installed. "
+                "Install it with: pip install keyring"
+            )
+
+    def get_credentials(self) -> tuple[str, str] | None:
+        """Retrieve stored credentials from the system keyring.
+
+        Returns:
+            Tuple of (username, password) if both are found, None otherwise.
+
+        Raises:
+            CredentialStorageError: If keyring access fails.
+        """
+        try:
+            username = keyring.get_password(
+                CREDENTIAL_SERVICE_NAME, CREDENTIAL_USERNAME_KEY
+            )
+            if not username:
+                return None
+
+            password = keyring.get_password(
+                CREDENTIAL_SERVICE_NAME, CREDENTIAL_PASSWORD_KEY
+            )
+            if not password:
+                return None
+
+            return (username, password)
+
+        except keyring.errors.KeyringError as err:
+            raise CredentialStorageError(
+                f"Failed to retrieve credentials from keyring: {err}"
+            ) from err
+
+    def store_credentials(self, username: str, password: str) -> None:
+        """Store credentials securely in the system keyring.
+
+        Args:
+            username: TCC account username/email
+            password: TCC account password
+
+        Raises:
+            CredentialStorageError: If keyring storage fails.
+        """
+        try:
+            keyring.set_password(
+                CREDENTIAL_SERVICE_NAME, CREDENTIAL_USERNAME_KEY, username
+            )
+            keyring.set_password(
+                CREDENTIAL_SERVICE_NAME, CREDENTIAL_PASSWORD_KEY, password
+            )
+        except keyring.errors.KeyringError as err:
+            raise CredentialStorageError(
+                f"Failed to store credentials in keyring: {err}"
+            ) from err
+
+    def delete_credentials(self) -> None:
+        """Delete stored credentials from the system keyring.
+
+        Does not raise an error if credentials don't exist.
+
+        Raises:
+            CredentialStorageError: If keyring deletion fails for reasons other than
+                credentials not existing.
+        """
+        try:
+            keyring.delete_password(CREDENTIAL_SERVICE_NAME, CREDENTIAL_USERNAME_KEY)
+        except keyring.errors.PasswordDeleteError:
+            # Credentials don't exist, which is fine
+            pass
+        except keyring.errors.KeyringError as err:
+            raise CredentialStorageError(
+                f"Failed to delete username from keyring: {err}"
+            ) from err
+
+        try:
+            keyring.delete_password(CREDENTIAL_SERVICE_NAME, CREDENTIAL_PASSWORD_KEY)
+        except keyring.errors.PasswordDeleteError:
+            # Credentials don't exist, which is fine
+            pass
+        except keyring.errors.KeyringError as err:
+            raise CredentialStorageError(
+                f"Failed to delete password from keyring: {err}"
+            ) from err
+
+    @property
+    def storage_location(self) -> str:
+        """Get a human-readable description of where credentials are stored.
+
+        Returns:
+            Description of the keyring backend being used.
+        """
+        try:
+            backend = keyring.get_keyring()
+            backend_name = backend.__class__.__name__
+            backend_module = backend.__class__.__module__
+
+            # Platform-specific descriptions
+            if "macOS" in backend_module or "Keychain" in backend_name:
+                return "macOS Keychain (Login keychain)"
+            if "Windows" in backend_module or "Win" in backend_name:
+                return "Windows Credential Manager"
+            if "SecretService" in backend_module or "SecretService" in backend_name:
+                return "Linux Secret Service (GNOME Keyring / KWallet)"
+            if hasattr(backend, "filename"):
+                return f"Encrypted file: {backend.filename}"
+
+            return f"Keyring backend: {backend_name}"
+
+        except Exception:  # noqa: BLE001
+            # Fallback if we can't determine the backend
+            return "System credential store (backend unknown)"
+

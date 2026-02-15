@@ -103,3 +103,12 @@ class InvalidScheduleError(StatusError):
 
     This is likely because the user has not yet called `Zone.get_schedule()`.
     """
+
+
+class CredentialStorageError(EvohomeError):
+    """Unable to store or retrieve credentials from the system keyring.
+
+    This could be caused by the keyring backend being unavailable, permissions issues,
+    or other system-level credential storage failures.
+    """
+
