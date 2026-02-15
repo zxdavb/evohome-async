@@ -7,7 +7,12 @@
 tokens*
 .secrets/
 .vscode/
+.cursor/
 .env
+
+# testdata directory (keep .gitkeep)
+testdata/*
+!testdata/.gitkeep
 
 # schedule backups
 /*.json
