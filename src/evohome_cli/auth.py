@@ -27,8 +27,16 @@ if TYPE_CHECKING:
     from evohomeasync.auth import SessionIdEntryT
     from evohomeasync2.auth import AccessTokenEntryT
 
+try:
+    import keyring
+except ImportError:
+    keyring = None  # type: ignore[assignment,unused-ignore]
+
 
 CACHE_FILE: Final = Path(tempfile.gettempdir()) / ".evo-cache.tmp"
+CREDENTIAL_SERVICE_NAME: Final = "evohome-async"
+CREDENTIAL_USERNAME_KEY: Final = "username"
+CREDENTIAL_PASSWORD_KEY: Final = "password"
 
 
 class UserEntryT(TypedDict):
@@ -198,3 +206,89 @@ class CredentialsManager(AbstractTokenManager, AbstractSessionManager):
         cache[self.client_id][SZ_SESSION_ID] = self._export_session_id()
 
         await self._write_cache_to_file(self._clean_cache(cache))
+
+
+def get_stored_credentials() -> tuple[str, str] | None:
+    """Retrieve stored username and password from secure storage.
+
+    Returns:
+        Tuple of (username, password) if credentials are stored, None otherwise.
+    """
+    if keyring is None:
+        return None
+
+    try:
+        username = keyring.get_password(CREDENTIAL_SERVICE_NAME, CREDENTIAL_USERNAME_KEY)
+        if not username:
+            return None
+
+        password = keyring.get_password(CREDENTIAL_SERVICE_NAME, CREDENTIAL_PASSWORD_KEY)
+        if not password:
+            return None
+
+        return (username, password)
+    except Exception:
+        # If keyring fails for any reason, return None
+        return None
+
+
+def store_credentials(username: str, password: str) -> None:
+    """Store username and password in secure storage.
+
+    Args:
+        username: The TCC account username.
+        password: The TCC account password.
+    """
+    if keyring is None:
+        raise RuntimeError(
+            "keyring package is not installed. "
+            "Install it with: pip install keyring"
+        )
+
+    try:
+        keyring.set_password(CREDENTIAL_SERVICE_NAME, CREDENTIAL_USERNAME_KEY, username)
+        keyring.set_password(CREDENTIAL_SERVICE_NAME, CREDENTIAL_PASSWORD_KEY, password)
+    except Exception as e:
+        raise RuntimeError(f"Failed to store credentials: {e}") from e
+
+
+def delete_stored_credentials() -> None:
+    """Delete stored credentials from secure storage."""
+    if keyring is None:
+        return
+
+    try:
+        keyring.delete_password(CREDENTIAL_SERVICE_NAME, CREDENTIAL_USERNAME_KEY)
+        keyring.delete_password(CREDENTIAL_SERVICE_NAME, CREDENTIAL_PASSWORD_KEY)
+    except Exception:
+        # Ignore errors (credentials may not exist, or other issues)
+        pass
+
+
+def get_credential_storage_location() -> str:
+    """Return a human-readable description of where credentials are stored.
+
+    Returns:
+        Description of the credential storage location.
+    """
+    if keyring is None:
+        return "keyring package is not installed"
+
+    try:
+        backend = keyring.get_keyring()
+        backend_name = backend.__class__.__name__
+        backend_module = backend.__class__.__module__
+
+        # Provide platform-specific information
+        if "macOS" in backend_module or "OSX" in backend_module:
+            return "macOS Keychain (System Keychain Access)"
+        elif "Windows" in backend_module:
+            return "Windows Credential Manager"
+        elif "SecretService" in backend_module:
+            return "Linux Secret Service (e.g., GNOME Keyring, KWallet)"
+        elif "file" in backend_module.lower():
+            return f"Encrypted file: {backend.filename if hasattr(backend, 'filename') else 'keyring file'}"
+        else:
+            return f"Keyring backend: {backend_name}"
+    except Exception:
+        return "System credential store (keyring)"

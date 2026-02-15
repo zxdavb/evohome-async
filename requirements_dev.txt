@@ -18,6 +18,9 @@
   types-PyYAML >= 6.0.12.20250915                # used only by tests
   voluptuous >= 0.15.2
 
+# library dependencies (required for development)
+  aiozoneinfo >= 0.2.3
+
 # used for testing
   aioresponses >= 0.7.8
 

@@ -1,10 +1,13 @@
 !.gitignore
-
+*.csv
+!requirement*.txt
+*.txt
 *.out
 *.tmp
 tokens*
 .secrets/
 .vscode/
+.env
 
 # schedule backups
 /*.json
