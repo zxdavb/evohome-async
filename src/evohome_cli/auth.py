@@ -282,13 +282,12 @@ def get_credential_storage_location() -> str:
         # Provide platform-specific information
         if "macOS" in backend_module or "OSX" in backend_module:
             return "macOS Keychain (System Keychain Access)"
-        elif "Windows" in backend_module:
+        if "Windows" in backend_module:
             return "Windows Credential Manager"
-        elif "SecretService" in backend_module:
+        if "SecretService" in backend_module:
             return "Linux Secret Service (e.g., GNOME Keyring, KWallet)"
-        elif "file" in backend_module.lower():
+        if "file" in backend_module.lower():
             return f"Encrypted file: {backend.filename if hasattr(backend, 'filename') else 'keyring file'}"
-        else:
-            return f"Keyring backend: {backend_name}"
+        return f"Keyring backend: {backend_name}"
     except Exception:
         return "System credential store (keyring)"

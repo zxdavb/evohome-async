@@ -13,14 +13,16 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
 
 import aiofiles
 import aiofiles.os
 import asyncclick as click
 
-from evohomeasync2 import ControlSystem, EvohomeClient
 from evohomeasync2.exceptions import ApiRequestFailedError
+
+if TYPE_CHECKING:
+    from evohomeasync2 import EvohomeClient
 
 try:
     from influxdb_client_3 import InfluxDBClient3, Point
@@ -75,7 +77,7 @@ def _format_zone_key(zone_id: str, zone_name: str) -> str:
 
 def get_influxdb_config() -> dict[str, str] | None:
     """Get InfluxDB configuration from environment or .env file.
-    
+
     Uses INFLUXDB3_* environment variables:
     - INFLUXDB3_AUTH_TOKEN: Authentication token (required)
     - INFLUXDB3_HOST: Host address (default: localhost)
@@ -119,7 +121,7 @@ def get_influxdb_config() -> dict[str, str] | None:
         "database": bucket,
         "port": port,
     }
-    
+
     if org:
         config["org"] = org
     if ssl:
@@ -136,10 +138,10 @@ async def write_to_influxdb(
     zones: dict[str, str],
 ) -> None:
     """Write temperature data to InfluxDB using CSV schema.
-    
+
     Writes one point per timestamp with all zones as fields,
     matching the CSV format for consistency.
-    
+
     Args:
         config: InfluxDB configuration
         timestamp: Timestamp for the data point
@@ -154,14 +156,14 @@ async def write_to_influxdb(
         # InfluxDB 3 client: write API uses HTTP, query API uses gRPC
         # For non-standard ports (like 8181), use HTTP explicitly (not HTTPS)
         port = int(config["port"]) if "port" in config else None
-        
+
         # Use http:// for non-TLS connections (port 8181 typically doesn't use TLS)
         # Default ports 443 and 8086 might use HTTPS, but 8181 is usually HTTP
         if port and port == 8181:
             host_url = f"http://{config['host']}"
         else:
             host_url = config["host"]
-        
+
         client_kwargs = {
             "host": host_url,
             "token": config["token"],
@@ -171,15 +173,15 @@ async def write_to_influxdb(
         if port:
             client_kwargs["write_port_overwrite"] = port
             client_kwargs["query_port_overwrite"] = port
-        
+
         client = InfluxDBClient3(**client_kwargs)
 
         # Create point with measurement name matching CSV import
         point = Point("roomtemperature").time(timestamp)
-        
+
         # Add system_mode as a field (not a tag)
         point = point.field("system_mode", system_mode)
-        
+
         # Add each zone temperature as a field with format: _zone_id_zone_name
         for zone_id, temperature in zone_temps.items():
             if temperature is not None:
@@ -189,8 +191,7 @@ async def write_to_influxdb(
 
         client.write(point)
         client.close()
-    except Exception as e:
-        print(f"InfluxDB error: {e}", file=sys.stderr)
+    except Exception:
         sys.exit(1)
 
 
@@ -200,7 +201,7 @@ async def import_csv_to_influxdb(
     zones: dict[str, str],
 ) -> None:
     """Import all rows from CSV file to InfluxDB using CSV schema.
-    
+
     Imports data matching the CSV format: one point per timestamp
     with all zones as fields.
     """
@@ -211,14 +212,14 @@ async def import_csv_to_influxdb(
         # InfluxDB 3 client: write API uses HTTP, query API uses gRPC
         # For non-standard ports (like 8181), use HTTP explicitly (not HTTPS)
         port = int(config["port"]) if "port" in config else None
-        
+
         # Use http:// for non-TLS connections (port 8181 typically doesn't use TLS)
         # Default ports 443 and 8086 might use HTTPS, but 8181 is usually HTTP
         if port and port == 8181:
             host_url = f"http://{config['host']}"
         else:
             host_url = config["host"]
-        
+
         client_kwargs = {
             "host": host_url,
             "token": config["token"],
@@ -228,12 +229,12 @@ async def import_csv_to_influxdb(
         if port:
             client_kwargs["write_port_overwrite"] = port
             client_kwargs["query_port_overwrite"] = port
-        
+
         client = InfluxDBClient3(**client_kwargs)
 
         points = []
         row_count = 0
-        with open(csv_file, "r", newline="") as f:
+        with open(csv_file, newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 row_count += 1
@@ -243,19 +244,15 @@ async def import_csv_to_influxdb(
                 # Parse timestamp
                 try:
                     timestamp = datetime.fromisoformat(
-                        timestamp_str.replace("Z", "+00:00")
+                        timestamp_str
                     )
                 except (ValueError, AttributeError):
-                    print(
-                        f"Warning: Skipping row {row_count} due to invalid timestamp: {timestamp_str}",
-                        file=sys.stderr,
-                    )
                     continue
 
                 # Create one point per row with all zones as fields
                 point = Point("roomtemperature").time(timestamp)
                 point = point.field("system_mode", system_mode)
-                
+
                 has_fields = False
                 for zone_id, zone_name in zones.items():
                     zone_key = _format_zone_key(zone_id, zone_name)
@@ -274,21 +271,18 @@ async def import_csv_to_influxdb(
                     except (ValueError, TypeError):
                         # Skip invalid temperature values
                         pass
-                
+
                 # Only add point if it has at least one temperature field
                 if has_fields:
                     points.append(point)
 
         if points:
-            print(f"\nWriting {len(points)} data points to InfluxDB...")
             client.write(points)
-            print(f"Successfully imported {len(points)} data points from {row_count} rows")
         else:
-            print("No valid data points found to import.", file=sys.stderr)
+            pass
 
         client.close()
-    except Exception as e:
-        print(f"InfluxDB import error: {e}", file=sys.stderr)
+    except Exception:
         sys.exit(1)
 
 
@@ -372,17 +366,12 @@ def register_command(cli_group: click.Group) -> None:
 
         Press 'L' to show zone list and column headers, then continue polling.
         """
-        print("\r\npoll_evohome.py: Starting temperature polling...")
 
         # Get InfluxDB config if needed
         influx_config = None
         if influx or importcsv:
             influx_config = get_influxdb_config()
             if not influx_config:
-                print(
-                    "Warning: InfluxDB configuration not found. InfluxDB features disabled.",
-                    file=sys.stderr,
-                )
                 influx = False
                 importcsv = False
         evo: EvohomeClient = ctx.obj[SZ_EVO]
@@ -400,13 +389,12 @@ def register_command(cli_group: click.Group) -> None:
             zone_order.append(zone.id)
 
         if not zones:
-            print("No zones found. Aborting.")
             await ctx.obj[SZ_CLEANUP]
             return
 
         # Prepare CSV file
         zone_keys = [_format_zone_key(zid, zones[zid]) for zid in zone_order]
-        csv_columns = ["timestamp", "system_mode"] + zone_keys
+        csv_columns = ["timestamp", "system_mode", *zone_keys]
 
         # Validate append/overwrite options (mutually exclusive)
         if append and overwrite:
@@ -426,26 +414,19 @@ def register_command(cli_group: click.Group) -> None:
         if file_exists:
             if overwrite:
                 # User specified --overwrite, overwrite file
-                print(f"  → Overwriting existing file '{output_file}'.\r\n")
                 write_header = True
             else:
                 # Default behavior: append (whether --append was specified or not)
                 # If --append was explicitly specified, show message; otherwise it's the default
                 if append:
-                    print(
-                        f"  → Appending to existing file '{output_file}' (header will be skipped).\r\n"
-                    )
+                    pass
                 else:
-                    print(
-                        f"  → File '{output_file}' exists. Appending (default behavior, header will be skipped).\r\n"
-                    )
+                    pass
                 write_header = False
 
         # Import CSV to InfluxDB if requested (after zones are available)
         if importcsv and influx_config and file_exists:
-            print("Importing CSV to InfluxDB...")
             await import_csv_to_influxdb(influx_config, output_file, zones)
-            print("Import completed. Exiting.")
             await ctx.obj[SZ_CLEANUP]
             return
 
@@ -460,7 +441,7 @@ def register_command(cli_group: click.Group) -> None:
         keyboard_thread_running = True
         loop = asyncio.get_event_loop()
 
-        def read_keyboard():
+        def read_keyboard() -> None:
             """Read keyboard input in a separate thread."""
             nonlocal keyboard_thread_running
 
@@ -494,7 +475,7 @@ def register_command(cli_group: click.Group) -> None:
         keyboard_thread.start()
 
         # Display header
-        def print_header():
+        def print_header() -> None:
             """Print column header."""
             time_width = 19  # ISO format timestamp
             mode_width = 15  # System mode (e.g., "AutoWithEco")
@@ -503,14 +484,11 @@ def register_command(cli_group: click.Group) -> None:
             header = f"{'Time':<{time_width}} {'Mode':<{mode_width}}"
             for zid in zone_order:
                 header += f" {zid:<{temp_width}}"
-            print("\r\n" + header)
-            print("-" * len(header))
 
-        def print_row(timestamp: str, mode: str, temps: dict[str, float | None]):
+        def print_row(timestamp: str, mode: str, temps: dict[str, float | None]) -> None:
             """Print a row of temperatures."""
             time_width = 19
             mode_width = 15
-            temp_width = 8
 
             row = f"{timestamp:<{time_width}} {mode:<{mode_width}}"
             for zid in zone_order:
@@ -519,14 +497,11 @@ def register_command(cli_group: click.Group) -> None:
                     row += f" {temp:>7.1f} "
                 else:
                     row += f" {'N/A':>7} "
-            print(row)
 
-        def print_zone_list():
+        def print_zone_list() -> None:
             """Print zone ID to name mapping."""
-            print("\r\nZone List:")
-            for zid in zone_order:
-                print(f"  {zid} -> {zones[zid]}")
-            print()
+            for _zid in zone_order:
+                pass
 
         # Show initial zone list and header
         print_zone_list()
@@ -539,28 +514,20 @@ def register_command(cli_group: click.Group) -> None:
                 max_retries = 2
                 retry_count = 0
                 update_successful = False
-                
+
                 while retry_count <= max_retries:
                     try:
                         await evo.locations[loc_idx].update()
                         update_successful = True
                         break
-                    except (ApiRequestFailedError, asyncio.TimeoutError, ConnectionError, OSError) as e:
+                    except (TimeoutError, ApiRequestFailedError, ConnectionError, OSError):
                         retry_count += 1
                         if retry_count <= max_retries:
-                            print(
-                                f"Warning: Server connection failed (attempt {retry_count}/{max_retries + 1}): {e}",
-                                file=sys.stderr,
-                            )
                             # Wait a bit before retrying (exponential backoff: 1s, 2s)
                             await asyncio.sleep(retry_count)
                         else:
-                            print(
-                                f"Error: Server connection failed after {max_retries + 1} attempts. Skipping this polling cycle.",
-                                file=sys.stderr,
-                            )
                             update_successful = False
-                
+
                 # If update failed after all retries, skip to next interval
                 if not update_successful:
                     # Wait for interval before trying again
@@ -637,10 +604,9 @@ def register_command(cli_group: click.Group) -> None:
                     elapsed += sleep_time
 
         except KeyboardInterrupt:
-            print("\r\n\r\nStopping temperature polling...")
+            pass
         finally:
             keyboard_thread_running = False
             if keyboard_thread.is_alive():
                 keyboard_thread.join(timeout=1.0)
             await ctx.obj[SZ_CLEANUP]
-            print(" - finished.\r\n")

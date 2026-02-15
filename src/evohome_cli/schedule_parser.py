@@ -42,7 +42,7 @@ ALL_DAYS = WEEKDAYS + WEEKENDS
 def parse_temperature_time(text: str) -> list[tuple[float, str]]:
     """Parse a schedule line like '16C @ 06:00 to 17.5C @ 21:50'."""
     # Pattern to match: temperatureC @ HH:MM
-    pattern = r'(\d+\.?\d*)C\s*@\s*(\d{1,2}):(\d{2})'
+    pattern = r"(\d+\.?\d*)C\s*@\s*(\d{1,2}):(\d{2})"
     matches = re.findall(pattern, text)
 
     switchpoints = []
@@ -57,36 +57,35 @@ def parse_temperature_time(text: str) -> list[tuple[float, str]]:
 
 def parse_day_spec(day_spec: str) -> list[str]:
     """Parse day specification like 'Weekdays', 'Weekends', 'Mon/Tue/Thu/Fri', 'Wednesday'."""
-    day_spec = day_spec.strip().rstrip(':')
+    day_spec = day_spec.strip().rstrip(":")
 
     if day_spec == "Weekdays":
         return WEEKDAYS
-    elif day_spec == "Weekends":
+    if day_spec == "Weekends":
         return WEEKENDS
-    elif day_spec == "All days":
+    if day_spec == "All days":
         return ALL_DAYS
-    elif '/' in day_spec:
+    if "/" in day_spec:
         # Handle "Mon/Tue/Thu/Fri" format
         days = []
-        for day_abbr in day_spec.split('/'):
+        for day_abbr in day_spec.split("/"):
             day_abbr = day_abbr.strip()
             if day_abbr in DAY_NAMES:
                 days.append(DAY_NAMES[day_abbr])
         return days
-    else:
-        # Single day like "Wednesday"
-        if day_spec in DAY_NAMES:
-            return [DAY_NAMES[day_spec]]
-        # Try to match partial names
-        for full_name, abbr in DAY_NAMES.items():
-            if day_spec.lower() == full_name.lower() or day_spec.lower() == abbr.lower():
-                return [full_name]
-        return []
+    # Single day like "Wednesday"
+    if day_spec in DAY_NAMES:
+        return [DAY_NAMES[day_spec]]
+    # Try to match partial names
+    for full_name, abbr in DAY_NAMES.items():
+        if day_spec.lower() == full_name.lower() or day_spec.lower() == abbr.lower():
+            return [full_name]
+    return []
 
 
 def parse_text_schedule(text: str) -> list[dict[str, Any]]:
     """Parse the text schedule format and return JSON structure."""
-    lines = text.strip().split('\n')
+    lines = text.strip().split("\n")
     schedules = []
     current_zone: dict[str, Any] | None = None
     current_name: str | None = None
@@ -97,7 +96,7 @@ def parse_text_schedule(text: str) -> list[dict[str, Any]]:
         line = lines[i].strip()
 
         # Check if this is a zone header: "1. Livingroom (5262675)"
-        zone_match = re.match(r'^\d+\.\s+(.+?)\s+\((\d+)\)$', line)
+        zone_match = re.match(r"^\d+\.\s+(.+?)\s+\((\d+)\)$", line)
         if zone_match:
             # Save previous zone if exists
             if current_zone:
@@ -115,9 +114,9 @@ def parse_text_schedule(text: str) -> list[dict[str, Any]]:
             continue
 
         # Check if this is a schedule line
-        if current_zone and ':' in line:
+        if current_zone and ":" in line:
             # Split on first colon to get day spec and schedule
-            parts = line.split(':', 1)
+            parts = line.split(":", 1)
             if len(parts) == 2:
                 day_spec = parts[0].strip()
                 schedule_text = parts[1].strip()
@@ -175,7 +174,7 @@ def _switchpoints_equal(sp1: list[dict[str, Any]], sp2: list[dict[str, Any]]) ->
     """Check if two switchpoint lists are equal."""
     if len(sp1) != len(sp2):
         return False
-    for s1, s2 in zip(sp1, sp2):
+    for s1, s2 in zip(sp1, sp2, strict=False):
         if s1.get("heat_setpoint") != s2.get("heat_setpoint"):
             return False
         if s1.get("time_of_day") != s2.get("time_of_day"):
@@ -189,13 +188,10 @@ def _format_switchpoints(switchpoints: list[dict[str, Any]]) -> str:
     for sp in switchpoints:
         temp = sp.get("heat_setpoint", 0.0)
         # Format temperature: use integer if whole number, otherwise decimal
-        if temp == int(temp):
-            temp_str = str(int(temp))
-        else:
-            temp_str = str(temp)
+        temp_str = str(int(temp)) if temp == int(temp) else str(temp)
         time_str = sp.get("time_of_day", "00:00:00")
         # Convert HH:MM:SS to HH:MM
-        time_parts = time_str.split(':')
+        time_parts = time_str.split(":")
         time_short = f"{time_parts[0]}:{time_parts[1]}"
         parts.append(f"{temp_str}C @ {time_short}")
     return " to ".join(parts)
@@ -291,7 +287,7 @@ def json_to_text_schedule(schedules: list[dict[str, Any]]) -> str:
         sorted_groups = sorted(groups.items(), key=sort_key)
 
         # Format each group
-        for switchpoint_key, days_list in sorted_groups:
+        for _switchpoint_key, days_list in sorted_groups:
             # Get the switchpoints from the first day in this group
             switchpoints = None
             for daily in daily_schedules:

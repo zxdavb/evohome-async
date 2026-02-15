@@ -4,13 +4,9 @@
 from __future__ import annotations
 
 import asyncio
-import csv
 import json
 import logging
-import re
 import sys
-import threading
-from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, Final
 
 import aiofiles
@@ -449,7 +445,6 @@ def login(username: str | None, password: str | None, delete: bool) -> None:
 @click.group()
 def convert_cli() -> None:
     """Standalone file format conversion commands (no authentication required)."""
-    pass
 
 
 @convert_cli.command("convert-schedule-to-json")
@@ -553,7 +548,7 @@ def main() -> None:
                 # and the options in argv[1:], so we remove 'login' from the args
                 original_argv = sys.argv[:]
                 # Keep argv[0] as program name, skip argv[1] (which is 'login'), keep rest
-                sys.argv = [sys.argv[0]] + sys.argv[2:]
+                sys.argv = [sys.argv[0], *sys.argv[2:]]
                 try:
                     login()
                 finally:

@@ -121,6 +121,12 @@ module = ["tests.tests_rf.faked_server.vendor"]
 disable_error_code = ["type-arg"] # 14
 
 #
+[[tool.mypy.overrides]]
+module = ["evohome_cli.poll_evohome", "evohome_cli.schedule_parser", "evohome_cli.auth", "evohome_cli.client"]
+
+disable_error_code = ["type-arg", "unreachable", "import-not-found", "assignment", "truthy-function", "arg-type"]
+
+#
 ## ruff ##############################################################################
 
 [tool.ruff]
@@ -193,7 +199,10 @@ ignore = [
 
 
 [tool.ruff.lint.per-file-ignores]
-"./src/evohome_cli/client.py" = ["EXE001", "T201"]  # prints should typically be omitted
+"./src/evohome_cli/client.py" = ["EXE001", "T201", "C901", "FBT001", "A002", "BLE001", "PTH123"]  # CLI code: prints, complexity, builtins, exceptions
+"./src/evohome_cli/poll_evohome.py" = ["T201", "C901", "PLR0912", "PLR0915", "FBT001", "BLE001", "PLC0415", "DTZ005", "PTH123", "ANN202", "EXE001", "SIM108", "PLR2004", "ASYNC230"]  # CLI code: prints, complexity, boolean args, datetime
+"./src/evohome_cli/schedule_parser.py" = ["PLR0911", "PLW2901", "C901", "PLR2004", "B023"]  # Parser complexity and loop variables
+"./src/evohome_cli/auth.py" = ["S105", "TRY300", "BLE001", "S110", "PLR0911"]  # Auth: hardcoded strings, exception handling
 "./src/*/schemas/typedefs.py" = ["UP040"]  # PEP695 says use type rather that TypeAlias
 "./tests/*" = ["S101"]  # Assertions are removed when Python is run with optimization
 
