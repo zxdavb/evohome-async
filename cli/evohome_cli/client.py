@@ -7,7 +7,8 @@ import asyncio
 import json
 import logging
 import sys
-from typing import TYPE_CHECKING, Any, Final
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Final, cast
 
 import aiofiles
 import aiohttp
@@ -33,6 +34,7 @@ from .auth import (
     save_password_to_keyring,
     save_username_to_keyring,
 )
+from .schedule_parser import json_to_text_schedule, parse_text_schedule
 
 if TYPE_CHECKING:
     from io import TextIOWrapper
@@ -334,9 +336,16 @@ async def get_schedule(
     default="-",
     help="The output file.",
 )
+@click.option(  # --format
+    "--format",
+    "-f",
+    type=click.Choice(["json", "text"], case_sensitive=False),
+    default="json",
+    help="Output format: json or text (default: json).",
+)
 @click.pass_context
 async def get_schedules(
-    ctx: click.Context, loc_idx: int, output_file: TextIOWrapper
+    ctx: click.Context, loc_idx: int, output_file: TextIOWrapper, output_format: str
 ) -> None:
     """Download all the schedules from a TCS."""
 
@@ -353,7 +362,12 @@ async def get_schedules(
 
         schedules = await tcs.get_schedules()
 
-        await _write(output_file, json.dumps(schedules, indent=4) + "\n")
+        if output_format.lower() == "text":
+            content = json_to_text_schedule(schedules) + "\r\n\r\n"
+        else:
+            content = json.dumps(schedules, indent=4) + "\r\n\r\n"
+
+        await _write(output_file, content)
 
     finally:
         await ctx.obj[SZ_CLEANUP]()
@@ -374,9 +388,16 @@ async def get_schedules(
     type=click.File(),
     help="The input file.",
 )
+@click.option(  # --format
+    "--format",
+    "-f",
+    type=click.Choice(["json", "text"], case_sensitive=False),
+    default="json",
+    help="Input format: json or text (default: json).",
+)
 @click.pass_context
 async def set_schedules(
-    ctx: click.Context, loc_idx: int, input_file: TextIOWrapper
+    ctx: click.Context, loc_idx: int, input_file: TextIOWrapper, input_format: str
 ) -> None:
     """Upload schedules to a TCS."""
 
@@ -393,9 +414,15 @@ async def set_schedules(
         async with aiofiles.open(input_file.name) as fp:
             content = await fp.read()
 
+        if input_format.lower() == "text":
+            schedules = parse_text_schedule(content)
+        else:
+            schedules = json.loads(content)
+
         click.echo("Uploading schedules...", err=True)
 
-        if not await tcs.set_schedules(json.loads(content)):
+        success = await tcs.set_schedules(cast(list[Any], schedules))
+        if not success:
             raise click.ClickException("Schedule restore completed with errors.")
 
     finally:
@@ -429,15 +456,115 @@ async def clear_credentials(ctx: click.Context) -> None:
     )
 
 
+@click.group()
+def convert_cli() -> None:
+    """Standalone file format conversion commands (no authentication required)."""
+
+
+@convert_cli.command("convert-schedule-to-json")
+@click.option(  # --input-file
+    "--input-file",
+    "-i",
+    type=click.File("r"),
+    required=True,
+    help="Input text schedule file.",
+)
+@click.option(  # --output-file
+    "--output-file",
+    "-o",
+    type=click.File("w"),
+    default="-",
+    help="Output JSON schedule file (default: stdout).",
+)
+def convert_schedule_to_json(
+    input_file: TextIOWrapper, output_file: TextIOWrapper
+) -> None:
+    """Convert text schedule format to JSON format."""
+
+    print("\r\nConverting text schedule to JSON format...")
+
+    try:
+        content = input_file.read()
+        schedules = parse_text_schedule(content)
+        json_content = json.dumps(schedules, indent=4) + "\r\n\r\n"
+
+        if output_file.name == "<stdout>":
+            output_file.write(json_content)
+        else:
+            # For file output, we need to write synchronously since it's not async
+            Path(output_file.name).write_text(json_content)
+
+        print(f" - Converted {len(schedules)} zones to JSON format.")
+        print(" - finished.\r\n")
+
+    except (ValueError, OSError, KeyError) as e:
+        print(f"Error: {e}\r\n")
+        sys.exit(1)
+
+
+@convert_cli.command("convert-schedule-to-text")
+@click.option(  # --input-file
+    "--input-file",
+    "-i",
+    type=click.File("r"),
+    required=True,
+    help="Input JSON schedule file.",
+)
+@click.option(  # --output-file
+    "--output-file",
+    "-o",
+    type=click.File("w"),
+    default="-",
+    help="Output text schedule file (default: stdout).",
+)
+def convert_schedule_to_text(
+    input_file: TextIOWrapper, output_file: TextIOWrapper
+) -> None:
+    """Convert JSON schedule format to text format."""
+
+    print("\r\nConverting JSON schedule to text format...")
+
+    try:
+        content = input_file.read()
+        schedules = json.loads(content)
+        text_content = json_to_text_schedule(schedules) + "\r\n\r\n"
+
+        if output_file.name == "<stdout>":
+            output_file.write(text_content)
+        else:
+            # For file output, we need to write synchronously since it's not async
+            Path(output_file.name).write_text(text_content)
+
+        print(f" - Converted {len(schedules)} zones to text format.")
+        print(" - finished.\r\n")
+
+    except (ValueError, OSError, KeyError) as e:
+        print(f"Error: {e}\r\n")
+        sys.exit(1)
+
+
 def main() -> None:
     """Run the CLI."""
 
-    try:
-        asyncio.run(cli(obj={}))  # default for ctx.obj is None
+    # Check if we're running a conversion command (no auth needed)
+    if len(sys.argv) > 1 and sys.argv[1] in [
+        "convert-schedule-to-json",
+        "convert-schedule-to-text",
+    ]:
+        # Handle conversion commands directly
+        try:
+            convert_cli()
+        except click.ClickException as err:
+            print(f"Error: {err}")
+            sys.exit(-1)
+    else:
+        # Handle main CLI commands (require auth)
+        try:
+            asyncio.run(cli(obj={}))  # default for ctx.obj is None
 
-    except click.ClickException as err:
-        click.echo(f"Error: {err}", err=True)
-        sys.exit(-1)
+        except click.ClickException as err:
+            click.echo(f"Error: {err}", err=True)
+            sys.exit(-1)
 
 
 if __name__ == "__main__":
