@@ -111,6 +111,12 @@ jobs:
           # Verify it's our local version (should be in evohome-async directory)
           python -c "import evohomeasync2; assert 'evohome-async' in evohomeasync2.__file__, 'Not using local evohome-async!'"
 
+      - name: Compile English translations
+        working-directory: home-assistant-core
+        run: |
+          . venv/bin/activate
+          python -m script.translations develop --all
+
       - name: Run Home Assistant evohome tests
         working-directory: home-assistant-core
         env:
