@@ -325,7 +325,7 @@ class KeyringCredentialManager:
             if hasattr(backend, "filename"):
                 return f"File keyring ({backend_name}): {backend.filename}"
 
-        except Exception:  # noqa: BLE001
+        except (keyring.errors.KeyringError, AttributeError, OSError):
             # Fallback if we can't determine the backend
             return "System credential store (backend unknown)"
         else:
