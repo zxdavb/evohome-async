@@ -74,7 +74,7 @@ python_version = "3.13"
 # enable_incomplete_feature = ["NewGenericSyntax"]
 
 exclude = ["docs", "tests/tests_cc"]
-files = ["src", "tests"]
+files = ["cli", "src", "tests"]
 
 no_implicit_optional = true
 
