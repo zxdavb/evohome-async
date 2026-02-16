@@ -58,7 +58,7 @@ This workflow runs the same linting and type checks that are executed in the Git
 // turbo
 8. **Check all _DBG_* flags are False**
    ```bash
-   grep -rn '_DBG_\w+ = (?!False)' --include='*.py' . && echo "ERROR: Found _DBG_* flags not set to False" || echo "✓ All _DBG_* flags are False"
+   grep -Prn '_DBG_\w+ = (?!False)' --include='*.py' . && echo "ERROR: Found _DBG_* flags not set to False" || echo "✓ All _DBG_* flags are False"
    ```
 
 ## Notes
