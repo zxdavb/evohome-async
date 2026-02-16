@@ -7,6 +7,14 @@ on:
   schedule:
     - cron: "0 6 * * 1"  # Weekly on Monday at 6am UTC
 
+  push:
+    branches: [ "main", "dev" ]
+    paths: [
+      ".github/workflows/check-lint.yml",
+      "pyproject.toml",
+      "requirements*.txt",
+    ]
+
   workflow_dispatch:
     inputs:
       ha_repo:
