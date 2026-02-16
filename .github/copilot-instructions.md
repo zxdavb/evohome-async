@@ -13,14 +13,14 @@ exception hierarchy are in that file.
 2. **Do not modify `pyproject.toml`** lint/type/test config. Changes will be
    rejected without significant justification.
 
-3. **All datetimes must be timezone-aware:** `dt.now(tz=UTC)`, never bare
-   `datetime.now()`. Alias: `from datetime import datetime as dt`.
+3. **All datetimes must be timezone-aware:** `datetime.now(tz=UTC)`, never
+   bare `datetime.now()`.
 
 4. **All I/O must be async:** `aiohttp` for HTTP, `aiofiles` for files,
    `asyncclick` for CLI. No `open()`, `requests`, or `time.sleep()`.
 
-5. **No bare `except Exception`.** Use the project's exception hierarchy
-   (`src/_evohome/exceptions.py`). Never swallow errors with `pass`.
+5. **No bare `except Exception`.** When raising, use the project's exception
+   hierarchy (`src/_evohome/exceptions.py`). Never swallow errors with `pass`.
 
 6. **No `sys.exit()` in library code.** Only `cli/client.py:main()`.
 

@@ -33,6 +33,7 @@ submit a focused PR to fix it).
 
 `pyproject.toml` defines strict ruff and near-strict mypy settings on purpose.
 PRs that weaken the configuration to make new code pass **will be rejected**.
+
 Specifically:
 
 - Do **not** add `# noqa`, `# type: ignore`, `per-file-ignores`, or new
@@ -87,8 +88,8 @@ EvohomeError
 └── StatusError                  # Bad status/schedule JSON
 ```
 
-- Do **not** raise bare `Exception`, `RuntimeError`, or `ValueError` in library
-  code.
+- Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library
+  code - instead, raise exceptions based upon `EvohomeError`.
 - Do **not** use bare `except Exception:` — catch the specific type you expect.
 - Never silently swallow errors with `pass`. At minimum, log a warning.
 
@@ -121,7 +122,7 @@ still warrant justification.
 | Logging            | `_LOGGER = logging.getLogger(__name__)` |
 | Type annotations   | Required on every function/method |
 | Structured dicts   | `TypedDict`, not `dict[str, Any]` |
-| Schema validation  | `voluptuous` (not pydantic, not dataclasses) |
+| Schema validation  | `import voluptuous as vol` (not pydantic, not dataclasses) |
 | Build backend      | Hatchling — version lives in `src/_evohome/__init__.py` |
 
 ### Logging vs printing
