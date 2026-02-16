@@ -323,7 +323,7 @@ class KeyringCredentialManager:
             if "SecretService" in backend_module or "SecretService" in backend_name:
                 return "Linux Secret Service (GNOME Keyring / KWallet)"
             if hasattr(backend, "filename"):
-                return f"Encrypted file: {backend.filename}"
+                return f"File keyring ({backend_name}): {backend.filename}"
 
         except Exception:  # noqa: BLE001
             # Fallback if we can't determine the backend
