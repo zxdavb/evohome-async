@@ -45,10 +45,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
-sources = ["src"]
+sources = ["cli", "src"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/evohomeasync", "src/evohomeasync2", "src/_evohome", "src/evohome_cli"]
+packages = ["cli/evohome_cli", "src/evohomeasync", "src/evohomeasync2", "src/_evohome"]
 
 [tool.hatch.version]
 path = "src/_evohome/__init__.py"
@@ -125,7 +125,7 @@ disable_error_code = ["type-arg"] # 14
 
 [tool.ruff]
 exclude = ["docs/*.py", "tests/tests_cc"]
-src = ["src", "tests"]
+src = ["cli", "src", "tests"]
 target-version = "py313"
 required-version = ">=0.14.13"
 
@@ -193,7 +193,7 @@ ignore = [
 
 
 [tool.ruff.lint.per-file-ignores]
-"./src/evohome_cli/client.py" = ["EXE001", "T201"]  # prints should typically be omitted
+"./cli/evohome_cli/client.py" = ["EXE001", "T201"]  # prints should typically be omitted
 "./src/*/schemas/typedefs.py" = ["UP040"]  # PEP695 says use type rather that TypeAlias
 "./tests/*" = ["S101"]  # Assertions are removed when Python is run with optimization
 
@@ -210,7 +210,7 @@ split-on-trailing-comma = false
 ## coverage ##########################################################################
 
 [tool.coverage.run]
-omit = ["src/evohome_cli/*", "tests*/*"]
+omit = ["cli/evohome_cli/*", "tests*/*"]
 
 [tool.coverage.report]
 show_missing = true

@@ -129,8 +129,8 @@ still warrant justification.
 
 - **Library code** (`_evohome`, `evohomeasync`, `evohomeasync2`): use `_LOGGER`,
   never `print()`. The `T201` ruff rule enforces this.
-- **CLI code** (`evohome_cli/client.py`): `print()` is permitted (suppressed via
-  `per-file-ignores`). Do not extend this suppression to other files without
+- **CLI code** (`cli/evohome_cli/client.py`): `print()` is permitted (suppressed
+  via `per-file-ignores`). Do not extend this suppression to other files without
   good reason.
 
 ---
@@ -138,11 +138,12 @@ still warrant justification.
 ## Project structure
 
 ```
+cli/
+  evohome_cli/        # CLI tool (excluded from coverage)
 src/
   _evohome/           # Shared internals (auth, exceptions, helpers, timezone)
   evohomeasync/       # Legacy v0 API client (backward compat)
   evohomeasync2/      # Primary v2 API client — most work happens here
-  evohome_cli/        # CLI tool (excluded from coverage)
 tests/
   tests/              # Main test suite
   tests_rf/           # Request/response fixture tests
