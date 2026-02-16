@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import EnumCheck, StrEnum, verify
-from typing import TYPE_CHECKING, Any, Final, NewType, NotRequired, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Any, Final, NewType, NotRequired, TypedDict
 
 import voluptuous as vol
 
@@ -11,8 +11,6 @@ from _evohome.helpers import noop, redact
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-_T = TypeVar("_T")
 
 # Datetime format used by the vendor's API
 API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"

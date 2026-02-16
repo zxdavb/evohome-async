@@ -146,6 +146,7 @@ select = [
   "F",    # Pyflakes
   "FA",   # flake8-future-annotations
   "FBT",  # flake8-boolean-trap
+  "FLY",  # flynt (f-string conversion)
   "FURB", # refurb (misc anti-patterns)
   "G",    # flake8-logging-format
   "I",    # isort
@@ -160,6 +161,7 @@ select = [
   "PL",   # pylint
   "PT",   # flake8-pytest-style
   "PTH",  # flake8-use-pathlib
+  "PYI",  # flake8-pyi (type stub best practices)
   "Q",    # flake8-quotes
   "RET",  # flake8-return
   "RSE",  # flake8-raise
@@ -167,19 +169,19 @@ select = [
   "S",    # flake8-bandit (security)
   "SIM",  # flake8-simplify
   # "SLF", # flake8-self (aka private-member-access)
-  "TC",  # flake8-type-checking
-  "TID", # flake8-tidy-imports
-  "TRY", # tryceratops (try/except anti-patterns)
-  # "T10", # flake8-debugger
-  "T20", # flake8-print
-  "UP",  # pyupgrade
-  "W",   # pycodestyle
-  "YTT", # flake8-2020
+  "SLOT", # flake8-slots
+  "TC",   # flake8-type-checking
+  "TID",  # flake8-tidy-imports
+  "TRY",  # tryceratops (try/except anti-patterns)
+  "T10",  # flake8-debugger
+  "T20",  # flake8-print
+  "UP",   # pyupgrade
+  "W",    # pycodestyle
+  "YTT",  # flake8-2020
 ]
 
 ignore = [
   "ANN401",  # Don't use type Any
-  "D202",    # No blank lines allowed after function docstring
   "E501",    # Line too long
   "G004",    # Logging statement uses f-string
   "ISC001",  # Implicitly concatenated strings on a single line (conflicts with ruff)
@@ -188,14 +190,11 @@ ignore = [
   "PLR2044", # Line with empty comment
   "S101",    # Assertions are removed when Python is run with optimization
   "TRY003",  # Long exception messages
-  "UP040",
 ]
 
 
 [tool.ruff.lint.per-file-ignores]
-"./cli/evohome_cli/client.py" = ["EXE001", "T201"]  # prints should typically be omitted
-"./src/*/schemas/typedefs.py" = ["UP040"]  # PEP695 says use type rather that TypeAlias
-"./tests/*" = ["S101"]  # Assertions are removed when Python is run with optimization
+"./cli/evohome_cli/client.py" = ["EXE001", "T10", "T201"]  # debugger, prints
 
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]
