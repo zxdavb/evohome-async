@@ -43,6 +43,10 @@ class ClientStub:
     auth = None
     _logger = logging.getLogger(__name__)
 
+    @property
+    def logger(self) -> logging.Logger:
+        return self._logger
+
 
 @pytest.fixture  # (autouse=True)
 def block_aiohttp() -> Generator[Callable]:  # type: ignore[type-arg]

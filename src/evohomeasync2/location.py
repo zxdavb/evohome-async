@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import EvohomeClient
+    from .auth import Auth
     from .schemas.typedefs import (
         EvoLocConfigEntryT,
         EvoLocConfigResponseT,
@@ -112,11 +113,7 @@ class Location(EntityBase):
         *,
         tzinfo: tzinfo | None = None,
     ) -> None:
-        super().__init__(
-            config[SZ_LOCATION_INFO][SZ_LOCATION_ID],
-            client.auth,
-            client._logger,
-        )
+        super().__init__(config[SZ_LOCATION_INFO][SZ_LOCATION_ID])
 
         self.client = client  # proxy for parent
         #
@@ -143,6 +140,14 @@ class Location(EntityBase):
     def __str__(self) -> str:
         """Return a string representation of the entity."""
         return f"{self.__class__.__name__}(id='{self._id}', tzinfo='{self.tzinfo}')"
+
+    @property
+    def _auth(self) -> Auth:
+        return self.client.auth
+
+    @property
+    def _logger(self) -> logging.Logger:
+        return self.client.logger
 
     @property
     def config(self) -> EvoLocConfigEntryT:
@@ -208,7 +213,7 @@ class Location(EntityBase):
 
     def now(self) -> dt:  # always returns a TZ-aware dtm
         """Return the current local time as an aware datetime in this location's TZ."""
-        return dt.now(self.client._tzinfo).astimezone(self.tzinfo)
+        return dt.now(self.client.tzinfo).astimezone(self.tzinfo)
 
     # Status (state) attrs & methods...
 
@@ -254,7 +259,7 @@ class Location(EntityBase):
         # break the TypedDict into its parts (so, ignore[misc])...
         for gwy_status in status.pop(SZ_GATEWAYS):  # type: ignore[misc]
             if gwy := self.gateway_by_id.get(gwy_status[SZ_GATEWAY_ID]):
-                gwy._update_status(gwy_status)
+                gwy._update_status(gwy_status)  # noqa: SLF001
 
             else:
                 self._logger.warning(

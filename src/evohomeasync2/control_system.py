@@ -40,11 +40,13 @@ from .schemas.const import (
 from .zone import ActiveFaultsBase, EntityBase, Zone
 
 if TYPE_CHECKING:
+    import logging
     from datetime import datetime as dt
 
     import voluptuous as vol
 
     from . import Gateway, Location
+    from .auth import Auth
     from .schemas.typedefs import (
         DayOfWeekDhwT,
         DayOfWeekZoneT,
@@ -65,11 +67,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     _TYPE = EntityType.TCS
 
     def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:
-        super().__init__(
-            config[SZ_SYSTEM_ID],
-            gateway._auth,
-            gateway._logger,
-        )
+        super().__init__(config[SZ_SYSTEM_ID])
 
         self.gateway = gateway  # parent
         self.location: Location = gateway.location
@@ -100,6 +98,14 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             self.hotwater = HotWater(self, dhw_entry)
 
         self._status: EvoTcsStatusResponseT | None = None
+
+    @property
+    def _auth(self) -> Auth:
+        return self.location.client.auth
+
+    @property
+    def _logger(self) -> logging.Logger:
+        return self.location.client.logger
 
     @property
     def config(self) -> EvoTcsConfigEntryT:
@@ -166,7 +172,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         # break the TypedDict into its parts (so, ignore[misc])...
         for zon_status in status.pop(SZ_ZONES):  # type: ignore[misc]
             if zone := self.zone_by_id.get(zon_status[SZ_ZONE_ID]):
-                zone._update_status(zon_status)
+                zone._update_status(zon_status)  # noqa: SLF001
 
             else:
                 self._logger.warning(
@@ -176,7 +182,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         if dhw_status := status.pop(SZ_DHW, None):
             if self.hotwater and self.hotwater.id == dhw_status[SZ_DHW_ID]:
-                self.hotwater._update_status(dhw_status)
+                self.hotwater._update_status(dhw_status)  # noqa: SLF001
 
             else:
                 self._logger.warning(

@@ -103,15 +103,20 @@ class EntityBase:
         | None
     )
 
-    def __init__(self, entity_id: str, auth: Auth, logger: logging.Logger) -> None:
+    def __init__(self, entity_id: str) -> None:
         self._id: Final = entity_id
-
-        self._auth = auth
-        self._logger = logger
 
     def __str__(self) -> str:
         """Return a string representation of the entity."""
         return f"{self.__class__.__name__}(id='{self._id}')"
+
+    @property
+    def _auth(self) -> Auth:
+        raise NotImplementedError
+
+    @property
+    def _logger(self) -> logging.Logger:
+        raise NotImplementedError
 
     # Config attrs...
 
@@ -425,10 +430,18 @@ class _ZoneBase(_ScheduleBase, ActiveFaultsBase, EntityBase):
     _status: EvoDhwStatusResponseT | EvoZonStatusResponseT | None
 
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
-        super().__init__(entity_id, tcs._auth, tcs._logger)
+        super().__init__(entity_id)
 
         self.location = tcs.location
         self.tcs = tcs
+
+    @property
+    def _auth(self) -> Auth:
+        return self.location.client.auth
+
+    @property
+    def _logger(self) -> logging.Logger:
+        return self.location.client.logger
 
     # Status (state) attrs & methods...
 

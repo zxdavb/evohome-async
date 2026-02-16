@@ -168,7 +168,7 @@ select = [
   "RUF",  # ruff (misc lint/anti-patterns)
   "S",    # flake8-bandit (security)
   "SIM",  # flake8-simplify
-  # "SLF", # flake8-self (aka private-member-access)
+  "SLF",  # flake8-self (aka private-member-access)
   "SLOT", # flake8-slots
   "TC",   # flake8-type-checking
   "TID",  # flake8-tidy-imports
@@ -195,6 +195,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "./cli/evohome_cli/client.py" = ["EXE001", "T10", "T201"]  # debugger, prints
+"./tests/*" = ["SLF001"]  # tests need to access private members
 
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]

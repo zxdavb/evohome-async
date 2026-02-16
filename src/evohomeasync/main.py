@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 SCH_GET_ACCOUNT_INFO: Final = factory_user_account_info_response(camel_to_snake)
 SCH_GET_ACCOUNT_LOCS: Final = factory_location_response_list(camel_to_snake)
 
-_LOGGER = logging.getLogger(__name__.rpartition(".")[0])
+_LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync"
 
 
 class EvohomeClient:
@@ -57,6 +57,10 @@ class EvohomeClient:
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(auth='{self.auth}')"
+
+    @property
+    def logger(self) -> logging.Logger:
+        return self._logger
 
     async def update(
         self,
@@ -96,7 +100,7 @@ class EvohomeClient:
             assert self._location_by_id
             for loc_entry in self._user_locs:  # each entry is both config & status
                 loc_id = str(loc_entry[SZ_LOCATION_ID])
-                self._location_by_id[loc_id]._update_status(loc_entry)
+                self._location_by_id[loc_id]._update_status(loc_entry)  # noqa: SLF001
 
         return self._user_locs
 
@@ -122,7 +126,7 @@ class EvohomeClient:
                     f"The session_id has been rejected (will re-authenticate): {err}"
                 )
 
-                self._session_manager._clear_session_id()
+                self._session_manager._clear_session_id()  # noqa: SLF001
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)  # type: ignore[assignment]
 
             assert self._user_info is not None  # mypy

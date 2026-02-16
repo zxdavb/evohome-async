@@ -144,7 +144,7 @@ async def cli(
     )
 
     if not no_tokens:  # then restore cached tokens, if any
-        await token_manager._load_access_token()
+        await token_manager._load_access_token()  # noqa: SLF001
 
     evo = EvohomeClient(token_manager, debug=bool(debug))
 

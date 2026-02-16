@@ -79,14 +79,19 @@ class _EntityBase:
     _config: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
     _status: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
 
-    def __init__(self, entity_id: int, auth: Auth, logger: logging.Logger) -> None:
+    def __init__(self, entity_id: int) -> None:
         self._id: Final = entity_id
-
-        self._auth = auth
-        self._logger = logger
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(id='{self._id}')"
+
+    @property
+    def _auth(self) -> Auth:
+        raise NotImplementedError
+
+    @property
+    def _logger(self) -> logging.Logger:
+        raise NotImplementedError
 
     @cached_property
     def id(self) -> str:
@@ -116,12 +121,20 @@ class _DeviceBase(_EntityBase):
     def __init__(
         self, entity_id: int, config: EvoDevInfoDictT, location: Location
     ) -> None:
-        super().__init__(entity_id, location._auth, location._logger)
+        super().__init__(entity_id)
 
         self._loc = location  # parent
 
         self._config = config
         self._status = config  # initial state
+
+    @property
+    def _auth(self) -> Auth:
+        return self._loc.client.auth
+
+    @property
+    def _logger(self) -> logging.Logger:
+        return self._loc.client.logger
 
     def _update_status(self, status: EvoDevInfoDictT | EvoGwyInfoDictT) -> None:
         """Update the device's status."""
@@ -460,7 +473,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     def __init__(
         self, entity_id: int, config: EvoTcsInfoDictT, client: EvohomeClient
     ) -> None:
-        super().__init__(entity_id, client.auth, client._logger)
+        super().__init__(entity_id)
 
         self._cli = client  # proxy for parent
 
@@ -490,6 +503,18 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
                     f"{self}: Unknown device type, assuming is a zone: {type_}"
                 )
                 self._add_zone(Zone(dev_config[SZ_DEVICE_ID], dev_config, self))
+
+    @property
+    def _auth(self) -> Auth:
+        return self._cli.auth
+
+    @property
+    def _logger(self) -> logging.Logger:
+        return self._cli.logger
+
+    @property
+    def client(self) -> EvohomeClient:
+        return self._cli
 
     def _add_zone(self, zone: Zone) -> None:
         self.zones.append(zone)
@@ -534,7 +559,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
 
         for dev_status in status[SZ_DEVICES]:
             if (gwy_id := str(dev_status[SZ_GATEWAY_ID])) in self.gateway_by_id:
-                self.gateway_by_id[gwy_id]._update_status(dev_status)
+                self.gateway_by_id[gwy_id]._update_status(dev_status)  # noqa: SLF001
 
             else:
                 self._logger.warning(
@@ -544,10 +569,10 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
                 continue
 
             if (dev_id := str(dev_status[SZ_DEVICE_ID])) in self.zone_by_id:
-                self.zone_by_id[dev_id]._update_status(dev_status)
+                self.zone_by_id[dev_id]._update_status(dev_status)  # noqa: SLF001
 
             elif self.hotwater and self.hotwater.id == dev_id:
-                self.hotwater._update_status(dev_status)
+                self.hotwater._update_status(dev_status)  # noqa: SLF001
 
             else:
                 self._logger.warning(

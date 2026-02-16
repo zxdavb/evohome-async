@@ -20,9 +20,12 @@ from .schemas.const import EntityType
 from .zone import ActiveFaultsBase, EntityBase
 
 if TYPE_CHECKING:
+    import logging
+
     import voluptuous as vol
 
     from . import Location
+    from .auth import Auth
     from .schemas.typedefs import (
         EvoGwyConfigEntryT,
         EvoGwyConfigResponseT,
@@ -37,14 +40,9 @@ class Gateway(ActiveFaultsBase, EntityBase):
     _TYPE = EntityType.GWY
 
     def __init__(self, location: Location, config: EvoGwyConfigResponseT) -> None:
-        super().__init__(
-            config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID],
-            location._auth,
-            location._logger,
-        )
+        super().__init__(config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID])
 
         self.location = location  # parent
-        #
 
         # children
         self.systems: list[ControlSystem] = []
@@ -59,6 +57,14 @@ class Gateway(ActiveFaultsBase, EntityBase):
             self.system_by_id[tcs.id] = tcs
 
         self._status: EvoGwyStatusResponseT | None = None
+
+    @property
+    def _auth(self) -> Auth:
+        return self.location.client.auth
+
+    @property
+    def _logger(self) -> logging.Logger:
+        return self.location.client.logger
 
     @property
     def config(self) -> EvoGwyConfigEntryT:
@@ -95,7 +101,7 @@ class Gateway(ActiveFaultsBase, EntityBase):
         # break the TypedDict into its parts (so, ignore[misc])...
         for tcs_status in status.pop(SZ_TEMPERATURE_CONTROL_SYSTEMS):  # type: ignore[misc]
             if tcs := self.system_by_id.get(tcs_status[SZ_SYSTEM_ID]):
-                tcs._update_status(tcs_status)
+                tcs._update_status(tcs_status)  # noqa: SLF001
 
             else:
                 self._logger.warning(
