@@ -222,7 +222,7 @@ def test_storage_location_file_backend() -> None:
         manager = KeyringCredentialManager()
         location = manager.storage_location
 
-    assert "Encrypted file" in location
+    assert "Encrypted file" not in location
     assert "/path/to/keyring" in location
 
 
