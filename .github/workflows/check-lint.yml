@@ -2,26 +2,24 @@ name: Linting (ruff)
 
 
 on:
-  push:
-    branches: [ "main", "dev" ]
-    paths: [
-      ".github/workflows/check-lint.yml",
-      "cli/**.py",
-      "src/**.py",
-      "tests/**",
-      "requirements*.txt",
-      "pyproject.toml",
-    ]
-
   pull_request:
     branches: [ "main", "dev" ]
     paths: [
       ".github/workflows/check-lint.yml",
-      "cli/**.py",
+      "pyproject.toml",
+      "requirements*.txt",
       "src/**.py",
       "tests/**",
-      "requirements*.txt",
+    ]
+
+  push:
+    branches: [ "main", "dev" ]
+    paths: [
+      ".github/workflows/check-lint.yml",
       "pyproject.toml",
+      "requirements*.txt",
+      "src/**.py",
+      "tests/**",
     ]
 
   workflow_dispatch:

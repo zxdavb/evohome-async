@@ -4,16 +4,24 @@
 name: Test with Home Assistant
 
 on:
-  schedule:
-    - cron: "0 6 * * 1"  # Weekly on Monday at 6am UTC
+  pull_request:
+    branches: [ "main", "dev" ]
+    paths: [
+      ".github/workflows/check-hass.yml",
+      "pyproject.toml",
+      "requirements*.txt",
+    ]
 
   push:
     branches: [ "main", "dev" ]
     paths: [
-      ".github/workflows/check-lint.yml",
+      ".github/workflows/check-hass.yml",
       "pyproject.toml",
       "requirements*.txt",
     ]
+
+  schedule:
+    - cron: "0 6 * * 1"  # Weekly on Monday at 6am UTC
 
   workflow_dispatch:
     inputs:
@@ -63,18 +71,6 @@ jobs:
     needs: get-python-version
 
     steps:
-      - name: Check out evohome-async
-        uses: actions/checkout@v6
-        with:
-          path: evohome-async
-
-      - name: Check out Home Assistant core
-        uses: actions/checkout@v6
-        with:
-          repository: ${{ env.HA_REPO }}
-          ref: ${{ env.HA_VERSION }}
-          path: home-assistant-core
-
       - name: Set up Python ${{ needs.get-python-version.outputs.python-version }}
         uses: actions/setup-python@v6
         with:
@@ -84,6 +80,18 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
+
+      - name: Check out Home Assistant core
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.HA_REPO }}
+          ref: ${{ env.HA_VERSION }}
+          path: home-assistant-core
+
+      - name: Check out evohome-async
+        uses: actions/checkout@v6
+        with:
+          path: evohome-async
 
       - name: Create virtual environment
         working-directory: home-assistant-core
@@ -100,6 +108,12 @@ jobs:
           uv pip install -r requirements_test.txt
           # Install Home Assistant in editable mode
           uv pip install -e . --config-settings editable_mode=compat
+
+      - name: Compile English translations
+        working-directory: home-assistant-core
+        run: |
+          . venv/bin/activate
+          python -m script.translations develop --all
 
       - name: Install evohome-async from this repo (replacing PyPI version)
         working-directory: home-assistant-core
@@ -118,12 +132,6 @@ jobs:
           python -c "import evohomeasync; print(f'evohomeasync from: {evohomeasync.__file__}')"
           # Verify it's our local version (should be in evohome-async directory)
           python -c "import evohomeasync2; assert 'evohome-async' in evohomeasync2.__file__, 'Not using local evohome-async!'"
-
-      - name: Compile English translations
-        working-directory: home-assistant-core
-        run: |
-          . venv/bin/activate
-          python -m script.translations develop --all
 
       - name: Run Home Assistant evohome tests
         working-directory: home-assistant-core

@@ -2,24 +2,24 @@ name: Testing (pytest)
 
 
 on:
-  push:
-    branches: [ "main", "dev" ]
-    paths: [
-      ".github/workflows/check-test.yml",
-      "src/**.py",
-      "tests/**",
-      "requirements*.txt",
-      "pyproject.toml",
-    ]
-
   pull_request:
     branches: [ "main", "dev" ]
     paths: [
       ".github/workflows/check-test.yml",
+      "pyproject.toml",
+      "requirements*.txt",
       "src/**.py",
       "tests/**",
-      "requirements*.txt",
+    ]
+
+  push:
+    branches: [ "main", "dev" ]
+    paths: [
+      ".github/workflows/check-test.yml",
       "pyproject.toml",
+      "requirements*.txt",
+      "src/**.py",
+      "tests/**",
     ]
 
   schedule:
