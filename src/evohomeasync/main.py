@@ -126,7 +126,7 @@ class EvohomeClient:
                     f"The session_id has been rejected (will re-authenticate): {err}"
                 )
 
-                self._session_manager._clear_session_id()  # noqa: SLF001
+                self._session_manager.clear_session_id()
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)  # type: ignore[assignment]
 
             assert self._user_info is not None  # mypy

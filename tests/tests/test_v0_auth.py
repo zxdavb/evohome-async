@@ -110,8 +110,8 @@ async def test_get_session_id(
     assert session_manager.is_session_valid() is True
 
     #
-    # test _clear_session_id()
-    session_manager._clear_session_id()
+    # test clear_session_id()
+    session_manager.clear_session_id()
 
     assert session_manager.is_session_valid() is False
 

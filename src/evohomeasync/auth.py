@@ -69,9 +69,9 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         super().__init__(
             client_id, secret, websession, logger=logger, _hostname=_hostname
         )
-        self._clear_session_id()  # initialise the attrs
+        self.clear_session_id()  # initialise the attrs
 
-    def _clear_session_id(self) -> None:
+    def clear_session_id(self) -> None:
         """Clear the session id attrs (set to falsey state)."""
 
         self._session_id = ""

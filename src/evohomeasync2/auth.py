@@ -94,9 +94,9 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         super().__init__(
             client_id, secret, websession, logger=logger, _hostname=_hostname
         )
-        self._clear_access_token()  # initialise the attrs
+        self.clear_access_token()  # initialise the attrs
 
-    def _clear_access_token(self) -> None:
+    def clear_access_token(self) -> None:
         """Clear the auth tokens attrs (set to falsey state)."""
 
         self._access_token = ""

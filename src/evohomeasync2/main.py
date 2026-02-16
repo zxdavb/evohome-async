@@ -152,7 +152,7 @@ class EvohomeClient:
                     f"The access_token has been rejected (will re-authenticate): {err}"
                 )
 
-                self._token_manager._clear_access_token()  # noqa: SLF001
+                self._token_manager.clear_access_token()
                 self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
 
             assert self._user_info is not None  # mypy

@@ -117,8 +117,8 @@ async def test_get_auth_token(
     assert token_manager.is_token_valid() is True
 
     #
-    # test _clear_access_token()
-    token_manager._clear_access_token()
+    # test clear_access_token()
+    token_manager.clear_access_token()
 
     assert token_manager.is_token_valid() is False
 
