@@ -136,9 +136,33 @@ async def cli(
             if stored_creds:
                 username = username or stored_creds[0]
                 password = password or stored_creds[1]
-        except CredentialStorageError:
-            # Keyring not available, continue without stored credentials
-            pass
+        except CredentialStorageError as err:
+            msg = str(err)
+            if "keyring package is not installed" in msg:
+                # Keyring library is not available; continue without stored credentials
+                if debug:
+                    _LOGGER.debug(
+                        "Keyring package not installed; proceeding without stored "
+                        "credentials: %s",
+                        msg,
+                    )
+            else:
+                # A real keyring backend error occurred; surface a warning
+                if debug:
+                    _LOGGER.exception(
+                        "Failed to load stored credentials from keyring; "
+                        "proceeding without them."
+                    )
+                else:
+                    click.echo(
+                        "Warning: Failed to load stored credentials from keyring; "
+                        "proceeding without stored credentials. "
+                        "Run with --debug for more details.",
+                        err=True,
+                    )
+                    _LOGGER.warning(
+                        "Failed to load stored credentials from keyring: %s", msg
+                    )
 
     # Verify we have credentials after resolution
     if username is None or password is None:
