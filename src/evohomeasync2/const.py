@@ -2,7 +2,7 @@
 
 from typing import Final
 
-from .schemas.const import API_STRFTIME as API_STRFTIME  # noqa: PLC0414
+from .schemas import API_STRFTIME as API_STRFTIME  # noqa: PLC0414
 
 # HDR_STRFTIME: Final = "%Y-%m-%d %H:%M:%S"  # used by HTTP headers
 

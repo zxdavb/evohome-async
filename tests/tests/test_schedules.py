@@ -6,14 +6,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from _evohome.helpers import convert_keys_to_snake_case
-from evohomeasync2.schemas import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE
-from evohomeasync2.schemas.const import DayOfWeek
+from evohomeasync2.schemas import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE, DayOfWeek
 from evohomeasync2.zone import _find_switchpoints
 
 from .conftest import JsonObjectType, load_fixture
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas.typedefs import DayOfWeekT
+    from evohomeasync2.schemas import DayOfWeekT
 
 SCHEDULES_DIR = Path(__file__).parent / "schedules"
 

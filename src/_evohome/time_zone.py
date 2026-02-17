@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Final
 from .windows_zones import WINDOWS_TO_IANA_LOOKUP
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas.typedefs import EvoTimeZoneInfoT
+    from evohomeasync2.schemas import EvoTimeZoneInfoT
 
 SZ_CURRENT_OFFSET_MINUTES: Final = "current_offset_minutes"
 SZ_OFFSET_MINUTES: Final = "offset_minutes"

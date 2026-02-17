@@ -7,16 +7,16 @@ from typing import TYPE_CHECKING, Any, Final
 
 from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2.location import create_location
-from evohomeasync2.schemas import TCC_GET_LOC_STATUS
-from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
-from evohomeasync2.schemas.const import (
+from evohomeasync2.schemas import (
     S2_GATEWAYS,
     S2_LOCATION_INFO,
     S2_SUPPORTS_DAYLIGHT_SAVING,
     S2_TEMPERATURE_CONTROL_SYSTEMS,
     S2_TIME_ZONE,
     S2_USE_DAYLIGHT_SAVE_SWITCHING,
+    TCC_GET_LOC_STATUS,
 )
+from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
 
 from .conftest import ClientStub
 from .const import TEST_DIR

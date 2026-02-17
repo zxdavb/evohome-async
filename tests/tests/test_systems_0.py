@@ -5,11 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from evohomeasync2.schemas import (
-    TCC_GET_USR_ACCOUNT,
-    TCC_GET_USR_LOCATIONS,
-    factory_loc_status,
-)
+from evohomeasync2.schemas import TCC_GET_USR_ACCOUNT, TCC_GET_USR_LOCATIONS
+from evohomeasync2.schemas.status import factory_loc_status
 
 from .common import assert_schema
 from .conftest import FIXTURES_V2

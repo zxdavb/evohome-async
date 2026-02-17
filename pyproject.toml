@@ -70,47 +70,13 @@ norecursedirs = ["tests.out/*", "tests.wip/*"]
 [tool.mypy]
 python_version = "3.13"
 
-# strict = true
-# enable_incomplete_feature = ["NewGenericSyntax"]
+strict = true
 
 exclude = ["docs", "tests/tests_cc"]
 files = ["cli", "src", "tests"]
 
-no_implicit_optional = true
-
-# see: https://mypy.readthedocs.io/en/stable/existing_code.html#introduce-stricter-options
-
-# Start off with these
-warn_unused_configs = true
-warn_redundant_casts = true # this is not per-module
-warn_unused_ignores = true
-
-# Getting these passing should be easy
-extra_checks = true    # now incl.: strict_concatenate = true
-strict_equality = true
-
-# Strongly recommend enabling this one as soon as you can
-check_untyped_defs = true
-
-# These shouldn't be too much additional work, but may be tricky to
-# get passing if you use a lot of untyped libraries
-disallow_subclassing_any = true
-disallow_untyped_decorators = true
-disallow_any_generics = true
-
-# These next few are various gradations of forcing use of type annotations
-disallow_untyped_calls = true
-disallow_incomplete_defs = true
-disallow_untyped_defs = true
-
-# This one isn't too hard to get passing, but return on investment is lower
-# no_implicit_reexport = true
-
-# This one can be tricky to get passing if you use a lot of untyped libraries
-warn_return_any = true
-
+# beyond strict
 disallow_any_unimported = true
-warn_no_return = true
 warn_unreachable = true
 
 

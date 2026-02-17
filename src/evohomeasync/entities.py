@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     from datetime import datetime as dt
 
     # some methods emulate the v2 API...
-    from evohomeasync2.schemas.typedefs import EvoTemperatureStatusResponseT
+    from evohomeasync2.schemas import EvoTemperatureStatusResponseT
 
     from . import EvohomeClient
     from .auth import Auth

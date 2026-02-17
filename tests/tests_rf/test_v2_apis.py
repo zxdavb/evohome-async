@@ -8,8 +8,8 @@ import pytest
 
 import evohomeasync2 as evo2
 from _evohome.helpers import camel_to_snake
-from evohomeasync2.schemas import SystemMode, factory_dhw_schedule, factory_zon_schedule
-from evohomeasync2.schemas.const import S2_MODE
+from evohomeasync2.schemas import S2_MODE, SystemMode
+from evohomeasync2.schemas.schedule import factory_dhw_schedule, factory_zon_schedule
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from . import faked_server as faked

@@ -7,7 +7,7 @@ import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import voluptuous as vol
 
@@ -22,10 +22,17 @@ if TYPE_CHECKING:
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
-    from .schemas.typedefs import (
-        EvoAuthTokensDictT as AccessTokenEntryT,
+    from .schemas import (
         TccAuthTokensResponseT as AuthTokenResponseT,  # TCC is snake_case anyway
     )
+
+
+class AccessTokenEntryT(TypedDict):
+    """Dict for storing/restoring auth tokens to/from a cache."""
+
+    access_token: str
+    access_token_expires: str  # dt.isoformat()
+    refresh_token: str
 
 
 _APPLICATION_ID: Final = base64.b64encode(

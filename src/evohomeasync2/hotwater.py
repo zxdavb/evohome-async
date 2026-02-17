@@ -21,13 +21,16 @@ from .const import (
     SZ_STATE_STATUS,
 )
 from .schemas import (
+    S2_MODE,
+    S2_STATE,
+    S2_UNTIL_TIME,
     DhwState,
+    EntityType,
     TccSetDhwModeT,
     ZoneMode,
-    factory_dhw_schedule,
-    factory_dhw_status,
 )
-from .schemas.const import S2_MODE, S2_STATE, S2_UNTIL_TIME, EntityType
+from .schemas.schedule import factory_dhw_schedule
+from .schemas.status import factory_dhw_status
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
@@ -36,7 +39,7 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import ControlSystem
-    from .schemas.typedefs import (
+    from .schemas import (
         DayOfWeekDhwT,
         EvoDhwConfigEntryT,
         EvoDhwConfigResponseT,

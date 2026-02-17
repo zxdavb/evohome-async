@@ -14,7 +14,7 @@ from .conftest import FIXTURES_V2, auth_get
 if TYPE_CHECKING:
     import pytest
     from freezegun.api import FrozenDateTimeFactory
-    from syrupy import SnapshotAssertion
+    from syrupy.assertion import SnapshotAssertion
 
     from tests.conftest import CredentialsManager
 

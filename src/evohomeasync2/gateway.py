@@ -15,8 +15,8 @@ from .const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
 from .control_system import ControlSystem
-from .schemas import factory_gwy_status
-from .schemas.const import EntityType
+from .schemas import EntityType
+from .schemas.status import factory_gwy_status
 from .zone import ActiveFaultsBase, EntityBase
 
 if TYPE_CHECKING:
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
     from . import Location
     from .auth import Auth
-    from .schemas.typedefs import (
+    from .schemas import (
         EvoGwyConfigEntryT,
         EvoGwyConfigResponseT,
         EvoGwyStatusResponseT,

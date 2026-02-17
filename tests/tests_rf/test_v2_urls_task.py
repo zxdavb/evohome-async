@@ -19,13 +19,14 @@ import pytest
 import evohomeasync2 as evo2
 from _evohome.helpers import camel_to_pascal
 from evohomeasync2.const import API_STRFTIME
-from evohomeasync2.schemas import DhwState, ZoneMode
-from evohomeasync2.schemas.const import (
+from evohomeasync2.schemas import (
     S2_MODE,
     S2_STATE,
     S2_STATE_STATUS,
     S2_UNTIL,
     S2_UNTIL_TIME,
+    DhwState,
+    ZoneMode,
 )
 from tests.const import _DBG_USE_REAL_AIOHTTP
 

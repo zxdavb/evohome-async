@@ -29,14 +29,16 @@ from .const import (
     SZ_ZONES,
 )
 from .hotwater import HotWater
-from .schemas import SystemMode, TccSetTcsModeT, factory_tcs_status
-from .schemas.const import (
+from .schemas import (
     S2_PERMANENT,
     S2_SYSTEM_MODE,
     S2_TIME_UNTIL,
     EntityType,
+    SystemMode,
+    TccSetTcsModeT,
     TcsModelType,
 )
+from .schemas.status import factory_tcs_status
 from .zone import ActiveFaultsBase, EntityBase, Zone
 
 if TYPE_CHECKING:
@@ -47,7 +49,7 @@ if TYPE_CHECKING:
 
     from . import Gateway, Location
     from .auth import Auth
-    from .schemas.typedefs import (
+    from .schemas import (
         DayOfWeekDhwT,
         DayOfWeekZoneT,
         EvoAllowedSystemModesResponseT,

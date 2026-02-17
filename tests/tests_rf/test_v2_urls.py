@@ -34,16 +34,15 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas.account import TccTaskResponseT, TccUsrAccountResponseT
-    from evohomeasync2.schemas.config import TccLocConfigResponseT
-    from evohomeasync2.schemas.schedule import (
+    from evohomeasync2.schemas import (
         TccDhwDailySchedulesT,
-        TccZonDailySchedulesT,
-    )
-    from evohomeasync2.schemas.status import (
         TccDhwStatusResponseT,
+        TccLocConfigResponseT,
         TccLocStatusResponseT,
+        TccTaskResponseT,
         TccTcsStatusResponseT,
+        TccUsrAccountResponseT,
+        TccZonDailySchedulesT,
         TccZonStatusResponseT,
     )
     from tests.conftest import CredentialsManager

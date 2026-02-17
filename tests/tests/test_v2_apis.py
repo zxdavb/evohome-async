@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from evohomeasync2.schemas.const import DhwState
+from evohomeasync2.schemas import DhwState
 
 from .conftest import FIXTURES_V2
 

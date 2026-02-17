@@ -7,8 +7,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 from _evohome.helpers import camel_to_snake, convert_keys_to_snake_case
 from evohomeasync2 import Location
-from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
-from evohomeasync2.schemas.const import (
+from evohomeasync2.schemas import (
     S2_GATEWAY_ID,
     S2_GATEWAY_INFO,
     S2_GATEWAYS,
@@ -19,6 +18,7 @@ from evohomeasync2.schemas.const import (
     S2_TIME_ZONE,
     S2_USE_DAYLIGHT_SAVE_SWITCHING,
 )
+from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
 from evohomeasync2.schemas.status import factory_loc_status
 
 from .conftest import ClientStub

@@ -16,13 +16,14 @@ from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import SZ_USER_ID
 from .location import Location, create_location
-from .schemas import factory_user_account, factory_user_locations_installation_info
+from .schemas.account import factory_user_account
+from .schemas.config import factory_user_locations_installation_info
 
 if TYPE_CHECKING:
     import aiohttp
 
     from .control_system import ControlSystem
-    from .schemas.typedefs import EvoLocConfigResponseT, EvoUsrConfigResponseT
+    from .schemas import EvoLocConfigResponseT, EvoUsrConfigResponseT
 
 
 SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)

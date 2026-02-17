@@ -34,16 +34,19 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
-from .schemas import TccSetZonModeT, ZoneMode, factory_zon_schedule, factory_zon_status
-from .schemas.const import (
+from .schemas import (
     S2_HEAT_SETPOINT_VALUE,
     S2_SETPOINT_MODE,
     S2_TIME_UNTIL,
+    DayOfWeek,
     EntityType,
+    TccSetZonModeT,
+    ZoneMode,
     ZoneModelType,
     ZoneType,
 )
-from .schemas.schedule import DayOfWeek
+from .schemas.schedule import factory_zon_schedule
+from .schemas.status import factory_zon_status
 
 if TYPE_CHECKING:
     import logging
@@ -53,7 +56,7 @@ if TYPE_CHECKING:
 
     from . import ControlSystem, Location
     from .auth import Auth
-    from .schemas.typedefs import (
+    from .schemas import (
         DailySchedulesT,
         DayOfWeekT,
         DayOfWeekZoneT,

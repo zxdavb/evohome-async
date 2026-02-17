@@ -13,7 +13,7 @@ from .conftest import FIXTURES_V0
 if TYPE_CHECKING:
     import pytest
     from freezegun.api import FrozenDateTimeFactory
-    from syrupy import SnapshotAssertion
+    from syrupy.assertion import SnapshotAssertion
 
     from tests.conftest import EvohomeClientv0
 

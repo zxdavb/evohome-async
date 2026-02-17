@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal, NotRequired, TypedDict
 
-from .config import (  # noqa: TC001
+from .const import (  # noqa: TC001
     DhwState,
     LocationType,
     SystemMode,
@@ -23,12 +23,6 @@ class TccAuthTokensResponseT(TypedDict):
     scope: str
     refresh_token: str
     token_type: str
-
-
-class EvoAuthTokensDictT(TypedDict):
-    access_token: str
-    access_token_expires: str  # dt.isoformat()
-    refresh_token: str
 
 
 #######################################################################################

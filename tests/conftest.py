@@ -14,6 +14,8 @@ from evohomeasync2 import EvohomeClient as EvohomeClientv2
 
 from .const import TEST_PASSWORD, TEST_USERNAME
 
+__all__ = ["CredentialsManager", "EvohomeClientv0", "EvohomeClientv2"]
+
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
     from pathlib import Path
@@ -115,7 +117,7 @@ def cache_file(
 
     # don't pollute the cache of real tokens (from the vendor) with fake tokens
     if use_real_aiohttp:
-        from evohome_cli.client import CACHE_FILE  # noqa: PLC0415
+        from evohome_cli.auth import CACHE_FILE  # noqa: PLC0415
 
         return CACHE_FILE
 
