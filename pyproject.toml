@@ -150,7 +150,6 @@ ignore = [
   "ANN401",  # Don't use type Any
   "E501",    # Line too long
   "G004",    # Logging statement uses f-string
-  "ISC001",  # Implicitly concatenated strings on a single line (conflicts with ruff)
   "N806",    # Variable in function should be lowercase
   "PLR0913", # Too many arguments in function definition
   "PLR2044", # Line with empty comment
