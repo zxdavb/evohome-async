@@ -40,7 +40,7 @@ class TccOAuthTokenResponseT(TypedDict):
     scope: str
 
 
-def factory_post_oauth_token(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_post_oauth_token(_: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the OAuth authorization response schema."""
 
     # NOTE: These keys are always in snake_case
@@ -67,7 +67,7 @@ def factory_error_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required("error"): str,
+            vol.Required(fnc("error")): str,
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -118,8 +118,8 @@ def factory_status_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     entry_schema = vol.Schema(
         {
-            vol.Required("code"): str,
-            vol.Required("message"): str,
+            vol.Required(fnc("code")): str,
+            vol.Required(fnc("message")): str,
         },
         extra=vol.PREVENT_EXTRA,
     )

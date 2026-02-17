@@ -123,11 +123,11 @@ class EvoZoneInfo(tzinfo):
 
         return self._dst
 
-    def tzname(self, dtm: dt | None) -> str:
+    def tzname(self, dtm: dt | None) -> str:  # noqa: ARG002
         "datetime -> string name of time zone."
         return self._tzname
 
-    def utcoffset(self, dtm: dt | None) -> td:
+    def utcoffset(self, dtm: dt | None) -> td:  # noqa: ARG002
         """Return offset of local time from UTC, as a timedelta object.
 
         The timedelta is positive east of UTC. If local time is west of UTC, this

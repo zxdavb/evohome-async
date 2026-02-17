@@ -575,7 +575,7 @@ TCC_PUT_ZON_SCHEDULE: Final = TCC_GET_ZON_SCHEDULE
 
 
 # for convenience...
-def factory_get_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_get_schedule(_: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the schedule schema."""
 
     from . import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE  # noqa: PLC0415
