@@ -320,6 +320,8 @@ async def set_schedules(
     print("\r\nclient.py: Starting restore of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
+    success: bool = False
+
     try:
         tcs = _get_tcs(evo, loc_idx)
 
