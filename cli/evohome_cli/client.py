@@ -122,14 +122,10 @@ async def cli(
     if debug:  # Do first
         _start_debugging(wait_for_client=True)
 
-    async def cleanup(
-        websession: aiohttp.ClientSession,
-        token_manager: CredentialsManager,
-    ) -> None:
+    async def cleanup() -> None:
         """Close the web session and save the access token to the cache."""
-
-        await websession.close()
         await token_manager.save_access_token()
+        await websession.close()
 
     logging.basicConfig(
         level=logging.DEBUG if debug else logging.WARNING,
@@ -156,7 +152,7 @@ async def cli(
 
     # TODO: use a typed dict for ctx.obj
     ctx.obj[SZ_EVO] = evo
-    ctx.obj[SZ_CLEANUP] = cleanup(websession, token_manager)
+    ctx.obj[SZ_CLEANUP] = cleanup
 
 
 @cli.command()
@@ -177,7 +173,7 @@ async def mode(ctx: click.Context, loc_idx: int) -> None:
 
     await _write(sys.stdout, "\r\n" + str(_get_tcs(evo, loc_idx).mode) + "\r\n\r\n")
 
-    await ctx.obj[SZ_CLEANUP]
+    await ctx.obj[SZ_CLEANUP]()
     print(" - finished.\r\n")
 
 
@@ -211,7 +207,7 @@ async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> 
 
     await _write(output_file, json.dumps(result, indent=4) + "\r\n\r\n")
 
-    await ctx.obj[SZ_CLEANUP]
+    await ctx.obj[SZ_CLEANUP]()
     print(" - finished.\r\n")
 
 
@@ -250,7 +246,7 @@ async def get_schedule(
 
     await _write(output_file, json.dumps(schedule, indent=4) + "\r\n\r\n")
 
-    await ctx.obj[SZ_CLEANUP]
+    await ctx.obj[SZ_CLEANUP]()
     print(" - finished.\r\n")
 
 
@@ -291,7 +287,7 @@ async def get_schedules(
         await _write(output_file, json.dumps(schedules, indent=4) + "\r\n\r\n")
 
     finally:
-        await ctx.obj[SZ_CLEANUP]
+        await ctx.obj[SZ_CLEANUP]()
 
     print(" - finished.\r\n")
 
@@ -336,7 +332,7 @@ async def set_schedules(
         success = await tcs.set_schedules(json.loads(content))
 
     finally:
-        await ctx.obj[SZ_CLEANUP]
+        await ctx.obj[SZ_CLEANUP]()
 
     print(f" - finished{'' if success else ' (with errors)'}.\r\n")
 
