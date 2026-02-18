@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
 
 import aiofiles
-import aiofiles.os
 import keyring
 import keyring.errors
 

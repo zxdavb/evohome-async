@@ -184,7 +184,7 @@ async def test_token_manager(
             new_callable=AsyncMock,
         ) as req,
         patch(
-            "evohome_cli.auth.CredentialsManager.save_access_token",
+            "evohome_cli.auth.TokenCacheManager.save_access_token",
             new_callable=AsyncMock,
         ) as wrt,
     ):
@@ -224,7 +224,7 @@ async def test_token_manager(
             new_callable=AsyncMock,
         ) as req,
         patch(
-            "evohome_cli.auth.CredentialsManager.save_access_token",
+            "evohome_cli.auth.TokenCacheManager.save_access_token",
             new_callable=AsyncMock,
         ) as wrt,
     ):

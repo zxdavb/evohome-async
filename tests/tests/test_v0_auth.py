@@ -176,7 +176,7 @@ async def test_session_manager(
             new_callable=AsyncMock,
         ) as req,
         patch(
-            "evohome_cli.auth.CredentialsManager.save_session_id",
+            "evohome_cli.auth.TokenCacheManager.save_session_id",
             new_callable=AsyncMock,
         ) as wrt,
     ):
