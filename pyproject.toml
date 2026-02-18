@@ -159,7 +159,7 @@ ignore = [
 
 
 [tool.ruff.lint.per-file-ignores]
-"./cli/evohome_cli/client.py" = ["ARG001", "EXE001", "T10", "T201"]  # debugger, prints
+"./cli/evohome_cli/client.py" = ["ARG001", "EXE001", "T10"]  # debugger
 "./tests/*" = ["ARG", "SLF001"]  # tests need to access private members
 
 
