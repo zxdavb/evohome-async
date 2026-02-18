@@ -4,6 +4,13 @@ Thank you for your interest in contributing. This library is consumed by
 [Home Assistant](https://www.home-assistant.io/integrations/evohome), so
 contributions must meet production-quality standards.
 
+In particular, the `>=` lower bounds in this project _must_ be compatible with Home Assistant:
+
+- `pyproject.toml` — lower bounds must satisfy the latest HA release
+- `requirements_dev.txt` — lower bounds must satisfy the latest HEAD of HA's dev branch
+
+These versions are mirrored in the GitHub workflows and the pre-commit configuration; keep all three consistent.
+
 **Please read this file in full before starting work.** AI-assisted PRs that
 ignore these guidelines will be closed.
 
@@ -18,6 +25,12 @@ ruff check .               # linting — zero warnings
 ruff format --check .      # formatting
 mypy                       # strict type checking
 pytest                     # full test suite
+```
+
+The cleanest way to do this is to install pre-commit checks - or manually - via prek:
+
+```bash
+prek run --all             # run pre-commit tests
 ```
 
 If your change introduces a new warning or error, fix your code — do **not** add
@@ -59,7 +72,10 @@ from datetime import datetime
 now = datetime.now()
 ```
 
-The project convention is to alias: `from datetime import datetime as dt`.
+The project convention is to alias:
+
+- `from datetime import datetime as dt`, and
+- `from datetime import timedelta as td`.
 
 ### 3. All I/O must be async
 
