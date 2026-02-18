@@ -39,6 +39,14 @@ _LOGGER: Final = logging.getLogger(__name__)
 # Keyring functions are synchronous: but this is CLI, not library code, so is OK.
 
 
+def is_keyring_available() -> bool:
+    """Return True if a working keyring backend is available."""
+
+    import keyring.backends.fail  # noqa: PLC0415
+
+    return not isinstance(keyring.get_keyring(), keyring.backends.fail.Keyring)
+
+
 def get_password_from_keyring(username: str) -> str | None:
     """Retrieve the TCC password for the given username from the system keyring."""
 
@@ -55,7 +63,7 @@ def save_password_to_keyring(username: str, password: str) -> None:
     try:
         keyring.set_password(KEYRING_SERVICE_KEY, username, password)
     except keyring.errors.KeyringError as err:
-        _LOGGER.warning("Failed to save password to keyring: %s", err)
+        _LOGGER.debug("Failed to save password to keyring: %s", err)
 
 
 def get_username_from_keyring() -> str | None:
@@ -74,7 +82,7 @@ def save_username_to_keyring(username: str) -> None:
     try:
         keyring.set_password(KEYRING_SERVICE_KEY, KEYRING_USERNAME_KEY, username)
     except keyring.errors.KeyringError as err:
-        _LOGGER.warning("Failed to save username to keyring: %s", err)
+        _LOGGER.debug("Failed to save username to keyring: %s", err)
 
 
 def delete_password_from_keyring(username: str) -> bool:

@@ -29,6 +29,7 @@ from .auth import (
     delete_username_from_keyring,
     get_password_from_keyring,
     get_username_from_keyring,
+    is_keyring_available,
     save_password_to_keyring,
     save_username_to_keyring,
 )
@@ -47,7 +48,10 @@ SZ_EVO: Final = "evohome"
 SZ_USERNAME: Final = "username"
 
 
-_LOGGER: Final = logging.getLogger(__name__)
+# User-facing messages go to stderr via click.echo(err=True), keeping stdout
+# clean for data output (JSON, mode strings, etc.) that can be piped/redirected.
+# The logging framework also writes to stderr, so warning/debug diagnostics from
+# the library and from keyring helpers never corrupt piped data either.
 
 
 def _start_debugging(*, wait_for_client: bool | None = None) -> None:
@@ -56,15 +60,19 @@ def _start_debugging(*, wait_for_client: bool | None = None) -> None:
     try:
         debugpy.listen((DEBUG_ADDR, DEBUG_PORT))
     except RuntimeError:
-        print(f" - Debugging is already enabled on: {DEBUG_ADDR}:{DEBUG_PORT}")
+        click.echo(
+            f"Debugging is already enabled on: {DEBUG_ADDR}:{DEBUG_PORT}", err=True
+        )
         raise
     else:
-        print(f" - Debugging is enabled, listening on: {DEBUG_ADDR}:{DEBUG_PORT}")
+        click.echo(
+            f"Debugging is enabled, listening on: {DEBUG_ADDR}:{DEBUG_PORT}", err=True
+        )
 
     if wait_for_client and not debugpy.is_client_connected():
-        print("   - execution paused, waiting for debugger to attach...")
+        click.echo(" - execution paused, waiting for debugger to attach...", err=True)
         debugpy.wait_for_client()
-        print("   - debugger is now attached, continuing execution.")
+        click.echo(" - debugger is now attached, continuing execution.", err=True)
 
 
 if _DBG_DEBUG_CLI:
@@ -100,6 +108,16 @@ def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
     if loc_idx is None:
         loc_idx = 0
     return evo.locations[loc_idx].gateways[0].systems[0]
+
+
+def _require_keyring() -> None:
+    """Raise a ClickException if no working keyring backend is available."""
+
+    if not is_keyring_available():
+        raise click.ClickException(
+            "No keyring backend available; install a supported backend"
+            " (e.g. 'pip install keyrings.alt' or 'pip install secretstorage')."
+        )
 
 
 async def _write(output_file: TextIOWrapper | Any, content: str) -> None:
@@ -146,11 +164,12 @@ async def cli(
         level=logging.DEBUG if debug else logging.WARNING,
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
-        stream=sys.stdout,
+        stream=sys.stderr,
     )
 
     # Commands that don't need an API connection skip the auth flow entirely.
     if ctx.invoked_subcommand == "clear-credentials":
+        _require_keyring()
 
         async def noop() -> None:
             pass
@@ -179,6 +198,8 @@ async def cli(
 
     evo = EvohomeClient(token_manager, debug=bool(debug))
 
+    click.echo("Authenticating and retrieving installation data...", err=True)
+
     try:
         await evo.update()
     except exc.AuthenticationFailedError:
@@ -186,6 +207,7 @@ async def cli(
         raise
 
     if save_credentials:
+        _require_keyring()
         save_username_to_keyring(username)
         save_password_to_keyring(username, password)
 
@@ -207,16 +229,13 @@ async def cli(
 async def mode(ctx: click.Context, loc_idx: int) -> None:
     """Retrieve the system mode."""
 
-    print("\r\nclient.py: Retrieving the system mode...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     try:
-        await _write(sys.stdout, "\r\n" + str(_get_tcs(evo, loc_idx).mode) + "\r\n\r\n")
+        await _write(sys.stdout, str(_get_tcs(evo, loc_idx).mode) + "\n")
 
     finally:
         await ctx.obj[SZ_CLEANUP]()
-
-    print(" - finished.\r\n")
 
 
 @cli.command()
@@ -239,21 +258,20 @@ async def mode(ctx: click.Context, loc_idx: int) -> None:
 async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> None:
     """Download all the global config and the location status."""
 
-    print("\r\nclient.py: Starting dump of config and status...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     try:
+        click.echo("Retrieving location status...", err=True)
+
         result = {
             "config": evo.locations[loc_idx].config,
             "status": await evo.locations[loc_idx].update(),
         }
 
-        await _write(output_file, json.dumps(result, indent=4) + "\r\n\r\n")
+        await _write(output_file, json.dumps(result, indent=4) + "\n")
 
     finally:
         await ctx.obj[SZ_CLEANUP]()
-
-    print(" - finished.\r\n")
 
 
 @cli.command()
@@ -283,19 +301,18 @@ async def get_schedule(
 ) -> None:
     """Download the schedule of a zone of a TCS (WIP)."""
 
-    print("\r\nclient.py: Starting backup of zone schedule (WIP)...")
     evo = ctx.obj[SZ_EVO]
 
     try:
+        click.echo("Retrieving schedule...", err=True)
+
         zon: HotWater | Zone = _get_tcs(evo, loc_idx).zone_by_id[zone_id]
         schedule = {zon.id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
 
-        await _write(output_file, json.dumps(schedule, indent=4) + "\r\n\r\n")
+        await _write(output_file, json.dumps(schedule, indent=4) + "\n")
 
     finally:
         await ctx.obj[SZ_CLEANUP]()
-
-    print(" - finished.\r\n")
 
 
 @cli.command()
@@ -320,24 +337,23 @@ async def get_schedules(
 ) -> None:
     """Download all the schedules from a TCS."""
 
-    print("\r\nclient.py: Starting backup of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     try:
         tcs = _get_tcs(evo, loc_idx)
 
     except IndexError:
-        print("Aborted: No TCS found at location idx: %s", loc_idx)
+        raise click.ClickException(f"No TCS found at location idx: {loc_idx}") from None
 
     else:
+        click.echo("Retrieving schedules...", err=True)
+
         schedules = await tcs.get_schedules()
 
-        await _write(output_file, json.dumps(schedules, indent=4) + "\r\n\r\n")
+        await _write(output_file, json.dumps(schedules, indent=4) + "\n")
 
     finally:
         await ctx.obj[SZ_CLEANUP]()
-
-    print(" - finished.\r\n")
 
 
 @cli.command()
@@ -361,28 +377,26 @@ async def set_schedules(
 ) -> None:
     """Upload schedules to a TCS."""
 
-    print("\r\nclient.py: Starting restore of schedules...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
-
-    success: bool = False
 
     try:
         tcs = _get_tcs(evo, loc_idx)
 
     except IndexError:
-        print("Aborted: No TCS found at location idx: %s", loc_idx)
+        raise click.ClickException(f"No TCS found at location idx: {loc_idx}") from None
 
     else:
         # will TypeError if input_file is sys.stdin
         async with aiofiles.open(input_file.name) as fp:
             content = await fp.read()
 
-        success = await tcs.set_schedules(json.loads(content))
+        click.echo("Uploading schedules...", err=True)
+
+        if not await tcs.set_schedules(json.loads(content)):
+            raise click.ClickException("Schedule restore completed with errors.")
 
     finally:
         await ctx.obj[SZ_CLEANUP]()
-
-    print(f" - finished{'' if success else ' (with errors)'}.\r\n")
 
 
 @cli.command()
@@ -406,7 +420,10 @@ async def clear_credentials(ctx: click.Context) -> None:
 
     cleared |= delete_username_from_keyring()
 
-    print("Cleared stored credentials." if cleared else "No stored credentials found.")
+    click.echo(
+        "Cleared stored credentials." if cleared else "No stored credentials found.",
+        err=True,
+    )
 
 
 def main() -> None:
@@ -416,7 +433,7 @@ def main() -> None:
         asyncio.run(cli(obj={}))  # default for ctx.obj is None
 
     except click.ClickException as err:
-        print(f"Error: {err}")
+        click.echo(f"Error: {err}", err=True)
         sys.exit(-1)
 
 
