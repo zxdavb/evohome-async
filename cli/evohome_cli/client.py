@@ -171,9 +171,12 @@ async def mode(ctx: click.Context, loc_idx: int) -> None:
     print("\r\nclient.py: Retrieving the system mode...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    await _write(sys.stdout, "\r\n" + str(_get_tcs(evo, loc_idx).mode) + "\r\n\r\n")
+    try:
+        await _write(sys.stdout, "\r\n" + str(_get_tcs(evo, loc_idx).mode) + "\r\n\r\n")
 
-    await ctx.obj[SZ_CLEANUP]()
+    finally:
+        await ctx.obj[SZ_CLEANUP]()
+
     print(" - finished.\r\n")
 
 
@@ -200,14 +203,17 @@ async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> 
     print("\r\nclient.py: Starting dump of config and status...")
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
-    result = {
-        "config": evo.locations[loc_idx].config,
-        "status": await evo.locations[loc_idx].update(),
-    }
+    try:
+        result = {
+            "config": evo.locations[loc_idx].config,
+            "status": await evo.locations[loc_idx].update(),
+        }
 
-    await _write(output_file, json.dumps(result, indent=4) + "\r\n\r\n")
+        await _write(output_file, json.dumps(result, indent=4) + "\r\n\r\n")
 
-    await ctx.obj[SZ_CLEANUP]()
+    finally:
+        await ctx.obj[SZ_CLEANUP]()
+
     print(" - finished.\r\n")
 
 
@@ -241,12 +247,15 @@ async def get_schedule(
     print("\r\nclient.py: Starting backup of zone schedule (WIP)...")
     evo = ctx.obj[SZ_EVO]
 
-    zon: HotWater | Zone = _get_tcs(evo, loc_idx).zone_by_id[zone_id]
-    schedule = {zon.id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
+    try:
+        zon: HotWater | Zone = _get_tcs(evo, loc_idx).zone_by_id[zone_id]
+        schedule = {zon.id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
 
-    await _write(output_file, json.dumps(schedule, indent=4) + "\r\n\r\n")
+        await _write(output_file, json.dumps(schedule, indent=4) + "\r\n\r\n")
 
-    await ctx.obj[SZ_CLEANUP]()
+    finally:
+        await ctx.obj[SZ_CLEANUP]()
+
     print(" - finished.\r\n")
 
 
