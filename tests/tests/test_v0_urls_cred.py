@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
     from pathlib import Path
 
-    from evohome_cli.auth import CredentialsManager
+    from evohome_cli.auth import TokenCacheManager
 
 
 _TEST_SESSION_ID = "-- session id --"
@@ -64,7 +64,7 @@ def cache_file(
 # NOTE: using fixture_folder will break these tests; we don't want evo.update() either
 @pytest.fixture
 async def evohome_v0(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
 ) -> AsyncGenerator[EvohomeClient]:
     """Yield a client with an vailla credentials manager."""
 

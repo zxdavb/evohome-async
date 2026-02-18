@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from aioresponses import aioresponses
 
-from evohome_cli.auth import CredentialsManager
+from evohome_cli.auth import TokenCacheManager
 from evohomeasync2 import exceptions as exc
 from tests.const import HEADERS_CRED_V2, URL_CRED_V2
 
@@ -45,7 +45,7 @@ async def test_get_auth_token(
         }
 
     # start with an empty cache
-    token_manager = CredentialsManager(
+    token_manager = TokenCacheManager(
         *credentials, client_session, cache_file=cache_file
     )
 
@@ -142,7 +142,7 @@ async def test_token_manager(
     with cache_file.open("w") as f:
         f.write(json.dumps(cache_data_expired, indent=4))
 
-    token_manager = CredentialsManager(
+    token_manager = TokenCacheManager(
         *credentials, client_session, cache_file=cache_file
     )
 
@@ -157,7 +157,7 @@ async def test_token_manager(
     with cache_file.open("w") as f:
         f.write(json.dumps(cache_data_valid, indent=4))
 
-    token_manager = CredentialsManager(
+    token_manager = TokenCacheManager(
         *credentials, client_session, cache_file=cache_file
     )
 

@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from aioresponses import aioresponses
 
-from evohome_cli.auth import CredentialsManager
+from evohome_cli.auth import TokenCacheManager
 from evohomeasync import exceptions as exc
 from tests.const import URL_CRED_V0
 
@@ -40,7 +40,7 @@ async def test_get_session_id(
         return {"sessionId": str(uuid.uuid4()), "userInfo": {}}
 
     # start with an empty cache
-    session_manager = CredentialsManager(
+    session_manager = TokenCacheManager(
         *credentials, client_session, cache_file=cache_file
     )
 
@@ -134,7 +134,7 @@ async def test_session_manager(
     with cache_file.open("w") as f:
         f.write(json.dumps(cache_data_expired, indent=4))
 
-    session_manager = CredentialsManager(
+    session_manager = TokenCacheManager(
         *credentials, client_session, cache_file=cache_file
     )
 
@@ -149,7 +149,7 @@ async def test_session_manager(
     with cache_file.open("w") as f:
         f.write(json.dumps(cache_data_valid, indent=4))
 
-    session_manager = CredentialsManager(
+    session_manager = TokenCacheManager(
         *credentials, client_session, cache_file=cache_file
     )
 

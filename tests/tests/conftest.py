@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
     import voluptuous as vol
 
-    from evohome_cli.auth import CredentialsManager
+    from evohome_cli.auth import TokenCacheManager
 
 
 type JsonValueType = (
@@ -222,7 +222,7 @@ def use_real_aiohttp() -> bool:
 
 @pytest.fixture
 async def evohome_v0(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
     fixture_folder: Path,
 ) -> AsyncGenerator[EvohomeClientv0]:
     """Yield an instance of a v2 EvohomeClient."""
@@ -240,7 +240,7 @@ async def evohome_v0(
 
 @pytest.fixture
 async def evohome_v2(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
     fixture_folder: Path,
 ) -> AsyncGenerator[EvohomeClientv2]:
     """Yield an instance of a v2 EvohomeClient."""

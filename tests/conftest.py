@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from evohome_cli.auth import CredentialsManager
+from evohome_cli.auth import TokenCacheManager
 from evohomeasync import EvohomeClient as EvohomeClientv0
 from evohomeasync2 import EvohomeClient as EvohomeClientv2
 
 from .const import TEST_PASSWORD, TEST_USERNAME
 
-__all__ = ["CredentialsManager", "EvohomeClientv0", "EvohomeClientv2"]
+__all__ = ["EvohomeClientv0", "EvohomeClientv2", "TokenCacheManager"]
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -134,10 +134,10 @@ async def credentials_manager(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
     cache_file: Path,
-) -> AsyncGenerator[CredentialsManager]:
+) -> AsyncGenerator[TokenCacheManager]:
     """Yield a credentials manager for access_token & session_id caching."""
 
-    manager = CredentialsManager(*credentials, client_session, cache_file=cache_file)
+    manager = TokenCacheManager(*credentials, client_session, cache_file=cache_file)
 
     await manager.load_from_cache()
 
@@ -149,7 +149,7 @@ async def credentials_manager(
 
 @pytest.fixture
 async def evohome_v0(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
 ) -> AsyncGenerator[EvohomeClientv0]:
     """Yield an instance of a v0 EvohomeClient."""
 
@@ -165,7 +165,7 @@ async def evohome_v0(
 
 @pytest.fixture
 async def evohome_v2(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
 ) -> AsyncGenerator[EvohomeClientv2]:
     """Yield an instance of a v2 EvohomeClient."""
 

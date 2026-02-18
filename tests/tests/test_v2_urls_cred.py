@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import pytest
 from aioresponses import aioresponses
 
-from evohome_cli.auth import CredentialsManager
+from evohome_cli.auth import TokenCacheManager
 from evohomeasync2 import EvohomeClient, exceptions as exc
 from tests.const import (
     HEADERS_BASE,
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
     from pathlib import Path
 
-    from evohome_cli.auth import CredentialsManager
+    from evohome_cli.auth import TokenCacheManager
 
 
 _TEST_ACCESS_TOKEN = "-- access token --"  # noqa: S105
@@ -80,7 +80,7 @@ def cache_file(
 # NOTE: using fixture_folder will break these tests; we don't want evo.update() either
 @pytest.fixture
 async def evohome_v2(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
 ) -> AsyncGenerator[EvohomeClient]:
     """Yield a client with an vailla credentials manager."""
 

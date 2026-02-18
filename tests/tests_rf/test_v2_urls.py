@@ -45,7 +45,7 @@ if TYPE_CHECKING:
         TccZonDailySchedulesT,
         TccZonStatusResponseT,
     )
-    from tests.conftest import CredentialsManager
+    from tests.conftest import TokenCacheManager
 
 
 async def _post_auth_oauth_token(auth: Auth) -> dict[str, int | str]:
@@ -75,7 +75,7 @@ async def get_usr_locations(auth: Auth, usr_id: str) -> list[TccLocConfigRespons
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_tcs_urls(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
 ) -> None:
     """Test Location, Gateway and TCS URLs."""
 
@@ -191,7 +191,7 @@ async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_zon_urls(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
 ) -> None:
     """Test Zone URLs"""
 
@@ -308,7 +308,7 @@ async def put_zon_schedule(
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_dhw_urls(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
 ) -> None:
     """Test DHW URLs"""
 

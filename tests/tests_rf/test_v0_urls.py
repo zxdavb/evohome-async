@@ -30,7 +30,7 @@ if TYPE_CHECKING:
         TccSessionResponseT,
         TccUserAccountInfoResponseT,
     )
-    from tests.conftest import CredentialsManager
+    from tests.conftest import TokenCacheManager
 
 
 async def _post_session(auth: Auth) -> TccSessionResponseT:
@@ -133,7 +133,7 @@ async def put_evo_touch_systems(auth: Auth, loc_id: int) -> dict[str, Any]:
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_tcs_urls(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
 ) -> None:
     """Test Location and TCS URLs."""
 
@@ -168,7 +168,7 @@ async def test_tcs_urls(
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_zon_urls(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
 ) -> None:
     """Test Location, Gateway and TCS URLs."""
 
@@ -206,7 +206,7 @@ async def test_zon_urls(
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_dhw_urls(
-    credentials_manager: CredentialsManager,
+    credentials_manager: TokenCacheManager,
 ) -> None:
     """Test Location, Gateway and TCS URLs."""
 
