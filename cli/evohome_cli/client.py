@@ -226,13 +226,14 @@ async def cli(
     help="The location idx.",
 )
 @click.pass_context
-async def mode(ctx: click.Context, loc_idx: int) -> None:
+async def get_system_mode(ctx: click.Context, loc_idx: int) -> None:
     """Retrieve the system mode."""
 
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     try:
-        await _write(sys.stdout, str(_get_tcs(evo, loc_idx).mode) + "\n")
+        result = _get_tcs(evo, loc_idx).system_mode_status
+        await _write(sys.stdout, json.dumps(result, indent=4) + "\n")
 
     finally:
         await ctx.obj[SZ_CLEANUP]()
@@ -255,7 +256,9 @@ async def mode(ctx: click.Context, loc_idx: int) -> None:
     help="The output file.",
 )
 @click.pass_context
-async def dump(ctx: click.Context, loc_idx: int, output_file: TextIOWrapper) -> None:
+async def dump_location(
+    ctx: click.Context, loc_idx: int, output_file: TextIOWrapper
+) -> None:
     """Download all the global config and the location status."""
 
     evo: EvohomeClient = ctx.obj[SZ_EVO]
