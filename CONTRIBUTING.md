@@ -134,11 +134,13 @@ still warrant justification.
 | Constants          | `UPPER_SNAKE_CASE` |
 | Private members    | `_prefixed` |
 | Datetime import    | `from datetime import datetime as dt` |
+| Timedelta import   | `from datetime import timedelta as td` |
 | UTC import         | `from datetime import UTC` |
 | Logging            | `_LOGGER = logging.getLogger(__name__)` |
 | Type annotations   | Required on every function/method |
 | Structured dicts   | `TypedDict`, not `dict[str, Any]` |
 | Schema validation  | `import voluptuous as vol` (not pydantic, not dataclasses) |
+| Exception binding  | `except SomeError as err:` |
 | Build backend      | Hatchling — version lives in `src/_evohome/__init__.py` |
 
 ### Logging vs printing
