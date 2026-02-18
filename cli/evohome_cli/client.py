@@ -7,9 +7,8 @@ import asyncio
 import json
 import logging
 import sys
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 
-import aiofiles
 import aiohttp
 import asyncclick as click
 
@@ -35,6 +34,7 @@ from .auth import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from io import TextIOWrapper
 
 # all _DBG_* flags are only for dev/test and should be False for published code
@@ -49,7 +49,7 @@ SZ_USERNAME: Final = "username"
 
 
 # User-facing messages go to stderr via click.echo(err=True), keeping stdout
-# clean for data output (JSON, mode strings, etc.) that can be piped/redirected.
+# clean for data output (JSON) that can be piped/redirected.
 # The logging framework also writes to stderr, so warning/debug diagnostics from
 # the library and from keyring helpers never corrupt piped data either.
 
@@ -120,14 +120,37 @@ def _require_keyring() -> None:
         )
 
 
-async def _write(output_file: TextIOWrapper | Any, content: str) -> None:
-    """Write to a file, async if possible and sync otherwise."""
+def _loc_idx_option[FC: Callable[..., object]](f: FC) -> FC:
+    """Add a --loc-idx / -l option to a command."""
+    return click.option(
+        "--loc-idx",
+        "-l",
+        callback=_check_positive_int,
+        default=0,
+        type=int,
+        help="The location idx.",
+    )(f)
 
-    if output_file.name == "<stdout>":
-        output_file.write(content)
-    else:
-        async with aiofiles.open(output_file.name, "w") as fp:
-            await fp.write(content)
+
+def _output_file_option[FC: Callable[..., object]](f: FC) -> FC:
+    """Add a --output-file / -o option to a command."""
+    return click.option(
+        "--output-file",
+        "-o",
+        type=click.File("w"),
+        default="-",
+        help="The output file.",
+    )(f)
+
+
+def _input_file_option[FC: Callable[..., object]](f: FC) -> FC:
+    """Add a --input-file / -i option to a command."""
+    return click.option(
+        "--input-file",
+        "-i",
+        type=click.File(),
+        help="The input file.",
+    )(f)
 
 
 @click.group()
@@ -217,44 +240,27 @@ async def cli(
 
 
 @cli.command()
-@click.option(  # --loc-idx
-    "--loc-idx",
-    "-l",
-    callback=_check_positive_int,
-    default=0,
-    type=int,
-    help="The location idx.",
-)
+@_loc_idx_option
+@_output_file_option
 @click.pass_context
-async def get_system_mode(ctx: click.Context, loc_idx: int) -> None:
+async def get_system_mode(
+    ctx: click.Context, loc_idx: int, output_file: TextIOWrapper
+) -> None:
     """Retrieve the system mode."""
 
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     try:
         result = _get_tcs(evo, loc_idx).system_mode_status
-        await _write(sys.stdout, json.dumps(result, indent=4) + "\n")
+        output_file.write(json.dumps(result, indent=4) + "\n")
 
     finally:
         await ctx.obj[SZ_CLEANUP]()
 
 
 @cli.command()
-@click.option(  # --loc-idx
-    "--loc-idx",
-    "-l",
-    callback=_check_positive_int,
-    default=0,
-    type=int,
-    help="The location idx.",
-)
-@click.option(  # --output-file
-    "--output-file",
-    "-o",
-    type=click.File("w"),
-    default="-",
-    help="The output file.",
-)
+@_loc_idx_option
+@_output_file_option
 @click.pass_context
 async def dump_location(
     ctx: click.Context, loc_idx: int, output_file: TextIOWrapper
@@ -271,7 +277,7 @@ async def dump_location(
             "status": await evo.locations[loc_idx].update(),
         }
 
-        await _write(output_file, json.dumps(result, indent=4) + "\n")
+        output_file.write(json.dumps(result, indent=4) + "\n")
 
     finally:
         await ctx.obj[SZ_CLEANUP]()
@@ -283,21 +289,8 @@ async def dump_location(
     callback=_check_zone_id,
     type=str,
 )
-@click.option(  # --loc-idx
-    "--loc-idx",
-    "-l",
-    callback=_check_positive_int,
-    default=0,
-    type=int,
-    help="The location idx.",
-)
-@click.option(  # --output-file
-    "--output-file",
-    "-o",
-    type=click.File("w"),
-    default="-",
-    help="The output file.",
-)
+@_loc_idx_option
+@_output_file_option
 @click.pass_context
 async def get_schedule(
     ctx: click.Context, zone_id: str, loc_idx: int, output_file: TextIOWrapper
@@ -312,28 +305,15 @@ async def get_schedule(
         zon: HotWater | Zone = _get_tcs(evo, loc_idx).zone_by_id[zone_id]
         schedule = {zon.id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
 
-        await _write(output_file, json.dumps(schedule, indent=4) + "\n")
+        output_file.write(json.dumps(schedule, indent=4) + "\n")
 
     finally:
         await ctx.obj[SZ_CLEANUP]()
 
 
 @cli.command()
-@click.option(  # --loc-idx
-    "--loc-idx",
-    "-l",
-    callback=_check_positive_int,
-    default=0,
-    type=int,
-    help="The location idx.",
-)
-@click.option(  # --output-file
-    "--output-file",
-    "-o",
-    type=click.File("w"),
-    default="-",
-    help="The output file.",
-)
+@_loc_idx_option
+@_output_file_option
 @click.pass_context
 async def get_schedules(
     ctx: click.Context, loc_idx: int, output_file: TextIOWrapper
@@ -353,27 +333,15 @@ async def get_schedules(
 
         schedules = await tcs.get_schedules()
 
-        await _write(output_file, json.dumps(schedules, indent=4) + "\n")
+        output_file.write(json.dumps(schedules, indent=4) + "\n")
 
     finally:
         await ctx.obj[SZ_CLEANUP]()
 
 
 @cli.command()
-@click.option(  # --loc-idx
-    "--loc-idx",
-    "-l",
-    callback=_check_positive_int,
-    default=0,
-    type=int,
-    help="The location idx.",
-)
-@click.option(  # --input-file
-    "--input-file",
-    "-i",
-    type=click.File(),
-    help="The input file.",
-)
+@_loc_idx_option
+@_input_file_option
 @click.pass_context
 async def set_schedules(
     ctx: click.Context, loc_idx: int, input_file: TextIOWrapper
@@ -389,9 +357,7 @@ async def set_schedules(
         raise click.ClickException(f"No TCS found at location idx: {loc_idx}") from None
 
     else:
-        # will TypeError if input_file is sys.stdin
-        async with aiofiles.open(input_file.name) as fp:
-            content = await fp.read()
+        content = input_file.read()
 
         click.echo("Uploading schedules...", err=True)
 
