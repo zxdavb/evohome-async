@@ -10,7 +10,6 @@ import sys
 from typing import TYPE_CHECKING, Any, Final
 
 import aiofiles
-import aiofiles.os
 import aiohttp
 import asyncclick as click
 
@@ -23,7 +22,16 @@ from evohomeasync2 import (
 )
 from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE
 
-from .auth import CACHE_FILE, CredentialsManager
+from .auth import (
+    CACHE_FILE,
+    CredentialsManager,
+    delete_password_from_keyring,
+    delete_username_from_keyring,
+    get_password_from_keyring,
+    get_username_from_keyring,
+    save_password_to_keyring,
+    save_username_to_keyring,
+)
 
 if TYPE_CHECKING:
     from io import TextIOWrapper
@@ -35,7 +43,7 @@ DEBUG_ADDR = "0.0.0.0"  # noqa: S104
 DEBUG_PORT = 5679
 
 SZ_CLEANUP: Final = "cleanup"
-SZ_EVO: Final = "evo"
+SZ_EVO: Final = "evohome"
 SZ_USERNAME: Final = "username"
 
 
@@ -105,17 +113,23 @@ async def _write(output_file: TextIOWrapper | Any, content: str) -> None:
 
 
 @click.group()
-@click.option("--username", "-u", required=True, help="The TCC account username.")
-@click.option("--password", "-p", required=True, help="The TCC account password.")
-@click.option("--no-tokens", "-c", is_flag=True, help="Dont load the token cache.")
+@click.option("--username", "-u", default=None, help="The TCC account username.")
+@click.option("--password", "-p", default=None, help="The TCC account password.")
+@click.option(
+    "--save-credentials",
+    is_flag=True,
+    help="Save the username and password to the system keyring.",
+)
+@click.option("--no-load-tokens", is_flag=True, help="Don't load the token cache.")
 @click.option("--debug", "-d", is_flag=True, help="Enable debug logging.")
 @click.pass_context
 async def cli(
     ctx: click.Context,
-    username: str,
-    password: str,
+    username: str | None,
+    password: str | None,
     *,
-    no_tokens: bool | None = None,
+    save_credentials: bool | None = None,
+    no_load_tokens: bool | None = None,
     debug: bool | None = None,
 ) -> None:
     """A demonstration CLI for the evohomeasync2 client library."""
@@ -135,12 +149,32 @@ async def cli(
         stream=sys.stdout,
     )
 
+    # Commands that don't need an API connection skip the auth flow entirely.
+    if ctx.invoked_subcommand == "clear-credentials":
+
+        async def noop() -> None:
+            pass
+
+        ctx.obj[SZ_CLEANUP] = noop
+        ctx.obj[SZ_USERNAME] = username  # may be None; command will handle it
+        return
+
+    if username is None:
+        username = get_username_from_keyring() or await click.prompt("Username")
+    assert isinstance(username, str)  # resolved via CLI arg, keyring, or prompt
+
+    if password is None:
+        password = get_password_from_keyring(username) or await click.prompt(
+            "Password", hide_input=True
+        )
+    assert isinstance(password, str)  # resolved via CLI arg, keyring, or prompt
+
     websession = aiohttp.ClientSession()  # timeout=aiohttp.ClientTimeout(total=30))
     token_manager = CredentialsManager(
         username, password, websession, cache_file=CACHE_FILE
     )
 
-    if not no_tokens:  # then restore cached tokens, if any
+    if not no_load_tokens:  # then restore cached tokens, if any
         await token_manager.load_from_cache()
 
     evo = EvohomeClient(token_manager, debug=bool(debug))
@@ -150,6 +184,10 @@ async def cli(
     except exc.AuthenticationFailedError:
         await websession.close()
         raise
+
+    if save_credentials:
+        save_username_to_keyring(username)
+        save_password_to_keyring(username, password)
 
     # TODO: use a typed dict for ctx.obj
     ctx.obj[SZ_EVO] = evo
@@ -345,6 +383,30 @@ async def set_schedules(
         await ctx.obj[SZ_CLEANUP]()
 
     print(f" - finished{'' if success else ' (with errors)'}.\r\n")
+
+
+@cli.command()
+@click.pass_context
+async def clear_credentials(ctx: click.Context) -> None:
+    """Remove all stored credentials from the system keyring."""
+
+    cleared = False
+
+    # delete password for the keyring-stored username
+    stored_username: str | None = get_username_from_keyring()
+    if stored_username:
+        delete_password_from_keyring(stored_username)
+        cleared = True
+
+    # also delete password for the CLI-supplied username, if different
+    cli_username: str | None = ctx.obj[SZ_USERNAME]
+    if cli_username and cli_username != stored_username:
+        delete_password_from_keyring(cli_username)
+        cleared = True
+
+    cleared |= delete_username_from_keyring()
+
+    print("Cleared stored credentials." if cleared else "No stored credentials found.")
 
 
 def main() -> None:

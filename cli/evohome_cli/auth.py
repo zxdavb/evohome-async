@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
 
 import aiofiles
 import aiofiles.os
+import keyring
+import keyring.errors
 
 from evohomeasync.auth import (
     SZ_SESSION_ID,
@@ -29,6 +31,73 @@ if TYPE_CHECKING:
 
 
 CACHE_FILE: Final = Path(tempfile.gettempdir()) / ".evo-cache.tmp"
+KEYRING_SERVICE_KEY: Final = "evohome-client"
+KEYRING_USERNAME_KEY: Final = "username"
+
+_LOGGER: Final = logging.getLogger(__name__)
+
+
+# Keyring functions are synchronous: but this is CLI, not library code, so is OK.
+
+
+def get_password_from_keyring(username: str) -> str | None:
+    """Retrieve the TCC password for the given username from the system keyring."""
+
+    try:
+        return keyring.get_password(KEYRING_SERVICE_KEY, username)
+    except keyring.errors.KeyringError as err:
+        _LOGGER.debug("Failed to retrieve password from keyring: %s", err)
+        return None
+
+
+def save_password_to_keyring(username: str, password: str) -> None:
+    """Save the TCC password for the given username to the system keyring."""
+
+    try:
+        keyring.set_password(KEYRING_SERVICE_KEY, username, password)
+    except keyring.errors.KeyringError as err:
+        _LOGGER.warning("Failed to save password to keyring: %s", err)
+
+
+def get_username_from_keyring() -> str | None:
+    """Retrieve the stored default TCC username from the system keyring."""
+
+    try:
+        return keyring.get_password(KEYRING_SERVICE_KEY, KEYRING_USERNAME_KEY)
+    except keyring.errors.KeyringError as err:
+        _LOGGER.debug("Failed to retrieve username from keyring: %s", err)
+        return None
+
+
+def save_username_to_keyring(username: str) -> None:
+    """Save the TCC username as the default in the system keyring."""
+
+    try:
+        keyring.set_password(KEYRING_SERVICE_KEY, KEYRING_USERNAME_KEY, username)
+    except keyring.errors.KeyringError as err:
+        _LOGGER.warning("Failed to save username to keyring: %s", err)
+
+
+def delete_password_from_keyring(username: str) -> bool:
+    """Remove the TCC password for the given username from the system keyring."""
+
+    try:
+        keyring.delete_password(KEYRING_SERVICE_KEY, username)
+    except keyring.errors.KeyringError as err:
+        _LOGGER.debug("Failed to delete password from keyring: %s", err)
+        return False
+    return True
+
+
+def delete_username_from_keyring() -> bool:
+    """Remove the stored default TCC username from the system keyring."""
+
+    try:
+        keyring.delete_password(KEYRING_SERVICE_KEY, KEYRING_USERNAME_KEY)
+    except keyring.errors.KeyringError as err:
+        _LOGGER.debug("Failed to delete username from keyring: %s", err)
+        return False
+    return True
 
 
 class UserEntryT(TypedDict):

@@ -16,5 +16,6 @@
   aiofiles >= 24.1.0
   asyncclick >= 8.3.0                            # NOTE: async version (not used by HA)
   debugpy >= 1.8.17                              # can invoke via CLI (matches HA)
+  keyring >= 25.0.0                              # secure OS keyring for TCC credentials
 
-# check via: pip list | grep -E 'aiofiles|click|debugpy'
+# check via: pip list | grep -E 'aiofiles|click|debugpy|keyring'
