@@ -232,7 +232,7 @@ async def cli(
 
     evo = EvohomeClient(token_manager, debug=bool(debug))
 
-    click.echo("Authenticating and retrieving installation data...", err=True)
+    click.echo("Authenticating and retrieving installation...", err=True)
 
     try:
         await evo.update()
@@ -262,6 +262,8 @@ async def get_system_mode(
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     try:
+        click.echo("Retrieving TCS mode...\n", err=True)
+
         tcs = _get_tcs(evo, loc_idx)
         result = tcs.system_mode_status
         output_file.write(json.dumps(result, indent=4) + "\n")
@@ -282,7 +284,7 @@ async def dump_location(
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     try:
-        click.echo("Retrieving location status...", err=True)
+        click.echo("Retrieving location status...\n", err=True)
 
         result = {
             "config": evo.locations[loc_idx].config,
@@ -312,7 +314,7 @@ async def get_schedule(
     evo = ctx.obj[SZ_EVO]
 
     try:
-        click.echo("Retrieving schedule...", err=True)
+        click.echo("Retrieving zone/DHW schedule...\n", err=True)
 
         zon: HotWater | Zone = _get_tcs(evo, loc_idx).zone_by_id[zone_id]
         schedule = {zon.id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
@@ -337,7 +339,7 @@ async def get_schedules(
     try:
         tcs = _get_tcs(evo, loc_idx)
 
-        click.echo("Retrieving schedules...", err=True)
+        click.echo("Retrieving TCS schedules...\n", err=True)
 
         schedules = await tcs.get_schedules()
 
@@ -363,7 +365,7 @@ async def set_schedules(
 
         content = input_file.read()
 
-        click.echo("Uploading schedules...", err=True)
+        click.echo("Uploading TCS schedules...", err=True)
 
         if not await tcs.set_schedules(json.loads(content)):
             raise click.ClickException("Schedule restore completed with errors.")
