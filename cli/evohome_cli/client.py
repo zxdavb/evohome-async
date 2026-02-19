@@ -107,7 +107,18 @@ def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
 
     if loc_idx is None:
         loc_idx = 0
-    return evo.locations[loc_idx].gateways[0].systems[0]
+
+    try:
+        location = evo.locations[loc_idx]
+    except IndexError:
+        raise click.ClickException(
+            f"loc-idx {loc_idx} is out of range (max idx: {len(evo.locations) - 1})"
+        ) from None
+
+    try:
+        return location.gateways[0].systems[0]
+    except IndexError:
+        raise click.ClickException(f"No TCS found at loc-idx: {loc_idx}") from None
 
 
 def _require_keyring() -> None:
@@ -251,7 +262,8 @@ async def get_system_mode(
     evo: EvohomeClient = ctx.obj[SZ_EVO]
 
     try:
-        result = _get_tcs(evo, loc_idx).system_mode_status
+        tcs = _get_tcs(evo, loc_idx)
+        result = tcs.system_mode_status
         output_file.write(json.dumps(result, indent=4) + "\n")
 
     finally:
@@ -325,10 +337,6 @@ async def get_schedules(
     try:
         tcs = _get_tcs(evo, loc_idx)
 
-    except IndexError:
-        raise click.ClickException(f"No TCS found at location idx: {loc_idx}") from None
-
-    else:
         click.echo("Retrieving schedules...", err=True)
 
         schedules = await tcs.get_schedules()
@@ -353,10 +361,6 @@ async def set_schedules(
     try:
         tcs = _get_tcs(evo, loc_idx)
 
-    except IndexError:
-        raise click.ClickException(f"No TCS found at location idx: {loc_idx}") from None
-
-    else:
         content = input_file.read()
 
         click.echo("Uploading schedules...", err=True)
