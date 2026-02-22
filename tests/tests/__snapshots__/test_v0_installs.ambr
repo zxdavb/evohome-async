@@ -1591,7 +1591,7 @@
       idx: '''00''
   
           '
-      max_heat_setpoint: '5.0
+      max_heat_setpoint: '35.0
   
           ...
   
@@ -1664,7 +1664,7 @@
       idx: '''01''
   
           '
-      max_heat_setpoint: '5.0
+      max_heat_setpoint: '35.0
   
           ...
   
@@ -1738,7 +1738,7 @@
       idx: '''02''
   
           '
-      max_heat_setpoint: '5.0
+      max_heat_setpoint: '35.0
   
           ...
   
@@ -1812,7 +1812,7 @@
       idx: '''03''
   
           '
-      max_heat_setpoint: '5.0
+      max_heat_setpoint: '35.0
   
           ...
   
@@ -1886,7 +1886,7 @@
       idx: '''04''
   
           '
-      max_heat_setpoint: '5.0
+      max_heat_setpoint: '35.0
   
           ...
   
@@ -1960,7 +1960,7 @@
       idx: '''05''
   
           '
-      max_heat_setpoint: '5.0
+      max_heat_setpoint: '35.0
   
           ...
   
@@ -2034,7 +2034,7 @@
       idx: '''06''
   
           '
-      max_heat_setpoint: '5.0
+      max_heat_setpoint: '35.0
   
           ...
   
@@ -2108,7 +2108,7 @@
       idx: '''07''
   
           '
-      max_heat_setpoint: '5.0
+      max_heat_setpoint: '35.0
   
           ...
   
@@ -2184,7 +2184,7 @@
           ...
   
           '
-      max_heat_setpoint: '5.0
+      max_heat_setpoint: '35.0
   
           ...
   
@@ -2816,7 +2816,7 @@
       idx: '''02''
   
           '
-      max_heat_setpoint: '5.0
+      max_heat_setpoint: '35.0
   
           ...
   
