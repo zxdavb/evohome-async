@@ -412,16 +412,6 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
         return dev
 
-    def _get_dhw(self) -> HotWater:
-        """Return the TCS's DHW, if there is one."""
-
-        dev = self.zone_by_id.get("HW")
-
-        if dev is None:
-            raise exc.ConfigError(f"no DHW in {self}")
-
-        return dev  # type: ignore[return-value]
-
     async def get_temperatures(
         self,
         /,
