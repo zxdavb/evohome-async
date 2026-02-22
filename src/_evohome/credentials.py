@@ -47,7 +47,7 @@ class CredentialsManagerBase:
         """Return a string representation of the object."""
         return (
             f"{self.__class__.__name__}"
-            f"(client_id='{self.client_id}, hostname='{self.hostname}')"
+            f"(client_id='{self.client_id}', hostname='{self.hostname}')"
         )
 
     @cached_property
