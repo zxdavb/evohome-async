@@ -107,13 +107,13 @@ class TccZonStatusResponseT(TypedDict):
 
 class TccZonSetpointStatusResponseT(TypedDict):
     setpointMode: ZoneMode
-    targetHeatTemperature: int
+    targetHeatTemperature: float
     until: NotRequired[str]
 
 
 class TccTemperatureStatusResponseT(TypedDict):
     isAvailable: bool
-    temperature: NotRequired[int]
+    temperature: NotRequired[float]
 
 
 class TccDhwStatusResponseT(TypedDict):

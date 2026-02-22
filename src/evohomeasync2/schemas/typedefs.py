@@ -218,13 +218,13 @@ class EvoZonStatusResponseT(TypedDict):
 
 class EvoZonSetpointStatusResponseT(TypedDict):
     setpoint_mode: ZoneMode
-    target_heat_temperature: int
+    target_heat_temperature: float
     until: NotRequired[str]
 
 
 class EvoTemperatureStatusResponseT(TypedDict):
     is_available: bool
-    temperature: NotRequired[int]
+    temperature: NotRequired[float]
 
 
 class EvoDhwStatusResponseT(TypedDict):
