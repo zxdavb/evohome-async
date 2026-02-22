@@ -456,10 +456,10 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
 
     @property
     def status(self) -> EvoGwyInfoDictT:
-        """Return the latest config of the entity."""
+        """Return the latest status of the entity."""
         return {
             k: v
-            for k, v in self._config.items()
+            for k, v in self._status.items()
             if k in list(EvoGwyInfoDictT.__annotations__.keys())
         }  # type: ignore[return-value]
 
