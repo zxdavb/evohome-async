@@ -61,7 +61,7 @@ def _convert_vals[T](data: T, fnc: Callable[[str], str]) -> T:
 
     def recurse(data_: Any) -> Any:
         if isinstance(data_, dict):
-            return {fnc(k): recurse(v) for k, v in data_.items()}
+            return {k: recurse(v) for k, v in data_.items()}
 
         if isinstance(data_, list):
             return [recurse(i) for i in data_]
