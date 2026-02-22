@@ -25,6 +25,7 @@ from .const import (
     SZ_INSTANCE,
     SZ_IS_AVAILABLE,
     SZ_MAC_ID,
+    SZ_MAX_HEAT_SETPOINT,
     SZ_MIN_HEAT_SETPOINT,
     SZ_ONE_TOUCH_ACTIONS_SUSPENDED,
     SZ_ONE_TOUCH_BUTTONS,
@@ -245,7 +246,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
     @property
     def max_heat_setpoint(self) -> float:
-        return self._status[SZ_THERMOSTAT][SZ_MIN_HEAT_SETPOINT]
+        return self._status[SZ_THERMOSTAT][SZ_MAX_HEAT_SETPOINT]
 
     @property
     def min_heat_setpoint(self) -> float:
