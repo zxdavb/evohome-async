@@ -6,7 +6,7 @@ The entity hierarchy is: Location -> Gateway -> TCS -> DHW | Zone.
 from __future__ import annotations
 
 import logging
-from datetime import datetime as dt, tzinfo
+from datetime import UTC, datetime as dt, tzinfo
 from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
@@ -211,7 +211,7 @@ class Location(EntityBase):
 
     def now(self) -> dt:  # always returns a TZ-aware dtm
         """Return the current local time as an aware datetime in this location's TZ."""
-        return dt.now(self.client.tzinfo).astimezone(self.tzinfo)
+        return dt.now(self.client.tzinfo or UTC).astimezone(self.tzinfo)
 
     # Status (state) attrs & methods...
 
