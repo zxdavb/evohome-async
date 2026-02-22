@@ -8,6 +8,7 @@ Further information at: https://evohome-client.readthedocs.io
 from __future__ import annotations
 
 from datetime import UTC, datetime as dt, timedelta as td
+from typing import Self
 
 import aiohttp
 
@@ -105,6 +106,7 @@ class EvohomeClientOld(EvohomeClient):
         debug: bool = False,
     ) -> None:
         """Construct the v0 EvohomeClient object."""
+        self._owns_session = websession is None
         websession = websession or aiohttp.ClientSession()
 
         self._session_manager = _SessionManager(
@@ -114,6 +116,17 @@ class EvohomeClientOld(EvohomeClient):
             session_id=session_id,
         )
         super().__init__(self._session_manager, debug=debug)
+
+    async def close(self) -> None:
+        """Close the owned aiohttp.ClientSession, if any."""
+        if self._owns_session:
+            await self._session_manager.websession.close()
+
+    async def __aenter__(self) -> Self:
+        return self
+
+    async def __aexit__(self, *args: object) -> None:
+        await self.close()
 
 
 __all__ = [  # noqa: RUF022
