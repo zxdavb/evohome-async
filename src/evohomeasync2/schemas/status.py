@@ -232,7 +232,7 @@ def factory_system_mode_status(fnc: Callable[[str], str] = noop) -> vol.Any:
         ),
         vol.Schema(
             {
-                vol.Required(S2_MODE): vol.Any(
+                vol.Required(fnc(S2_MODE)): vol.Any(
                     str(SystemMode.AUTO_WITH_ECO),
                     str(SystemMode.AWAY),
                     str(SystemMode.CUSTOM),
