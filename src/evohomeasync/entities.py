@@ -282,14 +282,14 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
     async def _set_heat_setpoint(
         self,
-        status: str,  # "Scheduled" | "Temporary" | "Hold
+        status: str,  # "Scheduled" | "Temporary" | "Hold"
         value: float | None = None,
         next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
     ) -> None:
         """Set zone setpoint, either indefinitely, or until a set time."""
 
         if next_time is None:
-            data = {SZ_STATUS: SZ_HOLD, SZ_VALUE: value}
+            data = {SZ_STATUS: status, SZ_VALUE: value}
         else:
             data = {
                 SZ_STATUS: status,
