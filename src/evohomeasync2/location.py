@@ -233,7 +233,7 @@ class Location(EntityBase):
         return status
 
     async def _get_status(self) -> EvoLocStatusResponseT:
-        """Get the latest state of the location and update its status attr.
+        """Get the latest state of the location.
 
         Returns the raw JSON of the latest state.
         """
@@ -243,7 +243,6 @@ class Location(EntityBase):
             schema=self.SCH_STATUS,
         )  # type: ignore[assignment]
 
-        self._update_status(status)
         return status
 
     def _update_status(self, status: EvoLocStatusResponseT) -> None:
