@@ -542,7 +542,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
 
     @property
     def weather(self) -> EvoWeatherDictT:
-        return self._config[SZ_WEATHER]
+        return self._status[SZ_WEATHER]
 
     def _update_status(self, status: EvoTcsInfoDictT) -> None:
         """Update the LOC's status and cascade to its descendants."""
