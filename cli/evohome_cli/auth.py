@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-import tempfile
+import os
 from datetime import UTC, datetime as dt, timedelta as td
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from evohomeasync2.auth import AccessTokenEntryT
 
 
-CACHE_FILE: Final = Path(tempfile.gettempdir()) / ".evo-cache.tmp"
+_CACHE_PATH: Final = Path.home() / ".config" / "evohome" / ".evo-cache.tmp~"
 KEYRING_SERVICE_KEY: Final = "evohome-client"
 KEYRING_USERNAME_KEY: Final = "username"
 
@@ -136,7 +136,7 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
     """A credentials manager that uses a file to cache the tokens."""
 
     def __init__(
-        self, *args: Any, cache_file: Path | None = None, **kwargs: Any
+        self, *args: Any, cache_path: Path = _CACHE_PATH, **kwargs: Any
     ) -> None:
         """Initialise the credentials manager (for access_token & session_id)."""
 
@@ -145,12 +145,12 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
 
         super().__init__(*args, **kwargs)
 
-        self._cache_file: Final = cache_file
+        self._cache_path: Final = cache_path
 
     @property
-    def cache_file(self) -> str:
+    def cache_path(self) -> Path:
         """Return the token cache path."""
-        return str(self._cache_file)
+        return self._cache_path
 
     @staticmethod
     def _clean_cache(old_cache: CacheDataT) -> CacheDataT:
@@ -181,7 +181,7 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
         """Return a copy of the cache as read from file."""
 
         try:
-            async with aiofiles.open(self.cache_file) as fp:
+            async with aiofiles.open(self.cache_path) as fp:
                 content = await fp.read() or "{}"
         except FileNotFoundError:
             return {}
@@ -194,7 +194,11 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
 
         content = json.dumps(cache, indent=4)
 
-        async with aiofiles.open(self.cache_file, "w") as fp:
+        if not self.cache_path.parent.exists():
+            self.cache_path.parent.mkdir(mode=0o700, parents=True)
+
+        fd = os.open(self.cache_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        async with aiofiles.open(fd, "w", closefd=True) as fp:
             await fp.write(content)
 
     async def load_from_cache(self) -> None:

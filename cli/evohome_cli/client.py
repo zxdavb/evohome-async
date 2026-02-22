@@ -22,7 +22,6 @@ from evohomeasync2 import (
 from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE
 
 from .auth import (
-    CACHE_FILE,
     TokenCacheManager,
     delete_password_from_keyring,
     delete_username_from_keyring,
@@ -223,9 +222,7 @@ async def cli(
     assert isinstance(password, str)  # resolved via CLI arg, keyring, or prompt
 
     websession = aiohttp.ClientSession()  # timeout=aiohttp.ClientTimeout(total=30))
-    token_manager = TokenCacheManager(
-        username, password, websession, cache_file=CACHE_FILE
-    )
+    token_manager = TokenCacheManager(username, password, websession)
 
     if not no_load_tokens:  # then restore cached tokens, if any
         await token_manager.load_from_cache()

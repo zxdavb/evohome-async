@@ -108,7 +108,7 @@ def cache_data_expired(credentials: tuple[str, str]) -> CacheDataT:
 
 
 @pytest.fixture(scope="session")
-def cache_file(
+def cache_path(
     cache_data_valid: dict[str, int | str],
     tmp_path_factory: pytest.TempPathFactory,
     use_real_aiohttp: bool,  # noqa: FBT001 (is a fixture)
@@ -117,27 +117,30 @@ def cache_file(
 
     # don't pollute the cache of real tokens (from the vendor) with fake tokens
     if use_real_aiohttp:
-        from evohome_cli.auth import CACHE_FILE  # noqa: PLC0415
+        from evohome_cli.auth import _CACHE_PATH  # noqa: PLC0415
 
-        return CACHE_FILE
+        return _CACHE_PATH
 
-    cache_file = tmp_path_factory.getbasetemp() / ".evo-cache.tst"
+    cache_dir = tmp_path_factory.getbasetemp() / "evohome"
+    cache_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
 
-    with cache_file.open("w") as f:
+    cache_path = cache_dir / ".evo-cache.tst~"
+
+    with cache_path.open("w") as f:
         f.write(json.dumps(cache_data_valid, indent=4))
 
-    return cache_file
+    return cache_path
 
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def credentials_manager(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
-    cache_file: Path,
+    cache_path: Path,
 ) -> AsyncGenerator[TokenCacheManager]:
     """Yield a credentials manager for access_token & session_id caching."""
 
-    manager = TokenCacheManager(*credentials, client_session, cache_file=cache_file)
+    manager = TokenCacheManager(*credentials, client_session, cache_path=cache_path)
 
     await manager.load_from_cache()
 

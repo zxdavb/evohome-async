@@ -34,7 +34,7 @@ To avoid exceeding the vendor's API rate limit, it will restore the access token
 ### Example code...
 ```python
 websession = aiohttp.ClientSession()
-token_manager = TokenManager(username, password, websession, cache_file=CACHE_FILE_PATH)
+token_manager = TokenManager(username, password, websession)
 await token_manager.load_access_token()
 
 evo = EvohomeClient(token_manager)

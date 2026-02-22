@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 async def test_get_auth_token(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
-    cache_file: Path,
+    cache_path: Path,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test .get_access_token() and .is_access_token_valid() methods."""
@@ -46,7 +46,7 @@ async def test_get_auth_token(
 
     # start with an empty cache
     token_manager = TokenCacheManager(
-        *credentials, client_session, cache_file=cache_file
+        *credentials, client_session, cache_path=cache_path
     )
 
     #
@@ -126,7 +126,7 @@ async def test_get_auth_token(
 async def test_token_manager(
     cache_data_expired: CacheDataT,
     cache_data_valid: CacheDataT,
-    cache_file: Path,
+    cache_path: Path,
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
     caplog: pytest.LogCaptureFixture,
@@ -135,15 +135,15 @@ async def test_token_manager(
 ) -> None:
     """Test the .load_access_token() and .save_access_token() methods."""
 
-    cache_file = tmp_path_factory.getbasetemp() / ".evo-cache.tst"
+    cache_path = tmp_path_factory.getbasetemp() / ".evo-cache.tst"
 
     #
     # TEST 1: load an invalid cache...
-    with cache_file.open("w") as f:
+    with cache_path.open("w") as f:
         f.write(json.dumps(cache_data_expired, indent=4))
 
     token_manager = TokenCacheManager(
-        *credentials, client_session, cache_file=cache_file
+        *credentials, client_session, cache_path=cache_path
     )
 
     # have not yet called get_access_token (so not loaded cache either)
@@ -154,11 +154,11 @@ async def test_token_manager(
 
     #
     # TEST 2: load a valid token cache
-    with cache_file.open("w") as f:
+    with cache_path.open("w") as f:
         f.write(json.dumps(cache_data_valid, indent=4))
 
     token_manager = TokenCacheManager(
-        *credentials, client_session, cache_file=cache_file
+        *credentials, client_session, cache_path=cache_path
     )
 
     await token_manager.load_from_cache()

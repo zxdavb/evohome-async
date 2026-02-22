@@ -70,7 +70,7 @@ GET_ACCOUNT = (
 
 
 @pytest.fixture(scope="module")
-def cache_file(
+def cache_path(
     tmp_path_factory: pytest.TempPathFactory,
 ) -> Path:
     """Return the path to the token cache."""
