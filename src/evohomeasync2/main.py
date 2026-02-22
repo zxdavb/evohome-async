@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
@@ -29,6 +28,7 @@ if TYPE_CHECKING:
 SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)
 SCH_USER_LOCATIONS: Final = factory_user_locations_installation_info(camel_to_snake)
 
+_ERR_NOT_AVAILABLE: Final = "{} not available until after update() is called"
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync2"
 
@@ -61,7 +61,7 @@ class EvohomeClient:
         self._location_by_id: dict[str, Location] | None = None
 
         self._tzinfo: ZoneInfo | None = None
-        self._init_tzinfo = asyncio.create_task(self._async_init_tzinfo())
+        self._tzinfo_initialized: bool = False
 
     def __str__(self) -> str:
         """Return a string representation of this object."""
@@ -74,6 +74,12 @@ class EvohomeClient:
     @property
     def tzinfo(self) -> ZoneInfo | None:
         """Return a tzinfo-compliant object for the client's local time."""
+
+        if not self._tzinfo_initialized:
+            raise exc.InvalidConfigError(
+                _ERR_NOT_AVAILABLE.format("Timezone information")
+            )
+
         return self._tzinfo
 
     async def update(
@@ -103,9 +109,6 @@ class EvohomeClient:
             self._location_by_id = None
 
         if self._user_locs is None:
-            if not self._init_tzinfo.done():
-                await self._init_tzinfo
-
             await self._get_config(dont_update_status=dont_update_status)
 
         if not dont_update_status:  # don't retrieve/update status of location hierarchy
@@ -128,6 +131,8 @@ class EvohomeClient:
             self._tzinfo = await async_get_time_zone("localtime")
         except ZoneInfoNotFoundError:  # e.g. on Windows
             self._tzinfo = None
+        finally:
+            self._tzinfo_initialized = True
 
     async def _get_config(
         self, /, *, dont_update_status: bool = False
@@ -136,6 +141,9 @@ class EvohomeClient:
 
         If required, first retrieves the user information & installation configuration.
         """
+
+        if not self._tzinfo_initialized:
+            await self._async_init_tzinfo()
 
         if self._user_info is None:  # will handle access_token rejection
             url = "userAccount"
@@ -197,7 +205,7 @@ class EvohomeClient:
 
         if not self._user_info:
             raise exc.InvalidConfigError(
-                "The account information is not (yet) available"
+                _ERR_NOT_AVAILABLE.format("Account information")
             )
 
         return self._user_info
@@ -208,7 +216,7 @@ class EvohomeClient:
 
         if not self._user_locs:
             raise exc.InvalidConfigError(
-                "The installation information is not (yet) available"
+                _ERR_NOT_AVAILABLE.format("Installation information")
             )
 
         return self._locations  # type: ignore[return-value]
@@ -219,7 +227,7 @@ class EvohomeClient:
 
         if not self._user_locs:
             raise exc.InvalidConfigError(
-                "The installation information is not (yet) available"
+                _ERR_NOT_AVAILABLE.format("Installation information")
             )
 
         return self._location_by_id  # type: ignore[return-value]

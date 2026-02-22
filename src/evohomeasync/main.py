@@ -22,6 +22,8 @@ if TYPE_CHECKING:
 SCH_GET_ACCOUNT_INFO: Final = factory_user_account_info_response(camel_to_snake)
 SCH_GET_ACCOUNT_LOCS: Final = factory_location_response_list(camel_to_snake)
 
+_ERR_NOT_AVAILABLE: Final = "{} not available until after update() is called"
+
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync"
 
 
@@ -165,7 +167,7 @@ class EvohomeClient:
 
         if self._user_info is None:
             raise exc.InvalidConfigError(
-                "The account information is not (yet) available"
+                _ERR_NOT_AVAILABLE.format("Account information")
             )
 
         return self._user_info
@@ -176,7 +178,7 @@ class EvohomeClient:
 
         if self._user_locs is None:
             raise exc.InvalidConfigError(
-                "The installation information is not (yet) available"
+                _ERR_NOT_AVAILABLE.format("Installation information")
             )
 
         return self._locations  # type: ignore[return-value]
@@ -187,7 +189,7 @@ class EvohomeClient:
 
         if self._user_locs is None:
             raise exc.InvalidConfigError(
-                "The installation information is not (yet) available"
+                _ERR_NOT_AVAILABLE.format("Installation information")
             )
 
         return self._location_by_id  # type: ignore[return-value]
