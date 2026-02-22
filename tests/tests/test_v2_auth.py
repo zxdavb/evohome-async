@@ -202,7 +202,7 @@ async def test_token_manager(
             assert caplog.records[0].message == ("Fetching access_token...")
             assert caplog.records[1].message == (" - authenticating with the refresh_token")
             assert caplog.records[2].message.startswith("POST https://tccna.resideo.com/Auth/OAuth/Token")
-            assert caplog.records[3].message == (" - access_token = *** REDACTED ***")
+            assert caplog.records[3].message == (" - access_token = ********")
             assert caplog.records[4].message.startswith(" - access_token_expires = ")
             # fmt: on
 

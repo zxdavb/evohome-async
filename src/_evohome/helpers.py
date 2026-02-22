@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 REGEX_DATETIME = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
 
 _REDACTED_EMAIL_ADDRESS = "no-reply@redacted.xxx"
-_REDACTED_STRING = "*** REDACTED ***"
+_REDACTED_STRING = "********"
 
 _REDACTED_KEYS = (  # also keys with 'name' in them
     "city",
