@@ -12,7 +12,7 @@ import voluptuous as vol
 from _evohome.auth import AbstractAuth
 from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
 from _evohome.credentials import CredentialsManagerBase
-from _evohome.helpers import convert_keys_to_snake_case
+from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
 from .schemas import TCC_POST_USR_SESSION
@@ -129,7 +129,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         self._was_authenticated = True
 
         # session_id is short-lived (but not safe to log self._user_info here)...
-        self._logger.debug(f" - session_id = {self.session_id}")
+        self._logger.debug(f" - session_id = {redact(self.session_id)}")
         self._logger.debug(f" - session_id_expires = {self.session_id_expires}")
 
     async def _fetch_session_id(self, credentials: dict[str, str]) -> None:

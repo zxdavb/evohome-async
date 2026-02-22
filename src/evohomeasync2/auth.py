@@ -182,7 +182,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
             self._was_authenticated = True
 
         # access_token is short-lived (but not safe to log refresh_token here)...
-        self._logger.debug(f" - access_token = {self.access_token}")
+        self._logger.debug(f" - access_token = {redact(self.access_token)}")
         self._logger.debug(f" - access_token_expires = {self.access_token_expires}")
 
     async def _fetch_access_token(self, credentials: dict[str, str]) -> None:
