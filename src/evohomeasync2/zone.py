@@ -641,7 +641,7 @@ class Zone(_ZoneBase):
                     f"{self}: Missing {S2_HEAT_SETPOINT_VALUE}: {mode}"
                 )
 
-        elif self.min_heat_setpoint > temp > self.max_heat_setpoint:
+        elif not self.min_heat_setpoint <= temp <= self.max_heat_setpoint:
             self._logger.warning(
                 f"{self}: Unsupported/invalid {S2_HEAT_SETPOINT_VALUE}: {mode}"
             )
