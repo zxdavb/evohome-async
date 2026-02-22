@@ -229,7 +229,7 @@ class FaultType(StrEnum):  # NOTE: This list is incomplete
 @verify(EnumCheck.UNIQUE)
 class LocationType(StrEnum):
     COMMERCIAL = "Commercial"
-    AUTO_WITH_ECO = "Residential"
+    RESIDENTIAL = "Residential"
 
 
 @verify(EnumCheck.UNIQUE)
