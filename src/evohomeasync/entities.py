@@ -252,7 +252,8 @@ class Zone(_DeviceBase):  # Zone version of a Device
     def min_heat_setpoint(self) -> float:
         return self._status[SZ_THERMOSTAT][SZ_MIN_HEAT_SETPOINT]
 
-    async def allowed_modes(self) -> tuple[str, ...]:
+    @property
+    def allowed_modes(self) -> tuple[str, ...]:
         """Return the set of modes the zone can be assigned."""
         return tuple(self._config[SZ_THERMOSTAT][SZ_ALLOWED_MODES])
 

@@ -1563,6 +1563,13 @@
 # name: test_system_snapshot[default][zones]
   '''
   '3432521':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
           \  device_id: 3432521\n  device_lost_active: false\n  device_lost_hours: 0\n\
@@ -1637,6 +1644,13 @@
   
           '
   '3432576':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
           \  device_id: 3432576\n  device_lost_active: false\n  device_lost_hours: 0\n\
@@ -1711,6 +1725,13 @@
   
           '
   '3432577':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
           \  device_id: 3432577\n  device_lost_active: false\n  device_lost_hours: 0\n\
@@ -1785,6 +1806,13 @@
   
           '
   '3432578':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
           \  device_id: 3432578\n  device_lost_active: false\n  device_lost_hours: 0\n\
@@ -1859,6 +1887,13 @@
   
           '
   '3432579':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
           \  device_id: 3432579\n  device_lost_active: false\n  device_lost_hours: 0\n\
@@ -1933,6 +1968,13 @@
   
           '
   '3432580':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
           \  device_id: 3432580\n  device_lost_active: false\n  device_lost_hours: 0\n\
@@ -2007,6 +2049,13 @@
   
           '
   '3449703':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
           \  device_id: 3449703\n  device_lost_active: false\n  device_lost_hours: 0\n\
@@ -2081,6 +2130,13 @@
   
           '
   '3449740':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
           \  device_id: 3449740\n  device_lost_active: false\n  device_lost_hours: 0\n\
@@ -2155,6 +2211,13 @@
   
           '
   '3450733':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
           \  device_id: 3450733\n  device_lost_active: false\n  device_lost_hours: 0\n\
@@ -2789,6 +2852,13 @@
 # name: test_system_snapshot[minimal][zones]
   '''
   '3432577':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
       config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
           \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
           \  device_id: 3432577\n  device_lost_active: false\n  device_lost_hours: 0\n\
