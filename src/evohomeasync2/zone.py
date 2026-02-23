@@ -15,9 +15,12 @@ from . import exceptions as exc
 from .const import (
     _ERR_NOT_AVAILABLE,
     API_STRFTIME,
+    SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SETPOINT_MODES,
     SZ_DAILY_SCHEDULES,
+    SZ_DHW_STATE,
     SZ_FAULT_TYPE,
+    SZ_HEAT_SETPOINT,
     SZ_IS_AVAILABLE,
     SZ_MAX_HEAT_SETPOINT,
     SZ_MIN_HEAT_SETPOINT,
@@ -31,12 +34,14 @@ from .const import (
     SZ_TARGET_HEAT_TEMPERATURE,
     SZ_TEMPERATURE,
     SZ_TEMPERATURE_STATUS,
+    SZ_TIME_OF_DAY,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
 )
 from .schemas import (
     S2_HEAT_SETPOINT_VALUE,
     S2_SETPOINT_MODE,
+    S2_SWITCHPOINTS,
     S2_TIME_UNTIL,
     DayOfWeek,
     EntityType,
@@ -257,14 +262,14 @@ def _find_switchpoints(
     next_offset = 0
 
     # Check the switchpoints of the given day of week
-    for sp in schedule[day_idx]["switchpoints"]:
-        if sp["time_of_day"] <= time_of_day:
+    for sp in schedule[day_idx][S2_SWITCHPOINTS]:
+        if sp[SZ_TIME_OF_DAY] <= time_of_day:
             this_sp = sp
             continue
 
-        if sp["time_of_day"] > time_of_day:
+        if sp[SZ_TIME_OF_DAY] > time_of_day:
             if this_sp is None:
-                if not (prev_day := schedule[(day_idx + 6) % 7]["switchpoints"]):
+                if not (prev_day := schedule[(day_idx + 6) % 7][S2_SWITCHPOINTS]):
                     raise exc.InvalidScheduleError("No switchpoints for previous day")
                 this_sp = prev_day[-1]
                 this_offset = -1
@@ -276,7 +281,7 @@ def _find_switchpoints(
         assert this_sp is not None  # mypy
 
         if next_sp is None:
-            if not (next_day := schedule[(day_idx + 1) % 7]["switchpoints"]):
+            if not (next_day := schedule[(day_idx + 1) % 7][S2_SWITCHPOINTS]):
                 raise exc.InvalidScheduleError("No switchpoints for next day")
             next_sp = next_day[0]
             next_offset = +1
@@ -379,15 +384,23 @@ class _ScheduleBase(ActiveFaultsBase):
             self.schedule, *_dt_to_dow_and_tod(dtm, self.location.tzinfo)
         )
 
-        this_tod = dt.strptime(this_sp["time_of_day"], "%H:%M:00").time()  # noqa: DTZ007
-        next_tod = dt.strptime(next_sp["time_of_day"], "%H:%M:00").time()  # noqa: DTZ007
+        this_tod = dt.strptime(this_sp[SZ_TIME_OF_DAY], "%H:%M:00").time()  # noqa: DTZ007
+        next_tod = dt.strptime(next_sp[SZ_TIME_OF_DAY], "%H:%M:00").time()  # noqa: DTZ007
 
         this_dtm = dt.combine(dtm + td(days=this_offset), this_tod)
         next_dtm = dt.combine(dtm + td(days=next_offset), next_tod)
 
-        # either "dhw_state" (str) or "heat_setpoint" (float) _will_ be present...
-        this_val = this_sp.get("dhw_state") or this_sp["heat_setpoint"]  # pyright: ignore[reportTypedDictNotRequiredAccess]
-        next_val = next_sp.get("dhw_state") or next_sp["heat_setpoint"]  # pyright: ignore[reportTypedDictNotRequiredAccess]
+        # exactly one of "dhw_state" (str) or "heat_setpoint" (float) will be present
+        this_val = (
+            this_sp[SZ_DHW_STATE]
+            if SZ_DHW_STATE in this_sp
+            else this_sp[SZ_HEAT_SETPOINT]  # pyright: ignore[reportTypedDictNotRequiredAccess]
+        )
+        next_val = (
+            next_sp[SZ_DHW_STATE]
+            if SZ_DHW_STATE in next_sp
+            else next_sp[SZ_HEAT_SETPOINT]  # pyright: ignore[reportTypedDictNotRequiredAccess]
+        )
 
         return (
             (this_dtm.replace(tzinfo=self.location.tzinfo), this_val),
@@ -485,7 +498,7 @@ class _ZoneBase(_ScheduleBase):
     ) -> None:
         """Update the DHW/ZON's status."""
 
-        self._update_faults(status["active_faults"])
+        self._update_faults(status[SZ_ACTIVE_FAULTS])
         self._status = status
 
     @property
