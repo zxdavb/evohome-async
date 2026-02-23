@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from functools import cached_property
 from typing import TYPE_CHECKING, Any, Final
 
 from . import exceptions as exc
@@ -78,6 +77,8 @@ _TEMP_IS_NA: Final = 128
 class _EntityBase(ABC):
     """Base class for all entities."""
 
+    __slots__ = ("_config", "_id", "_status")
+
     _config: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
     _status: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
 
@@ -95,7 +96,7 @@ class _EntityBase(ABC):
     @abstractmethod
     def _logger(self) -> logging.Logger: ...
 
-    @cached_property
+    @property
     def id(self) -> str:
         return str(self._id)
 
@@ -116,6 +117,8 @@ class _EntityBase(ABC):
 
 class _DeviceBase(_EntityBase):
     """Base class for all devices."""
+
+    __slots__ = ("_loc",)
 
     _config: EvoDevInfoDictT | EvoGwyInfoDictT
     _status: EvoDevInfoDictT | EvoGwyInfoDictT
@@ -145,6 +148,8 @@ class _DeviceBase(_EntityBase):
 
 class HotWater(_DeviceBase):  # Hotwater version of a Device
     """Instance of a location's DHW zone."""
+
+    __slots__ = ()
 
     _config: Final[EvoDevInfoDictT]  # type: ignore[misc]
     _status: EvoDevInfoDictT
@@ -231,6 +236,8 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
 
 class Zone(_DeviceBase):  # Zone version of a Device
     """Instance of a location's heating zone."""
+
+    __slots__ = ()
 
     _config: Final[EvoDevInfoDictT]  # type: ignore[misc]
     _status: EvoDevInfoDictT
@@ -321,6 +328,8 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
 class ControlSystem(_EntityBase):  # TCS portion of a Location
     """Instance of a TCS (a portion of a location)."""
+
+    __slots__ = ("_cli", "hotwater", "zone_by_id", "zone_by_idx", "zones")
 
     _cli: EvohomeClient  # proxy for parent
 
@@ -430,6 +439,8 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 class Gateway(_DeviceBase):  # Gateway portion of a Device
     """Instance of a location's gateway."""
 
+    __slots__ = ()
+
     _config: Final[EvoGwyInfoDictT]  # type: ignore[misc]
     _status: EvoGwyInfoDictT  # initial state
 
@@ -455,13 +466,15 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
             if k in list(EvoGwyInfoDictT.__annotations__.keys())
         }  # type: ignore[return-value]
 
-    @cached_property
+    @property
     def mac_address(self) -> str:
         return self._config[SZ_MAC_ID]
 
 
 class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     """Instance of an account's location/TCS."""
+
+    __slots__ = ("gateway_by_id", "gateways")
 
     def __init__(
         self, entity_id: int, config: EvoTcsInfoDictT, client: EvohomeClient

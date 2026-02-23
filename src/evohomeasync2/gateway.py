@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from functools import cached_property
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from _evohome.helpers import camel_to_snake
@@ -35,6 +34,8 @@ if TYPE_CHECKING:
 
 class Gateway(ActiveFaultsBase, EntityBase):
     """Instance of a location's gateway."""
+
+    __slots__ = ("system_by_id", "systems")
 
     SCH_STATUS: vol.Schema = factory_gwy_status(camel_to_snake)
     _TYPE = EntityType.GWY
@@ -78,7 +79,7 @@ class Gateway(ActiveFaultsBase, EntityBase):
 
     # Config attrs...
 
-    @cached_property  # RENAMED val: was mac
+    @property  # RENAMED val: was mac
     def mac_address(self) -> str:
         return self._config[SZ_MAC]
 

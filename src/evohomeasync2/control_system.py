@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import json
-from functools import cached_property
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from _evohome.helpers import as_local_time, camel_to_snake
@@ -64,6 +63,8 @@ if TYPE_CHECKING:
 
 class ControlSystem(ActiveFaultsBase, EntityBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
+
+    __slots__ = ("gateway", "hotwater", "zone_by_id", "zones")
 
     SCH_STATUS: vol.Schema = factory_tcs_status(camel_to_snake)
     _TYPE = EntityType.TCS
@@ -126,11 +127,11 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
     # Config attrs...
 
-    @cached_property  # RENAMED val: was model_type
+    @property  # RENAMED val: was model_type
     def model(self) -> TcsModelType:
         return self._config[SZ_MODEL_TYPE]
 
-    @cached_property
+    @property
     def allowed_system_modes(self) -> tuple[EvoAllowedSystemModesResponseT, ...]:
         """
         "allowed_system_modes": [
@@ -151,7 +152,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         return tuple(self._config[SZ_ALLOWED_SYSTEM_MODES])
 
-    @cached_property  # a convenience attr, derived from allowed_system_modes
+    @property  # a convenience attr, derived from allowed_system_modes
     def modes(self) -> tuple[SystemMode, ...]:
         return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
 
