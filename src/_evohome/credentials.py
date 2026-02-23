@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from functools import cached_property
 from http import HTTPMethod
 from typing import TYPE_CHECKING, Any, Final
 
@@ -50,12 +49,12 @@ class CredentialsManagerBase:
             f"(client_id='{self.client_id}', hostname='{self.hostname}')"
         )
 
-    @cached_property
+    @property
     def client_id(self) -> str:
         """Return the client id used for HTTP authentication."""
         return self._client_id
 
-    @cached_property
+    @property
     def hostname(self) -> str:
         """Return the hostname used for HTTP authentication."""
         return self._hostname

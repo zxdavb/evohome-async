@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 from abc import ABC, abstractmethod
-from functools import cached_property
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
@@ -65,7 +64,7 @@ class AbstractAuth(ABC):
         """Return a string representation of the object."""
         return f"{self.__class__.__name__}(base='{self.url_base}')"
 
-    @cached_property
+    @property
     def hostname(self) -> str:
         """Return the hostname used for GET/PUT requests."""
         return self._hostname
