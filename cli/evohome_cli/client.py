@@ -79,17 +79,18 @@ if _DBG_DEBUG_CLI:
 
 
 def _check_zone_id(ctx: click.Context, param: click.Option, value: str) -> str:
-    """Validate the zone_idx argument is "00" to "11", or "HW"."""
+    """Validate the zone_id argument (any non-empty string, or 'HW' for DHW)."""
 
-    return value
+    if not value:
+        raise click.BadParameter("must be a non-empty zone ID, or 'HW' for DHW")
 
-    # if value.upper() == "HW":
-    #     return "HW"
+    if value.upper() == "HW":
+        return "HW"
 
-    # if not value.isdigit() or int(value) not in range(0, 12):
-    #     raise click.BadParameter("must be '00' to '11', or 'HW'")
+    if not value.isdigit() or int(value) not in range(12):
+        raise click.BadParameter("must be '00' to '11', or 'HW'")
 
-    # return f"{int(value):02X}"
+    return f"{int(value):02X}"
 
 
 def _check_positive_int(ctx: click.Context, param: click.Option, value: int) -> int:
@@ -313,7 +314,20 @@ async def get_schedule(
     try:
         click.echo("Retrieving zone/DHW schedule...\n", err=True)
 
-        zon: HotWater | Zone = _get_tcs(evo, loc_idx).zone_by_id[zone_id]
+        tcs = _get_tcs(evo, loc_idx)
+
+        zon: HotWater | Zone
+        if zone_id.upper() == "HW":
+            if tcs.hotwater is None:
+                raise click.ClickException("This TCS has no DHW")
+            zon = tcs.hotwater
+        elif zone_id not in tcs.zone_by_id:
+            raise click.ClickException(
+                f"Zone '{zone_id}' not found (available: {list(tcs.zone_by_id)})"
+            )
+        else:
+            zon = tcs.zone_by_id[zone_id]
+
         schedule = {zon.id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
 
         output_file.write(json.dumps(schedule, indent=4) + "\n")
