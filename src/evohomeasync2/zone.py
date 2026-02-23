@@ -351,7 +351,7 @@ class _ScheduleBase(ActiveFaultsBase):
                 raise exc.InvalidScheduleError(
                     f"{self}: No Schedule, or is invalid"
                 ) from err
-            raise exc.ApiRequestFailedError(f"{self}: Unexpected error") from err
+            raise
 
         self._schedule = schedule[SZ_DAILY_SCHEDULES]
 
