@@ -184,7 +184,7 @@ async def test_good(  # good credentials
                     "securityQuestion1": "NotUsed",
                     "securityQuestion2": "NotUsed",
                     "securityQuestion3": "NotUsed",
-                    "latestEulaAccepted": False,
+                    "latestEulaAccepted": True,
                 },
             },
         )

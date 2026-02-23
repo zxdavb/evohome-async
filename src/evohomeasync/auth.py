@@ -169,7 +169,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
         self._was_authenticated = True  # i.e. the credentials are valid
 
-        if session.get("latest_eula_accepted"):
+        if self._user_info.get("latest_eula_accepted") is False:
             self._logger.warning("The latest EULA has not been accepted by the user")
 
     async def _post_session_id_request(  # dev/test wrapper (also typing)
