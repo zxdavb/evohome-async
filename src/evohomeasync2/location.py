@@ -214,7 +214,7 @@ class Location(EntityBase):
 
     def now(self) -> dt:  # always returns a TZ-aware dtm
         """Return the current local time as an aware datetime in this location's TZ."""
-        return dt.now(self.client.tzinfo or UTC).astimezone(self.tzinfo)
+        return dt.now(UTC).astimezone(self.tzinfo)
 
     # Status (state) attrs & methods...
 
