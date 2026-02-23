@@ -197,7 +197,9 @@ class AbstractAuth(ABC):
             if hint := ERR_MSG_LOOKUP_BASE.get(err.status):
                 self._logger.error(hint)  # noqa: TRY400
 
-            msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
+            msg = f"{err.status} {err.message}"
+            if rsp:
+                msg += f", response={await _payload(rsp)}"
 
             raise exc.ApiRequestFailedError(
                 f"{method} {url}: {msg}", status=err.status
