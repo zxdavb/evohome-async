@@ -8,6 +8,7 @@ But here it is implemented as: Location -> Gateway -> TCS -> DHW | Zone
 from __future__ import annotations
 
 import logging
+from abc import ABC, abstractmethod
 from functools import cached_property
 from typing import TYPE_CHECKING, Any, Final
 
@@ -74,7 +75,7 @@ if TYPE_CHECKING:
 _TEMP_IS_NA: Final = 128
 
 
-class _EntityBase:
+class _EntityBase(ABC):
     """Base class for all entities."""
 
     _config: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
@@ -87,12 +88,12 @@ class _EntityBase:
         return f"{self.__class__.__name__}(id='{self._id}')"
 
     @property
-    def _auth(self) -> Auth:
-        raise NotImplementedError
+    @abstractmethod
+    def _auth(self) -> Auth: ...
 
     @property
-    def _logger(self) -> logging.Logger:
-        raise NotImplementedError
+    @abstractmethod
+    def _logger(self) -> logging.Logger: ...
 
     @cached_property
     def id(self) -> str:
