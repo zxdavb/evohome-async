@@ -181,7 +181,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
 
     @property
     def temperature(self) -> float | None:
-        if not (status := self.temperature_status) or not status[SZ_IS_AVAILABLE]:
+        if not (status := self.temperature_status)[SZ_IS_AVAILABLE]:
             return None
 
         assert SZ_TEMPERATURE in status  # mypy hint
@@ -282,7 +282,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
     @property
     def temperature(self) -> float | None:
-        if not (status := self.temperature_status) or not status[SZ_IS_AVAILABLE]:
+        if not (status := self.temperature_status)[SZ_IS_AVAILABLE]:
             return None
 
         assert SZ_TEMPERATURE in status  # mypy hint
