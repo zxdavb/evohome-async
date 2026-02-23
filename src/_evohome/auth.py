@@ -24,9 +24,9 @@ if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
 
 
-async def _payload(r: aiohttp.ClientResponse | None) -> str | None:
+async def _payload(r: aiohttp.ClientResponse | None) -> str:
     if r is None:
-        return None
+        return "<no response>"
 
     try:
         if r.content_type == "application/json":
@@ -36,9 +36,9 @@ async def _payload(r: aiohttp.ClientResponse | None) -> str | None:
         return await r.text()  # text/html?
 
     except aiohttp.ClientPayloadError:
-        return None
+        return "<no response>"
     except aiohttp.ClientError:
-        return None
+        return "<no response>"
 
 
 class AbstractAuth(ABC):
