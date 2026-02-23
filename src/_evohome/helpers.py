@@ -190,6 +190,12 @@ def redact(value: bool | int | str) -> bool | int | str | None:  # noqa: FBT001
     return _REDACTED_STRING
 
 
+def _should_redact(key: str) -> bool:
+    """Return True if a dict key indicates its value may be a secret."""
+    # unfortunately, also redacts 'displayName' (is under 'timeZone')
+    return "name" in key.lower() or key.lower() in _REDACTED_KEYS
+
+
 def redact_secrets[T](data: T) -> T:
     """Recursively redact all dict/list values that might be secrets.
 
@@ -197,6 +203,7 @@ def redact_secrets[T](data: T) -> T:
     """
 
     def _redact(key: str, val: Any) -> Any:
+        """Redact a value under a sensitive key."""
         if not isinstance(val, str):
             return redact(val)
         if REGEX_EMAIL_ADDRESS.match(val):
@@ -204,12 +211,6 @@ def redact_secrets[T](data: T) -> T:
         if "name" in key.lower():
             return val[:2].ljust(len(val), "*")
         return "".join("*" if char != " " else " " for char in val)
-
-    def should_redact(key: Any) -> bool:
-        # unfortunately, also redacts 'displayName' (is under 'timeZone')
-        return isinstance(key, str) and (
-            "name" in key.lower() or key.lower() in _REDACTED_KEYS
-        )
 
     def recurse(data_: Any) -> Any:
         if isinstance(data_, list):  # or Sequence?
@@ -222,7 +223,7 @@ def redact_secrets[T](data: T) -> T:
             return data_
 
         return {
-            k: _redact(k, v) if should_redact(k) else recurse(v)
+            k: _redact(k, v) if _should_redact(k) else recurse(v)
             for k, v in data_.items()
         }
 
