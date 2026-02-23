@@ -24,6 +24,7 @@ from .const import (
     SZ_INDOOR_TEMPERATURE_STATUS,
     SZ_INSTANCE,
     SZ_IS_AVAILABLE,
+    SZ_LOCATION_ID,
     SZ_MAC_ID,
     SZ_MAX_HEAT_SETPOINT,
     SZ_MIN_HEAT_SETPOINT,
@@ -123,10 +124,8 @@ class _DeviceBase(_EntityBase):
     _config: EvoDevInfoDictT | EvoGwyInfoDictT
     _status: EvoDevInfoDictT | EvoGwyInfoDictT
 
-    def __init__(
-        self, entity_id: int, config: EvoDevInfoDictT, location: Location
-    ) -> None:
-        super().__init__(entity_id)
+    def __init__(self, location: Location, config: EvoDevInfoDictT, /) -> None:
+        super().__init__(config[SZ_DEVICE_ID])
 
         self._loc = location  # parent
 
@@ -439,6 +438,13 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
 
     __slots__ = ()
 
+    def __init__(self, location: Location, config: EvoDevInfoDictT, /) -> None:
+        _EntityBase.__init__(self, config[SZ_GATEWAY_ID])  # uses gateway_id
+
+        self._loc = location
+        self._config = config
+        self._status = config
+
     _config: Final[EvoGwyInfoDictT]  # type: ignore[misc]
     _status: EvoGwyInfoDictT  # initial state
 
@@ -474,10 +480,8 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
 
     __slots__ = ("gateway_by_id", "gateways")
 
-    def __init__(
-        self, entity_id: int, config: EvoTcsInfoDictT, client: EvohomeClient
-    ) -> None:
-        super().__init__(entity_id)
+    def __init__(self, client: EvohomeClient, config: EvoTcsInfoDictT, /) -> None:
+        super().__init__(config[SZ_LOCATION_ID])
 
         self._cli = client  # proxy for parent
 
@@ -490,23 +494,23 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
         # process config[SZ_DEVICES]...
         for dev_config in config[SZ_DEVICES]:
             if str(dev_config[SZ_GATEWAY_ID]) not in self.gateway_by_id:
-                gwy = Gateway(dev_config[SZ_GATEWAY_ID], dev_config, self)
+                gwy = Gateway(self, dev_config)
 
                 self.gateways.append(gwy)
                 self.gateway_by_id[gwy.id] = gwy
 
             if (type_ := dev_config[SZ_THERMOSTAT_MODEL_TYPE]) == "DOMESTIC_HOT_WATER":
-                self.hotwater = HotWater(dev_config[SZ_DEVICE_ID], dev_config, self)
+                self.hotwater = HotWater(self, dev_config)
 
             # check is string to handle edge-case of Honeywell TH9320WF3003
             elif isinstance(type_, str) and type_.startswith("EMEA_"):
-                self._add_zone(Zone(dev_config[SZ_DEVICE_ID], dev_config, self))
+                self._add_zone(Zone(self, dev_config))
 
             else:  # assume everything else is a zone
                 self._logger.warning(
                     f"{self}: Unknown device type, assuming is a zone: {type_}"
                 )
-                self._add_zone(Zone(dev_config[SZ_DEVICE_ID], dev_config, self))
+                self._add_zone(Zone(self, dev_config))
 
     @property
     def _auth(self) -> Auth:

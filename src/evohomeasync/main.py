@@ -150,7 +150,7 @@ class EvohomeClient:
             self._location_by_id = {}
 
             for loc_entry in self._user_locs:  # each entry is both config & status
-                loc = Location(loc_entry[SZ_LOCATION_ID], loc_entry, self)
+                loc = Location(self, loc_entry)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 
