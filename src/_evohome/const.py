@@ -12,7 +12,7 @@ _DBG_DONT_REDACT_SECRETS = False  # default is to redact sensitive JSON in debug
 HOSTNAME: Final = "tccna.resideo.com"
 
 REGEX_EMAIL_ADDRESS = re.compile(
-    r"^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$"
+    r"^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,63})$"
 )
 
 
