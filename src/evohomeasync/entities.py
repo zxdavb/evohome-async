@@ -297,14 +297,12 @@ class Zone(_DeviceBase):  # Zone version of a Device
     ) -> None:
         """Set zone setpoint, either indefinitely, or until a set time."""
 
-        if next_time is None:
-            data = {SZ_STATUS: status, SZ_VALUE: value}
-        else:
-            data = {
-                SZ_STATUS: status,
-                SZ_VALUE: value,
-                SZ_NEXT_TIME: next_time.strftime(API_STRFTIME),
-            }
+        data: dict[str, float | str] = {SZ_STATUS: status}
+
+        if value is not None:  # NOTE: may have to send {SZ_VALUE: None} instead
+            data[SZ_VALUE] = value
+        if next_time is not None:
+            data[SZ_NEXT_TIME] = next_time.strftime(API_STRFTIME)
 
         url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
         await self._auth.put(url, json=data)
