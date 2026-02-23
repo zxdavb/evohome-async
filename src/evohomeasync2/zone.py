@@ -358,7 +358,7 @@ class _ScheduleBase(ActiveFaultsBase):
     def _find_switchpoints(self, dtm: dt) -> tuple[_SwitchPoint, _SwitchPoint]:
         """Find the current (this) and next switchpoints for a given datetime.
 
-        FYI: HA has traditonally exposed (as an extended_state_attr):
+        FYI: HA has traditionally exposed (as an extended_state_attr):
         {
             "this_sp_from": "2024-07-10T08:00:00+01:00",
             "this_sp_temp": 16.0,

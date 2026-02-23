@@ -16,7 +16,7 @@ REGEX_ZONE_ID: Final = r"[0-9]*"
 API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
 
 
-# These are vendorconstants, used for keys in the vendor's schema
+# These are vendor constants, used for keys in the vendor's schema
 S2_ACTIVE_FAULTS: Final = "activeFaults"
 S2_ALLOWED_FAN_MODES: Final = "allowedFanModes"
 S2_ALLOWED_MODES: Final = "allowedModes"

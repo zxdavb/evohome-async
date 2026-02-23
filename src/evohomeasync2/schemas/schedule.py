@@ -65,7 +65,7 @@ class TccZonDailySchedulesT(TypedDict):
 def factory_dhw_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the DHW schedule schema."""
 
-    SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
+    SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: check me
         {
             vol.Required(fnc(S2_DHW_STATE)): vol.In(DhwState),
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
@@ -126,7 +126,7 @@ def factory_zon_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
 def _out_factory_put_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
-    SCH_PUT_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: checkme
+    SCH_PUT_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: check me
         {
             vol.Required(fnc(S2_DHW_STATE)): vol.In(DhwState),
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),

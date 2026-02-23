@@ -248,7 +248,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
     def name(self) -> str:
         return self._config[SZ_NAME]
 
-    @property  # appears to be the zone idx (not in evohomeclientv2)
+    @property  # appears to be the zone idx (not in evohomeclient2)
     def idx(self) -> str:
         return f"{self._config[SZ_INSTANCE]:02X}"
 

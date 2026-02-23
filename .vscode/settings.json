@@ -4,9 +4,24 @@
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
     "cSpell.words": [
+        "behaviour",
+        "CREDS",
+        "dayoff",
+        "deadband",
+        "emea",
         "evohome",
         "evohomeasync",
+        "evohomeclient",
         "hass",
-        "resideo"
+        "heatingoff",
+        "hotwater",
+        "macid",
+        "resideo",
+        "Searchforcontractors",
+        "securityquestion",
+        "streetaddress",
+        "switchpoint",
+        "switchpoints",
+        "tccna"
     ]
 }
