@@ -240,7 +240,8 @@ def _find_switchpoints(
 ) -> tuple[SwitchpointT, int, SwitchpointT, int]:
     """Find this/next switchpoints for a given day of week and time of day."""
 
-    # TODO: schedule can be [], i.e. response was {'DailySchedules': []}
+    if not schedule:
+        raise exc.InvalidScheduleError("No schedule (daily schedules are empty)")
 
     # assumes 1+ switchpoint per day, which could be this_sp or next_sp only
 
@@ -263,7 +264,9 @@ def _find_switchpoints(
 
         if sp["time_of_day"] > time_of_day:
             if this_sp is None:
-                this_sp = schedule[(day_idx + 6) % 7]["switchpoints"][-1]
+                if not (prev_day := schedule[(day_idx + 6) % 7]["switchpoints"]):
+                    raise exc.InvalidScheduleError("No switchpoints for previous day")
+                this_sp = prev_day[-1]
                 this_offset = -1
 
             next_sp = sp
@@ -273,7 +276,9 @@ def _find_switchpoints(
         assert this_sp is not None  # mypy
 
         if next_sp is None:
-            next_sp = schedule[(day_idx + 1) % 7]["switchpoints"][0]
+            if not (next_day := schedule[(day_idx + 1) % 7]["switchpoints"]):
+                raise exc.InvalidScheduleError("No switchpoints for next day")
+            next_sp = next_day[0]
             next_offset = +1
 
     return this_sp, this_offset, next_sp, next_offset

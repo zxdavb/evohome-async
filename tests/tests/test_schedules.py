@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from _evohome.helpers import convert_keys_to_snake_case
+from evohomeasync2 import exceptions as exc
 from evohomeasync2.schemas import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE, DayOfWeek
 from evohomeasync2.zone import _dt_to_dow_and_tod, _find_switchpoints
 
@@ -170,6 +171,13 @@ def test_find_switchpoints_invalid_day() -> None:
 
     with pytest.raises(TypeError, match="Invalid parameter"):
         _find_switchpoints(schedule, "Montag", "08:00:00")  # type: ignore[arg-type]
+
+
+def test_find_switchpoints_empty_schedule() -> None:
+    """Test _find_switchpoints raises InvalidScheduleError on empty schedule."""
+
+    with pytest.raises(exc.InvalidScheduleError, match="daily schedules are empty"):
+        _find_switchpoints([], DayOfWeek.MONDAY, "08:00:00")
 
 
 @pytest.mark.parametrize(
