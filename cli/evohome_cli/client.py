@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 # all _DBG_* flags are only for dev/test and should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of click
 
-DEBUG_ADDR = "0.0.0.0"  # noqa: S104
+DEBUG_ADDR = "127.0.0.1"
 DEBUG_PORT = 5679
 
 SZ_CLEANUP: Final = "cleanup"
