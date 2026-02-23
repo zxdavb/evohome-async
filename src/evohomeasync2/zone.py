@@ -13,6 +13,7 @@ from _evohome.helpers import as_local_time, camel_to_snake
 
 from . import exceptions as exc
 from .const import (
+    _ERR_NOT_AVAILABLE,
     API_STRFTIME,
     SZ_ALLOWED_SETPOINT_MODES,
     SZ_DAILY_SCHEDULES,
@@ -86,9 +87,10 @@ _ONE_DAY = td(days=1)
 
 
 class EntityBase:
-    _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
-
     __slots__ = ("_config", "_id", "_status")
+
+    _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
+    _STATUS_EXCLUDES: tuple[str, ...] = ()  # child keys to exclude from own status
 
     _config: (
         EvoLocConfigEntryT
@@ -155,9 +157,7 @@ class EntityBase:
     ):
         """Return the latest status of the entity."""
         if self._status is None:
-            raise exc.InvalidStatusError(
-                "No status available (have not invoked Location.update()?)"
-            )
+            raise exc.InvalidStatusError(_ERR_NOT_AVAILABLE.format(self))
         return self._status
 
 
@@ -461,6 +461,11 @@ class _ZoneBase(_ScheduleBase):
 
     # Status (state) attrs & methods...
 
+    @property
+    def status(self) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
+        """Return the latest status of the entity."""
+        return super().status  # type: ignore[return-value]
+
     async def _get_status(self) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
         """Get the latest state of the DHW/zone and update its status attrs.
 
@@ -492,9 +497,7 @@ class _ZoneBase(_ScheduleBase):
         }
         """
 
-        if self._status is None:
-            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
-        return self._status[SZ_TEMPERATURE_STATUS]
+        return self.status[SZ_TEMPERATURE_STATUS]
 
     @property  # a convenience attr
     def temperature(self) -> float | None:
@@ -623,9 +626,7 @@ class Zone(_ZoneBase):
         }
         """
 
-        if self._status is None:
-            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
-        return self._status[SZ_SETPOINT_STATUS]
+        return self.status[SZ_SETPOINT_STATUS]
 
     @property
     def mode(self) -> ZoneMode:

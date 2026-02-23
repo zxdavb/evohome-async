@@ -2,6 +2,8 @@
 
 from typing import Final
 
+_ERR_NOT_AVAILABLE: Final = "{} not available until after Client.update() is called"
+
 SZ_ALLOWED_MODES: Final = "allowed_modes"
 SZ_COUNTRY: Final = "country"
 SZ_DAYLIGHT_SAVING_TIME_ENABLED: Final = "daylight_saving_time_enabled"

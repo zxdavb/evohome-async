@@ -4,6 +4,8 @@ from typing import Final
 
 from .schemas import API_STRFTIME as API_STRFTIME  # noqa: PLC0414
 
+_ERR_NOT_AVAILABLE: Final = "{} not available until after Location.update() is called"
+
 # HDR_STRFTIME: Final = "%Y-%m-%d %H:%M:%S"  # used by HTTP headers
 
 # These keys are snake_case equivalents of schema strings

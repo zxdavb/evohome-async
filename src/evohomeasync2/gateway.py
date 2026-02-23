@@ -39,6 +39,7 @@ class Gateway(ActiveFaultsBase, EntityBase):
 
     SCH_STATUS: vol.Schema = factory_gwy_status(camel_to_snake)
     _TYPE = EntityType.GWY
+    _STATUS_EXCLUDES = (SZ_TEMPERATURE_CONTROL_SYSTEMS,)
 
     def __init__(self, location: Location, config: EvoGwyConfigResponseT) -> None:
         super().__init__(config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID])
@@ -99,8 +100,8 @@ class Gateway(ActiveFaultsBase, EntityBase):
 
         self._update_faults(status["active_faults"])
 
-        # break the TypedDict into its parts (so, ignore[misc])...
-        for tcs_status in status.pop(SZ_TEMPERATURE_CONTROL_SYSTEMS):  # type: ignore[misc]
+        # cascade the child status to descendants...
+        for tcs_status in status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             if tcs := self.system_by_id.get(tcs_status[SZ_SYSTEM_ID]):
                 tcs._update_status(tcs_status)  # noqa: SLF001
 
@@ -110,4 +111,6 @@ class Gateway(ActiveFaultsBase, EntityBase):
                     ", (has the gateway configuration been changed?)"
                 )
 
-        self._status = status
+        self._status = {
+            k: v for k, v in status.items() if k not in self._STATUS_EXCLUDES
+        }  # type: ignore[assignment]

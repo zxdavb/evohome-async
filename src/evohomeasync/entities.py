@@ -131,7 +131,7 @@ class _DeviceBase(_EntityBase):
         self._loc = location  # parent
 
         self._config = config
-        self._status = config  # initial state
+        self._status = config  # not a typo, config is a superset of status
 
     @property
     def _auth(self) -> Auth:

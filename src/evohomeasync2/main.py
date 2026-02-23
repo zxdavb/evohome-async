@@ -13,7 +13,7 @@ from _evohome.helpers import camel_to_snake
 
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
-from .const import SZ_USER_ID
+from .const import _ERR_NOT_AVAILABLE, SZ_USER_ID
 from .location import Location, create_location
 from .schemas.account import factory_user_account
 from .schemas.config import factory_user_locations_installation_info
@@ -27,8 +27,6 @@ if TYPE_CHECKING:
 
 SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)
 SCH_USER_LOCATIONS: Final = factory_user_locations_installation_info(camel_to_snake)
-
-_ERR_NOT_AVAILABLE: Final = "{} not available until after update() is called"
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync2"
 

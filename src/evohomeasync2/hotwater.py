@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Final
 
 from _evohome.helpers import as_local_time, camel_to_snake
 
-from . import exceptions as exc
 from .const import (
     API_STRFTIME,
     SZ_ALLOWED_MODES,
@@ -133,9 +132,7 @@ class HotWater(_ZoneBase):
         }
         """
 
-        if self._status is None:
-            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
-        return self._status[SZ_STATE_STATUS]
+        return self.status[SZ_STATE_STATUS]
 
     @property
     def mode(self) -> ZoneMode:

@@ -104,6 +104,7 @@ class Location(EntityBase):
 
     SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
     _TYPE = EntityType.LOC
+    _STATUS_EXCLUDES = (SZ_GATEWAYS,)
 
     def __init__(
         self,
@@ -255,8 +256,8 @@ class Location(EntityBase):
 
         # No ActiveFaults in location node of status
 
-        # break the TypedDict into its parts (so, ignore[misc])...
-        for gwy_status in status.pop(SZ_GATEWAYS):  # type: ignore[misc]
+        # cascade the child status to descendants...
+        for gwy_status in status[SZ_GATEWAYS]:
             if gwy := self.gateway_by_id.get(gwy_status[SZ_GATEWAY_ID]):
                 gwy._update_status(gwy_status)  # noqa: SLF001
 
@@ -266,4 +267,6 @@ class Location(EntityBase):
                     ", (has the location configuration changed?)"
                 )
 
-        self._status = status
+        self._status = {
+            k: v for k, v in status.items() if k not in self._STATUS_EXCLUDES
+        }  # type: ignore[assignment]

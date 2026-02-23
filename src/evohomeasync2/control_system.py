@@ -68,6 +68,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
     SCH_STATUS: vol.Schema = factory_tcs_status(camel_to_snake)
     _TYPE = EntityType.TCS
+    _STATUS_EXCLUDES = (SZ_DHW, SZ_ZONES)
 
     def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:
         super().__init__(config[SZ_SYSTEM_ID])
@@ -172,8 +173,8 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         self._update_faults(status["active_faults"])
 
-        # break the TypedDict into its parts (so, ignore[misc])...
-        for zon_status in status.pop(SZ_ZONES):  # type: ignore[misc]
+        # cascade the child status to descendants...
+        for zon_status in status[SZ_ZONES]:
             if zone := self.zone_by_id.get(zon_status[SZ_ZONE_ID]):
                 zone._update_status(zon_status)  # noqa: SLF001
 
@@ -183,7 +184,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                     ", (has the system configuration been changed?)"
                 )
 
-        if dhw_status := status.pop(SZ_DHW, None):
+        if dhw_status := status.get(SZ_DHW):
             if self.hotwater and self.hotwater.id == dhw_status[SZ_DHW_ID]:
                 self.hotwater._update_status(dhw_status)  # noqa: SLF001
 
@@ -193,7 +194,9 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                     ", (has the system configuration been changed?)"
                 )
 
-        self._status = status
+        self._status = {
+            k: v for k, v in status.items() if k not in self._STATUS_EXCLUDES
+        }  # type: ignore[assignment]
 
     @property
     def system_mode_status(self) -> EvoSystemModeStatusResponseT:
@@ -202,9 +205,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         "systemModeStatus": {'mode': 'AutoWithEco', 'isPermanent': false, 'timeUntil': '2024-12-21T15:55:00Z'}}
         """
 
-        if self._status is None:
-            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
-        return self._status[SZ_SYSTEM_MODE_STATUS]
+        return self.status[SZ_SYSTEM_MODE_STATUS]
 
     @property  # could have a setter in future
     def is_permanent(self) -> bool:
