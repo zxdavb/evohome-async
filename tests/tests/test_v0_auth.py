@@ -182,7 +182,7 @@ async def test_session_manager(
     ):
         req.return_value = {
             "sessionId": "new_session_id...",
-            "userInfo": None,  # "payload may be invalid: expected a dictionary..."
+            "userInfo": {},  # "payload may be invalid: expected..."
         }
 
         assert await session_manager.get_session_id() == "new_session_id..."
