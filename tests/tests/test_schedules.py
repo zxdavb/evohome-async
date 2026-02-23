@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime as dt, timedelta as td, timezone as tz
 from pathlib import Path
 from typing import TYPE_CHECKING
+from zoneinfo import ZoneInfo
+
+import pytest
 
 from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2.schemas import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE, DayOfWeek
-from evohomeasync2.zone import _find_switchpoints
+from evohomeasync2.zone import _dt_to_dow_and_tod, _find_switchpoints
 
 from .conftest import JsonObjectType, load_fixture
 
@@ -157,3 +161,67 @@ def test_find_switchpoints() -> None:
         {"heat_setpoint": 23.2, "time_of_day": "06:30:00"},
         1,
     )
+
+
+def test_find_switchpoints_invalid_day() -> None:
+    """Test _find_switchpoints with an invalid day_of_week value."""
+
+    schedule: list[DayOfWeekT] = SCHEDULE["daily_schedules"]  # type: ignore[assignment]
+
+    with pytest.raises(TypeError, match="Invalid parameter"):
+        _find_switchpoints(schedule, "Montag", "08:00:00")  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("dtm", "tz_info", "expected_dow", "expected_tod"),
+    [
+        # Monday morning UTC, stays Monday in UTC
+        (
+            dt(2026, 2, 23, 8, 30, tzinfo=UTC),  # Monday
+            UTC,
+            DayOfWeek.MONDAY,
+            "08:30",
+        ),
+        # Sunday 23:30 UTC -> Monday 00:30 in UTC+1
+        (
+            dt(2026, 2, 22, 23, 30, tzinfo=UTC),  # Sunday in UTC
+            tz(offset=td(hours=1)),  # UTC+1
+            DayOfWeek.MONDAY,
+            "00:30",
+        ),
+        # Monday 00:30 UTC -> Sunday 23:30 in UTC-1
+        (
+            dt(2026, 2, 23, 0, 30, tzinfo=UTC),  # Monday in UTC
+            tz(offset=td(hours=-1)),  # UTC-1
+            DayOfWeek.SUNDAY,
+            "23:30",
+        ),
+        # Friday in a named timezone
+        (
+            dt(2026, 2, 27, 12, 0, tzinfo=UTC),  # Friday
+            ZoneInfo("Europe/London"),  # UTC+0 in February
+            DayOfWeek.FRIDAY,
+            "12:00",
+        ),
+        # Saturday in Berlin (UTC+1 in winter)
+        (
+            dt(2026, 2, 28, 23, 45, tzinfo=UTC),  # Saturday 23:45 UTC
+            ZoneInfo("Europe/Berlin"),  # UTC+1
+            DayOfWeek.SUNDAY,
+            "00:45",
+        ),
+    ],
+)
+def test_dt_to_dow_and_tod(
+    dtm: dt,
+    tz_info: tz,
+    expected_dow: DayOfWeek,
+    expected_tod: str,
+) -> None:
+    """Test _dt_to_dow_and_tod returns locale-independent day names."""
+
+    dow, tod = _dt_to_dow_and_tod(dtm, tz_info)
+
+    assert dow == expected_dow
+    assert dow in DayOfWeek  # always a valid enum member
+    assert tod == expected_tod

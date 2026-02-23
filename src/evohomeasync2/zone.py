@@ -229,7 +229,8 @@ class ActiveFaultsBase(EntityBase):
 def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
     """Return a pair of strings representing the local day of week and time of day."""
     dtm = as_local_time(dtm, tzinfo)
-    return dtm.strftime("%A"), dtm.strftime("%H:%M")  # type: ignore[return-value]
+    day_of_week = list(DayOfWeek)[dtm.weekday()]  # locale-independent
+    return day_of_week, dtm.strftime("%H:%M")  # TODO: localize, e.g. "Montag"?
 
 
 def _find_switchpoints(
