@@ -1,6 +1,5 @@
 #
 ### project ##########################################################################
-#
 
 [project]
 name = "evohome-async"
@@ -38,7 +37,7 @@ evo-client = "evohome_cli.client:main"
 
 
 #
-### build-system #####################################################################
+### build-system, hatch ##############################################################
 
 [build-system]
 requires = ["hatchling"]
@@ -55,17 +54,17 @@ path = "src/_evohome/__init__.py"
 
 
 #
-### pytest ###########################################################################
+## coverage ##########################################################################
 
-[tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "function"
-asyncio_mode = "auto"
+[tool.coverage.run]
+omit = ["src/evohome_cli/*", "tests*/*"]
 
-norecursedirs = ["tests.out/*", "tests.wip/*"]
+[tool.coverage.report]
+show_missing = true
 
 
 #
-###  mypy ############################################################################
+### mypy #############################################################################
 
 [tool.mypy]
 python_version = "3.13"
@@ -114,11 +113,21 @@ warn_no_return = true
 warn_unreachable = true
 
 
-#
 [[tool.mypy.overrides]]
 module = ["tests.tests_rf.faked_server.vendor"]
 
 disable_error_code = ["type-arg"] # 14
+
+
+#
+### pytest ###########################################################################
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+
+norecursedirs = ["tests.out/*", "tests.wip/*"]
+
 
 #
 ## ruff ##############################################################################
@@ -191,26 +200,15 @@ ignore = [
   "UP040",
 ]
 
-
 [tool.ruff.lint.per-file-ignores]
 "./src/evohome_cli/client.py" = ["EXE001", "T201"]  # prints should typically be omitted
 "./src/*/schemas/typedefs.py" = ["UP040"]  # PEP695 says use type rather that TypeAlias
 "./tests/*" = ["S101"]  # Assertions are removed when Python is run with optimization
 
-
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]
 voluptuous = "vol"
-
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
 force-sort-within-sections = false
 split-on-trailing-comma = false
-#
-## coverage ##########################################################################
-
-[tool.coverage.run]
-omit = ["src/evohome_cli/*", "tests*/*"]
-
-[tool.coverage.report]
-show_missing = true
