@@ -1,0 +1,28 @@
+{
+    "cSpell.ignorePaths": [
+        "src/_evohome/windows_zones.py",
+        "pyproject.toml",
+    ],
+    "cSpell.words": [
+        "behaviour",
+        "CREDS",
+        "dayoff",
+        "deadband",
+        "EMEA",
+        "evohome",
+        "evohomeasync",
+        "evohomeclientv2",
+        "gwys",
+        "heatingoff",
+        "hotwater",
+        "macid",
+        "Resideo",
+        "searchforcontractors",
+        "securityquestion",
+        "streetaddress",
+        "switchpoint",
+        "switchpoints",
+        "tccna",
+        "tcss"
+    ],
+}

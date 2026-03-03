@@ -4,7 +4,8 @@
 *.tmp
 tokens*
 .secrets/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 
 # schedule backups
 /*.json
