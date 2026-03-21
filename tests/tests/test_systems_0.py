@@ -13,14 +13,12 @@ from evohomeasync2.schemas import (
 )
 
 from .common import assert_schema
-from .conftest import FIXTURES_V2
+from .conftest import FIXTURES_V2 as FIXTURES
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     folders = [
-        p
-        for p in Path(FIXTURES_V2).glob("*")
-        if p.is_dir() and not p.name.startswith("_")
+        p for p in Path(FIXTURES).glob("*") if p.is_dir() and not p.name.startswith("_")
     ]
 
     if not folders:

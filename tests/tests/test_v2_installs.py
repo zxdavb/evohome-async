@@ -10,7 +10,7 @@ import pytest
 import yaml
 
 from .common import serializable_attrs
-from .conftest import FIXTURES_V2
+from .conftest import FIXTURES_V2 as FIXTURES
 
 if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
@@ -21,9 +21,7 @@ if TYPE_CHECKING:
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     folders = [
-        p
-        for p in Path(FIXTURES_V2).glob("*")
-        if p.is_dir() and not p.name.startswith("_")
+        p for p in Path(FIXTURES).glob("*") if p.is_dir() and not p.name.startswith("_")
     ]
 
     if not folders:
