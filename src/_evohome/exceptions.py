@@ -63,7 +63,15 @@ class BadApiRequestError(BadApiSchemaError):
 
 
 class InvalidSystemModeError(BadApiRequestError):
-    """The supplied system mode is not supported by this TCS."""
+    """The requested system mode is not supported by this TCS."""
+
+
+class InvalidZoneModeError(BadApiRequestError):
+    """The requested mode is not supported by this zone."""
+
+
+class InvalidDhwModeError(InvalidZoneModeError):
+    """The requested mode is not supported by this DHW zone."""
 
 
 class BadScheduleUploadedError(BadApiRequestError):

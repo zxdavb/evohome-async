@@ -14,9 +14,11 @@ from _evohome.exceptions import (
     ConfigError,
     EvohomeError,
     InvalidConfigError,
+    InvalidDhwModeError,
     InvalidScheduleError,
     InvalidStatusError,
     InvalidSystemModeError,
+    InvalidZoneModeError,
     NoSingleTcsError,
     StatusError,
 )
@@ -33,9 +35,11 @@ __all__ = [
     "ConfigError",
     "EvohomeError",
     "InvalidConfigError",
+    "InvalidDhwModeError",
     "InvalidScheduleError",
     "InvalidStatusError",
     "InvalidSystemModeError",
+    "InvalidZoneModeError",
     "NoSingleTcsError",
     "StatusError",
 ]

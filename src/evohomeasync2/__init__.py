@@ -25,9 +25,11 @@ from .exceptions import (
     ConfigError,
     EvohomeError,
     InvalidConfigError,
+    InvalidDhwModeError,
     InvalidScheduleError,
     InvalidStatusError,
     InvalidSystemModeError,
+    InvalidZoneModeError,
     NoSingleTcsError,
     StatusError,
 )
@@ -142,9 +144,11 @@ __all__ = [  # noqa: RUF022
     "ConfigError",
     "EvohomeError",
     "InvalidConfigError",
+    "InvalidDhwModeError",
     "InvalidScheduleError",
     "InvalidStatusError",
     "InvalidSystemModeError",
+    "InvalidZoneModeError",
     "NoSingleTcsError",
     "StatusError",
 ]
