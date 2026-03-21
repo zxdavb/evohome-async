@@ -20,9 +20,7 @@ This client _requires_ the [aiohttp](https://pypi.org/project/aiohttp/) library.
 
 ### CLI for schedules (currently WIP)
 
-If you download the git repo you can use a basic CLI.
-
-To install the optional CLI:
+To install a basic CLI:
 
 ```bash
 pip install 'evohome-async[cli]'
