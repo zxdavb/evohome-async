@@ -171,7 +171,7 @@ class HotWater(_ZoneBase):
         """Cancel any override and allow the DHW to follow its schedule."""
         await self._set_mode({S2_MODE: ZoneMode.FOLLOW_SCHEDULE})
 
-    async def set_mode(self, state: DhwState, /, *, until: dt | None = None) -> None:
+    async def set_state(self, state: DhwState, /, *, until: dt | None = None) -> None:
         """Set the DHW mode (state)."""
 
         mode: TccSetDhwModeT
@@ -190,13 +190,13 @@ class HotWater(_ZoneBase):
 
         await self._set_mode(mode)
 
-    async def off(self, /, *, until: dt | None = None) -> None:
+    async def set_off(self, /, *, until: dt | None = None) -> None:
         """Set the DHW off until a given time, or permanently."""
-        await self.set_mode(DhwState.OFF, until=until)
+        await self.set_state(DhwState.OFF, until=until)
 
-    async def on(self, /, *, until: dt | None = None) -> None:
+    async def set_on(self, /, *, until: dt | None = None) -> None:
         """Set the DHW on until a given time, or permanently."""
-        await self.set_mode(DhwState.ON, until=until)
+        await self.set_state(DhwState.ON, until=until)
 
     # NOTE: this wrapper exists only for typing purposes
     async def get_schedule(self) -> list[DayOfWeekDhwT]:  # type: ignore[override]

@@ -37,7 +37,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 # NOTE: not all systems support all modes, below we only test evohome modes
 
 
-async def test_ctl_mode_reset(  # TODO: test systems without AutoWithReset
+async def test_ctl_reset(
     evohome_v2: EvohomeClient,
 ) -> None:
     """Test ControlSystem.reset() method."""
@@ -65,7 +65,7 @@ CTL_APIS_SANS_UNTIL = {  # system mode APIs that can not take an until kwarg
 
 
 @pytest.mark.parametrize("api_name", CTL_APIS_SANS_UNTIL)
-async def test_ctl_modes_sans_until(
+async def test_ctl_set_mode_sans_until(
     evohome_v2: EvohomeClient,
     api_name: str,
 ) -> None:
@@ -102,7 +102,7 @@ CTL_APIS_WITH_UNTIL = {  # system mode APIs that can take an until kwarg
 
 
 @pytest.mark.parametrize("api_name", CTL_APIS_WITH_UNTIL)
-async def test_ctl_modes_with_until(
+async def test_ctl_set_mode_with_until(
     evohome_v2: EvohomeClient,
     api_name: str,
     freezer: FrozenDateTimeFactory,
@@ -143,10 +143,10 @@ async def test_ctl_modes_with_until(
 # Test the HotWater APIs...
 
 
-async def test_dhw_mode_off(
+async def test_dhw_set_off(
     evohome_v2: EvohomeClient,
 ) -> None:
-    """Test HotWater.off() method."""
+    """Test HotWater.set_off() method."""
 
     dhw = evohome_v2.tcs.hotwater
     assert dhw is not None
@@ -154,7 +154,7 @@ async def test_dhw_mode_off(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.off()
+        await dhw.set_off()
 
     EXPECTED_JSON = {
         "mode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
@@ -168,10 +168,10 @@ async def test_dhw_mode_off(
     assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
-async def test_dhw_mode_on(
+async def test_dhw_set_on(
     evohome_v2: EvohomeClient,
 ) -> None:
-    """Test HotWater.on() method."""
+    """Test HotWater.set_on() method."""
 
     dhw = evohome_v2.tcs.hotwater
     assert dhw is not None
@@ -179,7 +179,7 @@ async def test_dhw_mode_on(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.on()
+        await dhw.set_on()
 
     mock_put.assert_awaited_once()
 
@@ -193,7 +193,7 @@ async def test_dhw_mode_on(
     assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
-async def test_dhw_mode_reset(
+async def test_dhw_reset(
     evohome_v2: EvohomeClient,
 ) -> None:
     """Test HotWater.reset() method."""
@@ -217,11 +217,11 @@ async def test_dhw_mode_reset(
     assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
-async def test_dhw_set_mode(
+async def test_dhw_set_state(
     evohome_v2: EvohomeClient,
     freezer: FrozenDateTimeFactory,
 ) -> None:
-    """Test HotWater.on() method."""
+    """Test HotWater.set_state() method."""
 
     dhw = evohome_v2.tcs.hotwater
     assert dhw is not None
@@ -229,7 +229,7 @@ async def test_dhw_set_mode(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.set_mode(DhwState.OFF)
+        await dhw.set_state(DhwState.OFF)
 
     mock_put.assert_awaited_once()
 
@@ -247,7 +247,7 @@ async def test_dhw_set_mode(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.set_mode(DhwState.ON, until=dt.now(tz=UTC) + td(hours=3))
+        await dhw.set_state(DhwState.ON, until=dt.now(tz=UTC) + td(hours=3))
 
     mock_put.assert_awaited_once()
 
@@ -265,7 +265,7 @@ async def test_dhw_set_mode(
 # Test the Zone APIs...
 
 
-async def test_zon_mode_reset(
+async def test_zon_reset(
     evohome_v2: EvohomeClient,
 ) -> None:
     """Test Zone.reset() method."""
@@ -288,7 +288,7 @@ async def test_zon_mode_reset(
     assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
-async def test_zon_mode_set_temperature(
+async def test_zon_set_temperature(
     evohome_v2: EvohomeClient,
     freezer: FrozenDateTimeFactory,
 ) -> None:
