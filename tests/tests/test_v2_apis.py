@@ -24,6 +24,10 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     folders = [
         p for p in Path(FIXTURES_V2).glob("*") if p.is_dir() and p.name == "default"
     ]
+
+    if not folders:
+        raise pytest.fail("Missing fixture folder(s)")
+
     metafunc.parametrize(
         "fixture_folder", sorted(folders), ids=(p.name for p in sorted(folders))
     )
