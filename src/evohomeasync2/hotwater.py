@@ -147,25 +147,27 @@ class HotWater(_ZoneBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, mode: TccSetDhwModeT) -> None:
+    async def _set_mode(self, dhw_mode: TccSetDhwModeT, /) -> None:
         """Set the DHW mode (state)."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if mode[S2_MODE] not in self.allowed_modes:
-            self._logger.warning(f"{self}: Attempting unsupported {S2_MODE}: {mode}...")
+        if dhw_mode[S2_MODE] not in self.allowed_modes:
+            self._logger.warning(
+                f"{self}: Attempting unsupported {S2_MODE}: {dhw_mode}..."
+            )
 
-        if not (state := mode.get(S2_STATE)):
-            if mode[S2_MODE] != ZoneMode.FOLLOW_SCHEDULE:
+        if not (state := dhw_mode.get(S2_STATE)):
+            if dhw_mode[S2_MODE] != ZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(
-                    f"{self}: Attempting invalid {S2_MODE}/{S2_STATE}: {mode}..."
+                    f"{self}: Attempting invalid {S2_MODE}/{S2_STATE}: {dhw_mode}..."
                 )
 
         elif state not in self.allowed_states:
             self._logger.warning(
-                f"{self}: Attempting unsupported {S2_STATE}: {mode}..."
+                f"{self}: Attempting unsupported {S2_STATE}: {dhw_mode}..."
             )
 
-        await self._auth.put(f"{self._TYPE}/{self.id}/state", json=dict(mode))
+        await self._auth.put(f"{self._TYPE}/{self.id}/state", json=dict(dhw_mode))
 
     async def reset(self) -> None:
         """Cancel any override and allow the DHW to follow its schedule."""

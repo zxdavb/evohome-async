@@ -610,27 +610,29 @@ class Zone(_ZoneBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, mode: TccSetZonModeT) -> None:
+    async def _set_mode(self, zon_mode: TccSetZonModeT, /) -> None:
         """Set the Zone mode (heating only; cooling is not exposed by the API)."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if mode[S2_SETPOINT_MODE] not in self.allowed_modes:
+        if zon_mode[S2_SETPOINT_MODE] not in self.allowed_modes:
             self._logger.warning(
-                f"{self}: Attempting unsupported {S2_SETPOINT_MODE}: {mode}..."
+                f"{self}: Attempting unsupported {S2_SETPOINT_MODE}: {zon_mode}..."
             )
 
-        if (temp := mode.get(S2_HEAT_SETPOINT_VALUE)) is None:
-            if mode[S2_SETPOINT_MODE] != ZoneMode.FOLLOW_SCHEDULE:
+        if (temp := zon_mode.get(S2_HEAT_SETPOINT_VALUE)) is None:
+            if zon_mode[S2_SETPOINT_MODE] != ZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(
-                    f"{self}: Attempting missing {S2_HEAT_SETPOINT_VALUE}: {mode}..."
+                    f"{self}: Attempting missing {S2_HEAT_SETPOINT_VALUE}: {zon_mode}..."
                 )
 
         elif self.min_heat_setpoint > temp > self.max_heat_setpoint:
             self._logger.warning(
-                f"{self}: Attempting invalid {S2_HEAT_SETPOINT_VALUE}: {mode}..."
+                f"{self}: Attempting invalid {S2_HEAT_SETPOINT_VALUE}: {zon_mode}..."
             )
 
-        await self._auth.put(f"{self._TYPE}/{self.id}/heatSetpoint", json=dict(mode))
+        await self._auth.put(
+            f"{self._TYPE}/{self.id}/heatSetpoint", json=dict(zon_mode)
+        )
 
     async def reset(self) -> None:
         """Cancel any override and allow the Zone to follow its schedule."""

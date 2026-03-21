@@ -214,16 +214,16 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, mode: TccSetTcsModeT) -> None:
+    async def _set_mode(self, tcs_mode: TccSetTcsModeT, /) -> None:
         """Set the TCS mode."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if mode[S2_SYSTEM_MODE] not in self.allowed_modes:
+        if tcs_mode[S2_SYSTEM_MODE] not in self.allowed_modes:
             self._logger.warning(
-                f"{self}: Attempting unsupported {S2_SYSTEM_MODE}: {mode}..."
+                f"{self}: Attempting unsupported {S2_SYSTEM_MODE}: {tcs_mode}..."
             )
 
-        await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=dict(mode))
+        await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=dict(tcs_mode))
 
     async def set_mode(
         self, system_mode: SystemMode, /, *, until: dt | None = None
