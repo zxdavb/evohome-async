@@ -9,7 +9,6 @@ on:
       "cli/**.py",
       "src/**.py",
       "tests/**",
-      "requirements*.txt",
       "pyproject.toml",
     ]
 
@@ -20,7 +19,6 @@ on:
       "cli/**.py",
       "src/**.py",
       "tests/**",
-      "requirements*.txt",
       "pyproject.toml",
     ]
 
