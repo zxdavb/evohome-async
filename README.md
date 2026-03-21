@@ -20,7 +20,15 @@ This client _requires_ the [aiohttp](https://pypi.org/project/aiohttp/) library.
 
 ### CLI for schedules (currently WIP)
 
-If you download the git repo you can use a basic CLI for backup/restore of schedules (incl. DHW, if any), for example:
+If you download the git repo you can use a basic CLI.
+
+To install the optional CLI:
+
+```bash
+pip install 'evohome-async[cli]'
+```
+
+For example, to backup schedules (incl. DHW, if any):
 
 ```bash
 evo-client -u username@gmail.com -p password get-schedules --loc-idx 2 > schedules.json
@@ -103,7 +111,7 @@ uv pip install -e .
 
 #### Using the CLI
 
-... then, to use the CLI:
+To use the CLI from a checkout:
 
 ```bash
 uv pip install -e .[cli]
