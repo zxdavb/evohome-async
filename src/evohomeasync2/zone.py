@@ -634,9 +634,77 @@ class Zone(_ZoneBase):
             f"{self._TYPE}/{self.id}/heatSetpoint", json=dict(zon_mode)
         )
 
+    async def set_mode(
+        self,
+        mode: ZoneMode,
+        /,
+        *,
+        temperature: float | None = None,
+        until: dt | None = None,
+    ) -> None:
+        """Set the Zone mode (heating setpoint mode)."""
+
+        if mode not in self.allowed_modes:
+            raise exc.InvalidZoneModeError(
+                f"{self}: Unsupported {S2_SETPOINT_MODE}: {mode}"
+            )
+
+        if mode == ZoneMode.FOLLOW_SCHEDULE:
+            if temperature is not None or until is not None:
+                raise exc.InvalidZoneModeError(
+                    f"{self}: temperature/until not valid for {mode} mode"
+                )
+
+            await self._set_mode({S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE})
+            return
+
+        if temperature is None:
+            raise exc.InvalidZoneModeError(
+                f"{self}: temperature required for {mode} mode"
+            )
+
+        self._validate_heat_setpoint(temperature)
+
+        if mode == ZoneMode.PERMANENT_OVERRIDE:
+            if until is not None:
+                raise exc.InvalidZoneModeError(
+                    f"{self}: temperature required and until not valid for {mode} mode"
+                )
+            await self._set_mode(
+                {
+                    S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
+                    S2_HEAT_SETPOINT_VALUE: temperature,
+                }
+            )
+            return
+
+        if mode == ZoneMode.TEMPORARY_OVERRIDE:
+            if until is None:
+                raise exc.InvalidZoneModeError(
+                    f"{self}: temperature and until required for {mode} mode"
+                )
+            await self._set_mode(
+                {
+                    S2_SETPOINT_MODE: ZoneMode.TEMPORARY_OVERRIDE,
+                    S2_HEAT_SETPOINT_VALUE: temperature,
+                    S2_TIME_UNTIL: until.strftime(API_STRFTIME),
+                }
+            )
+            return
+
+        raise exc.InvalidZoneModeError(
+            f"{self}: Unsupported {S2_SETPOINT_MODE}: {mode}"
+        )
+
     async def reset(self) -> None:
         """Cancel any override and allow the Zone to follow its schedule."""
-        await self._set_mode({S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE})
+        await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
+
+    def _validate_heat_setpoint(self, temperature: float) -> None:
+        if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
+            raise exc.InvalidZoneModeError(
+                f"{self}: Invalid {S2_HEAT_SETPOINT_VALUE}: {temperature}"
+            )
 
     # NOTE: no provision for cooling (not supported by API)
     async def set_temperature(
@@ -648,21 +716,12 @@ class Zone(_ZoneBase):
     ) -> None:
         """Set the temperature of the given Zone (no provision for cooling)."""
 
-        mode: TccSetZonModeT
-
-        if until is None:  # NOTE: beware that these may be case-sensitive
-            mode = {
-                S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
-                S2_HEAT_SETPOINT_VALUE: temperature,
-            }
-        else:
-            mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
-                S2_SETPOINT_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-                S2_HEAT_SETPOINT_VALUE: temperature,
-                S2_TIME_UNTIL: until.strftime(API_STRFTIME),
-            }
-
-        await self._set_mode(mode)
+        mode = (
+            ZoneMode.PERMANENT_OVERRIDE
+            if until is None
+            else ZoneMode.TEMPORARY_OVERRIDE
+        )
+        await self.set_mode(mode, temperature=temperature, until=until)
 
     # NOTE: this wrapper exists only for typing purposes
     async def get_schedule(self) -> list[DayOfWeekZoneT]:  # type: ignore[override]
