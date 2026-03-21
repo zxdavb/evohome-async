@@ -634,6 +634,12 @@ class Zone(_ZoneBase):
             f"{self._TYPE}/{self.id}/heatSetpoint", json=dict(zon_mode)
         )
 
+    def _validate_heat_setpoint(self, temperature: float) -> None:
+        if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
+            raise exc.InvalidZoneModeError(
+                f"{self}: Invalid {S2_HEAT_SETPOINT_VALUE}: {temperature}"
+            )
+
     async def set_mode(
         self,
         mode: ZoneMode,
@@ -699,12 +705,6 @@ class Zone(_ZoneBase):
     async def reset(self) -> None:
         """Cancel any override and allow the Zone to follow its schedule."""
         await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
-
-    def _validate_heat_setpoint(self, temperature: float) -> None:
-        if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
-            raise exc.InvalidZoneModeError(
-                f"{self}: Invalid {S2_HEAT_SETPOINT_VALUE}: {temperature}"
-            )
 
     # NOTE: no provision for cooling (not supported by API)
     async def set_temperature(
