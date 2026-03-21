@@ -220,10 +220,9 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         # Issue a warning if we fail some basic sanity checks...
         if mode[S2_SYSTEM_MODE] not in self.modes:
             self._logger.warning(
-                f"{self}: Using unsupported/unknown {S2_SYSTEM_MODE}: {mode}"
+                f"{self}: Attempting unsupported {S2_SYSTEM_MODE}: {mode}..."
             )
 
-        # Call the API...
         await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=dict(mode))
 
     async def set_mode(
@@ -235,7 +234,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         if system_mode not in self.modes:
             raise exc.InvalidSystemModeError(
-                f"{self}: Unsupported/unknown {S2_SYSTEM_MODE}: {system_mode}"
+                f"{self}: Unsupported {S2_SYSTEM_MODE}: {system_mode}"
             )
 
         if until is None:

@@ -477,7 +477,7 @@ class _ZoneBase(_ScheduleBase, ActiveFaultsBase, EntityBase):
 
 
 class Zone(_ZoneBase):
-    """Instance of a TCS's heating zone (temperatureZone)."""
+    """Instance of a TCS's heating Zone (temperatureZone)."""
 
     _TYPE = EntityType.ZON
 
@@ -498,13 +498,13 @@ class Zone(_ZoneBase):
             )
         if not self.type or self.type == ZoneType.UNKNOWN:
             raise exc.InvalidConfigError(
-                f"{self}: Invalid zone type '{self.type}' (is it a ghost zone?)"
+                f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)"
             )
 
         if self.model not in ZoneModelType:
             self._logger.warning("%s: Unknown model type '%s' (YMMV)", self, self.model)
         if self.type not in ZoneType:
-            self._logger.warning("%s: Unknown zone type '%s' (YMMV)", self, self.type)
+            self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
 
     @property
     def config(self) -> EvoZonConfigEntryT:
@@ -611,37 +611,36 @@ class Zone(_ZoneBase):
         return as_local_time(until, self.location.tzinfo)
 
     async def _set_mode(self, mode: TccSetZonModeT) -> None:
-        """Set the zone mode (heating only, a cooling is not exposed by the API)."""
+        """Set the Zone mode (heating only; cooling is not exposed by the API)."""
 
         # Issue a warning if we fail some basic sanity checks...
         if mode[S2_SETPOINT_MODE] not in self.allowed_modes:
             self._logger.warning(
-                f"{self}: Unsupported/unknown {S2_SETPOINT_MODE}: {mode}"
+                f"{self}: Attempting unsupported {S2_SETPOINT_MODE}: {mode}..."
             )
 
         if (temp := mode.get(S2_HEAT_SETPOINT_VALUE)) is None:
             if mode[S2_SETPOINT_MODE] != ZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(
-                    f"{self}: Missing {S2_HEAT_SETPOINT_VALUE}: {mode}"
+                    f"{self}: Attempting missing {S2_HEAT_SETPOINT_VALUE}: {mode}..."
                 )
 
         elif self.min_heat_setpoint > temp > self.max_heat_setpoint:
             self._logger.warning(
-                f"{self}: Unsupported/invalid {S2_HEAT_SETPOINT_VALUE}: {mode}"
+                f"{self}: Attempting invalid {S2_HEAT_SETPOINT_VALUE}: {mode}..."
             )
 
-        # Call the API...
         await self._auth.put(f"{self._TYPE}/{self.id}/heatSetpoint", json=dict(mode))
 
     async def reset(self) -> None:
-        """Cancel any override and allow the zone to follow its schedule"""
+        """Cancel any override and allow the Zone to follow its schedule."""
         await self._set_mode({S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE})
 
     # NOTE: no provision for cooling (not supported by API)
     async def set_temperature(  # aka. set_mode()
         self, temperature: float, /, *, until: dt | None = None
     ) -> None:
-        """Set the temperature of the given zone (no provision for cooling)."""
+        """Set the temperature of the given Zone (no provision for cooling)."""
 
         mode: TccSetZonModeT
 

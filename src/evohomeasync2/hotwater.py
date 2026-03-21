@@ -152,16 +152,19 @@ class HotWater(_ZoneBase):
 
         # Issue a warning if we fail some basic sanity checks...
         if mode[S2_MODE] not in self.allowed_modes:
-            self._logger.warning(f"{self}: Unsupported/unknown {S2_MODE}: {mode}")
+            self._logger.warning(f"{self}: Attempting unsupported {S2_MODE}: {mode}...")
 
         if not (state := mode.get(S2_STATE)):
             if mode[S2_MODE] != ZoneMode.FOLLOW_SCHEDULE:
-                self._logger.warning(f"{self}: Missing/invalid {S2_STATE}: {mode}")
+                self._logger.warning(
+                    f"{self}: Attempting invalid {S2_MODE}/{S2_STATE}: {mode}..."
+                )
 
         elif state not in self.allowed_states:
-            self._logger.warning(f"{self}: Unsupported/unknown {S2_STATE}: {mode}")
+            self._logger.warning(
+                f"{self}: Attempting unsupported {S2_STATE}: {mode}..."
+            )
 
-        # Call the API...
         await self._auth.put(f"{self._TYPE}/{self.id}/state", json=dict(mode))
 
     async def reset(self) -> None:
