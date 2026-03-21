@@ -1,0 +1,28 @@
+{
+  "locationId": "2730000",
+  "gateways": [
+    {
+      "gatewayId": "2750000",
+      "temperatureControlSystems": [
+        {
+          "systemId": "2760000",
+          "zones": [
+            {
+              "zoneId": "277000",
+              "temperatureStatus": { "temperature": 20.0, "isAvailable": true },
+              "activeFaults": [],
+              "setpointStatus": {
+                "targetHeatTemperature": 20.0,
+                "setpointMode": "FollowSchedule"
+              },
+              "name": "THERMOSTAT"
+            }
+          ],
+          "activeFaults": [],
+          "systemModeStatus": { "mode": "Heat", "isPermanent": true }
+        }
+      ],
+      "activeFaults": []
+    }
+  ]
+}

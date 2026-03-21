@@ -1,0 +1,66 @@
+[
+    {
+        "locationInfo": {
+            "locationId": "2730000",
+            "name": "My Home",
+            "streetAddress": "45 Main Crescent",
+            "city": "Sydney",
+            "country": "Australia",
+            "postcode": "2001",
+            "locationType": "Residential",
+            "useDaylightSaveSwitching": true,
+            "timeZone": {
+                "timeZoneId": "AUSEasternStandardTime",
+                "displayName": "(UTC+10:00) Canberra, Melbourne, Sydney",
+                "offsetMinutes": 600,
+                "currentOffsetMinutes": 600,
+                "supportsDaylightSaving": true
+            },
+            "locationOwner": {
+                "userId": "2512649",
+                "username": "user_2512649@REDACTED.com",
+                "firstname": "David",
+                "lastname": "Smith"
+            }
+        },
+        "gateways": [
+            {
+                "gatewayInfo": {
+                    "gatewayId": "2750000", "mac": "00D02DEE4E56", "crc": "1234", "isWiFi": true
+                },
+                "temperatureControlSystems": [
+                    {
+                        "systemId": "2760000",
+                        "modelType": "FocusProWifiRetail",
+                        "zones": [
+                            {
+                                "zoneId": "277000",
+                                "modelType": "FocusProWifiRetail",
+                                "setpointCapabilities": {
+                                    "vacationHoldCapabilities": {"isChangeable": false, "isCancelable": false},
+                                    "maxHeatSetpoint": 32.0,
+                                    "minHeatSetpoint": 4.5,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride", "VacationHold"],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:15:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 4, "minSwitchpointsPerDay": 0, "timingResolution": "00:15:00", "setpointValueResolution": 0.5
+                                },
+                                "name": "THERMOSTAT",
+                                "zoneType": "Thermostat"
+                            }
+                        ],
+                        "allowedSystemModes": [
+                            {"systemMode": "Off",  "canBePermanent": true, "canBeTemporary": false},
+                            {"systemMode": "Heat", "canBePermanent": true, "canBeTemporary": false}
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
