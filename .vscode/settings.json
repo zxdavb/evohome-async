@@ -7,6 +7,7 @@
     // Python analysis and formatting (project-wide)
     "python.analysis.typeCheckingMode": "basic", // default: "off" - in addition to mypy?
     "python.analysis.userFileIndexingLimit": -1, // default: 2000
+    "python.analysis.extraPaths": ["src", "tests"],
     "python.experiments.optOutFrom": ["pythonTestAdapter"], // default: []
 
 
