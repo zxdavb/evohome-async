@@ -147,7 +147,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         return tuple(self._config[SZ_ALLOWED_SYSTEM_MODES])
 
     @cached_property  # a convenience attr, derived from allowed_system_modes
-    def modes(self) -> tuple[SystemMode, ...]:
+    def allowed_modes(self) -> tuple[SystemMode, ...]:
         return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
 
     # Status (state) attrs & methods...
@@ -218,7 +218,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         """Set the TCS mode."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if mode[S2_SYSTEM_MODE] not in self.modes:
+        if mode[S2_SYSTEM_MODE] not in self.allowed_modes:
             self._logger.warning(
                 f"{self}: Attempting unsupported {S2_SYSTEM_MODE}: {mode}..."
             )
@@ -232,7 +232,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         mode: TccSetTcsModeT
 
-        if system_mode not in self.modes:
+        if system_mode not in self.allowed_modes:
             raise exc.InvalidSystemModeError(
                 f"{self}: Unsupported {S2_SYSTEM_MODE}: {system_mode}"
             )
@@ -260,7 +260,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         """
 
         # some systems have "AutoWithReset" mode...
-        if SystemMode.AUTO_WITH_RESET in self.modes:
+        if SystemMode.AUTO_WITH_RESET in self.allowed_modes:
             await self.set_mode(SystemMode.AUTO_WITH_RESET)
             return
 
@@ -281,7 +281,10 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         Some systems use 'Heat' instead of 'Auto' for this mode.
         """
 
-        if SystemMode.AUTO in self.modes or SystemMode.HEAT not in self.modes:
+        if (
+            SystemMode.AUTO in self.allowed_modes
+            or SystemMode.HEAT not in self.allowed_modes
+        ):
             await self.set_mode(SystemMode.AUTO)
             return
 
@@ -326,7 +329,10 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         Some systems use 'Off' instead of 'HeatingOff' for this mode.
         """
 
-        if SystemMode.HEATING_OFF in self.modes or SystemMode.OFF not in self.modes:
+        if (
+            SystemMode.HEATING_OFF in self.allowed_modes
+            or SystemMode.OFF not in self.allowed_modes
+        ):
             await self.set_mode(SystemMode.HEATING_OFF)
             return
 

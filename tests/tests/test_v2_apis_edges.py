@@ -60,7 +60,7 @@ async def test_ctl_reset_emulates_auto_with_reset(
     ):
         await tcs.reset()
 
-    if SystemMode.AUTO_WITH_RESET in tcs.modes:
+    if SystemMode.AUTO_WITH_RESET in tcs.allowed_modes:
         url = f"temperatureControlSystem/{tcs.id}/mode"
         mode = {
             "systemMode": str(SystemMode.AUTO_WITH_RESET),
@@ -94,7 +94,9 @@ async def test_ctl_set_auto_falls_back_to_heat(
 
     tcs = evohome_v2.tcs
 
-    expected_mode = SystemMode.AUTO if SystemMode.AUTO in tcs.modes else SystemMode.HEAT
+    expected_mode = (
+        SystemMode.AUTO if SystemMode.AUTO in tcs.allowed_modes else SystemMode.HEAT
+    )
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
@@ -118,7 +120,9 @@ async def test_ctl_set_heatingoff_falls_back_to_off(
     tcs = evohome_v2.tcs
 
     expected_mode = (
-        SystemMode.OFF if SystemMode.OFF in tcs.modes else SystemMode.HEATING_OFF
+        SystemMode.OFF
+        if SystemMode.OFF in tcs.allowed_modes
+        else SystemMode.HEATING_OFF
     )
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
@@ -143,7 +147,7 @@ async def test_ctl_set_mode_rejects_unsupported_mode(
     tcs = evohome_v2.tcs
 
     for system_mode in SystemMode:
-        if system_mode not in tcs.modes:
+        if system_mode not in tcs.allowed_modes:
             break
     else:
         pytest.skip("TCS supports all system modes!")

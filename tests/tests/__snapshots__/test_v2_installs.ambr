@@ -20333,6 +20333,17 @@
       !!python/tuple []
   
     ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
+  
+    ''',
     'allowed_system_modes': '''
       !!python/tuple
       - can_be_permanent: true
@@ -20426,17 +20437,6 @@
     'model': '''
       EvoTouch
       ...
-  
-    ''',
-    'modes': '''
-      !!python/tuple
-      - HeatingOff
-      - Auto
-      - AutoWithReset
-      - AutoWithEco
-      - Away
-      - DayOff
-      - Custom
   
     ''',
     'status': '''
@@ -22121,6 +22121,12 @@
       !!python/tuple []
   
     ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - 'Off'
+      - Heat
+  
+    ''',
     'allowed_system_modes': '''
       !!python/tuple
       - can_be_permanent: true
@@ -22160,12 +22166,6 @@
     'model': '''
       FocusProWifiRetail
       ...
-  
-    ''',
-    'modes': '''
-      !!python/tuple
-      - 'Off'
-      - Heat
   
     ''',
     'status': '''
@@ -22637,6 +22637,17 @@
       !!python/tuple []
   
     ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
+  
+    ''',
     'allowed_system_modes': '''
       !!python/tuple
       - can_be_permanent: true
@@ -22730,17 +22741,6 @@
     'model': '''
       EvoTouch
       ...
-  
-    ''',
-    'modes': '''
-      !!python/tuple
-      - HeatingOff
-      - Auto
-      - AutoWithReset
-      - AutoWithEco
-      - Away
-      - DayOff
-      - Custom
   
     ''',
     'status': '''
@@ -24425,6 +24425,17 @@
       !!python/tuple []
   
     ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
+  
+    ''',
     'allowed_system_modes': '''
       !!python/tuple
       - can_be_permanent: true
@@ -24518,17 +24529,6 @@
     'model': '''
       EvoTouch
       ...
-  
-    ''',
-    'modes': '''
-      !!python/tuple
-      - HeatingOff
-      - Auto
-      - AutoWithReset
-      - AutoWithEco
-      - Away
-      - DayOff
-      - Custom
   
     ''',
     'status': '''
@@ -26213,6 +26213,17 @@
       !!python/tuple []
   
     ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
+  
+    ''',
     'allowed_system_modes': '''
       !!python/tuple
       - can_be_permanent: true
@@ -26306,17 +26317,6 @@
     'model': '''
       EvoTouch
       ...
-  
-    ''',
-    'modes': '''
-      !!python/tuple
-      - HeatingOff
-      - Auto
-      - AutoWithReset
-      - AutoWithEco
-      - Away
-      - DayOff
-      - Custom
   
     ''',
     'status': '''
@@ -28001,6 +28001,17 @@
       !!python/tuple []
   
     ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
+  
+    ''',
     'allowed_system_modes': '''
       !!python/tuple
       - can_be_permanent: true
@@ -28094,17 +28105,6 @@
     'model': '''
       EvoTouch
       ...
-  
-    ''',
-    'modes': '''
-      !!python/tuple
-      - HeatingOff
-      - Auto
-      - AutoWithReset
-      - AutoWithEco
-      - Away
-      - DayOff
-      - Custom
   
     ''',
     'status': '''
@@ -29789,6 +29789,17 @@
       !!python/tuple []
   
     ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - HeatingOff
+      - Auto
+      - AutoWithReset
+      - AutoWithEco
+      - Away
+      - DayOff
+      - Custom
+  
+    ''',
     'allowed_system_modes': '''
       !!python/tuple
       - can_be_permanent: true
@@ -29882,17 +29893,6 @@
     'model': '''
       EvoTouch
       ...
-  
-    ''',
-    'modes': '''
-      !!python/tuple
-      - HeatingOff
-      - Auto
-      - AutoWithReset
-      - AutoWithEco
-      - Away
-      - DayOff
-      - Custom
   
     ''',
     'status': '''
@@ -31579,6 +31579,14 @@
       !!python/tuple []
   
     ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - Auto
+      - AutoWithEco
+      - Away
+      - HeatingOff
+  
+    ''',
     'allowed_system_modes': '''
       !!python/tuple
       - can_be_permanent: true
@@ -31642,14 +31650,6 @@
     'model': '''
       EvoTouch
       ...
-  
-    ''',
-    'modes': '''
-      !!python/tuple
-      - Auto
-      - AutoWithEco
-      - Away
-      - HeatingOff
   
     ''',
     'status': '''
@@ -32063,6 +32063,11 @@
       !!python/tuple []
   
     ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - Auto
+  
+    ''',
     'allowed_system_modes': '''
       !!python/tuple
       - can_be_permanent: true
@@ -32096,11 +32101,6 @@
     'model': '''
       EvoTouch
       ...
-  
-    ''',
-    'modes': '''
-      !!python/tuple
-      - Auto
   
     ''',
     'status': '''
