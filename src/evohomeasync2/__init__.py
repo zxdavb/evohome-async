@@ -27,6 +27,7 @@ from .exceptions import (
     InvalidConfigError,
     InvalidScheduleError,
     InvalidStatusError,
+    InvalidSystemModeError,
     NoSingleTcsError,
     StatusError,
 )
@@ -143,6 +144,7 @@ __all__ = [  # noqa: RUF022
     "InvalidConfigError",
     "InvalidScheduleError",
     "InvalidStatusError",
+    "InvalidSystemModeError",
     "NoSingleTcsError",
     "StatusError",
 ]

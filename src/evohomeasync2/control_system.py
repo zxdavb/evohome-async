@@ -125,6 +125,8 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     @cached_property
     def allowed_system_modes(self) -> tuple[EvoAllowedSystemModesResponseT, ...]:
         """
+
+        Some systems support a subset of these modes:
         "allowed_system_modes": [
             {"system_mode": "HeatingOff",    "can_be_permanent": true, "can_be_temporary": false},
             {"system_mode": "Auto",          "can_be_permanent": true, "can_be_temporary": false},
@@ -135,10 +137,11 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             {"system_mode": "Custom",        "can_be_permanent": true, "can_be_temporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"}
         ]
 
+        Other systems support only these:
         "allowed_system_modes": [
             {"system_mode": "Off",           "can_be_permanent": true, "can_be_temporary": false},
             {"system_mode": "Heat",          "can_be_permanent": true, "can_be_temporary": false}
-        ],
+        ]
         """
 
         return tuple(self._config[SZ_ALLOWED_SYSTEM_MODES])
@@ -217,7 +220,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         # Issue a warning if we fail some basic sanity checks...
         if mode[S2_SYSTEM_MODE] not in self.modes:
             self._logger.warning(
-                f"{self}: Unsupported/unknown {S2_SYSTEM_MODE}: {mode}"
+                f"{self}: Using unsupported/unknown {S2_SYSTEM_MODE}: {mode}"
             )
 
         # Call the API...
@@ -229,6 +232,11 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         """Set the TCS to a mode, either indefinitely, or for a set time."""
 
         mode: TccSetTcsModeT
+
+        if system_mode not in self.modes:
+            raise exc.InvalidSystemModeError(
+                f"{self}: Unsupported/unknown {S2_SYSTEM_MODE}: {system_mode}"
+            )
 
         if until is None:
             mode = {
@@ -247,12 +255,19 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     # most, but not all, TCC-compatible systems support these modes...
 
     async def reset(self) -> None:
-        """Set the TCS to auto mode (and set DHW/all zones to FollowSchedule mode)."""
+        """Set the TCS to auto mode (and set DHW/all zones to FollowSchedule mode).
+
+        Some systems do not support 'AutoWithReset' mode.
+        """
 
         # some systems have "AutoWithReset" mode...
         if SystemMode.AUTO_WITH_RESET in self.modes:
             await self.set_mode(SystemMode.AUTO_WITH_RESET)
             return
+
+        self._logger.debug(
+            f"{self}: Emulating {S2_SYSTEM_MODE}: {SystemMode.AUTO_WITH_RESET}..."
+        )
 
         await self.set_auto()
 
@@ -262,40 +277,66 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             await self.hotwater.reset()
 
     async def set_auto(self) -> None:
-        """Set the TCS to auto/heat mode."""
+        """Set the TCS to auto mode.
 
-        # some systems have "Heat" mode instead of "Auto"...
-        if SystemMode.HEAT in self.modes:
-            await self.set_mode(SystemMode.HEAT)
+        Some systems use 'Heat' instead of 'Auto' for this mode.
+        """
+
+        if SystemMode.AUTO in self.modes or SystemMode.HEAT not in self.modes:
+            await self.set_mode(SystemMode.AUTO)
             return
 
-        await self.set_mode(SystemMode.AUTO)
+        # some systems have "Heat" mode instead of "Auto"...
+        self._logger.debug(
+            f"{self}: Emulating {S2_SYSTEM_MODE}: {SystemMode.AUTO} as {SystemMode.HEAT}"
+        )
+
+        await self.set_mode(SystemMode.HEAT)
 
     async def set_away(self, /, *, until: dt | None = None) -> None:
-        """Set the TCS to away mode."""
+        """Set the TCS to away mode.
+
+        Some systems do not support this mode.
+        """
         await self.set_mode(SystemMode.AWAY, until=until)
 
     async def set_custom(self, /, *, until: dt | None = None) -> None:
-        """Set the TCS to custom mode."""
+        """Set the TCS to custom mode.
+
+        Some systems do not support this mode.
+        """
         await self.set_mode(SystemMode.CUSTOM, until=until)
 
     async def set_dayoff(self, /, *, until: dt | None = None) -> None:
-        """Set the TCS to day_off mode."""
+        """Set the TCS to day_off mode.
+
+        Some systems do not support this mode.
+        """
         await self.set_mode(SystemMode.DAY_OFF, until=until)
 
     async def set_eco(self, /, *, until: dt | None = None) -> None:
-        """Set the TCS to economy mode."""
+        """Set the TCS to economy mode.
+
+        Some systems do not support this mode.
+        """
         await self.set_mode(SystemMode.AUTO_WITH_ECO, until=until)
 
     async def set_heatingoff(self) -> None:
-        """Set the TCS to heating_off/off mode."""
+        """Set the TCS to heating_off mode.
 
-        # some systems have "Off" mode instead of "HeatingOff"...
-        if SystemMode.OFF in self.modes:
-            await self.set_mode(SystemMode.OFF)
+        Some systems use 'Off' instead of 'HeatingOff' for this mode.
+        """
+
+        if SystemMode.HEATING_OFF in self.modes or SystemMode.OFF not in self.modes:
+            await self.set_mode(SystemMode.HEATING_OFF)
             return
 
-        await self.set_mode(SystemMode.HEATING_OFF)
+        # some systems have "Off" mode instead of "HeatingOff"...
+        self._logger.debug(
+            f"{self}: Emulating {S2_SYSTEM_MODE}: {SystemMode.HEATING_OFF} as {SystemMode.OFF}"
+        )
+
+        await self.set_mode(SystemMode.OFF)
 
     # these are convenience methods
 

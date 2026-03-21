@@ -59,7 +59,11 @@ class BadApiResponseError(BadApiSchemaError):
 
 
 class BadApiRequestError(BadApiSchemaError):
-    """The supplied parameter(s) are as expected (e.g. unknown/unsupported mode)."""
+    """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode)."""
+
+
+class InvalidSystemModeError(BadApiRequestError):
+    """The supplied system mode is not supported by this TCS."""
 
 
 class BadScheduleUploadedError(BadApiRequestError):

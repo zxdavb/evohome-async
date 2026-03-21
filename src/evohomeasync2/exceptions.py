@@ -16,6 +16,7 @@ from _evohome.exceptions import (
     InvalidConfigError,
     InvalidScheduleError,
     InvalidStatusError,
+    InvalidSystemModeError,
     NoSingleTcsError,
     StatusError,
 )
@@ -34,6 +35,7 @@ __all__ = [
     "InvalidConfigError",
     "InvalidScheduleError",
     "InvalidStatusError",
+    "InvalidSystemModeError",
     "NoSingleTcsError",
     "StatusError",
 ]
