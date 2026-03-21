@@ -226,7 +226,11 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=dict(tcs_mode))
 
     async def set_mode(
-        self, system_mode: SystemMode, /, *, until: dt | None = None
+        self,
+        system_mode: SystemMode,
+        /,
+        *,
+        until: dt | None = None,
     ) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time."""
 

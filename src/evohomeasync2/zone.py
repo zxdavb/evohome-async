@@ -639,8 +639,12 @@ class Zone(_ZoneBase):
         await self._set_mode({S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE})
 
     # NOTE: no provision for cooling (not supported by API)
-    async def set_temperature(  # aka. set_mode()
-        self, temperature: float, /, *, until: dt | None = None
+    async def set_temperature(
+        self,
+        temperature: float,
+        /,
+        *,
+        until: dt | None = None,
     ) -> None:
         """Set the temperature of the given Zone (no provision for cooling)."""
 
