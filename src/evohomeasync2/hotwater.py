@@ -199,15 +199,13 @@ class HotWater(_ZoneBase):
 
         if until is None:
             if mode == ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidDhwModeError(
                     f"{self}: For {mode}, until must not be None"
                 )
 
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidZoneModeError(
-                    f"{self}: For {mode}, until must be None"
-                )
+                raise exc.InvalidDhwModeError(f"{self}: For {mode}, until must be None")
 
             dhw_mode[S2_UNTIL_TIME] = until.strftime(API_STRFTIME)
 
