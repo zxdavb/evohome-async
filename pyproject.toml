@@ -31,6 +31,7 @@ cli = [
   "aiofiles>=24.1.0",
   "asyncclick>=8.3.0",
   "debugpy>=1.8.17",
+  "keyring",
 ]
 dev = [
   # linting
