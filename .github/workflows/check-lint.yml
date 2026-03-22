@@ -7,8 +7,6 @@ on:
     paths: [
       ".github/workflows/check-lint.yml",
       "pyproject.toml",
-      "requirements*.txt",
-      "cli/**.py",
       "src/**.py",
       "tests/**",
     ]
@@ -18,8 +16,6 @@ on:
     paths: [
       ".github/workflows/check-lint.yml",
       "pyproject.toml",
-      "requirements*.txt",
-      "cli/**.py",
       "src/**.py",
       "tests/**",
     ]

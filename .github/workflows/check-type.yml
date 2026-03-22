@@ -7,8 +7,6 @@ on:
     paths: [
       ".github/workflows/check-type.yml",
       "pyproject.toml",
-      "requirements*.txt",
-      "cli/**.py",
       "src/**.py",
       "src/**/py.typed",
       "tests/**.py",
@@ -19,8 +17,6 @@ on:
     paths: [
       ".github/workflows/check-type.yml",
       "pyproject.toml",
-      "requirements*.txt",
-      "cli/**.py",
       "src/**.py",
       "src/**/py.typed",
       "tests/**.py",
@@ -51,10 +47,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Install dependencies
-        run: uv pip install --system -r requirements_dev.txt
-
-      - name: Install the package (its dependencies are needed for typing)
-        run: uv pip install --system -e .
+        run: uv pip install --system -e .[cli,dev]
 
       - name: Log mypy version
         run: mypy --version
