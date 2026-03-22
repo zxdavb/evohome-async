@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime as dt, tzinfo
+from functools import cached_property
 from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
@@ -27,6 +28,7 @@ from .const import (
 )
 from .gateway import Gateway
 from .schemas import EntityType, EvoTimeZoneInfoT
+from .schemas.config import factory_location_installation_info
 from .schemas.status import factory_loc_status
 from .zone import EntityBase
 
@@ -100,8 +102,7 @@ async def create_location(
 class Location(EntityBase):
     """Instance of an account's location."""
 
-    __slots__ = ("_tzinfo", "client", "gateway_by_id", "gateways")
-
+    SCH_CONFIG: vol.Schema = factory_location_installation_info(camel_to_snake)
     SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
     _TYPE = EntityType.LOC
     _STATUS_EXCLUDES = (SZ_GATEWAYS,)
@@ -142,15 +143,15 @@ class Location(EntityBase):
         """Return a string representation of the entity."""
         return f"{self.__class__.__name__}(id='{self._id}', tzinfo='{self.tzinfo}')"
 
-    @property
+    @cached_property
     def _auth(self) -> Auth:
         return self.client.auth
 
-    @property
+    @cached_property
     def _logger(self) -> logging.Logger:
         return self.client.logger
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoLocConfigEntryT:
         """Return the latest config of the entity."""
         return self._config
@@ -186,7 +187,8 @@ class Location(EntityBase):
         # so don't need ?includeTemperatureControlSystems=True
 
         config: EvoLocConfigResponseT = await self._auth.get(
-            f"location/{self._id}/installationInfo"  # TODO: add schema
+            f"location/{self._id}/installationInfo",
+            schema=self.SCH_CONFIG,
         )  # type: ignore[assignment]
 
         self._config = config[SZ_LOCATION_INFO]  # ?exclude TZ/DST

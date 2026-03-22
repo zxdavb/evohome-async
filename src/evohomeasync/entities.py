@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, Final
 
 from . import exceptions as exc
@@ -78,8 +79,6 @@ _TEMP_IS_NA: Final = 128
 class _EntityBase(ABC):
     """Base class for all entities."""
 
-    __slots__ = ("_config", "_id", "_status")
-
     _config: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
     _status: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
 
@@ -97,11 +96,11 @@ class _EntityBase(ABC):
     @abstractmethod
     def _logger(self) -> logging.Logger: ...
 
-    @property
+    @cached_property
     def id(self) -> str:
         return str(self._id)
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(
         self,
     ) -> EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT:
@@ -119,8 +118,6 @@ class _EntityBase(ABC):
 class _DeviceBase(_EntityBase):
     """Base class for all devices."""
 
-    __slots__ = ("_loc",)
-
     _config: EvoDevInfoDictT | EvoGwyInfoDictT
     _status: EvoDevInfoDictT | EvoGwyInfoDictT
 
@@ -132,11 +129,11 @@ class _DeviceBase(_EntityBase):
         self._config = config
         self._status = config  # not a typo, config is a superset of status
 
-    @property
+    @cached_property
     def _auth(self) -> Auth:
         return self._loc.client.auth
 
-    @property
+    @cached_property
     def _logger(self) -> logging.Logger:
         return self._loc.client.logger
 
@@ -147,8 +144,6 @@ class _DeviceBase(_EntityBase):
 
 class HotWater(_DeviceBase):  # Hotwater version of a Device
     """Instance of a location's DHW zone."""
-
-    __slots__ = ()
 
     _config: Final[EvoDevInfoDictT]  # type: ignore[misc]
     _status: EvoDevInfoDictT
@@ -236,8 +231,6 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
 class Zone(_DeviceBase):  # Zone version of a Device
     """Instance of a location's heating zone."""
 
-    __slots__ = ()
-
     _config: Final[EvoDevInfoDictT]  # type: ignore[misc]
     _status: EvoDevInfoDictT
 
@@ -247,7 +240,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
     def name(self) -> str:
         return self._config[SZ_NAME]
 
-    @property  # appears to be the zone idx (not in evohomeclient2)
+    @property  # appears to be the zone idx (not in newer API)
     def idx(self) -> str:
         return f"{self._config[SZ_INSTANCE]:02X}"
 
@@ -259,7 +252,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
     def min_heat_setpoint(self) -> float:
         return self._status[SZ_THERMOSTAT][SZ_MIN_HEAT_SETPOINT]
 
-    @property
+    @cached_property
     def allowed_modes(self) -> tuple[str, ...]:
         """Return the set of modes the zone can be assigned."""
         return tuple(self._config[SZ_THERMOSTAT][SZ_ALLOWED_MODES])
@@ -326,8 +319,6 @@ class Zone(_DeviceBase):  # Zone version of a Device
 class ControlSystem(_EntityBase):  # TCS portion of a Location
     """Instance of a TCS (a portion of a location)."""
 
-    __slots__ = ("_cli", "hotwater", "zone_by_id", "zone_by_idx", "zones")
-
     _cli: EvohomeClient  # proxy for parent
 
     _config: Final[EvoTcsInfoDictT]  # type: ignore[misc]
@@ -365,7 +356,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
     async def reset(self) -> None:
         """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
 
-        raise NotImplementedError
+        raise NotImplementedError  # TODO: via set_mode() of TCS and its children
 
     async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time."""
@@ -436,8 +427,6 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 class Gateway(_DeviceBase):  # Gateway portion of a Device
     """Instance of a location's gateway."""
 
-    __slots__ = ()
-
     def __init__(self, location: Location, config: EvoDevInfoDictT, /) -> None:
         _EntityBase.__init__(self, config[SZ_GATEWAY_ID])  # uses gateway_id
 
@@ -452,7 +441,7 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
 
     # Config attrs...
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoGwyInfoDictT:
         """Return the config of the entity."""
         return {
@@ -470,15 +459,13 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
             if k in list(EvoGwyInfoDictT.__annotations__.keys())
         }  # type: ignore[return-value]
 
-    @property
+    @cached_property
     def mac_address(self) -> str:
         return self._config[SZ_MAC_ID]
 
 
 class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     """Instance of an account's location/TCS."""
-
-    __slots__ = ("gateway_by_id", "gateways")
 
     def __init__(self, client: EvohomeClient, config: EvoTcsInfoDictT, /) -> None:
         super().__init__(config[SZ_LOCATION_ID])
@@ -512,15 +499,15 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
                 )
                 self._add_zone(Zone(self, dev_config))
 
-    @property
+    @cached_property
     def _auth(self) -> Auth:
         return self._cli.auth
 
-    @property
+    @cached_property
     def _logger(self) -> logging.Logger:
         return self._cli.logger
 
-    @property
+    @cached_property
     def client(self) -> EvohomeClient:
         return self._cli
 
@@ -533,8 +520,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     # Config attrs...
 
     @property
-    def country(self) -> str:
-        # "GB", "NL"
+    def country(self) -> str:  # e.g. "GB", "NL"
         return self._config[SZ_COUNTRY]
 
     @property

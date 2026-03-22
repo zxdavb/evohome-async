@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "charliermarsh.ruff",
+    "DavidAnson.vscode-markdownlint",
+    "esbenp.prettier-vscode",
+    "matangover.mypy-type-checker",
+    "ms-python.python",
+    "redhat.vscode-yaml",
+    "streetsidesoftware.code-spell-checker",
+    "tamasfe.even-better-toml",
+    // "yzhang.markdown-all-in-one"
+  ]
+}

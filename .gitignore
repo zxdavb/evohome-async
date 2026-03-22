@@ -4,11 +4,13 @@
 *.tmp
 tokens*
 .secrets/
+.vscode/*
+!.vscode/*.json
 
 # schedule backups
 /*.json
 
-# temprary: a WIP
+# temporary: a WIP
 tests.*/
 custom_components
 

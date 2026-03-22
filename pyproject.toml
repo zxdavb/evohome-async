@@ -1,6 +1,5 @@
 #
 ### project ##########################################################################
-#
 
 [project]
 name = "evohome-async"
@@ -27,6 +26,36 @@ classifiers = [
 ]
 
 #
+[project.optional-dependencies]
+cli = [
+  "aiofiles>=24.1.0",
+  "asyncclick>=8.3.0",
+  "debugpy>=1.8.17",
+  "keyring>=25.7.0",
+]
+dev = [
+  # linting
+  "prek>=0.2.28",
+  "ruff>=0.14.13",
+  # typing
+  "mypy>=1.19.1",
+  "types-aiofiles>=24.1.0.20250822",
+  "types-PyYAML>=6.0.12.20250915",
+  # testing
+  "aioresponses>=0.7.8",
+  "PyYAML>=6.0.3",
+  "pytest>=9.0.0",
+  "pytest-asyncio>=1.3.0",
+  "pytest-cov>=7.0.0",
+  "pytest-freezer>=0.4.9",
+  "pytest-sugar>=1.0.0",
+  "pytest-xdist>=3.8.0",
+  "syrupy>=5.0.0",
+  # build/deploy
+  "hatch>=1.16.3",
+]
+
+#
 [project.scripts]
 evo-client = "evohome_cli.client:main"
 
@@ -38,34 +67,25 @@ evo-client = "evohome_cli.client:main"
 
 
 #
-### build-system #####################################################################
+### build-system, hatch ##############################################################
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+#
 [tool.hatch.build]
-sources = ["cli", "src"]
+sources = ["src"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["cli/evohome_cli", "src/evohomeasync", "src/evohomeasync2", "src/_evohome"]
+packages = ["src/evohomeasync", "src/evohomeasync2", "src/_evohome", "src/evohome_cli"]
 
 [tool.hatch.version]
 path = "src/_evohome/__init__.py"
 
 
 #
-### pytest ###########################################################################
-
-[tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "function"
-asyncio_mode = "auto"
-
-norecursedirs = ["tests.out/*", "tests.wip/*"]
-
-
-#
-###  mypy ############################################################################
+### mypy #############################################################################
 
 [tool.mypy]
 python_version = "3.13"
@@ -73,25 +93,41 @@ python_version = "3.13"
 strict = true
 
 exclude = ["docs", "tests/tests_cc"]
-files = ["cli", "src", "tests"]
+files = ["src", "tests"]
 
 # beyond strict
 disallow_any_unimported = true
 warn_unreachable = true
 
-
-#
 [[tool.mypy.overrides]]
 module = ["tests.tests_rf.faked_server.vendor"]
 
-disable_error_code = ["type-arg"] # 14
+disable_error_code = ["type-arg"]
+
+
+#
+### pytest, coverage #################################################################
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+
+norecursedirs = ["tests.out/*", "tests.wip/*"]
+
+#
+[tool.coverage.run]
+omit = ["src/evohome_cli/*", "tests*/*"]
+
+[tool.coverage.report]
+show_missing = true
+
 
 #
 ## ruff ##############################################################################
 
 [tool.ruff]
 exclude = ["docs/*.py", "tests/tests_cc"]
-src = ["cli", "src", "tests"]
+src = ["src", "tests"]
 target-version = "py313"
 required-version = ">=0.14.13"
 
@@ -157,26 +193,15 @@ ignore = [
   "TRY003",  # Long exception messages
 ]
 
-
+#
 [tool.ruff.lint.per-file-ignores]
-"./cli/evohome_cli/client.py" = ["ARG001", "EXE001", "T10"]  # debugger
+"./src/evohome_cli/client.py" = ["ARG001", "EXE001", "T10"]  # debugger, callbacks
 "./tests/*" = ["ARG", "SLF001"]  # tests need to access private members
-
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]
 voluptuous = "vol"
-
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
 force-sort-within-sections = false
 split-on-trailing-comma = false
-
-#
-## coverage ##########################################################################
-
-[tool.coverage.run]
-omit = ["cli/evohome_cli/*", "tests*/*"]
-
-[tool.coverage.report]
-show_missing = true

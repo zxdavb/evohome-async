@@ -153,6 +153,8 @@ class EvoZoneInfo(tzinfo):
 #     }
 # }
 
+# cSpell:disable
+
 # examples of known display_name: key-value pairs:
 #   "GMTStandardTime":           "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
 #   "CentralEuropeStandardTime": "(UTC+01:00) Praha, Bratislava, Budapešť, Bělehrad, Lublaň",
@@ -161,6 +163,7 @@ class EvoZoneInfo(tzinfo):
 #   "FLEStandardTime":           "(UTC+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius",
 #   "AUSEasternStandardTime":    "(UTC+10:00) Canberra, Melbourne, Sydney",
 
+# cSpell:enable
 
 ### TZ data for v1 location (older API)...
 

@@ -1,11 +1,10 @@
 """Provides handling of TCC zones (heating and DHW)."""
 
-# TODO: extend set_mode() for non-evohome modes (e.g. "VacationHold")
-
 from __future__ import annotations
 
 import json
 from datetime import UTC, datetime as dt, timedelta as td
+from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
@@ -92,8 +91,6 @@ _ONE_DAY = td(days=1)
 
 
 class EntityBase:
-    __slots__ = ("_config", "_id", "_status")
-
     _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
     _STATUS_EXCLUDES: tuple[str, ...] = ()  # child keys to exclude from own status
 
@@ -131,11 +128,11 @@ class EntityBase:
 
     # Config attrs...
 
-    @property
+    @cached_property
     def id(self) -> str:
         return self._id
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(
         self,
     ) -> (
@@ -168,8 +165,6 @@ class EntityBase:
 
 class ActiveFaultsBase(EntityBase):
     """Provide the base for active faults."""
-
-    __slots__ = ("_active_faults", "_last_logged", "location")
 
     location: Location  # used to get tzinfo
 
@@ -235,7 +230,7 @@ def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
     """Return a pair of strings representing the local day of week and time of day."""
     dtm = as_local_time(dtm, tzinfo)
     day_of_week = list(DayOfWeek)[dtm.weekday()]  # locale-independent
-    return day_of_week, dtm.strftime("%H:%M")  # TODO: localize, e.g. "Montag"?
+    return DayOfWeek(day_of_week), dtm.strftime("%H:%M")  # TODO: localize, e.g. Montag?
 
 
 def _find_switchpoints(
@@ -292,8 +287,6 @@ def _find_switchpoints(
 class _ScheduleBase(ActiveFaultsBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    __slots__ = ("_next_switchpoint", "_schedule", "_this_switchpoint")
-
     SCH_SCHEDULE: vol.Schema
 
     _schedule: _ScheduleT | None
@@ -348,7 +341,8 @@ class _ScheduleBase(ActiveFaultsBase):
 
         try:
             schedule: DailySchedulesT = await self._auth.get(
-                f"{self._TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE
+                f"{self._TYPE}/{self.id}/schedule",
+                schema=self.SCH_SCHEDULE,
             )  # type: ignore[assignment]
 
         except exc.ApiRequestFailedError as err:
@@ -452,8 +446,6 @@ class _ScheduleBase(ActiveFaultsBase):
 class _ZoneBase(_ScheduleBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    __slots__ = ("tcs",)
-
     SCH_STATUS: vol.Schema
 
     _status: EvoDhwStatusResponseT | EvoZonStatusResponseT | None
@@ -464,11 +456,11 @@ class _ZoneBase(_ScheduleBase):
         self.location = tcs.location
         self.tcs = tcs
 
-    @property
+    @cached_property
     def _auth(self) -> Auth:
         return self.location.client.auth
 
-    @property
+    @cached_property
     def _logger(self) -> logging.Logger:
         return self.location.client.logger
 
@@ -480,15 +472,21 @@ class _ZoneBase(_ScheduleBase):
         return super().status  # type: ignore[return-value]
 
     async def _get_status(self) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
-        """Get the latest state of the DHW/zone and update its status attrs.
+        """Get the latest state of this entity (DHW/zone) and update its status.
 
-        It is more efficient to call Location.update() as all descendants are updated
-        with a single GET. Returns the raw JSON of the latest state.
+        This is a working vendor API endpoint, retained for use by the test suite.
+        For normal use, prefer Location.update() as a single GET updates all
+        descendants more efficiently. Returns the raw JSON of the latest state.
         """
 
-        status: EvoDhwStatusResponseT | EvoZonStatusResponseT = await self._auth.get(  # type: ignore[assignment]
-            f"{self._TYPE}/{self.id}/status", schema=self.SCH_STATUS
+        self._logger.warning(
+            f"{self}: prefer Location.update() for more efficient status retrieval"
         )
+
+        status: EvoDhwStatusResponseT | EvoZonStatusResponseT = await self._auth.get(
+            f"{self._TYPE}/{self.id}/status",
+            schema=self.SCH_STATUS,
+        )  # type: ignore[assignment]
 
         self._update_status(status)
         return status
@@ -522,9 +520,7 @@ class _ZoneBase(_ScheduleBase):
 
 
 class Zone(_ZoneBase):
-    """Instance of a TCS's heating zone (temperatureZone)."""
-
-    __slots__ = ()
+    """Instance of a TCS's heating Zone (temperatureZone)."""
 
     _TYPE = EntityType.ZON
 
@@ -545,15 +541,15 @@ class Zone(_ZoneBase):
             )
         if not self.type or self.type == ZoneType.UNKNOWN:
             raise exc.InvalidConfigError(
-                f"{self}: Invalid zone type '{self.type}' (is it a ghost zone?)"
+                f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)"
             )
 
         if self.model not in ZoneModelType:
             self._logger.warning("%s: Unknown model type '%s' (YMMV)", self, self.model)
         if self.type not in ZoneType:
-            self._logger.warning("%s: Unknown zone type '%s' (YMMV)", self, self.type)
+            self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoZonConfigEntryT:
         """Return the latest config of the entity."""
         return self._config
@@ -565,7 +561,7 @@ class Zone(_ZoneBase):
 
     # Config attrs...
 
-    @property
+    @cached_property
     def model(self) -> ZoneModelType:
         return self._config[SZ_MODEL_TYPE]
 
@@ -575,11 +571,11 @@ class Zone(_ZoneBase):
             return self._status[SZ_NAME]
         return self._config[SZ_NAME]
 
-    @property
+    @cached_property
     def type(self) -> ZoneType:
         return self._config[SZ_ZONE_TYPE]
 
-    @property
+    @cached_property
     def schedule_capabilities(self) -> EvoZonScheduleCapabilitiesResponseT:
         """
         "scheduleCapabilities": {
@@ -609,7 +605,7 @@ class Zone(_ZoneBase):
 
         return self._config[SZ_SETPOINT_CAPABILITIES]
 
-    @property
+    @cached_property
     def allowed_modes(self) -> tuple[ZoneMode, ...]:
         return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
 
@@ -655,54 +651,118 @@ class Zone(_ZoneBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, mode: TccSetZonModeT) -> None:
-        """Set the zone mode (heating only, a cooling is not exposed by the API)."""
+    async def _set_mode(self, zon_mode: TccSetZonModeT, /) -> None:
+        """Set the Zone mode (heating only; cooling is not exposed by the API)."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if mode[S2_SETPOINT_MODE] not in self.allowed_modes:
+        if zon_mode[S2_SETPOINT_MODE] not in self.allowed_modes:
             self._logger.warning(
-                f"{self}: Unsupported/unknown {S2_SETPOINT_MODE}: {mode}"
+                f"{self}: Attempting unsupported {S2_SETPOINT_MODE}: {zon_mode}..."
             )
 
-        if (temp := mode.get(S2_HEAT_SETPOINT_VALUE)) is None:
-            if mode[S2_SETPOINT_MODE] != ZoneMode.FOLLOW_SCHEDULE:
+        if (temp := zon_mode.get(S2_HEAT_SETPOINT_VALUE)) is None:
+            if zon_mode[S2_SETPOINT_MODE] != ZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(
-                    f"{self}: Missing {S2_HEAT_SETPOINT_VALUE}: {mode}"
+                    f"{self}: Attempting missing {S2_HEAT_SETPOINT_VALUE}: {zon_mode}..."
                 )
 
         elif not self.min_heat_setpoint <= temp <= self.max_heat_setpoint:
             self._logger.warning(
-                f"{self}: Unsupported/invalid {S2_HEAT_SETPOINT_VALUE}: {mode}"
+                f"{self}: Attempting invalid {S2_HEAT_SETPOINT_VALUE}: {zon_mode}..."
             )
 
-        # Call the API...
-        await self._auth.put(f"{self._TYPE}/{self.id}/heatSetpoint", json=dict(mode))
+        await self._auth.put(
+            f"{self._TYPE}/{self.id}/heatSetpoint", json=dict(zon_mode)
+        )
+
+    def _validate_heat_setpoint(self, temperature: float) -> None:
+        if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
+            raise exc.InvalidZoneModeError(
+                f"{self}: Invalid {S2_HEAT_SETPOINT_VALUE}: {temperature}"
+            )
+
+    async def set_mode(
+        self,
+        mode: ZoneMode,
+        /,
+        *,
+        temperature: float | None = None,
+        until: dt | None = None,
+    ) -> None:
+        """Set the Zone mode (heating setpoint mode)."""
+
+        if mode not in self.allowed_modes:
+            raise exc.InvalidZoneModeError(
+                f"{self}: Unsupported {S2_SETPOINT_MODE}: {mode}"
+            )
+
+        if mode == ZoneMode.FOLLOW_SCHEDULE:
+            if temperature is not None or until is not None:
+                raise exc.InvalidZoneModeError(
+                    f"{self}: temperature/until not valid for {mode} mode"
+                )
+
+            await self._set_mode({S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE})
+            return
+
+        if temperature is None:
+            raise exc.InvalidZoneModeError(
+                f"{self}: temperature required for {mode} mode"
+            )
+
+        self._validate_heat_setpoint(temperature)
+
+        if mode == ZoneMode.PERMANENT_OVERRIDE:
+            if until is not None:
+                raise exc.InvalidZoneModeError(
+                    f"{self}: temperature required and until not valid for {mode} mode"
+                )
+            await self._set_mode(
+                {
+                    S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
+                    S2_HEAT_SETPOINT_VALUE: temperature,
+                }
+            )
+            return
+
+        if mode == ZoneMode.TEMPORARY_OVERRIDE:
+            if until is None:
+                raise exc.InvalidZoneModeError(
+                    f"{self}: temperature and until required for {mode} mode"
+                )
+            await self._set_mode(
+                {
+                    S2_SETPOINT_MODE: ZoneMode.TEMPORARY_OVERRIDE,
+                    S2_HEAT_SETPOINT_VALUE: temperature,
+                    S2_TIME_UNTIL: until.strftime(API_STRFTIME),
+                }
+            )
+            return
+
+        raise exc.InvalidZoneModeError(
+            f"{self}: Unsupported {S2_SETPOINT_MODE}: {mode}"
+        )
 
     async def reset(self) -> None:
-        """Cancel any override and allow the zone to follow its schedule"""
-        await self._set_mode({S2_SETPOINT_MODE: ZoneMode.FOLLOW_SCHEDULE})
+        """Cancel any override and allow the Zone to follow its schedule."""
+        await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
 
     # NOTE: no provision for cooling (not supported by API)
-    async def set_temperature(  # aka. set_mode()
-        self, temperature: float, /, *, until: dt | None = None
+    async def set_temperature(
+        self,
+        temperature: float,
+        /,
+        *,
+        until: dt | None = None,
     ) -> None:
         """Set the temperature of the zone (no provision for cooling)."""
 
-        mode: TccSetZonModeT
-
-        if until is None:  # NOTE: beware that these may be case-sensitive
-            mode = {
-                S2_SETPOINT_MODE: ZoneMode.PERMANENT_OVERRIDE,
-                S2_HEAT_SETPOINT_VALUE: temperature,
-            }
-        else:
-            mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
-                S2_SETPOINT_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-                S2_HEAT_SETPOINT_VALUE: temperature,
-                S2_TIME_UNTIL: until.strftime(API_STRFTIME),
-            }
-
-        await self._set_mode(mode)
+        mode = (
+            ZoneMode.PERMANENT_OVERRIDE
+            if until is None
+            else ZoneMode.TEMPORARY_OVERRIDE
+        )
+        await self.set_mode(mode, temperature=temperature, until=until)
 
     # NOTE: this wrapper exists only for typing purposes
     async def get_schedule(self) -> list[DayOfWeekZoneT]:  # type: ignore[override]

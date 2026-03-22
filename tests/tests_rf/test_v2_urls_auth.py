@@ -244,7 +244,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
 
     #
     # STEP 4: Change the mode, but with semi-invalid request data (JSON)
-    assert SystemMode.COOL not in tcs.modes
+    assert SystemMode.COOL not in tcs.allowed_modes
     new_mode = {"systemMode": "Cool", "permanent": True}
 
     _ = await should_fail_v2(
@@ -258,7 +258,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
 
     #
     # STEP 4: Change the mode, with valid request data (JSON) (permanent)
-    assert SystemMode.AUTO in tcs.modes
+    assert SystemMode.AUTO in tcs.allowed_modes
     new_mode = {"systemMode": SystemMode.AUTO, "permanent": True}
 
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=new_mode)
@@ -266,7 +266,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
 
     #
     # STEP 4: Change the mode, with valid request data (JSON) (temporary)
-    assert SystemMode.AWAY in tcs.modes
+    assert SystemMode.AWAY in tcs.allowed_modes
     new_mode = {
         "systemMode": SystemMode.AWAY,
         "permanent": False,

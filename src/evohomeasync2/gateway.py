@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import cached_property
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from _evohome.helpers import camel_to_snake
@@ -35,8 +36,6 @@ if TYPE_CHECKING:
 class Gateway(ActiveFaultsBase, EntityBase):
     """Instance of a location's gateway."""
 
-    __slots__ = ("system_by_id", "systems")
-
     SCH_STATUS: vol.Schema = factory_gwy_status(camel_to_snake)
     _TYPE = EntityType.GWY
     _STATUS_EXCLUDES = (SZ_TEMPERATURE_CONTROL_SYSTEMS,)
@@ -60,15 +59,15 @@ class Gateway(ActiveFaultsBase, EntityBase):
 
         self._status: EvoGwyStatusResponseT | None = None
 
-    @property
+    @cached_property
     def _auth(self) -> Auth:
         return self.location.client.auth
 
-    @property
+    @cached_property
     def _logger(self) -> logging.Logger:
         return self.location.client.logger
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoGwyConfigEntryT:
         """Return the latest config of the entity."""
         return self._config
@@ -80,7 +79,7 @@ class Gateway(ActiveFaultsBase, EntityBase):
 
     # Config attrs...
 
-    @property  # RENAMED val: was mac
+    @cached_property
     def mac_address(self) -> str:
         return self._config[SZ_MAC]
 
@@ -93,7 +92,7 @@ class Gateway(ActiveFaultsBase, EntityBase):
         with a single GET. Returns the raw JSON of the latest state.
         """
 
-        raise NotImplementedError
+        raise NotImplementedError("Use Location.update() to update status")
 
     def _update_status(self, status: EvoGwyStatusResponseT) -> None:
         """Update the GWY's status and cascade to its descendants."""
