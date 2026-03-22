@@ -127,11 +127,11 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
     # Config attrs...
 
-    @property  # RENAMED val: was model_type
+    @cached_property  # RENAMED val: was model_type
     def model(self) -> TcsModelType:
         return self._config[SZ_MODEL_TYPE]
 
-    @property
+    @cached_property
     def allowed_system_modes(self) -> tuple[EvoAllowedSystemModesResponseT, ...]:
         """
 

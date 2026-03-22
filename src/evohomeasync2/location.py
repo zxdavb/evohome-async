@@ -100,8 +100,6 @@ async def create_location(
 class Location(EntityBase):
     """Instance of an account's location."""
 
-    __slots__ = ("_tzinfo", "client", "gateway_by_id", "gateways")
-
     SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
     _TYPE = EntityType.LOC
     _STATUS_EXCLUDES = (SZ_GATEWAYS,)

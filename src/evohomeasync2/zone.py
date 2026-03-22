@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime as dt, timedelta as td
+from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
@@ -92,8 +93,6 @@ _ONE_DAY = td(days=1)
 
 
 class EntityBase:
-    __slots__ = ("_config", "_id", "_status")
-
     _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
     _STATUS_EXCLUDES: tuple[str, ...] = ()  # child keys to exclude from own status
 
@@ -168,8 +167,6 @@ class EntityBase:
 
 class ActiveFaultsBase(EntityBase):
     """Provide the base for active faults."""
-
-    __slots__ = ("_active_faults", "_last_logged", "location")
 
     location: Location  # used to get tzinfo
 
@@ -291,8 +288,6 @@ def _find_switchpoints(
 
 class _ScheduleBase(ActiveFaultsBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
-
-    __slots__ = ("_next_switchpoint", "_schedule", "_this_switchpoint")
 
     SCH_SCHEDULE: vol.Schema
 
@@ -452,8 +447,6 @@ class _ScheduleBase(ActiveFaultsBase):
 class _ZoneBase(_ScheduleBase):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    __slots__ = ("tcs",)
-
     SCH_STATUS: vol.Schema
 
     _status: EvoDhwStatusResponseT | EvoZonStatusResponseT | None
@@ -524,8 +517,6 @@ class _ZoneBase(_ScheduleBase):
 class Zone(_ZoneBase):
     """Instance of a TCS's heating Zone (temperatureZone)."""
 
-    __slots__ = ()
-
     _TYPE = EntityType.ZON
 
     SCH_SCHEDULE: vol.Schema = factory_zon_schedule(camel_to_snake)
@@ -565,7 +556,7 @@ class Zone(_ZoneBase):
 
     # Config attrs...
 
-    @property
+    @cached_property
     def model(self) -> ZoneModelType:
         return self._config[SZ_MODEL_TYPE]
 
@@ -575,11 +566,11 @@ class Zone(_ZoneBase):
             return self._status[SZ_NAME]
         return self._config[SZ_NAME]
 
-    @property
+    @cached_property
     def type(self) -> ZoneType:
         return self._config[SZ_ZONE_TYPE]
 
-    @property
+    @cached_property
     def schedule_capabilities(self) -> EvoZonScheduleCapabilitiesResponseT:
         """
         "scheduleCapabilities": {
@@ -592,7 +583,7 @@ class Zone(_ZoneBase):
 
         return self._config[SZ_SCHEDULE_CAPABILITIES]
 
-    @property
+    @cached_property
     def setpoint_capabilities(self) -> EvoZonSetpointCapabilitiesResponseT:
         """
         "setpointCapabilities": {
@@ -609,16 +600,16 @@ class Zone(_ZoneBase):
 
         return self._config[SZ_SETPOINT_CAPABILITIES]
 
-    @property
+    @cached_property
     def allowed_modes(self) -> tuple[ZoneMode, ...]:
         return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
 
-    @property  # convenience attr
+    @cached_property  # convenience attr
     def max_heat_setpoint(self) -> float:
         # consider: if not self.setpoint_capabilities["can_control_heat"]: return None
         return self.setpoint_capabilities[SZ_MAX_HEAT_SETPOINT]
 
-    @property  # convenience attr
+    @cached_property  # convenience attr
     def min_heat_setpoint(self) -> float:
         # consider: if not self.setpoint_capabilities["can_control_heat"]: return None
         return self.setpoint_capabilities[SZ_MIN_HEAT_SETPOINT]
