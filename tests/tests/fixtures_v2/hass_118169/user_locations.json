@@ -34,7 +34,7 @@
                         "modelType": "FocusProWifiRetail",
                         "zones": [
                             {
-                                "zoneId": "277000",
+                                "zoneId": "2770000",
                                 "modelType": "FocusProWifiRetail",
                                 "setpointCapabilities": {
                                     "vacationHoldCapabilities": {"isChangeable": false, "isCancelable": false},

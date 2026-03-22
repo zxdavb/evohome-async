@@ -8,7 +8,7 @@
           "systemId": "2760000",
           "zones": [
             {
-              "zoneId": "277000",
+              "zoneId": "2770000",
               "temperatureStatus": { "temperature": 20.0, "isAvailable": true },
               "activeFaults": [],
               "setpointStatus": {
