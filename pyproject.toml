@@ -1,6 +1,5 @@
 #
 ### project ##########################################################################
-#
 
 [project]
 name = "evohome-async"
@@ -67,12 +66,13 @@ evo-client = "evohome_cli.client:main"
 
 
 #
-### build-system #####################################################################
+### build-system, hatch ##############################################################
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+#
 [tool.hatch.build]
 sources = ["src"]
 
@@ -84,17 +84,7 @@ path = "src/_evohome/__init__.py"
 
 
 #
-### pytest ###########################################################################
-
-[tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "function"
-asyncio_mode = "auto"
-
-norecursedirs = ["tests.out/*", "tests.wip/*"]
-
-
-#
-###  mypy ############################################################################
+### mypy #############################################################################
 
 [tool.mypy]
 python_version = "3.13"
@@ -108,12 +98,28 @@ files = ["src", "tests"]
 disallow_any_unimported = true
 warn_unreachable = true
 
-
-#
 [[tool.mypy.overrides]]
 module = ["tests.tests_rf.faked_server.vendor"]
 
-disable_error_code = ["type-arg"] # 14
+disable_error_code = ["type-arg"]
+
+
+#
+### pytest, coverage #################################################################
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+
+norecursedirs = ["tests.out/*", "tests.wip/*"]
+
+#
+[tool.coverage.run]
+omit = ["src/evohome_cli/*", "tests*/*"]
+
+[tool.coverage.report]
+show_missing = true
+
 
 #
 ## ruff ##############################################################################
@@ -186,26 +192,15 @@ ignore = [
   "TRY003",  # Long exception messages
 ]
 
-
+#
 [tool.ruff.lint.per-file-ignores]
 "./src/evohome_cli/client.py" = ["ARG001", "EXE001", "T10"]  # debugger, callbacks
 "./tests/*" = ["ARG", "SLF001"]  # tests need to access private members
 
-
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]
 voluptuous = "vol"
-
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
 force-sort-within-sections = false
 split-on-trailing-comma = false
-
-#
-## coverage ##########################################################################
-
-[tool.coverage.run]
-omit = ["src/evohome_cli/*", "tests*/*"]
-
-[tool.coverage.report]
-show_missing = true
