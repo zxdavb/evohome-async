@@ -28,6 +28,7 @@ from .const import (
 )
 from .gateway import Gateway
 from .schemas import EntityType, EvoTimeZoneInfoT
+from .schemas.config import factory_location_installation_info
 from .schemas.status import factory_loc_status
 from .zone import EntityBase
 
@@ -101,6 +102,7 @@ async def create_location(
 class Location(EntityBase):
     """Instance of an account's location."""
 
+    SCH_CONFIG: vol.Schema = factory_location_installation_info(camel_to_snake)
     SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
     _TYPE = EntityType.LOC
     _STATUS_EXCLUDES = (SZ_GATEWAYS,)
@@ -185,7 +187,8 @@ class Location(EntityBase):
         # so don't need ?includeTemperatureControlSystems=True
 
         config: EvoLocConfigResponseT = await self._auth.get(
-            f"location/{self._id}/installationInfo"  # TODO: add schema
+            f"location/{self._id}/installationInfo",
+            schema=self.SCH_CONFIG,
         )  # type: ignore[assignment]
 
         self._config = config[SZ_LOCATION_INFO]  # ?exclude TZ/DST

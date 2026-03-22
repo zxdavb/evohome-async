@@ -343,7 +343,8 @@ class _ScheduleBase(ActiveFaultsBase):
 
         try:
             schedule: DailySchedulesT = await self._auth.get(
-                f"{self._TYPE}/{self.id}/schedule", schema=self.SCH_SCHEDULE
+                f"{self._TYPE}/{self.id}/schedule",
+                schema=self.SCH_SCHEDULE,
             )  # type: ignore[assignment]
 
         except exc.ApiRequestFailedError as err:
@@ -484,9 +485,10 @@ class _ZoneBase(_ScheduleBase):
             f"{self}: prefer Location.update() for more efficient status retrieval"
         )
 
-        status: EvoDhwStatusResponseT | EvoZonStatusResponseT = await self._auth.get(  # type: ignore[assignment]
-            f"{self._TYPE}/{self.id}/status", schema=self.SCH_STATUS
-        )
+        status: EvoDhwStatusResponseT | EvoZonStatusResponseT = await self._auth.get(
+            f"{self._TYPE}/{self.id}/status",
+            schema=self.SCH_STATUS,
+        )  # type: ignore[assignment]
 
         self._update_status(status)
         return status
