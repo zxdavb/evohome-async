@@ -5,8 +5,7 @@
 tokens*
 .secrets/
 .vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
+!.vscode/*.json
 
 # schedule backups
 /*.json
