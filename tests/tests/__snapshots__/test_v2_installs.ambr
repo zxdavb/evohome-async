@@ -22305,7 +22305,7 @@
           ...
   
           '
-      mode: 'FollowSchedule
+      mode: 'VacationHold
   
           ...
   
@@ -22364,14 +22364,16 @@
           \ true\nmax_duration: 1.00:00:00\nmax_heat_setpoint: 32.0\nmin_heat_setpoint:\
           \ 4.5\ntiming_resolution: 00:15:00\nvacation_hold_capabilities:\n  is_cancelable:\
           \ false\n  is_changeable: false\nvalue_resolution: 0.5\n"
-      setpoint_status: 'setpoint_mode: FollowSchedule
+      setpoint_status: 'setpoint_mode: VacationHold
   
           target_heat_temperature: 20.0
   
+          until: ''2023-11-30T11:00:00+11:00''
+  
           '
       status: "active_faults: []\nname: THERMOSTAT\nsetpoint_status:\n  setpoint_mode:\
-          \ FollowSchedule\n  target_heat_temperature: 20.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 20.0\nzone_id: '2770000'\n"
+          \ VacationHold\n  target_heat_temperature: 20.0\n  until: '2023-11-30T11:00:00+11:00'\n\
+          temperature_status:\n  is_available: true\n  temperature: 20.0\nzone_id: '2770000'\n"
       target_heat_temperature: '20.0
   
           ...
@@ -22399,9 +22401,7 @@
           ...
   
           '
-      until: 'null
-  
-          ...
+      until: '''2023-11-30T11:00:00+11:00''
   
           '
   

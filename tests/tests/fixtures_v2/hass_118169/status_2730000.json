@@ -13,7 +13,8 @@
               "activeFaults": [],
               "setpointStatus": {
                 "targetHeatTemperature": 20.0,
-                "setpointMode": "FollowSchedule"
+                "setpointMode": "VacationHold",
+                "until": "2023-11-30T00:00:00Z"
               },
               "name": "THERMOSTAT"
             }
