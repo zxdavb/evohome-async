@@ -66,7 +66,7 @@ class HotWater(_ZoneBase):
 
         self._schedule: list[DayOfWeekDhwT] | None = None  # type: ignore[assignment]
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoDhwConfigEntryT:
         """Return the latest config of the entity."""
         return self._config

@@ -96,11 +96,11 @@ class _EntityBase(ABC):
     @abstractmethod
     def _logger(self) -> logging.Logger: ...
 
-    @property
+    @cached_property
     def id(self) -> str:
         return str(self._id)
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(
         self,
     ) -> EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT:
@@ -129,11 +129,11 @@ class _DeviceBase(_EntityBase):
         self._config = config
         self._status = config  # not a typo, config is a superset of status
 
-    @property
+    @cached_property
     def _auth(self) -> Auth:
         return self._loc.client.auth
 
-    @property
+    @cached_property
     def _logger(self) -> logging.Logger:
         return self._loc.client.logger
 
@@ -356,7 +356,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
     async def reset(self) -> None:
         """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
 
-        raise NotImplementedError
+        raise NotImplementedError  # TODO: via set_mode() of TCS and its children
 
     async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time."""
@@ -441,7 +441,7 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
 
     # Config attrs...
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoGwyInfoDictT:
         """Return the config of the entity."""
         return {
@@ -459,7 +459,7 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
             if k in list(EvoGwyInfoDictT.__annotations__.keys())
         }  # type: ignore[return-value]
 
-    @property
+    @cached_property
     def mac_address(self) -> str:
         return self._config[SZ_MAC_ID]
 
@@ -499,15 +499,15 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
                 )
                 self._add_zone(Zone(self, dev_config))
 
-    @property
+    @cached_property
     def _auth(self) -> Auth:
         return self._cli.auth
 
-    @property
+    @cached_property
     def _logger(self) -> logging.Logger:
         return self._cli.logger
 
-    @property
+    @cached_property
     def client(self) -> EvohomeClient:
         return self._cli
 
@@ -520,8 +520,7 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     # Config attrs...
 
     @property
-    def country(self) -> str:
-        # "GB", "NL"
+    def country(self) -> str:  # e.g. "GB", "NL"
         return self._config[SZ_COUNTRY]
 
     @property

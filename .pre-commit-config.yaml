@@ -58,19 +58,29 @@ repos:
       name: check secrets
       entry: '#.*(SECRET|PASSWORD|PWD)'
       language: pygrep
+      types: [python]
       exclude: .pre-commit-config.yaml  # avoid false +ve
 
     - id: style_1
       name: check for 'as exc:' (should be 'as err:')
       entry: ' as exc:'
       language: pygrep
+      types: [python]
       args: [-i]
       exclude: .pre-commit-config.yaml  # avoid false +ve
+
+    # - id: no_generic_raise
+    #   name: check for generic exception raises  # use project exceptions instead
+    #   entry: 'raise\s+(Assert|Attribute|Buffer|Exception|FloatingPoint|Index|IO|Key|Lookup|Memory|ModuleNotFound|Name|NotImplemented|OS|Overflow|Recursion|Runtime|StopIteration|Syntax|System|Tab|Timeout|Type|Unbound|Unicode|Value|Warning|ZeroDivision)Error\b'
+    #   language: pygrep
+    #   types: [python]
+    #   exclude: ^(tests|src/evohome_cli)/
 
     # - id: private imports
     #   name: check private imports
     #   entry: 'from .* import _.*'
     #   language: pygrep
+    #   types: [python]
     #   args: [-i]
     #   exclude: .pre-commit-config.yaml  # avoid false +ve
 

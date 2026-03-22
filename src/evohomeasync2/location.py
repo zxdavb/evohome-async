@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime as dt, tzinfo
+from functools import cached_property
 from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
@@ -140,15 +141,15 @@ class Location(EntityBase):
         """Return a string representation of the entity."""
         return f"{self.__class__.__name__}(id='{self._id}', tzinfo='{self.tzinfo}')"
 
-    @property
+    @cached_property
     def _auth(self) -> Auth:
         return self.client.auth
 
-    @property
+    @cached_property
     def _logger(self) -> logging.Logger:
         return self.client.logger
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoLocConfigEntryT:
         """Return the latest config of the entity."""
         return self._config

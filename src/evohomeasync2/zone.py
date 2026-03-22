@@ -8,7 +8,7 @@ import json
 from datetime import UTC, datetime as dt, timedelta as td
 from functools import cached_property
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, NoReturn
 
 from _evohome.helpers import as_local_time, camel_to_snake
 
@@ -130,11 +130,11 @@ class EntityBase:
 
     # Config attrs...
 
-    @property
+    @cached_property
     def id(self) -> str:
         return self._id
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(
         self,
     ) -> (
@@ -457,11 +457,11 @@ class _ZoneBase(_ScheduleBase):
         self.location = tcs.location
         self.tcs = tcs
 
-    @property
+    @cached_property
     def _auth(self) -> Auth:
         return self.location.client.auth
 
-    @property
+    @cached_property
     def _logger(self) -> logging.Logger:
         return self.location.client.logger
 
@@ -472,19 +472,21 @@ class _ZoneBase(_ScheduleBase):
         """Return the latest status of the entity."""
         return super().status  # type: ignore[return-value]
 
-    async def _get_status(self) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
-        """Get the latest state of the DHW/zone and update its status attrs.
+    async def _get_status(self) -> NoReturn:
+        """Get the latest state of the control system and update its status attrs.
 
         It is more efficient to call Location.update() as all descendants are updated
         with a single GET. Returns the raw JSON of the latest state.
         """
 
-        status: EvoDhwStatusResponseT | EvoZonStatusResponseT = await self._auth.get(  # type: ignore[assignment]
-            f"{self._TYPE}/{self.id}/status", schema=self.SCH_STATUS
-        )
+        # status: EvoDhwStatusResponseT | EvoZonStatusResponseT = await self._auth.get(  # type: ignore[assignment]
+        #     f"{self._TYPE}/{self.id}/status", schema=self.SCH_STATUS
+        # )
 
-        self._update_status(status)
-        return status
+        # self._update_status(status)
+        # return status
+
+        raise NotImplementedError("Use Location.update() to update status")
 
     def _update_status(
         self, status: EvoDhwStatusResponseT | EvoZonStatusResponseT
@@ -544,7 +546,7 @@ class Zone(_ZoneBase):
         if self.type not in ZoneType:
             self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoZonConfigEntryT:
         """Return the latest config of the entity."""
         return self._config
@@ -583,7 +585,7 @@ class Zone(_ZoneBase):
 
         return self._config[SZ_SCHEDULE_CAPABILITIES]
 
-    @cached_property
+    @property
     def setpoint_capabilities(self) -> EvoZonSetpointCapabilitiesResponseT:
         """
         "setpointCapabilities": {
@@ -604,12 +606,12 @@ class Zone(_ZoneBase):
     def allowed_modes(self) -> tuple[ZoneMode, ...]:
         return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
 
-    @cached_property  # convenience attr
+    @property  # convenience attr
     def max_heat_setpoint(self) -> float:
         # consider: if not self.setpoint_capabilities["can_control_heat"]: return None
         return self.setpoint_capabilities[SZ_MAX_HEAT_SETPOINT]
 
-    @cached_property  # convenience attr
+    @property  # convenience attr
     def min_heat_setpoint(self) -> float:
         # consider: if not self.setpoint_capabilities["can_control_heat"]: return None
         return self.setpoint_capabilities[SZ_MIN_HEAT_SETPOINT]

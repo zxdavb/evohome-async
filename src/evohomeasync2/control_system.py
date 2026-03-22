@@ -102,15 +102,15 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         self._status: EvoTcsStatusResponseT | None = None
 
-    @property
+    @cached_property
     def _auth(self) -> Auth:
         return self.location.client.auth
 
-    @property
+    @cached_property
     def _logger(self) -> logging.Logger:
         return self.location.client.logger
 
-    @property
+    @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoTcsConfigEntryT:
         """Return the latest config of the entity."""
         return self._config
@@ -168,7 +168,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         with a single GET. Returns the raw JSON of the latest state.
         """
 
-        raise NotImplementedError
+        raise NotImplementedError("Use Location.update() to update status")
 
     def _update_status(self, status: EvoTcsStatusResponseT) -> None:
         """Update the TCS's status and cascade to its descendants."""
