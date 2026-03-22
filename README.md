@@ -7,7 +7,7 @@
 evohome-async
 ==============
 
-Python client to _asynchronously_ access the [Total Connect Comfort](https://international.mytotalconnectcomfort.com/Account/Login) RESTful API.
+Python client to asynchronously access the [Total Connect Comfort](https://international.mytotalconnectcomfort.com/Account/Login) RESTful API.
 
 It provides support for Resideo TCC-based systems, such as **Evohome**, **Round Thermostat**, **VisionPro** and others:
 
@@ -68,7 +68,7 @@ The difference between the **evohome-async** and **evohome-client** libraries ar
 
 For example, entity ID attrs are `.id` and no longer `.dhwId`, `zoneId`, etc.
 
-Other differences include:
+Other differences include (but are not limited to):
 
 - namespace is refactored (simpler), and attrs are `snake_case` rather than `camelCase`
 - all datetimes are now TZ-aware internally, and exposed as such
