@@ -3332,7 +3332,7 @@
         }),
       ]),
       'name': 'THERMOSTAT',
-      'zone_id': '277000',
+      'zone_id': '2770000',
     }),
   ])
 # ---
@@ -3489,7 +3489,7 @@
         }),
       ]),
       'name': 'THERMOSTAT',
-      'zone_id': '277000',
+      'zone_id': '2770000',
     }),
   ])
 # ---
@@ -22269,7 +22269,7 @@
 # ---
 # name: test_system_snapshot[hass_118169][zones]
   '''
-  '277000':
+  '2770000':
       active_faults: '!!python/tuple []
   
           '
@@ -22291,8 +22291,8 @@
           \  can_control_cool: false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n\
           \  max_heat_setpoint: 32.0\n  min_heat_setpoint: 4.5\n  timing_resolution:\
           \ 00:15:00\n  vacation_hold_capabilities:\n    is_cancelable: false\n    is_changeable:\
-          \ false\n  value_resolution: 0.5\nzone_id: '277000'\nzone_type: Thermostat\n"
-      id: '''277000''
+          \ false\n  value_resolution: 0.5\nzone_id: '2770000'\nzone_type: Thermostat\n"
+      id: '''2770000''
   
           '
       max_heat_setpoint: '32.0
@@ -22371,7 +22371,7 @@
           '
       status: "active_faults: []\nname: THERMOSTAT\nsetpoint_status:\n  setpoint_mode:\
           \ FollowSchedule\n  target_heat_temperature: 20.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 20.0\nzone_id: '277000'\n"
+          \ is_available: true\n  temperature: 20.0\nzone_id: '2770000'\n"
       target_heat_temperature: '20.0
   
           ...
