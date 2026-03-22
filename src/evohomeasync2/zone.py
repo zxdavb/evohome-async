@@ -1,7 +1,5 @@
 """Provides handling of TCC zones (heating and DHW)."""
 
-# TODO: extend set_mode() for non-evohome modes (e.g. "VacationHold")
-
 from __future__ import annotations
 
 import json
