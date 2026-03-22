@@ -79,7 +79,7 @@ class Gateway(ActiveFaultsBase, EntityBase):
 
     # Config attrs...
 
-    @cached_property  # RENAMED val: was mac
+    @cached_property
     def mac_address(self) -> str:
         return self._config[SZ_MAC]
 

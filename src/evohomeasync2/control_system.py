@@ -127,7 +127,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
     # Config attrs...
 
-    @cached_property  # RENAMED val: was model_type
+    @cached_property
     def model(self) -> TcsModelType:
         return self._config[SZ_MODEL_TYPE]
 
