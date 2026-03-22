@@ -12,6 +12,7 @@ from . import exceptions as exc
 from .const import (
     API_STRFTIME,
     SZ_ALLOWED_SYSTEM_MODES,
+    SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
     SZ_DHW,
     SZ_DHW_ID,
@@ -241,26 +242,36 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     ) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time."""
 
-        mode: TccSetTcsModeT
-
         if system_mode not in self.allowed_modes:
             raise exc.InvalidSystemModeError(
-                f"{self}: Unsupported {S2_SYSTEM_MODE}: {system_mode}"
+                f"{self}: Unsupported system_mode: {system_mode}"
             )
 
-        if until is None:
-            mode = {
+        tcs_mode: TccSetTcsModeT
+
+        mode_entry = next(
+            d for d in self.allowed_system_modes if d[SZ_SYSTEM_MODE] == system_mode
+        )
+
+        if until is None:  # all known modes can be permanent
+            tcs_mode = {
                 S2_SYSTEM_MODE: system_mode,
                 S2_PERMANENT: True,
             }
+
         else:
-            mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
+            if mode_entry[SZ_CAN_BE_TEMPORARY] is False:
+                raise exc.InvalidSystemModeError(
+                    f"{self}: For {system_mode}, until must be None"
+                )
+
+            tcs_mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
                 S2_SYSTEM_MODE: system_mode,
                 S2_PERMANENT: False,
                 S2_TIME_UNTIL: until.strftime(API_STRFTIME),
             }
 
-        await self._set_mode(mode)
+        await self._set_mode(tcs_mode)
 
     # most, but not all, TCC-compatible systems support these modes...
 

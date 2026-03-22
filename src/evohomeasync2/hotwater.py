@@ -181,47 +181,37 @@ class HotWater(_ZoneBase):
         """Set the DHW mode, either indefinitely or until a given time."""
 
         if mode not in self.allowed_modes:
-            raise exc.InvalidDhwModeError(f"{self}: Unsupported {S2_MODE}: {mode}")
+            raise exc.InvalidDhwModeError(f"{self}: Unsupported mode: {mode}")
 
-        if mode == ZoneMode.FOLLOW_SCHEDULE:
-            if state is not None or until is not None:
-                raise exc.InvalidDhwModeError(
-                    f"{self}: state/until not valid for {mode} mode"
-                )
-            await self._set_mode({S2_MODE: ZoneMode.FOLLOW_SCHEDULE})
-            return
+        dhw_mode: TccSetDhwModeT = {S2_MODE: mode}
 
         if state is None:
-            raise exc.InvalidDhwModeError(f"{self}: state required for {mode} mode")
-
-        if state not in self.allowed_states:
-            raise exc.InvalidDhwModeError(f"{self}: Unsupported {S2_STATE}: {state}")
-
-        if mode == ZoneMode.PERMANENT_OVERRIDE:
-            if until is not None:
+            if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
                 raise exc.InvalidDhwModeError(
-                    f"{self}: state required and until not valid for {mode} mode"
+                    f"{self}: For {mode}, state must not be None"
                 )
-            await self._set_mode(
-                {S2_MODE: ZoneMode.PERMANENT_OVERRIDE, S2_STATE: state}
-            )
-            return
 
-        if mode == ZoneMode.TEMPORARY_OVERRIDE:
-            if until is None:
-                raise exc.InvalidDhwModeError(
-                    f"{self}: state and until required for {mode} mode"
+        else:
+            if mode == ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
+                raise exc.InvalidDhwModeError(f"{self}: For {mode}, state must be None")
+
+            dhw_mode[S2_STATE] = state
+
+        if until is None:
+            if mode == ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
+                raise exc.InvalidZoneModeError(
+                    f"{self}: For {mode}, until must not be None"
                 )
-            await self._set_mode(
-                {
-                    S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-                    S2_STATE: state,
-                    S2_UNTIL_TIME: until.strftime(API_STRFTIME),
-                }
-            )
-            return
 
-        raise exc.InvalidDhwModeError(f"{self}: Unsupported {S2_MODE}: {mode}")
+        else:
+            if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
+                raise exc.InvalidZoneModeError(
+                    f"{self}: For {mode}, until must be None"
+                )
+
+            dhw_mode[S2_UNTIL_TIME] = until.strftime(API_STRFTIME)
+
+        await self._set_mode(dhw_mode)
 
     async def reset(self) -> None:
         """Cancel any override and allow the DHW to follow its schedule."""
