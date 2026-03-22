@@ -1,7 +1,5 @@
 """Provides handling of TCC temperature control systems."""
 
-# TODO: extend set_mode() for non-evohome modes (e.g. "Heat", "Off")
-
 from __future__ import annotations
 
 import json
@@ -298,7 +296,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             SystemMode.AUTO in self.allowed_modes
             or SystemMode.HEAT not in self.allowed_modes
         ):
-            await self.set_mode(SystemMode.AUTO)
+            await self.set_mode(SystemMode.AUTO)  # ?raise InvalidSystemModeError
             return
 
         # some systems have "Heat" mode instead of "Auto"...
@@ -346,7 +344,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             SystemMode.HEATING_OFF in self.allowed_modes
             or SystemMode.OFF not in self.allowed_modes
         ):
-            await self.set_mode(SystemMode.HEATING_OFF)
+            await self.set_mode(SystemMode.HEATING_OFF)  # ?raise InvalidSystemModeError
             return
 
         # some systems have "Off" mode instead of "HeatingOff"...
