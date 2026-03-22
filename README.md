@@ -24,6 +24,8 @@ To install a basic CLI:
 
 ```bash
 pip install 'evohome-async[cli]'
+
+evo-client --help
 ```
 
 For example, to backup schedules (incl. DHW, if any):
@@ -104,25 +106,7 @@ cd evohome-async
 uv venv --python 3.13  # or: python3.13 -m venv venv
 source .venv/bin/activate
 
-uv pip install -e .
-```
-
-#### Using the CLI
-
-To use the CLI from a checkout:
-
-```bash
-uv pip install -e .[cli]
-
-evo-client --help
-```
-
-#### Doing test/dev
-
-... or, to do development:
-
-```bash
-uv pip install -e .[cli,dev]
+uv pip install -e '.[cli,dev]'
 
 prek install  # install pre-commit git hooks
 ```
@@ -138,7 +122,7 @@ ruff format --check .
 mypy
 
 # Run tests
-pytest --log-cli-level=DEBUG --cov=src --cov-report=term-missing
+pytest --cov=src --cov-report=term-missing  # --log-cli-level=DEBUG
 
 # Run pre-commit hooks (includes ruff)
 prek run --all-files
