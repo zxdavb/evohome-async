@@ -5,13 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import pytest
 import yaml
 
 from .common import serializable_attrs
-from .conftest import FIXTURES_V0
+from .conftest import FIXTURES_V0 as FIXTURES
 
 if TYPE_CHECKING:
-    import pytest
     from freezegun.api import FrozenDateTimeFactory
     from syrupy.assertion import SnapshotAssertion
 
@@ -20,10 +20,12 @@ if TYPE_CHECKING:
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     folders = [
-        p
-        for p in Path(FIXTURES_V0).glob("*")
-        if p.is_dir() and not p.name.startswith("_")
+        p for p in Path(FIXTURES).glob("*") if p.is_dir() and not p.name.startswith("_")
     ]
+
+    if not folders:
+        raise pytest.fail("Missing fixture folder(s)")
+
     metafunc.parametrize(
         "fixture_folder", sorted(folders), ids=(p.name for p in sorted(folders))
     )

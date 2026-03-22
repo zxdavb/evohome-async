@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final
+from typing import Any, Final
+
+import pytest
 
 from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2.location import create_location
@@ -21,20 +23,20 @@ from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
 from .conftest import ClientStub
 from .const import TEST_DIR
 
-if TYPE_CHECKING:
-    import pytest
-
-WORK_DIR = f"{TEST_DIR}/schemas_1"
+FIXTURES = f"{TEST_DIR}/schemas_1"  # not the main fixtures dir
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
-    def id_fnc(folder_path: Path) -> str:
-        return folder_path.name
-
     folders = [
-        p for p in Path(WORK_DIR).glob("*") if p.is_dir() and not p.name.startswith("_")
+        p for p in Path(FIXTURES).glob("*") if p.is_dir() and not p.name.startswith("_")
     ]
-    metafunc.parametrize("folder", sorted(folders), ids=id_fnc)
+
+    if not folders:
+        raise pytest.fail("Missing fixture folder(s)")
+
+    metafunc.parametrize(
+        "folder", sorted(folders), ids=(p.name for p in sorted(folders))
+    )
 
 
 # These schemas have camelCase keys, as per the vendor's schema

@@ -1,12 +1,12 @@
 [
     {
         "locationInfo": {
-            "locationId": "REDACTED",
-            "name": "Home",
-            "streetAddress": "REDACTED",
-            "city": "REDACTED",
-            "country": "REDACTED",
-            "postcode": "",
+            "locationId": "2730000",
+            "name": "My Home",
+            "streetAddress": "45 Main Crescent",
+            "city": "Sydney",
+            "country": "Australia",
+            "postcode": "2001",
             "locationType": "Residential",
             "useDaylightSaveSwitching": true,
             "timeZone": {
@@ -17,24 +17,24 @@
                 "supportsDaylightSaving": true
             },
             "locationOwner": {
-                "userId": "REDACTED",
-                "username": "REDACTED",
-                "firstname": "REDACTED",
-                "lastname": "REDACTED"
+                "userId": "2512649",
+                "username": "user_2512649@REDACTED.com",
+                "firstname": "David",
+                "lastname": "Smith"
             }
         },
         "gateways": [
             {
                 "gatewayInfo": {
-                    "gatewayId": "REDACTED", "mac": "REDACTED", "crc": "REDACTED", "isWiFi": true
+                    "gatewayId": "2750000", "mac": "00D02DEE4E56", "crc": "1234", "isWiFi": true
                 },
                 "temperatureControlSystems": [
                     {
-                        "systemId": "REDACTED",
+                        "systemId": "2760000",
                         "modelType": "FocusProWifiRetail",
                         "zones": [
                             {
-                                "zoneId": "REDACTED",
+                                "zoneId": "277000",
                                 "modelType": "FocusProWifiRetail",
                                 "setpointCapabilities": {
                                     "vacationHoldCapabilities": {"isChangeable": false, "isCancelable": false},

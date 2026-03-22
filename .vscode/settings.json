@@ -1,27 +1,60 @@
 {
-    "python.analysis.include": ["cli", "src", "tests"],
-    "python.testing.pytestArgs": ["tests"],
-    "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": false,
+    // Editor/project consistency
+
+    "editor.rulers": [88, 120], // default: []
+    "files.trimTrailingWhitespace": true, // default: false
+
+    // Python analysis and formatting (project-wide)
+    "python.analysis.typeCheckingMode": "basic", // default: "off" - in addition to mypy?
+    "python.analysis.userFileIndexingLimit": -1, // default: 2000
+    "python.analysis.extraPaths": ["src", "tests"],
+    "python.experiments.optOutFrom": ["pythonTestAdapter"], // default: []
+
+
+    // Editor formatting for project files
+    "[python]": {
+        "editor.defaultFoldingRangeProvider": "charliermarsh.ruff",
+        "editor.defaultFormatter": "charliermarsh.ruff" // default: undefined
+    },
+    "[json][jsonc][markdown][yaml]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode" // default: undefined
+    },
+    "[toml]": {
+        "editor.defaultFormatter": "tamasfe.even-better-toml" // default: undefined
+    },
+
+    // Spelling settings
+    "cSpell.ignorePaths": [
+        "src/_evohome/windows_zones.py",
+    ],
     "cSpell.words": [
         "behaviour",
+        "caplog",
         "CREDS",
         "dayoff",
         "deadband",
-        "emea",
+        "EMEA",
         "evohome",
         "evohomeasync",
-        "evohomeclient",
-        "hass",
+        "evohomeclientv2",
+        "falsey",
+        "gwys",
         "heatingoff",
         "hotwater",
         "macid",
-        "resideo",
-        "Searchforcontractors",
+        "pyproject",
+        "Resideo",
+        "searchforcontractors",
         "securityquestion",
         "streetaddress",
         "switchpoint",
         "switchpoints",
-        "tccna"
-    ]
+        "tccna",
+        "tcss"
+    ],
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }
