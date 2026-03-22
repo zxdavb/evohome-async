@@ -8,7 +8,7 @@ import json
 from datetime import UTC, datetime as dt, timedelta as td
 from functools import cached_property
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final, cast
+from typing import TYPE_CHECKING, Any, Final
 
 from _evohome.helpers import as_local_time, camel_to_snake
 
@@ -484,11 +484,8 @@ class _ZoneBase(_ScheduleBase):
             f"{self}: prefer Location.update() for more efficient status retrieval"
         )
 
-        status = cast(
-            "EvoDhwStatusResponseT | EvoZonStatusResponseT",
-            await self._auth.get(
-                f"{self._TYPE}/{self.id}/status", schema=self.SCH_STATUS
-            ),
+        status: EvoDhwStatusResponseT | EvoZonStatusResponseT = await self._auth.get(  # type: ignore[assignment]
+            f"{self._TYPE}/{self.id}/status", schema=self.SCH_STATUS
         )
 
         self._update_status(status)

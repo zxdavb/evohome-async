@@ -2,7 +2,7 @@
 
 Follow **CONTRIBUTING.md** in full. Key rules most likely to be violated:
 
-1. **No lint/type suppressions** — no `# noqa`, `# type: ignore`, new `per-file-ignores`, or mypy overrides. Fix the code.
+1. **No lint/type suppressions** — no `# noqa`, `# type: ignore`, `cast()`, new `per-file-ignores`, or mypy overrides. Fix the underlying type issue instead. `cast()` is not an acceptable substitute for `# type: ignore` — both paper over type errors without fixing them. Pre-existing suppressions must not be copied to new code.
 2. **Async I/O only** — `aiofiles` not `open()`, `aiohttp` not `requests`, `asyncio.sleep()` not `time.sleep()`.
 3. **Timezone-aware datetimes** — always `dt.now(tz=UTC)`; import as `from datetime import UTC, datetime as dt`.
 4. **Project exceptions** — raise from the hierarchy in `src/_evohome/exceptions.py`, never bare `Exception`; do not raise generic exceptions (e.g. TypeError)
