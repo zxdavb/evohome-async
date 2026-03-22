@@ -40,7 +40,7 @@ evo-client -u username@gmail.com -p password get-schedules --loc-idx 2 > schedul
 evo-client -u username@gmail.com -p password set-schedules --loc-idx 2 -f schedules.json
 ```
 
-To avoid exceeding the vendor's API rate limit, it will restore the access token cache, unless you use the the `--no-tokens` switch.
+To avoid exceeding the vendor's API rate limit, it will restore the access token cache, unless you use the the `--no-load-tokens` switch.
 
 > **NOTE:** the client may save your access tokens to **.evo-cache.tmp**: this presents a small security concern.
 
