@@ -109,7 +109,7 @@ jobs:
         run: |
           . venv/bin/activate
           uv pip install -r requirements.txt
-          uv pip install -r requirements_test.txt
+          uv pip install -r requirements_test_all.txt
           # Install Home Assistant in editable mode
           uv pip install -e . --config-settings editable_mode=compat
 
