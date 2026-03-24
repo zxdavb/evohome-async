@@ -19,7 +19,7 @@ on:
     ]
 
   schedule:
-    - cron: "6 6 * * 1"  # Weekly on Saturday at 6am UTC
+    - cron: "0 5 * * 6"  # Saturdays at 05:00 UTC
 
   workflow_dispatch:
     inputs:
@@ -100,27 +100,36 @@ jobs:
         run: |
           python -m venv venv
           . venv/bin/activate
+
           pip install "$(grep '^uv' < requirements.txt)"
 
       - name: Install Home Assistant test dependencies
         working-directory: home-assistant-core
         run: |
           . venv/bin/activate
+
           uv pip install -r requirements.txt
-          uv pip install -r requirements_test_all.txt
-          # Install Home Assistant in editable mode
+          uv pip install -r requirements_test.txt
+
+          # HA's tests/components/conftest.py imports aiohasupervisor at module level,
+          # so pytest collection fails without it, even for non-hassio component tests
+          uv pip install "$(grep '^aiohasupervisor' < requirements_test_all.txt)"
+
+          # Install Home Assistant in editable mode (needed for compiled translations)
           uv pip install -e . --config-settings editable_mode=compat
 
       - name: Compile English translations
         working-directory: home-assistant-core
         run: |
           . venv/bin/activate
+
           python -m script.translations develop --all
 
-      - name: Install evohome-async from this repo (replacing PyPI version)
+      - name: Install evohome-async from its repo (replacing PyPI version)
         working-directory: home-assistant-core
         run: |
           . venv/bin/activate
+
           # Uninstall the PyPI version and install our local version
           uv pip uninstall evohome-async || true
           uv pip install -e ../evohome-async
@@ -129,9 +138,7 @@ jobs:
         working-directory: home-assistant-core
         run: |
           . venv/bin/activate
-          echo "Installed evohome-async version:"
-          python -c "import evohomeasync2; print(f'evohomeasync2 from: {evohomeasync2.__file__}')"
-          python -c "import evohomeasync; print(f'evohomeasync from: {evohomeasync.__file__}')"
+
           # Verify it's our local version (should be in evohome-async directory)
           python -c "import evohomeasync2; assert 'evohome-async' in evohomeasync2.__file__, 'Not using local evohome-async!'"
 
@@ -142,11 +149,14 @@ jobs:
           PYTEST_ADDOPTS: "--color=yes"
         run: |
           . venv/bin/activate
+
           python -m pytest \
             -vv \
             --timeout=30 \
             --durations=10 \
             -p no:sugar \
+            --cov=homeassistant.components.evohome
+            --cov-report term-missing
             tests/components/evohome/
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
