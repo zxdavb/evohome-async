@@ -17,7 +17,6 @@ from .control_system import ControlSystem
 from .exceptions import (
     ApiCallFailedError,
     ApiRateLimitExceededError,
-    ApiRequestFailedError,
     AuthenticationFailedError,
     BadApiRequestError,
     BadApiResponseError,
@@ -149,7 +148,6 @@ __all__ = [  # noqa: RUF022
     #
     "ApiCallFailedError",
     "ApiRateLimitExceededError",
-    "ApiRequestFailedError",
     "AuthenticationFailedError",
     "BadApiRequestError",
     "BadApiResponseError",
