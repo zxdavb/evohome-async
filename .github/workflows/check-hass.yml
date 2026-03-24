@@ -47,7 +47,7 @@ jobs:
     outputs:
       python-version: ${{ steps.get-version.outputs.python-version }}
     steps:
-      - name: Check out Home Assistant core
+      - name: Check out home-assistant/core (sparse checkout of pyproject.toml)
         uses: actions/checkout@v6
         with:
           repository: ${{ env.HA_REPO }}
@@ -76,14 +76,14 @@ jobs:
           allow-prereleases: true
           check-latest: true
 
-      - name: Check out Home Assistant core
+      - name: Check out home-assistant/core
         uses: actions/checkout@v6
         with:
           repository: ${{ env.HA_REPO }}
           ref: ${{ env.HA_VERSION }}
           path: home-assistant-core
 
-      - name: Check out evohome-async
+      - name: Check out zxdavb/evohome-async
         uses: actions/checkout@v6
         with:
           path: evohome-async
@@ -149,6 +149,9 @@ jobs:
           PYTEST_ADDOPTS: "--color=yes"
         run: |
           . venv/bin/activate
+
+            # HA sets testpaths=tests, which combines with the CLI arg and collects ALL
+            #components; clearing it cuts collection time significantly
 
           python -m pytest \
             -vv \
