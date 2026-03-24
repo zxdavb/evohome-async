@@ -142,7 +142,7 @@ jobs:
           # Verify it's our local version (should be in evohome-async directory)
           python -c "import evohomeasync2; assert 'evohome-async' in evohomeasync2.__file__, 'Not using local evohome-async!'"
 
-      - name: Run Home Assistant evohome tests
+      - name: Run Home Assistant evohome tests (only)
         working-directory: home-assistant-core
         env:
           PYTHONDONTWRITEBYTECODE: 1
@@ -152,11 +152,12 @@ jobs:
 
           python -m pytest \
             -vv \
+            --override-ini=testpaths= \
             --timeout=30 \
             --durations=10 \
             -p no:sugar \
-            --cov=homeassistant.components.evohome
-            --cov-report term-missing
+            --cov=homeassistant.components.evohome \
+            --cov-report term-missing \
             tests/components/evohome/
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
