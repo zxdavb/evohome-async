@@ -5,23 +5,21 @@ name: Test with Home Assistant
 
 on:
   pull_request:
-    branches: [ "main", "dev" ]
+    branches: [ "main" ]
     paths: [
       ".github/workflows/check-hass.yml",
       "pyproject.toml",
-      "requirements*.txt",
     ]
 
   push:
-    branches: [ "main", "dev" ]
+    branches: [ "main" ]
     paths: [
       ".github/workflows/check-hass.yml",
       "pyproject.toml",
-      "requirements*.txt",
     ]
 
   schedule:
-    - cron: "0 6 * * 1"  # Weekly on Monday at 6am UTC
+    - cron: "6 6 * * 1"  # Weekly on Saturday at 6am UTC
 
   workflow_dispatch:
     inputs:
