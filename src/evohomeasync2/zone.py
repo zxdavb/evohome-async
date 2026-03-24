@@ -345,7 +345,7 @@ class _ScheduleBase(ActiveFaultsBase):
                 schema=self.SCH_SCHEDULE,
             )  # type: ignore[assignment]
 
-        except exc.ApiRequestFailedError as err:
+        except exc.ApiCallFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
                 raise exc.InvalidScheduleError(
                     f"{self}: No Schedule, or is invalid"

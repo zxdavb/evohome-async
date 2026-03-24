@@ -128,7 +128,7 @@ class AbstractAuth(ABC):
 
         try:
             response = await self._make_request(method, url, **kwargs)
-        except exc.ApiRequestFailedError as err:
+        except exc.ApiCallFailedError as err:
             if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                 # leave it up to higher layers to handle 401s as they can either be
                 # - authentication errors: bad access_token, bad session_id
@@ -176,15 +176,15 @@ class AbstractAuth(ABC):
 
             # can't assert content_length != 0 with aioresponses, so skip that check
             if rsp.content_type != "application/json":  # usu. "text/plain", "text/html"
-                raise exc.ApiRequestFailedError(
+                raise exc.ApiCallFailedError(
                     f"{method} {url}: response is not JSON: {await _payload(rsp)}"
                 )
 
             if (response := await rsp.json()) is None:  # an unanticipated edge-case
-                raise exc.ApiRequestFailedError(f"{method} {url}: response is null")
+                raise exc.ApiCallFailedError(f"{method} {url}: response is null")
 
         except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
-            raise exc.ApiRequestFailedError(
+            raise exc.ApiCallFailedError(
                 f"{method} {url}: response is not valid JSON: {await _payload(rsp)}"
             ) from err
 
@@ -201,14 +201,14 @@ class AbstractAuth(ABC):
             if rsp:
                 msg += f", response={await _payload(rsp)}"
 
-            raise exc.ApiRequestFailedError(
+            raise exc.ApiCallFailedError(
                 f"{method} {url}: {msg}", status=err.status
             ) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
             self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
 
-            raise exc.ApiRequestFailedError(
+            raise exc.ApiCallFailedError(
                 f"{method} {url}: {err}",
             ) from err
 

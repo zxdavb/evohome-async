@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from _evohome.exceptions import (
+    ApiCallFailedError,
     ApiRateLimitExceededError,
-    ApiRequestFailedError,
     AuthenticationFailedError,
     BadApiRequestError,
     BadApiResponseError,
@@ -24,8 +24,8 @@ from _evohome.exceptions import (
 )
 
 __all__ = [
+    "ApiCallFailedError",
     "ApiRateLimitExceededError",
-    "ApiRequestFailedError",
     "AuthenticationFailedError",
     "BadApiRequestError",
     "BadApiResponseError",

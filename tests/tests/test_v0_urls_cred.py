@@ -189,7 +189,7 @@ async def test_good(  # good credentials
             },
         )
 
-        with pytest.raises(exc.ApiRequestFailedError) as err:
+        with pytest.raises(exc.ApiCallFailedError) as err:
             await evohome_v0.update()
 
         assert err.value.status is None  # Connection refused

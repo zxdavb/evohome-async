@@ -41,7 +41,7 @@ class ApiRateLimitExceededError(ApiCallFailedError):
 class AuthenticationFailedError(_ApiCallFailedError):
     """Unable to authenticate the user credentials (unable to obtain an access token).
 
-    The cause could be any ApiRequestFailedError, including RateLimitExceeded.
+    The cause could be any ApiCallFailedError, including RateLimitExceeded.
     """
 
 
