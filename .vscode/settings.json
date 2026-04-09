@@ -30,15 +30,22 @@
     },
 
     // Spelling settings
+    "cSpell.language": "en-GB",
     "cSpell.ignorePaths": [
+        ".vscode/**",
         "src/_evohome/windows_zones.py",
+        "pyproject.toml",
     ],
     "cSpell.words": [
-        "behaviour",
+        "aioresponses",
+        "autochangeover",
+        "cancelable",
         "caplog",
+        "CRED",
         "CREDS",
         "dayoff",
         "deadband",
+        "dehum",
         "EMEA",
         "evohome",
         "evohomeasync",
@@ -50,13 +57,16 @@
         "hotwater",
         "macid",
         "pyproject",
+        "Redlink",
         "Resideo",
         "searchforcontractors",
         "securityquestion",
+        "setpt",
         "streetaddress",
         "switchpoint",
         "switchpoints",
         "tccna",
-        "tcss"
+        "tcss",
+        "websession"
     ]
 }
