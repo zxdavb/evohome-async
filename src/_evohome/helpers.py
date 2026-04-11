@@ -112,6 +112,13 @@ def snake_to_camel(s: str) -> str:
     return components[0] + "".join(x.title() for x in components[1:])
 
 
+def snake_to_pascal(s: str) -> str:
+    """Return a string converted (from snake_case) to PascalCase."""
+    if " " in s:
+        raise ValueError("Input string should not contain spaces")
+    return "".join(x.title() for x in s.split("_"))
+
+
 def noop[T](s: T) -> T:
     """Return a value (usually a string) unconverted."""
     return s
@@ -164,6 +171,15 @@ def convert_naive_dtm_strs_to_aware[T](data: T, tzinfo: tzinfo) -> T:
         return data_  # e.g. 2023-11-30T22:10:00+00:00
 
     return recurse(data)  # type:ignore[no-any-return]
+
+
+def convert_known_str_values[T](data: T, value_map: dict[str, str]) -> T:
+    """Recursively convert known string values according to ``value_map``.
+
+    String values that are not present in ``value_map`` are returned unchanged.
+    """
+
+    return _convert_vals(data, lambda s: value_map.get(s, s))
 
 
 @overload
