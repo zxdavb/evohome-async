@@ -19,7 +19,7 @@ import pytest
 import evohomeasync2 as evo2
 from evohomeasync2 import schemas
 from evohomeasync2.const import API_STRFTIME
-from evohomeasync2.schemas import SystemMode, ZoneMode
+from evohomeasync2.schemas import SystemModeEnum, ZoneModeEnum
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
@@ -244,7 +244,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
 
     #
     # STEP 4: Change the mode, but with semi-invalid request data (JSON)
-    assert SystemMode.COOL not in tcs.allowed_modes
+    assert SystemModeEnum.COOL not in tcs.allowed_modes
     new_mode = {"systemMode": "Cool", "permanent": True}
 
     _ = await should_fail_v2(
@@ -258,17 +258,17 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
 
     #
     # STEP 4: Change the mode, with valid request data (JSON) (permanent)
-    assert SystemMode.AUTO in tcs.allowed_modes
-    new_mode = {"systemMode": SystemMode.AUTO, "permanent": True}
+    assert SystemModeEnum.AUTO in tcs.allowed_modes
+    new_mode = {"systemMode": SystemModeEnum.AUTO, "permanent": True}
 
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=new_mode)
     # {'id': '1588314363'}
 
     #
     # STEP 4: Change the mode, with valid request data (JSON) (temporary)
-    assert SystemMode.AWAY in tcs.allowed_modes
+    assert SystemModeEnum.AWAY in tcs.allowed_modes
     new_mode = {
-        "systemMode": SystemMode.AWAY,
+        "systemMode": SystemModeEnum.AWAY,
         "permanent": False,
         "timeUntil": (tcs.location.now() + td(hours=1)).strftime(API_STRFTIME),
     }
@@ -338,7 +338,7 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
     url = f"{zone._TYPE}/{zone.id}/heatSetpoint"
 
     heat_setpoint = {
-        "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
+        "setpointMode": ZoneModeEnum.PERMANENT_OVERRIDE,
     }
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
@@ -349,7 +349,7 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
     # }]
 
     heat_setpoint = {
-        "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
+        "setpointMode": ZoneModeEnum.PERMANENT_OVERRIDE,
         "HeatSetpointValue": 19.5 if zone.temperature is None else zone.temperature,
         # "timeUntil": None,
     }
@@ -358,7 +358,7 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
 
     #
     heat_setpoint = {
-        "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
+        "setpointMode": ZoneModeEnum.PERMANENT_OVERRIDE,
         "HeatSetpointValue": 99,
         "timeUntil": None,
     }
@@ -367,7 +367,7 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
 
     #
     heat_setpoint = {
-        "setpointMode": ZoneMode.TEMPORARY_OVERRIDE,
+        "setpointMode": ZoneModeEnum.TEMPORARY_OVERRIDE,
         "HeatSetpointValue": 19.5,
     }
     _ = await should_fail_v2(
@@ -390,7 +390,7 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
 
     #
     heat_setpoint = {
-        "setpointMode": ZoneMode.FOLLOW_SCHEDULE,
+        "setpointMode": ZoneModeEnum.FOLLOW_SCHEDULE,
         "HeatSetpointValue": 0.0,
         "timeUntil": None,
     }

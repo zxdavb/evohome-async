@@ -160,7 +160,7 @@ S2_SUNDAY: Final = "Sunday"
 
 
 @verify(EnumCheck.UNIQUE)
-class DayOfWeek(StrEnum):
+class DayOfWeekEnum(StrEnum):
     MONDAY = S2_MONDAY
     TUESDAY = S2_TUESDAY
     WEDNESDAY = S2_WEDNESDAY
@@ -198,19 +198,19 @@ S2_HEAT: Final = "Heat"
 
 
 @verify(EnumCheck.UNIQUE)
-class DhwState(StrEnum):
+class DhwStateEnum(StrEnum):
     OFF = S2_OFF
     ON = S2_ON
 
 
 @verify(EnumCheck.UNIQUE)
-class FanMode(StrEnum):
+class FanModeEnum(StrEnum):
     AUTO = S2_AUTO
     ON = S2_ON
 
 
 @verify(EnumCheck.UNIQUE)
-class FaultType(StrEnum):  # NOTE: This list is incomplete
+class FaultTypeEnum(StrEnum):  # NOTE: This list is incomplete
     SYS_B_CL = "BoilerCommunicationLost"
     SYS_C_CL = "ChValveCommunicationLost"
     DHW_A_FL = "DHWActuatorFailure"
@@ -227,13 +227,13 @@ class FaultType(StrEnum):  # NOTE: This list is incomplete
 
 
 @verify(EnumCheck.UNIQUE)
-class LocationType(StrEnum):
+class LocationTypeEnum(StrEnum):
     COMMERCIAL = "Commercial"
     RESIDENTIAL = "Residential"
 
 
 @verify(EnumCheck.UNIQUE)
-class SystemMode(StrEnum):
+class SystemModeEnum(StrEnum):
     AUTO = S2_AUTO
     AUTO_WITH_ECO = S2_AUTO_WITH_ECO
     AUTO_WITH_RESET = S2_AUTO_WITH_RESET
@@ -247,7 +247,13 @@ class SystemMode(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class EntityType(StrEnum):
+class TimingModeEnum(StrEnum):
+    DURATION = S2_DURATION
+    PERIOD = S2_PERIOD
+
+
+@verify(EnumCheck.UNIQUE)
+class EntityTypeEnum(StrEnum):
     LOC = S2_LOCATION
     GWY = S2_GATEWAY
     TCS = S2_TEMPERATURE_CONTROL_SYSTEM
@@ -256,7 +262,7 @@ class EntityType(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class TcsModelType(StrEnum):
+class TcsModelTypeEnum(StrEnum):
     EVO_TOUCH = "EvoTouch"
     FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
@@ -269,7 +275,7 @@ S2_VACATION_HOLD = "VacationHold"
 
 
 @verify(EnumCheck.UNIQUE)
-class ZoneMode(StrEnum):
+class ZoneModeEnum(StrEnum):
     FOLLOW_SCHEDULE = S2_FOLLOW_SCHEDULE
     PERMANENT_OVERRIDE = S2_PERMANENT_OVERRIDE
     TEMPORARY_OVERRIDE = S2_TEMPORARY_OVERRIDE
@@ -277,7 +283,7 @@ class ZoneMode(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class ZoneModelType(StrEnum):
+class ZoneModelTypeEnum(StrEnum):
     FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
     HEATING_ZONE = "HeatingZone"
     ROUND_MODULATION = "RoundModulation"
@@ -296,7 +302,7 @@ S2_ZONE_TEMPERATURE_CONTROL = "ZoneTemperatureControl"
 
 
 @verify(EnumCheck.UNIQUE)
-class ZoneType(StrEnum):
+class ZoneTypeEnum(StrEnum):
     MIXING_VALVE = S2_MIXING_VALVE
     RADIATOR_ZONE = S2_RADIATOR_ZONE
     THERMOSTAT = S2_THERMOSTAT

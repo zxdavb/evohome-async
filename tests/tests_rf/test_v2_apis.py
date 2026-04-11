@@ -8,7 +8,7 @@ import pytest
 
 import evohomeasync2 as evo2
 from _evohome.helpers import camel_to_snake
-from evohomeasync2.schemas import S2_MODE, SystemMode
+from evohomeasync2.schemas import S2_MODE, SystemModeEnum
 from evohomeasync2.schemas.schedule import factory_dhw_schedule, factory_zon_schedule
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
@@ -79,10 +79,10 @@ async def _test_tcs_apis(evo: EvohomeClientv2) -> None:
     assert tcs.system_mode_status is not None
     mode = tcs.system_mode_status[S2_MODE]
 
-    assert mode in SystemMode
+    assert mode in SystemModeEnum
 
     # STEP 3: PUT /temperatureControlSystem/{tcs.id}/mode
-    await tcs.set_mode(SystemMode.AWAY)
+    await tcs.set_mode(SystemModeEnum.AWAY)
     await evo.update()
 
     await tcs.set_mode(mode)

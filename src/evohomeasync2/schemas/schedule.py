@@ -19,8 +19,8 @@ from .const import (
     S2_HEAT_SETPOINT,
     S2_SWITCHPOINTS,
     S2_TIME_OF_DAY,
-    DayOfWeek,
-    DhwState,
+    DayOfWeekEnum,
+    DhwStateEnum,
 )
 
 if TYPE_CHECKING:
@@ -33,12 +33,12 @@ if TYPE_CHECKING:
 
 
 class TccDhwSwitchpointT(TypedDict):
-    dhwState: DhwState  # Off, On
+    dhwState: DhwStateEnum  # strEnum, i.e. Off, On
     timeOfDay: str
 
 
 class TccDhwDayOfWeekT(TypedDict):
-    dayOfWeek: str
+    dayOfWeek: DayOfWeekEnum  # strEnum
     switchpoints: list[TccDhwSwitchpointT]
 
 
@@ -52,7 +52,7 @@ class TccZonSwitchpointT(TypedDict):
 
 
 class TccZonDayOfWeekT(TypedDict):
-    dayOfWeek: str
+    dayOfWeek: DayOfWeekEnum  # strEnum
     switchpoints: list[TccZonSwitchpointT]
 
 
@@ -67,7 +67,7 @@ def factory_dhw_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: check me
         {
-            vol.Required(fnc(S2_DHW_STATE)): vol.In(DhwState),
+            vol.Required(fnc(S2_DHW_STATE)): vol.In(DhwStateEnum),
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
         },
         extra=vol.PREVENT_EXTRA,
@@ -75,7 +75,7 @@ def factory_dhw_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_GET_DAY_OF_WEEK_DHW: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DayOfWeek),
+            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DayOfWeekEnum),
             vol.Required(fnc(S2_SWITCHPOINTS)): [SCH_GET_SWITCHPOINT_DHW],
         },
         extra=vol.PREVENT_EXTRA,
@@ -106,7 +106,7 @@ def factory_zon_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
     SCH_GET_DAY_OF_WEEK_ZONE: Final = vol.Schema(
         {
             # l.Required(fnc(S2_DAY_OF_WEEK)): vol.All(int, vol.Range(min=0, max=6)),  # 0 is Monday
-            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DayOfWeek),
+            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DayOfWeekEnum),
             vol.Required(fnc(S2_SWITCHPOINTS)): [SCH_GET_SWITCHPOINT_ZONE],
         },
         extra=vol.PREVENT_EXTRA,
@@ -128,7 +128,7 @@ def _out_factory_put_schedule_dhw(fnc: Callable[[str], str] = noop) -> vol.Schem
 
     SCH_PUT_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: check me
         {
-            vol.Required(fnc(S2_DHW_STATE)): vol.In(DhwState),
+            vol.Required(fnc(S2_DHW_STATE)): vol.In(DhwStateEnum),
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
         },
         extra=vol.PREVENT_EXTRA,

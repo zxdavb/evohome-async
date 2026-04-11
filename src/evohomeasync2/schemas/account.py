@@ -48,7 +48,7 @@ def factory_post_oauth_token(_: Callable[[str], str] = noop) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required("access_token"): vol.All(str, redact),
-            vol.Required("expires_in"): vol.Range(min=1770, max=1800),  # usu. 179x
+            vol.Required("expires_in"): vol.Range(min=0, max=1800),  # usu. 179x
             vol.Required("refresh_token"): vol.All(str, redact),
             vol.Required("token_type"): str,
             vol.Optional("scope"): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
@@ -83,8 +83,8 @@ class TccUsrAccountResponseT(TypedDict):
     streetAddress: str
     city: str
     postcode: str
-    country: str  # UnitedKingdom
-    language: str  # enGB
+    country: str  # TODO: StrEnum, e.g. UnitedKingdom
+    language: str  # TODO: StrEnum, e.g. enGB
 
 
 def factory_user_account(fnc: Callable[[str], str] = noop) -> vol.Schema:
@@ -99,8 +99,8 @@ def factory_user_account(fnc: Callable[[str], str] = noop) -> vol.Schema:
             vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, redact),
             vol.Required(fnc(S2_CITY)): vol.All(str, redact),
             vol.Required(fnc(S2_POSTCODE)): vol.All(str, redact),
-            vol.Required(fnc(S2_COUNTRY)): str,
-            vol.Required(fnc(S2_LANGUAGE)): str,
+            vol.Required(fnc(S2_COUNTRY)): str,  # TODO: StrEnum
+            vol.Required(fnc(S2_LANGUAGE)): str,  # TODO: StrEnum
         },
         extra=vol.PREVENT_EXTRA,
     )

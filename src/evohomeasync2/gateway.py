@@ -15,7 +15,7 @@ from .const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
 from .control_system import ControlSystem
-from .schemas import EntityType
+from .schemas import EntityTypeEnum
 from .schemas.status import factory_gwy_status
 from .zone import ActiveFaultsBase, EntityBase
 
@@ -37,7 +37,7 @@ class Gateway(ActiveFaultsBase, EntityBase):
     """Instance of a location's gateway."""
 
     SCH_STATUS: vol.Schema = factory_gwy_status(camel_to_snake)
-    _TYPE = EntityType.GWY
+    _TYPE = EntityTypeEnum.GWY
     _STATUS_EXCLUDES = (SZ_TEMPERATURE_CONTROL_SYSTEMS,)
 
     def __init__(self, location: Location, config: EvoGwyConfigResponseT) -> None:

@@ -25,8 +25,8 @@ from evohomeasync2.schemas import (
     S2_STATE_STATUS,
     S2_UNTIL,
     S2_UNTIL_TIME,
-    DhwState,
-    ZoneMode,
+    DhwStateEnum,
+    ZoneModeEnum,
 )
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
@@ -94,8 +94,8 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     # PART 1: Try the basic functionality...
     # new_mode = {S2_MODE: ZoneMode.PERMANENT_OVERRIDE, S2_STATE: DhwState.OFF, S2_UNTIL_TIME: None}
     new_mode = {
-        S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-        S2_STATE: DhwState.ON,
+        S2_MODE: ZoneModeEnum.TEMPORARY_OVERRIDE,
+        S2_STATE: DhwStateEnum.ON,
         S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(API_STRFTIME),
     }
 
@@ -122,8 +122,8 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     #
     # PART 2A: Try different capitalisations of the JSON keys...
     new_mode = {
-        S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-        S2_STATE: DhwState.ON,
+        S2_MODE: ZoneModeEnum.TEMPORARY_OVERRIDE,
+        S2_STATE: DhwStateEnum.ON,
         S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(API_STRFTIME),
     }
     _ = await should_work_v2(
@@ -136,8 +136,8 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     status = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time
-        camel_to_pascal(S2_MODE): ZoneMode.TEMPORARY_OVERRIDE,
-        camel_to_pascal(S2_STATE): DhwState.ON,
+        camel_to_pascal(S2_MODE): ZoneModeEnum.TEMPORARY_OVERRIDE,
+        camel_to_pascal(S2_STATE): DhwStateEnum.ON,
         camel_to_pascal(S2_UNTIL_TIME): (loc.now() + td(hours=2)).strftime(
             API_STRFTIME
         ),
@@ -163,8 +163,8 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
     #
     # PART 4A: Try bad JSON...
     bad_mode = {
-        S2_STATE: ZoneMode.TEMPORARY_OVERRIDE,
-        S2_MODE: DhwState.OFF,
+        S2_STATE: ZoneModeEnum.TEMPORARY_OVERRIDE,
+        S2_MODE: DhwStateEnum.OFF,
         S2_UNTIL_TIME: None,
     }
     _ = await should_fail_v2(

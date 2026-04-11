@@ -82,14 +82,15 @@ from .const import (
     S2_ZONE_ID,
     S2_ZONE_TYPE,
     S2_ZONES,
-    DhwState,
-    FanMode,
-    LocationType,
-    SystemMode,
-    TcsModelType,
-    ZoneMode,
-    ZoneModelType,
-    ZoneType,
+    DhwStateEnum,
+    FanModeEnum,
+    LocationTypeEnum,
+    SystemModeEnum,
+    TcsModelTypeEnum,
+    TimingModeEnum,
+    ZoneModeEnum,
+    ZoneModelTypeEnum,
+    ZoneTypeEnum,
 )
 
 if TYPE_CHECKING:
@@ -122,10 +123,10 @@ class TccLocConfigEntryT(TypedDict):
     streetAddress: str
     city: str
     state: str
-    country: str
+    country: str  # TODO: StrEnum, e.g. UnitedKingdom
     postcode: str
     type: str
-    locationType: LocationType
+    locationType: LocationTypeEnum  # StrEnum, e.g. Residential, Commercial
     useDaylightSaveSwitching: bool
     timeZone: TccTimeZoneInfoT
     locationOwner: TccLocationOwnerInfoT
@@ -134,8 +135,8 @@ class TccLocConfigEntryT(TypedDict):
 class TccTimeZoneInfoT(TypedDict):
     """Time zone information."""
 
-    timeZoneId: str
-    displayName: str
+    timeZoneId: str  # TODO: StrEnum, e.g. GMTStandardTime
+    displayName: str  # (UTC+00:00) Dublin, Edinburgh, Lisbon, London
     offsetMinutes: int
     currentOffsetMinutes: int
     supportsDaylightSaving: bool
@@ -162,50 +163,53 @@ class TccGwyConfigEntryT(TypedDict):
 
 class TccTcsConfigEntryT(TypedDict):
     systemId: str
-    modelType: TcsModelType
+    modelType: TcsModelTypeEnum  # StrEnum, e.g. EvoTouch, FocusProWifiRetail
     allowedSystemModes: list[TccAllowedSystemModeResponseT]
 
 
 class TccAllowedSystemModeResponseT(TypedDict):
-    systemMode: SystemMode
+    systemMode: SystemModeEnum  # StrEnum, e.g. Auto, Away, DayOff
     canBePermanent: Literal[True]
     canBeTemporary: bool
     maxDuration: NotRequired[str]
     timingResolution: NotRequired[str]
-    timingMode: NotRequired[str]
+    timingMode: NotRequired[TimingModeEnum]  # StrEnum, e.g. Duration, Period
 
 
 class TccTcsConfigResponseT(TccTcsConfigEntryT):
-    # system_id: str
-    # model_type: str
-    # allowed_system_modes: list[dict[str, Any]]
     zones: list[TccZonConfigResponseT]
     dhw: NotRequired[TccDhwConfigResponseT]
 
 
 class TccZonConfigResponseT(TypedDict):
     zoneId: str
-    modelType: ZoneModelType
+    modelType: ZoneModelTypeEnum  # StrEnum, e.g. HeatingZone, Unknown
     name: str
     setpointCapabilities: TccZonSetpointCapabilitiesResponseT
     scheduleCapabilities: TccZonScheduleCapabilitiesResponseT
-    zoneType: ZoneType
+    zoneType: ZoneTypeEnum  # StrEnum, e.g. RadiatorZone, ElectricHeat
     allowedFanModes: list[str]
 
 
-class TccZonScheduleCapabilitiesResponseT(TypedDict):
-    pass
+class TccScheduleCapabilitiesResponseT(TypedDict):
+    maxSwitchpointsPerDay: int
+    minSwitchpointsPerDay: int
+    timingResolution: str  # e.g. "00:10:00"
+
+
+class TccZonScheduleCapabilitiesResponseT(TccScheduleCapabilitiesResponseT):
+    setpointValueResolution: float
 
 
 class TccZonSetpointCapabilitiesResponseT(TypedDict):
-    allowedSetpointModes: list[ZoneMode]
+    allowedSetpointModes: list[ZoneModeEnum]  # StrEnum, e.g. FollowSchedule
     canControlCool: bool
     canControlHeat: bool
     maxHeatSetpoint: float
     minHeatSetpoint: float
     valueResolution: float
-    maxDuration: str
-    timingResolution: str
+    maxDuration: str  # e.g. "1.00:00:00"
+    timingResolution: str  # e.g. "00:10:00"
 
 
 class TccZonConfigEntryT(TccZonConfigResponseT):
@@ -218,13 +222,13 @@ class TccDhwConfigResponseT(TypedDict):
     dhwStateCapabilitiesResponse: TccDhwStateCapabilitiesResponseT
 
 
-class TccDhwScheduleCapabilitiesResponseT(TypedDict):
+class TccDhwScheduleCapabilitiesResponseT(TccScheduleCapabilitiesResponseT):
     pass
 
 
 class TccDhwStateCapabilitiesResponseT(TypedDict):
-    allowedStates: list[DhwState]
-    allowedModes: list[ZoneMode]
+    allowedStates: list[DhwStateEnum]  # StrEnum, e.g. Off, On
+    allowedModes: list[ZoneModeEnum]  # StrEnum, e.g. FollowSchedule
     maxDuration: str
     timingResolution: str
 
@@ -239,12 +243,12 @@ def factory_system_mode_perm(fnc: Callable[[str], str] = noop) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_SYSTEM_MODE)): vol.Any(
-                str(SystemMode.AUTO),
-                str(SystemMode.AUTO_WITH_RESET),
-                str(SystemMode.HEATING_OFF),
-                str(SystemMode.OFF),  # not evohome
-                str(SystemMode.HEAT),  # not evohome
-                str(SystemMode.COOL),  # not evohome
+                str(SystemModeEnum.AUTO),
+                str(SystemModeEnum.AUTO_WITH_RESET),
+                str(SystemModeEnum.HEATING_OFF),
+                str(SystemModeEnum.OFF),  # not evohome
+                str(SystemModeEnum.HEAT),  # not evohome
+                str(SystemModeEnum.COOL),  # not evohome
             ),
             vol.Required(fnc(S2_CAN_BE_PERMANENT)): True,
             vol.Required(fnc(S2_CAN_BE_TEMPORARY)): False,
@@ -259,10 +263,10 @@ def factory_system_mode_temp(fnc: Callable[[str], str] = noop) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_SYSTEM_MODE)): vol.Any(
-                str(SystemMode.AUTO_WITH_ECO),
-                str(SystemMode.AWAY),
-                str(SystemMode.CUSTOM),
-                str(SystemMode.DAY_OFF),
+                str(SystemModeEnum.AUTO_WITH_ECO),
+                str(SystemModeEnum.AWAY),
+                str(SystemModeEnum.CUSTOM),
+                str(SystemModeEnum.DAY_OFF),
             ),
             vol.Required(fnc(S2_CAN_BE_PERMANENT)): True,
             vol.Required(fnc(S2_CAN_BE_TEMPORARY)): True,
@@ -297,9 +301,9 @@ def factory_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
     SCH_DHW_STATE_CAPABILITIES_RESPONSE: Final = vol.Schema(
         {
             # TODO: list should be a non-empty *subset* of all possible DhwState(s)
-            vol.Required(fnc(S2_ALLOWED_STATES)): [m.value for m in DhwState],
+            vol.Required(fnc(S2_ALLOWED_STATES)): [m.value for m in DhwStateEnum],
             # TODO: list should be a non-empty *subset* of all possible ZoneMode(s)
-            vol.Required(fnc(S2_ALLOWED_MODES)): [m.value for m in ZoneMode],
+            vol.Required(fnc(S2_ALLOWED_MODES)): [m.value for m in ZoneModeEnum],
             vol.Required(fnc(S2_MAX_DURATION)): str,
             vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),
         },
@@ -325,7 +329,7 @@ def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_FAN_MODE: Final = vol.Schema(  # noqa: F841
         {
-            vol.Required(fnc(S2_FAN_MODE)): vol.In(FanMode),
+            vol.Required(fnc(S2_FAN_MODE)): vol.In(FanModeEnum),
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -356,7 +360,9 @@ def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
             vol.Optional(fnc(S2_MAX_COOL_SETPOINT)): float,  # TODO
             vol.Optional(fnc(S2_MIN_COOL_SETPOINT)): float,  # TODO
             # TODO: list should be a non-empty *subset* of all possible ZoneMode(s)
-            vol.Required(fnc(S2_ALLOWED_SETPOINT_MODES)): [m.value for m in ZoneMode],
+            vol.Required(fnc(S2_ALLOWED_SETPOINT_MODES)): [
+                m.value for m in ZoneModeEnum
+            ],
             vol.Required(fnc(S2_VALUE_RESOLUTION)): float,  # 0.5
             vol.Required(fnc(S2_MAX_DURATION)): str,  # "1.00:00:00"
             vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(
@@ -382,11 +388,11 @@ def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_ZONE_ID)): vol.Match(REGEX_ZONE_ID),
-            vol.Required(fnc(S2_MODEL_TYPE)): vol.In(ZoneModelType),
+            vol.Required(fnc(S2_MODEL_TYPE)): vol.In(ZoneModelTypeEnum),
             vol.Required(fnc(S2_NAME)): str,
             vol.Required(fnc(S2_SETPOINT_CAPABILITIES)): SCH_SETPOINT_CAPABILITIES,
             vol.Optional(fnc(S2_SCHEDULE_CAPABILITIES)): SCH_SCHEDULE_CAPABILITIES,
-            vol.Required(fnc(S2_ZONE_TYPE)): vol.In(ZoneType),
+            vol.Required(fnc(S2_ZONE_TYPE)): vol.In(ZoneTypeEnum),
             vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): list,  # FocusProWifiRetail
         },
         extra=vol.PREVENT_EXTRA,
@@ -403,7 +409,7 @@ def factory_tcs(fnc: Callable[[str], str] = noop) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
-            vol.Required(fnc(S2_MODEL_TYPE)): vol.In(TcsModelType),
+            vol.Required(fnc(S2_MODEL_TYPE)): vol.In(TcsModelTypeEnum),
             vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [SCH_ALLOWED_SYSTEM_MODES],
             vol.Required(fnc(S2_ZONES)): vol.All(
                 [factory_zone(fnc)], vol.Length(min=1, max=12)
@@ -474,7 +480,9 @@ def factory_location_installation_info(
             vol.Required(fnc(S2_CITY)): vol.All(str, redact),
             vol.Required(fnc(S2_COUNTRY)): str,
             vol.Required(fnc(S2_POSTCODE)): vol.All(str, redact),
-            vol.Required(fnc(S2_LOCATION_TYPE)): vol.In(LocationType),  # "Residential"
+            vol.Required(fnc(S2_LOCATION_TYPE)): vol.In(
+                LocationTypeEnum
+            ),  # "Residential"
             vol.Required(fnc(S2_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
             vol.Required(fnc(S2_TIME_ZONE)): factory_time_zone(fnc),
             vol.Required(fnc(S2_LOCATION_OWNER)): SCH_LOCATION_OWNER,

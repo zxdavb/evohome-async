@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from evohomeasync2.schemas import DhwState
+from evohomeasync2.schemas import DhwStateEnum
 
 from .conftest import FIXTURES_V2 as FIXTURES
 
@@ -229,7 +229,7 @@ async def test_dhw_set_state(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.set_state(DhwState.OFF)
+        await dhw.set_state(DhwStateEnum.OFF)
 
     mock_put.assert_awaited_once()
 
@@ -247,7 +247,7 @@ async def test_dhw_set_state(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.set_state(DhwState.ON, until=dt.now(tz=UTC) + td(hours=3))
+        await dhw.set_state(DhwStateEnum.ON, until=dt.now(tz=UTC) + td(hours=3))
 
     mock_put.assert_awaited_once()
 

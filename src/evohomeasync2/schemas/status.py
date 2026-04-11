@@ -47,11 +47,11 @@ from .const import (
     S2_UNTIL,
     S2_ZONE_ID,
     S2_ZONES,
-    DhwState,
-    FanMode,
-    FaultType,
-    SystemMode,
-    ZoneMode,
+    DhwStateEnum,
+    FanModeEnum,
+    FaultTypeEnum,
+    SystemModeEnum,
+    ZoneModeEnum,
 )
 
 if TYPE_CHECKING:
@@ -79,7 +79,7 @@ class TccGwyStatusResponseT(TypedDict):
 
 
 class TccActiveFaultResponseT(TypedDict):
-    faultType: str
+    faultType: FaultTypeEnum | str  # strEnum
     since: str
 
 
@@ -92,7 +92,7 @@ class TccTcsStatusResponseT(TypedDict):
 
 
 class TccSystemModeStatusResponseT(TypedDict):
-    mode: SystemMode
+    mode: SystemModeEnum  # strEnum
     isPermanent: bool
     timeUntil: NotRequired[str]
 
@@ -106,7 +106,7 @@ class TccZonStatusResponseT(TypedDict):
 
 
 class TccZonSetpointStatusResponseT(TypedDict):
-    setpointMode: ZoneMode
+    setpointMode: ZoneModeEnum  # strEnum
     targetHeatTemperature: float
     until: NotRequired[str]
 
@@ -124,8 +124,8 @@ class TccDhwStatusResponseT(TypedDict):
 
 
 class TccDhwStateStatusResponseT(TypedDict):
-    mode: ZoneMode
-    state: DhwState
+    mode: ZoneModeEnum  # strEnum
+    state: DhwStateEnum  # strEnum
     until: NotRequired[str]
 
 
@@ -134,7 +134,7 @@ def factory_active_faults(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required(fnc(S2_FAULT_TYPE)): vol.In(FaultType),
+            vol.Required(fnc(S2_FAULT_TYPE)): vol.In(FaultTypeEnum),
             vol.Required(fnc(S2_SINCE)): vol.Any(
                 vol.Datetime(format="%Y-%m-%dT%H:%M:%S"),  # faults for zones
                 vol.Datetime(format="%Y-%m-%dT%H:%M:%S.%f"),
@@ -170,7 +170,7 @@ def factory_zon_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
     SCH_SETPOINT_STATUS: Final = vol.Schema(
         {
             vol.Required(fnc(S2_TARGET_HEAT_TEMPERATURE)): float,
-            vol.Required(fnc(S2_SETPOINT_MODE)): vol.In(ZoneMode),
+            vol.Required(fnc(S2_SETPOINT_MODE)): vol.In(ZoneModeEnum),
             vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=API_STRFTIME),
         },
         extra=vol.PREVENT_EXTRA,
@@ -178,7 +178,7 @@ def factory_zon_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_FAN_STATUS: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_FAN_MODE)): vol.In(FanMode),
+            vol.Required(fnc(S2_FAN_MODE)): vol.In(FanModeEnum),
             vol.Required(fnc(S2_CAN_BE_CHANGED)): bool,
         },
         extra=vol.PREVENT_EXTRA,
@@ -202,8 +202,8 @@ def factory_dhw_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_STATE_STATUS: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_STATE)): vol.In(DhwState),
-            vol.Required(fnc(S2_MODE)): vol.In(ZoneMode),
+            vol.Required(fnc(S2_STATE)): vol.In(DhwStateEnum),
+            vol.Required(fnc(S2_MODE)): vol.In(ZoneModeEnum),
             vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=API_STRFTIME),
         },
         extra=vol.PREVENT_EXTRA,
@@ -226,17 +226,17 @@ def factory_system_mode_status(fnc: Callable[[str], str] = noop) -> vol.Any:
     return vol.Any(
         vol.Schema(
             {
-                vol.Required(fnc(S2_MODE)): vol.In(SystemMode),
+                vol.Required(fnc(S2_MODE)): vol.In(SystemModeEnum),
                 vol.Required(fnc(S2_IS_PERMANENT)): True,
             }
         ),
         vol.Schema(
             {
                 vol.Required(fnc(S2_MODE)): vol.Any(
-                    str(SystemMode.AUTO_WITH_ECO),
-                    str(SystemMode.AWAY),
-                    str(SystemMode.CUSTOM),
-                    str(SystemMode.DAY_OFF),
+                    str(SystemModeEnum.AUTO_WITH_ECO),
+                    str(SystemModeEnum.AWAY),
+                    str(SystemModeEnum.CUSTOM),
+                    str(SystemModeEnum.DAY_OFF),
                 ),
                 vol.Required(fnc(S2_TIME_UNTIL)): vol.Datetime(format=API_STRFTIME),
                 vol.Required(fnc(S2_IS_PERMANENT)): False,

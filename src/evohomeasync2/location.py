@@ -27,7 +27,7 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
-from .schemas import EntityType, EvoTimeZoneInfoT
+from .schemas import EntityTypeEnum, EvoTimeZoneInfoT
 from .schemas.config import factory_location_installation_info
 from .schemas.status import factory_loc_status
 from .zone import EntityBase
@@ -104,7 +104,7 @@ class Location(EntityBase):
 
     SCH_CONFIG: vol.Schema = factory_location_installation_info(camel_to_snake)
     SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
-    _TYPE = EntityType.LOC
+    _TYPE = EntityTypeEnum.LOC
     _STATUS_EXCLUDES = (SZ_GATEWAYS,)
 
     def __init__(

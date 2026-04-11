@@ -5,13 +5,14 @@ from __future__ import annotations
 from typing import Literal, NotRequired, TypedDict
 
 from .const import (  # noqa: TC001
-    DhwState,
-    LocationType,
-    SystemMode,
-    TcsModelType,
-    ZoneMode,
-    ZoneModelType,
-    ZoneType,
+    DhwStateEnum,
+    FaultTypeEnum,
+    LocationTypeEnum,
+    SystemModeEnum,
+    TcsModelTypeEnum,
+    ZoneModeEnum,
+    ZoneModelTypeEnum,
+    ZoneTypeEnum,
 )
 
 
@@ -59,7 +60,7 @@ class EvoLocConfigEntryT(TypedDict):
     country: str
     postcode: str
     type: str
-    location_type: LocationType
+    location_type: LocationTypeEnum
     use_daylight_save_switching: bool
     time_zone: EvoTimeZoneInfoT
     location_owner: EvoLocationOwnerInfoT
@@ -96,12 +97,12 @@ class EvoGwyConfigEntryT(TypedDict):
 
 class EvoTcsConfigEntryT(TypedDict):
     system_id: str
-    model_type: TcsModelType
+    model_type: TcsModelTypeEnum
     allowed_system_modes: list[EvoAllowedSystemModesResponseT]
 
 
 class EvoAllowedSystemModesResponseT(TypedDict):
-    system_mode: SystemMode
+    system_mode: SystemModeEnum
     can_be_permanent: Literal[True]
     can_be_temporary: bool
     max_duration: NotRequired[str]  # when can_be_temporary is True
@@ -110,20 +111,17 @@ class EvoAllowedSystemModesResponseT(TypedDict):
 
 
 class EvoTcsConfigResponseT(EvoTcsConfigEntryT):
-    # system_id: str
-    # model_type: str
-    # allowed_system_modes: list[dict[str, Any]]
     zones: list[EvoZonConfigResponseT]
     dhw: EvoDhwConfigResponseT
 
 
 class EvoZonConfigResponseT(TypedDict):
     zone_id: str
-    model_type: ZoneModelType
+    model_type: ZoneModelTypeEnum
     name: str
     setpoint_capabilities: EvoZonSetpointCapabilitiesResponseT
     schedule_capabilities: EvoZonScheduleCapabilitiesResponseT
-    zone_type: ZoneType
+    zone_type: ZoneTypeEnum
     allowed_fan_modes: list[str]
 
 
@@ -132,7 +130,7 @@ class EvoZonScheduleCapabilitiesResponseT(TypedDict):
 
 
 class EvoZonSetpointCapabilitiesResponseT(TypedDict):
-    allowed_setpoint_modes: list[ZoneMode]
+    allowed_setpoint_modes: list[ZoneModeEnum]
     can_control_cool: bool
     can_control_heat: bool
     max_heat_setpoint: float
@@ -157,8 +155,8 @@ class EvoDhwScheduleCapabilitiesResponseT(TypedDict):
 
 
 class EvoDhwStateCapabilitiesResponseT(TypedDict):
-    allowed_states: list[DhwState]
-    allowed_modes: list[ZoneMode]
+    allowed_states: list[DhwStateEnum]
+    allowed_modes: list[ZoneModeEnum]
     max_duration: str
     timing_resolution: str
 
@@ -190,7 +188,7 @@ class EvoGwyStatusResponseT(TypedDict):
 
 
 class EvoActiveFaultResponseT(TypedDict):
-    fault_type: str
+    fault_type: FaultTypeEnum
     since: str
 
 
@@ -203,7 +201,7 @@ class EvoTcsStatusResponseT(TypedDict):
 
 
 class EvoSystemModeStatusResponseT(TypedDict):
-    mode: SystemMode
+    mode: SystemModeEnum
     is_permanent: bool
     time_until: NotRequired[str]
 
@@ -217,7 +215,7 @@ class EvoZonStatusResponseT(TypedDict):
 
 
 class EvoZonSetpointStatusResponseT(TypedDict):
-    setpoint_mode: ZoneMode
+    setpoint_mode: ZoneModeEnum
     target_heat_temperature: float
     until: NotRequired[str]
 
@@ -235,8 +233,8 @@ class EvoDhwStatusResponseT(TypedDict):
 
 
 class EvoDhwStateStatusResponseT(TypedDict):
-    mode: ZoneMode
-    state: DhwState
+    mode: ZoneModeEnum
+    state: DhwStateEnum
     until: NotRequired[str]
 
 
@@ -247,21 +245,21 @@ class EvoDhwStateStatusResponseT(TypedDict):
 
 # PUT /domesticHotWater/{dhw_id}/state
 class EvoSetDhwStateT(TypedDict):
-    mode: ZoneMode
-    state: NotRequired[DhwState]  # required by override modes
+    mode: ZoneModeEnum
+    state: NotRequired[DhwStateEnum]  # required by override modes
     until_time: NotRequired[str]  # required by TemporaryOverride
 
 
 # PUT /temperatureControlSystem/{tcs_id}/mode
 class EvoSetSystemModeT(TypedDict):
-    system_mode: SystemMode
+    system_mode: SystemModeEnum
     permanent: bool
     time_until: NotRequired[str]  # required by TemporaryOverride
 
 
 # PUT /temperatureZone/{zon_id}/heatSetpoint
 class EvoSetZoneHeatSetpointT(TypedDict):
-    setpoint_mode: ZoneMode
+    setpoint_mode: ZoneModeEnum
     heat_setpoint_value: NotRequired[float]  # required by override modes
     time_until: NotRequired[str]  # required by TemporaryOverride
 
@@ -272,7 +270,7 @@ class EvoSetZoneHeatSetpointT(TypedDict):
 
 
 class SwitchpointDhwT(TypedDict):
-    dhw_state: DhwState
+    dhw_state: DhwStateEnum
     time_of_day: str
 
 
