@@ -188,7 +188,7 @@ class EvoGwyStatusResponseT(TypedDict):
 
 
 class EvoActiveFaultResponseT(TypedDict):
-    fault_type: FaultTypeEnum
+    fault_type: FaultTypeEnum | str  # strEnum
     since: str
 
 

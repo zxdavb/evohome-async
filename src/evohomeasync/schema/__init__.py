@@ -23,9 +23,12 @@ Conventions
 from __future__ import annotations
 
 from enum import EnumCheck, StrEnum, verify
+from typing import TYPE_CHECKING, Any, TypedDict
 
 import voluptuous as vol
-from typing_extensions import TypedDict  # use typing.TypedDict on Python ≥ 3.8
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 # ============================================================================
 # Enumerations
@@ -192,13 +195,11 @@ class WeatherConditionEnum(StrEnum):
 # ---------------------------------------------------------------------------
 
 
-def _enum_values(enum_cls: type) -> list[str]:
-    """Return the list of string values for a str-Enum, for use in validators."""
-    return [e.value for e in enum_cls]
+def _in_enum(enum_cls: Iterable[StrEnum]) -> vol.In:
+    """Create a voluptuous ``In`` validator for a StrEnum's string values."""
 
-
-def _in_enum(enum_cls: type) -> vol.In:
-    return vol.In(_enum_values(enum_cls))
+    enum_vals: list[str] = [member.value for member in enum_cls]
+    return vol.In(enum_vals)
 
 
 # ============================================================================
@@ -215,7 +216,7 @@ class ChangeSourceDict(TypedDict, total=False):
 
 class SetpointDict(TypedDict, total=False):
     value: float  # limited by device HeatLowerSetptLimit / HeatUpperSetptLimit
-    status: str | None  # SetpointStatus value
+    status: SetpointStatusEnum | None
     nextTime: str | None  # ISO-8601 datetime, no timezone
 
 
@@ -267,7 +268,7 @@ class NewLocationRequestDict(TypedDict, total=False):
     state: str | None
     country: str | None
     zipcode: str | None
-    locationType: str  # LocationType value
+    locationType: LocationTypeEnum
     daylightSavingTimeEnabled: bool
     timeZoneID: str
 
@@ -281,16 +282,16 @@ class TimeZoneResponseDict(TypedDict, total=False):
 
 
 class WeatherResponseDict(TypedDict, total=False):
-    condition: str  # WeatherCondition value
+    condition: WeatherConditionEnum
     temperature: float
-    units: str  # DisplayedUnits value
+    units: DisplayedUnitsEnum
     humidity: int
     phrase: str | None
 
 
 class LocationContractorResponseDict(TypedDict, total=False):
-    info: dict | None  # contractorInfoResponse (opaque)
-    monitoring: dict | None  # contractorMonitoringResponse (opaque)
+    info: dict[str, Any] | None  # contractorInfoResponse (opaque)
+    monitoring: dict[str, Any] | None  # contractorMonitoringResponse (opaque)
 
 
 class LocationResponseDict(TypedDict, total=False):
@@ -301,9 +302,9 @@ class LocationResponseDict(TypedDict, total=False):
     state: str | None
     country: str | None
     zipcode: str | None
-    type: str | None  # LocationType value
+    type: LocationTypeEnum | None
     hasStation: bool
-    devices: list[dict]  # List[DeviceResponseDict]
+    devices: list[DeviceResponseDict]
     weather: WeatherResponseDict | None
     daylightSavingTimeEnabled: bool
     timeZone: TimeZoneResponseDict | None
@@ -319,7 +320,7 @@ class LocationResponseDict(TypedDict, total=False):
 
 
 class ThermostatChangeableValuesDict(TypedDict, total=False):
-    mode: str  # ThermostatMode value
+    mode: ThermostatModeEnum
     heatSetpoint: SetpointDict | None
     coolSetpoint: SetpointDict | None
     status: str | None  # SetpointStatus (top-level)
@@ -334,7 +335,7 @@ class ThermostatChangeableValuesDict(TypedDict, total=False):
 
 
 class ThermostatResponseDict(TypedDict, total=False):
-    units: str  # DisplayedUnits value
+    units: DisplayedUnitsEnum
     indoorTemperature: float
     outdoorTemperature: float | None
     outdoorTemperatureAvailable: bool
@@ -346,7 +347,7 @@ class ThermostatResponseDict(TypedDict, total=False):
     outdoorTemperatureStatus: str | None  # SensorStatus
     outdoorHumidityStatus: str | None  # SensorStatus
     isCommercial: bool
-    allowedModes: list[str]  # List[ThermostatMode value]
+    allowedModes: list[ThermostatModeEnum]
     deadband: float
     minHeatSetpoint: float
     maxHeatSetpoint: float
@@ -367,17 +368,17 @@ class ThermostatResponseDict(TypedDict, total=False):
 
 
 class FanChangeableValuesDict(TypedDict):
-    mode: str  # FanMode value
+    mode: FanModeEnum
 
 
 class FanResponseDict(TypedDict, total=False):
-    allowedModes: list[str]  # List[FanMode value]
+    allowedModes: list[FanModeEnum]
     changeableValues: FanChangeableValuesDict
     fanRunning: bool
 
 
 class HumDehumChangeableValuesDict(TypedDict, total=False):
-    mode: str  # HumDehumMode value
+    mode: HumDehumModeEnum
     setpoint: int | None  # divisible by 5
 
 
@@ -428,25 +429,25 @@ class AlertSettingsResponseDict(TypedDict, total=False):
 
 
 class SchedulePeriodDict(TypedDict, total=False):
-    day: str  # ScheduleDay value
-    periodType: str  # SchedulePeriodType value
+    day: ScheduleDayEnum
+    periodType: SchedulePeriodTypeEnum
     startTime: int  # minutes from midnight
     isCancelled: bool
     heatSetpoint: float | None
     coolSetpoint: float | None
-    fanMode: str | None  # FanMode value
+    fanMode: FanModeEnum | None
 
 
 class ScheduleRequestDict(TypedDict):
-    unit: str  # ScheduleUnit value ("C" or "F")
+    unit: ScheduleUnitEnum
     schedulePeriods: list[SchedulePeriodDict]
 
 
 class ScheduleResponseDict(TypedDict, total=False):
     schedulePeriods: list[SchedulePeriodDict]
     maxNumberOfPeriodsInDay: int  # 2, 3 or 4
-    unit: str  # "C" or "F"
-    modifiedDays: list[str] | None  # List[ScheduleDay value]
+    unit: ScheduleUnitEnum  # "C" or "F"
+    modifiedDays: list[ScheduleDayEnum] | None
 
 
 class DeviceResponseDict(TypedDict, total=False):
@@ -485,27 +486,6 @@ class GatewayResponseDict(TypedDict, total=False):
 
 
 # ============================================================================
-# Voluptuous validator helpers
-# ============================================================================
-
-
-def _optional_str() -> vol.Schema:
-    return vol.Any(str, None)
-
-
-def _optional_float() -> vol.Schema:
-    return vol.Any(float, int, None)
-
-
-def _optional_int() -> vol.Schema:
-    return vol.Any(int, None)
-
-
-def _optional_bool() -> vol.Schema:
-    return vol.Any(bool, None)
-
-
-# ============================================================================
 # Voluptuous Schemas
 # ============================================================================
 
@@ -513,8 +493,8 @@ def _optional_bool() -> vol.Schema:
 
 CHANGE_SOURCE_SCHEMA = vol.Schema(
     {
-        vol.Optional("partnerName"): _optional_str(),
-        vol.Optional("changeTag"): _optional_str(),
+        vol.Optional("partnerName"): vol.Any(str, None),
+        vol.Optional("changeTag"): vol.Any(str, None),
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -523,7 +503,7 @@ SETPOINT_SCHEMA = vol.Schema(
     {
         vol.Required("value"): vol.Any(float, int),
         vol.Optional("status"): vol.Any(_in_enum(SetpointStatusEnum), None),
-        vol.Optional("nextTime"): _optional_str(),
+        vol.Optional("nextTime"): vol.Any(str, None),
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -559,15 +539,15 @@ NEW_USER_ACCOUNT_REQUEST_SCHEMA = vol.Schema(
         vol.Required("password"): str,
         vol.Required("firstname"): str,
         vol.Required("lastname"): str,
-        vol.Optional("streetAddress"): _optional_str(),
-        vol.Optional("city"): _optional_str(),
-        vol.Optional("state"): _optional_str(),
-        vol.Optional("zipcode"): _optional_str(),
-        vol.Optional("country"): _optional_str(),
-        vol.Optional("telephone"): _optional_str(),
-        vol.Optional("userLanguage"): _optional_str(),
+        vol.Optional("streetAddress"): vol.Any(str, None),
+        vol.Optional("city"): vol.Any(str, None),
+        vol.Optional("state"): vol.Any(str, None),
+        vol.Optional("zipcode"): vol.Any(str, None),
+        vol.Optional("country"): vol.Any(str, None),
+        vol.Optional("telephone"): vol.Any(str, None),
+        vol.Optional("userLanguage"): vol.Any(str, None),
         vol.Required("applicationID"): str,
-        vol.Optional("invitationKey"): _optional_str(),
+        vol.Optional("invitationKey"): vol.Any(str, None),
         vol.Optional("sendRegistrationEmail"): bool,
     }
 )
@@ -577,11 +557,11 @@ NEW_USER_ACCOUNT_REQUEST_SCHEMA = vol.Schema(
 NEW_LOCATION_REQUEST_SCHEMA = vol.Schema(
     {
         vol.Required("name"): str,
-        vol.Optional("streetAddress"): _optional_str(),
-        vol.Optional("city"): _optional_str(),
-        vol.Optional("state"): _optional_str(),
-        vol.Optional("country"): _optional_str(),
-        vol.Optional("zipcode"): _optional_str(),
+        vol.Optional("streetAddress"): vol.Any(str, None),
+        vol.Optional("city"): vol.Any(str, None),
+        vol.Optional("state"): vol.Any(str, None),
+        vol.Optional("country"): vol.Any(str, None),
+        vol.Optional("zipcode"): vol.Any(str, None),
         vol.Optional("locationType"): _in_enum(LocationTypeEnum),
         vol.Optional("daylightSavingTimeEnabled"): bool,
         vol.Required("timeZoneID"): str,
@@ -605,7 +585,7 @@ WEATHER_RESPONSE_SCHEMA = vol.Schema(
         vol.Optional("temperature"): vol.Any(float, int, None),
         vol.Optional("units"): vol.Any(_in_enum(DisplayedUnitsEnum), None),
         vol.Optional("humidity"): vol.Any(int, None),
-        vol.Optional("phrase"): _optional_str(),
+        vol.Optional("phrase"): vol.Any(str, None),
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -614,11 +594,11 @@ LOCATION_RESPONSE_SCHEMA = vol.Schema(
     {
         vol.Optional("locationID"): int,
         vol.Optional("name"): str,
-        vol.Optional("streetAddress"): _optional_str(),
-        vol.Optional("city"): _optional_str(),
-        vol.Optional("state"): _optional_str(),
-        vol.Optional("country"): _optional_str(),
-        vol.Optional("zipcode"): _optional_str(),
+        vol.Optional("streetAddress"): vol.Any(str, None),
+        vol.Optional("city"): vol.Any(str, None),
+        vol.Optional("state"): vol.Any(str, None),
+        vol.Optional("country"): vol.Any(str, None),
+        vol.Optional("zipcode"): vol.Any(str, None),
         vol.Optional("type"): vol.Any(_in_enum(LocationTypeEnum), None),
         vol.Optional("hasStation"): bool,
         vol.Optional("devices"): list,  # validated separately
@@ -626,9 +606,9 @@ LOCATION_RESPONSE_SCHEMA = vol.Schema(
         vol.Optional("daylightSavingTimeEnabled"): bool,
         vol.Optional("timeZone"): vol.Any(TIMEZONE_RESPONSE_SCHEMA, None),
         vol.Optional("isLocationOwner"): bool,
-        vol.Optional("locationOwnerID"): _optional_int(),
-        vol.Optional("locationOwnerName"): _optional_str(),
-        vol.Optional("locationOwnerUserName"): _optional_str(),
+        vol.Optional("locationOwnerID"): vol.Any(int, None),
+        vol.Optional("locationOwnerName"): vol.Any(str, None),
+        vol.Optional("locationOwnerUserName"): vol.Any(str, None),
         vol.Optional("canSearchForContractors"): bool,
         vol.Optional("contractor"): vol.Any(dict, None),
     },
@@ -643,8 +623,8 @@ THERMOSTAT_CHANGEABLE_VALUES_SCHEMA = vol.Schema(
         vol.Optional("heatSetpoint"): vol.Any(SETPOINT_SCHEMA, None),
         vol.Optional("coolSetpoint"): vol.Any(SETPOINT_SCHEMA, None),
         vol.Optional("status"): vol.Any(_in_enum(SetpointStatusEnum), None),
-        vol.Optional("nextTime"): _optional_str(),
-        vol.Optional("vacationHoldDays"): _optional_int(),
+        vol.Optional("nextTime"): vol.Any(str, None),
+        vol.Optional("vacationHoldDays"): vol.Any(int, None),
         vol.Optional("modeChangeSource"): vol.Any(CHANGE_SOURCE_SCHEMA, None),
         vol.Optional("heatSetpointChangeSource"): vol.Any(CHANGE_SOURCE_SCHEMA, None),
         vol.Optional("coolSetpointChangeSource"): vol.Any(CHANGE_SOURCE_SCHEMA, None),
@@ -665,8 +645,8 @@ THERMOSTAT_CHANGEABLE_VALUES_REQUEST_SCHEMA = vol.Schema(
         vol.Optional("heatSetpoint"): vol.Any(SETPOINT_SCHEMA, None),
         vol.Optional("coolSetpoint"): vol.Any(SETPOINT_SCHEMA, None),
         vol.Optional("status"): vol.Any(_in_enum(SetpointStatusEnum), None),
-        vol.Optional("nextTime"): _optional_str(),
-        vol.Optional("vacationHoldDays"): _optional_int(),
+        vol.Optional("nextTime"): vol.Any(str, None),
+        vol.Optional("vacationHoldDays"): vol.Any(int, None),
     }
 )
 
@@ -676,11 +656,11 @@ THERMOSTAT_RESPONSE_SCHEMA = vol.Schema(
     {
         vol.Optional("units"): vol.Any(_in_enum(DisplayedUnitsEnum), None),
         vol.Optional("indoorTemperature"): vol.Any(float, int),
-        vol.Optional("outdoorTemperature"): _optional_float(),
+        vol.Optional("outdoorTemperature"): vol.Any(float, int, None),
         vol.Optional("outdoorTemperatureAvailable"): bool,
-        vol.Optional("outdoorHumidity"): _optional_float(),
+        vol.Optional("outdoorHumidity"): vol.Any(float, int, None),
         vol.Optional("outdoorHumidityAvailable"): bool,  # API typo preserved
-        vol.Optional("indoorHumidity"): _optional_float(),
+        vol.Optional("indoorHumidity"): vol.Any(float, int, None),
         vol.Optional("indoorTemperatureStatus"): vol.Any(
             _in_enum(SensorStatusEnum), None
         ),
@@ -698,8 +678,8 @@ THERMOSTAT_RESPONSE_SCHEMA = vol.Schema(
         vol.Optional("maxHeatSetpoint"): vol.Any(float, int),
         vol.Optional("minCoolSetpoint"): vol.Any(float, int),
         vol.Optional("maxCoolSetpoint"): vol.Any(float, int),
-        vol.Optional("coolRate"): _optional_float(),
-        vol.Optional("heatRate"): _optional_float(),
+        vol.Optional("coolRate"): vol.Any(float, int, None),
+        vol.Optional("heatRate"): vol.Any(float, int, None),
         vol.Optional("isPreCoolCapable"): bool,
         vol.Optional("changeableValues"): vol.Any(
             THERMOSTAT_CHANGEABLE_VALUES_SCHEMA, None
@@ -710,10 +690,10 @@ THERMOSTAT_RESPONSE_SCHEMA = vol.Schema(
         vol.Optional("scheduleCapable"): bool,
         vol.Optional("vacationHoldChangeable"): bool,
         vol.Optional("vacationHoldCancelable"): bool,
-        vol.Optional("scheduleHeatSp"): _optional_float(),
-        vol.Optional("scheduleCoolSp"): _optional_float(),
-        vol.Optional("serialNumber"): _optional_str(),
-        vol.Optional("pcbNumber"): _optional_str(),
+        vol.Optional("scheduleHeatSp"): vol.Any(float, int, None),
+        vol.Optional("scheduleCoolSp"): vol.Any(float, int, None),
+        vol.Optional("serialNumber"): vol.Any(str, None),
+        vol.Optional("pcbNumber"): vol.Any(str, None),
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -753,7 +733,7 @@ HUMIDIFIER_RESPONSE_SCHEMA = vol.Schema(
         vol.Optional("deviceId"): int,
         vol.Optional("upperLimit"): int,
         vol.Optional("lowerLimit"): int,
-        vol.Optional("deadband"): _optional_int(),
+        vol.Optional("deadband"): vol.Any(int, None),
         vol.Optional("canChangeSetPoint"): bool,
         vol.Optional("canChangeMode"): bool,
         vol.Optional("changeableValues"): HUM_DEHUM_CHANGEABLE_VALUES_SCHEMA,
@@ -783,12 +763,12 @@ ALERT_SETTINGS_RESPONSE_SCHEMA = vol.Schema(
     {
         vol.Optional("deviceID"): int,
         vol.Optional("tempHigherThanActive"): bool,
-        vol.Optional("tempHigherThan"): _optional_float(),
-        vol.Optional("tempHigherThanMinutes"): _optional_int(),
+        vol.Optional("tempHigherThan"): vol.Any(float, int, None),
+        vol.Optional("tempHigherThanMinutes"): vol.Any(int, None),
         vol.Optional("tempLowerThanActive"): bool,
-        vol.Optional("tempLowerThan"): _optional_float(),
-        vol.Optional("tempLowerThanMinutes"): _optional_int(),
-        vol.Optional("humidityHigherThanActive"): _optional_bool(),
+        vol.Optional("tempLowerThan"): vol.Any(float, int, None),
+        vol.Optional("tempLowerThanMinutes"): vol.Any(int, None),
+        vol.Optional("humidityHigherThanActive"): vol.Any(bool, None),
         vol.Optional("humidityHigherThan"): vol.Any(
             vol.All(
                 vol.Any(float, int),
@@ -797,8 +777,8 @@ ALERT_SETTINGS_RESPONSE_SCHEMA = vol.Schema(
             ),
             None,
         ),
-        vol.Optional("humidityHigherThanMinutes"): _optional_int(),
-        vol.Optional("humidityLowerThanActive"): _optional_bool(),
+        vol.Optional("humidityHigherThanMinutes"): vol.Any(int, None),
+        vol.Optional("humidityLowerThanActive"): vol.Any(bool, None),
         vol.Optional("humidityLowerThan"): vol.Any(
             vol.All(
                 vol.Any(float, int),
@@ -807,13 +787,13 @@ ALERT_SETTINGS_RESPONSE_SCHEMA = vol.Schema(
             ),
             None,
         ),
-        vol.Optional("humidityLowerThanMinutes"): _optional_int(),
+        vol.Optional("humidityLowerThanMinutes"): vol.Any(int, None),
         vol.Optional("faultConditionExistsActive"): bool,
         vol.Optional("faultConditionExistsHours"): int,
         vol.Optional("normalConditionsActive"): bool,
         vol.Optional("communicationLostActive"): bool,
         vol.Optional("communicationLostHours"): int,
-        vol.Optional("thermostatAlertActive"): _optional_bool(),
+        vol.Optional("thermostatAlertActive"): vol.Any(bool, None),
         vol.Optional("communicationFailureActive"): bool,
         vol.Optional("communicationFailureMinutes"): int,
         vol.Optional("deviceLostActive"): bool,
@@ -830,8 +810,8 @@ SCHEDULE_PERIOD_SCHEMA = vol.Schema(
         vol.Required("periodType"): _in_enum(SchedulePeriodTypeEnum),
         vol.Required("startTime"): int,
         vol.Optional("isCancelled"): bool,
-        vol.Optional("heatSetpoint"): _optional_float(),
-        vol.Optional("coolSetpoint"): _optional_float(),
+        vol.Optional("heatSetpoint"): vol.Any(float, int, None),
+        vol.Optional("coolSetpoint"): vol.Any(float, int, None),
         vol.Optional("fanMode"): vol.Any(_in_enum(FanModeEnum), None),
     },
     extra=vol.ALLOW_EXTRA,
@@ -860,8 +840,8 @@ DEVICE_RESPONSE_SCHEMA = vol.Schema(
     {
         vol.Optional("gatewayId"): int,
         vol.Optional("deviceID"): int,
-        vol.Optional("thermostatModelType"): _optional_int(),
-        vol.Optional("deviceType"): _optional_int(),
+        vol.Optional("thermostatModelType"): vol.Any(int, None),
+        vol.Optional("deviceType"): vol.Any(int, None),
         vol.Optional("name"): str,
         vol.Optional("scheduleCapable"): bool,
         vol.Optional("holdUntilCapable"): bool,
@@ -873,13 +853,13 @@ DEVICE_RESPONSE_SCHEMA = vol.Schema(
         vol.Optional("alertSettings"): vol.Any(ALERT_SETTINGS_RESPONSE_SCHEMA, None),
         vol.Optional("isUpgrading"): bool,
         vol.Optional("isAlive"): bool,
-        vol.Optional("thermostatVersion"): _optional_str(),
-        vol.Optional("macID"): _optional_str(),
+        vol.Optional("thermostatVersion"): vol.Any(str, None),
+        vol.Optional("macID"): vol.Any(str, None),
         vol.Optional("locationID"): int,
-        vol.Optional("domainID"): _optional_int(),
-        vol.Optional("instance"): _optional_int(),
-        vol.Optional("serialNumber"): _optional_str(),
-        vol.Optional("pcbNumber"): _optional_str(),
+        vol.Optional("domainID"): vol.Any(int, None),
+        vol.Optional("instance"): vol.Any(int, None),
+        vol.Optional("serialNumber"): vol.Any(str, None),
+        vol.Optional("pcbNumber"): vol.Any(str, None),
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -890,7 +870,7 @@ GATEWAY_RESPONSE_SCHEMA = vol.Schema(
     {
         vol.Optional("gatewayID"): int,
         vol.Optional("mac"): str,
-        vol.Optional("crc"): _optional_str(),
+        vol.Optional("crc"): vol.Any(str, None),
         vol.Optional("devices"): [DEVICE_RESPONSE_SCHEMA],
         vol.Optional("locationId"): int,
         vol.Optional("isUpgrading"): bool,
