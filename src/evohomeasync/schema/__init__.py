@@ -22,7 +22,7 @@ Conventions
 
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import EnumCheck, StrEnum, verify
 
 import voluptuous as vol
 from typing_extensions import TypedDict  # use typing.TypedDict on Python ≥ 3.8
@@ -32,7 +32,8 @@ from typing_extensions import TypedDict  # use typing.TypedDict on Python ≥ 3.
 # ============================================================================
 
 
-class ThermostatMode(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class ThermostatModeEnum(StrEnum):
     """All possible modes the thermostat can be set in."""
 
     EMERGENCY_HEAT = "EmergencyHeat"
@@ -46,7 +47,8 @@ class ThermostatMode(StrEnum):
     DHW_ON = "DHWOn"  # EMEA Domestic Hot Water - ON
 
 
-class SetpointStatus(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class SetpointStatusEnum(StrEnum):
     """State of a setpoint / overall thermostat hold status."""
 
     SCHEDULED = "Scheduled"
@@ -55,14 +57,16 @@ class SetpointStatus(StrEnum):
     VACATION_HOLD = "VacationHold"
 
 
-class DisplayedUnits(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class DisplayedUnitsEnum(StrEnum):
     """Temperature units displayed by the thermostat."""
 
     FAHRENHEIT = "Fahrenheit"  # whole-number scale
     CELSIUS = "Celsius"  # 0.5-degree scale
 
 
-class EquipmentStatus(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class EquipmentStatusEnum(StrEnum):
     """Current output status of the HVAC equipment."""
 
     OFF = "Off"
@@ -70,7 +74,8 @@ class EquipmentStatus(StrEnum):
     COOLING = "Cooling"
 
 
-class SensorStatus(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class SensorStatusEnum(StrEnum):
     """Sensor reading quality."""
 
     MEASURED = "Measured"
@@ -78,7 +83,8 @@ class SensorStatus(StrEnum):
     SENSOR_FAULT = "SensorFault"
 
 
-class FanMode(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class FanModeEnum(StrEnum):
     """Fan operating modes."""
 
     AUTO = "Auto"
@@ -87,21 +93,24 @@ class FanMode(StrEnum):
     FOLLOW_SCHEDULE = "FollowSchedule"
 
 
-class HumDehumMode(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class HumDehumModeEnum(StrEnum):
     """Humidifier / dehumidifier operating mode."""
 
     OFF = "Off"  # not running
     AUTO = "Auto"  # running
 
 
-class LocationType(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class LocationTypeEnum(StrEnum):
     """Type of location."""
 
     COMMERCIAL = "Commercial"
     RESIDENTIAL = "Residential"
 
 
-class ScheduleDay(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class ScheduleDayEnum(StrEnum):
     """Day of the week used in schedule periods."""
 
     MONDAY = "Monday"
@@ -113,7 +122,8 @@ class ScheduleDay(StrEnum):
     SUNDAY = "Sunday"
 
 
-class SchedulePeriodType(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class SchedulePeriodTypeEnum(StrEnum):
     """Period slot identifier within a scheduled day."""
 
     WAKE_OCC1 = "WakeOcc1"
@@ -122,14 +132,16 @@ class SchedulePeriodType(StrEnum):
     SLEEP_OCC4 = "SleepOcc4"
 
 
-class ScheduleUnit(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class ScheduleUnitEnum(StrEnum):
     """Temperature unit used in a schedule request/response."""
 
     CELSIUS = "C"
     FAHRENHEIT = "F"
 
 
-class WeatherCondition(StrEnum):
+@verify(EnumCheck.UNIQUE)
+class WeatherConditionEnum(StrEnum):
     """Weather condition codes returned by the API."""
 
     UNKNOWN = "Unknown"
@@ -510,7 +522,7 @@ CHANGE_SOURCE_SCHEMA = vol.Schema(
 SETPOINT_SCHEMA = vol.Schema(
     {
         vol.Required("value"): vol.Any(float, int),
-        vol.Optional("status"): vol.Any(_in_enum(SetpointStatus), None),
+        vol.Optional("status"): vol.Any(_in_enum(SetpointStatusEnum), None),
         vol.Optional("nextTime"): _optional_str(),
     },
     extra=vol.ALLOW_EXTRA,
@@ -570,7 +582,7 @@ NEW_LOCATION_REQUEST_SCHEMA = vol.Schema(
         vol.Optional("state"): _optional_str(),
         vol.Optional("country"): _optional_str(),
         vol.Optional("zipcode"): _optional_str(),
-        vol.Optional("locationType"): _in_enum(LocationType),
+        vol.Optional("locationType"): _in_enum(LocationTypeEnum),
         vol.Optional("daylightSavingTimeEnabled"): bool,
         vol.Required("timeZoneID"): str,
     }
@@ -589,9 +601,9 @@ TIMEZONE_RESPONSE_SCHEMA = vol.Schema(
 
 WEATHER_RESPONSE_SCHEMA = vol.Schema(
     {
-        vol.Optional("condition"): vol.Any(_in_enum(WeatherCondition), None),
+        vol.Optional("condition"): vol.Any(_in_enum(WeatherConditionEnum), None),
         vol.Optional("temperature"): vol.Any(float, int, None),
-        vol.Optional("units"): vol.Any(_in_enum(DisplayedUnits), None),
+        vol.Optional("units"): vol.Any(_in_enum(DisplayedUnitsEnum), None),
         vol.Optional("humidity"): vol.Any(int, None),
         vol.Optional("phrase"): _optional_str(),
     },
@@ -607,7 +619,7 @@ LOCATION_RESPONSE_SCHEMA = vol.Schema(
         vol.Optional("state"): _optional_str(),
         vol.Optional("country"): _optional_str(),
         vol.Optional("zipcode"): _optional_str(),
-        vol.Optional("type"): vol.Any(_in_enum(LocationType), None),
+        vol.Optional("type"): vol.Any(_in_enum(LocationTypeEnum), None),
         vol.Optional("hasStation"): bool,
         vol.Optional("devices"): list,  # validated separately
         vol.Optional("weather"): vol.Any(WEATHER_RESPONSE_SCHEMA, None),
@@ -627,10 +639,10 @@ LOCATION_RESPONSE_SCHEMA = vol.Schema(
 
 THERMOSTAT_CHANGEABLE_VALUES_SCHEMA = vol.Schema(
     {
-        vol.Optional("mode"): vol.Any(_in_enum(ThermostatMode), None),
+        vol.Optional("mode"): vol.Any(_in_enum(ThermostatModeEnum), None),
         vol.Optional("heatSetpoint"): vol.Any(SETPOINT_SCHEMA, None),
         vol.Optional("coolSetpoint"): vol.Any(SETPOINT_SCHEMA, None),
-        vol.Optional("status"): vol.Any(_in_enum(SetpointStatus), None),
+        vol.Optional("status"): vol.Any(_in_enum(SetpointStatusEnum), None),
         vol.Optional("nextTime"): _optional_str(),
         vol.Optional("vacationHoldDays"): _optional_int(),
         vol.Optional("modeChangeSource"): vol.Any(CHANGE_SOURCE_SCHEMA, None),
@@ -649,10 +661,10 @@ THERMOSTAT_CHANGEABLE_VALUES_SCHEMA = vol.Schema(
 
 THERMOSTAT_CHANGEABLE_VALUES_REQUEST_SCHEMA = vol.Schema(
     {
-        vol.Required("mode"): _in_enum(ThermostatMode),
+        vol.Required("mode"): _in_enum(ThermostatModeEnum),
         vol.Optional("heatSetpoint"): vol.Any(SETPOINT_SCHEMA, None),
         vol.Optional("coolSetpoint"): vol.Any(SETPOINT_SCHEMA, None),
-        vol.Optional("status"): vol.Any(_in_enum(SetpointStatus), None),
+        vol.Optional("status"): vol.Any(_in_enum(SetpointStatusEnum), None),
         vol.Optional("nextTime"): _optional_str(),
         vol.Optional("vacationHoldDays"): _optional_int(),
     }
@@ -662,19 +674,25 @@ THERMOSTAT_CHANGEABLE_VALUES_REQUEST_SCHEMA = vol.Schema(
 
 THERMOSTAT_RESPONSE_SCHEMA = vol.Schema(
     {
-        vol.Optional("units"): vol.Any(_in_enum(DisplayedUnits), None),
+        vol.Optional("units"): vol.Any(_in_enum(DisplayedUnitsEnum), None),
         vol.Optional("indoorTemperature"): vol.Any(float, int),
         vol.Optional("outdoorTemperature"): _optional_float(),
         vol.Optional("outdoorTemperatureAvailable"): bool,
         vol.Optional("outdoorHumidity"): _optional_float(),
         vol.Optional("outdoorHumidityAvailable"): bool,  # API typo preserved
         vol.Optional("indoorHumidity"): _optional_float(),
-        vol.Optional("indoorTemperatureStatus"): vol.Any(_in_enum(SensorStatus), None),
-        vol.Optional("indoorHumidityStatus"): vol.Any(_in_enum(SensorStatus), None),
-        vol.Optional("outdoorTemperatureStatus"): vol.Any(_in_enum(SensorStatus), None),
-        vol.Optional("outdoorHumidityStatus"): vol.Any(_in_enum(SensorStatus), None),
+        vol.Optional("indoorTemperatureStatus"): vol.Any(
+            _in_enum(SensorStatusEnum), None
+        ),
+        vol.Optional("indoorHumidityStatus"): vol.Any(_in_enum(SensorStatusEnum), None),
+        vol.Optional("outdoorTemperatureStatus"): vol.Any(
+            _in_enum(SensorStatusEnum), None
+        ),
+        vol.Optional("outdoorHumidityStatus"): vol.Any(
+            _in_enum(SensorStatusEnum), None
+        ),
         vol.Optional("isCommercial"): bool,
-        vol.Optional("allowedModes"): [_in_enum(ThermostatMode)],
+        vol.Optional("allowedModes"): [_in_enum(ThermostatModeEnum)],
         vol.Optional("deadband"): vol.Any(float, int),
         vol.Optional("minHeatSetpoint"): vol.Any(float, int),
         vol.Optional("maxHeatSetpoint"): vol.Any(float, int),
@@ -686,7 +704,9 @@ THERMOSTAT_RESPONSE_SCHEMA = vol.Schema(
         vol.Optional("changeableValues"): vol.Any(
             THERMOSTAT_CHANGEABLE_VALUES_SCHEMA, None
         ),
-        vol.Optional("equipmentOutputStatus"): vol.Any(_in_enum(EquipmentStatus), None),
+        vol.Optional("equipmentOutputStatus"): vol.Any(
+            _in_enum(EquipmentStatusEnum), None
+        ),
         vol.Optional("scheduleCapable"): bool,
         vol.Optional("vacationHoldChangeable"): bool,
         vol.Optional("vacationHoldCancelable"): bool,
@@ -702,13 +722,13 @@ THERMOSTAT_RESPONSE_SCHEMA = vol.Schema(
 
 FAN_CHANGEABLE_VALUES_SCHEMA = vol.Schema(
     {
-        vol.Required("mode"): _in_enum(FanMode),
+        vol.Required("mode"): _in_enum(FanModeEnum),
     }
 )
 
 FAN_RESPONSE_SCHEMA = vol.Schema(
     {
-        vol.Optional("allowedModes"): [_in_enum(FanMode)],
+        vol.Optional("allowedModes"): [_in_enum(FanModeEnum)],
         vol.Optional("changeableValues"): FAN_CHANGEABLE_VALUES_SCHEMA,
         vol.Optional("fanRunning"): bool,
     },
@@ -719,7 +739,7 @@ FAN_RESPONSE_SCHEMA = vol.Schema(
 
 HUM_DEHUM_CHANGEABLE_VALUES_SCHEMA = vol.Schema(
     {
-        vol.Required("mode"): _in_enum(HumDehumMode),
+        vol.Required("mode"): _in_enum(HumDehumModeEnum),
         vol.Optional("setpoint"): vol.Any(
             vol.All(int, lambda v: v % 5 == 0),  # must be divisible by 5
             None,
@@ -806,20 +826,20 @@ ALERT_SETTINGS_RESPONSE_SCHEMA = vol.Schema(
 
 SCHEDULE_PERIOD_SCHEMA = vol.Schema(
     {
-        vol.Required("day"): _in_enum(ScheduleDay),
-        vol.Required("periodType"): _in_enum(SchedulePeriodType),
+        vol.Required("day"): _in_enum(ScheduleDayEnum),
+        vol.Required("periodType"): _in_enum(SchedulePeriodTypeEnum),
         vol.Required("startTime"): int,
         vol.Optional("isCancelled"): bool,
         vol.Optional("heatSetpoint"): _optional_float(),
         vol.Optional("coolSetpoint"): _optional_float(),
-        vol.Optional("fanMode"): vol.Any(_in_enum(FanMode), None),
+        vol.Optional("fanMode"): vol.Any(_in_enum(FanModeEnum), None),
     },
     extra=vol.ALLOW_EXTRA,
 )
 
 SCHEDULE_REQUEST_SCHEMA = vol.Schema(
     {
-        vol.Required("unit"): _in_enum(ScheduleUnit),
+        vol.Required("unit"): _in_enum(ScheduleUnitEnum),
         vol.Required("schedulePeriods"): [SCHEDULE_PERIOD_SCHEMA],
     }
 )
@@ -828,8 +848,8 @@ SCHEDULE_RESPONSE_SCHEMA = vol.Schema(
     {
         vol.Optional("schedulePeriods"): [SCHEDULE_PERIOD_SCHEMA],
         vol.Optional("maxNumberOfPeriodsInDay"): vol.In([2, 3, 4]),
-        vol.Optional("unit"): vol.Any(_in_enum(ScheduleUnit), None),
-        vol.Optional("modifiedDays"): vol.Any([_in_enum(ScheduleDay)], None),
+        vol.Optional("unit"): vol.Any(_in_enum(ScheduleUnitEnum), None),
+        vol.Optional("modifiedDays"): vol.Any([_in_enum(ScheduleDayEnum)], None),
     },
     extra=vol.ALLOW_EXTRA,
 )

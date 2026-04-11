@@ -234,7 +234,7 @@ SZ_HEATING_OFF: Final = "HeatingOff"
 
 
 @verify(EnumCheck.UNIQUE)
-class SystemMode(StrEnum):
+class SystemModeEnum(StrEnum):
     AUTO = SZ_AUTO
     AUTO_WITH_ECO = SZ_AUTO_WITH_ECO
     AWAY = SZ_AWAY

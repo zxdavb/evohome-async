@@ -52,7 +52,7 @@ from .schemas import (
     SZ_THERMOSTAT,
     SZ_VALUE,
     EvoGwyInfoDictT,
-    SystemMode,
+    SystemModeEnum,
 )
 
 if TYPE_CHECKING:
@@ -358,7 +358,9 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
         raise NotImplementedError  # TODO: via set_mode() of TCS and its children
 
-    async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
+    async def set_mode(
+        self, mode: SystemModeEnum, /, *, until: dt | None = None
+    ) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time."""
 
         request: dict[str, str] = {SZ_QUICK_ACTION: mode}
@@ -369,27 +371,27 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
     async def set_auto(self) -> None:
         """Set the TCS to normal mode."""
-        await self.set_mode(SystemMode.AUTO)
+        await self.set_mode(SystemModeEnum.AUTO)
 
     async def set_away(self, /, *, until: dt | None = None) -> None:
         """Set the TCS to away mode."""
-        await self.set_mode(SystemMode.AWAY, until=until)
+        await self.set_mode(SystemModeEnum.AWAY, until=until)
 
     async def set_custom(self, /, *, until: dt | None = None) -> None:
         """Set the TCS to custom mode."""
-        await self.set_mode(SystemMode.CUSTOM, until=until)
+        await self.set_mode(SystemModeEnum.CUSTOM, until=until)
 
     async def set_dayoff(self, /, *, until: dt | None = None) -> None:
         """Set the TCS to dayoff mode."""
-        await self.set_mode(SystemMode.DAY_OFF, until=until)
+        await self.set_mode(SystemModeEnum.DAY_OFF, until=until)
 
     async def set_eco(self, /, *, until: dt | None = None) -> None:
         """Set the TCS to economy mode."""
-        await self.set_mode(SystemMode.AUTO_WITH_ECO, until=until)
+        await self.set_mode(SystemModeEnum.AUTO_WITH_ECO, until=until)
 
     async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
         """Set the system to heating off mode."""
-        await self.set_mode(SystemMode.HEATING_OFF, until=until)
+        await self.set_mode(SystemModeEnum.HEATING_OFF, until=until)
 
     def _get_zone(self, zon_id: int | str) -> Zone:
         """Return the TCS's zone by its id, idx or name."""
