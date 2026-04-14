@@ -71,6 +71,8 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         )
         self.clear_session_id()  # initialise the attrs
 
+        self._eula_warned: bool = False  # Only warn the user once
+
     def clear_session_id(self) -> None:
         """Clear the session id attrs (set to falsey state)."""
 
@@ -169,8 +171,12 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
         self._was_authenticated = True  # i.e. the credentials are valid
 
-        if self._user_info.get("latest_eula_accepted") is False:
-            self._logger.warning("The latest EULA has not been accepted by the user")
+        if (
+            not self._eula_warned
+            and self._user_info.get("latest_eula_accepted") is False
+        ):
+            self._eula_warned = True
+            self._logger.info("The latest EULA has not been accepted by the user")
 
     async def _post_session_id_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any

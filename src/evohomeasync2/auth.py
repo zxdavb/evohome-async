@@ -224,7 +224,9 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
         self._was_authenticated = True  # i.e. the credentials are valid
 
-        # if response.get(SZ_LATEST_EULA_ACCEPTED):
+        # TODO: determine if this API support this 'feature'
+        # if response.get("latest_eula_accepted") is False:
+        #     self._logger.warning("The latest EULA has not been accepted by the user")
 
     async def _post_access_token_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any
