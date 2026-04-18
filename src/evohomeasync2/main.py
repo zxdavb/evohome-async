@@ -148,7 +148,7 @@ class EvohomeClient:
             try:
                 self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
 
-            except exc.ApiRequestFailedError as err:  # check if 401 - bad access_token
+            except exc.ApiCallFailedError as err:  # check if 401 - bad access_token
                 if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                     raise
 

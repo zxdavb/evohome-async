@@ -25,12 +25,12 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
+    from evohome_cli.auth import TokenCacheManager
     from evohomeasync.schemas import (
         TccLocationResponseT,
         TccSessionResponseT,
         TccUserAccountInfoResponseT,
     )
-    from tests.conftest import TokenCacheManager
 
 
 async def _post_session(auth: Auth) -> TccSessionResponseT:
@@ -156,7 +156,7 @@ async def test_tcs_urls(
 
     #
     # PUT /evoTouchSystems?locationId={loc_id}  # NOTE: this URL doesn't work?
-    with pytest.raises(exc.ApiRequestFailedError) as err:
+    with pytest.raises(exc.ApiCallFailedError) as err:
         _ = await put_evo_touch_systems(auth, usr_locs[0]["locationID"])
     assert err.value.status == HTTPStatus.NOT_FOUND  # 404
 
@@ -194,7 +194,7 @@ async def test_zon_urls(
         if d["thermostatModelType"].startswith("EMEA_")
     )
 
-    with pytest.raises(exc.ApiRequestFailedError) as err:
+    with pytest.raises(exc.ApiCallFailedError) as err:
         _ = await put_devices_zon(auth, zon_id)
     assert err.value.status == HTTPStatus.BAD_REQUEST  # 400
 
@@ -234,7 +234,7 @@ async def test_dhw_urls(
     else:
         return
 
-    with pytest.raises(exc.ApiRequestFailedError) as err:
+    with pytest.raises(exc.ApiCallFailedError) as err:
         _ = await put_devices_dhw(auth, dhw["deviceID"])
     assert err.value.status == HTTPStatus.BAD_REQUEST  # 400
 

@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from evohomeasync2 import ApiRequestFailedError
+from evohomeasync2 import ApiCallFailedError
 from evohomeasync2.auth import Auth
 from evohomeasync2.schemas.account import factory_user_account
 from evohomeasync2.schemas.config import (
@@ -34,6 +34,7 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
+    from evohome_cli.auth import TokenCacheManager
     from evohomeasync2.schemas import (
         TccDhwDailySchedulesT,
         TccDhwStatusResponseT,
@@ -45,7 +46,6 @@ if TYPE_CHECKING:
         TccZonDailySchedulesT,
         TccZonStatusResponseT,
     )
-    from tests.conftest import TokenCacheManager
 
 
 async def _post_auth_oauth_token(auth: Auth) -> dict[str, int | str]:
@@ -167,7 +167,7 @@ async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
     )
 
     # for TCSs/zones, TemporaryOverride requires timeUntil (but DHW uses untilTime)
-    with pytest.raises(ApiRequestFailedError) as exc_info:
+    with pytest.raises(ApiCallFailedError) as exc_info:
         await auth._make_request(
             HTTPMethod.PUT,
             f"temperatureControlSystem/{tcs_id}/mode",
@@ -266,7 +266,7 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
     )
 
     # for TCSs/zones, TemporaryOverride requires timeUntil (but DHW uses untilTime)
-    with pytest.raises(ApiRequestFailedError) as exc_info:
+    with pytest.raises(ApiCallFailedError) as exc_info:
         await auth._make_request(
             HTTPMethod.PUT,
             f"temperatureZone/{zon_id}/heatSetpoint",
@@ -392,7 +392,7 @@ async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
     )
 
     # for DHW, TemporaryOverride requires untilTime (but zones use timeUntil)
-    with pytest.raises(ApiRequestFailedError) as exc_info:
+    with pytest.raises(ApiCallFailedError) as exc_info:
         await auth._make_request(
             HTTPMethod.PUT,
             f"domesticHotWater/{dhw_id}/state",

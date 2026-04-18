@@ -139,10 +139,10 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             {"system_mode": "HeatingOff",    "can_be_permanent": true, "can_be_temporary": false},
             {"system_mode": "Auto",          "can_be_permanent": true, "can_be_temporary": false},
             {"system_mode": "AutoWithReset", "can_be_permanent": true, "can_be_temporary": false},
-            {"system_mode": "AutoWithEco",   "can_be_permanent": true, "can_be_temporary": true, "maxDuration":  "1.00:00:00", "timingResolution":   "01:00:00", "timingMode": "Duration"},
-            {"system_mode": "Away",          "can_be_permanent": true, "can_be_temporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
-            {"system_mode": "DayOff",        "can_be_permanent": true, "can_be_temporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
-            {"system_mode": "Custom",        "can_be_permanent": true, "can_be_temporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"}
+            {"system_mode": "AutoWithEco",   "can_be_permanent": true, "can_be_temporary": true, "timingMode": "Duration", "maxDuration":  "1.00:00:00", "timingResolution":   "01:00:00"},
+            {"system_mode": "Away",          "can_be_permanent": true, "can_be_temporary": true, "timingMode": "Period",   "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00"},
+            {"system_mode": "DayOff",        "can_be_permanent": true, "can_be_temporary": true, "timingMode": "Period",   "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00"},
+            {"system_mode": "Custom",        "can_be_permanent": true, "can_be_temporary": true, "timingMode": "Period",   "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00"}
         ]
 
         Other systems support only these:
@@ -318,28 +318,28 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         await self.set_mode(SystemMode.HEAT)
 
     async def set_away(self, /, *, until: dt | None = None) -> None:
-        """Set the TCS to away mode.
+        """Set the TCS to away mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
         await self.set_mode(SystemMode.AWAY, until=until)
 
     async def set_custom(self, /, *, until: dt | None = None) -> None:
-        """Set the TCS to custom mode.
+        """Set the TCS to custom mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
         await self.set_mode(SystemMode.CUSTOM, until=until)
 
     async def set_dayoff(self, /, *, until: dt | None = None) -> None:
-        """Set the TCS to day_off mode.
+        """Set the TCS to day_off mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
         await self.set_mode(SystemMode.DAY_OFF, until=until)
 
     async def set_eco(self, /, *, until: dt | None = None) -> None:
-        """Set the TCS to economy mode.
+        """Set the TCS to economy mode (usu. for duration of hours).
 
         Some systems do not support this mode.
         """

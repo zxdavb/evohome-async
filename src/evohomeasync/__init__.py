@@ -15,8 +15,8 @@ import aiohttp
 from .auth import AbstractSessionManager
 from .entities import ControlSystem, Gateway, HotWater, Location, Zone
 from .exceptions import (
+    ApiCallFailedError,
     ApiRateLimitExceededError,
-    ApiRequestFailedError,
     AuthenticationFailedError,
     BadApiRequestError,
     BadApiResponseError,
@@ -139,8 +139,8 @@ __all__ = [  # noqa: RUF022
     "Zone",
     "HotWater",
     #
+    "ApiCallFailedError",
     "ApiRateLimitExceededError",
-    "ApiRequestFailedError",
     "AuthenticationFailedError",
     "BadApiRequestError",
     "BadApiResponseError",

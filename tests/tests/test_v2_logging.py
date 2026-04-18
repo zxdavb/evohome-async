@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
     from syrupy.assertion import SnapshotAssertion
 
-    from tests.conftest import TokenCacheManager
+    from evohome_cli.auth import TokenCacheManager
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:

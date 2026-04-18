@@ -14,7 +14,7 @@ from evohomeasync2 import EvohomeClient as EvohomeClientv2
 
 from .const import TEST_PASSWORD, TEST_USERNAME
 
-__all__ = ["EvohomeClientv0", "EvohomeClientv2", "TokenCacheManager"]
+__all__ = ["EvohomeClientv0", "EvohomeClientv2"]
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
