@@ -1,0 +1,116 @@
+# Bump version, squash-merge dev into main, publish to PyPI, then reset dev to main.
+# PyPI publish is handled by publish-pypi.yml, triggered by the GitHub release created here.
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: dev
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version
+        id: version
+        run: |
+          CURRENT=$(grep -oP '__version__\s*=\s*"\K[^"]+' src/_evohome/__init__.py)
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          case "${{ inputs.bump }}" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+          NEW="${MAJOR}.${MINOR}.${PATCH}"
+          sed -i "s/__version__ = \"${CURRENT}\"/__version__ = \"${NEW}\"/" src/_evohome/__init__.py
+          echo "NEW_VERSION=$NEW" >> $GITHUB_OUTPUT
+          echo "Bumped $CURRENT → $NEW"
+
+      - name: Commit and push version bump to dev
+        run: |
+          git add src/_evohome/__init__.py
+          git commit -m "Bump version to ${{ steps.version.outputs.NEW_VERSION }}"
+          git push origin dev
+
+      - name: Create PR dev → main
+        id: pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(gh pr create \
+            --base main \
+            --head dev \
+            --title "Release ${{ steps.version.outputs.NEW_VERSION }}" \
+            --body "Automated release of version ${{ steps.version.outputs.NEW_VERSION }}.")
+          PR_NUMBER=$(echo "$PR_URL" | grep -oP '\d+$')
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "Created PR #$PR_NUMBER"
+
+      - name: Enable auto-merge (squash)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge ${{ steps.pr.outputs.PR_NUMBER }} --squash --auto
+
+      - name: Wait for PR to merge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for i in $(seq 1 40); do
+            STATE=$(gh pr view ${{ steps.pr.outputs.PR_NUMBER }} --json state --jq '.state')
+            echo "Attempt $i/40: PR state = $STATE"
+            if [ "$STATE" = "MERGED" ]; then
+              echo "PR merged successfully."
+              break
+            fi
+            if [ "$STATE" = "CLOSED" ]; then
+              echo "PR was closed without merging — aborting."
+              exit 1
+            fi
+            sleep 30
+          done
+          [ "$STATE" = "MERGED" ] || { echo "Timed out waiting for PR to merge."; exit 1; }
+
+      - name: Tag release commit on main
+        run: |
+          git fetch origin main
+          git checkout main
+          git tag "v${{ steps.version.outputs.NEW_VERSION }}"
+          git push origin "v${{ steps.version.outputs.NEW_VERSION }}"
+
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.version.outputs.NEW_VERSION }}" \
+            --title "v${{ steps.version.outputs.NEW_VERSION }}" \
+            --generate-notes
+
+      - name: Reset dev to main
+        run: |
+          git checkout dev
+          git reset --hard origin/main
+          git push --force-with-lease origin dev
