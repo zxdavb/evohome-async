@@ -22,6 +22,8 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: read
 
 jobs:
   lint:
@@ -66,3 +68,15 @@ jobs:
           fi
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
+
+  lint-ok:
+    needs: lint
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: All lint checks passed
+        run: |
+          if [[ "${{ needs.lint.result }}" != "success" ]]; then
+            echo "lint job failed or was cancelled"
+            exit 1
+          fi

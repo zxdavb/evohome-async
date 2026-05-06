@@ -1,5 +1,7 @@
 name: Typing (mypy)
 
+permissions:
+  contents: read
 
 on:
   pull_request:
@@ -56,3 +58,15 @@ jobs:
         run: mypy
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
+
+  type-ok:
+    needs: type
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: All type checks passed
+        run: |
+          if [[ "${{ needs.type.result }}" != "success" ]]; then
+            echo "type job failed or was cancelled"
+            exit 1
+          fi
