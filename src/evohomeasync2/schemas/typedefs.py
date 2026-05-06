@@ -6,6 +6,7 @@ from typing import Literal, NotRequired, TypedDict
 
 from .const import (  # noqa: TC001
     DhwState,
+    FaultType,
     LocationType,
     SystemMode,
     TcsModelType,
@@ -190,7 +191,7 @@ class EvoGwyStatusResponseT(TypedDict):
 
 
 class EvoActiveFaultResponseT(TypedDict):
-    fault_type: str
+    fault_type: FaultType | str  # may be unknown/unexpected value, so allow str
     since: str
 
 
