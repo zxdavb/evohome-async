@@ -66,3 +66,15 @@ jobs:
         run: pytest -v
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
+
+  test-ok:
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: All test checks passed
+        run: |
+          if [[ "${{ needs.test.result }}" != "success" ]]; then
+            echo "test job failed or was cancelled"
+            exit 1
+          fi
