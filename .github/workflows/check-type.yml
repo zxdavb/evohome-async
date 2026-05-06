@@ -1,5 +1,7 @@
 name: Typing (mypy)
 
+permissions:
+  contents: read
 
 on:
   pull_request:
