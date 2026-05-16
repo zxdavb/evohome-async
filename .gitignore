@@ -22,6 +22,9 @@ custom_components
 !tests/**/*.yaml
 
 
+src/_evohome/_version.py
+uv.lock
+
 ### github's default .gitignore file
 # https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
 
