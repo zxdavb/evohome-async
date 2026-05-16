@@ -1,23 +1,45 @@
-name-template: "v$NEXT_PATCH_VERSION"
-tag-template: "v$NEXT_PATCH_VERSION"
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+
+version-resolver:
+  major:
+    labels:
+      - "breaking-change"
+  minor:
+    labels:
+      - "enhancement"
+      - "feature"
+  patch:
+    labels:
+      - "bug"
+      - "bugfix"
+      - "fix"
+      - "dependencies"
+      - "ci"
+      - "internal"
+  default: patch
 
 categories:
   - title: "🚀 Features"
     labels:
       - "enhancement"
       - "feature"
+
   - title: "🐛 Bug Fixes"
     labels:
       - "bug"
       - "bugfix"
       - "fix"
+
   - title: "⬆️ Dependencies"
     labels:
       - "dependencies"
     collapse-after: 5
+
   - title: "🏠 HA Integration"
     labels:
       - "ha-integration"
+
   - title: "🔧 Internal / CI"
     labels:
       - "ci"
@@ -34,12 +56,18 @@ autolabeler:
   - label: "ci"
     files:
       - ".github/**"
+    title:
+      - "/^ci:/i"
+
+  - label: "internal"
+    files:
       - "pyproject.toml"
       - ".gitignore"
       - ".pre-commit-config.yaml"
       - ".vscode/**"
     title:
-      - "/^ci:/i"
+      - "/^internal:/i"
+      - "/^chore[:(]/i"
 
   - label: "dependencies"
     title:
@@ -58,4 +86,4 @@ template: |
   ## What's changed
   $CHANGES
 
-  **Full changelog:** $PREVIOUS_TAG...v$NEXT_PATCH_VERSION
+  **Full changelog:** $PREVIOUS_TAG...v$RESOLVED_VERSION
