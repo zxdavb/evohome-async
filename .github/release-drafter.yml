@@ -36,10 +36,6 @@ categories:
       - "dependencies"
     collapse-after: 5
 
-  - title: "🏠 HA Integration"
-    labels:
-      - "ha-integration"
-
   - title: "🔧 Internal / CI"
     labels:
       - "ci"
@@ -48,6 +44,7 @@ categories:
 
   - title: "🔀 Other"
     labels: []
+    collapse-after: 3
 
 exclude-labels:
   - "skip-changelog"
