@@ -8,9 +8,7 @@ Further information at: https://evohome-client.readthedocs.io
 from __future__ import annotations
 
 from datetime import UTC, datetime as dt
-from typing import Self
-
-import aiohttp
+from typing import TYPE_CHECKING, Self
 
 from .auth import AbstractTokenManager
 from .control_system import ControlSystem
@@ -40,6 +38,9 @@ from .location import Location
 from .main import EvohomeClient
 from .zone import Zone
 
+if TYPE_CHECKING:
+    from aiohttp import ClientSession
+
 
 class _TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
     """A TokenManager wrapper to help expose the refactored EvohomeClient."""
@@ -48,7 +49,7 @@ class _TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
         self,
         username: str,
         password: str,
-        websession: aiohttp.ClientSession,
+        websession: ClientSession,
         /,
         *,
         access_token: str | None = None,
@@ -87,13 +88,10 @@ class EvohomeClientOld(EvohomeClient):
         refresh_token: str | None = None,
         access_token: str | None = None,
         access_token_expires: dt | None = None,
-        websession: aiohttp.ClientSession | None = None,
+        websession: ClientSession,
         debug: bool = False,
     ) -> None:
         """Construct the v2 EvohomeClient object."""
-        self._owns_session = websession is None
-        websession = websession or aiohttp.ClientSession()
-
         self._token_manager = _TokenManager(
             username,
             password,
@@ -105,9 +103,7 @@ class EvohomeClientOld(EvohomeClient):
         super().__init__(self._token_manager, debug=debug)
 
     async def close(self) -> None:
-        """Close the owned aiohttp.ClientSession, if any."""
-        if self._owns_session:
-            await self._token_manager.websession.close()
+        """Close the client wrapper."""
 
     async def __aenter__(self) -> Self:
         return self

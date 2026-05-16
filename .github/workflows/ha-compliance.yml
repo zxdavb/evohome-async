@@ -1,0 +1,92 @@
+name: ha-compliance
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "dev"]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-transparency:
+    name: "Rule: dependency-transparency"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          check-latest: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install compliance check dependencies
+        run: uv pip install --system build packaging
+
+      - name: Check no exact pins (==) in library dependencies
+        run: python .github/scripts/check_ha_compliance.py no-exact-pins
+
+      - name: Check dependency floors do not exceed HA stable pin
+        run: python .github/scripts/check_ha_compliance.py dep-ceiling
+
+      - name: Build wheel
+        run: python -m build --wheel --no-isolation
+
+      - name: Check py.typed present in built wheel
+        run: python .github/scripts/check_ha_compliance.py py-typed-wheel
+
+  async-dependency:
+    name: "Rule: async-dependency"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check for blocking I/O in library source
+        run: python .github/scripts/check_ha_compliance.py async-dep
+
+  inject-websession:
+    name: "Rule: inject-websession"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check no internal ClientSession construction
+        run: python .github/scripts/check_ha_compliance.py inject-websession
+
+  strict-typing:
+    name: "Rule: strict-typing"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          check-latest: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install project dependencies
+        run: uv pip install --system -e .[cli,dev]
+
+      - name: Install compliance check dependencies
+        run: uv pip install --system packaging
+
+      - name: Check py.typed marker exists in source
+        run: python .github/scripts/check_ha_compliance.py py-typed
+
+      - name: Check Python version coverage (HA current + previous)
+        run: python .github/scripts/check_ha_compliance.py python-versions
+
+      - name: mypy --strict src/
+        run: mypy --strict src/
