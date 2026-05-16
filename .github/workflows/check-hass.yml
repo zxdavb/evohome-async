@@ -36,13 +36,13 @@ on:
       ha_version:
         description: "Home Assistant version/branch to test against"
         required: false
-        default: "dev"
+        default: "master"
         type: string
 
 
 env:
   HA_REPO: ${{ github.event.inputs.ha_repo || 'home-assistant/core' }}
-  HA_VERSION: ${{ github.event.inputs.ha_version || 'dev' }}
+  HA_VERSION: ${{ github.event.inputs.ha_version || 'master' }}
 
 
 jobs:
