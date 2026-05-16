@@ -3,12 +3,16 @@
 
 name: Test with Home Assistant
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches: [ "main" ]
     paths: [
       ".github/workflows/check-hass.yml",
       "pyproject.toml",
+      "src/**.py",
     ]
 
   push:
@@ -16,6 +20,7 @@ on:
     paths: [
       ".github/workflows/check-hass.yml",
       "pyproject.toml",
+      "src/**.py",
     ]
 
   schedule:
@@ -31,13 +36,13 @@ on:
       ha_version:
         description: "Home Assistant version/branch to test against"
         required: false
-        default: "dev"
+        default: "master"
         type: string
 
 
 env:
   HA_REPO: ${{ github.event.inputs.ha_repo || 'home-assistant/core' }}
-  HA_VERSION: ${{ github.event.inputs.ha_version || 'dev' }}
+  HA_VERSION: ${{ github.event.inputs.ha_version || 'master' }}
 
 
 jobs:
@@ -164,3 +169,15 @@ jobs:
             tests/components/evohome/
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
+
+  hass-ok:
+    needs: test-with-hass
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: All HA checks passed
+        run: |
+          if [[ "${{ needs.test-with-hass.result }}" != "success" ]]; then
+            echo "test-with-hass job failed or was cancelled"
+            exit 1
+          fi
