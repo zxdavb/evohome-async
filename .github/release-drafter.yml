@@ -24,8 +24,35 @@ categories:
       - "internal"
     collapse-after: 3
 
+  - title: "🔀 Other"
+    labels: []
+
 exclude-labels:
   - "skip-changelog"
+
+autolabeler:
+  - label: "ci"
+    files:
+      - ".github/**"
+      - "pyproject.toml"
+      - ".gitignore"
+      - ".pre-commit-config.yaml"
+      - ".vscode/**"
+    title:
+      - "/^ci:/i"
+
+  - label: "dependencies"
+    title:
+      - "/^(chore|build)\\(deps\\)/i"
+      - "/^bump /i"
+
+  - label: "bug"
+    title:
+      - "/^fix[:(]/i"
+
+  - label: "enhancement"
+    title:
+      - "/^feat[:(]/i"
 
 template: |
   ## What's changed
