@@ -1,0 +1,22 @@
+name: Tag
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: read
+
+jobs:
+  check-lint:
+    name: Linting
+    uses: ./.github/workflows/check-lint.yml
+
+  check-type:
+    name: Typing
+    uses: ./.github/workflows/check-type.yml
+
+  check-test:
+    name: Testing
+    uses: ./.github/workflows/check-test.yml

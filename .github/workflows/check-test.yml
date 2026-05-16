@@ -26,6 +26,7 @@ on:
     - cron: "0 18 * * 5"  # Weekly on Friday - includes 3.15
 
   workflow_dispatch:
+  workflow_call:
 
 
 jobs:
