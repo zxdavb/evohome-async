@@ -59,8 +59,7 @@ jobs:
     uses: ./.github/workflows/check-hass-tests.yml
     with:
       ha_version: "dev"
-    # Dev branch failures warn but do not block the release
-    continue-on-error: true
+    # Not in build's needs — failures are informational and do not block the release
 
   build:
     name: Build distribution
