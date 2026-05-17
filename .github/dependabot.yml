@@ -1,29 +1,5 @@
-# Please see the documentation for all configuration options:
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+# Version updates disabled — managed by Renovate instead.
+# Security alerts from Dependabot remain active regardless of this file.
 
 version: 2
-
-updates:
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      development-dependencies:
-        patterns:
-          - "pytest*"
-          - "ruff"
-          - "mypy"
-          - "types-*"
-        update-types:
-          - "minor"
-          - "patch"
-
-  - package-ecosystem: "github-actions"
-    directory: ".github/workflows"
-    schedule:
-      interval: "weekly"
-    groups:
-      actions:
-        patterns:
-          - "*"
+updates: []

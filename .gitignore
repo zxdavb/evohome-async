@@ -9,6 +9,7 @@ tokens*
 
 # schedule backups
 /*.json
+!renovate.json
 
 # temporary: a WIP
 tests.*/
