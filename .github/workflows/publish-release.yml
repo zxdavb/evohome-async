@@ -16,7 +16,7 @@ jobs:
     name: Typing
     uses: ./.github/workflows/check-type.yml
 
-  check-test:
+  check-tests:
     name: Testing
     uses: ./.github/workflows/check-tests.yml
 
@@ -50,7 +50,7 @@ jobs:
 
   build:
     name: Build distribution
-    needs: [validate-tag, check-lint, check-type, check-test]
+    needs: [validate-tag, check-lint, check-type, check-tests]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

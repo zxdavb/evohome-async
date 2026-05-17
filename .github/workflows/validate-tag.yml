@@ -17,7 +17,7 @@ jobs:
     name: Typing
     uses: ./.github/workflows/check-type.yml
 
-  check-test:
+  check-tests:
     name: Testing
     uses: ./.github/workflows/check-tests.yml
 
