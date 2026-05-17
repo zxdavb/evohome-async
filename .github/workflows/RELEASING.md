@@ -2,7 +2,7 @@
 
 ## Branch model
 
-```
+```text
 feature/my-change  →  dev  →  main  →  tag  →  PyPI
 ```
 
@@ -19,7 +19,7 @@ feature/my-change  →  dev  →  main  →  tag  →  PyPI
 3. Apply a label — this determines which section of the release notes the PR appears in:
 
    | Label | Release notes section |
-   |---|---|
+   | --- | --- |
    | `enhancement`, `feature` | 🚀 Features |
    | `bug`, `bugfix`, `fix` | 🐛 Bug Fixes |
    | `dependencies` | ⬆️ Dependencies |
@@ -28,7 +28,7 @@ feature/my-change  →  dev  →  main  →  tag  →  PyPI
    | `skip-changelog` | (excluded from notes) |
    | *(none)* | 🔀 Other |
 
-4. CI runs lint, type-check, and tests.
+4. CI runs lint, type-check, and tests (HA integration tests are **not** required for `dev` PRs).
 5. Merge to `dev`.
 6. **Release-drafter** automatically updates the draft GitHub Release with the PR, and bumps the suggested next version based on the labels seen so far:
    - `breaking-change` → major
@@ -41,7 +41,7 @@ feature/my-change  →  dev  →  main  →  tag  →  PyPI
 
 ### 1. Merge `dev` → `main`
 
-Open (or push) a PR from `dev` into `main`. This is the release boundary — only merge when ready to publish.
+Open (or push) a PR from `dev` into `main`. This is the release boundary — only merge when ready to publish. The full CI suite runs here, including **`check-hass-tests`**, which is not required for `dev` PRs.
 
 ### 2. Create a tag on `main`
 
@@ -53,6 +53,7 @@ git push origin v1.2.3
 
 The tag format must be `vMAJOR.MINOR.PATCH`. Pushing the tag triggers
 **`validate-tag.yml`**, which:
+
 - confirms the tag format is correct,
 - confirms the tagged commit is reachable from `main`,
 - runs lint, type-check, and tests.
@@ -65,6 +66,7 @@ The tag format must be `vMAJOR.MINOR.PATCH`. Pushing the tag triggers
 4. Click **Publish release**.
 
 Publishing triggers **`publish-release.yml`**, which:
+
 - re-validates the tag (format + ancestry),
 - re-runs lint, type-check, and tests,
 - builds the wheel (`python -m build`),
