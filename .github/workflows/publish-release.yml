@@ -48,9 +48,22 @@ jobs:
           fi
           echo "OK: '$TAG' is reachable from main"
 
+  ha-integration-stable:
+    name: HA Integration (stable)
+    uses: ./.github/workflows/check-hass-tests.yml
+    with:
+      ha_version: "master"
+
+  ha-integration-dev:
+    name: HA Integration (dev)
+    uses: ./.github/workflows/check-hass-tests.yml
+    with:
+      ha_version: "dev"
+    # Not in build's needs — failures are informational and do not block the release
+
   build:
     name: Build distribution
-    needs: [validate-tag, check-lint, check-type, check-tests]
+    needs: [validate-tag, check-lint, check-type, check-tests, ha-integration-stable]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
