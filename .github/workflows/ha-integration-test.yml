@@ -71,6 +71,7 @@ jobs:
             -v \
             --tb=short \
             --no-header \
+            --override-ini=testpaths= \
             -p no:sugar
 
       - name: Report HA ref tested
