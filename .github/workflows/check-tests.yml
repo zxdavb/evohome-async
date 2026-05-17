@@ -7,7 +7,7 @@ on:
   pull_request:
     branches: [ "main", "dev" ]
     paths: [
-      ".github/workflows/check-test.yml",
+      ".github/workflows/check-tests.yml",
       "pyproject.toml",
       "src/**.py",
       "tests/**",
@@ -16,7 +16,7 @@ on:
   push:
     branches: [ "main", "dev" ]
     paths: [
-      ".github/workflows/check-test.yml",
+      ".github/workflows/check-tests.yml",
       "pyproject.toml",
       "src/**.py",
       "tests/**",
@@ -26,6 +26,7 @@ on:
     - cron: "0 18 * * 5"  # Weekly on Friday - includes 3.15
 
   workflow_dispatch:
+  workflow_call:
 
 
 jobs:
