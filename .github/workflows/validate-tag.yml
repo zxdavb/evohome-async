@@ -21,6 +21,12 @@ jobs:
     name: Testing
     uses: ./.github/workflows/check-tests.yml
 
+  ha-integration:
+    name: HA Integration (stable)
+    uses: ./.github/workflows/check-hass-tests.yml
+    with:
+      ha_version: "master"
+
   validate-tag:
     name: Validate tag
     runs-on: ubuntu-latest
