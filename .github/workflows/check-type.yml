@@ -1,7 +1,8 @@
+#
+#
+
 name: Typing (mypy)
 
-permissions:
-  contents: read
 
 on:
   pull_request:
@@ -24,7 +25,13 @@ on:
       "tests/**.py",
     ]
 
+  workflow_call:
+
   workflow_dispatch:
+
+
+permissions:
+  contents: read
 
 
 jobs:
@@ -59,7 +66,7 @@ jobs:
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
-  type-ok:
+  type-ok:  # stable sentinel job for branch protection rules (avoids listing matrix variants)
     needs: type
     runs-on: ubuntu-latest
     if: always()

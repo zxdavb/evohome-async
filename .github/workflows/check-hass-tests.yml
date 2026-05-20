@@ -3,23 +3,39 @@
 
 name: Test with Home Assistant
 
+
 on:
   pull_request:
     branches: [ "main" ]
     paths: [
-      ".github/workflows/check-hass.yml",
+      ".github/workflows/check-hass-tests.yml",
       "pyproject.toml",
+      "src/**.py",
     ]
 
   push:
     branches: [ "main" ]
     paths: [
-      ".github/workflows/check-hass.yml",
+      ".github/workflows/check-hass-tests.yml",
       "pyproject.toml",
+      "src/**.py",
     ]
 
   schedule:
     - cron: "0 5 * * 6"  # Saturdays at 05:00 UTC
+
+  workflow_call:
+    inputs:
+      ha_repo:
+        description: "Home Assistant repository (owner/repo)"
+        required: false
+        default: "home-assistant/core"
+        type: string
+      ha_version:
+        description: "Home Assistant version/branch to test against"
+        required: false
+        default: "master"
+        type: string
 
   workflow_dispatch:
     inputs:
@@ -31,13 +47,17 @@ on:
       ha_version:
         description: "Home Assistant version/branch to test against"
         required: false
-        default: "dev"
+        default: "master"
         type: string
 
 
+permissions:
+  contents: read
+
+
 env:
-  HA_REPO: ${{ github.event.inputs.ha_repo || 'home-assistant/core' }}
-  HA_VERSION: ${{ github.event.inputs.ha_version || 'dev' }}
+  HA_REPO: ${{ inputs.ha_repo || 'home-assistant/core' }}
+  HA_VERSION: ${{ inputs.ha_version || 'master' }}
 
 
 jobs:
@@ -145,8 +165,8 @@ jobs:
       - name: Run Home Assistant evohome tests (only)
         working-directory: home-assistant-core
         env:
-          PYTHONDONTWRITEBYTECODE: 1
-          PYTEST_ADDOPTS: "--color=yes"
+          PYTHONDONTWRITEBYTECODE: 1  # cspell:ignore PYTHONDONTWRITEBYTECODE
+          PYTEST_ADDOPTS: "--color=yes"  # cspell:ignore ADDOPTS, color
         run: |
           . venv/bin/activate
 
@@ -164,3 +184,16 @@ jobs:
             tests/components/evohome/
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
+
+  hass-ok:  # stable sentinel job for branch protection rules (avoids listing matrix variants)
+    needs: test-with-hass
+    runs-on: ubuntu-latest
+    if: always()
+    continue-on-error: true  # informational for now — failures do not block merges
+    steps:
+      - name: All HA checks passed
+        run: |
+          if [[ "${{ needs.test-with-hass.result }}" != "success" ]]; then
+            echo "test-with-hass job failed or was cancelled"
+            exit 1
+          fi

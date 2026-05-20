@@ -70,7 +70,7 @@ evo-client = "evohome_cli.client:main"
 ### build-system, hatch ##############################################################
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 #
@@ -81,7 +81,13 @@ sources = ["src"]
 packages = ["src/evohomeasync", "src/evohomeasync2", "src/_evohome", "src/evohome_cli"]
 
 [tool.hatch.version]
-path = "src/_evohome/__init__.py"
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+fallback_version = "0.0.0"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/_evohome/_version.py"
 
 
 #

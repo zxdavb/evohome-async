@@ -1,0 +1,86 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+
+version-resolver:
+  major:
+    labels:
+      - "breaking-change"
+  minor:
+    labels:
+      - "enhancement"
+      - "feature"
+  patch:
+    labels:
+      - "bug"
+      - "bugfix"
+      - "fix"
+      - "dependencies"
+      - "ci"
+      - "internal"
+  default: patch
+
+categories:
+  - title: "🚀 Features"
+    labels:
+      - "enhancement"
+      - "feature"
+
+  - title: "🐛 Bug Fixes"
+    labels:
+      - "bug"
+      - "bugfix"
+      - "fix"
+
+  - title: "⬆️ Dependencies"
+    labels:
+      - "dependencies"
+    collapse-after: 5
+
+  - title: "🔧 Internal / CI"
+    labels:
+      - "ci"
+      - "internal"
+    collapse-after: 3
+
+  - title: "🔀 Other"
+    labels: []
+    collapse-after: 3
+
+exclude-labels:
+  - "skip-changelog"
+
+autolabeler:
+  - label: "ci"
+    files:
+      - ".github/**"
+    title:
+      - "/^ci:/i"
+
+  - label: "internal"
+    files:
+      - "pyproject.toml"
+      - ".gitignore"
+      - ".pre-commit-config.yaml"
+      - ".vscode/**"
+    title:
+      - "/^internal:/i"
+      - "/^chore[:(]/i"
+
+  - label: "dependencies"
+    title:
+      - "/^(chore|build)\\(deps\\)/i"
+      - "/^bump /i"
+
+  - label: "bug"
+    title:
+      - "/^fix[:(]/i"
+
+  - label: "enhancement"
+    title:
+      - "/^feat[:(]/i"
+
+template: |
+  ## What's changed
+  $CHANGES
+
+  **Full changelog:** $PREVIOUS_TAG...v$RESOLVED_VERSION

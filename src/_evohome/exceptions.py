@@ -122,3 +122,7 @@ class InvalidScheduleError(StatusError):  # schedule JSON is invalid/missing
 
     This is likely because the user has not yet called `Zone.get_schedule()`.
     """
+
+
+# Backward-compatibility aliases (deprecated names used by HA integration)
+ApiRequestFailedError = ApiCallFailedError  # renamed to ApiCallFailedError
