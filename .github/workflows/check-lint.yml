@@ -1,7 +1,7 @@
 #
 #
 
-name: Linting (ruff)
+name: Linting (ruff, codespell)
 
 
 on:
@@ -54,7 +54,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Install dependencies
-        run: uv pip install --system ruff
+        run: uv pip install --system ruff codespell
 
       - name: Log ruff version
         run: ruff --version
@@ -73,6 +73,23 @@ jobs:
             echo "ERROR: Found _DBG_* flags not set to False"
             exit 1
           fi
+
+      - name: Check for secrets in comments
+        if: always()
+        run: |
+          if grep -rPn '#.*(SECRET|PASSWORD|PWD)' --include='*.py' .; then
+            echo "ERROR: Found potential secret in a comment"
+            exit 1
+          fi
+
+      - name: Check spelling with codespell
+        if: always()
+        run: |
+          codespell \
+            --ignore-words-list=FLE \
+            --skip="*.csv,*.json,*.ambr,*.xml" \
+            --quiet-level=2 \
+            src/ tests/ .github/
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
