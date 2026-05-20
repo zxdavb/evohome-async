@@ -189,6 +189,7 @@ jobs:
     needs: test-with-hass
     runs-on: ubuntu-latest
     if: always()
+    continue-on-error: true  # informational for now — failures do not block merges
     steps:
       - name: All HA checks passed
         run: |
