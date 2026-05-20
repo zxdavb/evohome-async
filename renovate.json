@@ -1,0 +1,58 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+
+  "rangeStrategy": "bump",
+
+  "packageRules": [
+    {
+      "description": "Automerge minor and patch updates for Python deps and Actions",
+      "matchManagers": ["pep621", "github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash",
+      "addLabels": ["dependencies"]
+    },
+    {
+      "description": "Major updates require human review",
+      "matchManagers": ["pep621", "github-actions"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "addLabels": ["dependencies"]
+    },
+    {
+      "description": "Do not manage requires-python — handled manually per policy",
+      "matchDepTypes": ["requires-python"],
+      "enabled": false
+    },
+    {
+      "description": "Group all GitHub Actions updates into one PR",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "GitHub Actions",
+      "automerge": true
+    },
+    {
+      "description": "Group all Python dependency minor/patch updates into one PR",
+      "matchManagers": ["pep621"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Python dependencies (minor/patch)",
+      "automerge": true
+    }
+  ],
+
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "Renovate Dependency Dashboard",
+
+  "schedule": ["before 6am on Monday"],
+
+  "prConcurrentLimit": 5,
+
+  "commitMessagePrefix": "⬆️",
+  "commitMessageAction": "bump",
+
+  "ignorePaths": [
+    "**/node_modules/**"
+  ]
+}
