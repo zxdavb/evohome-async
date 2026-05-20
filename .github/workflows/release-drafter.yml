@@ -1,12 +1,15 @@
 name: Release Drafter
 
+
 on:
   push:
     branches: ["dev"]
 
+
 permissions:
   contents: write
   pull-requests: write
+
 
 jobs:
   draft:

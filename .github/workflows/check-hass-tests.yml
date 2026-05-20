@@ -3,8 +3,6 @@
 
 name: Test with Home Assistant
 
-permissions:
-  contents: read
 
 on:
   pull_request:
@@ -51,6 +49,10 @@ on:
         required: false
         default: "master"
         type: string
+
+
+permissions:
+  contents: read
 
 
 env:
@@ -163,8 +165,8 @@ jobs:
       - name: Run Home Assistant evohome tests (only)
         working-directory: home-assistant-core
         env:
-          PYTHONDONTWRITEBYTECODE: 1
-          PYTEST_ADDOPTS: "--color=yes"
+          PYTHONDONTWRITEBYTECODE: 1  # cspell:ignore PYTHONDONTWRITEBYTECODE
+          PYTEST_ADDOPTS: "--color=yes"  # cspell:ignore ADDOPTS, color
         run: |
           . venv/bin/activate
 
@@ -183,7 +185,7 @@ jobs:
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
-  hass-ok:
+  hass-ok:  # stable sentinel job for branch protection rules (avoids listing matrix variants)
     needs: test-with-hass
     runs-on: ubuntu-latest
     if: always()
