@@ -29,13 +29,6 @@
       "enabled": false
     },
     {
-      "description": "Runtime deps must stay compatible with HA — disable automerge, require human review",
-      "matchManagers": ["pep621"],
-      "matchDepTypes": ["project.dependencies"],
-      "automerge": false,
-      "addLabels": ["dependencies", "ha-compat-check"]
-    },
-    {
       "description": "Group all GitHub Actions updates into one PR",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch"],
@@ -48,6 +41,13 @@
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "Python dependencies (minor/patch)",
       "automerge": true
+    },
+    {
+      "description": "Runtime deps must stay compatible with HA — disable automerge, require human review (must be last rule to override grouping rules above)",
+      "matchManagers": ["pep621"],
+      "matchDepTypes": ["project.dependencies"],
+      "automerge": false,
+      "addLabels": ["dependencies", "ha-compat-check"]
     }
   ],
 
