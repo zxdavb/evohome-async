@@ -7,21 +7,9 @@ name: Linting (ruff, codespell)
 on:
   pull_request:
     branches: [ "main", "dev" ]
-    paths: [
-      ".github/workflows/check-lint.yml",
-      "pyproject.toml",
-      "src/**.py",
-      "tests/**",
-    ]
 
   push:
     branches: [ "main", "dev" ]
-    paths: [
-      ".github/workflows/check-lint.yml",
-      "pyproject.toml",
-      "src/**.py",
-      "tests/**",
-    ]
 
   workflow_call:
 

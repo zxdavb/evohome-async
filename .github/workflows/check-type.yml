@@ -7,23 +7,9 @@ name: Typing (mypy)
 on:
   pull_request:
     branches: [ "main", "dev" ]
-    paths: [
-      ".github/workflows/check-type.yml",
-      "pyproject.toml",
-      "src/**.py",
-      "src/**/py.typed",
-      "tests/**.py",
-    ]
 
   push:
     branches: [ "main", "dev" ]
-    paths: [
-      ".github/workflows/check-type.yml",
-      "pyproject.toml",
-      "src/**.py",
-      "src/**/py.typed",
-      "tests/**.py",
-    ]
 
   workflow_call:
 
