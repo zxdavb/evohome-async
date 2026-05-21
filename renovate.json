@@ -9,7 +9,7 @@
   "packageRules": [
     {
       "description": "Automerge minor and patch updates for Python deps and Actions",
-      "matchManagers": ["pep621", "github-actions"],
+      "matchManagers": ["poetry", "github-actions"],
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true,
       "automergeType": "pr",
@@ -18,7 +18,7 @@
     },
     {
       "description": "Major updates require human review",
-      "matchManagers": ["pep621", "github-actions"],
+      "matchManagers": ["poetry", "github-actions"],
       "matchUpdateTypes": ["major"],
       "automerge": false,
       "addLabels": ["dependencies"]
@@ -29,13 +29,6 @@
       "enabled": false
     },
     {
-      "description": "Runtime deps must stay compatible with HA — disable automerge, require human review",
-      "matchManagers": ["pep621"],
-      "matchDepTypes": ["project.dependencies"],
-      "automerge": false,
-      "addLabels": ["dependencies", "ha-compat-check"]
-    },
-    {
       "description": "Group all GitHub Actions updates into one PR",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch"],
@@ -44,17 +37,15 @@
     },
     {
       "description": "Group all Python dependency minor/patch updates into one PR",
-      "matchManagers": ["pep621"],
+      "matchManagers": ["poetry"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "Python dependencies (minor/patch)",
       "automerge": true
     },
     {
-      "description": "Runtime deps must stay compatible with HA — disable automerge, require human review (must be last rule to override grouping rules above)",
-      "matchManagers": ["pep621"],
-      "matchDepTypes": ["project.dependencies"],
-      "automerge": false,
-      "addLabels": ["dependencies", "ha-compat-check"]
+      "description": "Runtime deps must stay compatible with HA — managed manually, not by Renovate",
+      "matchPackageNames": ["aiohttp", "aiozoneinfo", "voluptuous"],
+      "enabled": false
     }
   ],
 
