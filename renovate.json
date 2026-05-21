@@ -9,7 +9,6 @@
   "packageRules": [
     {
       "description": "Automerge minor and patch updates for Python deps and Actions",
-      "matchManagers": ["poetry", "github-actions"],
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true,
       "automergeType": "pr",
@@ -18,7 +17,6 @@
     },
     {
       "description": "Major updates require human review",
-      "matchManagers": ["poetry", "github-actions"],
       "matchUpdateTypes": ["major"],
       "automerge": false,
       "addLabels": ["dependencies"]
@@ -37,7 +35,7 @@
     },
     {
       "description": "Group all Python dependency minor/patch updates into one PR",
-      "matchManagers": ["poetry"],
+      "matchCategories": ["python"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "Python dependencies (minor/patch)",
       "automerge": true
