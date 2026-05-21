@@ -7,21 +7,9 @@ name: Testing (pytest)
 on:
   pull_request:
     branches: [ "main", "dev" ]
-    paths: [
-      ".github/workflows/check-tests.yml",
-      "pyproject.toml",
-      "src/**.py",
-      "tests/**",
-    ]
 
   push:
     branches: [ "main", "dev" ]
-    paths: [
-      ".github/workflows/check-tests.yml",
-      "pyproject.toml",
-      "src/**.py",
-      "tests/**",
-    ]
 
   schedule:
     - cron: "0 18 * * 5"  # Weekly on Friday
