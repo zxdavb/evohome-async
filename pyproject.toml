@@ -39,7 +39,7 @@ dev = [
   "ruff>=0.14.13",
   # typing
   "mypy>=1.19.1",
-  "types-aiofiles>=24.1.0.20250822",
+  "types-aiofiles>=25.1.0.20260518",
   "types-PyYAML>=6.0.12.20250915",
   # testing
   "aioresponses>=0.7.8",
