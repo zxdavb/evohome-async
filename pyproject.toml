@@ -28,7 +28,7 @@ classifiers = [
 #
 [project.optional-dependencies]
 cli = [
-  "aiofiles>=24.1.0",
+  "aiofiles>=25.1.0",
   "asyncclick>=8.3.0",
   "debugpy>=1.8.17",
   "keyring>=25.7.0",
