@@ -36,28 +36,36 @@ jobs:
           python3 - <<'EOF'
           import json, re, urllib.error, urllib.request, datetime, os
 
+          FLOOR = (3, 13)
+          FALLBACK = ["3.13", "3.14"]  # used if endoflife.date is unavailable
+
           # All non-EOL Python versions >= 3.13 from endoflife.date
-          with urllib.request.urlopen("https://endoflife.date/api/python.json") as r:
-              cycles = json.loads(r.read())
-          today = datetime.date.today().isoformat()
-          versions = sorted(
-              c["latest"] for c in cycles
-              if c["eol"] > today
-              and tuple(int(x) for x in c["cycle"].split(".")) >= (3, 13)
-          )
+          try:
+              with urllib.request.urlopen(
+                  "https://endoflife.date/api/python.json", timeout=10
+              ) as r:
+                  cycles = json.loads(r.read())
+              today = datetime.date.today().isoformat()
+              versions = sorted(
+                  c["latest"] for c in cycles
+                  if c["eol"] > today
+                  and tuple(int(x) for x in c["cycle"].split(".")) >= FLOOR
+              )
+          except (urllib.error.URLError, OSError, ValueError):
+              versions = list(FALLBACK)  # fallback: minor-only; setup-python resolves latest patch
 
           # Also include HA dev's required Python if it's a pre-release not yet on endoflife.date
           url = "https://raw.githubusercontent.com/home-assistant/core/dev/pyproject.toml"
           try:
-              with urllib.request.urlopen(url) as r:
+              with urllib.request.urlopen(url, timeout=10) as r:
                   content = r.read().decode()
               m = re.search(r'requires-python\s*=\s*">=(\d+\.\d+)', content)
               if m:
                   ha_minor = m.group(1)
-                  if not any(v.startswith(ha_minor + ".") for v in versions):
-                      versions.append(ha_minor + ".0")
+                  if not any(v.startswith(ha_minor + ".") or v == ha_minor for v in versions):
+                      versions.append(ha_minor)  # minor-only; allow-prereleases resolves latest
                       versions.sort()
-          except (urllib.error.URLError, ValueError):
+          except (urllib.error.URLError, OSError, ValueError):
               pass  # best-effort; HA's version is normally covered by endoflife.date
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
