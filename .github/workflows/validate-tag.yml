@@ -1,4 +1,4 @@
-name: Tag
+name: Validate Version Tag
 
 
 on:
@@ -24,15 +24,15 @@ jobs:
     needs: [validate-tag]
     uses: ./.github/workflows/check-lint.yml
 
-  check-type:
-    name: Typing
-    needs: [validate-tag]
-    uses: ./.github/workflows/check-type.yml
-
   check-tests:
     name: Testing
     needs: [validate-tag]
     uses: ./.github/workflows/check-tests.yml
+
+  check-type:
+    name: Typing
+    needs: [validate-tag]
+    uses: ./.github/workflows/check-type.yml
 
   ha-integration-stable:
     name: HA Integration (stable)
