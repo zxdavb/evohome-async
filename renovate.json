@@ -29,7 +29,7 @@
     {
       "description": "Python version inputs in workflows are managed dynamically — Renovate must not update them",
       "matchManagers": ["github-actions"],
-      "matchPackageNames": ["python"],
+      "matchDepNames": ["python"],
       "enabled": false
     },
     {
