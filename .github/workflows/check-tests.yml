@@ -38,7 +38,10 @@ jobs:
           python3 - <<'EOF'
           import json, re, urllib.error, urllib.request, datetime, os
 
-          FLOOR = (3, 13)
+          # Floor derived from requires-python in pyproject.toml
+          with open("pyproject.toml") as f:
+              _rp = re.search(r'requires-python\s*=\s*">=(\d+)\.(\d+)', f.read())
+          FLOOR = (int(_rp.group(1)), int(_rp.group(2))) if _rp else (3, 13)
 
           # Versioned fallback — used if endoflife.date API is unavailable
           with open(".github/python-versions.json") as f:
