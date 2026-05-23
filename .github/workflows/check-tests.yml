@@ -62,7 +62,7 @@ jobs:
 
       - name: Test with pytest
         env:
-          PYTEST_ADDOPTS: "--color=yes"
+          PYTEST_ADDOPTS: "--color=yes"  # cspell:ignore ADDOPTS, color
         run: pytest -v
 
       - run: echo "🍏 This job's status is ${{ job.status }}."

@@ -203,6 +203,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "./src/evohome_cli/client.py" = ["ARG001", "EXE001", "T10"]  # debugger, callbacks
 "./tests/*" = ["ARG", "SLF001"]  # tests need to access private members
+"./.github/scripts/*" = ["INP001"]  # standalone scripts, not a package
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]
 voluptuous = "vol"

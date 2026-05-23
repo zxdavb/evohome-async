@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build the Python test matrix for GitHub Actions.
 
 Queries endoflife.date for all non-EOL CPython versions >= the project's
@@ -12,6 +11,7 @@ Writes a JSON array to $GITHUB_OUTPUT as `matrix=["3.x.y", ...]`.
 import json
 import os
 import re
+import urllib.error
 import urllib.request
 from datetime import UTC, datetime as dt
 from pathlib import Path
