@@ -3,15 +3,19 @@
 #
 # KEY PARAMETERS (workflow_dispatch / workflow_call inputs; see the `on:` section below):
 #
-#   ha_repo    — The GitHub repository to test against (default: "home-assistant/core").
+#   ha_repo    — The GitHub repository to test against (default: vars.HA_REPO_DEFAULT).
 #                Change this to a fork, e.g. "zxdavb/core", for pre-merge testing.
 #
-#   ha_version — The branch, tag, or SHA to check out from ha_repo (default: "master").
+#   ha_version — The branch, tag, or SHA to check out from ha_repo (default: vars.HA_VERSION_DEFAULT).
 #                Common values:
 #                  "master"    — HA's main development branch (tip of tree)
 #                  "dev"       — HA's dev branch (used in publish-release.yml as informational)
 #                  "2025.1"    — a specific HA release branch
 #                  "v2025.1.0" — a specific release tag
+#
+# REPOSITORY VARIABLES (set in GitHub Settings → Secrets and variables → Actions → Variables):
+#   HA_REPO_DEFAULT    — default value for ha_repo    (e.g. "home-assistant/core")
+#   HA_VERSION_DEFAULT — default value for ha_version (e.g. "master")
 #
 # When triggered by `schedule`, these parameters are ignored and the defaults apply.
 # When called from publish-release.yml, ha_version is set explicitly (see that workflow).
@@ -71,13 +75,13 @@ permissions:
 
 
 env:
-  HA_REPO: ${{ inputs.ha_repo || 'home-assistant/core' }}
-  HA_VERSION: ${{ inputs.ha_version || 'master' }}
+  HA_REPO: ${{ inputs.ha_repo || vars.HA_REPO_DEFAULT }}
+  HA_VERSION: ${{ inputs.ha_version || vars.HA_VERSION_DEFAULT }}
 
 
 jobs:
   get-python-version:
-    name: Get Python version from ${{ inputs.ha_repo || 'home-assistant/core' }}@${{ inputs.ha_version || 'master' }}
+    name: Get Python version from ${{ inputs.ha_repo || vars.HA_REPO_DEFAULT }}@${{ inputs.ha_version || vars.HA_VERSION_DEFAULT }}
     runs-on: ubuntu-latest
     outputs:
       python-version: ${{ steps.get-version.outputs.python-version }}
@@ -99,7 +103,7 @@ jobs:
           echo "Detected Python version: ${python_version}"
 
   test-with-hass:
-    name: Test with ${{ inputs.ha_repo || 'home-assistant/core' }}@${{ inputs.ha_version || 'master' }} (Python ${{ needs.get-python-version.outputs.python-version }})
+    name: Test with ${{ inputs.ha_repo || vars.HA_REPO_DEFAULT }}@${{ inputs.ha_version || vars.HA_VERSION_DEFAULT }} (Python ${{ needs.get-python-version.outputs.python-version }})
     runs-on: ubuntu-latest
     needs: get-python-version
 
