@@ -55,13 +55,13 @@ jobs:
     name: HA Integration (stable)
     uses: ./.github/workflows/check-hass-tests.yml
     with:
-      ha_version: "master"
+      ha_version: "master"  # HA's main development branch — must pass to release
 
   ha-integration-dev:
     name: HA Integration (dev)
     uses: ./.github/workflows/check-hass-tests.yml
     with:
-      ha_version: "dev"
+      ha_version: "dev"  # HA's dev branch — failures are informational only
     # Not in build's needs — failures are informational and do not block the release
 
   build:
