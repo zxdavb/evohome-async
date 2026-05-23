@@ -51,18 +51,17 @@ jobs:
           fi
           echo "OK: '$TAG' is reachable from main"
 
-  ha-integration-stable:
+  ha-integration-stable:  # Failures will block the release (in build's needs)
     name: HA Integration (stable)
     uses: ./.github/workflows/check-hass-tests.yml
     with:
-      ha_version: "master"  # HA's main development branch — must pass to release
+      ha_version: "master"
 
-  ha-integration-dev:
+  ha-integration-dev:  # Failures will not block the release (not in build's needs)
     name: HA Integration (dev)
     uses: ./.github/workflows/check-hass-tests.yml
     with:
-      ha_version: "dev"  # HA's dev branch — failures are informational only
-    # Not in build's needs — failures are informational and do not block the release
+      ha_version: "dev"
 
   build:
     name: Build distribution
