@@ -11,7 +11,7 @@ permissions:
 
 
 jobs:
-  validate-tag:
+  validate-tag:  # Don't go any further, if there is no valid tag
     name: Validate release tag
     runs-on: ubuntu-latest
     steps:
