@@ -32,53 +32,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Query non-EOL Python versions >= 3.13
+      - name: Query non-EOL Python versions >= requires-python floor
         id: build
-        run: |
-          python3 - <<'EOF'
-          import json, re, urllib.error, urllib.request, datetime, os
-
-          # Floor derived from requires-python in pyproject.toml
-          with open("pyproject.toml") as f:
-              _rp = re.search(r'requires-python\s*=\s*">=(\d+)\.(\d+)', f.read())
-          FLOOR = (int(_rp.group(1)), int(_rp.group(2))) if _rp else (3, 13)
-
-          # Versioned fallback — used if endoflife.date API is unavailable
-          with open(".github/python-versions.json") as f:
-              fallback = json.load(f)["versions"]
-
-          # All non-EOL Python versions >= 3.13 from endoflife.date
-          try:
-              with urllib.request.urlopen(
-                  "https://endoflife.date/api/python.json", timeout=10
-              ) as r:
-                  cycles = json.loads(r.read())
-              today = datetime.date.today().isoformat()
-              versions = sorted(
-                  c["latest"] for c in cycles
-                  if c["eol"] > today
-                  and tuple(int(x) for x in c["cycle"].split(".")) >= FLOOR
-              )
-          except (urllib.error.URLError, OSError, ValueError):
-              versions = fallback
-
-          # Also include HA dev's required Python if it's a pre-release not yet on endoflife.date
-          url = "https://raw.githubusercontent.com/home-assistant/core/dev/pyproject.toml"
-          try:
-              with urllib.request.urlopen(url, timeout=10) as r:
-                  content = r.read().decode()
-              m = re.search(r'requires-python\s*=\s*">=(\d+\.\d+)', content)
-              if m:
-                  ha_minor = m.group(1)
-                  if not any(v.startswith(ha_minor + ".") or v == ha_minor for v in versions):
-                      versions.append(ha_minor)  # minor-only; allow-prereleases resolves latest
-                      versions.sort()
-          except (urllib.error.URLError, OSError, ValueError):
-              pass  # best-effort; HA's version is normally covered by endoflife.date
-
-          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              f.write(f"matrix={json.dumps(versions)}\n")
-          EOF
+        run: python3 .github/scripts/get-python-versions.py
 
   test:
     needs: get-python-versions
