@@ -16,7 +16,9 @@ import urllib.request
 from datetime import UTC, datetime as dt
 from pathlib import Path
 
-ROOT = Path(__file__).parent.parent  # repo root
+ROOT = Path(
+    __file__
+).parent.parent.parent  # repo root (.github/scripts/ -> .github/ -> root)
 
 # Floor derived from requires-python in pyproject.toml — fail loudly if missing
 _rp = re.search(
