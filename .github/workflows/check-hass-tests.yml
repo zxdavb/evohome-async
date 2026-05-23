@@ -18,7 +18,8 @@
 #   HA_VERSION_DEFAULT — default value for ha_version (e.g. "master")
 #
 # When triggered by `schedule`, these parameters are ignored and the defaults apply.
-# When called from publish-release.yml, ha_version is set explicitly (see that workflow).
+# When called from publish-release.yml, ha_version is set to the latest HA release tag (dynamically
+# resolved) for the stable job, and "dev" for the informational job.
 
 name: Test with Home Assistant
 
