@@ -8,7 +8,7 @@
 
   "packageRules": [
     {
-      "description": "Automerge minor and patch updates for Python deps and Actions",
+      "description": "Automerge minor and patch updates for all Renovate-managed dependencies",
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true,
       "automergeType": "pr",
@@ -16,7 +16,7 @@
       "addLabels": ["dependencies"]
     },
     {
-      "description": "Major updates require human review",
+      "description": "Major updates require human review for all Renovate-managed dependencies",
       "matchUpdateTypes": ["major"],
       "automerge": false,
       "addLabels": ["dependencies"]
@@ -24,6 +24,12 @@
     {
       "description": "Do not manage requires-python — handled manually per policy",
       "matchDepTypes": ["requires-python"],
+      "enabled": false
+    },
+    {
+      "description": "Python version inputs in workflows are managed dynamically — Renovate must not update them",
+      "matchManagers": ["github-actions"],
+      "matchPackageNames": ["python"],
       "enabled": false
     },
     {

@@ -107,6 +107,15 @@ jobs:
         uses: actions/checkout@v6
         with:
           path: evohome-async
+          fetch-depth: 0  # Fetch all history for tags
+
+      - name: Checkout latest release tag (scheduled runs only)
+        if: github.event_name == 'schedule'
+        working-directory: evohome-async
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "Checking out latest release: $LATEST_TAG"
+          git checkout "$LATEST_TAG"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.1.0

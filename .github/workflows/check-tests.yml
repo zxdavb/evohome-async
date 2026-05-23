@@ -24,32 +24,35 @@ permissions:
 
 
 jobs:
+  get-python-versions:
+    name: Build Python test matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Query non-EOL Python versions >= requires-python floor
+        id: build
+        run: python3 .github/scripts/get-python-versions.py
+
   test:
+    needs: get-python-versions
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        python-version: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && fromJSON('["3.13", "3.14", "3.15"]') || fromJSON('["3.13", "3.14"]') }}
+        python-version: ${{ fromJson(needs.get-python-versions.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0  # Fetch all history for tags
-
-      - name: Checkout latest tag (scheduled runs only)
-        if: github.event_name == 'schedule'
-        run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0)
-          echo "Checking out latest tag: $LATEST_TAG"
-          git checkout "$LATEST_TAG"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
-          check-latest: true
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.1.0
@@ -59,7 +62,7 @@ jobs:
 
       - name: Test with pytest
         env:
-          PYTEST_ADDOPTS: "--color=yes"
+          PYTEST_ADDOPTS: "--color=yes"  # cspell:ignore ADDOPTS, color
         run: pytest -v
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
