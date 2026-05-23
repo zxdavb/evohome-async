@@ -137,11 +137,15 @@ jobs:
         run: |
           . venv/bin/activate
 
-          # requirements_test_all.txt was removed in home-assistant/core#171530.
-          # The replacement is requirements_all.txt + requirements_test.txt (all
-          # component runtime deps + test deps), matching HA's own dev bootstrap.
-          uv pip install -r requirements_all.txt
+          uv pip install -r requirements.txt
           uv pip install -r requirements_test.txt
+
+          # requirements_test_all.txt was removed in home-assistant/core#171530.
+          # These two packages from requirements_all.txt are the only ones needed
+          # beyond requirements.txt + requirements_test.txt:
+          #   - aiohasupervisor: imported at module level in tests/components/conftest.py
+          #   - paho-mqtt: imported at module level in tests/common.py (line 32)
+          grep -E '^(aiohasupervisor|paho-mqtt)==' requirements_all.txt | xargs uv pip install
 
           # Install Home Assistant in editable mode (needed for compiled translations)
           uv pip install -e . --config-settings editable_mode=compat
