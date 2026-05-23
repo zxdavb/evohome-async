@@ -30,6 +30,8 @@ jobs:
     outputs:
       matrix: ${{ steps.build.outputs.matrix }}
     steps:
+      - uses: actions/checkout@v6
+
       - name: Query non-EOL Python versions >= 3.13
         id: build
         run: |
@@ -37,7 +39,10 @@ jobs:
           import json, re, urllib.error, urllib.request, datetime, os
 
           FLOOR = (3, 13)
-          FALLBACK = ["3.13", "3.14"]  # used if endoflife.date is unavailable
+
+          # Versioned fallback — used if endoflife.date API is unavailable
+          with open(".github/python-versions.json") as f:
+              fallback = json.load(f)["versions"]
 
           # All non-EOL Python versions >= 3.13 from endoflife.date
           try:
@@ -52,7 +57,7 @@ jobs:
                   and tuple(int(x) for x in c["cycle"].split(".")) >= FLOOR
               )
           except (urllib.error.URLError, OSError, ValueError):
-              versions = list(FALLBACK)  # fallback: minor-only; setup-python resolves latest patch
+              versions = fallback
 
           # Also include HA dev's required Python if it's a pre-release not yet on endoflife.date
           url = "https://raw.githubusercontent.com/home-assistant/core/dev/pyproject.toml"
