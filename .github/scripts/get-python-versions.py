@@ -2,9 +2,9 @@
 """Build the Python test matrix for GitHub Actions.
 
 Queries endoflife.date for all non-EOL CPython versions >= the project's
-requires-python floor (read from pyproject.toml). Falls back to
-.github/python-versions.json if the API is unavailable. Also adds HA dev's
-required Python if it is a pre-release not yet listed on endoflife.date.
+requires-python floor (read from pyproject.toml). If the API is unavailable
+the script exits with an error. Also adds HA dev's required Python if it is
+a pre-release not yet listed on endoflife.date.
 
 Writes a JSON array to $GITHUB_OUTPUT as `matrix=["3.x.y", ...]`.
 """
@@ -12,7 +12,6 @@ Writes a JSON array to $GITHUB_OUTPUT as `matrix=["3.x.y", ...]`.
 import json
 import os
 import re
-import urllib.error
 import urllib.request
 from datetime import UTC, datetime as dt
 from pathlib import Path
@@ -28,25 +27,15 @@ if not _rp:
     raise ValueError("Could not parse requires-python from pyproject.toml")
 FLOOR = (int(_rp.group(1)), int(_rp.group(2)))
 
-# Versioned fallback — used if endoflife.date API is unavailable
-fallback: list[str] = json.loads((ROOT / ".github/python-versions.json").read_text())[
-    "versions"
-]
-
 # All non-EOL Python versions >= floor from endoflife.date
-try:
-    with urllib.request.urlopen(
-        "https://endoflife.date/api/python.json", timeout=10
-    ) as r:
-        cycles = json.loads(r.read())
-    today = dt.now(tz=UTC).date().isoformat()
-    versions: list[str] = sorted(
-        c["latest"]
-        for c in cycles
-        if c["eol"] > today and tuple(int(x) for x in c["cycle"].split(".")) >= FLOOR
-    )
-except (urllib.error.URLError, OSError, ValueError):
-    versions = fallback
+with urllib.request.urlopen("https://endoflife.date/api/python.json", timeout=10) as r:
+    cycles = json.loads(r.read())
+today = dt.now(tz=UTC).date().isoformat()
+versions: list[str] = sorted(
+    c["latest"]
+    for c in cycles
+    if c["eol"] > today and tuple(int(x) for x in c["cycle"].split(".")) >= FLOOR
+)
 
 # Also include HA dev's required Python if it's a pre-release not yet on endoflife.date
 try:

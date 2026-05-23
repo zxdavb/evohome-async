@@ -1,7 +1,0 @@
-{
-  "_note": "Fallback Python version list used when endoflife.date API is unavailable. Keep in sync with non-EOL CPython releases >= 3.13. Update when a new minor is released or a minor reaches EOL.",
-  "versions": [
-    "3.13.13",
-    "3.14.5"
-  ]
-}
