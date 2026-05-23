@@ -82,6 +82,7 @@
         "tccna",
         "tcss",
         "testpaths",
+        "vars",
         "venv",
         "websession",
         "Wifi"

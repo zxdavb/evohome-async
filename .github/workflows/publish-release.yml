@@ -1,3 +1,6 @@
+#
+#
+
 name: Publish to PyPI
 
 
@@ -11,62 +14,43 @@ permissions:
 
 
 jobs:
+  validate-tag:  # Don't go any further, if there is no valid tag
+    name: Validate release tag
+    uses: ./.github/workflows/check-tag.yml
+    with:
+      tag_name: ${{ github.event.release.tag_name }}
+
   check-lint:
     name: Linting
+    needs: [validate-tag]
     uses: ./.github/workflows/check-lint.yml
-
-  check-type:
-    name: Typing
-    uses: ./.github/workflows/check-type.yml
 
   check-tests:
     name: Testing
+    needs: [validate-tag]
     uses: ./.github/workflows/check-tests.yml
 
-  validate-tag:
-    name: Validate release tag
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+  check-type:
+    name: Typing
+    needs: [validate-tag]
+    uses: ./.github/workflows/check-type.yml
 
-      - name: Check tag format
-        run: |
-          TAG="${{ github.event.release.tag_name }}"
-          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "FAIL: tag '$TAG' does not match v[0-9]+.[0-9]+.[0-9]+"
-            exit 1
-          fi
-          echo "OK: tag format valid: $TAG"
-
-      - name: Check tag points to a commit on main
-        run: |
-          TAG="${{ github.event.release.tag_name }}"
-          git fetch origin main
-          TAGGED_COMMIT=$(git rev-parse "$TAG^{commit}")
-          if ! git merge-base --is-ancestor "$TAGGED_COMMIT" origin/main; then
-            echo "FAIL: '$TAG' does not point to a commit reachable from main"
-            exit 1
-          fi
-          echo "OK: '$TAG' is reachable from main"
-
-  ha-integration-stable:
-    name: HA Integration (stable)
+  ha-integration-stable:  # Failures will block the release (in build's needs)
+    name: HA Integration (latest release)
+    needs: [check-lint, check-type, check-tests]
     uses: ./.github/workflows/check-hass-tests.yml
-    with:
-      ha_version: "master"
 
-  ha-integration-dev:
+  ha-integration-dev:  # Failures should not block the release (not in build's needs)
     name: HA Integration (dev)
+    needs: [check-lint, check-type, check-tests]
     uses: ./.github/workflows/check-hass-tests.yml
     with:
       ha_version: "dev"
-    # Not in build's needs — failures are informational and do not block the release
+    continue-on-error: true
 
   build:
     name: Build distribution
-    needs: [validate-tag, check-lint, check-type, check-tests, ha-integration-stable]
+    needs: [ha-integration-stable]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

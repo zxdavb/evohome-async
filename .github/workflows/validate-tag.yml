@@ -1,50 +1,42 @@
-name: Tag
+name: Validate Version Tag
 
 
 on:
   push:
     tags:
       - "v[0-9]*.[0-9]*.[0-9]*"
+      - "[0-9]*.[0-9]*.[0-9]*"  # invalid, trigger on these to provide feedback
 
 
 permissions:
   contents: read
 
-  
+
 jobs:
+  validate-tag:  # Don't go any further, if there is no valid tag
+    name: Validate tag
+    uses: ./.github/workflows/check-tag.yml
+    with:
+      tag_name: ${{ github.ref_name }}
+
   check-lint:
     name: Linting
+    needs: [validate-tag]
     uses: ./.github/workflows/check-lint.yml
-
-  check-type:
-    name: Typing
-    uses: ./.github/workflows/check-type.yml
 
   check-tests:
     name: Testing
+    needs: [validate-tag]
     uses: ./.github/workflows/check-tests.yml
 
-  ha-integration:
+  check-type:
+    name: Typing
+    needs: [validate-tag]
+    uses: ./.github/workflows/check-type.yml
+
+  ha-integration-stable:
     name: HA Integration (stable)
+    needs: [check-lint, check-type, check-tests]
     uses: ./.github/workflows/check-hass-tests.yml
     with:
       ha_version: "master"
-
-  validate-tag:
-    name: Validate tag
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Check tag points to a commit on main
-        run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          git fetch origin main
-          TAGGED_COMMIT=$(git rev-parse "$TAG^{commit}")
-          if ! git merge-base --is-ancestor "$TAGGED_COMMIT" origin/main; then
-            echo "FAIL: '$TAG' does not point to a commit reachable from main"
-            exit 1
-          fi
-          echo "OK: '$TAG' is reachable from main"

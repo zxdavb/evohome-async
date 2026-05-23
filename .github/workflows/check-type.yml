@@ -1,7 +1,7 @@
 #
 #
 
-name: Typing (mypy)
+name: Check Typing (mypy)
 
 
 on:
