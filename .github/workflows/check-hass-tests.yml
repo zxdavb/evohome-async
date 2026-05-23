@@ -137,14 +137,11 @@ jobs:
         run: |
           . venv/bin/activate
 
-          uv pip install -r requirements.txt
+          # requirements_test_all.txt was removed in home-assistant/core#171530.
+          # The replacement is requirements_all.txt + requirements_test.txt (all
+          # component runtime deps + test deps), matching HA's own dev bootstrap.
+          uv pip install -r requirements_all.txt
           uv pip install -r requirements_test.txt
-
-          # HA's tests/components/conftest.py imports aiohasupervisor at module level,
-          # so pytest collection fails without it, even for non-hassio component tests.
-          # requirements_test_all.txt was removed in home-assistant/core#171530;
-          # aiohasupervisor is now sourced from requirements_all.txt instead.
-          uv pip install "$(grep '^aiohasupervisor' < requirements_all.txt)"
 
           # Install Home Assistant in editable mode (needed for compiled translations)
           uv pip install -e . --config-settings editable_mode=compat
