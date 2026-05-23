@@ -11,21 +11,6 @@ permissions:
 
 
 jobs:
-  check-lint:
-    name: Linting
-    needs: [validate-tag]
-    uses: ./.github/workflows/check-lint.yml
-
-  check-type:
-    name: Typing
-    needs: [validate-tag]
-    uses: ./.github/workflows/check-type.yml
-
-  check-tests:
-    name: Testing
-    needs: [validate-tag]
-    uses: ./.github/workflows/check-tests.yml
-
   validate-tag:
     name: Validate release tag
     runs-on: ubuntu-latest
@@ -53,6 +38,21 @@ jobs:
             exit 1
           fi
           echo "OK: '$TAG' is reachable from main"
+
+  check-lint:
+    name: Linting
+    needs: [validate-tag]
+    uses: ./.github/workflows/check-lint.yml
+
+  check-type:
+    name: Typing
+    needs: [validate-tag]
+    uses: ./.github/workflows/check-type.yml
+
+  check-tests:
+    name: Testing
+    needs: [validate-tag]
+    uses: ./.github/workflows/check-tests.yml
 
   ha-integration-stable:  # Failures will block the release (in build's needs)
     name: HA Integration (stable)
