@@ -9,7 +9,7 @@ readme = "README.md"
 authors = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
 maintainers = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
 dependencies = ["aiohttp>=3.13.5", "aiozoneinfo>=0.2.3", "voluptuous>=0.15.2"]  # must support HA
-requires-python = ">=3.13.2"
+requires-python = ">=3.13"
 license = "Apache-2.0"
 
 keywords = [

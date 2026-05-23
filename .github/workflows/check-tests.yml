@@ -24,13 +24,54 @@ permissions:
 
 
 jobs:
+  get-python-versions:
+    name: Build Python test matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build.outputs.matrix }}
+    steps:
+      - name: Query non-EOL Python versions >= 3.13
+        id: build
+        run: |
+          python3 - <<'EOF'
+          import json, re, urllib.error, urllib.request, datetime, os
+
+          # All non-EOL Python versions >= 3.13 from endoflife.date
+          with urllib.request.urlopen("https://endoflife.date/api/python.json") as r:
+              cycles = json.loads(r.read())
+          today = datetime.date.today().isoformat()
+          versions = sorted(
+              c["latest"] for c in cycles
+              if c["eol"] > today
+              and tuple(int(x) for x in c["cycle"].split(".")) >= (3, 13)
+          )
+
+          # Also include HA dev's required Python if it's a pre-release not yet on endoflife.date
+          url = "https://raw.githubusercontent.com/home-assistant/core/dev/pyproject.toml"
+          try:
+              with urllib.request.urlopen(url) as r:
+                  content = r.read().decode()
+              m = re.search(r'requires-python\s*=\s*">=(\d+\.\d+)', content)
+              if m:
+                  ha_minor = m.group(1)
+                  if not any(v.startswith(ha_minor + ".") for v in versions):
+                      versions.append(ha_minor + ".0")
+                      versions.sort()
+          except (urllib.error.URLError, ValueError):
+              pass  # best-effort; HA's version is normally covered by endoflife.date
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"matrix={json.dumps(versions)}\n")
+          EOF
+
   test:
+    needs: get-python-versions
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        python-version: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && fromJSON('["3.13", "3.14", "3.15"]') || fromJSON('["3.13", "3.14"]') }}
+        python-version: ${{ fromJson(needs.get-python-versions.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v6
@@ -49,7 +90,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
-          check-latest: true
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.1.0

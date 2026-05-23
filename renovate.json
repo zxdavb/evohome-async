@@ -27,6 +27,12 @@
       "enabled": false
     },
     {
+      "description": "Python version inputs in workflows are managed dynamically — Renovate must not update them",
+      "matchManagers": ["github-actions"],
+      "matchPackageNames": ["python"],
+      "enabled": false
+    },
+    {
       "description": "Group all GitHub Actions updates into one PR",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch"],
