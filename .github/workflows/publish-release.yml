@@ -13,14 +13,17 @@ permissions:
 jobs:
   check-lint:
     name: Linting
+    needs: [validate-tag]
     uses: ./.github/workflows/check-lint.yml
 
   check-type:
     name: Typing
+    needs: [validate-tag]
     uses: ./.github/workflows/check-type.yml
 
   check-tests:
     name: Testing
+    needs: [validate-tag]
     uses: ./.github/workflows/check-tests.yml
 
   validate-tag:
@@ -53,19 +56,22 @@ jobs:
 
   ha-integration-stable:  # Failures will block the release (in build's needs)
     name: HA Integration (stable)
+    needs: [check-lint, check-type, check-tests]
     uses: ./.github/workflows/check-hass-tests.yml
     with:
       ha_version: "master"
 
-  ha-integration-dev:  # Failures will not block the release (not in build's needs)
+  ha-integration-dev:  # Failures should not block the release (not in build's needs)
     name: HA Integration (dev)
+    needs: [check-lint, check-type, check-tests]
     uses: ./.github/workflows/check-hass-tests.yml
     with:
       ha_version: "dev"
+    continue-on-error: true
 
   build:
     name: Build distribution
-    needs: [validate-tag, check-lint, check-type, check-tests, ha-integration-stable]
+    needs: [ha-integration-stable]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
