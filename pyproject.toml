@@ -9,7 +9,7 @@ readme = "README.md"
 authors = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
 maintainers = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
 dependencies = ["aiohttp>=3.13.5", "aiozoneinfo>=0.2.3", "voluptuous>=0.15.2"]  # must support HA
-requires-python = ">=3.13"  # also see: tool_mypy.python_version, below
+requires-python = ">=3.13"  # also see: 'python_version', below, and typing workflow
 license = "Apache-2.0"
 
 keywords = [
@@ -94,7 +94,7 @@ version-file = "src/_evohome/_version.py"
 ### mypy #############################################################################
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.13"  # see also: 'requires-python', above, and typing workflow
 
 strict = true
 
