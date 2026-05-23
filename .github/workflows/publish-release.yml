@@ -32,28 +32,10 @@ jobs:
     needs: [validate-tag]
     uses: ./.github/workflows/check-tests.yml
 
-  get-ha-latest-release:
-    name: Get latest HA release tag
-    needs: [validate-tag]
-    runs-on: ubuntu-latest
-    outputs:
-      ha_version: ${{ steps.get-release.outputs.ha_version }}
-    steps:
-      - name: Fetch latest HA release tag (including pre-releases)
-        id: get-release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          HA_VERSION=$(gh api repos/home-assistant/core/releases --jq '.[0].tag_name')
-          echo "ha_version=${HA_VERSION}" >> $GITHUB_OUTPUT
-          echo "Latest HA release: ${HA_VERSION}"
-
   ha-integration-stable:  # Failures will block the release (in build's needs)
-    name: HA Integration (${{ needs.get-ha-latest-release.outputs.ha_version }})
-    needs: [check-lint, check-type, check-tests, get-ha-latest-release]
+    name: HA Integration (latest release)
+    needs: [check-lint, check-type, check-tests]
     uses: ./.github/workflows/check-hass-tests.yml
-    with:
-      ha_version: ${{ needs.get-ha-latest-release.outputs.ha_version }}
 
   ha-integration-dev:  # Failures should not block the release (not in build's needs)
     name: HA Integration (dev)
