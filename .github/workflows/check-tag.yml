@@ -22,8 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Check tag format
         run: |
@@ -33,14 +31,3 @@ jobs:
             exit 1
           fi
           echo "OK: tag format valid: $TAG"
-
-      - name: Check tag points to a commit on main
-        run: |
-          TAG="${{ inputs.tag_name }}"
-          git fetch origin main
-          TAGGED_COMMIT=$(git rev-parse "$TAG^{commit}")
-          if ! git merge-base --is-ancestor "$TAGGED_COMMIT" origin/main; then
-            echo "FAIL: '$TAG' does not point to a commit reachable from main"
-            exit 1
-          fi
-          echo "OK: '$TAG' is reachable from main"

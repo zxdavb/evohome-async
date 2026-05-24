@@ -66,9 +66,9 @@ on:
         default: "home-assistant/core"
         type: string
       ha_version:
-        description: "Home Assistant version/branch to test against"
+        description: "Home Assistant version/branch/tag or \"latest\" to test against"
         required: false
-        default: "master"
+        default: "latest"
         type: string
 
 
