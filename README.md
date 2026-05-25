@@ -1,8 +1,10 @@
 ![ruff](https://github.com/zxdavb/evohome-async/actions/workflows/check-lint.yml/badge.svg)
 ![mypy](https://github.com/zxdavb/evohome-async/actions/workflows/check-type.yml/badge.svg)
-![pytest](https://github.com/zxdavb/evohome-async/actions/workflows/check-test.yml/badge.svg)
+![pytest](https://github.com/zxdavb/evohome-async/actions/workflows/check-tests.yml/badge.svg)
 ![PyPI](https://img.shields.io/pypi/v/evohome-async?label=pypi%20package)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/evohome-async)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/evohome-async)
+![License](https://img.shields.io/pypi/l/evohome-async)
 
 evohome-async
 ==============
@@ -14,7 +16,7 @@ It provides support for Resideo TCC-based systems, such as **Evohome**, **Round 
 - it supports _only_ EU/EMEA-based systems, please use (e.g.) [somecomfort](https://github.com/mkmer/AIOSomecomfort) for US-based systems
 - it provides Evohome support for [Home Assistant](https://www.home-assistant.io/integrations/evohome) and other automation platforms
 
-> **NOTE:** the TCC API available to this library does not currently support cooling.
+> **NOTE:** the vendor API available to this library does not currently support cooling.
 
 This client _requires_ the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead.
 
@@ -28,7 +30,7 @@ pip install 'evohome-async[cli]'
 evo-client --help
 ```
 
-For example, to backup schedules (incl. DHW, if any):
+For example, to backup schedules (including DHW, if any):
 
 ```bash
 evo-client -u username@gmail.com -p password get-schedules --loc-idx 2 > schedules.json
@@ -40,7 +42,7 @@ evo-client -u username@gmail.com -p password get-schedules --loc-idx 2 > schedul
 evo-client -u username@gmail.com -p password set-schedules --loc-idx 2 -f schedules.json
 ```
 
-To avoid exceeding the vendor's API rate limit, it will restore the access token cache, unless you use the the `--no-load-tokens` switch.
+To avoid exceeding the vendor's API rate limit, it will restore the access token cache, unless you use the `--no-load-tokens` switch.
 
 > **NOTE:** the client may save your access tokens to **.evo-cache.tmp**: this presents a small security concern.
 
@@ -83,7 +85,7 @@ Other differences include (but are not limited to):
 - more extensive testing via **pytest**
 - (WIP) extended compatibility beyond pure evohome systems (e.g. VisionPro)
 
-> **TIP:** the non-async documentation (from **evohome-client**) is available at <http://evohome-client.readthedocs.org/en/latest/>
+> **TIP:** the non-async documentation (from **evohome-client**) is available at <https://evohome-client.readthedocs.org/en/latest/>
 
 ---
 
@@ -91,7 +93,7 @@ Other differences include (but are not limited to):
 
 ### Prerequisites
 
-- Python 3.13.2+ (on *nix recommended, use WSL on Windows)
+- Python 3.13+ (on *nix recommended, use WSL on Windows)
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
 ### Setup
