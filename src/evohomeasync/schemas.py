@@ -235,12 +235,12 @@ SZ_HEATING_OFF: Final = "HeatingOff"
 
 @verify(EnumCheck.UNIQUE)
 class SystemMode(StrEnum):
-    AUTO = SZ_AUTO
-    AUTO_WITH_ECO = SZ_AUTO_WITH_ECO
-    AWAY = SZ_AWAY
-    CUSTOM = SZ_CUSTOM
-    DAY_OFF = SZ_DAY_OFF
-    HEATING_OFF = SZ_HEATING_OFF
+    AUTO = "auto"
+    AUTO_WITH_ECO = "auto_with_eco"
+    AWAY = "away"
+    CUSTOM = "custom"
+    DAY_OFF = "day_off"
+    HEATING_OFF = "heating_off"
 
 
 #

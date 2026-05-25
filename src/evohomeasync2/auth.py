@@ -14,9 +14,15 @@ import voluptuous as vol
 from _evohome.auth import AbstractAuth
 from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
 from _evohome.credentials import CredentialsManagerBase
-from _evohome.helpers import convert_keys_to_snake_case, redact
+from _evohome.helpers import (
+    camel_to_snake,
+    convert_keys_to_snake_case,
+    convert_known_str_values,
+    redact,
+)
 
 from . import exceptions as exc
+from .schemas.const import KNOWN_VENDOR_VALUES
 
 if TYPE_CHECKING:
     import aiohttp
@@ -39,6 +45,14 @@ _APPLICATION_ID: Final = base64.b64encode(
     b"4a231089-d2b6-41bd-a5eb-16a0a422b999:"
     b"1a15cdb8-42de-407b-add0-059f92c530cb"
 ).decode("utf-8")  # fmt: off
+
+
+_VENDOR_TO_INTERNAL_VALUE_MAP: Final = {
+    value: camel_to_snake(value) for value in KNOWN_VENDOR_VALUES
+}
+_INTERNAL_TO_VENDOR_VALUE_MAP: Final = {
+    internal: vendor for vendor, internal in _VENDOR_TO_INTERNAL_VALUE_MAP.items()
+}
 
 
 SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
@@ -286,3 +300,13 @@ class Auth(AbstractAuth):
         return headers | {
             "Authorization": "bearer " + await self._access_token(),
         }
+
+    def _convert_payload_from_vendor_case[T](self, payload: T) -> T:
+        """Convert known vendor value strings to internal snake_case strings."""
+
+        return convert_known_str_values(payload, _VENDOR_TO_INTERNAL_VALUE_MAP)
+
+    def _convert_payload_to_vendor_case[T](self, payload: T) -> T:
+        """Convert known internal snake_case value strings to vendor strings."""
+
+        return convert_known_str_values(payload, _INTERNAL_TO_VENDOR_VALUE_MAP)

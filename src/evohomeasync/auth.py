@@ -12,10 +12,14 @@ import voluptuous as vol
 from _evohome.auth import AbstractAuth
 from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
 from _evohome.credentials import CredentialsManagerBase
-from _evohome.helpers import convert_keys_to_snake_case, redact
+from _evohome.helpers import (
+    camel_to_snake,
+    convert_keys_to_snake_case,
+    convert_known_str_values,
+    redact,
+)
 
-from . import exceptions as exc
-from .schemas import TCC_POST_USR_SESSION
+from . import exceptions as exc, schemas
 
 if TYPE_CHECKING:
     import aiohttp
@@ -24,10 +28,36 @@ if TYPE_CHECKING:
     from .schemas import EvoSessionDictT, EvoUserAccountDictT, TccSessionResponseT
 
 
-# For API docs, enter this App ID on the following website under 'Session login':
+# For v1 API docs, enter this App ID on the following website under 'Session login':
 #  - https://mytotalconnectcomfort.com/WebApi/Help/LogIn
 _APPLICATION_ID: Final = "91db1612-73fd-4500-91b2-e63b069b185c"
 #
+
+_KNOWN_VENDOR_VALUES: Final = {
+    "Commercial",
+    "Residential",
+    schemas.SZ_AUTO,
+    schemas.SZ_AUTO_WITH_ECO,
+    schemas.SZ_AWAY,
+    schemas.SZ_CUSTOM,
+    schemas.SZ_DAY_OFF,
+    schemas.SZ_HEATING_OFF,
+    schemas.SZ_DHW_OFF,
+    schemas.SZ_DHW_ON,
+    schemas.SZ_HOLD,
+    schemas.SZ_SCHEDULED,
+    schemas.SZ_TEMPORARY,
+    schemas.SZ_HEAT,
+    schemas.SZ_OFF,
+    schemas.SZ_DOMESTIC_HOT_WATER,
+    schemas.SZ_EMEA_ZONE,
+}
+_VENDOR_TO_INTERNAL_VALUE_MAP: Final = {
+    value: camel_to_snake(value) for value in _KNOWN_VENDOR_VALUES
+}
+_INTERNAL_TO_VENDOR_VALUE_MAP: Final = {
+    internal: vendor for vendor, internal in _VENDOR_TO_INTERNAL_VALUE_MAP.items()
+}
 
 SZ_SESSION_ID: Final = "session_id"
 SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
@@ -151,7 +181,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
         try:  # the dict _should_ be the expected schema...
             self._logger.debug(
-                f"POST {url}: {TCC_POST_USR_SESSION(response)}"  # secrets are redacted via validator
+                f"POST {url}: {schemas.TCC_POST_USR_SESSION(response)}"  # secrets are redacted via validator
             )
 
         except vol.Invalid as err:
@@ -234,3 +264,13 @@ class Auth(AbstractAuth):
         return headers | {
             "sessionId": await self._session_id(),
         }
+
+    def _convert_payload_from_vendor_case[T](self, payload: T) -> T:
+        """Convert known vendor value strings to internal snake_case strings."""
+
+        return convert_known_str_values(payload, _VENDOR_TO_INTERNAL_VALUE_MAP)
+
+    def _convert_payload_to_vendor_case[T](self, payload: T) -> T:
+        """Convert known internal snake_case value strings to vendor strings."""
+
+        return convert_known_str_values(payload, _INTERNAL_TO_VENDOR_VALUE_MAP)

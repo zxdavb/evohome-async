@@ -91,7 +91,7 @@ class AbstractAuth(ABC):
             except vol.Invalid as err:
                 self._logger.debug(f"GET {url}: payload may be invalid: {err}")
 
-        return response  # type: ignore[return-value]
+        return self._convert_payload_from_vendor_case(response)  # type: ignore[return-value]
 
     async def put(
         self,
@@ -106,6 +106,8 @@ class AbstractAuth(ABC):
         Optionally checks the payload JSON against the expected schema and logs a
         debug message if it doesn't match.
         """
+
+        json = self._convert_payload_to_vendor_case(json)
 
         if schema:
             try:
@@ -153,6 +155,16 @@ class AbstractAuth(ABC):
 
         This could take the form of an access token, or a session id.
         """
+
+    def _convert_payload_from_vendor_case[T](self, payload: T) -> T:
+        """Convert string values from vendor format to internal format."""
+
+        return payload
+
+    def _convert_payload_to_vendor_case[T](self, payload: T) -> T:
+        """Convert string values from internal format to vendor format."""
+
+        return payload
 
     async def _make_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any

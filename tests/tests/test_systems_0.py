@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from evohomeasync2.schemas import TCC_GET_USR_ACCOUNT, TCC_GET_USR_LOCATIONS
+from evohomeasync2.schemas import TCC_GET_USR_ACCOUNT, TCC_GET_USR_LOCATIONS, to_vendor
 from evohomeasync2.schemas.status import factory_loc_status
 
 from .common import assert_schema
@@ -41,7 +41,7 @@ def test_user_locations(fixture_folder: Path) -> None:
 def test_location_status(fixture_folder: Path) -> None:
     """Test the location status schema against the corresponding JSON."""
 
-    SCH_STATUS = factory_loc_status()
+    SCH_STATUS = factory_loc_status(val_fnc=to_vendor)
 
     for p in Path(fixture_folder).glob("status_*.json"):
         assert_schema(fixture_folder, SCH_STATUS, p.name)
