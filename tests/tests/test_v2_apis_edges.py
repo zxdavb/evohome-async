@@ -17,7 +17,7 @@ import pytest
 
 import evohomeasync2 as evo2
 from evohomeasync2 import HotWater, Zone
-from evohomeasync2.schemas import DhwState, ZoneMode
+from evohomeasync2.schemas import DhwState, ZoneMode, to_vendor
 from evohomeasync2.schemas.const import SystemMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -60,7 +60,7 @@ async def test_ctl_reset_emulates_auto_with_reset(
     if SystemMode.AUTO_WITH_RESET in tcs.allowed_modes:
         url = f"temperatureControlSystem/{tcs.id}/mode"
         mode = {
-            "systemMode": str(SystemMode.AUTO_WITH_RESET),
+            "systemMode": to_vendor(str(SystemMode.AUTO_WITH_RESET)),
             "permanent": True,
         }
 
@@ -93,7 +93,7 @@ async def test_ctl_set_auto_falls_back_to_heat(
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
-        "systemMode": str(expected_mode),
+        "systemMode": to_vendor(str(expected_mode)),
         "permanent": True,
     }
 
@@ -120,7 +120,7 @@ async def test_ctl_set_heatingoff_falls_back_to_off(
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
-        "systemMode": str(expected_mode),
+        "systemMode": to_vendor(str(expected_mode)),
         "permanent": True,
     }
 

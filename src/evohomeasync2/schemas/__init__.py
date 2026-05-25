@@ -50,6 +50,7 @@ from .config import (
 from .const import (
     API_STRFTIME,
     DAYS_OF_WEEK,
+    INTERNAL_TO_VENDOR as _INTERNAL_TO_VENDOR,
     REGEX_DHW_ID,
     REGEX_GATEWAY_ID,
     REGEX_LOCATION_ID,
@@ -520,10 +521,17 @@ __all__ = [
     "ZoneMode",
     "ZoneModelType",
     "ZoneType",
+    "to_vendor",
 ]
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+
+def to_vendor(s: str) -> str:
+    """Map an internal snake_case enum value to its vendor-cased string."""
+    return _INTERNAL_TO_VENDOR.get(s, s)
+
 
 #
 # HTTP GET/PUT & POST schemas are camelCase, not snake_case...
@@ -538,37 +546,41 @@ TCC_POST_OAUTH_TOKEN: Final = factory_post_oauth_token()
 TCC_GET_USR_ACCOUNT: Final = factory_user_account()
 
 # GET /location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True
-TCC_GET_USR_LOCATIONS: Final = factory_user_locations_installation_info()
+TCC_GET_USR_LOCATIONS: Final = factory_user_locations_installation_info(
+    val_fnc=to_vendor
+)
 
 # GET /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True
-TCC_GET_LOC_INSTALLATION_INFO: Final = factory_location_installation_info()
+TCC_GET_LOC_INSTALLATION_INFO: Final = factory_location_installation_info(
+    val_fnc=to_vendor
+)
 
 # GET /location/{loc_id}/status?includeTemperatureControlSystems=True
-TCC_GET_LOC_STATUS: Final = factory_loc_status()
+TCC_GET_LOC_STATUS: Final = factory_loc_status(val_fnc=to_vendor)
 
 # GET /gateway/{gwy_id}/status...
-TCC_GET_GWY_STATUS: Final = factory_gwy_status()
+TCC_GET_GWY_STATUS: Final = factory_gwy_status(val_fnc=to_vendor)
 
 # GET /temperatureControlSystem/{tcs_id}/status
-TCC_GET_TCS_STATUS: Final = factory_tcs_status()
+TCC_GET_TCS_STATUS: Final = factory_tcs_status(val_fnc=to_vendor)
 
 # GET /domesticHotWater/{dhw_id}/status
-TCC_GET_DHW_STATUS: Final = factory_dhw_status()
+TCC_GET_DHW_STATUS: Final = factory_dhw_status(val_fnc=to_vendor)
 
 # GET /temperatureZone/{zone_id}/heatSetpoint
 # TODO:
 
 # GET /temperatureZone/{zone_id}/status
-TCC_GET_ZON_STATUS: Final = factory_zon_status()
+TCC_GET_ZON_STATUS: Final = factory_zon_status(val_fnc=to_vendor)
 
 # GET /domesticHotWater/{dhw_id}/schedule
-TCC_GET_DHW_SCHEDULE: Final = factory_dhw_schedule()
+TCC_GET_DHW_SCHEDULE: Final = factory_dhw_schedule(val_fnc=to_vendor)
 
 # PUT /domesticHotWater/{dhw_id}/schedule
 TCC_PUT_DHW_SCHEDULE: Final = TCC_GET_DHW_SCHEDULE
 
 # GET /temperatureZone/{zone_id}/schedule
-TCC_GET_ZON_SCHEDULE: Final = factory_zon_schedule()
+TCC_GET_ZON_SCHEDULE: Final = factory_zon_schedule(val_fnc=to_vendor)
 
 # PUT /temperatureZone/{zone_id}/schedule
 TCC_PUT_ZON_SCHEDULE: Final = TCC_GET_ZON_SCHEDULE

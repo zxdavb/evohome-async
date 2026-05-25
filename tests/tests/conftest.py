@@ -165,39 +165,40 @@ def auth_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
         url: str,
         schema: vol.Schema | None = None,
     ) -> JsonArrayType | JsonObjectType:
+        def _convert(
+            data: JsonArrayType | JsonObjectType,
+        ) -> JsonArrayType | JsonObjectType:
+            return self._convert_payload_from_vendor_case(  # type: ignore[no-any-return]
+                convert_keys_to_snake_case(data)
+            )
+
         # "accountInfo"
         if "accountInfo" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_USR_INFO(user_info_fixture(fixture)["userInfo"])
-            )
+            return _convert(TCC_GET_USR_INFO(user_info_fixture(fixture)["userInfo"]))
 
         # f"locations?userId={usr_id}&allData=True"
         if "locations" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_USR_LOCS(user_locs_fixture(fixture))
-            )
+            return _convert(TCC_GET_USR_LOCS(user_locs_fixture(fixture)))
 
         # "userAccount"
         if "userAccount" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_USR_ACCOUNT(user_account_fixture(fixture))
-            )
+            return _convert(TCC_GET_USR_ACCOUNT(user_account_fixture(fixture)))
 
         # f"location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True"
         if "installationInfo" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
+            return _convert(
                 TCC_GET_USR_LOCATIONS(user_locations_config_fixture(fixture))
             )
 
         # f"{_TYPE}/{id}/status?includeTemperatureControlSystems=True"
         if "status" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
+            return _convert(
                 TCC_GET_LOC_STATUS(location_status_fixture(fixture, url.split("/")[1]))
             )
 
         # f"{_TYPE}/{id}/schedule"
         if "schedule" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
+            return _convert(
                 TCC_GET_SCHEDULE(
                     zone_schedule_fixture(fixture, url.split("/", maxsplit=1)[0])
                 )

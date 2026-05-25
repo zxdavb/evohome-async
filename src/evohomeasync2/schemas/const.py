@@ -5,6 +5,8 @@ from __future__ import annotations
 from enum import EnumCheck, StrEnum, verify
 from typing import Final
 
+from _evohome.helpers import camel_to_snake
+
 # Various useful regex forms
 REGEX_DHW_ID: Final = r"[0-9]*"
 REGEX_GATEWAY_ID: Final = r"[0-9]*"
@@ -161,23 +163,23 @@ S2_SUNDAY: Final = "Sunday"
 
 @verify(EnumCheck.UNIQUE)
 class DayOfWeek(StrEnum):
-    MONDAY = S2_MONDAY
-    TUESDAY = S2_TUESDAY
-    WEDNESDAY = S2_WEDNESDAY
-    THURSDAY = S2_THURSDAY
-    FRIDAY = S2_FRIDAY
-    SATURDAY = S2_SATURDAY
-    SUNDAY = S2_SUNDAY
+    MONDAY = "monday"
+    TUESDAY = "tuesday"
+    WEDNESDAY = "wednesday"
+    THURSDAY = "thursday"
+    FRIDAY = "friday"
+    SATURDAY = "saturday"
+    SUNDAY = "sunday"
 
 
 DAYS_OF_WEEK: Final = (
-    S2_MONDAY,
-    S2_TUESDAY,
-    S2_WEDNESDAY,
-    S2_THURSDAY,
-    S2_FRIDAY,
-    S2_SATURDAY,
-    S2_SUNDAY,
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
 )
 
 
@@ -199,51 +201,51 @@ S2_HEAT: Final = "Heat"
 
 @verify(EnumCheck.UNIQUE)
 class DhwState(StrEnum):
-    OFF = S2_OFF
-    ON = S2_ON
+    OFF = "off"
+    ON = "on"
 
 
 @verify(EnumCheck.UNIQUE)
 class FanMode(StrEnum):
-    AUTO = S2_AUTO
-    ON = S2_ON
+    AUTO = "auto"
+    ON = "on"
 
 
 @verify(EnumCheck.UNIQUE)
 class FaultType(StrEnum):  # NOTE: This list is incomplete
-    SYS_B_CL = "BoilerCommunicationLost"
-    SYS_C_CL = "ChValveCommunicationLost"
-    DHW_A_FL = "DHWActuatorFailure"
-    # W_A_CL = "DHWActuatorCommunicationLost"  # extrapolated
-    DHW_S_CL = "DHWSensorCommunicationLost"
-    DHW_S_FL = "DHWSensorFailure"
-    DHW_S_LB = "DHWSensorLowBattery"  # extrapolated
-    GWY_X_CL = "GatewayCommunicationLost"
-    # S_X_LB = "TemperatureControlSystemLowBattery"  # extrapolated
-    ZON_A_CL = "TempZoneActuatorCommunicationLost"
-    ZON_A_LB = "TempZoneActuatorLowBattery"
-    ZON_S_CL = "TempZoneSensorCommunicationLost"
-    ZON_S_LB = "TempZoneSensorLowBattery"
+    SYS_B_CL = "boiler_communication_lost"
+    SYS_C_CL = "ch_valve_communication_lost"
+    DHW_A_FL = "dhw_actuator_failure"
+    # W_A_CL = "dhw_actuator_communication_lost"  # extrapolated
+    DHW_S_CL = "dhw_sensor_communication_lost"
+    DHW_S_FL = "dhw_sensor_failure"
+    DHW_S_LB = "dhw_sensor_low_battery"  # extrapolated
+    GWY_X_CL = "gateway_communication_lost"
+    # S_X_LB = "temperature_control_system_low_battery"  # extrapolated
+    ZON_A_CL = "temp_zone_actuator_communication_lost"
+    ZON_A_LB = "temp_zone_actuator_low_battery"
+    ZON_S_CL = "temp_zone_sensor_communication_lost"
+    ZON_S_LB = "temp_zone_sensor_low_battery"
 
 
 @verify(EnumCheck.UNIQUE)
 class LocationType(StrEnum):
-    COMMERCIAL = "Commercial"
-    RESIDENTIAL = "Residential"
+    COMMERCIAL = "commercial"
+    RESIDENTIAL = "residential"
 
 
 @verify(EnumCheck.UNIQUE)
 class SystemMode(StrEnum):
-    AUTO = S2_AUTO
-    AUTO_WITH_ECO = S2_AUTO_WITH_ECO
-    AUTO_WITH_RESET = S2_AUTO_WITH_RESET
-    AWAY = S2_AWAY
-    CUSTOM = S2_CUSTOM
-    DAY_OFF = S2_DAY_OFF
-    HEATING_OFF = S2_HEATING_OFF
-    OFF = S2_OFF  # not evohome (VisionProWifiRetail)
-    HEAT = S2_HEAT  # not evohome (VisionProWifiRetail)
-    COOL = S2_COOL  # not evohome (VisionProWifiRetail)
+    AUTO = "auto"
+    AUTO_WITH_ECO = "auto_with_eco"
+    AUTO_WITH_RESET = "auto_with_reset"
+    AWAY = "away"
+    CUSTOM = "custom"
+    DAY_OFF = "day_off"
+    HEATING_OFF = "heating_off"
+    OFF = "off"  # not evohome (VisionProWifiRetail)
+    HEAT = "heat"  # not evohome (VisionProWifiRetail)
+    COOL = "cool"  # not evohome (VisionProWifiRetail)
 
 
 @verify(EnumCheck.UNIQUE)
@@ -257,9 +259,9 @@ class EntityType(StrEnum):
 
 @verify(EnumCheck.UNIQUE)
 class TcsModelType(StrEnum):
-    EVO_TOUCH = "EvoTouch"
-    FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
-    VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
+    EVO_TOUCH = "evo_touch"
+    FOCUS_PRO_WIFI_RETAIL = "focus_pro_wifi_retail"
+    VISION_PRO_WIFI_RETAIL = "vision_pro_wifi_retail"
 
 
 S2_FOLLOW_SCHEDULE = "FollowSchedule"
@@ -270,20 +272,20 @@ S2_VACATION_HOLD = "VacationHold"
 
 @verify(EnumCheck.UNIQUE)
 class ZoneMode(StrEnum):
-    FOLLOW_SCHEDULE = S2_FOLLOW_SCHEDULE
-    PERMANENT_OVERRIDE = S2_PERMANENT_OVERRIDE
-    TEMPORARY_OVERRIDE = S2_TEMPORARY_OVERRIDE
-    VACATION_HOLD = S2_VACATION_HOLD  # not evohome (VisionProWifiRetail)
+    FOLLOW_SCHEDULE = "follow_schedule"
+    PERMANENT_OVERRIDE = "permanent_override"
+    TEMPORARY_OVERRIDE = "temporary_override"
+    VACATION_HOLD = "vacation_hold"  # not evohome (VisionProWifiRetail)
 
 
 @verify(EnumCheck.UNIQUE)
 class ZoneModelType(StrEnum):
-    FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
-    HEATING_ZONE = "HeatingZone"
-    ROUND_MODULATION = "RoundModulation"
-    ROUND_WIRELESS = "RoundWireless"
-    UNKNOWN = S2_UNKNOWN
-    VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
+    FOCUS_PRO_WIFI_RETAIL = "focus_pro_wifi_retail"
+    HEATING_ZONE = "heating_zone"
+    ROUND_MODULATION = "round_modulation"
+    ROUND_WIRELESS = "round_wireless"
+    UNKNOWN = "unknown"
+    VISION_PRO_WIFI_RETAIL = "vision_pro_wifi_retail"
 
 
 S2_ELECTRIC_HEAT = "ElectricHeat"  # TODO: needs confirming
@@ -297,10 +299,82 @@ S2_ZONE_TEMPERATURE_CONTROL = "ZoneTemperatureControl"
 
 @verify(EnumCheck.UNIQUE)
 class ZoneType(StrEnum):
-    MIXING_VALVE = S2_MIXING_VALVE
-    RADIATOR_ZONE = S2_RADIATOR_ZONE
-    THERMOSTAT = S2_THERMOSTAT
-    UNDERFLOOR_HEATING = S2_UNDERFLOOR_HEATING
-    UNKNOWN = S2_UNKNOWN
-    ZONE_TEMPERATURE_CONTROL = S2_ZONE_TEMPERATURE_CONTROL
-    ZONE_VALVES = S2_ZONE_VALVES
+    MIXING_VALVE = "mixing_valve"
+    RADIATOR_ZONE = "radiator_zone"
+    THERMOSTAT = "thermostat"
+    UNDERFLOOR_HEATING = "underfloor_heating"
+    UNKNOWN = "unknown"
+    ZONE_TEMPERATURE_CONTROL = "zone_temperature_control"
+    ZONE_VALVES = "zone_valves"
+
+
+# Vendor-cased strings for all enum values appearing in vendor API responses.
+# Used to build the vendor↔internal value conversion maps in auth.py and in
+# schema factories when validating raw vendor payloads (TCC_GET_* schemas).
+KNOWN_VENDOR_VALUES: Final[frozenset[str]] = frozenset(
+    {
+        # DayOfWeek
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+        # DhwState
+        "Off",
+        "On",
+        # FanMode (Auto; On already above)
+        "Auto",
+        # FaultType
+        "BoilerCommunicationLost",
+        "ChValveCommunicationLost",
+        "DHWActuatorFailure",
+        "DHWSensorCommunicationLost",
+        "DHWSensorFailure",
+        "DHWSensorLowBattery",
+        "GatewayCommunicationLost",
+        "TempZoneActuatorCommunicationLost",
+        "TempZoneActuatorLowBattery",
+        "TempZoneSensorCommunicationLost",
+        "TempZoneSensorLowBattery",
+        # LocationType
+        "Commercial",
+        "Residential",
+        # SystemMode (Auto, Off already above)
+        "AutoWithEco",
+        "AutoWithReset",
+        "Away",
+        "Custom",
+        "DayOff",
+        "HeatingOff",
+        "Heat",
+        "Cool",
+        # TcsModelType
+        "EvoTouch",
+        "FocusProWifiRetail",
+        "VisionProWifiRetail",
+        # ZoneMode
+        "FollowSchedule",
+        "PermanentOverride",
+        "TemporaryOverride",
+        "VacationHold",
+        # ZoneModelType (FocusProWifiRetail, VisionProWifiRetail already above)
+        "HeatingZone",
+        "RoundModulation",
+        "RoundWireless",
+        "Unknown",
+        # ZoneType (Unknown already above)
+        "MixingValve",
+        "RadiatorZone",
+        "Thermostat",
+        "UnderfloorHeating",
+        "ZoneTemperatureControl",
+        "ZoneValves",
+    }
+)
+
+# Internal snake_case → vendor-cased mapping (inverse of camel_to_snake over vendor values).
+INTERNAL_TO_VENDOR: Final[dict[str, str]] = {
+    camel_to_snake(v): v for v in KNOWN_VENDOR_VALUES
+}

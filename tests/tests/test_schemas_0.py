@@ -19,6 +19,7 @@ from evohomeasync2.schemas import (
     S2_TEMPERATURE_CONTROL_SYSTEMS,
     S2_TIME_ZONE,
     S2_USE_DAYLIGHT_SAVE_SWITCHING,
+    to_vendor,
 )
 from evohomeasync2.schemas.config import factory_tcs, factory_time_zone
 from evohomeasync2.schemas.status import factory_loc_status
@@ -42,10 +43,10 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     )
 
 
-# These schemas have camelCase keys, as per the vendor's schema
-SCH_TCS_CONFIG: Final = factory_tcs()
+# These schemas have camelCase keys and vendor-cased values, as per the vendor's schema
+SCH_TCS_CONFIG: Final = factory_tcs(val_fnc=to_vendor)
 SCH_TIME_ZONE: Final = factory_time_zone()
-SCH_LOCN_STATUS: Final = factory_loc_status()
+SCH_LOCN_STATUS: Final = factory_loc_status(val_fnc=to_vendor)
 
 
 def test_config_refresh(config: dict[str, Any], status: dict[str, Any]) -> None:

@@ -22,19 +22,7 @@ from _evohome.helpers import (
 )
 
 from . import exceptions as exc
-from .schemas.const import (
-    DayOfWeek,
-    DhwState,
-    EntityType,
-    FanMode,
-    FaultType,
-    LocationType,
-    SystemMode,
-    TcsModelType,
-    ZoneMode,
-    ZoneModelType,
-    ZoneType,
-)
+from .schemas.const import KNOWN_VENDOR_VALUES
 
 if TYPE_CHECKING:
     import aiohttp
@@ -59,25 +47,8 @@ _APPLICATION_ID: Final = base64.b64encode(
 ).decode("utf-8")  # fmt: off
 
 
-_KNOWN_VENDOR_VALUES: Final = {
-    member.value
-    for enum_class in (
-        DayOfWeek,
-        DhwState,
-        EntityType,
-        FanMode,
-        FaultType,
-        LocationType,
-        SystemMode,
-        TcsModelType,
-        ZoneMode,
-        ZoneModelType,
-        ZoneType,
-    )
-    for member in enum_class
-}
 _VENDOR_TO_INTERNAL_VALUE_MAP: Final = {
-    value: camel_to_snake(value) for value in _KNOWN_VENDOR_VALUES
+    value: camel_to_snake(value) for value in KNOWN_VENDOR_VALUES
 }
 _INTERNAL_TO_VENDOR_VALUE_MAP: Final = {
     internal: vendor for vendor, internal in _VENDOR_TO_INTERNAL_VALUE_MAP.items()

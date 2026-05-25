@@ -129,12 +129,16 @@ class TccDhwStateStatusResponseT(TypedDict):
     until: NotRequired[str]
 
 
-def factory_active_faults(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_active_faults(
+    fnc: Callable[[str], str] = noop, val_fnc: Callable[[str], str] = noop
+) -> vol.Schema:
     """Factory for the active faults schema."""
 
     return vol.Schema(
         {
-            vol.Required(fnc(S2_FAULT_TYPE)): vol.In(FaultType),
+            vol.Required(fnc(S2_FAULT_TYPE)): vol.In(
+                [val_fnc(m.value) for m in FaultType]
+            ),
             vol.Required(fnc(S2_SINCE)): vol.Any(
                 vol.Datetime(format="%Y-%m-%dT%H:%M:%S"),  # faults for zones
                 vol.Datetime(format="%Y-%m-%dT%H:%M:%S.%f"),
@@ -145,7 +149,9 @@ def factory_active_faults(fnc: Callable[[str], str] = noop) -> vol.Schema:
     )
 
 
-def factory_temp_status(fnc: Callable[[str], str] = noop) -> vol.Any:
+def factory_temp_status(
+    fnc: Callable[[str], str] = noop,
+) -> vol.Any:
     """Factory for the temperature status schema."""
 
     return vol.Any(
@@ -164,13 +170,17 @@ def factory_temp_status(fnc: Callable[[str], str] = noop) -> vol.Any:
     )
 
 
-def factory_zon_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_zon_status(
+    fnc: Callable[[str], str] = noop, val_fnc: Callable[[str], str] = noop
+) -> vol.Schema:
     """Factory for the zone status schema."""
 
     SCH_SETPOINT_STATUS: Final = vol.Schema(
         {
             vol.Required(fnc(S2_TARGET_HEAT_TEMPERATURE)): float,
-            vol.Required(fnc(S2_SETPOINT_MODE)): vol.In(ZoneMode),
+            vol.Required(fnc(S2_SETPOINT_MODE)): vol.In(
+                [val_fnc(m.value) for m in ZoneMode]
+            ),
             vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=API_STRFTIME),
         },
         extra=vol.PREVENT_EXTRA,
@@ -178,7 +188,7 @@ def factory_zon_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_FAN_STATUS: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_FAN_MODE)): vol.In(FanMode),
+            vol.Required(fnc(S2_FAN_MODE)): vol.In([val_fnc(m.value) for m in FanMode]),
             vol.Required(fnc(S2_CAN_BE_CHANGED)): bool,
         },
         extra=vol.PREVENT_EXTRA,
@@ -190,20 +200,22 @@ def factory_zon_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
             vol.Required(fnc(S2_NAME)): str,
             vol.Required(fnc(S2_TEMPERATURE_STATUS)): factory_temp_status(fnc),
             vol.Required(fnc(S2_SETPOINT_STATUS)): SCH_SETPOINT_STATUS,
-            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc)],
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc, val_fnc)],
             vol.Optional(fnc(S2_FAN_STATUS)): SCH_FAN_STATUS,  # non-evohome
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def factory_dhw_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_dhw_status(
+    fnc: Callable[[str], str] = noop, val_fnc: Callable[[str], str] = noop
+) -> vol.Schema:
     """Factory for the DHW status schema."""
 
     SCH_STATE_STATUS: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_STATE)): vol.In(DhwState),
-            vol.Required(fnc(S2_MODE)): vol.In(ZoneMode),
+            vol.Required(fnc(S2_STATE)): vol.In([val_fnc(m.value) for m in DhwState]),
+            vol.Required(fnc(S2_MODE)): vol.In([val_fnc(m.value) for m in ZoneMode]),
             vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=API_STRFTIME),
         },
         extra=vol.PREVENT_EXTRA,
@@ -214,29 +226,33 @@ def factory_dhw_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
             vol.Required(fnc(S2_DHW_ID)): vol.Match(REGEX_DHW_ID),
             vol.Required(fnc(S2_TEMPERATURE_STATUS)): factory_temp_status(fnc),
             vol.Required(fnc(S2_STATE_STATUS)): SCH_STATE_STATUS,
-            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc)],
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc, val_fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def factory_system_mode_status(fnc: Callable[[str], str] = noop) -> vol.Any:
+def factory_system_mode_status(
+    fnc: Callable[[str], str] = noop, val_fnc: Callable[[str], str] = noop
+) -> vol.Any:
     """Factory for the system mode status schema."""
 
     return vol.Any(
         vol.Schema(
             {
-                vol.Required(fnc(S2_MODE)): vol.In(SystemMode),
+                vol.Required(fnc(S2_MODE)): vol.In(
+                    [val_fnc(m.value) for m in SystemMode]
+                ),
                 vol.Required(fnc(S2_IS_PERMANENT)): True,
             }
         ),
         vol.Schema(
             {
                 vol.Required(fnc(S2_MODE)): vol.Any(
-                    str(SystemMode.AUTO_WITH_ECO),
-                    str(SystemMode.AWAY),
-                    str(SystemMode.CUSTOM),
-                    str(SystemMode.DAY_OFF),
+                    val_fnc(str(SystemMode.AUTO_WITH_ECO)),
+                    val_fnc(str(SystemMode.AWAY)),
+                    val_fnc(str(SystemMode.CUSTOM)),
+                    val_fnc(str(SystemMode.DAY_OFF)),
                 ),
                 vol.Required(fnc(S2_TIME_UNTIL)): vol.Datetime(format=API_STRFTIME),
                 vol.Required(fnc(S2_IS_PERMANENT)): False,
@@ -246,43 +262,51 @@ def factory_system_mode_status(fnc: Callable[[str], str] = noop) -> vol.Any:
     )
 
 
-def factory_tcs_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_tcs_status(
+    fnc: Callable[[str], str] = noop, val_fnc: Callable[[str], str] = noop
+) -> vol.Schema:
     """Factory for the TCS status schema."""
 
     return vol.Schema(
         {
             vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
-            vol.Required(fnc(S2_SYSTEM_MODE_STATUS)): factory_system_mode_status(fnc),
-            vol.Required(fnc(S2_ZONES)): [factory_zon_status(fnc)],
-            vol.Optional(fnc(S2_DHW)): factory_dhw_status(fnc),
-            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc)],
+            vol.Required(fnc(S2_SYSTEM_MODE_STATUS)): factory_system_mode_status(
+                fnc, val_fnc
+            ),
+            vol.Required(fnc(S2_ZONES)): [factory_zon_status(fnc, val_fnc)],
+            vol.Optional(fnc(S2_DHW)): factory_dhw_status(fnc, val_fnc),
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc, val_fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def factory_gwy_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_gwy_status(
+    fnc: Callable[[str], str] = noop, val_fnc: Callable[[str], str] = noop
+) -> vol.Schema:
     """Factory for the gateway status schema."""
 
     return vol.Schema(
         {
             vol.Required(fnc(S2_GATEWAY_ID)): vol.Match(REGEX_GATEWAY_ID),
             vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [
-                factory_tcs_status(fnc)
+                factory_tcs_status(fnc, val_fnc)
             ],
-            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc)],
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(fnc, val_fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def factory_loc_status(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_loc_status(
+    fnc: Callable[[str], str] = noop, val_fnc: Callable[[str], str] = noop
+) -> vol.Schema:
     """Factory for the locations status schema."""
 
     return vol.Schema(
         {
             vol.Required(fnc(S2_LOCATION_ID)): vol.Match(REGEX_LOCATION_ID),
-            vol.Required(fnc(S2_GATEWAYS)): [factory_gwy_status(fnc)],
+            vol.Required(fnc(S2_GATEWAYS)): [factory_gwy_status(fnc, val_fnc)],
         },
         extra=vol.PREVENT_EXTRA,
     )

@@ -62,12 +62,16 @@ class TccZonDailySchedulesT(TypedDict):
 
 #
 # These are returned from vendor's API (GET)...
-def factory_dhw_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_dhw_schedule(
+    fnc: Callable[[str], str] = noop, val_fnc: Callable[[str], str] = noop
+) -> vol.Schema:
     """Factory for the DHW schedule schema."""
 
     SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: check me
         {
-            vol.Required(fnc(S2_DHW_STATE)): vol.In(DhwState),
+            vol.Required(fnc(S2_DHW_STATE)): vol.In(
+                [val_fnc(m.value) for m in DhwState]
+            ),
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
         },
         extra=vol.PREVENT_EXTRA,
@@ -75,7 +79,9 @@ def factory_dhw_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_GET_DAY_OF_WEEK_DHW: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DayOfWeek),
+            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(
+                [val_fnc(m.value) for m in DayOfWeek]
+            ),
             vol.Required(fnc(S2_SWITCHPOINTS)): [SCH_GET_SWITCHPOINT_DHW],
         },
         extra=vol.PREVENT_EXTRA,
@@ -89,7 +95,9 @@ def factory_dhw_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
     )
 
 
-def factory_zon_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_zon_schedule(
+    fnc: Callable[[str], str] = noop, val_fnc: Callable[[str], str] = noop
+) -> vol.Schema:
     """Factory for the zone schedule schema."""
 
     SCH_GET_SWITCHPOINT_ZONE: Final = vol.Schema(
@@ -106,7 +114,9 @@ def factory_zon_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
     SCH_GET_DAY_OF_WEEK_ZONE: Final = vol.Schema(
         {
             # l.Required(fnc(S2_DAY_OF_WEEK)): vol.All(int, vol.Range(min=0, max=6)),  # 0 is Monday
-            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DayOfWeek),
+            vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(
+                [val_fnc(m.value) for m in DayOfWeek]
+            ),
             vol.Required(fnc(S2_SWITCHPOINTS)): [SCH_GET_SWITCHPOINT_ZONE],
         },
         extra=vol.PREVENT_EXTRA,
