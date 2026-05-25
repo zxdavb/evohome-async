@@ -39,4 +39,4 @@ jobs:
     needs: [check-lint, check-type, check-tests]
     uses: ./.github/workflows/check-hass-tests.yml
     with:
-      ha_version: "master"
+      ha_version: "latest"

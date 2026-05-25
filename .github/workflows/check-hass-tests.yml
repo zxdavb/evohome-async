@@ -68,7 +68,7 @@ on:
       ha_version:
         description: "Home Assistant version/branch to test against"
         required: false
-        default: "master"
+        default: "dev"
         type: string
 
 

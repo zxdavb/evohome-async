@@ -4,10 +4,12 @@
 
 ```text
 feature/my-change  →  dev  →  main  →  tag  →  PyPI
+ci/my-change            ↗
 ```
 
-- All development PRs target **`dev`**.
-- **`main`** only receives merges from `dev` immediately before a release.
+- Development PRs (features, fixes) target **`dev`**.
+- CI, infrastructure, and Renovate PRs may target **`main`** directly.
+- **`main`** only receives merges from `dev` (or direct non-development PRs) — never individual feature branches.
 - Tags are always created on `main`.
 
 ---
@@ -30,7 +32,7 @@ feature/my-change  →  dev  →  main  →  tag  →  PyPI
 
 4. CI runs lint, type-check, and tests (HA integration tests are **not** required for `dev` PRs).
 5. Merge to `dev`.
-6. **Release-drafter** automatically updates the draft GitHub Release with the PR, and bumps the suggested next version based on the labels seen so far:
+6. **Release-drafter** automatically updates the draft GitHub Release with every PR merged to `main`, and bumps the suggested next version based on the labels seen so far:
    - `breaking-change` → major
    - `enhancement` / `feature` → minor
    - everything else → patch
@@ -45,6 +47,8 @@ Open (or push) a PR from `dev` into `main`. This is the release boundary — onl
 
 ### 2. Create a tag on `main`
 
+There is no version file to edit — the version is derived automatically from the git tag by `hatch-vcs`. Simply tag the commit:
+
 ```bash
 git checkout main && git pull
 git tag v1.2.3
@@ -56,7 +60,7 @@ The tag format must be `vMAJOR.MINOR.PATCH`. Pushing the tag triggers
 
 - confirms the tag format is correct,
 - confirms the tagged commit is reachable from `main`,
-- runs lint, type-check, and tests.
+- runs lint, type-check, tests, and HA integration tests (against the latest HA release).
 
 ### 3. Publish the GitHub Release
 
@@ -69,8 +73,26 @@ Publishing triggers **`publish-release.yml`**, which:
 
 - re-validates the tag (format + ancestry),
 - re-runs lint, type-check, and tests,
+- runs HA integration tests against the latest HA release (blocking) and HA dev (non-blocking),
 - builds the wheel (`python -m build`),
 - publishes to PyPI via OIDC Trusted Publisher (no stored tokens required).
+
+### 4. Reset `dev`
+
+After the release is published, fast-forward `dev` to `main` so the next development cycle starts clean:
+
+```bash
+git checkout dev && git pull
+git merge --ff-only main
+git push origin dev
+```
+
+Alternatively, delete and recreate:
+
+```bash
+git push origin --delete dev
+git push origin main:dev
+```
 
 ---
 
@@ -81,3 +103,4 @@ Publishing triggers **`publish-release.yml`**, which:
   - Workflow: `publish-release.yml`
   - Environment: `pypi`
 - **GitHub environment `pypi`** must exist in repo Settings → Environments.
+- **GitHub Ruleset "Version tag protection"** enforces that `lint-ok`, `test-ok`, and `type-ok` status checks pass before a version tag can be pushed. This is in addition to the CI ancestry check in `validate-tag.yml`.
