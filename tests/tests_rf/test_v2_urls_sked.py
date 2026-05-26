@@ -34,7 +34,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
 
     # TODO: remove .update() and use URLs only
-    await evo.update()
+    await evo.update(dont_update_status=True)
 
     zone = evo.locations[0].gateways[0].systems[0].zones[0]
     url = f"{zone._TYPE}/{zone.id}/schedule"
@@ -128,7 +128,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
 
     # TODO: remove .update() and use URLs only
-    await evo.update()
+    await evo.update(dont_update_status=True)
 
     zone = evo.locations[0].gateways[0].systems[0].zones[0]
     url = f"{zone._TYPE}/{zone.id}/schedule"
@@ -222,7 +222,7 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
     """
 
     # TODO: remove .update() and use URLs only
-    await evo.update()
+    await evo.update(dont_update_status=True)
 
     zone = evo.locations[0].gateways[0].systems[0].zones[0]
     url = f"{zone._TYPE}/{zone.id}/schedule"
@@ -269,7 +269,7 @@ async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
     instead of heatSetpoint, but the same camelCase key convention applies.
     """
     # TODO: remove .update() and use URLs only
-    await evo.update()
+    await evo.update(dont_update_status=True)
 
     if not (dhw := get_dhw(evo)):
         pytest.skip("No DHW found in TCS")
