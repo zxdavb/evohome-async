@@ -2,18 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
-from .schemas.const import (  # noqa: TC001
-    TccDhwState,
-    TccFaultType,
-    TccLocationType,
-    TccSystemMode,
-    TccTcsModelType,
-    TccZoneMode,
-    TccZoneModelType,
-    TccZoneType,
-)
+if TYPE_CHECKING:
+    from .schemas import (
+        TccDhwState,
+        TccFaultType,
+        TccLocationType,
+        TccSystemMode,
+        TccTcsModelType,
+        TccZoneMode,
+        TccZoneModelType,
+        TccZoneType,
+    )
 
 
 # POST /Auth/OAuth/Token
