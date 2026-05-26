@@ -139,7 +139,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
         evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_SCHEDULE
     )  # type: ignore[assignment]
 
-    assert isinstance(schedule, dict | list)  # mypy
+    assert isinstance(schedule, dict)  # mypy
 
     if not _DBG_USE_REAL_AIOHTTP:  # TODO: REMOVE: faked server using old schema
         return
