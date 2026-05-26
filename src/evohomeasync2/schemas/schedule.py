@@ -5,7 +5,7 @@ The convention for JSON keys is camelCase, but the API appears to be case-insens
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final, TypedDict
+from typing import TYPE_CHECKING, Final, NotRequired, TypedDict
 
 import voluptuous as vol
 
@@ -33,12 +33,12 @@ if TYPE_CHECKING:
 
 
 class TccDhwSwitchpointT(TypedDict):
-    dhwState: DhwState  # Off, On
-    timeOfDay: str
+    dhwState: DhwState  # "Off" | "On"
+    timeOfDay: str  # "HH:MM:00"
 
 
 class TccDhwDayOfWeekT(TypedDict):
-    dayOfWeek: str
+    dayOfWeek: DayOfWeek  # "Monday" … "Sunday"
     switchpoints: list[TccDhwSwitchpointT]
 
 
@@ -47,12 +47,13 @@ class TccDhwDailySchedulesT(TypedDict):
 
 
 class TccZonSwitchpointT(TypedDict):
+    coolSetpoint: NotRequired[float]  # not confirmed; included defensively
     heatSetpoint: float
-    timeOfDay: str
+    timeOfDay: str  # "HH:MM:00"
 
 
 class TccZonDayOfWeekT(TypedDict):
-    dayOfWeek: str
+    dayOfWeek: DayOfWeek  # "Monday" … "Sunday"
     switchpoints: list[TccZonSwitchpointT]
 
 
@@ -65,7 +66,7 @@ class TccZonDailySchedulesT(TypedDict):
 def factory_dhw_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the DHW schedule schema."""
 
-    SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(  # TODO: check me
+    SCH_GET_SWITCHPOINT_DHW: Final = vol.Schema(
         {
             vol.Required(fnc(S2_DHW_STATE)): vol.In(DhwState),
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
@@ -105,7 +106,6 @@ def factory_zon_schedule(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     SCH_GET_DAY_OF_WEEK_ZONE: Final = vol.Schema(
         {
-            # l.Required(fnc(S2_DAY_OF_WEEK)): vol.All(int, vol.Range(min=0, max=6)),  # 0 is Monday
             vol.Required(fnc(S2_DAY_OF_WEEK)): vol.In(DayOfWeek),
             vol.Required(fnc(S2_SWITCHPOINTS)): [SCH_GET_SWITCHPOINT_ZONE],
         },
