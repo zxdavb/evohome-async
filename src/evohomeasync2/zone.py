@@ -61,16 +61,17 @@ if TYPE_CHECKING:
     from . import ControlSystem, Location
     from .auth import Auth
     from .schemas import (
-        DailySchedulesT,
-        DayOfWeekT,
-        DayOfWeekZoneT,
         EvoActiveFaultResponseT,
+        EvoDailySchedulesT,
+        EvoDayOfWeekT,
+        EvoDayOfWeekZoneT,
         EvoDhwConfigEntryT,
         EvoDhwStatusResponseT,
         EvoGwyConfigEntryT,
         EvoGwyStatusResponseT,
         EvoLocConfigEntryT,
         EvoLocStatusResponseT,
+        EvoSwitchpointT,
         EvoTcsConfigEntryT,
         EvoTcsStatusResponseT,
         EvoTemperatureStatusResponseT,
@@ -80,10 +81,9 @@ if TYPE_CHECKING:
         EvoZonSetpointCapabilitiesResponseT,
         EvoZonSetpointStatusResponseT,
         EvoZonStatusResponseT,
-        SwitchpointT,
     )
 
-    _ScheduleT = list[DayOfWeekT]
+    _ScheduleT = list[EvoDayOfWeekT]
     _SwitchPoint = tuple[dt, float | str]
 
 
@@ -239,7 +239,7 @@ def _find_switchpoints(
     schedule: _ScheduleT,
     day_of_week: TccDayOfWeek,
     time_of_day: str,
-) -> tuple[SwitchpointT, int, SwitchpointT, int]:
+) -> tuple[EvoSwitchpointT, int, EvoSwitchpointT, int]:
     """Find this/next switchpoints for a given day of week and time of day."""
 
     if not schedule:
@@ -252,8 +252,8 @@ def _find_switchpoints(
     except ValueError as err:
         raise TypeError(f"Invalid parameter: {day_of_week}") from err
 
-    this_sp: SwitchpointT | None = None
-    next_sp: SwitchpointT | None = None
+    this_sp: EvoSwitchpointT | None = None
+    next_sp: EvoSwitchpointT | None = None
 
     this_offset = 0
     next_offset = 0
@@ -342,7 +342,7 @@ class _ScheduleBase(ActiveFaultsBase):
         self._logger.debug(f"{self}: Getting schedule...")
 
         try:
-            schedule: DailySchedulesT = await self._auth.get(
+            schedule: EvoDailySchedulesT = await self._auth.get(
                 f"{self._TYPE}/{self.id}/schedule",
                 schema=self.SCH_SCHEDULE,
             )  # type: ignore[assignment]
@@ -535,7 +535,7 @@ class Zone(_ZoneBase):
         self._config: Final[EvoZonConfigResponseT] = config  # type: ignore[misc]
         self._status: EvoZonStatusResponseT | None = None
 
-        self._schedule: list[DayOfWeekZoneT] | None = None  # type: ignore[assignment]
+        self._schedule: list[EvoDayOfWeekZoneT] | None = None  # type: ignore[assignment]
 
         if not self.model or self.model == TccZoneModelType.UNKNOWN:
             raise exc.InvalidConfigError(
@@ -751,11 +751,11 @@ class Zone(_ZoneBase):
         await self.set_mode(mode, temperature=temperature, until=until)
 
     # NOTE: this wrapper exists only for typing purposes
-    async def get_schedule(self) -> list[DayOfWeekZoneT]:  # type: ignore[override]
+    async def get_schedule(self) -> list[EvoDayOfWeekZoneT]:  # type: ignore[override]
         """Get the schedule for this heating zone."""
         return await super().get_schedule()  # type: ignore[return-value]
 
     # NOTE: this wrapper exists only for typing purposes
-    async def set_schedule(self, schedule: list[DayOfWeekZoneT] | str) -> None:  # type: ignore[override]
+    async def set_schedule(self, schedule: list[EvoDayOfWeekZoneT] | str) -> None:  # type: ignore[override]
         """Set the schedule for this heating zone."""
         await super().set_schedule(schedule)  # type: ignore[arg-type]

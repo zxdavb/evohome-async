@@ -49,9 +49,9 @@ if TYPE_CHECKING:
     from . import Gateway, Location
     from .auth import Auth
     from .schemas import (
-        DayOfWeekDhwT,
-        DayOfWeekZoneT,
         EvoAllowedSystemModesResponseT,
+        EvoDayOfWeekDhwT,
+        EvoDayOfWeekZoneT,
         EvoScheduleDhwT,
         EvoScheduleZoneT,
         EvoSystemModeStatusResponseT,
@@ -374,7 +374,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         async def get_schedule(
             child: HotWater | Zone,
-        ) -> list[DayOfWeekDhwT] | list[DayOfWeekZoneT]:
+        ) -> list[EvoDayOfWeekDhwT] | list[EvoDayOfWeekZoneT]:
             try:
                 return await child.get_schedule()
             except exc.InvalidScheduleError:

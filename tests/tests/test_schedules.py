@@ -21,7 +21,7 @@ from evohomeasync2.zone import _dt_to_dow_and_tod, _find_switchpoints
 from .conftest import JsonObjectType, load_fixture
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas import DayOfWeekT
+    from evohomeasync2.schemas import EvoDayOfWeekT
 
 SCHEDULES_DIR = Path(__file__).parent / "schedules"
 
@@ -130,7 +130,7 @@ def test_schema_schedule_zone() -> None:
 def test_find_switchpoints() -> None:
     """Test the find_switchpoints method."""
 
-    schedule: list[DayOfWeekT] = SCHEDULE["daily_schedules"]  # type: ignore[assignment]
+    schedule: list[EvoDayOfWeekT] = SCHEDULE["daily_schedules"]  # type: ignore[assignment]
 
     assert _find_switchpoints(schedule, TccDayOfWeek.MONDAY, "00:00:00") == (
         {"heat_setpoint": 14.8, "time_of_day": "21:30:00"},
@@ -171,7 +171,7 @@ def test_find_switchpoints() -> None:
 def test_find_switchpoints_invalid_day() -> None:
     """Test _find_switchpoints with an invalid day_of_week value."""
 
-    schedule: list[DayOfWeekT] = SCHEDULE["daily_schedules"]  # type: ignore[assignment]
+    schedule: list[EvoDayOfWeekT] = SCHEDULE["daily_schedules"]  # type: ignore[assignment]
 
     with pytest.raises(TypeError, match="Invalid parameter"):
         _find_switchpoints(schedule, "Montag", "08:00:00")  # type: ignore[arg-type]

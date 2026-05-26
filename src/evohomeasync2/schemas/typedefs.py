@@ -272,22 +272,22 @@ class EvoSetZoneHeatSetpointT(TypedDict):
 #
 
 
-class SwitchpointDhwT(TypedDict):
+class EvoSwitchpointDhwT(TypedDict):
     dhw_state: TccDhwState
     time_of_day: str
 
 
-class DayOfWeekDhwT(TypedDict):
+class EvoDayOfWeekDhwT(TypedDict):
     day_of_week: str
-    switchpoints: list[SwitchpointDhwT]
+    switchpoints: list[EvoSwitchpointDhwT]
 
 
-class DailySchedulesDhwT(TypedDict):
-    daily_schedules: list[DayOfWeekDhwT]
+class EvoDailySchedulesDhwT(TypedDict):
+    daily_schedules: list[EvoDayOfWeekDhwT]
 
 
 # for export/import to/from file
-class EvoScheduleDhwT(DailySchedulesDhwT):
+class EvoScheduleDhwT(EvoDailySchedulesDhwT):
     dhw_id: str
     name: NotRequired[str]
 
@@ -295,22 +295,22 @@ class EvoScheduleDhwT(DailySchedulesDhwT):
 #
 
 
-class SwitchpointZoneT(TypedDict):
+class EvoSwitchpointZoneT(TypedDict):
     heat_setpoint: float
     time_of_day: str
 
 
-class DayOfWeekZoneT(TypedDict):
+class EvoDayOfWeekZoneT(TypedDict):
     day_of_week: str
-    switchpoints: list[SwitchpointZoneT]
+    switchpoints: list[EvoSwitchpointZoneT]
 
 
-class DailySchedulesZoneT(TypedDict):
-    daily_schedules: list[DayOfWeekZoneT]
+class EvoDailySchedulesZoneT(TypedDict):
+    daily_schedules: list[EvoDayOfWeekZoneT]
 
 
 # for export/import to/from file
-class EvoScheduleZoneT(DailySchedulesZoneT):
+class EvoScheduleZoneT(EvoDailySchedulesZoneT):
     zone_id: str
     name: NotRequired[str]
 
@@ -318,23 +318,23 @@ class EvoScheduleZoneT(DailySchedulesZoneT):
 #
 
 
-class SwitchpointT(TypedDict):
+class EvoSwitchpointT(TypedDict):
     time_of_day: str
     dhw_state: NotRequired[str]  # mutex with heat_setpoint
     heat_setpoint: NotRequired[float]
 
 
-class DayOfWeekT(TypedDict):
+class EvoDayOfWeekT(TypedDict):
     day_of_week: str
-    switchpoints: list[SwitchpointT]
+    switchpoints: list[EvoSwitchpointT]
 
 
-class DailySchedulesT(TypedDict):
-    daily_schedules: list[DayOfWeekT]
+class EvoDailySchedulesT(TypedDict):
+    daily_schedules: list[EvoDayOfWeekT]
 
 
 # for export/import to/from file
-class EvoScheduleT(DailySchedulesT):
+class EvoScheduleT(EvoDailySchedulesT):
     dhw_id: NotRequired[str]  # exactly one of these two IDs will be present
     zone_id: NotRequired[str]
     name: NotRequired[str]  # would normally be present, but be OK if not

@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 
     from . import ControlSystem
     from .schemas import (
-        DayOfWeekDhwT,
+        EvoDayOfWeekDhwT,
         EvoDhwConfigEntryT,
         EvoDhwConfigResponseT,
         EvoDhwScheduleCapabilitiesResponseT,
@@ -64,7 +64,7 @@ class HotWater(_ZoneBase):
         self._config: Final[EvoDhwConfigEntryT] = config  # type: ignore[misc]
         self._status: EvoDhwStatusResponseT | None = None
 
-        self._schedule: list[DayOfWeekDhwT] | None = None  # type: ignore[assignment]
+        self._schedule: list[EvoDayOfWeekDhwT] | None = None  # type: ignore[assignment]
 
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoDhwConfigEntryT:
@@ -238,11 +238,11 @@ class HotWater(_ZoneBase):
         await self.set_mode(mode, state=state, until=until)
 
     # NOTE: this wrapper exists only for typing purposes
-    async def get_schedule(self) -> list[DayOfWeekDhwT]:  # type: ignore[override]
+    async def get_schedule(self) -> list[EvoDayOfWeekDhwT]:  # type: ignore[override]
         """Get the schedule for this DHW zone."""
         return await super().get_schedule()  # type: ignore[return-value]
 
     # NOTE: this wrapper exists only for typing purposes
-    async def set_schedule(self, schedule: list[DayOfWeekDhwT] | str) -> None:  # type: ignore[override]
+    async def set_schedule(self, schedule: list[EvoDayOfWeekDhwT] | str) -> None:  # type: ignore[override]
         """Set the schedule for this DHW zone."""
         await super().set_schedule(schedule)  # type: ignore[arg-type]

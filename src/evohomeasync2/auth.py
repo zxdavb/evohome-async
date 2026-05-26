@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     )
 
 
-class AccessTokenEntryT(TypedDict):
+class EvoAccessTokenEntryT(TypedDict):
     """Dict for storing/restoring auth tokens to/from a cache."""
 
     access_token: str
@@ -241,14 +241,14 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         Should ideally confirm the access token is valid before saving.
         """
 
-    def _import_access_token(self, tokens: AccessTokenEntryT) -> None:
+    def _import_access_token(self, tokens: EvoAccessTokenEntryT) -> None:
         """Extract the token data from a (serialized) dictionary."""
 
         self._access_token = tokens[SZ_ACCESS_TOKEN]
         self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
         self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
-    def _export_access_token(self) -> AccessTokenEntryT:
+    def _export_access_token(self) -> EvoAccessTokenEntryT:
         """Convert the token data to a (serialized) dictionary."""
 
         return {
