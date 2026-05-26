@@ -32,8 +32,8 @@ from .schemas import (
     S2_PERMANENT,
     S2_SYSTEM_MODE,
     S2_TIME_UNTIL,
-    EntityType,
     SystemMode,
+    TccEntityType,
     TccSetTcsModeT,
     TcsModelType,
 )
@@ -65,7 +65,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
     SCH_STATUS: vol.Schema = factory_tcs_status(camel_to_snake)
-    _TYPE = EntityType.TCS
+    _TYPE = TccEntityType.TCS
     _STATUS_EXCLUDES = (SZ_DHW, SZ_ZONES)
 
     def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:

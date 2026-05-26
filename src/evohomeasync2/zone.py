@@ -43,7 +43,7 @@ from .schemas import (
     S2_SWITCHPOINTS,
     S2_TIME_UNTIL,
     DayOfWeek,
-    EntityType,
+    TccEntityType,
     TccSetZonModeT,
     ZoneMode,
     ZoneModelType,
@@ -91,7 +91,7 @@ _ONE_DAY = td(days=1)
 
 
 class EntityBase:
-    _TYPE: EntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
+    _TYPE: TccEntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
     _STATUS_EXCLUDES: tuple[str, ...] = ()  # child keys to exclude from own status
 
     _config: (
@@ -522,7 +522,7 @@ class _ZoneBase(_ScheduleBase):
 class Zone(_ZoneBase):
     """Instance of a TCS's heating Zone (temperatureZone)."""
 
-    _TYPE = EntityType.ZON
+    _TYPE = TccEntityType.ZON
 
     SCH_SCHEDULE: vol.Schema = factory_zon_schedule(camel_to_snake)
     SCH_STATUS: vol.Schema = factory_zon_status(camel_to_snake)

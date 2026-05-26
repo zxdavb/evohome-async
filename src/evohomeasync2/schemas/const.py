@@ -247,7 +247,7 @@ class SystemMode(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class EntityType(StrEnum):
+class TccEntityType(StrEnum):
     LOC = S2_LOCATION
     GWY = S2_GATEWAY
     TCS = S2_TEMPERATURE_CONTROL_SYSTEM

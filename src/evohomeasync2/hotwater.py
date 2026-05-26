@@ -25,7 +25,7 @@ from .schemas import (
     S2_STATE,
     S2_UNTIL_TIME,
     DhwState,
-    EntityType,
+    TccEntityType,
     TccSetDhwModeT,
     ZoneMode,
 )
@@ -53,7 +53,7 @@ if TYPE_CHECKING:
 class HotWater(_ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
-    _TYPE = EntityType.DHW
+    _TYPE = TccEntityType.DHW
 
     SCH_SCHEDULE: vol.Schema = factory_dhw_schedule(camel_to_snake)
     SCH_STATUS: vol.Schema = factory_dhw_status(camel_to_snake)
