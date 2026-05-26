@@ -16,7 +16,8 @@ REGEX_ZONE_ID: Final = r"[0-9]*"
 API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
 
 
-# These are vendor constants, used for keys in the vendor's schema
+# These are vendor constants (camelCase), used for keys in the vendor's schema.
+
 S2_ACTIVE_FAULTS: Final = "activeFaults"
 S2_ALLOWED_FAN_MODES: Final = "allowedFanModes"
 S2_ALLOWED_MODES: Final = "allowedModes"
@@ -31,6 +32,7 @@ S2_CAN_CONTROL_COOL: Final = "canControlCool"
 S2_CAN_CONTROL_HEAT: Final = "canControlHeat"
 S2_CITY: Final = "city"
 S2_COOL_SETPOINT: Final = "coolSetpoint"
+S2_COOL_SETPOINT_VALUE: Final = "coolSetpointValue"  # extrapolated
 S2_COUNTRY: Final = "country"
 S2_CRC: Final = "crc"
 S2_CURRENT_OFFSET_MINUTES: Final = "currentOffsetMinutes"
@@ -53,6 +55,7 @@ S2_GATEWAY_INFO: Final = "gatewayInfo"
 S2_GATEWAYS: Final = "gateways"
 
 S2_HEAT_SETPOINT: Final = "heatSetpoint"
+S2_HEAT_SETPOINT_VALUE: Final = "heatSetpointValue"
 
 S2_IS_AVAILABLE: Final = "isAvailable"
 S2_IS_CANCELABLE: Final = "isCancelable"
@@ -68,7 +71,7 @@ S2_LOCATION_OWNER: Final = "locationOwner"
 S2_LOCATION_TYPE: Final = "locationType"
 
 S2_MAC: Final = "mac"
-S2_MAX_COOL_SETPOINT: Final = "maxCoolSetpoint"  # an extrapolation
+S2_MAX_COOL_SETPOINT: Final = "maxCoolSetpoint"  # extrapolated
 S2_MAX_DURATION: Final = "maxDuration"
 S2_MAX_HEAT_SETPOINT: Final = "maxHeatSetpoint"
 S2_MAX_SWITCHPOINTS_PER_DAY: Final = "maxSwitchpointsPerDay"
@@ -83,6 +86,7 @@ S2_NAME: Final = "name"
 
 S2_OFFSET_MINUTES: Final = "offsetMinutes"
 
+S2_PERMANENT: Final = "permanent"
 S2_POSTCODE: Final = "postcode"
 
 S2_SCHEDULE_CAPABILITIES: Final = "scheduleCapabilities"
@@ -102,7 +106,7 @@ S2_SYSTEM_ID: Final = "systemId"
 S2_SYSTEM_MODE: Final = "systemMode"
 S2_SYSTEM_MODE_STATUS: Final = "systemModeStatus"
 
-S2_TARGET_COOL_TEMPERATURE: Final = "targetCoolTemperature"  # an extrapolation
+S2_TARGET_COOL_TEMPERATURE: Final = "targetCoolTemperature"  # extrapolated
 S2_TARGET_HEAT_TEMPERATURE: Final = "targetHeatTemperature"
 S2_TEMPERATURE: Final = "temperature"
 S2_TEMPERATURE_CONTROL_SYSTEMS: Final = "temperatureControlSystems"
@@ -115,7 +119,9 @@ S2_TIMING_MODE: Final = "timingMode"
 S2_TIMING_RESOLUTION: Final = "timingResolution"
 
 S2_UNTIL: Final = "until"
+S2_UNTIL_TIME: Final = "untilTime"
 S2_USE_DAYLIGHT_SAVE_SWITCHING: Final = "useDaylightSaveSwitching"
+S2_USER_ACCOUNT: Final = "userAccount"
 S2_USER_ID: Final = "userId"
 S2_USERNAME: Final = "username"
 
@@ -127,29 +133,28 @@ S2_ZONE_TYPE: Final = "zoneType"
 S2_ZONES: Final = "zones"
 
 
-#
-# These are vendor constants, used for API calls
+# These are vendor constants (camelCase), used as URL path components (not JSON keys).
+# Each group is placed just before the StrEnum that uses it.
 
 S2_DOMESTIC_HOT_WATER: Final = "domesticHotWater"
 S2_GATEWAY: Final = "gateway"
 S2_LOCATION: Final = "location"
 S2_TEMPERATURE_CONTROL_SYSTEM: Final = "temperatureControlSystem"
 S2_TEMPERATURE_ZONE: Final = "temperatureZone"
-S2_USER_ACCOUNT: Final = "userAccount"
 
-S2_COOL_SETPOINT_VALUE: Final = "coolSetpointValue"  # an extrapolation
-S2_HEAT_SETPOINT_VALUE: Final = "heatSetpointValue"
 
-S2_PERMANENT: Final = "permanent"
-S2_UNTIL_TIME: Final = "untilTime"
+@verify(EnumCheck.UNIQUE)
+class TccEntityType(StrEnum):
+    LOC = S2_LOCATION
+    GWY = S2_GATEWAY
+    TCS = S2_TEMPERATURE_CONTROL_SYSTEM
+    ZON = S2_TEMPERATURE_ZONE
+    DHW = S2_DOMESTIC_HOT_WATER
 
-# These are vendor-specific constants, used for values
-S2_DURATION: Final = "Duration"
-S2_HEATING_ZONE: Final = "HeatingZone"
-S2_PERIOD: Final = "Period"
-S2_UNKNOWN: Final = "Unknown"
 
-#
+# These are vendor constants (PascalCase), used for values in the vendor's schema.
+# Generally, each group is placed just before the StrEnum that uses it.
+
 S2_MONDAY: Final = "Monday"
 S2_TUESDAY: Final = "Tuesday"
 S2_WEDNESDAY: Final = "Wednesday"
@@ -185,22 +190,13 @@ S2_OFF: Final = "Off"
 S2_ON: Final = "On"
 
 
-S2_AUTO: Final = "Auto"
-S2_AUTO_WITH_ECO: Final = "AutoWithEco"
-S2_AUTO_WITH_RESET: Final = "AutoWithReset"
-S2_AWAY: Final = "Away"
-S2_CUSTOM: Final = "Custom"
-S2_DAY_OFF: Final = "DayOff"
-S2_HEATING_OFF: Final = "HeatingOff"
-
-S2_COOL: Final = "Cool"
-S2_HEAT: Final = "Heat"
-
-
 @verify(EnumCheck.UNIQUE)
 class DhwState(StrEnum):
     OFF = S2_OFF
     ON = S2_ON
+
+
+S2_AUTO: Final = "Auto"
 
 
 @verify(EnumCheck.UNIQUE)
@@ -232,6 +228,16 @@ class LocationType(StrEnum):
     RESIDENTIAL = "Residential"
 
 
+S2_AUTO_WITH_ECO: Final = "AutoWithEco"
+S2_AUTO_WITH_RESET: Final = "AutoWithReset"
+S2_AWAY: Final = "Away"
+S2_COOL: Final = "Cool"
+S2_CUSTOM: Final = "Custom"
+S2_DAY_OFF: Final = "DayOff"
+S2_HEAT: Final = "Heat"
+S2_HEATING_OFF: Final = "HeatingOff"
+
+
 @verify(EnumCheck.UNIQUE)
 class SystemMode(StrEnum):
     AUTO = S2_AUTO
@@ -247,25 +253,16 @@ class SystemMode(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class TccEntityType(StrEnum):
-    LOC = S2_LOCATION
-    GWY = S2_GATEWAY
-    TCS = S2_TEMPERATURE_CONTROL_SYSTEM
-    ZON = S2_TEMPERATURE_ZONE
-    DHW = S2_DOMESTIC_HOT_WATER
-
-
-@verify(EnumCheck.UNIQUE)
 class TcsModelType(StrEnum):
     EVO_TOUCH = "EvoTouch"
     FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
 
 
-S2_FOLLOW_SCHEDULE = "FollowSchedule"
-S2_PERMANENT_OVERRIDE = "PermanentOverride"
-S2_TEMPORARY_OVERRIDE = "TemporaryOverride"
-S2_VACATION_HOLD = "VacationHold"
+S2_FOLLOW_SCHEDULE: Final = "FollowSchedule"
+S2_PERMANENT_OVERRIDE: Final = "PermanentOverride"
+S2_TEMPORARY_OVERRIDE: Final = "TemporaryOverride"
+S2_VACATION_HOLD: Final = "VacationHold"
 
 
 @verify(EnumCheck.UNIQUE)
@@ -274,6 +271,12 @@ class ZoneMode(StrEnum):
     PERMANENT_OVERRIDE = S2_PERMANENT_OVERRIDE
     TEMPORARY_OVERRIDE = S2_TEMPORARY_OVERRIDE
     VACATION_HOLD = S2_VACATION_HOLD  # not evohome (VisionProWifiRetail)
+
+
+S2_DURATION: Final = "Duration"
+S2_HEATING_ZONE: Final = "HeatingZone"
+S2_PERIOD: Final = "Period"
+S2_UNKNOWN: Final = "Unknown"
 
 
 @verify(EnumCheck.UNIQUE)
@@ -286,13 +289,13 @@ class ZoneModelType(StrEnum):
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
 
 
-S2_ELECTRIC_HEAT = "ElectricHeat"  # TODO: needs confirming
-S2_MIXING_VALVE = "MixingValve"
-S2_RADIATOR_ZONE = "RadiatorZone"
-S2_THERMOSTAT = "Thermostat"
-S2_UNDERFLOOR_HEATING = "UnderfloorHeating"
-S2_ZONE_VALVES = "ZoneValves"  # is not ZoneValve
-S2_ZONE_TEMPERATURE_CONTROL = "ZoneTemperatureControl"
+S2_ELECTRIC_HEAT: Final = "ElectricHeat"  # TODO: needs confirming
+S2_MIXING_VALVE: Final = "MixingValve"
+S2_RADIATOR_ZONE: Final = "RadiatorZone"
+S2_THERMOSTAT: Final = "Thermostat"
+S2_UNDERFLOOR_HEATING: Final = "UnderfloorHeating"
+S2_ZONE_TEMPERATURE_CONTROL: Final = "ZoneTemperatureControl"
+S2_ZONE_VALVES: Final = "ZoneValves"  # is not ZoneValve
 
 
 @verify(EnumCheck.UNIQUE)
