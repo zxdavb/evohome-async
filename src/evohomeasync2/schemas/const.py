@@ -165,7 +165,7 @@ S2_SUNDAY: Final = "Sunday"
 
 
 @verify(EnumCheck.UNIQUE)
-class DayOfWeek(StrEnum):
+class TccDayOfWeek(StrEnum):
     MONDAY = S2_MONDAY
     TUESDAY = S2_TUESDAY
     WEDNESDAY = S2_WEDNESDAY
@@ -180,7 +180,7 @@ S2_ON: Final = "On"
 
 
 @verify(EnumCheck.UNIQUE)
-class DhwState(StrEnum):
+class TccDhwState(StrEnum):
     OFF = S2_OFF
     ON = S2_ON
 
@@ -189,13 +189,13 @@ S2_AUTO: Final = "Auto"
 
 
 @verify(EnumCheck.UNIQUE)
-class FanMode(StrEnum):
+class TccFanMode(StrEnum):
     AUTO = S2_AUTO
     ON = S2_ON
 
 
 @verify(EnumCheck.UNIQUE)
-class FaultType(StrEnum):  # NOTE: This list is incomplete
+class TccFaultType(StrEnum):  # NOTE: This list is incomplete
     SYS_B_CL = "BoilerCommunicationLost"
     SYS_C_CL = "ChValveCommunicationLost"
     DHW_A_FL = "DHWActuatorFailure"
@@ -212,7 +212,7 @@ class FaultType(StrEnum):  # NOTE: This list is incomplete
 
 
 @verify(EnumCheck.UNIQUE)
-class LocationType(StrEnum):
+class TccLocationType(StrEnum):
     COMMERCIAL = "Commercial"
     RESIDENTIAL = "Residential"
 
@@ -228,7 +228,7 @@ S2_HEATING_OFF: Final = "HeatingOff"
 
 
 @verify(EnumCheck.UNIQUE)
-class SystemMode(StrEnum):
+class TccSystemMode(StrEnum):
     AUTO = S2_AUTO
     AUTO_WITH_ECO = S2_AUTO_WITH_ECO
     AUTO_WITH_RESET = S2_AUTO_WITH_RESET
@@ -242,7 +242,7 @@ class SystemMode(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class TcsModelType(StrEnum):
+class TccTcsModelType(StrEnum):
     EVO_TOUCH = "EvoTouch"
     FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
@@ -255,7 +255,7 @@ S2_VACATION_HOLD: Final = "VacationHold"
 
 
 @verify(EnumCheck.UNIQUE)
-class ZoneMode(StrEnum):
+class TccZoneMode(StrEnum):
     FOLLOW_SCHEDULE = S2_FOLLOW_SCHEDULE
     PERMANENT_OVERRIDE = S2_PERMANENT_OVERRIDE
     TEMPORARY_OVERRIDE = S2_TEMPORARY_OVERRIDE
@@ -269,7 +269,7 @@ S2_UNKNOWN: Final = "Unknown"
 
 
 @verify(EnumCheck.UNIQUE)
-class ZoneModelType(StrEnum):
+class TccZoneModelType(StrEnum):
     FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
     HEATING_ZONE = "HeatingZone"
     ROUND_MODULATION = "RoundModulation"
@@ -288,7 +288,7 @@ S2_ZONE_VALVES: Final = "ZoneValves"  # is not ZoneValve
 
 
 @verify(EnumCheck.UNIQUE)
-class ZoneType(StrEnum):
+class TccZoneType(StrEnum):
     MIXING_VALVE = S2_MIXING_VALVE
     RADIATOR_ZONE = S2_RADIATOR_ZONE
     THERMOSTAT = S2_THERMOSTAT

@@ -249,7 +249,7 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
     assert "DailySchedules" not in schedule  # is not PascalCase
     day = schedule["dailySchedules"][0]
 
-    assert "DayOfWeek" not in day  # is not PascalCase
+    assert "TccDayOfWeek" not in day  # is not PascalCase
     assert day["dayOfWeek"] == "Monday"  # not "0", nor an int (an ordinal)
 
     assert "Switchpoints" not in day  # is not PascalCase
@@ -298,13 +298,13 @@ async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
     assert "DailySchedules" not in schedule  # is not PascalCase
     day = schedule["dailySchedules"][0]
 
-    assert "DayOfWeek" not in day  # is not PascalCase
+    assert "TccDayOfWeek" not in day  # is not PascalCase
     assert day["dayOfWeek"] == "Monday"  # not "0", nor an int (an ordinal)
 
     assert "Switchpoints" not in day  # is not PascalCase
     sp = day["switchpoints"][0]
 
-    assert "DhwState" not in sp  # is not PascalCase
+    assert "TccDhwState" not in sp  # is not PascalCase
     assert sp["dhwState"] in ("On", "Off")
 
     assert "TimeOfDay" not in sp  # is not PascalCase

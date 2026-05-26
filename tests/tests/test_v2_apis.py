@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from evohomeasync2.schemas import DhwState
+from evohomeasync2.schemas import TccDhwState
 
 from .conftest import FIXTURES_V2 as FIXTURES
 
@@ -46,7 +46,7 @@ async def test_ctl_reset(
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
-        "systemMode": "AutoWithReset",  # SystemMode.AUTO_WITH_RESET,
+        "systemMode": "AutoWithReset",  # TccSystemMode.AUTO_WITH_RESET,
         "permanent": True,
     }
 
@@ -59,8 +59,8 @@ async def test_ctl_reset(
 
 
 CTL_APIS_SANS_UNTIL = {  # system mode APIs that can not take an until kwarg
-    "set_auto": "Auto",  # SystemMode.AUTO,
-    "set_heatingoff": "HeatingOff",  # SystemMode.HEATING_OFF,
+    "set_auto": "Auto",  # TccSystemMode.AUTO,
+    "set_heatingoff": "HeatingOff",  # TccSystemMode.HEATING_OFF,
 }
 
 
@@ -94,10 +94,10 @@ async def test_ctl_set_mode_sans_until(
 
 
 CTL_APIS_WITH_UNTIL = {  # system mode APIs that can take an until kwarg
-    "set_away": "Away",  # SystemMode.AWAY,
-    "set_custom": "Custom",  # SystemMode.CUSTOM,
-    "set_dayoff": "DayOff",  # SystemMode.DAY_OFF,
-    "set_eco": "AutoWithEco",  # SystemMode.AUTO_WITH_ECO,
+    "set_away": "Away",  # TccSystemMode.AWAY,
+    "set_custom": "Custom",  # TccSystemMode.CUSTOM,
+    "set_dayoff": "DayOff",  # TccSystemMode.DAY_OFF,
+    "set_eco": "AutoWithEco",  # TccSystemMode.AUTO_WITH_ECO,
 }
 
 
@@ -157,8 +157,8 @@ async def test_dhw_set_off(
         await dhw.set_off()
 
     EXPECTED_JSON = {
-        "mode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
-        "state": "Off",  # #            DhwState.OFF,
+        "mode": "PermanentOverride",  # TccZoneMode.PERMANENT_OVERRIDE,
+        "state": "Off",  # #            TccDhwState.OFF,
     }
 
     mock_put.assert_awaited_once()
@@ -184,8 +184,8 @@ async def test_dhw_set_on(
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "mode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
-        "state": "On",  # #             DhwState.ON,
+        "mode": "PermanentOverride",  # TccZoneMode.PERMANENT_OVERRIDE,
+        "state": "On",  # #             TccDhwState.ON,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -209,7 +209,7 @@ async def test_dhw_reset(
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "mode": "FollowSchedule",  # ZoneMode.FOLLOW_SCHEDULE,
+        "mode": "FollowSchedule",  # TccZoneMode.FOLLOW_SCHEDULE,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -229,13 +229,13 @@ async def test_dhw_set_state(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.set_state(DhwState.OFF)
+        await dhw.set_state(TccDhwState.OFF)
 
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "mode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
-        "state": "Off",  # #            DhwState.OFF,
+        "mode": "PermanentOverride",  # TccZoneMode.PERMANENT_OVERRIDE,
+        "state": "Off",  # #            TccDhwState.OFF,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -247,13 +247,13 @@ async def test_dhw_set_state(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.set_state(DhwState.ON, until=dt.now(tz=UTC) + td(hours=3))
+        await dhw.set_state(TccDhwState.ON, until=dt.now(tz=UTC) + td(hours=3))
 
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "mode": "TemporaryOverride",  # ZoneMode.TEMPORARY_OVERRIDE,
-        "state": "On",  # #             DhwState.ON,
+        "mode": "TemporaryOverride",  # TccZoneMode.TEMPORARY_OVERRIDE,
+        "state": "On",  # #             TccDhwState.ON,
         "untilTime": "2025-07-10T15:00:00Z",
     }
 
@@ -280,7 +280,7 @@ async def test_zon_reset(
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "setpointMode": "FollowSchedule",  # ZoneMode.FOLLOW_SCHEDULE,
+        "setpointMode": "FollowSchedule",  # TccZoneMode.FOLLOW_SCHEDULE,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -304,7 +304,7 @@ async def test_zon_set_temperature(
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "setpointMode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
+        "setpointMode": "PermanentOverride",  # TccZoneMode.PERMANENT_OVERRIDE,
         "heatSetpointValue": 19.5,
     }
 
@@ -322,7 +322,7 @@ async def test_zon_set_temperature(
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "setpointMode": "TemporaryOverride",  # ZoneMode.TEMPORARY_OVERRIDE,
+        "setpointMode": "TemporaryOverride",  # TccZoneMode.TEMPORARY_OVERRIDE,
         "heatSetpointValue": 20.5,
         "timeUntil": "2025-07-10T13:00:00Z",
     }

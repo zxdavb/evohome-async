@@ -17,8 +17,8 @@ import pytest
 
 import evohomeasync2 as evo2
 from evohomeasync2 import HotWater, Zone
-from evohomeasync2.schemas import DhwState, ZoneMode
-from evohomeasync2.schemas.const import SystemMode
+from evohomeasync2.schemas import TccDhwState, TccZoneMode
+from evohomeasync2.schemas.const import TccSystemMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
 
@@ -57,10 +57,10 @@ async def test_ctl_reset_emulates_auto_with_reset(
     ):
         await tcs.reset()
 
-    if SystemMode.AUTO_WITH_RESET in tcs.allowed_modes:
+    if TccSystemMode.AUTO_WITH_RESET in tcs.allowed_modes:
         url = f"temperatureControlSystem/{tcs.id}/mode"
         mode = {
-            "systemMode": str(SystemMode.AUTO_WITH_RESET),
+            "systemMode": str(TccSystemMode.AUTO_WITH_RESET),
             "permanent": True,
         }
 
@@ -88,7 +88,9 @@ async def test_ctl_set_auto_falls_back_to_heat(
     tcs = evohome_v2.tcs
 
     expected_mode = (
-        SystemMode.AUTO if SystemMode.AUTO in tcs.allowed_modes else SystemMode.HEAT
+        TccSystemMode.AUTO
+        if TccSystemMode.AUTO in tcs.allowed_modes
+        else TccSystemMode.HEAT
     )
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
@@ -113,9 +115,9 @@ async def test_ctl_set_heatingoff_falls_back_to_off(
     tcs = evohome_v2.tcs
 
     expected_mode = (
-        SystemMode.OFF
-        if SystemMode.OFF in tcs.allowed_modes
-        else SystemMode.HEATING_OFF
+        TccSystemMode.OFF
+        if TccSystemMode.OFF in tcs.allowed_modes
+        else TccSystemMode.HEATING_OFF
     )
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
@@ -139,7 +141,7 @@ async def test_ctl_set_mode_rejects_unsupported_mode(
 
     tcs = evohome_v2.tcs
 
-    for system_mode in SystemMode:
+    for system_mode in TccSystemMode:
         if system_mode not in tcs.allowed_modes:
             break
     else:
@@ -197,7 +199,7 @@ async def test_zon_set_mode_follow_schedule(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await zone.set_mode(ZoneMode.FOLLOW_SCHEDULE)
+        await zone.set_mode(TccZoneMode.FOLLOW_SCHEDULE)
 
     mock_put.assert_awaited_once_with(
         HTTPMethod.PUT,
@@ -216,7 +218,7 @@ async def test_zon_set_mode_permanent_override(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await zone.set_mode(ZoneMode.PERMANENT_OVERRIDE, temperature=20.0)
+        await zone.set_mode(TccZoneMode.PERMANENT_OVERRIDE, temperature=20.0)
 
     mock_put.assert_awaited_once_with(
         HTTPMethod.PUT,
@@ -239,7 +241,7 @@ async def test_zon_set_mode_temporary_override(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
         await zone.set_mode(
-            ZoneMode.TEMPORARY_OVERRIDE,
+            TccZoneMode.TEMPORARY_OVERRIDE,
             temperature=21.5,
             until=dt.now(tz=UTC) + td(hours=3),
         )
@@ -262,14 +264,14 @@ async def test_zon_set_mode_rejects_vacation_hold(
 
     zone = evohome_v2.tcs.zones[0]
 
-    if ZoneMode.VACATION_HOLD in zone.allowed_modes:
+    if TccZoneMode.VACATION_HOLD in zone.allowed_modes:
         pytest.skip("Zone supports VacationHold mode")
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
         pytest.raises(evo2.InvalidZoneModeError),
     ):
-        await zone.set_mode(ZoneMode.VACATION_HOLD, temperature=20.0)
+        await zone.set_mode(TccZoneMode.VACATION_HOLD, temperature=20.0)
 
     mock_put.assert_not_awaited()
 
@@ -282,7 +284,7 @@ async def test_zon_set_mode_vacation_hold(
 
     zone = evohome_v2.tcs.zones[0]
 
-    if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
+    if TccZoneMode.VACATION_HOLD not in zone.allowed_modes:
         pytest.skip("Zone does not support VacationHold mode")
 
     freezer.move_to("2025-07-10T12:00:00Z")
@@ -291,7 +293,7 @@ async def test_zon_set_mode_vacation_hold(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
         await zone.set_mode(
-            ZoneMode.VACATION_HOLD,
+            TccZoneMode.VACATION_HOLD,
             temperature=15.0,
             until=dt.now(tz=UTC) + td(days=7),
         )
@@ -318,7 +320,7 @@ async def test_zon_set_mode_follow_schedule_rejects_extra_args(
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
         pytest.raises(evo2.InvalidZoneModeError),
     ):
-        await zone.set_mode(ZoneMode.FOLLOW_SCHEDULE, temperature=20.0)
+        await zone.set_mode(TccZoneMode.FOLLOW_SCHEDULE, temperature=20.0)
 
     mock_put.assert_not_awaited()
 
@@ -327,7 +329,7 @@ async def test_zon_set_mode_follow_schedule_rejects_extra_args(
         pytest.raises(evo2.InvalidZoneModeError),
     ):
         await zone.set_mode(
-            ZoneMode.FOLLOW_SCHEDULE, until=dt.now(tz=UTC) + td(hours=1)
+            TccZoneMode.FOLLOW_SCHEDULE, until=dt.now(tz=UTC) + td(hours=1)
         )
 
     mock_put.assert_not_awaited()
@@ -344,7 +346,7 @@ async def test_zon_set_mode_permanent_override_rejects_bad_args(
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
         pytest.raises(evo2.InvalidZoneModeError),
     ):
-        await zone.set_mode(ZoneMode.PERMANENT_OVERRIDE)
+        await zone.set_mode(TccZoneMode.PERMANENT_OVERRIDE)
 
     mock_put.assert_not_awaited()
 
@@ -353,7 +355,7 @@ async def test_zon_set_mode_permanent_override_rejects_bad_args(
         pytest.raises(evo2.InvalidZoneModeError),
     ):
         await zone.set_mode(
-            ZoneMode.PERMANENT_OVERRIDE,
+            TccZoneMode.PERMANENT_OVERRIDE,
             temperature=20.0,
             until=dt.now(tz=UTC) + td(hours=1),
         )
@@ -373,7 +375,7 @@ async def test_zon_set_mode_temporary_override_rejects_bad_args(
         pytest.raises(evo2.InvalidZoneModeError),
     ):
         await zone.set_mode(
-            ZoneMode.TEMPORARY_OVERRIDE, until=dt.now(tz=UTC) + td(hours=1)
+            TccZoneMode.TEMPORARY_OVERRIDE, until=dt.now(tz=UTC) + td(hours=1)
         )
 
     mock_put.assert_not_awaited()
@@ -382,7 +384,7 @@ async def test_zon_set_mode_temporary_override_rejects_bad_args(
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
         pytest.raises(evo2.InvalidZoneModeError),
     ):
-        await zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0)
+        await zone.set_mode(TccZoneMode.TEMPORARY_OVERRIDE, temperature=20.0)
 
     mock_put.assert_not_awaited()
 
@@ -391,7 +393,7 @@ async def test_zon_set_mode_temporary_override_rejects_bad_args(
         pytest.raises(evo2.InvalidZoneModeError),
     ):
         await zone.set_mode(
-            ZoneMode.TEMPORARY_OVERRIDE,
+            TccZoneMode.TEMPORARY_OVERRIDE,
             temperature=zone.max_heat_setpoint + 1.0,
             until=dt.now(tz=UTC) + td(hours=1),
         )
@@ -414,7 +416,7 @@ async def test_dhw_set_mode_follow_schedule(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.set_mode(ZoneMode.FOLLOW_SCHEDULE)
+        await dhw.set_mode(TccZoneMode.FOLLOW_SCHEDULE)
 
     mock_put.assert_awaited_once_with(
         HTTPMethod.PUT,
@@ -435,7 +437,7 @@ async def test_dhw_set_mode_permanent_override(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.set_mode(ZoneMode.PERMANENT_OVERRIDE, state=DhwState.ON)
+        await dhw.set_mode(TccZoneMode.PERMANENT_OVERRIDE, state=TccDhwState.ON)
 
     mock_put.assert_awaited_once_with(
         HTTPMethod.PUT,
@@ -460,8 +462,8 @@ async def test_dhw_set_mode_temporary_override(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
         await dhw.set_mode(
-            ZoneMode.TEMPORARY_OVERRIDE,
-            state=DhwState.OFF,
+            TccZoneMode.TEMPORARY_OVERRIDE,
+            state=TccDhwState.OFF,
             until=dt.now(tz=UTC) + td(hours=3),
         )
 
@@ -485,7 +487,7 @@ async def test_dhw_set_mode_rejects_unsupported_mode(
     if dhw is None:
         pytest.skip("No DHW in this fixture")
 
-    for mode in ZoneMode:
+    for mode in TccZoneMode:
         if mode not in dhw.allowed_modes:
             break
     else:
@@ -513,7 +515,7 @@ async def test_dhw_set_mode_follow_schedule_rejects_extra_args(
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
         pytest.raises(evo2.InvalidDhwModeError),
     ):
-        await dhw.set_mode(ZoneMode.FOLLOW_SCHEDULE, state=DhwState.ON)
+        await dhw.set_mode(TccZoneMode.FOLLOW_SCHEDULE, state=TccDhwState.ON)
 
     mock_put.assert_not_awaited()
 
@@ -521,7 +523,9 @@ async def test_dhw_set_mode_follow_schedule_rejects_extra_args(
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
         pytest.raises(evo2.InvalidDhwModeError),
     ):
-        await dhw.set_mode(ZoneMode.FOLLOW_SCHEDULE, until=dt.now(tz=UTC) + td(hours=1))
+        await dhw.set_mode(
+            TccZoneMode.FOLLOW_SCHEDULE, until=dt.now(tz=UTC) + td(hours=1)
+        )
 
     mock_put.assert_not_awaited()
 
@@ -539,7 +543,7 @@ async def test_dhw_set_mode_permanent_override_rejects_bad_args(
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
         pytest.raises(evo2.InvalidDhwModeError),
     ):
-        await dhw.set_mode(ZoneMode.PERMANENT_OVERRIDE)
+        await dhw.set_mode(TccZoneMode.PERMANENT_OVERRIDE)
 
     mock_put.assert_not_awaited()
 
@@ -548,8 +552,8 @@ async def test_dhw_set_mode_permanent_override_rejects_bad_args(
         pytest.raises(evo2.InvalidDhwModeError),
     ):
         await dhw.set_mode(
-            ZoneMode.PERMANENT_OVERRIDE,
-            state=DhwState.ON,
+            TccZoneMode.PERMANENT_OVERRIDE,
+            state=TccDhwState.ON,
             until=dt.now(tz=UTC) + td(hours=1),
         )
 
@@ -570,7 +574,7 @@ async def test_dhw_set_mode_temporary_override_rejects_bad_args(
         pytest.raises(evo2.InvalidDhwModeError),
     ):
         await dhw.set_mode(
-            ZoneMode.TEMPORARY_OVERRIDE, until=dt.now(tz=UTC) + td(hours=1)
+            TccZoneMode.TEMPORARY_OVERRIDE, until=dt.now(tz=UTC) + td(hours=1)
         )
 
     mock_put.assert_not_awaited()
@@ -579,6 +583,6 @@ async def test_dhw_set_mode_temporary_override_rejects_bad_args(
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
         pytest.raises(evo2.InvalidDhwModeError),
     ):
-        await dhw.set_mode(ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.OFF)
+        await dhw.set_mode(TccZoneMode.TEMPORARY_OVERRIDE, state=TccDhwState.OFF)
 
     mock_put.assert_not_awaited()

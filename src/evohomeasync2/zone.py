@@ -42,12 +42,12 @@ from .schemas import (
     S2_SETPOINT_MODE,
     S2_SWITCHPOINTS,
     S2_TIME_UNTIL,
-    DayOfWeek,
+    TccDayOfWeek,
     TccEntityType,
     TccSetZonModeT,
-    ZoneMode,
-    ZoneModelType,
-    ZoneType,
+    TccZoneMode,
+    TccZoneModelType,
+    TccZoneType,
 )
 from .schemas.schedule import factory_zon_schedule
 from .schemas.status import factory_zon_status
@@ -226,16 +226,18 @@ class ActiveFaultsBase(EntityBase):
         return tuple(self._active_faults)
 
 
-def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
+def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[TccDayOfWeek, str]:
     """Return a pair of strings representing the local day of week and time of day."""
     dtm = as_local_time(dtm, tzinfo)
-    day_of_week = list(DayOfWeek)[dtm.weekday()]  # locale-independent
-    return DayOfWeek(day_of_week), dtm.strftime("%H:%M")  # TODO: localize, e.g. Montag?
+    day_of_week = list(TccDayOfWeek)[dtm.weekday()]  # locale-independent
+    return TccDayOfWeek(day_of_week), dtm.strftime(
+        "%H:%M"
+    )  # TODO: localize, e.g. Montag?
 
 
 def _find_switchpoints(
     schedule: _ScheduleT,
-    day_of_week: DayOfWeek,
+    day_of_week: TccDayOfWeek,
     time_of_day: str,
 ) -> tuple[SwitchpointT, int, SwitchpointT, int]:
     """Find this/next switchpoints for a given day of week and time of day."""
@@ -246,7 +248,7 @@ def _find_switchpoints(
     # assumes 1+ switchpoint per day, which could be this_sp or next_sp only
 
     try:
-        day_idx = list(DayOfWeek).index(day_of_week)
+        day_idx = list(TccDayOfWeek).index(day_of_week)
     except ValueError as err:
         raise TypeError(f"Invalid parameter: {day_of_week}") from err
 
@@ -535,18 +537,18 @@ class Zone(_ZoneBase):
 
         self._schedule: list[DayOfWeekZoneT] | None = None  # type: ignore[assignment]
 
-        if not self.model or self.model == ZoneModelType.UNKNOWN:
+        if not self.model or self.model == TccZoneModelType.UNKNOWN:
             raise exc.InvalidConfigError(
                 f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)"
             )
-        if not self.type or self.type == ZoneType.UNKNOWN:
+        if not self.type or self.type == TccZoneType.UNKNOWN:
             raise exc.InvalidConfigError(
                 f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)"
             )
 
-        if self.model not in ZoneModelType:
+        if self.model not in TccZoneModelType:
             self._logger.warning("%s: Unknown model type '%s' (YMMV)", self, self.model)
-        if self.type not in ZoneType:
+        if self.type not in TccZoneType:
             self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
 
     @property  # not strictly static, but library largely assumes so
@@ -562,7 +564,7 @@ class Zone(_ZoneBase):
     # Config attrs...
 
     @cached_property
-    def model(self) -> ZoneModelType:
+    def model(self) -> TccZoneModelType:
         return self._config[SZ_MODEL_TYPE]
 
     @property
@@ -572,7 +574,7 @@ class Zone(_ZoneBase):
         return self._config[SZ_NAME]
 
     @cached_property
-    def type(self) -> ZoneType:
+    def type(self) -> TccZoneType:
         return self._config[SZ_ZONE_TYPE]
 
     @cached_property
@@ -606,7 +608,7 @@ class Zone(_ZoneBase):
         return self._config[SZ_SETPOINT_CAPABILITIES]
 
     @cached_property
-    def allowed_modes(self) -> tuple[ZoneMode, ...]:
+    def allowed_modes(self) -> tuple[TccZoneMode, ...]:
         return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
 
     @property  # convenience attr
@@ -638,7 +640,7 @@ class Zone(_ZoneBase):
         return self.status[SZ_SETPOINT_STATUS]
 
     @property
-    def mode(self) -> ZoneMode:
+    def mode(self) -> TccZoneMode:
         return self.setpoint_status[SZ_SETPOINT_MODE]
 
     @property
@@ -661,7 +663,7 @@ class Zone(_ZoneBase):
             )
 
         if (temp := zon_mode.get(S2_HEAT_SETPOINT_VALUE)) is None:
-            if zon_mode[S2_SETPOINT_MODE] != ZoneMode.FOLLOW_SCHEDULE:
+            if zon_mode[S2_SETPOINT_MODE] != TccZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(
                     f"{self}: Attempting missing {S2_HEAT_SETPOINT_VALUE}: {zon_mode}..."
                 )
@@ -677,7 +679,7 @@ class Zone(_ZoneBase):
 
     async def set_mode(
         self,
-        mode: ZoneMode,
+        mode: TccZoneMode,
         /,
         *,
         temperature: float | None = None,
@@ -691,13 +693,13 @@ class Zone(_ZoneBase):
         zone_mode: TccSetZonModeT = {S2_SETPOINT_MODE: mode}
 
         if temperature is None:
-            if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
+            if mode in (TccZoneMode.PERMANENT_OVERRIDE, TccZoneMode.TEMPORARY_OVERRIDE):
                 raise exc.InvalidZoneModeError(
                     f"{self}: For {mode}, temperature must not be None"
                 )
 
         else:
-            if mode == ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
+            if mode == TccZoneMode.FOLLOW_SCHEDULE:  # also TccZoneMode.VACATION_HOLD?
                 raise exc.InvalidZoneModeError(
                     f"{self}: For {mode}, temperature must be None"
                 )
@@ -710,13 +712,15 @@ class Zone(_ZoneBase):
             zone_mode[S2_HEAT_SETPOINT_VALUE] = temperature
 
         if until is None:
-            if mode == ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
+            if (
+                mode == TccZoneMode.TEMPORARY_OVERRIDE
+            ):  # also TccZoneMode.VACATION_HOLD?
                 raise exc.InvalidZoneModeError(
                     f"{self}: For {mode}, until must not be None"
                 )
 
         else:
-            if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
+            if mode in (TccZoneMode.FOLLOW_SCHEDULE, TccZoneMode.PERMANENT_OVERRIDE):
                 raise exc.InvalidZoneModeError(
                     f"{self}: For {mode}, until must be None"
                 )
@@ -727,7 +731,7 @@ class Zone(_ZoneBase):
 
     async def reset(self) -> None:
         """Cancel any override and allow the Zone to follow its schedule."""
-        await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
+        await self.set_mode(TccZoneMode.FOLLOW_SCHEDULE)
 
     # NOTE: no provision for cooling (not supported by API)
     async def set_temperature(
@@ -740,9 +744,9 @@ class Zone(_ZoneBase):
         """Set the temperature of the zone (no provision for cooling)."""
 
         mode = (
-            ZoneMode.PERMANENT_OVERRIDE
+            TccZoneMode.PERMANENT_OVERRIDE
             if until is None
-            else ZoneMode.TEMPORARY_OVERRIDE
+            else TccZoneMode.TEMPORARY_OVERRIDE
         )
         await self.set_mode(mode, temperature=temperature, until=until)
 
