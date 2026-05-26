@@ -48,6 +48,7 @@
         "cancelable",
         "caplog",
         "codespell",
+        "commtask",
         "conftest",
         "CRED",
         "CREDS",
