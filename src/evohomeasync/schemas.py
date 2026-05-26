@@ -63,21 +63,22 @@ SZ_USERNAME: Final = "username"
 SZ_ZIPCODE: Final = "zipcode"
 
 
-#######################################################################################
-# [
-#     {
-#         "locationID": l["locationID"],
-#         "devices": [
-#             {
-#                 k: v
-#                 for k, v in d.items()
-#                 if k[-2:].lower() == "id" or k in ("instance", "name")
-#             }
-#             for d in l["devices"]
-#         ],
-#     }
-#     for l in config
-# ]
+"""
+    [
+        {
+            "locationID": l["locationID"],
+            "devices": [
+                {
+                    k: v
+                    for k, v in d.items()
+                    if k[-2:].lower() == "id" or k in ("instance", "name")
+                }
+                for d in l["devices"]
+            ],
+        }
+        for l in config
+    ]
+"""
 
 
 def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
@@ -234,7 +235,7 @@ SZ_HEATING_OFF: Final = "HeatingOff"
 
 
 @verify(EnumCheck.UNIQUE)
-class SystemMode(StrEnum):
+class TccSystemMode(StrEnum):
     AUTO = SZ_AUTO
     AUTO_WITH_ECO = SZ_AUTO_WITH_ECO
     AWAY = SZ_AWAY

@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 
     from . import Gateway, Location
     from .auth import Auth
-    from .schemas import (
+    from .typedefs import (
         EvoAllowedSystemModesResponseT,
         EvoDayOfWeekDhwT,
         EvoDayOfWeekZoneT,

@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
     from . import Location
     from .auth import Auth
-    from .schemas import (
+    from .typedefs import (
         EvoGwyConfigEntryT,
         EvoGwyConfigResponseT,
         EvoGwyStatusResponseT,

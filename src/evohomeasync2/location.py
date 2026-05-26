@@ -27,7 +27,7 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
-from .schemas import EvoTimeZoneInfoT, TccEntityType
+from .schemas import TccEntityType
 from .schemas.config import factory_location_installation_info
 from .schemas.status import factory_loc_status
 from .zone import EntityBase
@@ -37,10 +37,11 @@ if TYPE_CHECKING:
 
     from . import EvohomeClient
     from .auth import Auth
-    from .schemas import (
+    from .typedefs import (
         EvoLocConfigEntryT,
         EvoLocConfigResponseT,
         EvoLocStatusResponseT,
+        EvoTimeZoneInfoT,
     )
 
 

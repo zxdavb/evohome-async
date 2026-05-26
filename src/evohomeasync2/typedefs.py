@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal, NotRequired, TypedDict
 
-from .const import (  # noqa: TC001
+from .schemas.const import (  # noqa: TC001
     TccDhwState,
     TccFaultType,
     TccLocationType,

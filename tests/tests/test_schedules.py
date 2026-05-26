@@ -21,7 +21,7 @@ from evohomeasync2.zone import _dt_to_dow_and_tod, _find_switchpoints
 from .conftest import JsonObjectType, load_fixture
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas import EvoDayOfWeekT
+    from evohomeasync2.typedefs import EvoDayOfWeekT
 
 SCHEDULES_DIR = Path(__file__).parent / "schedules"
 

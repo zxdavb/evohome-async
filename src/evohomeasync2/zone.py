@@ -60,7 +60,7 @@ if TYPE_CHECKING:
 
     from . import ControlSystem, Location
     from .auth import Auth
-    from .schemas import (
+    from .typedefs import (
         EvoActiveFaultResponseT,
         EvoDailySchedulesT,
         EvoDayOfWeekT,

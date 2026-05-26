@@ -22,7 +22,8 @@ if TYPE_CHECKING:
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
-    from .schemas import EvoAuthTokensResponseT, TccOAuthTokenResponseT
+    from .schemas import TccOAuthTokenResponseT
+    from .typedefs import EvoAuthTokensResponseT
 
 
 class EvoAccessTokenEntryT(TypedDict):

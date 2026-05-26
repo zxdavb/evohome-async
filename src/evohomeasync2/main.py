@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import aiohttp
 
     from .control_system import ControlSystem
-    from .schemas import EvoLocConfigResponseT, EvoUsrConfigResponseT
+    from .typedefs import EvoLocConfigResponseT, EvoUsrConfigResponseT
 
 
 SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)

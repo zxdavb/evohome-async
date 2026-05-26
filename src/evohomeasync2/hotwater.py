@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import ControlSystem
-    from .schemas import (
+    from .typedefs import (
         EvoDayOfWeekDhwT,
         EvoDhwConfigEntryT,
         EvoDhwConfigResponseT,
