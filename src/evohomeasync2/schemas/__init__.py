@@ -49,7 +49,6 @@ from .config import (
 )
 from .const import (
     API_STRFTIME,
-    DAYS_OF_WEEK,
     REGEX_DHW_ID,
     REGEX_GATEWAY_ID,
     REGEX_LOCATION_ID,
@@ -279,7 +278,6 @@ from .typedefs import (
 
 __all__ = [
     "API_STRFTIME",
-    "DAYS_OF_WEEK",
     "MAX_HEAT_SETPOINT_LOWER",
     "MAX_HEAT_SETPOINT_UPPER",
     "MIN_HEAT_SETPOINT_LOWER",

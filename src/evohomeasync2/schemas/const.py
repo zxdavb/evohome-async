@@ -175,17 +175,6 @@ class DayOfWeek(StrEnum):
     SUNDAY = S2_SUNDAY
 
 
-DAYS_OF_WEEK: Final = (
-    S2_MONDAY,
-    S2_TUESDAY,
-    S2_WEDNESDAY,
-    S2_THURSDAY,
-    S2_FRIDAY,
-    S2_SATURDAY,
-    S2_SUNDAY,
-)
-
-
 S2_OFF: Final = "Off"
 S2_ON: Final = "On"
 
