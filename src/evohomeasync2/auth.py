@@ -22,9 +22,7 @@ if TYPE_CHECKING:
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
-    from .schemas import (
-        TccAuthTokensResponseT as AuthTokenResponseT,  # TCC is snake_case anyway
-    )
+    from .schemas import EvoAuthTokensResponseT, TccOAuthTokenResponseT
 
 
 class EvoAccessTokenEntryT(TypedDict):
@@ -194,7 +192,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
         url = f"https://{self.hostname}/{URL_CRED}"
 
-        response: AuthTokenResponseT = await self._post_access_token_request(
+        response: TccOAuthTokenResponseT = await self._post_access_token_request(
             url,
             headers=HEADERS_CRED | {"Authorization": "Basic " + _APPLICATION_ID},
             data=credentials,  # NOTE: is snake_case
@@ -208,7 +206,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         except vol.Invalid as err:
             self._logger.warning(f"POST {url}: payload may be invalid: {err}")
 
-        tokens: AuthTokenResponseT = convert_keys_to_snake_case(response)
+        tokens: EvoAuthTokensResponseT = convert_keys_to_snake_case(response)
 
         try:
             self._access_token = tokens[SZ_ACCESS_TOKEN]
@@ -230,7 +228,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
     async def _post_access_token_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any
-    ) -> AuthTokenResponseT:
+    ) -> TccOAuthTokenResponseT:
         """Wrap the POST request to the vendor's TCC RESTful API."""
         return await self._post_request(url, **kwargs)  # type: ignore[return-value]
 

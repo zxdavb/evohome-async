@@ -36,8 +36,8 @@ class TccOAuthTokenResponseT(TypedDict):
     access_token: str
     expires_in: int
     refresh_token: str
-    token_type: str
     scope: str
+    token_type: str
 
 
 def factory_post_oauth_token(_: Callable[[str], str] = noop) -> vol.Schema:

@@ -232,6 +232,7 @@ from .status import (
 from .typedefs import (
     EvoActiveFaultResponseT,
     EvoAllowedSystemModesResponseT,
+    EvoAuthTokensResponseT,
     EvoDailySchedulesDhwT,
     EvoDailySchedulesT,
     EvoDailySchedulesZoneT,
@@ -273,7 +274,6 @@ from .typedefs import (
     EvoZonSetpointCapabilitiesResponseT,
     EvoZonSetpointStatusResponseT,
     EvoZonStatusResponseT,
-    TccAuthTokensResponseT,
 )
 
 __all__ = [
@@ -424,6 +424,7 @@ __all__ = [
     "S2_ZONE_VALVES",
     "EvoActiveFaultResponseT",
     "EvoAllowedSystemModesResponseT",
+    "EvoAuthTokensResponseT",
     "EvoDailySchedulesDhwT",
     "EvoDailySchedulesT",
     "EvoDailySchedulesZoneT",
@@ -467,7 +468,6 @@ __all__ = [
     "EvoZonStatusResponseT",
     "TccActiveFaultResponseT",
     "TccAllowedSystemModeResponseT",
-    "TccAuthTokensResponseT",
     "TccDayOfWeek",
     "TccDhwConfigEntryT",
     "TccDhwConfigResponseT",

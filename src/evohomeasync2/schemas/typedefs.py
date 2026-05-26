@@ -16,13 +16,14 @@ from .const import (  # noqa: TC001
 )
 
 
-class TccAuthTokensResponseT(TypedDict):
+# POST /Auth/OAuth/Token
+class EvoAuthTokensResponseT(TypedDict):
     """Response to POST /Auth/OAuth/Token."""
 
     access_token: str
     expires_in: int
-    scope: str
     refresh_token: str
+    scope: str
     token_type: str
 
 
