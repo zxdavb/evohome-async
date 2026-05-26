@@ -23,10 +23,32 @@ if TYPE_CHECKING:
 
     import voluptuous as vol
 
+    from tests.conftest import EvohomeClientv2
+
 if _DBG_USE_REAL_AIOHTTP:
     import aiohttp
 else:
     from .faked_server import aiohttp  # type: ignore[no-redef]
+
+
+def get_dhw(evo: EvohomeClientv2) -> evo2.HotWater | None:
+    """Return the first DHW object found across all TCSs."""
+    for loc in evo.locations:
+        for gwy in loc.gateways:
+            for tcs in gwy.systems:
+                if tcs.hotwater:
+                    return tcs.hotwater
+    return None
+
+
+def get_zon(evo: EvohomeClientv2) -> evo2.Zone | None:
+    """Return the first Zone object found across all TCSs."""
+    for loc in evo.locations:
+        for gwy in loc.gateways:
+            for tcs in gwy.systems:
+                if tcs.zones:
+                    return tcs.zones[0]
+    return None
 
 
 # NOTE: Global flag to indicate if AuthenticationFailedError has been encountered
