@@ -32,7 +32,7 @@ else:
 
 
 def get_dhw(evo: EvohomeClientv2) -> evo2.HotWater | None:
-    """Return the first DHW object found across all TCSs."""
+    """Return the first DHW object found across all TCSs of the user's installation."""
     for loc in evo.locations:
         for gwy in loc.gateways:
             for tcs in gwy.systems:
@@ -42,7 +42,7 @@ def get_dhw(evo: EvohomeClientv2) -> evo2.HotWater | None:
 
 
 def get_zon(evo: EvohomeClientv2) -> evo2.Zone | None:
-    """Return the first Zone object found across all TCSs."""
+    """Return the first Zone object found across all TCSs of the user's installation."""
     for loc in evo.locations:
         for gwy in loc.gateways:
             for tcs in gwy.systems:
