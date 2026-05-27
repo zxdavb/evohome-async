@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime as dt
+from enum import StrEnum
 from typing import TYPE_CHECKING, Any, overload
 
 from .const import _DBG_DONT_REDACT_SECRETS, REGEX_EMAIL_ADDRESS
@@ -74,6 +75,30 @@ def _convert_vals[T](data: T, fnc: Callable[[str], str]) -> T:
     return recurse(data)  # type:ignore[no-any-return]
 
 
+def _convert_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
+    """Recursively convert StrEnum values as per some function.
+
+    Unlike _convert_vals, only converts values that are StrEnum instances —
+    plain strings (names, datetimes, etc.) are left unchanged.
+    Used before sending JSON to the vendor API to convert snake_case enum
+    values back to PascalCase.
+    """
+
+    def recurse(data_: Any) -> Any:
+        if isinstance(data_, dict):
+            return {k: recurse(v) for k, v in data_.items()}
+
+        if isinstance(data_, list):
+            return [recurse(i) for i in data_]
+
+        if isinstance(data_, StrEnum):
+            return fnc(data_)
+
+        return data_
+
+    return recurse(data)  # type:ignore[no-any-return]
+
+
 def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
     """Convert a datetime into a aware datetime in the given TZ.
 
@@ -110,6 +135,13 @@ def snake_to_camel(s: str) -> str:
         raise ValueError("Input string should not contain spaces")
     components = s.split("_")
     return components[0] + "".join(x.title() for x in components[1:])
+
+
+def snake_to_pascal(s: str) -> str:
+    """Return a string converted (from snake_case) to PascalCase."""
+    if " " in s:
+        raise ValueError("Input string should not contain spaces")
+    return camel_to_pascal(snake_to_camel(s))
 
 
 def noop[T](s: T) -> T:
