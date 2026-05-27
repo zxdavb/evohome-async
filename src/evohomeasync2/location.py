@@ -105,7 +105,7 @@ class Location(EntityBase):
 
     SCH_CONFIG: vol.Schema = factory_location_installation_info(camel_to_snake)
     SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
-    _TYPE = TccEntityType.LOC
+    _TCC_TYPE = TccEntityType.LOC
     _STATUS_EXCLUDES = (SZ_GATEWAYS,)
 
     def __init__(
@@ -245,7 +245,7 @@ class Location(EntityBase):
         """
 
         status: EvoLocStatusResponseT = await self._auth.get(
-            f"{self._TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
+            f"{self._TCC_TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
             schema=self.SCH_STATUS,
         )  # type: ignore[assignment]
 

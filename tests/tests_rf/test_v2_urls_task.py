@@ -60,8 +60,8 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     if dhw is None:
         pytest.skip("No available DHW found")
 
-    GET_URL = f"{dhw._TYPE}/{dhw.id}/status"
-    PUT_URL = f"{dhw._TYPE}/{dhw.id}/state"
+    GET_URL = f"{dhw._TCC_TYPE}/{dhw.id}/status"
+    PUT_URL = f"{dhw._TCC_TYPE}/{dhw.id}/state"
 
     #
     # PART 0: Get initial state...
@@ -218,8 +218,8 @@ async def _test_task_id_zone(evo: EvohomeClientV2) -> None:
     if zone is None:
         pytest.skip("No available Zone found")
 
-    GET_URL = f"{zone._TYPE}/{zone.id}/status"
-    # T_URL = f"{zone._TYPE}/{zone.id}/mode"
+    GET_URL = f"{zone._TCC_TYPE}/{zone.id}/status"
+    # T_URL = f"{zone._TCC_TYPE}/{zone.id}/mode"
 
     #
     # PART 0: Get the initial mode...

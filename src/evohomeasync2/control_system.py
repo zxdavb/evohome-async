@@ -65,7 +65,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
     SCH_STATUS: vol.Schema = factory_tcs_status(camel_to_snake)
-    _TYPE = TccEntityType.TCS
+    _TCC_TYPE = TccEntityType.TCS
     _STATUS_EXCLUDES = (SZ_DHW, SZ_ZONES)
 
     def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:
@@ -231,7 +231,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                 f"{self}: Attempting unsupported {S2_SYSTEM_MODE}: {tcs_mode}..."
             )
 
-        await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=dict(tcs_mode))
+        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/mode", json=dict(tcs_mode))
 
     async def set_mode(
         self,

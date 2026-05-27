@@ -190,13 +190,13 @@ def auth_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
                 TCC_GET_USR_LOCATIONS(user_locations_config_fixture(fixture))
             )
 
-        # f"{_TYPE}/{id}/status?includeTemperatureControlSystems=True"
+        # f"{_TCC_TYPE}/{id}/status?includeTemperatureControlSystems=True"
         if "status" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
                 TCC_GET_LOC_STATUS(location_status_fixture(fixture, url.split("/")[1]))
             )
 
-        # f"{_TYPE}/{id}/schedule"
+        # f"{_TCC_TYPE}/{id}/schedule"
         if "schedule" in url:
             return convert_keys_to_snake_case(  # type: ignore[no-any-return]
                 TCC_GET_SCHEDULE(

@@ -195,7 +195,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 0: Get/keep the current mode, so we can restore it later
-    url = f"{tcs._TYPE}/{tcs.id}/status"
+    url = f"{tcs._TCC_TYPE}/{tcs.id}/status"
 
     old_status: dict[str, Any] = await should_work_v2(
         evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_TCS_STATUS
@@ -216,7 +216,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 1: Change the mode, but with the wrong method
-    url = f"{tcs._TYPE}/{tcs.id}/mode"
+    url = f"{tcs._TCC_TYPE}/{tcs.id}/mode"
 
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
@@ -283,7 +283,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 6: Change the mode, but without permission
-    url = f"{tcs._TYPE}/1234567/mode"
+    url = f"{tcs._TCC_TYPE}/1234567/mode"
 
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.UNAUTHORIZED
@@ -295,7 +295,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 7: hange the mode, but with invalid URL
-    url = f"{tcs._TYPE}/{tcs.id}/systemMode"
+    url = f"{tcs._TCC_TYPE}/{tcs.id}/systemMode"
     _ = await should_fail_v2(
         evo.auth,
         HTTPMethod.PUT,
@@ -322,7 +322,7 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
         pytest.skip("No available zones found")
 
     #
-    url = f"{zone._TYPE}/{zone.id}/status"
+    url = f"{zone._TCC_TYPE}/{zone.id}/status"
     _ = await should_work_v2(
         evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_ZON_STATUS
     )
@@ -335,7 +335,7 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
     # }
 
     #
-    url = f"{zone._TYPE}/{zone.id}/heatSetpoint"
+    url = f"{zone._TCC_TYPE}/{zone.id}/heatSetpoint"
 
     heat_setpoint = {
         "setpointMode": TccZoneMode.PERMANENT_OVERRIDE,

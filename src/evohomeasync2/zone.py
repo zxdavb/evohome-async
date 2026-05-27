@@ -91,7 +91,7 @@ _ONE_DAY = td(days=1)
 
 
 class EntityBase:
-    _TYPE: TccEntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
+    _TCC_TYPE: TccEntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
     _STATUS_EXCLUDES: tuple[str, ...] = ()  # child keys to exclude from own status
 
     _config: (
@@ -343,7 +343,7 @@ class _ScheduleBase(ActiveFaultsBase):
 
         try:
             schedule: EvoDailySchedulesT = await self._auth.get(
-                f"{self._TYPE}/{self.id}/schedule",
+                f"{self._TCC_TYPE}/{self.id}/schedule",
                 schema=self.SCH_SCHEDULE,
             )  # type: ignore[assignment]
 
@@ -435,7 +435,7 @@ class _ScheduleBase(ActiveFaultsBase):
             )
 
         _ = await self._auth.put(
-            f"{self._TYPE}/{self.id}/schedule",
+            f"{self._TCC_TYPE}/{self.id}/schedule",
             json={"daily_schedules": schedule},
             schema=self.SCH_SCHEDULE,
         )
@@ -486,7 +486,7 @@ class _ZoneBase(_ScheduleBase):
         )
 
         status: EvoDhwStatusResponseT | EvoZonStatusResponseT = await self._auth.get(
-            f"{self._TYPE}/{self.id}/status",
+            f"{self._TCC_TYPE}/{self.id}/status",
             schema=self.SCH_STATUS,
         )  # type: ignore[assignment]
 
@@ -524,7 +524,7 @@ class _ZoneBase(_ScheduleBase):
 class Zone(_ZoneBase):
     """Instance of a TCS's heating Zone (temperatureZone)."""
 
-    _TYPE = TccEntityType.ZON
+    _TCC_TYPE = TccEntityType.ZON
 
     SCH_SCHEDULE: vol.Schema = factory_zon_schedule(camel_to_snake)
     SCH_STATUS: vol.Schema = factory_zon_status(camel_to_snake)
@@ -674,7 +674,7 @@ class Zone(_ZoneBase):
             )
 
         await self._auth.put(
-            f"{self._TYPE}/{self.id}/heatSetpoint", json=dict(zon_mode)
+            f"{self._TCC_TYPE}/{self.id}/heatSetpoint", json=dict(zon_mode)
         )
 
     async def set_mode(

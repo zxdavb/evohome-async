@@ -37,7 +37,7 @@ class Gateway(ActiveFaultsBase, EntityBase):
     """Instance of a location's gateway."""
 
     SCH_STATUS: vol.Schema = factory_gwy_status(camel_to_snake)
-    _TYPE = TccEntityType.GWY
+    _TCC_TYPE = TccEntityType.GWY
     _STATUS_EXCLUDES = (SZ_TEMPERATURE_CONTROL_SYSTEMS,)
 
     def __init__(self, location: Location, config: EvoGwyConfigResponseT) -> None:

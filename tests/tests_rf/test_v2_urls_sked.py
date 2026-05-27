@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 async def _test_schedule_put(evo: EvohomeClientV2) -> None:
-    """Test /{x._TYPE}/{x.id}/schedule"""
+    """Test /{x._TCC_TYPE}/{x.id}/schedule"""
 
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
 
@@ -37,7 +37,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     await evo.update(dont_update_status=True)
 
     zone = evo.locations[0].gateways[0].systems[0].zones[0]
-    url = f"{zone._TYPE}/{zone.id}/schedule"
+    url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
     # STEP 1: GET the current schedule
@@ -120,7 +120,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
 
 
 async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
-    """Test /{x._TYPE}/{x.id}/schedule
+    """Test /{x._TCC_TYPE}/{x.id}/schedule
 
     Also test commTasks?commTaskId={task_id}
     """
@@ -131,7 +131,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     await evo.update(dont_update_status=True)
 
     zone = evo.locations[0].gateways[0].systems[0].zones[0]
-    url = f"{zone._TYPE}/{zone.id}/schedule"
+    url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
     # STEP 1: GET the current schedule
@@ -196,7 +196,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
 
 @skipif_auth_failed  # GET, PUT
 async def test_schedule_put(evohome_v2: EvohomeClientV2) -> None:
-    """Test /{x._TYPE}/{x.id}/schedule
+    """Test /{x._TCC_TYPE}/{x.id}/schedule
 
     Does not test /commTasks?commTaskId={task_id}
     """
@@ -206,7 +206,7 @@ async def test_schedule_put(evohome_v2: EvohomeClientV2) -> None:
 
 @skipif_auth_failed  # GET, PUT
 async def test_schedule_tsk(evohome_v2: EvohomeClientV2) -> None:
-    """Test /{x._TYPE}/{x.id}/schedule
+    """Test /{x._TCC_TYPE}/{x.id}/schedule
 
     Also tests /commTasks?commTaskId={task_id}
     """
@@ -225,7 +225,7 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
     await evo.update(dont_update_status=True)
 
     zone = evo.locations[0].gateways[0].systems[0].zones[0]
-    url = f"{zone._TYPE}/{zone.id}/schedule"
+    url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
     # GET without schema so we capture whatever the server actually sends back
@@ -274,7 +274,7 @@ async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
     if not (dhw := get_dhw(evo)):
         pytest.skip("No DHW found in TCS")
 
-    url = f"{dhw._TYPE}/{dhw.id}/schedule"
+    url = f"{dhw._TCC_TYPE}/{dhw.id}/schedule"
 
     #
     # GET without schema so we capture whatever the server actually sends back
@@ -313,7 +313,7 @@ async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
 
 @skipif_auth_failed  # GET
 async def test_schedule_get_schema_zon(evohome_v2: EvohomeClientV2) -> None:
-    """Test GET /{x._TYPE}/{x.id}/schedule key casing.
+    """Test GET /{x._TCC_TYPE}/{x.id}/schedule key casing.
 
     Documents that the vendor returns camelCase keys in GET responses even
     though the API is reportedly case-insensitive for PUT request bodies.
@@ -324,7 +324,7 @@ async def test_schedule_get_schema_zon(evohome_v2: EvohomeClientV2) -> None:
 
 @skipif_auth_failed  # GET
 async def test_schedule_get_schema_dhw(evohome_v2: EvohomeClientV2) -> None:
-    """Test GET /{dhw._TYPE}/{dhw.id}/schedule key casing.
+    """Test GET /{dhw._TCC_TYPE}/{dhw.id}/schedule key casing.
 
     DHW mirror of test_schedule_get_schema — skipped if no DHW in the TCS.
     """

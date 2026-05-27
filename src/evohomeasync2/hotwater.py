@@ -53,7 +53,7 @@ if TYPE_CHECKING:
 class HotWater(_ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
-    _TYPE = TccEntityType.DHW
+    _TCC_TYPE = TccEntityType.DHW
 
     SCH_SCHEDULE: vol.Schema = factory_dhw_schedule(camel_to_snake)
     SCH_STATUS: vol.Schema = factory_dhw_status(camel_to_snake)
@@ -168,7 +168,7 @@ class HotWater(_ZoneBase):
                 f"{self}: Attempting unsupported {S2_STATE}: {dhw_mode}..."
             )
 
-        await self._auth.put(f"{self._TYPE}/{self.id}/state", json=dict(dhw_mode))
+        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/state", json=dict(dhw_mode))
 
     async def set_mode(
         self,
