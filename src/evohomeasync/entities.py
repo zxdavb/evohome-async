@@ -51,9 +51,9 @@ from .schemas import (
     SZ_TEMPORARY,
     SZ_THERMOSTAT,
     SZ_VALUE,
-    EvoGwyInfoDictT,
     TccSystemMode,
 )
+from .typedefs import EvoGwyInfoDictT
 
 if TYPE_CHECKING:
     import logging
@@ -64,7 +64,7 @@ if TYPE_CHECKING:
 
     from . import EvohomeClient
     from .auth import Auth
-    from .schemas import (  # TODO: move to .typedefs
+    from .typedefs import (
         EvoDevInfoDictT,
         EvoLocInfoDictT,
         EvoTcsInfoDictT,
