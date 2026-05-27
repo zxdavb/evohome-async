@@ -5,7 +5,7 @@
     "files.trimTrailingWhitespace": true, // default: false
 
     // Python analysis and formatting (project-wide)
-    "python.analysis.extraPaths": ["src", "tests"],
+    "python.analysis.extraPaths": ["src"],
     "python.analysis.include": ["cli", "src", "tests"],
     "python.analysis.typeCheckingMode": "basic", // default: "off" - in addition to mypy?
     "python.analysis.userFileIndexingLimit": -1, // default: 2000
