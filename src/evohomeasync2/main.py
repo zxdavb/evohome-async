@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import aiohttp
 
     from .control_system import ControlSystem
-    from .typedefs import EvoLocConfigResponseT, EvoUsrConfigResponseT
+    from .typedefs import EvoLocConfigResponseT, EvoUsrAccountResponseT
 
 
 SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)
@@ -34,7 +34,7 @@ _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync2"
 class EvohomeClient:
     """Provide a client to access the Resideo TCC API."""
 
-    _user_info: EvoUsrConfigResponseT | None = None
+    _user_info: EvoUsrAccountResponseT | None = None
     _user_locs: list[EvoLocConfigResponseT] | None = None  # all locations of the user
 
     def __init__(
@@ -198,7 +198,7 @@ class EvohomeClient:
         return self._user_locs
 
     @property
-    def user_account(self) -> EvoUsrConfigResponseT:
+    def user_account(self) -> EvoUsrAccountResponseT:
         """Return the (config) information of the user account."""
 
         if not self._user_info:

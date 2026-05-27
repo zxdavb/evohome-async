@@ -34,7 +34,7 @@ class EvoAuthTokensResponseT(TypedDict):
 
 
 # GET /accountInfo
-class EvoUsrConfigResponseT(TypedDict):
+class EvoUsrAccountResponseT(TypedDict):
     """Response to GET /accountInfo."""
 
     user_id: str
