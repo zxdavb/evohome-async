@@ -194,7 +194,10 @@ class TccZonConfigResponseT(TypedDict):
 
 
 class TccZonScheduleCapabilitiesResponseT(TypedDict):
-    pass
+    maxSwitchpointsPerDay: int
+    minSwitchpointsPerDay: int
+    timingResolution: str
+    setpointValueResolution: float
 
 
 class TccZonSetpointCapabilitiesResponseT(TypedDict):
@@ -219,7 +222,9 @@ class TccDhwConfigResponseT(TypedDict):
 
 
 class TccDhwScheduleCapabilitiesResponseT(TypedDict):
-    pass
+    maxSwitchpointsPerDay: int
+    minSwitchpointsPerDay: int
+    timingResolution: str
 
 
 class TccDhwStateCapabilitiesResponseT(TypedDict):

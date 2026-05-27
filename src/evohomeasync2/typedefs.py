@@ -131,7 +131,10 @@ class EvoZonConfigResponseT(TypedDict):
 
 
 class EvoZonScheduleCapabilitiesResponseT(TypedDict):
-    pass
+    max_switchpoints_per_day: int
+    min_switchpoints_per_day: int
+    timing_resolution: str
+    setpoint_value_resolution: float
 
 
 class EvoZonSetpointCapabilitiesResponseT(TypedDict):
@@ -156,7 +159,9 @@ class EvoDhwConfigResponseT(TypedDict):
 
 
 class EvoDhwScheduleCapabilitiesResponseT(TypedDict):
-    pass
+    max_switchpoints_per_day: int
+    min_switchpoints_per_day: int
+    timing_resolution: str
 
 
 class EvoDhwStateCapabilitiesResponseT(TypedDict):
