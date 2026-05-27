@@ -117,7 +117,7 @@ class EvoTcsConfigResponseT(EvoTcsConfigEntryT):
     # model_type: str
     # allowed_system_modes: list[dict[str, Any]]
     zones: list[EvoZonConfigResponseT]
-    dhw: EvoDhwConfigResponseT
+    dhw: NotRequired[EvoDhwConfigResponseT]
 
 
 class EvoZonConfigResponseT(TypedDict):
