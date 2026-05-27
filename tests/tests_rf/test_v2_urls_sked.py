@@ -141,9 +141,6 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
 
     assert isinstance(schedule, dict)  # mypy
 
-    if not _DBG_USE_REAL_AIOHTTP:  # TODO: REMOVE: faked server using old schema
-        return
-
     #
     # STEP 2: PUT a new schedule
     temp = schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]

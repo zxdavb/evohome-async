@@ -104,27 +104,17 @@ SCHEDULE = convert_keys_to_snake_case(
 def test_schema_schedule_dhw() -> None:
     """Test the schedule schema for dhw."""
 
-    get_sched = schedule_file("schedule_dhw_get.json")
-    _ = schedule_file("schedule_dhw_put.json")
+    get_sched = schedule_file("schedule_dhw.json")
 
     assert get_sched == TCC_GET_DHW_SCHEDULE(get_sched)
-    # assert put_sched == TCC_PUT_DHW_SCHEDULE(put_sched)
-
-    # assert put_sched == convert_to_put_schedule(get_sched)
-    # assert get_sched == convert_to_get_schedule(put_sched)
 
 
 def test_schema_schedule_zone() -> None:
     """Test the schedule schema for zones."""
 
-    get_sched = schedule_file("schedule_zone_get.json")
-    _ = schedule_file("schedule_zone_put.json")
+    get_sched = schedule_file("schedule_zone.json")
 
     assert get_sched == TCC_GET_ZON_SCHEDULE(get_sched)
-    # assert put_sched == TCC_PUT_ZON_SCHEDULE(put_sched)
-
-    # assert put_sched == convert_to_put_schedule(get_sched)
-    # assert get_sched == convert_to_get_schedule(put_sched)
 
 
 def test_find_switchpoints() -> None:
