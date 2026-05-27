@@ -65,7 +65,7 @@ class EvoLocInfoDictT(TypedDict):  # c.f. TccLocationResponseT
     daylight_saving_time_enabled: bool
     time_zone: EvoTimeZoneInfoDictT
     is_location_owner: bool
-    locationOwner_id: int
+    location_owner_id: int
     location_owner_name: str
     location_owner_user_name: str
     can_searchforcontractors: bool
@@ -112,7 +112,7 @@ class EvoThermostatInfoDictT(TypedDict):
     outdoor_temperature: float
     outdoor_temperature_available: bool
     outdoor_humidity: float
-    outdoor_Humidity_available: bool
+    outdoor_humidity_available: bool
     indoor_humidity: float
     indoor_temperature_status: str  # Measured|NotAvailable|SensorError|SensorFault
     indoor_humidity_status: str
