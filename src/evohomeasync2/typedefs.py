@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
 if TYPE_CHECKING:
     from .const import (
+        DayOfWeek,
         DhwState,
+        FanMode,
         FaultType,
         LocationType,
         SystemMode,
@@ -128,7 +130,7 @@ class EvoZonConfigResponseT(TypedDict):
     setpoint_capabilities: EvoZonSetpointCapabilitiesResponseT
     schedule_capabilities: EvoZonScheduleCapabilitiesResponseT
     zone_type: ZoneType
-    allowed_fan_modes: list[str]
+    allowed_fan_modes: list[FanMode]
 
 
 class EvoZonScheduleCapabilitiesResponseT(TypedDict):
@@ -286,7 +288,7 @@ class EvoSwitchpointDhwT(TypedDict):
 
 
 class EvoDayOfWeekDhwT(TypedDict):
-    day_of_week: str
+    day_of_week: DayOfWeek
     switchpoints: list[EvoSwitchpointDhwT]
 
 
@@ -309,7 +311,7 @@ class EvoSwitchpointZoneT(TypedDict):
 
 
 class EvoDayOfWeekZoneT(TypedDict):
-    day_of_week: str
+    day_of_week: DayOfWeek
     switchpoints: list[EvoSwitchpointZoneT]
 
 
@@ -328,12 +330,12 @@ class EvoScheduleZoneT(EvoDailySchedulesZoneT):
 
 class EvoSwitchpointT(TypedDict):
     time_of_day: str
-    dhw_state: NotRequired[str]  # mutex with heat_setpoint
+    dhw_state: NotRequired[DhwState]  # mutex with heat_setpoint
     heat_setpoint: NotRequired[float]
 
 
 class EvoDayOfWeekT(TypedDict):
-    day_of_week: str
+    day_of_week: DayOfWeek
     switchpoints: list[EvoSwitchpointT]
 
 
