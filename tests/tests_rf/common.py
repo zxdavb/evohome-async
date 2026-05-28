@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
     import voluptuous as vol
 
-    from tests.conftest import EvohomeClientv2
+    from tests.conftest import EvohomeClientV2
 
 if _DBG_USE_REAL_AIOHTTP:
     import aiohttp
@@ -31,7 +31,7 @@ else:
     from .faked_server import aiohttp  # type: ignore[no-redef]
 
 
-def get_dhw(evo: EvohomeClientv2) -> evo2.HotWater | None:
+def get_dhw(evo: EvohomeClientV2) -> evo2.HotWater | None:
     """Return the first DHW object found across all TCSs of the user's installation."""
     for loc in evo.locations:
         for gwy in loc.gateways:
@@ -41,7 +41,7 @@ def get_dhw(evo: EvohomeClientv2) -> evo2.HotWater | None:
     return None
 
 
-def get_zon(evo: EvohomeClientv2) -> evo2.Zone | None:
+def get_zon(evo: EvohomeClientV2) -> evo2.Zone | None:
     """Return the first Zone object found across all TCSs of the user's installation."""
     for loc in evo.locations:
         for gwy in loc.gateways:
