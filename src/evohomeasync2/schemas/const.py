@@ -1,22 +1,15 @@
-"""evohomeasync schema - shared constants."""
+"""Shared constants for the vendor's TCC v2 API.
+
+All vendor strings are camelCase or PascalCase.
+"""
 
 from __future__ import annotations
 
 from enum import EnumCheck, StrEnum, verify
 from typing import Final
 
-# Various useful regex forms
-REGEX_DHW_ID: Final = r"[0-9]*"
-REGEX_GATEWAY_ID: Final = r"[0-9]*"
-REGEX_LOCATION_ID: Final = r"[0-9]*"
-REGEX_SYSTEM_ID: Final = r"[0-9]*"
-REGEX_ZONE_ID: Final = r"[0-9]*"
-
-# Datetime format used by the vendor's API
-API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
-
-
-# These are vendor constants (camelCase), used for keys in the vendor's schema.
+# Vendor API strings — JSON key names use camelCase
+# - the OAuth endpoint is an exception (snake_case), but not seen here
 
 S2_ACTIVE_FAULTS: Final = "activeFaults"
 S2_ALLOWED_FAN_MODES: Final = "allowedFanModes"
@@ -25,8 +18,8 @@ S2_ALLOWED_SETPOINT_MODES: Final = "allowedSetpointModes"
 S2_ALLOWED_STATES: Final = "allowedStates"
 S2_ALLOWED_SYSTEM_MODES: Final = "allowedSystemModes"
 
-S2_CAN_BE_PERMANENT: Final = "canBePermanent"
 S2_CAN_BE_CHANGED: Final = "canBeChanged"
+S2_CAN_BE_PERMANENT: Final = "canBePermanent"
 S2_CAN_BE_TEMPORARY: Final = "canBeTemporary"
 S2_CAN_CONTROL_COOL: Final = "canControlCool"
 S2_CAN_CONTROL_HEAT: Final = "canControlHeat"
@@ -133,8 +126,8 @@ S2_ZONE_TYPE: Final = "zoneType"
 S2_ZONES: Final = "zones"
 
 
-# These are vendor constants (camelCase), used as URL path components (not JSON keys).
-# Each group is placed just before the StrEnum that uses it.
+# Vendor API strings — URL path components use camelCase
+# - these are not JSON keys; they appear only in URL construction
 
 S2_DOMESTIC_HOT_WATER: Final = "domesticHotWater"
 S2_GATEWAY: Final = "gateway"
@@ -152,46 +145,30 @@ class TccEntityType(StrEnum):
     DHW = S2_DOMESTIC_HOT_WATER
 
 
-# These are vendor constants (PascalCase), used for values in the vendor's schema.
-# Generally, each group is placed just before the StrEnum that uses it.
-
-S2_MONDAY: Final = "Monday"
-S2_TUESDAY: Final = "Tuesday"
-S2_WEDNESDAY: Final = "Wednesday"
-S2_THURSDAY: Final = "Thursday"
-S2_FRIDAY: Final = "Friday"
-S2_SATURDAY: Final = "Saturday"
-S2_SUNDAY: Final = "Sunday"
+# Vendor StrEnum classes - StrEnums use PascalCase
 
 
 @verify(EnumCheck.UNIQUE)
 class TccDayOfWeek(StrEnum):
-    MONDAY = S2_MONDAY
-    TUESDAY = S2_TUESDAY
-    WEDNESDAY = S2_WEDNESDAY
-    THURSDAY = S2_THURSDAY
-    FRIDAY = S2_FRIDAY
-    SATURDAY = S2_SATURDAY
-    SUNDAY = S2_SUNDAY
-
-
-S2_OFF: Final = "Off"
-S2_ON: Final = "On"
+    MONDAY = "Monday"
+    TUESDAY = "Tuesday"
+    WEDNESDAY = "Wednesday"
+    THURSDAY = "Thursday"
+    FRIDAY = "Friday"
+    SATURDAY = "Saturday"
+    SUNDAY = "Sunday"
 
 
 @verify(EnumCheck.UNIQUE)
 class TccDhwState(StrEnum):
-    OFF = S2_OFF
-    ON = S2_ON
-
-
-S2_AUTO: Final = "Auto"
+    OFF = "Off"
+    ON = "On"
 
 
 @verify(EnumCheck.UNIQUE)
 class TccFanMode(StrEnum):
-    AUTO = S2_AUTO
-    ON = S2_ON
+    AUTO = "Auto"
+    ON = "On"
 
 
 @verify(EnumCheck.UNIQUE)
@@ -217,28 +194,18 @@ class TccLocationType(StrEnum):
     RESIDENTIAL = "Residential"
 
 
-S2_AUTO_WITH_ECO: Final = "AutoWithEco"
-S2_AUTO_WITH_RESET: Final = "AutoWithReset"
-S2_AWAY: Final = "Away"
-S2_COOL: Final = "Cool"
-S2_CUSTOM: Final = "Custom"
-S2_DAY_OFF: Final = "DayOff"
-S2_HEAT: Final = "Heat"
-S2_HEATING_OFF: Final = "HeatingOff"
-
-
 @verify(EnumCheck.UNIQUE)
 class TccSystemMode(StrEnum):
-    AUTO = S2_AUTO
-    AUTO_WITH_ECO = S2_AUTO_WITH_ECO
-    AUTO_WITH_RESET = S2_AUTO_WITH_RESET
-    AWAY = S2_AWAY
-    CUSTOM = S2_CUSTOM
-    DAY_OFF = S2_DAY_OFF
-    HEATING_OFF = S2_HEATING_OFF
-    OFF = S2_OFF  # not evohome (VisionProWifiRetail)
-    HEAT = S2_HEAT  # not evohome (VisionProWifiRetail)
-    COOL = S2_COOL  # not evohome (VisionProWifiRetail)
+    AUTO = "Auto"
+    AUTO_WITH_ECO = "AutoWithEco"
+    AUTO_WITH_RESET = "AutoWithReset"
+    AWAY = "Away"
+    CUSTOM = "Custom"
+    DAY_OFF = "DayOff"
+    HEATING_OFF = "HeatingOff"
+    OFF = "Off"  # not evohome (VisionProWifiRetail)
+    HEAT = "Heat"  # not evohome (VisionProWifiRetail)
+    COOL = "Cool"  # not evohome (VisionProWifiRetail)
 
 
 @verify(EnumCheck.UNIQUE)
@@ -248,24 +215,18 @@ class TccTcsModelType(StrEnum):
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
 
 
-S2_FOLLOW_SCHEDULE: Final = "FollowSchedule"
-S2_PERMANENT_OVERRIDE: Final = "PermanentOverride"
-S2_TEMPORARY_OVERRIDE: Final = "TemporaryOverride"
-S2_VACATION_HOLD: Final = "VacationHold"
+@verify(EnumCheck.UNIQUE)
+class TccTimingMode(StrEnum):
+    DURATION = "Duration"
+    PERIOD = "Period"
 
 
 @verify(EnumCheck.UNIQUE)
 class TccZoneMode(StrEnum):
-    FOLLOW_SCHEDULE = S2_FOLLOW_SCHEDULE
-    PERMANENT_OVERRIDE = S2_PERMANENT_OVERRIDE
-    TEMPORARY_OVERRIDE = S2_TEMPORARY_OVERRIDE
-    VACATION_HOLD = S2_VACATION_HOLD  # not evohome (VisionProWifiRetail)
-
-
-S2_DURATION: Final = "Duration"
-S2_HEATING_ZONE: Final = "HeatingZone"
-S2_PERIOD: Final = "Period"
-S2_UNKNOWN: Final = "Unknown"
+    FOLLOW_SCHEDULE = "FollowSchedule"
+    PERMANENT_OVERRIDE = "PermanentOverride"
+    TEMPORARY_OVERRIDE = "TemporaryOverride"
+    VACATION_HOLD = "VacationHold"  # not evohome (VisionProWifiRetail)
 
 
 @verify(EnumCheck.UNIQUE)
@@ -274,25 +235,29 @@ class TccZoneModelType(StrEnum):
     HEATING_ZONE = "HeatingZone"
     ROUND_MODULATION = "RoundModulation"
     ROUND_WIRELESS = "RoundWireless"
-    UNKNOWN = S2_UNKNOWN
+    UNKNOWN = "Unknown"
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
-
-
-S2_ELECTRIC_HEAT: Final = "ElectricHeat"  # TODO: needs confirming
-S2_MIXING_VALVE: Final = "MixingValve"
-S2_RADIATOR_ZONE: Final = "RadiatorZone"
-S2_THERMOSTAT: Final = "Thermostat"
-S2_UNDERFLOOR_HEATING: Final = "UnderfloorHeating"
-S2_ZONE_TEMPERATURE_CONTROL: Final = "ZoneTemperatureControl"
-S2_ZONE_VALVES: Final = "ZoneValves"  # is not ZoneValve
 
 
 @verify(EnumCheck.UNIQUE)
 class TccZoneType(StrEnum):
-    MIXING_VALVE = S2_MIXING_VALVE
-    RADIATOR_ZONE = S2_RADIATOR_ZONE
-    THERMOSTAT = S2_THERMOSTAT
-    UNDERFLOOR_HEATING = S2_UNDERFLOOR_HEATING
-    UNKNOWN = S2_UNKNOWN
-    ZONE_TEMPERATURE_CONTROL = S2_ZONE_TEMPERATURE_CONTROL
-    ZONE_VALVES = S2_ZONE_VALVES
+    ELECTRIC_HEAT = "ElectricHeat"
+    MIXING_VALVE = "MixingValve"
+    RADIATOR_ZONE = "RadiatorZone"
+    THERMOSTAT = "Thermostat"
+    UNDERFLOOR_HEATING = "UnderfloorHeating"
+    UNKNOWN = "Unknown"
+    ZONE_TEMPERATURE_CONTROL = "ZoneTemperatureControl"
+    ZONE_VALVES = "ZoneValves"  # is not ZoneValve
+
+
+# Non-API constants used internally by this module and the voluptuous schemas.
+# Includes the vendor datetime format string and regex patterns for entity ID validation.
+
+REGEX_DHW_ID: Final = r"[0-9]*"
+REGEX_GATEWAY_ID: Final = r"[0-9]*"
+REGEX_LOCATION_ID: Final = r"[0-9]*"
+REGEX_SYSTEM_ID: Final = r"[0-9]*"
+REGEX_ZONE_ID: Final = r"[0-9]*"
+
+API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"

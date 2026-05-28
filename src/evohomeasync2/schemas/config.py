@@ -32,7 +32,6 @@ from .const import (
     S2_DHW_ID,
     S2_DHW_STATE_CAPABILITIES_RESPONSE,
     S2_DISPLAY_NAME,
-    S2_DURATION,
     S2_FAN_MODE,
     S2_FIRSTNAME,
     S2_GATEWAY_ID,
@@ -58,7 +57,6 @@ from .const import (
     S2_MODEL_TYPE,
     S2_NAME,
     S2_OFFSET_MINUTES,
-    S2_PERIOD,
     S2_POSTCODE,
     S2_SCHEDULE_CAPABILITIES,
     S2_SCHEDULE_CAPABILITIES_RESPONSE,
@@ -87,6 +85,7 @@ from .const import (
     TccLocationType,
     TccSystemMode,
     TccTcsModelType,
+    TccTimingMode,
     TccZoneMode,
     TccZoneModelType,
     TccZoneType,
@@ -273,7 +272,7 @@ def factory_system_mode_temp(fnc: Callable[[str], str] = noop) -> vol.Schema:
             vol.Required(fnc(S2_CAN_BE_TEMPORARY)): True,
             vol.Required(fnc(S2_MAX_DURATION)): str,  # "99.00:00:00"
             vol.Required(fnc(S2_TIMING_RESOLUTION)): str,  # "1.00:00:00"
-            vol.Required(fnc(S2_TIMING_MODE)): vol.Any(S2_DURATION, S2_PERIOD),
+            vol.Required(fnc(S2_TIMING_MODE)): vol.In(TccTimingMode),
         },
         extra=vol.PREVENT_EXTRA,
     )

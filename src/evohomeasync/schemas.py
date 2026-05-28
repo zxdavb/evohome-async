@@ -225,23 +225,16 @@ SZ_THERMOSTAT: Final = "thermostat"
 SZ_THERMOSTAT_MODEL_TYPE: Final = "thermostatModelType"
 SZ_VALUE: Final = "value"
 
+
 # schema values (start with an upper case letter)
-SZ_AUTO: Final = "Auto"
-SZ_AUTO_WITH_ECO: Final = "AutoWithEco"
-SZ_AWAY: Final = "Away"
-SZ_CUSTOM: Final = "Custom"
-SZ_DAY_OFF: Final = "DayOff"
-SZ_HEATING_OFF: Final = "HeatingOff"
-
-
 @verify(EnumCheck.UNIQUE)
 class TccSystemMode(StrEnum):
-    AUTO = SZ_AUTO
-    AUTO_WITH_ECO = SZ_AUTO_WITH_ECO
-    AWAY = SZ_AWAY
-    CUSTOM = SZ_CUSTOM
-    DAY_OFF = SZ_DAY_OFF
-    HEATING_OFF = SZ_HEATING_OFF
+    AUTO = "Auto"
+    AUTO_WITH_ECO = "AutoWithEco"
+    AWAY = "Away"
+    CUSTOM = "Custom"
+    DAY_OFF = "DayOff"
+    HEATING_OFF = "HeatingOff"
 
 
 #
