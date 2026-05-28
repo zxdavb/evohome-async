@@ -19,16 +19,10 @@ from .const import (
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_STATE,
     SZ_STATE_STATUS,
+    DhwState,
+    ZoneMode,
 )
-from .schemas import (
-    S2_MODE,
-    S2_STATE,
-    S2_UNTIL_TIME,
-    TccDhwState,
-    TccEntityType,
-    TccSetDhwModeT,
-    TccZoneMode,
-)
+from .schemas import S2_MODE, S2_STATE, S2_UNTIL_TIME, TccEntityType, TccSetDhwModeT
 from .schemas.schedule import factory_dhw_schedule
 from .schemas.status import factory_dhw_status
 from .zone import _ZoneBase
@@ -112,11 +106,11 @@ class HotWater(_ZoneBase):
         return self._config[SZ_DHW_STATE_CAPABILITIES_RESPONSE]
 
     @cached_property
-    def allowed_modes(self) -> tuple[TccZoneMode, ...]:
+    def allowed_modes(self) -> tuple[ZoneMode, ...]:
         return tuple(self.state_capabilities[SZ_ALLOWED_MODES])
 
     @cached_property
-    def allowed_states(self) -> tuple[TccDhwState, ...]:
+    def allowed_states(self) -> tuple[DhwState, ...]:
         return tuple(self.state_capabilities["allowed_states"])
 
     # Status (state) attrs & methods...
@@ -135,11 +129,11 @@ class HotWater(_ZoneBase):
         return self.status[SZ_STATE_STATUS]
 
     @property
-    def mode(self) -> TccZoneMode:
+    def mode(self) -> ZoneMode:
         return self.state_status[SZ_MODE]
 
     @property
-    def state(self) -> TccDhwState:
+    def state(self) -> DhwState:
         return self.state_status[SZ_STATE]
 
     @property
@@ -158,7 +152,7 @@ class HotWater(_ZoneBase):
             )
 
         if not (state := dhw_mode.get(S2_STATE)):
-            if dhw_mode[S2_MODE] != TccZoneMode.FOLLOW_SCHEDULE:
+            if dhw_mode[S2_MODE] != ZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(
                     f"{self}: Attempting invalid {S2_MODE}/{S2_STATE}: {dhw_mode}..."
                 )
@@ -172,10 +166,10 @@ class HotWater(_ZoneBase):
 
     async def set_mode(
         self,
-        mode: TccZoneMode,
+        mode: ZoneMode,
         /,
         *,
-        state: TccDhwState | None = None,
+        state: DhwState | None = None,
         until: dt | None = None,
     ) -> None:
         """Set the DHW mode, either indefinitely or until a given time."""
@@ -186,27 +180,25 @@ class HotWater(_ZoneBase):
         dhw_mode: TccSetDhwModeT = {S2_MODE: mode}
 
         if state is None:
-            if mode in (TccZoneMode.PERMANENT_OVERRIDE, TccZoneMode.TEMPORARY_OVERRIDE):
+            if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
                 raise exc.InvalidDhwModeError(
                     f"{self}: For {mode}, state must not be None"
                 )
 
         else:
-            if mode == TccZoneMode.FOLLOW_SCHEDULE:  # also TccZoneMode.VACATION_HOLD?
+            if mode == ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidDhwModeError(f"{self}: For {mode}, state must be None")
 
             dhw_mode[S2_STATE] = state
 
         if until is None:
-            if (
-                mode == TccZoneMode.TEMPORARY_OVERRIDE
-            ):  # also TccZoneMode.VACATION_HOLD?
+            if mode == ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidDhwModeError(
                     f"{self}: For {mode}, until must not be None"
                 )
 
         else:
-            if mode in (TccZoneMode.FOLLOW_SCHEDULE, TccZoneMode.PERMANENT_OVERRIDE):
+            if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 raise exc.InvalidDhwModeError(f"{self}: For {mode}, until must be None")
 
             dhw_mode[S2_UNTIL_TIME] = until.strftime(API_STRFTIME)
@@ -215,25 +207,23 @@ class HotWater(_ZoneBase):
 
     async def reset(self) -> None:
         """Cancel any override and allow the DHW to follow its schedule."""
-        await self.set_mode(TccZoneMode.FOLLOW_SCHEDULE)
+        await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
 
     async def set_off(self, /, *, until: dt | None = None) -> None:
         """Set the DHW off until a given time, or permanently."""
-        await self.set_state(TccDhwState.OFF, until=until)
+        await self.set_state(DhwState.OFF, until=until)
 
     async def set_on(self, /, *, until: dt | None = None) -> None:
         """Set the DHW on until a given time, or permanently."""
-        await self.set_state(TccDhwState.ON, until=until)
+        await self.set_state(DhwState.ON, until=until)
 
-    async def set_state(
-        self, state: TccDhwState, /, *, until: dt | None = None
-    ) -> None:
+    async def set_state(self, state: DhwState, /, *, until: dt | None = None) -> None:
         """Set the DHW state, either indefinitely or until a given time."""
 
         mode = (
-            TccZoneMode.PERMANENT_OVERRIDE
+            ZoneMode.PERMANENT_OVERRIDE
             if until is None
-            else TccZoneMode.TEMPORARY_OVERRIDE
+            else ZoneMode.TEMPORARY_OVERRIDE
         )
         await self.set_mode(mode, state=state, until=until)
 

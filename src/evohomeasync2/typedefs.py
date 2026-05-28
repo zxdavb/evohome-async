@@ -5,15 +5,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
 if TYPE_CHECKING:
-    from .schemas import (
-        TccDhwState,
-        TccFaultType,
-        TccLocationType,
-        TccSystemMode,
-        TccTcsModelType,
-        TccZoneMode,
-        TccZoneModelType,
-        TccZoneType,
+    from .const import (
+        DhwState,
+        FaultType,
+        LocationType,
+        SystemMode,
+        TcsModelType,
+        TimingMode,
+        ZoneMode,
+        ZoneModelType,
+        ZoneType,
     )
 
 
@@ -62,7 +63,7 @@ class EvoLocConfigEntryT(TypedDict):
     country: str
     postcode: str
     type: str
-    location_type: TccLocationType
+    location_type: LocationType
     use_daylight_save_switching: bool
     time_zone: EvoTimeZoneInfoT
     location_owner: EvoLocationOwnerInfoT
@@ -99,17 +100,17 @@ class EvoGwyConfigEntryT(TypedDict):
 
 class EvoTcsConfigEntryT(TypedDict):
     system_id: str
-    model_type: TccTcsModelType
+    model_type: TcsModelType
     allowed_system_modes: list[EvoAllowedSystemModesResponseT]
 
 
 class EvoAllowedSystemModesResponseT(TypedDict):
-    system_mode: TccSystemMode
+    system_mode: SystemMode
     can_be_permanent: Literal[True]
     can_be_temporary: bool
     max_duration: NotRequired[str]  # when can_be_temporary is True
     timing_resolution: NotRequired[str]  # when can_be_temporary is True
-    timing_mode: NotRequired[str]  # when can_be_temporary is True
+    timing_mode: NotRequired[TimingMode]  # when can_be_temporary is True
 
 
 class EvoTcsConfigResponseT(EvoTcsConfigEntryT):
@@ -122,11 +123,11 @@ class EvoTcsConfigResponseT(EvoTcsConfigEntryT):
 
 class EvoZonConfigResponseT(TypedDict):
     zone_id: str
-    model_type: TccZoneModelType
+    model_type: ZoneModelType
     name: str
     setpoint_capabilities: EvoZonSetpointCapabilitiesResponseT
     schedule_capabilities: EvoZonScheduleCapabilitiesResponseT
-    zone_type: TccZoneType
+    zone_type: ZoneType
     allowed_fan_modes: list[str]
 
 
@@ -138,7 +139,7 @@ class EvoZonScheduleCapabilitiesResponseT(TypedDict):
 
 
 class EvoZonSetpointCapabilitiesResponseT(TypedDict):
-    allowed_setpoint_modes: list[TccZoneMode]
+    allowed_setpoint_modes: list[ZoneMode]
     can_control_cool: bool
     can_control_heat: bool
     max_heat_setpoint: float
@@ -165,8 +166,8 @@ class EvoDhwScheduleCapabilitiesResponseT(TypedDict):
 
 
 class EvoDhwStateCapabilitiesResponseT(TypedDict):
-    allowed_states: list[TccDhwState]
-    allowed_modes: list[TccZoneMode]
+    allowed_states: list[DhwState]
+    allowed_modes: list[ZoneMode]
     max_duration: str
     timing_resolution: str
 
@@ -198,7 +199,7 @@ class EvoGwyStatusResponseT(TypedDict):
 
 
 class EvoActiveFaultResponseT(TypedDict):
-    fault_type: TccFaultType | str  # may be unknown/unexpected value, so allow str
+    fault_type: FaultType | str  # may be unknown/unexpected value, so allow str
     since: str
 
 
@@ -211,7 +212,7 @@ class EvoTcsStatusResponseT(TypedDict):
 
 
 class EvoSystemModeStatusResponseT(TypedDict):
-    mode: TccSystemMode
+    mode: SystemMode
     is_permanent: bool
     time_until: NotRequired[str]
 
@@ -225,7 +226,7 @@ class EvoZonStatusResponseT(TypedDict):
 
 
 class EvoZonSetpointStatusResponseT(TypedDict):
-    setpoint_mode: TccZoneMode
+    setpoint_mode: ZoneMode
     target_heat_temperature: float
     until: NotRequired[str]
 
@@ -243,8 +244,8 @@ class EvoDhwStatusResponseT(TypedDict):
 
 
 class EvoDhwStateStatusResponseT(TypedDict):
-    mode: TccZoneMode
-    state: TccDhwState
+    mode: ZoneMode
+    state: DhwState
     until: NotRequired[str]
 
 
@@ -255,21 +256,21 @@ class EvoDhwStateStatusResponseT(TypedDict):
 
 # PUT /domesticHotWater/{dhw_id}/state
 class EvoSetDhwStateT(TypedDict):
-    mode: TccZoneMode
-    state: NotRequired[TccDhwState]  # required by override modes
+    mode: ZoneMode
+    state: NotRequired[DhwState]  # required by override modes
     until_time: NotRequired[str]  # required by TemporaryOverride
 
 
 # PUT /temperatureControlSystem/{tcs_id}/mode
 class EvoSetSystemModeT(TypedDict):
-    system_mode: TccSystemMode
+    system_mode: SystemMode
     permanent: bool
     time_until: NotRequired[str]  # required by TemporaryOverride
 
 
 # PUT /temperatureZone/{zon_id}/heatSetpoint
 class EvoSetZoneHeatSetpointT(TypedDict):
-    setpoint_mode: TccZoneMode
+    setpoint_mode: ZoneMode
     heat_setpoint_value: NotRequired[float]  # required by override modes
     time_until: NotRequired[str]  # required by TemporaryOverride
 
@@ -280,7 +281,7 @@ class EvoSetZoneHeatSetpointT(TypedDict):
 
 
 class EvoSwitchpointDhwT(TypedDict):
-    dhw_state: TccDhwState
+    dhw_state: DhwState
     time_of_day: str
 
 

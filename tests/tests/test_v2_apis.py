@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from evohomeasync2.schemas import TccDhwState
+from evohomeasync2.const import DhwState
 
 from .conftest import FIXTURES_V2 as FIXTURES
 
@@ -158,7 +158,7 @@ async def test_dhw_set_off(
 
     EXPECTED_JSON = {
         "mode": "PermanentOverride",  # TccZoneMode.PERMANENT_OVERRIDE,
-        "state": "Off",  # #            TccDhwState.OFF,
+        "state": "Off",  # #            DhwState.OFF,
     }
 
     mock_put.assert_awaited_once()
@@ -185,7 +185,7 @@ async def test_dhw_set_on(
 
     EXPECTED_JSON = {
         "mode": "PermanentOverride",  # TccZoneMode.PERMANENT_OVERRIDE,
-        "state": "On",  # #             TccDhwState.ON,
+        "state": "On",  # #             DhwState.ON,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -229,13 +229,13 @@ async def test_dhw_set_state(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.set_state(TccDhwState.OFF)
+        await dhw.set_state(DhwState.OFF)
 
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
         "mode": "PermanentOverride",  # TccZoneMode.PERMANENT_OVERRIDE,
-        "state": "Off",  # #            TccDhwState.OFF,
+        "state": "Off",  # #            DhwState.OFF,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -247,13 +247,13 @@ async def test_dhw_set_state(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.set_state(TccDhwState.ON, until=dt.now(tz=UTC) + td(hours=3))
+        await dhw.set_state(DhwState.ON, until=dt.now(tz=UTC) + td(hours=3))
 
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
         "mode": "TemporaryOverride",  # TccZoneMode.TEMPORARY_OVERRIDE,
-        "state": "On",  # #             TccDhwState.ON,
+        "state": "On",  # #             DhwState.ON,
         "untilTime": "2025-07-10T15:00:00Z",
     }
 

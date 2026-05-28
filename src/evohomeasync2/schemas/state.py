@@ -8,21 +8,21 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, NotRequired, TypedDict
 
 if TYPE_CHECKING:
-    from .const import TccDhwState, TccSystemMode, TccZoneMode
+    from evohomeasync2.const import DhwState, SystemMode, ZoneMode
 
 
 class TccSetDhwModeT(TypedDict):
     """PUT /domesticHotWater/{dhw_id}/state"""
 
-    mode: TccZoneMode
-    state: NotRequired[TccDhwState | None]  # required by override modes
+    mode: ZoneMode
+    state: NotRequired[DhwState | None]  # required by override modes
     untilTime: NotRequired[str | None]  # required by TemporaryOverride
 
 
 class TccSetTcsModeT(TypedDict):
     """PUT /temperatureControlSystem/{tcs_id}/mode"""
 
-    systemMode: TccSystemMode
+    systemMode: SystemMode
     permanent: bool
     timeUntil: NotRequired[str]  # TODO: dtm?
 
@@ -30,6 +30,6 @@ class TccSetTcsModeT(TypedDict):
 class TccSetZonModeT(TypedDict):
     """PUT /temperatureZone/{zon_id}/heatSetpoint"""
 
-    setpointMode: TccZoneMode
+    setpointMode: ZoneMode
     heatSetpointValue: NotRequired[float]  # required by override modes
     timeUntil: NotRequired[str]  # required by TemporaryOverride
