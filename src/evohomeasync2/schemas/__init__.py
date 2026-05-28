@@ -23,10 +23,6 @@ from .account import (
     factory_user_account,
 )
 from .config import (
-    MAX_HEAT_SETPOINT_LOWER,
-    MAX_HEAT_SETPOINT_UPPER,
-    MIN_HEAT_SETPOINT_LOWER,
-    MIN_HEAT_SETPOINT_UPPER,
     TccAllowedSystemModeResponseT,
     TccDhwConfigEntryT,
     TccDhwConfigResponseT,
@@ -232,10 +228,6 @@ from .status import (
 
 __all__ = [
     "API_STRFTIME",
-    "MAX_HEAT_SETPOINT_LOWER",
-    "MAX_HEAT_SETPOINT_UPPER",
-    "MIN_HEAT_SETPOINT_LOWER",
-    "MIN_HEAT_SETPOINT_UPPER",
     "REGEX_DHW_ID",
     "REGEX_GATEWAY_ID",
     "REGEX_LOCATION_ID",

@@ -96,11 +96,11 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 # These are best guess
-MAX_HEAT_SETPOINT_LOWER: Final = 21.0
-MAX_HEAT_SETPOINT_UPPER: Final = 35.0
+_MAX_HEAT_SETPOINT_LOWER: Final = 21.0
+_MAX_HEAT_SETPOINT_UPPER: Final = 35.0
 
-MIN_HEAT_SETPOINT_LOWER: Final = 4.5
-MIN_HEAT_SETPOINT_UPPER: Final = 21.0
+_MIN_HEAT_SETPOINT_LOWER: Final = 4.5
+_MIN_HEAT_SETPOINT_UPPER: Final = 21.0
 
 
 # GET /location/installationInfo?userId={user_id} returns list of these dicts
@@ -351,11 +351,11 @@ def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
             vol.Required(fnc(S2_CAN_CONTROL_HEAT)): bool,
             vol.Required(fnc(S2_MAX_HEAT_SETPOINT)): vol.All(
                 float,
-                vol.Range(min=MAX_HEAT_SETPOINT_LOWER, max=MAX_HEAT_SETPOINT_UPPER),
+                vol.Range(min=_MAX_HEAT_SETPOINT_LOWER, max=_MAX_HEAT_SETPOINT_UPPER),
             ),
             vol.Required(fnc(S2_MIN_HEAT_SETPOINT)): vol.All(
                 float,
-                vol.Range(min=MIN_HEAT_SETPOINT_LOWER, max=MIN_HEAT_SETPOINT_UPPER),
+                vol.Range(min=_MIN_HEAT_SETPOINT_LOWER, max=_MIN_HEAT_SETPOINT_UPPER),
             ),
             vol.Required(fnc(S2_CAN_CONTROL_COOL)): bool,
             vol.Optional(fnc(S2_MAX_COOL_SETPOINT)): float,  # TODO
