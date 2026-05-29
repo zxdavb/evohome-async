@@ -27,8 +27,10 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
+from .schemas.config import factory_location_installation_info
 from .schemas.const import TccEntityType
-from .typedefs import EVO_LOC_CONFIG, EVO_LOC_STATUS
+from .schemas.helpers import Case
+from .schemas.status import factory_loc_status
 from .zone import EntityBase
 
 if TYPE_CHECKING:
@@ -102,10 +104,11 @@ async def create_location(
 class Location(EntityBase):
     """Instance of an account's location."""
 
-    SCH_CONFIG: vol.Schema = EVO_LOC_CONFIG
-    SCH_STATUS: vol.Schema = EVO_LOC_STATUS
-    _TCC_TYPE = TccEntityType.LOC
     _STATUS_EXCLUDES = (SZ_GATEWAYS,)
+    _TCC_TYPE = TccEntityType.LOC
+
+    SCH_CONFIG: vol.Schema = factory_location_installation_info(Case.PYTHONIC)
+    SCH_STATUS: vol.Schema = factory_loc_status(Case.PYTHONIC)
 
     def __init__(
         self,

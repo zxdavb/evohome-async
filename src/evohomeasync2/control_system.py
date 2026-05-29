@@ -31,7 +31,8 @@ from .const import (
 )
 from .hotwater import HotWater
 from .schemas.const import S2_PERMANENT, S2_SYSTEM_MODE, S2_TIME_UNTIL, TccEntityType
-from .typedefs import EVO_TCS_STATUS
+from .schemas.helpers import Case
+from .schemas.status import factory_tcs_status
 from .zone import ActiveFaultsBase, EntityBase, Zone
 
 if TYPE_CHECKING:
@@ -59,9 +60,10 @@ if TYPE_CHECKING:
 class ControlSystem(ActiveFaultsBase, EntityBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
-    SCH_STATUS: vol.Schema = EVO_TCS_STATUS
-    _TCC_TYPE = TccEntityType.TCS
     _STATUS_EXCLUDES = (SZ_DHW, SZ_ZONES)
+    _TCC_TYPE = TccEntityType.TCS
+
+    SCH_STATUS: vol.Schema = factory_tcs_status(Case.PYTHONIC)
 
     def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:
         super().__init__(config[SZ_SYSTEM_ID])

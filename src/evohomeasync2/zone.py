@@ -48,7 +48,9 @@ from .schemas.const import (
     TccDayOfWeek,
     TccEntityType,
 )
-from .typedefs import EVO_ZON_SCHEDULE, EVO_ZON_STATUS
+from .schemas.helpers import Case
+from .schemas.schedule import factory_zon_schedule
+from .schemas.status import factory_zon_status
 
 if TYPE_CHECKING:
     import logging
@@ -525,8 +527,8 @@ class Zone(_ZoneBase):
 
     _TCC_TYPE = TccEntityType.ZON
 
-    SCH_SCHEDULE: vol.Schema = EVO_ZON_SCHEDULE
-    SCH_STATUS: vol.Schema = EVO_ZON_STATUS
+    SCH_SCHEDULE: vol.Schema = factory_zon_schedule(Case.PYTHONIC)
+    SCH_STATUS: vol.Schema = factory_zon_status(Case.PYTHONIC)
 
     def __init__(self, tcs: ControlSystem, config: EvoZonConfigResponseT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs)

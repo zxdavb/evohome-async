@@ -8,8 +8,9 @@ import pytest
 
 import evohomeasync2 as evo2
 from evohomeasync2.const import SystemMode
+from evohomeasync2.hotwater import HotWater
 from evohomeasync2.schemas.const import S2_MODE
-from evohomeasync2.typedefs import EVO_DHW_SCHEDULE, EVO_ZON_SCHEDULE
+from evohomeasync2.zone import Zone
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from . import faked_server as faked
@@ -31,8 +32,8 @@ async def _test_usr_apis(evo: EvohomeClientV2) -> None:
     # STEP 1: retrieve config only: evo.user_account(), evo.installation()
     await evo.update(dont_update_status=True)
 
-    assert evo2.main.SCH_USER_ACCOUNT(evo.user_account)
-    assert evo2.main.SCH_USER_LOCATIONS(evo._user_locs)
+    assert evo2.main.SCH_USR_ACCOUNT(evo.user_account)
+    assert evo2.main.SCH_USR_LOCATIONS(evo._user_locs)
 
     # STEP 2: GET /location/{loc.id}/status
     for loc in evo.locations:
@@ -86,7 +87,7 @@ async def _test_dhw_apis(evo: EvohomeClientV2) -> None:
 
     # STEP 2: GET /domesticHotWater/{dhw.id}/get_schedule
     schedule = await dhw.get_schedule()
-    assert EVO_DHW_SCHEDULE({"daily_schedules": schedule})
+    assert HotWater.SCH_SCHEDULE({"daily_schedules": schedule})
 
     await dhw.set_schedule(schedule)
 
@@ -110,7 +111,7 @@ async def _test_zon_apis(evo: EvohomeClientV2) -> None:
     # STEP 2: GET /temperatureZone/{zon.id}/get_schedule
     if zone.id != faked.GHOST_ZONE_ID:
         schedule = await zone.get_schedule()
-        assert EVO_ZON_SCHEDULE({"daily_schedules": schedule})
+        assert Zone.SCH_SCHEDULE({"daily_schedules": schedule})
 
         await zone.set_schedule(schedule)
 

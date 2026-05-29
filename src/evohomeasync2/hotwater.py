@@ -23,7 +23,9 @@ from .const import (
     ZoneMode,
 )
 from .schemas.const import S2_MODE, S2_STATE, S2_UNTIL_TIME, TccEntityType
-from .typedefs import EVO_DHW_SCHEDULE, EVO_DHW_STATUS
+from .schemas.helpers import Case
+from .schemas.schedule import factory_dhw_schedule
+from .schemas.status import factory_dhw_status
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
@@ -49,8 +51,8 @@ class HotWater(_ZoneBase):
 
     _TCC_TYPE = TccEntityType.DHW
 
-    SCH_SCHEDULE: vol.Schema = EVO_DHW_SCHEDULE
-    SCH_STATUS: vol.Schema = EVO_DHW_STATUS
+    SCH_SCHEDULE: vol.Schema = factory_dhw_schedule(Case.PYTHONIC)
+    SCH_STATUS: vol.Schema = factory_dhw_status(Case.PYTHONIC)
 
     def __init__(self, tcs: ControlSystem, config: EvoDhwConfigResponseT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs)

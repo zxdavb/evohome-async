@@ -13,7 +13,9 @@ from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import _ERR_NOT_AVAILABLE, SZ_USER_ID
 from .location import Location, create_location
-from .typedefs import EVO_USR_ACCOUNT, EVO_USR_LOCATIONS
+from .schemas.account import factory_user_account
+from .schemas.config import factory_user_locations_installation_info
+from .schemas.helpers import Case
 
 if TYPE_CHECKING:
     import aiohttp
@@ -22,8 +24,8 @@ if TYPE_CHECKING:
     from .typedefs import EvoLocConfigResponseT, EvoUsrAccountResponseT
 
 
-SCH_USER_ACCOUNT: Final = EVO_USR_ACCOUNT
-SCH_USER_LOCATIONS: Final = EVO_USR_LOCATIONS
+SCH_USR_ACCOUNT: Final = factory_user_account(Case.PYTHONIC)
+SCH_USR_LOCATIONS: Final = factory_user_locations_installation_info(Case.PYTHONIC)
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync2"
 
@@ -143,7 +145,7 @@ class EvohomeClient:
         if self._user_info is None:  # will handle access_token rejection
             url = "userAccount"
             try:
-                self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
+                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)  # type: ignore[assignment]
 
             except exc.ApiCallFailedError as err:  # check if 401 - bad access_token
                 if err.status != HTTPStatus.UNAUTHORIZED:  # 401
@@ -157,7 +159,7 @@ class EvohomeClient:
                 )
 
                 self._token_manager.clear_access_token()
-                self._user_info = await self.auth.get(url, schema=SCH_USER_ACCOUNT)  # type: ignore[assignment]
+                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)  # type: ignore[assignment]
 
             assert self._user_info is not None  # mypy
 
@@ -171,7 +173,7 @@ class EvohomeClient:
 
             self._user_locs = await self.auth.get(
                 f"location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True",
-                schema=SCH_USER_LOCATIONS,
+                schema=SCH_USR_LOCATIONS,
             )  # type: ignore[assignment]
 
             assert self._user_locs is not None  # mypy

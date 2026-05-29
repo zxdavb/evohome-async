@@ -14,7 +14,8 @@ from .const import (
 )
 from .control_system import ControlSystem
 from .schemas.const import TccEntityType
-from .typedefs import EVO_GWY_STATUS
+from .schemas.helpers import Case
+from .schemas.status import factory_gwy_status
 from .zone import ActiveFaultsBase, EntityBase
 
 if TYPE_CHECKING:
@@ -34,9 +35,10 @@ if TYPE_CHECKING:
 class Gateway(ActiveFaultsBase, EntityBase):
     """Instance of a location's gateway."""
 
-    SCH_STATUS: vol.Schema = EVO_GWY_STATUS
-    _TCC_TYPE = TccEntityType.GWY
     _STATUS_EXCLUDES = (SZ_TEMPERATURE_CONTROL_SYSTEMS,)
+    _TCC_TYPE = TccEntityType.GWY
+
+    SCH_STATUS: vol.Schema = factory_gwy_status(Case.PYTHONIC)
 
     def __init__(self, location: Location, config: EvoGwyConfigResponseT) -> None:
         super().__init__(config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID])
