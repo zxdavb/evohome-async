@@ -165,6 +165,15 @@ def convert_keys_to_snake_case[T](data: T) -> T:
     return _convert_keys(data, camel_to_snake)
 
 
+def convert_vals_to_pascal_case[T](data: T) -> T:
+    """Recursively convert all StrEnum values from snake_case to PascalCase.
+
+    Used before sending JSON to the vendor API. Only StrEnum members are converted;
+    plain strings (names, datetimes, etc.) are left unchanged.
+    """
+    return _convert_enum_vals(data, snake_to_pascal)
+
+
 def convert_naive_dtm_strs_to_aware[T](data: T, tzinfo: tzinfo) -> T:
     """Recursively convert TZ-naive datetime strings to TZ-aware.
 
