@@ -47,14 +47,13 @@ from .const import (
     S2_UNTIL,
     S2_ZONE_ID,
     S2_ZONES,
-    Case,
     TccDhwState,
     TccFanMode,
     TccFaultType,
     TccSystemMode,
     TccZoneMode,
-    factory_enum,
 )
+from .helpers import Case, factory_enum
 
 # HACK: "2023-05-04T18:47:36.7727046" (7, not 6 digits) seen with gateway fault
 _DTM_FORMAT = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,7}$"

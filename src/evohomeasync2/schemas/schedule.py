@@ -19,11 +19,10 @@ from .const import (
     S2_HEAT_SETPOINT,
     S2_SWITCHPOINTS,
     S2_TIME_OF_DAY,
-    Case,
     TccDayOfWeek,
     TccDhwState,
-    factory_enum,
 )
+from .helpers import Case, factory_enum
 
 #######################################################################################
 # GET/PUT DHW / Zone Schedules...

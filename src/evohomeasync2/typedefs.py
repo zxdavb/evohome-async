@@ -9,7 +9,7 @@ from .schemas.config import (
     factory_location_installation_info,
     factory_user_locations_installation_info,
 )
-from .schemas.const import Case
+from .schemas.helpers import Case
 from .schemas.schedule import factory_dhw_schedule, factory_zon_schedule
 from .schemas.status import (
     factory_dhw_status,

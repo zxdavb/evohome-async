@@ -172,6 +172,7 @@ from .const import (
     TccZoneModelType,
     TccZoneType,
 )
+from .helpers import Case
 from .schedule import (
     TccDhwDailySchedulesT,
     TccDhwDayOfWeekT,
@@ -310,6 +311,7 @@ __all__ = [
     "S2_ZONES",
     "S2_ZONE_ID",
     "S2_ZONE_TYPE",
+    "Case",
     "TccActiveFaultResponseT",
     "TccAllowedSystemModeResponseT",
     "TccDayOfWeek",

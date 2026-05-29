@@ -21,8 +21,8 @@ from .const import (
     S2_STREET_ADDRESS,
     S2_USER_ID,
     S2_USERNAME,
-    Case,
 )
+from .helpers import Case
 
 
 class TccOAuthTokenResponseT(TypedDict):

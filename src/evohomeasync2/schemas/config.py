@@ -80,7 +80,6 @@ from .const import (
     S2_ZONE_ID,
     S2_ZONE_TYPE,
     S2_ZONES,
-    Case,
     TccDhwState,
     TccFanMode,
     TccLocationType,
@@ -90,15 +89,18 @@ from .const import (
     TccZoneMode,
     TccZoneModelType,
     TccZoneType,
-    factory_enum,
 )
+from .helpers import Case, factory_enum
 
-# These are best guess
+# These are best guess, mostly based upon evohome
 _MAX_HEAT_SETPOINT_LOWER: Final = 21.0
 _MAX_HEAT_SETPOINT_UPPER: Final = 35.0
 
 _MIN_HEAT_SETPOINT_LOWER: Final = 4.5
 _MIN_HEAT_SETPOINT_UPPER: Final = 21.0
+
+_MAX_NUM_ZONES_PER_TCS: Final = 12  # unused; some non-evohome systems supported 16
+_MIN_NUM_ZONES_PER_TCS: Final = 1
 
 
 # GET /location/installationInfo?userId={user_id} returns list of these dicts
@@ -435,7 +437,7 @@ def factory_tcs(case: Case = Case.VENDOR) -> vol.Schema:
             vol.Required(fnc(S2_MODEL_TYPE)): factory_enum(case, TccTcsModelType),
             vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [factory_system_mode(case)],
             vol.Required(fnc(S2_ZONES)): vol.All(
-                [factory_zone(case)], vol.Length(min=1, max=12)
+                [factory_zone(case)], vol.Length(min=_MIN_NUM_ZONES_PER_TCS)
             ),
             vol.Optional(fnc(S2_DHW)): factory_dhw(case),
         },
