@@ -311,3 +311,22 @@ def factory_loc_status(case: Case = Case.VENDOR) -> vol.Schema:
         },
         extra=vol.PREVENT_EXTRA,
     )
+
+
+# GET /location/{loc_id}/status?includeTemperatureControlSystems=True
+TCC_GET_LOC_STATUS: Final = factory_loc_status()
+
+# GET /gateway/{gwy_id}/status...
+TCC_GET_GWY_STATUS: Final = factory_gwy_status()
+
+# GET /temperatureControlSystem/{tcs_id}/status
+TCC_GET_TCS_STATUS: Final = factory_tcs_status()
+
+# GET /domesticHotWater/{dhw_id}/status
+TCC_GET_DHW_STATUS: Final = factory_dhw_status()
+
+# GET /temperatureZone/{zone_id}/heatSetpoint
+# TODO:
+
+# GET /temperatureZone/{zone_id}/status
+TCC_GET_ZON_STATUS: Final = factory_zon_status()

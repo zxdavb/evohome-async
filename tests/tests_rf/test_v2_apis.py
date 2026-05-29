@@ -8,7 +8,7 @@ import pytest
 
 import evohomeasync2 as evo2
 from evohomeasync2.const import SystemMode
-from evohomeasync2.schemas import S2_MODE
+from evohomeasync2.schemas.const import S2_MODE
 from evohomeasync2.typedefs import EVO_DHW_SCHEDULE, EVO_ZON_SCHEDULE
 from tests.const import _DBG_USE_REAL_AIOHTTP
 

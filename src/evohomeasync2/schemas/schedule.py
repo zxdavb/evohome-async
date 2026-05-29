@@ -119,3 +119,30 @@ def factory_zon_schedule(case: Case = Case.VENDOR) -> vol.Schema:
         },
         extra=vol.PREVENT_EXTRA,
     )
+
+
+# GET /domesticHotWater/{dhw_id}/schedule
+TCC_GET_DHW_SCHEDULE: Final = factory_dhw_schedule()
+
+# PUT /domesticHotWater/{dhw_id}/schedule
+TCC_PUT_DHW_SCHEDULE: Final = TCC_GET_DHW_SCHEDULE
+
+# GET /temperatureZone/{zone_id}/schedule
+TCC_GET_ZON_SCHEDULE: Final = factory_zon_schedule()
+
+# PUT /temperatureZone/{zone_id}/schedule
+TCC_PUT_ZON_SCHEDULE: Final = TCC_GET_ZON_SCHEDULE
+
+
+# for convenience...
+def factory_get_schedule(_: Case = Case.VENDOR) -> vol.Schema:
+    """Factory for the schedule schema."""
+
+    return vol.Schema(
+        vol.Any(TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE),
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+TCC_GET_SCHEDULE: Final = factory_get_schedule()
+TCC_PUT_SCHEDULE: Final = TCC_GET_SCHEDULE

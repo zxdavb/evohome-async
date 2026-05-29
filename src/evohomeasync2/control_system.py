@@ -30,13 +30,7 @@ from .const import (
     TcsModelType,
 )
 from .hotwater import HotWater
-from .schemas import (
-    S2_PERMANENT,
-    S2_SYSTEM_MODE,
-    S2_TIME_UNTIL,
-    TccEntityType,
-    TccSetTcsModeT,
-)
+from .schemas.const import S2_PERMANENT, S2_SYSTEM_MODE, S2_TIME_UNTIL, TccEntityType
 from .typedefs import EVO_TCS_STATUS
 from .zone import ActiveFaultsBase, EntityBase, Zone
 
@@ -48,6 +42,7 @@ if TYPE_CHECKING:
 
     from . import Gateway, Location
     from .auth import Auth
+    from .schemas.state import TccSetTcsModeT
     from .typedefs import (
         EvoAllowedSystemModesResponseT,
         EvoDayOfWeekDhwT,

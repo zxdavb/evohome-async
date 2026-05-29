@@ -27,7 +27,7 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
-from .schemas import TccEntityType
+from .schemas.const import TccEntityType
 from .typedefs import EVO_LOC_CONFIG, EVO_LOC_STATUS
 from .zone import EntityBase
 

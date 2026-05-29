@@ -40,14 +40,13 @@ from .const import (
     ZoneModelType,
     ZoneType,
 )
-from .schemas import (
+from .schemas.const import (
     S2_HEAT_SETPOINT_VALUE,
     S2_SETPOINT_MODE,
     S2_SWITCHPOINTS,
     S2_TIME_UNTIL,
     TccDayOfWeek,
     TccEntityType,
-    TccSetZonModeT,
 )
 from .typedefs import EVO_ZON_SCHEDULE, EVO_ZON_STATUS
 
@@ -59,6 +58,7 @@ if TYPE_CHECKING:
 
     from . import ControlSystem, Location
     from .auth import Auth
+    from .schemas.state import TccSetZonModeT
     from .typedefs import (
         EvoActiveFaultResponseT,
         EvoDailySchedulesT,

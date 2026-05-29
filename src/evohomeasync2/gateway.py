@@ -13,7 +13,7 @@ from .const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
 from .control_system import ControlSystem
-from .schemas import TccEntityType
+from .schemas.const import TccEntityType
 from .typedefs import EVO_GWY_STATUS
 from .zone import ActiveFaultsBase, EntityBase
 

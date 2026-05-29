@@ -16,12 +16,10 @@ from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync import EvohomeClient as EvohomeClientV0
 from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
-from evohomeasync2.schemas import (
-    TCC_GET_LOC_STATUS,
-    TCC_GET_SCHEDULE,
-    TCC_GET_USR_ACCOUNT,
-    TCC_GET_USR_LOCATIONS,
-)
+from evohomeasync2.schemas.account import TCC_GET_USR_ACCOUNT
+from evohomeasync2.schemas.config import TCC_GET_USR_LOCATIONS
+from evohomeasync2.schemas.schedule import TCC_GET_SCHEDULE
+from evohomeasync2.schemas.status import TCC_GET_LOC_STATUS
 
 from .aioresponses import AioResponses, aioresponses
 

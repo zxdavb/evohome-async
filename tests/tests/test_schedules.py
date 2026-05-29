@@ -11,11 +11,8 @@ import pytest
 
 from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2 import exceptions as exc
-from evohomeasync2.schemas import (
-    TCC_GET_DHW_SCHEDULE,
-    TCC_GET_ZON_SCHEDULE,
-    TccDayOfWeek,
-)
+from evohomeasync2.schemas.const import TccDayOfWeek
+from evohomeasync2.schemas.schedule import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE
 from evohomeasync2.zone import _dt_to_dow_and_tod, _find_switchpoints
 
 from .conftest import JsonObjectType, load_fixture

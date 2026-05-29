@@ -19,7 +19,7 @@ import pytest
 import evohomeasync2 as evo2
 from _evohome.helpers import camel_to_pascal
 from evohomeasync2.const import API_STRFTIME, DhwState, ZoneMode
-from evohomeasync2.schemas import (
+from evohomeasync2.schemas.const import (
     S2_MODE,
     S2_STATE,
     S2_STATE_STATUS,

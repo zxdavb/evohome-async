@@ -539,3 +539,10 @@ def factory_user_locations_installation_info(
         [factory_location_installation_info(case)],
         extra=vol.PREVENT_EXTRA,
     )
+
+
+# GET /location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True
+TCC_GET_USR_LOCATIONS: Final = factory_user_locations_installation_info()
+
+# GET /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True
+TCC_GET_LOC_INSTALLATION_INFO: Final = factory_location_installation_info()

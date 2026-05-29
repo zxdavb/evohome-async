@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from evohomeasync2 import schemas
+from evohomeasync2.schemas.schedule import TCC_GET_SCHEDULE
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import get_dhw, should_fail_v2, should_work_v2, skipif_auth_failed
@@ -42,7 +42,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     #
     # STEP 1: GET the current schedule
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_SCHEDULE
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
     )  # type: ignore[assignment]
 
     # an example of the expected response:
@@ -136,7 +136,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     #
     # STEP 1: GET the current schedule
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_SCHEDULE
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
     )  # type: ignore[assignment]
 
     assert isinstance(schedule, dict)  # mypy
@@ -169,7 +169,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     #
     # STEP 3: check the new schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_SCHEDULE
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
     )  # type: ignore[assignment]
 
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp + 1
@@ -185,7 +185,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     #
     # STEP 6: check the original schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_SCHEDULE
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
     )  # type: ignore[assignment]
 
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp

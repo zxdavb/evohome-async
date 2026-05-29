@@ -22,7 +22,7 @@ from .const import (
     DhwState,
     ZoneMode,
 )
-from .schemas import S2_MODE, S2_STATE, S2_UNTIL_TIME, TccEntityType, TccSetDhwModeT
+from .schemas.const import S2_MODE, S2_STATE, S2_UNTIL_TIME, TccEntityType
 from .typedefs import EVO_DHW_SCHEDULE, EVO_DHW_STATUS
 from .zone import _ZoneBase
 
@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import ControlSystem
+    from .schemas.state import TccSetDhwModeT
     from .typedefs import (
         EvoDayOfWeekDhwT,
         EvoDhwConfigEntryT,

@@ -5,7 +5,7 @@ The convention for JSON keys is camelCase, but the API appears to be case-insens
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Final, TypedDict
 
 import voluptuous as vol
 
@@ -135,3 +135,14 @@ class TccTaskResponseT(TypedDict):
     """Typed dict for code/message responses from the vendor servers."""
 
     id: str  # {'id': '1668279943'}
+
+
+#
+TCC_ERROR_RESPONSE: Final = factory_error_response()
+TCC_STATUS_RESPONSE: Final = factory_status_response()
+
+# POST /Auth/OAuth/Token  # TODO: add this
+TCC_POST_OAUTH_TOKEN: Final = factory_post_oauth_token()
+
+# GET /userAccount
+TCC_GET_USR_ACCOUNT: Final = factory_user_account()

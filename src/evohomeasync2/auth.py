@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
-    from .schemas import TccOAuthTokenResponseT
+    from .schemas.account import TccOAuthTokenResponseT
     from .typedefs import EvoAuthTokensResponseT
 
 
