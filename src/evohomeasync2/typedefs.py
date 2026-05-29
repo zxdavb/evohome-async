@@ -2,7 +2,22 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict
+
+from .schemas.account import factory_user_account
+from .schemas.config import (
+    factory_location_installation_info,
+    factory_user_locations_installation_info,
+)
+from .schemas.const import Case
+from .schemas.schedule import factory_dhw_schedule, factory_zon_schedule
+from .schemas.status import (
+    factory_dhw_status,
+    factory_gwy_status,
+    factory_loc_status,
+    factory_tcs_status,
+    factory_zon_status,
+)
 
 if TYPE_CHECKING:
     from .const import (
@@ -348,3 +363,26 @@ class EvoScheduleT(EvoDailySchedulesT):
     dhw_id: NotRequired[str]  # exactly one of these two IDs will be present
     zone_id: NotRequired[str]
     name: NotRequired[str]  # would normally be present, but be OK if not
+
+
+#######################################################################################
+# Pythonic voluptuous schemas...
+#
+# These validate the JSON returned by the vendor API (after its keys have been
+# converted to snake_case by AbstractAuth.request) and coerce the enum string values
+# to the user-facing enum members above (e.g. "Auto" -> SystemMode.AUTO). The matching
+# vendor-cased schemas (TCC_GET_*) remain in schemas/__init__.py.
+
+
+EVO_USR_ACCOUNT: Final = factory_user_account(Case.PYTHONIC)
+EVO_USR_LOCATIONS: Final = factory_user_locations_installation_info(Case.PYTHONIC)
+EVO_LOC_CONFIG: Final = factory_location_installation_info(Case.PYTHONIC)
+
+EVO_LOC_STATUS: Final = factory_loc_status(Case.PYTHONIC)
+EVO_GWY_STATUS: Final = factory_gwy_status(Case.PYTHONIC)
+EVO_TCS_STATUS: Final = factory_tcs_status(Case.PYTHONIC)
+EVO_DHW_STATUS: Final = factory_dhw_status(Case.PYTHONIC)
+EVO_ZON_STATUS: Final = factory_zon_status(Case.PYTHONIC)
+
+EVO_DHW_SCHEDULE: Final = factory_dhw_schedule(Case.PYTHONIC)
+EVO_ZON_SCHEDULE: Final = factory_zon_schedule(Case.PYTHONIC)

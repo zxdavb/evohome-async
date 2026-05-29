@@ -6,7 +6,7 @@ import json
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from _evohome.helpers import as_local_time, camel_to_snake
+from _evohome.helpers import as_local_time
 
 from . import exceptions as exc
 from .const import (
@@ -37,7 +37,7 @@ from .schemas import (
     TccEntityType,
     TccSetTcsModeT,
 )
-from .schemas.status import factory_tcs_status
+from .typedefs import EVO_TCS_STATUS
 from .zone import ActiveFaultsBase, EntityBase, Zone
 
 if TYPE_CHECKING:
@@ -64,7 +64,7 @@ if TYPE_CHECKING:
 class ControlSystem(ActiveFaultsBase, EntityBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
-    SCH_STATUS: vol.Schema = factory_tcs_status(camel_to_snake)
+    SCH_STATUS: vol.Schema = EVO_TCS_STATUS
     _TCC_TYPE = TccEntityType.TCS
     _STATUS_EXCLUDES = (SZ_DHW, SZ_ZONES)
 

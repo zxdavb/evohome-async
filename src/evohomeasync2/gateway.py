@@ -5,8 +5,6 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from _evohome.helpers import camel_to_snake
-
 from .const import (
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
@@ -16,7 +14,7 @@ from .const import (
 )
 from .control_system import ControlSystem
 from .schemas import TccEntityType
-from .schemas.status import factory_gwy_status
+from .typedefs import EVO_GWY_STATUS
 from .zone import ActiveFaultsBase, EntityBase
 
 if TYPE_CHECKING:
@@ -36,7 +34,7 @@ if TYPE_CHECKING:
 class Gateway(ActiveFaultsBase, EntityBase):
     """Instance of a location's gateway."""
 
-    SCH_STATUS: vol.Schema = factory_gwy_status(camel_to_snake)
+    SCH_STATUS: vol.Schema = EVO_GWY_STATUS
     _TCC_TYPE = TccEntityType.GWY
     _STATUS_EXCLUDES = (SZ_TEMPERATURE_CONTROL_SYSTEMS,)
 

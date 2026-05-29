@@ -5,11 +5,11 @@ The convention for JSON keys is camelCase, but the API appears to be case-insens
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypedDict
+from typing import TypedDict
 
 import voluptuous as vol
 
-from _evohome.helpers import noop, redact
+from _evohome.helpers import camel_to_snake, noop, redact
 
 from .const import (
     S2_CITY,
@@ -21,10 +21,8 @@ from .const import (
     S2_STREET_ADDRESS,
     S2_USER_ID,
     S2_USERNAME,
+    Case,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 class TccOAuthTokenResponseT(TypedDict):
@@ -40,7 +38,7 @@ class TccOAuthTokenResponseT(TypedDict):
     token_type: str
 
 
-def factory_post_oauth_token(_: Callable[[str], str] = noop) -> vol.Schema:
+def factory_post_oauth_token(_: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the OAuth authorization response schema."""
 
     # NOTE: These keys are always in snake_case
@@ -62,8 +60,10 @@ class TccErrorResponseT(TypedDict):
     error: str
 
 
-def factory_error_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_error_response(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the error response schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     return vol.Schema(
         {
@@ -87,8 +87,10 @@ class TccUsrAccountResponseT(TypedDict):
     language: str  # enGB
 
 
-def factory_user_account(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_user_account(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the user account schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     return vol.Schema(
         {
@@ -113,8 +115,10 @@ class TccFailureResponseT(TypedDict):
     message: str
 
 
-def factory_status_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_status_response(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the error response schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     entry_schema = vol.Schema(
         {

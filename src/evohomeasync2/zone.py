@@ -8,7 +8,7 @@ from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
-from _evohome.helpers import as_local_time, camel_to_snake
+from _evohome.helpers import as_local_time
 
 from . import exceptions as exc
 from .const import (
@@ -49,8 +49,7 @@ from .schemas import (
     TccEntityType,
     TccSetZonModeT,
 )
-from .schemas.schedule import factory_zon_schedule
-from .schemas.status import factory_zon_status
+from .typedefs import EVO_ZON_SCHEDULE, EVO_ZON_STATUS
 
 if TYPE_CHECKING:
     import logging
@@ -526,8 +525,8 @@ class Zone(_ZoneBase):
 
     _TCC_TYPE = TccEntityType.ZON
 
-    SCH_SCHEDULE: vol.Schema = factory_zon_schedule(camel_to_snake)
-    SCH_STATUS: vol.Schema = factory_zon_status(camel_to_snake)
+    SCH_SCHEDULE: vol.Schema = EVO_ZON_SCHEDULE
+    SCH_STATUS: vol.Schema = EVO_ZON_STATUS
 
     def __init__(self, tcs: ControlSystem, config: EvoZonConfigResponseT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs)

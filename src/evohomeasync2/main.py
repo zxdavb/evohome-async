@@ -9,14 +9,11 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from aiozoneinfo import async_get_time_zone
 
-from _evohome.helpers import camel_to_snake
-
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import _ERR_NOT_AVAILABLE, SZ_USER_ID
 from .location import Location, create_location
-from .schemas.account import factory_user_account
-from .schemas.config import factory_user_locations_installation_info
+from .typedefs import EVO_USR_ACCOUNT, EVO_USR_LOCATIONS
 
 if TYPE_CHECKING:
     import aiohttp
@@ -25,8 +22,8 @@ if TYPE_CHECKING:
     from .typedefs import EvoLocConfigResponseT, EvoUsrAccountResponseT
 
 
-SCH_USER_ACCOUNT: Final = factory_user_account(camel_to_snake)
-SCH_USER_LOCATIONS: Final = factory_user_locations_installation_info(camel_to_snake)
+SCH_USER_ACCOUNT: Final = EVO_USR_ACCOUNT
+SCH_USER_LOCATIONS: Final = EVO_USR_LOCATIONS
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync2"
 

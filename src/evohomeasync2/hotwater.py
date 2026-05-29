@@ -7,7 +7,7 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
-from _evohome.helpers import as_local_time, camel_to_snake
+from _evohome.helpers import as_local_time
 
 from . import exceptions as exc
 from .const import (
@@ -23,8 +23,7 @@ from .const import (
     ZoneMode,
 )
 from .schemas import S2_MODE, S2_STATE, S2_UNTIL_TIME, TccEntityType, TccSetDhwModeT
-from .schemas.schedule import factory_dhw_schedule
-from .schemas.status import factory_dhw_status
+from .typedefs import EVO_DHW_SCHEDULE, EVO_DHW_STATUS
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
@@ -49,8 +48,8 @@ class HotWater(_ZoneBase):
 
     _TCC_TYPE = TccEntityType.DHW
 
-    SCH_SCHEDULE: vol.Schema = factory_dhw_schedule(camel_to_snake)
-    SCH_STATUS: vol.Schema = factory_dhw_status(camel_to_snake)
+    SCH_SCHEDULE: vol.Schema = EVO_DHW_SCHEDULE
+    SCH_STATUS: vol.Schema = EVO_DHW_STATUS
 
     def __init__(self, tcs: ControlSystem, config: EvoDhwConfigResponseT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs)

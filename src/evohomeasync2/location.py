@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
 
-from _evohome.helpers import camel_to_snake, convert_naive_dtm_strs_to_aware
+from _evohome.helpers import convert_naive_dtm_strs_to_aware
 from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
 from .const import (
@@ -28,8 +28,7 @@ from .const import (
 )
 from .gateway import Gateway
 from .schemas import TccEntityType
-from .schemas.config import factory_location_installation_info
-from .schemas.status import factory_loc_status
+from .typedefs import EVO_LOC_CONFIG, EVO_LOC_STATUS
 from .zone import EntityBase
 
 if TYPE_CHECKING:
@@ -103,8 +102,8 @@ async def create_location(
 class Location(EntityBase):
     """Instance of an account's location."""
 
-    SCH_CONFIG: vol.Schema = factory_location_installation_info(camel_to_snake)
-    SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
+    SCH_CONFIG: vol.Schema = EVO_LOC_CONFIG
+    SCH_STATUS: vol.Schema = EVO_LOC_STATUS
     _TCC_TYPE = TccEntityType.LOC
     _STATUS_EXCLUDES = (SZ_GATEWAYS,)
 
