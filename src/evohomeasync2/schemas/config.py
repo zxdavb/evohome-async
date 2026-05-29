@@ -237,44 +237,62 @@ class TccDhwConfigEntryT(TccDhwConfigResponseT):
     pass
 
 
-def factory_system_mode_perm(fnc: Callable[[str], str] = noop) -> vol.Schema:
-    """Factory for the permanent system modes schema."""
+def factory_system_mode(fnc: Callable[[str], str] = noop) -> vol.All:
+    """Factory for the allowed system mode schema.
 
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_SYSTEM_MODE)): vol.Any(
-                str(TccSystemMode.AUTO),
-                str(TccSystemMode.AUTO_WITH_RESET),
-                str(TccSystemMode.HEATING_OFF),
-                str(TccSystemMode.OFF),  # not evohome
-                str(TccSystemMode.HEAT),  # not evohome
-                str(TccSystemMode.COOL),  # not evohome
-            ),
-            vol.Required(fnc(S2_CAN_BE_PERMANENT)): True,
-            vol.Required(fnc(S2_CAN_BE_TEMPORARY)): False,
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
+    The duration-related keys are required when canBeTemporary is True, and must be
+    absent when it is False.
+    """
 
+    """An example:
+        "allowedSystemModes": [
+            {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "Auto",          "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "AutoWithReset", "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "AutoWithEco",   "canBePermanent": true, "canBeTemporary": true, "maxDuration":  "1.00:00:00", "timingResolution":   "01:00:00", "timingMode": "Duration"},
+            {"systemMode": "Away",          "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"systemMode": "DayOff",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"systemMode": "Custom",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"}
+        ]
+    """
 
-def factory_system_mode_temp(fnc: Callable[[str], str] = noop) -> vol.Schema:
-    """Factory for the temporary system modes schema."""
+    system_mode = fnc(S2_SYSTEM_MODE)
+    can_be_permanent = fnc(S2_CAN_BE_PERMANENT)
+    can_be_temporary = fnc(S2_CAN_BE_TEMPORARY)
+    max_duration = fnc(S2_MAX_DURATION)
+    timing_resolution = fnc(S2_TIMING_RESOLUTION)
+    timimg_mode = fnc(S2_TIMING_MODE)
 
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_SYSTEM_MODE)): vol.Any(
-                str(TccSystemMode.AUTO_WITH_ECO),
-                str(TccSystemMode.AWAY),
-                str(TccSystemMode.CUSTOM),
-                str(TccSystemMode.DAY_OFF),
-            ),
-            vol.Required(fnc(S2_CAN_BE_PERMANENT)): True,
-            vol.Required(fnc(S2_CAN_BE_TEMPORARY)): True,
-            vol.Required(fnc(S2_MAX_DURATION)): str,  # "99.00:00:00"
-            vol.Required(fnc(S2_TIMING_RESOLUTION)): str,  # "1.00:00:00"
-            vol.Required(fnc(S2_TIMING_MODE)): vol.In(TccTimingMode),
-        },
-        extra=vol.PREVENT_EXTRA,
+    def check_can_be_one_of(config: dict[str, object]) -> dict[str, object]:
+        if not (config[can_be_permanent] or config[can_be_temporary]):
+            raise vol.Invalid(
+                f"at least one of {can_be_permanent}, {can_be_temporary} must be true"
+            )
+        return config
+
+    def check_duration_keys(config: dict[str, object]) -> dict[str, object]:
+        duration_keys = (max_duration, timing_resolution, timimg_mode)
+        if config[can_be_temporary]:
+            if missing := [k for k in duration_keys if k not in config]:
+                raise vol.Invalid("required key not provided", path=[missing[0]])
+        elif extra := [k for k in duration_keys if k in config]:
+            raise vol.Invalid("extra keys not allowed", path=[extra[0]])
+        return config
+
+    return vol.All(
+        vol.Schema(
+            {
+                vol.Required(system_mode): vol.In(TccSystemMode),
+                vol.Required(can_be_permanent): bool,
+                vol.Required(can_be_temporary): bool,
+                vol.Optional(max_duration): str,  # "99.00:00:00"
+                vol.Optional(timing_resolution): str,  # "1.00:00:00"
+                vol.Optional(timimg_mode): vol.In(TccTimingMode),
+            },
+            extra=vol.PREVENT_EXTRA,
+        ),
+        check_can_be_one_of,
+        check_duration_keys,
     )
 
 
@@ -402,15 +420,11 @@ def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
 def factory_tcs(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the TCS schema."""
 
-    SCH_ALLOWED_SYSTEM_MODES: Final = vol.Any(
-        factory_system_mode_perm(fnc), factory_system_mode_temp(fnc)
-    )
-
     return vol.Schema(
         {
             vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
             vol.Required(fnc(S2_MODEL_TYPE)): vol.In(TccTcsModelType),
-            vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [SCH_ALLOWED_SYSTEM_MODES],
+            vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [factory_system_mode(fnc)],
             vol.Required(fnc(S2_ZONES)): vol.All(
                 [factory_zone(fnc)], vol.Length(min=1, max=12)
             ),
