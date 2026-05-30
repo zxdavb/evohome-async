@@ -131,6 +131,9 @@ def camel_to_snake(s: str) -> str:
     return _STEP_2.sub(r"\1_\2", _STEP_1.sub(r"\1_\2", s)).lower()
 
 
+pascal_to_snake = camel_to_snake  # PascalCase is a subset of camelCase
+
+
 def snake_to_camel(s: str) -> str:
     """Return a string converted (from snake_case) to camelCase."""
     if " " in s:
