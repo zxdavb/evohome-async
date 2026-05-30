@@ -11,7 +11,6 @@ from _evohome.helpers import as_local_time
 
 from . import exceptions as exc
 from .const import (
-    API_STRFTIME,
     SZ_ALLOWED_MODES,
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
@@ -204,7 +203,7 @@ class HotWater(_ZoneBase):
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 raise exc.InvalidDhwModeError(f"{self}: For {mode}, until must be None")
 
-            dhw_mode[SZ_UNTIL_TIME] = until.strftime(API_STRFTIME)
+            dhw_mode[SZ_UNTIL_TIME] = until
 
         await self._set_mode(dhw_mode)
 

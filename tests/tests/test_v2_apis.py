@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from freezegun.api import FakeDatetime
 
 from evohomeasync2.const import DhwState, SystemMode, ZoneMode
 
@@ -129,7 +130,7 @@ async def test_ctl_set_mode_with_until(
     mode = {
         "system_mode": CTL_APIS_WITH_UNTIL[api_name],
         "permanent": False,
-        "time_until": "2025-07-13T12:00:00Z",
+        "time_until": FakeDatetime(2025, 7, 13, 12, 0, tzinfo=UTC),
     }
 
     with patch(
@@ -233,7 +234,7 @@ async def test_dhw_set_state(
 
     mock_put.assert_awaited_once()
 
-    EXPECTED_JSON: dict[str, str] = {
+    EXPECTED_JSON: dict[str, dt | str] = {
         "mode": ZoneMode.PERMANENT_OVERRIDE,
         "state": DhwState.OFF,
     }
@@ -254,7 +255,7 @@ async def test_dhw_set_state(
     EXPECTED_JSON = {
         "mode": ZoneMode.TEMPORARY_OVERRIDE,
         "state": DhwState.ON,
-        "until_time": "2025-07-10T15:00:00Z",
+        "until_time": FakeDatetime(2025, 7, 10, 15, 0, tzinfo=UTC),
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -324,7 +325,7 @@ async def test_zon_set_temperature(
     EXPECTED_JSON = {
         "setpoint_mode": ZoneMode.TEMPORARY_OVERRIDE,
         "heat_setpoint_value": 20.5,
-        "time_until": "2025-07-10T13:00:00Z",
+        "time_until": FakeDatetime(2025, 7, 10, 13, 0, tzinfo=UTC),
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT

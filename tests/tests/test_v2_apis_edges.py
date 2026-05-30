@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from freezegun.api import FakeDatetime
 
 import evohomeasync2 as evo2
 from evohomeasync2 import HotWater, Zone
@@ -254,7 +255,7 @@ async def test_zon_set_mode_temporary_override(
         json={
             "setpoint_mode": ZoneMode.TEMPORARY_OVERRIDE,
             "heat_setpoint_value": 21.5,
-            "time_until": "2025-07-10T15:00:00Z",
+            "time_until": FakeDatetime(2025, 7, 10, 15, 0, tzinfo=UTC),
         },
     )
 
@@ -306,7 +307,7 @@ async def test_zon_set_mode_vacation_hold(
         json={
             "setpoint_mode": ZoneMode.VACATION_HOLD,
             "heat_setpoint_value": 15.0,
-            "time_until": "2025-07-17T12:00:00Z",
+            "time_until": FakeDatetime(2025, 7, 17, 12, 0, tzinfo=UTC),
         },
     )
 
@@ -480,7 +481,7 @@ async def test_dhw_set_mode_temporary_override(
         json={
             "mode": ZoneMode.TEMPORARY_OVERRIDE,
             "state": DhwState.OFF,
-            "until_time": "2025-07-10T15:00:00Z",
+            "until_time": FakeDatetime(2025, 7, 10, 15, 0, tzinfo=UTC),
         },
     )
 

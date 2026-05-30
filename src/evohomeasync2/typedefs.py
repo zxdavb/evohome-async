@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
 if TYPE_CHECKING:
+    from datetime import datetime as dt
+
     from .const import (
         DayOfWeek,
         DhwState,
@@ -260,21 +262,21 @@ class EvoDhwStateStatusResponseT(TypedDict):
 class EvoSetDhwStateT(TypedDict):
     mode: ZoneMode
     state: NotRequired[DhwState]  # required by override modes
-    until_time: NotRequired[str]  # required by TemporaryOverride
+    until_time: NotRequired[dt]  # required by TemporaryOverride
 
 
 # PUT /temperatureControlSystem/{tcs_id}/mode
 class EvoSetSystemModeT(TypedDict):
     system_mode: SystemMode
     permanent: bool
-    time_until: NotRequired[str]  # required by TemporaryOverride
+    time_until: NotRequired[dt]  # required by TemporaryOverride
 
 
 # PUT /temperatureZone/{zon_id}/heatSetpoint
 class EvoSetZoneHeatSetpointT(TypedDict):
     setpoint_mode: ZoneMode
     heat_setpoint_value: NotRequired[float]  # required by override modes
-    time_until: NotRequired[str]  # required by TemporaryOverride
+    time_until: NotRequired[dt]  # required by TemporaryOverride
 
 
 #######################################################################################

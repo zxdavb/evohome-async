@@ -10,7 +10,6 @@ from _evohome.helpers import as_local_time
 
 from . import exceptions as exc
 from .const import (
-    API_STRFTIME,
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
@@ -266,7 +265,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             tcs_mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
                 SZ_SYSTEM_MODE: system_mode,
                 SZ_PERMANENT: False,
-                SZ_TIME_UNTIL: until.strftime(API_STRFTIME),
+                SZ_TIME_UNTIL: until,
             }
 
         await self._set_mode(tcs_mode)

@@ -13,7 +13,6 @@ from _evohome.helpers import as_local_time
 from . import exceptions as exc
 from .const import (
     _ERR_NOT_AVAILABLE,
-    API_STRFTIME,
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SETPOINT_MODES,
     SZ_DAILY_SCHEDULES,
@@ -719,7 +718,7 @@ class Zone(_ZoneBase):
                     f"{self}: For {mode}, until must be None"
                 )
 
-            zone_mode[SZ_TIME_UNTIL] = until.strftime(API_STRFTIME)
+            zone_mode[SZ_TIME_UNTIL] = until
 
         await self._set_mode(zone_mode)
 
