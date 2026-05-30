@@ -20,6 +20,7 @@ from .const import (
     SZ_DHW_STATE,
     SZ_FAULT_TYPE,
     SZ_HEAT_SETPOINT,
+    SZ_HEAT_SETPOINT_VALUE,
     SZ_IS_AVAILABLE,
     SZ_MAX_HEAT_SETPOINT,
     SZ_MIN_HEAT_SETPOINT,
@@ -30,24 +31,20 @@ from .const import (
     SZ_SETPOINT_MODE,
     SZ_SETPOINT_STATUS,
     SZ_SINCE,
+    SZ_SWITCHPOINTS,
     SZ_TARGET_HEAT_TEMPERATURE,
     SZ_TEMPERATURE,
     SZ_TEMPERATURE_STATUS,
     SZ_TIME_OF_DAY,
+    SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
+    DayOfWeek,
     ZoneMode,
     ZoneModelType,
     ZoneType,
 )
-from .schemas.const import (
-    S2_HEAT_SETPOINT_VALUE,
-    S2_SETPOINT_MODE,
-    S2_SWITCHPOINTS,
-    S2_TIME_UNTIL,
-    TccDayOfWeek,
-    TccEntityType,
-)
+from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.schedule import factory_zon_schedule
 from .schemas.status import factory_zon_status
@@ -60,7 +57,6 @@ if TYPE_CHECKING:
 
     from . import ControlSystem, Location
     from .auth import Auth
-    from .schemas.state import TccSetZonModeT
     from .typedefs import (
         EvoActiveFaultResponseT,
         EvoDailySchedulesT,
@@ -72,6 +68,7 @@ if TYPE_CHECKING:
         EvoGwyStatusResponseT,
         EvoLocConfigEntryT,
         EvoLocStatusResponseT,
+        EvoSetZoneHeatSetpointT,
         EvoSwitchpointT,
         EvoTcsConfigEntryT,
         EvoTcsStatusResponseT,
@@ -227,18 +224,16 @@ class ActiveFaultsBase(EntityBase):
         return tuple(self._active_faults)
 
 
-def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[TccDayOfWeek, str]:
+def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
     """Return a pair of strings representing the local day of week and time of day."""
     dtm = as_local_time(dtm, tzinfo)
-    day_of_week = list(TccDayOfWeek)[dtm.weekday()]  # locale-independent
-    return TccDayOfWeek(day_of_week), dtm.strftime(
-        "%H:%M"
-    )  # TODO: localize, e.g. Montag?
+    day_of_week = list(DayOfWeek)[dtm.weekday()]  # locale-independent
+    return DayOfWeek(day_of_week), dtm.strftime("%H:%M")  # TODO: localize, e.g. Montag?
 
 
 def _find_switchpoints(
     schedule: _ScheduleT,
-    day_of_week: TccDayOfWeek,
+    day_of_week: DayOfWeek,
     time_of_day: str,
 ) -> tuple[EvoSwitchpointT, int, EvoSwitchpointT, int]:
     """Find this/next switchpoints for a given day of week and time of day."""
@@ -249,7 +244,7 @@ def _find_switchpoints(
     # assumes 1+ switchpoint per day, which could be this_sp or next_sp only
 
     try:
-        day_idx = list(TccDayOfWeek).index(day_of_week)
+        day_idx = list(DayOfWeek).index(day_of_week)
     except ValueError as err:
         raise TypeError(f"Invalid parameter: {day_of_week}") from err
 
@@ -260,14 +255,14 @@ def _find_switchpoints(
     next_offset = 0
 
     # Check the switchpoints of the given day of week
-    for sp in schedule[day_idx][S2_SWITCHPOINTS]:
+    for sp in schedule[day_idx][SZ_SWITCHPOINTS]:
         if sp[SZ_TIME_OF_DAY] <= time_of_day:
             this_sp = sp
             continue
 
         if sp[SZ_TIME_OF_DAY] > time_of_day:
             if this_sp is None:
-                if not (prev_day := schedule[(day_idx + 6) % 7][S2_SWITCHPOINTS]):
+                if not (prev_day := schedule[(day_idx + 6) % 7][SZ_SWITCHPOINTS]):
                     raise exc.InvalidScheduleError("No switchpoints for previous day")
                 this_sp = prev_day[-1]
                 this_offset = -1
@@ -279,7 +274,7 @@ def _find_switchpoints(
         assert this_sp is not None  # mypy
 
         if next_sp is None:
-            if not (next_day := schedule[(day_idx + 1) % 7][S2_SWITCHPOINTS]):
+            if not (next_day := schedule[(day_idx + 1) % 7][SZ_SWITCHPOINTS]):
                 raise exc.InvalidScheduleError("No switchpoints for next day")
             next_sp = next_day[0]
             next_offset = +1
@@ -654,24 +649,24 @@ class Zone(_ZoneBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, zon_mode: TccSetZonModeT, /) -> None:
+    async def _set_mode(self, zon_mode: EvoSetZoneHeatSetpointT, /) -> None:
         """Set the Zone mode (heating only; cooling is not exposed by the API)."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if zon_mode[S2_SETPOINT_MODE] not in self.allowed_modes:
+        if zon_mode[SZ_SETPOINT_MODE] not in self.allowed_modes:
             self._logger.warning(
-                f"{self}: Attempting unsupported {S2_SETPOINT_MODE}: {zon_mode}..."
+                f"{self}: Attempting unsupported {SZ_SETPOINT_MODE}: {zon_mode}..."
             )
 
-        if (temp := zon_mode.get(S2_HEAT_SETPOINT_VALUE)) is None:
-            if zon_mode[S2_SETPOINT_MODE] != ZoneMode.FOLLOW_SCHEDULE:
+        if (temp := zon_mode.get(SZ_HEAT_SETPOINT_VALUE)) is None:
+            if zon_mode[SZ_SETPOINT_MODE] != ZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(
-                    f"{self}: Attempting missing {S2_HEAT_SETPOINT_VALUE}: {zon_mode}..."
+                    f"{self}: Attempting missing {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
                 )
 
         elif not self.min_heat_setpoint <= temp <= self.max_heat_setpoint:
             self._logger.warning(
-                f"{self}: Attempting invalid {S2_HEAT_SETPOINT_VALUE}: {zon_mode}..."
+                f"{self}: Attempting invalid {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
             )
 
         await self._auth.put(
@@ -691,7 +686,7 @@ class Zone(_ZoneBase):
         if mode not in self.allowed_modes:
             raise exc.InvalidZoneModeError(f"{self}: Unsupported mode: {mode}")
 
-        zone_mode: TccSetZonModeT = {S2_SETPOINT_MODE: mode}
+        zone_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: mode}
 
         if temperature is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
@@ -710,7 +705,7 @@ class Zone(_ZoneBase):
                     f"{self}: Invalid temperature: {temperature} (out of range)"
                 )
 
-            zone_mode[S2_HEAT_SETPOINT_VALUE] = temperature
+            zone_mode[SZ_HEAT_SETPOINT_VALUE] = temperature
 
         if until is None:
             if mode == ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
@@ -724,7 +719,7 @@ class Zone(_ZoneBase):
                     f"{self}: For {mode}, until must be None"
                 )
 
-            zone_mode[S2_TIME_UNTIL] = until.strftime(API_STRFTIME)
+            zone_mode[SZ_TIME_UNTIL] = until.strftime(API_STRFTIME)
 
         await self._set_mode(zone_mode)
 

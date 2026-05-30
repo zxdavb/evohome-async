@@ -4,12 +4,12 @@
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 TempZoneActuatorCommunicationLost",
+      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 temp_zone_actuator_communication_lost",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 TempZoneSensorCommunicationLost",
+      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 temp_zone_sensor_communication_lost",
     ),
   ])
 # ---
@@ -22,12 +22,12 @@
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 TempZoneActuatorCommunicationLost",
+      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 temp_zone_actuator_communication_lost",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 TempZoneSensorCommunicationLost",
+      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 temp_zone_sensor_communication_lost",
     ),
   ])
 # ---
@@ -36,12 +36,12 @@
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 TempZoneActuatorCommunicationLost",
+      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 temp_zone_actuator_communication_lost",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 TempZoneSensorCommunicationLost",
+      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 temp_zone_sensor_communication_lost",
     ),
   ])
 # ---
@@ -50,12 +50,12 @@
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 TempZoneActuatorCommunicationLost",
+      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 temp_zone_actuator_communication_lost",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 TempZoneSensorCommunicationLost",
+      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 temp_zone_sensor_communication_lost",
     ),
   ])
 # ---
@@ -64,12 +64,12 @@
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 TempZoneActuatorCommunicationLost",
+      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 temp_zone_actuator_communication_lost",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 TempZoneSensorCommunicationLost",
+      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 temp_zone_sensor_communication_lost",
     ),
   ])
 # ---
@@ -78,7 +78,7 @@
     tuple(
       'evohomeasync2',
       30,
-      "HotWater(id='3933910'): Active fault: 2023-11-30T18:48:40+00:00 DHWSensorCommunicationLost",
+      "HotWater(id='3933910'): Active fault: 2023-11-30T18:48:40+00:00 dhw_sensor_communication_lost",
     ),
   ])
 # ---
@@ -92,7 +92,7 @@
     tuple(
       'evohomeasync2',
       30,
-      "Gateway(id='2938388'): Active fault: 2023-05-04T18:47:36.772704+02:00 GatewayCommunicationLost",
+      "Gateway(id='2938388'): Active fault: 2023-05-04T18:47:36.772704+02:00 gateway_communication_lost",
     ),
   ])
 # ---
@@ -111,22 +111,22 @@
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='0004'): Active fault: 2024-12-01T01:00:00+01:00 TempZoneActuatorCommunicationLost",
+      "Zone(id='0004'): Active fault: 2024-12-01T01:00:00+01:00 temp_zone_actuator_communication_lost",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='0004'): Active fault: 2024-05-01T01:00:00+02:00 TempZoneSensorCommunicationLost",
+      "Zone(id='0004'): Active fault: 2024-05-01T01:00:00+02:00 temp_zone_sensor_communication_lost",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='0004'): Active fault: 2024-12-01T01:00:00-01:00 TempZoneActuatorCommunicationLost",
+      "Zone(id='0004'): Active fault: 2024-12-01T01:00:00-01:00 temp_zone_actuator_communication_lost",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='0004'): Active fault: 2024-05-01T01:00:00-01:00 TempZoneSensorCommunicationLost",
+      "Zone(id='0004'): Active fault: 2024-05-01T01:00:00-01:00 temp_zone_sensor_communication_lost",
     ),
   ])
 # ---

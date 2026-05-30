@@ -16,10 +16,6 @@ from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync import EvohomeClient as EvohomeClientV0
 from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
-from evohomeasync2.schemas.account import TCC_GET_USR_ACCOUNT
-from evohomeasync2.schemas.config import TCC_GET_USR_LOCATIONS
-from evohomeasync2.schemas.schedule import TCC_GET_SCHEDULE
-from evohomeasync2.schemas.status import TCC_GET_LOC_STATUS
 
 from .aioresponses import AioResponses, aioresponses
 
@@ -176,31 +172,34 @@ def auth_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
                 TCC_GET_USR_LOCS(user_locs_fixture(fixture))
             )
 
+        # mirror what auth.request() + auth.get() do: snake-case keys, then apply
+        # whatever schema the model passes so enum values are coerced to members
+
         # "userAccount"
         if "userAccount" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_USR_ACCOUNT(user_account_fixture(fixture))
+            data: JsonArrayType | JsonObjectType = convert_keys_to_snake_case(
+                user_account_fixture(fixture)
             )
+            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
 
         # f"location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True"
         if "installationInfo" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_USR_LOCATIONS(user_locations_config_fixture(fixture))
-            )
+            data = convert_keys_to_snake_case(user_locations_config_fixture(fixture))
+            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
 
         # f"{_TCC_TYPE}/{id}/status?includeTemperatureControlSystems=True"
         if "status" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_LOC_STATUS(location_status_fixture(fixture, url.split("/")[1]))
+            data = convert_keys_to_snake_case(
+                location_status_fixture(fixture, url.split("/")[1])
             )
+            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
 
         # f"{_TCC_TYPE}/{id}/schedule"
         if "schedule" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_SCHEDULE(
-                    zone_schedule_fixture(fixture, url.split("/", maxsplit=1)[0])
-                )
+            data = convert_keys_to_snake_case(
+                zone_schedule_fixture(fixture, url.split("/", maxsplit=1)[0])
             )
+            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
 
         pytest.fail(f"Unexpected/unknown URL: {url}")
 

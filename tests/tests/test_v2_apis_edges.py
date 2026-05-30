@@ -59,7 +59,7 @@ async def test_ctl_reset_emulates_auto_with_reset(
     if SystemMode.AUTO_WITH_RESET in tcs.allowed_modes:
         url = f"temperatureControlSystem/{tcs.id}/mode"
         mode = {
-            "systemMode": str(SystemMode.AUTO_WITH_RESET),
+            "system_mode": SystemMode.AUTO_WITH_RESET,
             "permanent": True,
         }
 
@@ -92,7 +92,7 @@ async def test_ctl_set_auto_falls_back_to_heat(
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
-        "systemMode": str(expected_mode),
+        "system_mode": expected_mode,
         "permanent": True,
     }
 
@@ -119,7 +119,7 @@ async def test_ctl_set_heatingoff_falls_back_to_off(
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
-        "systemMode": str(expected_mode),
+        "system_mode": expected_mode,
         "permanent": True,
     }
 
@@ -201,7 +201,9 @@ async def test_zon_set_mode_follow_schedule(
     mock_put.assert_awaited_once_with(
         HTTPMethod.PUT,
         f"temperatureZone/{zone.id}/heatSetpoint",
-        json={"setpointMode": "FollowSchedule"},
+        json={
+            "setpoint_mode": ZoneMode.FOLLOW_SCHEDULE,
+        },
     )
 
 
@@ -220,7 +222,10 @@ async def test_zon_set_mode_permanent_override(
     mock_put.assert_awaited_once_with(
         HTTPMethod.PUT,
         f"temperatureZone/{zone.id}/heatSetpoint",
-        json={"setpointMode": "PermanentOverride", "heatSetpointValue": 20.0},
+        json={
+            "setpoint_mode": ZoneMode.PERMANENT_OVERRIDE,
+            "heat_setpoint_value": 20.0,
+        },
     )
 
 
@@ -247,9 +252,9 @@ async def test_zon_set_mode_temporary_override(
         HTTPMethod.PUT,
         f"temperatureZone/{zone.id}/heatSetpoint",
         json={
-            "setpointMode": "TemporaryOverride",
-            "heatSetpointValue": 21.5,
-            "timeUntil": "2025-07-10T15:00:00Z",
+            "setpoint_mode": ZoneMode.TEMPORARY_OVERRIDE,
+            "heat_setpoint_value": 21.5,
+            "time_until": "2025-07-10T15:00:00Z",
         },
     )
 
@@ -299,9 +304,9 @@ async def test_zon_set_mode_vacation_hold(
         HTTPMethod.PUT,
         f"temperatureZone/{zone.id}/heatSetpoint",
         json={
-            "setpointMode": "VacationHold",
-            "heatSetpointValue": 15.0,
-            "timeUntil": "2025-07-17T12:00:00Z",
+            "setpoint_mode": ZoneMode.VACATION_HOLD,
+            "heat_setpoint_value": 15.0,
+            "time_until": "2025-07-17T12:00:00Z",
         },
     )
 
@@ -418,7 +423,9 @@ async def test_dhw_set_mode_follow_schedule(
     mock_put.assert_awaited_once_with(
         HTTPMethod.PUT,
         f"domesticHotWater/{dhw.id}/state",
-        json={"mode": "FollowSchedule"},
+        json={
+            "mode": ZoneMode.FOLLOW_SCHEDULE,
+        },
     )
 
 
@@ -439,7 +446,10 @@ async def test_dhw_set_mode_permanent_override(
     mock_put.assert_awaited_once_with(
         HTTPMethod.PUT,
         f"domesticHotWater/{dhw.id}/state",
-        json={"mode": "PermanentOverride", "state": "On"},
+        json={
+            "mode": ZoneMode.PERMANENT_OVERRIDE,
+            "state": DhwState.ON,
+        },
     )
 
 
@@ -468,9 +478,9 @@ async def test_dhw_set_mode_temporary_override(
         HTTPMethod.PUT,
         f"domesticHotWater/{dhw.id}/state",
         json={
-            "mode": "TemporaryOverride",
-            "state": "Off",
-            "untilTime": "2025-07-10T15:00:00Z",
+            "mode": ZoneMode.TEMPORARY_OVERRIDE,
+            "state": DhwState.OFF,
+            "until_time": "2025-07-10T15:00:00Z",
         },
     )
 

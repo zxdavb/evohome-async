@@ -19,10 +19,11 @@ from .const import (
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_STATE,
     SZ_STATE_STATUS,
+    SZ_UNTIL_TIME,
     DhwState,
     ZoneMode,
 )
-from .schemas.const import S2_MODE, S2_STATE, S2_UNTIL_TIME, TccEntityType
+from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.schedule import factory_dhw_schedule
 from .schemas.status import factory_dhw_status
@@ -34,7 +35,6 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import ControlSystem
-    from .schemas.state import TccSetDhwModeT
     from .typedefs import (
         EvoDayOfWeekDhwT,
         EvoDhwConfigEntryT,
@@ -43,6 +43,7 @@ if TYPE_CHECKING:
         EvoDhwStateCapabilitiesResponseT,
         EvoDhwStateStatusResponseT,
         EvoDhwStatusResponseT,
+        EvoSetDhwStateT,
     )
 
 
@@ -144,24 +145,24 @@ class HotWater(_ZoneBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, dhw_mode: TccSetDhwModeT, /) -> None:
+    async def _set_mode(self, dhw_mode: EvoSetDhwStateT, /) -> None:
         """Set the DHW mode (state)."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if dhw_mode[S2_MODE] not in self.allowed_modes:
+        if dhw_mode[SZ_MODE] not in self.allowed_modes:
             self._logger.warning(
-                f"{self}: Attempting unsupported {S2_MODE}: {dhw_mode}..."
+                f"{self}: Attempting unsupported {SZ_MODE}: {dhw_mode}..."
             )
 
-        if not (state := dhw_mode.get(S2_STATE)):
-            if dhw_mode[S2_MODE] != ZoneMode.FOLLOW_SCHEDULE:
+        if not (state := dhw_mode.get(SZ_STATE)):
+            if dhw_mode[SZ_MODE] != ZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(
-                    f"{self}: Attempting invalid {S2_MODE}/{S2_STATE}: {dhw_mode}..."
+                    f"{self}: Attempting invalid {SZ_MODE}/{SZ_STATE}: {dhw_mode}..."
                 )
 
         elif state not in self.allowed_states:
             self._logger.warning(
-                f"{self}: Attempting unsupported {S2_STATE}: {dhw_mode}..."
+                f"{self}: Attempting unsupported {SZ_STATE}: {dhw_mode}..."
             )
 
         await self._auth.put(f"{self._TCC_TYPE}/{self.id}/state", json=dict(dhw_mode))
@@ -179,7 +180,7 @@ class HotWater(_ZoneBase):
         if mode not in self.allowed_modes:
             raise exc.InvalidDhwModeError(f"{self}: Unsupported mode: {mode}")
 
-        dhw_mode: TccSetDhwModeT = {S2_MODE: mode}
+        dhw_mode: EvoSetDhwStateT = {SZ_MODE: mode}
 
         if state is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
@@ -191,7 +192,7 @@ class HotWater(_ZoneBase):
             if mode == ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidDhwModeError(f"{self}: For {mode}, state must be None")
 
-            dhw_mode[S2_STATE] = state
+            dhw_mode[SZ_STATE] = state
 
         if until is None:
             if mode == ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
@@ -203,7 +204,7 @@ class HotWater(_ZoneBase):
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 raise exc.InvalidDhwModeError(f"{self}: For {mode}, until must be None")
 
-            dhw_mode[S2_UNTIL_TIME] = until.strftime(API_STRFTIME)
+            dhw_mode[SZ_UNTIL_TIME] = until.strftime(API_STRFTIME)
 
         await self._set_mode(dhw_mode)
 
