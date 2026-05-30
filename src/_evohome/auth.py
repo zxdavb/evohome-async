@@ -16,6 +16,7 @@ from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
 from .helpers import (
     convert_keys_to_camel_case,
     convert_keys_to_snake_case,
+    convert_str_enums_to_pascal_case,
     redact_secrets,
 )
 
@@ -124,6 +125,7 @@ class AbstractAuth(ABC):
         """
 
         if method == HTTPMethod.PUT and "json" in kwargs:
+            kwargs["json"] = convert_str_enums_to_pascal_case(kwargs["json"])
             kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
         try:

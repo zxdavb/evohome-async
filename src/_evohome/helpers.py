@@ -165,7 +165,7 @@ def convert_keys_to_snake_case[T](data: T) -> T:
     return _convert_keys(data, camel_to_snake)
 
 
-def convert_vals_to_pascal_case[T](data: T) -> T:
+def convert_str_enums_to_pascal_case[T](data: T) -> T:
     """Recursively convert all StrEnum values from snake_case to PascalCase.
 
     Used before sending JSON to the vendor API. Only StrEnum members are converted;
