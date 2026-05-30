@@ -154,7 +154,7 @@ class HotWater(_ZoneBase):
             )
 
         if not (state := dhw_mode.get(SZ_STATE)):
-            if dhw_mode[SZ_MODE] != ZoneMode.FOLLOW_SCHEDULE:
+            if dhw_mode[SZ_MODE] is not ZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(
                     f"{self}: Attempting invalid {SZ_MODE}/{SZ_STATE}: {dhw_mode}..."
                 )
@@ -188,13 +188,13 @@ class HotWater(_ZoneBase):
                 )
 
         else:
-            if mode == ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
+            if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidDhwModeError(f"{self}: For {mode}, state must be None")
 
             dhw_mode[SZ_STATE] = state
 
         if until is None:
-            if mode == ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
+            if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidDhwModeError(
                     f"{self}: For {mode}, until must not be None"
                 )

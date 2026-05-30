@@ -532,11 +532,11 @@ class Zone(_ZoneBase):
 
         self._schedule: list[EvoDayOfWeekZoneT] | None = None  # type: ignore[assignment]
 
-        if not self.model or self.model == ZoneModelType.UNKNOWN:
+        if not self.model or self.model is ZoneModelType.UNKNOWN:
             raise exc.InvalidConfigError(
                 f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)"
             )
-        if not self.type or self.type == ZoneType.UNKNOWN:
+        if not self.type or self.type is ZoneType.UNKNOWN:
             raise exc.InvalidConfigError(
                 f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)"
             )
@@ -658,7 +658,7 @@ class Zone(_ZoneBase):
             )
 
         if (temp := zon_mode.get(SZ_HEAT_SETPOINT_VALUE)) is None:
-            if zon_mode[SZ_SETPOINT_MODE] != ZoneMode.FOLLOW_SCHEDULE:
+            if zon_mode[SZ_SETPOINT_MODE] is not ZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(
                     f"{self}: Attempting missing {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
                 )
@@ -694,7 +694,7 @@ class Zone(_ZoneBase):
                 )
 
         else:
-            if mode == ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
+            if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidZoneModeError(
                     f"{self}: For {mode}, temperature must be None"
                 )
@@ -707,7 +707,7 @@ class Zone(_ZoneBase):
             zone_mode[SZ_HEAT_SETPOINT_VALUE] = temperature
 
         if until is None:
-            if mode == ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
+            if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidZoneModeError(
                     f"{self}: For {mode}, until must not be None"
                 )
