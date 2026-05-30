@@ -7,13 +7,10 @@ from typing import TYPE_CHECKING, Any, Final, NewType, NotRequired, TypedDict
 
 import voluptuous as vol
 
-from _evohome.helpers import noop, redact
+from _evohome.helpers import API_STRFTIME as API_STRFTIME, noop, redact  # noqa: PLC0414
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-# Datetime format used by the vendor's API
-API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
 
 
 # TCC identifiers (Usr, Loc, Gwy, Sys, Zon|Dhw)

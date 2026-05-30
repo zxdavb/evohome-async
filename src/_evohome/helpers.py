@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from datetime import datetime as dt
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any, overload
+from typing import TYPE_CHECKING, Any, Final, overload
 
 from .const import _DBG_DONT_REDACT_SECRETS, REGEX_EMAIL_ADDRESS
 
@@ -13,6 +13,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from datetime import tzinfo
 
+
+API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
 
 REGEX_DATETIME = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
 
@@ -163,6 +165,28 @@ def convert_keys_to_snake_case[T](data: T) -> T:
     Used after retrieving JSON from the vendor API.
     """
     return _convert_keys(data, camel_to_snake)
+
+
+def convert_datetimes_to_str[T](data: T) -> T:
+    """Recursively convert datetime objects to ISO 8601 UTC strings.
+
+    Used before sending JSON to the vendor API, alongside StrEnum conversion.
+    Only datetime instances are converted; plain strings are left unchanged.
+    """
+
+    def recurse(data_: Any) -> Any:
+        if isinstance(data_, dict):
+            return {k: recurse(v) for k, v in data_.items()}
+
+        if isinstance(data_, list):
+            return [recurse(i) for i in data_]
+
+        if isinstance(data_, dt):
+            return data_.strftime(API_STRFTIME)
+
+        return data_
+
+    return recurse(data)  # type:ignore[no-any-return]
 
 
 def convert_str_enums_to_pascal_case[T](data: T) -> T:

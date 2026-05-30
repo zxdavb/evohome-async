@@ -8,6 +8,8 @@ from __future__ import annotations
 from enum import EnumCheck, StrEnum, verify
 from typing import Final
 
+from _evohome.helpers import API_STRFTIME as API_STRFTIME  # noqa: PLC0414
+
 # Vendor API strings — JSON key names use camelCase
 # - the OAuth endpoint is an exception (snake_case), but not seen here
 
@@ -252,12 +254,9 @@ class TccZoneType(StrEnum):
 
 
 # Non-API constants used internally by this module and the voluptuous schemas.
-# Includes the vendor datetime format string and regex patterns for entity ID validation.
 
 REGEX_DHW_ID: Final = r"[0-9]*"
 REGEX_GATEWAY_ID: Final = r"[0-9]*"
 REGEX_LOCATION_ID: Final = r"[0-9]*"
 REGEX_SYSTEM_ID: Final = r"[0-9]*"
 REGEX_ZONE_ID: Final = r"[0-9]*"
-
-API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"

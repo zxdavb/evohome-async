@@ -14,6 +14,7 @@ import voluptuous as vol
 from . import exceptions as exc
 from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
 from .helpers import (
+    convert_datetimes_to_str,
     convert_keys_to_camel_case,
     convert_keys_to_snake_case,
     convert_str_enums_to_pascal_case,
@@ -129,6 +130,7 @@ class AbstractAuth(ABC):
         """
 
         if "json" in kwargs:
+            kwargs["json"] = convert_datetimes_to_str(kwargs["json"])
             kwargs["json"] = convert_str_enums_to_pascal_case(kwargs["json"])
             kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
