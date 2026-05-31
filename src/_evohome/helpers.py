@@ -14,9 +14,9 @@ if TYPE_CHECKING:
     from datetime import tzinfo
 
 
-API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
+TCC_DTM_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
 
-REGEX_DATETIME = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
+_TCC_DTM_REGEX = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
 
 _REDACTED_EMAIL_ADDRESS = "no-reply@redacted.xxx"
 _REDACTED_STRING = "********"
@@ -185,7 +185,7 @@ def convert_datetimes_to_str[T](data: T) -> T:
             return [recurse(i) for i in data_]
 
         if isinstance(data_, dt):
-            return data_.strftime(API_STRFTIME)
+            return data_.strftime(TCC_DTM_STRFTIME)
 
         return data_
 
@@ -215,7 +215,7 @@ def convert_naive_dtm_strs_to_aware[T](data: T, tzinfo: tzinfo) -> T:
         if isinstance(data_, list):
             return [recurse(i) for i in data_]
 
-        if not isinstance(data_, str) or not re.match(REGEX_DATETIME, data_):
+        if not isinstance(data_, str) or not re.match(_TCC_DTM_REGEX, data_):
             return data_
 
         try:

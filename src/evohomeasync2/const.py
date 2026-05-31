@@ -11,7 +11,6 @@ from typing import Final
 from _evohome.helpers import camel_to_snake
 
 from .schemas.const import (
-    API_STRFTIME as API_STRFTIME,  # noqa: PLC0414
     TccDayOfWeek,
     TccDhwState,
     TccFanMode,

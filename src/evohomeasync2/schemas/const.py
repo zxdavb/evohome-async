@@ -14,7 +14,7 @@ from __future__ import annotations
 from enum import EnumCheck, StrEnum, verify
 from typing import Final
 
-from _evohome.helpers import API_STRFTIME as API_STRFTIME  # noqa: PLC0414
+from _evohome.helpers import TCC_DTM_STRFTIME as TCC_DTM_STRFTIME  # noqa: PLC0414
 
 # Vendor API strings — JSON key names use camelCase
 # - the OAuth endpoint is an exception (snake_case), but not seen here

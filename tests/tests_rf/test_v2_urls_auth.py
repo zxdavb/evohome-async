@@ -17,10 +17,9 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from _evohome.helpers import pascal_to_snake
-from evohomeasync2.const import API_STRFTIME
 from evohomeasync2.schemas.account import TCC_GET_USR_ACCOUNT
 from evohomeasync2.schemas.config import TCC_GET_USR_LOCATIONS
-from evohomeasync2.schemas.const import TccSystemMode, TccZoneMode
+from evohomeasync2.schemas.const import TCC_DTM_STRFTIME, TccSystemMode, TccZoneMode
 from evohomeasync2.schemas.status import (
     TCC_GET_LOC_STATUS,
     TCC_GET_TCS_STATUS,
@@ -273,7 +272,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
     new_mode = {
         "systemMode": TccSystemMode.AWAY,
         "permanent": False,
-        "timeUntil": (tcs.location.now() + td(hours=1)).strftime(API_STRFTIME),
+        "timeUntil": (tcs.location.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
 
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=new_mode)

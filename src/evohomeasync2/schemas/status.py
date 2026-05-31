@@ -18,7 +18,6 @@ import voluptuous as vol
 from _evohome.helpers import camel_to_snake, noop
 
 from .const import (
-    API_STRFTIME,
     REGEX_DHW_ID,
     REGEX_GATEWAY_ID,
     REGEX_LOCATION_ID,
@@ -53,6 +52,7 @@ from .const import (
     S2_UNTIL,
     S2_ZONE_ID,
     S2_ZONES,
+    TCC_DTM_STRFTIME,
     TccDhwState,
     TccFanMode,
     TccFaultType,
@@ -181,7 +181,7 @@ def factory_zon_status(case: Case = Case.VENDOR) -> vol.Schema:
         {
             vol.Required(fnc(S2_TARGET_HEAT_TEMPERATURE)): float,
             vol.Required(fnc(S2_SETPOINT_MODE)): factory_enum(case, TccZoneMode),
-            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=API_STRFTIME),
+            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=TCC_DTM_STRFTIME),
         },
         extra=vol.PREVENT_EXTRA,
     )  # NOTE: S2_UNTIL is present only for some modes
@@ -216,7 +216,7 @@ def factory_dhw_status(case: Case = Case.VENDOR) -> vol.Schema:
         {
             vol.Required(fnc(S2_STATE)): factory_enum(case, TccDhwState),
             vol.Required(fnc(S2_MODE)): factory_enum(case, TccZoneMode),
-            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=API_STRFTIME),
+            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=TCC_DTM_STRFTIME),
         },
         extra=vol.PREVENT_EXTRA,
     )  # NOTE: S2_UNTIL is present only for some modes
@@ -263,7 +263,7 @@ def factory_system_mode_status(case: Case = Case.VENDOR) -> vol.Any:
         vol.Schema(
             {
                 vol.Required(fnc(S2_MODE)): temporary_mode,
-                vol.Required(fnc(S2_TIME_UNTIL)): vol.Datetime(format=API_STRFTIME),
+                vol.Required(fnc(S2_TIME_UNTIL)): vol.Datetime(format=TCC_DTM_STRFTIME),
                 vol.Required(fnc(S2_IS_PERMANENT)): False,
             }
         ),

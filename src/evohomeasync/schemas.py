@@ -7,7 +7,11 @@ from typing import TYPE_CHECKING, Any, Final, NewType, NotRequired, TypedDict
 
 import voluptuous as vol
 
-from _evohome.helpers import API_STRFTIME as API_STRFTIME, noop, redact  # noqa: PLC0414
+from _evohome.helpers import (
+    TCC_DTM_STRFTIME as TCC_DTM_STRFTIME,  # noqa: PLC0414
+    noop,
+    redact,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable

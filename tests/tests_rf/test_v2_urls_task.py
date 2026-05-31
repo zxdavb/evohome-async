@@ -18,13 +18,13 @@ import pytest
 
 import evohomeasync2 as evo2
 from _evohome.helpers import camel_to_pascal
-from evohomeasync2.const import API_STRFTIME
 from evohomeasync2.schemas.const import (
     S2_MODE,
     S2_STATE,
     S2_STATE_STATUS,
     S2_UNTIL,
     S2_UNTIL_TIME,
+    TCC_DTM_STRFTIME,
     TccDhwState,
     TccZoneMode,
 )
@@ -96,7 +96,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     new_mode = {
         S2_MODE: TccZoneMode.TEMPORARY_OVERRIDE,
         S2_STATE: TccDhwState.ON,
-        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(API_STRFTIME),
+        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
 
     result = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
@@ -124,7 +124,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     new_mode = {
         S2_MODE: TccZoneMode.TEMPORARY_OVERRIDE,
         S2_STATE: TccDhwState.ON,
-        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(API_STRFTIME),
+        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
     _ = await should_work_v2(
         evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode
@@ -139,7 +139,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
         camel_to_pascal(S2_MODE): TccZoneMode.TEMPORARY_OVERRIDE,
         camel_to_pascal(S2_STATE): TccDhwState.ON,
         camel_to_pascal(S2_UNTIL_TIME): (loc.now() + td(hours=2)).strftime(
-            API_STRFTIME
+            TCC_DTM_STRFTIME
         ),
     }
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
