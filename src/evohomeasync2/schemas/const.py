@@ -239,7 +239,7 @@ class TccZoneModelType(StrEnum):
     HEATING_ZONE = "HeatingZone"
     ROUND_MODULATION = "RoundModulation"
     ROUND_WIRELESS = "RoundWireless"
-    UNKNOWN = "Unknown"
+    UNKNOWN = "Unknown"  # see: https://github.com/home-assistant/core/issues/30945
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
 
 
@@ -250,7 +250,7 @@ class TccZoneType(StrEnum):
     RADIATOR_ZONE = "RadiatorZone"
     THERMOSTAT = "Thermostat"
     UNDERFLOOR_HEATING = "UnderfloorHeating"
-    UNKNOWN = "Unknown"
+    UNKNOWN = "Unknown"  # see: https://github.com/home-assistant/core/issues/30945
     ZONE_TEMPERATURE_CONTROL = "ZoneTemperatureControl"
     ZONE_VALVES = "ZoneValves"  # is not ZoneValve
 
