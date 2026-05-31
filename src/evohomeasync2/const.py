@@ -59,6 +59,7 @@ SZ_DHW_STATE: Final = "dhw_state"
 SZ_DHW_STATE_CAPABILITIES_RESPONSE: Final = "dhw_state_capabilities_response"
 SZ_DISPLAY_NAME: Final = "display_name"
 SZ_DOMESTIC_HOT_WATER: Final = "domestic_hot_water"
+SZ_DURATION: Final = "duration"  # c.f. StrEnum val, TimingMode.DURATION
 
 SZ_FAN_MODE: Final = "fan_mode"
 SZ_FAN_STATUS: Final = "fan_status"
@@ -103,6 +104,7 @@ SZ_NAME: Final = "name"
 
 SZ_OFFSET_MINUTES: Final = "offset_minutes"
 
+SZ_PERIOD: Final = "period"  # c.f. StrEnum val, TimingMode.PERIOD
 SZ_PERMANENT: Final = "permanent"
 SZ_POSTCODE: Final = "postcode"
 
@@ -231,7 +233,7 @@ class TcsModelType(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class TimingMode(StrEnum):
+class TimingMode(StrEnum):  # c.f. JSON keys: SZ_DURATION, SZ_PERIOD
     DURATION = camel_to_snake(TccTimingMode.DURATION)
     PERIOD = camel_to_snake(TccTimingMode.PERIOD)
 

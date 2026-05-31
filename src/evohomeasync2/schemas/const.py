@@ -39,6 +39,7 @@ S2_DHW_ID: Final = "dhwId"
 S2_DHW_STATE: Final = "dhwState"
 S2_DHW_STATE_CAPABILITIES_RESPONSE: Final = "dhwStateCapabilitiesResponse"
 S2_DISPLAY_NAME: Final = "displayName"
+S2_DURATION: Final = "duration"  # c.f. StrEnum val, TccTimingMode.DURATION
 
 S2_FAN_MODE: Final = "fanMode"
 S2_FAN_STATUS: Final = "fanStatus"
@@ -81,6 +82,7 @@ S2_NAME: Final = "name"
 
 S2_OFFSET_MINUTES: Final = "offsetMinutes"
 
+S2_PERIOD: Final = "period"  # c.f. StrEnum val, TccTimingMode.PERIOD
 S2_PERMANENT: Final = "permanent"
 S2_POSTCODE: Final = "postcode"
 
@@ -218,7 +220,7 @@ class TccTcsModelType(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class TccTimingMode(StrEnum):
+class TccTimingMode(StrEnum):  # c.f. JSON keys: SZ_DURATION, SZ_PERIOD
     DURATION = "Duration"
     PERIOD = "Period"
 
