@@ -1,4 +1,4 @@
-"""Helper utilities for the evohomeasync2 schema factories."""
+"""Helper utilities for the vendor's TCC v2 API."""
 
 from __future__ import annotations
 

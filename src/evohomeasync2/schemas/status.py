@@ -1,6 +1,12 @@
-"""Schema for vendor's TCC v2 API - for GET status of Location.
+"""Schema for the vendor's TCC v2 API - for GET status of Location.
 
-The convention for JSON keys is camelCase, but the API appears to be case-insensitive.
+These TypedDict & StrEnums serve as documentation of the vendor's API, even if they are
+unused by this library. There are corresponding factory functions for the voluptuous
+schemas, which can be used to validate/coerce the vendor's responses.
+
+The vendor's convention for well-known strings:
+- camelCase for JSON keys, URL params (e.g. "userId", "streetAddress", "period")
+- PascalCase for JSON values that are enum strings (e.g. "TemporaryOverride", "Period")
 """
 
 from __future__ import annotations

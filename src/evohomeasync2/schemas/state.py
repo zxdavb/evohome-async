@@ -1,6 +1,12 @@
-"""Schema for vendor's TCC v2 API - for PUT state of TCS/Zone/DHW.
+"""Schema for the vendor's TCC v2 API - for PUT state of TCS/Zone/DHW.
 
-The convention for JSON keys is camelCase, but the API appears to be case-insensitive.
+These TypedDict & StrEnums serve as documentation of the vendor's API, even if they are
+unused by this library. There are corresponding factory functions for the voluptuous
+schemas, which can be used to validate/coerce the vendor's responses.
+
+The vendor's convention for well-known strings:
+- camelCase for JSON keys, URL params (e.g. "userId", "streetAddress", "period")
+- PascalCase for JSON values that are enum strings (e.g. "TemporaryOverride", "Period")
 """
 
 from __future__ import annotations
@@ -16,7 +22,7 @@ class TccSetDhwModeT(TypedDict):
 
     mode: ZoneMode
     state: NotRequired[DhwState | None]  # required by override modes
-    untilTime: NotRequired[str | None]  # required by TemporaryOverride
+    untilTime: NotRequired[str | None]  # required by TemporaryOverride mode
 
 
 class TccSetTcsModeT(TypedDict):
@@ -24,7 +30,7 @@ class TccSetTcsModeT(TypedDict):
 
     systemMode: SystemMode
     permanent: bool
-    timeUntil: NotRequired[str]  # TODO: dtm?
+    timeUntil: NotRequired[str]
 
 
 class TccSetZonModeT(TypedDict):
@@ -32,4 +38,4 @@ class TccSetZonModeT(TypedDict):
 
     setpointMode: ZoneMode
     heatSetpointValue: NotRequired[float]  # required by override modes
-    timeUntil: NotRequired[str]  # required by TemporaryOverride
+    timeUntil: NotRequired[str]  # required by TemporaryOverride mode
