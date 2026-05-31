@@ -9,6 +9,8 @@ from unittest.mock import patch
 import pytest
 import yaml
 
+from evohomeasync2.const import ZoneModelType, ZoneType
+
 from .common import serializable_attrs
 from .conftest import FIXTURES_V2 as FIXTURES
 
@@ -58,6 +60,15 @@ async def test_system_snapshot(
 
     for z in tcs.zones:
         await z.get_schedule()
+
+        # If the conversion works, these properties will be snake_case StrEnum members.
+        # If not, they will be whatever the raw JSON values were (camelCase strings).
+        assert isinstance(z.model, ZoneModelType), (
+            f"{z}: model is {type(z.model).__name__!r}, not ZoneModelType"
+        )
+        assert isinstance(z.type, ZoneType), (
+            f"{z}: type is {type(z.type).__name__!r}, not ZoneType"
+        )
 
     zones = {z.id: serializable_attrs(z) for z in tcs.zones}
     assert yaml.dump(zones, indent=4) == snapshot(name="zones")

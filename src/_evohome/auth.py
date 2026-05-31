@@ -88,11 +88,13 @@ class AbstractAuth(ABC):
 
         response: _TccResponse = await self.request(HTTPMethod.GET, url)
 
-        if schema:
-            try:
-                response = schema(response)  # pyright: ignore[reportAssignmentType]
-            except vol.Invalid as err:
-                self._logger.debug(f"GET {url}: payload may be invalid: {err}")
+        # should always be a schema, to convert to StrEnums to snake_case
+        try:
+            response = schema(response)  # pyright: ignore[reportAssignmentType]
+        except vol.Invalid as err:
+            raise exc.BadApiSchemaError(
+                f"GET {url}: response failed validation: {err}"
+            ) from err
 
         return response
 
@@ -116,7 +118,7 @@ class AbstractAuth(ABC):
             try:
                 json = schema(json)  # pyright: ignore[reportAssignmentType]
             except vol.Invalid as err:
-                self._logger.debug(f"PUT {url}: payload may be invalid: {err}")
+                self._logger.warning(f"PUT {url}: payload failed validation: {err}")
 
         return await self.request(HTTPMethod.PUT, url, json=json)
 
