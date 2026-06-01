@@ -249,11 +249,8 @@ def factory_system_mode(case: Case = Case.VENDOR) -> vol.All:
 
     The duration-related keys are required when canBeTemporary is True, and must be
     absent when it is False.
-    """
 
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    """An example:
+    An example:
         "allowedSystemModes": [
             {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
             {"systemMode": "Auto",          "canBePermanent": true, "canBeTemporary": false},
@@ -265,12 +262,14 @@ def factory_system_mode(case: Case = Case.VENDOR) -> vol.All:
         ]
     """
 
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
     system_mode = fnc(S2_SYSTEM_MODE)
     can_be_permanent = fnc(S2_CAN_BE_PERMANENT)
     can_be_temporary = fnc(S2_CAN_BE_TEMPORARY)
     max_duration = fnc(S2_MAX_DURATION)
     timing_resolution = fnc(S2_TIMING_RESOLUTION)
-    timimg_mode = fnc(S2_TIMING_MODE)
+    timing_mode = fnc(S2_TIMING_MODE)
 
     def check_can_be_one_of(config: dict[str, object]) -> dict[str, object]:
         if not (config[can_be_permanent] or config[can_be_temporary]):
@@ -280,7 +279,7 @@ def factory_system_mode(case: Case = Case.VENDOR) -> vol.All:
         return config
 
     def check_duration_keys(config: dict[str, object]) -> dict[str, object]:
-        duration_keys = (max_duration, timing_resolution, timimg_mode)
+        duration_keys = (max_duration, timing_resolution, timing_mode)
         if config[can_be_temporary]:
             if missing := [k for k in duration_keys if k not in config]:
                 raise vol.Invalid("required key not provided", path=[missing[0]])
@@ -296,7 +295,7 @@ def factory_system_mode(case: Case = Case.VENDOR) -> vol.All:
                 vol.Required(can_be_temporary): bool,
                 vol.Optional(max_duration): str,  # "99.00:00:00"
                 vol.Optional(timing_resolution): str,  # "1.00:00:00"
-                vol.Optional(timimg_mode): factory_enum(case, TccTimingMode),
+                vol.Optional(timing_mode): factory_enum(case, TccTimingMode),
             },
             extra=vol.PREVENT_EXTRA,
         ),
