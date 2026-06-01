@@ -403,7 +403,9 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
             vol.Optional(
                 fnc(S2_VACATION_HOLD_CAPABILITIES)
             ): SCH_VACATION_HOLD_CAPABILITIES,  # non-evohome
-            # vol.Optional((S2_ALLOWED_FAN_MODES)): dict,  # non-evohome
+            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): factory_enum(
+                case, TccFanMode
+            ),  # non-evohome
             vol.Optional(fnc(S2_SETPOINT_DEADBAND)): float,  # non-evohome
         },
         extra=vol.PREVENT_EXTRA,
