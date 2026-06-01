@@ -1,6 +1,6 @@
-"""Shared constants for the vendor's TCC v0 API.
+"""Shared constants for the vendor's TCC v2 API.
 
-ALl strings are snake_case (vendor strings are camelCase, PascalCase).
+All strings are snake_case (vendor strings are camelCase, PascalCase).
 """
 
 from __future__ import annotations
