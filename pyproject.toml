@@ -8,7 +8,11 @@ description = "An async client for connecting to Honeywell's TCC RESTful API."
 readme = "README.md"
 authors = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
 maintainers = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
-dependencies = ["aiohttp>=3.13.5", "aiozoneinfo>=0.2.3", "voluptuous>=0.15.2"]  # must support HA
+dependencies = [
+  "aiohttp>=3.13.5",
+  "aiozoneinfo>=0.2.3",
+  "voluptuous>=0.15.2",
+]  # must support Home Assistant
 requires-python = ">=3.13"  # also see: 'python_version', below, and typing workflow
 license = "Apache-2.0"
 
