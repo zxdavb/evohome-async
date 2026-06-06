@@ -11,7 +11,6 @@ from unittest.mock import patch
 
 import aiohttp
 import pytest
-from aioresponses import aioresponses
 
 from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync import EvohomeClient as EvohomeClientv0
@@ -23,6 +22,8 @@ from evohomeasync2.schemas import (
     TCC_GET_USR_ACCOUNT,
     TCC_GET_USR_LOCATIONS,
 )
+
+from .aioresponses import AioResponses, aioresponses
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Generator
@@ -49,7 +50,7 @@ class ClientStub:
 
 
 @pytest.fixture  # (autouse=True)
-def block_aiohttp() -> Generator[Callable]:  # type: ignore[type-arg]
+def block_aiohttp() -> Generator[AioResponses]:
     """Prevent any actual I/O: will raise ClientConnectionError(Connection refused)."""
     with aioresponses() as m:
         yield m

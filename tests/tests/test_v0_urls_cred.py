@@ -8,7 +8,6 @@ from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
-from aioresponses import aioresponses
 
 from evohomeasync import EvohomeClient, exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
@@ -20,6 +19,7 @@ from tests.const import (
     URL_CRED_V0,
 )
 
+from .aioresponses import aioresponses
 from .const import LOG_00, LOG_09, LOG_21, LOG_24, LOG_90, LOG_99
 
 if TYPE_CHECKING:
