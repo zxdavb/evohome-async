@@ -15,7 +15,7 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
-    from tests.conftest import EvohomeClientv0, EvohomeClientv2
+    from tests.conftest import EvohomeClientV0, EvohomeClientV2
 
 
 #######################################################################################
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_update_v0(evohome_v0: EvohomeClientv0) -> None:
+async def test_update_v0(evohome_v0: EvohomeClientV0) -> None:
     """Make a minimal test of instantiation/update of the v0 client."""
 
     with pytest.raises(exc.InvalidConfigError):
@@ -36,7 +36,7 @@ async def test_update_v0(evohome_v0: EvohomeClientv0) -> None:
 
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_update_v2(evohome_v2: EvohomeClientv2) -> None:
+async def test_update_v2(evohome_v2: EvohomeClientV2) -> None:
     """Make a minimal test of instantiation/update of the v2 client."""
 
     with pytest.raises(exc.InvalidConfigError):

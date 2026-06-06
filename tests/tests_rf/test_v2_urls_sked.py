@@ -19,7 +19,7 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from tests.conftest import EvohomeClientv2
+    from tests.conftest import EvohomeClientV2
 
 
 class SwitchpointT(TypedDict):
@@ -37,7 +37,7 @@ class DailySchedulesT(TypedDict):
     dailySchedules: list[DayOfWeekT]
 
 
-async def _test_schedule_put(evo: EvohomeClientv2) -> None:
+async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     """Test /{x._TYPE}/{x.id}/schedule"""
 
     schedule: DailySchedulesT  # {'dailySchedules': [...]}
@@ -128,7 +128,7 @@ async def _test_schedule_put(evo: EvohomeClientv2) -> None:
     """
 
 
-async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
+async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     """Test /{x._TYPE}/{x.id}/schedule
 
     Also test commTasks?commTaskId={task_id}
@@ -204,7 +204,7 @@ async def _test_schedule_tsk(evo: EvohomeClientv2) -> None:
 
 
 @skipif_auth_failed  # GET, PUT
-async def test_schedule_put(evohome_v2: EvohomeClientv2) -> None:
+async def test_schedule_put(evohome_v2: EvohomeClientV2) -> None:
     """Test /{x._TYPE}/{x.id}/schedule
 
     Does not test /commTasks?commTaskId={task_id}
@@ -214,7 +214,7 @@ async def test_schedule_put(evohome_v2: EvohomeClientv2) -> None:
 
 
 @skipif_auth_failed  # GET, PUT
-async def test_schedule_tsk(evohome_v2: EvohomeClientv2) -> None:
+async def test_schedule_tsk(evohome_v2: EvohomeClientV2) -> None:
     """Test /{x._TYPE}/{x.id}/schedule
 
     Also tests /commTasks?commTaskId={task_id}

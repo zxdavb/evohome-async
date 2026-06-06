@@ -13,9 +13,9 @@ import aiohttp
 import pytest
 
 from _evohome.helpers import convert_keys_to_snake_case
-from evohomeasync import EvohomeClient as EvohomeClientv0
+from evohomeasync import EvohomeClient as EvohomeClientV0
 from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS
-from evohomeasync2 import EvohomeClient as EvohomeClientv2
+from evohomeasync2 import EvohomeClient as EvohomeClientV2
 from evohomeasync2.schemas import (
     TCC_GET_LOC_STATUS,
     TCC_GET_SCHEDULE,
@@ -225,11 +225,11 @@ def use_real_aiohttp() -> bool:
 async def evohome_v0(
     credentials_manager: TokenCacheManager,
     fixture_folder: Path,
-) -> AsyncGenerator[EvohomeClientv0]:
+) -> AsyncGenerator[EvohomeClientV0]:
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync.auth.Auth.get", auth_get(fixture_folder)):
-        evo = EvohomeClientv0(credentials_manager)
+        evo = EvohomeClientV0(credentials_manager)
 
         await evo.update()
 
@@ -243,11 +243,11 @@ async def evohome_v0(
 async def evohome_v2(
     credentials_manager: TokenCacheManager,
     fixture_folder: Path,
-) -> AsyncGenerator[EvohomeClientv2]:
+) -> AsyncGenerator[EvohomeClientV2]:
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
-        evo = EvohomeClientv2(credentials_manager)
+        evo = EvohomeClientV2(credentials_manager)
 
         await evo.update()
 

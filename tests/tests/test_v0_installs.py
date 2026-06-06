@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
     from syrupy.assertion import SnapshotAssertion
 
-    from tests.conftest import EvohomeClientv0
+    from tests.conftest import EvohomeClientV0
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -32,7 +32,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 
 async def test_system_snapshot(
-    evohome_v0: EvohomeClientv0,
+    evohome_v0: EvohomeClientV0,
     freezer: FrozenDateTimeFactory,
     snapshot: SnapshotAssertion,
 ) -> None:
