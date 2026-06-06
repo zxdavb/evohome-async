@@ -30,13 +30,13 @@ classifiers = [
 cli = [
   "aiofiles>=25.1.0",
   "asyncclick>=8.3.0.7",
-  "debugpy>=1.8.20",
+  "debugpy>=1.8.21",
   "keyring>=25.7.0",
 ]
 dev = [
   # linting
-  "prek>=0.4.1",
-  "ruff>=0.15.14",
+  "prek>=0.4.4",
+  "ruff>=0.15.16",
   # typing
   "mypy>=2.1.0",
   "types-aiofiles>=25.1.0.20260518",
@@ -44,14 +44,14 @@ dev = [
   # testing
   "PyYAML>=6.0.3",
   "pytest>=9.0.3",
-  "pytest-asyncio>=1.3.0",
+  "pytest-asyncio>=1.4.0",
   "pytest-cov>=7.1.0",
   "pytest-freezer>=0.4.9",
   "pytest-sugar>=1.1.1",
   "pytest-xdist>=3.8.0",
-  "syrupy>=5.2.0",
+  "syrupy>=5.3.1",
   # build/deploy
-  "hatch>=1.16.5",
+  "hatch>=1.17.0",
 ]
 
 #
