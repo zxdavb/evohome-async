@@ -11,18 +11,19 @@ from unittest.mock import patch
 
 import aiohttp
 import pytest
-from aioresponses import aioresponses
 
 from _evohome.helpers import convert_keys_to_snake_case
-from evohomeasync import EvohomeClient as EvohomeClientv0
+from evohomeasync import EvohomeClient as EvohomeClientV0
 from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS
-from evohomeasync2 import EvohomeClient as EvohomeClientv2
+from evohomeasync2 import EvohomeClient as EvohomeClientV2
 from evohomeasync2.schemas import (
     TCC_GET_LOC_STATUS,
     TCC_GET_SCHEDULE,
     TCC_GET_USR_ACCOUNT,
     TCC_GET_USR_LOCATIONS,
 )
+
+from .aioresponses import AioResponses, aioresponses
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Generator
@@ -49,7 +50,7 @@ class ClientStub:
 
 
 @pytest.fixture  # (autouse=True)
-def block_aiohttp() -> Generator[Callable]:  # type: ignore[type-arg]
+def block_aiohttp() -> Generator[AioResponses]:
     """Prevent any actual I/O: will raise ClientConnectionError(Connection refused)."""
     with aioresponses() as m:
         yield m
@@ -224,11 +225,11 @@ def use_real_aiohttp() -> bool:
 async def evohome_v0(
     credentials_manager: TokenCacheManager,
     fixture_folder: Path,
-) -> AsyncGenerator[EvohomeClientv0]:
+) -> AsyncGenerator[EvohomeClientV0]:
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync.auth.Auth.get", auth_get(fixture_folder)):
-        evo = EvohomeClientv0(credentials_manager)
+        evo = EvohomeClientV0(credentials_manager)
 
         await evo.update()
 
@@ -242,11 +243,11 @@ async def evohome_v0(
 async def evohome_v2(
     credentials_manager: TokenCacheManager,
     fixture_folder: Path,
-) -> AsyncGenerator[EvohomeClientv2]:
+) -> AsyncGenerator[EvohomeClientV2]:
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
-        evo = EvohomeClientv2(credentials_manager)
+        evo = EvohomeClientV2(credentials_manager)
 
         await evo.update()
 

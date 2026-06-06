@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tests.conftest import EvohomeClientv2
+from tests.conftest import EvohomeClientV2
 
 from .conftest import FIXTURES_V2 as FIXTURES, auth_get
 
@@ -45,7 +45,7 @@ async def test_system_warnings(
     freezer.move_to("2025-01-01T00:00:00+00:00")
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
-        evo = EvohomeClientv2(credentials_manager)
+        evo = EvohomeClientV2(credentials_manager)
 
         with caplog.at_level(logging.WARNING):
             await evo.update()

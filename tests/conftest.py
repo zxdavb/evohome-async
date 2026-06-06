@@ -9,12 +9,12 @@ from typing import TYPE_CHECKING
 import pytest
 
 from evohome_cli.auth import TokenCacheManager
-from evohomeasync import EvohomeClient as EvohomeClientv0
-from evohomeasync2 import EvohomeClient as EvohomeClientv2
+from evohomeasync import EvohomeClient as EvohomeClientV0
+from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 from .const import TEST_PASSWORD, TEST_USERNAME
 
-__all__ = ["EvohomeClientv0", "EvohomeClientv2"]
+__all__ = ["EvohomeClientV0", "EvohomeClientV2"]
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -43,7 +43,7 @@ async def client_session(
         client_session = aiohttp.ClientSession(faked_server=fake.FakedServer({}, {}))  # type: ignore[call-arg]
 
     try:
-        yield client_session
+        yield client_session  # pyright: ignore[reportReturnType]
     finally:
         await client_session.close()
 
@@ -153,10 +153,10 @@ async def credentials_manager(
 @pytest.fixture
 async def evohome_v0(
     credentials_manager: TokenCacheManager,
-) -> AsyncGenerator[EvohomeClientv0]:
+) -> AsyncGenerator[EvohomeClientV0]:
     """Yield an instance of a v0 EvohomeClient."""
 
-    evo = EvohomeClientv0(credentials_manager)
+    evo = EvohomeClientV0(credentials_manager)
 
     # await evo.update()
 
@@ -169,10 +169,10 @@ async def evohome_v0(
 @pytest.fixture
 async def evohome_v2(
     credentials_manager: TokenCacheManager,
-) -> AsyncGenerator[EvohomeClientv2]:
+) -> AsyncGenerator[EvohomeClientV2]:
     """Yield an instance of a v2 EvohomeClient."""
 
-    evo = EvohomeClientv2(credentials_manager)
+    evo = EvohomeClientV2(credentials_manager)
 
     # await evo.update()
 

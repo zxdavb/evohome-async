@@ -33,13 +33,13 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from tests.conftest import EvohomeClientv2
+    from tests.conftest import EvohomeClientV2
 
 #######################################################################################
 
 
 # NOTE: a long test, but not all systems have DHW
-async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
+async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
@@ -199,7 +199,7 @@ async def _test_task_id_dhw(evo: EvohomeClientv2) -> None:
 
 
 # TODO: a short test
-async def _test_task_id_zone(evo: EvohomeClientv2) -> None:
+async def _test_task_id_zone(evo: EvohomeClientV2) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
@@ -238,7 +238,7 @@ async def _test_task_id_zone(evo: EvohomeClientv2) -> None:
 
 
 @skipif_auth_failed
-async def test_task_id_dhw(evohome_v2: EvohomeClientv2) -> None:
+async def test_task_id_dhw(evohome_v2: EvohomeClientV2) -> None:
     """Test /commTasks?commTaskId={task_id}"""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -254,7 +254,7 @@ async def test_task_id_dhw(evohome_v2: EvohomeClientv2) -> None:
 
 
 @skipif_auth_failed
-async def _out_test_task_id_zone(evohome_v2: EvohomeClientv2) -> None:
+async def _out_test_task_id_zone(evohome_v2: EvohomeClientV2) -> None:
     """Test /commTasks?commTaskId={task_id}"""
 
     if not _DBG_USE_REAL_AIOHTTP:

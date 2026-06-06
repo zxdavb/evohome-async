@@ -10,12 +10,12 @@ from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from aioresponses import aioresponses
 
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync2 import exceptions as exc
 from tests.const import HEADERS_CRED_V2, URL_CRED_V2
 
+from .aioresponses import aioresponses
 from .test_v2_urls_cred import POST_CREDS  # HACK, should be in const.py, or a fixture
 
 if TYPE_CHECKING:

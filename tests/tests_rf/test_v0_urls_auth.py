@@ -21,10 +21,10 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import should_fail_v0, should_work_v0, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from tests.conftest import EvohomeClientv0
+    from tests.conftest import EvohomeClientV0
 
 
-async def _test_usr_locations(evo: EvohomeClientv0) -> None:
+async def _test_usr_locations(evo: EvohomeClientV0) -> None:
     """Test /locations?userId={user_id}&allData=True"""
 
     usr_id: int = evo.user_account["user_id"]
@@ -59,7 +59,7 @@ async def _test_usr_locations(evo: EvohomeClientv0) -> None:
     )
 
 
-async def _test_evo_systems(evo: EvohomeClientv0) -> None:
+async def _test_evo_systems(evo: EvohomeClientV0) -> None:
     """Test /evoTouchSystems?locationId={loc_id}"""
 
     # usr_id: int = evo.user_account["user_id"]
@@ -105,7 +105,7 @@ async def _test_evo_systems(evo: EvohomeClientv0) -> None:
 
 # GET /locations?userId={user_id}&allData=True
 @skipif_auth_failed
-async def test_usr_locations(evohome_v0: EvohomeClientv0) -> None:
+async def test_usr_locations(evohome_v0: EvohomeClientV0) -> None:
     """Test /locations?userId={user_id}&allData=True"""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -124,7 +124,7 @@ async def test_usr_locations(evohome_v0: EvohomeClientv0) -> None:
 
 # PUT /evoTouchSystems?locationId={loc_id}
 @skipif_auth_failed
-async def test_evo_systems(evohome_v0: EvohomeClientv0) -> None:
+async def test_evo_systems(evohome_v0: EvohomeClientV0) -> None:
     """Test /evoTouchSystems?locationId={loc_id}"""
 
     if not _DBG_USE_REAL_AIOHTTP:

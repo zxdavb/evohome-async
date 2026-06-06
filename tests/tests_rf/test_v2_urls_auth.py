@@ -25,13 +25,13 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from tests.conftest import EvohomeClientv2
+    from tests.conftest import EvohomeClientV2
 
 
 #######################################################################################
 
 
-async def _test_usr_account(evo: EvohomeClientv2) -> None:
+async def _test_usr_account(evo: EvohomeClientV2) -> None:
     """Test /userAccount"""
 
     # STEP 1:
@@ -65,7 +65,7 @@ async def _test_usr_account(evo: EvohomeClientv2) -> None:
     # '<!DOCTYPE html PUBLIC ...
 
 
-async def _test_user_locations(evo: EvohomeClientv2) -> None:
+async def _test_user_locations(evo: EvohomeClientV2) -> None:
     """Test /location/installationInfo?userId={user_id}"""
 
     # TODO: can't use .update(); in any case, should use URLs only
@@ -126,7 +126,7 @@ async def _test_user_locations(evo: EvohomeClientv2) -> None:
     _ = await should_fail_v2(evo.auth, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
 
-async def _test_loc_status(evo: EvohomeClientv2) -> None:
+async def _test_loc_status(evo: EvohomeClientV2) -> None:
     """Test /location/{loc.id}/status"""
 
     # TODO: remove .update() and use URLs only
@@ -180,7 +180,7 @@ async def _test_loc_status(evo: EvohomeClientv2) -> None:
     )
 
 
-async def _test_tcs_status(evo: EvohomeClientv2) -> None:
+async def _test_tcs_status(evo: EvohomeClientV2) -> None:
     """Test GET /temperatureControlSystem/{tcs.id}/status
 
     Also tests PUT /temperatureControlSystem/{tcs.id}/mode
@@ -307,7 +307,7 @@ async def _test_tcs_status(evo: EvohomeClientv2) -> None:
     # '<!DOCTYPE html PUBLIC ...
 
 
-async def _test_zone_status(evo: EvohomeClientv2) -> None:
+async def _test_zone_status(evo: EvohomeClientV2) -> None:
     """Test /temperatureZone/{zone.id}/status
 
     Also tests /temperatureZone/{zone.id}/heatSetpoint
@@ -402,28 +402,28 @@ async def _test_zone_status(evo: EvohomeClientv2) -> None:
 
 
 @skipif_auth_failed  # GET
-async def test_usr_account(evohome_v2: EvohomeClientv2) -> None:
+async def test_usr_account(evohome_v2: EvohomeClientV2) -> None:
     """Test GET /userAccount"""
 
     await _test_usr_account(evohome_v2)
 
 
 @skipif_auth_failed  # GET
-async def test_usr_locations(evohome_v2: EvohomeClientv2) -> None:
+async def test_usr_locations(evohome_v2: EvohomeClientV2) -> None:
     """Test GET /location/installationInfo"""
 
     await _test_user_locations(evohome_v2)
 
 
 @skipif_auth_failed  # GET
-async def test_loc_status(evohome_v2: EvohomeClientv2) -> None:
+async def test_loc_status(evohome_v2: EvohomeClientV2) -> None:
     """Test GET /location/{loc.id}/status"""
 
     await _test_loc_status(evohome_v2)
 
 
 @skipif_auth_failed  # GET, PUT
-async def test_tcs_status(evohome_v2: EvohomeClientv2) -> None:
+async def test_tcs_status(evohome_v2: EvohomeClientV2) -> None:
     """Test GET /temperatureControlSystem/{tcs.id}/status
 
     Also tests PUT /temperatureControlSystem/{tcs.id}/mode
@@ -439,7 +439,7 @@ async def test_tcs_status(evohome_v2: EvohomeClientv2) -> None:
 
 
 @skipif_auth_failed  # GET, PUT
-async def test_zone_status(evohome_v2: EvohomeClientv2) -> None:
+async def test_zone_status(evohome_v2: EvohomeClientV2) -> None:
     """Test GET /temperatureZone/{zone.id}/status
 
     Also tests PUT /temperatureZone/{zone.id}/heatSetpoint

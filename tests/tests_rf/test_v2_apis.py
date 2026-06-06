@@ -16,10 +16,10 @@ from . import faked_server as faked
 from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
-    from tests.conftest import EvohomeClientv2
+    from tests.conftest import EvohomeClientV2
 
 
-def _get_dhw(evo: EvohomeClientv2) -> evo2.HotWater | None:
+def _get_dhw(evo: EvohomeClientV2) -> evo2.HotWater | None:
     """Return the DHW object of a TCS."""
     for loc in evo.locations:
         for gwy in loc.gateways:
@@ -29,7 +29,7 @@ def _get_dhw(evo: EvohomeClientv2) -> evo2.HotWater | None:
     return None
 
 
-def _get_zon(evo: EvohomeClientv2) -> evo2.Zone | None:
+def _get_zon(evo: EvohomeClientV2) -> evo2.Zone | None:
     """Return the Zone object of a TCS."""
     for loc in evo.locations:
         for gwy in loc.gateways:
@@ -42,7 +42,7 @@ def _get_zon(evo: EvohomeClientv2) -> evo2.Zone | None:
 #######################################################################################
 
 
-async def _test_usr_apis(evo: EvohomeClientv2) -> None:
+async def _test_usr_apis(evo: EvohomeClientV2) -> None:
     """Test User and Location methods.
 
     Includes: evo.user_account(), evo.installation() and loc.update() methods.
@@ -60,7 +60,7 @@ async def _test_usr_apis(evo: EvohomeClientv2) -> None:
         assert evo2.Location.SCH_STATUS(loc_status)
 
 
-async def _test_tcs_apis(evo: EvohomeClientv2) -> None:
+async def _test_tcs_apis(evo: EvohomeClientV2) -> None:
     """Test ControlSystem methods.
 
     Includes tcs.update() and tcs.set_mode().
@@ -88,7 +88,7 @@ async def _test_tcs_apis(evo: EvohomeClientv2) -> None:
     await tcs.set_mode(mode)
 
 
-async def _test_dhw_apis(evo: EvohomeClientv2) -> None:
+async def _test_dhw_apis(evo: EvohomeClientV2) -> None:
     """Test Hotwater methods.
 
     Includes dhw._update() and dhw.get_schedule().
@@ -111,7 +111,7 @@ async def _test_dhw_apis(evo: EvohomeClientv2) -> None:
     await dhw.set_schedule(schedule)
 
 
-async def _test_zon_apis(evo: EvohomeClientv2) -> None:
+async def _test_zon_apis(evo: EvohomeClientV2) -> None:
     """Test Zone methods.
 
     Includes zon._update() and zon.get_schedule().
@@ -147,13 +147,13 @@ async def _test_zon_apis(evo: EvohomeClientv2) -> None:
 
 
 @skipif_auth_failed
-async def test_usr_apis(evohome_v2: EvohomeClientv2) -> None:
+async def test_usr_apis(evohome_v2: EvohomeClientV2) -> None:
     """Test user_account() and installation()."""
     await _test_usr_apis(evohome_v2)
 
 
 @skipif_auth_failed
-async def test_tcs(evohome_v2: EvohomeClientv2) -> None:
+async def test_tcs(evohome_v2: EvohomeClientV2) -> None:
     """Test set_mode() for TCS"""
 
     try:
@@ -166,12 +166,12 @@ async def test_tcs(evohome_v2: EvohomeClientv2) -> None:
 
 
 @skipif_auth_failed
-async def test_dhw_apis(evohome_v2: EvohomeClientv2) -> None:
+async def test_dhw_apis(evohome_v2: EvohomeClientV2) -> None:
     """Test get_schedule() and get_schedule()."""
     await _test_dhw_apis(evohome_v2)
 
 
 @skipif_auth_failed
-async def test_zon_apis(evohome_v2: EvohomeClientv2) -> None:
+async def test_zon_apis(evohome_v2: EvohomeClientV2) -> None:
     """Test _update() for DHW/zone."""
     await _test_zon_apis(evohome_v2)
