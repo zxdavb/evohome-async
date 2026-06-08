@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
 
-from _evohome.helpers import camel_to_snake, convert_naive_dtm_strs_to_aware
+from _evohome.helpers import convert_naive_dtm_strs_to_aware
 from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
 from .const import (
@@ -27,8 +27,9 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
-from .schemas import EntityType, EvoTimeZoneInfoT
 from .schemas.config import factory_location_installation_info
+from .schemas.const import TccEntityType
+from .schemas.helpers import Case
 from .schemas.status import factory_loc_status
 from .zone import EntityBase
 
@@ -37,10 +38,11 @@ if TYPE_CHECKING:
 
     from . import EvohomeClient
     from .auth import Auth
-    from .schemas import (
+    from .typedefs import (
         EvoLocConfigEntryT,
         EvoLocConfigResponseT,
         EvoLocStatusResponseT,
+        EvoTimeZoneInfoT,
     )
 
 
@@ -102,10 +104,11 @@ async def create_location(
 class Location(EntityBase):
     """Instance of an account's location."""
 
-    SCH_CONFIG: vol.Schema = factory_location_installation_info(camel_to_snake)
-    SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
-    _TYPE = EntityType.LOC
     _STATUS_EXCLUDES = (SZ_GATEWAYS,)
+    _TCC_TYPE = TccEntityType.LOC
+
+    SCH_CONFIG: vol.Schema = factory_location_installation_info(Case.PYTHONIC)
+    SCH_STATUS: vol.Schema = factory_loc_status(Case.PYTHONIC)
 
     def __init__(
         self,
@@ -244,7 +247,7 @@ class Location(EntityBase):
         """
 
         status: EvoLocStatusResponseT = await self._auth.get(
-            f"{self._TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
+            f"{self._TCC_TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
             schema=self.SCH_STATUS,
         )  # type: ignore[assignment]
 

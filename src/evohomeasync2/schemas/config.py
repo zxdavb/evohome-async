@@ -1,15 +1,21 @@
-"""Schema for vendor's TCC v2 API - for GET config of user's Installation.
+"""Schema for the vendor's TCC v2 API - for GET config of user's Installation.
 
-The convention for JSON keys is camelCase, but the API appears to be case-insensitive.
+These TypedDict & StrEnums serve as documentation of the vendor's API, even if they are
+unused by this library. There are corresponding factory functions for the voluptuous
+schemas, which can be used to validate/coerce the vendor's responses.
+
+The vendor's convention for well-known strings:
+- camelCase for JSON keys, URL params (e.g. "userId", "streetAddress", "period")
+- PascalCase for JSON values that are enum strings (e.g. "TemporaryOverride", "Period")
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict
+from typing import Final, Literal, NotRequired, TypedDict
 
 import voluptuous as vol
 
-from _evohome.helpers import noop, redact
+from _evohome.helpers import camel_to_snake, noop, redact
 
 from .const import (
     REGEX_DHW_ID,
@@ -32,7 +38,6 @@ from .const import (
     S2_DHW_ID,
     S2_DHW_STATE_CAPABILITIES_RESPONSE,
     S2_DISPLAY_NAME,
-    S2_DURATION,
     S2_FAN_MODE,
     S2_FIRSTNAME,
     S2_GATEWAY_ID,
@@ -58,7 +63,6 @@ from .const import (
     S2_MODEL_TYPE,
     S2_NAME,
     S2_OFFSET_MINUTES,
-    S2_PERIOD,
     S2_POSTCODE,
     S2_SCHEDULE_CAPABILITIES,
     S2_SCHEDULE_CAPABILITIES_RESPONSE,
@@ -82,25 +86,27 @@ from .const import (
     S2_ZONE_ID,
     S2_ZONE_TYPE,
     S2_ZONES,
-    DhwState,
-    FanMode,
-    LocationType,
-    SystemMode,
-    TcsModelType,
-    ZoneMode,
-    ZoneModelType,
-    ZoneType,
+    TccDhwState,
+    TccFanMode,
+    TccLocationType,
+    TccSystemMode,
+    TccTcsModelType,
+    TccTimingMode,
+    TccZoneMode,
+    TccZoneModelType,
+    TccZoneType,
 )
+from .helpers import Case, factory_enum
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
+# These are best guess, mostly based upon evohome
+_MAX_HEAT_SETPOINT_LOWER: Final = 21.0
+_MAX_HEAT_SETPOINT_UPPER: Final = 35.0
 
-# These are best guess
-MAX_HEAT_SETPOINT_LOWER: Final = 21.0
-MAX_HEAT_SETPOINT_UPPER: Final = 35.0
+_MIN_HEAT_SETPOINT_LOWER: Final = 4.5
+_MIN_HEAT_SETPOINT_UPPER: Final = 21.0
 
-MIN_HEAT_SETPOINT_LOWER: Final = 4.5
-MIN_HEAT_SETPOINT_UPPER: Final = 21.0
+_MAX_NUM_ZONES_PER_TCS: Final = 12  # unused; some non-evohome systems supported 16
+_MIN_NUM_ZONES_PER_TCS: Final = 1
 
 
 # GET /location/installationInfo?userId={user_id} returns list of these dicts
@@ -125,7 +131,7 @@ class TccLocConfigEntryT(TypedDict):
     country: str
     postcode: str
     type: str
-    locationType: LocationType
+    locationType: TccLocationType
     useDaylightSaveSwitching: bool
     timeZone: TccTimeZoneInfoT
     locationOwner: TccLocationOwnerInfoT
@@ -162,12 +168,12 @@ class TccGwyConfigEntryT(TypedDict):
 
 class TccTcsConfigEntryT(TypedDict):
     systemId: str
-    modelType: TcsModelType
+    modelType: TccTcsModelType
     allowedSystemModes: list[TccAllowedSystemModeResponseT]
 
 
 class TccAllowedSystemModeResponseT(TypedDict):
-    systemMode: SystemMode
+    systemMode: TccSystemMode
     canBePermanent: Literal[True]
     canBeTemporary: bool
     maxDuration: NotRequired[str]
@@ -185,20 +191,23 @@ class TccTcsConfigResponseT(TccTcsConfigEntryT):
 
 class TccZonConfigResponseT(TypedDict):
     zoneId: str
-    modelType: ZoneModelType
+    modelType: TccZoneModelType
     name: str
     setpointCapabilities: TccZonSetpointCapabilitiesResponseT
     scheduleCapabilities: TccZonScheduleCapabilitiesResponseT
-    zoneType: ZoneType
+    zoneType: TccZoneType
     allowedFanModes: list[str]
 
 
 class TccZonScheduleCapabilitiesResponseT(TypedDict):
-    pass
+    maxSwitchpointsPerDay: int
+    minSwitchpointsPerDay: int
+    timingResolution: str
+    setpointValueResolution: float
 
 
 class TccZonSetpointCapabilitiesResponseT(TypedDict):
-    allowedSetpointModes: list[ZoneMode]
+    allowedSetpointModes: list[TccZoneMode]
     canControlCool: bool
     canControlHeat: bool
     maxHeatSetpoint: float
@@ -219,12 +228,14 @@ class TccDhwConfigResponseT(TypedDict):
 
 
 class TccDhwScheduleCapabilitiesResponseT(TypedDict):
-    pass
+    maxSwitchpointsPerDay: int
+    minSwitchpointsPerDay: int
+    timingResolution: str
 
 
 class TccDhwStateCapabilitiesResponseT(TypedDict):
-    allowedStates: list[DhwState]
-    allowedModes: list[ZoneMode]
+    allowedStates: list[TccDhwState]
+    allowedModes: list[TccZoneMode]
     maxDuration: str
     timingResolution: str
 
@@ -233,51 +244,72 @@ class TccDhwConfigEntryT(TccDhwConfigResponseT):
     pass
 
 
-def factory_system_mode_perm(fnc: Callable[[str], str] = noop) -> vol.Schema:
-    """Factory for the permanent system modes schema."""
+def factory_system_mode(case: Case = Case.VENDOR) -> vol.All:
+    """Factory for the allowed system mode schema.
 
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_SYSTEM_MODE)): vol.Any(
-                str(SystemMode.AUTO),
-                str(SystemMode.AUTO_WITH_RESET),
-                str(SystemMode.HEATING_OFF),
-                str(SystemMode.OFF),  # not evohome
-                str(SystemMode.HEAT),  # not evohome
-                str(SystemMode.COOL),  # not evohome
-            ),
-            vol.Required(fnc(S2_CAN_BE_PERMANENT)): True,
-            vol.Required(fnc(S2_CAN_BE_TEMPORARY)): False,
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
+    The duration-related keys are required when canBeTemporary is True, and must be
+    absent when it is False.
 
+    An example:
+        "allowedSystemModes": [
+            {"systemMode": "HeatingOff",    "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "Auto",          "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "AutoWithReset", "canBePermanent": true, "canBeTemporary": false},
+            {"systemMode": "AutoWithEco",   "canBePermanent": true, "canBeTemporary": true, "maxDuration":  "1.00:00:00", "timingResolution":   "01:00:00", "timingMode": "Duration"},
+            {"systemMode": "Away",          "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"systemMode": "DayOff",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"},
+            {"systemMode": "Custom",        "canBePermanent": true, "canBeTemporary": true, "maxDuration": "99.00:00:00", "timingResolution": "1.00:00:00", "timingMode": "Period"}
+        ]
+    """
 
-def factory_system_mode_temp(fnc: Callable[[str], str] = noop) -> vol.Schema:
-    """Factory for the temporary system modes schema."""
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_SYSTEM_MODE)): vol.Any(
-                str(SystemMode.AUTO_WITH_ECO),
-                str(SystemMode.AWAY),
-                str(SystemMode.CUSTOM),
-                str(SystemMode.DAY_OFF),
-            ),
-            vol.Required(fnc(S2_CAN_BE_PERMANENT)): True,
-            vol.Required(fnc(S2_CAN_BE_TEMPORARY)): True,
-            vol.Required(fnc(S2_MAX_DURATION)): str,  # "99.00:00:00"
-            vol.Required(fnc(S2_TIMING_RESOLUTION)): str,  # "1.00:00:00"
-            vol.Required(fnc(S2_TIMING_MODE)): vol.Any(S2_DURATION, S2_PERIOD),
-        },
-        extra=vol.PREVENT_EXTRA,
+    system_mode = fnc(S2_SYSTEM_MODE)
+    can_be_permanent = fnc(S2_CAN_BE_PERMANENT)
+    can_be_temporary = fnc(S2_CAN_BE_TEMPORARY)
+    max_duration = fnc(S2_MAX_DURATION)
+    timing_resolution = fnc(S2_TIMING_RESOLUTION)
+    timing_mode = fnc(S2_TIMING_MODE)
+
+    def check_can_be_one_of(config: dict[str, object]) -> dict[str, object]:
+        if not (config[can_be_permanent] or config[can_be_temporary]):
+            raise vol.Invalid(
+                f"at least one of {can_be_permanent}, {can_be_temporary} must be true"
+            )
+        return config
+
+    def check_duration_keys(config: dict[str, object]) -> dict[str, object]:
+        duration_keys = (max_duration, timing_resolution, timing_mode)
+        if config[can_be_temporary]:
+            if missing := [k for k in duration_keys if k not in config]:
+                raise vol.Invalid("required key not provided", path=[missing[0]])
+        elif extra := [k for k in duration_keys if k in config]:
+            raise vol.Invalid("extra keys not allowed", path=[extra[0]])
+        return config
+
+    return vol.All(
+        vol.Schema(
+            {
+                vol.Required(system_mode): factory_enum(case, TccSystemMode),
+                vol.Required(can_be_permanent): bool,
+                vol.Required(can_be_temporary): bool,
+                vol.Optional(max_duration): str,  # "99.00:00:00"
+                vol.Optional(timing_resolution): str,  # "1.00:00:00"
+                vol.Optional(timing_mode): factory_enum(case, TccTimingMode),
+            },
+            extra=vol.PREVENT_EXTRA,
+        ),
+        check_can_be_one_of,
+        check_duration_keys,
     )
 
 
 def factory_schedule_capabilities_response(
-    fnc: Callable[[str], str] = noop,
+    case: Case = Case.VENDOR,
 ) -> vol.Schema:
     """Factory for the schedule_capabilities_response schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     return vol.Schema(
         {
@@ -291,15 +323,17 @@ def factory_schedule_capabilities_response(
     )
 
 
-def factory_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_dhw(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the DHW schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     SCH_DHW_STATE_CAPABILITIES_RESPONSE: Final = vol.Schema(
         {
-            # TODO: list should be a non-empty *subset* of all possible DhwState(s)
-            vol.Required(fnc(S2_ALLOWED_STATES)): [m.value for m in DhwState],
-            # TODO: list should be a non-empty *subset* of all possible ZoneMode(s)
-            vol.Required(fnc(S2_ALLOWED_MODES)): [m.value for m in ZoneMode],
+            # TODO: list should be a non-empty *subset* of all possible TccDhwState(s)
+            vol.Required(fnc(S2_ALLOWED_STATES)): [factory_enum(case, TccDhwState)],
+            # TODO: list should be a non-empty *subset* of all possible TccZoneMode(s)
+            vol.Required(fnc(S2_ALLOWED_MODES)): [factory_enum(case, TccZoneMode)],
             vol.Required(fnc(S2_MAX_DURATION)): str,
             vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),
         },
@@ -314,18 +348,20 @@ def factory_dhw(fnc: Callable[[str], str] = noop) -> vol.Schema:
             ): SCH_DHW_STATE_CAPABILITIES_RESPONSE,
             vol.Required(
                 fnc(S2_SCHEDULE_CAPABILITIES_RESPONSE)
-            ): factory_schedule_capabilities_response(fnc),
+            ): factory_schedule_capabilities_response(case),
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the zone schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     SCH_FAN_MODE: Final = vol.Schema(  # noqa: F841
         {
-            vol.Required(fnc(S2_FAN_MODE)): vol.In(FanMode),
+            vol.Required(fnc(S2_FAN_MODE)): factory_enum(case, TccFanMode),
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -346,17 +382,19 @@ def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
             vol.Required(fnc(S2_CAN_CONTROL_HEAT)): bool,
             vol.Required(fnc(S2_MAX_HEAT_SETPOINT)): vol.All(
                 float,
-                vol.Range(min=MAX_HEAT_SETPOINT_LOWER, max=MAX_HEAT_SETPOINT_UPPER),
+                vol.Range(min=_MAX_HEAT_SETPOINT_LOWER, max=_MAX_HEAT_SETPOINT_UPPER),
             ),
             vol.Required(fnc(S2_MIN_HEAT_SETPOINT)): vol.All(
                 float,
-                vol.Range(min=MIN_HEAT_SETPOINT_LOWER, max=MIN_HEAT_SETPOINT_UPPER),
+                vol.Range(min=_MIN_HEAT_SETPOINT_LOWER, max=_MIN_HEAT_SETPOINT_UPPER),
             ),
             vol.Required(fnc(S2_CAN_CONTROL_COOL)): bool,
             vol.Optional(fnc(S2_MAX_COOL_SETPOINT)): float,  # TODO
             vol.Optional(fnc(S2_MIN_COOL_SETPOINT)): float,  # TODO
-            # TODO: list should be a non-empty *subset* of all possible ZoneMode(s)
-            vol.Required(fnc(S2_ALLOWED_SETPOINT_MODES)): [m.value for m in ZoneMode],
+            # TODO: list should be a non-empty *subset* of all possible TccZoneMode(s)
+            vol.Required(fnc(S2_ALLOWED_SETPOINT_MODES)): [
+                factory_enum(case, TccZoneMode)
+            ],
             vol.Required(fnc(S2_VALUE_RESOLUTION)): float,  # 0.5
             vol.Required(fnc(S2_MAX_DURATION)): str,  # "1.00:00:00"
             vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(
@@ -365,13 +403,15 @@ def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
             vol.Optional(
                 fnc(S2_VACATION_HOLD_CAPABILITIES)
             ): SCH_VACATION_HOLD_CAPABILITIES,  # non-evohome
-            # vol.Optional((S2_ALLOWED_FAN_MODES)): dict,  # non-evohome
+            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): factory_enum(
+                case, TccFanMode
+            ),  # non-evohome
             vol.Optional(fnc(S2_SETPOINT_DEADBAND)): float,  # non-evohome
         },
         extra=vol.PREVENT_EXTRA,
     )
 
-    SCH_SCHEDULE_CAPABILITIES = factory_schedule_capabilities_response(fnc).extend(
+    SCH_SCHEDULE_CAPABILITIES = factory_schedule_capabilities_response(case).extend(
         {
             vol.Required(fnc(S2_SETPOINT_VALUE_RESOLUTION)): float,
         },
@@ -382,40 +422,40 @@ def factory_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_ZONE_ID)): vol.Match(REGEX_ZONE_ID),
-            vol.Required(fnc(S2_MODEL_TYPE)): vol.In(ZoneModelType),
+            vol.Required(fnc(S2_MODEL_TYPE)): factory_enum(case, TccZoneModelType),
             vol.Required(fnc(S2_NAME)): str,
             vol.Required(fnc(S2_SETPOINT_CAPABILITIES)): SCH_SETPOINT_CAPABILITIES,
             vol.Optional(fnc(S2_SCHEDULE_CAPABILITIES)): SCH_SCHEDULE_CAPABILITIES,
-            vol.Required(fnc(S2_ZONE_TYPE)): vol.In(ZoneType),
+            vol.Required(fnc(S2_ZONE_TYPE)): factory_enum(case, TccZoneType),
             vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): list,  # FocusProWifiRetail
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def factory_tcs(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_tcs(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the TCS schema."""
 
-    SCH_ALLOWED_SYSTEM_MODES: Final = vol.Any(
-        factory_system_mode_perm(fnc), factory_system_mode_temp(fnc)
-    )
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     return vol.Schema(
         {
             vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
-            vol.Required(fnc(S2_MODEL_TYPE)): vol.In(TcsModelType),
-            vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [SCH_ALLOWED_SYSTEM_MODES],
+            vol.Required(fnc(S2_MODEL_TYPE)): factory_enum(case, TccTcsModelType),
+            vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [factory_system_mode(case)],
             vol.Required(fnc(S2_ZONES)): vol.All(
-                [factory_zone(fnc)], vol.Length(min=1, max=12)
+                [factory_zone(case)], vol.Length(min=_MIN_NUM_ZONES_PER_TCS)
             ),
-            vol.Optional(fnc(S2_DHW)): factory_dhw(fnc),
+            vol.Optional(fnc(S2_DHW)): factory_dhw(case),
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def factory_gateway(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_gateway(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the gateway schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     SCH_GATEWAY_INFO: Final = vol.Schema(
         {
@@ -430,14 +470,16 @@ def factory_gateway(fnc: Callable[[str], str] = noop) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_GATEWAY_INFO)): SCH_GATEWAY_INFO,
-            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [factory_tcs(fnc)],
+            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [factory_tcs(case)],
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
-def factory_time_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_time_zone(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the time zone schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     return vol.Schema(
         {
@@ -452,9 +494,11 @@ def factory_time_zone(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
 
 def factory_location_installation_info(
-    fnc: Callable[[str], str] = noop,
+    case: Case = Case.VENDOR,
 ) -> vol.Schema:
     """Factory for the location (config) schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     SCH_LOCATION_OWNER: Final = vol.Schema(
         {
@@ -474,9 +518,11 @@ def factory_location_installation_info(
             vol.Required(fnc(S2_CITY)): vol.All(str, redact),
             vol.Required(fnc(S2_COUNTRY)): str,
             vol.Required(fnc(S2_POSTCODE)): vol.All(str, redact),
-            vol.Required(fnc(S2_LOCATION_TYPE)): vol.In(LocationType),  # "Residential"
+            vol.Required(fnc(S2_LOCATION_TYPE)): factory_enum(
+                case, TccLocationType
+            ),  # "Residential"
             vol.Required(fnc(S2_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
-            vol.Required(fnc(S2_TIME_ZONE)): factory_time_zone(fnc),
+            vol.Required(fnc(S2_TIME_ZONE)): factory_time_zone(case),
             vol.Required(fnc(S2_LOCATION_OWNER)): SCH_LOCATION_OWNER,
         },
         extra=vol.PREVENT_EXTRA,
@@ -485,18 +531,25 @@ def factory_location_installation_info(
     return vol.Schema(
         {
             vol.Required(fnc(S2_LOCATION_INFO)): SCH_LOCATION_INFO,
-            vol.Required(fnc(S2_GATEWAYS)): [factory_gateway(fnc)],
+            vol.Required(fnc(S2_GATEWAYS)): [factory_gateway(case)],
         },
         extra=vol.PREVENT_EXTRA,
     )
 
 
 def factory_user_locations_installation_info(
-    fnc: Callable[[str], str] = noop,
+    case: Case = Case.VENDOR,
 ) -> vol.Schema:
     """Factory for the user locations (config) schema."""
 
     return vol.Schema(
-        [factory_location_installation_info(fnc)],
+        [factory_location_installation_info(case)],
         extra=vol.PREVENT_EXTRA,
     )
+
+
+# GET /location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True
+TCC_GET_USR_LOCATIONS: Final = factory_user_locations_installation_info()
+
+# GET /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True
+TCC_GET_LOC_INSTALLATION_INFO: Final = factory_location_installation_info()

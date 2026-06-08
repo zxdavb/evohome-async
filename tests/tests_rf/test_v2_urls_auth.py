@@ -16,15 +16,21 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-import evohomeasync2 as evo2
-from evohomeasync2 import schemas
-from evohomeasync2.const import API_STRFTIME
-from evohomeasync2.schemas import SystemMode, ZoneMode
+from _evohome.helpers import pascal_to_snake
+from evohomeasync2.schemas.account import TCC_GET_USR_ACCOUNT
+from evohomeasync2.schemas.config import TCC_GET_USR_LOCATIONS
+from evohomeasync2.schemas.const import TCC_DTM_STRFTIME, TccSystemMode, TccZoneMode
+from evohomeasync2.schemas.status import (
+    TCC_GET_LOC_STATUS,
+    TCC_GET_TCS_STATUS,
+    TCC_GET_ZON_STATUS,
+)
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
+    import evohomeasync2 as evo2
     from tests.conftest import EvohomeClientV2
 
 
@@ -36,9 +42,7 @@ async def _test_usr_account(evo: EvohomeClientV2) -> None:
 
     # STEP 1:
     url = "userAccount"
-    _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_USR_ACCOUNT
-    )
+    _ = await should_work_v2(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_ACCOUNT)
     # {
     #     'userId': '2263181',
     #     'username': 'nobody@nowhere.com',
@@ -97,7 +101,7 @@ async def _test_user_locations(evo: EvohomeClientV2) -> None:
     #
     url += "&includeTemperatureControlSystems=True"
     _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_USR_LOCATIONS
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCATIONS
     )
 
     #
@@ -144,9 +148,7 @@ async def _test_loc_status(evo: EvohomeClientV2) -> None:
     )
 
     url += "?includeTemperatureControlSystems=True"
-    _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_LOC_STATUS
-    )
+    _ = await should_work_v2(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_LOC_STATUS)
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, status=HTTPStatus.METHOD_NOT_ALLOWED
     )
@@ -195,10 +197,10 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 0: Get/keep the current mode, so we can restore it later
-    url = f"{tcs._TYPE}/{tcs.id}/status"
+    url = f"{tcs._TCC_TYPE}/{tcs.id}/status"
 
     old_status: dict[str, Any] = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_TCS_STATUS
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_TCS_STATUS
     )  # type: ignore[assignment]
     # {
     #      'systemId': '1234567',
@@ -216,7 +218,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 1: Change the mode, but with the wrong method
-    url = f"{tcs._TYPE}/{tcs.id}/mode"
+    url = f"{tcs._TCC_TYPE}/{tcs.id}/mode"
 
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
@@ -229,7 +231,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
         evo.auth, HTTPMethod.PUT, url, json={}, status=HTTPStatus.BAD_REQUEST
     )
     # [  # NOTE: keys are (case-insensitive) PascalCase, not camelCase!!
-    #     {'code': 'ParameterIsMissing', 'parameterName': 'SystemMode', 'message': 'Parameter is missing.'},
+    #     {'code': 'ParameterIsMissing', 'parameterName': 'TccSystemMode', 'message': 'Parameter is missing.'},
     #     {'code': 'ParameterIsMissing', 'parameterName': 'Permanent',  'message': 'Parameter is missing.'}
     # ]
 
@@ -244,7 +246,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 4: Change the mode, but with semi-invalid request data (JSON)
-    assert SystemMode.COOL not in tcs.allowed_modes
+    assert pascal_to_snake(TccSystemMode.COOL) not in tcs.allowed_modes
     new_mode = {"systemMode": "Cool", "permanent": True}
 
     _ = await should_fail_v2(
@@ -258,19 +260,19 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 4: Change the mode, with valid request data (JSON) (permanent)
-    assert SystemMode.AUTO in tcs.allowed_modes
-    new_mode = {"systemMode": SystemMode.AUTO, "permanent": True}
+    assert pascal_to_snake(TccSystemMode.AUTO) in tcs.allowed_modes
+    new_mode = {"systemMode": TccSystemMode.AUTO, "permanent": True}
 
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=new_mode)
     # {'id': '1588314363'}
 
     #
     # STEP 4: Change the mode, with valid request data (JSON) (temporary)
-    assert SystemMode.AWAY in tcs.allowed_modes
+    assert pascal_to_snake(TccSystemMode.AWAY) in tcs.allowed_modes
     new_mode = {
-        "systemMode": SystemMode.AWAY,
+        "systemMode": TccSystemMode.AWAY,
         "permanent": False,
-        "timeUntil": (tcs.location.now() + td(hours=1)).strftime(API_STRFTIME),
+        "timeUntil": (tcs.location.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
 
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=new_mode)
@@ -283,7 +285,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 6: Change the mode, but without permission
-    url = f"{tcs._TYPE}/1234567/mode"
+    url = f"{tcs._TCC_TYPE}/1234567/mode"
 
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, json=old_mode, status=HTTPStatus.UNAUTHORIZED
@@ -295,7 +297,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 7: hange the mode, but with invalid URL
-    url = f"{tcs._TYPE}/{tcs.id}/systemMode"
+    url = f"{tcs._TCC_TYPE}/{tcs.id}/systemMode"
     _ = await should_fail_v2(
         evo.auth,
         HTTPMethod.PUT,
@@ -322,10 +324,8 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
         pytest.skip("No available zones found")
 
     #
-    url = f"{zone._TYPE}/{zone.id}/status"
-    _ = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=schemas.TCC_GET_ZON_STATUS
-    )
+    url = f"{zone._TCC_TYPE}/{zone.id}/status"
+    _ = await should_work_v2(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_STATUS)
     # {
     #     'zoneId': '3432576',
     #     'temperatureStatus': {'temperature': 25.5, 'isAvailable': True},
@@ -335,10 +335,10 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
     # }
 
     #
-    url = f"{zone._TYPE}/{zone.id}/heatSetpoint"
+    url = f"{zone._TCC_TYPE}/{zone.id}/heatSetpoint"
 
     heat_setpoint = {
-        "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
+        "setpointMode": TccZoneMode.PERMANENT_OVERRIDE,
     }
     _ = await should_fail_v2(
         evo.auth, HTTPMethod.PUT, url, json=heat_setpoint, status=HTTPStatus.BAD_REQUEST
@@ -349,7 +349,7 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
     # }]
 
     heat_setpoint = {
-        "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
+        "setpointMode": TccZoneMode.PERMANENT_OVERRIDE,
         "HeatSetpointValue": 19.5 if zone.temperature is None else zone.temperature,
         # "timeUntil": None,
     }
@@ -358,7 +358,7 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
 
     #
     heat_setpoint = {
-        "setpointMode": ZoneMode.PERMANENT_OVERRIDE,
+        "setpointMode": TccZoneMode.PERMANENT_OVERRIDE,
         "HeatSetpointValue": 99,
         "timeUntil": None,
     }
@@ -367,7 +367,7 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
 
     #
     heat_setpoint = {
-        "setpointMode": ZoneMode.TEMPORARY_OVERRIDE,
+        "setpointMode": TccZoneMode.TEMPORARY_OVERRIDE,
         "HeatSetpointValue": 19.5,
     }
     _ = await should_fail_v2(
@@ -390,7 +390,7 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
 
     #
     heat_setpoint = {
-        "setpointMode": ZoneMode.FOLLOW_SCHEDULE,
+        "setpointMode": TccZoneMode.FOLLOW_SCHEDULE,
         "HeatSetpointValue": 0.0,
         "timeUntil": None,
     }

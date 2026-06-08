@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import re
 from datetime import datetime as dt
-from typing import TYPE_CHECKING, Any, overload
+from enum import StrEnum
+from typing import TYPE_CHECKING, Any, Final, overload
 
 from .const import _DBG_DONT_REDACT_SECRETS, REGEX_EMAIL_ADDRESS
 
@@ -13,7 +14,9 @@ if TYPE_CHECKING:
     from datetime import tzinfo
 
 
-REGEX_DATETIME = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
+TCC_DTM_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
+
+_TCC_DTM_REGEX = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
 
 _REDACTED_EMAIL_ADDRESS = "no-reply@redacted.xxx"
 _REDACTED_STRING = "********"
@@ -74,6 +77,30 @@ def _convert_vals[T](data: T, fnc: Callable[[str], str]) -> T:
     return recurse(data)  # type:ignore[no-any-return]
 
 
+def _convert_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
+    """Recursively convert StrEnum values as per some function.
+
+    Unlike _convert_vals, only converts values that are StrEnum instances —
+    plain strings (names, datetimes, etc.) are left unchanged.
+    Used before sending JSON to the vendor API to convert snake_case enum
+    values back to PascalCase.
+    """
+
+    def recurse(data_: Any) -> Any:
+        if isinstance(data_, dict):
+            return {k: recurse(v) for k, v in data_.items()}
+
+        if isinstance(data_, list):
+            return [recurse(i) for i in data_]
+
+        if isinstance(data_, StrEnum):
+            return fnc(data_)
+
+        return data_
+
+    return recurse(data)  # type:ignore[no-any-return]
+
+
 def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
     """Convert a datetime into a aware datetime in the given TZ.
 
@@ -104,12 +131,22 @@ def camel_to_snake(s: str) -> str:
     return _STEP_2.sub(r"\1_\2", _STEP_1.sub(r"\1_\2", s)).lower()
 
 
+pascal_to_snake = camel_to_snake  # PascalCase is a subset of camelCase
+
+
 def snake_to_camel(s: str) -> str:
     """Return a string converted (from snake_case) to camelCase."""
     if " " in s:
         raise ValueError("Input string should not contain spaces")
     components = s.split("_")
     return components[0] + "".join(x.title() for x in components[1:])
+
+
+def snake_to_pascal(s: str) -> str:
+    """Return a string converted (from snake_case) to PascalCase."""
+    if " " in s:
+        raise ValueError("Input string should not contain spaces")
+    return camel_to_pascal(snake_to_camel(s))
 
 
 def noop[T](s: T) -> T:
@@ -133,6 +170,37 @@ def convert_keys_to_snake_case[T](data: T) -> T:
     return _convert_keys(data, camel_to_snake)
 
 
+def convert_datetimes_to_str[T](data: T) -> T:
+    """Recursively convert datetime objects to ISO 8601 UTC strings.
+
+    Used before sending JSON to the vendor API, alongside StrEnum conversion.
+    Only datetime instances are converted; plain strings are left unchanged.
+    """
+
+    def recurse(data_: Any) -> Any:
+        if isinstance(data_, dict):
+            return {k: recurse(v) for k, v in data_.items()}
+
+        if isinstance(data_, list):
+            return [recurse(i) for i in data_]
+
+        if isinstance(data_, dt):
+            return data_.strftime(TCC_DTM_STRFTIME)
+
+        return data_
+
+    return recurse(data)  # type:ignore[no-any-return]
+
+
+def convert_str_enums_to_pascal_case[T](data: T) -> T:
+    """Recursively convert all StrEnum values from snake_case to PascalCase.
+
+    Used before sending JSON to the vendor API. Only StrEnum members are converted;
+    plain strings (names, datetimes, etc.) are left unchanged.
+    """
+    return _convert_enum_vals(data, snake_to_pascal)
+
+
 def convert_naive_dtm_strs_to_aware[T](data: T, tzinfo: tzinfo) -> T:
     """Recursively convert TZ-naive datetime strings to TZ-aware.
 
@@ -147,7 +215,7 @@ def convert_naive_dtm_strs_to_aware[T](data: T, tzinfo: tzinfo) -> T:
         if isinstance(data_, list):
             return [recurse(i) for i in data_]
 
-        if not isinstance(data_, str) or not re.match(REGEX_DATETIME, data_):
+        if not isinstance(data_, str) or not re.match(_TCC_DTM_REGEX, data_):
             return data_
 
         try:

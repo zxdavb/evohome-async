@@ -6,11 +6,10 @@ import json
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from _evohome.helpers import as_local_time, camel_to_snake
+from _evohome.helpers import as_local_time
 
 from . import exceptions as exc
 from .const import (
-    API_STRFTIME,
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
@@ -20,23 +19,19 @@ from .const import (
     SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_NAME,
+    SZ_PERMANENT,
     SZ_SYSTEM_ID,
     SZ_SYSTEM_MODE,
     SZ_SYSTEM_MODE_STATUS,
     SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONES,
-)
-from .hotwater import HotWater
-from .schemas import (
-    S2_PERMANENT,
-    S2_SYSTEM_MODE,
-    S2_TIME_UNTIL,
-    EntityType,
     SystemMode,
-    TccSetTcsModeT,
     TcsModelType,
 )
+from .hotwater import HotWater
+from .schemas.const import TccEntityType
+from .schemas.helpers import Case
 from .schemas.status import factory_tcs_status
 from .zone import ActiveFaultsBase, EntityBase, Zone
 
@@ -48,12 +43,13 @@ if TYPE_CHECKING:
 
     from . import Gateway, Location
     from .auth import Auth
-    from .schemas import (
-        DayOfWeekDhwT,
-        DayOfWeekZoneT,
+    from .typedefs import (
         EvoAllowedSystemModesResponseT,
+        EvoDayOfWeekDhwT,
+        EvoDayOfWeekZoneT,
         EvoScheduleDhwT,
         EvoScheduleZoneT,
+        EvoSetSystemModeT,
         EvoSystemModeStatusResponseT,
         EvoTcsConfigEntryT,
         EvoTcsConfigResponseT,
@@ -64,9 +60,10 @@ if TYPE_CHECKING:
 class ControlSystem(ActiveFaultsBase, EntityBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
-    SCH_STATUS: vol.Schema = factory_tcs_status(camel_to_snake)
-    _TYPE = EntityType.TCS
     _STATUS_EXCLUDES = (SZ_DHW, SZ_ZONES)
+    _TCC_TYPE = TccEntityType.TCS
+
+    SCH_STATUS: vol.Schema = factory_tcs_status(Case.PYTHONIC)
 
     def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:
         super().__init__(config[SZ_SYSTEM_ID])
@@ -222,16 +219,16 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, tcs_mode: TccSetTcsModeT, /) -> None:
+    async def _set_mode(self, tcs_mode: EvoSetSystemModeT, /) -> None:
         """Set the TCS mode."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if tcs_mode[S2_SYSTEM_MODE] not in self.allowed_modes:
+        if tcs_mode[SZ_SYSTEM_MODE] not in self.allowed_modes:
             self._logger.warning(
-                f"{self}: Attempting unsupported {S2_SYSTEM_MODE}: {tcs_mode}..."
+                f"{self}: Attempting unsupported {SZ_SYSTEM_MODE}: {tcs_mode}..."
             )
 
-        await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=dict(tcs_mode))
+        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/mode", json=dict(tcs_mode))
 
     async def set_mode(
         self,
@@ -247,7 +244,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                 f"{self}: Unsupported system_mode: {system_mode}"
             )
 
-        tcs_mode: TccSetTcsModeT
+        tcs_mode: EvoSetSystemModeT
 
         mode_entry = next(
             d for d in self.allowed_system_modes if d[SZ_SYSTEM_MODE] == system_mode
@@ -255,8 +252,8 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         if until is None:  # all known modes can be permanent
             tcs_mode = {
-                S2_SYSTEM_MODE: system_mode,
-                S2_PERMANENT: True,
+                SZ_SYSTEM_MODE: system_mode,
+                SZ_PERMANENT: True,
             }
 
         else:
@@ -266,9 +263,9 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                 )
 
             tcs_mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
-                S2_SYSTEM_MODE: system_mode,
-                S2_PERMANENT: False,
-                S2_TIME_UNTIL: until.strftime(API_STRFTIME),
+                SZ_SYSTEM_MODE: system_mode,
+                SZ_PERMANENT: False,
+                SZ_TIME_UNTIL: until,
             }
 
         await self._set_mode(tcs_mode)
@@ -287,7 +284,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             return
 
         self._logger.debug(
-            f"{self}: Emulating {S2_SYSTEM_MODE}: {SystemMode.AUTO_WITH_RESET}..."
+            f"{self}: Emulating {SZ_SYSTEM_MODE}: {SystemMode.AUTO_WITH_RESET}..."
         )
 
         await self.set_auto()
@@ -312,7 +309,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         # some systems have "Heat" mode instead of "Auto"...
         self._logger.debug(
-            f"{self}: Emulating {S2_SYSTEM_MODE}: {SystemMode.AUTO} as {SystemMode.HEAT}"
+            f"{self}: Emulating {SZ_SYSTEM_MODE}: {SystemMode.AUTO} as {SystemMode.HEAT}"
         )
 
         await self.set_mode(SystemMode.HEAT)
@@ -360,7 +357,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         # some systems have "Off" mode instead of "HeatingOff"...
         self._logger.debug(
-            f"{self}: Emulating {S2_SYSTEM_MODE}: {SystemMode.HEATING_OFF} as {SystemMode.OFF}"
+            f"{self}: Emulating {SZ_SYSTEM_MODE}: {SystemMode.HEATING_OFF} as {SystemMode.OFF}"
         )
 
         await self.set_mode(SystemMode.OFF)
@@ -372,7 +369,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         async def get_schedule(
             child: HotWater | Zone,
-        ) -> list[DayOfWeekDhwT] | list[DayOfWeekZoneT]:
+        ) -> list[EvoDayOfWeekDhwT] | list[EvoDayOfWeekZoneT]:
             try:
                 return await child.get_schedule()
             except exc.InvalidScheduleError:

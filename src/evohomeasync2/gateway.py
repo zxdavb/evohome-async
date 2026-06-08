@@ -5,8 +5,6 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, NoReturn
 
-from _evohome.helpers import camel_to_snake
-
 from .const import (
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
@@ -15,7 +13,8 @@ from .const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
 from .control_system import ControlSystem
-from .schemas import EntityType
+from .schemas.const import TccEntityType
+from .schemas.helpers import Case
 from .schemas.status import factory_gwy_status
 from .zone import ActiveFaultsBase, EntityBase
 
@@ -26,7 +25,7 @@ if TYPE_CHECKING:
 
     from . import Location
     from .auth import Auth
-    from .schemas import (
+    from .typedefs import (
         EvoGwyConfigEntryT,
         EvoGwyConfigResponseT,
         EvoGwyStatusResponseT,
@@ -36,9 +35,10 @@ if TYPE_CHECKING:
 class Gateway(ActiveFaultsBase, EntityBase):
     """Instance of a location's gateway."""
 
-    SCH_STATUS: vol.Schema = factory_gwy_status(camel_to_snake)
-    _TYPE = EntityType.GWY
     _STATUS_EXCLUDES = (SZ_TEMPERATURE_CONTROL_SYSTEMS,)
+    _TCC_TYPE = TccEntityType.GWY
+
+    SCH_STATUS: vol.Schema = factory_gwy_status(Case.PYTHONIC)
 
     def __init__(self, location: Location, config: EvoGwyConfigResponseT) -> None:
         super().__init__(config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID])

@@ -18,15 +18,15 @@ import pytest
 
 import evohomeasync2 as evo2
 from _evohome.helpers import camel_to_pascal
-from evohomeasync2.const import API_STRFTIME
-from evohomeasync2.schemas import (
+from evohomeasync2.schemas.const import (
     S2_MODE,
     S2_STATE,
     S2_STATE_STATUS,
     S2_UNTIL,
     S2_UNTIL_TIME,
-    DhwState,
-    ZoneMode,
+    TCC_DTM_STRFTIME,
+    TccDhwState,
+    TccZoneMode,
 )
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
@@ -60,8 +60,8 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     if dhw is None:
         pytest.skip("No available DHW found")
 
-    GET_URL = f"{dhw._TYPE}/{dhw.id}/status"
-    PUT_URL = f"{dhw._TYPE}/{dhw.id}/state"
+    GET_URL = f"{dhw._TCC_TYPE}/{dhw.id}/status"
+    PUT_URL = f"{dhw._TCC_TYPE}/{dhw.id}/state"
 
     #
     # PART 0: Get initial state...
@@ -92,11 +92,11 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     #
     # PART 1: Try the basic functionality...
-    # new_mode = {S2_MODE: ZoneMode.PERMANENT_OVERRIDE, S2_STATE: DhwState.OFF, S2_UNTIL_TIME: None}
+    # new_mode = {S2_MODE: TccZoneMode.PERMANENT_OVERRIDE, S2_STATE: TccDhwState.OFF, S2_UNTIL_TIME: None}
     new_mode = {
-        S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-        S2_STATE: DhwState.ON,
-        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(API_STRFTIME),
+        S2_MODE: TccZoneMode.TEMPORARY_OVERRIDE,
+        S2_STATE: TccDhwState.ON,
+        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
 
     result = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
@@ -122,9 +122,9 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     #
     # PART 2A: Try different capitalisations of the JSON keys...
     new_mode = {
-        S2_MODE: ZoneMode.TEMPORARY_OVERRIDE,
-        S2_STATE: DhwState.ON,
-        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(API_STRFTIME),
+        S2_MODE: TccZoneMode.TEMPORARY_OVERRIDE,
+        S2_STATE: TccDhwState.ON,
+        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
     _ = await should_work_v2(
         evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode
@@ -136,10 +136,10 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     status = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time
-        camel_to_pascal(S2_MODE): ZoneMode.TEMPORARY_OVERRIDE,
-        camel_to_pascal(S2_STATE): DhwState.ON,
+        camel_to_pascal(S2_MODE): TccZoneMode.TEMPORARY_OVERRIDE,
+        camel_to_pascal(S2_STATE): TccDhwState.ON,
         camel_to_pascal(S2_UNTIL_TIME): (loc.now() + td(hours=2)).strftime(
-            API_STRFTIME
+            TCC_DTM_STRFTIME
         ),
     }
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
@@ -163,8 +163,8 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     #
     # PART 4A: Try bad JSON...
     bad_mode = {
-        S2_STATE: ZoneMode.TEMPORARY_OVERRIDE,
-        S2_MODE: DhwState.OFF,
+        S2_STATE: TccZoneMode.TEMPORARY_OVERRIDE,
+        S2_MODE: TccDhwState.OFF,
         S2_UNTIL_TIME: None,
     }
     _ = await should_fail_v2(
@@ -218,8 +218,8 @@ async def _test_task_id_zone(evo: EvohomeClientV2) -> None:
     if zone is None:
         pytest.skip("No available Zone found")
 
-    GET_URL = f"{zone._TYPE}/{zone.id}/status"
-    # T_URL = f"{zone._TYPE}/{zone.id}/mode"
+    GET_URL = f"{zone._TCC_TYPE}/{zone.id}/status"
+    # T_URL = f"{zone._TCC_TYPE}/{zone.id}/mode"
 
     #
     # PART 0: Get the initial mode...

@@ -37,7 +37,6 @@ from .const import (
     SZ_WEATHER,
 )
 from .schemas import (
-    API_STRFTIME,
     SZ_DHW_OFF,
     SZ_DHW_ON,
     SZ_HOLD,
@@ -51,20 +50,21 @@ from .schemas import (
     SZ_TEMPORARY,
     SZ_THERMOSTAT,
     SZ_VALUE,
-    EvoGwyInfoDictT,
-    SystemMode,
+    TCC_DTM_STRFTIME,
+    TccSystemMode,
 )
+from .typedefs import EvoGwyInfoDictT
 
 if TYPE_CHECKING:
     import logging
     from datetime import datetime as dt
 
-    # some methods emulate the v2 API...
-    from evohomeasync2.schemas import EvoTemperatureStatusResponseT
+    # the .temperature_status method intentionally emulate the v2 API...
+    from evohomeasync2.typedefs import EvoTemperatureStatusResponseT
 
     from . import EvohomeClient
     from .auth import Auth
-    from .schemas import (
+    from .typedefs import (
         EvoDevInfoDictT,
         EvoLocInfoDictT,
         EvoTcsInfoDictT,
@@ -199,7 +199,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
             # SZ_COOL_SETPOINT: None,
         }
         if next_time:
-            data |= {SZ_NEXT_TIME: next_time.strftime(API_STRFTIME)}
+            data |= {SZ_NEXT_TIME: next_time.strftime(TCC_DTM_STRFTIME)}
 
         url = f"devices/{self.id}/thermostat/changeableValues"
         await self._auth.put(url, json=data)
@@ -294,7 +294,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
         if value is not None:  # NOTE: may have to send {SZ_VALUE: None} instead
             data[SZ_VALUE] = value
         if next_time is not None:
-            data[SZ_NEXT_TIME] = next_time.strftime(API_STRFTIME)
+            data[SZ_NEXT_TIME] = next_time.strftime(TCC_DTM_STRFTIME)
 
         url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
         await self._auth.put(url, json=data)
@@ -358,38 +358,40 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
         raise NotImplementedError  # TODO: via set_mode() of TCS and its children
 
-    async def set_mode(self, mode: SystemMode, /, *, until: dt | None = None) -> None:
+    async def set_mode(
+        self, mode: TccSystemMode, /, *, until: dt | None = None
+    ) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time."""
 
         request: dict[str, str] = {SZ_QUICK_ACTION: mode}
         if until:
-            request |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime(API_STRFTIME)}
+            request |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime(TCC_DTM_STRFTIME)}
 
         await self._set_mode(request)
 
     async def set_auto(self) -> None:
         """Set the TCS to normal mode."""
-        await self.set_mode(SystemMode.AUTO)
+        await self.set_mode(TccSystemMode.AUTO)
 
     async def set_away(self, /, *, until: dt | None = None) -> None:
         """Set the TCS to away mode."""
-        await self.set_mode(SystemMode.AWAY, until=until)
+        await self.set_mode(TccSystemMode.AWAY, until=until)
 
     async def set_custom(self, /, *, until: dt | None = None) -> None:
         """Set the TCS to custom mode."""
-        await self.set_mode(SystemMode.CUSTOM, until=until)
+        await self.set_mode(TccSystemMode.CUSTOM, until=until)
 
     async def set_dayoff(self, /, *, until: dt | None = None) -> None:
         """Set the TCS to dayoff mode."""
-        await self.set_mode(SystemMode.DAY_OFF, until=until)
+        await self.set_mode(TccSystemMode.DAY_OFF, until=until)
 
     async def set_eco(self, /, *, until: dt | None = None) -> None:
         """Set the TCS to economy mode."""
-        await self.set_mode(SystemMode.AUTO_WITH_ECO, until=until)
+        await self.set_mode(TccSystemMode.AUTO_WITH_ECO, until=until)
 
     async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
         """Set the system to heating off mode."""
-        await self.set_mode(SystemMode.HEATING_OFF, until=until)
+        await self.set_mode(TccSystemMode.HEATING_OFF, until=until)
 
     def _get_zone(self, zon_id: int | str) -> Zone:
         """Return the TCS's zone by its id, idx or name."""

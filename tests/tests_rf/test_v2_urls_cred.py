@@ -20,7 +20,7 @@ from urllib.parse import urlparse
 import aiohttp
 import pytest
 
-from evohomeasync2.schemas import (
+from evohomeasync2.schemas.account import (
     TCC_ERROR_RESPONSE,
     TCC_GET_USR_ACCOUNT,
     TCC_POST_OAUTH_TOKEN,
@@ -36,7 +36,7 @@ from tests.const import (
 )
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas import (
+    from evohomeasync2.schemas.account import (
         TccErrorResponseT,
         TccFailureResponseT,
         TccOAuthTokenResponseT,

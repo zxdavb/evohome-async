@@ -2,27 +2,34 @@
 
 from __future__ import annotations
 
-from typing import Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
-from .const import (  # noqa: TC001
-    DhwState,
-    FaultType,
-    LocationType,
-    SystemMode,
-    TcsModelType,
-    ZoneMode,
-    ZoneModelType,
-    ZoneType,
-)
+if TYPE_CHECKING:
+    from datetime import datetime as dt
+
+    from .const import (
+        DayOfWeek,
+        DhwState,
+        FanMode,
+        FaultType,
+        LocationType,
+        SystemMode,
+        TcsModelType,
+        TimingMode,
+        ZoneMode,
+        ZoneModelType,
+        ZoneType,
+    )
 
 
-class TccAuthTokensResponseT(TypedDict):
+# POST /Auth/OAuth/Token
+class EvoAuthTokensResponseT(TypedDict):
     """Response to POST /Auth/OAuth/Token."""
 
     access_token: str
     expires_in: int
-    scope: str
     refresh_token: str
+    scope: str
     token_type: str
 
 
@@ -32,7 +39,7 @@ class TccAuthTokensResponseT(TypedDict):
 
 
 # GET /accountInfo
-class EvoUsrConfigResponseT(TypedDict):
+class EvoUsrAccountResponseT(TypedDict):
     """Response to GET /accountInfo."""
 
     user_id: str
@@ -107,7 +114,7 @@ class EvoAllowedSystemModesResponseT(TypedDict):
     can_be_temporary: bool
     max_duration: NotRequired[str]  # when can_be_temporary is True
     timing_resolution: NotRequired[str]  # when can_be_temporary is True
-    timing_mode: NotRequired[str]  # when can_be_temporary is True
+    timing_mode: NotRequired[TimingMode]  # when can_be_temporary is True
 
 
 class EvoTcsConfigResponseT(EvoTcsConfigEntryT):
@@ -115,7 +122,7 @@ class EvoTcsConfigResponseT(EvoTcsConfigEntryT):
     # model_type: str
     # allowed_system_modes: list[dict[str, Any]]
     zones: list[EvoZonConfigResponseT]
-    dhw: EvoDhwConfigResponseT
+    dhw: NotRequired[EvoDhwConfigResponseT]
 
 
 class EvoZonConfigResponseT(TypedDict):
@@ -125,11 +132,14 @@ class EvoZonConfigResponseT(TypedDict):
     setpoint_capabilities: EvoZonSetpointCapabilitiesResponseT
     schedule_capabilities: EvoZonScheduleCapabilitiesResponseT
     zone_type: ZoneType
-    allowed_fan_modes: list[str]
+    allowed_fan_modes: list[FanMode]
 
 
 class EvoZonScheduleCapabilitiesResponseT(TypedDict):
-    pass
+    max_switchpoints_per_day: int
+    min_switchpoints_per_day: int
+    timing_resolution: str
+    setpoint_value_resolution: float
 
 
 class EvoZonSetpointCapabilitiesResponseT(TypedDict):
@@ -154,7 +164,9 @@ class EvoDhwConfigResponseT(TypedDict):
 
 
 class EvoDhwScheduleCapabilitiesResponseT(TypedDict):
-    pass
+    max_switchpoints_per_day: int
+    min_switchpoints_per_day: int
+    timing_resolution: str
 
 
 class EvoDhwStateCapabilitiesResponseT(TypedDict):
@@ -250,21 +262,21 @@ class EvoDhwStateStatusResponseT(TypedDict):
 class EvoSetDhwStateT(TypedDict):
     mode: ZoneMode
     state: NotRequired[DhwState]  # required by override modes
-    until_time: NotRequired[str]  # required by TemporaryOverride
+    until_time: NotRequired[dt]  # required by TemporaryOverride
 
 
 # PUT /temperatureControlSystem/{tcs_id}/mode
 class EvoSetSystemModeT(TypedDict):
     system_mode: SystemMode
     permanent: bool
-    time_until: NotRequired[str]  # required by TemporaryOverride
+    time_until: NotRequired[dt]  # required by TemporaryOverride
 
 
 # PUT /temperatureZone/{zon_id}/heatSetpoint
 class EvoSetZoneHeatSetpointT(TypedDict):
     setpoint_mode: ZoneMode
     heat_setpoint_value: NotRequired[float]  # required by override modes
-    time_until: NotRequired[str]  # required by TemporaryOverride
+    time_until: NotRequired[dt]  # required by TemporaryOverride
 
 
 #######################################################################################
@@ -272,22 +284,22 @@ class EvoSetZoneHeatSetpointT(TypedDict):
 #
 
 
-class SwitchpointDhwT(TypedDict):
+class EvoSwitchpointDhwT(TypedDict):
     dhw_state: DhwState
     time_of_day: str
 
 
-class DayOfWeekDhwT(TypedDict):
-    day_of_week: str
-    switchpoints: list[SwitchpointDhwT]
+class EvoDayOfWeekDhwT(TypedDict):
+    day_of_week: DayOfWeek
+    switchpoints: list[EvoSwitchpointDhwT]
 
 
-class DailySchedulesDhwT(TypedDict):
-    daily_schedules: list[DayOfWeekDhwT]
+class EvoDailySchedulesDhwT(TypedDict):
+    daily_schedules: list[EvoDayOfWeekDhwT]
 
 
 # for export/import to/from file
-class EvoScheduleDhwT(DailySchedulesDhwT):
+class EvoScheduleDhwT(EvoDailySchedulesDhwT):
     dhw_id: str
     name: NotRequired[str]
 
@@ -295,22 +307,22 @@ class EvoScheduleDhwT(DailySchedulesDhwT):
 #
 
 
-class SwitchpointZoneT(TypedDict):
+class EvoSwitchpointZoneT(TypedDict):
     heat_setpoint: float
     time_of_day: str
 
 
-class DayOfWeekZoneT(TypedDict):
-    day_of_week: str
-    switchpoints: list[SwitchpointZoneT]
+class EvoDayOfWeekZoneT(TypedDict):
+    day_of_week: DayOfWeek
+    switchpoints: list[EvoSwitchpointZoneT]
 
 
-class DailySchedulesZoneT(TypedDict):
-    daily_schedules: list[DayOfWeekZoneT]
+class EvoDailySchedulesZoneT(TypedDict):
+    daily_schedules: list[EvoDayOfWeekZoneT]
 
 
 # for export/import to/from file
-class EvoScheduleZoneT(DailySchedulesZoneT):
+class EvoScheduleZoneT(EvoDailySchedulesZoneT):
     zone_id: str
     name: NotRequired[str]
 
@@ -318,23 +330,46 @@ class EvoScheduleZoneT(DailySchedulesZoneT):
 #
 
 
-class SwitchpointT(TypedDict):
+class EvoSwitchpointT(TypedDict):
     time_of_day: str
-    dhw_state: NotRequired[str]  # mutex with heat_setpoint
+    dhw_state: NotRequired[DhwState]  # mutex with heat_setpoint
     heat_setpoint: NotRequired[float]
 
 
-class DayOfWeekT(TypedDict):
-    day_of_week: str
-    switchpoints: list[SwitchpointT]
+class EvoDayOfWeekT(TypedDict):
+    day_of_week: DayOfWeek
+    switchpoints: list[EvoSwitchpointT]
 
 
-class DailySchedulesT(TypedDict):
-    daily_schedules: list[DayOfWeekT]
+class EvoDailySchedulesT(TypedDict):
+    daily_schedules: list[EvoDayOfWeekT]
 
 
 # for export/import to/from file
-class EvoScheduleT(DailySchedulesT):
+class EvoScheduleT(EvoDailySchedulesT):
     dhw_id: NotRequired[str]  # exactly one of these two IDs will be present
     zone_id: NotRequired[str]
     name: NotRequired[str]  # would normally be present, but be OK if not
+
+
+#######################################################################################
+# Pythonic voluptuous schemas...
+#
+# These validate the JSON returned by the vendor API (after its keys have been
+# converted to snake_case by AbstractAuth.request) and coerce the enum string values
+# to the user-facing enum members above (e.g. "Auto" -> SystemMode.AUTO). The matching
+# vendor-cased schemas (TCC_GET_*) remain in schemas/__init__.py.
+
+
+# EVO_USR_ACCOUNT: Final = factory_user_account(Case.PYTHONIC)
+# EVO_USR_LOCATIONS: Final = factory_user_locations_installation_info(Case.PYTHONIC)
+# EVO_LOC_CONFIG: Final = factory_location_installation_info(Case.PYTHONIC)
+
+# EVO_LOC_STATUS: Final = factory_loc_status(Case.PYTHONIC)
+# EVO_GWY_STATUS: Final = factory_gwy_status(Case.PYTHONIC)
+# EVO_TCS_STATUS: Final = factory_tcs_status(Case.PYTHONIC)
+# EVO_DHW_STATUS: Final = factory_dhw_status(Case.PYTHONIC)
+# EVO_ZON_STATUS: Final = factory_zon_status(Case.PYTHONIC)
+
+# EVO_DHW_SCHEDULE: Final = factory_dhw_schedule(Case.PYTHONIC)
+# EVO_ZON_SCHEDULE: Final = factory_zon_schedule(Case.PYTHONIC)

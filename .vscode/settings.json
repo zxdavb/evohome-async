@@ -5,7 +5,7 @@
     "files.trimTrailingWhitespace": true, // default: false
 
     // Python analysis and formatting (project-wide)
-    "python.analysis.extraPaths": ["src", "tests"],
+    "python.analysis.extraPaths": ["src"],
     "python.analysis.include": ["cli", "src", "tests"],
     "python.analysis.typeCheckingMode": "basic", // default: "off" - in addition to mypy?
     "python.analysis.userFileIndexingLimit": -1, // default: 2000
@@ -48,9 +48,11 @@
         "cancelable",
         "caplog",
         "codespell",
+        "commtask",
         "conftest",
         "CRED",
         "CREDS",
+        "datetimes",
         "dayoff",
         "deadband",
         "dehum",
@@ -68,7 +70,9 @@
         "homeassistant",
         "hotwater",
         "macid",
+        "metafunc",
         "mypy",
+        "prek",
         "pyproject",
         "pytest",
         "redef",
@@ -77,13 +81,16 @@
         "ruff",
         "searchforcontractors",
         "securityquestion",
+        "setpoints",
         "setpt",
+        "somecomfort",
         "streetaddress",
         "switchpoint",
         "switchpoints",
         "tccna",
         "tcss",
         "testpaths",
+        "timimg",
         "vars",
         "venv",
         "websession",

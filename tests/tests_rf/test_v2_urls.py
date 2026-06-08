@@ -35,15 +35,16 @@ from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohome_cli.auth import TokenCacheManager
-    from evohomeasync2.schemas import (
+    from evohomeasync2.schemas.account import TccTaskResponseT, TccUsrAccountResponseT
+    from evohomeasync2.schemas.config import TccLocConfigResponseT
+    from evohomeasync2.schemas.schedule import (
         TccDhwDailySchedulesT,
-        TccDhwStatusResponseT,
-        TccLocConfigResponseT,
-        TccLocStatusResponseT,
-        TccTaskResponseT,
-        TccTcsStatusResponseT,
-        TccUsrAccountResponseT,
         TccZonDailySchedulesT,
+    )
+    from evohomeasync2.schemas.status import (
+        TccDhwStatusResponseT,
+        TccLocStatusResponseT,
+        TccTcsStatusResponseT,
         TccZonStatusResponseT,
     )
 

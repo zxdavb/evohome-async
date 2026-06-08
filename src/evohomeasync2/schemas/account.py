@@ -1,15 +1,21 @@
-"""Schema for vendor's TCC v2 API - for GET account of User, etc.
+"""Schema for the vendor's TCC v2 API - for GET account of User, etc.
 
-The convention for JSON keys is camelCase, but the API appears to be case-insensitive.
+These TypedDict & StrEnums serve as documentation of the vendor's API, even if they are
+unused by this library. There are corresponding factory functions for the voluptuous
+schemas, which can be used to validate/coerce the vendor's responses.
+
+The vendor's convention for well-known strings:
+- camelCase for JSON keys, URL params (e.g. "userId", "streetAddress", "period")
+- PascalCase for JSON values that are enum strings (e.g. "TemporaryOverride", "Period")
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypedDict
+from typing import Final, TypedDict
 
 import voluptuous as vol
 
-from _evohome.helpers import noop, redact
+from _evohome.helpers import camel_to_snake, noop, redact
 
 from .const import (
     S2_CITY,
@@ -22,9 +28,7 @@ from .const import (
     S2_USER_ID,
     S2_USERNAME,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
+from .helpers import Case
 
 
 class TccOAuthTokenResponseT(TypedDict):
@@ -36,11 +40,11 @@ class TccOAuthTokenResponseT(TypedDict):
     access_token: str
     expires_in: int
     refresh_token: str
-    token_type: str
     scope: str
+    token_type: str
 
 
-def factory_post_oauth_token(_: Callable[[str], str] = noop) -> vol.Schema:
+def factory_post_oauth_token(_: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the OAuth authorization response schema."""
 
     # NOTE: These keys are always in snake_case
@@ -62,8 +66,10 @@ class TccErrorResponseT(TypedDict):
     error: str
 
 
-def factory_error_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_error_response(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the error response schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     return vol.Schema(
         {
@@ -87,8 +93,10 @@ class TccUsrAccountResponseT(TypedDict):
     language: str  # enGB
 
 
-def factory_user_account(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_user_account(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the user account schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     return vol.Schema(
         {
@@ -113,8 +121,10 @@ class TccFailureResponseT(TypedDict):
     message: str
 
 
-def factory_status_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
+def factory_status_response(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the error response schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     entry_schema = vol.Schema(
         {
@@ -131,3 +141,14 @@ class TccTaskResponseT(TypedDict):
     """Typed dict for code/message responses from the vendor servers."""
 
     id: str  # {'id': '1668279943'}
+
+
+#
+TCC_ERROR_RESPONSE: Final = factory_error_response()
+TCC_STATUS_RESPONSE: Final = factory_status_response()
+
+# POST /Auth/OAuth/Token  # TODO: add this
+TCC_POST_OAUTH_TOKEN: Final = factory_post_oauth_token()
+
+# GET /userAccount
+TCC_GET_USR_ACCOUNT: Final = factory_user_account()

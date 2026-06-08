@@ -22,12 +22,11 @@ if TYPE_CHECKING:
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
-    from .schemas import (
-        TccAuthTokensResponseT as AuthTokenResponseT,  # TCC is snake_case anyway
-    )
+    from .schemas.account import TccOAuthTokenResponseT
+    from .typedefs import EvoAuthTokensResponseT
 
 
-class AccessTokenEntryT(TypedDict):
+class EvoAccessTokenEntryT(TypedDict):
     """Dict for storing/restoring auth tokens to/from a cache."""
 
     access_token: str
@@ -194,7 +193,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
         url = f"https://{self.hostname}/{URL_CRED}"
 
-        response: AuthTokenResponseT = await self._post_access_token_request(
+        response: TccOAuthTokenResponseT = await self._post_access_token_request(
             url,
             headers=HEADERS_CRED | {"Authorization": "Basic " + _APPLICATION_ID},
             data=credentials,  # NOTE: is snake_case
@@ -208,7 +207,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         except vol.Invalid as err:
             self._logger.warning(f"POST {url}: payload may be invalid: {err}")
 
-        tokens: AuthTokenResponseT = convert_keys_to_snake_case(response)
+        tokens: EvoAuthTokensResponseT = convert_keys_to_snake_case(response)
 
         try:
             self._access_token = tokens[SZ_ACCESS_TOKEN]
@@ -230,7 +229,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
     async def _post_access_token_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any
-    ) -> AuthTokenResponseT:
+    ) -> TccOAuthTokenResponseT:
         """Wrap the POST request to the vendor's TCC RESTful API."""
         return await self._post_request(url, **kwargs)  # type: ignore[return-value]
 
@@ -241,14 +240,14 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         Should ideally confirm the access token is valid before saving.
         """
 
-    def _import_access_token(self, tokens: AccessTokenEntryT) -> None:
+    def _import_access_token(self, tokens: EvoAccessTokenEntryT) -> None:
         """Extract the token data from a (serialized) dictionary."""
 
         self._access_token = tokens[SZ_ACCESS_TOKEN]
         self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
         self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
-    def _export_access_token(self) -> AccessTokenEntryT:
+    def _export_access_token(self) -> EvoAccessTokenEntryT:
         """Convert the token data to a (serialized) dictionary."""
 
         return {

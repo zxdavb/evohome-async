@@ -6,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from evohomeasync2.schemas import TCC_GET_USR_ACCOUNT, TCC_GET_USR_LOCATIONS
+from evohomeasync2.schemas.account import TCC_GET_USR_ACCOUNT
+from evohomeasync2.schemas.config import TCC_GET_USR_LOCATIONS
 from evohomeasync2.schemas.status import factory_loc_status
 
 from .common import assert_schema

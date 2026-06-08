@@ -13,6 +13,19 @@ from typing import Self
 import aiohttp
 
 from .auth import AbstractTokenManager
+from .const import (
+    DayOfWeek,
+    DhwState,
+    FanMode,
+    FaultType,
+    LocationType,
+    SystemMode,
+    TcsModelType,
+    TimingMode,
+    ZoneMode,
+    ZoneModelType,
+    ZoneType,
+)
 from .control_system import ControlSystem
 from .exceptions import (
     ApiCallFailedError,
@@ -146,6 +159,18 @@ __all__ = [  # noqa: RUF022
     "ControlSystem",
     "Zone",
     "HotWater",
+    #
+    "DayOfWeek",
+    "DhwState",
+    "FanMode",
+    "FaultType",
+    "LocationType",
+    "SystemMode",
+    "TcsModelType",
+    "TimingMode",
+    "ZoneMode",
+    "ZoneModelType",
+    "ZoneType",
     #
     "ApiCallFailedError",
     "ApiRateLimitExceededError",
