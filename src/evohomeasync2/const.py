@@ -189,15 +189,15 @@ class FanMode(StrEnum):
 
 @verify(EnumCheck.UNIQUE)
 class FaultType(StrEnum):  # NOTE: This list is incomplete
-    SYS_B_CL = camel_to_snake(TccFaultType.SYS_B_CL)
-    SYS_C_CL = camel_to_snake(TccFaultType.SYS_C_CL)
+    # W_A_CL = camel_to_snake(TccFaultType.DHW_A_CL)  # extrapolated
     DHW_A_FL = camel_to_snake(TccFaultType.DHW_A_FL)
-    # DHW_A_CL = camel_to_snake(TccFaultType.DHW_A_CL)  # extrapolated
     DHW_S_CL = camel_to_snake(TccFaultType.DHW_S_CL)
     DHW_S_FL = camel_to_snake(TccFaultType.DHW_S_FL)
     DHW_S_LB = camel_to_snake(TccFaultType.DHW_S_LB)  # extrapolated
     GWY_X_CL = camel_to_snake(TccFaultType.GWY_X_CL)
-    # SYS_X_LB = camel_to_snake(TccFaultType.SYS_X_LB)  # extrapolated
+    SYS_B_CL = camel_to_snake(TccFaultType.SYS_B_CL)
+    SYS_C_CL = camel_to_snake(TccFaultType.SYS_C_CL)
+    # S_X_LB = camel_to_snake(TccFaultType.SYS_X_LB)  # extrapolated
     ZON_A_CL = camel_to_snake(TccFaultType.ZON_A_CL)
     ZON_A_LB = camel_to_snake(TccFaultType.ZON_A_LB)
     ZON_S_CL = camel_to_snake(TccFaultType.ZON_S_CL)
@@ -228,6 +228,7 @@ class SystemMode(StrEnum):
 class TcsModelType(StrEnum):
     EVO_TOUCH = camel_to_snake(TccTcsModelType.EVO_TOUCH)
     FOCUS_PRO_WIFI_RETAIL = camel_to_snake(TccTcsModelType.FOCUS_PRO_WIFI_RETAIL)
+    SYDNEY = camel_to_snake(TccTcsModelType.SYDNEY)  # not seen with Evohome
     VISION_PRO_WIFI_RETAIL = camel_to_snake(TccTcsModelType.VISION_PRO_WIFI_RETAIL)
 
 
@@ -251,6 +252,7 @@ class ZoneModelType(StrEnum):
     HEATING_ZONE = camel_to_snake(TccZoneModelType.HEATING_ZONE)
     ROUND_MODULATION = camel_to_snake(TccZoneModelType.ROUND_MODULATION)
     ROUND_WIRELESS = camel_to_snake(TccZoneModelType.ROUND_WIRELESS)
+    SYDNEY = camel_to_snake(TccZoneModelType.SYDNEY)  # not seen with Evohome
     UNKNOWN = camel_to_snake(TccZoneModelType.UNKNOWN)
     VISION_PRO_WIFI_RETAIL = camel_to_snake(TccZoneModelType.VISION_PRO_WIFI_RETAIL)
 
