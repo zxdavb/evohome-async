@@ -58,12 +58,12 @@ jobs:
         uses: astral-sh/setup-uv@v8.1.0
 
       - name: Install dependencies
-        run: uv pip install --system -e .[cli,dev]
+        run: uv sync --all-extras
 
       - name: Test with pytest
         env:
           PYTEST_ADDOPTS: "--color=yes"  # cspell:ignore ADDOPTS, color
-        run: pytest -v
+        run: uv run pytest -v
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
 

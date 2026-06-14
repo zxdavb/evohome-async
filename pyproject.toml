@@ -13,7 +13,7 @@ dependencies = [
   "aiozoneinfo>=0.2.3",
   "voluptuous>=0.15.2",
 ]  # must support Home Assistant
-requires-python = ">=3.13"  # also see: 'python_version', below, and typing workflow
+requires-python = ">=3.13"  # also see: 'python_version', below
 license = "Apache-2.0"
 
 keywords = [
@@ -97,7 +97,7 @@ version-file = "src/_evohome/_version.py"
 ### mypy #############################################################################
 
 [tool.mypy]
-python_version = "3.13"  # see also: 'requires-python', above, and typing workflow
+python_version = "3.14"  # HA stable requires 3.14; see also: 'requires-python', above
 
 strict = true
 
@@ -137,7 +137,7 @@ show_missing = true
 [tool.ruff]
 exclude = ["docs/*.py", "tests/tests_cc"]
 src = ["src", "tests"]
-target-version = "py313"
+target-version = "py314"
 required-version = ">=0.14.13"
 
 [tool.ruff.lint]
