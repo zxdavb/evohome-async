@@ -176,15 +176,12 @@ class TccAllowedSystemModeResponseT(TypedDict):
     systemMode: TccSystemMode
     canBePermanent: Literal[True]
     canBeTemporary: bool
-    maxDuration: NotRequired[str]
+    maxDuration: NotRequired[str]  # e.g. "1.00:00:00", "99.00:00:00"
     timingResolution: NotRequired[str]
     timingMode: NotRequired[str]
 
 
 class TccTcsConfigResponseT(TccTcsConfigEntryT):
-    # system_id: str
-    # model_type: str
-    # allowed_system_modes: list[dict[str, Any]]
     zones: list[TccZonConfigResponseT]
     dhw: NotRequired[TccDhwConfigResponseT]
 
@@ -194,15 +191,19 @@ class TccZonConfigResponseT(TypedDict):
     modelType: TccZoneModelType
     name: str
     setpointCapabilities: TccZonSetpointCapabilitiesResponseT
-    scheduleCapabilities: TccZonScheduleCapabilitiesResponseT
+    scheduleCapabilities: TccZonScheduleCapabilitiesResponseT  # not FocusProWifi
     zoneType: TccZoneType
-    allowedFanModes: list[str]
+    allowedFanModes: NotRequired[list[TccAllowedFanModeResponseT]]  # FocusProWifi
+
+
+class TccAllowedFanModeResponseT(TypedDict):
+    fanMode: TccFanMode
 
 
 class TccZonScheduleCapabilitiesResponseT(TypedDict):
     maxSwitchpointsPerDay: int
     minSwitchpointsPerDay: int
-    timingResolution: str
+    timingResolution: str  # e.g. "00:10:00"
     setpointValueResolution: float
 
 
@@ -213,8 +214,18 @@ class TccZonSetpointCapabilitiesResponseT(TypedDict):
     maxHeatSetpoint: float
     minHeatSetpoint: float
     valueResolution: float
-    maxDuration: str
-    timingResolution: str
+    maxDuration: str  # e.g. "1.00:00:00"
+    timingResolution: str  # e.g. "00:15:00"
+    # following seen on FocusProWifi, not Evohome...
+    maxCoolSetpoint: NotRequired[float]
+    minCoolSetpoint: NotRequired[float]
+    setpointDeadband: NotRequired[float]
+    vacationHoldCapabilities: NotRequired[VacationHoldCapabilitiesResponseT]
+
+
+class VacationHoldCapabilitiesResponseT(TypedDict):
+    isChangeable: bool
+    isCancelable: bool
 
 
 class TccZonConfigEntryT(TccZonConfigResponseT):
@@ -230,14 +241,14 @@ class TccDhwConfigResponseT(TypedDict):
 class TccDhwScheduleCapabilitiesResponseT(TypedDict):
     maxSwitchpointsPerDay: int
     minSwitchpointsPerDay: int
-    timingResolution: str
+    timingResolution: str  # e.g. "00:10:00"
 
 
 class TccDhwStateCapabilitiesResponseT(TypedDict):
     allowedStates: list[TccDhwState]
     allowedModes: list[TccZoneMode]
-    maxDuration: str
-    timingResolution: str
+    maxDuration: str  # e.g. "1.00:00:00"
+    timingResolution: str  # e.g. "00:10:00"
 
 
 class TccDhwConfigEntryT(TccDhwConfigResponseT):
