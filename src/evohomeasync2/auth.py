@@ -44,6 +44,8 @@ SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
 SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"  # noqa: S105
 SZ_EXPIRES_IN: Final = "expires_in"
 SZ_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
+SZ_SCOPE: Final = "scope"
+SZ_TOKEN_TYPE: Final = "token_type"  # noqa: S105
 
 
 SCH_OAUTH_TOKEN: Final = vol.Schema(
@@ -51,8 +53,8 @@ SCH_OAUTH_TOKEN: Final = vol.Schema(
         vol.Required(SZ_ACCESS_TOKEN): vol.All(str, redact),
         vol.Required(SZ_EXPIRES_IN): int,  # 1800 seconds
         vol.Required(SZ_REFRESH_TOKEN): vol.All(str, redact),
-        vol.Required("token_type"): str,
-        vol.Optional("scope"): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
+        vol.Required(SZ_TOKEN_TYPE): str,
+        vol.Optional(SZ_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
     }
 )
 

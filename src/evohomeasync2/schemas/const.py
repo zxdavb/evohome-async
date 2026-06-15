@@ -16,6 +16,15 @@ from typing import Final
 
 from _evohome.helpers import TCC_DTM_STRFTIME as TCC_DTM_STRFTIME  # noqa: PLC0414
 
+# OAuth API strings — JSON key names use snake_case
+
+SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
+SZ_EXPIRES_IN: Final = "expires_in"
+SZ_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
+SZ_SCOPE: Final = "scope"
+SZ_TOKEN_TYPE: Final = "token_type"  # noqa: S105
+
+
 # Vendor API strings — JSON key names use camelCase
 # - the OAuth endpoint is an exception (snake_case), but not seen here
 
@@ -32,6 +41,7 @@ S2_CAN_BE_TEMPORARY: Final = "canBeTemporary"
 S2_CAN_CONTROL_COOL: Final = "canControlCool"
 S2_CAN_CONTROL_HEAT: Final = "canControlHeat"
 S2_CITY: Final = "city"
+S2_CODE: Final = "code"
 S2_COOL_SETPOINT: Final = "coolSetpoint"
 S2_COOL_SETPOINT_VALUE: Final = "coolSetpointValue"  # extrapolated
 S2_COUNTRY: Final = "country"
@@ -46,6 +56,8 @@ S2_DHW_STATE: Final = "dhwState"
 S2_DHW_STATE_CAPABILITIES_RESPONSE: Final = "dhwStateCapabilitiesResponse"
 S2_DISPLAY_NAME: Final = "displayName"
 S2_DURATION: Final = "duration"  # c.f. StrEnum val, TccTimingMode.DURATION
+
+S2_ERROR: Final = "error"
 
 S2_FAN_MODE: Final = "fanMode"
 S2_FAN_STATUS: Final = "fanStatus"
@@ -77,6 +89,7 @@ S2_MAX_COOL_SETPOINT: Final = "maxCoolSetpoint"  # extrapolated
 S2_MAX_DURATION: Final = "maxDuration"
 S2_MAX_HEAT_SETPOINT: Final = "maxHeatSetpoint"
 S2_MAX_SWITCHPOINTS_PER_DAY: Final = "maxSwitchpointsPerDay"
+S2_MESSAGE: Final = "message"
 S2_MIN_COOL_SETPOINT: Final = "minCoolSetpoint"
 S2_MIN_DURATION: Final = "minDuration"
 S2_MIN_HEAT_SETPOINT: Final = "minHeatSetpoint"

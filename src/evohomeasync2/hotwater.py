@@ -12,12 +12,14 @@ from _evohome.helpers import as_local_time
 from . import exceptions as exc
 from .const import (
     SZ_ALLOWED_MODES,
+    SZ_ALLOWED_STATES,
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
     SZ_MODE,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_STATE,
     SZ_STATE_STATUS,
+    SZ_UNTIL,
     SZ_UNTIL_TIME,
     DhwState,
     ZoneMode,
@@ -82,8 +84,8 @@ class HotWater(_ZoneBase):
     def type(self) -> str:
         return "DomesticHotWater"
 
-    @cached_property  # NOTE: renamed config key: was schedule_capabilities_response
-    def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesResponseT:
+    @cached_property
+    def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesResponseT | None:
         """
         "scheduleCapabilitiesResponse": {
           "maxSwitchpointsPerDay": 6,
@@ -92,9 +94,10 @@ class HotWater(_ZoneBase):
         }
         """
 
-        return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
+        # key may be absent for FocusProWifiRetail, but is always present for Evohome
+        return self._config.get(SZ_SCHEDULE_CAPABILITIES_RESPONSE)
 
-    @cached_property  # NOTE: renamed config key: was dhw_state_capabilities_response
+    @cached_property  # NOTE: is not dhw_state_capabilities
     def state_capabilities(self) -> EvoDhwStateCapabilitiesResponseT:
         """
         "dhwStateCapabilitiesResponse": {
@@ -113,7 +116,7 @@ class HotWater(_ZoneBase):
 
     @cached_property
     def allowed_states(self) -> tuple[DhwState, ...]:
-        return tuple(self.state_capabilities["allowed_states"])
+        return tuple(self.state_capabilities[SZ_ALLOWED_STATES])
 
     # Status (state) attrs & methods...
 
@@ -140,7 +143,7 @@ class HotWater(_ZoneBase):
 
     @property
     def until(self) -> dt | None:
-        if (until := self.state_status.get("until")) is None:
+        if (until := self.state_status.get(SZ_UNTIL)) is None:
             return None
         return as_local_time(until, self.location.tzinfo)
 

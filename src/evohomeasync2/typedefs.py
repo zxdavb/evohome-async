@@ -125,12 +125,14 @@ class EvoTcsConfigResponseT(EvoTcsConfigEntryT):
     dhw: NotRequired[EvoDhwConfigResponseT]
 
 
+# Some FocusProWifiRetail do not include ScheduleCapabilitiesResponse in their config
+# but it is always present for Evohome
 class EvoZonConfigResponseT(TypedDict):
     zone_id: str
     model_type: ZoneModelType
     name: str
     setpoint_capabilities: EvoZonSetpointCapabilitiesResponseT
-    schedule_capabilities: EvoZonScheduleCapabilitiesResponseT
+    schedule_capabilities: NotRequired[EvoZonScheduleCapabilitiesResponseT]
     zone_type: ZoneType
     allowed_fan_modes: list[FanMode]
 
@@ -157,9 +159,11 @@ class EvoZonConfigEntryT(EvoZonConfigResponseT):
     pass
 
 
+# FocusProWifiRetail may not include DhwScheduleCapabilitiesResponse in their config
+# but it is always present for Evohome
 class EvoDhwConfigResponseT(TypedDict):
     dhw_id: str
-    schedule_capabilities_response: EvoDhwScheduleCapabilitiesResponseT
+    schedule_capabilities_response: NotRequired[EvoDhwScheduleCapabilitiesResponseT]
     dhw_state_capabilities_response: EvoDhwStateCapabilitiesResponseT
 
 

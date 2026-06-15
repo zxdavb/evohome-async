@@ -6,6 +6,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING, Final, NoReturn
 
 from .const import (
+    SZ_ACTIVE_FAULTS,
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
     SZ_MAC,
@@ -97,7 +98,7 @@ class Gateway(ActiveFaultsBase, EntityBase):
     def _update_status(self, status: EvoGwyStatusResponseT) -> None:
         """Update the GWY's status and cascade to its descendants."""
 
-        self._update_faults(status["active_faults"])
+        self._update_faults(status[SZ_ACTIVE_FAULTS])
 
         # cascade the child status to descendants...
         for tcs_status in status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:

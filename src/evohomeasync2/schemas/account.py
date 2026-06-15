@@ -19,14 +19,22 @@ from _evohome.helpers import camel_to_snake, noop, redact
 
 from .const import (
     S2_CITY,
+    S2_CODE,
     S2_COUNTRY,
+    S2_ERROR,
     S2_FIRSTNAME,
     S2_LANGUAGE,
     S2_LASTNAME,
+    S2_MESSAGE,
     S2_POSTCODE,
     S2_STREET_ADDRESS,
     S2_USER_ID,
     S2_USERNAME,
+    SZ_ACCESS_TOKEN,
+    SZ_EXPIRES_IN,
+    SZ_REFRESH_TOKEN,
+    SZ_SCOPE,
+    SZ_TOKEN_TYPE,
 )
 from .helpers import Case
 
@@ -51,11 +59,11 @@ def factory_post_oauth_token(_: Case = Case.VENDOR) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required("access_token"): vol.All(str, redact),
-            vol.Required("expires_in"): vol.Range(min=1770, max=1800),  # usu. 179x
-            vol.Required("refresh_token"): vol.All(str, redact),
-            vol.Required("token_type"): str,
-            vol.Optional("scope"): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
+            vol.Required(SZ_ACCESS_TOKEN): vol.All(str, redact),
+            vol.Required(SZ_EXPIRES_IN): vol.Range(min=1770, max=1800),  # usu. 179x
+            vol.Required(SZ_REFRESH_TOKEN): vol.All(str, redact),
+            vol.Required(SZ_TOKEN_TYPE): str,
+            vol.Optional(SZ_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
         }
     )
 
@@ -73,7 +81,7 @@ def factory_error_response(case: Case = Case.VENDOR) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required(fnc("error")): str,
+            vol.Required(fnc(S2_ERROR)): str,
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -128,8 +136,8 @@ def factory_status_response(case: Case = Case.VENDOR) -> vol.Schema:
 
     entry_schema = vol.Schema(
         {
-            vol.Required(fnc("code")): str,
-            vol.Required(fnc("message")): str,
+            vol.Required(fnc(S2_CODE)): str,
+            vol.Required(fnc(S2_MESSAGE)): str,
         },
         extra=vol.PREVENT_EXTRA,
     )

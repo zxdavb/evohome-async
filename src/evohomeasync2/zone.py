@@ -36,6 +36,7 @@ from .const import (
     SZ_TEMPERATURE_STATUS,
     SZ_TIME_OF_DAY,
     SZ_TIME_UNTIL,
+    SZ_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
     DayOfWeek,
@@ -609,12 +610,12 @@ class Zone(_ZoneBase):
 
     @property  # convenience attr
     def max_heat_setpoint(self) -> float:
-        # consider: if not self.setpoint_capabilities["can_control_heat"]: return None
+        # consider: if not self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]: return None
         return self.setpoint_capabilities[SZ_MAX_HEAT_SETPOINT]
 
     @property  # convenience attr
     def min_heat_setpoint(self) -> float:
-        # consider: if not self.setpoint_capabilities["can_control_heat"]: return None
+        # consider: if not self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]: return None
         return self.setpoint_capabilities[SZ_MIN_HEAT_SETPOINT]
 
     # Status (state) attrs & methods...
@@ -645,7 +646,7 @@ class Zone(_ZoneBase):
 
     @property
     def until(self) -> dt | None:
-        if (until := self.setpoint_status.get("until")) is None:
+        if (until := self.setpoint_status.get(SZ_UNTIL)) is None:
             return None
         return as_local_time(until, self.location.tzinfo)
 

@@ -10,6 +10,7 @@ from _evohome.helpers import as_local_time
 
 from . import exceptions as exc
 from .const import (
+    SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
@@ -169,7 +170,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     def _update_status(self, status: EvoTcsStatusResponseT) -> None:
         """Update the TCS's status and cascade to its descendants."""
 
-        self._update_faults(status["active_faults"])
+        self._update_faults(status[SZ_ACTIVE_FAULTS])
 
         # cascade the child status to descendants...
         for zon_status in status[SZ_ZONES]:
@@ -417,17 +418,17 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         async def restore_by_id(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
             """Restore a schedule by id and return False if there was no match."""
 
-            id_: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
+            id_: str = sched.get(SZ_ZONE_ID) or sched[SZ_DHW_ID]  # type: ignore[assignment,typeddict-item]
 
             if self.hotwater and self.hotwater.id == id_:
-                await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
+                await self.hotwater.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
 
             elif zone := self.zone_by_id.get(id_):
-                await zone.set_schedule(json.dumps(sched["daily_schedules"]))
+                await zone.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
 
             else:
                 self._logger.warning(
-                    f"Ignoring schedule of {id_} ({sched.get('name')}): unknown id"
+                    f"Ignoring schedule of {id_} ({sched.get(SZ_NAME)}): unknown id"
                     ", consider matching by name rather than by id"
                 )
                 return False
@@ -437,16 +438,16 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         async def restore_by_name(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
             """Restore a schedule by name and return False if there was no match."""
 
-            name: str | None = sched.get("name")  # name is NotRequired[str]
+            name: str | None = sched.get(SZ_NAME)  # name is NotRequired[str]
 
             if name and self.hotwater and name == self.hotwater.name:
-                await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
+                await self.hotwater.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
 
             elif name and (zone := self.zone_by_name.get(name)):
-                await zone.set_schedule(json.dumps(sched["daily_schedules"]))
+                await zone.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
 
             else:
-                id_: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
+                id_: str = sched.get(SZ_ZONE_ID) or sched[SZ_DHW_ID]  # type: ignore[assignment,typeddict-item]
 
                 self._logger.warning(
                     f"Ignoring schedule of {id_} ({name}): unknown name"
