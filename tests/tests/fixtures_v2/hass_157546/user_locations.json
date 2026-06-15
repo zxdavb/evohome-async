@@ -1,0 +1,203 @@
+[
+    {
+        "locationInfo": {
+            "locationId": "7647411",
+            "name": "My Home",
+            "streetAddress": "1 Main Street",
+            "city": "London",
+            "country": "UnitedKingdom",
+            "postcode": "E1 1AA",
+            "locationType": "Residential",
+            "useDaylightSaveSwitching": true,
+            "timeZone": {
+                "timeZoneId": "GMTStandardTime",
+                "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+                "offsetMinutes": 0,
+                "currentOffsetMinutes": 0,
+                "supportsDaylightSaving": true
+            },
+            "locationOwner": {
+                "userId": "4000007",
+                "username": "user_4000007@gmail.com",
+                "firstname": "John",
+                "lastname": "Smith"
+            }
+        },
+        "gateways": [
+            {
+                "gatewayInfo": {
+                    "gatewayId": "7539089",
+                    "mac": "000000000000",
+                    "crc": "0000",
+                    "isWiFi": false
+                },
+                "temperatureControlSystems": [
+                    {
+                        "systemId": "10090510",
+                        "modelType": "EvoTouch",
+                        "allowedSystemModes": [
+                            {
+                                "systemMode": "Auto",
+                                "canBePermanent": true,
+                                "canBeTemporary": false
+                            },
+                            {
+                                "systemMode": "AutoWithEco",
+                                "canBePermanent": true,
+                                "canBeTemporary": true,
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "01:00:00",
+                                "timingMode": "Duration"
+                            },
+                            {
+                                "systemMode": "Away",
+                                "canBePermanent": true,
+                                "canBeTemporary": true,
+                                "maxDuration": "99.00:00:00",
+                                "timingResolution": "1.00:00:00",
+                                "timingMode": "Period"
+                            },
+                            {
+                                "systemMode": "HeatingOff",
+                                "canBePermanent": true,
+                                "canBeTemporary": false
+                            }
+                        ],
+                        "zones": [
+                            {
+                                "zoneId": "10090505",
+                                "modelType": "HeatingZone",
+                                "setpointCapabilities": {
+                                    "maxHeatSetpoint": 35.0,
+                                    "minHeatSetpoint": 5.0,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:10:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 6,
+                                    "minSwitchpointsPerDay": 1,
+                                    "timingResolution": "00:10:00",
+                                    "setpointValueResolution": 0.5
+                                },
+                                "name": "Zone 1",
+                                "zoneType": "ZoneTemperatureControl"
+                            },
+                            {
+                                "zoneId": "10090506",
+                                "modelType": "HeatingZone",
+                                "setpointCapabilities": {
+                                    "maxHeatSetpoint": 35.0,
+                                    "minHeatSetpoint": 5.0,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:10:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 6,
+                                    "minSwitchpointsPerDay": 1,
+                                    "timingResolution": "00:10:00",
+                                    "setpointValueResolution": 0.5
+                                },
+                                "name": "Zone 2",
+                                "zoneType": "ZoneTemperatureControl"
+                            },
+                            {
+                                "zoneId": "10090507",
+                                "modelType": "HeatingZone",
+                                "setpointCapabilities": {
+                                    "maxHeatSetpoint": 35.0,
+                                    "minHeatSetpoint": 5.0,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:10:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 6,
+                                    "minSwitchpointsPerDay": 1,
+                                    "timingResolution": "00:10:00",
+                                    "setpointValueResolution": 0.5
+                                },
+                                "name": "Zone 3",
+                                "zoneType": "ZoneTemperatureControl"
+                            },
+                            {
+                                "zoneId": "10090508",
+                                "modelType": "HeatingZone",
+                                "setpointCapabilities": {
+                                    "maxHeatSetpoint": 35.0,
+                                    "minHeatSetpoint": 5.0,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:10:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 6,
+                                    "minSwitchpointsPerDay": 1,
+                                    "timingResolution": "00:10:00",
+                                    "setpointValueResolution": 0.5
+                                },
+                                "name": "Zone 4",
+                                "zoneType": "ZoneTemperatureControl"
+                            },
+                            {
+                                "zoneId": "10090509",
+                                "modelType": "HeatingZone",
+                                "setpointCapabilities": {
+                                    "maxHeatSetpoint": 35.0,
+                                    "minHeatSetpoint": 5.0,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:10:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 6,
+                                    "minSwitchpointsPerDay": 1,
+                                    "timingResolution": "00:10:00",
+                                    "setpointValueResolution": 0.5
+                                },
+                                "name": "Zone 5",
+                                "zoneType": "ZoneTemperatureControl"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

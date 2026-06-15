@@ -1,0 +1,128 @@
+{
+    "locationId": "3886561",
+    "gateways": [
+        {
+            "gatewayId": "3954744",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "5522075",
+                    "zones": [
+                        {
+                            "zoneId": "5522074",
+                            "temperatureStatus": {
+                                "temperature": 25.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 15.0,
+                                "setpointMode": "PermanentOverride"
+                            },
+                            "name": "Comedor"
+                        },
+                        {
+                            "zoneId": "5522705",
+                            "temperatureStatus": {
+                                "temperature": 25.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 29.0,
+                                "setpointMode": "TemporaryOverride",
+                                "until": "2025-02-24T00:30:00Z"
+                            },
+                            "name": "Living"
+                        },
+                        {
+                            "zoneId": "5522706",
+                            "temperatureStatus": {
+                                "temperature": 24.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 15.0,
+                                "setpointMode": "PermanentOverride"
+                            },
+                            "name": "Escritorio"
+                        },
+                        {
+                            "zoneId": "5522707",
+                            "temperatureStatus": {
+                                "temperature": 25.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 21.5,
+                                "setpointMode": "TemporaryOverride",
+                                "until": "2025-02-16T10:30:00Z"
+                            },
+                            "name": "Dorm. Atras"
+                        },
+                        {
+                            "zoneId": "5522708",
+                            "temperatureStatus": {
+                                "temperature": 24.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 15.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Dorm. Frente"
+                        },
+                        {
+                            "zoneId": "5522709",
+                            "temperatureStatus": {
+                                "temperature": 25.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 15.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Hall PA"
+                        },
+                        {
+                            "zoneId": "5522710",
+                            "temperatureStatus": {
+                                "temperature": 25.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 26.0,
+                                "setpointMode": "TemporaryOverride",
+                                "until": "2025-02-26T01:30:00Z"
+                            },
+                            "name": "Dorm. Princ."
+                        },
+                        {
+                            "zoneId": "5522711",
+                            "temperatureStatus": {
+                                "temperature": 25.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 15.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Baño Princ."
+                        }
+                    ],
+                    "activeFaults": [],
+                    "systemModeStatus": {
+                        "mode": "Away",
+                        "isPermanent": true
+                    }
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}

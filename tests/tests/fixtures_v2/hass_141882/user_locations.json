@@ -1,24 +1,24 @@
 [
     {
         "locationInfo": {
-            "locationId": "2730000",
+            "locationId": "7680795",
             "name": "My Home",
-            "streetAddress": "45 Main Crescent",
+            "streetAddress": "1 Main Street",
             "city": "Sydney",
             "country": "Australia",
-            "postcode": "2001",
+            "postcode": "2000",
             "locationType": "Residential",
             "useDaylightSaveSwitching": true,
             "timeZone": {
                 "timeZoneId": "AUSEasternStandardTime",
                 "displayName": "(UTC+10:00) Canberra, Melbourne, Sydney",
                 "offsetMinutes": 600,
-                "currentOffsetMinutes": 600,
+                "currentOffsetMinutes": 660,
                 "supportsDaylightSaving": true
             },
             "locationOwner": {
-                "userId": "2512649",
-                "username": "user_2512649@gmail.com",
+                "userId": "6324020",
+                "username": "user_6324020@gmail.com",
                 "firstname": "John",
                 "lastname": "Smith"
             }
@@ -26,23 +26,23 @@
         "gateways": [
             {
                 "gatewayInfo": {
-                    "gatewayId": "2750000",
-                    "mac": "000000000000",
-                    "crc": "0000",
+                    "gatewayId": "7242198",
+                    "mac": "************",
+                    "crc": "****",
                     "isWiFi": true
                 },
                 "temperatureControlSystems": [
                     {
-                        "systemId": "2760000",
-                        "modelType": "FocusProWifiRetail",
+                        "systemId": "9727448",
+                        "modelType": "Sydney",
                         "zones": [
                             {
-                                "zoneId": "2770000",
-                                "modelType": "FocusProWifiRetail",
+                                "zoneId": "9727448",
+                                "modelType": "Sydney",
                                 "setpointCapabilities": {
                                     "vacationHoldCapabilities": {
                                         "isChangeable": false,
-                                        "isCancelable": false
+                                        "isCancelable": true
                                     },
                                     "maxHeatSetpoint": 32.0,
                                     "minHeatSetpoint": 4.5,

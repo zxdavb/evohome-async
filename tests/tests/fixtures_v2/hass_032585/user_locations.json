@@ -1,24 +1,24 @@
 [
     {
         "locationInfo": {
-            "locationId": "2730000",
+            "locationId": "111111",
             "name": "My Home",
-            "streetAddress": "45 Main Crescent",
-            "city": "Sydney",
-            "country": "Australia",
-            "postcode": "2001",
+            "streetAddress": "1 Main Street",
+            "city": "London",
+            "country": "United Kingdom",
+            "postcode": "E1 1AA",
             "locationType": "Residential",
             "useDaylightSaveSwitching": true,
             "timeZone": {
-                "timeZoneId": "AUSEasternStandardTime",
-                "displayName": "(UTC+10:00) Canberra, Melbourne, Sydney",
-                "offsetMinutes": 600,
-                "currentOffsetMinutes": 600,
+                "timeZoneId": "GMTStandardTime",
+                "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+                "offsetMinutes": 0,
+                "currentOffsetMinutes": 60,
                 "supportsDaylightSaving": true
             },
             "locationOwner": {
-                "userId": "2512649",
-                "username": "user_2512649@gmail.com",
+                "userId": "4000010",
+                "username": "user_4000010@gmail.com",
                 "firstname": "John",
                 "lastname": "Smith"
             }
@@ -26,23 +26,26 @@
         "gateways": [
             {
                 "gatewayInfo": {
-                    "gatewayId": "2750000",
+                    "gatewayId": "222222",
                     "mac": "000000000000",
                     "crc": "0000",
-                    "isWiFi": true
+                    "isWiFi": false
                 },
                 "temperatureControlSystems": [
                     {
-                        "systemId": "2760000",
-                        "modelType": "FocusProWifiRetail",
+                        "systemId": "416856",
+                        "modelType": "VisionProWifiRetail",
                         "zones": [
                             {
-                                "zoneId": "2770000",
-                                "modelType": "FocusProWifiRetail",
+                                "zoneId": "416856",
+                                "modelType": "VisionProWifiRetail",
                                 "setpointCapabilities": {
                                     "vacationHoldCapabilities": {
-                                        "isChangeable": false,
-                                        "isCancelable": false
+                                        "isChangeable": true,
+                                        "isCancelable": true,
+                                        "minDuration": "1.00:00:00",
+                                        "maxDuration": "365.23:45:00",
+                                        "timingResolution": "00:15:00"
                                     },
                                     "maxHeatSetpoint": 32.0,
                                     "minHeatSetpoint": 4.5,
