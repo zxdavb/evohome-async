@@ -46,18 +46,15 @@ def get_property_methods(obj: object) -> list[str]:
     ]
 
 
-_ATTRS_NOT_TO_SERIALIZE = ("zone_by_name",)  # is already zone_by_id
-
-
 def serializable_attrs(obj: object) -> dict[str, str]:
     """Return a dictionary of serializable attributes of an object."""
 
     result = {}
-    for k in get_property_methods(obj):  # + list(vars(obj).keys()):
-        if not k.startswith("_") and k not in _ATTRS_NOT_TO_SERIALIZE:
+    for k in get_property_methods(obj) + list(vars(obj).keys()):
+        if not k.startswith("_"):
             try:
                 result[k] = yaml.dump(getattr(obj, k))
-            except TypeError:  # not all attrs are serializable
+            except TypeError:  # non-serializable, e.g. client, gateways, zone_by_name
                 continue
 
     return result

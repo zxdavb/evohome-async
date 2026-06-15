@@ -104,20 +104,30 @@ FIXTURES_V0 = Path(__file__).parent / "fixtures_v0"
 FIXTURES_V2 = Path(__file__).parent / "fixtures_v2"
 
 
-# wrapper for FIXTURES_DIR to enable default fixtures
 def _load_fixture(folder: Path, file_name: str) -> JsonArrayType | JsonObjectType:
-    """Load a file fixture and use a default fixture if not found."""
+    """Load a fixture file; xfail immediately if not present (no default/ fallback)."""
 
     try:
-        try:
-            result = load_fixture(folder / file_name)
-        except FileNotFoundError:
-            result = load_fixture(folder.parent / "default" / file_name)
-
+        return load_fixture(folder / file_name)
     except FileNotFoundError:
         pytest.xfail(f"Fixture file not found: {file_name}")
 
-    return result
+
+def _load_schedule_fixture(
+    folder: Path, file_name: str
+) -> JsonArrayType | JsonObjectType:
+    """Load a schedule fixture; fall back to default/ if not present.
+
+    Schedule files are generic enough to share across systems.
+    """
+
+    try:
+        try:
+            return load_fixture(folder / file_name)
+        except FileNotFoundError:
+            return load_fixture(folder.parent / "default" / file_name)
+    except FileNotFoundError:
+        pytest.xfail(f"Fixture file not found: {file_name}")
 
 
 def user_info_fixture(folder: Path) -> JsonObjectType:
@@ -147,7 +157,7 @@ def location_status_fixture(folder: Path, loc_id: str) -> JsonObjectType:
 
 def zone_schedule_fixture(folder: Path, zon_type: str) -> JsonObjectType:
     """Load the JSON of the schedule of a dhw/zone."""
-    return _load_fixture(
+    return _load_schedule_fixture(
         folder, f"schedule_{'dhw' if zon_type == 'domesticHotWater' else 'zone'}.json"
     )  # type: ignore[return-value]
 
