@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import json
+from datetime import datetime as dt
 from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -26,15 +27,13 @@ def assert_schema(folder: Path, schema: vol.Schema, file_name: str) -> None:
     _ = schema(data)
 
 
-# yaml.add_representer(FakeDatetime, fake_datetime_representer)
-def fake_datetime_representer(
-    dumper: yaml.Dumper, data: FakeDatetime
-) -> yaml.nodes.ScalarNode:
-    """Represent a FakeDatetime object as a string."""
+def datetime_representer(dumper: yaml.Dumper, data: dt) -> yaml.nodes.ScalarNode:
+    """Represent a datetime as an ISO 8601 string (with a 'T', not a space)."""
     return dumper.represent_scalar("tag:yaml.org,2002:str", data.isoformat())
 
 
-yaml.add_representer(FakeDatetime, fake_datetime_representer)
+yaml.add_representer(dt, datetime_representer)
+yaml.add_representer(FakeDatetime, datetime_representer)
 
 
 def get_property_methods(obj: object) -> list[str]:
