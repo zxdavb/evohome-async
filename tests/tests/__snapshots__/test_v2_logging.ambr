@@ -13,6 +13,133 @@
     ),
   ])
 # ---
+# name: test_system_warnings[evohome_017]
+  list([
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='8222003'): zone_id='8222004' ignored: Zone(id='8222004'): Invalid model type 'unknown' (is it a ghost zone?)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='8222003'): zone_id='8222004' not known, (has the system configuration been changed?)",
+    ),
+  ])
+# ---
+# name: test_system_warnings[hass_000000]
+  list([
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='3432521'): Active fault: 2023-10-09T01:45:00+01:00 temp_zone_sensor_communication_lost",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='3432578'): Active fault: 2023-06-03T21:05:32+01:00 temp_zone_sensor_low_battery",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='3432578'): Active fault: 2023-09-02T12:34:46+01:00 temp_zone_sensor_communication_lost",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='3432579'): Active fault: 2023-10-09T01:45:04+01:00 temp_zone_sensor_communication_lost",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='3450733'): Active fault: 2023-09-18T22:54:17+01:00 temp_zone_actuator_communication_lost",
+    ),
+  ])
+# ---
+# name: test_system_warnings[hass_000001]
+  list([
+  ])
+# ---
+# name: test_system_warnings[hass_000002]
+  list([
+    tuple(
+      'evohomeasync2',
+      30,
+      "HotWater(id='3933910'): Active fault: 2024-01-17T19:11:12+00:00 dhw_sensor_communication_lost",
+    ),
+  ])
+# ---
+# name: test_system_warnings[hass_030945]
+  list([
+  ])
+# ---
+# name: test_system_warnings[hass_032585]
+  list([
+  ])
+# ---
+# name: test_system_warnings[hass_067822]
+  list([
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='4217768'): Active fault: 2022-03-02T15:56:01+00:00 temp_zone_actuator_communication_lost",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='4217770'): Active fault: 2022-03-02T04:50:20+00:00 temp_zone_actuator_low_battery",
+    ),
+  ])
+# ---
+# name: test_system_warnings[hass_094805]
+  list([
+  ])
+# ---
+# name: test_system_warnings[hass_101355]
+  list([
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='3333333'): zone_id='7820586' ignored: Zone(id='7820586'): Invalid model type 'unknown' (is it a ghost zone?)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='3333333'): zone_id='7820586' not known, (has the system configuration been changed?)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='3333333'): zone_id='7866233' not known, (has the system configuration been changed?)",
+    ),
+  ])
+# ---
+# name: test_system_warnings[hass_102505]
+  list([
+  ])
+# ---
+# name: test_system_warnings[hass_110047]
+  list([
+  ])
+# ---
+# name: test_system_warnings[hass_110065]
+  list([
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='6148217'): zone_id='6248903' ignored: Zone(id='6248903'): Invalid model type 'unknown' (is it a ghost zone?)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='6148217'): zone_id='6248903' not known, (has the system configuration been changed?)",
+    ),
+  ])
+# ---
+# name: test_system_warnings[hass_112884]
+  list([
+  ])
+# ---
 # name: test_system_warnings[hass_118169]
   list([
   ])
@@ -22,55 +149,24 @@
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 temp_zone_actuator_communication_lost",
-    ),
-    tuple(
-      'evohomeasync2',
-      30,
-      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 temp_zone_sensor_communication_lost",
+      "Zone(id='3454854'): Active fault: 2025-02-06T11:20:29+01:00 temp_zone_sensor_communication_lost",
     ),
   ])
 # ---
 # name: test_system_warnings[hass_139945]
   list([
-    tuple(
-      'evohomeasync2',
-      30,
-      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 temp_zone_actuator_communication_lost",
-    ),
-    tuple(
-      'evohomeasync2',
-      30,
-      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 temp_zone_sensor_communication_lost",
-    ),
   ])
 # ---
 # name: test_system_warnings[hass_140194]
   list([
-    tuple(
-      'evohomeasync2',
-      30,
-      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 temp_zone_actuator_communication_lost",
-    ),
-    tuple(
-      'evohomeasync2',
-      30,
-      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 temp_zone_sensor_communication_lost",
-    ),
+  ])
+# ---
+# name: test_system_warnings[hass_141882]
+  list([
   ])
 # ---
 # name: test_system_warnings[hass_157546]
   list([
-    tuple(
-      'evohomeasync2',
-      30,
-      "Zone(id='3432521'): Active fault: 2024-12-17T17:10:57+00:00 temp_zone_actuator_communication_lost",
-    ),
-    tuple(
-      'evohomeasync2',
-      30,
-      "Zone(id='3432576'): Active fault: 2024-05-01T01:00:00+01:00 temp_zone_sensor_communication_lost",
-    ),
   ])
 # ---
 # name: test_system_warnings[system_002]
@@ -94,6 +190,10 @@
       30,
       "Gateway(id='2938388'): Active fault: 2023-05-04T18:47:36.772704+02:00 gateway_communication_lost",
     ),
+  ])
+# ---
+# name: test_system_warnings[system_005]
+  list([
   ])
 # ---
 # name: test_system_warnings[system_006]
