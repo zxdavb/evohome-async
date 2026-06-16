@@ -103,9 +103,7 @@ def factory_zon_schedule(case: Case = Case.VENDOR) -> vol.Schema:
     SCH_GET_SWITCHPOINT_ZONE: Final = vol.Schema(
         {
             vol.Optional(fnc(S2_COOL_SETPOINT)): float,  # an extrapolation
-            vol.Required(fnc(S2_HEAT_SETPOINT)): vol.All(
-                float, vol.Range(min=5, max=35)
-            ),
+            vol.Required(fnc(S2_HEAT_SETPOINT)): vol.All(float, vol.Range(min=5, max=35)),
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
         },
         extra=vol.PREVENT_EXTRA,

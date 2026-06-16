@@ -284,9 +284,7 @@ def factory_system_mode(case: Case = Case.VENDOR) -> vol.All:
 
     def check_can_be_one_of(config: dict[str, object]) -> dict[str, object]:
         if not (config[can_be_permanent] or config[can_be_temporary]):
-            raise vol.Invalid(
-                f"at least one of {can_be_permanent}, {can_be_temporary} must be true"
-            )
+            raise vol.Invalid(f"at least one of {can_be_permanent}, {can_be_temporary} must be true")
         return config
 
     def check_duration_keys(config: dict[str, object]) -> dict[str, object]:
@@ -326,9 +324,7 @@ def factory_schedule_capabilities_response(
         {
             vol.Required(fnc(S2_MAX_SWITCHPOINTS_PER_DAY)): int,  # 6
             vol.Required(fnc(S2_MIN_SWITCHPOINTS_PER_DAY)): int,  # 1
-            vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(
-                format="00:%M:00"
-            ),  # "00:10:00"
+            vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),  # "00:10:00"
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -354,12 +350,8 @@ def factory_dhw(case: Case = Case.VENDOR) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_DHW_ID)): vol.Match(REGEX_DHW_ID),
-            vol.Required(
-                fnc(S2_DHW_STATE_CAPABILITIES_RESPONSE)
-            ): SCH_DHW_STATE_CAPABILITIES_RESPONSE,
-            vol.Required(
-                fnc(S2_SCHEDULE_CAPABILITIES_RESPONSE)
-            ): factory_schedule_capabilities_response(case),
+            vol.Required(fnc(S2_DHW_STATE_CAPABILITIES_RESPONSE)): SCH_DHW_STATE_CAPABILITIES_RESPONSE,
+            vol.Required(fnc(S2_SCHEDULE_CAPABILITIES_RESPONSE)): factory_schedule_capabilities_response(case),
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -403,20 +395,12 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
             vol.Optional(fnc(S2_MAX_COOL_SETPOINT)): float,  # TODO
             vol.Optional(fnc(S2_MIN_COOL_SETPOINT)): float,  # TODO
             # TODO: list should be a non-empty *subset* of all possible TccZoneMode(s)
-            vol.Required(fnc(S2_ALLOWED_SETPOINT_MODES)): [
-                factory_enum(case, TccZoneMode)
-            ],
+            vol.Required(fnc(S2_ALLOWED_SETPOINT_MODES)): [factory_enum(case, TccZoneMode)],
             vol.Required(fnc(S2_VALUE_RESOLUTION)): float,  # 0.5
             vol.Required(fnc(S2_MAX_DURATION)): str,  # "1.00:00:00"
-            vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(
-                format="00:%M:00"
-            ),  # "00:10:00"
-            vol.Optional(
-                fnc(S2_VACATION_HOLD_CAPABILITIES)
-            ): SCH_VACATION_HOLD_CAPABILITIES,  # non-evohome
-            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): factory_enum(
-                case, TccFanMode
-            ),  # non-evohome
+            vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),  # "00:10:00"
+            vol.Optional(fnc(S2_VACATION_HOLD_CAPABILITIES)): SCH_VACATION_HOLD_CAPABILITIES,  # non-evohome
+            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): factory_enum(case, TccFanMode),  # non-evohome
             vol.Optional(fnc(S2_SETPOINT_DEADBAND)): float,  # non-evohome
         },
         extra=vol.PREVENT_EXTRA,
@@ -454,9 +438,7 @@ def factory_tcs(case: Case = Case.VENDOR) -> vol.Schema:
             vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
             vol.Required(fnc(S2_MODEL_TYPE)): factory_enum(case, TccTcsModelType),
             vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [factory_system_mode(case)],
-            vol.Required(fnc(S2_ZONES)): vol.All(
-                [factory_zone(case)], vol.Length(min=_MIN_NUM_ZONES_PER_TCS)
-            ),
+            vol.Required(fnc(S2_ZONES)): vol.All([factory_zone(case)], vol.Length(min=_MIN_NUM_ZONES_PER_TCS)),
             vol.Optional(fnc(S2_DHW)): factory_dhw(case),
         },
         extra=vol.PREVENT_EXTRA,
@@ -529,9 +511,7 @@ def factory_location_installation_info(
             vol.Required(fnc(S2_CITY)): vol.All(str, redact),
             vol.Required(fnc(S2_COUNTRY)): str,
             vol.Required(fnc(S2_POSTCODE)): vol.All(str, redact),
-            vol.Required(fnc(S2_LOCATION_TYPE)): factory_enum(
-                case, TccLocationType
-            ),  # "Residential"
+            vol.Required(fnc(S2_LOCATION_TYPE)): factory_enum(case, TccLocationType),  # "Residential"
             vol.Required(fnc(S2_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
             vol.Required(fnc(S2_TIME_ZONE)): factory_time_zone(case),
             vol.Required(fnc(S2_LOCATION_OWNER)): SCH_LOCATION_OWNER,

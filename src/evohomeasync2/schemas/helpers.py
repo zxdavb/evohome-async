@@ -24,9 +24,7 @@ class Case(StrEnum):
     PYTHONIC = "pythonic"  # snake_case keys, coerced to user-facing enum members
 
 
-def factory_enum(
-    case: Case, tcc_cls: type[StrEnum]
-) -> vol.In | Callable[[object], StrEnum]:
+def factory_enum(case: Case, tcc_cls: type[StrEnum]) -> vol.In | Callable[[object], StrEnum]:
     """Return a validator for an enum field, per the casing convention.
 
     For Case.VENDOR, validates the value is a member of the vendor (Tcc*) enum.

@@ -296,9 +296,7 @@ def factory_gwy_status(case: Case = Case.VENDOR) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_GATEWAY_ID)): vol.Match(REGEX_GATEWAY_ID),
-            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [
-                factory_tcs_status(case)
-            ],
+            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [factory_tcs_status(case)],
             vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(case)],
         },
         extra=vol.PREVENT_EXTRA,
