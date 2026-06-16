@@ -2,14 +2,33 @@
 exclude: ^(.secrets|docs)/
 
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.13
+  # ruff & mypy run as local (system) hooks, so they use the versions pinned in
+  # pyproject's dev dependencies -- a single source of truth that can't drift from a
+  # separately-pinned hook rev (and mypy gets the project's deps, unlike mirrors-mypy).
+  - repo: local
     hooks:
       - id: ruff-check
+        name: ruff check
+        entry: ruff check --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
       - id: ruff-format
+        name: ruff format
+        entry: ruff format --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: system
+        types_or: [python, pyi]
+        pass_filenames: false
+        require_serial: true
 
   - repo: https://github.com/cdce8p/python-typing-update
-    rev: v0.6.0
+    rev: v0.8.1
     hooks:
       # Run `python-typing-update` hook manually from time to time
       # to update python typing syntax.
