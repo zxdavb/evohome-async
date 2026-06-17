@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime as dt, timedelta as td
+from datetime import UTC, datetime as dt, time as tm, timedelta as td
 from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
@@ -216,7 +216,7 @@ class ActiveFaultsBase(EntityBase):
         "activeFaults": [
             {
             "faultType": "GatewayCommunicationLost",
-            "since": "2023-05-04T18:47:36.7727046"
+            "since": "2023-05-04T18:47:36.7727046"  # some have no milliseconds!
             }
         ]
         """
@@ -376,8 +376,8 @@ class _ScheduleBase(ActiveFaultsBase):
             self.schedule, *_dt_to_dow_and_tod(dtm, self.location.tzinfo)
         )
 
-        this_tod = dt.strptime(this_sp[SZ_TIME_OF_DAY], "%H:%M:00").time()  # noqa: DTZ007
-        next_tod = dt.strptime(next_sp[SZ_TIME_OF_DAY], "%H:%M:00").time()  # noqa: DTZ007
+        this_tod = tm.fromisoformat(this_sp[SZ_TIME_OF_DAY])
+        next_tod = tm.fromisoformat(next_sp[SZ_TIME_OF_DAY])
 
         this_dtm = dt.combine(dtm + td(days=this_offset), this_tod)
         next_dtm = dt.combine(dtm + td(days=next_offset), next_tod)
