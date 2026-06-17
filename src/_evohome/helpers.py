@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime as dt
+from datetime import UTC, datetime as dt
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Final, overload
 
 from .const import _DBG_DONT_REDACT_SECRETS, REGEX_EMAIL_ADDRESS
+from .exceptions import BadApiRequestError
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -175,6 +176,10 @@ def convert_datetimes_to_str[T](data: T) -> T:
 
     Used before sending JSON to the vendor API, alongside StrEnum conversion.
     Only datetime instances are converted; plain strings are left unchanged.
+
+    Aware datetimes are converted to UTC before formatting, so the trailing 'Z' in
+    TCC_DTM_STRFTIME is truthful (an aware non-UTC datetime is sent as the correct UTC
+    instant, not its wall-clock fields relabelled as UTC).
     """
 
     def recurse(data_: Any) -> Any:
@@ -185,7 +190,11 @@ def convert_datetimes_to_str[T](data: T) -> T:
             return [recurse(i) for i in data_]
 
         if isinstance(data_, dt):
-            return data_.strftime(TCC_DTM_STRFTIME)
+            if data_.tzinfo is None:  # else astimezone() would assume the local TZ
+                raise BadApiRequestError(
+                    f"Datetime must be TZ-aware (not naive): {data_!r}"
+                )
+            return data_.astimezone(UTC).strftime(TCC_DTM_STRFTIME)
 
         return data_
 
