@@ -2,26 +2,27 @@
 exclude: ^(.secrets|docs)/
 
 repos:
-  # ruff & mypy run as local (system) hooks, so they use the versions pinned in
-  # pyproject's dev dependencies -- a single source of truth that can't drift from a
-  # separately-pinned hook rev (and mypy gets the project's deps, unlike mirrors-mypy).
+  # ruff & mypy run as local hooks via `uv run` so they always resolve against
+  # the repo's .venv/lockfile without requiring shell activation.
+  # This keeps one source of truth for versions in pyproject/uv.lock while
+  # avoiding PATH-sensitive failures.
   - repo: local
     hooks:
       - id: ruff-check
         name: ruff check
-        entry: ruff check --force-exclude
+        entry: uv run --no-sync ruff check --force-exclude
         language: system
         types_or: [python, pyi]
         require_serial: true
       - id: ruff-format
         name: ruff format
-        entry: ruff format --force-exclude
+        entry: uv run --no-sync ruff format --force-exclude
         language: system
         types_or: [python, pyi]
         require_serial: true
       - id: mypy
         name: mypy
-        entry: mypy
+        entry: uv run --no-sync mypy
         language: system
         types_or: [python, pyi]
         pass_filenames: false
