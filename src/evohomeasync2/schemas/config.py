@@ -140,8 +140,8 @@ class TccLocConfigEntryT(TypedDict):
 class TccTimeZoneInfoT(TypedDict):
     """Time zone information."""
 
-    timeZoneId: str
-    displayName: str
+    timeZoneId: str  # #  "GMTStandardTime"
+    displayName: str  # # "(UTC+00:00) Dublin, Edinburgh, Lisbon, London"
     offsetMinutes: int
     currentOffsetMinutes: int
     supportsDaylightSaving: bool
@@ -176,9 +176,9 @@ class TccAllowedSystemModeResponseT(TypedDict):
     systemMode: TccSystemMode
     canBePermanent: Literal[True]
     canBeTemporary: bool
-    maxDuration: NotRequired[str]  # e.g. "1.00:00:00", "99.00:00:00"
-    timingResolution: NotRequired[str]
-    timingMode: NotRequired[str]
+    maxDuration: NotRequired[str]  # #        "1.00:00:00", "99.00:00:00"
+    timingResolution: NotRequired[str]  # #     "01:00:00",  "1.00:00:00"
+    timingMode: NotRequired[TccTimingMode]  # # "Duration",  "Period"
 
 
 class TccTcsConfigResponseT(TccTcsConfigEntryT):
@@ -203,8 +203,8 @@ class TccAllowedFanModeResponseT(TypedDict):
 class TccZonScheduleCapabilitiesResponseT(TypedDict):
     maxSwitchpointsPerDay: int
     minSwitchpointsPerDay: int
-    timingResolution: str  # e.g. "00:10:00"
-    setpointValueResolution: float
+    timingResolution: str  # #        "00:10:00"
+    setpointValueResolution: float  # 0.5
 
 
 class TccZonSetpointCapabilitiesResponseT(TypedDict):
@@ -214,8 +214,8 @@ class TccZonSetpointCapabilitiesResponseT(TypedDict):
     maxHeatSetpoint: float
     minHeatSetpoint: float
     valueResolution: float
-    maxDuration: str  # e.g. "1.00:00:00"
-    timingResolution: str  # e.g. "00:15:00"
+    maxDuration: str  # #     "1.00:00:00"
+    timingResolution: str  # #  "00:10:00", "00:15:00"
     # following seen on FocusProWifi, not Evohome...
     maxCoolSetpoint: NotRequired[float]
     minCoolSetpoint: NotRequired[float]
@@ -247,8 +247,8 @@ class TccDhwScheduleCapabilitiesResponseT(TypedDict):
 class TccDhwStateCapabilitiesResponseT(TypedDict):
     allowedStates: list[TccDhwState]
     allowedModes: list[TccZoneMode]
-    maxDuration: str  # e.g. "1.00:00:00"
-    timingResolution: str  # e.g. "00:10:00"
+    maxDuration: str  # #     "1.00:00:00"
+    timingResolution: str  # #  "00:10:00"
 
 
 class TccDhwConfigEntryT(TccDhwConfigResponseT):

@@ -83,8 +83,8 @@ class TccGwyStatusResponseT(TypedDict):
 
 
 class TccActiveFaultResponseT(TypedDict):
-    faultType: str
-    since: str
+    faultType: TccFaultType  # "TempZoneSensorCommunicationLost"
+    since: str  # #            "2023-10-09T01:45:00", "2023-10-09T01:45:00.123456"
 
 
 class TccTcsStatusResponseT(TypedDict):
