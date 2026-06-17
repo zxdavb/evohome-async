@@ -303,7 +303,8 @@ def factory_system_mode(case: Case = Case.VENDOR) -> vol.All:
                 vol.Required(can_be_permanent): bool,
                 vol.Required(can_be_temporary): bool,
                 vol.Optional(max_duration): str,  # "99.00:00:00"
-                vol.Optional(timing_resolution): str,  # "1.00:00:00"
+                # a Period mode is whole-day ("1.00:00:00"); a Duration mode is "01:00:00"
+                vol.Optional(timing_resolution): str,
                 vol.Optional(timing_mode): factory_enum(case, TccTimingMode),
             },
             extra=vol.PREVENT_EXTRA,
@@ -341,8 +342,8 @@ def factory_dhw(case: Case = Case.VENDOR) -> vol.Schema:
             vol.Required(fnc(S2_ALLOWED_STATES)): [factory_enum(case, TccDhwState)],
             # TODO: list should be a non-empty *subset* of all possible TccZoneMode(s)
             vol.Required(fnc(S2_ALLOWED_MODES)): [factory_enum(case, TccZoneMode)],
-            vol.Required(fnc(S2_MAX_DURATION)): str,
-            vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),
+            vol.Required(fnc(S2_MAX_DURATION)): str,  # "1.00:00:00"
+            vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),  # "00:10:00"
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -373,9 +374,9 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
         {
             vol.Required(fnc(S2_IS_CHANGEABLE)): bool,
             vol.Required(fnc(S2_IS_CANCELABLE)): bool,
-            vol.Optional(fnc(S2_MAX_DURATION)): str,
-            vol.Optional(fnc(S2_MIN_DURATION)): str,
-            vol.Optional(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),
+            vol.Optional(fnc(S2_MAX_DURATION)): str,  # "365.23:45:00"
+            vol.Optional(fnc(S2_MIN_DURATION)): str,  # "1.00:00:00"
+            vol.Optional(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),  # "00:10:00"
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -476,8 +477,8 @@ def factory_time_zone(case: Case = Case.VENDOR) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required(fnc(S2_TIME_ZONE_ID)): str,
-            vol.Required(fnc(S2_DISPLAY_NAME)): str,
+            vol.Required(fnc(S2_TIME_ZONE_ID)): str,  # "GMTStandardTime" (a Windows TZ id)
+            vol.Required(fnc(S2_DISPLAY_NAME)): str,  # "(UTC+00:00) Dublin, Edinburgh, Lisbon, London"
             vol.Required(fnc(S2_OFFSET_MINUTES)): int,
             vol.Required(fnc(S2_CURRENT_OFFSET_MINUTES)): int,
             vol.Required(fnc(S2_SUPPORTS_DAYLIGHT_SAVING)): bool,
