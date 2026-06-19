@@ -103,7 +103,7 @@ jobs:
           echo "ha_version=${HA_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Check out ${{ env.HA_REPO }}@${{ steps.resolve-ha.outputs.ha_version }} (sparse checkout of pyproject.toml)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ${{ env.HA_REPO }}
           ref: ${{ steps.resolve-ha.outputs.ha_version }}
@@ -134,14 +134,14 @@ jobs:
           check-latest: true
 
       - name: Check out ${{ env.HA_REPO }}@${{ env.HA_VERSION }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ${{ env.HA_REPO }}
           ref: ${{ env.HA_VERSION }}
           path: home-assistant-core
 
       - name: Check out evohome-async
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: evohome-async
           fetch-depth: 0  # Fetch all history for tags
