@@ -6,9 +6,9 @@ import json
 from datetime import UTC, datetime as dt, time as tm, timedelta as td
 from functools import cached_property
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, NoReturn
 
-from _evohome.helpers import as_local_time
+from _evohome.helpers import as_local_time, convert_dtm_to_local_aware
 
 from . import exceptions as exc
 from .const import (
@@ -159,6 +159,19 @@ class EntityBase:
         if self._status is None:
             raise exc.InvalidStatusError(_ERR_NOT_AVAILABLE.format(self))
         return self._status
+
+    async def _get_status(
+        self,
+        *,
+        _update: bool = True,
+    ) -> NoReturn:
+        """Return the latest state of the entity.
+
+        It is more efficient to call Location.update() as all descendants are updated
+        with a single GET. Returns the raw JSON of the latest state.
+        """
+
+        raise NotImplementedError("Use Location.update() to update status")
 
 
 class ActiveFaultsBase(EntityBase):
@@ -472,12 +485,15 @@ class _ZoneBase(_ScheduleBase):
         """Return the latest status of the entity."""
         return super().status  # type: ignore[return-value]
 
-    async def _get_status(self) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
-        """Get the latest state of this entity (DHW/zone) and update its status.
+    async def _get_status(  # type: ignore[override]
+        self,
+        *,
+        _update: bool = True,
+    ) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
+        """Get the latest state of this DHW/zone and optionally update its status attrs.
 
-        This is a working vendor API endpoint, retained for use by the test suite.
-        For normal use, prefer Location.update() as a single GET updates all
-        descendants more efficiently. Returns the raw JSON of the latest state.
+        This is a working vendor API endpoint, retained only for use by the test suite.
+        For normal use, prefer Location.update as a single GET updates all descendants.
         """
 
         self._logger.warning(
@@ -489,7 +505,10 @@ class _ZoneBase(_ScheduleBase):
             schema=self.SCH_STATUS,
         )  # type: ignore[assignment]
 
-        self._update_status(status)
+        status = convert_dtm_to_local_aware(status, self.location.tzinfo)
+
+        if _update:
+            self._update_status(status)
         return status
 
     def _update_status(

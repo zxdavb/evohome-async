@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
 
+from _evohome.helpers import convert_dtm_to_local_aware
 from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
 from .const import (
@@ -234,18 +235,22 @@ class Location(EntityBase):
         if _update_time_zone_info:
             await self._get_config()
 
-        status = await self._get_status()
+        return await self._get_status()
 
-        self._update_status(status)
-        return status
-
-    async def _get_status(self) -> EvoLocStatusResponseT:
-        """Get the latest state of the location.
+    async def _get_status(  # type: ignore[override]
+        self,
+        *,
+        _update: bool = True,
+    ) -> EvoLocStatusResponseT:
+        """Get the latest state of the location and optionally update its status attrs.
 
         Returns the JSON of the latest state, validated and coerced by the schema:
          - nodes are in pascalCase, and converted to snake_case
          - str enums are in CamelCase, and converted to snake_case StrEnums
          - datetimes are ISO format strings, and converted to datetime objects
+
+        Some datetimes are naive (e.g. ActiveFaults.since), and assumed to be in the
+        location's TZ.
         """
 
         status: EvoLocStatusResponseT = await self._auth.get(
@@ -253,6 +258,10 @@ class Location(EntityBase):
             schema=self.SCH_STATUS,
         )  # type: ignore[assignment]
 
+        status = convert_dtm_to_local_aware(status, self.tzinfo)
+
+        if _update:
+            self._update_status(status)
         return status
 
     def _update_status(self, status: EvoLocStatusResponseT) -> None:

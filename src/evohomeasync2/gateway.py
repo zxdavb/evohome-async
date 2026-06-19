@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Final, NoReturn
+from typing import TYPE_CHECKING, Final
 
 from .const import (
     SZ_ACTIVE_FAULTS,
@@ -85,15 +85,6 @@ class Gateway(ActiveFaultsBase, EntityBase):
         return self._config[SZ_MAC]
 
     # Status (state) attrs & methods...
-
-    async def _get_status(self) -> NoReturn:
-        """Get the latest state of the gateway and update its status attr.
-
-        It is more efficient to call Location.update() as all descendants are updated
-        with a single GET. Returns the raw JSON of the latest state.
-        """
-
-        raise NotImplementedError("Use Location.update() to update status")
 
     def _update_status(self, status: EvoGwyStatusResponseT) -> None:
         """Update the GWY's status and cascade to its descendants."""

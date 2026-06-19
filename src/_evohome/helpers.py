@@ -119,6 +119,32 @@ def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
     return dtm.replace(tzinfo=tzinfo) if dtm.tzinfo is None else dtm.astimezone(tzinfo)
 
 
+def convert_dtm_to_local_aware[T](data: T, tzinfo: tzinfo) -> T:
+    """Recursively convert all datetimes to TZ-aware datetimes in the given TZ.
+
+    All such datetimes either TZ-aware or naive, which are assumed to be in the same TZ
+    as the location.
+    """
+
+    def recurse(data_: Any) -> Any:
+        if isinstance(data_, dict):
+            return {k: recurse(v) for k, v in data_.items()}
+
+        if isinstance(data_, list):
+            return [recurse(i) for i in data_]
+
+        if isinstance(data_, dt):  # naive -> assume local; aware (UTC) -> to local
+            return (
+                data_.replace(tzinfo=tzinfo)
+                if data_.tzinfo is None
+                else data_.astimezone(tzinfo)
+            )
+
+        return data_
+
+    return recurse(data)  # type:ignore[no-any-return]
+
+
 _STEP_1 = re.compile(r"(.)([A-Z][a-z]+)")
 _STEP_2 = re.compile(r"([a-z0-9])([A-Z])")
 
