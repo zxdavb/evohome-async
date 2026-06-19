@@ -43,26 +43,26 @@ _REDACTED_KEYS = (  # also keys with 'name' in them
 
 
 def _convert_keys[T](data: T, fnc: Callable[[str], str]) -> T:
-    """Recursively convert all dict keys as per some function.
+    """Recursively convert all JSON keys as per some function.
 
     For example, converts all keys to snake_case, or CamelCase, etc.
     Used after retrieving (or before sending) JSON via the vendor API.
     """
 
     def recurse(data_: Any) -> Any:
+        if isinstance(data_, dict):
+            return {fnc(k): recurse(v) for k, v in data_.items()}
+
         if isinstance(data_, list):
             return [recurse(i) for i in data_]
 
-        if not isinstance(data_, dict):
-            return data_
-
-        return {fnc(k): recurse(v) for k, v in data_.items()}
+        return data_
 
     return recurse(data)  # type:ignore[no-any-return]
 
 
 def _convert_vals[T](data: T, fnc: Callable[[str], str]) -> T:
-    """Recursively convert all string values as per some function.
+    """Recursively convert all JSON string values as per some function.
 
     For example, converts all isoformat string values to TZ-aware format.
     Used after retrieving (or before sending) JSON via the vendor API.
@@ -75,22 +75,16 @@ def _convert_vals[T](data: T, fnc: Callable[[str], str]) -> T:
         if isinstance(data_, list):
             return [recurse(i) for i in data_]
 
-        if isinstance(data_, str):
-            return fnc(data_)
+        if not isinstance(data_, str):
+            return data_
 
-        return data_
+        return fnc(data_)
 
     return recurse(data)  # type:ignore[no-any-return]
 
 
-def _convert_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
-    """Recursively convert StrEnum values as per some function.
-
-    Unlike _convert_vals, only converts values that are StrEnum instances —
-    plain strings (names, datetimes, etc.) are left unchanged.
-    Used before sending JSON to the vendor API to convert snake_case enum
-    values back to PascalCase.
-    """
+def _convert_dtms[T](data: T, fnc: Callable[[dt], dt]) -> T:
+    """Recursively convert all JSON datetime objects as per some function."""
 
     def recurse(data_: Any) -> Any:
         if isinstance(data_, dict):
@@ -99,12 +93,32 @@ def _convert_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
         if isinstance(data_, list):
             return [recurse(i) for i in data_]
 
-        if isinstance(data_, StrEnum):
-            return fnc(data_)
+        if not isinstance(data_, dt):
+            return data_
 
-        return data_
+        return fnc(data_)
 
     return recurse(data)  # type:ignore[no-any-return]
+
+
+def _convert_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
+    """Recursively convert StrEnum values as per some function."""
+    return _convert_vals(data, lambda s: fnc(s) if isinstance(s, StrEnum) else s)
+
+
+def _convert_dtm_vals[T](data: T, fnc: Callable[[dt], dt]) -> T:
+    """Recursively convert StrEnum values as per some function."""
+    return _convert_dtms(data, lambda s: fnc(s) if isinstance(s, dt) else s)
+
+
+def convert_dtm_to_local_aware[T](data: T, tzinfo: tzinfo) -> T:
+    """Recursively convert all datetimes to TZ-aware datetimes in the given TZ.
+
+    All such datetimes either TZ-aware or naive, which are assumed to be in the same TZ
+    as the location.
+    """
+
+    return _convert_dtm_vals(data, lambda d: as_local_time(d, tzinfo))
 
 
 def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
@@ -119,30 +133,24 @@ def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
     return dtm.replace(tzinfo=tzinfo) if dtm.tzinfo is None else dtm.astimezone(tzinfo)
 
 
-def convert_dtm_to_local_aware[T](data: T, tzinfo: tzinfo) -> T:
-    """Recursively convert all datetimes to TZ-aware datetimes in the given TZ.
+def as_aware_dtm(dtm: dt | str) -> dt:
+    """Return an aware datetime from a datetime or an ISO 8601 string.
 
-    All such datetimes either TZ-aware or naive, which are assumed to be in the same TZ
-    as the location.
+    Strings are parsed via fromisoformat; a naive datetime is rejected, as its UTC
+    instant would otherwise be ambiguous. Used to normalise a user-supplied 'until'
+    before it is sent to the vendor API.
     """
 
-    def recurse(data_: Any) -> Any:
-        if isinstance(data_, dict):
-            return {k: recurse(v) for k, v in data_.items()}
+    if isinstance(dtm, str):
+        try:
+            dtm = dt.fromisoformat(dtm)
+        except ValueError as err:
+            raise BadApiRequestError(f"Invalid datetime string: {dtm!r}") from err
 
-        if isinstance(data_, list):
-            return [recurse(i) for i in data_]
+    if dtm.tzinfo is None:
+        raise BadApiRequestError(f"Datetime must be TZ-aware (not naive): {dtm!r}")
 
-        if isinstance(data_, dt):  # naive -> assume local; aware (UTC) -> to local
-            return (
-                data_.replace(tzinfo=tzinfo)
-                if data_.tzinfo is None
-                else data_.astimezone(tzinfo)
-            )
-
-        return data_
-
-    return recurse(data)  # type:ignore[no-any-return]
+    return dtm
 
 
 _STEP_1 = re.compile(r"(.)([A-Z][a-z]+)")
@@ -187,18 +195,12 @@ def noop[T](s: T) -> T:
 
 
 def convert_keys_to_camel_case[T](data: T) -> T:
-    """Recursively convert all dict keys from snake_case to camelCase.
-
-    Used before sending JSON to the vendor API.
-    """
+    """Recursively convert all dict keys from snake_case to camelCase."""
     return _convert_keys(data, snake_to_camel)
 
 
 def convert_keys_to_snake_case[T](data: T) -> T:
-    """Recursively convert all dict keys from camelCase to snake_case.
-
-    Used after retrieving JSON from the vendor API.
-    """
+    """Recursively convert all dict keys from camelCase to snake_case."""
     return _convert_keys(data, camel_to_snake)
 
 
