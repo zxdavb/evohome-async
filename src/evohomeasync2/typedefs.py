@@ -27,7 +27,7 @@ class EvoAuthTokensResponseT(TypedDict):
     """Response to POST /Auth/OAuth/Token."""
 
     access_token: str
-    expires_in: int
+    expires_in: int  # seconds until access token expires
     refresh_token: str
     scope: str
     token_type: str
@@ -208,7 +208,7 @@ class EvoGwyStatusResponseT(TypedDict):
 
 class EvoActiveFaultResponseT(TypedDict):
     fault_type: FaultType | str  # may be unknown/unexpected value, so allow str
-    since: str
+    since: dt  # TZ-naive, no 'Z' suffix in the vendor string
 
 
 class EvoTcsStatusResponseT(TypedDict):
@@ -222,7 +222,7 @@ class EvoTcsStatusResponseT(TypedDict):
 class EvoSystemModeStatusResponseT(TypedDict):
     mode: SystemMode
     is_permanent: bool
-    time_until: NotRequired[str]
+    time_until: NotRequired[dt]  # TZ-aware
 
 
 class EvoZonStatusResponseT(TypedDict):
@@ -236,7 +236,7 @@ class EvoZonStatusResponseT(TypedDict):
 class EvoZonSetpointStatusResponseT(TypedDict):
     setpoint_mode: ZoneMode
     target_heat_temperature: float
-    until: NotRequired[str]
+    until: NotRequired[dt]  # TZ-aware
 
 
 class EvoTemperatureStatusResponseT(TypedDict):
@@ -254,7 +254,7 @@ class EvoDhwStatusResponseT(TypedDict):
 class EvoDhwStateStatusResponseT(TypedDict):
     mode: ZoneMode
     state: DhwState
-    until: NotRequired[str]
+    until: NotRequired[dt]  # TZ-aware
 
 
 #######################################################################################
@@ -266,21 +266,21 @@ class EvoDhwStateStatusResponseT(TypedDict):
 class EvoSetDhwStateT(TypedDict):
     mode: ZoneMode
     state: NotRequired[DhwState]  # required by override modes
-    until_time: NotRequired[dt]  # required by TemporaryOverride
+    until_time: NotRequired[dt | str]  # required by TemporaryOverride
 
 
 # PUT /temperatureControlSystem/{tcs_id}/mode
 class EvoSetSystemModeT(TypedDict):
     system_mode: SystemMode
     permanent: bool
-    time_until: NotRequired[dt]  # required by TemporaryOverride
+    time_until: NotRequired[dt | str]  # required by TemporaryOverride
 
 
 # PUT /temperatureZone/{zon_id}/heatSetpoint
 class EvoSetZoneHeatSetpointT(TypedDict):
     setpoint_mode: ZoneMode
     heat_setpoint_value: NotRequired[float]  # required by override modes
-    time_until: NotRequired[dt]  # required by TemporaryOverride
+    time_until: NotRequired[dt | str]  # required by TemporaryOverride
 
 
 #######################################################################################

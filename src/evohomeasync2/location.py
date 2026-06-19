@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
 
-from _evohome.helpers import convert_naive_dtm_strs_to_aware
 from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
 from .const import (
@@ -243,7 +242,10 @@ class Location(EntityBase):
     async def _get_status(self) -> EvoLocStatusResponseT:
         """Get the latest state of the location.
 
-        Returns the raw JSON of the latest state.
+        Returns the JSON of the latest state, validated and coerced by the schema:
+         - nodes are in pascalCase, and converted to snake_case
+         - str enums are in CamelCase, and converted to snake_case StrEnums
+         - datetimes are ISO format strings, and converted to datetime objects
         """
 
         status: EvoLocStatusResponseT = await self._auth.get(
@@ -255,9 +257,6 @@ class Location(EntityBase):
 
     def _update_status(self, status: EvoLocStatusResponseT) -> None:
         """Update the LOC's status and cascade to its descendants."""
-
-        # convert all naive datetimes to TZ-aware datetimes (do when snake_casing?)
-        status = convert_naive_dtm_strs_to_aware(status, self.tzinfo)
 
         # No ActiveFaults in location node of status
 

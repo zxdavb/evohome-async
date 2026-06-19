@@ -52,17 +52,13 @@ from .const import (
     S2_UNTIL,
     S2_ZONE_ID,
     S2_ZONES,
-    TCC_DTM_STRFTIME,
     TccDhwState,
     TccFanMode,
     TccFaultType,
     TccSystemMode,
     TccZoneMode,
 )
-from .helpers import Case, factory_enum
-
-# HACK: "2023-05-04T18:47:36.7727046" (7, not 6 digits) seen with gateway fault
-_DTM_FORMAT = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,7}$"
+from .helpers import Case, factory_datetime, factory_enum
 
 
 # GET /location/{loc_id}/status?include... returns this dict
@@ -141,11 +137,8 @@ def factory_active_faults(case: Case = Case.VENDOR) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_FAULT_TYPE)): factory_enum(case, TccFaultType),
-            vol.Required(fnc(S2_SINCE)): vol.Any(
-                vol.Datetime(format="%Y-%m-%dT%H:%M:%S"),  # faults for zones
-                vol.Datetime(format="%Y-%m-%dT%H:%M:%S.%f"),
-                vol.All(str, vol.Match(_DTM_FORMAT)),  # faults for gateways
-            ),
+            # naive, e.g. "2023-10-09T01:45:00" (some gateways send 7 fractional digits)
+            vol.Required(fnc(S2_SINCE)): factory_datetime(case),
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -181,7 +174,7 @@ def factory_zon_status(case: Case = Case.VENDOR) -> vol.Schema:
         {
             vol.Required(fnc(S2_TARGET_HEAT_TEMPERATURE)): float,
             vol.Required(fnc(S2_SETPOINT_MODE)): factory_enum(case, TccZoneMode),
-            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=TCC_DTM_STRFTIME),
+            vol.Optional(fnc(S2_UNTIL)): factory_datetime(case),
         },
         extra=vol.PREVENT_EXTRA,
     )  # NOTE: S2_UNTIL is present only for some modes
@@ -216,7 +209,7 @@ def factory_dhw_status(case: Case = Case.VENDOR) -> vol.Schema:
         {
             vol.Required(fnc(S2_STATE)): factory_enum(case, TccDhwState),
             vol.Required(fnc(S2_MODE)): factory_enum(case, TccZoneMode),
-            vol.Optional(fnc(S2_UNTIL)): vol.Datetime(format=TCC_DTM_STRFTIME),
+            vol.Optional(fnc(S2_UNTIL)): factory_datetime(case),
         },
         extra=vol.PREVENT_EXTRA,
     )  # NOTE: S2_UNTIL is present only for some modes
@@ -263,7 +256,7 @@ def factory_system_mode_status(case: Case = Case.VENDOR) -> vol.Any:
         vol.Schema(
             {
                 vol.Required(fnc(S2_MODE)): temporary_mode,
-                vol.Required(fnc(S2_TIME_UNTIL)): vol.Datetime(format=TCC_DTM_STRFTIME),
+                vol.Required(fnc(S2_TIME_UNTIL)): factory_datetime(case),
                 vol.Required(fnc(S2_IS_PERMANENT)): False,
             }
         ),

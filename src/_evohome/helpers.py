@@ -15,9 +15,14 @@ if TYPE_CHECKING:
     from datetime import tzinfo
 
 
+# Vendor API datetime format (ISO 8601, UTC, no fractional seconds)
 TCC_DTM_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
+# _TCC_DTM_REGEX: Final = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
 
-_TCC_DTM_REGEX = r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}"
+# However, the 'since' datetime used for Faults is naive, and has milliseconds
+# NOTE: "2023-05-04T18:47:36.7727046" (7, not 6 digits) seen with gateway fault
+# _TCC_SINCE_DTM: Final = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,}$"
+
 
 _REDACTED_EMAIL_ADDRESS = "no-reply@redacted.xxx"
 _REDACTED_STRING = "********"
@@ -208,39 +213,6 @@ def convert_str_enums_to_pascal_case[T](data: T) -> T:
     plain strings (names, datetimes, etc.) are left unchanged.
     """
     return _convert_enum_vals(data, snake_to_pascal)
-
-
-def convert_naive_dtm_strs_to_aware[T](data: T, tzinfo: tzinfo) -> T:
-    """Recursively convert TZ-naive datetime strings to TZ-aware.
-
-    Does not convert TZ-aware strings, even if they're from a different TZ.
-    Used after retrieving JSON from the vendor API.
-    """
-
-    def recurse(data_: Any) -> Any:  # noqa: PLR0911
-        if isinstance(data_, dict):
-            return {k: recurse(v) for k, v in data_.items()}
-
-        if isinstance(data_, list):
-            return [recurse(i) for i in data_]
-
-        if not isinstance(data_, str) or not re.match(_TCC_DTM_REGEX, data_):
-            return data_
-
-        try:
-            d = dt.fromisoformat(data_)
-        except ValueError:
-            return data_
-
-        if d.tzinfo is None:  # e.g. 2023-11-30T22:10:00
-            return d.replace(tzinfo=tzinfo).isoformat()
-
-        if data_.endswith("Z"):  # e.g. 2023-11-30T22:10:00Z
-            return d.astimezone(tzinfo).isoformat()
-
-        return data_  # e.g. 2023-11-30T22:10:00+00:00
-
-    return recurse(data)  # type:ignore[no-any-return]
 
 
 @overload

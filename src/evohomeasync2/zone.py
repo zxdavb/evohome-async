@@ -183,15 +183,18 @@ class ActiveFaultsBase(EntityBase):
         def hash_(fault: EvoActiveFaultResponseT) -> str:
             return f"{fault[SZ_SINCE]}_{fault[SZ_FAULT_TYPE]}"
 
+        def since(fault: EvoActiveFaultResponseT) -> str:
+            return fault[SZ_SINCE].isoformat()  # an aware dt; log as ISO 8601
+
         def log_as_active(fault: EvoActiveFaultResponseT) -> None:
             self._logger.warning(
-                f"{self}: Active fault: {fault[SZ_SINCE]} {fault[SZ_FAULT_TYPE]}"
+                f"{self}: Active fault: {since(fault)} {fault[SZ_FAULT_TYPE]}"
             )
             self._last_logged[hash_(fault)] = dt.now(tz=UTC)  # aware dtm not required
 
         def log_as_resolved(fault: EvoActiveFaultResponseT) -> None:
             self._logger.info(
-                f"{self}: Fault cleared: {fault[SZ_SINCE]} {fault[SZ_FAULT_TYPE]}"
+                f"{self}: Fault cleared: {since(fault)} {fault[SZ_FAULT_TYPE]}"
             )
             del self._last_logged[hash_(fault)]
 

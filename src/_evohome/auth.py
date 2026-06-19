@@ -112,8 +112,6 @@ class AbstractAuth(ABC):
         the expected schema.
         """
 
-        #
-
         if schema:
             try:
                 json = schema(json)  # pyright: ignore[reportAssignmentType]
