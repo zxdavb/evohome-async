@@ -1,6 +1,6 @@
 # fixtures_v2/hass_000000
 
-Source: [Home Assistant core issue #000000](https://github.com/home-assistant/core/issues/000000)
+Source: Unknown
 
 ## System
 
