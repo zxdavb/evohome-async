@@ -107,9 +107,7 @@ class AbstractAuth(ABC):
     ) -> _TccResponse:  # NOTE: not _EvoSchemaT
         """Call the vendor's TCC API with a PUT.
 
-
-
-        A schema is optional and vol.Invalid is merely logged .
+        A schema is optional and any vol.Invalid is merely logged as a warning.
         """
 
         if schema:
@@ -117,9 +115,6 @@ class AbstractAuth(ABC):
                 json = schema(json)  # pyright: ignore[reportAssignmentType]
             except vol.Invalid as err:
                 self._logger.warning(f"PUT {url}: payload failed validation: {err}")
-
-        json = convert_dtms_to_utc_str(json)
-        json = convert_str_enums_to_pascal_case(json)
 
         return await self.request(HTTPMethod.PUT, url, json=json)
 
