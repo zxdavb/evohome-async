@@ -30,7 +30,7 @@ jobs:
     outputs:
       matrix: ${{ steps.build.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Query non-EOL Python versions >= requires-python floor
         id: build
@@ -46,7 +46,7 @@ jobs:
         python-version: ${{ fromJson(needs.get-python-versions.outputs.matrix) }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
