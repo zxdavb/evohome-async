@@ -8,7 +8,7 @@ from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final, NoReturn
 
-from _evohome.helpers import as_local_time, convert_dtm_to_local_aware
+from _evohome.helpers import as_aware_dtm, as_local_time, convert_dtm_to_local_aware
 
 from . import exceptions as exc
 from .const import (
@@ -702,9 +702,13 @@ class Zone(_ZoneBase):
         /,
         *,
         temperature: float | None = None,
-        until: dt | None = None,
+        until: dt | str | None = None,
     ) -> None:
-        """Set the Zone mode (heating setpoint mode)."""
+        """Set the Zone to a (heating) mode, either indefinitely, or for a set time.
+
+        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
+        but it must be TZ-aware (not naive).
+        """
 
         if mode not in self.allowed_modes:
             raise exc.InvalidZoneModeError(f"{self}: Unsupported mode: {mode}")
@@ -742,7 +746,7 @@ class Zone(_ZoneBase):
                     f"{self}: For {mode}, until must be None"
                 )
 
-            zone_mode[SZ_TIME_UNTIL] = until
+            zone_mode[SZ_TIME_UNTIL] = as_aware_dtm(until)
 
         await self._set_mode(zone_mode)
 
@@ -756,7 +760,7 @@ class Zone(_ZoneBase):
         temperature: float,
         /,
         *,
-        until: dt | None = None,
+        until: dt | str | None = None,
     ) -> None:
         """Set the temperature of the zone (no provision for cooling)."""
 

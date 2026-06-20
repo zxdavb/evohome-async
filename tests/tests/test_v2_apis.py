@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from freezegun.api import FakeDatetime
 
+from evohomeasync2 import BadApiRequestError
 from evohomeasync2.const import DhwState, SystemMode, ZoneMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -331,3 +332,45 @@ async def test_zon_set_temperature(
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
     assert mock_put.call_args[0][1] == f"temperatureZone/{zone.id}/heatSetpoint"
     assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
+
+
+# Test Tier 1 input flexibility (accept dt|str until, reject naive until)...
+
+
+async def test_dhw_set_state_accepts_iso_string_until(
+    evohome_v2: EvohomeClient,
+) -> None:
+    """An ISO-string until is accepted and normalised to a datetime."""
+
+    dhw = evohome_v2.tcs.hotwater
+    assert dhw is not None
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
+        await dhw.set_state(DhwState.ON, until="2025-07-13T12:00:00Z")
+
+    EXPECTED_JSON = {
+        "mode": ZoneMode.TEMPORARY_OVERRIDE,
+        "state": DhwState.ON,
+        "until_time": dt(2025, 7, 13, 12, 0, tzinfo=UTC),
+    }
+
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
+
+
+async def test_set_mode_rejects_naive_until(
+    evohome_v2: EvohomeClient,
+) -> None:
+    """A naive (TZ-unaware) until is rejected before any request is made."""
+
+    tcs = evohome_v2.tcs
+    naive = dt.fromisoformat("2025-07-13T12:00:00")  # no offset
+
+    with (
+        patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
+        pytest.raises(BadApiRequestError),
+    ):
+        await tcs.set_away(until=naive)
+
+    mock_put.assert_not_awaited()

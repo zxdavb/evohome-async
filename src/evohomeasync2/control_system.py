@@ -6,7 +6,7 @@ import json
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
-from _evohome.helpers import as_local_time
+from _evohome.helpers import as_aware_dtm, as_local_time
 
 from . import exceptions as exc
 from .const import (
@@ -227,9 +227,13 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         system_mode: SystemMode,
         /,
         *,
-        until: dt | None = None,
+        until: dt | str | None = None,
     ) -> None:
-        """Set the TCS to a mode, either indefinitely, or for a set time."""
+        """Set the TCS to a mode, either indefinitely, or for a set time.
+
+        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
+        but it must be TZ-aware (not naive).
+        """
 
         if system_mode not in self.allowed_modes:
             raise exc.InvalidSystemModeError(
@@ -257,7 +261,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             tcs_mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
                 SZ_SYSTEM_MODE: system_mode,
                 SZ_PERMANENT: False,
-                SZ_TIME_UNTIL: until,
+                SZ_TIME_UNTIL: as_aware_dtm(until),
             }
 
         await self._set_mode(tcs_mode)
@@ -306,28 +310,28 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         await self.set_mode(SystemMode.HEAT)
 
-    async def set_away(self, /, *, until: dt | None = None) -> None:
+    async def set_away(self, /, *, until: dt | str | None = None) -> None:
         """Set the TCS to away mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
         await self.set_mode(SystemMode.AWAY, until=until)
 
-    async def set_custom(self, /, *, until: dt | None = None) -> None:
+    async def set_custom(self, /, *, until: dt | str | None = None) -> None:
         """Set the TCS to custom mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
         await self.set_mode(SystemMode.CUSTOM, until=until)
 
-    async def set_dayoff(self, /, *, until: dt | None = None) -> None:
+    async def set_dayoff(self, /, *, until: dt | str | None = None) -> None:
         """Set the TCS to day_off mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
         await self.set_mode(SystemMode.DAY_OFF, until=until)
 
-    async def set_eco(self, /, *, until: dt | None = None) -> None:
+    async def set_eco(self, /, *, until: dt | str | None = None) -> None:
         """Set the TCS to economy mode (usu. for duration of hours).
 
         Some systems do not support this mode.

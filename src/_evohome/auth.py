@@ -14,7 +14,7 @@ import voluptuous as vol
 from . import exceptions as exc
 from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
 from .helpers import (
-    convert_datetimes_to_str,
+    convert_dtms_to_utc_str,
     convert_keys_to_camel_case,
     convert_keys_to_snake_case,
     convert_str_enums_to_pascal_case,
@@ -82,13 +82,12 @@ class AbstractAuth(ABC):
     async def get(self, url: StrOrURL, /, schema: vol.Schema) -> _TccResponse:
         """Call the vendor's TCC API with a GET.
 
-        A schema is required; it is primarily used to convert vendor string values to
-        Evohome StrEnums.
+        A schema is required; it is used to convert datetimes and strEnums from the
+        vendor's format after getting.
         """
 
         response: _TccResponse = await self.request(HTTPMethod.GET, url)
 
-        # should always be a schema, to convert to StrEnums to snake_case
         try:
             response = schema(response)  # pyright: ignore[reportAssignmentType]
         except vol.Invalid as err:
@@ -108,8 +107,9 @@ class AbstractAuth(ABC):
     ) -> _TccResponse:  # NOTE: not _EvoSchemaT
         """Call the vendor's TCC API with a PUT.
 
-        A schema is not required; it is used only to validate the user's JSON against
-        the expected schema.
+
+
+        A schema is optional and vol.Invalid is merely logged .
         """
 
         if schema:
@@ -118,6 +118,9 @@ class AbstractAuth(ABC):
             except vol.Invalid as err:
                 self._logger.warning(f"PUT {url}: payload failed validation: {err}")
 
+        json = convert_dtms_to_utc_str(json)
+        json = convert_str_enums_to_pascal_case(json)
+
         return await self.request(HTTPMethod.PUT, url, json=json)
 
     async def request(
@@ -125,12 +128,14 @@ class AbstractAuth(ABC):
     ) -> _TccResponse:
         """Make a request to the vendor's RESTful API (which does not use snake_case).
 
-        Converts JSON keys to/from camelCase as required; converts StrEnum values
-        to/from PascalCase as required.
+        Converts JSON keys to/from snake_case/camelCase as required.
+
+        Helper functions are used to convert datetimes and strEnums to the vendor's
+        format before putting.
         """
 
         if "json" in kwargs:
-            kwargs["json"] = convert_datetimes_to_str(kwargs["json"])
+            kwargs["json"] = convert_dtms_to_utc_str(kwargs["json"])
             kwargs["json"] = convert_str_enums_to_pascal_case(kwargs["json"])
             kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 

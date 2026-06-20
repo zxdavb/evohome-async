@@ -7,7 +7,7 @@ from datetime import UTC, datetime as dt, timedelta as td, timezone as tz
 import pytest
 import voluptuous as vol
 
-from _evohome.helpers import convert_datetimes_to_str
+from _evohome.helpers import as_aware_dtm, convert_dtms_to_utc_str
 from evohomeasync2 import BadApiRequestError
 from evohomeasync2.schemas.helpers import Case, factory_datetime
 
@@ -15,38 +15,70 @@ from evohomeasync2.schemas.helpers import Case, factory_datetime
 PLUS_ONE = tz(td(hours=1))
 
 
-def test_convert_datetimes_to_str_converts_non_utc_to_utc() -> None:
+def test_convert_dtms_to_utc_str_converts_non_utc_to_utc() -> None:
     """A non-UTC aware dt is sent as the correct UTC instant, not relabelled."""
 
     # 22:10 at +01:00 is 21:10 UTC; the trailing 'Z' must reflect that
     until = dt(2024, 7, 10, 22, 10, tzinfo=PLUS_ONE)
 
-    assert convert_datetimes_to_str({"time_until": until}) == {
+    assert convert_dtms_to_utc_str({"time_until": until}) == {
         "time_until": "2024-07-10T21:10:00Z"
     }
 
 
-def test_convert_datetimes_to_str_leaves_utc_unchanged() -> None:
+def test_convert_dtms_to_utc_str_leaves_utc_unchanged() -> None:
     """An already-UTC aware dt formats to the same instant (the fix is idempotent)."""
 
     until = dt(2024, 7, 10, 21, 10, tzinfo=UTC)
 
-    assert convert_datetimes_to_str(until) == "2024-07-10T21:10:00Z"
+    assert convert_dtms_to_utc_str(until) == "2024-07-10T21:10:00Z"
 
 
-def test_convert_datetimes_to_str_rejects_naive() -> None:
+def test_convert_dtms_to_utc_str_rejects_naive() -> None:
     """A naive dt is rejected, as astimezone() would assume the local TZ."""
 
     naive = dt.fromisoformat("2024-07-10T22:10:00")  # no offset
 
     with pytest.raises(BadApiRequestError):
-        convert_datetimes_to_str({"time_until": naive})
+        convert_dtms_to_utc_str({"time_until": naive})
 
 
-def test_convert_datetimes_to_str_leaves_plain_strings_alone() -> None:
+def test_convert_dtms_to_utc_str_leaves_plain_strings_alone() -> None:
     """Only datetime instances are converted; plain strings pass through."""
 
-    assert convert_datetimes_to_str({"name": "kitchen"}) == {"name": "kitchen"}
+    assert convert_dtms_to_utc_str({"name": "kitchen"}) == {"name": "kitchen"}
+
+
+# --- setter input: as_aware_dtm() ---------------------------------------------------
+
+
+def test_as_aware_dtm_passes_through_aware_dt() -> None:
+    aware = dt(2024, 7, 10, 21, 10, tzinfo=UTC)
+
+    assert as_aware_dtm(aware) is aware
+
+
+def test_as_aware_dtm_parses_aware_iso_string() -> None:
+    assert as_aware_dtm("2024-07-10T22:10:00+01:00") == dt(
+        2024, 7, 10, 22, 10, tzinfo=PLUS_ONE
+    )
+
+
+def test_as_aware_dtm_rejects_naive_dt() -> None:
+    naive = dt.fromisoformat("2024-07-10T22:10:00")  # no offset
+
+    with pytest.raises(BadApiRequestError):
+        as_aware_dtm(naive)
+
+
+def test_as_aware_dtm_rejects_naive_string() -> None:
+    with pytest.raises(BadApiRequestError):
+        as_aware_dtm("2024-07-10T22:10:00")
+
+
+def test_as_aware_dtm_rejects_unparsable_string() -> None:
+    with pytest.raises(BadApiRequestError):
+        as_aware_dtm("not-a-datetime")
 
 
 # --- inbound: factory_datetime() coercer (schema validator) -------------------------

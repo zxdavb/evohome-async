@@ -42,11 +42,13 @@ _REDACTED_KEYS = (  # also keys with 'name' in them
 )
 
 
-def _convert_keys[T](data: T, fnc: Callable[[str], str]) -> T:
-    """Recursively convert all JSON keys as per some function.
+# These are used after retrieving (or before sending) JSON via the vendor API.
 
-    For example, converts all keys to snake_case, or CamelCase, etc.
-    Used after retrieving (or before sending) JSON via the vendor API.
+
+def _recurse_keys[T](data: T, fnc: Callable[[str], str]) -> T:
+    """Recursively convert JSON keys as per some function.
+
+    For example, converts all string keys to snake_case, or CamelCase, etc.
     """
 
     def recurse(data_: Any) -> Any:
@@ -61,11 +63,10 @@ def _convert_keys[T](data: T, fnc: Callable[[str], str]) -> T:
     return recurse(data)  # type:ignore[no-any-return]
 
 
-def _convert_vals[T](data: T, fnc: Callable[[str], str]) -> T:
-    """Recursively convert all JSON string values as per some function.
+def _recurse_str_vals[T](data: T, fnc: Callable[[str], str]) -> T:
+    """Recursively convert JSON string values as per some function.
 
     For example, converts all isoformat string values to TZ-aware format.
-    Used after retrieving (or before sending) JSON via the vendor API.
     """
 
     def recurse(data_: Any) -> Any:
@@ -83,8 +84,16 @@ def _convert_vals[T](data: T, fnc: Callable[[str], str]) -> T:
     return recurse(data)  # type:ignore[no-any-return]
 
 
-def _convert_dtms[T](data: T, fnc: Callable[[dt], dt]) -> T:
-    """Recursively convert all JSON datetime objects as per some function."""
+def _recurse_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
+    """Recursively convert JSON StrEnum values as per some function."""
+    return _recurse_str_vals(data, lambda s: fnc(s) if isinstance(s, StrEnum) else s)
+
+
+def _recurse_dtm_vals[T](data: T, fnc: Callable[[dt], dt | str]) -> T:
+    """Recursively convert JSON datetime objects as per some function.
+
+    For example, converts all datetimes to local TZ.
+    """
 
     def recurse(data_: Any) -> Any:
         if isinstance(data_, dict):
@@ -101,24 +110,18 @@ def _convert_dtms[T](data: T, fnc: Callable[[dt], dt]) -> T:
     return recurse(data)  # type:ignore[no-any-return]
 
 
-def _convert_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
-    """Recursively convert StrEnum values as per some function."""
-    return _convert_vals(data, lambda s: fnc(s) if isinstance(s, StrEnum) else s)
+def as_utc_str(dtm: dt) -> str:
+    """Return a vendor (ISO 8601, UTC) datetime string from an aware datetime.
 
-
-def _convert_dtm_vals[T](data: T, fnc: Callable[[dt], dt]) -> T:
-    """Recursively convert StrEnum values as per some function."""
-    return _convert_dtms(data, lambda s: fnc(s) if isinstance(s, dt) else s)
-
-
-def convert_dtm_to_local_aware[T](data: T, tzinfo: tzinfo) -> T:
-    """Recursively convert all datetimes to TZ-aware datetimes in the given TZ.
-
-    All such datetimes either TZ-aware or naive, which are assumed to be in the same TZ
-    as the location.
+    The datetime is converted to UTC before formatting, so the trailing 'Z' in
+    TCC_DTM_STRFTIME is truthful (an aware non-UTC datetime is sent as the correct UTC
+    instant, not its wall-clock fields relabelled as UTC). A naive datetime is rejected.
     """
 
-    return _convert_dtm_vals(data, lambda d: as_local_time(d, tzinfo))
+    if dtm.tzinfo is None:  # else astimezone() would assume the local TZ
+        raise BadApiRequestError(f"Datetime must be TZ-aware (not naive): {dtm!r}")
+
+    return dtm.astimezone(UTC).strftime(TCC_DTM_STRFTIME)
 
 
 def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
@@ -151,6 +154,19 @@ def as_aware_dtm(dtm: dt | str) -> dt:
         raise BadApiRequestError(f"Datetime must be TZ-aware (not naive): {dtm!r}")
 
     return dtm
+
+
+# These are used after retrieving (or before sending) JSON via the vendor API.
+
+
+def convert_dtms_to_utc_str[T](data: T) -> T:
+    """Recursively convert JSON datetime objects to ISO 8601 UTC strings."""
+    return _recurse_dtm_vals(data, as_utc_str)
+
+
+def convert_dtm_to_local_aware[T](data: T, tzinfo: tzinfo) -> T:
+    """Recursively convert all datetimes to TZ-aware datetimes in the given TZ."""
+    return _recurse_dtm_vals(data, lambda d: as_local_time(d, tzinfo))
 
 
 _STEP_1 = re.compile(r"(.)([A-Z][a-z]+)")
@@ -196,42 +212,12 @@ def noop[T](s: T) -> T:
 
 def convert_keys_to_camel_case[T](data: T) -> T:
     """Recursively convert all dict keys from snake_case to camelCase."""
-    return _convert_keys(data, snake_to_camel)
+    return _recurse_keys(data, snake_to_camel)
 
 
 def convert_keys_to_snake_case[T](data: T) -> T:
     """Recursively convert all dict keys from camelCase to snake_case."""
-    return _convert_keys(data, camel_to_snake)
-
-
-def convert_datetimes_to_str[T](data: T) -> T:
-    """Recursively convert datetime objects to ISO 8601 UTC strings.
-
-    Used before sending JSON to the vendor API, alongside StrEnum conversion.
-    Only datetime instances are converted; plain strings are left unchanged.
-
-    Aware datetimes are converted to UTC before formatting, so the trailing 'Z' in
-    TCC_DTM_STRFTIME is truthful (an aware non-UTC datetime is sent as the correct UTC
-    instant, not its wall-clock fields relabelled as UTC).
-    """
-
-    def recurse(data_: Any) -> Any:
-        if isinstance(data_, dict):
-            return {k: recurse(v) for k, v in data_.items()}
-
-        if isinstance(data_, list):
-            return [recurse(i) for i in data_]
-
-        if isinstance(data_, dt):
-            if data_.tzinfo is None:  # else astimezone() would assume the local TZ
-                raise BadApiRequestError(
-                    f"Datetime must be TZ-aware (not naive): {data_!r}"
-                )
-            return data_.astimezone(UTC).strftime(TCC_DTM_STRFTIME)
-
-        return data_
-
-    return recurse(data)  # type:ignore[no-any-return]
+    return _recurse_keys(data, camel_to_snake)
 
 
 def convert_str_enums_to_pascal_case[T](data: T) -> T:
@@ -240,7 +226,7 @@ def convert_str_enums_to_pascal_case[T](data: T) -> T:
     Used before sending JSON to the vendor API. Only StrEnum members are converted;
     plain strings (names, datetimes, etc.) are left unchanged.
     """
-    return _convert_enum_vals(data, snake_to_pascal)
+    return _recurse_enum_vals(data, snake_to_pascal)
 
 
 @overload

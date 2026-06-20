@@ -7,7 +7,7 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
-from _evohome.helpers import as_local_time
+from _evohome.helpers import as_aware_dtm, as_local_time
 
 from . import exceptions as exc
 from .const import (
@@ -175,9 +175,13 @@ class HotWater(_ZoneBase):
         /,
         *,
         state: DhwState | None = None,
-        until: dt | None = None,
+        until: dt | str | None = None,
     ) -> None:
-        """Set the DHW mode, either indefinitely or until a given time."""
+        """Set the DHW to a mode, either indefinitely, or until a given time.
+
+        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
+        but it must be TZ-aware (not naive).
+        """
 
         if mode not in self.allowed_modes:
             raise exc.InvalidDhwModeError(f"{self}: Unsupported mode: {mode}")
@@ -206,7 +210,7 @@ class HotWater(_ZoneBase):
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 raise exc.InvalidDhwModeError(f"{self}: For {mode}, until must be None")
 
-            dhw_mode[SZ_UNTIL_TIME] = until
+            dhw_mode[SZ_UNTIL_TIME] = as_aware_dtm(until)
 
         await self._set_mode(dhw_mode)
 
@@ -214,15 +218,17 @@ class HotWater(_ZoneBase):
         """Cancel any override and allow the DHW to follow its schedule."""
         await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
 
-    async def set_off(self, /, *, until: dt | None = None) -> None:
+    async def set_off(self, /, *, until: dt | str | None = None) -> None:
         """Set the DHW off until a given time, or permanently."""
         await self.set_state(DhwState.OFF, until=until)
 
-    async def set_on(self, /, *, until: dt | None = None) -> None:
+    async def set_on(self, /, *, until: dt | str | None = None) -> None:
         """Set the DHW on until a given time, or permanently."""
         await self.set_state(DhwState.ON, until=until)
 
-    async def set_state(self, state: DhwState, /, *, until: dt | None = None) -> None:
+    async def set_state(
+        self, state: DhwState, /, *, until: dt | str | None = None
+    ) -> None:
         """Set the DHW state, either indefinitely or until a given time."""
 
         mode = (
