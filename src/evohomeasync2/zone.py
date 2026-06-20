@@ -698,7 +698,7 @@ class Zone(_ZoneBase):
 
     async def set_mode(
         self,
-        mode: ZoneMode,
+        mode: ZoneMode | str,
         /,
         *,
         temperature: float | None = None,
@@ -706,9 +706,16 @@ class Zone(_ZoneBase):
     ) -> None:
         """Set the Zone to a (heating) mode, either indefinitely, or for a set time.
 
+        Will accept a ZoneMode or a (snake_case) string for the 'mode'.
+
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
         """
+
+        try:
+            mode = ZoneMode(mode)
+        except ValueError as err:
+            raise exc.InvalidZoneModeError(f"{self}: Unknown mode: {mode}") from err
 
         if mode not in self.allowed_modes:
             raise exc.InvalidZoneModeError(f"{self}: Unsupported mode: {mode}")

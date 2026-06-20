@@ -171,17 +171,24 @@ class HotWater(_ZoneBase):
 
     async def set_mode(
         self,
-        mode: ZoneMode,
+        mode: ZoneMode | str,
         /,
         *,
-        state: DhwState | None = None,
+        state: DhwState | str | None = None,
         until: dt | str | None = None,
     ) -> None:
         """Set the DHW to a mode, either indefinitely, or until a given time.
 
+        Will accept a ZoneMode/DhwState or a (snake_case) string for 'mode'/'state'.
+
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
         """
+
+        try:
+            mode = ZoneMode(mode)
+        except ValueError as err:
+            raise exc.InvalidDhwModeError(f"{self}: Unknown mode: {mode}") from err
 
         if mode not in self.allowed_modes:
             raise exc.InvalidDhwModeError(f"{self}: Unsupported mode: {mode}")
@@ -197,6 +204,13 @@ class HotWater(_ZoneBase):
         else:
             if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidDhwModeError(f"{self}: For {mode}, state must be None")
+
+            try:
+                state = DhwState(state)
+            except ValueError as err:
+                raise exc.InvalidDhwModeError(
+                    f"{self}: Unknown state: {state}"
+                ) from err
 
             dhw_mode[SZ_STATE] = state
 
@@ -227,7 +241,7 @@ class HotWater(_ZoneBase):
         await self.set_state(DhwState.ON, until=until)
 
     async def set_state(
-        self, state: DhwState, /, *, until: dt | str | None = None
+        self, state: DhwState | str, /, *, until: dt | str | None = None
     ) -> None:
         """Set the DHW state, either indefinitely or until a given time."""
 

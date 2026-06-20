@@ -334,13 +334,30 @@ async def test_zon_set_temperature(
     assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
-# Test Tier 1 input flexibility (accept dt|str until, reject naive until)...
+# Test input flexibility (accept str/StrEnum mode/state, dt|str until, reject naive)...
 
 
-async def test_dhw_set_state_accepts_iso_string_until(
+async def test_ctl_set_mode_accepts_str_mode(
     evohome_v2: EvohomeClient,
 ) -> None:
-    """An ISO-string until is accepted and normalised to a datetime."""
+    """A snake_case string mode is accepted (and coerced to the StrEnum)."""
+
+    tcs = evohome_v2.tcs
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
+        await tcs.set_mode("away")  # instead of SystemMode.AWAY
+
+    EXPECTED_JSON = {"system_mode": SystemMode.AWAY, "permanent": True}
+
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
+
+
+async def test_dhw_set_state_accepts_str_inputs(
+    evohome_v2: EvohomeClient,
+) -> None:
+    """A string state and an ISO-string until are accepted and normalised."""
 
     dhw = evohome_v2.tcs.hotwater
     assert dhw is not None
@@ -348,7 +365,9 @@ async def test_dhw_set_state_accepts_iso_string_until(
     with patch(
         "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
     ) as mock_put:
-        await dhw.set_state(DhwState.ON, until="2025-07-13T12:00:00Z")
+        await dhw.set_state(
+            "on", until="2025-07-13T12:00:00Z"
+        )  # instead of DhwState.ON
 
     EXPECTED_JSON = {
         "mode": ZoneMode.TEMPORARY_OVERRIDE,

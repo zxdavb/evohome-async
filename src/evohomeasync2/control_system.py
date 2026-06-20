@@ -224,16 +224,25 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
     async def set_mode(
         self,
-        system_mode: SystemMode,
+        system_mode: SystemMode | str,
         /,
         *,
         until: dt | str | None = None,
     ) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time.
 
+        Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
+
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
         """
+
+        try:
+            system_mode = SystemMode(system_mode)
+        except ValueError as err:
+            raise exc.InvalidSystemModeError(
+                f"{self}: Unknown system_mode: {system_mode}"
+            ) from err
 
         if system_mode not in self.allowed_modes:
             raise exc.InvalidSystemModeError(
