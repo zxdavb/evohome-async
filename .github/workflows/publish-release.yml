@@ -35,13 +35,6 @@ jobs:
     needs: [validate-tag]
     uses: ./.github/workflows/check-type.yml
 
-  ha-integration-dev:  # Failures should not block the release (not in build's needs)
-    name: HA Integration (dev)
-    needs: [check-lint, check-type, check-tests]
-    uses: ./.github/workflows/check-hass-tests.yml
-    with:
-      ha_version: "dev"
-
   build:
     name: Build distribution
     needs: [check-lint, check-tests, check-type]
