@@ -1,11 +1,11 @@
 {
     "userId": "2276512",
-    "username": "nobody@nowhere.com",
-    "firstname": "Gl***",
-    "lastname": "de*****",
-    "streetAddress": "********** *",
-    "city": "*********",
-    "postcode": "******",
+    "username": "user_2276512@gmail.com",
+    "firstname": "John",
+    "lastname": "Smith",
+    "streetAddress": "1 Damrak",
+    "city": "Amsterdam",
+    "postcode": "1012JS",
     "country": "Netherlands",
     "language": "nlNL"
 }

@@ -1,9 +1,24 @@
 # This workflow tests the evohome-async library against Home Assistant's evohome integration tests.
 # It clones Home Assistant core, installs this library, and runs the evohome component tests.
 #
+# WHAT GETS TESTED, BY EVENT (the target repo/version is resolved per event — see `resolve-ha`):
+#
+#   schedule (weekly)        → home-assistant/core @ latest
+#       Backward compat: released HA still calls the *old* PyPI API, so this proves our changes
+#       stay additive/back-compat. Scheduled runs test the *released* library (latest tag).
+#
+#   push → dev,              → zxdavb/hass @ evo_bump_client
+#   pull_request → main        Forward compat: the migration fork has been modified to *call* the
+#                              new API, so it's the only thing that exercises the new code paths.
+#                              This is the release gate. Runs test the working tree.
+#
+#       TRANSITIONAL: evo_bump_client is the in-progress HA migration branch. Once the migration
+#       lands upstream and that branch is deleted, revert the push/PR target below (in resolve-ha)
+#       to home-assistant/core (dev/master).
+#
 # KEY PARAMETERS (workflow_dispatch / workflow_call inputs; see the `on:` section below):
 #
-#   ha_repo    — The GitHub repository to test against (default: vars.HA_REPO_DEFAULT).
+#   ha_repo    — The GitHub repository to test against. When set, overrides the per-event target.
 #                Change this to a fork, e.g. "zxdavb/core", for pre-merge testing.
 #
 #   ha_version — The branch, tag, SHA, or "latest" to check out from ha_repo.
@@ -15,10 +30,10 @@
 #                  "v2025.1.0" — a specific release tag
 #
 # REPOSITORY VARIABLES (set in GitHub Settings → Secrets and variables → Actions → Variables):
-#   HA_REPO_DEFAULT    — default value for ha_repo    (e.g. "home-assistant/core")
-#   HA_VERSION_DEFAULT — default value for ha_version (e.g. "master")
+#   HA_REPO_DEFAULT    — final fallback for ha_repo    (e.g. "home-assistant/core")
+#   HA_VERSION_DEFAULT — final fallback for ha_version (e.g. "master")
+#   These are only used when neither an input nor a per-event target applies.
 #
-# When triggered by `schedule`, these parameters are ignored and the defaults apply.
 # When called from publish-release.yml, ha_version defaults to "latest" (resolved at runtime to the
 # latest release tag) for the stable job, and "dev" for the informational job.
 
@@ -35,7 +50,7 @@ on:
     ]
 
   push:
-    branches: [ "main" ]
+    branches: [ "dev" ]
     paths: [
       ".github/workflows/check-hass-tests.yml",
       "pyproject.toml",
@@ -76,36 +91,56 @@ permissions:
   contents: read
 
 
-env:
-  HA_REPO: ${{ inputs.ha_repo || vars.HA_REPO_DEFAULT }}
-
-
 jobs:
   get-python-version:
-    name: Get Python version from ${{ inputs.ha_repo || vars.HA_REPO_DEFAULT }}@${{ inputs.ha_version || vars.HA_VERSION_DEFAULT }}
+    name: Get Python version from HA
     runs-on: ubuntu-latest
     outputs:
+      ha_repo: ${{ steps.resolve-ha.outputs.ha_repo }}
       ha_version: ${{ steps.resolve-ha.outputs.ha_version }}
       python-version: ${{ steps.get-version.outputs.python-version }}
     steps:
-      - name: Resolve HA version
+      - name: Resolve HA repo and version
         id: resolve-ha
         env:
           GH_TOKEN: ${{ github.token }}
-          INPUT_VERSION: ${{ inputs.ha_version || vars.HA_VERSION_DEFAULT }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_REPO: ${{ inputs.ha_repo }}
+          INPUT_VERSION: ${{ inputs.ha_version }}
+          DEFAULT_REPO: ${{ vars.HA_REPO_DEFAULT }}
+          DEFAULT_VERSION: ${{ vars.HA_VERSION_DEFAULT }}
         run: |
-          if [[ "$INPUT_VERSION" == "latest" ]]; then
-            HA_VERSION=$(gh api repos/home-assistant/core/releases --jq '.[0].tag_name')
-            echo "Resolved 'latest' to: ${HA_VERSION}"
+          # Precedence: explicit inputs (workflow_call/dispatch) > per-event target > repo vars.
+          if [[ -n "$INPUT_REPO" || -n "$INPUT_VERSION" ]]; then
+            HA_REPO="${INPUT_REPO:-$DEFAULT_REPO}"
+            HA_VERSION="${INPUT_VERSION:-$DEFAULT_VERSION}"
+          elif [[ "$EVENT_NAME" == "schedule" ]]; then
+            # Backward compat: released HA against the released library.
+            HA_REPO="home-assistant/core"
+            HA_VERSION="latest"
+          elif [[ "$EVENT_NAME" == "push" || "$EVENT_NAME" == "pull_request" ]]; then
+            # Forward compat: the migration fork that calls the new API (transitional — see header).
+            HA_REPO="zxdavb/hass"
+            HA_VERSION="evo_bump_client"
           else
-            HA_VERSION="$INPUT_VERSION"
+            HA_REPO="$DEFAULT_REPO"
+            HA_VERSION="$DEFAULT_VERSION"
           fi
+
+          # "latest" is only meaningful for home-assistant/core (the fork is always a branch ref).
+          if [[ "$HA_VERSION" == "latest" ]]; then
+            HA_VERSION=$(gh api "repos/${HA_REPO}/releases" --jq '.[0].tag_name')
+            echo "Resolved 'latest' to: ${HA_VERSION}"
+          fi
+
+          echo "Testing against ${HA_REPO}@${HA_VERSION}"
+          echo "ha_repo=${HA_REPO}" >> $GITHUB_OUTPUT
           echo "ha_version=${HA_VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Check out ${{ env.HA_REPO }}@${{ steps.resolve-ha.outputs.ha_version }} (sparse checkout of pyproject.toml)
+      - name: Check out ${{ steps.resolve-ha.outputs.ha_repo }}@${{ steps.resolve-ha.outputs.ha_version }} (sparse checkout of pyproject.toml)
         uses: actions/checkout@v7
         with:
-          repository: ${{ env.HA_REPO }}
+          repository: ${{ steps.resolve-ha.outputs.ha_repo }}
           ref: ${{ steps.resolve-ha.outputs.ha_version }}
           sparse-checkout: pyproject.toml
           sparse-checkout-cone-mode: false
@@ -119,10 +154,11 @@ jobs:
           echo "Detected Python version: ${python_version}"
 
   test-with-hass:
-    name: Test with ${{ inputs.ha_repo || vars.HA_REPO_DEFAULT }}@${{ needs.get-python-version.outputs.ha_version }} (Python ${{ needs.get-python-version.outputs.python-version }})
+    name: Test with ${{ needs.get-python-version.outputs.ha_repo }}@${{ needs.get-python-version.outputs.ha_version }} (Python ${{ needs.get-python-version.outputs.python-version }})
     runs-on: ubuntu-latest
     needs: get-python-version
     env:
+      HA_REPO: ${{ needs.get-python-version.outputs.ha_repo }}
       HA_VERSION: ${{ needs.get-python-version.outputs.ha_version }}
 
     steps:

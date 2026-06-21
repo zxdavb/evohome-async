@@ -26,7 +26,7 @@ from evohomeasync2.auth import (
 
 if TYPE_CHECKING:
     from evohomeasync.auth import SessionIdEntryT
-    from evohomeasync2.auth import AccessTokenEntryT
+    from evohomeasync2.auth import EvoAccessTokenEntryT
 
 
 _CACHE_PATH: Final = Path.home() / ".config" / "evohome" / ".evo-cache.tmp~"
@@ -108,7 +108,7 @@ def delete_username_from_keyring() -> bool:
 
 
 class UserEntryT(TypedDict):
-    access_token: NotRequired[AccessTokenEntryT]
+    access_token: NotRequired[EvoAccessTokenEntryT]
     session_id: NotRequired[SessionIdEntryT]
 
 
@@ -218,7 +218,7 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
         if not entry:
             return
 
-        tokens: AccessTokenEntryT | None = entry.get(SZ_ACCESS_TOKEN)
+        tokens: EvoAccessTokenEntryT | None = entry.get(SZ_ACCESS_TOKEN)
         if not tokens:
             return
 

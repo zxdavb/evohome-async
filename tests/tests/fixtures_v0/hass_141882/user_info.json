@@ -1,0 +1,21 @@
+{
+    "userInfo": {
+        "userID": 6324020,
+        "username": "user_6324020@gmail.com",
+        "firstname": "John",
+        "lastname": "Smith",
+        "streetAddress": "1 Main Street",
+        "city": "Sydney",
+        "zipcode": "2000",
+        "country": "AU",
+        "telephone": "",
+        "userLanguage": "en-AU",
+        "isActivated": true,
+        "deviceCount": 0,
+        "tenantID": 5,
+        "securityQuestion1": "NotUsed",
+        "securityQuestion2": "NotUsed",
+        "securityQuestion3": "NotUsed",
+        "latestEulaAccepted": false
+    }
+}

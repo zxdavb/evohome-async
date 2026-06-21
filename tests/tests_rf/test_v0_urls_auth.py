@@ -99,7 +99,7 @@ async def _test_evo_systems(evo: EvohomeClientV0) -> None:
 
 # GET /accountInfo (is also in test_v0_urls_auth.py)
 # @skipif_auth_failed
-# async def test_usr_account(evohome_v0: EvohomeClientv0) -> None:
+# async def test_usr_account(evohome_v0: EvohomeClientV0) -> None:
 #     """Test /accountInfo"""
 
 

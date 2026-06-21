@@ -1,0 +1,4 @@
+# The vendor's schemas are documented inline (example values, regexes, etc.); a wider
+# line allows that documentation to sit alongside the validators without wrapping.
+extend = "../../../pyproject.toml"
+line-length = 120

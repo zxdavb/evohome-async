@@ -1,0 +1,21 @@
+{
+    "userInfo": {
+        "userID": 1234567,
+        "username": "user_1234567@gmail.com",
+        "firstname": "John",
+        "lastname": "Smith",
+        "streetAddress": "1 Damrak",
+        "city": "Amsterdam",
+        "zipcode": "1012JS",
+        "country": "NL",
+        "telephone": "",
+        "userLanguage": "nl-NL",
+        "isActivated": true,
+        "deviceCount": 0,
+        "tenantID": 5,
+        "securityQuestion1": "NotUsed",
+        "securityQuestion2": "NotUsed",
+        "securityQuestion3": "NotUsed",
+        "latestEulaAccepted": false
+    }
+}

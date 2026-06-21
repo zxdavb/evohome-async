@@ -22,12 +22,11 @@ if TYPE_CHECKING:
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
-    from .schemas import (
-        TccAuthTokensResponseT as AuthTokenResponseT,  # TCC is snake_case anyway
-    )
+    from .schemas.account import TccOAuthTokenResponseT
+    from .typedefs import EvoAuthTokensResponseT
 
 
-class AccessTokenEntryT(TypedDict):
+class EvoAccessTokenEntryT(TypedDict):
     """Dict for storing/restoring auth tokens to/from a cache."""
 
     access_token: str
@@ -45,6 +44,8 @@ SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
 SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"  # noqa: S105
 SZ_EXPIRES_IN: Final = "expires_in"
 SZ_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
+SZ_SCOPE: Final = "scope"
+SZ_TOKEN_TYPE: Final = "token_type"  # noqa: S105
 
 
 SCH_OAUTH_TOKEN: Final = vol.Schema(
@@ -52,8 +53,8 @@ SCH_OAUTH_TOKEN: Final = vol.Schema(
         vol.Required(SZ_ACCESS_TOKEN): vol.All(str, redact),
         vol.Required(SZ_EXPIRES_IN): int,  # 1800 seconds
         vol.Required(SZ_REFRESH_TOKEN): vol.All(str, redact),
-        vol.Required("token_type"): str,
-        vol.Optional("scope"): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
+        vol.Required(SZ_TOKEN_TYPE): str,
+        vol.Optional(SZ_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
     }
 )
 
@@ -194,7 +195,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
         url = f"https://{self.hostname}/{URL_CRED}"
 
-        response: AuthTokenResponseT = await self._post_access_token_request(
+        response: TccOAuthTokenResponseT = await self._post_access_token_request(
             url,
             headers=HEADERS_CRED | {"Authorization": "Basic " + _APPLICATION_ID},
             data=credentials,  # NOTE: is snake_case
@@ -208,7 +209,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         except vol.Invalid as err:
             self._logger.warning(f"POST {url}: payload may be invalid: {err}")
 
-        tokens: AuthTokenResponseT = convert_keys_to_snake_case(response)
+        tokens: EvoAuthTokensResponseT = convert_keys_to_snake_case(response)
 
         try:
             self._access_token = tokens[SZ_ACCESS_TOKEN]
@@ -230,7 +231,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
     async def _post_access_token_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any
-    ) -> AuthTokenResponseT:
+    ) -> TccOAuthTokenResponseT:
         """Wrap the POST request to the vendor's TCC RESTful API."""
         return await self._post_request(url, **kwargs)  # type: ignore[return-value]
 
@@ -241,14 +242,14 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         Should ideally confirm the access token is valid before saving.
         """
 
-    def _import_access_token(self, tokens: AccessTokenEntryT) -> None:
+    def _import_access_token(self, tokens: EvoAccessTokenEntryT) -> None:
         """Extract the token data from a (serialized) dictionary."""
 
         self._access_token = tokens[SZ_ACCESS_TOKEN]
         self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
         self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
-    def _export_access_token(self) -> AccessTokenEntryT:
+    def _export_access_token(self) -> EvoAccessTokenEntryT:
         """Convert the token data to a (serialized) dictionary."""
 
         return {

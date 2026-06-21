@@ -9,11 +9,8 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 import voluptuous as vol
 
-from evohomeasync2.schemas import (
-    TCC_GET_DHW_SCHEDULE,
-    TCC_GET_ZON_SCHEDULE,
-    const as sch,
-)
+from evohomeasync2.schemas import const as sch
+from evohomeasync2.schemas.schedule import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE
 
 from .const import (
     GHOST_ZONE_ID,

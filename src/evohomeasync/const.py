@@ -1,4 +1,7 @@
-"""Constants for evohomeasync."""
+"""Shared constants for the vendor's TCC v2 API.
+
+Vendor strings are camelCase (JSON keys), PascalCase (StrEnums).
+"""
 
 from typing import Final
 

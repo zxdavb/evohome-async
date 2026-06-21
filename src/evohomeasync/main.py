@@ -17,7 +17,7 @@ from .schemas import factory_location_response_list, factory_user_account_info_r
 if TYPE_CHECKING:
     import aiohttp
 
-    from .schemas import EvoTcsInfoDictT, EvoUserAccountDictT
+    from .typedefs import EvoTcsInfoDictT, EvoUserAccountDictT
 
 SCH_GET_ACCOUNT_INFO: Final = factory_user_account_info_response(camel_to_snake)
 SCH_GET_ACCOUNT_LOCS: Final = factory_location_response_list(camel_to_snake)

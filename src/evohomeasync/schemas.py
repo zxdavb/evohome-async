@@ -7,13 +7,14 @@ from typing import TYPE_CHECKING, Any, Final, NewType, NotRequired, TypedDict
 
 import voluptuous as vol
 
-from _evohome.helpers import noop, redact
+from _evohome.helpers import (
+    TCC_DTM_STRFTIME as TCC_DTM_STRFTIME,  # noqa: PLC0414
+    noop,
+    redact,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-# Datetime format used by the vendor's API
-API_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
 
 
 # TCC identifiers (Usr, Loc, Gwy, Sys, Zon|Dhw)
@@ -63,21 +64,22 @@ SZ_USERNAME: Final = "username"
 SZ_ZIPCODE: Final = "zipcode"
 
 
-#######################################################################################
-# [
-#     {
-#         "locationID": l["locationID"],
-#         "devices": [
-#             {
-#                 k: v
-#                 for k, v in d.items()
-#                 if k[-2:].lower() == "id" or k in ("instance", "name")
-#             }
-#             for d in l["devices"]
-#         ],
-#     }
-#     for l in config
-# ]
+"""
+    [
+        {
+            "locationID": l["locationID"],
+            "devices": [
+                {
+                    k: v
+                    for k, v in d.items()
+                    if k[-2:].lower() == "id" or k in ("instance", "name")
+                }
+                for d in l["devices"]
+            ],
+        }
+        for l in config
+    ]
+"""
 
 
 def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
@@ -224,23 +226,16 @@ SZ_THERMOSTAT: Final = "thermostat"
 SZ_THERMOSTAT_MODEL_TYPE: Final = "thermostatModelType"
 SZ_VALUE: Final = "value"
 
+
 # schema values (start with an upper case letter)
-SZ_AUTO: Final = "Auto"
-SZ_AUTO_WITH_ECO: Final = "AutoWithEco"
-SZ_AWAY: Final = "Away"
-SZ_CUSTOM: Final = "Custom"
-SZ_DAY_OFF: Final = "DayOff"
-SZ_HEATING_OFF: Final = "HeatingOff"
-
-
 @verify(EnumCheck.UNIQUE)
-class SystemMode(StrEnum):
-    AUTO = SZ_AUTO
-    AUTO_WITH_ECO = SZ_AUTO_WITH_ECO
-    AWAY = SZ_AWAY
-    CUSTOM = SZ_CUSTOM
-    DAY_OFF = SZ_DAY_OFF
-    HEATING_OFF = SZ_HEATING_OFF
+class TccSystemMode(StrEnum):
+    AUTO = "Auto"
+    AUTO_WITH_ECO = "AutoWithEco"
+    AWAY = "Away"
+    CUSTOM = "Custom"
+    DAY_OFF = "DayOff"
+    HEATING_OFF = "HeatingOff"
 
 
 #
@@ -420,154 +415,3 @@ class TccTimeZoneResponseT(TypedDict):
     offsetMinutes: int
     currentOffsetMinutes: int
     usingDaylightSavingTime: bool
-
-
-#######################################################################################
-# These are identical but have snake_case keys, not camelCase keys...
-
-
-class EvoFailureDictT(TypedDict):
-    """Typed dict for code/message responses from the vendor servers."""
-
-    code: str
-    message: str
-
-
-class EvoSessionDictT(TypedDict):
-    """POST api/session"""
-
-    session_id: str
-    user_info: EvoUserAccountDictT
-
-
-class EvoUserAccountInfoDictT(TypedDict):  # NOTE: is not EvoUserAccountDictT
-    """GET api/accountInfo"""
-
-    user_id: _UserIdT
-    username: str  # email address
-    firstname: str
-    lastname: str
-    street_address: str
-    city: str
-    # state: str  # missing?
-    zipcode: str
-    country: str  # GB
-    telephone: str
-    user_language: str
-
-
-class EvoUserAccountDictT(EvoUserAccountInfoDictT):  # NOT EvoUserAccountInfoT
-    """GET api/userAccounts?userId={userId}"""
-
-    is_activated: bool
-    device_count: int  # NotRequired?
-    tenant_id: int  # NotRequired?
-    security_question_1: str  # NotRequired?
-    security_question_2: str  # NotRequired?
-    security_question_3: str  # NotRequired?
-    latest_eula_accepted: bool  # NotRequired?
-
-
-class EvoLocInfoDictT(TypedDict):  # c.f. TccLocationResponseT
-    location_id: _LocationIdT
-    name: str
-    street_address: str
-    city: str
-    state: str
-    country: str
-    zipcode: str
-    type: str  # LocationType: "Commercial" | "Residential"
-    has_station: bool
-    devices: list[EvoDevInfoDictT]
-    weather: EvoWeatherDictT  # WeatherResponse
-    daylight_saving_time_enabled: bool
-    time_zone: EvoTimeZoneInfoDictT
-    is_location_owner: bool
-    locationOwner_id: int
-    location_owner_name: str
-    location_owner_user_name: str
-    can_searchforcontractors: bool
-    contractor: NotRequired[dict[str, Any]]  # ContractorResponse
-
-
-class EvoGwyInfoDictT(TypedDict):  # c.f. TccDeviceResponseT
-    gateway_id: _GatewayIdT
-    device_type: int
-    mac_id: str
-    location_id: int
-    serial_number: str
-    pcb_number: str
-
-
-# These keys are in the JSON, but not in the developer docs for the API
-class EvoTcsInfoDictT(EvoLocInfoDictT):
-    domain_id: int
-    one_touch_actions_suspended: bool
-    one_touch_buttons: list[str]
-    thermostat_version: str
-
-
-class EvoDevInfoDictT(EvoGwyInfoDictT):
-    device_id: _DhwIdT | _ZoneIdT
-    name: str
-    thermostat_model_type: str  # DOMESTIC_HOT_WATER or a zone, e.g. EMEA_ZONE
-    schedule_capable: bool
-    hold_until_capable: bool
-    thermostat: EvoThermostatInfoDictT
-    humidifier: dict[str, Any]  # HumidifierResponse
-    dehumidifier: dict[str, Any]  # DehumidifierResponse
-    fan: dict[str, Any]  # FanResponse
-    schedule: dict[str, Any]  # ScheduleResponse
-    alert_settings: dict[str, Any]  # AlertSettingsResponse
-    is_upgrading: bool
-    is_alive: bool
-    instance: int
-
-
-class EvoThermostatInfoDictT(TypedDict):
-    units: str  # displayedUnits: Fahrenheit or Celsius
-    indoor_temperature: float
-    outdoor_temperature: float
-    outdoor_temperature_available: bool
-    outdoor_humidity: float
-    outdoor_Humidity_available: bool
-    indoor_humidity: float
-    indoor_temperature_status: str  # Measured|NotAvailable|SensorError|SensorFault
-    indoor_humidity_status: str
-    outdoor_temperature_status: str
-    outdoor_humidity_status: str
-    is_commercial: bool
-    allowed_modes: list[str]  # ThermostatMode
-    deadband: float
-    min_heat_setpoint: float
-    max_heat_setpoint: float
-    min_cool_setpoint: float
-    max_cool_setpoint: float
-    cool_rate: float
-    heat_rate: float
-    is_pre_cool_capable: bool
-    changeable_values: Any  # thermostatChangeableValues
-    equipment_output_status: str  # Off | Heating | Cooling
-    schedule_capable: bool
-    vacation_hold_changeable: bool
-    vacation_hold_cancelable: bool
-    schedule_heat_sp: float
-    schedule_cool_sp: float
-    serial_number: str
-    pcb_number: str
-
-
-class EvoWeatherDictT(TypedDict):
-    condition: str  # an enum
-    temperature: float
-    units: str  # Fahrenheit (precision 1.0) or Celsius (0.5)
-    humidity: int
-    phrase: str
-
-
-class EvoTimeZoneInfoDictT(TypedDict):
-    id: str
-    display_name: str
-    offset_minutes: int
-    current_offset_minutes: int
-    using_daylight_saving_time: bool

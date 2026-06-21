@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
 
-from _evohome.helpers import camel_to_snake, convert_naive_dtm_strs_to_aware
+from _evohome.helpers import convert_dtm_to_local_aware
 from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
 from .const import (
@@ -27,8 +27,9 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
-from .schemas import EntityType, EvoTimeZoneInfoT
 from .schemas.config import factory_location_installation_info
+from .schemas.const import TccEntityType
+from .schemas.helpers import Case
 from .schemas.status import factory_loc_status
 from .zone import EntityBase
 
@@ -37,10 +38,11 @@ if TYPE_CHECKING:
 
     from . import EvohomeClient
     from .auth import Auth
-    from .schemas import (
+    from .typedefs import (
         EvoLocConfigEntryT,
         EvoLocConfigResponseT,
         EvoLocStatusResponseT,
+        EvoTimeZoneInfoT,
     )
 
 
@@ -102,10 +104,11 @@ async def create_location(
 class Location(EntityBase):
     """Instance of an account's location."""
 
-    SCH_CONFIG: vol.Schema = factory_location_installation_info(camel_to_snake)
-    SCH_STATUS: vol.Schema = factory_loc_status(camel_to_snake)
-    _TYPE = EntityType.LOC
     _STATUS_EXCLUDES = (SZ_GATEWAYS,)
+    _TCC_TYPE = TccEntityType.LOC
+
+    SCH_CONFIG: vol.Schema = factory_location_installation_info(Case.PYTHONIC)
+    SCH_STATUS: vol.Schema = factory_loc_status(Case.PYTHONIC)
 
     def __init__(
         self,
@@ -232,29 +235,37 @@ class Location(EntityBase):
         if _update_time_zone_info:
             await self._get_config()
 
-        status = await self._get_status()
+        return await self._get_status()
 
-        self._update_status(status)
-        return status
+    async def _get_status(  # type: ignore[override]
+        self,
+        *,
+        _update: bool = True,
+    ) -> EvoLocStatusResponseT:
+        """Get the latest state of the location and optionally update its status attrs.
 
-    async def _get_status(self) -> EvoLocStatusResponseT:
-        """Get the latest state of the location.
+        Returns the JSON of the latest state, validated and coerced by the schema:
+         - nodes are in pascalCase, and converted to snake_case
+         - str enums are in CamelCase, and converted to snake_case StrEnums
+         - datetimes are ISO format strings, and converted to datetime objects
 
-        Returns the raw JSON of the latest state.
+        Some datetimes are naive (e.g. ActiveFaults.since), and assumed to be in the
+        location's TZ.
         """
 
         status: EvoLocStatusResponseT = await self._auth.get(
-            f"{self._TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
+            f"{self._TCC_TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
             schema=self.SCH_STATUS,
         )  # type: ignore[assignment]
 
+        status = convert_dtm_to_local_aware(status, self.tzinfo)
+
+        if _update:
+            self._update_status(status)
         return status
 
     def _update_status(self, status: EvoLocStatusResponseT) -> None:
         """Update the LOC's status and cascade to its descendants."""
-
-        # convert all naive datetimes to TZ-aware datetimes (do when snake_casing?)
-        status = convert_naive_dtm_strs_to_aware(status, self.tzinfo)
 
         # No ActiveFaults in location node of status
 

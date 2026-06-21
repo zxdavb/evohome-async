@@ -1,7 +1,7 @@
 #
 #
 
-name: Check Lint (ruff, codespell)
+name: Check Lint (ruff)
 
 
 on:
@@ -42,7 +42,7 @@ jobs:
         uses: astral-sh/setup-uv@v8.2.0
 
       - name: Install dependencies
-        run: uv pip install --system ruff codespell
+        run: uv pip install --system ruff
 
       - name: Log ruff version
         run: ruff --version
@@ -69,15 +69,6 @@ jobs:
             echo "ERROR: Found potential secret in a comment"
             exit 1
           fi
-
-      - name: Check spelling with codespell
-        if: always()
-        run: |
-          codespell \
-            --ignore-words-list=FLE \
-            --skip="*.csv,*.json,*.ambr,*.xml" \
-            --quiet-level=2 \
-            src/ tests/ .github/
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
 

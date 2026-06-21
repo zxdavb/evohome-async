@@ -2,14 +2,34 @@
 exclude: ^(.secrets|docs)/
 
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.13
+  # ruff & mypy run as local hooks via `uv run` so they always resolve against
+  # the repo's .venv/lockfile without requiring shell activation.
+  # This keeps one source of truth for versions in pyproject/uv.lock while
+  # avoiding PATH-sensitive failures.
+  - repo: local
     hooks:
       - id: ruff-check
+        name: ruff check
+        entry: uv run --no-sync ruff check --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
       - id: ruff-format
+        name: ruff format
+        entry: uv run --no-sync ruff format --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+      - id: mypy
+        name: mypy
+        entry: uv run --no-sync mypy
+        language: system
+        types_or: [python, pyi]
+        pass_filenames: false
+        require_serial: true
 
   - repo: https://github.com/cdce8p/python-typing-update
-    rev: v0.6.0
+    rev: v0.8.1
     hooks:
       # Run `python-typing-update` hook manually from time to time
       # to update python typing syntax.
@@ -22,17 +42,6 @@ repos:
           - --force
           - --keep-updates
         files: ^(cli|src|tests)/.+\.py$
-
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
-    hooks:
-      - id: codespell
-        args:
-          - --ignore-words-list=FLE
-          - --skip="./.*,*.csv,*.json,*.ambr"
-          - --quiet-level=2
-        exclude_types: [csv, json, html, xml]
-        exclude: ^(tests/.+/fixtures|tests/.+/snapshots)/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

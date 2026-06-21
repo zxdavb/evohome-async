@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Final, NoReturn
-
-from _evohome.helpers import camel_to_snake
+from typing import TYPE_CHECKING, Final
 
 from .const import (
+    SZ_ACTIVE_FAULTS,
     SZ_GATEWAY_ID,
     SZ_GATEWAY_INFO,
     SZ_MAC,
@@ -15,7 +14,8 @@ from .const import (
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
 )
 from .control_system import ControlSystem
-from .schemas import EntityType
+from .schemas.const import TccEntityType
+from .schemas.helpers import Case
 from .schemas.status import factory_gwy_status
 from .zone import ActiveFaultsBase, EntityBase
 
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
     from . import Location
     from .auth import Auth
-    from .schemas import (
+    from .typedefs import (
         EvoGwyConfigEntryT,
         EvoGwyConfigResponseT,
         EvoGwyStatusResponseT,
@@ -36,9 +36,10 @@ if TYPE_CHECKING:
 class Gateway(ActiveFaultsBase, EntityBase):
     """Instance of a location's gateway."""
 
-    SCH_STATUS: vol.Schema = factory_gwy_status(camel_to_snake)
-    _TYPE = EntityType.GWY
     _STATUS_EXCLUDES = (SZ_TEMPERATURE_CONTROL_SYSTEMS,)
+    _TCC_TYPE = TccEntityType.GWY
+
+    SCH_STATUS: vol.Schema = factory_gwy_status(Case.PYTHONIC)
 
     def __init__(self, location: Location, config: EvoGwyConfigResponseT) -> None:
         super().__init__(config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID])
@@ -85,19 +86,10 @@ class Gateway(ActiveFaultsBase, EntityBase):
 
     # Status (state) attrs & methods...
 
-    async def _get_status(self) -> NoReturn:
-        """Get the latest state of the gateway and update its status attr.
-
-        It is more efficient to call Location.update() as all descendants are updated
-        with a single GET. Returns the raw JSON of the latest state.
-        """
-
-        raise NotImplementedError("Use Location.update() to update status")
-
     def _update_status(self, status: EvoGwyStatusResponseT) -> None:
         """Update the GWY's status and cascade to its descendants."""
 
-        self._update_faults(status["active_faults"])
+        self._update_faults(status[SZ_ACTIVE_FAULTS])
 
         # cascade the child status to descendants...
         for tcs_status in status[SZ_TEMPERATURE_CONTROL_SYSTEMS]:

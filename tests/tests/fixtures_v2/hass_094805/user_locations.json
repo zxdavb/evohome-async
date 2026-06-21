@@ -1,0 +1,88 @@
+[
+    {
+        "locationInfo": {
+            "locationId": "1111111",
+            "name": "My Home",
+            "streetAddress": "1 Main Street",
+            "city": "Sydney",
+            "country": "Australia",
+            "postcode": "2000",
+            "locationType": "Residential",
+            "useDaylightSaveSwitching": true,
+            "timeZone": {
+                "timeZoneId": "AUSEasternStandardTime",
+                "displayName": "(UTC+10:00) Canberra, Melbourne, Sydney",
+                "offsetMinutes": 600,
+                "currentOffsetMinutes": 660,
+                "supportsDaylightSaving": true
+            },
+            "locationOwner": {
+                "userId": "4000012",
+                "username": "user_4000012@gmail.com",
+                "firstname": "John",
+                "lastname": "Smith"
+            }
+        },
+        "gateways": [
+            {
+                "gatewayInfo": {
+                    "gatewayId": "2222222",
+                    "mac": "000000000000",
+                    "crc": "0000",
+                    "isWiFi": false
+                },
+                "temperatureControlSystems": [
+                    {
+                        "systemId": "3333333",
+                        "modelType": "FocusProWifiRetail",
+                        "zones": [
+                            {
+                                "zoneId": "3333333",
+                                "modelType": "FocusProWifiRetail",
+                                "setpointCapabilities": {
+                                    "vacationHoldCapabilities": {
+                                        "isChangeable": false,
+                                        "isCancelable": false
+                                    },
+                                    "maxHeatSetpoint": 32.0,
+                                    "minHeatSetpoint": 4.5,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "VacationHold"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:15:00"
+                                },
+                                "name": "THERMOSTAT",
+                                "zoneType": "Thermostat",
+                                "allowedFanModes": [
+                                    {
+                                        "fanMode": "Auto"
+                                    },
+                                    {
+                                        "fanMode": "On"
+                                    }
+                                ]
+                            }
+                        ],
+                        "allowedSystemModes": [
+                            {
+                                "systemMode": "Off",
+                                "canBePermanent": true,
+                                "canBeTemporary": false
+                            },
+                            {
+                                "systemMode": "Heat",
+                                "canBePermanent": true,
+                                "canBeTemporary": false
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

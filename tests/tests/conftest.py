@@ -16,12 +16,6 @@ from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync import EvohomeClient as EvohomeClientV0
 from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
-from evohomeasync2.schemas import (
-    TCC_GET_LOC_STATUS,
-    TCC_GET_SCHEDULE,
-    TCC_GET_USR_ACCOUNT,
-    TCC_GET_USR_LOCATIONS,
-)
 
 from .aioresponses import AioResponses, aioresponses
 
@@ -110,20 +104,30 @@ FIXTURES_V0 = Path(__file__).parent / "fixtures_v0"
 FIXTURES_V2 = Path(__file__).parent / "fixtures_v2"
 
 
-# wrapper for FIXTURES_DIR to enable default fixtures
 def _load_fixture(folder: Path, file_name: str) -> JsonArrayType | JsonObjectType:
-    """Load a file fixture and use a default fixture if not found."""
+    """Load a fixture file; xfail immediately if not present (no default/ fallback)."""
 
     try:
-        try:
-            result = load_fixture(folder / file_name)
-        except FileNotFoundError:
-            result = load_fixture(folder.parent / "default" / file_name)
-
+        return load_fixture(folder / file_name)
     except FileNotFoundError:
         pytest.xfail(f"Fixture file not found: {file_name}")
 
-    return result
+
+def _load_schedule_fixture(
+    folder: Path, file_name: str
+) -> JsonArrayType | JsonObjectType:
+    """Load a schedule fixture; fall back to default/ if not present.
+
+    Schedule files are generic enough to share across systems.
+    """
+
+    try:
+        try:
+            return load_fixture(folder / file_name)
+        except FileNotFoundError:
+            return load_fixture(folder.parent / "default" / file_name)
+    except FileNotFoundError:
+        pytest.xfail(f"Fixture file not found: {file_name}")
 
 
 def user_info_fixture(folder: Path) -> JsonObjectType:
@@ -153,7 +157,7 @@ def location_status_fixture(folder: Path, loc_id: str) -> JsonObjectType:
 
 def zone_schedule_fixture(folder: Path, zon_type: str) -> JsonObjectType:
     """Load the JSON of the schedule of a dhw/zone."""
-    return _load_fixture(
+    return _load_schedule_fixture(
         folder, f"schedule_{'dhw' if zon_type == 'domesticHotWater' else 'zone'}.json"
     )  # type: ignore[return-value]
 
@@ -178,31 +182,34 @@ def auth_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
                 TCC_GET_USR_LOCS(user_locs_fixture(fixture))
             )
 
+        # mirror what auth.request() + auth.get() do: snake-case keys, then apply
+        # whatever schema the model passes so enum values are coerced to members
+
         # "userAccount"
         if "userAccount" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_USR_ACCOUNT(user_account_fixture(fixture))
+            data: JsonArrayType | JsonObjectType = convert_keys_to_snake_case(
+                user_account_fixture(fixture)
             )
+            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
 
         # f"location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True"
         if "installationInfo" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_USR_LOCATIONS(user_locations_config_fixture(fixture))
-            )
+            data = convert_keys_to_snake_case(user_locations_config_fixture(fixture))
+            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
 
-        # f"{_TYPE}/{id}/status?includeTemperatureControlSystems=True"
+        # f"{_TCC_TYPE}/{id}/status?includeTemperatureControlSystems=True"
         if "status" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_LOC_STATUS(location_status_fixture(fixture, url.split("/")[1]))
+            data = convert_keys_to_snake_case(
+                location_status_fixture(fixture, url.split("/")[1])
             )
+            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
 
-        # f"{_TYPE}/{id}/schedule"
+        # f"{_TCC_TYPE}/{id}/schedule"
         if "schedule" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
-                TCC_GET_SCHEDULE(
-                    zone_schedule_fixture(fixture, url.split("/", maxsplit=1)[0])
-                )
+            data = convert_keys_to_snake_case(
+                zone_schedule_fixture(fixture, url.split("/", maxsplit=1)[0])
             )
+            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
 
         pytest.fail(f"Unexpected/unknown URL: {url}")
 

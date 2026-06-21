@@ -8,8 +8,12 @@ description = "An async client for connecting to Honeywell's TCC RESTful API."
 readme = "README.md"
 authors = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
 maintainers = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
-dependencies = ["aiohttp>=3.13.5", "aiozoneinfo>=0.2.3", "voluptuous>=0.15.2"]  # must support HA
-requires-python = ">=3.13"  # also see: 'python_version', below, and typing workflow
+dependencies = [
+  "aiohttp>=3.13.5",
+  "aiozoneinfo>=0.2.3",
+  "voluptuous>=0.15.2",
+]  # must support Home Assistant
+requires-python = ">=3.13"  # also see: 'python_version', below
 license = "Apache-2.0"
 
 keywords = [
@@ -93,7 +97,7 @@ version-file = "src/_evohome/_version.py"
 ### mypy #############################################################################
 
 [tool.mypy]
-python_version = "3.13"  # see also: 'requires-python', above, and typing workflow
+python_version = "3.14"  # HA stable requires 3.14; see also: 'requires-python', above
 
 strict = true
 
@@ -133,8 +137,8 @@ show_missing = true
 [tool.ruff]
 exclude = ["docs/*.py", "tests/tests_cc"]
 src = ["src", "tests"]
-target-version = "py313"
-required-version = ">=0.14.13"
+target-version = "py313"  # the *minimum* supported runtime (we dev/test on 3.14, run on 3.13)
+required-version = ">=0.15.16"
 
 [tool.ruff.lint]
 select = [

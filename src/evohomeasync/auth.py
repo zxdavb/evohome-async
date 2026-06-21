@@ -21,7 +21,8 @@ if TYPE_CHECKING:
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
-    from .schemas import EvoSessionDictT, EvoUserAccountDictT, TccSessionResponseT
+    from .schemas import TccSessionResponseT
+    from .typedefs import EvoSessionDictT, EvoUserAccountDictT
 
 
 # For API docs, enter this App ID on the following website under 'Session login':

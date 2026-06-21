@@ -1,0 +1,21 @@
+{
+    "userInfo": {
+        "userID": 4000004,
+        "username": "user_4000004@gmail.com",
+        "firstname": "John",
+        "lastname": "Smith",
+        "streetAddress": "1 Main Street",
+        "city": "London",
+        "zipcode": "E1 1AA",
+        "country": "GB",
+        "telephone": "",
+        "userLanguage": "en-GB",
+        "isActivated": true,
+        "deviceCount": 0,
+        "tenantID": 5,
+        "securityQuestion1": "NotUsed",
+        "securityQuestion2": "NotUsed",
+        "securityQuestion3": "NotUsed",
+        "latestEulaAccepted": false
+    }
+}

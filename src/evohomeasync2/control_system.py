@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import json
 from functools import cached_property
-from typing import TYPE_CHECKING, Final, NoReturn
+from typing import TYPE_CHECKING, Final
 
-from _evohome.helpers import as_local_time, camel_to_snake
+from _evohome.helpers import as_aware_dtm, as_local_time
 
 from . import exceptions as exc
 from .const import (
-    API_STRFTIME,
+    SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
     SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
@@ -20,23 +20,19 @@ from .const import (
     SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_NAME,
+    SZ_PERMANENT,
     SZ_SYSTEM_ID,
     SZ_SYSTEM_MODE,
     SZ_SYSTEM_MODE_STATUS,
     SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONES,
-)
-from .hotwater import HotWater
-from .schemas import (
-    S2_PERMANENT,
-    S2_SYSTEM_MODE,
-    S2_TIME_UNTIL,
-    EntityType,
     SystemMode,
-    TccSetTcsModeT,
     TcsModelType,
 )
+from .hotwater import HotWater
+from .schemas.const import TccEntityType
+from .schemas.helpers import Case
 from .schemas.status import factory_tcs_status
 from .zone import ActiveFaultsBase, EntityBase, Zone
 
@@ -48,12 +44,13 @@ if TYPE_CHECKING:
 
     from . import Gateway, Location
     from .auth import Auth
-    from .schemas import (
-        DayOfWeekDhwT,
-        DayOfWeekZoneT,
+    from .typedefs import (
         EvoAllowedSystemModesResponseT,
+        EvoDayOfWeekDhwT,
+        EvoDayOfWeekZoneT,
         EvoScheduleDhwT,
         EvoScheduleZoneT,
+        EvoSetSystemModeT,
         EvoSystemModeStatusResponseT,
         EvoTcsConfigEntryT,
         EvoTcsConfigResponseT,
@@ -64,9 +61,10 @@ if TYPE_CHECKING:
 class ControlSystem(ActiveFaultsBase, EntityBase):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
-    SCH_STATUS: vol.Schema = factory_tcs_status(camel_to_snake)
-    _TYPE = EntityType.TCS
     _STATUS_EXCLUDES = (SZ_DHW, SZ_ZONES)
+    _TCC_TYPE = TccEntityType.TCS
+
+    SCH_STATUS: vol.Schema = factory_tcs_status(Case.PYTHONIC)
 
     def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:
         super().__init__(config[SZ_SYSTEM_ID])
@@ -160,19 +158,10 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
     # Status (state) attrs & methods...
 
-    async def _get_status(self) -> NoReturn:
-        """Get the latest state of the control system and update its status attrs.
-
-        It is more efficient to call Location.update() as all descendants are updated
-        with a single GET. Returns the raw JSON of the latest state.
-        """
-
-        raise NotImplementedError("Use Location.update() to update status")
-
     def _update_status(self, status: EvoTcsStatusResponseT) -> None:
         """Update the TCS's status and cascade to its descendants."""
 
-        self._update_faults(status["active_faults"])
+        self._update_faults(status[SZ_ACTIVE_FAULTS])
 
         # cascade the child status to descendants...
         for zon_status in status[SZ_ZONES]:
@@ -222,32 +211,45 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, tcs_mode: TccSetTcsModeT, /) -> None:
+    async def _set_mode(self, tcs_mode: EvoSetSystemModeT, /) -> None:
         """Set the TCS mode."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if tcs_mode[S2_SYSTEM_MODE] not in self.allowed_modes:
+        if tcs_mode[SZ_SYSTEM_MODE] not in self.allowed_modes:
             self._logger.warning(
-                f"{self}: Attempting unsupported {S2_SYSTEM_MODE}: {tcs_mode}..."
+                f"{self}: Attempting unsupported {SZ_SYSTEM_MODE}: {tcs_mode}..."
             )
 
-        await self._auth.put(f"{self._TYPE}/{self.id}/mode", json=dict(tcs_mode))
+        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/mode", json=dict(tcs_mode))
 
     async def set_mode(
         self,
-        system_mode: SystemMode,
+        system_mode: SystemMode | str,
         /,
         *,
-        until: dt | None = None,
+        until: dt | str | None = None,
     ) -> None:
-        """Set the TCS to a mode, either indefinitely, or for a set time."""
+        """Set the TCS to a mode, either indefinitely, or for a set time.
+
+        Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
+
+        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
+        but it must be TZ-aware (not naive).
+        """
+
+        try:
+            system_mode = SystemMode(system_mode)
+        except ValueError as err:
+            raise exc.InvalidSystemModeError(
+                f"{self}: Unknown system_mode: {system_mode}"
+            ) from err
 
         if system_mode not in self.allowed_modes:
             raise exc.InvalidSystemModeError(
                 f"{self}: Unsupported system_mode: {system_mode}"
             )
 
-        tcs_mode: TccSetTcsModeT
+        tcs_mode: EvoSetSystemModeT
 
         mode_entry = next(
             d for d in self.allowed_system_modes if d[SZ_SYSTEM_MODE] == system_mode
@@ -255,8 +257,8 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         if until is None:  # all known modes can be permanent
             tcs_mode = {
-                S2_SYSTEM_MODE: system_mode,
-                S2_PERMANENT: True,
+                SZ_SYSTEM_MODE: system_mode,
+                SZ_PERMANENT: True,
             }
 
         else:
@@ -266,9 +268,9 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                 )
 
             tcs_mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
-                S2_SYSTEM_MODE: system_mode,
-                S2_PERMANENT: False,
-                S2_TIME_UNTIL: until.strftime(API_STRFTIME),
+                SZ_SYSTEM_MODE: system_mode,
+                SZ_PERMANENT: False,
+                SZ_TIME_UNTIL: as_aware_dtm(until),
             }
 
         await self._set_mode(tcs_mode)
@@ -287,7 +289,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
             return
 
         self._logger.debug(
-            f"{self}: Emulating {S2_SYSTEM_MODE}: {SystemMode.AUTO_WITH_RESET}..."
+            f"{self}: Emulating {SZ_SYSTEM_MODE}: {SystemMode.AUTO_WITH_RESET}..."
         )
 
         await self.set_auto()
@@ -312,33 +314,33 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         # some systems have "Heat" mode instead of "Auto"...
         self._logger.debug(
-            f"{self}: Emulating {S2_SYSTEM_MODE}: {SystemMode.AUTO} as {SystemMode.HEAT}"
+            f"{self}: Emulating {SZ_SYSTEM_MODE}: {SystemMode.AUTO} as {SystemMode.HEAT}"
         )
 
         await self.set_mode(SystemMode.HEAT)
 
-    async def set_away(self, /, *, until: dt | None = None) -> None:
+    async def set_away(self, /, *, until: dt | str | None = None) -> None:
         """Set the TCS to away mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
         await self.set_mode(SystemMode.AWAY, until=until)
 
-    async def set_custom(self, /, *, until: dt | None = None) -> None:
+    async def set_custom(self, /, *, until: dt | str | None = None) -> None:
         """Set the TCS to custom mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
         await self.set_mode(SystemMode.CUSTOM, until=until)
 
-    async def set_dayoff(self, /, *, until: dt | None = None) -> None:
+    async def set_dayoff(self, /, *, until: dt | str | None = None) -> None:
         """Set the TCS to day_off mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
         await self.set_mode(SystemMode.DAY_OFF, until=until)
 
-    async def set_eco(self, /, *, until: dt | None = None) -> None:
+    async def set_eco(self, /, *, until: dt | str | None = None) -> None:
         """Set the TCS to economy mode (usu. for duration of hours).
 
         Some systems do not support this mode.
@@ -360,7 +362,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         # some systems have "Off" mode instead of "HeatingOff"...
         self._logger.debug(
-            f"{self}: Emulating {S2_SYSTEM_MODE}: {SystemMode.HEATING_OFF} as {SystemMode.OFF}"
+            f"{self}: Emulating {SZ_SYSTEM_MODE}: {SystemMode.HEATING_OFF} as {SystemMode.OFF}"
         )
 
         await self.set_mode(SystemMode.OFF)
@@ -372,7 +374,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         async def get_schedule(
             child: HotWater | Zone,
-        ) -> list[DayOfWeekDhwT] | list[DayOfWeekZoneT]:
+        ) -> list[EvoDayOfWeekDhwT] | list[EvoDayOfWeekZoneT]:
             try:
                 return await child.get_schedule()
             except exc.InvalidScheduleError:
@@ -420,17 +422,17 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         async def restore_by_id(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
             """Restore a schedule by id and return False if there was no match."""
 
-            id_: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
+            id_: str = sched.get(SZ_ZONE_ID) or sched[SZ_DHW_ID]  # type: ignore[assignment,typeddict-item]
 
             if self.hotwater and self.hotwater.id == id_:
-                await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
+                await self.hotwater.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
 
             elif zone := self.zone_by_id.get(id_):
-                await zone.set_schedule(json.dumps(sched["daily_schedules"]))
+                await zone.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
 
             else:
                 self._logger.warning(
-                    f"Ignoring schedule of {id_} ({sched.get('name')}): unknown id"
+                    f"Ignoring schedule of {id_} ({sched.get(SZ_NAME)}): unknown id"
                     ", consider matching by name rather than by id"
                 )
                 return False
@@ -440,16 +442,16 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         async def restore_by_name(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
             """Restore a schedule by name and return False if there was no match."""
 
-            name: str | None = sched.get("name")  # name is NotRequired[str]
+            name: str | None = sched.get(SZ_NAME)  # name is NotRequired[str]
 
             if name and self.hotwater and name == self.hotwater.name:
-                await self.hotwater.set_schedule(json.dumps(sched["daily_schedules"]))
+                await self.hotwater.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
 
             elif name and (zone := self.zone_by_name.get(name)):
-                await zone.set_schedule(json.dumps(sched["daily_schedules"]))
+                await zone.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
 
             else:
-                id_: str = sched.get("zone_id") or sched["dhw_id"]  # type: ignore[assignment,typeddict-item]
+                id_: str = sched.get(SZ_ZONE_ID) or sched[SZ_DHW_ID]  # type: ignore[assignment,typeddict-item]
 
                 self._logger.warning(
                     f"Ignoring schedule of {id_} ({name}): unknown name"

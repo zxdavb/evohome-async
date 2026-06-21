@@ -14,10 +14,15 @@ import voluptuous as vol
 from . import exceptions as exc
 from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
 from .helpers import (
+    convert_dtms_to_utc_str,
     convert_keys_to_camel_case,
     convert_keys_to_snake_case,
+    convert_str_enums_to_pascal_case,
     redact_secrets,
 )
+
+type _TccResponse = dict[str, Any] | list[dict[str, Any]]
+
 
 if TYPE_CHECKING:
     from aiohttp.typedefs import StrOrURL
@@ -74,24 +79,23 @@ class AbstractAuth(ABC):
         """Return the URL base used for GET/PUT requests."""
         return self._url_base
 
-    async def get(
-        self, url: StrOrURL, /, schema: vol.Schema | None = None
-    ) -> dict[str, Any] | list[dict[str, Any]]:
+    async def get(self, url: StrOrURL, /, schema: vol.Schema) -> _TccResponse:
         """Call the vendor's TCC API with a GET.
 
-        Optionally checks the response JSON against the expected schema and logs a
-        debug message if it doesn't match.
+        A schema is required; it is used to convert datetimes and strEnums from the
+        vendor's format after getting.
         """
 
-        response = await self.request(HTTPMethod.GET, url)
+        response: _TccResponse = await self.request(HTTPMethod.GET, url)
 
-        if schema:
-            try:
-                response = schema(response)
-            except vol.Invalid as err:
-                self._logger.debug(f"GET {url}: payload may be invalid: {err}")
+        try:
+            response = schema(response)  # pyright: ignore[reportAssignmentType]
+        except vol.Invalid as err:
+            raise exc.BadApiSchemaError(
+                f"GET {url}: response failed validation: {err}"
+            ) from err
 
-        return response  # type: ignore[return-value]
+        return response
 
     async def put(
         self,
@@ -100,30 +104,34 @@ class AbstractAuth(ABC):
         json: dict[str, Any],
         *,
         schema: vol.Schema | None = None,
-    ) -> dict[str, Any] | list[dict[str, Any]]:  # NOTE: not _EvoSchemaT
-        """Call the vendor's API with a PUT.
+    ) -> _TccResponse:  # NOTE: not _EvoSchemaT
+        """Call the vendor's TCC API with a PUT.
 
-        Optionally checks the payload JSON against the expected schema and logs a
-        debug message if it doesn't match.
+        A schema is optional and any vol.Invalid is merely logged as a warning.
         """
 
         if schema:
             try:
-                schema(json)
+                json = schema(json)  # pyright: ignore[reportAssignmentType]
             except vol.Invalid as err:
-                self._logger.debug(f"PUT {url}: payload may be invalid: {err}")
+                self._logger.warning(f"PUT {url}: payload failed validation: {err}")
 
-        return await self.request(HTTPMethod.PUT, url, json=json)  # type: ignore[return-value]
+        return await self.request(HTTPMethod.PUT, url, json=json)
 
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> dict[str, Any] | list[dict[str, Any]] | str | None:
-        """Make a request to the vendor's TCC RESTful API.
+    ) -> _TccResponse:
+        """Make a request to the vendor's RESTful API (which does not use snake_case).
 
-        Converts keys to/from snake_case as required.
+        Converts JSON keys to/from snake_case/camelCase as required.
+
+        Helper functions are used to convert datetimes and strEnums to the vendor's
+        format before putting.
         """
 
-        if method == HTTPMethod.PUT and "json" in kwargs:
+        if "json" in kwargs:
+            kwargs["json"] = convert_dtms_to_utc_str(kwargs["json"])
+            kwargs["json"] = convert_str_enums_to_pascal_case(kwargs["json"])
             kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
 
         try:
@@ -143,9 +151,7 @@ class AbstractAuth(ABC):
                 f"{method} {self.url_base}/{url}: {redact_secrets(response)}"
             )
 
-        if method == HTTPMethod.GET:
-            return convert_keys_to_snake_case(response)
-        return response
+        return convert_keys_to_snake_case(response)
 
     @abstractmethod
     async def _headers(self, headers: dict[str, str]) -> dict[str, str]:
@@ -156,7 +162,7 @@ class AbstractAuth(ABC):
 
     async def _make_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
-    ) -> dict[str, Any] | list[dict[str, Any]]:
+    ) -> _TccResponse:
         """Make a GET/PUT request and return the response (a dict or a list).
 
         Will raise an exception if the request is not successful.

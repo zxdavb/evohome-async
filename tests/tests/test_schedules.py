@@ -11,13 +11,14 @@ import pytest
 
 from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2 import exceptions as exc
-from evohomeasync2.schemas import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE, DayOfWeek
+from evohomeasync2.const import DayOfWeek
+from evohomeasync2.schemas.schedule import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE
 from evohomeasync2.zone import _dt_to_dow_and_tod, _find_switchpoints
 
 from .conftest import JsonObjectType, load_fixture
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas import DayOfWeekT
+    from evohomeasync2.typedefs import EvoDayOfWeekT
 
 SCHEDULES_DIR = Path(__file__).parent / "schedules"
 
@@ -100,33 +101,23 @@ SCHEDULE = convert_keys_to_snake_case(
 def test_schema_schedule_dhw() -> None:
     """Test the schedule schema for dhw."""
 
-    get_sched = schedule_file("schedule_dhw_get.json")
-    _ = schedule_file("schedule_dhw_put.json")
+    get_sched = schedule_file("schedule_dhw.json")
 
     assert get_sched == TCC_GET_DHW_SCHEDULE(get_sched)
-    # assert put_sched == TCC_PUT_DHW_SCHEDULE(put_sched)
-
-    # assert put_sched == convert_to_put_schedule(get_sched)
-    # assert get_sched == convert_to_get_schedule(put_sched)
 
 
 def test_schema_schedule_zone() -> None:
     """Test the schedule schema for zones."""
 
-    get_sched = schedule_file("schedule_zone_get.json")
-    _ = schedule_file("schedule_zone_put.json")
+    get_sched = schedule_file("schedule_zone.json")
 
     assert get_sched == TCC_GET_ZON_SCHEDULE(get_sched)
-    # assert put_sched == TCC_PUT_ZON_SCHEDULE(put_sched)
-
-    # assert put_sched == convert_to_put_schedule(get_sched)
-    # assert get_sched == convert_to_get_schedule(put_sched)
 
 
 def test_find_switchpoints() -> None:
     """Test the find_switchpoints method."""
 
-    schedule: list[DayOfWeekT] = SCHEDULE["daily_schedules"]  # type: ignore[assignment]
+    schedule: list[EvoDayOfWeekT] = SCHEDULE["daily_schedules"]  # type: ignore[assignment]
 
     assert _find_switchpoints(schedule, DayOfWeek.MONDAY, "00:00:00") == (
         {"heat_setpoint": 14.8, "time_of_day": "21:30:00"},
@@ -167,7 +158,7 @@ def test_find_switchpoints() -> None:
 def test_find_switchpoints_invalid_day() -> None:
     """Test _find_switchpoints with an invalid day_of_week value."""
 
-    schedule: list[DayOfWeekT] = SCHEDULE["daily_schedules"]  # type: ignore[assignment]
+    schedule: list[EvoDayOfWeekT] = SCHEDULE["daily_schedules"]  # type: ignore[assignment]
 
     with pytest.raises(TypeError, match="Invalid parameter"):
         _find_switchpoints(schedule, "Montag", "08:00:00")  # type: ignore[arg-type]

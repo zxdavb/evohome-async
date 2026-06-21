@@ -7,28 +7,25 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
-from _evohome.helpers import as_local_time, camel_to_snake
+from _evohome.helpers import as_aware_dtm, as_local_time
 
 from . import exceptions as exc
 from .const import (
-    API_STRFTIME,
     SZ_ALLOWED_MODES,
+    SZ_ALLOWED_STATES,
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
     SZ_MODE,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_STATE,
     SZ_STATE_STATUS,
-)
-from .schemas import (
-    S2_MODE,
-    S2_STATE,
-    S2_UNTIL_TIME,
+    SZ_UNTIL,
+    SZ_UNTIL_TIME,
     DhwState,
-    EntityType,
-    TccSetDhwModeT,
     ZoneMode,
 )
+from .schemas.const import TccEntityType
+from .schemas.helpers import Case
 from .schemas.schedule import factory_dhw_schedule
 from .schemas.status import factory_dhw_status
 from .zone import _ZoneBase
@@ -39,24 +36,25 @@ if TYPE_CHECKING:
     import voluptuous as vol
 
     from . import ControlSystem
-    from .schemas import (
-        DayOfWeekDhwT,
+    from .typedefs import (
+        EvoDayOfWeekDhwT,
         EvoDhwConfigEntryT,
         EvoDhwConfigResponseT,
         EvoDhwScheduleCapabilitiesResponseT,
         EvoDhwStateCapabilitiesResponseT,
         EvoDhwStateStatusResponseT,
         EvoDhwStatusResponseT,
+        EvoSetDhwStateT,
     )
 
 
 class HotWater(_ZoneBase):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
-    _TYPE = EntityType.DHW
+    _TCC_TYPE = TccEntityType.DHW
 
-    SCH_SCHEDULE: vol.Schema = factory_dhw_schedule(camel_to_snake)
-    SCH_STATUS: vol.Schema = factory_dhw_status(camel_to_snake)
+    SCH_SCHEDULE: vol.Schema = factory_dhw_schedule(Case.PYTHONIC)
+    SCH_STATUS: vol.Schema = factory_dhw_status(Case.PYTHONIC)
 
     def __init__(self, tcs: ControlSystem, config: EvoDhwConfigResponseT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs)
@@ -64,7 +62,7 @@ class HotWater(_ZoneBase):
         self._config: Final[EvoDhwConfigEntryT] = config  # type: ignore[misc]
         self._status: EvoDhwStatusResponseT | None = None
 
-        self._schedule: list[DayOfWeekDhwT] | None = None  # type: ignore[assignment]
+        self._schedule: list[EvoDayOfWeekDhwT] | None = None  # type: ignore[assignment]
 
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoDhwConfigEntryT:
@@ -86,8 +84,8 @@ class HotWater(_ZoneBase):
     def type(self) -> str:
         return "DomesticHotWater"
 
-    @cached_property  # NOTE: renamed config key: was schedule_capabilities_response
-    def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesResponseT:
+    @cached_property
+    def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesResponseT | None:
         """
         "scheduleCapabilitiesResponse": {
           "maxSwitchpointsPerDay": 6,
@@ -96,9 +94,10 @@ class HotWater(_ZoneBase):
         }
         """
 
-        return self._config[SZ_SCHEDULE_CAPABILITIES_RESPONSE]
+        # key may be absent for FocusProWifiRetail, but is always present for Evohome
+        return self._config.get(SZ_SCHEDULE_CAPABILITIES_RESPONSE)
 
-    @cached_property  # NOTE: renamed config key: was dhw_state_capabilities_response
+    @cached_property  # NOTE: is not dhw_state_capabilities
     def state_capabilities(self) -> EvoDhwStateCapabilitiesResponseT:
         """
         "dhwStateCapabilitiesResponse": {
@@ -117,7 +116,7 @@ class HotWater(_ZoneBase):
 
     @cached_property
     def allowed_states(self) -> tuple[DhwState, ...]:
-        return tuple(self.state_capabilities["allowed_states"])
+        return tuple(self.state_capabilities[SZ_ALLOWED_STATES])
 
     # Status (state) attrs & methods...
 
@@ -144,46 +143,57 @@ class HotWater(_ZoneBase):
 
     @property
     def until(self) -> dt | None:
-        if (until := self.state_status.get("until")) is None:
+        if (until := self.state_status.get(SZ_UNTIL)) is None:
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, dhw_mode: TccSetDhwModeT, /) -> None:
+    async def _set_mode(self, dhw_mode: EvoSetDhwStateT, /) -> None:
         """Set the DHW mode (state)."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if dhw_mode[S2_MODE] not in self.allowed_modes:
+        if dhw_mode[SZ_MODE] not in self.allowed_modes:
             self._logger.warning(
-                f"{self}: Attempting unsupported {S2_MODE}: {dhw_mode}..."
+                f"{self}: Attempting unsupported {SZ_MODE}: {dhw_mode}..."
             )
 
-        if not (state := dhw_mode.get(S2_STATE)):
-            if dhw_mode[S2_MODE] != ZoneMode.FOLLOW_SCHEDULE:
+        if not (state := dhw_mode.get(SZ_STATE)):
+            if dhw_mode[SZ_MODE] is not ZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(
-                    f"{self}: Attempting invalid {S2_MODE}/{S2_STATE}: {dhw_mode}..."
+                    f"{self}: Attempting invalid {SZ_MODE}/{SZ_STATE}: {dhw_mode}..."
                 )
 
         elif state not in self.allowed_states:
             self._logger.warning(
-                f"{self}: Attempting unsupported {S2_STATE}: {dhw_mode}..."
+                f"{self}: Attempting unsupported {SZ_STATE}: {dhw_mode}..."
             )
 
-        await self._auth.put(f"{self._TYPE}/{self.id}/state", json=dict(dhw_mode))
+        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/state", json=dict(dhw_mode))
 
     async def set_mode(
         self,
-        mode: ZoneMode,
+        mode: ZoneMode | str,
         /,
         *,
-        state: DhwState | None = None,
-        until: dt | None = None,
+        state: DhwState | str | None = None,
+        until: dt | str | None = None,
     ) -> None:
-        """Set the DHW mode, either indefinitely or until a given time."""
+        """Set the DHW to a mode, either indefinitely, or until a given time.
+
+        Will accept a ZoneMode/DhwState or a (snake_case) string for 'mode'/'state'.
+
+        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
+        but it must be TZ-aware (not naive).
+        """
+
+        try:
+            mode = ZoneMode(mode)
+        except ValueError as err:
+            raise exc.InvalidDhwModeError(f"{self}: Unknown mode: {mode}") from err
 
         if mode not in self.allowed_modes:
             raise exc.InvalidDhwModeError(f"{self}: Unsupported mode: {mode}")
 
-        dhw_mode: TccSetDhwModeT = {S2_MODE: mode}
+        dhw_mode: EvoSetDhwStateT = {SZ_MODE: mode}
 
         if state is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
@@ -192,13 +202,20 @@ class HotWater(_ZoneBase):
                 )
 
         else:
-            if mode == ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
+            if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidDhwModeError(f"{self}: For {mode}, state must be None")
 
-            dhw_mode[S2_STATE] = state
+            try:
+                state = DhwState(state)
+            except ValueError as err:
+                raise exc.InvalidDhwModeError(
+                    f"{self}: Unknown state: {state}"
+                ) from err
+
+            dhw_mode[SZ_STATE] = state
 
         if until is None:
-            if mode == ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
+            if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidDhwModeError(
                     f"{self}: For {mode}, until must not be None"
                 )
@@ -207,7 +224,7 @@ class HotWater(_ZoneBase):
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 raise exc.InvalidDhwModeError(f"{self}: For {mode}, until must be None")
 
-            dhw_mode[S2_UNTIL_TIME] = until.strftime(API_STRFTIME)
+            dhw_mode[SZ_UNTIL_TIME] = as_aware_dtm(until)
 
         await self._set_mode(dhw_mode)
 
@@ -215,15 +232,17 @@ class HotWater(_ZoneBase):
         """Cancel any override and allow the DHW to follow its schedule."""
         await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
 
-    async def set_off(self, /, *, until: dt | None = None) -> None:
+    async def set_off(self, /, *, until: dt | str | None = None) -> None:
         """Set the DHW off until a given time, or permanently."""
         await self.set_state(DhwState.OFF, until=until)
 
-    async def set_on(self, /, *, until: dt | None = None) -> None:
+    async def set_on(self, /, *, until: dt | str | None = None) -> None:
         """Set the DHW on until a given time, or permanently."""
         await self.set_state(DhwState.ON, until=until)
 
-    async def set_state(self, state: DhwState, /, *, until: dt | None = None) -> None:
+    async def set_state(
+        self, state: DhwState | str, /, *, until: dt | str | None = None
+    ) -> None:
         """Set the DHW state, either indefinitely or until a given time."""
 
         mode = (
@@ -234,11 +253,11 @@ class HotWater(_ZoneBase):
         await self.set_mode(mode, state=state, until=until)
 
     # NOTE: this wrapper exists only for typing purposes
-    async def get_schedule(self) -> list[DayOfWeekDhwT]:  # type: ignore[override]
+    async def get_schedule(self) -> list[EvoDayOfWeekDhwT]:  # type: ignore[override]
         """Get the schedule for this DHW zone."""
         return await super().get_schedule()  # type: ignore[return-value]
 
     # NOTE: this wrapper exists only for typing purposes
-    async def set_schedule(self, schedule: list[DayOfWeekDhwT] | str) -> None:  # type: ignore[override]
+    async def set_schedule(self, schedule: list[EvoDayOfWeekDhwT] | str) -> None:  # type: ignore[override]
         """Set the schedule for this DHW zone."""
         await super().set_schedule(schedule)  # type: ignore[arg-type]

@@ -9,8 +9,10 @@ from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from freezegun.api import FakeDatetime
 
-from evohomeasync2.schemas import DhwState
+from evohomeasync2 import BadApiRequestError
+from evohomeasync2.const import DhwState, SystemMode, ZoneMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
 
@@ -46,7 +48,7 @@ async def test_ctl_reset(
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
-        "systemMode": "AutoWithReset",  # SystemMode.AUTO_WITH_RESET,
+        "system_mode": SystemMode.AUTO_WITH_RESET,
         "permanent": True,
     }
 
@@ -59,8 +61,8 @@ async def test_ctl_reset(
 
 
 CTL_APIS_SANS_UNTIL = {  # system mode APIs that can not take an until kwarg
-    "set_auto": "Auto",  # SystemMode.AUTO,
-    "set_heatingoff": "HeatingOff",  # SystemMode.HEATING_OFF,
+    "set_auto": SystemMode.AUTO,
+    "set_heatingoff": SystemMode.HEATING_OFF,
 }
 
 
@@ -75,7 +77,7 @@ async def test_ctl_set_mode_sans_until(
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
-        "systemMode": CTL_APIS_SANS_UNTIL[api_name],
+        "system_mode": CTL_APIS_SANS_UNTIL[api_name],
         "permanent": True,
     }
 
@@ -94,10 +96,10 @@ async def test_ctl_set_mode_sans_until(
 
 
 CTL_APIS_WITH_UNTIL = {  # system mode APIs that can take an until kwarg
-    "set_away": "Away",  # SystemMode.AWAY,
-    "set_custom": "Custom",  # SystemMode.CUSTOM,
-    "set_dayoff": "DayOff",  # SystemMode.DAY_OFF,
-    "set_eco": "AutoWithEco",  # SystemMode.AUTO_WITH_ECO,
+    "set_away": SystemMode.AWAY,
+    "set_custom": SystemMode.CUSTOM,
+    "set_dayoff": SystemMode.DAY_OFF,
+    "set_eco": SystemMode.AUTO_WITH_ECO,
 }
 
 
@@ -113,7 +115,7 @@ async def test_ctl_set_mode_with_until(
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
-        "systemMode": CTL_APIS_WITH_UNTIL[api_name],
+        "system_mode": CTL_APIS_WITH_UNTIL[api_name],
         "permanent": True,
     }
 
@@ -127,9 +129,9 @@ async def test_ctl_set_mode_with_until(
     freezer.move_to("2025-07-10T12:00:00Z")
 
     mode = {
-        "systemMode": CTL_APIS_WITH_UNTIL[api_name],
+        "system_mode": CTL_APIS_WITH_UNTIL[api_name],
         "permanent": False,
-        "timeUntil": "2025-07-13T12:00:00Z",
+        "time_until": FakeDatetime(2025, 7, 13, 12, 0, tzinfo=UTC),
     }
 
     with patch(
@@ -157,8 +159,8 @@ async def test_dhw_set_off(
         await dhw.set_off()
 
     EXPECTED_JSON = {
-        "mode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
-        "state": "Off",  # #            DhwState.OFF,
+        "mode": ZoneMode.PERMANENT_OVERRIDE,
+        "state": DhwState.OFF,
     }
 
     mock_put.assert_awaited_once()
@@ -184,8 +186,8 @@ async def test_dhw_set_on(
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "mode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
-        "state": "On",  # #             DhwState.ON,
+        "mode": ZoneMode.PERMANENT_OVERRIDE,
+        "state": DhwState.ON,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -209,7 +211,7 @@ async def test_dhw_reset(
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "mode": "FollowSchedule",  # ZoneMode.FOLLOW_SCHEDULE,
+        "mode": ZoneMode.FOLLOW_SCHEDULE,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -233,9 +235,9 @@ async def test_dhw_set_state(
 
     mock_put.assert_awaited_once()
 
-    EXPECTED_JSON = {
-        "mode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
-        "state": "Off",  # #            DhwState.OFF,
+    EXPECTED_JSON: dict[str, dt | str] = {
+        "mode": ZoneMode.PERMANENT_OVERRIDE,
+        "state": DhwState.OFF,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -252,9 +254,9 @@ async def test_dhw_set_state(
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "mode": "TemporaryOverride",  # ZoneMode.TEMPORARY_OVERRIDE,
-        "state": "On",  # #             DhwState.ON,
-        "untilTime": "2025-07-10T15:00:00Z",
+        "mode": ZoneMode.TEMPORARY_OVERRIDE,
+        "state": DhwState.ON,
+        "until_time": FakeDatetime(2025, 7, 10, 15, 0, tzinfo=UTC),
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -280,7 +282,7 @@ async def test_zon_reset(
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "setpointMode": "FollowSchedule",  # ZoneMode.FOLLOW_SCHEDULE,
+        "setpoint_mode": ZoneMode.FOLLOW_SCHEDULE,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -304,8 +306,8 @@ async def test_zon_set_temperature(
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "setpointMode": "PermanentOverride",  # ZoneMode.PERMANENT_OVERRIDE,
-        "heatSetpointValue": 19.5,
+        "setpoint_mode": ZoneMode.PERMANENT_OVERRIDE,
+        "heat_setpoint_value": 19.5,
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
@@ -322,11 +324,72 @@ async def test_zon_set_temperature(
     mock_put.assert_awaited_once()
 
     EXPECTED_JSON = {
-        "setpointMode": "TemporaryOverride",  # ZoneMode.TEMPORARY_OVERRIDE,
-        "heatSetpointValue": 20.5,
-        "timeUntil": "2025-07-10T13:00:00Z",
+        "setpoint_mode": ZoneMode.TEMPORARY_OVERRIDE,
+        "heat_setpoint_value": 20.5,
+        "time_until": FakeDatetime(2025, 7, 10, 13, 0, tzinfo=UTC),
     }
 
     assert mock_put.call_args[0][0] == HTTPMethod.PUT
     assert mock_put.call_args[0][1] == f"temperatureZone/{zone.id}/heatSetpoint"
     assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
+
+
+# Test input flexibility (accept str/StrEnum mode/state, dt|str until, reject naive)...
+
+
+async def test_ctl_set_mode_accepts_str_mode(
+    evohome_v2: EvohomeClient,
+) -> None:
+    """A snake_case string mode is accepted (and coerced to the StrEnum)."""
+
+    tcs = evohome_v2.tcs
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
+        await tcs.set_mode("away")  # instead of SystemMode.AWAY
+
+    EXPECTED_JSON = {"system_mode": SystemMode.AWAY, "permanent": True}
+
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
+
+
+async def test_dhw_set_state_accepts_str_inputs(
+    evohome_v2: EvohomeClient,
+) -> None:
+    """A string state and an ISO-string until are accepted and normalised."""
+
+    dhw = evohome_v2.tcs.hotwater
+    assert dhw is not None
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+    ) as mock_put:
+        await dhw.set_state(
+            "on", until="2025-07-13T12:00:00Z"
+        )  # instead of DhwState.ON
+
+    EXPECTED_JSON = {
+        "mode": ZoneMode.TEMPORARY_OVERRIDE,
+        "state": DhwState.ON,
+        "until_time": dt(2025, 7, 13, 12, 0, tzinfo=UTC),
+    }
+
+    assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
+
+
+async def test_set_mode_rejects_naive_until(
+    evohome_v2: EvohomeClient,
+) -> None:
+    """A naive (TZ-unaware) until is rejected before any request is made."""
+
+    tcs = evohome_v2.tcs
+    naive = dt.fromisoformat("2025-07-13T12:00:00")  # no offset
+
+    with (
+        patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
+        pytest.raises(BadApiRequestError),
+    ):
+        await tcs.set_away(until=naive)
+
+    mock_put.assert_not_awaited()

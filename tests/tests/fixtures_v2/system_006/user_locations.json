@@ -3,10 +3,10 @@
         "locationInfo": {
             "locationId": "0001",
             "name": "Home",
-            "streetAddress": "-REDACTED-",
+            "streetAddress": "1 Rue de la Loi",
             "city": "Auderghem",
             "country": "Belgium",
-            "postcode": "-REDACTED-",
+            "postcode": "1160",
             "locationType": "Residential",
             "useDaylightSaveSwitching": true,
             "timeZone": {
@@ -17,18 +17,18 @@
                 "supportsDaylightSaving": true
             },
             "locationOwner": {
-                "userId": "-REDACTED-",
-                "username": "noone@nowhere.com",
-                "firstname": "-REDACTED-",
-                "lastname": "-REDACTED-"
+                "userId": "4000006",
+                "username": "user_4000006@gmail.com",
+                "firstname": "John",
+                "lastname": "Smith"
             }
         },
         "gateways": [
             {
                 "gatewayInfo": {
                     "gatewayId": "0002",
-                    "mac": "-REDACTED-",
-                    "crc": "-REDACTED-",
+                    "mac": "000000000000",
+                    "crc": "0000",
                     "isWiFi": false
                 },
                 "temperatureControlSystems": [
@@ -45,7 +45,11 @@
                                     "valueResolution": 0.5,
                                     "canControlHeat": true,
                                     "canControlCool": false,
-                                    "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
                                     "maxDuration": "1.00:00:00",
                                     "timingResolution": "00:10:00"
                                 },
@@ -60,7 +64,11 @@
                             }
                         ],
                         "allowedSystemModes": [
-                            {"systemMode": "Auto", "canBePermanent": true, "canBeTemporary": false}
+                            {
+                                "systemMode": "Auto",
+                                "canBePermanent": true,
+                                "canBeTemporary": false
+                            }
                         ]
                     }
                 ]
@@ -113,7 +121,11 @@
                                     "valueResolution": 0.5,
                                     "canControlHeat": true,
                                     "canControlCool": false,
-                                    "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
                                     "maxDuration": "1.00:00:00",
                                     "timingResolution": "00:10:00"
                                 },
@@ -128,7 +140,11 @@
                             }
                         ],
                         "allowedSystemModes": [
-                            {"systemMode": "Auto", "canBePermanent": true, "canBeTemporary": false}
+                            {
+                                "systemMode": "Auto",
+                                "canBePermanent": true,
+                                "canBeTemporary": false
+                            }
                         ]
                     }
                 ]

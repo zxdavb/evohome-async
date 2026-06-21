@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import json
+from datetime import datetime as dt
 from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -26,15 +27,13 @@ def assert_schema(folder: Path, schema: vol.Schema, file_name: str) -> None:
     _ = schema(data)
 
 
-# yaml.add_representer(FakeDatetime, fake_datetime_representer)
-def fake_datetime_representer(
-    dumper: yaml.Dumper, data: FakeDatetime
-) -> yaml.nodes.ScalarNode:
-    """Represent a FakeDatetime object as a string."""
+def datetime_representer(dumper: yaml.Dumper, data: dt) -> yaml.nodes.ScalarNode:
+    """Represent a datetime as an ISO 8601 string (with a 'T', not a space)."""
     return dumper.represent_scalar("tag:yaml.org,2002:str", data.isoformat())
 
 
-yaml.add_representer(FakeDatetime, fake_datetime_representer)
+yaml.add_representer(dt, datetime_representer)
+yaml.add_representer(FakeDatetime, datetime_representer)
 
 
 def get_property_methods(obj: object) -> list[str]:
@@ -46,18 +45,15 @@ def get_property_methods(obj: object) -> list[str]:
     ]
 
 
-_ATTRS_NOT_TO_SERIALIZE = ("zone_by_name",)  # is already zone_by_id
-
-
 def serializable_attrs(obj: object) -> dict[str, str]:
     """Return a dictionary of serializable attributes of an object."""
 
     result = {}
-    for k in get_property_methods(obj):  # + list(vars(obj).keys()):
-        if not k.startswith("_") and k not in _ATTRS_NOT_TO_SERIALIZE:
+    for k in get_property_methods(obj) + list(vars(obj).keys()):
+        if not k.startswith("_"):
             try:
                 result[k] = yaml.dump(getattr(obj, k))
-            except TypeError:  # not all attrs are serializable
+            except TypeError:  # non-serializable, e.g. client, gateways, zone_by_name
                 continue
 
     return result

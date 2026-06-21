@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(~/projects/hass/*/components/evohome/**)",
+      "Bash(python -m pytest *)",
+      "Bash(python3 -m pytest *)",
+      "Bash(mypy *)",
+      "Bash(pre-commit *)",
+      "Bash(prek *)",
+      "Bash(pytest *)",
+      "Bash(ruff *)"
+    ]
+  }
+}

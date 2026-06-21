@@ -1,11 +1,12 @@
+# evohome-async
+
 ![ruff](https://github.com/zxdavb/evohome-async/actions/workflows/check-lint.yml/badge.svg)
 ![mypy](https://github.com/zxdavb/evohome-async/actions/workflows/check-type.yml/badge.svg)
-![pytest](https://github.com/zxdavb/evohome-async/actions/workflows/check-test.yml/badge.svg)
+![pytest](https://github.com/zxdavb/evohome-async/actions/workflows/check-tests.yml/badge.svg)
 ![PyPI](https://img.shields.io/pypi/v/evohome-async?label=pypi%20package)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/evohome-async)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/evohome-async)
-
-evohome-async
-==============
+![License](https://img.shields.io/pypi/l/evohome-async)
 
 Python client to asynchronously access the [Total Connect Comfort](https://international.mytotalconnectcomfort.com/Account/Login) RESTful API.
 
@@ -14,11 +15,11 @@ It provides support for Resideo TCC-based systems, such as **Evohome**, **Round 
 - it supports _only_ EU/EMEA-based systems, please use (e.g.) [somecomfort](https://github.com/mkmer/AIOSomecomfort) for US-based systems
 - it provides Evohome support for [Home Assistant](https://www.home-assistant.io/integrations/evohome) and other automation platforms
 
-> **NOTE:** the TCC API available to this library does not currently support cooling.
+> **NOTE:** the vendor API available to this library does not currently support cooling.
 
 This client _requires_ the [aiohttp](https://pypi.org/project/aiohttp/) library. If you prefer a non-async client, [evohome-client](https://github.com/watchforstock/evohome-client) uses [requests](https://pypi.org/project/requests/) instead.
 
-### CLI for schedules (currently WIP)
+## CLI for schedules (currently WIP)
 
 To install a basic CLI:
 
@@ -28,7 +29,7 @@ pip install 'evohome-async[cli]'
 evo-client --help
 ```
 
-For example, to backup schedules (incl. DHW, if any):
+For example, to backup schedules (including DHW, if any):
 
 ```bash
 evo-client -u username@gmail.com -p password get-schedules --loc-idx 2 > schedules.json
@@ -40,11 +41,11 @@ evo-client -u username@gmail.com -p password get-schedules --loc-idx 2 > schedul
 evo-client -u username@gmail.com -p password set-schedules --loc-idx 2 -f schedules.json
 ```
 
-To avoid exceeding the vendor's API rate limit, it will restore the access token cache, unless you use the the `--no-load-tokens` switch.
+To avoid exceeding the vendor's API rate limit, it will restore the access token cache, unless you use the `--no-load-tokens` switch.
 
 > **NOTE:** the client may save your access tokens to **.evo-cache.tmp**: this presents a small security concern.
 
-### Example code...
+## Example code
 
 ```python
 websession = aiohttp.ClientSession()
@@ -60,7 +61,7 @@ await token_manager.save_access_token()
 await websession.close()
 ```
 
-### Differences from non-async version
+## Differences from non-async version
 
 It is loosely based upon <https://github.com/watchforstock/evohome-client>, but async-aware.
 
@@ -83,47 +84,38 @@ Other differences include (but are not limited to):
 - more extensive testing via **pytest**
 - (WIP) extended compatibility beyond pure evohome systems (e.g. VisionPro)
 
-> **TIP:** the non-async documentation (from **evohome-client**) is available at <http://evohome-client.readthedocs.org/en/latest/>
-
 ---
 
 ## Development
 
+This is how to set up a development environment.
+
 ### Prerequisites
 
-- Python 3.13.2+ (on *nix recommended, use WSL on Windows)
-- [uv](https://docs.astral.sh/uv/) (recommended) or pip
+- Python 3.14 for local dev (HA stable requires 3.14); Python 3.13 is also tested in CI
+- [uv](https://docs.astral.sh/uv/)
 
 ### Setup
-
-Clone the repository and set up your development environment (using uv):
 
 ```bash
 git clone https://github.com/zxdavb/evohome-async
 cd evohome-async
 
-# Create virtual environment and install dependencies
-uv venv --python 3.13  # or: python3.13 -m venv venv
-source .venv/bin/activate
-
-uv pip install -e '.[cli,dev]'
+uv sync --all-extras  # creates .venv/ Python pinned via .python-version
 
 prek install  # install pre-commit git hooks
 ```
 
-#### Running tests and linting
+### Running tests and linting
 
 ```bash
-# Run linting
+source .venv/bin/activate
+
 ruff check .
 ruff format --check .
-
-# Run type checking
 mypy
-
-# Run tests
-pytest --cov=src --cov-report=term-missing  # --log-cli-level=DEBUG
-
-# Run pre-commit hooks (includes ruff)
-prek run --all-files
+pytest --cov=src --cov-report=term-missing
+prek run --all-files  # all pre-commit hooks
 ```
+
+Alternatively, prefix each command with `uv run` to skip activation.
