@@ -12,6 +12,8 @@ from abc import ABC, abstractmethod
 from functools import cached_property
 from typing import TYPE_CHECKING, Any, Final
 
+from _evohome.helpers import as_utc_str
+
 from . import exceptions as exc
 from .auth import Auth
 from .const import (
@@ -50,7 +52,6 @@ from .schemas import (
     SZ_TEMPORARY,
     SZ_THERMOSTAT,
     SZ_VALUE,
-    TCC_DTM_STRFTIME,
     TccSystemMode,
 )
 from .typedefs import EvoGwyInfoDictT
@@ -199,7 +200,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
             # SZ_COOL_SETPOINT: None,
         }
         if next_time:
-            data |= {SZ_NEXT_TIME: next_time.strftime(TCC_DTM_STRFTIME)}
+            data |= {SZ_NEXT_TIME: as_utc_str(next_time)}
 
         url = f"devices/{self.id}/thermostat/changeableValues"
         await self._auth.put(url, json=data)
@@ -294,7 +295,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
         if value is not None:  # NOTE: may have to send {SZ_VALUE: None} instead
             data[SZ_VALUE] = value
         if next_time is not None:
-            data[SZ_NEXT_TIME] = next_time.strftime(TCC_DTM_STRFTIME)
+            data[SZ_NEXT_TIME] = as_utc_str(next_time)
 
         url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
         await self._auth.put(url, json=data)
@@ -365,7 +366,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
         request: dict[str, str] = {SZ_QUICK_ACTION: mode}
         if until:
-            request |= {SZ_QUICK_ACTION_NEXT_TIME: until.strftime(TCC_DTM_STRFTIME)}
+            request |= {SZ_QUICK_ACTION_NEXT_TIME: as_utc_str(until)}
 
         await self._set_mode(request)
 
