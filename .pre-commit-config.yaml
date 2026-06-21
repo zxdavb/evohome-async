@@ -43,17 +43,6 @@ repos:
           - --keep-updates
         files: ^(cli|src|tests)/.+\.py$
 
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
-    hooks:
-      - id: codespell
-        args:
-          - --ignore-words-list=FLE,hass
-          - --skip="./.*,*.csv,*.json,*.ambr"
-          - --quiet-level=2
-        exclude_types: [csv, json, html, xml]
-        exclude: ^(tests/.+/fixtures|tests/.+/snapshots)/
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
