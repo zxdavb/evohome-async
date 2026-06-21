@@ -39,21 +39,21 @@ cli = [
 ]
 dev = [
   # linting
-  "prek>=0.4.4",
-  "ruff>=0.15.16",
+  "prek>=0.4.5",
+  "ruff>=0.15.18",
   # typing
   "mypy>=2.1.0",
   "types-aiofiles>=25.1.0.20260518",
   "types-PyYAML>=6.0.12.20260518",
   # testing
   "PyYAML>=6.0.3",
-  "pytest>=9.0.3",
+  "pytest>=9.1.1",
   "pytest-asyncio>=1.4.0",
   "pytest-cov>=7.1.0",
   "pytest-freezer>=0.4.9",
   "pytest-sugar>=1.1.1",
   "pytest-xdist>=3.8.0",
-  "syrupy>=5.3.1",
+  "syrupy>=5.3.2",
   # build/deploy
   "hatch>=1.17.0",
 ]
