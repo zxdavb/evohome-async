@@ -34,13 +34,13 @@ def test_user_account(fixture_folder: Path) -> None:
 
 
 def test_user_locations(fixture_folder: Path) -> None:
-    """Test the user locations config schema against the corresponding JSON."""
+    """Test the user locations (config) schema against the corresponding JSON."""
 
     assert_schema(fixture_folder, TCC_GET_USR_LOCATIONS, "user_locations.json")
 
 
 def test_location_status(fixture_folder: Path) -> None:
-    """Test the location status schema against the corresponding JSON."""
+    """Test the location (status) schema against the corresponding JSON."""
 
     SCH_STATUS = factory_loc_status()
 

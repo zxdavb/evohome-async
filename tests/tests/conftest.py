@@ -71,35 +71,6 @@ def load_fixture(file: Path) -> JsonArrayType | JsonObjectType:
     return json.loads(text)  # type: ignore[no-any-return]
 
 
-# NOTE: JSON from HA is not compliant with vendor schema, but is useful to test against
-CONFIG_FILE_NAME = "config.json"
-STATUS_FILE_NAME = "status.json"
-
-
-@pytest.fixture  # used by test_schemas_0.py, test_schemas_1.py
-def config(folder: Path) -> dict[str, Any]:
-    """Fixture to load the configuration file."""
-    # is camelCase, as per vendor's schema
-
-    config_path = folder / CONFIG_FILE_NAME
-    if not config_path.is_file():
-        pytest.skip(f"No {CONFIG_FILE_NAME} in: {folder.name}")
-
-    return load_fixture(config_path)  # type: ignore[return-value]
-
-
-@pytest.fixture  # used by test_schemas_0.py, test_schemas_1.py
-def status(folder: Path) -> dict[str, Any]:
-    """Fixture to load the status file."""
-    # is camelCase, as per vendor's schema
-
-    status_path = folder / STATUS_FILE_NAME
-    if not status_path.is_file():
-        pytest.skip(f"No {STATUS_FILE_NAME} in: {folder.name}")
-
-    return load_fixture(status_path)  # type: ignore[return-value]
-
-
 FIXTURES_V0 = Path(__file__).parent / "fixtures_v0"
 FIXTURES_V2 = Path(__file__).parent / "fixtures_v2"
 
