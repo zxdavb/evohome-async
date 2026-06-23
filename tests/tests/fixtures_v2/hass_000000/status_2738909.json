@@ -148,8 +148,9 @@
                     ],
                     "activeFaults": [],
                     "systemModeStatus": {
-                        "mode": "HeatingOff",
-                        "isPermanent": true
+                        "mode": "Away",
+                        "timeUntil": "2023-10-29T23:00:00Z",
+                        "isPermanent": false
                     }
                 }
             ],

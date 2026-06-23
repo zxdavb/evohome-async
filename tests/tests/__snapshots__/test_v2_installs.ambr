@@ -46734,13 +46734,13 @@
   
     ''',
     'is_permanent': '''
-      true
+      false
       ...
   
     ''',
     'mode': '''
       !!python/object/apply:evohomeasync2.const.SystemMode
-      - heating_off
+      - away
   
     ''',
     'model': '''
@@ -46752,20 +46752,21 @@
       active_faults: []
       system_id: '3432522'
       system_mode_status:
-        is_permanent: true
+        is_permanent: false
         mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - heating_off
+        - away
+        time_until: '2023-10-29T23:00:00+00:00'
   
     ''',
     'system_mode_status': '''
-      is_permanent: true
+      is_permanent: false
       mode: !!python/object/apply:evohomeasync2.const.SystemMode
-      - heating_off
+      - away
+      time_until: '2023-10-29T23:00:00+00:00'
   
     ''',
     'until': '''
-      null
-      ...
+      '2023-10-29T23:00:00+00:00'
   
     ''',
   })
