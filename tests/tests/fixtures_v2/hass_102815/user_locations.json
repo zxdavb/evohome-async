@@ -62,31 +62,15 @@
                                 "name": "DINING ROOM",
                                 "zoneType": "Thermostat",
                                 "allowedFanModes": [
-                                    {
-                                        "fanMode": "Auto"
-                                    },
-                                    {
-                                        "fanMode": "On"
-                                    }
+                                    { "fanMode": "Auto" },
+                                    { "fanMode": "On"   }
                                 ]
                             }
                         ],
                         "allowedSystemModes": [
-                            {
-                                "systemMode": "Off",
-                                "canBePermanent": true,
-                                "canBeTemporary": false
-                            },
-                            {
-                                "systemMode": "Heat",
-                                "canBePermanent": true,
-                                "canBeTemporary": false
-                            },
-                            {
-                                "systemMode": "Cool",
-                                "canBePermanent": true,
-                                "canBeTemporary": false
-                            }
+                            { "systemMode": "Off",  "canBePermanent": true, "canBeTemporary": false },
+                            { "systemMode": "Heat", "canBePermanent": true, "canBeTemporary": false },
+                            { "systemMode": "Cool", "canBePermanent": true, "canBeTemporary": false }
                         ]
                     }
                 ]
