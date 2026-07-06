@@ -33,13 +33,13 @@ classifiers = [
 [project.optional-dependencies]
 cli = [
   "aiofiles>=25.1.0",
-  "asyncclick>=8.3.0.7",
+  "asyncclick>=8.4.2.1",
   "debugpy>=1.8.21",
   "keyring>=25.7.0",
 ]
 dev = [
   # linting
-  "prek>=0.4.5",
+  "prek>=0.4.8",
   "ruff>=0.15.20",
   # typing
   "mypy>=2.1.0",
@@ -53,7 +53,7 @@ dev = [
   "pytest-freezer>=0.4.9",
   "pytest-sugar>=1.1.1",
   "pytest-xdist>=3.8.0",
-  "syrupy>=5.3.4",
+  "syrupy>=5.4.0",
   # build/deploy
   "hatch>=1.17.0",
 ]
