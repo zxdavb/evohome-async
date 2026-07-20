@@ -335,9 +335,9 @@
       "locationType": "Residential",
       "useDaylightSaveSwitching": true,
       "timeZone": {
-        "timeZoneId": "GMTStandardTime",
-        "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
-        "offsetMinutes": 0,
+        "timeZoneId": "RomanceStandardTime",
+        "displayName": "(UTC+01:00) Brussels, Copenhagen, Madrid, Paris",
+        "offsetMinutes": 60,
         "currentOffsetMinutes": 60,
         "supportsDaylightSaving": true
       },
@@ -404,10 +404,10 @@
       "locationType": "Residential",
       "useDaylightSaveSwitching": true,
       "timeZone": {
-        "timeZoneId": "GMTStandardTime",
-        "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
-        "offsetMinutes": 0,
-        "currentOffsetMinutes": 60,
+        "timeZoneId": "WEuropeStandardTime",
+        "displayName": "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna",
+        "offsetMinutes": 60,
+        "currentOffsetMinutes": 120,
         "supportsDaylightSaving": true
       },
       "locationOwner": {
@@ -440,10 +440,10 @@
       "locationType": "Residential",
       "useDaylightSaveSwitching": true,
       "timeZone": {
-        "timeZoneId": "GMTStandardTime",
-        "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
-        "offsetMinutes": 0,
-        "currentOffsetMinutes": 60,
+        "timeZoneId": "AUSEasternStandardTime",
+        "displayName": "(UTC+10:00) Canberra, Melbourne, Sydney",
+        "offsetMinutes": 600,
+        "currentOffsetMinutes": 600,
         "supportsDaylightSaving": true
       },
       "locationOwner": {
