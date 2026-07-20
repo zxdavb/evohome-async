@@ -34,9 +34,10 @@ jobs:
     needs: [validate-tag]
     uses: ./.github/workflows/check-type.yml
 
-  ha-integration-stable:
-    name: HA Integration (stable)
+  ha-integration:
+    name: HA Integration (dev)
     needs: [check-lint, check-type, check-tests]
     uses: ./.github/workflows/check-hass-tests.yml
-    with:
-      ha_version: "latest"
+    # Targets home-assistant/core @ dev (the branch with the migrated integration).
+    # Testing the tagged library against the stable HA release is a no-op until a
+    # stable release ships the refactored client — add it back then.
