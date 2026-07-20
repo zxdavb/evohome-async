@@ -1,41 +1,23 @@
 # This workflow tests the evohome-async library against Home Assistant's evohome integration tests.
 # It clones Home Assistant core, installs this library, and runs the evohome component tests.
 #
-# WHAT GETS TESTED, BY EVENT (the target repo/version is resolved per event — see `resolve-ha`):
+# The evohome integration has been migrated onto this (refactored) client in HA's dev branch, so
+# there is a single test target for every event: home-assistant/core @ dev. Only the *library*
+# version under test varies:
 #
-#   schedule (weekly)        → home-assistant/core @ latest
-#       Backward compat: released HA still calls the *old* PyPI API, so this proves our changes
-#       stay additive/back-compat. Scheduled runs test the *released* library (latest tag).
+#   push → dev,          → working tree x home-assistant/core @ dev
+#   pull_request → main    Forward-compat gate: does the proposed change still work with the
+#                          migrated integration in HA dev?
 #
-#   push → dev,              → zxdavb/hass @ evo_bump_client
-#   pull_request → main        Forward compat: the migration fork has been modified to *call* the
-#                              new API, so it's the only thing that exercises the new code paths.
-#                              This is the release gate. Runs test the working tree.
+#   schedule (weekly)    → latest release tag x home-assistant/core @ dev
+#                          Early warning: has HA dev drifted in a way that breaks the *released*
+#                          library (the version HA actually pins)?
 #
-#       TRANSITIONAL: evo_bump_client is the in-progress HA migration branch. Once the migration
-#       lands upstream and that branch is deleted, revert the push/PR target below (in resolve-ha)
-#       to home-assistant/core (dev/master).
+#   workflow_call        → tagged tree x home-assistant/core @ dev
+#     (validate-tag.yml)   Release gate: run when a version tag is pushed.
 #
-# KEY PARAMETERS (workflow_dispatch / workflow_call inputs; see the `on:` section below):
-#
-#   ha_repo    — The GitHub repository to test against. When set, overrides the per-event target.
-#                Change this to a fork, e.g. "zxdavb/core", for pre-merge testing.
-#
-#   ha_version — The branch, tag, SHA, or "latest" to check out from ha_repo.
-#                Common values:
-#                  "latest"    — latest HA release tag (resolved at runtime; default for workflow_call)
-#                  "master"    — HA's main development branch (tip of tree)
-#                  "dev"       — HA's dev branch
-#                  "2025.1"    — a specific HA release branch
-#                  "v2025.1.0" — a specific release tag
-#
-# REPOSITORY VARIABLES (set in GitHub Settings → Secrets and variables → Actions → Variables):
-#   HA_REPO_DEFAULT    — final fallback for ha_repo    (e.g. "home-assistant/core")
-#   HA_VERSION_DEFAULT — final fallback for ha_version (e.g. "master")
-#   These are only used when neither an input nor a per-event target applies.
-#
-# When called from publish-release.yml, ha_version defaults to "latest" (resolved at runtime to the
-# latest release tag) for the stable job, and "dev" for the informational job.
+# workflow_dispatch lets you override the target for ad-hoc runs (see inputs below), e.g. point at
+# a release branch/tag ("2026.7", "v2026.7.2") or a fork before a large HA change.
 
 name: Test with Home Assistant
 
@@ -60,7 +42,7 @@ on:
   schedule:
     - cron: "0 5 * * 6"  # Saturdays at 05:00 UTC
 
-  workflow_call:
+  workflow_call:  # invoked by validate-tag.yml at release time
     inputs:
       ha_repo:
         description: "Home Assistant repository (owner/repo)"
@@ -68,9 +50,9 @@ on:
         default: "home-assistant/core"
         type: string
       ha_version:
-        description: "Home Assistant version/branch/tag or \"latest\" to test against"
+        description: "Home Assistant version/branch/tag to test against"
         required: false
-        default: "latest"
+        default: "dev"
         type: string
 
   workflow_dispatch:
@@ -81,7 +63,7 @@ on:
         default: "home-assistant/core"
         type: string
       ha_version:
-        description: "Home Assistant version/branch to test against"
+        description: "Home Assistant version/branch/tag to test against"
         required: false
         default: "dev"
         type: string
@@ -103,35 +85,13 @@ jobs:
       - name: Resolve HA repo and version
         id: resolve-ha
         env:
-          GH_TOKEN: ${{ github.token }}
-          EVENT_NAME: ${{ github.event_name }}
+          # Single target for every event: home-assistant/core @ dev.
+          # workflow_dispatch inputs override both for ad-hoc runs.
           INPUT_REPO: ${{ inputs.ha_repo }}
           INPUT_VERSION: ${{ inputs.ha_version }}
-          DEFAULT_REPO: ${{ vars.HA_REPO_DEFAULT }}
-          DEFAULT_VERSION: ${{ vars.HA_VERSION_DEFAULT }}
         run: |
-          # Precedence: explicit inputs (workflow_call/dispatch) > per-event target > repo vars.
-          if [[ -n "$INPUT_REPO" || -n "$INPUT_VERSION" ]]; then
-            HA_REPO="${INPUT_REPO:-$DEFAULT_REPO}"
-            HA_VERSION="${INPUT_VERSION:-$DEFAULT_VERSION}"
-          elif [[ "$EVENT_NAME" == "schedule" ]]; then
-            # Backward compat: released HA against the released library.
-            HA_REPO="home-assistant/core"
-            HA_VERSION="latest"
-          elif [[ "$EVENT_NAME" == "push" || "$EVENT_NAME" == "pull_request" ]]; then
-            # Forward compat: the migration fork that calls the new API (transitional — see header).
-            HA_REPO="zxdavb/hass"
-            HA_VERSION="evo_bump_client"
-          else
-            HA_REPO="$DEFAULT_REPO"
-            HA_VERSION="$DEFAULT_VERSION"
-          fi
-
-          # "latest" is only meaningful for home-assistant/core (the fork is always a branch ref).
-          if [[ "$HA_VERSION" == "latest" ]]; then
-            HA_VERSION=$(gh api "repos/${HA_REPO}/releases" --jq '.[0].tag_name')
-            echo "Resolved 'latest' to: ${HA_VERSION}"
-          fi
+          HA_REPO="${INPUT_REPO:-home-assistant/core}"
+          HA_VERSION="${INPUT_VERSION:-dev}"
 
           echo "Testing against ${HA_REPO}@${HA_VERSION}"
           echo "ha_repo=${HA_REPO}" >> $GITHUB_OUTPUT
