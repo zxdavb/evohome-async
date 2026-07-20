@@ -59,7 +59,7 @@ async def test_system_snapshot(
     for loc in evohome_v2.locations:  # is 0-many
         assert serializable_attrs(loc) == snapshot(name=f"loc_{loc.id}")
 
-        for gwy in loc.gateways:  # 0is -1
+        for gwy in loc.gateways:  # is 0-1
             assert serializable_attrs(gwy) == snapshot(name=f"loc_{loc.id}_gwy")
 
             for tcs in gwy.systems:  # is 0-1 (may be exactly 1)
@@ -76,7 +76,7 @@ async def test_system_snapshot(
                 assert yaml.dump(zones, indent=4) == snapshot(name=f"loc_{loc.id}_zon")
 
 
-async def _test_system_schedules(
+async def test_system_schedules(
     evohome_v2: EvohomeClientV2,
     freezer: FrozenDateTimeFactory,
     snapshot: SnapshotAssertion,
