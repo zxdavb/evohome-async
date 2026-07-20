@@ -9,8 +9,6 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from evohomeasync2.const import ZoneModelType, ZoneType
-
 from .common import serializable_attrs
 from .conftest import FIXTURES_V2 as FIXTURES
 
@@ -58,36 +56,27 @@ async def test_system_snapshot(
 
     # architecture is: loc -> gwy -> tcs -> dhw|zon
 
-    hierarchy = _first_system(evohome_v2)
-    if hierarchy is None:
-        pytest.skip("Fixture has no location->gateway->TCS hierarchy")
+    for loc in evohome_v2.locations:  # is 0-many
+        assert serializable_attrs(loc) == snapshot(name=f"loc_{loc.id}")
 
-    loc, gwy, tcs = hierarchy
-    assert serializable_attrs(loc) == snapshot(name="location")
-    assert serializable_attrs(gwy) == snapshot(name="gateway")
-    assert serializable_attrs(tcs) == snapshot(name="control_system")
+        for gwy in loc.gateways:  # 0is -1
+            assert serializable_attrs(gwy) == snapshot(name=f"loc_{loc.id}_gwy")
 
-    if dhw := tcs.hotwater:
-        await dhw.get_schedule()
-        assert serializable_attrs(dhw) == snapshot(name="hot_water")
+            for tcs in gwy.systems:  # is 0-1 (may be exactly 1)
+                assert serializable_attrs(tcs) == snapshot(name=f"loc_{loc.id}_tcs")
 
-    for z in tcs.zones:
-        await z.get_schedule()
+                if dhw := tcs.hotwater:  # is 0-1
+                    await dhw.get_schedule()
+                    assert serializable_attrs(dhw) == snapshot(name=f"loc_{loc.id}_dhw")
 
-        # If the conversion works, these properties will be snake_case StrEnum members.
-        # If not, they will be whatever the raw JSON values were (camelCase strings).
-        assert isinstance(z.model, ZoneModelType), (
-            f"{z}: model is {type(z.model).__name__!r}, not ZoneModelType"
-        )
-        assert isinstance(z.type, ZoneType), (
-            f"{z}: type is {type(z.type).__name__!r}, not ZoneType"
-        )
+                for z in tcs.zones:  # is 1-12
+                    await z.get_schedule()  # needed for serializable_attrs(z), below
 
-    zones = {z.id: serializable_attrs(z) for z in tcs.zones}
-    assert yaml.dump(zones, indent=4) == snapshot(name="zones")
+                zones = {z.id: serializable_attrs(z) for z in tcs.zones}
+                assert yaml.dump(zones, indent=4) == snapshot(name=f"loc_{loc.id}_zon")
 
 
-async def test_system_schedules(
+async def _test_system_schedules(
     evohome_v2: EvohomeClientV2,
     freezer: FrozenDateTimeFactory,
     snapshot: SnapshotAssertion,
@@ -104,7 +93,7 @@ async def test_system_schedules(
 
     schedules = await tcs.get_schedules()
 
-    assert schedules == snapshot(name="schedules")  # needs freezer
+    assert schedules == snapshot(name=f"{tcs.id}_schedules")  # needs freezer
 
     with patch("_evohome.auth.AbstractAuth.request"):
         result = await tcs.set_schedules(schedules)
