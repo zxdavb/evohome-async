@@ -18,6 +18,9 @@ if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
     from syrupy.assertion import SnapshotAssertion
 
+    from evohomeasync2.control_system import ControlSystem
+    from evohomeasync2.gateway import Gateway
+    from evohomeasync2.location import Location
     from tests.conftest import EvohomeClientV2
 
 
@@ -34,6 +37,16 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     )
 
 
+def _first_system(
+    evohome_v2: EvohomeClientV2,
+) -> tuple[Location, Gateway, ControlSystem] | None:
+    for location in evohome_v2.locations:
+        for gateway in location.gateways:
+            if gateway.systems:
+                return location, gateway, gateway.systems[0]
+    return None
+
+
 async def test_system_snapshot(
     evohome_v2: EvohomeClientV2,
     freezer: FrozenDateTimeFactory,
@@ -45,13 +58,13 @@ async def test_system_snapshot(
 
     # architecture is: loc -> gwy -> tcs -> dhw|zon
 
-    loc = evohome_v2.locations[0]
+    hierarchy = _first_system(evohome_v2)
+    if hierarchy is None:
+        pytest.skip("Fixture has no location->gateway->TCS hierarchy")
+
+    loc, gwy, tcs = hierarchy
     assert serializable_attrs(loc) == snapshot(name="location")
-
-    gwy = loc.gateways[0]
     assert serializable_attrs(gwy) == snapshot(name="gateway")
-
-    tcs = gwy.systems[0]
     assert serializable_attrs(tcs) == snapshot(name="control_system")
 
     if dhw := tcs.hotwater:
@@ -83,7 +96,11 @@ async def test_system_schedules(
 
     freezer.move_to("2025-01-01T00:00:00+00:00")
 
-    tcs = evohome_v2.locations[0].gateways[0].systems[0]
+    hierarchy = _first_system(evohome_v2)
+    if hierarchy is None:
+        pytest.skip("Fixture has no location->gateway->TCS hierarchy")
+
+    _, _, tcs = hierarchy
 
     schedules = await tcs.get_schedules()
 

@@ -1,0 +1,458 @@
+[
+  {
+    "locationInfo": {
+      "locationId": "4001001",
+      "name": "Schema Maximal",
+      "streetAddress": "1 Main Street",
+      "city": "London",
+      "country": "UnitedKingdom",
+      "postcode": "E1 1AA",
+      "locationType": "Residential",
+      "useDaylightSaveSwitching": true,
+      "timeZone": {
+        "timeZoneId": "GMTStandardTime",
+        "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+        "offsetMinutes": 0,
+        "currentOffsetMinutes": 60,
+        "supportsDaylightSaving": true
+      },
+      "locationOwner": {
+        "userId": "4000000",
+        "username": "user_4000000@gmail.com",
+        "firstname": "John",
+        "lastname": "Smith"
+      }
+    },
+    "gateways": [
+      {
+        "gatewayInfo": {
+          "gatewayId": "4002001",
+          "mac": "000000000001",
+          "crc": "1234",
+          "isWiFi": false
+        },
+        "temperatureControlSystems": [
+          {
+            "systemId": "4003001",
+            "modelType": "EvoTouch",
+            "zones": [
+              {
+                "zoneId": "4003101",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 01",
+                "zoneType": "RadiatorZone"
+              },
+              {
+                "zoneId": "4003102",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 02",
+                "zoneType": "RadiatorZone"
+              },
+              {
+                "zoneId": "4003103",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 03",
+                "zoneType": "RadiatorZone"
+              },
+              {
+                "zoneId": "4003104",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 04",
+                "zoneType": "RadiatorZone"
+              },
+              {
+                "zoneId": "4003105",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 05",
+                "zoneType": "RadiatorZone"
+              },
+              {
+                "zoneId": "4003106",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 06",
+                "zoneType": "RadiatorZone"
+              },
+              {
+                "zoneId": "4003107",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 07",
+                "zoneType": "RadiatorZone"
+              },
+              {
+                "zoneId": "4003108",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 08",
+                "zoneType": "RadiatorZone"
+              },
+              {
+                "zoneId": "4003109",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 09",
+                "zoneType": "RadiatorZone"
+              },
+              {
+                "zoneId": "4003110",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 10",
+                "zoneType": "RadiatorZone"
+              },
+              {
+                "zoneId": "4003111",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 11",
+                "zoneType": "RadiatorZone"
+              },
+              {
+                "zoneId": "4003112",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Zone 12",
+                "zoneType": "RadiatorZone"
+              }
+            ],
+            "dhw": {
+              "dhwId": "4003901",
+              "dhwStateCapabilitiesResponse": {
+                "allowedStates": ["On", "Off"],
+                "allowedModes": ["FollowSchedule", "PermanentOverride", "TemporaryOverride"],
+                "maxDuration": "1.00:00:00",
+                "timingResolution": "00:10:00"
+              },
+              "scheduleCapabilitiesResponse": {
+                "maxSwitchpointsPerDay": 6,
+                "minSwitchpointsPerDay": 1,
+                "timingResolution": "00:10:00"
+              }
+            },
+            "allowedSystemModes": [
+              {"systemMode": "HeatingOff", "canBePermanent": true, "canBeTemporary": false},
+              {"systemMode": "Auto", "canBePermanent": true, "canBeTemporary": false}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "locationInfo": {
+      "locationId": "4001002",
+      "name": "Schema Minimal",
+      "streetAddress": "2 Main Street",
+      "city": "London",
+      "country": "UnitedKingdom",
+      "postcode": "E1 2AA",
+      "locationType": "Residential",
+      "useDaylightSaveSwitching": true,
+      "timeZone": {
+        "timeZoneId": "GMTStandardTime",
+        "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+        "offsetMinutes": 0,
+        "currentOffsetMinutes": 60,
+        "supportsDaylightSaving": true
+      },
+      "locationOwner": {
+        "userId": "4000000",
+        "username": "user_4000000@gmail.com",
+        "firstname": "John",
+        "lastname": "Smith"
+      }
+    },
+    "gateways": [
+      {
+        "gatewayInfo": {
+          "gatewayId": "4002002",
+          "mac": "000000000002",
+          "crc": "1234",
+          "isWiFi": false
+        },
+        "temperatureControlSystems": [
+          {
+            "systemId": "4003002",
+            "modelType": "EvoTouch",
+            "zones": [
+              {
+                "zoneId": "4003201",
+                "modelType": "HeatingZone",
+                "setpointCapabilities": {
+                  "maxHeatSetpoint": 35.0,
+                  "minHeatSetpoint": 5.0,
+                  "valueResolution": 0.5,
+                  "canControlHeat": true,
+                  "canControlCool": false,
+                  "allowedSetpointModes": ["PermanentOverride", "FollowSchedule", "TemporaryOverride"],
+                  "maxDuration": "1.00:00:00",
+                  "timingResolution": "00:10:00"
+                },
+                "scheduleCapabilities": {
+                  "maxSwitchpointsPerDay": 6,
+                  "minSwitchpointsPerDay": 1,
+                  "timingResolution": "00:10:00",
+                  "setpointValueResolution": 0.5
+                },
+                "name": "Only Zone",
+                "zoneType": "RadiatorZone"
+              }
+            ],
+            "allowedSystemModes": [
+              {"systemMode": "HeatingOff", "canBePermanent": true, "canBeTemporary": false},
+              {"systemMode": "Auto", "canBePermanent": true, "canBeTemporary": false}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "locationInfo": {
+      "locationId": "4001003",
+      "name": "Schema No TCS",
+      "streetAddress": "3 Main Street",
+      "city": "London",
+      "country": "UnitedKingdom",
+      "postcode": "E1 3AA",
+      "locationType": "Residential",
+      "useDaylightSaveSwitching": true,
+      "timeZone": {
+        "timeZoneId": "GMTStandardTime",
+        "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+        "offsetMinutes": 0,
+        "currentOffsetMinutes": 60,
+        "supportsDaylightSaving": true
+      },
+      "locationOwner": {
+        "userId": "4000000",
+        "username": "user_4000000@gmail.com",
+        "firstname": "John",
+        "lastname": "Smith"
+      }
+    },
+    "gateways": [
+      {
+        "gatewayInfo": {
+          "gatewayId": "4002003",
+          "mac": "000000000003",
+          "crc": "1234",
+          "isWiFi": false
+        },
+        "temperatureControlSystems": []
+      }
+    ]
+  },
+  {
+    "locationInfo": {
+      "locationId": "4001004",
+      "name": "Schema No Gateway",
+      "streetAddress": "4 Main Street",
+      "city": "London",
+      "country": "UnitedKingdom",
+      "postcode": "E1 4AA",
+      "locationType": "Residential",
+      "useDaylightSaveSwitching": true,
+      "timeZone": {
+        "timeZoneId": "GMTStandardTime",
+        "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+        "offsetMinutes": 0,
+        "currentOffsetMinutes": 60,
+        "supportsDaylightSaving": true
+      },
+      "locationOwner": {
+        "userId": "4000000",
+        "username": "user_4000000@gmail.com",
+        "firstname": "John",
+        "lastname": "Smith"
+      }
+    },
+    "gateways": []
+  }
+]

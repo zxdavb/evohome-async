@@ -1,0 +1,28 @@
+{
+  "locationId": "4001002",
+  "gateways": [
+    {
+      "gatewayId": "4002002",
+      "temperatureControlSystems": [
+        {
+          "systemId": "4003002",
+          "zones": [
+            {
+              "zoneId": "4003201",
+              "temperatureStatus": { "temperature": 20.0, "isAvailable": true },
+              "activeFaults": [],
+              "setpointStatus": {
+                "targetHeatTemperature": 19.0,
+                "setpointMode": "FollowSchedule"
+              },
+              "name": "Only Zone"
+            }
+          ],
+          "activeFaults": [],
+          "systemModeStatus": { "mode": "Auto", "isPermanent": true }
+        }
+      ],
+      "activeFaults": []
+    }
+  ]
+}
