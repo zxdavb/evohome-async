@@ -116,7 +116,7 @@ async def test_get_session_id(
     assert session_manager.is_session_valid() is False
 
 
-async def test_session_manager(
+async def test_session_manager(  # noqa: PLR0917  # pytest injects fixtures by keyword
     cache_data_expired: CacheDataT,
     cache_data_valid: CacheDataT,
     cache_path: Path,

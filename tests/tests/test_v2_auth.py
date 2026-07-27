@@ -123,7 +123,7 @@ async def test_get_auth_token(
     assert token_manager.is_token_valid() is False
 
 
-async def test_token_manager(
+async def test_token_manager(  # noqa: PLR0917  # pytest injects fixtures by keyword
     cache_data_expired: CacheDataT,
     cache_data_valid: CacheDataT,
     cache_path: Path,
