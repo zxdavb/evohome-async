@@ -135,7 +135,7 @@ show_missing = true
 ## ruff ##############################################################################
 
 [tool.ruff]
-exclude = ["docs/*.py", "tests/tests_cc"]
+exclude = ["docs/*.py", "tests/tests_cc", "*.md"]  # ruff >= 0.16 formats code blocks in markdown
 src = ["src", "tests"]
 target-version = "py313"  # the *minimum* supported runtime (we dev/test on 3.14, run on 3.13)
 required-version = ">=0.15.16"
