@@ -40,7 +40,7 @@ cli = [
 dev = [
   # linting
   "prek>=0.4.10",
-  "ruff>=0.15.22",
+  "ruff>=0.16",
   # typing
   "mypy>=2.3.0",
   "types-aiofiles>=25.1.0.20260518",
@@ -135,10 +135,10 @@ show_missing = true
 ## ruff ##############################################################################
 
 [tool.ruff]
-exclude = ["docs/*.py", "tests/tests_cc"]
+exclude = ["docs/*.py", "tests/tests_cc", "*.md"]  # ruff >= 0.16 formats code blocks in markdown
 src = ["src", "tests"]
 target-version = "py313"  # the *minimum* supported runtime (we dev/test on 3.14, run on 3.13)
-required-version = ">=0.15.16"
+required-version = ">=0.16"  # PLR0917 (and markdown formatting) arrived in 0.16
 
 [tool.ruff.lint]
 select = [
