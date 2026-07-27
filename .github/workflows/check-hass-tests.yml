@@ -18,6 +18,10 @@
 #
 # workflow_dispatch lets you override the target for ad-hoc runs (see inputs below), e.g. point at
 # a release branch/tag ("2026.7", "v2026.7.2") or a fork before a large HA change.
+#
+# It also carries check-hass-pins, an independent job asserting that our runtime dependency floors
+# still equal HA's exact pins. That job ignores the target above and always reads HA stable, as the
+# floors are a contract with *released* HA (see .github/scripts/check-hass-pins.py).
 
 name: Test with Home Assistant
 
@@ -26,6 +30,7 @@ on:
   pull_request:
     branches: [ "main" ]
     paths: [
+      ".github/scripts/check-hass-pins.py",
       ".github/workflows/check-hass-tests.yml",
       "pyproject.toml",
       "src/**.py",
@@ -34,6 +39,7 @@ on:
   push:
     branches: [ "dev" ]
     paths: [
+      ".github/scripts/check-hass-pins.py",
       ".github/workflows/check-hass-tests.yml",
       "pyproject.toml",
       "src/**.py",
@@ -74,6 +80,23 @@ permissions:
 
 
 jobs:
+  check-hass-pins:
+    name: Check runtime deps match HA's pins
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+          check-latest: true
+
+      # Always compares against HA stable (master) + dev, regardless of the test
+      # target above: the floors are a contract with released HA, not with a branch.
+      - name: Compare [project.dependencies] with HA's package_constraints.txt
+        run: python3 .github/scripts/check-hass-pins.py
+
   get-python-version:
     name: Get Python version from HA
     runs-on: ubuntu-latest
