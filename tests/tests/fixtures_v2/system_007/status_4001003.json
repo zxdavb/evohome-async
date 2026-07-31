@@ -1,0 +1,10 @@
+{
+  "locationId": "4001003",
+  "gateways": [
+    {
+      "gatewayId": "4002003",
+      "temperatureControlSystems": [],
+      "activeFaults": []
+    }
+  ]
+}

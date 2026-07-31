@@ -1,0 +1,33 @@
+{
+  "locationId": "4001001",
+  "gateways": [
+    {
+      "gatewayId": "4002001",
+      "temperatureControlSystems": [
+        {
+          "systemId": "4003001",
+          "zones": [
+            {"zoneId": "4003101", "temperatureStatus": {"temperature": 19.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 17.0, "setpointMode": "FollowSchedule"}, "name": "Zone 01"},
+            {"zoneId": "4003102", "temperatureStatus": {"temperature": 19.5, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 17.5, "setpointMode": "FollowSchedule"}, "name": "Zone 02"},
+            {"zoneId": "4003103", "temperatureStatus": {"temperature": 20.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 18.0, "setpointMode": "FollowSchedule"}, "name": "Zone 03"},
+            {"zoneId": "4003104", "temperatureStatus": {"temperature": 20.5, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 18.5, "setpointMode": "FollowSchedule"}, "name": "Zone 04"},
+            {"zoneId": "4003105", "temperatureStatus": {"temperature": 21.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 19.0, "setpointMode": "FollowSchedule"}, "name": "Zone 05"},
+            {"zoneId": "4003106", "temperatureStatus": {"temperature": 21.5, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 19.5, "setpointMode": "FollowSchedule"}, "name": "Zone 06"},
+            {"zoneId": "4003107", "temperatureStatus": {"temperature": 22.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 20.0, "setpointMode": "FollowSchedule"}, "name": "Zone 07"},
+            {"zoneId": "4003108", "temperatureStatus": {"temperature": 22.5, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 20.5, "setpointMode": "FollowSchedule"}, "name": "Zone 08"},
+            {"zoneId": "4003109", "temperatureStatus": {"temperature": 18.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 16.0, "setpointMode": "FollowSchedule"}, "name": "Zone 09"},
+            {"zoneId": "4003110", "temperatureStatus": {"temperature": 18.5, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 16.5, "setpointMode": "FollowSchedule"}, "name": "Zone 10"},
+            {"zoneId": "4003111", "temperatureStatus": {"temperature": 23.0, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 21.0, "setpointMode": "FollowSchedule"}, "name": "Zone 11"},
+            {"zoneId": "4003112", "temperatureStatus": {"temperature": 23.5, "isAvailable": true}, "activeFaults": [], "setpointStatus": {"targetHeatTemperature": 21.5, "setpointMode": "FollowSchedule"}, "name": "Zone 12"}
+          ],
+          "dhw": {
+            "dhwId": "4003901", "temperatureStatus": {"temperature": 48.0, "isAvailable": true}, "activeFaults": [], "stateStatus": {"state": "On", "mode": "FollowSchedule"}
+          },
+          "activeFaults": [],
+          "systemModeStatus": {"mode": "Auto", "isPermanent": true}
+        }
+      ],
+      "activeFaults": []
+    }
+  ]
+}
