@@ -201,11 +201,6 @@
     tuple(
       'evohomeasync2',
       30,
-      "Unable to find IANA TZ identifier for 'NewYork'; DST support will be very limited",
-    ),
-    tuple(
-      'evohomeasync2',
-      30,
       'There are 2 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
     ),
     tuple(
@@ -221,12 +216,12 @@
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='0004'): Active fault: 2024-12-01T01:00:00-01:00 temp_zone_actuator_communication_lost",
+      "Zone(id='0004'): Active fault: 2024-12-01T01:00:00+01:00 temp_zone_actuator_communication_lost",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='0004'): Active fault: 2024-05-01T01:00:00-01:00 temp_zone_sensor_communication_lost",
+      "Zone(id='0004'): Active fault: 2024-05-01T01:00:00+02:00 temp_zone_sensor_communication_lost",
     ),
   ])
 # ---
