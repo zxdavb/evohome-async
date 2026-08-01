@@ -234,3 +234,7 @@
     ),
   ])
 # ---
+# name: test_system_warnings[system_008]
+  list([
+  ])
+# ---

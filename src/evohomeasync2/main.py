@@ -200,7 +200,7 @@ class EvohomeClient:
     def user_account(self) -> EvoUsrAccountResponseT:
         """Return the (config) information of the user account."""
 
-        if not self._user_info:
+        if self._user_info is None:  # None: never fetched, []: fetched but empty
             raise exc.InvalidConfigError(
                 _ERR_NOT_AVAILABLE.format("Account information")
             )
@@ -209,9 +209,9 @@ class EvohomeClient:
 
     @property
     def locations(self) -> list[Location]:
-        """Return the list of location entities."""
+        """Return the list of location entities (may be empty)."""
 
-        if not self._user_locs:
+        if self._user_locs is None:  # None: never fetched, []: fetched but empty
             raise exc.InvalidConfigError(
                 _ERR_NOT_AVAILABLE.format("Installation information")
             )
@@ -220,9 +220,9 @@ class EvohomeClient:
 
     @property
     def location_by_id(self) -> dict[str, Location]:
-        """Return the list of location entities."""
+        """Return the location entities by id (may be empty)."""
 
-        if not self._user_locs:
+        if self._user_locs is None:  # None: never fetched, []: fetched but empty
             raise exc.InvalidConfigError(
                 _ERR_NOT_AVAILABLE.format("Installation information")
             )
