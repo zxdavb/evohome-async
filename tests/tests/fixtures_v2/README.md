@@ -54,6 +54,7 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `hass_141882/` | 7680795 | AUSEastern | HA core issue [#141882](https://github.com/home-assistant/core/issues/141882) |
 | `hass_157546/` | 7647411 | GMT | HA core issue [#157546](https://github.com/home-assistant/core/issues/157546) |
 | `system_007/` | 4001001 | GMT | Synthesised schema coverage: 4 locations (maximal, minimal, no TCS, no gateway) |
+| `system_008/` | n/a | n/a | Synthesised schema coverage: empty installation (0 locations) |
 
 Config-only dirs (no status file, xfail in tests): `hass_099625/`, `hass_102815/`
 

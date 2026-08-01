@@ -1,0 +1,11 @@
+{
+  "userId": "4000001",
+  "username": "user_4000001@gmail.com",
+  "firstname": "John",
+  "lastname": "Smith",
+  "streetAddress": "1 Main Street",
+  "city": "London",
+  "postcode": "E1 1AA",
+  "country": "UnitedKingdom",
+  "language": "enGB"
+}
