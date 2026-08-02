@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 
 from _evohome.helpers import as_utc_str
 
@@ -80,7 +80,6 @@ _TEMP_IS_NA: Final = 128
 class _EntityBase(ABC):
     """Base class for all entities."""
 
-    _config: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
     _status: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
 
     def __init__(self, entity_id: int) -> None:
@@ -101,13 +100,6 @@ class _EntityBase(ABC):
     def id(self) -> str:
         return str(self._id)
 
-    @property  # not strictly static, but library largely assumes so
-    def config(
-        self,
-    ) -> EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT:
-        """Return the config of the entity."""
-        return self._config
-
     @property
     def status(
         self,
@@ -119,7 +111,6 @@ class _EntityBase(ABC):
 class _DeviceBase(_EntityBase):
     """Base class for all devices."""
 
-    _config: EvoDevInfoDictT | EvoGwyInfoDictT
     _status: EvoDevInfoDictT | EvoGwyInfoDictT
 
     def __init__(self, location: Location, config: EvoDevInfoDictT, /) -> None:
@@ -127,7 +118,6 @@ class _DeviceBase(_EntityBase):
 
         self._loc = location  # parent
 
-        self._config = config
         self._status = config  # not a typo, config is a superset of status
 
     @cached_property
@@ -146,8 +136,17 @@ class _DeviceBase(_EntityBase):
 class HotWater(_DeviceBase):  # Hotwater version of a Device
     """Instance of a location's DHW zone."""
 
-    _config: Final[EvoDevInfoDictT]  # type: ignore[misc]
     _status: EvoDevInfoDictT
+
+    def __init__(self, location: Location, config: EvoDevInfoDictT, /) -> None:
+        super().__init__(location, config)
+
+        self._config: Final = config
+
+    @property  # not strictly static, but library largely assumes so
+    def config(self) -> EvoDevInfoDictT:
+        """Return the config of the entity."""
+        return self._config
 
     # Config attrs...
 
@@ -233,8 +232,17 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
 class Zone(_DeviceBase):  # Zone version of a Device
     """Instance of a location's heating zone."""
 
-    _config: Final[EvoDevInfoDictT]  # type: ignore[misc]
     _status: EvoDevInfoDictT
+
+    def __init__(self, location: Location, config: EvoDevInfoDictT, /) -> None:
+        super().__init__(location, config)
+
+        self._config: Final = config
+
+    @property  # not strictly static, but library largely assumes so
+    def config(self) -> EvoDevInfoDictT:
+        """Return the config of the entity."""
+        return self._config
 
     # Config attrs...
 
@@ -324,17 +332,23 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
     _cli: EvohomeClient  # proxy for parent
 
-    _config: Final[EvoTcsInfoDictT]  # type: ignore[misc]
     _status: EvoTcsInfoDictT
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, entity_id: int, config: EvoTcsInfoDictT, /) -> None:
+        super().__init__(entity_id)
+
+        self._config: Final = config
 
         self.hotwater: HotWater | None = None
         self.zones: list[Zone] = []
 
         self.zone_by_id: dict[str, Zone] = {}  # id is fixed to zone
         self.zone_by_idx: dict[str, Zone] = {}  #  not sure if fixed, or attr like name
+
+    @property  # not strictly static, but library largely assumes so
+    def config(self) -> EvoTcsInfoDictT:
+        """Return the config of the entity."""
+        return self._config
 
     @property
     def zone_by_name(self) -> dict[str, Zone]:
@@ -436,10 +450,9 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
         _EntityBase.__init__(self, config[SZ_GATEWAY_ID])  # uses gateway_id
 
         self._loc = location
-        self._config = config
+        self._config: Final = config
         self._status = config
 
-    _config: Final[EvoGwyInfoDictT]  # type: ignore[misc]
     _status: EvoGwyInfoDictT  # initial state
 
     # list(EvoGwyInfoDictT.__annotations__.keys())
@@ -473,11 +486,10 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     """Instance of an account's location/TCS."""
 
     def __init__(self, client: EvohomeClient, config: EvoTcsInfoDictT, /) -> None:
-        super().__init__(config[SZ_LOCATION_ID])
+        super().__init__(config[SZ_LOCATION_ID], config)
 
         self._cli = client  # proxy for parent
 
-        self._config: Final[EvoTcsInfoDictT] = config  # type: ignore[misc]
         self._status: EvoTcsInfoDictT = config  # initial state
 
         self.gateways: list[Gateway] = []
