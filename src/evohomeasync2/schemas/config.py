@@ -127,10 +127,8 @@ class TccLocConfigEntryT(TypedDict):
     name: str
     streetAddress: str
     city: str
-    state: str
     country: str
     postcode: str
-    type: str
     locationType: TccLocationType
     useDaylightSaveSwitching: bool
     timeZone: TccTimeZoneInfoT

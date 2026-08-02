@@ -63,10 +63,8 @@ class EvoLocConfigEntryT(TypedDict):
     name: str
     street_address: str
     city: str
-    state: str
     country: str
     postcode: str
-    type: str
     location_type: LocationType
     use_daylight_save_switching: bool
     time_zone: EvoTimeZoneInfoT
