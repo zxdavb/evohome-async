@@ -363,7 +363,7 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
 
-    SCH_FAN_MODE: Final = vol.Schema(  # noqa: F841
+    SCH_FAN_MODE: Final = vol.Schema(
         {
             vol.Required(fnc(S2_FAN_MODE)): factory_enum(case, TccFanMode),
         },
@@ -401,7 +401,6 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
             vol.Required(fnc(S2_MAX_DURATION)): str,  # "1.00:00:00"
             vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),  # "00:10:00"
             vol.Optional(fnc(S2_VACATION_HOLD_CAPABILITIES)): SCH_VACATION_HOLD_CAPABILITIES,  # non-evohome
-            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): factory_enum(case, TccFanMode),  # non-evohome
             vol.Optional(fnc(S2_SETPOINT_DEADBAND)): float,  # non-evohome
         },
         extra=vol.PREVENT_EXTRA,
@@ -423,7 +422,7 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
             vol.Required(fnc(S2_SETPOINT_CAPABILITIES)): SCH_SETPOINT_CAPABILITIES,
             vol.Optional(fnc(S2_SCHEDULE_CAPABILITIES)): SCH_SCHEDULE_CAPABILITIES,
             vol.Required(fnc(S2_ZONE_TYPE)): factory_enum(case, TccZoneType),
-            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): list,  # FocusProWifiRetail
+            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): [SCH_FAN_MODE],  # FocusProWifiRetail
         },
         extra=vol.PREVENT_EXTRA,
     )

@@ -57251,7 +57251,9 @@
       allowed_modes: "!!python/tuple\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - permanent_override\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - vacation_hold\n"
-      config: "allowed_fan_modes:\n- fan_mode: Auto\n- fan_mode: 'On'\nmodel_type: !!python/object/apply:evohomeasync2.const.ZoneModelType\n\
+      config: "allowed_fan_modes:\n- fan_mode: !!python/object/apply:evohomeasync2.const.FanMode\n\
+          \  - auto\n- fan_mode: !!python/object/apply:evohomeasync2.const.FanMode\n\
+          \  - 'on'\nmodel_type: !!python/object/apply:evohomeasync2.const.ZoneModelType\n\
           - focus_pro_wifi_retail\nname: THERMOSTAT\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
           \  - !!python/object/apply:evohomeasync2.const.ZoneMode\n    - permanent_override\n\
           \  - !!python/object/apply:evohomeasync2.const.ZoneMode\n    - vacation_hold\n\
