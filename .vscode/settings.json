@@ -111,6 +111,7 @@
         "vendored",
         "venv",
         "websession",
-        "Wifi"
+        "Wifi",
+        "YMMV"
     ]
 }
