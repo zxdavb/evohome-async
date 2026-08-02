@@ -103,6 +103,12 @@ class TccZonStatusResponseT(TypedDict):
     setpointStatus: TccZonSetpointStatusResponseT
     temperatureStatus: TccTemperatureStatusResponseT
     name: str
+    fanStatus: NotRequired[TccFanStatusResponseT]  # FocusProWifi
+
+
+class TccFanStatusResponseT(TypedDict):
+    fanMode: TccFanMode
+    canBeChanged: bool
 
 
 class TccZonSetpointStatusResponseT(TypedDict):

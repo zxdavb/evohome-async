@@ -220,12 +220,17 @@ class TccZonSetpointCapabilitiesResponseT(TypedDict):
     maxCoolSetpoint: NotRequired[float]
     minCoolSetpoint: NotRequired[float]
     setpointDeadband: NotRequired[float]
-    vacationHoldCapabilities: NotRequired[VacationHoldCapabilitiesResponseT]
+    vacationHoldCapabilities: NotRequired[TccVacationHoldCapabilitiesResponseT]
 
 
-class VacationHoldCapabilitiesResponseT(TypedDict):
+class TccVacationHoldCapabilitiesResponseT(TypedDict):
     isChangeable: bool
     isCancelable: bool
+    # the three below are either all present, or all absent (only ever seen present
+    # on a system that also has isChangeable: True, but that is a sample of one)
+    maxDuration: NotRequired[str]  # #      "365.23:45:00"
+    minDuration: NotRequired[str]  # #        "1.00:00:00"
+    timingResolution: NotRequired[str]  # #     "00:15:00"
 
 
 class TccZonConfigEntryT(TccZonConfigResponseT):
