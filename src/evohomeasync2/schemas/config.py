@@ -11,7 +11,7 @@ The vendor's convention for well-known strings:
 
 from __future__ import annotations
 
-from typing import Final, Literal, NotRequired, TypedDict
+from typing import Final, NotRequired, TypedDict
 
 import voluptuous as vol
 
@@ -174,7 +174,7 @@ class TccTcsConfigEntryT(TypedDict):
 
 class TccAllowedSystemModeResponseT(TypedDict):
     systemMode: TccSystemMode
-    canBePermanent: Literal[True]
+    canBePermanent: bool  # only ever seen: Literal[True]
     canBeTemporary: bool
     maxDuration: NotRequired[str]  # #        "1.00:00:00", "99.00:00:00"
     timingResolution: NotRequired[str]  # #     "01:00:00",  "1.00:00:00"
@@ -300,7 +300,7 @@ def factory_system_mode(case: Case = Case.VENDOR) -> vol.All:
         vol.Schema(
             {
                 vol.Required(system_mode): factory_enum(case, TccSystemMode),
-                vol.Required(can_be_permanent): bool,
+                vol.Required(can_be_permanent): bool,  # only ever seen: vol.In[True]
                 vol.Required(can_be_temporary): bool,
                 vol.Optional(max_duration): str,  # "99.00:00:00"
                 # a Period mode is whole-day ("1.00:00:00"); a Duration mode is "01:00:00"
