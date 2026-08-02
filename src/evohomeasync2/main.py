@@ -211,23 +211,23 @@ class EvohomeClient:
     def locations(self) -> list[Location]:
         """Return the list of location entities (may be empty)."""
 
-        if self._user_locs is None:  # None: never fetched, []: fetched but empty
+        if self._locations is None:  # None: never fetched, []: fetched but empty
             raise exc.InvalidConfigError(
                 _ERR_NOT_AVAILABLE.format("Installation information")
             )
 
-        return self._locations  # type: ignore[return-value]
+        return self._locations
 
     @property
     def location_by_id(self) -> dict[str, Location]:
         """Return the location entities by id (may be empty)."""
 
-        if self._user_locs is None:  # None: never fetched, []: fetched but empty
+        if self._location_by_id is None:  # None: never fetched, []: fetched but empty
             raise exc.InvalidConfigError(
                 _ERR_NOT_AVAILABLE.format("Installation information")
             )
 
-        return self._location_by_id  # type: ignore[return-value]
+        return self._location_by_id
 
     # A significant majority of users will have exactly one TCS, thus for convenience...
     @property
