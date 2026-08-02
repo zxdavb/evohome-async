@@ -186,8 +186,10 @@ class AbstractAuth(ABC):
                     f"{method} {url}: response is not JSON: {await _payload(rsp)}"
                 )
 
-            if (response := await rsp.json()) is None:  # an unanticipated edge-case
+            raw = await rsp.json()
+            if raw is None:  # an unanticipated edge-case
                 raise exc.ApiCallFailedError(f"{method} {url}: response is null")
+            response: _TccResponse = raw
 
         except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
             raise exc.ApiCallFailedError(
@@ -219,7 +221,7 @@ class AbstractAuth(ABC):
             ) from err
 
         else:
-            return response  # type: ignore[no-any-return]
+            return response
 
         finally:
             if rsp is not None:
