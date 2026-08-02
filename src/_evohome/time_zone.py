@@ -112,22 +112,22 @@ class EvoZoneInfo(tzinfo):
         # if not self._use_dst_switching:
         #     assert self._dst == td(0), "DST is not enabled, but the offset is non-zero"
 
-    def dst(self, dtm: dt | None) -> td:
+    def dst(self, dt: dt | None) -> td:
         """Return the daylight saving time adjustment, as a timedelta object.
 
         Return 0 if DST not in effect. utcoffset() must include the DST offset.
         """
 
-        if dtm:  # we can't know when DST starts/stops
+        if dt:  # we can't know when DST starts/stops
             raise NotImplementedError("DST transitions are not implemented")
 
         return self._dst
 
-    def tzname(self, dtm: dt | None) -> str:  # noqa: ARG002
+    def tzname(self, dt: dt | None) -> str:  # noqa: ARG002
         "datetime -> string name of time zone."
         return self._tzname
 
-    def utcoffset(self, dtm: dt | None) -> td:  # noqa: ARG002
+    def utcoffset(self, dt: dt | None) -> td:  # noqa: ARG002
         """Return offset of local time from UTC, as a timedelta object.
 
         The timedelta is positive east of UTC. If local time is west of UTC, this
