@@ -9,6 +9,7 @@ Follow **CONTRIBUTING.md** in full. Key rules most likely to be violated:
 5. **No `sys.exit()`** outside `src/evohome_cli/client.py:main()`.
 6. **Do not modify `pyproject.toml`** lint/type/test config.
 7. **All new dependencies need justification** — `[project.dependencies]` requires explicit agreement; CLI-only deps go in `pyproject.toml` optional extras (e.g. `[project.optional-dependencies]`).
+8. **Never delete unreferenced `Tcc*` TypedDicts/StrEnums from the schema modules** — `src/evohomeasync2/schemas/*.py` (v2) and `src/evohomeasync/schemas.py` (v1). The vendor's API is undocumented, so these **are** the documentation: they are the best known description of the vendor's JSON shape and the source of truth for static typing. Being unreferenced by library code is their normal state, not a sign of dead code — each module's docstring says so explicitly ("serve as documentation of the vendor's API, even if they are unused by this library"). Ruff does not flag unused module-level classes, so nothing will contradict you; do not "clean them up". The same applies to the `factory_*` functions that build the matching `vol.Schema` validators. Two live consequences: keep a `Tcc*T` and its `factory_*` in agreement when you touch either (a divergence is a real bug — the schema is what runs), and remember the vendor casing convention they record — camelCase JSON keys, PascalCase enum values.
 
 After any code change, verify:
 
