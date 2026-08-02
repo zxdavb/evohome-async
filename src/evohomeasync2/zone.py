@@ -402,12 +402,12 @@ class _ScheduleBase(ActiveFaultsBase):
         this_val = (
             this_sp[SZ_DHW_STATE]
             if SZ_DHW_STATE in this_sp
-            else this_sp[SZ_HEAT_SETPOINT]  # pyright: ignore[reportTypedDictNotRequiredAccess]
+            else this_sp[SZ_HEAT_SETPOINT]
         )
         next_val = (
             next_sp[SZ_DHW_STATE]
             if SZ_DHW_STATE in next_sp
-            else next_sp[SZ_HEAT_SETPOINT]  # pyright: ignore[reportTypedDictNotRequiredAccess]
+            else next_sp[SZ_HEAT_SETPOINT]
         )
 
         return (

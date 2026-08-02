@@ -109,7 +109,7 @@ def factory_user_account(case: Case = Case.VENDOR) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_USER_ID)): str,
-            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), redact),  # pyright: ignore[reportCallIssue]
+            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), redact),
             vol.Required(fnc(S2_FIRSTNAME)): str,
             vol.Required(fnc(S2_LASTNAME)): vol.All(str, redact),
             vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, redact),
