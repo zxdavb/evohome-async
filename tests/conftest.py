@@ -43,7 +43,7 @@ async def client_session(
         client_session = aiohttp.ClientSession(faked_server=fake.FakedServer({}, {}))  # type: ignore[call-arg]
 
     try:
-        yield client_session  # pyright: ignore[reportReturnType]
+        yield client_session
     finally:
         await client_session.close()
 
