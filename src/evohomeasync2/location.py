@@ -31,6 +31,7 @@ from .schemas.config import factory_location_installation_info
 from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.status import factory_loc_status
+from .typedefs import EvoLocStatusResponseT
 from .zone import EntityBase
 
 if TYPE_CHECKING:
@@ -38,12 +39,7 @@ if TYPE_CHECKING:
 
     from . import EvohomeClient
     from .auth import Auth
-    from .typedefs import (
-        EvoLocConfigEntryT,
-        EvoLocConfigResponseT,
-        EvoLocStatusResponseT,
-        EvoTimeZoneInfoT,
-    )
+    from .typedefs import EvoLocConfigEntryT, EvoLocConfigResponseT, EvoTimeZoneInfoT
 
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
@@ -101,7 +97,7 @@ async def create_location(
     return loc
 
 
-class Location(EntityBase):
+class Location(EntityBase[EvoLocStatusResponseT]):
     """Instance of an account's location."""
 
     _STATUS_EXCLUDES = (SZ_GATEWAYS,)
@@ -140,8 +136,6 @@ class Location(EntityBase):
             self.gateways.append(gwy)
             self.gateway_by_id[gwy.id] = gwy
 
-        self._status: EvoLocStatusResponseT | None = None
-
     def __str__(self) -> str:
         """Return a string representation of the entity."""
         return f"{self.__class__.__name__}(id='{self._id}', tzinfo='{self.tzinfo}')"
@@ -158,11 +152,6 @@ class Location(EntityBase):
     def config(self) -> EvoLocConfigEntryT:
         """Return the latest config of the entity."""
         return self._config
-
-    @property
-    def status(self) -> EvoLocStatusResponseT:
-        """Return the latest status of the entity."""
-        return super().status  # type: ignore[return-value]
 
     # Config attrs...
 
@@ -237,7 +226,7 @@ class Location(EntityBase):
 
         return await self._get_status()
 
-    async def _get_status(  # type: ignore[override]
+    async def _get_status(
         self,
         *,
         _update: bool = True,

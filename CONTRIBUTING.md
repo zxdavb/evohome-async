@@ -79,12 +79,12 @@ The project convention is to alias:
 
 ### 3. All I/O must be async
 
-| Need          | Use                | Not                    |
-|---------------|--------------------|------------------------|
-| HTTP requests | `aiohttp`          | `requests`, `urllib`   |
-| File I/O      | `aiofiles`         | `open()`, `pathlib.read_text()` |
-| CLI framework | `asyncclick`       | `click` (sync)         |
-| Sleep         | `asyncio.sleep()`  | `time.sleep()`         |
+| Need          | Use              | Not                             |
+|---------------|------------------|---------------------------------|
+| HTTP requests | `aiohttp`        | `requests`, `urllib`            |
+| File I/O      | `aiofiles`       | `open()`, `pathlib.read_text()` |
+| CLI framework | `asyncclick`     | `click` (sync)                  |
+| Sleep         | `asyncio.sleep()`| `time.sleep()`                  |
 
 Never call blocking I/O in an async code path. The `ASYNC` ruff rules enforce
 this.
@@ -93,7 +93,7 @@ this.
 
 See `src/_evohome/exceptions.py`. Key types:
 
-```
+```text
 EvohomeError
 ├── ApiRequestFailedError        # API call failed
 │   ├── ApiRateLimitExceededError
@@ -127,21 +127,21 @@ still warrant justification.
 
 ## Code conventions
 
-| Topic              | Convention |
-|--------------------|------------|
-| Attribute names    | `snake_case` (not `camelCase`) |
-| Entity IDs         | `.id` (not `.zoneId`, `.dhwId`) |
-| Constants          | `UPPER_SNAKE_CASE` |
-| Private members    | `_prefixed` |
-| Datetime import    | `from datetime import datetime as dt` |
-| Timedelta import   | `from datetime import timedelta as td` |
-| UTC import         | `from datetime import UTC` |
-| Logging            | `_LOGGER = logging.getLogger(__name__)` |
-| Type annotations   | Required on every function/method |
-| Structured dicts   | `TypedDict`, not `dict[str, Any]` |
-| Schema validation  | `import voluptuous as vol` (not pydantic, not dataclasses) |
-| Exception binding  | `except SomeError as err:` |
-| Build backend      | Hatchling — version lives in `src/_evohome/__init__.py` |
+| Topic             | Convention                                                    |
+| ----------------- | ------------------------------------------------------------- |
+| Attribute names   | `snake_case` (not `camelCase`)                                |
+| Entity IDs        | `.id` (not `.zoneId`, `.dhwId`)                               |
+| Constants         | `UPPER_SNAKE_CASE`                                            |
+| Private members   | `_prefixed`                                                   |
+| Datetime import   | `from datetime import datetime as dt`                         |
+| Timedelta import  | `from datetime import timedelta as td`                        |
+| UTC import        | `from datetime import UTC`                                    |
+| Logging           | `_LOGGER = logging.getLogger(__name__)`                       |
+| Type annotations  | Required on every function/method                             |
+| Structured dicts  | `TypedDict`, not `dict[str, Any]`                             |
+| Schema validation | `import voluptuous as vol` (not pydantic, not dataclasses)    |
+| Exception binding | `except SomeError as err:`                                    |
+| Build backend     | Hatchling — version lives in `src/_evohome/__init__.py`       |
 
 ### Logging vs printing
 
@@ -155,7 +155,7 @@ still warrant justification.
 
 ## Project structure
 
-```
+```text
 cli/
   evohome_cli/        # CLI tool (excluded from coverage)
 src/
