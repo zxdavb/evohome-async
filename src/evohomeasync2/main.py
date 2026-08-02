@@ -145,7 +145,7 @@ class EvohomeClient:
         if self._user_info is None:  # will handle access_token rejection
             url = "userAccount"
             try:
-                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)  # type: ignore[assignment]
+                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)
 
             except exc.ApiCallFailedError as err:  # check if 401 - bad access_token
                 if err.status != HTTPStatus.UNAUTHORIZED:  # 401
@@ -159,7 +159,7 @@ class EvohomeClient:
                 )
 
                 self._token_manager.clear_access_token()
-                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)  # type: ignore[assignment]
+                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)
 
             assert self._user_info is not None  # mypy
 
@@ -174,7 +174,7 @@ class EvohomeClient:
             self._user_locs = await self.auth.get(
                 f"location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True",
                 schema=SCH_USR_LOCATIONS,
-            )  # type: ignore[assignment]
+            )
 
             assert self._user_locs is not None  # mypy
 
@@ -211,23 +211,23 @@ class EvohomeClient:
     def locations(self) -> list[Location]:
         """Return the list of location entities (may be empty)."""
 
-        if self._user_locs is None:  # None: never fetched, []: fetched but empty
+        if self._locations is None:  # None: never fetched, []: fetched but empty
             raise exc.InvalidConfigError(
                 _ERR_NOT_AVAILABLE.format("Installation information")
             )
 
-        return self._locations  # type: ignore[return-value]
+        return self._locations
 
     @property
     def location_by_id(self) -> dict[str, Location]:
         """Return the location entities by id (may be empty)."""
 
-        if self._user_locs is None:  # None: never fetched, []: fetched but empty
+        if self._location_by_id is None:  # None: never fetched, []: fetched but empty
             raise exc.InvalidConfigError(
                 _ERR_NOT_AVAILABLE.format("Installation information")
             )
 
-        return self._location_by_id  # type: ignore[return-value]
+        return self._location_by_id
 
     # A significant majority of users will have exactly one TCS, thus for convenience...
     @property

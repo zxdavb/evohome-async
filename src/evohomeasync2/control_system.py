@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from functools import cached_property
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, overload
 
 from _evohome.helpers import as_aware_dtm, as_local_time
 
@@ -38,7 +38,9 @@ from .zone import ActiveFaultsBase, EntityBase, Zone
 
 if TYPE_CHECKING:
     import logging
+    from collections.abc import Mapping
     from datetime import datetime as dt
+    from typing import Any
 
     import voluptuous as vol
 
@@ -56,6 +58,17 @@ if TYPE_CHECKING:
         EvoTcsConfigResponseT,
         EvoTcsStatusResponseT,
     )
+
+
+def _sched_id(schedule: Mapping[str, Any]) -> str:
+    """Return the zone_id or dhw_id from a schedule."""
+
+    zone_id: str | None = schedule.get(SZ_ZONE_ID)
+    if zone_id is not None:
+        return zone_id
+
+    dhw_id: str = schedule[SZ_DHW_ID]
+    return dhw_id
 
 
 class ControlSystem(ActiveFaultsBase, EntityBase):
@@ -372,6 +385,11 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     async def get_schedules(self) -> list[EvoScheduleDhwT | EvoScheduleZoneT]:
         """Backup all schedules from the TCS."""
 
+        @overload
+        async def get_schedule(child: Zone) -> list[EvoDayOfWeekZoneT]: ...
+        @overload
+        async def get_schedule(child: HotWater) -> list[EvoDayOfWeekDhwT]: ...
+
         async def get_schedule(
             child: HotWater | Zone,
         ) -> list[EvoDayOfWeekDhwT] | list[EvoDayOfWeekZoneT]:
@@ -394,15 +412,15 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
                 {
                     SZ_ZONE_ID: zone.id,
                     SZ_NAME: zone.name,
-                    SZ_DAILY_SCHEDULES: await get_schedule(zone),  # type: ignore[typeddict-item]
+                    SZ_DAILY_SCHEDULES: await get_schedule(zone),
                 }
             )
-        if self.hotwater:
+        if hotwater := self.hotwater:
             schedules.append(
                 {
-                    SZ_ZONE_ID: self.hotwater.id,
-                    SZ_NAME: self.hotwater.name,
-                    SZ_DAILY_SCHEDULES: await get_schedule(self.hotwater),  # type: ignore[typeddict-item]
+                    SZ_ZONE_ID: hotwater.id,
+                    SZ_NAME: hotwater.name,
+                    SZ_DAILY_SCHEDULES: await get_schedule(hotwater),  # type: ignore[typeddict-item]
                 }
             )
 
@@ -419,39 +437,43 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         The default is to match a schedule to its zone/dhw by id.
         """
 
-        async def restore_by_id(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
+        async def restore_by_id(schedule: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
             """Restore a schedule by id and return False if there was no match."""
 
-            id_: str = sched.get(SZ_ZONE_ID) or sched[SZ_DHW_ID]  # type: ignore[assignment,typeddict-item]
+            id_ = _sched_id(schedule)
 
             if self.hotwater and self.hotwater.id == id_:
-                await self.hotwater.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
+                await self.hotwater.set_schedule(
+                    json.dumps(schedule[SZ_DAILY_SCHEDULES])
+                )
 
             elif zone := self.zone_by_id.get(id_):
-                await zone.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
+                await zone.set_schedule(json.dumps(schedule[SZ_DAILY_SCHEDULES]))
 
             else:
                 self._logger.warning(
-                    f"Ignoring schedule of {id_} ({sched.get(SZ_NAME)}): unknown id"
+                    f"Ignoring schedule of {id_} ({schedule.get(SZ_NAME)}): unknown id"
                     ", consider matching by name rather than by id"
                 )
                 return False
 
             return True
 
-        async def restore_by_name(sched: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
+        async def restore_by_name(schedule: EvoScheduleDhwT | EvoScheduleZoneT) -> bool:
             """Restore a schedule by name and return False if there was no match."""
 
-            name: str | None = sched.get(SZ_NAME)  # name is NotRequired[str]
+            name: str | None = schedule.get(SZ_NAME)  # name is NotRequired[str]
 
             if name and self.hotwater and name == self.hotwater.name:
-                await self.hotwater.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
+                await self.hotwater.set_schedule(
+                    json.dumps(schedule[SZ_DAILY_SCHEDULES])
+                )
 
             elif name and (zone := self.zone_by_name.get(name)):
-                await zone.set_schedule(json.dumps(sched[SZ_DAILY_SCHEDULES]))
+                await zone.set_schedule(json.dumps(schedule[SZ_DAILY_SCHEDULES]))
 
             else:
-                id_: str = sched.get(SZ_ZONE_ID) or sched[SZ_DHW_ID]  # type: ignore[assignment,typeddict-item]
+                id_ = _sched_id(schedule)
 
                 self._logger.warning(
                     f"Ignoring schedule of {id_} ({name}): unknown name"

@@ -497,7 +497,7 @@ def factory_location_installation_info(
     SCH_LOCATION_OWNER: Final = vol.Schema(
         {
             vol.Required(fnc(S2_USER_ID)): str,
-            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), redact),  # pyright: ignore[reportCallIssue]
+            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), redact),
             vol.Required(fnc(S2_FIRSTNAME)): str,
             vol.Required(fnc(S2_LASTNAME)): vol.All(str, redact),
         },

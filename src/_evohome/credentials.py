@@ -80,8 +80,10 @@ class CredentialsManagerBase:
                     f"Authenticator response is not JSON: {await _payload(rsp)}"
                 )
 
-            if (response := await rsp.json()) is None:  # an unanticipated edge-case
+            raw = await rsp.json()
+            if raw is None:  # an unanticipated edge-case
                 raise exc.AuthenticationFailedError("Authenticator response is null")
+            response: dict[str, Any] = raw
 
         except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
             raise exc.AuthenticationFailedError(
@@ -107,7 +109,7 @@ class CredentialsManagerBase:
             ) from err
 
         else:
-            return response  # type: ignore[no-any-return]
+            return response
 
         finally:
             if rsp is not None:

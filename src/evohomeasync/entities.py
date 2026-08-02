@@ -171,9 +171,10 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
 
-        return {
-            SZ_IS_AVAILABLE: temp_status == "Measured",
-        } | ({} if temp == _TEMP_IS_NA else {SZ_TEMPERATURE: temp})  # type: ignore[return-value]
+        is_available = temp_status == "Measured"
+        if temp == _TEMP_IS_NA:
+            return {SZ_IS_AVAILABLE: is_available}
+        return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
 
     @property
     def temperature(self) -> float | None:
@@ -270,9 +271,10 @@ class Zone(_DeviceBase):  # Zone version of a Device
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
 
-        return {
-            SZ_IS_AVAILABLE: temp_status == "Measured",
-        } | ({} if temp == _TEMP_IS_NA else {SZ_TEMPERATURE: temp})  # type: ignore[return-value]
+        is_available = temp_status == "Measured"
+        if temp == _TEMP_IS_NA:
+            return {SZ_IS_AVAILABLE: is_available}
+        return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
 
     @property
     def temperature(self) -> float | None:

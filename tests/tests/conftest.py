@@ -161,26 +161,26 @@ def auth_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
             data: JsonArrayType | JsonObjectType = convert_keys_to_snake_case(
                 user_account_fixture(fixture)
             )
-            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
+            return schema(data) if schema else data
 
         # f"location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True"
         if "installationInfo" in url:
             data = convert_keys_to_snake_case(user_locations_config_fixture(fixture))
-            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
+            return schema(data) if schema else data
 
         # f"{_TCC_TYPE}/{id}/status?includeTemperatureControlSystems=True"
         if "status" in url:
             data = convert_keys_to_snake_case(
                 location_status_fixture(fixture, url.split("/")[1])
             )
-            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
+            return schema(data) if schema else data
 
         # f"{_TCC_TYPE}/{id}/schedule"
         if "schedule" in url:
             data = convert_keys_to_snake_case(
                 zone_schedule_fixture(fixture, url.split("/", maxsplit=1)[0])
             )
-            return schema(data) if schema else data  # pyright: ignore[reportReturnType]
+            return schema(data) if schema else data
 
         pytest.fail(f"Unexpected/unknown URL: {url}")
 
