@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
 
 import aiofiles
 import keyring
-import keyring.errors
+from keyring.backends.fail import Keyring as FailKeyring
+from keyring.errors import KeyringError
 
 from evohomeasync.auth import (
     SZ_SESSION_ID,
@@ -42,9 +43,7 @@ _LOGGER: Final = logging.getLogger(__name__)
 def is_keyring_available() -> bool:
     """Return True if a working keyring backend is available."""
 
-    import keyring.backends.fail  # noqa: PLC0415
-
-    return not isinstance(keyring.get_keyring(), keyring.backends.fail.Keyring)
+    return not isinstance(keyring.get_keyring(), FailKeyring)
 
 
 def get_password_from_keyring(username: str) -> str | None:
@@ -52,7 +51,7 @@ def get_password_from_keyring(username: str) -> str | None:
 
     try:
         return keyring.get_password(KEYRING_SERVICE_KEY, username)
-    except keyring.errors.KeyringError as err:
+    except KeyringError as err:
         _LOGGER.debug("Failed to retrieve password from keyring: %s", err)
         return None
 
@@ -62,7 +61,7 @@ def save_password_to_keyring(username: str, password: str) -> None:
 
     try:
         keyring.set_password(KEYRING_SERVICE_KEY, username, password)
-    except keyring.errors.KeyringError as err:
+    except KeyringError as err:
         _LOGGER.debug("Failed to save password to keyring: %s", err)
 
 
@@ -71,7 +70,7 @@ def get_username_from_keyring() -> str | None:
 
     try:
         return keyring.get_password(KEYRING_SERVICE_KEY, KEYRING_USERNAME_KEY)
-    except keyring.errors.KeyringError as err:
+    except KeyringError as err:
         _LOGGER.debug("Failed to retrieve username from keyring: %s", err)
         return None
 
@@ -81,7 +80,7 @@ def save_username_to_keyring(username: str) -> None:
 
     try:
         keyring.set_password(KEYRING_SERVICE_KEY, KEYRING_USERNAME_KEY, username)
-    except keyring.errors.KeyringError as err:
+    except KeyringError as err:
         _LOGGER.debug("Failed to save username to keyring: %s", err)
 
 
@@ -90,7 +89,7 @@ def delete_password_from_keyring(username: str) -> bool:
 
     try:
         keyring.delete_password(KEYRING_SERVICE_KEY, username)
-    except keyring.errors.KeyringError as err:
+    except KeyringError as err:
         _LOGGER.debug("Failed to delete password from keyring: %s", err)
         return False
     return True
@@ -101,7 +100,7 @@ def delete_username_from_keyring() -> bool:
 
     try:
         keyring.delete_password(KEYRING_SERVICE_KEY, KEYRING_USERNAME_KEY)
-    except keyring.errors.KeyringError as err:
+    except KeyringError as err:
         _LOGGER.debug("Failed to delete username from keyring: %s", err)
         return False
     return True
