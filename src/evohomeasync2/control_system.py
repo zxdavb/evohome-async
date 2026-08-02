@@ -34,7 +34,8 @@ from .hotwater import HotWater
 from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.status import factory_tcs_status
-from .zone import ActiveFaultsBase, EntityBase, Zone
+from .typedefs import EvoTcsStatusResponseT
+from .zone import ActiveFaultsBase, Zone
 
 if TYPE_CHECKING:
     import logging
@@ -56,7 +57,6 @@ if TYPE_CHECKING:
         EvoSystemModeStatusResponseT,
         EvoTcsConfigEntryT,
         EvoTcsConfigResponseT,
-        EvoTcsStatusResponseT,
     )
 
 
@@ -71,7 +71,7 @@ def _sched_id(schedule: Mapping[str, Any]) -> str:
     return dhw_id
 
 
-class ControlSystem(ActiveFaultsBase, EntityBase):
+class ControlSystem(ActiveFaultsBase[EvoTcsStatusResponseT]):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
     _STATUS_EXCLUDES = (SZ_DHW, SZ_ZONES)
@@ -92,7 +92,7 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
         self.hotwater: HotWater | None = None
 
         # break the config TypedDict into its parts...
-        self._config: Final[EvoTcsConfigEntryT] = {  # type: ignore[assignment, misc]
+        self._config: Final[EvoTcsConfigEntryT] = {  # type: ignore[assignment]
             k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
         }
 
@@ -109,8 +109,6 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
 
         if dhw_entry := config.get(SZ_DHW):
             self.hotwater = HotWater(self, dhw_entry)
-
-        self._status: EvoTcsStatusResponseT | None = None
 
     @cached_property
     def _auth(self) -> Auth:
@@ -129,11 +127,6 @@ class ControlSystem(ActiveFaultsBase, EntityBase):
     def zone_by_name(self) -> dict[str, Zone]:
         """Return the zones by name (names are not fixed attrs)."""
         return {zone.name: zone for zone in self.zones}
-
-    @property
-    def status(self) -> EvoTcsStatusResponseT:
-        """Return the latest status of the entity."""
-        return super().status  # type: ignore[return-value]
 
     # Config attrs...
 

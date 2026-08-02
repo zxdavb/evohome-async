@@ -28,6 +28,7 @@ from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.schedule import factory_dhw_schedule
 from .schemas.status import factory_dhw_status
+from .typedefs import EvoDayOfWeekDhwT, EvoDhwStatusResponseT
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
@@ -37,18 +38,16 @@ if TYPE_CHECKING:
 
     from . import ControlSystem
     from .typedefs import (
-        EvoDayOfWeekDhwT,
         EvoDhwConfigEntryT,
         EvoDhwConfigResponseT,
         EvoDhwScheduleCapabilitiesResponseT,
         EvoDhwStateCapabilitiesResponseT,
         EvoDhwStateStatusResponseT,
-        EvoDhwStatusResponseT,
         EvoSetDhwStateT,
     )
 
 
-class HotWater(_ZoneBase):
+class HotWater(_ZoneBase[EvoDhwStatusResponseT, EvoDayOfWeekDhwT]):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
     _TCC_TYPE = TccEntityType.DHW
@@ -59,20 +58,12 @@ class HotWater(_ZoneBase):
     def __init__(self, tcs: ControlSystem, config: EvoDhwConfigResponseT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs)
 
-        self._config: Final[EvoDhwConfigEntryT] = config  # type: ignore[misc]
-        self._status: EvoDhwStatusResponseT | None = None
-
-        self._schedule: list[EvoDayOfWeekDhwT] | None = None  # type: ignore[assignment]
+        self._config: Final = config
 
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoDhwConfigEntryT:
         """Return the latest config of the entity."""
         return self._config
-
-    @property
-    def status(self) -> EvoDhwStatusResponseT:
-        """Return the latest status of the entity."""
-        return super().status  # type: ignore[return-value]
 
     # Config attrs...
 
@@ -251,13 +242,3 @@ class HotWater(_ZoneBase):
             else ZoneMode.TEMPORARY_OVERRIDE
         )
         await self.set_mode(mode, state=state, until=until)
-
-    # NOTE: this wrapper exists only for typing purposes
-    async def get_schedule(self) -> list[EvoDayOfWeekDhwT]:  # type: ignore[override]
-        """Get the schedule for this DHW zone."""
-        return await super().get_schedule()  # type: ignore[return-value]
-
-    # NOTE: this wrapper exists only for typing purposes
-    async def set_schedule(self, schedule: list[EvoDayOfWeekDhwT] | str) -> None:  # type: ignore[override]
-        """Set the schedule for this DHW zone."""
-        await super().set_schedule(schedule)  # type: ignore[arg-type]

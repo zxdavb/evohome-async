@@ -17,7 +17,8 @@ from .control_system import ControlSystem
 from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.status import factory_gwy_status
-from .zone import ActiveFaultsBase, EntityBase
+from .typedefs import EvoGwyStatusResponseT
+from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:
     import logging
@@ -26,14 +27,10 @@ if TYPE_CHECKING:
 
     from . import Location
     from .auth import Auth
-    from .typedefs import (
-        EvoGwyConfigEntryT,
-        EvoGwyConfigResponseT,
-        EvoGwyStatusResponseT,
-    )
+    from .typedefs import EvoGwyConfigEntryT, EvoGwyConfigResponseT
 
 
-class Gateway(ActiveFaultsBase, EntityBase):
+class Gateway(ActiveFaultsBase[EvoGwyStatusResponseT]):
     """Instance of a location's gateway."""
 
     _STATUS_EXCLUDES = (SZ_TEMPERATURE_CONTROL_SYSTEMS,)
@@ -50,15 +47,13 @@ class Gateway(ActiveFaultsBase, EntityBase):
         self.systems: list[ControlSystem] = []
         self.system_by_id: dict[str, ControlSystem] = {}  # tcs by id
 
-        self._config: Final[EvoGwyConfigEntryT] = config[SZ_GATEWAY_INFO]  # type: ignore[misc]
+        self._config: Final = config[SZ_GATEWAY_INFO]
 
         for tcs_entry in config[SZ_TEMPERATURE_CONTROL_SYSTEMS]:
             tcs = ControlSystem(self, tcs_entry)
 
             self.systems.append(tcs)
             self.system_by_id[tcs.id] = tcs
-
-        self._status: EvoGwyStatusResponseT | None = None
 
     @cached_property
     def _auth(self) -> Auth:
@@ -72,11 +67,6 @@ class Gateway(ActiveFaultsBase, EntityBase):
     def config(self) -> EvoGwyConfigEntryT:
         """Return the latest config of the entity."""
         return self._config
-
-    @property
-    def status(self) -> EvoGwyStatusResponseT:
-        """Return the latest status of the entity."""
-        return super().status  # type: ignore[return-value]
 
     # Config attrs...
 

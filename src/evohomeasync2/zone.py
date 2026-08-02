@@ -6,7 +6,7 @@ import json
 from datetime import UTC, datetime as dt, time as tm, timedelta as td
 from functools import cached_property
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final, NoReturn
+from typing import TYPE_CHECKING, Any, Final
 
 from _evohome.helpers import as_aware_dtm, as_local_time, convert_dtm_to_local_aware
 
@@ -48,10 +48,13 @@ from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.schedule import factory_zon_schedule
 from .schemas.status import factory_zon_status
+from .typedefs import EvoDayOfWeekZoneT, EvoZonStatusResponseT
 
 if TYPE_CHECKING:
     import logging
+    from collections.abc import Mapping
     from datetime import tzinfo
+    from typing import TypedDict
 
     import voluptuous as vol
 
@@ -59,55 +62,31 @@ if TYPE_CHECKING:
     from .auth import Auth
     from .typedefs import (
         EvoActiveFaultResponseT,
-        EvoDailySchedulesT,
-        EvoDayOfWeekT,
-        EvoDayOfWeekZoneT,
-        EvoDhwConfigEntryT,
+        EvoDayOfWeekDhwT,
         EvoDhwStatusResponseT,
-        EvoGwyConfigEntryT,
-        EvoGwyStatusResponseT,
-        EvoLocConfigEntryT,
-        EvoLocStatusResponseT,
         EvoSetZoneHeatSetpointT,
-        EvoSwitchpointT,
-        EvoTcsConfigEntryT,
-        EvoTcsStatusResponseT,
         EvoTemperatureStatusResponseT,
         EvoZonConfigEntryT,
         EvoZonConfigResponseT,
         EvoZonScheduleCapabilitiesResponseT,
         EvoZonSetpointCapabilitiesResponseT,
         EvoZonSetpointStatusResponseT,
-        EvoZonStatusResponseT,
     )
 
-    _ScheduleT = list[EvoDayOfWeekT]
     _SwitchPoint = tuple[dt, float | str]
+
+    class _DailySchedulesT[DayT](TypedDict):
+        daily_schedules: list[DayT]
 
 
 _ONE_DAY = td(days=1)
 
 
-class EntityBase:
+class EntityBase[StatusT]:
     _TCC_TYPE: TccEntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
     _STATUS_EXCLUDES: tuple[str, ...] = ()  # child keys to exclude from own status
 
-    _config: (
-        EvoLocConfigEntryT
-        | EvoGwyConfigEntryT
-        | EvoTcsConfigEntryT
-        | EvoZonConfigEntryT
-        | EvoDhwConfigEntryT
-    )
-
-    _status: (
-        EvoDhwStatusResponseT
-        | EvoGwyStatusResponseT
-        | EvoLocStatusResponseT
-        | EvoTcsStatusResponseT
-        | EvoZonStatusResponseT
-        | None
-    )
+    _status: StatusT | None = None
 
     def __init__(self, entity_id: str) -> None:
         self._id: Final = entity_id
@@ -130,41 +109,16 @@ class EntityBase:
     def id(self) -> str:
         return self._id
 
-    @property  # not strictly static, but library largely assumes so
-    def config(
-        self,
-    ) -> (
-        EvoLocConfigEntryT
-        | EvoGwyConfigEntryT
-        | EvoTcsConfigEntryT
-        | EvoZonConfigEntryT
-        | EvoDhwConfigEntryT
-    ):
-        """Return the latest config of the entity."""
-        return self._config
-
     # Status (state) attrs & methods...
 
     @property
-    def status(
-        self,
-    ) -> (
-        EvoLocStatusResponseT
-        | EvoGwyStatusResponseT
-        | EvoTcsStatusResponseT
-        | EvoZonStatusResponseT
-        | EvoDhwStatusResponseT
-    ):
+    def status(self) -> StatusT:
         """Return the latest status of the entity."""
         if self._status is None:
             raise exc.InvalidStatusError(_ERR_NOT_AVAILABLE.format(self))
         return self._status
 
-    async def _get_status(
-        self,
-        *,
-        _update: bool = True,
-    ) -> NoReturn:
+    async def _get_status(self, *, _update: bool = True) -> StatusT:
         """Return the latest state of the entity.
 
         It is more efficient to call Location.update() as all descendants are updated
@@ -174,7 +128,7 @@ class EntityBase:
         raise NotImplementedError("Use Location.update() to update status")
 
 
-class ActiveFaultsBase(EntityBase):
+class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
     """Provide the base for active faults."""
 
     location: Location  # used to get tzinfo
@@ -247,11 +201,11 @@ def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
     return DayOfWeek(day_of_week), dtm.strftime("%H:%M")  # TODO: localize, e.g. Montag?
 
 
-def _find_switchpoints(
-    schedule: _ScheduleT,
+def _find_switchpoints[DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT)](
+    schedule: list[DayT],
     day_of_week: DayOfWeek,
     time_of_day: str,
-) -> tuple[EvoSwitchpointT, int, EvoSwitchpointT, int]:
+) -> tuple[Mapping[str, Any], int, Mapping[str, Any], int]:
     """Find this/next switchpoints for a given day of week and time of day."""
 
     if not schedule:
@@ -264,8 +218,8 @@ def _find_switchpoints(
     except ValueError as err:
         raise TypeError(f"Invalid parameter: {day_of_week}") from err
 
-    this_sp: EvoSwitchpointT | None = None
-    next_sp: EvoSwitchpointT | None = None
+    this_sp: Mapping[str, Any] | None = None
+    next_sp: Mapping[str, Any] | None = None
 
     this_offset = 0
     next_offset = 0
@@ -298,12 +252,14 @@ def _find_switchpoints(
     return this_sp, this_offset, next_sp, next_offset
 
 
-class _ScheduleBase(ActiveFaultsBase):
+class _ScheduleBase[StatusT, DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT)](
+    ActiveFaultsBase[StatusT]
+):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     SCH_SCHEDULE: vol.Schema
 
-    _schedule: _ScheduleT | None
+    _schedule: list[DayT] | None = None
 
     _this_switchpoint: _SwitchPoint  # is float for zones...
     _next_switchpoint: _SwitchPoint  # and str for DHW
@@ -313,7 +269,7 @@ class _ScheduleBase(ActiveFaultsBase):
     # Status (state) attrs & methods...
 
     @property
-    def schedule(self) -> _ScheduleT:
+    def schedule(self) -> list[DayT]:
         """Return the schedule (assumes it is current)."""
 
         if not self._schedule:
@@ -348,13 +304,13 @@ class _ScheduleBase(ActiveFaultsBase):
 
         return self._next_switchpoint
 
-    async def get_schedule(self) -> _ScheduleT:
+    async def get_schedule(self) -> list[DayT]:
         """Get the schedule for this DHW/zone object."""
 
         self._logger.debug(f"{self}: Getting schedule...")
 
         try:
-            schedule: EvoDailySchedulesT = await self._auth.get(
+            response: _DailySchedulesT[DayT] = await self._auth.get(
                 f"{self._TCC_TYPE}/{self.id}/schedule",
                 schema=self.SCH_SCHEDULE,
             )
@@ -366,7 +322,7 @@ class _ScheduleBase(ActiveFaultsBase):
                 ) from err
             raise
 
-        self._schedule = schedule[SZ_DAILY_SCHEDULES]
+        self._schedule = response[SZ_DAILY_SCHEDULES]
 
         self._this_switchpoint, self._next_switchpoint = self._find_switchpoints(
             dt.now(tz=UTC)
@@ -417,7 +373,7 @@ class _ScheduleBase(ActiveFaultsBase):
 
     async def set_schedule(
         self,
-        schedule: _ScheduleT | str,
+        schedule: list[DayT] | str,
     ) -> None:
         """Set the schedule for this DHW/zone object."""
 
@@ -457,12 +413,13 @@ class _ScheduleBase(ActiveFaultsBase):
         self._schedule = schedule
 
 
-class _ZoneBase(_ScheduleBase):
+class _ZoneBase[
+    StatusT: (EvoDhwStatusResponseT, EvoZonStatusResponseT),
+    DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT),
+](_ScheduleBase[StatusT, DayT]):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     SCH_STATUS: vol.Schema
-
-    _status: EvoDhwStatusResponseT | EvoZonStatusResponseT | None
 
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id)
@@ -480,16 +437,7 @@ class _ZoneBase(_ScheduleBase):
 
     # Status (state) attrs & methods...
 
-    @property
-    def status(self) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
-        """Return the latest status of the entity."""
-        return super().status  # type: ignore[return-value]
-
-    async def _get_status(  # type: ignore[override]
-        self,
-        *,
-        _update: bool = True,
-    ) -> EvoDhwStatusResponseT | EvoZonStatusResponseT:
+    async def _get_status(self, *, _update: bool = True) -> StatusT:
         """Get the latest state of this DHW/zone and optionally update its status attrs.
 
         This is a working vendor API endpoint, retained only for use by the test suite.
@@ -500,7 +448,7 @@ class _ZoneBase(_ScheduleBase):
             f"{self}: prefer Location.update() for more efficient status retrieval"
         )
 
-        status: EvoDhwStatusResponseT | EvoZonStatusResponseT = await self._auth.get(
+        status: StatusT = await self._auth.get(
             f"{self._TCC_TYPE}/{self.id}/status",
             schema=self.SCH_STATUS,
         )
@@ -511,9 +459,7 @@ class _ZoneBase(_ScheduleBase):
             self._update_status(status)
         return status
 
-    def _update_status(
-        self, status: EvoDhwStatusResponseT | EvoZonStatusResponseT
-    ) -> None:
+    def _update_status(self, status: StatusT) -> None:
         """Update the DHW/ZON's status."""
 
         self._update_faults(status[SZ_ACTIVE_FAULTS])
@@ -539,7 +485,7 @@ class _ZoneBase(_ScheduleBase):
         return status[SZ_TEMPERATURE]
 
 
-class Zone(_ZoneBase):
+class Zone(_ZoneBase[EvoZonStatusResponseT, EvoDayOfWeekZoneT]):
     """Instance of a TCS's heating Zone (temperatureZone)."""
 
     _TCC_TYPE = TccEntityType.ZON
@@ -550,10 +496,7 @@ class Zone(_ZoneBase):
     def __init__(self, tcs: ControlSystem, config: EvoZonConfigResponseT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs)
 
-        self._config: Final[EvoZonConfigResponseT] = config  # type: ignore[misc]
-        self._status: EvoZonStatusResponseT | None = None
-
-        self._schedule: list[EvoDayOfWeekZoneT] | None = None  # type: ignore[assignment]
+        self._config: Final = config
 
         if not self.model or self.model is ZoneModelType.UNKNOWN:
             raise exc.InvalidConfigError(
@@ -573,11 +516,6 @@ class Zone(_ZoneBase):
     def config(self) -> EvoZonConfigEntryT:
         """Return the latest config of the entity."""
         return self._config
-
-    @property
-    def status(self) -> EvoZonStatusResponseT:
-        """Return the latest status of the entity."""
-        return super().status  # type: ignore[return-value]
 
     # Config attrs...
 
@@ -777,13 +715,3 @@ class Zone(_ZoneBase):
             else ZoneMode.TEMPORARY_OVERRIDE
         )
         await self.set_mode(mode, temperature=temperature, until=until)
-
-    # NOTE: this wrapper exists only for typing purposes
-    async def get_schedule(self) -> list[EvoDayOfWeekZoneT]:  # type: ignore[override]
-        """Get the schedule for this heating zone."""
-        return await super().get_schedule()  # type: ignore[return-value]
-
-    # NOTE: this wrapper exists only for typing purposes
-    async def set_schedule(self, schedule: list[EvoDayOfWeekZoneT] | str) -> None:  # type: ignore[override]
-        """Set the schedule for this heating zone."""
-        await super().set_schedule(schedule)  # type: ignore[arg-type]
