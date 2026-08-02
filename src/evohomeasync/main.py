@@ -174,7 +174,7 @@ class EvohomeClient:
     def locations(self) -> list[Location]:
         """Return the list of locations."""
 
-        if self._locations is None:
+        if self._locations is None:  # None: never fetched, []: fetched but empty
             raise exc.InvalidConfigError(
                 _ERR_NOT_AVAILABLE.format("Installation information")
             )
@@ -185,7 +185,7 @@ class EvohomeClient:
     def location_by_id(self) -> dict[str, Location]:
         """Return the list of locations."""
 
-        if self._location_by_id is None:
+        if self._location_by_id is None:  # None: never fetched, {}: fetched but empty
             raise exc.InvalidConfigError(
                 _ERR_NOT_AVAILABLE.format("Installation information")
             )
