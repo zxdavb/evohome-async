@@ -192,7 +192,7 @@ class Location(EntityBase):
         config: EvoLocConfigResponseT = await self._auth.get(
             f"location/{self._id}/installationInfo",
             schema=self.SCH_CONFIG,
-        )  # type: ignore[assignment]
+        )
 
         self._config = config[SZ_LOCATION_INFO]  # ?exclude TZ/DST
 
@@ -256,7 +256,7 @@ class Location(EntityBase):
         status: EvoLocStatusResponseT = await self._auth.get(
             f"{self._TCC_TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
             schema=self.SCH_STATUS,
-        )  # type: ignore[assignment]
+        )
 
         status = convert_dtm_to_local_aware(status, self.tzinfo)
 

@@ -113,7 +113,7 @@ class EvohomeClient:
         if self._user_info is None:  # will handle session_id rejection
             url = "accountInfo"
             try:
-                self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)  # type: ignore[assignment]
+                self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
 
             except exc.ApiCallFailedError as err:  # check if 401 - bad session_id
                 if err.status != HTTPStatus.UNAUTHORIZED:  # 401
@@ -127,7 +127,7 @@ class EvohomeClient:
                 )
 
                 self._session_manager.clear_session_id()
-                self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)  # type: ignore[assignment]
+                self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
 
             assert self._user_info is not None  # mypy
 
@@ -141,7 +141,7 @@ class EvohomeClient:
 
             self._user_locs = await self.auth.get(
                 f"locations?userId={user_id}&allData=True", schema=SCH_GET_ACCOUNT_LOCS
-            )  # type: ignore[assignment]
+            )
 
             assert self._user_locs is not None  # mypy
 

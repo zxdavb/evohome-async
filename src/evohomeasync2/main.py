@@ -145,7 +145,7 @@ class EvohomeClient:
         if self._user_info is None:  # will handle access_token rejection
             url = "userAccount"
             try:
-                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)  # type: ignore[assignment]
+                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)
 
             except exc.ApiCallFailedError as err:  # check if 401 - bad access_token
                 if err.status != HTTPStatus.UNAUTHORIZED:  # 401
@@ -159,7 +159,7 @@ class EvohomeClient:
                 )
 
                 self._token_manager.clear_access_token()
-                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)  # type: ignore[assignment]
+                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)
 
             assert self._user_info is not None  # mypy
 
@@ -174,7 +174,7 @@ class EvohomeClient:
             self._user_locs = await self.auth.get(
                 f"location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True",
                 schema=SCH_USR_LOCATIONS,
-            )  # type: ignore[assignment]
+            )
 
             assert self._user_locs is not None  # mypy
 

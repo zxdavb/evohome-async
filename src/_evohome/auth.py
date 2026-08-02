@@ -25,6 +25,8 @@ type _TccResponse = dict[str, Any] | list[dict[str, Any]]
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from aiohttp.typedefs import StrOrURL
 
 
@@ -79,7 +81,7 @@ class AbstractAuth(ABC):
         """Return the URL base used for GET/PUT requests."""
         return self._url_base
 
-    async def get(self, url: StrOrURL, /, schema: vol.Schema) -> _TccResponse:
+    async def get[T](self, url: StrOrURL, /, schema: Callable[[Any], T]) -> T:
         """Call the vendor's TCC API with a GET.
 
         A schema is required; it is used to convert datetimes and strEnums from the
@@ -89,13 +91,11 @@ class AbstractAuth(ABC):
         response: _TccResponse = await self.request(HTTPMethod.GET, url)
 
         try:
-            response = schema(response)
+            return schema(response)
         except vol.Invalid as err:
             raise exc.BadApiSchemaError(
                 f"GET {url}: response failed validation: {err}"
             ) from err
-
-        return response
 
     async def put(
         self,

@@ -357,7 +357,7 @@ class _ScheduleBase(ActiveFaultsBase):
             schedule: EvoDailySchedulesT = await self._auth.get(
                 f"{self._TCC_TYPE}/{self.id}/schedule",
                 schema=self.SCH_SCHEDULE,
-            )  # type: ignore[assignment]
+            )
 
         except exc.ApiCallFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
@@ -503,7 +503,7 @@ class _ZoneBase(_ScheduleBase):
         status: EvoDhwStatusResponseT | EvoZonStatusResponseT = await self._auth.get(
             f"{self._TCC_TYPE}/{self.id}/status",
             schema=self.SCH_STATUS,
-        )  # type: ignore[assignment]
+        )
 
         status = convert_dtm_to_local_aware(status, self.location.tzinfo)
 
