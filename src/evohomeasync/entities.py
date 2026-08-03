@@ -34,8 +34,6 @@ from .const import (
     SZ_MIN_HEAT_SETPOINT,
     SZ_ONE_TOUCH_ACTIONS_SUSPENDED,
     SZ_ONE_TOUCH_BUTTONS,
-    SZ_PCB_NUMBER,
-    SZ_SERIAL_NUMBER,
     SZ_TEMPERATURE,
     SZ_THERMOSTAT_MODEL_TYPE,
     SZ_TIME_ZONE,
@@ -471,10 +469,6 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
             SZ_MAC_ID: self._config[SZ_MAC_ID],
             SZ_LOCATION_ID: self._config[SZ_LOCATION_ID],
         }
-        if SZ_SERIAL_NUMBER in self._config:  # not sent by all gateways
-            result[SZ_SERIAL_NUMBER] = self._config[SZ_SERIAL_NUMBER]
-        if SZ_PCB_NUMBER in self._config:  # not sent by all gateways
-            result[SZ_PCB_NUMBER] = self._config[SZ_PCB_NUMBER]
         return result
 
     @property
