@@ -28,7 +28,7 @@ from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.schedule import factory_dhw_schedule
 from .schemas.status import factory_dhw_status
-from .typedefs import EvoDayOfWeekDhwT, EvoDhwStatusT
+from .typedefs import EvoDhwScheduleDayOfWeekT, EvoDhwStatusT
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     )
 
 
-class HotWater(_ZoneBase[EvoDhwStatusT, EvoDayOfWeekDhwT]):
+class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
     _TCC_TYPE = TccEntityType.DHW

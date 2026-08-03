@@ -351,21 +351,21 @@ class EvoSetZoneHeatSetpointT(TypedDict):
 #
 
 
-class EvoSwitchpointDhwT(TypedDict):
+class EvoDhwScheduleSwitchpointT(TypedDict):
     dhw_state: DhwState
     time_of_day: str
 
 
-class EvoDayOfWeekDhwT(TypedDict):
+class EvoDhwScheduleDayOfWeekT(TypedDict):
     day_of_week: DayOfWeek
-    switchpoints: list[EvoSwitchpointDhwT]
+    switchpoints: list[EvoDhwScheduleSwitchpointT]
 
 
 # GET /domesticHotWater/{dhw_id}/schedule
 class EvoDhwScheduleResponseT(TypedDict):
     """Response to `GET /domesticHotWater/{dhw_id}/schedule`."""
 
-    daily_schedules: list[EvoDayOfWeekDhwT]
+    daily_schedules: list[EvoDhwScheduleDayOfWeekT]
 
 
 # for export/import to/from file
@@ -379,21 +379,21 @@ class EvoScheduleDhwT(EvoDhwScheduleResponseT):
 #
 
 
-class EvoSwitchpointZoneT(TypedDict):
+class EvoZonScheduleSwitchpointT(TypedDict):
     heat_setpoint: float
     time_of_day: str
 
 
-class EvoDayOfWeekZoneT(TypedDict):
+class EvoZonScheduleDayOfWeekT(TypedDict):
     day_of_week: DayOfWeek
-    switchpoints: list[EvoSwitchpointZoneT]
+    switchpoints: list[EvoZonScheduleSwitchpointT]
 
 
 # GET /temperatureZone/{zon_id}/schedule
 class EvoZonScheduleResponseT(TypedDict):
     """Response to `GET /temperatureZone/{zon_id}/schedule`."""
 
-    daily_schedules: list[EvoDayOfWeekZoneT]
+    daily_schedules: list[EvoZonScheduleDayOfWeekT]
 
 
 # for export/import to/from file

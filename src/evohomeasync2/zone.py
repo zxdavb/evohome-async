@@ -48,7 +48,7 @@ from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.schedule import factory_zon_schedule
 from .schemas.status import factory_zon_status
-from .typedefs import EvoDayOfWeekZoneT, EvoZonStatusResponseT, EvoZonStatusT
+from .typedefs import EvoZonScheduleDayOfWeekT, EvoZonStatusResponseT, EvoZonStatusT
 
 if TYPE_CHECKING:
     import logging
@@ -62,7 +62,7 @@ if TYPE_CHECKING:
     from .auth import Auth
     from .typedefs import (
         EvoActiveFaultT,
-        EvoDayOfWeekDhwT,
+        EvoDhwScheduleDayOfWeekT,
         EvoDhwStatusResponseT,
         EvoSetZoneHeatSetpointT,
         EvoTemperatureStatusT,
@@ -200,7 +200,7 @@ def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
     return DayOfWeek(day_of_week), dtm.strftime("%H:%M")  # TODO: localize, e.g. Montag?
 
 
-def _find_switchpoints[DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT)](
+def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT)](
     schedule: list[DayT],
     day_of_week: DayOfWeek,
     time_of_day: str,
@@ -251,9 +251,10 @@ def _find_switchpoints[DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT)](
     return this_sp, this_offset, next_sp, next_offset
 
 
-class _ScheduleBase[StatusT, DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT)](
-    ActiveFaultsBase[StatusT]
-):
+class _ScheduleBase[
+    StatusT,
+    DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT),
+](ActiveFaultsBase[StatusT]):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     SCH_SCHEDULE: vol.Schema
@@ -414,7 +415,7 @@ class _ScheduleBase[StatusT, DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT)](
 
 class _ZoneBase[
     StatusT: (EvoDhwStatusResponseT, EvoZonStatusResponseT),
-    DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT),
+    DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT),
 ](_ScheduleBase[StatusT, DayT]):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
@@ -484,7 +485,7 @@ class _ZoneBase[
         return status[SZ_TEMPERATURE]
 
 
-class Zone(_ZoneBase[EvoZonStatusT, EvoDayOfWeekZoneT]):
+class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     """Instance of a TCS's heating Zone (temperatureZone)."""
 
     _TCC_TYPE = TccEntityType.ZON

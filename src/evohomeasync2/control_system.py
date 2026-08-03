@@ -49,8 +49,7 @@ if TYPE_CHECKING:
     from .auth import Auth
     from .typedefs import (
         EvoAllowedSystemModesT,
-        EvoDayOfWeekDhwT,
-        EvoDayOfWeekZoneT,
+        EvoDhwScheduleDayOfWeekT,
         EvoScheduleDhwT,
         EvoScheduleZoneT,
         EvoSetSystemModeT,
@@ -58,6 +57,7 @@ if TYPE_CHECKING:
         EvoTcsConfigResponseT,
         EvoTcsConfigT,
         EvoTcsStatusResponseT,
+        EvoZonScheduleDayOfWeekT,
     )
 
 
@@ -384,13 +384,13 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         """Backup all schedules from the TCS."""
 
         @overload
-        async def get_schedule(child: Zone) -> list[EvoDayOfWeekZoneT]: ...
+        async def get_schedule(child: Zone) -> list[EvoZonScheduleDayOfWeekT]: ...
         @overload
-        async def get_schedule(child: HotWater) -> list[EvoDayOfWeekDhwT]: ...
+        async def get_schedule(child: HotWater) -> list[EvoDhwScheduleDayOfWeekT]: ...
 
         async def get_schedule(
             child: HotWater | Zone,
-        ) -> list[EvoDayOfWeekDhwT] | list[EvoDayOfWeekZoneT]:
+        ) -> list[EvoDhwScheduleDayOfWeekT] | list[EvoZonScheduleDayOfWeekT]:
             try:
                 return await child.get_schedule()
             except exc.InvalidScheduleError:
