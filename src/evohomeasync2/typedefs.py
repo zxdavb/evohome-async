@@ -192,18 +192,7 @@ class EvoZonConfigResponseT(TypedDict):
     # but it is always present for Evohome
     schedule_capabilities: NotRequired[EvoZonScheduleCapabilitiesT]
     zone_type: ZoneType
-    allowed_fan_modes: NotRequired[list[EvoAllowedFanModeT]]  # FocusProWifi
-
-
-class EvoAllowedFanModeResponseT(TypedDict):
-    fan_mode: FanMode
-
-
-class EvoZonScheduleCapabilitiesResponseT(TypedDict):
-    max_switchpoints_per_day: int
-    min_switchpoints_per_day: int
-    timing_resolution: str
-    setpoint_value_resolution: float
+    allowed_fan_modes: NotRequired[list[EvoAllowedFanModesT]]  # FocusProWifi
 
 
 class EvoZonSetpointCapabilitiesT(TypedDict):
@@ -220,15 +209,6 @@ class EvoZonSetpointCapabilitiesT(TypedDict):
     min_cool_setpoint: NotRequired[float]
     setpoint_deadband: NotRequired[float]
     vacation_hold_capabilities: NotRequired[EvoVacationHoldCapabilitiesT]
-
-
-class EvoVacationHoldCapabilitiesResponseT(TypedDict):
-    is_changeable: bool
-    is_cancelable: bool
-    # the three below are either all present, or all absent
-    max_duration: NotRequired[str]
-    min_duration: NotRequired[str]
-    timing_resolution: NotRequired[str]
 
 
 class EvoVacationHoldCapabilitiesT(TypedDict):
@@ -336,11 +316,6 @@ class EvoZonStatusResponseT(TypedDict):
     temperature_status: EvoTemperatureStatusT
     name: str
     fan_status: NotRequired[EvoFanStatusT]  # FocusProWifi
-
-
-class EvoFanStatusResponseT(TypedDict):
-    fan_mode: FanMode
-    can_be_changed: bool
 
 
 class EvoZonSetpointStatusT(TypedDict):
