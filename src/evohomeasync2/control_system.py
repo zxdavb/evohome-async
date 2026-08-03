@@ -34,7 +34,7 @@ from .hotwater import HotWater
 from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.status import factory_tcs_status
-from .typedefs import EvoTcsStatusResponseT
+from .typedefs import EvoTcsStatusT
 from .zone import ActiveFaultsBase, Zone
 
 if TYPE_CHECKING:
@@ -48,15 +48,16 @@ if TYPE_CHECKING:
     from . import Gateway, Location
     from .auth import Auth
     from .typedefs import (
-        EvoAllowedSystemModesResponseT,
-        EvoDayOfWeekDhwT,
-        EvoDayOfWeekZoneT,
+        EvoAllowedSystemModesT,
+        EvoDhwScheduleDayOfWeekT,
         EvoScheduleDhwT,
         EvoScheduleZoneT,
         EvoSetSystemModeT,
-        EvoSystemModeStatusResponseT,
-        EvoTcsConfigEntryT,
+        EvoSystemModeStatusT,
         EvoTcsConfigResponseT,
+        EvoTcsConfigT,
+        EvoTcsStatusResponseT,
+        EvoZonScheduleDayOfWeekT,
     )
 
 
@@ -71,10 +72,9 @@ def _sched_id(schedule: Mapping[str, Any]) -> str:
     return dhw_id
 
 
-class ControlSystem(ActiveFaultsBase[EvoTcsStatusResponseT]):
+class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
-    _STATUS_EXCLUDES = (SZ_DHW, SZ_ZONES)
     _TCC_TYPE = TccEntityType.TCS
 
     SCH_STATUS: vol.Schema = factory_tcs_status(Case.PYTHONIC)
@@ -91,9 +91,11 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusResponseT]):
 
         self.hotwater: HotWater | None = None
 
-        # break the config TypedDict into its parts...
-        self._config: Final[EvoTcsConfigEntryT] = {  # type: ignore[assignment]
-            k: v for k, v in config.items() if k not in (SZ_DHW, SZ_ZONES)
+        # the entity's own config, without its children's...
+        self._config: Final[EvoTcsConfigT] = {
+            SZ_SYSTEM_ID: config[SZ_SYSTEM_ID],
+            SZ_MODEL_TYPE: config[SZ_MODEL_TYPE],
+            SZ_ALLOWED_SYSTEM_MODES: config[SZ_ALLOWED_SYSTEM_MODES],
         }
 
         for zon_entry in config[SZ_ZONES]:
@@ -119,7 +121,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusResponseT]):
         return self.location.client.logger
 
     @property  # not strictly static, but library largely assumes so
-    def config(self) -> EvoTcsConfigEntryT:
+    def config(self) -> EvoTcsConfigT:
         """Return the latest config of the entity."""
         return self._config
 
@@ -135,7 +137,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusResponseT]):
         return self._config[SZ_MODEL_TYPE]
 
     @cached_property
-    def allowed_system_modes(self) -> tuple[EvoAllowedSystemModesResponseT, ...]:
+    def allowed_system_modes(self) -> tuple[EvoAllowedSystemModesT, ...]:
         """
 
         Some systems support a subset of these modes:
@@ -190,12 +192,15 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusResponseT]):
                     ", (has the system configuration been changed?)"
                 )
 
+        # the entity's own status, without its children's...
         self._status = {
-            k: v for k, v in status.items() if k not in self._STATUS_EXCLUDES
-        }  # type: ignore[assignment]
+            SZ_SYSTEM_ID: status[SZ_SYSTEM_ID],
+            SZ_ACTIVE_FAULTS: status[SZ_ACTIVE_FAULTS],
+            SZ_SYSTEM_MODE_STATUS: status[SZ_SYSTEM_MODE_STATUS],
+        }
 
     @property
-    def system_mode_status(self) -> EvoSystemModeStatusResponseT:
+    def system_mode_status(self) -> EvoSystemModeStatusT:
         """
         "systemModeStatus": {"mode": "AutoWithEco", "isPermanent": true}
         "systemModeStatus": {'mode': 'AutoWithEco', 'isPermanent': false, 'timeUntil': '2024-12-21T15:55:00Z'}}
@@ -379,13 +384,13 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusResponseT]):
         """Backup all schedules from the TCS."""
 
         @overload
-        async def get_schedule(child: Zone) -> list[EvoDayOfWeekZoneT]: ...
+        async def get_schedule(child: Zone) -> list[EvoZonScheduleDayOfWeekT]: ...
         @overload
-        async def get_schedule(child: HotWater) -> list[EvoDayOfWeekDhwT]: ...
+        async def get_schedule(child: HotWater) -> list[EvoDhwScheduleDayOfWeekT]: ...
 
         async def get_schedule(
             child: HotWater | Zone,
-        ) -> list[EvoDayOfWeekDhwT] | list[EvoDayOfWeekZoneT]:
+        ) -> list[EvoDhwScheduleDayOfWeekT] | list[EvoZonScheduleDayOfWeekT]:
             try:
                 return await child.get_schedule()
             except exc.InvalidScheduleError:

@@ -1,4 +1,44 @@
-"""evohomeasync schema - shared types (WIP)."""
+"""evohomeasync schema - shared types (WIP).
+
+TypeDicts may not be complete (the API is undocumented), but all keys referenced
+by this library are present.
+
+API endpoints marked 'extrapolated' are inferred by symmetry - they are not
+exercised by the test suite and may not exist.
+
+Naming convention
+-----------------
+All type names are prefixed with `Evo` to be distinct from the `Tcc` equivalents and
+to avoid collisions with other libraries. Entities (`{Ent}`) are abbreviated, and
+always come next: Loc, Gwy, Tcs, Zon, Dhw. All end in `T` to indicate they are a
+TypedDict, not a StrEnum like `SystemMode`.
+
+- `Evo...ResponseT`: the payload of an HTTP GET response, and only ever that; each is
+  annotated with the endpoint that returns it
+
+- `_Evo...BaseT`: private; the keys an `Evo...ResponseT` shares with its `Evo{Ent}...T`,
+  for the entities whose response also carries their children's config/status
+
+- `EvoSet...T`: the body of a HTTP PUT request
+
+- `Evo...T`: anything else is named for the JSON key whose value it types...
+  List elements are singular: `active_faults: list[EvoActiveFaultT]`.
+
+- `Evo{Ent}...T`: also named for the value of a JSON key, but applies to an entity
+  class, e.g. `setpoint_capabilities: EvoZonSetpointCapabilitiesT`.
+
+Note: some vendor's key may itself end in '_response'; that does not make the type
+a HTTP response, e.g. `dhw_state_capabilities_response: EvoDhwStateCapabilitiesT`
+
+
+These are not part of the vendor's schema, but useful to the library:
+
+- Evo{Ent}ConfigT / Evo{Ent}StatusT: what an entity's .config / .status return,
+  i.e. its own config/status, without its children's (grouped at end of module)
+
+- EvoSchedule{Dhw,Zone}T: not a vendor schema at all, but this library's own
+  format for exporting/importing schedules to/from file
+"""
 
 from __future__ import annotations
 
@@ -22,9 +62,13 @@ if TYPE_CHECKING:
     )
 
 
+#######################################################################################
+# Schema for the POSTs for the vendor's RESTful API
+
+
 # POST /Auth/OAuth/Token
 class EvoAuthTokensResponseT(TypedDict):
-    """Response to POST /Auth/OAuth/Token."""
+    """Response to `POST /Auth/OAuth/Token`."""
 
     access_token: str
     expires_in: int  # seconds until access token expires
@@ -34,29 +78,36 @@ class EvoAuthTokensResponseT(TypedDict):
 
 
 #######################################################################################
-# GET Entity Info/Config...
-# NOTE: dicts are not completely typed, but all referenced keys should be present
+# Schema for the GETs for the vendor's RESTful API - config/status endpoints
 
 
-# GET /accountInfo
+# GET /userAccount
 class EvoUsrAccountResponseT(TypedDict):
-    """Response to GET /accountInfo."""
+    """Response to `GET /userAccount`."""
 
     user_id: str
 
 
-# GET /location/installationInfo?userId={user_id}&include... returns list of these dicts
-class EvoLocConfigResponseT(TypedDict):
-    """Response to GET /locations?userId={user_id}&allData=True
+# GET Entity Configuration...
 
-    The response is a list of these dicts.
+
+# GET /location/installationInfo?userId={user_id}&include...  (a list of these dicts)
+# GET /location/{loc_id}/installationInfo??includeTemperatureControlSystems=True
+class EvoLocConfigResponseT(TypedDict):
+    """Response to `GET /locations.../installationInfo...`.
+
+    Response to: `GET /location/installationInfo?userId={user_id}&?includeTemperatureControlSystems=True`
+    - the response is a list of these dicts
+
+    Response to: `GET /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True`
+    - the response is a single dict
     """
 
-    location_info: EvoLocConfigEntryT
+    location_info: EvoLocationInfoT
     gateways: list[EvoGwyConfigResponseT]
 
 
-class EvoLocConfigEntryT(TypedDict):
+class EvoLocationInfoT(TypedDict):
     """Location configuration information."""
 
     location_id: str
@@ -67,11 +118,11 @@ class EvoLocConfigEntryT(TypedDict):
     postcode: str
     location_type: LocationType
     use_daylight_save_switching: bool
-    time_zone: EvoTimeZoneInfoT
-    location_owner: EvoLocationOwnerInfoT
+    time_zone: EvoTimeZoneT
+    location_owner: EvoLocationOwnerT
 
 
-class EvoTimeZoneInfoT(TypedDict):
+class EvoTimeZoneT(TypedDict):
     """Time zone information."""
 
     time_zone_id: str
@@ -81,32 +132,36 @@ class EvoTimeZoneInfoT(TypedDict):
     supports_daylight_saving: bool
 
 
-class EvoLocationOwnerInfoT(TypedDict):
+class EvoLocationOwnerT(TypedDict):
     user_id: str
     username: str
     firstname: str
     lastname: str
 
 
+# GET /gateway/{gwy_id}/... (extrapolated)
 class EvoGwyConfigResponseT(TypedDict):
-    gateway_info: EvoGwyConfigEntryT
+    """Response to `GET /gateway/{gwy_id}/...`."""
+
+    gateway_info: EvoGatewayInfoT
     temperature_control_systems: list[EvoTcsConfigResponseT]
 
 
-class EvoGwyConfigEntryT(TypedDict):
+class EvoGatewayInfoT(TypedDict):
     gateway_id: str
     mac: str
     crc: str
     is_wi_fi: bool
 
 
-class EvoTcsConfigEntryT(TypedDict):
+# GET /temperatureControlSystem/{tcs_id}/... (extrapolated)
+class _EvoTcsConfigResponseBaseT(TypedDict):
     system_id: str
     model_type: TcsModelType
-    allowed_system_modes: list[EvoAllowedSystemModesResponseT]
+    allowed_system_modes: list[EvoAllowedSystemModesT]
 
 
-class EvoAllowedSystemModesResponseT(TypedDict):
+class EvoAllowedSystemModesT(TypedDict):
     system_mode: SystemMode
     can_be_permanent: Literal[True]  # only ever seen: True
     can_be_temporary: bool
@@ -115,7 +170,9 @@ class EvoAllowedSystemModesResponseT(TypedDict):
     timing_mode: NotRequired[TimingMode]  # when can_be_temporary is True
 
 
-class EvoTcsConfigResponseT(EvoTcsConfigEntryT):
+class EvoTcsConfigResponseT(_EvoTcsConfigResponseBaseT):
+    """Response to `GET /temperatureControlSystem/{tcs_id}/...`."""
+
     # system_id: str
     # model_type: str
     # allowed_system_modes: list[dict[str, Any]]
@@ -123,30 +180,22 @@ class EvoTcsConfigResponseT(EvoTcsConfigEntryT):
     dhw: NotRequired[EvoDhwConfigResponseT]
 
 
-# Some FocusProWifiRetail do not include ScheduleCapabilitiesResponse in their config
-# but it is always present for Evohome
+# GET /temperatureZone/{zon_id}/... (extrapolated)
 class EvoZonConfigResponseT(TypedDict):
+    """Response to `GET /temperatureZone/{zon_id}/...`."""
+
     zone_id: str
     model_type: ZoneModelType
     name: str
-    setpoint_capabilities: EvoZonSetpointCapabilitiesResponseT
-    schedule_capabilities: NotRequired[EvoZonScheduleCapabilitiesResponseT]
+    setpoint_capabilities: EvoZonSetpointCapabilitiesT
+    # Some FocusProWifiRetail do not include ScheduleCapabilities in their config
+    # but it is always present for Evohome
+    schedule_capabilities: NotRequired[EvoZonScheduleCapabilitiesT]
     zone_type: ZoneType
-    allowed_fan_modes: NotRequired[list[EvoAllowedFanModeResponseT]]  # FocusProWifi
+    allowed_fan_modes: NotRequired[list[EvoAllowedFanModesT]]  # FocusProWifi
 
 
-class EvoAllowedFanModeResponseT(TypedDict):
-    fan_mode: FanMode
-
-
-class EvoZonScheduleCapabilitiesResponseT(TypedDict):
-    max_switchpoints_per_day: int
-    min_switchpoints_per_day: int
-    timing_resolution: str
-    setpoint_value_resolution: float
-
-
-class EvoZonSetpointCapabilitiesResponseT(TypedDict):
+class EvoZonSetpointCapabilitiesT(TypedDict):
     allowed_setpoint_modes: list[ZoneMode]
     can_control_cool: bool
     can_control_heat: bool
@@ -159,10 +208,10 @@ class EvoZonSetpointCapabilitiesResponseT(TypedDict):
     max_cool_setpoint: NotRequired[float]
     min_cool_setpoint: NotRequired[float]
     setpoint_deadband: NotRequired[float]
-    vacation_hold_capabilities: NotRequired[EvoVacationHoldCapabilitiesResponseT]
+    vacation_hold_capabilities: NotRequired[EvoVacationHoldCapabilitiesT]
 
 
-class EvoVacationHoldCapabilitiesResponseT(TypedDict):
+class EvoVacationHoldCapabilitiesT(TypedDict):
     is_changeable: bool
     is_cancelable: bool
     # the three below are either all present, or all absent
@@ -171,117 +220,138 @@ class EvoVacationHoldCapabilitiesResponseT(TypedDict):
     timing_resolution: NotRequired[str]
 
 
-class EvoZonConfigEntryT(EvoZonConfigResponseT):
-    pass
-
-
-# FocusProWifiRetail may not include DhwScheduleCapabilitiesResponse in their config
-# but it is always present for Evohome
-class EvoDhwConfigResponseT(TypedDict):
-    dhw_id: str
-    schedule_capabilities_response: NotRequired[EvoDhwScheduleCapabilitiesResponseT]
-    dhw_state_capabilities_response: EvoDhwStateCapabilitiesResponseT
-
-
-class EvoDhwScheduleCapabilitiesResponseT(TypedDict):
+class _EvoScheduleCapabilitiesT(TypedDict):  # shared by Zone and DHW
     max_switchpoints_per_day: int
     min_switchpoints_per_day: int
     timing_resolution: str
 
 
-class EvoDhwStateCapabilitiesResponseT(TypedDict):
+class EvoZonScheduleCapabilitiesT(_EvoScheduleCapabilitiesT):
+    setpoint_value_resolution: float
+
+
+class EvoAllowedFanModesT(TypedDict):
+    fan_mode: FanMode
+
+
+# GET /domesticHotWater/{dhw_id}/... (extrapolated)
+class EvoDhwConfigResponseT(TypedDict):
+    """Response to `GET /domesticHotWater/{dhw_id}/...`."""
+
+    dhw_id: str
+    # Evohome always includes schedule_capabilities_response,
+    schedule_capabilities_response: NotRequired[EvoDhwScheduleCapabilitiesT]
+    dhw_state_capabilities_response: EvoDhwStateCapabilitiesT  # not EvoDhw*ResponseT
+
+
+class EvoDhwScheduleCapabilitiesT(_EvoScheduleCapabilitiesT):
+    pass
+
+
+class EvoDhwStateCapabilitiesT(TypedDict):
     allowed_states: list[DhwState]
     allowed_modes: list[ZoneMode]
     max_duration: str
     timing_resolution: str
 
 
-class EvoDhwConfigEntryT(EvoDhwConfigResponseT):
-    pass
-
-
-#######################################################################################
 # GET Entity Status...
-# NOTE: dicts are not completely typed, but all referenced keys should be present
 
 
-# GET /location/{loc_id}/status?include... returns this dict
-class EvoLocStatusResponseT(TypedDict):
-    """Response to /location/{loc_id}/status?includeTemperatureControlSystems=True
-
-    The response is a dict of of a single location.
-    """
-
+# GET /location/{loc_id}/status?includeTemperatureControlSystems=True
+class _EvoLocStatusResponseBaseT(TypedDict):
     location_id: str
+
+
+class EvoLocStatusResponseT(_EvoLocStatusResponseBaseT):
+    """Response to `GET /location/{loc_id}/status?includeTemperatureControlSystems=True`."""
+
     gateways: list[EvoGwyStatusResponseT]
 
 
-class EvoGwyStatusResponseT(TypedDict):
+# GET /gateway/{gwy_id}/status (extrapolated)
+class _EvoGwyStatusResponseBaseT(TypedDict):
     gateway_id: str
-    active_faults: list[EvoActiveFaultResponseT]
+    active_faults: list[EvoActiveFaultT]
+
+
+class EvoGwyStatusResponseT(_EvoGwyStatusResponseBaseT):
+    """Response to `GET /gateway/{gwy_id}/status`."""
+
     temperature_control_systems: list[EvoTcsStatusResponseT]
 
 
-class EvoActiveFaultResponseT(TypedDict):
+class EvoActiveFaultT(TypedDict):
     fault_type: FaultType | str  # may be unknown/unexpected value, so allow str
     since: dt  # TZ-naive, no 'Z' suffix in the vendor string
 
 
-class EvoTcsStatusResponseT(TypedDict):
+# GET /temperatureControlSystem/{tcs_id}/status
+class _EvoTcsStatusResponseBaseT(TypedDict):
     system_id: str
-    active_faults: list[EvoActiveFaultResponseT]
-    system_mode_status: EvoSystemModeStatusResponseT
+    active_faults: list[EvoActiveFaultT]
+    system_mode_status: EvoSystemModeStatusT
+
+
+class EvoTcsStatusResponseT(_EvoTcsStatusResponseBaseT):
+    """Response to `GET /temperatureControlSystem/{tcs_id}/status`."""
+
     zones: list[EvoZonStatusResponseT]
     dhw: NotRequired[EvoDhwStatusResponseT]
 
 
-class EvoSystemModeStatusResponseT(TypedDict):
+class EvoSystemModeStatusT(TypedDict):
     mode: SystemMode
     is_permanent: bool
     time_until: NotRequired[dt]  # TZ-aware
 
 
+# GET /temperatureZone/{zon_id}/status
 class EvoZonStatusResponseT(TypedDict):
+    """Response to `GET /temperatureZone/{zon_id}/status`."""
+
     zone_id: str
-    active_faults: list[EvoActiveFaultResponseT]
-    setpoint_status: EvoZonSetpointStatusResponseT
-    temperature_status: EvoTemperatureStatusResponseT
+    active_faults: list[EvoActiveFaultT]
+    setpoint_status: EvoZonSetpointStatusT
+    temperature_status: EvoTemperatureStatusT
     name: str
-    fan_status: NotRequired[EvoFanStatusResponseT]  # FocusProWifi
+    fan_status: NotRequired[EvoFanStatusT]  # FocusProWifi
 
 
-class EvoFanStatusResponseT(TypedDict):
-    fan_mode: FanMode
-    can_be_changed: bool
-
-
-class EvoZonSetpointStatusResponseT(TypedDict):
+class EvoZonSetpointStatusT(TypedDict):
     setpoint_mode: ZoneMode
     target_heat_temperature: float
     until: NotRequired[dt]  # TZ-aware
 
 
-class EvoTemperatureStatusResponseT(TypedDict):
+class EvoTemperatureStatusT(TypedDict):
     is_available: bool
     temperature: NotRequired[float]
 
 
+class EvoFanStatusT(TypedDict):
+    fan_mode: FanMode
+    can_be_changed: bool
+
+
+# GET /domesticHotWater/{dhw_id}/status
 class EvoDhwStatusResponseT(TypedDict):
+    """Response to `GET /domesticHotWater/{dhw_id}/status`."""
+
     dhw_id: str
-    active_faults: list[EvoActiveFaultResponseT]
-    state_status: EvoDhwStateStatusResponseT
-    temperature_status: EvoTemperatureStatusResponseT
+    active_faults: list[EvoActiveFaultT]
+    state_status: EvoDhwStateStatusT
+    temperature_status: EvoTemperatureStatusT
 
 
-class EvoDhwStateStatusResponseT(TypedDict):
+class EvoDhwStateStatusT(TypedDict):
     mode: ZoneMode
     state: DhwState
     until: NotRequired[dt]  # TZ-aware
 
 
 #######################################################################################
-# PUT TCS/Zone/DHW State...
-#
+# Schema for the PUTs for the vendor's RESTful API - set state endpoints
 
 
 # PUT /domesticHotWater/{dhw_id}/state
@@ -306,56 +376,62 @@ class EvoSetZoneHeatSetpointT(TypedDict):
 
 
 #######################################################################################
-# GET/PUT Zone/DHW Schedules...
-#
+# Schema for the GET/PUT the vendor's RESTful API - Zone/DHW Schedules...
 
 
-class EvoSwitchpointDhwT(TypedDict):
-    dhw_state: DhwState
-    time_of_day: str
+# GET /domesticHotWater/{dhw_id}/schedule
+class EvoDhwScheduleResponseT(TypedDict):
+    """Response to `GET /domesticHotWater/{dhw_id}/schedule`."""
+
+    daily_schedules: list[EvoDhwScheduleDayOfWeekT]
 
 
-class EvoDayOfWeekDhwT(TypedDict):
-    day_of_week: DayOfWeek
-    switchpoints: list[EvoSwitchpointDhwT]
+class EvoScheduleDhwT(EvoDhwScheduleResponseT):  # for export/import to/from file
+    """Schedule for a DHW, for export/import to/from file."""
 
-
-class EvoDailySchedulesDhwT(TypedDict):
-    daily_schedules: list[EvoDayOfWeekDhwT]
-
-
-# for export/import to/from file
-class EvoScheduleDhwT(EvoDailySchedulesDhwT):
     dhw_id: str
     name: NotRequired[str]
 
 
-#
+class EvoDhwScheduleDayOfWeekT(TypedDict):
+    day_of_week: DayOfWeek
+    switchpoints: list[EvoDhwScheduleSwitchpointT]
 
 
-class EvoSwitchpointZoneT(TypedDict):
-    heat_setpoint: float
+class EvoDayOfWeekDhwT(EvoDhwScheduleDayOfWeekT):
+    """A shim for compatibility with HA, that is to be deprecated."""
+
+
+class EvoDhwScheduleSwitchpointT(TypedDict):
+    dhw_state: DhwState
     time_of_day: str
 
 
-class EvoDayOfWeekZoneT(TypedDict):
-    day_of_week: DayOfWeek
-    switchpoints: list[EvoSwitchpointZoneT]
+# GET /temperatureZone/{zon_id}/schedule
+class EvoZonScheduleResponseT(TypedDict):
+    """Response to `GET /temperatureZone/{zon_id}/schedule`."""
+
+    daily_schedules: list[EvoZonScheduleDayOfWeekT]
 
 
-class EvoDailySchedulesZoneT(TypedDict):
-    daily_schedules: list[EvoDayOfWeekZoneT]
+class EvoScheduleZoneT(EvoZonScheduleResponseT):  # for export/import to/from file
+    """Schedule for a zone, for export/import to/from file."""
 
-
-# for export/import to/from file
-class EvoScheduleZoneT(EvoDailySchedulesZoneT):
     zone_id: str
     name: NotRequired[str]
 
 
-#
+class EvoZonScheduleDayOfWeekT(TypedDict):
+    day_of_week: DayOfWeek
+    switchpoints: list[EvoZonScheduleSwitchpointT]
 
 
+class EvoZonScheduleSwitchpointT(TypedDict):
+    heat_setpoint: float
+    time_of_day: str
+
+
+# These are to be deprecated in favour of the above
 class EvoSwitchpointT(TypedDict):
     time_of_day: str
     dhw_state: NotRequired[DhwState]  # mutex with heat_setpoint
@@ -371,11 +447,65 @@ class EvoDailySchedulesT(TypedDict):
     daily_schedules: list[EvoDayOfWeekT]
 
 
-# for export/import to/from file
-class EvoScheduleT(EvoDailySchedulesT):
+class EvoScheduleT(EvoDailySchedulesT):  # for export/import to/from file
+    """Schedule for a zone or DHW, for export/import to/from file."""
+
     dhw_id: NotRequired[str]  # exactly one of these two IDs will be present
     zone_id: NotRequired[str]
     name: NotRequired[str]  # would normally be present, but be OK if not
+
+
+#######################################################################################
+# Schema for the entity's own attrs, as returned by its .config / .status properties...
+#
+# These are what the library exposes; the Evo*ResponseT types above are what a GET
+# returns. For the container entities (LOC, GWY, TCS) the two differ, as the GET
+# response also carries their children's config/status - so these derive from the
+# Evo*EntryT that both have in common. The leaf entities (ZON, DHW) have no children,
+# so their pair is equivalent and these derive from the Evo*ResponseT directly.
+
+
+class EvoLocConfigT(EvoLocationInfoT):
+    """Configuration of a location."""
+
+
+class EvoGwyConfigT(EvoGatewayInfoT):
+    """Configuration of a gateway."""
+
+
+class EvoTcsConfigT(_EvoTcsConfigResponseBaseT):
+    """Configuration of a temperature control system."""
+
+
+class EvoZonConfigT(EvoZonConfigResponseT):
+    """Configuration of a zone."""
+
+
+class EvoDhwConfigT(EvoDhwConfigResponseT):
+    """Configuration of a DHW."""
+
+
+#
+
+
+class EvoLocStatusT(_EvoLocStatusResponseBaseT):
+    """Status of a location."""
+
+
+class EvoGwyStatusT(_EvoGwyStatusResponseBaseT):
+    """Status of a gateway."""
+
+
+class EvoTcsStatusT(_EvoTcsStatusResponseBaseT):
+    """Status of a temperature control system."""
+
+
+class EvoZonStatusT(EvoZonStatusResponseT):
+    """Status of a zone."""
+
+
+class EvoDhwStatusT(EvoDhwStatusResponseT):
+    """Status of a DHW."""
 
 
 #######################################################################################

@@ -77,8 +77,6 @@ class EvoGwyInfoDictT(TypedDict):  # c.f. TccDeviceResponseT
     device_type: int
     mac_id: str
     location_id: int
-    serial_number: str
-    pcb_number: str
 
 
 # These keys are in the JSON, but not in the developer docs for the API
@@ -104,6 +102,8 @@ class EvoDevInfoDictT(EvoGwyInfoDictT):
     is_upgrading: bool
     is_alive: bool
     instance: int
+    # serial_number: NotRequired[str]  # unclear if NotRequired or not at all
+    # pcb_number: NotRequired[str]  # unclear if NotRequired or not at all
 
 
 class EvoThermostatInfoDictT(TypedDict):
@@ -135,8 +135,8 @@ class EvoThermostatInfoDictT(TypedDict):
     vacation_hold_cancelable: bool
     schedule_heat_sp: float
     schedule_cool_sp: float
-    serial_number: str
-    pcb_number: str
+    serial_number: NotRequired[str]  # unclear if NotRequired or not
+    pcb_number: NotRequired[str]  # unclear if NotRequired or not
 
 
 class EvoWeatherDictT(TypedDict):

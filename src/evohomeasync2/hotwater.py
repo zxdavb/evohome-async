@@ -28,7 +28,7 @@ from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.schedule import factory_dhw_schedule
 from .schemas.status import factory_dhw_status
-from .typedefs import EvoDayOfWeekDhwT, EvoDhwStatusResponseT
+from .typedefs import EvoDhwScheduleDayOfWeekT, EvoDhwStatusT
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
@@ -38,16 +38,16 @@ if TYPE_CHECKING:
 
     from . import ControlSystem
     from .typedefs import (
-        EvoDhwConfigEntryT,
         EvoDhwConfigResponseT,
-        EvoDhwScheduleCapabilitiesResponseT,
-        EvoDhwStateCapabilitiesResponseT,
-        EvoDhwStateStatusResponseT,
+        EvoDhwConfigT,
+        EvoDhwScheduleCapabilitiesT,
+        EvoDhwStateCapabilitiesT,
+        EvoDhwStateStatusT,
         EvoSetDhwStateT,
     )
 
 
-class HotWater(_ZoneBase[EvoDhwStatusResponseT, EvoDayOfWeekDhwT]):
+class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
     _TCC_TYPE = TccEntityType.DHW
@@ -61,7 +61,7 @@ class HotWater(_ZoneBase[EvoDhwStatusResponseT, EvoDayOfWeekDhwT]):
         self._config: Final = config
 
     @property  # not strictly static, but library largely assumes so
-    def config(self) -> EvoDhwConfigEntryT:
+    def config(self) -> EvoDhwConfigT:
         """Return the latest config of the entity."""
         return self._config
 
@@ -76,7 +76,7 @@ class HotWater(_ZoneBase[EvoDhwStatusResponseT, EvoDayOfWeekDhwT]):
         return "DomesticHotWater"
 
     @cached_property
-    def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesResponseT | None:
+    def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesT | None:
         """
         "scheduleCapabilitiesResponse": {
           "maxSwitchpointsPerDay": 6,
@@ -89,7 +89,7 @@ class HotWater(_ZoneBase[EvoDhwStatusResponseT, EvoDayOfWeekDhwT]):
         return self._config.get(SZ_SCHEDULE_CAPABILITIES_RESPONSE)
 
     @cached_property  # NOTE: is not dhw_state_capabilities
-    def state_capabilities(self) -> EvoDhwStateCapabilitiesResponseT:
+    def state_capabilities(self) -> EvoDhwStateCapabilitiesT:
         """
         "dhwStateCapabilitiesResponse": {
             "allowedStates": ["On", "Off"],
@@ -112,7 +112,7 @@ class HotWater(_ZoneBase[EvoDhwStatusResponseT, EvoDayOfWeekDhwT]):
     # Status (state) attrs & methods...
 
     @property
-    def state_status(self) -> EvoDhwStateStatusResponseT:
+    def state_status(self) -> EvoDhwStateStatusT:
         """
         "stateStatus": {"state": "Off", "mode": "PermanentOverride"}
         "stateStatus": {

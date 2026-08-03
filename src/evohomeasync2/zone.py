@@ -48,7 +48,7 @@ from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.schedule import factory_zon_schedule
 from .schemas.status import factory_zon_status
-from .typedefs import EvoDayOfWeekZoneT, EvoZonStatusResponseT
+from .typedefs import EvoZonScheduleDayOfWeekT, EvoZonStatusResponseT, EvoZonStatusT
 
 if TYPE_CHECKING:
     import logging
@@ -61,16 +61,16 @@ if TYPE_CHECKING:
     from . import ControlSystem, Location
     from .auth import Auth
     from .typedefs import (
-        EvoActiveFaultResponseT,
-        EvoDayOfWeekDhwT,
+        EvoActiveFaultT,
+        EvoDhwScheduleDayOfWeekT,
         EvoDhwStatusResponseT,
         EvoSetZoneHeatSetpointT,
-        EvoTemperatureStatusResponseT,
-        EvoZonConfigEntryT,
+        EvoTemperatureStatusT,
         EvoZonConfigResponseT,
-        EvoZonScheduleCapabilitiesResponseT,
-        EvoZonSetpointCapabilitiesResponseT,
-        EvoZonSetpointStatusResponseT,
+        EvoZonConfigT,
+        EvoZonScheduleCapabilitiesT,
+        EvoZonSetpointCapabilitiesT,
+        EvoZonSetpointStatusT,
     )
 
     _SwitchPoint = tuple[dt, float | str]
@@ -84,7 +84,6 @@ _ONE_DAY = td(days=1)
 
 class EntityBase[StatusT]:
     _TCC_TYPE: TccEntityType  # e.g. "temperatureControlSystem", "domesticHotWater"
-    _STATUS_EXCLUDES: tuple[str, ...] = ()  # child keys to exclude from own status
 
     _status: StatusT | None = None
 
@@ -136,30 +135,30 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
-        self._active_faults: list[EvoActiveFaultResponseT] = []
+        self._active_faults: list[EvoActiveFaultT] = []
         self._last_logged: dict[str, dt] = {}  # OK to use a tz=UTC datetimes
 
     # Status (state) attrs & methods...
 
     def _update_faults(
         self,
-        active_faults: list[EvoActiveFaultResponseT],
+        active_faults: list[EvoActiveFaultT],
     ) -> None:
         """Maintain self._active_faults list and self._last_logged dict."""
 
-        def hash_(fault: EvoActiveFaultResponseT) -> str:
+        def hash_(fault: EvoActiveFaultT) -> str:
             return f"{fault[SZ_SINCE]}_{fault[SZ_FAULT_TYPE]}"
 
-        def since(fault: EvoActiveFaultResponseT) -> str:
+        def since(fault: EvoActiveFaultT) -> str:
             return fault[SZ_SINCE].isoformat()  # an aware dt; log as ISO 8601
 
-        def log_as_active(fault: EvoActiveFaultResponseT) -> None:
+        def log_as_active(fault: EvoActiveFaultT) -> None:
             self._logger.warning(
                 f"{self}: Active fault: {since(fault)} {fault[SZ_FAULT_TYPE]}"
             )
             self._last_logged[hash_(fault)] = dt.now(tz=UTC)  # aware dtm not required
 
-        def log_as_resolved(fault: EvoActiveFaultResponseT) -> None:
+        def log_as_resolved(fault: EvoActiveFaultT) -> None:
             self._logger.info(
                 f"{self}: Fault cleared: {since(fault)} {fault[SZ_FAULT_TYPE]}"
             )
@@ -181,7 +180,7 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
                 log_as_active(fault)
 
     @property
-    def active_faults(self) -> tuple[EvoActiveFaultResponseT, ...]:
+    def active_faults(self) -> tuple[EvoActiveFaultT, ...]:
         """
         "activeFaults": [
             {
@@ -201,7 +200,7 @@ def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
     return DayOfWeek(day_of_week), dtm.strftime("%H:%M")  # TODO: localize, e.g. Montag?
 
 
-def _find_switchpoints[DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT)](
+def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT)](
     schedule: list[DayT],
     day_of_week: DayOfWeek,
     time_of_day: str,
@@ -252,9 +251,10 @@ def _find_switchpoints[DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT)](
     return this_sp, this_offset, next_sp, next_offset
 
 
-class _ScheduleBase[StatusT, DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT)](
-    ActiveFaultsBase[StatusT]
-):
+class _ScheduleBase[
+    StatusT,
+    DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT),
+](ActiveFaultsBase[StatusT]):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     SCH_SCHEDULE: vol.Schema
@@ -415,7 +415,7 @@ class _ScheduleBase[StatusT, DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT)](
 
 class _ZoneBase[
     StatusT: (EvoDhwStatusResponseT, EvoZonStatusResponseT),
-    DayT: (EvoDayOfWeekZoneT, EvoDayOfWeekDhwT),
+    DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT),
 ](_ScheduleBase[StatusT, DayT]):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
@@ -466,7 +466,7 @@ class _ZoneBase[
         self._status = status
 
     @property
-    def temperature_status(self) -> EvoTemperatureStatusResponseT:
+    def temperature_status(self) -> EvoTemperatureStatusT:
         """
         "temperatureStatus": {
             "temperature": 20.0,
@@ -485,7 +485,7 @@ class _ZoneBase[
         return status[SZ_TEMPERATURE]
 
 
-class Zone(_ZoneBase[EvoZonStatusResponseT, EvoDayOfWeekZoneT]):
+class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     """Instance of a TCS's heating Zone (temperatureZone)."""
 
     _TCC_TYPE = TccEntityType.ZON
@@ -513,7 +513,7 @@ class Zone(_ZoneBase[EvoZonStatusResponseT, EvoDayOfWeekZoneT]):
             self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
 
     @property  # not strictly static, but library largely assumes so
-    def config(self) -> EvoZonConfigEntryT:
+    def config(self) -> EvoZonConfigT:
         """Return the latest config of the entity."""
         return self._config
 
@@ -534,7 +534,7 @@ class Zone(_ZoneBase[EvoZonStatusResponseT, EvoDayOfWeekZoneT]):
         return self._config[SZ_ZONE_TYPE]
 
     @cached_property
-    def schedule_capabilities(self) -> EvoZonScheduleCapabilitiesResponseT | None:
+    def schedule_capabilities(self) -> EvoZonScheduleCapabilitiesT | None:
         """
         "scheduleCapabilities": {
             "maxSwitchpointsPerDay": 6,
@@ -548,7 +548,7 @@ class Zone(_ZoneBase[EvoZonStatusResponseT, EvoDayOfWeekZoneT]):
         return self._config.get(SZ_SCHEDULE_CAPABILITIES)
 
     @property
-    def setpoint_capabilities(self) -> EvoZonSetpointCapabilitiesResponseT:
+    def setpoint_capabilities(self) -> EvoZonSetpointCapabilitiesT:
         """
         "setpointCapabilities": {
             "maxHeatSetpoint": 35.0,
@@ -581,7 +581,7 @@ class Zone(_ZoneBase[EvoZonStatusResponseT, EvoDayOfWeekZoneT]):
     # Status (state) attrs & methods...
 
     @property
-    def setpoint_status(self) -> EvoZonSetpointStatusResponseT:
+    def setpoint_status(self) -> EvoZonSetpointStatusT:
         """
         "setpointStatus": {
             "targetHeatTemperature": 17.0,
