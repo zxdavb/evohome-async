@@ -486,10 +486,6 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
             SZ_MAC_ID: self._status[SZ_MAC_ID],
             SZ_LOCATION_ID: self._status[SZ_LOCATION_ID],
         }
-        if SZ_SERIAL_NUMBER in self._status:  # not sent by all gateways
-            result[SZ_SERIAL_NUMBER] = self._status[SZ_SERIAL_NUMBER]
-        if SZ_PCB_NUMBER in self._status:  # not sent by all gateways
-            result[SZ_PCB_NUMBER] = self._status[SZ_PCB_NUMBER]
         return result
 
     @cached_property
