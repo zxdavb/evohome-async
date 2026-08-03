@@ -398,6 +398,10 @@ class EvoDhwScheduleDayOfWeekT(TypedDict):
     switchpoints: list[EvoDhwScheduleSwitchpointT]
 
 
+class EvoDayOfWeekDhwT(EvoDhwScheduleDayOfWeekT):
+    """A shim for compatibility with HA, that is to be deprecated."""
+
+
 class EvoDhwScheduleSwitchpointT(TypedDict):
     dhw_state: DhwState
     time_of_day: str
