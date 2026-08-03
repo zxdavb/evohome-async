@@ -232,6 +232,8 @@ jobs:
           python -c "import evohomeasync2; assert 'evohome-async' in evohomeasync2.__file__, 'Not using local evohome-async!'"
 
       - name: Run Home Assistant evohome tests (only)
+        id: hass-tests
+        continue-on-error: true  # a breaking change fails here until HA is updated: warn, don't block
         working-directory: home-assistant-core
         env:
           PYTHONDONTWRITEBYTECODE: 1  # cspell:ignore PYTHONDONTWRITEBYTECODE
@@ -252,13 +254,20 @@ jobs:
             --cov-report term-missing \
             tests/components/evohome/
 
+      - name: Warn if the HA tests failed
+        if: steps.hass-tests.outcome == 'failure'
+        run: |
+          echo "::warning title=HA evohome tests failed::The evohome integration in \
+          ${{ env.HA_REPO }}@${{ env.HA_VERSION }} does not pass against this commit. \
+          If this is a deliberate breaking change, a companion PR to home-assistant/core \
+          is needed; otherwise, this is a regression. See the job log for the failures."
+
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
   hass-ok:  # stable sentinel job for branch protection rules (avoids listing matrix variants)
     needs: test-with-hass
     runs-on: ubuntu-latest
     if: always()
-    continue-on-error: true  # informational for now — failures do not block merges
     steps:
       - name: All HA checks passed
         run: |
