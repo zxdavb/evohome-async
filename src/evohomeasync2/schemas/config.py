@@ -11,7 +11,7 @@ The vendor's convention for well-known strings:
 
 from __future__ import annotations
 
-from typing import Final, Literal, NotRequired, TypedDict
+from typing import Final, NotRequired, TypedDict
 
 import voluptuous as vol
 
@@ -127,10 +127,8 @@ class TccLocConfigEntryT(TypedDict):
     name: str
     streetAddress: str
     city: str
-    state: str
     country: str
     postcode: str
-    type: str
     locationType: TccLocationType
     useDaylightSaveSwitching: bool
     timeZone: TccTimeZoneInfoT
@@ -174,7 +172,7 @@ class TccTcsConfigEntryT(TypedDict):
 
 class TccAllowedSystemModeResponseT(TypedDict):
     systemMode: TccSystemMode
-    canBePermanent: Literal[True]
+    canBePermanent: bool  # only ever seen: Literal[True]
     canBeTemporary: bool
     maxDuration: NotRequired[str]  # #        "1.00:00:00", "99.00:00:00"
     timingResolution: NotRequired[str]  # #     "01:00:00",  "1.00:00:00"
@@ -220,12 +218,17 @@ class TccZonSetpointCapabilitiesResponseT(TypedDict):
     maxCoolSetpoint: NotRequired[float]
     minCoolSetpoint: NotRequired[float]
     setpointDeadband: NotRequired[float]
-    vacationHoldCapabilities: NotRequired[VacationHoldCapabilitiesResponseT]
+    vacationHoldCapabilities: NotRequired[TccVacationHoldCapabilitiesResponseT]
 
 
-class VacationHoldCapabilitiesResponseT(TypedDict):
+class TccVacationHoldCapabilitiesResponseT(TypedDict):
     isChangeable: bool
     isCancelable: bool
+    # the three below are either all present, or all absent (only ever seen present
+    # on a system that also has isChangeable: True, but that is a sample of one)
+    maxDuration: NotRequired[str]  # #      "365.23:45:00"
+    minDuration: NotRequired[str]  # #        "1.00:00:00"
+    timingResolution: NotRequired[str]  # #     "00:15:00"
 
 
 class TccZonConfigEntryT(TccZonConfigResponseT):
@@ -300,7 +303,7 @@ def factory_system_mode(case: Case = Case.VENDOR) -> vol.All:
         vol.Schema(
             {
                 vol.Required(system_mode): factory_enum(case, TccSystemMode),
-                vol.Required(can_be_permanent): bool,
+                vol.Required(can_be_permanent): bool,  # only ever seen: vol.In[True]
                 vol.Required(can_be_temporary): bool,
                 vol.Optional(max_duration): str,  # "99.00:00:00"
                 # a Period mode is whole-day ("1.00:00:00"); a Duration mode is "01:00:00"
@@ -363,7 +366,7 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
 
-    SCH_FAN_MODE: Final = vol.Schema(  # noqa: F841
+    SCH_FAN_MODE: Final = vol.Schema(
         {
             vol.Required(fnc(S2_FAN_MODE)): factory_enum(case, TccFanMode),
         },
@@ -401,7 +404,6 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
             vol.Required(fnc(S2_MAX_DURATION)): str,  # "1.00:00:00"
             vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),  # "00:10:00"
             vol.Optional(fnc(S2_VACATION_HOLD_CAPABILITIES)): SCH_VACATION_HOLD_CAPABILITIES,  # non-evohome
-            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): factory_enum(case, TccFanMode),  # non-evohome
             vol.Optional(fnc(S2_SETPOINT_DEADBAND)): float,  # non-evohome
         },
         extra=vol.PREVENT_EXTRA,
@@ -423,7 +425,7 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
             vol.Required(fnc(S2_SETPOINT_CAPABILITIES)): SCH_SETPOINT_CAPABILITIES,
             vol.Optional(fnc(S2_SCHEDULE_CAPABILITIES)): SCH_SCHEDULE_CAPABILITIES,
             vol.Required(fnc(S2_ZONE_TYPE)): factory_enum(case, TccZoneType),
-            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): list,  # FocusProWifiRetail
+            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): [SCH_FAN_MODE],  # FocusProWifiRetail
         },
         extra=vol.PREVENT_EXTRA,
     )

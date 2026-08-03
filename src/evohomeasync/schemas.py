@@ -1,4 +1,17 @@
-"""evohomeasync provides an async client for the v0 Resideo TCC API."""
+"""Schema for the vendor's TCC v0 API.
+
+These TypedDict & StrEnums serve as documentation of the vendor's API, even if they are
+unused by this library. There are corresponding factory functions for the voluptuous
+schemas, which can be used to validate/coerce the vendor's responses.
+
+The vendor's convention for well-known strings:
+- camelCase for JSON keys, URL params (e.g. "sessionId", "thermostatModelType")
+- PascalCase for JSON values that are enum strings (e.g. "AutoWithEco", "DayOff")
+- SCREAMING_SNAKE_CASE for a few type values (e.g. "EMEA_ZONE", "DOMESTIC_HOT_WATER")
+
+The convention is not applied consistently: the user id is "userID" as a JSON key, but
+"userId" as a URL param (see SZ_USER_ID).
+"""
 
 from __future__ import annotations
 

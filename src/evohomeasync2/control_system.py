@@ -411,9 +411,9 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusResponseT]):
         if hotwater := self.hotwater:
             schedules.append(
                 {
-                    SZ_ZONE_ID: hotwater.id,
+                    SZ_DHW_ID: hotwater.id,
                     SZ_NAME: hotwater.name,
-                    SZ_DAILY_SCHEDULES: await get_schedule(hotwater),  # type: ignore[typeddict-item]
+                    SZ_DAILY_SCHEDULES: await get_schedule(hotwater),
                 }
             )
 

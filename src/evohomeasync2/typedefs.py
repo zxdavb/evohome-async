@@ -63,10 +63,8 @@ class EvoLocConfigEntryT(TypedDict):
     name: str
     street_address: str
     city: str
-    state: str
     country: str
     postcode: str
-    type: str
     location_type: LocationType
     use_daylight_save_switching: bool
     time_zone: EvoTimeZoneInfoT
@@ -110,7 +108,7 @@ class EvoTcsConfigEntryT(TypedDict):
 
 class EvoAllowedSystemModesResponseT(TypedDict):
     system_mode: SystemMode
-    can_be_permanent: Literal[True]
+    can_be_permanent: Literal[True]  # only ever seen: True
     can_be_temporary: bool
     max_duration: NotRequired[str]  # when can_be_temporary is True
     timing_resolution: NotRequired[str]  # when can_be_temporary is True
@@ -134,7 +132,11 @@ class EvoZonConfigResponseT(TypedDict):
     setpoint_capabilities: EvoZonSetpointCapabilitiesResponseT
     schedule_capabilities: NotRequired[EvoZonScheduleCapabilitiesResponseT]
     zone_type: ZoneType
-    allowed_fan_modes: list[FanMode]
+    allowed_fan_modes: NotRequired[list[EvoAllowedFanModeResponseT]]  # FocusProWifi
+
+
+class EvoAllowedFanModeResponseT(TypedDict):
+    fan_mode: FanMode
 
 
 class EvoZonScheduleCapabilitiesResponseT(TypedDict):
@@ -153,6 +155,20 @@ class EvoZonSetpointCapabilitiesResponseT(TypedDict):
     value_resolution: float
     max_duration: str
     timing_resolution: str
+    # following seen on FocusProWifi, not Evohome...
+    max_cool_setpoint: NotRequired[float]
+    min_cool_setpoint: NotRequired[float]
+    setpoint_deadband: NotRequired[float]
+    vacation_hold_capabilities: NotRequired[EvoVacationHoldCapabilitiesResponseT]
+
+
+class EvoVacationHoldCapabilitiesResponseT(TypedDict):
+    is_changeable: bool
+    is_cancelable: bool
+    # the three below are either all present, or all absent
+    max_duration: NotRequired[str]
+    min_duration: NotRequired[str]
+    timing_resolution: NotRequired[str]
 
 
 class EvoZonConfigEntryT(EvoZonConfigResponseT):
@@ -231,6 +247,12 @@ class EvoZonStatusResponseT(TypedDict):
     setpoint_status: EvoZonSetpointStatusResponseT
     temperature_status: EvoTemperatureStatusResponseT
     name: str
+    fan_status: NotRequired[EvoFanStatusResponseT]  # FocusProWifi
+
+
+class EvoFanStatusResponseT(TypedDict):
+    fan_mode: FanMode
+    can_be_changed: bool
 
 
 class EvoZonSetpointStatusResponseT(TypedDict):
