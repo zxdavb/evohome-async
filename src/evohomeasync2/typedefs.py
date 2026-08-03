@@ -1,10 +1,43 @@
 """evohomeasync schema - shared types (WIP).
 
 TypeDicts may not be complete (the API is undocumented), but all keys referenced
-by this library are present
+by this library are present.
 
 API endpoints marked 'extrapolated' are inferred by symmetry - they are not
-exercised by the test suite and may not exist
+exercised by the test suite and may not exist.
+
+Naming convention
+-----------------
+All type names are prefixed with `Evo` to be distinct from teh `Tcc` equivalents and
+to avoid collisions with other libraries. Entities (`{Ent}`) are abbreviated, and
+always come next: Loc, Gwy, Tcs, Zon, Dhw. All end in `T` to indicate they are a
+TypedDict, not a StrEnum like `SystemMode`.
+
+- `Evo...ResponseT`: the payload of an HTTP GET response, and only ever that; each is
+  annotated with the endpoint that returns it
+
+- `_Evo...BaseT`: private; the keys an `Evo...ResponseT` shares with its `Evo{Ent}...T`,
+  for the entities whose response also carries their children's config/status
+
+- `EvoSet...T`: the body of a HTTP PUT request
+
+- `Evo...T`: anything else is named for the JSON key whose value it types...
+  List elements are singular: `active_faults: list[EvoActiveFaultT]`.
+
+- `Evo{Ent}...T`: also named for the value of a JSON key, but applies to an entity
+  class, e.g. `setpoint_capabilities: EvoZonSetpointCapabilitiesT`.
+
+Note: some vendor's key may itself end in '_response'; that does not make the type
+a HTTP response, e.g. `dhw_state_capabilities_response: EvoDhwStateCapabilitiesT`
+
+
+These are not part of the vendor's schema, but useful to the library:
+
+- Evo{Ent}ConfigT / Evo{Ent}StatusT: what an entity's .config / .status return,
+  i.e. its own config/status, without its children's (grouped at end of module)
+
+- EvoSchedule{Dhw,Zone}T: not a vendor schema at all, but this library's own
+  format for exporting/importing schedules to/from file
 """
 
 from __future__ import annotations
@@ -206,10 +239,9 @@ class EvoDhwConfigResponseT(TypedDict):
     """Response to `GET /domesticHotWater/{dhw_id}/...`."""
 
     dhw_id: str
-    # FocusProWifiRetail may not include DhwScheduleCapabilitiesResponse in their config
-    # but it is always present for Evohome
+    # Evohome always includes schedule_capabilities_response,
     schedule_capabilities_response: NotRequired[EvoDhwScheduleCapabilitiesT]
-    dhw_state_capabilities_response: EvoDhwStateCapabilitiesT
+    dhw_state_capabilities_response: EvoDhwStateCapabilitiesT  # not EvoDhw*ResponseT
 
 
 class EvoDhwScheduleCapabilitiesT(_EvoScheduleCapabilitiesT):
