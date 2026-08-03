@@ -3226,8 +3226,6 @@
       gateway_id: 7242198
       location_id: 7680795
       mac_id: '************'
-      pcb_number: '00000000000000'
-      serial_number: '000000000000'
   
     ''',
     'id': '''
@@ -3243,8 +3241,6 @@
       gateway_id: 7242198
       location_id: 7680795
       mac_id: '************'
-      pcb_number: '00000000000000'
-      serial_number: '000000000000'
   
     ''',
   })
