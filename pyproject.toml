@@ -40,7 +40,7 @@ cli = [
 dev = [
   # linting
   "prek>=0.4.11",
-  "ruff>=0.16",
+  "ruff>=0.16.1",
   # typing
   "mypy>=2.3.0",
   "types-aiofiles>=25.1.0.20260518",
