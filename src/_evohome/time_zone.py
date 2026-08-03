@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Final
 from .windows_zones import WINDOWS_TO_IANA_LOOKUP
 
 if TYPE_CHECKING:
-    from evohomeasync2.typedefs import EvoTimeZoneInfoT
+    from evohomeasync2.typedefs import EvoTimeZoneT
 
 SZ_CURRENT_OFFSET_MINUTES: Final = "current_offset_minutes"
 SZ_OFFSET_MINUTES: Final = "offset_minutes"
@@ -21,7 +21,7 @@ def iana_tz_from_windows_tz(time_zone: str) -> str:
 
 
 # it is ostensibly optional to provide this data to the EvoZoneInfo class
-_DEFAULT_TIME_ZONE_INFO: EvoTimeZoneInfoT = {
+_DEFAULT_TIME_ZONE_INFO: EvoTimeZoneT = {
     SZ_TIME_ZONE_ID: "GMTStandardTime",
     "display_name": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
     SZ_OFFSET_MINUTES: 0,
@@ -39,7 +39,7 @@ class EvoZoneInfo(tzinfo):
     - the `tzname` name is based upon the Windows scheme
     """
 
-    _time_zone_info: EvoTimeZoneInfoT
+    _time_zone_info: EvoTimeZoneT
     _use_dst_switching: bool
 
     _utcoffset: td
@@ -54,7 +54,7 @@ class EvoZoneInfo(tzinfo):
     def __init__(  #
         self,
         *,
-        time_zone_info: EvoTimeZoneInfoT | None = _DEFAULT_TIME_ZONE_INFO,
+        time_zone_info: EvoTimeZoneT | None = _DEFAULT_TIME_ZONE_INFO,
         use_dst_switching: bool | None = False,
     ) -> None:
         """Initialise the class."""
@@ -82,7 +82,7 @@ class EvoZoneInfo(tzinfo):
     def _update(
         self,
         *,
-        time_zone_info: EvoTimeZoneInfoT | None = None,
+        time_zone_info: EvoTimeZoneT | None = None,
         use_dst_switching: bool | None = None,
     ) -> None:
         """Update the TZ information and DST configuration.

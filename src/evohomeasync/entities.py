@@ -60,8 +60,8 @@ if TYPE_CHECKING:
     import logging
     from datetime import datetime as dt
 
-    # the .temperature_status method intentionally emulate the v2 API...
-    from evohomeasync2.typedefs import EvoTemperatureStatusResponseT
+    # NOTE: the .temperature_status method intentionally emulate the v2 API...
+    from evohomeasync2.typedefs import EvoTemperatureStatusT
 
     from . import EvohomeClient
     from .auth import Auth
@@ -161,7 +161,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
     # Status (state) attrs & methods...
 
     @property  # emulate the v2 API...
-    def temperature_status(self) -> EvoTemperatureStatusResponseT:
+    def temperature_status(self) -> EvoTemperatureStatusT:
         """Expose the temperature_status as per the v2 API."""
 
         if self._status is None:
@@ -270,7 +270,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
     # Status (state) attrs & methods...
 
     @property  # emulate the v2 API...
-    def temperature_status(self) -> EvoTemperatureStatusResponseT:
+    def temperature_status(self) -> EvoTemperatureStatusT:
         """Expose the temperature_status as per the v2 API."""
 
         if self._status is None:

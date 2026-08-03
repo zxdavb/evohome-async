@@ -17,7 +17,7 @@ from .control_system import ControlSystem
 from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.status import factory_gwy_status
-from .typedefs import EvoGwyStatusResponseT
+from .typedefs import EvoGwyStatusT
 from .zone import ActiveFaultsBase
 
 if TYPE_CHECKING:
@@ -27,13 +27,12 @@ if TYPE_CHECKING:
 
     from . import Location
     from .auth import Auth
-    from .typedefs import EvoGwyConfigEntryT, EvoGwyConfigResponseT
+    from .typedefs import EvoGwyConfigResponseT, EvoGwyConfigT, EvoGwyStatusResponseT
 
 
-class Gateway(ActiveFaultsBase[EvoGwyStatusResponseT]):
+class Gateway(ActiveFaultsBase[EvoGwyStatusT]):
     """Instance of a location's gateway."""
 
-    _STATUS_EXCLUDES = (SZ_TEMPERATURE_CONTROL_SYSTEMS,)
     _TCC_TYPE = TccEntityType.GWY
 
     SCH_STATUS: vol.Schema = factory_gwy_status(Case.PYTHONIC)
@@ -64,7 +63,7 @@ class Gateway(ActiveFaultsBase[EvoGwyStatusResponseT]):
         return self.location.client.logger
 
     @property  # not strictly static, but library largely assumes so
-    def config(self) -> EvoGwyConfigEntryT:
+    def config(self) -> EvoGwyConfigT:
         """Return the latest config of the entity."""
         return self._config
 
@@ -92,6 +91,8 @@ class Gateway(ActiveFaultsBase[EvoGwyStatusResponseT]):
                     ", (has the gateway configuration been changed?)"
                 )
 
+        # the entity's own status, without its children's...
         self._status = {
-            k: v for k, v in status.items() if k not in self._STATUS_EXCLUDES
-        }  # type: ignore[assignment]
+            SZ_GATEWAY_ID: status[SZ_GATEWAY_ID],
+            SZ_ACTIVE_FAULTS: status[SZ_ACTIVE_FAULTS],
+        }

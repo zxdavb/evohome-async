@@ -31,7 +31,7 @@ from .schemas.config import factory_location_installation_info
 from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.status import factory_loc_status
-from .typedefs import EvoLocStatusResponseT
+from .typedefs import EvoLocStatusT
 from .zone import EntityBase
 
 if TYPE_CHECKING:
@@ -39,14 +39,19 @@ if TYPE_CHECKING:
 
     from . import EvohomeClient
     from .auth import Auth
-    from .typedefs import EvoLocConfigEntryT, EvoLocConfigResponseT, EvoTimeZoneInfoT
+    from .typedefs import (
+        EvoLocConfigResponseT,
+        EvoLocConfigT,
+        EvoLocStatusResponseT,
+        EvoTimeZoneT,
+    )
 
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 
 
 async def _create_tzinfo(
-    time_zone_info: EvoTimeZoneInfoT, /, *, use_dst_switching: bool | None = False
+    time_zone_info: EvoTimeZoneT, /, *, use_dst_switching: bool | None = False
 ) -> tzinfo:  # EvoZoneInfo | ZoneInfo:
     """Return a ZoneInfo object based on the time zone information.
 
@@ -97,10 +102,9 @@ async def create_location(
     return loc
 
 
-class Location(EntityBase[EvoLocStatusResponseT]):
+class Location(EntityBase[EvoLocStatusT]):
     """Instance of an account's location."""
 
-    _STATUS_EXCLUDES = (SZ_GATEWAYS,)
     _TCC_TYPE = TccEntityType.LOC
 
     SCH_CONFIG: vol.Schema = factory_location_installation_info(Case.PYTHONIC)
@@ -123,7 +127,7 @@ class Location(EntityBase[EvoLocStatusResponseT]):
         self.gateways: list[Gateway] = []
         self.gateway_by_id: dict[str, Gateway] = {}
 
-        self._config: EvoLocConfigEntryT = config[SZ_LOCATION_INFO]  # ?exclude TZ/DST
+        self._config: EvoLocConfigT = config[SZ_LOCATION_INFO]  # ?exclude TZ/DST
 
         self._tzinfo = tzinfo or EvoZoneInfo(
             time_zone_info=config[SZ_LOCATION_INFO][SZ_TIME_ZONE],
@@ -149,7 +153,7 @@ class Location(EntityBase[EvoLocStatusResponseT]):
         return self.client.logger
 
     @property  # not strictly static, but library largely assumes so
-    def config(self) -> EvoLocConfigEntryT:
+    def config(self) -> EvoLocConfigT:
         """Return the latest config of the entity."""
         return self._config
 
@@ -269,6 +273,7 @@ class Location(EntityBase[EvoLocStatusResponseT]):
                     ", (has the location configuration changed?)"
                 )
 
+        # the entity's own status, without its children's...
         self._status = {
-            k: v for k, v in status.items() if k not in self._STATUS_EXCLUDES
-        }  # type: ignore[assignment]
+            SZ_LOCATION_ID: status[SZ_LOCATION_ID],
+        }
