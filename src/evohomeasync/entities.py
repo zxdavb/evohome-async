@@ -21,6 +21,7 @@ from .const import (
     SZ_COUNTRY,
     SZ_DAYLIGHT_SAVING_TIME_ENABLED,
     SZ_DEVICE_ID,
+    SZ_DEVICE_TYPE,
     SZ_DEVICES,
     SZ_GATEWAY_ID,
     SZ_INDOOR_TEMPERATURE,
@@ -33,6 +34,8 @@ from .const import (
     SZ_MIN_HEAT_SETPOINT,
     SZ_ONE_TOUCH_ACTIONS_SUSPENDED,
     SZ_ONE_TOUCH_BUTTONS,
+    SZ_PCB_NUMBER,
+    SZ_SERIAL_NUMBER,
     SZ_TEMPERATURE,
     SZ_THERMOSTAT_MODEL_TYPE,
     SZ_TIME_ZONE,
@@ -54,7 +57,6 @@ from .schemas import (
     SZ_VALUE,
     TccSystemMode,
 )
-from .typedefs import EvoGwyInfoDictT
 
 if TYPE_CHECKING:
     import logging
@@ -67,6 +69,7 @@ if TYPE_CHECKING:
     from .auth import Auth
     from .typedefs import (
         EvoDevInfoDictT,
+        EvoGwyInfoDictT,
         EvoLocInfoDictT,
         EvoTcsInfoDictT,
         EvoTimeZoneInfoDictT,
@@ -462,20 +465,32 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoGwyInfoDictT:
         """Return the config of the entity."""
-        return {
-            k: v
-            for k, v in self._config.items()
-            if k in list(EvoGwyInfoDictT.__annotations__.keys())
-        }  # type: ignore[return-value]
+        result: EvoGwyInfoDictT = {
+            SZ_GATEWAY_ID: self._config[SZ_GATEWAY_ID],
+            SZ_DEVICE_TYPE: self._config[SZ_DEVICE_TYPE],
+            SZ_MAC_ID: self._config[SZ_MAC_ID],
+            SZ_LOCATION_ID: self._config[SZ_LOCATION_ID],
+        }
+        if SZ_SERIAL_NUMBER in self._config:  # not sent by all gateways
+            result[SZ_SERIAL_NUMBER] = self._config[SZ_SERIAL_NUMBER]
+        if SZ_PCB_NUMBER in self._config:  # not sent by all gateways
+            result[SZ_PCB_NUMBER] = self._config[SZ_PCB_NUMBER]
+        return result
 
     @property
     def status(self) -> EvoGwyInfoDictT:
         """Return the latest status of the entity."""
-        return {
-            k: v
-            for k, v in self._status.items()
-            if k in list(EvoGwyInfoDictT.__annotations__.keys())
-        }  # type: ignore[return-value]
+        result: EvoGwyInfoDictT = {
+            SZ_GATEWAY_ID: self._status[SZ_GATEWAY_ID],
+            SZ_DEVICE_TYPE: self._status[SZ_DEVICE_TYPE],
+            SZ_MAC_ID: self._status[SZ_MAC_ID],
+            SZ_LOCATION_ID: self._status[SZ_LOCATION_ID],
+        }
+        if SZ_SERIAL_NUMBER in self._status:  # not sent by all gateways
+            result[SZ_SERIAL_NUMBER] = self._status[SZ_SERIAL_NUMBER]
+        if SZ_PCB_NUMBER in self._status:  # not sent by all gateways
+            result[SZ_PCB_NUMBER] = self._status[SZ_PCB_NUMBER]
+        return result
 
     @cached_property
     def mac_address(self) -> str:

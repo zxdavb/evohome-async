@@ -77,8 +77,9 @@ class EvoGwyInfoDictT(TypedDict):  # c.f. TccDeviceResponseT
     device_type: int
     mac_id: str
     location_id: int
-    serial_number: str
-    pcb_number: str
+    # the vendor omits the two below for all but one of the test fixtures' devices
+    serial_number: NotRequired[str]
+    pcb_number: NotRequired[str]
 
 
 # These keys are in the JSON, but not in the developer docs for the API
