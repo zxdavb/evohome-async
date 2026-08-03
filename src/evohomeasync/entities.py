@@ -21,7 +21,6 @@ from .const import (
     SZ_COUNTRY,
     SZ_DAYLIGHT_SAVING_TIME_ENABLED,
     SZ_DEVICE_ID,
-    SZ_DEVICE_TYPE,
     SZ_DEVICES,
     SZ_GATEWAY_ID,
     SZ_INDOOR_TEMPERATURE,
@@ -55,6 +54,7 @@ from .schemas import (
     SZ_VALUE,
     TccSystemMode,
 )
+from .typedefs import EvoGwyInfoDictT
 
 if TYPE_CHECKING:
     import logging
@@ -67,7 +67,6 @@ if TYPE_CHECKING:
     from .auth import Auth
     from .typedefs import (
         EvoDevInfoDictT,
-        EvoGwyInfoDictT,
         EvoLocInfoDictT,
         EvoTcsInfoDictT,
         EvoTimeZoneInfoDictT,
@@ -463,24 +462,20 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoGwyInfoDictT:
         """Return the config of the entity."""
-        result: EvoGwyInfoDictT = {
-            SZ_GATEWAY_ID: self._config[SZ_GATEWAY_ID],
-            SZ_DEVICE_TYPE: self._config[SZ_DEVICE_TYPE],
-            SZ_MAC_ID: self._config[SZ_MAC_ID],
-            SZ_LOCATION_ID: self._config[SZ_LOCATION_ID],
-        }
-        return result
+        return {
+            k: v
+            for k, v in self._config.items()
+            if k in list(EvoGwyInfoDictT.__annotations__.keys())
+        }  # type: ignore[return-value]
 
     @property
     def status(self) -> EvoGwyInfoDictT:
         """Return the latest status of the entity."""
-        result: EvoGwyInfoDictT = {
-            SZ_GATEWAY_ID: self._status[SZ_GATEWAY_ID],
-            SZ_DEVICE_TYPE: self._status[SZ_DEVICE_TYPE],
-            SZ_MAC_ID: self._status[SZ_MAC_ID],
-            SZ_LOCATION_ID: self._status[SZ_LOCATION_ID],
-        }
-        return result
+        return {
+            k: v
+            for k, v in self._status.items()
+            if k in list(EvoGwyInfoDictT.__annotations__.keys())
+        }  # type: ignore[return-value]
 
     @cached_property
     def mac_address(self) -> str:
