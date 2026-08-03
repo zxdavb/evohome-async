@@ -8,7 +8,7 @@ exercised by the test suite and may not exist.
 
 Naming convention
 -----------------
-All type names are prefixed with `Evo` to be distinct from teh `Tcc` equivalents and
+All type names are prefixed with `Evo` to be distinct from the `Tcc` equivalents and
 to avoid collisions with other libraries. Entities (`{Ent}`) are abbreviated, and
 always come next: Loc, Gwy, Tcs, Zon, Dhw. All end in `T` to indicate they are a
 TypedDict, not a StrEnum like `SystemMode`.
