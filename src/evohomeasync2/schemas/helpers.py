@@ -73,13 +73,13 @@ def factory_enum_or_str(
 
     validator = factory_enum(case, tcc_cls)
 
-    def coerce_enum_or_pass_thru(value: object) -> StrEnum | str:
+        if not isinstance(value, str):
+            raise vol.Invalid(f"expected a string, got {value!r}")
         try:
             member: StrEnum | str = validator(value)
         except (ValueError, vol.Invalid):
             # Keep vendor-case strings untouched, but normalize pythonic values.
-            return str(value) if case is Case.VENDOR else camel_to_snake(str(value))
-        return member
+            return value if case is Case.VENDOR else camel_to_snake(value)
 
     return coerce_enum_or_pass_thru
 
