@@ -49,7 +49,7 @@ def test_factory_active_faults(
     payload: dict[str, str],
     expected: dict[str, str],
 ) -> None:
-    """Test a faultType is validated (vendor), or coerced to an enum (pythonic).
+    """Test a faultType is validated/coerced while tolerating unknown values.
 
     A fault type absent from the vendor's incomplete list must not raise, but be
     passed through as a plain str, in the casing convention of its case.
