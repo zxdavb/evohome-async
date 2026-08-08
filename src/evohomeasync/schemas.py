@@ -74,6 +74,8 @@ SZ_USER_INFO: Final = "userInfo"
 SZ_USER_LANGUAGE: Final = "userLanguage"
 SZ_USERNAME: Final = "username"
 
+SZ_WEATHER: Final = "weather"
+
 SZ_ZIPCODE: Final = "zipcode"
 
 
@@ -185,7 +187,7 @@ def _factory_location_response(
             vol.Required(fnc("hasStation")): bool,
             vol.Required(fnc(SZ_DEVICES)): [dict],  # TODO: [DeviceResponse]
             vol.Required(fnc("oneTouchButtons")): list,
-            vol.Required(fnc("weather")): {str: object},  # WeatherResponse
+            vol.Optional(fnc(SZ_WEATHER)): {str: object},  # WeatherResponse
             vol.Required(fnc("daylightSavingTimeEnabled")): bool,
             vol.Required(fnc("timeZone")): {str: object},  # TimeZoneResponse
             vol.Required(fnc("oneTouchActionsSuspended")): bool,
@@ -325,7 +327,7 @@ class TccLocationResponseT(TypedDict):
     type: str  # LocationType: "Commercial" | "Residential"
     hasStation: bool
     devices: list[TccDeviceResponseT]
-    weather: TccWeatherResponseT  # WeatherResponse
+    weather: NotRequired[TccWeatherResponseT]  # WeatherResponse, if hasStation is True
     daylightSavingTimeEnabled: bool
     timeZone: TccTimeZoneResponseT
     oneTouchActionsSuspended: bool
