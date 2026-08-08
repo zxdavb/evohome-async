@@ -40,6 +40,7 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
     DayOfWeek,
+    FaultType,
     ZoneMode,
     ZoneModelType,
     ZoneType,
@@ -153,10 +154,15 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
             return fault[SZ_SINCE].isoformat()  # an aware dt; log as ISO 8601
 
         def log_as_active(fault: EvoActiveFaultT) -> None:
-            self._logger.warning(
-                f"{self}: Active fault: {since(fault)} {fault[SZ_FAULT_TYPE]}"
+            # the schema passes through fault types that are absent from FaultType,
+            # as the vendor's list is incomplete: flag them, so they can be added
+            unknown = (
+                "" if isinstance(fault[SZ_FAULT_TYPE], FaultType) else " (unknown)"
             )
-            self._last_logged[hash_(fault)] = dt.now(tz=UTC)  # aware dtm not required
+            self._logger.warning(
+                f"{self}: Active fault: {since(fault)} {fault[SZ_FAULT_TYPE]}{unknown}"
+            )
+            self._last_logged[hash_(fault)] = dt.now(tz=UTC)  # correct TZ not required
 
         def log_as_resolved(fault: EvoActiveFaultT) -> None:
             self._logger.info(
