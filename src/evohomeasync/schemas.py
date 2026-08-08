@@ -189,7 +189,7 @@ def _factory_location_response(
             vol.Required(fnc("oneTouchButtons")): list,
             vol.Optional(fnc(SZ_WEATHER)): {str: object},  # WeatherResponse
             vol.Required(fnc("daylightSavingTimeEnabled")): bool,
-            vol.Required(fnc("timeZone")): {str: dict},  # TimeZoneResponse
+            vol.Required(fnc("timeZone")): {str: object},  # TimeZoneResponse
             vol.Required(fnc("oneTouchActionsSuspended")): bool,
             vol.Required(fnc("isLocationOwner")): bool,
             vol.Required(fnc("locationOwnerID")): int,  # ID, not Id
