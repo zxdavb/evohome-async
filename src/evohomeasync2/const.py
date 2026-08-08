@@ -200,6 +200,7 @@ class FaultType(StrEnum):  # NOTE: This list is incomplete
     DHW_S_LB = camel_to_snake(TccFaultType.DHW_S_LB)  # extrapolated
     GWY_X_CL = camel_to_snake(TccFaultType.GWY_X_CL)
     SYS_B_CL = camel_to_snake(TccFaultType.SYS_B_CL)
+    SYS_B_SR = camel_to_snake(TccFaultType.SYS_B_SR)
     SYS_C_CL = camel_to_snake(TccFaultType.SYS_C_CL)
     # S_X_LB = camel_to_snake(TccFaultType.SYS_X_LB)  # extrapolated
     ZON_A_CL = camel_to_snake(TccFaultType.ZON_A_CL)
