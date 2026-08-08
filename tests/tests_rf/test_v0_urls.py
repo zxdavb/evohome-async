@@ -188,10 +188,10 @@ async def test_zon_urls(
 
     #
     # PUT /devices/{zon_id}/thermostat/changeableValues/heatSetpoint
-    zon_id = next(
+    zon_id = next(  # check is a str to handle edge-case of Honeywell TH9320WF3003
         d["deviceID"]
         for d in usr_locs[loc_idx]["devices"]
-        if d["thermostatModelType"].startswith("EMEA_")
+        if isinstance(t := d["thermostatModelType"], str) and t.startswith("EMEA_")
     )
 
     with pytest.raises(exc.ApiCallFailedError) as err:
