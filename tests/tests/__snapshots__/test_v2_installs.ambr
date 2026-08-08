@@ -68734,7 +68734,9 @@
 # name: test_system_snapshot[hass_178493][loc_6557787_gwy]
   dict({
     'active_faults': '''
-      !!python/tuple []
+      !!python/tuple
+      - fault_type: no_such_fault_type
+        since: '2026-06-28T00:02:30+02:00'
   
     ''',
     'config': '''
@@ -68753,7 +68755,9 @@
   
     ''',
     'status': '''
-      active_faults: []
+      active_faults:
+      - fault_type: no_such_fault_type
+        since: '2026-06-28T00:02:30+02:00'
       gateway_id: '6208789'
   
     ''',
