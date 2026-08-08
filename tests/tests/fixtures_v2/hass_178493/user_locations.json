@@ -2,33 +2,33 @@
     {
         "locationInfo": {
             "locationId": "6557787",
-            "name": "Ju******************",
-            "streetAddress": "****** *** ********* **",
-            "city": "***********",
+            "name": "My Home",
+            "streetAddress": "1 Ma** Str***",
+            "city": "Am*******",
             "country": "Netherlands",
-            "postcode": "******",
+            "postcode": "10** **",
             "locationType": "Residential",
             "useDaylightSaveSwitching": true,
             "timeZone": {
                 "timeZoneId": "WEuropeStandardTime",
-                "displayName": "(U**********************************************************",
+                "displayName": "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna",
                 "offsetMinutes": 60,
                 "currentOffsetMinutes": 120,
                 "supportsDaylightSaving": true
             },
             "locationOwner": {
                 "userId": "5427022",
-                "username": "no-reply@redacted.xxx",
-                "firstname": "Ro***",
-                "lastname": "Do******"
+                "username": "user_5427022@gmail.com",
+                "firstname": "Jo**",
+                "lastname": "Sm***"
             }
         },
         "gateways": [
             {
                 "gatewayInfo": {
                     "gatewayId": "6208789",
-                    "mac": "************",
-                    "crc": "****",
+                    "mac": "000000000000",
+                    "crc": "0000",
                     "isWiFi": false
                 },
                 "temperatureControlSystems": [
@@ -59,7 +59,7 @@
                                     "timingResolution": "00:10:00",
                                     "setpointValueResolution": 0.5
                                 },
-                                "name": "Wo*******",
+                                "name": "Woonkamer",
                                 "zoneType": "RadiatorZone"
                             },
                             {
@@ -85,7 +85,7 @@
                                     "timingResolution": "00:10:00",
                                     "setpointValueResolution": 0.5
                                 },
-                                "name": "Ba******",
+                                "name": "Badkamer",
                                 "zoneType": "RadiatorZone"
                             },
                             {
@@ -111,7 +111,7 @@
                                     "timingResolution": "00:10:00",
                                     "setpointValueResolution": 0.5
                                 },
-                                "name": "Ka*****",
+                                "name": "Kantoor",
                                 "zoneType": "RadiatorZone"
                             },
                             {
@@ -137,7 +137,7 @@
                                     "timingResolution": "00:10:00",
                                     "setpointValueResolution": 0.5
                                 },
-                                "name": "Sl**********",
+                                "name": "Slaapkamer",
                                 "zoneType": "RadiatorZone"
                             },
                             {
@@ -163,7 +163,7 @@
                                     "timingResolution": "00:10:00",
                                     "setpointValueResolution": 0.5
                                 },
-                                "name": "Zo**********",
+                                "name": "Zolder",
                                 "zoneType": "RadiatorZone"
                             }
                         ],

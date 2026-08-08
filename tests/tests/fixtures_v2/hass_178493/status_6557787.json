@@ -18,7 +18,7 @@
                                 "targetHeatTemperature": 5.0,
                                 "setpointMode": "FollowSchedule"
                             },
-                            "name": "Wo*******"
+                            "name": "Woonkamer"
                         },
                         {
                             "zoneId": "8419159",
@@ -31,7 +31,7 @@
                                 "targetHeatTemperature": 5.0,
                                 "setpointMode": "FollowSchedule"
                             },
-                            "name": "Ba******"
+                            "name": "Badkamer"
                         },
                         {
                             "zoneId": "8419160",
@@ -44,7 +44,7 @@
                                 "targetHeatTemperature": 5.0,
                                 "setpointMode": "FollowSchedule"
                             },
-                            "name": "Ka*****"
+                            "name": "Kantoor"
                         },
                         {
                             "zoneId": "8419161",
@@ -57,7 +57,7 @@
                                 "targetHeatTemperature": 5.0,
                                 "setpointMode": "PermanentOverride"
                             },
-                            "name": "Sl**********"
+                            "name": "Slaapkamer"
                         },
                         {
                             "zoneId": "8419162",
@@ -79,7 +79,7 @@
                                 "targetHeatTemperature": 5.0,
                                 "setpointMode": "FollowSchedule"
                             },
-                            "name": "Zo**********"
+                            "name": "Zolder"
                         }
                     ],
                     "activeFaults": [

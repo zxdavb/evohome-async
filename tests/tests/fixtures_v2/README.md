@@ -53,6 +53,7 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `hass_140194/` | 3886561 | Argentina | HA core issue [#140194](https://github.com/home-assistant/core/issues/140194) |
 | `hass_141882/` | 7680795 | AUSEastern | HA core issue [#141882](https://github.com/home-assistant/core/issues/141882) |
 | `hass_157546/` | 7647411 | GMT | HA core issue [#157546](https://github.com/home-assistant/core/issues/157546) |
+| `hass_178493/` | 6557787 | WEurope | HA core issue [#178493](https://github.com/home-assistant/core/issues/178493) (Netherlands, `BoilerServiceRequired`) |
 | `system_007/` | 4001001 | GMT | Synthesised schema coverage: 4 locations (maximal, minimal, no TCS, no gateway) |
 | `system_008/` | n/a | n/a | Synthesised schema coverage: empty installation (0 locations) |
 
@@ -62,6 +63,10 @@ Config-only dirs (no status file, xfail in tests): `hass_099625/`, `hass_102815/
 
 - Names → `"John"` / `"Smith"`; usernames → `"user_{userId}@gmail.com"`
 - Addresses → `"1 Main Street"` / city matching the system's timezone/country
+- Where a report arrives pre-redacted by the reporter, keep a masked form, but of the
+  synthesised value, not the original: `"Jo**"` / `"Sm***"`, `"1 Ma** Str***"`. Never
+  keep the reporter's own masking, as it preserves the length of (and often the first
+  characters of) the real value
 - MAC addresses → `"000000000000"`; CRC → `"0000"`
 - Real location/gateway/system/zone IDs are kept from the original reports
 - Synthesised IDs use the range 4000001+ to avoid collisions with real IDs

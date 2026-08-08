@@ -37001,7 +37001,7 @@
           ]),
         }),
       ]),
-      'name': 'Wo*******',
+      'name': 'Woonkamer',
       'zone_id': '8419115',
     }),
     dict({
@@ -37154,7 +37154,7 @@
           ]),
         }),
       ]),
-      'name': 'Ba******',
+      'name': 'Badkamer',
       'zone_id': '8419159',
     }),
     dict({
@@ -37307,7 +37307,7 @@
           ]),
         }),
       ]),
-      'name': 'Ka*****',
+      'name': 'Kantoor',
       'zone_id': '8419160',
     }),
     dict({
@@ -37460,7 +37460,7 @@
           ]),
         }),
       ]),
-      'name': 'Sl**********',
+      'name': 'Slaapkamer',
       'zone_id': '8419161',
     }),
     dict({
@@ -37613,7 +37613,7 @@
           ]),
         }),
       ]),
-      'name': 'Zo**********',
+      'name': 'Zolder',
       'zone_id': '8419162',
     }),
   ])
@@ -37770,7 +37770,7 @@
           ]),
         }),
       ]),
-      'name': 'Wo*******',
+      'name': 'Woonkamer',
       'zone_id': '8419115',
     }),
     dict({
@@ -37923,7 +37923,7 @@
           ]),
         }),
       ]),
-      'name': 'Ba******',
+      'name': 'Badkamer',
       'zone_id': '8419159',
     }),
     dict({
@@ -38076,7 +38076,7 @@
           ]),
         }),
       ]),
-      'name': 'Ka*****',
+      'name': 'Kantoor',
       'zone_id': '8419160',
     }),
     dict({
@@ -38229,7 +38229,7 @@
           ]),
         }),
       ]),
-      'name': 'Sl**********',
+      'name': 'Slaapkamer',
       'zone_id': '8419161',
     }),
     dict({
@@ -38382,7 +38382,7 @@
           ]),
         }),
       ]),
-      'name': 'Zo**********',
+      'name': 'Zolder',
       'zone_id': '8419162',
     }),
   ])
@@ -68687,18 +68687,18 @@
       country: Netherlands
       location_id: '6557787'
       location_owner:
-        firstname: Ro***
+        firstname: Jo**
         lastname: '********'
         user_id: '5427022'
         username: no-reply@redacted.xxx
       location_type: !!python/object/apply:evohomeasync2.const.LocationType
       - residential
-      name: Ju******************
+      name: My Home
       postcode: '********'
       street_address: '********'
       time_zone:
         current_offset_minutes: 120
-        display_name: (U**********************************************************
+        display_name: (UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
         offset_minutes: 60
         supports_daylight_saving: true
         time_zone_id: WEuropeStandardTime
@@ -68715,7 +68715,7 @@
   
     ''',
     'name': '''
-      Ju******************
+      My Home
       ...
   
     ''',
@@ -68741,7 +68741,7 @@
       crc: '********'
       gateway_id: '6208789'
       is_wi_fi: false
-      mac: '************'
+      mac: '000000000000'
   
     ''',
     'id': '''
@@ -68749,7 +68749,7 @@
   
     ''',
     'mac_address': '''
-      '************'
+      '000000000000'
   
     ''',
     'status': '''
@@ -68945,7 +68945,7 @@
           \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - temporary_override\n"
       config: "model_type: !!python/object/apply:evohomeasync2.const.ZoneModelType\n\
-          - heating_zone\nname: Wo*******\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          - heating_zone\nname: Woonkamer\nschedule_capabilities:\n  max_switchpoints_per_day:\
           \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
           \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \    - permanent_override\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -68977,7 +68977,7 @@
           - heating_zone
   
           '
-      name: 'Wo*******
+      name: 'Woonkamer
   
           ...
   
@@ -69039,7 +69039,7 @@
           target_heat_temperature: 5.0
   
           '
-      status: "active_faults: []\nname: Wo*******\nsetpoint_status:\n  setpoint_mode:\
+      status: "active_faults: []\nname: Woonkamer\nsetpoint_status:\n  setpoint_mode:\
           \ !!python/object/apply:evohomeasync2.const.ZoneMode\n  - follow_schedule\n\
           \  target_heat_temperature: 5.0\ntemperature_status:\n  is_available: true\n\
           \  temperature: 25.5\nzone_id: '8419115'\n"
@@ -69084,7 +69084,7 @@
           \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - temporary_override\n"
       config: "model_type: !!python/object/apply:evohomeasync2.const.ZoneModelType\n\
-          - heating_zone\nname: Ba******\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          - heating_zone\nname: Badkamer\nschedule_capabilities:\n  max_switchpoints_per_day:\
           \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
           \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \    - permanent_override\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -69116,7 +69116,7 @@
           - heating_zone
   
           '
-      name: 'Ba******
+      name: 'Badkamer
   
           ...
   
@@ -69178,7 +69178,7 @@
           target_heat_temperature: 5.0
   
           '
-      status: "active_faults: []\nname: Ba******\nsetpoint_status:\n  setpoint_mode:\
+      status: "active_faults: []\nname: Badkamer\nsetpoint_status:\n  setpoint_mode:\
           \ !!python/object/apply:evohomeasync2.const.ZoneMode\n  - follow_schedule\n\
           \  target_heat_temperature: 5.0\ntemperature_status:\n  is_available: true\n\
           \  temperature: 25.5\nzone_id: '8419159'\n"
@@ -69223,7 +69223,7 @@
           \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - temporary_override\n"
       config: "model_type: !!python/object/apply:evohomeasync2.const.ZoneModelType\n\
-          - heating_zone\nname: Ka*****\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          - heating_zone\nname: Kantoor\nschedule_capabilities:\n  max_switchpoints_per_day:\
           \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
           \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \    - permanent_override\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -69255,7 +69255,7 @@
           - heating_zone
   
           '
-      name: 'Ka*****
+      name: 'Kantoor
   
           ...
   
@@ -69317,7 +69317,7 @@
           target_heat_temperature: 5.0
   
           '
-      status: "active_faults: []\nname: Ka*****\nsetpoint_status:\n  setpoint_mode:\
+      status: "active_faults: []\nname: Kantoor\nsetpoint_status:\n  setpoint_mode:\
           \ !!python/object/apply:evohomeasync2.const.ZoneMode\n  - follow_schedule\n\
           \  target_heat_temperature: 5.0\ntemperature_status:\n  is_available: true\n\
           \  temperature: 24.0\nzone_id: '8419160'\n"
@@ -69362,7 +69362,7 @@
           \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - temporary_override\n"
       config: "model_type: !!python/object/apply:evohomeasync2.const.ZoneModelType\n\
-          - heating_zone\nname: Sl**********\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          - heating_zone\nname: Slaapkamer\nschedule_capabilities:\n  max_switchpoints_per_day:\
           \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
           \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \    - permanent_override\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -69394,7 +69394,7 @@
           - heating_zone
   
           '
-      name: 'Sl**********
+      name: 'Slaapkamer
   
           ...
   
@@ -69456,7 +69456,7 @@
           target_heat_temperature: 5.0
   
           '
-      status: "active_faults: []\nname: Sl**********\nsetpoint_status:\n  setpoint_mode:\
+      status: "active_faults: []\nname: Slaapkamer\nsetpoint_status:\n  setpoint_mode:\
           \ !!python/object/apply:evohomeasync2.const.ZoneMode\n  - permanent_override\n\
           \  target_heat_temperature: 5.0\ntemperature_status:\n  is_available: true\n\
           \  temperature: 24.0\nzone_id: '8419161'\n"
@@ -69502,7 +69502,7 @@
           \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - temporary_override\n"
       config: "model_type: !!python/object/apply:evohomeasync2.const.ZoneModelType\n\
-          - heating_zone\nname: Zo**********\nschedule_capabilities:\n  max_switchpoints_per_day:\
+          - heating_zone\nname: Zolder\nschedule_capabilities:\n  max_switchpoints_per_day:\
           \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
           \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \    - permanent_override\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -69534,7 +69534,7 @@
           - heating_zone
   
           '
-      name: 'Zo**********
+      name: 'Zolder
   
           ...
   
@@ -69599,10 +69599,10 @@
       status: "active_faults:\n- fault_type: !!python/object/apply:evohomeasync2.const.FaultType\n\
           \  - temp_zone_actuator_low_battery\n  since: '2026-08-08T06:29:17+02:00'\n\
           - fault_type: !!python/object/apply:evohomeasync2.const.FaultType\n  - temp_zone_sensor_low_battery\n\
-          \  since: '2026-08-08T06:29:19+02:00'\nname: Zo**********\nsetpoint_status:\n\
-          \  setpoint_mode: !!python/object/apply:evohomeasync2.const.ZoneMode\n  -\
-          \ follow_schedule\n  target_heat_temperature: 5.0\ntemperature_status:\n \
-          \ is_available: true\n  temperature: 24.5\nzone_id: '8419162'\n"
+          \  since: '2026-08-08T06:29:19+02:00'\nname: Zolder\nsetpoint_status:\n  setpoint_mode:\
+          \ !!python/object/apply:evohomeasync2.const.ZoneMode\n  - follow_schedule\n\
+          \  target_heat_temperature: 5.0\ntemperature_status:\n  is_available: true\n\
+          \  temperature: 24.5\nzone_id: '8419162'\n"
       target_heat_temperature: '5.0
   
           ...
