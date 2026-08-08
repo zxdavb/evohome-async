@@ -189,7 +189,8 @@ class TccZonConfigResponseT(TypedDict):
     modelType: TccZoneModelType
     name: str
     setpointCapabilities: TccZonSetpointCapabilitiesResponseT
-    scheduleCapabilities: TccZonScheduleCapabilitiesResponseT  # not FocusProWifi
+    # absent for FocusProWifiRetail zones (c.f. factory_zone, which has it Optional)
+    scheduleCapabilities: NotRequired[TccZonScheduleCapabilitiesResponseT]
     zoneType: TccZoneType
     allowedFanModes: NotRequired[list[TccAllowedFanModeResponseT]]  # FocusProWifi
 

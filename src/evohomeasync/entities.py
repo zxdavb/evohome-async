@@ -359,11 +359,11 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
     @property
     def one_touch_actions_suspended(self) -> bool:
-        return bool(self._status[SZ_ONE_TOUCH_ACTIONS_SUSPENDED])
+        return bool(self._status.get(SZ_ONE_TOUCH_ACTIONS_SUSPENDED))
 
     @property
     def one_touch_buttons(self) -> tuple[str, ...]:
-        return tuple(self._status[SZ_ONE_TOUCH_BUTTONS])
+        return tuple(self._status.get(SZ_ONE_TOUCH_BUTTONS, ()))
 
     async def _set_mode(self, mode: dict[str, str]) -> None:
         """Set the TCS mode."""
@@ -560,8 +560,8 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     #     raise NotImplementedError("Use EvohomeClient.update() instead.")
 
     @property
-    def weather(self) -> EvoWeatherDictT:
-        return self._status[SZ_WEATHER]
+    def weather(self) -> EvoWeatherDictT | None:
+        return self._status.get(SZ_WEATHER)
 
     def _update_status(self, status: EvoTcsInfoDictT) -> None:
         """Update the LOC's status and cascade to its descendants."""

@@ -4,6 +4,20 @@ These TypedDict & StrEnums serve as documentation of the vendor's API, even if t
 unused by this library. There are corresponding factory functions for the voluptuous
 schemas, which can be used to validate/coerce the vendor's responses.
 
+A key is vol.Required only if this library references it: any key we do not need is
+vol.Optional, so that a response missing it will still validate. So vol.Optional here
+does not imply the vendor may omit the key - only that we can carry on if it does. The
+Tcc*T typed dicts remain the record of the vendor's API, and the few vol.Optionals that
+the vendor genuinely may omit are tagged `# is NotRequired` to match them.
+
+Two exceptions are vol.Required despite not being referenced. Entity ids are always
+required, as they are the foreign keys of the data model: user (and location owner),
+location, gateway, zone, DHW and device. And username, as it is the account's identity.
+
+domainID is the one id that is not: it is sent with every device, but which entity it
+identifies is unknown - it is not the control system, as it matches no id in the v2
+API (in particular, it is not systemId), nor is it tenantID.
+
 The vendor's convention for well-known strings:
 - camelCase for JSON keys, URL params (e.g. "sessionId", "thermostatModelType")
 - PascalCase for JSON values that are enum strings (e.g. "AutoWithEco", "DayOff")
@@ -34,7 +48,7 @@ if TYPE_CHECKING:
 _DhwIdT = NewType("_DhwIdT", int)
 _GatewayIdT = NewType("_GatewayIdT", int)
 _LocationIdT = NewType("_LocationIdT", int)
-_SystemIdT = NewType("_SystemIdT", int)  # domainId ??
+_SystemIdT = NewType("_SystemIdT", int)
 _UserIdT = NewType("_UserIdT", int)
 _ZoneIdT = NewType("_ZoneIdT", int)
 
@@ -56,11 +70,17 @@ SZ_DOMAIN_ID: Final = "domainID"  # is ID, not Id
 SZ_FIRSTNAME: Final = "firstname"
 SZ_GATEWAY_ID: Final = "gatewayId"
 SZ_INDOOR_TEMPERATURE: Final = "indoorTemperature"
+SZ_INDOOR_TEMPERATURE_STATUS: Final = "indoorTemperatureStatus"
+SZ_INSTANCE: Final = "instance"
 SZ_IS_ACTIVATED: Final = "isActivated"
 
 SZ_LASTNAME: Final = "lastname"
 SZ_LATEST_EULA_ACCEPTED: Final = "latestEulaAccepted"
 SZ_LOCATION_ID: Final = "locationID"  # is ID, not Id
+
+SZ_MAC_ID: Final = "macID"  # is ID, not Id
+SZ_MAX_HEAT_SETPOINT: Final = "maxHeatSetpoint"
+SZ_MIN_HEAT_SETPOINT: Final = "minHeatSetpoint"
 
 SZ_NAME: Final = "name"
 
@@ -68,11 +88,15 @@ SZ_SESSION_ID: Final = "sessionId"
 SZ_STATE: Final = "state"
 SZ_STREET_ADDRESS: Final = "streetAddress"
 SZ_TELEPHONE: Final = "telephone"
+SZ_THERMOSTAT: Final = "thermostat"
+SZ_THERMOSTAT_MODEL_TYPE: Final = "thermostatModelType"
 
 SZ_USER_ID: Final = "userID"  # is ID, not Id
 SZ_USER_INFO: Final = "userInfo"
 SZ_USER_LANGUAGE: Final = "userLanguage"
 SZ_USERNAME: Final = "username"
+
+SZ_WEATHER: Final = "weather"
 
 SZ_ZIPCODE: Final = "zipcode"
 
@@ -122,15 +146,15 @@ def factory_user_account_info_response(
         {
             vol.Required(fnc(SZ_USER_ID)): int,
             vol.Required(fnc(SZ_USERNAME)): vol.All(str, vol.Length(min=1), redact),
-            vol.Required(fnc(SZ_FIRSTNAME)): vol.All(str, redact),
-            vol.Required(fnc(SZ_LASTNAME)): vol.All(str, redact),
-            vol.Required(fnc(SZ_STREET_ADDRESS)): vol.All(str, redact),
-            vol.Required(fnc(SZ_CITY)): vol.All(str, redact),
-            # l.Optional(fnc(SZ_STATE)): str,  # missing?
-            vol.Required(fnc(SZ_ZIPCODE)): vol.All(str, redact),
-            vol.Required(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),
-            vol.Required(fnc(SZ_TELEPHONE)): vol.All(str, redact),
-            vol.Required(fnc(SZ_USER_LANGUAGE)): str,
+            vol.Optional(fnc(SZ_FIRSTNAME)): vol.All(str, redact),
+            vol.Optional(fnc(SZ_LASTNAME)): vol.All(str, redact),
+            vol.Optional(fnc(SZ_STREET_ADDRESS)): vol.All(str, redact),
+            vol.Optional(fnc(SZ_CITY)): vol.All(str, redact),
+            # l.Optional(fnc(SZ_STATE)): str,  # truly absent
+            vol.Optional(fnc(SZ_ZIPCODE)): vol.All(str, redact),
+            vol.Optional(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),
+            vol.Optional(fnc(SZ_TELEPHONE)): vol.All(str, redact),
+            vol.Optional(fnc(SZ_USER_LANGUAGE)): str,
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -147,13 +171,13 @@ def factory_session_response(
 
     SCH_USER_ACCOUNT_RESPONSE = factory_user_account_info_response(fnc).extend(
         {
-            vol.Required(fnc(SZ_IS_ACTIVATED)): bool,
+            vol.Optional(fnc(SZ_IS_ACTIVATED)): bool,
             vol.Optional(fnc(SZ_DEVICE_COUNT)): int,
             vol.Optional(fnc("tenantID")): int,
             vol.Optional(fnc("securityQuestion1")): SCH_SECURITY_QUESTION,
             vol.Optional(fnc("securityQuestion2")): SCH_SECURITY_QUESTION,
             vol.Optional(fnc("securityQuestion3")): SCH_SECURITY_QUESTION,
-            vol.Required(fnc(SZ_LATEST_EULA_ACCEPTED)): bool,
+            vol.Optional(fnc(SZ_LATEST_EULA_ACCEPTED)): bool,  # via dict.get() only
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -162,6 +186,85 @@ def factory_session_response(
         {
             vol.Required(fnc(SZ_SESSION_ID)): vol.All(str, redact),
             vol.Required(fnc(SZ_USER_INFO)): SCH_USER_ACCOUNT_RESPONSE,
+        },
+        extra=vol.ALLOW_EXTRA,
+    )
+
+
+def _factory_thermostat_response(
+    fnc: Callable[[str], str] = noop,
+) -> vol.Schema:
+    """Factory for the thermostat schema of a location's device."""
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(SZ_INDOOR_TEMPERATURE)): float,
+            vol.Required(fnc(SZ_INDOOR_TEMPERATURE_STATUS)): str,  # Measured, etc.
+            vol.Required(fnc(SZ_ALLOWED_MODES)): [str],  # ThermostatMode
+            vol.Required(fnc(SZ_MAX_HEAT_SETPOINT)): float,
+            vol.Required(fnc(SZ_MIN_HEAT_SETPOINT)): float,
+            vol.Optional(fnc("units")): str,
+            vol.Optional(fnc("outdoorTemperature")): float,
+            vol.Optional(fnc("outdoorTemperatureAvailable")): bool,
+            vol.Optional(fnc("outdoorHumidity")): float,
+            vol.Optional(fnc("outdootHumidityAvailable")): bool,  # NOTE: not a typo
+            vol.Optional(fnc("indoorHumidity")): float,
+            vol.Optional(fnc("indoorHumidityStatus")): str,
+            vol.Optional(fnc("outdoorTemperatureStatus")): str,
+            vol.Optional(fnc("outdoorHumidityStatus")): str,
+            vol.Optional(fnc("isCommercial")): bool,
+            vol.Optional(fnc("deadband")): float,
+            vol.Optional(fnc("minCoolSetpoint")): float,
+            vol.Optional(fnc("maxCoolSetpoint")): float,
+            vol.Optional(fnc("coolRate")): float,  # is NotRequired
+            vol.Optional(fnc("heatRate")): float,  # is NotRequired
+            vol.Optional(fnc("isPreCoolCapable")): bool,
+            vol.Optional(fnc(SZ_CHANGEABLE_VALUES)): {str: object},
+            vol.Optional(fnc("equipmentOutputStatus")): str,
+            vol.Optional(fnc("scheduleCapable")): bool,
+            vol.Optional(fnc("vacationHoldChangeable")): bool,
+            vol.Optional(fnc("vacationHoldCancelable")): bool,
+            vol.Optional(fnc("scheduleHeatSp")): float,
+            vol.Optional(fnc("scheduleCoolSp")): float,
+            vol.Optional(fnc("serialNumber")): str,
+            vol.Optional(fnc("pcbNumber")): str,
+        },
+        extra=vol.ALLOW_EXTRA,
+    )
+
+
+def _factory_device_response(
+    fnc: Callable[[str], str] = noop,
+) -> vol.Schema:
+    """Factory for the schema of one of a location's devices (a DHW or a zone)."""
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(SZ_DEVICE_ID)): int,  # is ID, not Id
+            vol.Required(fnc(SZ_GATEWAY_ID)): int,
+            # NOTE: is an int for the Honeywell TH9320WF3003 (c.f. DOMESTIC_HOT_WATER)
+            vol.Required(fnc(SZ_THERMOSTAT_MODEL_TYPE)): vol.Any(str, int),
+            vol.Required(fnc(SZ_NAME)): str,  # is "" for DHW
+            vol.Required(fnc(SZ_INSTANCE)): int,  # is the zone idx
+            vol.Required(fnc(SZ_MAC_ID)): str,  # is ID, not Id
+            vol.Required(fnc(SZ_THERMOSTAT)): _factory_thermostat_response(fnc),
+            vol.Optional(fnc("deviceType")): int,
+            vol.Optional(fnc("scheduleCapable")): bool,
+            vol.Optional(fnc("holdUntilCapable")): bool,
+            vol.Optional(fnc("humidifier")): {str: object},
+            vol.Optional(fnc("dehumidifier")): {str: object},
+            vol.Optional(fnc("fan")): {str: object},
+            vol.Optional(fnc("schedule")): {str: object},
+            vol.Optional(fnc("alertSettings")): {str: object},
+            vol.Optional(fnc("isUpgrading")): bool,
+            vol.Optional(fnc("isAlive")): bool,
+            vol.Optional(fnc("thermostatVersion")): str,
+            vol.Required(fnc(SZ_LOCATION_ID)): int,
+            vol.Optional(fnc(SZ_DOMAIN_ID)): int,
+            vol.Optional(fnc("serialNumber")): str,
+            vol.Optional(fnc("pcbNumber")): str,
+            vol.Optional(fnc("drEvents")): list,
+            vol.Optional(fnc("systemConfiguration")): {str: object},
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -176,25 +279,25 @@ def _factory_location_response(
         {
             vol.Required(fnc(SZ_LOCATION_ID)): int,  # is ID, not Id
             vol.Required(fnc(SZ_NAME)): vol.All(str, vol.Length(min=1)),
-            vol.Required(fnc(SZ_STREET_ADDRESS)): str,
-            vol.Required(fnc(SZ_CITY)): str,
-            vol.Optional(fnc(SZ_STATE)): str,  # Optional
+            vol.Optional(fnc(SZ_STREET_ADDRESS)): str,
+            vol.Optional(fnc(SZ_CITY)): str,
+            vol.Optional(fnc(SZ_STATE)): str,
             vol.Required(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
-            vol.Required(fnc(SZ_ZIPCODE)): str,
-            vol.Required(fnc("type")): vol.In(["Commercial", "Residential"]),
-            vol.Required(fnc("hasStation")): bool,
-            vol.Required(fnc(SZ_DEVICES)): [dict],  # TODO: [DeviceResponse]
-            vol.Required(fnc("oneTouchButtons")): list,
-            vol.Required(fnc("weather")): {str: object},  # WeatherResponse
+            vol.Optional(fnc(SZ_ZIPCODE)): str,
+            vol.Optional(fnc("type")): vol.In(["Commercial", "Residential"]),
+            vol.Optional(fnc("hasStation")): bool,
+            vol.Required(fnc(SZ_DEVICES)): [_factory_device_response(fnc)],
+            vol.Optional(fnc("oneTouchButtons")): list,
+            vol.Optional(fnc(SZ_WEATHER)): {str: object},  # is NotRequired
             vol.Required(fnc("daylightSavingTimeEnabled")): bool,
             vol.Required(fnc("timeZone")): {str: object},  # TimeZoneResponse
-            vol.Required(fnc("oneTouchActionsSuspended")): bool,
-            vol.Required(fnc("isLocationOwner")): bool,
-            vol.Required(fnc("locationOwnerID")): int,  # ID, not Id
-            vol.Required(fnc("locationOwnerName")): str,
-            vol.Required(fnc("locationOwnerUserName")): vol.All(str, vol.Length(min=1)),
-            vol.Required(fnc("canSearchForContractors")): bool,
-            vol.Optional(fnc("contractor")): {str: dict},  # ContractorResponse,Optional
+            vol.Optional(fnc("oneTouchActionsSuspended")): bool,
+            vol.Optional(fnc("isLocationOwner")): bool,
+            vol.Required(fnc("locationOwnerID")): int,
+            vol.Optional(fnc("locationOwnerName")): str,
+            vol.Optional(fnc("locationOwnerUserName")): vol.All(str, vol.Length(min=1)),
+            vol.Optional(fnc("canSearchForContractors")): bool,
+            vol.Optional(fnc("contractor")): {str: dict},  # is NotRequired
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -226,7 +329,6 @@ SZ_COOL_SETPOINT: Final = "coolSetpoint"
 SZ_HEAT_SETPOINT: Final = "heatSetpoint"
 
 SZ_ID: Final = "id"  # is id, not Id/ID
-SZ_MAC_ID: Final = "macID"  # is ID, not Id
 SZ_MODE: Final = "mode"
 SZ_NEXT_TIME: Final = "NextTime"
 SZ_QUICK_ACTION: Final = "QuickAction"
@@ -235,8 +337,6 @@ SZ_SETPOINT: Final = "setpoint"
 SZ_SPECIAL_MODES: Final = "SpecialModes"
 SZ_STATUS: Final = "status"
 SZ_TEMP: Final = "temp"
-SZ_THERMOSTAT: Final = "thermostat"
-SZ_THERMOSTAT_MODEL_TYPE: Final = "thermostatModelType"
 SZ_VALUE: Final = "value"
 
 
@@ -305,7 +405,7 @@ class TccUserAccountResponseT(TccUserAccountInfoResponseT):
 
     isActivated: bool
     deviceCount: int  # NotRequired?
-    tenantId: int  # NotRequired?
+    tenantID: int  # NotRequired?
     securityQuestion1: str  # NotRequired?
     securityQuestion2: str  # NotRequired?
     securityQuestion3: str  # NotRequired?
@@ -325,32 +425,34 @@ class TccLocationResponseT(TypedDict):
     type: str  # LocationType: "Commercial" | "Residential"
     hasStation: bool
     devices: list[TccDeviceResponseT]
-    weather: TccWeatherResponseT  # WeatherResponse
+    weather: NotRequired[TccWeatherResponseT]  # WeatherResponse, if hasStation is True
     daylightSavingTimeEnabled: bool
     timeZone: TccTimeZoneResponseT
     oneTouchActionsSuspended: bool
+    oneTouchButtons: list[str]  # is [] in all known responses
     isLocationOwner: bool
     locationOwnerID: int  # TODO: check is ID, not Id
     locationOwnerName: str
     locationOwnerUserName: str
-    canSearchforcontractors: bool
+    canSearchForContractors: bool
     contractor: NotRequired[dict[str, Any]]  # ContractorResponse
 
 
 class TccDeviceResponseT(TypedDict):
     deviceID: _DhwIdT | _ZoneIdT  # is ID, not Id
     gatewayId: _GatewayIdT
-    thermostatModelType: str  # DOMESTIC_HOT_WATER or a zone
+    # is an int only for the Honeywell TH9320WF3003 (deviceType 48), which sends 36
+    thermostatModelType: str | int  # DOMESTIC_HOT_WATER or a zone
     deviceType: int
     name: str
     scheduleCapable: bool
     holdUntilCapable: bool
     thermostat: TccThermostatResponseT
-    humidifier: dict[str, Any]  # HumidifierResponse
-    dehumidifier: dict[str, Any]  # DehumidifierResponse
-    fan: dict[str, Any]  # FanResponse
-    schedule: dict[str, Any]  # ScheduleResponse
-    alertSettings: dict[str, Any]  # AlertSettingsResponse
+    humidifier: NotRequired[dict[str, Any]]  # HumidifierResponse
+    dehumidifier: NotRequired[dict[str, Any]]  # DehumidifierResponse
+    fan: NotRequired[dict[str, Any]]  # FanResponse
+    schedule: NotRequired[dict[str, Any]]  # ScheduleResponse
+    alertSettings: NotRequired[dict[str, Any]]  # AlertSettingsResponse
     isUpgrading: bool
     isAlive: bool
     thermostatVersion: str
@@ -358,8 +460,10 @@ class TccDeviceResponseT(TypedDict):
     locationID: _LocationIdT  # is ID, not Id
     domainID: int  # is ID, not Id
     instance: int
-    serialNumber: str
-    pcbNumber: str
+    serialNumber: NotRequired[str]
+    pcbNumber: NotRequired[str]
+    drEvents: NotRequired[list[Any]]
+    systemConfiguration: NotRequired[dict[str, Any]]
 
 
 class TccThermostatResponseT(TypedDict):
@@ -368,7 +472,7 @@ class TccThermostatResponseT(TypedDict):
     outdoorTemperature: float
     outdoorTemperatureAvailable: bool
     outdoorHumidity: float
-    outdoorHumidityAvailable: bool
+    outdootHumidityAvailable: bool  # NOTE: not a typo
     indoorHumidity: float
     indoorTemperatureStatus: str  # Measured|NotAvailable|SensorError|SensorFault
     indoorHumidityStatus: str
@@ -381,22 +485,24 @@ class TccThermostatResponseT(TypedDict):
     maxHeatSetpoint: float
     minCoolSetpoint: float
     maxCoolSetpoint: float
-    coolRate: float
-    heatRate: float
-    is_pre_cool_capable: bool
-    changeable_values: TccThermostatChangeableValues
-    equipment_outputStatus: str  # Off | Heating | Cooling
-    schedule_capable: bool
+    coolRate: NotRequired[float]
+    heatRate: NotRequired[float]
+    isPreCoolCapable: NotRequired[bool]
+    # the Dhw variant is sent for a DOMESTIC_HOT_WATER device, else the Zone variant
+    changeableValues: TccZoneChangeableValuesT | TccDhwChangeableValuesT
+    equipmentOutputStatus: NotRequired[str]  # Off | Heating | Cooling
+    scheduleCapable: bool
     vacationHoldChangeable: bool
     vacationHoldCancelable: bool
     scheduleHeatSp: float
     scheduleCoolSp: float
-    serialNumber: str
-    pcbNumber: str
+    serialNumber: NotRequired[str]
+    pcbNumber: NotRequired[str]
 
 
-class TccThermostatChangeableValues(TypedDict):
-    """
+class TccZoneChangeableValuesT(TypedDict):
+    """The changeableValues of a zone (c.f. TccDhwChangeableValuesT).
+
     "changeableValues": {
         "mode": "Off",
         "heatSetpoint": {"value": 21.0, "status": "Scheduled"},
@@ -405,11 +511,21 @@ class TccThermostatChangeableValues(TypedDict):
     """
 
     mode: str  # Off
-    heatSetpoint: _TccSetpointDict
+    heatSetpoint: _TccSetpointT
     vacationHoldDays: int
 
 
-class _TccSetpointDict(TypedDict):
+class TccDhwChangeableValuesT(TypedDict):
+    """The changeableValues of a DHW (c.f. TccZoneChangeableValuesT).
+
+    "changeableValues": {"mode": "DHWOff", "status": "Scheduled"},
+    """
+
+    mode: str  # DHWOn | DHWOff
+    status: str  # Scheduled, Hold
+
+
+class _TccSetpointT(TypedDict):
     value: float
     status: str  # Scheduled, Temporary, Hold, VacationHold
 

@@ -171,6 +171,7 @@ def convert_dtm_to_local_aware[T](data: T, tzinfo: tzinfo) -> T:
 
 _STEP_1 = re.compile(r"(.)([A-Z][a-z]+)")
 _STEP_2 = re.compile(r"([a-z0-9])([A-Z])")
+_STEP_3 = re.compile(r"([a-zA-Z])([0-9])")  # e.g. securityQuestion1 -> ..._question_1
 
 
 def camel_to_pascal(s: str) -> str:
@@ -181,10 +182,15 @@ def camel_to_pascal(s: str) -> str:
 
 
 def camel_to_snake(s: str) -> str:
-    """Return a string converted (from camelCase) to snake_case."""
+    """Return a string converted (from camelCase) to snake_case.
+
+    A trailing digit is treated as its own component, so securityQuestion1 becomes
+    security_question_1 (and snake_to_camel() round-trips it back).
+    """
     if " " in s:
         raise ValueError("Input string should not contain spaces")
-    return _STEP_2.sub(r"\1_\2", _STEP_1.sub(r"\1_\2", s)).lower()
+    s = _STEP_2.sub(r"\1_\2", _STEP_1.sub(r"\1_\2", s))
+    return _STEP_3.sub(r"\1_\2", s).lower()
 
 
 pascal_to_snake = camel_to_snake  # PascalCase is a subset of camelCase
