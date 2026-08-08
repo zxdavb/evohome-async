@@ -185,9 +185,9 @@ def _factory_location_response(
             vol.Required(fnc("hasStation")): bool,
             vol.Required(fnc(SZ_DEVICES)): [dict],  # TODO: [DeviceResponse]
             vol.Required(fnc("oneTouchButtons")): list,
-            vol.Required(fnc("weather")): {str: object},  # WeatherResponse
+            vol.Optional(fnc("weather")): {str: dict},  # WeatherResponse
             vol.Required(fnc("daylightSavingTimeEnabled")): bool,
-            vol.Required(fnc("timeZone")): {str: object},  # TimeZoneResponse
+            vol.Required(fnc("timeZone")): {str: dict},  # TimeZoneResponse
             vol.Required(fnc("oneTouchActionsSuspended")): bool,
             vol.Required(fnc("isLocationOwner")): bool,
             vol.Required(fnc("locationOwnerID")): int,  # ID, not Id
@@ -325,7 +325,7 @@ class TccLocationResponseT(TypedDict):
     type: str  # LocationType: "Commercial" | "Residential"
     hasStation: bool
     devices: list[TccDeviceResponseT]
-    weather: TccWeatherResponseT  # WeatherResponse
+    weather: NotRequired[TccWeatherResponseT]  # WeatherResponse
     daylightSavingTimeEnabled: bool
     timeZone: TccTimeZoneResponseT
     oneTouchActionsSuspended: bool
