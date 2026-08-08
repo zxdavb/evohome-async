@@ -12,8 +12,11 @@ the vendor genuinely may omit are tagged `# is NotRequired` to match them.
 
 Two exceptions are vol.Required despite not being referenced. Entity ids are always
 required, as they are the foreign keys of the data model: user (and location owner),
-location, gateway, control system (domainID), zone, DHW and device. And username, as
-it is the account's identity.
+location, gateway, zone, DHW and device. And username, as it is the account's identity.
+
+domainID is the one id that is not: it is sent with every device, but which entity it
+identifies is unknown - it is not the control system, as it matches no id in the v2
+API (in particular, it is not systemId), nor is it tenantID.
 
 The vendor's convention for well-known strings:
 - camelCase for JSON keys, URL params (e.g. "sessionId", "thermostatModelType")
@@ -45,7 +48,7 @@ if TYPE_CHECKING:
 _DhwIdT = NewType("_DhwIdT", int)
 _GatewayIdT = NewType("_GatewayIdT", int)
 _LocationIdT = NewType("_LocationIdT", int)
-_SystemIdT = NewType("_SystemIdT", int)  # domainId ??
+_SystemIdT = NewType("_SystemIdT", int)
 _UserIdT = NewType("_UserIdT", int)
 _ZoneIdT = NewType("_ZoneIdT", int)
 
@@ -257,9 +260,11 @@ def _factory_device_response(
             vol.Optional(fnc("isAlive")): bool,
             vol.Optional(fnc("thermostatVersion")): str,
             vol.Required(fnc(SZ_LOCATION_ID)): int,
-            vol.Required(fnc(SZ_DOMAIN_ID)): int,  # is the control system's id
+            vol.Optional(fnc(SZ_DOMAIN_ID)): int,
             vol.Optional(fnc("serialNumber")): str,
             vol.Optional(fnc("pcbNumber")): str,
+            vol.Optional(fnc("drEvents")): list,
+            vol.Optional(fnc("systemConfiguration")): {str: object},
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -293,10 +298,6 @@ def _factory_location_response(
             vol.Optional(fnc("locationOwnerUserName")): vol.All(str, vol.Length(min=1)),
             vol.Optional(fnc("canSearchForContractors")): bool,
             vol.Optional(fnc("contractor")): {str: dict},  # is NotRequired
-            # NOTE: these two are per-device keys (c.f. _factory_device_response); they
-            # are here only because EvoTcsInfoDictT claims them, and are in no fixture
-            vol.Optional(fnc(SZ_DOMAIN_ID)): int,
-            vol.Optional(fnc("thermostatVersion")): str,
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -452,7 +453,7 @@ class TccDeviceResponseT(TypedDict):
     fan: NotRequired[dict[str, Any]]  # FanResponse
     schedule: NotRequired[dict[str, Any]]  # ScheduleResponse
     alertSettings: NotRequired[dict[str, Any]]  # AlertSettingsResponse
-    isUpgrading: NotRequired[bool]
+    isUpgrading: bool
     isAlive: bool
     thermostatVersion: str
     macID: str  # is ID, not Id
@@ -487,7 +488,8 @@ class TccThermostatResponseT(TypedDict):
     coolRate: NotRequired[float]
     heatRate: NotRequired[float]
     isPreCoolCapable: NotRequired[bool]
-    changeableValues: TccThermostatChangeableValues
+    # the Dhw variant is sent for a DOMESTIC_HOT_WATER device, else the Zone variant
+    changeableValues: TccZoneChangeableValuesT | TccDhwChangeableValuesT
     equipmentOutputStatus: NotRequired[str]  # Off | Heating | Cooling
     scheduleCapable: bool
     vacationHoldChangeable: bool
@@ -498,8 +500,9 @@ class TccThermostatResponseT(TypedDict):
     pcbNumber: NotRequired[str]
 
 
-class TccThermostatChangeableValues(TypedDict):
-    """
+class TccZoneChangeableValuesT(TypedDict):
+    """The changeableValues of a zone (c.f. TccDhwChangeableValuesT).
+
     "changeableValues": {
         "mode": "Off",
         "heatSetpoint": {"value": 21.0, "status": "Scheduled"},
@@ -508,16 +511,21 @@ class TccThermostatChangeableValues(TypedDict):
     """
 
     mode: str  # Off
-    heatSetpoint: _TccSetpointDict
+    heatSetpoint: _TccSetpointT
     vacationHoldDays: int
 
 
-class TccThermostatChangeableValuesDhw(TypedDict):
-    mode: str  # Off
-    status: str
+class TccDhwChangeableValuesT(TypedDict):
+    """The changeableValues of a DHW (c.f. TccZoneChangeableValuesT).
+
+    "changeableValues": {"mode": "DHWOff", "status": "Scheduled"},
+    """
+
+    mode: str  # DHWOn | DHWOff
+    status: str  # Scheduled, Hold
 
 
-class _TccSetpointDict(TypedDict):
+class _TccSetpointT(TypedDict):
     value: float
     status: str  # Scheduled, Temporary, Hold, VacationHold
 

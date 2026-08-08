@@ -86,13 +86,11 @@ class EvoGwyInfoDictT(TypedDict):  # c.f. TccDeviceResponseT
 
 
 # These keys are in the JSON, but not in the developer docs for the API
-# NOTE: domain_id/thermostat_version are per-device keys: they are not sent at the
-# location level in any known response (c.f. EvoDevInfoDictT)
+# NOTE: domain_id/thermostat_version were once here too, but are per-device keys: they
+# are not sent at the location level in any known response (c.f. EvoDevInfoDictT)
 class EvoTcsInfoDictT(EvoLocInfoDictT):
-    domain_id: NotRequired[int]
     one_touch_actions_suspended: NotRequired[bool]
     one_touch_buttons: NotRequired[list[str]]
-    thermostat_version: NotRequired[str]
 
 
 class EvoDevInfoDictT(EvoGwyInfoDictT):
@@ -111,10 +109,12 @@ class EvoDevInfoDictT(EvoGwyInfoDictT):
     is_upgrading: NotRequired[bool]
     is_alive: NotRequired[bool]
     thermostat_version: NotRequired[str]
-    domain_id: int  # is the control system's id
+    domain_id: NotRequired[int]
     instance: int
     serial_number: NotRequired[str]
     pcb_number: NotRequired[str]
+    dr_events: NotRequired[list[Any]]
+    system_configuration: NotRequired[dict[str, Any]]
 
 
 class EvoThermostatInfoDictT(TypedDict):
