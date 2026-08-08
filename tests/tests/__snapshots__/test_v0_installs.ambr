@@ -4084,6 +4084,1268 @@
   
   '''
 # ---
+# name: test_system_snapshot[hass_178510][gateway]
+  dict({
+    'config': '''
+      device_type: 96
+      gateway_id: 4444444
+      location_id: 1111111
+      mac_id: '************'
+  
+    ''',
+    'id': '''
+      '4444444'
+  
+    ''',
+    'mac_address': '''
+      '************'
+  
+    ''',
+    'status': '''
+      device_type: 96
+      gateway_id: 4444444
+      location_id: 1111111
+      mac_id: '************'
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_178510][location]
+  dict({
+    'config': '''
+      can_search_for_contractors: true
+      city: Vlaardingen
+      country: NL
+      daylight_saving_time_enabled: true
+      devices:
+      - device_id: 3000001
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 5
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 1
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 21.06
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 28.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 14.5
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000002
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 1
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 2
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.14
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 21.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 15.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000003
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 4
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 3
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.72
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 23.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 14.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000004
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 2
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 4
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Hold
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.37
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 21.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 14.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000005
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 6
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 5
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.74
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 25.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 13.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000006
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 3
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 6
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Hold
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.94
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 25.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 13.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000007
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 0
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 7
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.6
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 22.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 17.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      has_station: false
+      is_location_owner: true
+      location_id: 1111111
+      location_owner_id: 2222222
+      location_owner_name: John Smith
+      location_owner_user_name: no-reply@redacted.xxx
+      name: My Home
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: Hoofdstraat East 68
+      time_zone:
+        current_offset_minutes: 120
+        display_name: (U**********************************************************
+        id: W. Europe Standard Time
+        offset_minutes: 60
+        using_daylight_saving_time: true
+      type: Residential
+      zipcode: 8471 HP
+  
+    ''',
+    'country': '''
+      NL
+      ...
+  
+    ''',
+    'dst_enabled': '''
+      true
+      ...
+  
+    ''',
+    'hotwater': '''
+      null
+      ...
+  
+    ''',
+    'id': '''
+      '1111111'
+  
+    ''',
+    'name': '''
+      My Home
+      ...
+  
+    ''',
+    'one_touch_actions_suspended': '''
+      false
+      ...
+  
+    ''',
+    'one_touch_buttons': '''
+      !!python/tuple []
+  
+    ''',
+    'status': '''
+      can_search_for_contractors: true
+      city: Vlaardingen
+      country: NL
+      daylight_saving_time_enabled: true
+      devices:
+      - device_id: 3000001
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 5
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 1
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 21.06
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 28.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 14.5
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000002
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 1
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 2
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.14
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 21.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 15.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000003
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 4
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 3
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.72
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 23.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 14.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000004
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 2
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 4
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Hold
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.37
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 21.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 14.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000005
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 6
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 5
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.74
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 25.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 13.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000006
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 3
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 6
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Hold
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.94
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 25.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 13.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      - device_id: 3000007
+        device_type: 96
+        domain_id: 5555555
+        gateway_id: 4444444
+        hold_until_capable: false
+        instance: 0
+        is_alive: true
+        is_upgrading: false
+        location_id: 1111111
+        mac_id: '************'
+        name: Zone 7
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 10.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 20.6
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 22.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 17.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      has_station: false
+      is_location_owner: true
+      location_id: 1111111
+      location_owner_id: 2222222
+      location_owner_name: John Smith
+      location_owner_user_name: no-reply@redacted.xxx
+      name: My Home
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: Hoofdstraat East 68
+      time_zone:
+        current_offset_minutes: 120
+        display_name: (U**********************************************************
+        id: W. Europe Standard Time
+        offset_minutes: 60
+        using_daylight_saving_time: true
+      type: Residential
+      zipcode: 8471 HP
+  
+    ''',
+    'time_zone_info': '''
+      current_offset_minutes: 120
+      display_name: (U**********************************************************
+      id: W. Europe Standard Time
+      offset_minutes: 60
+      using_daylight_saving_time: true
+  
+    ''',
+    'weather': '''
+      null
+      ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_178510][zones]
+  '''
+  '3000001':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
+      config: "device_id: 3000001\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 5\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 1\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Scheduled\n      value: 10.0\n    mode:\
+          \ 'Off'\n    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n\
+          \  indoor_humidity_status: NotAvailable\n  indoor_temperature: 21.06\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 28.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 14.5\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      id: '''3000001''
+  
+          '
+      idx: '''05''
+  
+          '
+      max_heat_setpoint: '28.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '14.5
+  
+          ...
+  
+          '
+      name: 'Zone 1
+  
+          ...
+  
+          '
+      status: "device_id: 3000001\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 5\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 1\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Scheduled\n      value: 10.0\n    mode:\
+          \ 'Off'\n    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n\
+          \  indoor_humidity_status: NotAvailable\n  indoor_temperature: 21.06\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 28.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 14.5\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      temperature: '21.06
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.06
+  
+          '
+  '3000002':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
+      config: "device_id: 3000002\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 1\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 2\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Scheduled\n      value: 10.0\n    mode:\
+          \ 'Off'\n    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n\
+          \  indoor_humidity_status: NotAvailable\n  indoor_temperature: 20.14\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 21.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 15.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      id: '''3000002''
+  
+          '
+      idx: '''01''
+  
+          '
+      max_heat_setpoint: '21.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '15.0
+  
+          ...
+  
+          '
+      name: 'Zone 2
+  
+          ...
+  
+          '
+      status: "device_id: 3000002\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 1\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 2\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Scheduled\n      value: 10.0\n    mode:\
+          \ 'Off'\n    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n\
+          \  indoor_humidity_status: NotAvailable\n  indoor_temperature: 20.14\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 21.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 15.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      temperature: '20.14
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.14
+  
+          '
+  '3000003':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
+      config: "device_id: 3000003\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 4\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 3\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Scheduled\n      value: 10.0\n    mode:\
+          \ 'Off'\n    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n\
+          \  indoor_humidity_status: NotAvailable\n  indoor_temperature: 20.72\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 23.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 14.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      id: '''3000003''
+  
+          '
+      idx: '''04''
+  
+          '
+      max_heat_setpoint: '23.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '14.0
+  
+          ...
+  
+          '
+      name: 'Zone 3
+  
+          ...
+  
+          '
+      status: "device_id: 3000003\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 4\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 3\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Scheduled\n      value: 10.0\n    mode:\
+          \ 'Off'\n    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n\
+          \  indoor_humidity_status: NotAvailable\n  indoor_temperature: 20.72\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 23.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 14.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      temperature: '20.72
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.72
+  
+          '
+  '3000004':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
+      config: "device_id: 3000004\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 2\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 4\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Hold\n      value: 10.0\n    mode: 'Off'\n\
+          \    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status:\
+          \ NotAvailable\n  indoor_temperature: 20.37\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 21.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 14.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      id: '''3000004''
+  
+          '
+      idx: '''02''
+  
+          '
+      max_heat_setpoint: '21.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '14.0
+  
+          ...
+  
+          '
+      name: 'Zone 4
+  
+          ...
+  
+          '
+      status: "device_id: 3000004\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 2\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 4\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Hold\n      value: 10.0\n    mode: 'Off'\n\
+          \    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status:\
+          \ NotAvailable\n  indoor_temperature: 20.37\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 21.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 14.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      temperature: '20.37
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.37
+  
+          '
+  '3000005':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
+      config: "device_id: 3000005\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 6\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 5\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Scheduled\n      value: 10.0\n    mode:\
+          \ 'Off'\n    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n\
+          \  indoor_humidity_status: NotAvailable\n  indoor_temperature: 20.74\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 25.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 13.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      id: '''3000005''
+  
+          '
+      idx: '''06''
+  
+          '
+      max_heat_setpoint: '25.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '13.0
+  
+          ...
+  
+          '
+      name: 'Zone 5
+  
+          ...
+  
+          '
+      status: "device_id: 3000005\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 6\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 5\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Scheduled\n      value: 10.0\n    mode:\
+          \ 'Off'\n    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n\
+          \  indoor_humidity_status: NotAvailable\n  indoor_temperature: 20.74\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 25.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 13.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      temperature: '20.74
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.74
+  
+          '
+  '3000006':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
+      config: "device_id: 3000006\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 3\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 6\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Hold\n      value: 10.0\n    mode: 'Off'\n\
+          \    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status:\
+          \ NotAvailable\n  indoor_temperature: 20.94\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 25.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 13.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      id: '''3000006''
+  
+          '
+      idx: '''03''
+  
+          '
+      max_heat_setpoint: '25.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '13.0
+  
+          ...
+  
+          '
+      name: 'Zone 6
+  
+          ...
+  
+          '
+      status: "device_id: 3000006\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 3\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 6\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Hold\n      value: 10.0\n    mode: 'Off'\n\
+          \    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status:\
+          \ NotAvailable\n  indoor_temperature: 20.94\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 25.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 13.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      temperature: '20.94
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.94
+  
+          '
+  '3000007':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
+      config: "device_id: 3000007\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 0\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 7\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Scheduled\n      value: 10.0\n    mode:\
+          \ 'Off'\n    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n\
+          \  indoor_humidity_status: NotAvailable\n  indoor_temperature: 20.6\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 22.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 17.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      id: '''3000007''
+  
+          '
+      idx: '''00''
+  
+          '
+      max_heat_setpoint: '22.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '17.0
+  
+          ...
+  
+          '
+      name: 'Zone 7
+  
+          ...
+  
+          '
+      status: "device_id: 3000007\ndevice_type: 96\ndomain_id: 5555555\ngateway_id:\
+          \ 4444444\nhold_until_capable: false\ninstance: 0\nis_alive: true\nis_upgrading:\
+          \ false\nlocation_id: 1111111\nmac_id: '************'\nname: Zone 7\nschedule_capable:\
+          \ false\nthermostat:\n  allowed_modes:\n  - Heat\n  - 'Off'\n  changeable_values:\n\
+          \    heat_setpoint:\n      status: Scheduled\n      value: 10.0\n    mode:\
+          \ 'Off'\n    vacation_hold_days: 0\n  deadband: 0.0\n  indoor_humidity: 128.0\n\
+          \  indoor_humidity_status: NotAvailable\n  indoor_temperature: 20.6\n  indoor_temperature_status:\
+          \ Measured\n  is_commercial: false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint:\
+          \ 22.0\n  min_cool_setpoint: 50.0\n  min_heat_setpoint: 17.0\n  outdoor_humidity:\
+          \ 128.0\n  outdoor_humidity_status: NotAvailable\n  outdoor_temperature: 128.0\n\
+          \  outdoor_temperature_available: false\n  outdoor_temperature_status: NotAvailable\n\
+          \  outdoot_humidity_available: false\n  schedule_capable: false\n  schedule_cool_sp:\
+          \ 0.0\n  schedule_heat_sp: 0.0\n  units: Celsius\n  vacation_hold_cancelable:\
+          \ false\n  vacation_hold_changeable: false\nthermostat_model_type: EMEA_ZONE\n\
+          thermostat_version: 03.00.10.06\n"
+      temperature: '20.6
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 20.6
+  
+          '
+  
+  '''
+# ---
 # name: test_system_snapshot[minimal][gateway]
   dict({
     'config': '''

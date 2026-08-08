@@ -560,8 +560,8 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     #     raise NotImplementedError("Use EvohomeClient.update() instead.")
 
     @property
-    def weather(self) -> EvoWeatherDictT:
-        return self._status[SZ_WEATHER]
+    def weather(self) -> EvoWeatherDictT | None:
+        return self._status.get(SZ_WEATHER)
 
     def _update_status(self, status: EvoTcsInfoDictT) -> None:
         """Update the LOC's status and cascade to its descendants."""

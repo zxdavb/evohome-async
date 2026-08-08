@@ -1,0 +1,21 @@
+{
+    "userInfo": {
+        "userID": 2222222,
+        "username": "no-reply@redacted.xxx",
+        "firstname": "John",
+        "lastname": "Smith",
+        "streetAddress": "Hoofdstraat East 68",
+        "city": "Vlaardingen",
+        "zipcode": "8471 HP",
+        "country": "NL",
+        "telephone": "",
+        "userLanguage": "en-AU",
+        "isActivated": true,
+        "deviceCount": 0,
+        "tenantID": 5,
+        "securityQuestion1": "NotUsed",
+        "securityQuestion2": "NotUsed",
+        "securityQuestion3": "NotUsed",
+        "latestEulaAccepted": false
+    }
+}
