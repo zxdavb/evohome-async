@@ -358,7 +358,7 @@
     "daylightSavingTimeEnabled": true,
     "timeZone": {
       "id": "W. Europe Standard Time",
-      "displayName": "(U**********************************************************",
+      "displayName": "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna",
       "offsetMinutes": 60,
       "currentOffsetMinutes": 120,
       "usingDaylightSavingTime": true

@@ -4453,7 +4453,7 @@
       street_address: Hoofdstraat East 68
       time_zone:
         current_offset_minutes: 120
-        display_name: (U**********************************************************
+        display_name: (UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
         id: W. Europe Standard Time
         offset_minutes: 60
         using_daylight_saving_time: true
@@ -4835,7 +4835,7 @@
       street_address: Hoofdstraat East 68
       time_zone:
         current_offset_minutes: 120
-        display_name: (U**********************************************************
+        display_name: (UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
         id: W. Europe Standard Time
         offset_minutes: 60
         using_daylight_saving_time: true
@@ -4845,7 +4845,7 @@
     ''',
     'time_zone_info': '''
       current_offset_minutes: 120
-      display_name: (U**********************************************************
+      display_name: (UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
       id: W. Europe Standard Time
       offset_minutes: 60
       using_daylight_saving_time: true
