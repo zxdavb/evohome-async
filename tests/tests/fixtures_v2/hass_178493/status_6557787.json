@@ -1,0 +1,100 @@
+{
+    "locationId": "6557787",
+    "gateways": [
+        {
+            "gatewayId": "6208789",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "8419116",
+                    "zones": [
+                        {
+                            "zoneId": "8419115",
+                            "temperatureStatus": {
+                                "temperature": 25.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 5.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Wo*******"
+                        },
+                        {
+                            "zoneId": "8419159",
+                            "temperatureStatus": {
+                                "temperature": 25.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 5.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Ba******"
+                        },
+                        {
+                            "zoneId": "8419160",
+                            "temperatureStatus": {
+                                "temperature": 24.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 5.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Ka*****"
+                        },
+                        {
+                            "zoneId": "8419161",
+                            "temperatureStatus": {
+                                "temperature": 24.0,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 5.0,
+                                "setpointMode": "PermanentOverride"
+                            },
+                            "name": "Sl**********"
+                        },
+                        {
+                            "zoneId": "8419162",
+                            "temperatureStatus": {
+                                "temperature": 24.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [
+                                {
+                                    "faultType": "TempZoneActuatorLowBattery",
+                                    "since": "2026-08-08T06:29:17"
+                                },
+                                {
+                                    "faultType": "TempZoneSensorLowBattery",
+                                    "since": "2026-08-08T06:29:19"
+                                }
+                            ],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 5.0,
+                                "setpointMode": "FollowSchedule"
+                            },
+                            "name": "Zo**********"
+                        }
+                    ],
+                    "activeFaults": [
+                        {
+                            "faultType": "BoilerServiceRequired",
+                            "since": "2026-06-28T00:02:25"
+                        }
+                    ],
+                    "systemModeStatus": {
+                        "mode": "HeatingOff",
+                        "isPermanent": true
+                    }
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}
