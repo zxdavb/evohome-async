@@ -58,7 +58,7 @@ from .const import (
     TccSystemMode,
     TccZoneMode,
 )
-from .helpers import Case, factory_datetime, factory_enum
+from .helpers import Case, factory_datetime, factory_enum, factory_enum_or_str
 
 
 # GET /location/{loc_id}/status?include... returns this dict
@@ -79,7 +79,8 @@ class TccGwyStatusResponseT(TypedDict):
 
 
 class TccActiveFaultResponseT(TypedDict):
-    faultType: TccFaultType  # "TempZoneSensorCommunicationLost"
+    # the vendor's list is incomplete, so allow str
+    faultType: TccFaultType | str  # "TempZoneSensorCommunicationLost"
     since: str  # #            "2023-10-09T01:45:00", "2023-10-09T01:45:00.123456"
 
 
@@ -142,7 +143,8 @@ def factory_active_faults(case: Case = Case.VENDOR) -> vol.Schema:
 
     return vol.Schema(
         {
-            vol.Required(fnc(S2_FAULT_TYPE)): factory_enum(case, TccFaultType),
+            # the vendor's list of fault types is incomplete, so tolerate unknown values
+            vol.Required(fnc(S2_FAULT_TYPE)): factory_enum_or_str(case, TccFaultType),
             # naive, e.g. "2023-10-09T01:45:00" (some gateways send 7 fractional digits)
             vol.Required(fnc(S2_SINCE)): factory_datetime(case),
         },

@@ -54,6 +54,38 @@ def factory_enum(
     return coerce_enum
 
 
+def factory_enum_or_str(
+    case: Case,
+    tcc_cls: type[StrEnum],
+) -> Callable[[object], StrEnum | str]:
+    """Return a validator for an enum field that tolerates unexpected values.
+
+    As per factory_enum(), except an unexpected value is passed through as a plain
+    str, instead of raising ValueError.
+
+    The casing convention still holds: for Case.PYTHONIC, such a str is snake_case
+    (e.g. "no_such_fault_type"), as it would be if it were a known member.
+
+    The vendor's enums are incompletely documented, so an unknown member must not
+    invalidate the enclosing response: the alternative is to reject the entire
+    payload (see: home-assistant/core#178493).
+    """
+
+    validator = factory_enum(case, tcc_cls)
+
+    def coerce_enum_or_pass_thru(value: object) -> StrEnum | str:
+        if not isinstance(value, str):
+            raise vol.Invalid(f"expected a string, got {value!r}")
+        try:
+            member: StrEnum | str = validator(value)
+        except (ValueError, vol.Invalid):
+            # Keep vendor-case strings untouched, but normalize pythonic values.
+            return value if case is Case.VENDOR else camel_to_snake(value)
+        return member
+
+    return coerce_enum_or_pass_thru
+
+
 def factory_datetime(case: Case) -> Callable[[object], dt | str]:
     """Return a validator for a datetime field, per the casing convention.
 
