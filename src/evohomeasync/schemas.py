@@ -74,6 +74,8 @@ SZ_USER_INFO: Final = "userInfo"
 SZ_USER_LANGUAGE: Final = "userLanguage"
 SZ_USERNAME: Final = "username"
 
+SZ_WEATHER: Final = "weather"
+
 SZ_ZIPCODE: Final = "zipcode"
 
 
@@ -185,7 +187,7 @@ def _factory_location_response(
             vol.Required(fnc("hasStation")): bool,
             vol.Required(fnc(SZ_DEVICES)): [dict],  # TODO: [DeviceResponse]
             vol.Required(fnc("oneTouchButtons")): list,
-            vol.Optional(fnc("weather")): {str: dict},  # WeatherResponse, if hasStation
+            vol.Optional(fnc(SZ_WEATHER)): {str: object},  # WeatherResponse
             vol.Required(fnc("daylightSavingTimeEnabled")): bool,
             vol.Required(fnc("timeZone")): {str: dict},  # TimeZoneResponse
             vol.Required(fnc("oneTouchActionsSuspended")): bool,
