@@ -1,0 +1,224 @@
+[
+    {
+        "locationInfo": {
+            "locationId": "6557787",
+            "name": "Ju******************",
+            "streetAddress": "****** *** ********* **",
+            "city": "***********",
+            "country": "Netherlands",
+            "postcode": "******",
+            "locationType": "Residential",
+            "useDaylightSaveSwitching": true,
+            "timeZone": {
+                "timeZoneId": "WEuropeStandardTime",
+                "displayName": "(U**********************************************************",
+                "offsetMinutes": 60,
+                "currentOffsetMinutes": 120,
+                "supportsDaylightSaving": true
+            },
+            "locationOwner": {
+                "userId": "5427022",
+                "username": "no-reply@redacted.xxx",
+                "firstname": "Ro***",
+                "lastname": "Do******"
+            }
+        },
+        "gateways": [
+            {
+                "gatewayInfo": {
+                    "gatewayId": "6208789",
+                    "mac": "************",
+                    "crc": "****",
+                    "isWiFi": false
+                },
+                "temperatureControlSystems": [
+                    {
+                        "systemId": "8419116",
+                        "modelType": "EvoTouch",
+                        "zones": [
+                            {
+                                "zoneId": "8419115",
+                                "modelType": "HeatingZone",
+                                "setpointCapabilities": {
+                                    "maxHeatSetpoint": 35.0,
+                                    "minHeatSetpoint": 5.0,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:10:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 6,
+                                    "minSwitchpointsPerDay": 1,
+                                    "timingResolution": "00:10:00",
+                                    "setpointValueResolution": 0.5
+                                },
+                                "name": "Wo*******",
+                                "zoneType": "RadiatorZone"
+                            },
+                            {
+                                "zoneId": "8419159",
+                                "modelType": "HeatingZone",
+                                "setpointCapabilities": {
+                                    "maxHeatSetpoint": 35.0,
+                                    "minHeatSetpoint": 5.0,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:10:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 6,
+                                    "minSwitchpointsPerDay": 1,
+                                    "timingResolution": "00:10:00",
+                                    "setpointValueResolution": 0.5
+                                },
+                                "name": "Ba******",
+                                "zoneType": "RadiatorZone"
+                            },
+                            {
+                                "zoneId": "8419160",
+                                "modelType": "HeatingZone",
+                                "setpointCapabilities": {
+                                    "maxHeatSetpoint": 35.0,
+                                    "minHeatSetpoint": 5.0,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:10:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 6,
+                                    "minSwitchpointsPerDay": 1,
+                                    "timingResolution": "00:10:00",
+                                    "setpointValueResolution": 0.5
+                                },
+                                "name": "Ka*****",
+                                "zoneType": "RadiatorZone"
+                            },
+                            {
+                                "zoneId": "8419161",
+                                "modelType": "HeatingZone",
+                                "setpointCapabilities": {
+                                    "maxHeatSetpoint": 35.0,
+                                    "minHeatSetpoint": 5.0,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:10:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 6,
+                                    "minSwitchpointsPerDay": 1,
+                                    "timingResolution": "00:10:00",
+                                    "setpointValueResolution": 0.5
+                                },
+                                "name": "Sl**********",
+                                "zoneType": "RadiatorZone"
+                            },
+                            {
+                                "zoneId": "8419162",
+                                "modelType": "HeatingZone",
+                                "setpointCapabilities": {
+                                    "maxHeatSetpoint": 35.0,
+                                    "minHeatSetpoint": 5.0,
+                                    "valueResolution": 0.5,
+                                    "canControlHeat": true,
+                                    "canControlCool": false,
+                                    "allowedSetpointModes": [
+                                        "PermanentOverride",
+                                        "FollowSchedule",
+                                        "TemporaryOverride"
+                                    ],
+                                    "maxDuration": "1.00:00:00",
+                                    "timingResolution": "00:10:00"
+                                },
+                                "scheduleCapabilities": {
+                                    "maxSwitchpointsPerDay": 6,
+                                    "minSwitchpointsPerDay": 1,
+                                    "timingResolution": "00:10:00",
+                                    "setpointValueResolution": 0.5
+                                },
+                                "name": "Zo**********",
+                                "zoneType": "RadiatorZone"
+                            }
+                        ],
+                        "allowedSystemModes": [
+                            {
+                                "systemMode": "Auto",
+                                "canBePermanent": true,
+                                "canBeTemporary": false
+                            },
+                            {
+                                "systemMode": "AutoWithEco",
+                                "canBePermanent": true,
+                                "canBeTemporary": true,
+                                "maxDuration": "1.00:00:00",
+                                "timingResolution": "01:00:00",
+                                "timingMode": "Duration"
+                            },
+                            {
+                                "systemMode": "AutoWithReset",
+                                "canBePermanent": true,
+                                "canBeTemporary": false
+                            },
+                            {
+                                "systemMode": "Away",
+                                "canBePermanent": true,
+                                "canBeTemporary": true,
+                                "maxDuration": "99.00:00:00",
+                                "timingResolution": "1.00:00:00",
+                                "timingMode": "Period"
+                            },
+                            {
+                                "systemMode": "DayOff",
+                                "canBePermanent": true,
+                                "canBeTemporary": true,
+                                "maxDuration": "99.00:00:00",
+                                "timingResolution": "1.00:00:00",
+                                "timingMode": "Period"
+                            },
+                            {
+                                "systemMode": "HeatingOff",
+                                "canBePermanent": true,
+                                "canBeTemporary": false
+                            },
+                            {
+                                "systemMode": "Custom",
+                                "canBePermanent": true,
+                                "canBeTemporary": true,
+                                "maxDuration": "99.00:00:00",
+                                "timingResolution": "1.00:00:00",
+                                "timingMode": "Period"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
