@@ -69642,6 +69642,153 @@
   
   '''
 # ---
+# name: test_system_snapshot[null_system_1][loc_100000]
+  dict({
+    'config': '''
+      city: '********'
+      country: UnitedKingdom
+      location_id: '100000'
+      location_owner:
+        firstname: John
+        lastname: '********'
+        user_id: '000000'
+        username: no-reply@redacted.xxx
+      location_type: !!python/object/apply:evohomeasync2.const.LocationType
+      - residential
+      name: My Home
+      postcode: '********'
+      street_address: '********'
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        offset_minutes: 0
+        supports_daylight_saving: true
+        time_zone_id: GMTStandardTime
+      use_daylight_save_switching: true
+  
+    ''',
+    'country': '''
+      UnitedKingdom
+      ...
+  
+    ''',
+    'gateway_by_id': '''
+      {}
+  
+    ''',
+    'gateways': '''
+      []
+  
+    ''',
+    'id': '''
+      '100000'
+  
+    ''',
+    'name': '''
+      My Home
+      ...
+  
+    ''',
+    'status': '''
+      location_id: '100000'
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[null_system_2][loc_100000]
+  dict({
+    'config': '''
+      city: '********'
+      country: UnitedKingdom
+      location_id: '100000'
+      location_owner:
+        firstname: John
+        lastname: '********'
+        user_id: '000000'
+        username: no-reply@redacted.xxx
+      location_type: !!python/object/apply:evohomeasync2.const.LocationType
+      - residential
+      name: My Home
+      postcode: '********'
+      street_address: '********'
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        offset_minutes: 0
+        supports_daylight_saving: true
+        time_zone_id: GMTStandardTime
+      use_daylight_save_switching: true
+  
+    ''',
+    'country': '''
+      UnitedKingdom
+      ...
+  
+    ''',
+    'id': '''
+      '100000'
+  
+    ''',
+    'name': '''
+      My Home
+      ...
+  
+    ''',
+    'status': '''
+      location_id: '100000'
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[null_system_2][loc_100000_gwy]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'config': '''
+      crc: '********'
+      gateway_id: '200000'
+      is_wi_fi: true
+      mac: 00D02D123456
+  
+    ''',
+    'id': '''
+      '200000'
+  
+    ''',
+    'mac_address': '''
+      00D02D123456
+      ...
+  
+    ''',
+    'status': '''
+      active_faults: []
+      gateway_id: '200000'
+  
+    ''',
+    'system_by_id': '''
+      {}
+  
+    ''',
+    'systems': '''
+      []
+  
+    ''',
+  })
+# ---
 # name: test_system_snapshot[system_002][loc_2738909]
   dict({
     'config': '''
