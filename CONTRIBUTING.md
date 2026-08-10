@@ -23,11 +23,11 @@ Before opening a PR, **every one** of these commands must pass cleanly:
 ```bash
 ruff check .               # linting — zero warnings
 ruff format --check .      # formatting
-mypy                       # strict type checking
+mypy --strict              # strict type checking
 pytest                     # full test suite
 ```
 
-The cleanest way to do this is to install pre-commit checks - or manually - via prek:
+You should also install the pre-commit checks - or run them manually - via prek:
 
 ```bash
 prek run --all             # run pre-commit tests
@@ -170,6 +170,28 @@ tests/
 The **library** (`_evohome`, `evohomeasync`, `evohomeasync2`) is the published
 deliverable. The CLI is a developer convenience and is explicitly excluded from
 code coverage.
+
+---
+
+## Branch model
+
+```text
+feat/my-change  →  dev  →  main  →  tag  →  PyPI
+```
+
+- **Branch off `dev`, and target `dev`** with your PR. Do not target `main`: it is the release
+  boundary, and only the maintainer merges `dev` → `main`.
+- Both branches are protected. All changes arrive via PR — nobody pushes directly — and
+  `lint-ok`, `test-ok` and `type-ok` must be green before a PR can merge. These are stable
+  sentinel checks; the per-version matrix jobs (`test (3.13.x)` &c.) are not required individually.
+- Feature PRs are **squash-merged**, so a messy branch history is fine — write the PR title as you
+  want it to read in the release notes.
+- Keep your branch up to date with `dev`; a rebase may be needed before merging.
+- Home Assistant integration tests do **not** run on `dev` PRs (they are path-filtered and only
+  run against `main`), so a green `dev` PR does not by itself prove HA compatibility.
+
+The release procedure, PR labels and the merge strategy for `dev` → `main` are documented
+separately in [`.github/RELEASING.md`](.github/RELEASING.md).
 
 ---
 
