@@ -197,7 +197,8 @@ class TccFanMode(StrEnum):
 @verify(EnumCheck.UNIQUE)
 class TccFaultType(StrEnum):  # NOTE: This list is incomplete
     SYS_B_CL = "BoilerCommunicationLost"
-    SYS_B_SR = "BoilerServiceRequired"
+    SYS_B_IF = "BoilerInternalFault"  # only via an Opentherm bridge?
+    SYS_B_SR = "BoilerServiceRequired"  # only via an Opentherm bridge?
     SYS_C_CL = "ChValveCommunicationLost"
     DHW_A_FL = "DHWActuatorFailure"
     # W_A_CL = "DHWActuatorCommunicationLost"  # extrapolated

@@ -82,6 +82,7 @@
         "mqtt",
         "mypy",
         "noqa",
+        "Opentherm",
         "paho",
         "pathlib",
         "prek",
