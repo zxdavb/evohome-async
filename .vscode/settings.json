@@ -2,7 +2,35 @@
     // Editor/project consistency
 
     "editor.rulers": [88, 120], // default: []
-    "files.trimTrailingWhitespace": true, // default: false
+
+    // Trailing whitespace is trimmed per-language (below), not globally: the syrupy
+    // snapshots in tests/tests/__snapshots__/*.ambr carry significant trailing
+    // whitespace inside their triple-quoted payloads, so trimming it fails the
+    // comparison (cf. the disabled end-of-file-fixer in .pre-commit-config.yaml).
+    // Markdown is excluded too - a trailing double-space is a hard line break.
+    "files.trimTrailingWhitespace": false, // default: false
+
+    // The watcher is not .gitignore-aware (unlike search, via search.useIgnoreFiles)
+    "files.watcherExclude": {
+        "**/.mypy_cache/**": true,
+        "**/.pytest_cache/**": true,
+        "**/.ruff_cache/**": true,
+        "**/.venv/**": true,
+        "**/dist/**": true
+    },
+
+    // Python interpreter: always this project's uv-managed venv. Without this, the
+    // machine-level default ("/bin/python3") wins, so nothing gets activated in a
+    // terminal and pyenv's shims resolve `ruff`/`mypy` instead. See README.md.
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python.terminal.activateEnvironment": true, // default: true
+
+    // Lint/type tools must be the venv's, so the editor agrees with CI: ruff honours
+    // required-version >= 0.16, and mypy honours python_version = 3.14 (see CLAUDE.md)
+    "ruff.importStrategy": "fromEnvironment", // default: "fromEnvironment" - explicit
+    "mypy-type-checker.importStrategy": "fromEnvironment", // default: "useBundled"
+    "mypy-type-checker.preferDaemon": true, // default: false - dmypy, much faster
+    "mypy-type-checker.reportingScope": "workspace", // default: "file" - match the CLI
 
     // Python analysis and formatting (project-wide)
     "python.analysis.extraPaths": ["src"],
@@ -17,51 +45,68 @@
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
 
-    // Editor formatting for project files
+    // Editor formatting for project files. There is deliberately no prettier here:
+    // JSON has VS Code's built-in formatter (which, unlike prettier, honours
+    // editor.tabSize - the 4-space vendor fixtures under tests/ must not be
+    // reflowed), redhat.vscode-yaml embeds its own prettier for YAML, and markdown
+    // is hand-formatted (markdownlint lints it, but registers no formatter).
+    // Pinned here rather than left to each contributor's personal formatOnSave, so
+    // that saving a *.py always agrees with `ruff format` / the isort rules in
+    // [tool.ruff.lint.isort]. Note source.fixAll.ruff is deliberately absent: it
+    // would also strip imports you have not finished using yet.
     "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports.ruff": "explicit" // i.e. on ^S, not on autosave
+        },
         "editor.defaultFoldingRangeProvider": "charliermarsh.ruff",
-        "editor.defaultFormatter": "charliermarsh.ruff" // default: undefined
+        "editor.defaultFormatter": "charliermarsh.ruff", // default: undefined
+        "editor.formatOnSave": true, // default: false
+        "files.trimTrailingWhitespace": true
     },
-    "[json][jsonc][markdown][yaml]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode" // default: undefined
+    "[json][jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features" // default: undefined
+    },
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml", // default: undefined
+        "files.trimTrailingWhitespace": true
     },
     "[toml]": {
-        "editor.defaultFormatter": "tamasfe.even-better-toml" // default: undefined
+        "editor.defaultFormatter": "tamasfe.even-better-toml", // default: undefined
+        "files.trimTrailingWhitespace": true
     },
 
     // Spelling settings
     "cSpell.language": "en-GB",
+    // cSpell enables its python dictionary by languageId, so without this, python
+    // vocabulary (asyncio, noqa, pytest, ...) is unknown in .md/.yaml/.toml files
+    "cSpell.dictionaries": ["python"], // default: []
     "cSpell.ignorePaths": [
         ".vscode/**",
-        "src/_evohome/windows_zones.py",
+        "src/_evohome/windows_zones.*", // the .xml is ~200 timezone/city names
+        "tests/tests/fixtures*/**", // real user data & timezones: place names, rarely en-GB
+        "tests/**/__snapshots__/**", // ditto, as serialized into the snapshots
         "pyproject.toml",
     ],
+    // Only words that cSpell's own en-GB/python/software-terms dictionaries lack:
+    // do not add words it already knows (e.g. asyncio, noqa, pytest, timezone)
     "cSpell.words": [
-        "aiofiles",
         "aiohasupervisor",
-        "aiohttp",
         "aioresponses",
         "aiozoneinfo",
         "ambr",
         "asyncclick",
-        "asyncio",
-        "autochangeover",
         "autolabeler",
         "autouse",
         "cancelable",
         "caplog",
-        "codespell",
         "commtask",
-        "conftest",
         "CRED",
         "CREDS",
-        "dataclasses",
-        "datetimes",
         "dayoff",
+        "datetimes",
         "deadband",
         "dehum",
         "dtms",
-        "elif",
         "EMEA",
         "endoflife",
         "evohome",
@@ -69,35 +114,23 @@
         "evohomeclient",
         "evohomeclientv2",
         "falsey",
-        "firstname",
         "gwys",
         "hass",
-        "hassio",
         "heatingoff",
         "homeassistant",
         "hotwater",
-        "lastname",
         "macid",
         "metafunc",
         "mqtt",
-        "mypy",
-        "noqa",
         "Opentherm",
+        "outdoot", // sic: the vendor's own misspelling, in schemas.py & typedefs.py
         "paho",
-        "pathlib",
         "prek",
-        "pycache",
-        "pydantic",
-        "pyproject",
-        "pytest",
         "redef",
-        "Redlink",
         "Resideo",
-        "ruff",
         "searchforcontractors",
         "securityquestion",
         "setpoints",
-        "setpt",
         "somecomfort",
         "streetaddress",
         "switchpoint",
@@ -105,12 +138,7 @@
         "tccna",
         "tcss",
         "testpaths",
-        "timedelta",
-        "timezone",
-        "timimg",
-        "vars",
         "vendored",
-        "venv",
         "websession",
         "Wifi",
         "YMMV"
