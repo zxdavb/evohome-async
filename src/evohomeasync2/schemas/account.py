@@ -11,7 +11,7 @@ The vendor's convention for well-known strings:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final, Literal, TypedDict, overload
+from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict, overload
 
 import probatio as vol
 
@@ -52,7 +52,7 @@ class TccOAuthTokenResponseT(TypedDict):
     access_token: str
     expires_in: int
     refresh_token: str
-    scope: str
+    scope: NotRequired[str]  # "EMEA-V1-Basic EMEA-V1-Anonymous"
     token_type: str
 
 

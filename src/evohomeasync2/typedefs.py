@@ -73,7 +73,7 @@ class EvoAuthTokensResponseT(TypedDict):
     access_token: str
     expires_in: int  # seconds until access token expires
     refresh_token: str
-    scope: str
+    scope: NotRequired[str]  # "EMEA-V1-Basic EMEA-V1-Anonymous"
     token_type: str
 
 
@@ -86,6 +86,14 @@ class EvoUsrAccountResponseT(TypedDict):
     """Response to `GET /userAccount`."""
 
     user_id: str
+    username: str
+    firstname: str
+    lastname: str
+    street_address: str
+    city: str
+    postcode: str
+    country: str
+    language: str
 
 
 # GET Entity Configuration...
@@ -239,8 +247,8 @@ class EvoDhwConfigResponseT(TypedDict):
     """Response to `GET /domesticHotWater/{dhw_id}/...`."""
 
     dhw_id: str
-    # Evohome always includes schedule_capabilities_response,
-    schedule_capabilities_response: NotRequired[EvoDhwScheduleCapabilitiesT]
+    # Evohome always includes schedule_capabilities_response (the schema requires it)
+    schedule_capabilities_response: EvoDhwScheduleCapabilitiesT
     dhw_state_capabilities_response: EvoDhwStateCapabilitiesT  # not EvoDhw*ResponseT
 
 
@@ -427,6 +435,7 @@ class EvoZonScheduleDayOfWeekT(TypedDict):
 
 
 class EvoZonScheduleSwitchpointT(TypedDict):
+    cool_setpoint: NotRequired[float]  # not confirmed; included defensively
     heat_setpoint: float
     time_of_day: str
 
