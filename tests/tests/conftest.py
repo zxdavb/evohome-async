@@ -22,8 +22,7 @@ from .aioresponses import AioResponses, aioresponses
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Generator
 
-    import probatio as vol
-
+    from _evohome.helpers import Validator
     from evohome_cli.auth import TokenCacheManager
 
 
@@ -133,23 +132,23 @@ def zone_schedule_fixture(folder: Path, zon_type: str) -> JsonObjectType:
     )  # type: ignore[return-value]
 
 
-def auth_get(fixture: Path) -> Callable[[Any, str, vol.Schema | None], Any]:
+def auth_get(fixture: Path) -> Callable[[Any, str, Validator[object] | None], Any]:
     """Return a mock of Auth.get() for both v0 and v2 API."""
 
     async def get(  # type: ignore[no-untyped-def]
         self,  # noqa: ANN001
         url: str,
-        schema: vol.Schema | None = None,
-    ) -> JsonArrayType | JsonObjectType:
+        schema: Validator[object] | None = None,
+    ) -> object:
         # "accountInfo"
         if "accountInfo" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
+            return convert_keys_to_snake_case(
                 TCC_GET_USR_INFO(user_info_fixture(fixture)["userInfo"])
             )
 
         # f"locations?userId={usr_id}&allData=True"
         if "locations" in url:
-            return convert_keys_to_snake_case(  # type: ignore[no-any-return]
+            return convert_keys_to_snake_case(
                 TCC_GET_USR_LOCS(user_locs_fixture(fixture))
             )
 

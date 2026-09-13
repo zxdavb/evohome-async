@@ -43,6 +43,7 @@ from _evohome.helpers import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from _evohome.helpers import Validator
 
 # TCC identifiers (Usr, Loc, Gwy, Sys, Zon|Dhw)
 _DhwIdT = NewType("_DhwIdT", int)
@@ -300,10 +301,16 @@ def factory_location_response_list(
 #######################################################################################
 
 
-TCC_FAILURE_RESPONSE: Final = factory_failure_response()
-TCC_GET_USR_INFO: Final = factory_user_account_info_response()
-TCC_GET_USR_LOCS: Final = factory_location_response_list()
-TCC_POST_USR_SESSION: Final = factory_session_response()
+TCC_FAILURE_RESPONSE: Final[Validator[list[TccFailureResponseT]]] = (
+    factory_failure_response()
+)
+TCC_GET_USR_INFO: Final[Validator[TccUserAccountInfoResponseT]] = (
+    factory_user_account_info_response()
+)
+TCC_GET_USR_LOCS: Final[Validator[list[TccLocationResponseT]]] = (
+    factory_location_response_list()
+)
+TCC_POST_USR_SESSION: Final[Validator[TccSessionResponseT]] = factory_session_response()
 
 
 # schema keys (start with a lower case letter)

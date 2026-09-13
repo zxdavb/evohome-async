@@ -15,6 +15,10 @@ if TYPE_CHECKING:
     from datetime import tzinfo
 
 
+# A schema (validator) whose output is known to be of type T, e.g. a TypedDict
+type Validator[T] = Callable[[object], T]
+
+
 # Vendor API datetime format (ISO 8601, UTC, no fractional seconds)
 TCC_DTM_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
 # _TCC_DTM_REGEX: Final = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"

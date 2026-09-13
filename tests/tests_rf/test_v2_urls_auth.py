@@ -31,6 +31,7 @@ from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
     import evohomeasync2 as evo2
+    from evohomeasync2.schemas.status import TccTcsStatusResponseT
     from tests.conftest import EvohomeClientV2
 
 
@@ -199,9 +200,9 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
     # STEP 0: Get/keep the current mode, so we can restore it later
     url = f"{tcs._TCC_TYPE}/{tcs.id}/status"
 
-    old_status: dict[str, Any] = await should_work_v2(
+    old_status: TccTcsStatusResponseT = await should_work_v2(
         evo.auth, HTTPMethod.GET, url, schema=TCC_GET_TCS_STATUS
-    )  # type: ignore[assignment]
+    )
     # {
     #      'systemId': '1234567',
     #      'zones': [...]
@@ -209,7 +210,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
     #      'activeFaults': [],
     # }
 
-    old_mode = {
+    old_mode: dict[str, object] = {
         "systemMode": old_status["systemModeStatus"]["mode"],
         "permanent": old_status["systemModeStatus"]["isPermanent"],
     }

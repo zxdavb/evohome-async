@@ -11,7 +11,7 @@ The vendor's convention for well-known strings:
 
 from __future__ import annotations
 
-from typing import Final, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict, overload
 
 import probatio as vol
 
@@ -29,6 +29,10 @@ from .const import (
     TccDhwState,
 )
 from .helpers import Case, factory_enum
+
+if TYPE_CHECKING:
+    from _evohome.helpers import Validator
+    from evohomeasync2.typedefs import EvoDhwScheduleResponseT, EvoZonScheduleResponseT
 
 #######################################################################################
 # GET/PUT DHW / Zone Schedules...
@@ -66,7 +70,21 @@ class TccZonDailySchedulesT(TypedDict):
 
 #
 # These are returned from vendor's API (GET)...
-def factory_dhw_schedule(case: Case = Case.VENDOR) -> vol.Schema:
+@overload
+def factory_dhw_schedule(case: Literal[Case.VENDOR] = ...) -> Validator[TccDhwDailySchedulesT]: ...
+
+
+@overload
+def factory_dhw_schedule(case: Literal[Case.PYTHONIC]) -> Validator[EvoDhwScheduleResponseT]: ...
+
+
+@overload
+def factory_dhw_schedule(case: Case) -> Validator[TccDhwDailySchedulesT] | Validator[EvoDhwScheduleResponseT]: ...
+
+
+def factory_dhw_schedule(
+    case: Case = Case.VENDOR,
+) -> Validator[TccDhwDailySchedulesT] | Validator[EvoDhwScheduleResponseT]:
     """Factory for the DHW schedule schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
@@ -95,7 +113,21 @@ def factory_dhw_schedule(case: Case = Case.VENDOR) -> vol.Schema:
     )
 
 
-def factory_zon_schedule(case: Case = Case.VENDOR) -> vol.Schema:
+@overload
+def factory_zon_schedule(case: Literal[Case.VENDOR] = ...) -> Validator[TccZonDailySchedulesT]: ...
+
+
+@overload
+def factory_zon_schedule(case: Literal[Case.PYTHONIC]) -> Validator[EvoZonScheduleResponseT]: ...
+
+
+@overload
+def factory_zon_schedule(case: Case) -> Validator[TccZonDailySchedulesT] | Validator[EvoZonScheduleResponseT]: ...
+
+
+def factory_zon_schedule(
+    case: Case = Case.VENDOR,
+) -> Validator[TccZonDailySchedulesT] | Validator[EvoZonScheduleResponseT]:
     """Factory for the zone schedule schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
@@ -139,7 +171,9 @@ TCC_PUT_ZON_SCHEDULE: Final = TCC_GET_ZON_SCHEDULE
 
 
 # for convenience...
-def factory_get_schedule(_: Case = Case.VENDOR) -> vol.Schema:
+def factory_get_schedule(
+    _: Case = Case.VENDOR,
+) -> Validator[TccDhwDailySchedulesT | TccZonDailySchedulesT]:
     """Factory for the schedule schema."""
 
     return vol.Schema(

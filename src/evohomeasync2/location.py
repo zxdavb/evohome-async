@@ -35,7 +35,7 @@ from .typedefs import EvoLocStatusT
 from .zone import EntityBase
 
 if TYPE_CHECKING:
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import EvohomeClient
     from .auth import Auth
@@ -107,8 +107,10 @@ class Location(EntityBase[EvoLocStatusT]):
 
     _TCC_TYPE = TccEntityType.LOC
 
-    SCH_CONFIG: vol.Schema = factory_location_installation_info(Case.PYTHONIC)
-    SCH_STATUS: vol.Schema = factory_loc_status(Case.PYTHONIC)
+    SCH_CONFIG: Validator[EvoLocConfigResponseT] = factory_location_installation_info(
+        Case.PYTHONIC
+    )
+    SCH_STATUS: Validator[EvoLocStatusResponseT] = factory_loc_status(Case.PYTHONIC)
 
     def __init__(
         self,

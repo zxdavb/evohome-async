@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     from datetime import datetime as dt
     from typing import Any
 
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import Gateway, Location
     from .auth import Auth
@@ -77,7 +77,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
 
     _TCC_TYPE = TccEntityType.TCS
 
-    SCH_STATUS: vol.Schema = factory_tcs_status(Case.PYTHONIC)
+    SCH_STATUS: Validator[EvoTcsStatusResponseT] = factory_tcs_status(Case.PYTHONIC)
 
     def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:
         super().__init__(config[SZ_SYSTEM_ID])

@@ -23,7 +23,7 @@ from .zone import ActiveFaultsBase
 if TYPE_CHECKING:
     import logging
 
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import Location
     from .auth import Auth
@@ -35,7 +35,7 @@ class Gateway(ActiveFaultsBase[EvoGwyStatusT]):
 
     _TCC_TYPE = TccEntityType.GWY
 
-    SCH_STATUS: vol.Schema = factory_gwy_status(Case.PYTHONIC)
+    SCH_STATUS: Validator[EvoGwyStatusResponseT] = factory_gwy_status(Case.PYTHONIC)
 
     def __init__(self, location: Location, config: EvoGwyConfigResponseT) -> None:
         super().__init__(config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID])

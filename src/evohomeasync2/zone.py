@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     from datetime import tzinfo
     from typing import TypedDict
 
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import ControlSystem, Location
     from .auth import Auth
@@ -70,6 +70,7 @@ if TYPE_CHECKING:
         EvoZonConfigResponseT,
         EvoZonConfigT,
         EvoZonScheduleCapabilitiesT,
+        EvoZonScheduleResponseT,
         EvoZonSetpointCapabilitiesT,
         EvoZonSetpointStatusT,
     )
@@ -263,7 +264,7 @@ class _ScheduleBase[
 ](ActiveFaultsBase[StatusT]):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    SCH_SCHEDULE: vol.Schema
+    SCH_SCHEDULE: Validator[_DailySchedulesT[DayT]]
 
     _schedule: list[DayT] | None = None
 
@@ -425,7 +426,7 @@ class _ZoneBase[
 ](_ScheduleBase[StatusT, DayT]):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    SCH_STATUS: vol.Schema
+    SCH_STATUS: Validator[StatusT]
 
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id)
@@ -496,8 +497,10 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
     _TCC_TYPE = TccEntityType.ZON
 
-    SCH_SCHEDULE: vol.Schema = factory_zon_schedule(Case.PYTHONIC)
-    SCH_STATUS: vol.Schema = factory_zon_status(Case.PYTHONIC)
+    SCH_SCHEDULE: Validator[EvoZonScheduleResponseT] = factory_zon_schedule(
+        Case.PYTHONIC
+    )
+    SCH_STATUS: Validator[EvoZonStatusResponseT] = factory_zon_status(Case.PYTHONIC)
 
     def __init__(self, tcs: ControlSystem, config: EvoZonConfigResponseT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs)

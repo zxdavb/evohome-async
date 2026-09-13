@@ -11,7 +11,7 @@ The vendor's convention for well-known strings:
 
 from __future__ import annotations
 
-from typing import Final, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict, overload
 
 import probatio as vol
 
@@ -97,6 +97,10 @@ from .const import (
     TccZoneType,
 )
 from .helpers import Case, factory_enum
+
+if TYPE_CHECKING:
+    from _evohome.helpers import Validator
+    from evohomeasync2.typedefs import EvoLocConfigResponseT
 
 # These are best guess, mostly based upon evohome
 _MAX_HEAT_SETPOINT_LOWER: Final = 21.0
@@ -490,9 +494,23 @@ def factory_time_zone(case: Case = Case.VENDOR) -> vol.Schema:
     )
 
 
+@overload
+def factory_location_installation_info(case: Literal[Case.VENDOR] = ...) -> Validator[TccLocConfigResponseT]: ...
+
+
+@overload
+def factory_location_installation_info(case: Literal[Case.PYTHONIC]) -> Validator[EvoLocConfigResponseT]: ...
+
+
+@overload
+def factory_location_installation_info(
+    case: Case,
+) -> Validator[TccLocConfigResponseT] | Validator[EvoLocConfigResponseT]: ...
+
+
 def factory_location_installation_info(
     case: Case = Case.VENDOR,
-) -> vol.Schema:
+) -> Validator[TccLocConfigResponseT] | Validator[EvoLocConfigResponseT]:
     """Factory for the location (config) schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
@@ -532,9 +550,27 @@ def factory_location_installation_info(
     )
 
 
+@overload
+def factory_user_locations_installation_info(
+    case: Literal[Case.VENDOR] = ...,
+) -> Validator[list[TccLocConfigResponseT]]: ...
+
+
+@overload
+def factory_user_locations_installation_info(
+    case: Literal[Case.PYTHONIC],
+) -> Validator[list[EvoLocConfigResponseT]]: ...
+
+
+@overload
+def factory_user_locations_installation_info(
+    case: Case,
+) -> Validator[list[TccLocConfigResponseT]] | Validator[list[EvoLocConfigResponseT]]: ...
+
+
 def factory_user_locations_installation_info(
     case: Case = Case.VENDOR,
-) -> vol.Schema:
+) -> Validator[list[TccLocConfigResponseT]] | Validator[list[EvoLocConfigResponseT]]:
     """Factory for the user locations (config) schema."""
 
     return vol.Schema(

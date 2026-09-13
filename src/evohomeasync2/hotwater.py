@@ -34,15 +34,17 @@ from .zone import _ZoneBase
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import ControlSystem
     from .typedefs import (
         EvoDhwConfigResponseT,
         EvoDhwConfigT,
         EvoDhwScheduleCapabilitiesT,
+        EvoDhwScheduleResponseT,
         EvoDhwStateCapabilitiesT,
         EvoDhwStateStatusT,
+        EvoDhwStatusResponseT,
         EvoSetDhwStateT,
     )
 
@@ -52,8 +54,10 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
     _TCC_TYPE = TccEntityType.DHW
 
-    SCH_SCHEDULE: vol.Schema = factory_dhw_schedule(Case.PYTHONIC)
-    SCH_STATUS: vol.Schema = factory_dhw_status(Case.PYTHONIC)
+    SCH_SCHEDULE: Validator[EvoDhwScheduleResponseT] = factory_dhw_schedule(
+        Case.PYTHONIC
+    )
+    SCH_STATUS: Validator[EvoDhwStatusResponseT] = factory_dhw_status(Case.PYTHONIC)
 
     def __init__(self, tcs: ControlSystem, config: EvoDhwConfigResponseT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs)
