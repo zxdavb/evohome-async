@@ -5,11 +5,20 @@ from __future__ import annotations
 from datetime import datetime as dt
 from enum import StrEnum
 
+import probatio as vol
 import pytest
 
 from _evohome.helpers import camel_to_snake
 from evohomeasync2.const import SZ_FAULT_TYPE, SZ_SINCE, FaultType as EvoFaultType
-from evohomeasync2.schemas.const import S2_FAULT_TYPE, TccFaultType
+from evohomeasync2.schemas.const import (
+    REGEX_DHW_ID,
+    REGEX_GATEWAY_ID,
+    REGEX_LOCATION_ID,
+    REGEX_SYSTEM_ID,
+    REGEX_ZONE_ID,
+    S2_FAULT_TYPE,
+    TccFaultType,
+)
 from evohomeasync2.schemas.helpers import Case
 from evohomeasync2.schemas.status import factory_active_faults
 
@@ -74,3 +83,31 @@ def test_factory_active_faults(
 
     else:  # is an unknown value: a plain str, and not an enum member
         assert not isinstance(result[key], StrEnum)
+
+
+@pytest.mark.parametrize(
+    "regex",
+    [REGEX_DHW_ID, REGEX_GATEWAY_ID, REGEX_LOCATION_ID, REGEX_SYSTEM_ID, REGEX_ZONE_ID],
+    ids=["dhw", "gateway", "location", "system", "zone"],
+)
+@pytest.mark.parametrize(
+    ("value", "is_valid"),
+    [
+        ("1234567", True),
+        ("", False),
+        ("not-an-id", False),
+        ("123abc", False),
+        ("abc123", False),
+        ("1234567\n", False),
+    ],
+)
+def test_regex_entity_ids(regex: str, value: str, *, is_valid: bool) -> None:
+    """Test an entity ID must be wholly numeric (vol.Match anchors only at the start)."""
+
+    schema = vol.Schema(vol.Match(regex))
+
+    if is_valid:
+        assert schema(value) == value
+    else:
+        with pytest.raises(vol.Invalid):
+            schema(value)
