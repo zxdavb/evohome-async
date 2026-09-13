@@ -1,7 +1,7 @@
 """Shared constants for the vendor's TCC v2 API.
 
 These TypedDict & StrEnums serve as documentation of the vendor's API, even if they are
-unused by this library. There are corresponding factory functions for the voluptuous
+unused by this library. There are corresponding factory functions for the probatio
 schemas, which can be used to validate/coerce the vendor's responses.
 
 The vendor's convention for well-known strings:
@@ -278,7 +278,7 @@ class TccZoneType(StrEnum):
     ZONE_VALVES = "ZoneValves"  # is not ZoneValve
 
 
-# Non-API constants used internally by this module and the voluptuous schemas.
+# Non-API constants used internally by this module and the probatio schemas.
 
 REGEX_DHW_ID: Final = r"[0-9]*"
 REGEX_GATEWAY_ID: Final = r"[0-9]*"

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime as dt, timedelta as td, timezone as tz
 
+import probatio as vol
 import pytest
-import voluptuous as vol
 
 from _evohome.helpers import as_aware_dtm, convert_dtms_to_utc_str
 from evohomeasync2 import BadApiRequestError

@@ -10,7 +10,7 @@ exception as it natively returns snake_case.
 JSON value StrEnums (Tcc*) use PascalCase, except for TccEntityType, which is
 camelCase, and is used for URL construction.
 
-The voluptuous schemas (TCC_*) are derived from those TypedDicts and serve a different
+The probatio schemas (TCC_*) are derived from those TypedDicts and serve a different
 purpose: runtime validation and coercion of the data returned by the API endpoints.
 
 Installation (of a user Account)
