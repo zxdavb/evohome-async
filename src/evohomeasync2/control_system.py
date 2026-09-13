@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     from datetime import datetime as dt
     from typing import Any
 
-    import voluptuous as vol
+    import probatio as vol
 
     from . import Gateway, Location
     from .auth import Auth

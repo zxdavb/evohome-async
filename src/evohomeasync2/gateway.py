@@ -23,7 +23,7 @@ from .zone import ActiveFaultsBase
 if TYPE_CHECKING:
     import logging
 
-    import voluptuous as vol
+    import probatio as vol
 
     from . import Location
     from .auth import Auth

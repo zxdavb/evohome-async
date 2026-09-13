@@ -26,16 +26,13 @@ import urllib.request
 from pathlib import Path
 
 # runtime deps that must track HA's pins; see [project.dependencies]
-TRACKED = ("aiohttp", "aiozoneinfo")
+TRACKED = ("aiohttp", "aiozoneinfo", "probatio")
 
-# Runtime deps HA no longer pins, so there is no pin for us to track. HA 2026.9.0
-# replaced voluptuous with `probatio` (a clean-room, API-compatible reimplementation)
-# and aliases it into sys.modules via `install_as_voluptuous()` in homeassistant/
-# __init__.py — so under HA our `import voluptuous` *is* probatio, and our schemas are
-# validated by it: see home-assistant/core#175128. The real package survives in an HA
-# env only as an unpinned transitive dep of annotatedyaml (`>0.15`) and hass-nabucasa
-# (`>=0.15`) — ranges our floor cannot conflict with. Warn if HA pins one again.
-UNPINNED = ("voluptuous",)
+# Runtime deps HA no longer pins, so there is no pin for us to track. None at present:
+# HA 2026.9.0 replaced voluptuous with `probatio` (a clean-room, API-compatible
+# reimplementation; see home-assistant/core#175128), which it pins exactly, and this
+# library now imports probatio directly — so it is TRACKED, above.
+UNPINNED: tuple[str, ...] = ()
 
 STABLE = "master"  # HA cuts releases from master; dev is the next release
 DEV = "dev"

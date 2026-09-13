@@ -7,7 +7,7 @@ import re
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, TypeVar
 
-import voluptuous as vol
+import probatio as vol
 
 from evohomeasync2.schemas import const as sch
 from evohomeasync2.schemas.schedule import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE

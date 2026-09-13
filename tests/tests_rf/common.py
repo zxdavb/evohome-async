@@ -21,7 +21,7 @@ from tests.const import (
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-    import voluptuous as vol
+    import probatio as vol
 
     from tests.conftest import EvohomeClientV2
 

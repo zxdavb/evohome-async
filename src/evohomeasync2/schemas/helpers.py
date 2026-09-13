@@ -6,7 +6,7 @@ from datetime import datetime as dt
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-import voluptuous as vol
+import probatio as vol
 
 from _evohome.helpers import camel_to_snake
 
@@ -36,7 +36,7 @@ def factory_enum(
     For Case.PYTHONIC, coerces the vendor value (e.g. "Auto") to the matching
     user-facing enum member (e.g. SystemMode.AUTO).
 
-    An unexpected value raises ValueError, which voluptuous reports as vol.Invalid.
+    An unexpected value raises ValueError, which probatio reports as vol.Invalid.
     """
 
     if case is Case.VENDOR:

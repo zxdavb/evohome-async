@@ -36,7 +36,7 @@ async def test_get_session_id(
 
     def server_response() -> dict[str, dict[str, Any] | str]:
         """Return the server response to a valid authorization request."""
-        # "payload may be invalid: required key not provided @ data['userInfo']['xxx']"
+        # "payload may be invalid: required key not provided at 'userInfo.xxx'"
         return {"sessionId": str(uuid.uuid4()), "userInfo": {}}
 
     # start with an empty cache

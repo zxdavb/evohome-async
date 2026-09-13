@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from typing import TYPE_CHECKING, Any, Final, TypedDict
 
-import voluptuous as vol
+import probatio as vol
 
 from _evohome.auth import AbstractAuth
 from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS

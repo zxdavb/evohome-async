@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     from datetime import tzinfo
     from typing import TypedDict
 
-    import voluptuous as vol
+    import probatio as vol
 
     from . import ControlSystem, Location
     from .auth import Auth

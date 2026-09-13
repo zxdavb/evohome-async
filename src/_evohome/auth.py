@@ -9,7 +9,7 @@ from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
 import aiohttp
-import voluptuous as vol
+import probatio as vol
 
 from . import exceptions as exc
 from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME

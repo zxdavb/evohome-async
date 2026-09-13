@@ -509,7 +509,7 @@ class EvoDhwStatusT(EvoDhwStatusResponseT):
 
 
 #######################################################################################
-# Pythonic voluptuous schemas...
+# Pythonic probatio schemas...
 #
 # These validate the JSON returned by the vendor API (after its keys have been
 # converted to snake_case by AbstractAuth.request) and coerce the enum string values

@@ -34,7 +34,7 @@ from .zone import _ZoneBase
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    import voluptuous as vol
+    import probatio as vol
 
     from . import ControlSystem
     from .typedefs import (

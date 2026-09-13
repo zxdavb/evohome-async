@@ -48,7 +48,7 @@
     },
     {
       "description": "Runtime deps must stay compatible with HA — managed manually, not by Renovate",
-      "matchPackageNames": ["aiohttp", "aiozoneinfo", "voluptuous"],
+      "matchPackageNames": ["aiohttp", "aiozoneinfo", "probatio"],
       "enabled": false
     }
   ],
