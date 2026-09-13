@@ -22,7 +22,7 @@ from .aioresponses import AioResponses, aioresponses
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Generator
 
-    import voluptuous as vol
+    import probatio as vol
 
     from evohome_cli.auth import TokenCacheManager
 

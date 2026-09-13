@@ -1,7 +1,7 @@
 """Schema for the vendor's TCC v2 API - for GET status of Location.
 
 These TypedDict & StrEnums serve as documentation of the vendor's API, even if they are
-unused by this library. There are corresponding factory functions for the voluptuous
+unused by this library. There are corresponding factory functions for the probatio
 schemas, which can be used to validate/coerce the vendor's responses.
 
 The vendor's convention for well-known strings:
@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Final, NotRequired, TypedDict
 
-import voluptuous as vol
+import probatio as vol
 
 from _evohome.helpers import camel_to_snake, noop
 

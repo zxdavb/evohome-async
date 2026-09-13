@@ -28,7 +28,7 @@ exception hierarchy are in that file.
 
 - `snake_case` names, `UPPER_SNAKE_CASE` constants, `_prefixed` privates.
 - `from datetime import datetime as dt, timedelta as td`
-- `import voluptuous as vol`
+- `import probatio as vol`
 - Type annotations required everywhere (near-strict mypy).
 - `TypedDict` for structured dicts, not `dict[str, Any]`.
 - Logging via `_LOGGER`, never `print()` (except CLI `client.py`).

@@ -14,7 +14,7 @@ import yaml
 from freezegun.api import FakeDatetime  # to check schedules, setpoints
 
 if TYPE_CHECKING:
-    import voluptuous as vol
+    import probatio as vol
 
 
 def assert_schema(folder: Path, schema: vol.Schema, file_name: str) -> None:

@@ -1,7 +1,7 @@
 """Schema for the vendor's TCC v0 API.
 
 These TypedDict & StrEnums serve as documentation of the vendor's API, even if they are
-unused by this library. There are corresponding factory functions for the voluptuous
+unused by this library. There are corresponding factory functions for the probatio
 schemas, which can be used to validate/coerce the vendor's responses.
 
 A key is vol.Required only if this library references it: any key we do not need is
@@ -32,7 +32,7 @@ from __future__ import annotations
 from enum import EnumCheck, StrEnum, verify
 from typing import TYPE_CHECKING, Any, Final, NewType, NotRequired, TypedDict
 
-import voluptuous as vol
+import probatio as vol
 
 from _evohome.helpers import (
     TCC_DTM_STRFTIME as TCC_DTM_STRFTIME,  # noqa: PLC0414

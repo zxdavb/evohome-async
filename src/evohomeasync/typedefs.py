@@ -1,6 +1,6 @@
 """evohomeasync schema - shared types.
 
-These mirror the voluptuous schemas in schemas.py (after their keys are converted to
+These mirror the probatio schemas in schemas.py (after their keys are converted to
 snake_case), and so a key is NotRequired here whenever it is vol.Optional there: that
 is, whenever this library does not need it. This is deliberately not the same thing as
 the vendor omitting it - the Tcc*T typed dicts remain the record of the vendor's API.

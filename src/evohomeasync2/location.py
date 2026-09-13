@@ -35,7 +35,7 @@ from .typedefs import EvoLocStatusT
 from .zone import EntityBase
 
 if TYPE_CHECKING:
-    import voluptuous as vol
+    import probatio as vol
 
     from . import EvohomeClient
     from .auth import Auth
