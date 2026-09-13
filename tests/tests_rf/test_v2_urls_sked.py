@@ -21,10 +21,7 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import get_dhw, should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas.schedule import (
-        TccDhwDailySchedulesT,
-        TccZonDailySchedulesT,
-    )
+    from evohomeasync2.schemas.schedule import TccZonDailySchedulesT
     from tests.conftest import EvohomeClientV2
 
 
@@ -226,9 +223,8 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
 
     #
     # GET without schema so we capture whatever the server actually sends back
-    schedule: TccZonDailySchedulesT = await should_work_v2(  # type: ignore[assignment]
-        evo.auth, HTTPMethod.GET, url
-    )
+    schedule = await should_work_v2(evo.auth, HTTPMethod.GET, url)
+    assert isinstance(schedule, dict)  # mypy
 
     # an example of the expected response:
     """
@@ -275,9 +271,8 @@ async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
 
     #
     # GET without schema so we capture whatever the server actually sends back
-    schedule: TccDhwDailySchedulesT = await should_work_v2(  # type: ignore[assignment]
-        evo.auth, HTTPMethod.GET, url
-    )
+    schedule = await should_work_v2(evo.auth, HTTPMethod.GET, url)
+    assert isinstance(schedule, dict)  # mypy
 
     # an example of the expected response:
     """

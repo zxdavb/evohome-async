@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -75,12 +75,13 @@ async def _test_user_locations(evo: EvohomeClientV2) -> None:
 
     # TODO: can't use .update(); in any case, should use URLs only
     url = "userAccount"
-    user_info: dict[str, Any] = await should_work_v2(
+    user_info = await should_work_v2(
         evo.auth,
         HTTPMethod.GET,
         url,
         schema=None,  # schema not re-tested here
-    )  # type: ignore[assignment]
+    )
+    assert isinstance(user_info, dict)  # mypy
 
     #
     url = f"location/installationInfo?userId={user_info['userId']}"
