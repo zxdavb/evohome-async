@@ -10,8 +10,12 @@ must equal those pins:
 So the floors track HA stable (the `master` branch, which is the latest release);
 `dev` is read only to give advance warning of a bump that is coming.
 
-Only the deps in TRACKED are checked — dev/test deps are Renovate's business.
-Exits non-zero if a floor no longer matches HA stable's pin.
+Only the deps in TRACKED are checked — dev/test deps are Renovate's business. A dep
+HA no longer pins exactly belongs in UNPINNED instead: with no `==` to satisfy, our
+floor cannot make the library uninstallable under HA, so it is ours to choose. Those
+deps are only watched, in case HA pins them again.
+
+Exits non-zero if a TRACKED floor no longer matches HA stable's pin.
 """
 
 import logging
@@ -22,7 +26,16 @@ import urllib.request
 from pathlib import Path
 
 # runtime deps that must track HA's pins; see [project.dependencies]
-TRACKED = ("aiohttp", "aiozoneinfo", "voluptuous")
+TRACKED = ("aiohttp", "aiozoneinfo")
+
+# Runtime deps HA no longer pins, so there is no pin for us to track. HA 2026.9.0
+# replaced voluptuous with `probatio` (a clean-room, API-compatible reimplementation)
+# and aliases it into sys.modules via `install_as_voluptuous()` in homeassistant/
+# __init__.py — so under HA our `import voluptuous` *is* probatio, and our schemas are
+# validated by it: see home-assistant/core#175128. The real package survives in an HA
+# env only as an unpinned transitive dep of annotatedyaml (`>0.15`) and hass-nabucasa
+# (`>=0.15`) — ranges our floor cannot conflict with. Warn if HA pins one again.
+UNPINNED = ("voluptuous",)
 
 STABLE = "master"  # HA cuts releases from master; dev is the next release
 DEV = "dev"
@@ -128,15 +141,23 @@ def main() -> None:
             _LOGGER.info("%s: >=%s matches HA's pin", name, floor)
 
         if (ahead := dev.get(name)) and version_key(ahead) > version_key(pin):
-            warnings.append(f"`{name}`: HA dev is on `=={ahead}` (stable `=={pin}`)")
+            warnings.append(
+                f"`{name}`: HA dev is on `=={ahead}` (stable `=={pin}`) — a bump is coming"
+            )
+
+    warnings.extend(
+        f"`{name}`: HA pins `=={pin}` again — move it to TRACKED?"
+        for name in map(normalise, UNPINNED)
+        if (pin := stable.get(name))
+    )
 
     for warning in warnings:
-        _LOGGER.warning("A bump is coming — %s", warning)
+        _LOGGER.warning("%s", warning)
 
     write_summary(
         [f"### Runtime deps vs Home Assistant {version}", ""]
         + [f"- ❌ {line}" for line in mismatches]
-        + [f"- ⚠️ {line} — a bump is coming" for line in warnings]
+        + [f"- ⚠️ {line}" for line in warnings]
         + ([] if mismatches else ["- ✅ all tracked floors match HA stable"])
     )
 
