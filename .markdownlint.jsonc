@@ -1,0 +1,8 @@
+// Rules for DavidAnson.vscode-markdownlint (see .vscode/extensions.json).
+// Nothing gates markdown in CI, so this exists to keep the editor's warnings
+// signal rather than noise: the two rules below account for 283 of the 284
+// violations, and neither reflects a defect in these docs.
+{
+  "MD013": false, // line-length: prose is one-sentence-per-line, up to 241 chars
+  "MD060": false  // table-column-style: the tables are not padded to a grid
+}

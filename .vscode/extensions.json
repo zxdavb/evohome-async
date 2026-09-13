@@ -2,12 +2,24 @@
   "recommendations": [
     "charliermarsh.ruff",
     "DavidAnson.vscode-markdownlint",
-    "esbenp.prettier-vscode",
-    "matangover.mypy-type-checker",
+    "github.vscode-github-actions",
+    "ms-python.mypy-type-checker",
     "ms-python.python",
     "redhat.vscode-yaml",
     "streetsidesoftware.code-spell-checker",
-    "tamasfe.even-better-toml",
-    // "yzhang.markdown-all-in-one"
+    "tamasfe.even-better-toml"
+  ],
+
+  // This project lints & formats with ruff alone: black/flake8/isort/pylint would
+  // double up, with conflicting diagnostics and formatters (see pyproject.toml,
+  // [tool.ruff]). Prettier is superfluous - redhat.vscode-yaml embeds its own, and
+  // JSON has VS Code's built-in - and VS Code would otherwise suggest it, given all
+  // the .json/.yaml/.md here. See the note on [json] in settings.json.
+  "unwantedRecommendations": [
+    "esbenp.prettier-vscode",
+    "ms-python.black-formatter",
+    "ms-python.flake8",
+    "ms-python.isort",
+    "ms-python.pylint"
   ]
 }

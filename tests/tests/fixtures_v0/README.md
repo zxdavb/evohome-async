@@ -30,6 +30,7 @@ token that should never be hardcoded in test fixtures.
 ## PII policy
 
 All personally identifiable data has been removed or replaced:
+
 - Names → `"John"` / `"Smith"`
 - Usernames → `"user_{userId}@gmail.com"`
 - Addresses → `"1 Main Street"` / city from timezone
