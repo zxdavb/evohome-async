@@ -11,7 +11,7 @@ maintainers = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
 dependencies = [
   "aiohttp>=3.14.3",
   "aiozoneinfo>=0.2.3",
-  "voluptuous>=0.15.2",
+  "voluptuous>=0.15.2",  # unpinned by HA (which runs probatio), so this floor is ours
 ]  # floors must equal HA's pins; see .github/scripts/check-hass-pins.py
 requires-python = ">=3.13"  # also see: 'python_version', below
 license = "Apache-2.0"
