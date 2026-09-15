@@ -545,6 +545,10 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     @cached_property
     def schedule_capabilities(self) -> EvoZonScheduleCapabilitiesT | None:
         """
+        Return the schedule capabilities of the heating zone (never None for Evohome).
+
+        This key may be absent for some FocusProWifi* systems.
+
         "scheduleCapabilities": {
             "maxSwitchpointsPerDay": 6,
             "minSwitchpointsPerDay": 1,
@@ -553,7 +557,6 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         }
         """
 
-        # key is always present for Evohome, but can be absent for FocusProWifiRetail
         return self._config.get(SZ_SCHEDULE_CAPABILITIES)
 
     @property

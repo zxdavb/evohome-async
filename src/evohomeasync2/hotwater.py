@@ -82,6 +82,10 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
     @cached_property
     def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesT | None:
         """
+        Return the schedule capabilities of the DHW zone (never None for Evohome).
+
+        This key may be absent for some FocusProWifi* systems.
+
         "scheduleCapabilitiesResponse": {
           "maxSwitchpointsPerDay": 6,
           "minSwitchpointsPerDay": 1,
@@ -89,7 +93,6 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         }
         """
 
-        # key is always present for Evohome, but can be absent for FocusProWifiRetail?
         return self._config.get(SZ_SCHEDULE_CAPABILITIES_RESPONSE)
 
     @cached_property  # NOTE: is not dhw_state_capabilities
