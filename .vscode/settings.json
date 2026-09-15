@@ -125,7 +125,7 @@
         "mqtt",
         "nabucasa",
         "Opentherm",
-        "outdoot", // sic: the vendor's own misspelling, in schemas.py & typedefs.py
+        "outdoot",
         "paho",
         "prek",
         "probatio",
@@ -141,6 +141,7 @@
         "tccna",
         "tcss",
         "testpaths",
+        "typeddicts",
         "uninstallable",
         "vendored",
         "websession",

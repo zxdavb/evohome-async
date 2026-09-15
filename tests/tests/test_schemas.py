@@ -152,6 +152,31 @@ def _differences(
     return result
 
 
+# v0: factory_*(camel_to_snake) and its Evo*DictT - the v0 Tcc*T are not compared, as
+# the v0 schemas deliberately don't require keys that this library doesn't use
+V0_SCHEMAS: dict[str, tuple[Callable[[Callable[[str], str]], object], object]] = {
+    "failure": (sch0.factory_failure_response, evo0.EvoFailureDictT),
+    "account_info": (
+        sch0.factory_user_account_info_response,
+        evo0.EvoUserAccountInfoDictT,
+    ),
+    "session": (sch0.factory_session_response, evo0.EvoSessionDictT),
+    "locations": (sch0.factory_location_response_list, evo0.EvoTcsInfoDictT),
+}
+
+
+@pytest.mark.parametrize("name", V0_SCHEMAS)
+def test_v0_pythonic_typeddicts(name: str) -> None:
+    """Test the v0 schemas (with snake_case keys) agree with their Evo*DictT."""
+
+    factory, evo_type = V0_SCHEMAS[name]
+
+    diffs = _differences(
+        _schema_shape(factory(camel_to_snake)), _typeddict_shape(evo_type, _NS_V0)
+    )
+    assert not diffs, "\n".join(diffs)
+
+
 # v2: factory_*(case), its Tcc*T (Case.VENDOR) and its Evo*T (Case.PYTHONIC), if any
 V2_SCHEMAS: dict[str, tuple[Callable[[Case], object], object, object]] = {
     "loc_status": (
@@ -246,17 +271,17 @@ V2_SCHEMAS: dict[str, tuple[Callable[[Case], object], object, object]] = {
     ),
 }
 
-# v0: factory_*(camel_to_snake) and its Evo*DictT - the v0 Tcc*T are not compared, as
-# the v0 schemas deliberately don't require keys that this library doesn't use
-V0_SCHEMAS: dict[str, tuple[Callable[[Callable[[str], str]], object], object]] = {
-    "failure": (sch0.factory_failure_response, evo0.EvoFailureDictT),
-    "account_info": (
-        sch0.factory_user_account_info_response,
-        evo0.EvoUserAccountInfoDictT,
-    ),
-    "session": (sch0.factory_session_response, evo0.EvoSessionDictT),
-    "locations": (sch0.factory_location_response_list, evo0.EvoTcsInfoDictT),
-}
+
+@pytest.mark.parametrize("name", [k for k, v in V2_SCHEMAS.items() if v[2] is not None])
+def test_v2_pythonic_typeddicts(name: str) -> None:
+    """Test the v2 pythonic schemas (snake_case keys) agree with their Evo*T."""
+
+    factory, _, evo_type = V2_SCHEMAS[name]
+
+    diffs = _differences(
+        _schema_shape(factory(Case.PYTHONIC)), _typeddict_shape(evo_type, _NS_V2_EVO)
+    )
+    assert not diffs, "\n".join(diffs)
 
 
 @pytest.mark.parametrize("name", V2_SCHEMAS)
@@ -271,30 +296,6 @@ def test_v2_vendor_typeddicts(name: str) -> None:
     assert not diffs, "\n".join(diffs)
 
 
-@pytest.mark.parametrize("name", [k for k, v in V2_SCHEMAS.items() if v[2] is not None])
-def test_v2_pythonic_typeddicts(name: str) -> None:
-    """Test the v2 pythonic schemas (snake_case keys) agree with their Evo*T."""
-
-    factory, _, evo_type = V2_SCHEMAS[name]
-
-    diffs = _differences(
-        _schema_shape(factory(Case.PYTHONIC)), _typeddict_shape(evo_type, _NS_V2_EVO)
-    )
-    assert not diffs, "\n".join(diffs)
-
-
-@pytest.mark.parametrize("name", V0_SCHEMAS)
-def test_v0_typeddicts(name: str) -> None:
-    """Test the v0 schemas (with snake_case keys) agree with their Evo*DictT."""
-
-    factory, evo_type = V0_SCHEMAS[name]
-
-    diffs = _differences(
-        _schema_shape(factory(camel_to_snake)), _typeddict_shape(evo_type, _NS_V0)
-    )
-    assert not diffs, "\n".join(diffs)
-
-
 # the vendor's JSON (fixtures), and the schema built from the TypedDict it should match
 FIXTURE_TYPEDDICTS: dict[str, vol.Schema] = {
     "user_account.json": vol.TypedDictSchema(account.TccUsrAccountResponseT),
@@ -304,6 +305,7 @@ FIXTURE_TYPEDDICTS: dict[str, vol.Schema] = {
     "status_*.json": vol.TypedDictSchema(status.TccLocStatusResponseT),
     "schedule_dhw.json": vol.TypedDictSchema(schedule.TccDhwDailySchedulesT),
     "schedule_zone.json": vol.TypedDictSchema(schedule.TccZonDailySchedulesT),
+    "schedule_[0-9]*.json": vol.TypedDictSchema(schedule.TccZonDailySchedulesT),
 }
 
 
