@@ -1,7 +1,7 @@
 [
   {
     "locationInfo": {
-      "locationId": "100000",
+      "locationId": "4001006",
       "name": "My Home",
       "streetAddress": "1 Main Street",
       "city": "London",
@@ -17,8 +17,8 @@
         "supportsDaylightSaving": true
       },
       "locationOwner": {
-        "userId": "000000",
-        "username": "no_one@nowhere.invalid",
+        "userId": "4000021",
+        "username": "user_4000021@gmail.com",
         "firstname": "John",
         "lastname": "Smith"
       }
@@ -26,10 +26,10 @@
     "gateways": [
       {
         "gatewayInfo": {
-          "gatewayId": "200000",
-          "mac": "00D02D123456",
+          "gatewayId": "4002006",
+          "mac": "000000000000",
           "crc": "0000",
-          "isWiFi": true
+          "isWiFi": false
         },
         "temperatureControlSystems": []
       }

@@ -69642,16 +69642,16 @@
   
   '''
 # ---
-# name: test_system_snapshot[null_system_1][loc_100000]
+# name: test_system_snapshot[null_system_1][loc_4001005]
   dict({
     'config': '''
       city: '********'
       country: UnitedKingdom
-      location_id: '100000'
+      location_id: '4001005'
       location_owner:
         firstname: John
         lastname: '********'
-        user_id: '000000'
+        user_id: '4000020'
         username: no-reply@redacted.xxx
       location_type: !!python/object/apply:evohomeasync2.const.LocationType
       - residential
@@ -69681,7 +69681,7 @@
   
     ''',
     'id': '''
-      '100000'
+      '4001005'
   
     ''',
     'name': '''
@@ -69690,7 +69690,7 @@
   
     ''',
     'status': '''
-      location_id: '100000'
+      location_id: '4001005'
   
     ''',
     'tzinfo': '''
@@ -69701,16 +69701,16 @@
     ''',
   })
 # ---
-# name: test_system_snapshot[null_system_2][loc_100000]
+# name: test_system_snapshot[null_system_2][loc_4001006]
   dict({
     'config': '''
       city: '********'
       country: UnitedKingdom
-      location_id: '100000'
+      location_id: '4001006'
       location_owner:
         firstname: John
         lastname: '********'
-        user_id: '000000'
+        user_id: '4000021'
         username: no-reply@redacted.xxx
       location_type: !!python/object/apply:evohomeasync2.const.LocationType
       - residential
@@ -69732,7 +69732,7 @@
   
     ''',
     'id': '''
-      '100000'
+      '4001006'
   
     ''',
     'name': '''
@@ -69741,7 +69741,7 @@
   
     ''',
     'status': '''
-      location_id: '100000'
+      location_id: '4001006'
   
     ''',
     'tzinfo': '''
@@ -69752,7 +69752,7 @@
     ''',
   })
 # ---
-# name: test_system_snapshot[null_system_2][loc_100000_gwy]
+# name: test_system_snapshot[null_system_2][loc_4001006_gwy]
   dict({
     'active_faults': '''
       !!python/tuple []
@@ -69760,23 +69760,22 @@
     ''',
     'config': '''
       crc: '********'
-      gateway_id: '200000'
-      is_wi_fi: true
-      mac: 00D02D123456
+      gateway_id: '4002006'
+      is_wi_fi: false
+      mac: '000000000000'
   
     ''',
     'id': '''
-      '200000'
+      '4002006'
   
     ''',
     'mac_address': '''
-      00D02D123456
-      ...
+      '000000000000'
   
     ''',
     'status': '''
       active_faults: []
-      gateway_id: '200000'
+      gateway_id: '4002006'
   
     ''',
     'system_by_id': '''
@@ -77035,150 +77034,4 @@
           '
   
   '''
-# ---
-# name: test_system_snapshot[system_007][loc_4001003]
-  dict({
-    'config': '''
-      city: '********'
-      country: UnitedKingdom
-      location_id: '4001003'
-      location_owner:
-        firstname: John
-        lastname: '********'
-        user_id: '4000000'
-        username: no-reply@redacted.xxx
-      location_type: !!python/object/apply:evohomeasync2.const.LocationType
-      - residential
-      name: Schema No TCS
-      postcode: '********'
-      street_address: '********'
-      time_zone:
-        current_offset_minutes: 120
-        display_name: (UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
-        offset_minutes: 60
-        supports_daylight_saving: true
-        time_zone_id: WEuropeStandardTime
-      use_daylight_save_switching: true
-  
-    ''',
-    'country': '''
-      UnitedKingdom
-      ...
-  
-    ''',
-    'id': '''
-      '4001003'
-  
-    ''',
-    'name': '''
-      Schema No TCS
-      ...
-  
-    ''',
-    'status': '''
-      location_id: '4001003'
-  
-    ''',
-    'tzinfo': '''
-      !!python/object/apply:None._unpickle
-      - Europe/Berlin
-      - 1
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[system_007][loc_4001003_gwy]
-  dict({
-    'active_faults': '''
-      !!python/tuple []
-  
-    ''',
-    'config': '''
-      crc: '********'
-      gateway_id: '4002003'
-      is_wi_fi: false
-      mac: '000000000003'
-  
-    ''',
-    'id': '''
-      '4002003'
-  
-    ''',
-    'mac_address': '''
-      '000000000003'
-  
-    ''',
-    'status': '''
-      active_faults: []
-      gateway_id: '4002003'
-  
-    ''',
-    'system_by_id': '''
-      {}
-  
-    ''',
-    'systems': '''
-      []
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[system_007][loc_4001004]
-  dict({
-    'config': '''
-      city: '********'
-      country: UnitedKingdom
-      location_id: '4001004'
-      location_owner:
-        firstname: John
-        lastname: '********'
-        user_id: '4000000'
-        username: no-reply@redacted.xxx
-      location_type: !!python/object/apply:evohomeasync2.const.LocationType
-      - residential
-      name: Schema No Gateway
-      postcode: '********'
-      street_address: '********'
-      time_zone:
-        current_offset_minutes: 600
-        display_name: (UTC+10:00) Canberra, Melbourne, Sydney
-        offset_minutes: 600
-        supports_daylight_saving: true
-        time_zone_id: AUSEasternStandardTime
-      use_daylight_save_switching: true
-  
-    ''',
-    'country': '''
-      UnitedKingdom
-      ...
-  
-    ''',
-    'gateway_by_id': '''
-      {}
-  
-    ''',
-    'gateways': '''
-      []
-  
-    ''',
-    'id': '''
-      '4001004'
-  
-    ''',
-    'name': '''
-      Schema No Gateway
-      ...
-  
-    ''',
-    'status': '''
-      location_id: '4001004'
-  
-    ''',
-    'tzinfo': '''
-      !!python/object/apply:None._unpickle
-      - Australia/Sydney
-      - 1
-  
-    ''',
-  })
 # ---
