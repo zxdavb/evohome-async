@@ -193,7 +193,7 @@ class TccZonConfigResponseT(TypedDict):
     modelType: TccZoneModelType
     name: str
     setpointCapabilities: TccZonSetpointCapabilitiesResponseT
-    # schedule capabilities always present for Evohome, but some FocusProWifi* do not
+    # Evohome always has schedule capabilities, but some FocusProWifi* do not
     scheduleCapabilities: NotRequired[TccZonScheduleCapabilitiesResponseT]
     zoneType: TccZoneType
     allowedFanModes: NotRequired[list[TccAllowedFanModeResponseT]]  # FocusProWifi
@@ -242,7 +242,7 @@ class TccZonConfigEntryT(TccZonConfigResponseT):
 
 class TccDhwConfigResponseT(TypedDict):
     dhwId: str
-    # schedule capabilities always present for Evohome, but some FocusProWifi* may not?
+    # Evohome always has schedule capabilities, but some FocusProWifi* may not?
     scheduleCapabilitiesResponse: NotRequired[TccDhwScheduleCapabilitiesResponseT]
     dhwStateCapabilitiesResponse: TccDhwStateCapabilitiesResponseT
 
@@ -357,12 +357,11 @@ def factory_dhw(case: Case = Case.VENDOR) -> vol.Schema:
         extra=vol.PREVENT_EXTRA,
     )
 
+    # Evohome always has schedule capabilities, but some FocusProWifi* may not?
     return vol.Schema(
         {
             vol.Required(fnc(S2_DHW_ID)): vol.Match(REGEX_DHW_ID),
             vol.Required(fnc(S2_DHW_STATE_CAPABILITIES_RESPONSE)): SCH_DHW_STATE_CAPABILITIES_RESPONSE,
-            # always present for Evohome, but defensively Optional, as for FocusProWifiRetail zones
-            # (see factory_zone); unlike zones, there is no evidence of this (no FocusProWifiRetail with a DHW is known)
             vol.Optional(fnc(S2_SCHEDULE_CAPABILITIES_RESPONSE)): factory_schedule_capabilities_response(case),
         },
         extra=vol.PREVENT_EXTRA,
@@ -424,7 +423,7 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
         extra=vol.PREVENT_EXTRA,
     )
 
-    # schedule_capabilities is required for evo, optional for FocusProWifiRetail
+    # Evohome always has schedule capabilities, but some FocusProWifi* do not
     return vol.Schema(
         {
             vol.Required(fnc(S2_ZONE_ID)): vol.Match(REGEX_ZONE_ID),
