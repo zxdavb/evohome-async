@@ -193,7 +193,7 @@ class TccZonConfigResponseT(TypedDict):
     modelType: TccZoneModelType
     name: str
     setpointCapabilities: TccZonSetpointCapabilitiesResponseT
-    # absent for FocusProWifiRetail zones (c.f. factory_zone, which has it Optional)
+    # schedule capabilities always present for Evohome, but some FocusProWifi* do not
     scheduleCapabilities: NotRequired[TccZonScheduleCapabilitiesResponseT]
     zoneType: TccZoneType
     allowedFanModes: NotRequired[list[TccAllowedFanModeResponseT]]  # FocusProWifi
@@ -242,8 +242,7 @@ class TccZonConfigEntryT(TccZonConfigResponseT):
 
 class TccDhwConfigResponseT(TypedDict):
     dhwId: str
-    # defensively NotRequired, as it is for FocusProWifiRetail zones (c.f. factory_dhw);
-    # unlike zones, there is no evidence of this (no FocusProWifiRetail with a DHW is known)
+    # schedule capabilities always present for Evohome, but some FocusProWifi* may not?
     scheduleCapabilitiesResponse: NotRequired[TccDhwScheduleCapabilitiesResponseT]
     dhwStateCapabilitiesResponse: TccDhwStateCapabilitiesResponseT
 

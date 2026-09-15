@@ -553,7 +553,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         }
         """
 
-        # key can be absent for FocusProWifiRetail, but is always present for Evohome
+        # key is always present for Evohome, but can be absent for FocusProWifiRetail
         return self._config.get(SZ_SCHEDULE_CAPABILITIES)
 
     @property

@@ -196,8 +196,7 @@ class EvoZonConfigResponseT(TypedDict):
     model_type: ZoneModelType
     name: str
     setpoint_capabilities: EvoZonSetpointCapabilitiesT
-    # Some FocusProWifiRetail do not include ScheduleCapabilities in their config
-    # but it is always present for Evohome
+    # schedule capabilities always present for Evohome, but some FocusProWifi* do not
     schedule_capabilities: NotRequired[EvoZonScheduleCapabilitiesT]
     zone_type: ZoneType
     allowed_fan_modes: NotRequired[list[EvoAllowedFanModesT]]  # FocusProWifi
@@ -247,9 +246,7 @@ class EvoDhwConfigResponseT(TypedDict):
     """Response to `GET /domesticHotWater/{dhw_id}/...`."""
 
     dhw_id: str
-    # Always present for Evohome, but defensively NotRequired, as some FocusProWifiRetail
-    # zones omit their schedule_capabilities; unlike zones, there is no evidence of this
-    # (no FocusProWifiRetail with a DHW is known)
+    # schedule capabilities always present for Evohome, but some FocusProWifi* may not?
     schedule_capabilities_response: NotRequired[EvoDhwScheduleCapabilitiesT]
     dhw_state_capabilities_response: EvoDhwStateCapabilitiesT  # not EvoDhw*ResponseT
 
