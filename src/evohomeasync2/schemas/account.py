@@ -11,7 +11,7 @@ The vendor's convention for well-known strings:
 
 from __future__ import annotations
 
-from typing import Final, TypedDict
+from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict, overload
 
 import probatio as vol
 
@@ -38,6 +38,10 @@ from .const import (
 )
 from .helpers import Case
 
+if TYPE_CHECKING:
+    from _evohome.helpers import Validator
+    from evohomeasync2.typedefs import EvoUsrAccountResponseT
+
 
 class TccOAuthTokenResponseT(TypedDict):
     """Typed dict for the OAuth authorization response schema.
@@ -48,11 +52,11 @@ class TccOAuthTokenResponseT(TypedDict):
     access_token: str
     expires_in: int
     refresh_token: str
-    scope: str
+    scope: NotRequired[str]  # "EMEA-V1-Basic EMEA-V1-Anonymous"
     token_type: str
 
 
-def factory_post_oauth_token(_: Case = Case.VENDOR) -> vol.Schema:
+def factory_post_oauth_token(_: Case = Case.VENDOR) -> Validator[TccOAuthTokenResponseT]:
     """Factory for the OAuth authorization response schema."""
 
     # NOTE: These keys are always in snake_case
@@ -62,8 +66,8 @@ def factory_post_oauth_token(_: Case = Case.VENDOR) -> vol.Schema:
             vol.Required(SZ_ACCESS_TOKEN): vol.All(str, redact),
             vol.Required(SZ_EXPIRES_IN): vol.Range(min=1770, max=1800),  # usu. 179x
             vol.Required(SZ_REFRESH_TOKEN): vol.All(str, redact),
-            vol.Required(SZ_TOKEN_TYPE): str,
             vol.Optional(SZ_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
+            vol.Required(SZ_TOKEN_TYPE): str,
         }
     )
 
@@ -74,7 +78,7 @@ class TccErrorResponseT(TypedDict):
     error: str
 
 
-def factory_error_response(case: Case = Case.VENDOR) -> vol.Schema:
+def factory_error_response(case: Case = Case.VENDOR) -> Validator[TccErrorResponseT]:
     """Factory for the error response schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
@@ -101,7 +105,21 @@ class TccUsrAccountResponseT(TypedDict):
     language: str  # enGB
 
 
-def factory_user_account(case: Case = Case.VENDOR) -> vol.Schema:
+@overload
+def factory_user_account(case: Literal[Case.VENDOR] = ...) -> Validator[TccUsrAccountResponseT]: ...
+
+
+@overload
+def factory_user_account(case: Literal[Case.PYTHONIC]) -> Validator[EvoUsrAccountResponseT]: ...
+
+
+@overload
+def factory_user_account(case: Case) -> Validator[TccUsrAccountResponseT] | Validator[EvoUsrAccountResponseT]: ...
+
+
+def factory_user_account(
+    case: Case = Case.VENDOR,
+) -> Validator[TccUsrAccountResponseT] | Validator[EvoUsrAccountResponseT]:
     """Factory for the user account schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
@@ -129,7 +147,7 @@ class TccFailureResponseT(TypedDict):
     message: str
 
 
-def factory_status_response(case: Case = Case.VENDOR) -> vol.Schema:
+def factory_status_response(case: Case = Case.VENDOR) -> Validator[list[TccFailureResponseT]]:
     """Factory for the error response schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake

@@ -11,7 +11,7 @@ The vendor's convention for well-known strings:
 
 from __future__ import annotations
 
-from typing import Final, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict, overload
 
 import probatio as vol
 
@@ -59,6 +59,16 @@ from .const import (
     TccZoneMode,
 )
 from .helpers import Case, factory_datetime, factory_enum, factory_enum_or_str
+
+if TYPE_CHECKING:
+    from _evohome.helpers import Validator
+    from evohomeasync2.typedefs import (
+        EvoDhwStatusResponseT,
+        EvoGwyStatusResponseT,
+        EvoLocStatusResponseT,
+        EvoTcsStatusResponseT,
+        EvoZonStatusResponseT,
+    )
 
 
 # GET /location/{loc_id}/status?include... returns this dict
@@ -173,7 +183,19 @@ def factory_temp_status(case: Case = Case.VENDOR) -> vol.Any:
     )
 
 
-def factory_zon_status(case: Case = Case.VENDOR) -> vol.Schema:
+@overload
+def factory_zon_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccZonStatusResponseT]: ...
+
+
+@overload
+def factory_zon_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoZonStatusResponseT]: ...
+
+
+@overload
+def factory_zon_status(case: Case) -> Validator[TccZonStatusResponseT] | Validator[EvoZonStatusResponseT]: ...
+
+
+def factory_zon_status(case: Case = Case.VENDOR) -> Validator[TccZonStatusResponseT] | Validator[EvoZonStatusResponseT]:
     """Factory for the zone status schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
@@ -208,7 +230,19 @@ def factory_zon_status(case: Case = Case.VENDOR) -> vol.Schema:
     )
 
 
-def factory_dhw_status(case: Case = Case.VENDOR) -> vol.Schema:
+@overload
+def factory_dhw_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccDhwStatusResponseT]: ...
+
+
+@overload
+def factory_dhw_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoDhwStatusResponseT]: ...
+
+
+@overload
+def factory_dhw_status(case: Case) -> Validator[TccDhwStatusResponseT] | Validator[EvoDhwStatusResponseT]: ...
+
+
+def factory_dhw_status(case: Case = Case.VENDOR) -> Validator[TccDhwStatusResponseT] | Validator[EvoDhwStatusResponseT]:
     """Factory for the DHW status schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
@@ -272,7 +306,19 @@ def factory_system_mode_status(case: Case = Case.VENDOR) -> vol.Any:
     )
 
 
-def factory_tcs_status(case: Case = Case.VENDOR) -> vol.Schema:
+@overload
+def factory_tcs_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccTcsStatusResponseT]: ...
+
+
+@overload
+def factory_tcs_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoTcsStatusResponseT]: ...
+
+
+@overload
+def factory_tcs_status(case: Case) -> Validator[TccTcsStatusResponseT] | Validator[EvoTcsStatusResponseT]: ...
+
+
+def factory_tcs_status(case: Case = Case.VENDOR) -> Validator[TccTcsStatusResponseT] | Validator[EvoTcsStatusResponseT]:
     """Factory for the TCS status schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
@@ -289,7 +335,19 @@ def factory_tcs_status(case: Case = Case.VENDOR) -> vol.Schema:
     )
 
 
-def factory_gwy_status(case: Case = Case.VENDOR) -> vol.Schema:
+@overload
+def factory_gwy_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccGwyStatusResponseT]: ...
+
+
+@overload
+def factory_gwy_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoGwyStatusResponseT]: ...
+
+
+@overload
+def factory_gwy_status(case: Case) -> Validator[TccGwyStatusResponseT] | Validator[EvoGwyStatusResponseT]: ...
+
+
+def factory_gwy_status(case: Case = Case.VENDOR) -> Validator[TccGwyStatusResponseT] | Validator[EvoGwyStatusResponseT]:
     """Factory for the gateway status schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
@@ -304,7 +362,19 @@ def factory_gwy_status(case: Case = Case.VENDOR) -> vol.Schema:
     )
 
 
-def factory_loc_status(case: Case = Case.VENDOR) -> vol.Schema:
+@overload
+def factory_loc_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccLocStatusResponseT]: ...
+
+
+@overload
+def factory_loc_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoLocStatusResponseT]: ...
+
+
+@overload
+def factory_loc_status(case: Case) -> Validator[TccLocStatusResponseT] | Validator[EvoLocStatusResponseT]: ...
+
+
+def factory_loc_status(case: Case = Case.VENDOR) -> Validator[TccLocStatusResponseT] | Validator[EvoLocStatusResponseT]:
     """Factory for the locations status schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake

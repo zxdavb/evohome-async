@@ -25,9 +25,11 @@ type _TccResponse = dict[str, Any] | list[dict[str, Any]]
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Mapping
 
     from aiohttp.typedefs import StrOrURL
+
+    from .helpers import Validator
 
 
 async def _payload(r: aiohttp.ClientResponse | None) -> str:
@@ -81,7 +83,7 @@ class AbstractAuth(ABC):
         """Return the URL base used for GET/PUT requests."""
         return self._url_base
 
-    async def get[T](self, url: StrOrURL, /, schema: Callable[[Any], T]) -> T:
+    async def get[T](self, url: StrOrURL, /, schema: Validator[T]) -> T:
         """Call the vendor's TCC API with a GET.
 
         A schema is required; it is used to convert datetimes and strEnums from the
@@ -103,20 +105,22 @@ class AbstractAuth(ABC):
         /,
         json: dict[str, Any],
         *,
-        schema: vol.Schema | None = None,
+        schema: Validator[Mapping[str, object]] | None = None,
     ) -> _TccResponse:  # NOTE: not _EvoSchemaT
         """Call the vendor's TCC API with a PUT.
 
         A schema is optional and any vol.Invalid is merely logged as a warning.
         """
 
+        payload: Mapping[str, object] = json
+
         if schema:
             try:
-                json = schema(json)
+                payload = schema(json)
             except vol.Invalid as err:
                 self._logger.warning(f"PUT {url}: payload failed validation: {err}")
 
-        return await self.request(HTTPMethod.PUT, url, json=json)
+        return await self.request(HTTPMethod.PUT, url, json=payload)
 
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any

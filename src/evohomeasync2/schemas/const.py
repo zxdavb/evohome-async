@@ -280,8 +280,10 @@ class TccZoneType(StrEnum):
 
 # Non-API constants used internally by this module and the probatio schemas.
 
-REGEX_DHW_ID: Final = r"[0-9]*"
-REGEX_GATEWAY_ID: Final = r"[0-9]*"
-REGEX_LOCATION_ID: Final = r"[0-9]*"
-REGEX_SYSTEM_ID: Final = r"[0-9]*"
-REGEX_ZONE_ID: Final = r"[0-9]*"
+# vol.Match uses re.match(), which anchors only at the start, so the end must be
+# anchored here (and the ID must be non-empty), else any string would be accepted
+REGEX_DHW_ID: Final = r"\A[0-9]+\Z"
+REGEX_GATEWAY_ID: Final = r"\A[0-9]+\Z"
+REGEX_LOCATION_ID: Final = r"\A[0-9]+\Z"
+REGEX_SYSTEM_ID: Final = r"\A[0-9]+\Z"
+REGEX_ZONE_ID: Final = r"\A[0-9]+\Z"

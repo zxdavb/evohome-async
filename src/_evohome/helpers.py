@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable  # used by PEP695 runtime type
 from datetime import UTC, datetime as dt
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Final, overload
@@ -11,8 +12,11 @@ from .const import _DBG_DONT_REDACT_SECRETS, REGEX_EMAIL_ADDRESS
 from .exceptions import BadApiRequestError
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
     from datetime import tzinfo
+
+
+# A schema (validator) whose output is known to be of type T, e.g. a TypedDict
+type Validator[T] = Callable[[object], T]
 
 
 # Vendor API datetime format (ISO 8601, UTC, no fractional seconds)
@@ -60,7 +64,7 @@ def _recurse_keys[T](data: T, fnc: Callable[[str], str]) -> T:
 
         return data_
 
-    return recurse(data)  # type:ignore[no-any-return]
+    return recurse(data)  # type: ignore[no-any-return]
 
 
 def _recurse_str_vals[T](data: T, fnc: Callable[[str], str]) -> T:
@@ -81,7 +85,7 @@ def _recurse_str_vals[T](data: T, fnc: Callable[[str], str]) -> T:
 
         return fnc(data_)
 
-    return recurse(data)  # type:ignore[no-any-return]
+    return recurse(data)  # type: ignore[no-any-return]
 
 
 def _recurse_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
@@ -107,7 +111,7 @@ def _recurse_dtm_vals[T](data: T, fnc: Callable[[dt], dt | str]) -> T:
 
         return fnc(data_)
 
-    return recurse(data)  # type:ignore[no-any-return]
+    return recurse(data)  # type: ignore[no-any-return]
 
 
 def as_utc_str(dtm: dt) -> str:

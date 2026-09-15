@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import functools
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, overload
 
 import pytest
 
@@ -19,10 +19,9 @@ from tests.const import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
+    from collections.abc import Awaitable, Callable, Mapping
 
-    import probatio as vol
-
+    from _evohome.helpers import Validator
     from tests.conftest import EvohomeClientV2
 
 if _DBG_USE_REAL_AIOHTTP:
@@ -87,16 +86,42 @@ def skipif_auth_failed[**P](
 # version 1 helpers ###################################################################
 
 
+@overload
+async def should_work_v0[T](
+    auth: evo0.auth.Auth,
+    method: HTTPMethod,
+    url: str,
+    /,
+    *,
+    json: Mapping[str, object] | None = None,
+    content_type: str | None = "application/json",
+    schema: Validator[T],
+) -> T: ...
+
+
+@overload
 async def should_work_v0(
     auth: evo0.auth.Auth,
     method: HTTPMethod,
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
-    schema: vol.Schema | None = None,
-) -> dict[str, Any] | list[dict[str, Any]] | str:
+    schema: None = None,
+) -> dict[str, Any] | list[dict[str, Any]] | str: ...
+
+
+async def should_work_v0[T](
+    auth: evo0.auth.Auth,
+    method: HTTPMethod,
+    url: str,
+    /,
+    *,
+    json: Mapping[str, object] | None = None,
+    content_type: str | None = "application/json",
+    schema: Validator[T] | None = None,
+) -> T | dict[str, Any] | list[dict[str, Any]] | str:
     """Make a request that is expected to succeed.
 
     Used to document the behaviour of a 'real' server and to validate the faked server.
@@ -121,6 +146,8 @@ async def should_work_v0(
         assert rsp.content_type == content_type
 
         if rsp.content_type != "application/json":
+            if schema:  # a schema is only for JSON
+                pytest.fail(f"response is not JSON, so can't validate: {response}")
             assert isinstance(response, str)  # mypy
             return response
 
@@ -134,7 +161,7 @@ async def should_fail_v0(
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
     status: HTTPStatus | None = None,
 ) -> dict[str, Any] | list[dict[str, Any]] | str:
@@ -184,16 +211,42 @@ async def should_fail_v0(
 # version 2 helpers ###################################################################
 
 
+@overload
+async def should_work_v2[T](
+    auth: evo2.auth.Auth,
+    method: HTTPMethod,
+    url: str,
+    /,
+    *,
+    json: Mapping[str, object] | None = None,
+    content_type: str | None = "application/json",
+    schema: Validator[T],
+) -> T: ...
+
+
+@overload
 async def should_work_v2(
     auth: evo2.auth.Auth,
     method: HTTPMethod,
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
-    schema: vol.Schema | None = None,
-) -> dict[str, Any] | list[dict[str, Any]] | str:
+    schema: None = None,
+) -> dict[str, Any] | list[dict[str, Any]] | str: ...
+
+
+async def should_work_v2[T](
+    auth: evo2.auth.Auth,
+    method: HTTPMethod,
+    url: str,
+    /,
+    *,
+    json: Mapping[str, object] | None = None,
+    content_type: str | None = "application/json",
+    schema: Validator[T] | None = None,
+) -> T | dict[str, Any] | list[dict[str, Any]] | str:
     """Make a HTTP request and check it succeeds as expected.
 
     Used to document the behaviour of a 'real' server and to validate the faked server.
@@ -218,6 +271,8 @@ async def should_work_v2(
         assert rsp.content_type == content_type, response
 
         if rsp.content_type != "application/json":
+            if schema:  # a schema is only for JSON
+                pytest.fail(f"response is not JSON, so can't validate: {response}")
             assert isinstance(response, str)  # mypy
             return response
 
@@ -231,7 +286,7 @@ async def should_fail_v2(
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
     status: HTTPStatus | None = None,
 ) -> dict[str, Any] | list[dict[str, Any]] | str:

@@ -43,6 +43,7 @@ from _evohome.helpers import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from _evohome.helpers import Validator
 
 # TCC identifiers (Usr, Loc, Gwy, Sys, Zon|Dhw)
 _DhwIdT = NewType("_DhwIdT", int)
@@ -298,12 +299,38 @@ def factory_location_response_list(
 
 
 #######################################################################################
+# These are the top-level schema validators for the vendor API responses.
 
+# NOTE: These validators can return values that do not satisfy their annotations.
 
-TCC_FAILURE_RESPONSE: Final = factory_failure_response()
-TCC_GET_USR_INFO: Final = factory_user_account_info_response()
-TCC_GET_USR_LOCS: Final = factory_location_response_list()
-TCC_POST_USR_SESSION: Final = factory_session_response()
+# For example, `TccUserAccountInfoResponseT.firstname` is promised to exist (it isn't
+# `NotRequired`), but the schema has `vol.Optional(fnc(SZ_FIRSTNAME))`.
+
+# The factories are used to produce two distinct schemas: as used by vendor API calls
+# and responses (TCC_*) and as used by the runtime validators (EVO_*); the latter would
+# use less restrictive TypedDicts (but does not have to).
+
+TCC_FAILURE_RESPONSE: Final[Validator[list[TccFailureResponseT]]] = (
+    factory_failure_response()
+)
+TCC_GET_USR_INFO: Final[Validator[TccUserAccountInfoResponseT]] = (
+    # This validator can accept {userID, username} because all other account fields are
+    # vol.Optional in factory_user_account_info_response, yet its new return type
+    # promises TccUserAccountInfoResponseT, where those fields are required.
+    factory_user_account_info_response()
+)
+TCC_GET_USR_LOCS: Final[Validator[list[TccLocationResponseT]]] = (
+    # factory_location_response_list deliberately marks many location, device, and
+    # thermostat keys optional, while TccLocationResponseT and its nested vendor-
+    # documentation types require them.
+    factory_location_response_list()
+)
+TCC_POST_USR_SESSION: Final[Validator[TccSessionResponseT]] = (
+    # The session schema embeds the permissive account-info schema and makes the
+    # additional account fields optional, but TccSessionResponseT.userInfo is
+    # TccUserAccountResponseT, whose fields are required.
+    factory_session_response()
+)
 
 
 # schema keys (start with a lower case letter)
@@ -350,6 +377,7 @@ SZ_OFF: Final = "Off"
 
 #######################################################################################
 # These the responses via the vendor's API; they have camelCase keys...
+# These typed dicts represent the 'ground truth' as best known for an undocumented API
 
 
 class TccFailureResponseT(TypedDict):

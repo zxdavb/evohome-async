@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -31,6 +31,8 @@ from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
     import evohomeasync2 as evo2
+    from evohomeasync2.schemas.state import TccSetTcsModeT
+    from evohomeasync2.schemas.status import TccTcsStatusResponseT
     from tests.conftest import EvohomeClientV2
 
 
@@ -74,12 +76,13 @@ async def _test_user_locations(evo: EvohomeClientV2) -> None:
 
     # TODO: can't use .update(); in any case, should use URLs only
     url = "userAccount"
-    user_info: dict[str, Any] = await should_work_v2(
+    user_info = await should_work_v2(
         evo.auth,
         HTTPMethod.GET,
         url,
         schema=None,  # schema not re-tested here
-    )  # type: ignore[assignment]
+    )
+    assert isinstance(user_info, dict)  # mypy
 
     #
     url = f"location/installationInfo?userId={user_info['userId']}"
@@ -199,9 +202,9 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
     # STEP 0: Get/keep the current mode, so we can restore it later
     url = f"{tcs._TCC_TYPE}/{tcs.id}/status"
 
-    old_status: dict[str, Any] = await should_work_v2(
+    old_status: TccTcsStatusResponseT = await should_work_v2(
         evo.auth, HTTPMethod.GET, url, schema=TCC_GET_TCS_STATUS
-    )  # type: ignore[assignment]
+    )
     # {
     #      'systemId': '1234567',
     #      'zones': [...]
@@ -209,7 +212,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
     #      'activeFaults': [],
     # }
 
-    old_mode = {
+    old_mode: TccSetTcsModeT = {
         "systemMode": old_status["systemModeStatus"]["mode"],
         "permanent": old_status["systemModeStatus"]["isPermanent"],
     }

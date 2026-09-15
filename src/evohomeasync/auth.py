@@ -158,7 +158,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         except vol.Invalid as err:
             self._logger.warning(f"POST {url}: payload may be invalid: {err}")
 
-        session: EvoSessionDictT = convert_keys_to_snake_case(response)  # type:ignore[assignment]
+        session: EvoSessionDictT = convert_keys_to_snake_case(response)  # type: ignore[assignment]
 
         try:
             self._session_id: str = session[SZ_SESSION_ID]

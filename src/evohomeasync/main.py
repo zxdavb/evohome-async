@@ -17,10 +17,16 @@ from .schemas import factory_location_response_list, factory_user_account_info_r
 if TYPE_CHECKING:
     import aiohttp
 
-    from .typedefs import EvoTcsInfoDictT, EvoUserAccountDictT
+    from _evohome.helpers import Validator
 
-SCH_GET_ACCOUNT_INFO: Final = factory_user_account_info_response(camel_to_snake)
-SCH_GET_ACCOUNT_LOCS: Final = factory_location_response_list(camel_to_snake)
+    from .typedefs import EvoTcsInfoDictT, EvoUserAccountInfoDictT
+
+SCH_GET_ACCOUNT_INFO: Final[Validator[EvoUserAccountInfoDictT]] = (
+    factory_user_account_info_response(camel_to_snake)
+)
+SCH_GET_ACCOUNT_LOCS: Final[Validator[list[EvoTcsInfoDictT]]] = (
+    factory_location_response_list(camel_to_snake)
+)
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync"
 
@@ -28,7 +34,7 @@ _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync"
 class EvohomeClient:
     """Provide a client to access the Resideo TCC API."""
 
-    _user_info: EvoUserAccountDictT | None = None
+    _user_info: EvoUserAccountInfoDictT | None = None
     _user_locs: list[EvoTcsInfoDictT] | None = None  # all locations of the user
 
     def __init__(
@@ -160,7 +166,7 @@ class EvohomeClient:
         return self._user_locs
 
     @property
-    def user_account(self) -> EvoUserAccountDictT:
+    def user_account(self) -> EvoUserAccountInfoDictT:
         """Return the information of the user account."""
 
         if self._user_info is None:

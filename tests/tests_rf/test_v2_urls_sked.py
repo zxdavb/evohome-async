@@ -15,16 +15,13 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from evohomeasync2.schemas.schedule import TCC_GET_SCHEDULE
+from evohomeasync2.schemas.schedule import TCC_GET_ZON_SCHEDULE
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import get_dhw, should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas.schedule import (
-        TccDhwDailySchedulesT,
-        TccZonDailySchedulesT,
-    )
+    from evohomeasync2.schemas.schedule import TccZonDailySchedulesT
     from tests.conftest import EvohomeClientV2
 
 
@@ -42,8 +39,8 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     #
     # STEP 1: GET the current schedule
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
-    )  # type: ignore[assignment]
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+    )
 
     # an example of the expected response:
     """
@@ -111,7 +108,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 4: PUT a valid schedule
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
+    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
 
     # an example of the expected response:
     """
@@ -136,8 +133,8 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     #
     # STEP 1: GET the current schedule
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
-    )  # type: ignore[assignment]
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+    )
 
     assert isinstance(schedule, dict)  # mypy
 
@@ -146,7 +143,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     temp = schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp + 1
 
-    status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
+    status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
 
     assert isinstance(status, dict | list)  # mypy
 
@@ -169,15 +166,15 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     #
     # STEP 3: check the new schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
-    )  # type: ignore[assignment]
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+    )
 
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp + 1
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp
 
     #
     # STEP 4: PUT the original schedule back
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
+    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
 
     #
     # STEP 5: (optional) check the status of the task
@@ -185,8 +182,8 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     #
     # STEP 6: check the original schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
-    )  # type: ignore[assignment]
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+    )
 
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp
 
@@ -221,14 +218,15 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
+    # schedule: TccZonDailySchedulesT  # cant use this, as we GET without a schema
+
     zone = evo.locations[0].gateways[0].systems[0].zones[0]
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
     # GET without schema so we capture whatever the server actually sends back
-    schedule: TccZonDailySchedulesT = await should_work_v2(  # type: ignore[assignment]
-        evo.auth, HTTPMethod.GET, url
-    )
+    schedule = await should_work_v2(evo.auth, HTTPMethod.GET, url)
+    assert isinstance(schedule, dict)  # mypy
 
     # an example of the expected response:
     """
@@ -268,6 +266,8 @@ async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
+    # schedule: TccDhwDailySchedulesT  # cant use this, as we GET without a schema
+
     if not (dhw := get_dhw(evo)):
         pytest.skip("No DHW found in TCS")
 
@@ -275,9 +275,8 @@ async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
 
     #
     # GET without schema so we capture whatever the server actually sends back
-    schedule: TccDhwDailySchedulesT = await should_work_v2(  # type: ignore[assignment]
-        evo.auth, HTTPMethod.GET, url
-    )
+    schedule = await should_work_v2(evo.auth, HTTPMethod.GET, url)
+    assert isinstance(schedule, dict)  # mypy
 
     # an example of the expected response:
     """
