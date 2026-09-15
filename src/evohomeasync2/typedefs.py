@@ -247,8 +247,10 @@ class EvoDhwConfigResponseT(TypedDict):
     """Response to `GET /domesticHotWater/{dhw_id}/...`."""
 
     dhw_id: str
-    # Evohome always includes schedule_capabilities_response (the schema requires it)
-    schedule_capabilities_response: EvoDhwScheduleCapabilitiesT
+    # Always present for Evohome, but defensively NotRequired, as some FocusProWifiRetail
+    # zones omit their schedule_capabilities; unlike zones, there is no evidence of this
+    # (no FocusProWifiRetail with a DHW is known)
+    schedule_capabilities_response: NotRequired[EvoDhwScheduleCapabilitiesT]
     dhw_state_capabilities_response: EvoDhwStateCapabilitiesT  # not EvoDhw*ResponseT
 
 

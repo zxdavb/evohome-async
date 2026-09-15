@@ -89,7 +89,8 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         }
         """
 
-        # key may be absent for FocusProWifiRetail, but is always present for Evohome
+        # always present for Evohome, but defensively allow it to be absent, as it can be
+        # for FocusProWifiRetail zones (no FocusProWifiRetail with a DHW is known)
         return self._config.get(SZ_SCHEDULE_CAPABILITIES_RESPONSE)
 
     @cached_property  # NOTE: is not dhw_state_capabilities

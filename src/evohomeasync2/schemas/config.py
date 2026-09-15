@@ -242,7 +242,9 @@ class TccZonConfigEntryT(TccZonConfigResponseT):
 
 class TccDhwConfigResponseT(TypedDict):
     dhwId: str
-    scheduleCapabilitiesResponse: TccDhwScheduleCapabilitiesResponseT
+    # defensively NotRequired, as it is for FocusProWifiRetail zones (c.f. factory_dhw);
+    # unlike zones, there is no evidence of this (no FocusProWifiRetail with a DHW is known)
+    scheduleCapabilitiesResponse: NotRequired[TccDhwScheduleCapabilitiesResponseT]
     dhwStateCapabilitiesResponse: TccDhwStateCapabilitiesResponseT
 
 
@@ -360,7 +362,9 @@ def factory_dhw(case: Case = Case.VENDOR) -> vol.Schema:
         {
             vol.Required(fnc(S2_DHW_ID)): vol.Match(REGEX_DHW_ID),
             vol.Required(fnc(S2_DHW_STATE_CAPABILITIES_RESPONSE)): SCH_DHW_STATE_CAPABILITIES_RESPONSE,
-            vol.Required(fnc(S2_SCHEDULE_CAPABILITIES_RESPONSE)): factory_schedule_capabilities_response(case),
+            # always present for Evohome, but defensively Optional, as for FocusProWifiRetail zones
+            # (see factory_zone); unlike zones, there is no evidence of this (no FocusProWifiRetail with a DHW is known)
+            vol.Optional(fnc(S2_SCHEDULE_CAPABILITIES_RESPONSE)): factory_schedule_capabilities_response(case),
         },
         extra=vol.PREVENT_EXTRA,
     )
