@@ -411,7 +411,7 @@ class _ScheduleBase[
 
         _ = await self._auth.put(
             f"{self._TCC_TYPE}/{self.id}/schedule",
-            json={"daily_schedules": schedule},
+            json={SZ_DAILY_SCHEDULES: schedule},
             schema=self.SCH_SCHEDULE,
         )
 
