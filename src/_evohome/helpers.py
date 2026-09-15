@@ -64,7 +64,7 @@ def _recurse_keys[T](data: T, fnc: Callable[[str], str]) -> T:
 
         return data_
 
-    return recurse(data)  # type:ignore[no-any-return]
+    return recurse(data)  # type: ignore[no-any-return]
 
 
 def _recurse_str_vals[T](data: T, fnc: Callable[[str], str]) -> T:
@@ -85,7 +85,7 @@ def _recurse_str_vals[T](data: T, fnc: Callable[[str], str]) -> T:
 
         return fnc(data_)
 
-    return recurse(data)  # type:ignore[no-any-return]
+    return recurse(data)  # type: ignore[no-any-return]
 
 
 def _recurse_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
@@ -111,7 +111,7 @@ def _recurse_dtm_vals[T](data: T, fnc: Callable[[dt], dt | str]) -> T:
 
         return fnc(data_)
 
-    return recurse(data)  # type:ignore[no-any-return]
+    return recurse(data)  # type: ignore[no-any-return]
 
 
 def as_utc_str(dtm: dt) -> str:
