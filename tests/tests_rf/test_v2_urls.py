@@ -49,6 +49,10 @@ if TYPE_CHECKING:
     )
 
 
+# TODO: Create a validator for the TccTaskResponseT typedDict (but until then...)
+type _TccTaskResponse = dict[str, Any] | list[dict[str, Any]]  # c.f. TccTaskResponseT
+
+
 async def _post_auth_oauth_token(auth: Auth) -> dict[str, int | str]:
     """Test POST /Auth/OAuth/Token"""
 
@@ -157,9 +161,7 @@ async def get_tcs_status(auth: Auth, tcs_id: str) -> TccTcsStatusResponseT:
     )
 
 
-async def put_tcs_mode(
-    auth: Auth, tcs_id: str
-) -> dict[str, Any] | list[dict[str, Any]]:  # e.g. TccTaskResponseT
+async def put_tcs_mode(auth: Auth, tcs_id: str) -> _TccTaskResponse:
     """Test PUT /temperatureControlSystem/{tcs_id}/mode"""
 
     until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -260,9 +262,7 @@ async def get_zon_status(auth: Auth, zon_id: str) -> TccZonStatusResponseT:
     )
 
 
-async def put_zon_heat_setpoint(
-    auth: Auth, zon_id: str
-) -> dict[str, Any] | list[dict[str, Any]]:  # e.g. TccTaskResponseT
+async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> _TccTaskResponse:
     """Test PUT /temperatureZone/{zon_id}/heatSetpoint"""
 
     until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -307,7 +307,7 @@ async def put_zon_heat_setpoint(
 
 async def put_zon_schedule(
     auth: Auth, zon_id: str, schedule: TccZonDailySchedulesT
-) -> dict[str, Any] | list[dict[str, Any]]:  # e.g. TccTaskResponseT
+) -> _TccTaskResponse:
     """Test PUT /temperatureZone/{zon_id}/schedule"""
 
     return await auth._make_request(
@@ -390,9 +390,7 @@ async def get_dhw_status(auth: Auth, dhw_id: str) -> TccDhwStatusResponseT:
     )
 
 
-async def put_dhw_state(
-    auth: Auth, dhw_id: str
-) -> dict[str, Any] | list[dict[str, Any]]:  # e.g. TccTaskResponseT
+async def put_dhw_state(auth: Auth, dhw_id: str) -> _TccTaskResponse:
     """Test PUT /domesticHotWater/{dhw_id}/state"""
 
     until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -437,7 +435,7 @@ async def put_dhw_state(
 
 async def put_dhw_schedule(
     auth: Auth, dhw_id: str, schedule: TccDhwDailySchedulesT
-) -> dict[str, Any] | list[dict[str, Any]]:  # e.g. TccTaskResponseT
+) -> _TccTaskResponse:
     """Test GET /domesticHotWater/{dhw_id}/schedule"""
 
     return await auth._make_request(
