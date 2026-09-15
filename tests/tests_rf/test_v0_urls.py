@@ -30,6 +30,10 @@ if TYPE_CHECKING:
     )
 
 
+# TODO: Create a validator for the TccTaskResponseT typedDict (but until then...)
+type _TccTaskResponse = dict[str, Any] | list[dict[str, Any]]  # c.f. TccTaskResponseT
+
+
 async def _post_session(auth: Auth) -> TccSessionResponseT:
     """Test POST /session
     data = {
@@ -53,9 +57,7 @@ async def get_account_info(auth: Auth) -> TccUserAccountInfoResponseT:
     )
 
 
-async def get_comm_tasks(
-    auth: Auth, tsk_id: int
-) -> dict[str, Any] | list[dict[str, Any]]:
+async def get_comm_tasks(auth: Auth, tsk_id: int) -> _TccTaskResponse:
     """Test GET /commTasks?commTaskId={tsk_id}"""
 
     return await auth._make_request(
@@ -75,9 +77,7 @@ async def get_locations(auth: Auth, usr_id: int) -> list[TccLocationResponseT]:
     )
 
 
-async def put_devices_dhw(
-    auth: Auth, dhw_id: int
-) -> dict[str, Any] | list[dict[str, Any]]:
+async def put_devices_dhw(auth: Auth, dhw_id: int) -> _TccTaskResponse:
     """Test PUT /devices/{dhw_id}/thermostat/changeableValues
     data = {
         "Status": status,  ["Scheduled","Hold"]  # no: "Temporary"?
@@ -98,9 +98,7 @@ async def put_devices_dhw(
     )
 
 
-async def put_devices_zon(
-    auth: Auth, zon_id: int
-) -> dict[str, Any] | list[dict[str, Any]]:
+async def put_devices_zon(auth: Auth, zon_id: int) -> _TccTaskResponse:
     """Test PUT /devices/{zon_id}/thermostat/changeableValues/heatSetpoint
     data = {
         "Status": "Temporary",
@@ -120,9 +118,7 @@ async def put_devices_zon(
     )
 
 
-async def put_evo_touch_systems(
-    auth: Auth, loc_id: int
-) -> dict[str, Any] | list[dict[str, Any]]:
+async def put_evo_touch_systems(auth: Auth, loc_id: int) -> _TccTaskResponse:
     """Test PUT /evoTouchSystems?locationId={loc_id}
     data = {
         "QuickAction": status,  All except AuutWithEco, Auto must have QANT None
