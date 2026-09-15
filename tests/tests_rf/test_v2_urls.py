@@ -82,9 +82,9 @@ async def get_usr_locations(auth: Auth, usr_id: str) -> list[TccLocConfigRespons
 async def test_tcs_urls(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test Location, Gateway and TCS URLs."""
+    """Test Location, Gateway and TCS URLs and the corresponding validators."""
 
-    # STEP 0: Create the Auth client...
+    # STEP 0: Create an Auth client stub...
     auth = Auth(
         credentials_manager,
         credentials_manager.websession,
