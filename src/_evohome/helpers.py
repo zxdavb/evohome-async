@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable  # used by PEP695 runtime type
 from datetime import UTC, datetime as dt
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Final, overload
@@ -11,7 +12,6 @@ from .const import _DBG_DONT_REDACT_SECRETS, REGEX_EMAIL_ADDRESS
 from .exceptions import BadApiRequestError
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
     from datetime import tzinfo
 
 
