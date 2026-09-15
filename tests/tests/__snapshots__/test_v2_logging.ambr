@@ -193,6 +193,18 @@
     ),
   ])
 # ---
+# name: test_system_warnings[null_system_0]
+  list([
+  ])
+# ---
+# name: test_system_warnings[null_system_1]
+  list([
+  ])
+# ---
+# name: test_system_warnings[null_system_2]
+  list([
+  ])
+# ---
 # name: test_system_warnings[system_002]
   list([
     tuple(
@@ -254,11 +266,7 @@
     tuple(
       'evohomeasync2',
       30,
-      'There are 4 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
+      'There are 2 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
     ),
-  ])
-# ---
-# name: test_system_warnings[system_008]
-  list([
   ])
 # ---

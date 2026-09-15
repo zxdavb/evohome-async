@@ -1,8 +1,8 @@
 {
-  "locationId": "4001003",
+  "locationId": "4001006",
   "gateways": [
     {
-      "gatewayId": "4002003",
+      "gatewayId": "4002006",
       "temperatureControlSystems": [],
       "activeFaults": []
     }

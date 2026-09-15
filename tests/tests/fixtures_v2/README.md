@@ -54,8 +54,10 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `hass_141882/` | 7680795 | AUSEastern | HA core issue [#141882](https://github.com/home-assistant/core/issues/141882) |
 | `hass_157546/` | 7647411 | GMT | HA core issue [#157546](https://github.com/home-assistant/core/issues/157546) |
 | `hass_178493/` | 6557787 | WEurope | HA core issue [#178493](https://github.com/home-assistant/core/issues/178493) (Netherlands, `BoilerServiceRequired` + a synthesised unknown fault type) |
-| `system_007/` | 4001001 | GMT | Synthesised schema coverage: 4 locations (maximal, minimal, no TCS, no gateway) |
-| `system_008/` | n/a | n/a | Synthesised schema coverage: empty installation (0 locations) |
+| `system_007/` | 4001001 | GMT | Synthesised schema coverage: 2 locations (maximal, minimal) |
+| `null_system_0/` | n/a | n/a | Synthesised null installation: 0 locations (formerly `system_008/`) |
+| `null_system_1/` | 4001005 | GMT | Synthesised null installation: 1 location, no gateways |
+| `null_system_2/` | 4001006 | GMT | Synthesised null installation: 1 location, 1 gateway, no TCS |
 
 Config-only dirs (no status file, xfail in tests): `hass_099625/`, `hass_102815/`
 
