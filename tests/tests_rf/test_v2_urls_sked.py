@@ -108,7 +108,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 4: PUT a valid schedule
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
+    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
 
     # an example of the expected response:
     """
@@ -143,7 +143,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     temp = schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp + 1
 
-    status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
+    status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
 
     assert isinstance(status, dict | list)  # mypy
 
@@ -174,7 +174,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 4: PUT the original schedule back
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
+    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
 
     #
     # STEP 5: (optional) check the status of the task

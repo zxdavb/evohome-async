@@ -19,7 +19,7 @@ from tests.const import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
+    from collections.abc import Awaitable, Callable, Mapping
 
     from _evohome.helpers import Validator
     from tests.conftest import EvohomeClientV2
@@ -93,7 +93,7 @@ async def should_work_v0[T](
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
     schema: Validator[T],
 ) -> T: ...
@@ -106,7 +106,7 @@ async def should_work_v0(
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
     schema: None = None,
 ) -> dict[str, Any] | list[dict[str, Any]] | str: ...
@@ -118,7 +118,7 @@ async def should_work_v0[T](
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
     schema: Validator[T] | None = None,
 ) -> T | dict[str, Any] | list[dict[str, Any]] | str:
@@ -161,7 +161,7 @@ async def should_fail_v0(
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
     status: HTTPStatus | None = None,
 ) -> dict[str, Any] | list[dict[str, Any]] | str:
@@ -218,7 +218,7 @@ async def should_work_v2[T](
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
     schema: Validator[T],
 ) -> T: ...
@@ -231,7 +231,7 @@ async def should_work_v2(
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
     schema: None = None,
 ) -> dict[str, Any] | list[dict[str, Any]] | str: ...
@@ -243,7 +243,7 @@ async def should_work_v2[T](
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
     schema: Validator[T] | None = None,
 ) -> T | dict[str, Any] | list[dict[str, Any]] | str:
@@ -286,7 +286,7 @@ async def should_fail_v2(
     url: str,
     /,
     *,
-    json: dict[str, Any] | None = None,
+    json: Mapping[str, object] | None = None,
     content_type: str | None = "application/json",
     status: HTTPStatus | None = None,
 ) -> dict[str, Any] | list[dict[str, Any]] | str:
