@@ -102,6 +102,15 @@ class InvalidConfigError(ConfigError):  # account/config JSON is invalid/missing
     """
 
 
+class BadConfigError(ConfigError):  # config JSON is stale (inconsistent with status)
+    """The config JSON is inconsistent with the latest status JSON.
+
+    For example, an entity (e.g. a zone) that is in the config is absent from the
+    status, likely because the installation has been changed since the config was
+    fetched.
+    """
+
+
 class NoSingleTcsError(ConfigError):
     """There is no default TCS (e.g. the user has more than one location)."""
 
