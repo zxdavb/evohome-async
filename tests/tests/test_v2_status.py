@@ -101,7 +101,7 @@ async def test_status_missing_known_entity_raises(
     status = await loc._get_status(_update=False)
     mutate(status)
 
-    with pytest.raises(evo2.BadConfigError, match=entity):
+    with pytest.raises(evo2.StaleConfigError, match=entity):
         loc._update_status(status)
 
     assert tcs.zones[0].status is zone_status_before

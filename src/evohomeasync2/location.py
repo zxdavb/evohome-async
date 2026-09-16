@@ -233,7 +233,7 @@ class Location(EntityBase[EvoLocStatusT]):
         Will also update the status of its gateways, their TCSs, and their DHW/zones.
         Returns the raw JSON of the latest state.
 
-        Raises BadConfigError if the status omits any known gateway, TCS, DHW or
+        Raises StaleConfigError if the status omits any known gateway, TCS, DHW or
         zone (nothing is updated in that case).
         """
 
@@ -311,7 +311,7 @@ class Location(EntityBase[EvoLocStatusT]):
 
         # check before updating anything, so a bad status is not partially applied
         if missing := self._missing_from_status(status):
-            raise exc.BadConfigError(
+            raise exc.StaleConfigError(
                 f"{self}: status has no entry for {', '.join(missing)}"
                 ", (has the location configuration changed?)"
             )

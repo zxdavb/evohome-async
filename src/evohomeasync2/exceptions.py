@@ -10,7 +10,6 @@ from _evohome.exceptions import (
     BadApiRequestError,
     BadApiResponseError,
     BadApiSchemaError,
-    BadConfigError,
     BadScheduleUploadedError,
     BadUserCredentialsError,
     ConfigError,
@@ -22,6 +21,7 @@ from _evohome.exceptions import (
     InvalidSystemModeError,
     InvalidZoneModeError,
     NoSingleTcsError,
+    StaleConfigError,
     StatusError,
 )
 
@@ -33,7 +33,6 @@ __all__ = [
     "BadApiRequestError",
     "BadApiResponseError",
     "BadApiSchemaError",
-    "BadConfigError",
     "BadScheduleUploadedError",
     "BadUserCredentialsError",
     "ConfigError",
@@ -45,5 +44,6 @@ __all__ = [
     "InvalidSystemModeError",
     "InvalidZoneModeError",
     "NoSingleTcsError",
+    "StaleConfigError",
     "StatusError",
 ]

@@ -35,7 +35,6 @@ from .exceptions import (
     BadApiRequestError,
     BadApiResponseError,
     BadApiSchemaError,
-    BadConfigError,
     BadScheduleUploadedError,
     BadUserCredentialsError,
     ConfigError,
@@ -47,6 +46,7 @@ from .exceptions import (
     InvalidSystemModeError,
     InvalidZoneModeError,
     NoSingleTcsError,
+    StaleConfigError,
     StatusError,
 )
 from .gateway import Gateway
@@ -180,7 +180,6 @@ __all__ = [  # noqa: RUF022
     "BadApiRequestError",
     "BadApiResponseError",
     "BadApiSchemaError",
-    "BadConfigError",
     "BadScheduleUploadedError",
     "BadUserCredentialsError",
     "ConfigError",
@@ -192,5 +191,6 @@ __all__ = [  # noqa: RUF022
     "InvalidSystemModeError",
     "InvalidZoneModeError",
     "NoSingleTcsError",
+    "StaleConfigError",
     "StatusError",
 ]

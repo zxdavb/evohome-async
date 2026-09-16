@@ -102,7 +102,7 @@ class InvalidConfigError(ConfigError):  # account/config JSON is invalid/missing
     """
 
 
-class BadConfigError(ConfigError):  # config JSON is stale (inconsistent with status)
+class StaleConfigError(ConfigError):  # config JSON is stale (inconsistent with status)
     """The config JSON is inconsistent with the latest status JSON.
 
     For example, an entity (e.g. a zone) that is in the config is absent from the
