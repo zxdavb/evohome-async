@@ -126,7 +126,7 @@ class InvalidStatusError(StatusError):  # status JSON is invalid/missing
     """
 
 
-class InvalidScheduleError(StatusError):  # schedule JSON is invalid/missing
+class InvalidScheduleError(InvalidStatusError):  # schedule JSON is invalid/missing
     """The schedule JSON is missing/invalid (has it been fetched?).
 
     This is likely because the user has not yet called `Zone.get_schedule()`.
