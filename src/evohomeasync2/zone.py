@@ -401,7 +401,7 @@ class _ScheduleBase[
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
-                raise exc.BadScheduleUploadedError(
+                raise exc.InvalidScheduleUploadError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
@@ -409,14 +409,14 @@ class _ScheduleBase[
             try:
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as err:
-                raise exc.BadScheduleUploadedError(
+                raise exc.InvalidScheduleUploadError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
             assert isinstance(schedule, list)  # mypy
 
         else:
-            raise exc.BadScheduleUploadedError(
+            raise exc.InvalidScheduleUploadError(
                 f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable"
             )
 

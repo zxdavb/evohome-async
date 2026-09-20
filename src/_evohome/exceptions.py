@@ -16,8 +16,9 @@ class EvohomeError(_EvohomeBaseError):
 
 
 # Request/Response failures (of a RESTful API call)...
-# - API requests unable to be made
-# - API requests made, but a 'bad' response received
+#
+# 1. Call failures - the request could not be completed as expected
+#    (e.g. no connection, rate limit exceeded, authentication failed)
 
 
 class _ApiCallFailedError(EvohomeError):
@@ -54,18 +55,13 @@ class BadUserCredentialsError(AuthenticationFailedError):
     """
 
 
-# Request/Response failures (of a RESTful API call)...
-# - API requests unable to be made
-# - API requests made, but a 'bad' response received
-
-
 class BadApiSchemaError(ApiCallFailedError):  # base exception
     """The received/supplied JSON is not as expected (e.g. missing a required key)."""
 
 
-# 2. Requests exceptions (e.g. unknown/unsupported mode):
-# - usually detected immediately before, making the API request, or
-# - as a result of a failed request
+# 2. Request exceptions (e.g. unknown/unsupported zone mode):
+#    - usually detected immediately before making the API request, or
+#    - as a result of a failed request
 
 
 class BadApiRequestError(BadApiSchemaError):  # base for all failed API requests
@@ -84,14 +80,14 @@ class InvalidDhwModeError(InvalidZoneModeError):  # failed to set a DHW zone mod
     """The requested mode is not supported by this DHW zone."""
 
 
-class BadScheduleUploadedError(BadApiRequestError):  # failed to set a zone/DHW schedule
+class InvalidScheduleUploadError(BadApiRequestError):  # failed to set a schedule
     """The supplied schedule JSON is not supported / is invalid."""
 
 
-# 3. Response exceptions (e.g. missing zones) - can be determine as:
-# a) failing schema validation (immediately after a HTTP GET), or (later on)
-# b) internally inconsistent (e.g. TCS with duplicate zone IDs), or
-# c) status inconsistent with status JSON (i.e. config has changed since it was fetched)
+# 3. Response exceptions (e.g. missing zones) - can be detected as:
+#    a) failing schema validation (immediately after a HTTP GET), or (later on)
+#    b) internally inconsistent (e.g. TCS with duplicate zone IDs), or
+#    c) config inconsistent with the status JSON (i.e. installation changed since fetch)
 
 
 class BadApiResponseError(BadApiSchemaError):  # base for all invalid API responses
