@@ -15,16 +15,23 @@ from aiozoneinfo import async_get_time_zone
 from _evohome.helpers import convert_dtm_to_local_aware
 from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
+from . import exceptions as exc
 from .const import (
     SZ_COUNTRY,
+    SZ_DHW,
+    SZ_DHW_ID,
     SZ_GATEWAY_ID,
     SZ_GATEWAYS,
     SZ_LOCATION_ID,
     SZ_LOCATION_INFO,
     SZ_NAME,
+    SZ_SYSTEM_ID,
+    SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TIME_ZONE,
     SZ_TIME_ZONE_ID,
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
+    SZ_ZONE_ID,
+    SZ_ZONES,
 )
 from .gateway import Gateway
 from .schemas.config import factory_location_installation_info
@@ -225,6 +232,9 @@ class Location(EntityBase[EvoLocStatusT]):
 
         Will also update the status of its gateways, their TCSs, and their DHW/zones.
         Returns the raw JSON of the latest state.
+
+        Raises StaleConfigError if the status omits any known gateway, TCS, DHW or
+        zone (nothing is updated in that case).
         """
 
         if _update_time_zone_info:
@@ -259,8 +269,52 @@ class Location(EntityBase[EvoLocStatusT]):
             self._update_status(status)
         return status
 
+    def _missing_from_status(self, status: EvoLocStatusResponseT) -> list[str]:
+        """Return the known (i.e. configured) entities that are absent from the status.
+
+        Entities that are in the status, but not in the config, are ignored here.
+        """
+
+        missing: list[str] = []
+
+        gwy_status_by_id = {g[SZ_GATEWAY_ID]: g for g in status[SZ_GATEWAYS]}
+
+        for gwy in self.gateways:
+            if (gwy_status := gwy_status_by_id.get(gwy.id)) is None:
+                missing.append(f"gateway_id='{gwy.id}'")
+                continue
+
+            tcs_status_by_id = {
+                t[SZ_SYSTEM_ID]: t for t in gwy_status[SZ_TEMPERATURE_CONTROL_SYSTEMS]
+            }
+
+            for tcs in gwy.systems:
+                if (tcs_status := tcs_status_by_id.get(tcs.id)) is None:
+                    missing.append(f"system_id='{tcs.id}'")
+                    continue
+
+                zone_ids = {z[SZ_ZONE_ID] for z in tcs_status[SZ_ZONES]}
+                missing.extend(
+                    f"zone_id='{z.id}'" for z in tcs.zones if z.id not in zone_ids
+                )
+
+                dhw_status = tcs_status.get(SZ_DHW)
+                if tcs.hotwater and (
+                    dhw_status is None or dhw_status[SZ_DHW_ID] != tcs.hotwater.id
+                ):
+                    missing.append(f"dhw_id='{tcs.hotwater.id}'")
+
+        return missing
+
     def _update_status(self, status: EvoLocStatusResponseT) -> None:
         """Update the LOC's status and cascade to its descendants."""
+
+        # check before updating anything, so a bad status is not partially applied
+        if missing := self._missing_from_status(status):
+            raise exc.StaleConfigError(
+                f"{self}: status has no entry for {', '.join(missing)}"
+                ", (has the location configuration changed?)"
+            )
 
         # No ActiveFaults in location node of status
 

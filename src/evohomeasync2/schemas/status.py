@@ -17,6 +17,7 @@ import probatio as vol
 
 from _evohome.helpers import camel_to_snake, noop
 
+from .config import _MIN_NUM_ZONES_PER_TCS
 from .const import (
     REGEX_DHW_ID,
     REGEX_GATEWAY_ID,
@@ -327,7 +328,7 @@ def factory_tcs_status(case: Case = Case.VENDOR) -> Validator[TccTcsStatusRespon
         {
             vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
             vol.Required(fnc(S2_SYSTEM_MODE_STATUS)): factory_system_mode_status(case),
-            vol.Required(fnc(S2_ZONES)): [factory_zon_status(case)],
+            vol.Required(fnc(S2_ZONES)): vol.All([factory_zon_status(case)], vol.Length(min=_MIN_NUM_ZONES_PER_TCS)),
             vol.Optional(fnc(S2_DHW)): factory_dhw_status(case),
             vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(case)],
         },

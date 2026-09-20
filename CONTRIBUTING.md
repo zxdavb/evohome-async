@@ -103,6 +103,7 @@ EvohomeError
 ├── AuthenticationFailedError    # NB: not an ApiCallFailedError
 │   └── BadUserCredentialsError
 ├── ConfigError                  # Bad config JSON
+│   └── StaleConfigError         # Config is stale (inconsistent with status)
 └── StatusError                  # Bad status/schedule JSON
 ```
 
