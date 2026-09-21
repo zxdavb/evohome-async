@@ -34,13 +34,13 @@ classifiers = [
 cli = [
   "aiofiles>=25.1.0",
   "asyncclick>=8.4.2.1",
-  "debugpy>=1.8.21",
+  "debugpy>=1.8.22",
   "keyring>=25.7.0",
 ]
 dev = [
   # linting
   "prek>=0.5.3",
-  "ruff>=0.16.7",
+  "ruff>=0.16.8",
   # typing
   "mypy>=2.3.1",
   "types-aiofiles>=25.1.0.20260518",
@@ -55,7 +55,7 @@ dev = [
   "pytest-xdist>=3.8.0",
   "syrupy>=6.1.1",
   # build/deploy
-  "hatch>=1.18.0",
+  "hatch>=1.18.1",
 ]
 
 #
