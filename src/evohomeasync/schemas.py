@@ -442,7 +442,7 @@ class TccSetpointStatus(StrEnum):  # changeableValues[.heatSetpoint].status
 
 
 @verify(EnumCheck.UNIQUE)
-class TccTemperatureStatus(StrEnum):  # thermostat.indoorTemperatureStatus
+class TccSensorStatus(StrEnum):  # thermostat.(in|out)door(Temperature|Humidity)Status
     MEASURED = "Measured"
     NOT_AVAILABLE = "NotAvailable"
     SENSOR_ERROR = "SensorError"
@@ -578,10 +578,10 @@ class TccThermostatResponseT(TypedDict):
     outdoorHumidity: float
     outdootHumidityAvailable: bool  # NOTE: not a typo
     indoorHumidity: float
-    indoorTemperatureStatus: TccTemperatureStatus
-    indoorHumidityStatus: str
-    outdoorTemperatureStatus: str
-    outdoorHumidityStatus: str
+    indoorTemperatureStatus: TccSensorStatus
+    indoorHumidityStatus: TccSensorStatus
+    outdoorTemperatureStatus: TccSensorStatus
+    outdoorHumidityStatus: TccSensorStatus
     isCommercial: bool
     allowedModes: list[TccThermostatMode] | list[TccDhwMode]  # a zone | a DHW
     deadband: float
@@ -615,7 +615,7 @@ class TccZoneChangeableValuesT(TypedDict):
     """
 
     mode: TccThermostatMode  # usu. Off
-    heatSetpoint: _TccSetpointT
+    heatSetpoint: TccHeatSetpointT
     vacationHoldDays: int
 
 
@@ -629,7 +629,7 @@ class TccDhwChangeableValuesT(TypedDict):
     status: TccSetpointStatus  # Scheduled, Hold
 
 
-class _TccSetpointT(TypedDict):
+class TccHeatSetpointT(TypedDict):
     value: float
     status: TccSetpointStatus
 
