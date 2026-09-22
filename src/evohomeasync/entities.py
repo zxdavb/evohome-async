@@ -41,18 +41,17 @@ from .const import (
     SZ_WEATHER,
 )
 from .schemas import (
-    SZ_DHW_OFF,
-    SZ_DHW_ON,
-    SZ_HOLD,
     SZ_MODE,
     SZ_NEXT_TIME,
     SZ_QUICK_ACTION,
     SZ_QUICK_ACTION_NEXT_TIME,
-    SZ_SCHEDULED,
     SZ_STATUS,
-    SZ_TEMPORARY,
     SZ_VALUE,
+    TccDhwMode,
+    TccSetpointStatus,
     TccSystemMode,
+    TccTemperatureStatus,
+    TccThermostatModelType,
 )
 from .typedefs import EvoGwyInfoDictT
 
@@ -75,6 +74,9 @@ if TYPE_CHECKING:
 
 
 _TEMP_IS_NA: Final = 128
+
+# e.g. EMEA_ZONE, but any such prefixed type is a zone (c.f. TccThermostatModelType)
+_ZONE_MODEL_TYPE_PREFIX: Final = "EMEA_"
 
 
 class _EntityBase(ABC):
@@ -170,7 +172,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
 
-        is_available = temp_status == "Measured"
+        is_available = temp_status == TccTemperatureStatus.MEASURED
         if temp == _TEMP_IS_NA:
             return {SZ_IS_AVAILABLE: is_available}
         return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
@@ -185,17 +187,17 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
 
     async def _set_dhw(
         self,
-        status: str,  # "Scheduled" | "Hold"
-        mode: str | None = None,  # "DHWOn" | "DHWOff"
+        status: TccSetpointStatus,  # Scheduled | Hold
+        mode: TccDhwMode | None = None,
         next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
     ) -> None:
         """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
 
-        data = {
+        data: dict[str, str | None] = {
             SZ_STATUS: status,
             SZ_MODE: mode,
             # SZ_NEXT_TIME: None,
-            # SZ_SPECIAL_TIMES: None,
+            # SZ_SPECIAL_MODES: None,
             # SZ_HEAT_SETPOINT: None,
             # SZ_COOL_SETPOINT: None,
         }
@@ -213,7 +215,9 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         scheduled behaviour.
         """
 
-        await self._set_dhw(status=SZ_HOLD, mode=SZ_DHW_ON, next_time=until)
+        await self._set_dhw(
+            status=TccSetpointStatus.HOLD, mode=TccDhwMode.DHW_ON, next_time=until
+        )
 
     async def set_dhw_off(self, until: dt | None = None) -> None:
         """Set DHW to Off, either indefinitely, or until a specified time.
@@ -222,11 +226,13 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         specified time, it will revert to its scheduled behaviour.
         """
 
-        await self._set_dhw(status=SZ_HOLD, mode=SZ_DHW_OFF, next_time=until)
+        await self._set_dhw(
+            status=TccSetpointStatus.HOLD, mode=TccDhwMode.DHW_OFF, next_time=until
+        )
 
     async def set_dhw_auto(self) -> None:
         """Allow DHW to switch between On and Off, according to its schedule."""
-        await self._set_dhw(status=SZ_SCHEDULED)
+        await self._set_dhw(status=TccSetpointStatus.SCHEDULED)
 
 
 class Zone(_DeviceBase):  # Zone version of a Device
@@ -279,7 +285,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
 
-        is_available = temp_status == "Measured"
+        is_available = temp_status == TccTemperatureStatus.MEASURED
         if temp == _TEMP_IS_NA:
             return {SZ_IS_AVAILABLE: is_available}
         return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
@@ -294,7 +300,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
     async def _set_heat_setpoint(
         self,
-        status: str,  # "Scheduled" | "Temporary" | "Hold"
+        status: TccSetpointStatus,  # Scheduled | Temporary | Hold
         value: float | None = None,
         next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
     ) -> None:
@@ -317,14 +323,14 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
         if until:
             await self._set_heat_setpoint(
-                SZ_TEMPORARY, value=temperature, next_time=until
+                TccSetpointStatus.TEMPORARY, value=temperature, next_time=until
             )
         else:
-            await self._set_heat_setpoint(SZ_HOLD, value=temperature)
+            await self._set_heat_setpoint(TccSetpointStatus.HOLD, value=temperature)
 
     async def set_zone_auto(self) -> None:
         """Set a zone to follow its schedule."""
-        await self._set_heat_setpoint(status=SZ_SCHEDULED)
+        await self._set_heat_setpoint(status=TccSetpointStatus.SCHEDULED)
 
 
 class ControlSystem(_EntityBase):  # TCS portion of a Location
@@ -503,11 +509,13 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
                 self.gateways.append(gwy)
                 self.gateway_by_id[gwy.id] = gwy
 
-            if (type_ := dev_config[SZ_THERMOSTAT_MODEL_TYPE]) == "DOMESTIC_HOT_WATER":
+            if (
+                type_ := dev_config[SZ_THERMOSTAT_MODEL_TYPE]
+            ) == TccThermostatModelType.DOMESTIC_HOT_WATER:
                 self.hotwater = HotWater(self, dev_config)
 
             # check is string to handle edge-case of Honeywell TH9320WF3003
-            elif isinstance(type_, str) and type_.startswith("EMEA_"):
+            elif isinstance(type_, str) and type_.startswith(_ZONE_MODEL_TYPE_PREFIX):
                 self._add_zone(Zone(self, dev_config))
 
             else:  # assume everything else is a zone

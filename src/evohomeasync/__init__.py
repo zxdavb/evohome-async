@@ -8,7 +8,7 @@ Further information at: https://evohome-client.readthedocs.io
 from __future__ import annotations
 
 from datetime import UTC, datetime as dt, timedelta as td
-from typing import Self
+from typing import Final, Self
 
 import aiohttp
 
@@ -44,24 +44,29 @@ from .schemas import (  # noqa: F401
     S1_THERMOSTAT as SZ_THERMOSTAT,
     S1_THERMOSTAT_MODEL_TYPE as SZ_THERMOSTAT_MODEL_TYPE,
     S1_USER_INFO as SZ_USER_INFO,
-    SZ_DHW_OFF,
-    SZ_DHW_ON,
-    SZ_DOMESTIC_HOT_WATER,
-    SZ_EMEA_ZONE,
     SZ_HEAT_SETPOINT,
-    SZ_HOLD,
     SZ_ID,
     SZ_MODE,
     SZ_NEXT_TIME,
     SZ_QUICK_ACTION,
     SZ_QUICK_ACTION_NEXT_TIME,
-    SZ_SCHEDULED,
     SZ_SETPOINT,
     SZ_STATUS,
     SZ_TEMP,
-    SZ_TEMPORARY,
     SZ_VALUE,
+    TccDhwMode,
+    TccSetpointStatus,
+    TccThermostatModelType,
 )
+
+# Deprecated: these vendor values are now members of StrEnums (so compare equal)
+SZ_DHW_OFF: Final = TccDhwMode.DHW_OFF
+SZ_DHW_ON: Final = TccDhwMode.DHW_ON
+SZ_DOMESTIC_HOT_WATER: Final = TccThermostatModelType.DOMESTIC_HOT_WATER
+SZ_EMEA_ZONE: Final = TccThermostatModelType.EMEA_ZONE
+SZ_HOLD: Final = TccSetpointStatus.HOLD
+SZ_SCHEDULED: Final = TccSetpointStatus.SCHEDULED
+SZ_TEMPORARY: Final = TccSetpointStatus.TEMPORARY
 
 
 class _SessionManager(AbstractSessionManager):  # used only by EvohomeClientOld
