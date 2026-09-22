@@ -397,24 +397,26 @@ TCC_POST_USR_SESSION: Final[Validator[TccSessionResponseT]] = (
     factory_session_response()
 )
 
+# AAA - Schema keys (start with a lower case letter)
+SZ_COOL_SETPOINT: Final = "coolSetpoint"  # PUT? (never sent)
+SZ_HEAT_SETPOINT: Final = "heatSetpoint"  # PUT?
+SZ_MODE: Final = "mode"  #               # PUT
+SZ_SPECIAL_MODES: Final = "SpecialModes"  # PUT? (never sent)
+SZ_STATUS: Final = "status"  #           # PUT
+SZ_VALUE: Final = "value"  #             # PUT
 
-# schema keys (start with a lower case letter)
-SZ_COOL_SETPOINT: Final = "coolSetpoint"
-SZ_HEAT_SETPOINT: Final = "heatSetpoint"
-
-SZ_ID: Final = "id"  # is id, not Id/ID
-SZ_MODE: Final = "mode"
+# BBB - Used in API calls
 SZ_NEXT_TIME: Final = "NextTime"
 SZ_QUICK_ACTION: Final = "QuickAction"
 SZ_QUICK_ACTION_NEXT_TIME: Final = "QuickActionNextTime"
+
+# CCC - Old Evo library output (i.e. not TCC) - to deprecate?
+SZ_ID: Final = "id"  # is id, not Id/ID
 SZ_SETPOINT: Final = "setpoint"
-SZ_SPECIAL_MODES: Final = "SpecialModes"
-SZ_STATUS: Final = "status"
 SZ_TEMP: Final = "temp"
-SZ_VALUE: Final = "value"
 
 
-# schema values (start with an upper case letter)
+# String enums (not camelCase, usu. start with an upper case letter)
 @verify(EnumCheck.UNIQUE)
 class TccSystemMode(StrEnum):
     AUTO = "Auto"
