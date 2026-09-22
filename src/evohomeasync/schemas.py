@@ -29,6 +29,7 @@ The convention is not applied consistently: the user id is "userID" as a JSON ke
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from enum import EnumCheck, StrEnum, verify
 from typing import TYPE_CHECKING, Any, Final, NewType, NotRequired, TypedDict
 
@@ -180,6 +181,13 @@ class TccSystemMode(StrEnum):
 class TccDhwMode(StrEnum):  # changeableValues.mode, allowedModes (of a DHW)
     DHW_OFF = "DHWOff"
     DHW_ON = "DHWOn"
+
+
+@verify(EnumCheck.UNIQUE)
+class TccEquipmentOutputStatus(StrEnum):  # thermostat.equipmentOutputStatus
+    COOLING = "Cooling"
+    HEATING = "Heating"
+    OFF = "Off"
 
 
 @verify(EnumCheck.UNIQUE)
@@ -480,6 +488,9 @@ SZ_TEMP: Final = "temp"
 # These typed dicts represent the 'ground truth' as best known for an undocumented API
 
 
+type _TccResponse = Mapping[str, object]
+
+
 class TccFailureResponseT(TypedDict):
     """Typed dict for code/message responses from the vendor servers."""
 
@@ -545,7 +556,7 @@ class TccLocationResponseT(TypedDict):
     locationOwnerName: str
     locationOwnerUserName: str
     canSearchForContractors: bool
-    contractor: NotRequired[dict[str, Any]]  # ContractorResponse
+    contractor: NotRequired[_TccResponse]  # ContractorResponse
 
 
 class TccDeviceResponseT(TypedDict):
@@ -558,11 +569,11 @@ class TccDeviceResponseT(TypedDict):
     scheduleCapable: bool
     holdUntilCapable: bool
     thermostat: TccThermostatResponseT
-    humidifier: NotRequired[dict[str, Any]]  # HumidifierResponse
-    dehumidifier: NotRequired[dict[str, Any]]  # DehumidifierResponse
-    fan: NotRequired[dict[str, Any]]  # FanResponse
-    schedule: NotRequired[dict[str, Any]]  # ScheduleResponse
-    alertSettings: NotRequired[dict[str, Any]]  # AlertSettingsResponse
+    humidifier: NotRequired[_TccResponse]  # HumidifierResponse
+    dehumidifier: NotRequired[_TccResponse]  # DehumidifierResponse
+    fan: NotRequired[_TccResponse]  # FanResponse
+    schedule: NotRequired[_TccResponse]  # ScheduleResponse
+    alertSettings: NotRequired[_TccResponse]  # AlertSettingsResponse
     isUpgrading: bool
     isAlive: bool
     thermostatVersion: str
@@ -600,7 +611,7 @@ class TccThermostatResponseT(TypedDict):
     isPreCoolCapable: NotRequired[bool]
     # the Dhw variant is sent for a DOMESTIC_HOT_WATER device, else the Zone variant
     changeableValues: TccZoneChangeableValuesT | TccDhwChangeableValuesT
-    equipmentOutputStatus: NotRequired[str]  # Off | Heating | Cooling
+    equipmentOutputStatus: NotRequired[TccEquipmentOutputStatus]
     scheduleCapable: bool
     vacationHoldChangeable: bool
     vacationHoldCancelable: bool
