@@ -48,9 +48,9 @@ from .schemas import (
     SZ_STATUS,
     SZ_VALUE,
     TccDhwMode,
+    TccSensorStatus,
     TccSetpointStatus,
     TccSystemMode,
-    TccTemperatureStatus,
     TccThermostatModelType,
 )
 from .typedefs import EvoGwyInfoDictT
@@ -172,7 +172,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
 
-        is_available = temp_status == TccTemperatureStatus.MEASURED
+        is_available = temp_status == TccSensorStatus.MEASURED
         if temp == _TEMP_IS_NA:
             return {SZ_IS_AVAILABLE: is_available}
         return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
@@ -285,7 +285,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
 
-        is_available = temp_status == TccTemperatureStatus.MEASURED
+        is_available = temp_status == TccSensorStatus.MEASURED
         if temp == _TEMP_IS_NA:
             return {SZ_IS_AVAILABLE: is_available}
         return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
