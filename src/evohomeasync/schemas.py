@@ -165,6 +165,65 @@ S1_WEATHER: Final = "weather"
 S1_ZIPCODE: Final = "zipcode"
 
 
+# String enums (not camelCase, usu. start with an upper case letter)
+@verify(EnumCheck.UNIQUE)
+class TccSystemMode(StrEnum):
+    AUTO = "Auto"
+    AUTO_WITH_ECO = "AutoWithEco"
+    AWAY = "Away"
+    CUSTOM = "Custom"
+    DAY_OFF = "DayOff"
+    HEATING_OFF = "HeatingOff"
+
+
+@verify(EnumCheck.UNIQUE)
+class TccDhwMode(StrEnum):  # changeableValues.mode, allowedModes (of a DHW)
+    DHW_OFF = "DHWOff"
+    DHW_ON = "DHWOn"
+
+
+@verify(EnumCheck.UNIQUE)
+class TccLocationType(StrEnum):  # location.type
+    COMMERCIAL = "Commercial"
+    RESIDENTIAL = "Residential"
+
+
+@verify(EnumCheck.UNIQUE)
+class TccSetpointStatus(StrEnum):  # changeableValues[.heatSetpoint].status
+    HOLD = "Hold"
+    SCHEDULED = "Scheduled"
+    TEMPORARY = "Temporary"  # a zone only
+    VACATION_HOLD = "VacationHold"  # a zone only
+
+
+@verify(EnumCheck.UNIQUE)
+class TccSensorStatus(StrEnum):  # thermostat.(in|out)door(Temperature|Humidity)Status
+    MEASURED = "Measured"
+    NOT_AVAILABLE = "NotAvailable"
+    SENSOR_ERROR = "SensorError"
+    SENSOR_FAULT = "SensorFault"
+
+
+@verify(EnumCheck.UNIQUE)
+class TccThermostatMode(StrEnum):  # changeableValues.mode, allowedModes (of a zone)
+    HEAT = "Heat"
+    OFF = "Off"
+
+
+# NOTE: This list may be incomplete (a zone type need only be prefixed with "EMEA_")
+@verify(EnumCheck.UNIQUE)
+class TccThermostatModelType(StrEnum):  # device.thermostatModelType
+    """The vendor's model type of a device (these values are received, not sent).
+
+    Unlike the other enums here, these values are not PascalCase. They must not be sent
+    in a request body, as the library would mangle them: see AbstractAuth.request(),
+    which converts StrEnum values (e.g. DOMESTIC_HOT_WATER -> DOMESTICHotWater).
+    """
+
+    DOMESTIC_HOT_WATER = "DOMESTIC_HOT_WATER"
+    EMEA_ZONE = "EMEA_ZONE"
+
+
 def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
     """Factory for the code/message response schema."""
 
@@ -330,7 +389,7 @@ def _factory_location_response(
             vol.Optional(fnc(S1_STATE)): str,
             vol.Required(fnc(S1_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
             vol.Optional(fnc(S1_ZIPCODE)): str,
-            vol.Optional(fnc(S1_TYPE)): vol.In(["Commercial", "Residential"]),
+            vol.Optional(fnc(S1_TYPE)): vol.In(TccLocationType),
             vol.Optional(fnc(S1_HAS_STATION)): bool,
             vol.Required(fnc(S1_DEVICES)): [_factory_device_response(fnc)],
             vol.Optional(fnc(S1_ONE_TOUCH_BUTTONS)): list,
@@ -416,59 +475,6 @@ SZ_SETPOINT: Final = "setpoint"
 SZ_TEMP: Final = "temp"
 
 
-# String enums (not camelCase, usu. start with an upper case letter)
-@verify(EnumCheck.UNIQUE)
-class TccSystemMode(StrEnum):
-    AUTO = "Auto"
-    AUTO_WITH_ECO = "AutoWithEco"
-    AWAY = "Away"
-    CUSTOM = "Custom"
-    DAY_OFF = "DayOff"
-    HEATING_OFF = "HeatingOff"
-
-
-@verify(EnumCheck.UNIQUE)
-class TccDhwMode(StrEnum):  # changeableValues.mode, allowedModes (of a DHW)
-    DHW_OFF = "DHWOff"
-    DHW_ON = "DHWOn"
-
-
-@verify(EnumCheck.UNIQUE)
-class TccSetpointStatus(StrEnum):  # changeableValues[.heatSetpoint].status
-    HOLD = "Hold"
-    SCHEDULED = "Scheduled"
-    TEMPORARY = "Temporary"  # a zone only
-    VACATION_HOLD = "VacationHold"  # a zone only
-
-
-@verify(EnumCheck.UNIQUE)
-class TccSensorStatus(StrEnum):  # thermostat.(in|out)door(Temperature|Humidity)Status
-    MEASURED = "Measured"
-    NOT_AVAILABLE = "NotAvailable"
-    SENSOR_ERROR = "SensorError"
-    SENSOR_FAULT = "SensorFault"
-
-
-@verify(EnumCheck.UNIQUE)
-class TccThermostatMode(StrEnum):  # changeableValues.mode, allowedModes (of a zone)
-    HEAT = "Heat"
-    OFF = "Off"
-
-
-# NOTE: This list may be incomplete (a zone type need only be prefixed with "EMEA_")
-@verify(EnumCheck.UNIQUE)
-class TccThermostatModelType(StrEnum):  # device.thermostatModelType
-    """The vendor's model type of a device (these values are received, not sent).
-
-    Unlike the other enums here, these values are not PascalCase. They must not be sent
-    in a request body, as the library would mangle them: see AbstractAuth.request(),
-    which converts StrEnum values (e.g. DOMESTIC_HOT_WATER -> DOMESTICHotWater).
-    """
-
-    DOMESTIC_HOT_WATER = "DOMESTIC_HOT_WATER"
-    EMEA_ZONE = "EMEA_ZONE"
-
-
 #######################################################################################
 # These the responses via the vendor's API; they have camelCase keys...
 # These typed dicts represent the 'ground truth' as best known for an undocumented API
@@ -526,7 +532,7 @@ class TccLocationResponseT(TypedDict):
     state: str
     country: str
     zipcode: str
-    type: str  # LocationType: "Commercial" | "Residential"
+    type: TccLocationType
     hasStation: bool
     devices: list[TccDeviceResponseT]
     weather: NotRequired[TccWeatherResponseT]  # WeatherResponse, if hasStation is True
