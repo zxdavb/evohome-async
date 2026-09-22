@@ -427,19 +427,46 @@ class TccSystemMode(StrEnum):
     HEATING_OFF = "HeatingOff"
 
 
-#
-SZ_DHW_OFF: Final = "DHWOff"
-SZ_DHW_ON: Final = "DHWOn"
-#
-SZ_DOMESTIC_HOT_WATER: Final = "DOMESTIC_HOT_WATER"
-SZ_EMEA_ZONE: Final = "EMEA_ZONE"
-#
-SZ_HOLD: Final = "Hold"
-SZ_SCHEDULED: Final = "Scheduled"
-SZ_TEMPORARY: Final = "Temporary"
-#
-SZ_HEAT: Final = "Heat"
-SZ_OFF: Final = "Off"
+@verify(EnumCheck.UNIQUE)
+class TccDhwMode(StrEnum):  # changeableValues.mode, allowedModes (of a DHW)
+    DHW_OFF = "DHWOff"
+    DHW_ON = "DHWOn"
+
+
+@verify(EnumCheck.UNIQUE)
+class TccSetpointStatus(StrEnum):  # changeableValues[.heatSetpoint].status
+    HOLD = "Hold"
+    SCHEDULED = "Scheduled"
+    TEMPORARY = "Temporary"  # a zone only
+    VACATION_HOLD = "VacationHold"  # a zone only
+
+
+@verify(EnumCheck.UNIQUE)
+class TccTemperatureStatus(StrEnum):  # thermostat.indoorTemperatureStatus
+    MEASURED = "Measured"
+    NOT_AVAILABLE = "NotAvailable"
+    SENSOR_ERROR = "SensorError"
+    SENSOR_FAULT = "SensorFault"
+
+
+@verify(EnumCheck.UNIQUE)
+class TccThermostatMode(StrEnum):  # changeableValues.mode, allowedModes (of a zone)
+    HEAT = "Heat"
+    OFF = "Off"
+
+
+# NOTE: This list may be incomplete (a zone type need only be prefixed with "EMEA_")
+@verify(EnumCheck.UNIQUE)
+class TccThermostatModelType(StrEnum):  # device.thermostatModelType
+    """The vendor's model type of a device (these values are received, not sent).
+
+    Unlike the other enums here, these values are not PascalCase. They must not be sent
+    in a request body, as the library would mangle them: see AbstractAuth.request(),
+    which converts StrEnum values (e.g. DOMESTIC_HOT_WATER -> DOMESTICHotWater).
+    """
+
+    DOMESTIC_HOT_WATER = "DOMESTIC_HOT_WATER"
+    EMEA_ZONE = "EMEA_ZONE"
 
 
 #######################################################################################
@@ -519,7 +546,7 @@ class TccDeviceResponseT(TypedDict):
     deviceID: _DhwIdT | _ZoneIdT  # is ID, not Id
     gatewayId: _GatewayIdT
     # is an int only for the Honeywell TH9320WF3003 (deviceType 48), which sends 36
-    thermostatModelType: str | int  # DOMESTIC_HOT_WATER or a zone
+    thermostatModelType: TccThermostatModelType | int  # int: Honeywell TH9320WF3003
     deviceType: int
     name: str
     scheduleCapable: bool
@@ -551,12 +578,12 @@ class TccThermostatResponseT(TypedDict):
     outdoorHumidity: float
     outdootHumidityAvailable: bool  # NOTE: not a typo
     indoorHumidity: float
-    indoorTemperatureStatus: str  # Measured|NotAvailable|SensorError|SensorFault
+    indoorTemperatureStatus: TccTemperatureStatus
     indoorHumidityStatus: str
     outdoorTemperatureStatus: str
     outdoorHumidityStatus: str
     isCommercial: bool
-    allowedModes: list[str]  # ThermostatMode
+    allowedModes: list[TccThermostatMode] | list[TccDhwMode]  # a zone | a DHW
     deadband: float
     minHeatSetpoint: float
     maxHeatSetpoint: float
@@ -587,7 +614,7 @@ class TccZoneChangeableValuesT(TypedDict):
     },
     """
 
-    mode: str  # Off
+    mode: TccThermostatMode  # usu. Off
     heatSetpoint: _TccSetpointT
     vacationHoldDays: int
 
@@ -598,13 +625,13 @@ class TccDhwChangeableValuesT(TypedDict):
     "changeableValues": {"mode": "DHWOff", "status": "Scheduled"},
     """
 
-    mode: str  # DHWOn | DHWOff
-    status: str  # Scheduled, Hold
+    mode: TccDhwMode
+    status: TccSetpointStatus  # Scheduled, Hold
 
 
 class _TccSetpointT(TypedDict):
     value: float
-    status: str  # Scheduled, Temporary, Hold, VacationHold
+    status: TccSetpointStatus
 
 
 class TccWeatherResponseT(TypedDict):
