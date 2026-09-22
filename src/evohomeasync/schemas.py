@@ -58,44 +58,107 @@ _TaskIdT = NewType("_TaskIdT", str)  # TODO: int or str?
 
 
 #
+S1_ALERT_SETTINGS: Final = "alertSettings"
 S1_ALLOWED_MODES: Final = "allowedModes"
+
+S1_CAN_SEARCH_FOR_CONTRACTORS: Final = "canSearchForContractors"
 S1_CHANGEABLE_VALUES: Final = "changeableValues"
 S1_CITY: Final = "city"
+S1_CODE: Final = "code"
+S1_CONTRACTOR: Final = "contractor"
+S1_COOL_RATE: Final = "coolRate"
 S1_COUNTRY: Final = "country"
 
+S1_DAYLIGHT_SAVING_TIME_ENABLED: Final = "daylightSavingTimeEnabled"
+S1_DEADBAND: Final = "deadband"
+S1_DEHUMIDIFIER: Final = "dehumidifier"
 S1_DEVICE_COUNT: Final = "deviceCount"
 S1_DEVICE_ID: Final = "deviceID"  # is ID, not Id
+S1_DEVICE_TYPE: Final = "deviceType"
 S1_DEVICES: Final = "devices"
 S1_DOMAIN_ID: Final = "domainID"  # is ID, not Id
+S1_DR_EVENTS: Final = "drEvents"
 
+S1_EQUIPMENT_OUTPUT_STATUS: Final = "equipmentOutputStatus"
+
+S1_FAN: Final = "fan"
 S1_FIRSTNAME: Final = "firstname"
+
 S1_GATEWAY_ID: Final = "gatewayId"
+
+S1_HAS_STATION: Final = "hasStation"
+S1_HEAT_RATE: Final = "heatRate"
+S1_HOLD_UNTIL_CAPABLE: Final = "holdUntilCapable"
+S1_HUMIDIFIER: Final = "humidifier"
+
+S1_INDOOR_HUMIDITY: Final = "indoorHumidity"
+S1_INDOOR_HUMIDITY_STATUS: Final = "indoorHumidityStatus"
 S1_INDOOR_TEMPERATURE: Final = "indoorTemperature"
 S1_INDOOR_TEMPERATURE_STATUS: Final = "indoorTemperatureStatus"
 S1_INSTANCE: Final = "instance"
 S1_IS_ACTIVATED: Final = "isActivated"
+S1_IS_ALIVE: Final = "isAlive"
+S1_IS_COMMERCIAL: Final = "isCommercial"
+S1_IS_LOCATION_OWNER: Final = "isLocationOwner"
+S1_IS_PRE_COOL_CAPABLE: Final = "isPreCoolCapable"
+S1_IS_UPGRADING: Final = "isUpgrading"
 
 S1_LASTNAME: Final = "lastname"
 S1_LATEST_EULA_ACCEPTED: Final = "latestEulaAccepted"
 S1_LOCATION_ID: Final = "locationID"  # is ID, not Id
+S1_LOCATION_OWNER_ID: Final = "locationOwnerID"  # is ID, not Id
+S1_LOCATION_OWNER_NAME: Final = "locationOwnerName"
+S1_LOCATION_OWNER_USER_NAME: Final = "locationOwnerUserName"
 
 S1_MAC_ID: Final = "macID"  # is ID, not Id
+S1_MAX_COOL_SETPOINT: Final = "maxCoolSetpoint"
 S1_MAX_HEAT_SETPOINT: Final = "maxHeatSetpoint"
+S1_MESSAGE: Final = "message"
+S1_MIN_COOL_SETPOINT: Final = "minCoolSetpoint"
 S1_MIN_HEAT_SETPOINT: Final = "minHeatSetpoint"
 
 S1_NAME: Final = "name"
 
+S1_ONE_TOUCH_ACTIONS_SUSPENDED: Final = "oneTouchActionsSuspended"
+S1_ONE_TOUCH_BUTTONS: Final = "oneTouchButtons"
+S1_OUTDOOR_HUMIDITY: Final = "outdoorHumidity"
+S1_OUTDOOR_HUMIDITY_STATUS: Final = "outdoorHumidityStatus"
+S1_OUTDOOR_TEMPERATURE: Final = "outdoorTemperature"
+S1_OUTDOOR_TEMPERATURE_AVAILABLE: Final = "outdoorTemperatureAvailable"
+S1_OUTDOOR_TEMPERATURE_STATUS: Final = "outdoorTemperatureStatus"
+S1_OUTDOOT_HUMIDITY_AVAILABLE: Final = "outdootHumidityAvailable"  # NOTE: not a typo
+
+S1_PCB_NUMBER: Final = "pcbNumber"
+
+S1_SCHEDULE: Final = "schedule"
+S1_SCHEDULE_CAPABLE: Final = "scheduleCapable"
+S1_SCHEDULE_COOL_SP: Final = "scheduleCoolSp"
+S1_SCHEDULE_HEAT_SP: Final = "scheduleHeatSp"
+S1_SECURITY_QUESTION_1: Final = "securityQuestion1"
+S1_SECURITY_QUESTION_2: Final = "securityQuestion2"
+S1_SECURITY_QUESTION_3: Final = "securityQuestion3"
+S1_SERIAL_NUMBER: Final = "serialNumber"
 S1_SESSION_ID: Final = "sessionId"
 S1_STATE: Final = "state"
 S1_STREET_ADDRESS: Final = "streetAddress"
+S1_SYSTEM_CONFIGURATION: Final = "systemConfiguration"
+
 S1_TELEPHONE: Final = "telephone"
+S1_TENANT_ID: Final = "tenantID"  # is ID, not Id
 S1_THERMOSTAT: Final = "thermostat"
 S1_THERMOSTAT_MODEL_TYPE: Final = "thermostatModelType"
+S1_THERMOSTAT_VERSION: Final = "thermostatVersion"
+S1_TIME_ZONE: Final = "timeZone"
+S1_TYPE: Final = "type"
 
+S1_UNITS: Final = "units"
 S1_USER_ID: Final = "userID"  # is ID, not Id
 S1_USER_INFO: Final = "userInfo"
 S1_USER_LANGUAGE: Final = "userLanguage"
 S1_USERNAME: Final = "username"
+
+S1_VACATION_HOLD_CANCELABLE: Final = "vacationHoldCancelable"
+S1_VACATION_HOLD_CHANGEABLE: Final = "vacationHoldChangeable"
 
 S1_WEATHER: Final = "weather"
 
@@ -107,8 +170,8 @@ def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
     entry = vol.Schema(
         {
-            vol.Required(fnc("code")): str,
-            vol.Required(fnc("message")): str,
+            vol.Required(fnc(S1_CODE)): str,
+            vol.Required(fnc(S1_MESSAGE)): str,
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -156,10 +219,10 @@ def factory_session_response(
         {
             vol.Optional(fnc(S1_IS_ACTIVATED)): bool,
             vol.Optional(fnc(S1_DEVICE_COUNT)): int,
-            vol.Optional(fnc("tenantID")): int,
-            vol.Optional(fnc("securityQuestion1")): SCH_SECURITY_QUESTION,
-            vol.Optional(fnc("securityQuestion2")): SCH_SECURITY_QUESTION,
-            vol.Optional(fnc("securityQuestion3")): SCH_SECURITY_QUESTION,
+            vol.Optional(fnc(S1_TENANT_ID)): int,
+            vol.Optional(fnc(S1_SECURITY_QUESTION_1)): SCH_SECURITY_QUESTION,
+            vol.Optional(fnc(S1_SECURITY_QUESTION_2)): SCH_SECURITY_QUESTION,
+            vol.Optional(fnc(S1_SECURITY_QUESTION_3)): SCH_SECURITY_QUESTION,
             vol.Optional(fnc(S1_LATEST_EULA_ACCEPTED)): bool,  # via dict.get() only
         },
         extra=vol.ALLOW_EXTRA,
@@ -186,31 +249,31 @@ def _factory_thermostat_response(
             vol.Required(fnc(S1_ALLOWED_MODES)): [str],  # ThermostatMode
             vol.Required(fnc(S1_MAX_HEAT_SETPOINT)): float,
             vol.Required(fnc(S1_MIN_HEAT_SETPOINT)): float,
-            vol.Optional(fnc("units")): str,
-            vol.Optional(fnc("outdoorTemperature")): float,
-            vol.Optional(fnc("outdoorTemperatureAvailable")): bool,
-            vol.Optional(fnc("outdoorHumidity")): float,
-            vol.Optional(fnc("outdootHumidityAvailable")): bool,  # NOTE: not a typo
-            vol.Optional(fnc("indoorHumidity")): float,
-            vol.Optional(fnc("indoorHumidityStatus")): str,
-            vol.Optional(fnc("outdoorTemperatureStatus")): str,
-            vol.Optional(fnc("outdoorHumidityStatus")): str,
-            vol.Optional(fnc("isCommercial")): bool,
-            vol.Optional(fnc("deadband")): float,
-            vol.Optional(fnc("minCoolSetpoint")): float,
-            vol.Optional(fnc("maxCoolSetpoint")): float,
-            vol.Optional(fnc("coolRate")): float,  # is NotRequired
-            vol.Optional(fnc("heatRate")): float,  # is NotRequired
-            vol.Optional(fnc("isPreCoolCapable")): bool,
+            vol.Optional(fnc(S1_UNITS)): str,
+            vol.Optional(fnc(S1_OUTDOOR_TEMPERATURE)): float,
+            vol.Optional(fnc(S1_OUTDOOR_TEMPERATURE_AVAILABLE)): bool,
+            vol.Optional(fnc(S1_OUTDOOR_HUMIDITY)): float,
+            vol.Optional(fnc(S1_OUTDOOT_HUMIDITY_AVAILABLE)): bool,  # NOTE: not a typo
+            vol.Optional(fnc(S1_INDOOR_HUMIDITY)): float,
+            vol.Optional(fnc(S1_INDOOR_HUMIDITY_STATUS)): str,
+            vol.Optional(fnc(S1_OUTDOOR_TEMPERATURE_STATUS)): str,
+            vol.Optional(fnc(S1_OUTDOOR_HUMIDITY_STATUS)): str,
+            vol.Optional(fnc(S1_IS_COMMERCIAL)): bool,
+            vol.Optional(fnc(S1_DEADBAND)): float,
+            vol.Optional(fnc(S1_MIN_COOL_SETPOINT)): float,
+            vol.Optional(fnc(S1_MAX_COOL_SETPOINT)): float,
+            vol.Optional(fnc(S1_COOL_RATE)): float,  # is NotRequired
+            vol.Optional(fnc(S1_HEAT_RATE)): float,  # is NotRequired
+            vol.Optional(fnc(S1_IS_PRE_COOL_CAPABLE)): bool,
             vol.Optional(fnc(S1_CHANGEABLE_VALUES)): {str: object},
-            vol.Optional(fnc("equipmentOutputStatus")): str,
-            vol.Optional(fnc("scheduleCapable")): bool,
-            vol.Optional(fnc("vacationHoldChangeable")): bool,
-            vol.Optional(fnc("vacationHoldCancelable")): bool,
-            vol.Optional(fnc("scheduleHeatSp")): float,
-            vol.Optional(fnc("scheduleCoolSp")): float,
-            vol.Optional(fnc("serialNumber")): str,
-            vol.Optional(fnc("pcbNumber")): str,
+            vol.Optional(fnc(S1_EQUIPMENT_OUTPUT_STATUS)): str,
+            vol.Optional(fnc(S1_SCHEDULE_CAPABLE)): bool,
+            vol.Optional(fnc(S1_VACATION_HOLD_CHANGEABLE)): bool,
+            vol.Optional(fnc(S1_VACATION_HOLD_CANCELABLE)): bool,
+            vol.Optional(fnc(S1_SCHEDULE_HEAT_SP)): float,
+            vol.Optional(fnc(S1_SCHEDULE_COOL_SP)): float,
+            vol.Optional(fnc(S1_SERIAL_NUMBER)): str,
+            vol.Optional(fnc(S1_PCB_NUMBER)): str,
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -231,23 +294,23 @@ def _factory_device_response(
             vol.Required(fnc(S1_INSTANCE)): int,  # is the zone idx
             vol.Required(fnc(S1_MAC_ID)): str,  # is ID, not Id
             vol.Required(fnc(S1_THERMOSTAT)): _factory_thermostat_response(fnc),
-            vol.Optional(fnc("deviceType")): int,
-            vol.Optional(fnc("scheduleCapable")): bool,
-            vol.Optional(fnc("holdUntilCapable")): bool,
-            vol.Optional(fnc("humidifier")): {str: object},
-            vol.Optional(fnc("dehumidifier")): {str: object},
-            vol.Optional(fnc("fan")): {str: object},
-            vol.Optional(fnc("schedule")): {str: object},
-            vol.Optional(fnc("alertSettings")): {str: object},
-            vol.Optional(fnc("isUpgrading")): bool,
-            vol.Optional(fnc("isAlive")): bool,
-            vol.Optional(fnc("thermostatVersion")): str,
+            vol.Optional(fnc(S1_DEVICE_TYPE)): int,
+            vol.Optional(fnc(S1_SCHEDULE_CAPABLE)): bool,
+            vol.Optional(fnc(S1_HOLD_UNTIL_CAPABLE)): bool,
+            vol.Optional(fnc(S1_HUMIDIFIER)): {str: object},
+            vol.Optional(fnc(S1_DEHUMIDIFIER)): {str: object},
+            vol.Optional(fnc(S1_FAN)): {str: object},
+            vol.Optional(fnc(S1_SCHEDULE)): {str: object},
+            vol.Optional(fnc(S1_ALERT_SETTINGS)): {str: object},
+            vol.Optional(fnc(S1_IS_UPGRADING)): bool,
+            vol.Optional(fnc(S1_IS_ALIVE)): bool,
+            vol.Optional(fnc(S1_THERMOSTAT_VERSION)): str,
             vol.Required(fnc(S1_LOCATION_ID)): int,
             vol.Optional(fnc(S1_DOMAIN_ID)): int,
-            vol.Optional(fnc("serialNumber")): str,
-            vol.Optional(fnc("pcbNumber")): str,
-            vol.Optional(fnc("drEvents")): list,
-            vol.Optional(fnc("systemConfiguration")): {str: object},
+            vol.Optional(fnc(S1_SERIAL_NUMBER)): str,
+            vol.Optional(fnc(S1_PCB_NUMBER)): str,
+            vol.Optional(fnc(S1_DR_EVENTS)): list,
+            vol.Optional(fnc(S1_SYSTEM_CONFIGURATION)): {str: object},
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -267,20 +330,22 @@ def _factory_location_response(
             vol.Optional(fnc(S1_STATE)): str,
             vol.Required(fnc(S1_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
             vol.Optional(fnc(S1_ZIPCODE)): str,
-            vol.Optional(fnc("type")): vol.In(["Commercial", "Residential"]),
-            vol.Optional(fnc("hasStation")): bool,
+            vol.Optional(fnc(S1_TYPE)): vol.In(["Commercial", "Residential"]),
+            vol.Optional(fnc(S1_HAS_STATION)): bool,
             vol.Required(fnc(S1_DEVICES)): [_factory_device_response(fnc)],
-            vol.Optional(fnc("oneTouchButtons")): list,
+            vol.Optional(fnc(S1_ONE_TOUCH_BUTTONS)): list,
             vol.Optional(fnc(S1_WEATHER)): {str: object},  # is NotRequired
-            vol.Required(fnc("daylightSavingTimeEnabled")): bool,
-            vol.Required(fnc("timeZone")): {str: object},  # TimeZoneResponse
-            vol.Optional(fnc("oneTouchActionsSuspended")): bool,
-            vol.Optional(fnc("isLocationOwner")): bool,
-            vol.Required(fnc("locationOwnerID")): int,
-            vol.Optional(fnc("locationOwnerName")): str,
-            vol.Optional(fnc("locationOwnerUserName")): vol.All(str, vol.Length(min=1)),
-            vol.Optional(fnc("canSearchForContractors")): bool,
-            vol.Optional(fnc("contractor")): {str: dict},  # is NotRequired
+            vol.Required(fnc(S1_DAYLIGHT_SAVING_TIME_ENABLED)): bool,
+            vol.Required(fnc(S1_TIME_ZONE)): {str: object},  # TimeZoneResponse
+            vol.Optional(fnc(S1_ONE_TOUCH_ACTIONS_SUSPENDED)): bool,
+            vol.Optional(fnc(S1_IS_LOCATION_OWNER)): bool,
+            vol.Required(fnc(S1_LOCATION_OWNER_ID)): int,
+            vol.Optional(fnc(S1_LOCATION_OWNER_NAME)): str,
+            vol.Optional(fnc(S1_LOCATION_OWNER_USER_NAME)): vol.All(
+                str, vol.Length(min=1)
+            ),
+            vol.Optional(fnc(S1_CAN_SEARCH_FOR_CONTRACTORS)): bool,
+            vol.Optional(fnc(S1_CONTRACTOR)): {str: dict},  # is NotRequired
         },
         extra=vol.ALLOW_EXTRA,
     )
