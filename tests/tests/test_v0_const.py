@@ -10,6 +10,7 @@ import evohomeasync as evo0
 from _evohome.helpers import convert_str_enums_to_pascal_case
 from evohomeasync.schemas import (
     TccDhwMode,
+    TccEquipmentOutputStatus,
     TccLocationType,
     TccSensorStatus,
     TccSetpointStatus,
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
 # the enums with PascalCase values: these may be sent in a request body
 PASCAL_CASE_ENUMS = (
     TccDhwMode,
+    TccEquipmentOutputStatus,
     TccLocationType,
     TccSensorStatus,
     TccSetpointStatus,
