@@ -4,10 +4,20 @@ This is used to document the RESTful API that is provided by the vendor.
 
 Testing is at HTTP request layer (e.g. GET/PUT).
 Everything to/from the RESTful API is in camelCase (so those schemas are used).
+
+Every PUT here is a no-op on a real system: it (re)asserts the current state of an
+entity that is already following its schedule (or is already in permanent Auto mode),
+and is skipped otherwise. So these tests will not disturb anyone's heating.
+
+The vendor rejects a PUT to a device that is not alive (400, DeviceIsLost), so these
+tests need a device whose gateway is online (see test_v0_urls_auth.py for lost ones).
+
+The request bodies are those of the older (non-async) client, which were in PascalCase.
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any
@@ -17,11 +27,22 @@ import pytest
 from _evohome import exceptions as exc
 from evohomeasync.auth import Auth
 from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS
+from evohomeasync2 import EvohomeClient as EvohomeClientV2
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
-from .common import skipif_auth_failed
+from .common import (
+    is_alive_v0,
+    is_dhw_v0,
+    is_permanent_auto_v2,
+    is_zone_v0,
+    skipif_auth_failed,
+    status_of_v0,
+    task_id_v0,
+)
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from evohome_cli.auth import TokenCacheManager
     from evohomeasync.schemas import (
         TccLocationResponseT,
@@ -32,6 +53,8 @@ if TYPE_CHECKING:
 
 # TODO: Create a validator for the TccTaskResponseT typedDict (but until then...)
 type _TccTaskResponse = dict[str, Any] | list[dict[str, Any]]  # c.f. TccTaskResponseT
+
+_TASK_TIMEOUT = 30  # seconds, for a comm task to succeed
 
 
 async def _post_session(auth: Auth) -> TccSessionResponseT:
@@ -57,11 +80,14 @@ async def get_account_info(auth: Auth) -> TccUserAccountInfoResponseT:
     )
 
 
-async def get_comm_tasks(auth: Auth, tsk_id: int) -> _TccTaskResponse:
-    """Test GET /commTasks?commTaskId={tsk_id}"""
+async def get_comm_tasks(auth: Auth, tsk_id: str) -> _TccTaskResponse:
+    """Test GET /commTasks?commTaskId={tsk_id}
+
+    Returns (e.g.): {"state": "Succeeded"}
+    """
 
     return await auth._make_request(
-        HTTPMethod.PUT,
+        HTTPMethod.GET,
         f"commTasks?commTaskId={tsk_id}",
     )
 
@@ -77,11 +103,13 @@ async def get_locations(auth: Auth, usr_id: int) -> list[TccLocationResponseT]:
     )
 
 
-async def put_devices_dhw(auth: Auth, dhw_id: int) -> _TccTaskResponse:
+async def put_devices_dhw(
+    auth: Auth, dhw_id: int, json: Mapping[str, object]
+) -> _TccTaskResponse:
     """Test PUT /devices/{dhw_id}/thermostat/changeableValues
-    data = {
-        "Status": status,  ["Scheduled","Hold"]  # no: "Temporary"?
-        "Mode": mode,     ["DHWOn", "DHWOff"]
+    json = {
+        "Status": status,  # "Scheduled" | "Hold"
+        "Mode": mode,  # None | "DHWOn" | "DHWOff"
         "NextTime": None | until.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "SpecialModes": None,
         "HeatSetpoint": None,
@@ -89,50 +117,58 @@ async def put_devices_dhw(auth: Auth, dhw_id: int) -> _TccTaskResponse:
     }
     """
 
-    data = {"Status": "Scheduled"}
-
     return await auth._make_request(
         HTTPMethod.PUT,
         f"devices/{dhw_id}/thermostat/changeableValues",
-        data=data,
+        json=json,
     )
 
 
-async def put_devices_zon(auth: Auth, zon_id: int) -> _TccTaskResponse:
+async def put_devices_zon(
+    auth: Auth, zon_id: int, json: Mapping[str, object]
+) -> _TccTaskResponse:
     """Test PUT /devices/{zon_id}/thermostat/changeableValues/heatSetpoint
-    data = {
-        "Status": "Temporary",
-        "NextTime": until.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "Value": temperature,
-    }
-    data = {"Status": "Hold",      "NextTime": None, "Value": temperature}
-    data = {"Status": "Scheduled", "NextTime": None, "Value": None}
+    json = {"Value": temperature, "Status": "Temporary", "NextTime": until}
+    json = {"Value": temperature, "Status": "Hold",      "NextTime": None}
+    json = {"Value": None,        "Status": "Scheduled", "NextTime": None}
     """
-
-    data = {"Status": "Scheduled"}  # , "NextTime": None, "Value": None}
 
     return await auth._make_request(
         HTTPMethod.PUT,
         f"devices/{zon_id}/thermostat/changeableValues/heatSetpoint",
-        data=data,
+        json=json,
     )
 
 
-async def put_evo_touch_systems(auth: Auth, loc_id: int) -> _TccTaskResponse:
+async def put_evo_touch_systems(
+    auth: Auth, loc_id: int, json: Mapping[str, object]
+) -> _TccTaskResponse:
     """Test PUT /evoTouchSystems?locationId={loc_id}
-    data = {
-        "QuickAction": status,  All except AuutWithEco, Auto must have QANT None
+    json = {
+        "QuickAction": mode,  # All except AutoWithEco, Auto must have QANT None
         "QuickActionNextTime": None | until.strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     """
 
-    data = {"QuickAction": "Auto", "QuickActionNextTime": None}
-
     return await auth._make_request(
         HTTPMethod.PUT,
         f"evoTouchSystems?locationId={loc_id}",
-        data=data,
+        json=json,
     )
+
+
+async def _wait_for_task(auth: Auth, response: _TccTaskResponse) -> None:
+    """Wait for the comm task of a PUT to succeed (GET /commTasks?commTaskId=...)."""
+
+    task_id = task_id_v0(response)
+
+    async with asyncio.timeout(_TASK_TIMEOUT):
+        while True:
+            task = await get_comm_tasks(auth, task_id)
+            assert isinstance(task, dict), task
+            if task["state"] == "Succeeded":
+                return
+            await asyncio.sleep(0.5)
 
 
 @skipif_auth_failed
@@ -157,15 +193,29 @@ async def test_tcs_urls(
     # GET /locations?userId={usr_id}&allData=True
     usr_locs = await get_locations(auth, usr_info["userID"])
 
-    #
-    # PUT /evoTouchSystems?locationId={loc_id}  # NOTE: this URL doesn't work?
-    with pytest.raises(exc.ApiCallFailedError) as err:
-        _ = await put_evo_touch_systems(auth, usr_locs[0]["locationID"])
-    assert err.value.status == HTTPStatus.NOT_FOUND  # 404
+    # an evohome location (not, say, a Round Thermostat), already in permanent Auto
+    loc_id = next(
+        (
+            loc["locationID"]
+            for loc in usr_locs
+            if any(is_zone_v0(d) for d in loc["devices"])
+        ),
+        None,
+    )
+    if loc_id is None:
+        pytest.skip("No evohome location found")
+
+    if not await is_permanent_auto_v2(EvohomeClientV2(credentials_manager), loc_id):
+        pytest.skip("Location is not in permanent Auto mode (won't change it)")
 
     #
-    # GET /commTasks?commTaskId={tsk_id}
-    # _ = await get_comm_tasks(auth, task["id"])
+    # PUT /evoTouchSystems?locationId={loc_id}
+    # NOTE: this URL doesn't work - has been removed by the vendor?
+    json = {"QuickAction": "Auto", "QuickActionNextTime": None}  # a no-op
+    with pytest.raises(exc.ApiCallFailedError) as err:
+        _ = await put_evo_touch_systems(auth, loc_id, json)
+    assert err.value.status == HTTPStatus.NOT_FOUND
+    # '<!DOCTYPE html PUBLIC ... 404 - File or directory not found ...'  (from IIS)
 
 
 @skipif_auth_failed
@@ -173,7 +223,7 @@ async def test_tcs_urls(
 async def test_zon_urls(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test Location, Gateway and TCS URLs."""
+    """Test Zone URLs."""
 
     # Create the Auth client (may POST /session)...
     auth = Auth(
@@ -183,27 +233,30 @@ async def test_zon_urls(
     )
 
     #
-    # STEP 0: start with a location...
+    # STEP 0: find a zone that is following its schedule...
     usr_info = await get_account_info(auth)
     usr_locs = await get_locations(auth, usr_info["userID"])
 
-    loc_idx = 2
+    zone = next(
+        (
+            d
+            for loc in usr_locs
+            for d in loc["devices"]
+            if is_zone_v0(d) and is_alive_v0(d) and status_of_v0(d) == "Scheduled"
+        ),
+        None,
+    )
+    if zone is None:
+        pytest.skip("No live zone found that is following its schedule")
 
     #
     # PUT /devices/{zon_id}/thermostat/changeableValues/heatSetpoint
-    zon_id = next(  # Honeywell TH9320WF3003 can send thermostatModelType as an int, so guard .startswith()
-        d["deviceID"]
-        for d in usr_locs[loc_idx]["devices"]
-        if isinstance(t := d["thermostatModelType"], str) and t.startswith("EMEA_")
-    )
-
-    with pytest.raises(exc.ApiCallFailedError) as err:
-        _ = await put_devices_zon(auth, zon_id)
-    assert err.value.status == HTTPStatus.BAD_REQUEST  # 400
+    json = {"Value": None, "Status": "Scheduled", "NextTime": None}  # a no-op
+    task = await put_devices_zon(auth, zone["deviceID"], json)
 
     #
     # GET /commTasks?commTaskId={tsk_id}
-    # _ = await get_comm_tasks(auth, task["id"])
+    await _wait_for_task(auth, task)
 
 
 @skipif_auth_failed
@@ -211,7 +264,7 @@ async def test_zon_urls(
 async def test_dhw_urls(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test Location, Gateway and TCS URLs."""
+    """Test DHW URLs."""
 
     # Create the Auth client (may POST /session)...
     auth = Auth(
@@ -221,26 +274,34 @@ async def test_dhw_urls(
     )
 
     #
-    # STEP 0: start with a location...
+    # STEP 0: find a DHW that is following its schedule...
     usr_info = await get_account_info(auth)
     usr_locs = await get_locations(auth, usr_info["userID"])
 
-    loc_idx = 2
+    dhw = next(
+        (
+            d
+            for loc in usr_locs
+            for d in loc["devices"]
+            if is_dhw_v0(d) and is_alive_v0(d) and status_of_v0(d) == "Scheduled"
+        ),
+        None,
+    )
+    if dhw is None:
+        pytest.skip("No live DHW found that is following its schedule")
 
     #
     # PUT /devices/{dhw_id}/thermostat/changeableValues
-    dhw = None
-    for dev in usr_locs[loc_idx]["devices"]:
-        if dev["thermostatModelType"] == "DOMESTIC_HOT_WATER":
-            dhw = dev
-            break
-    else:
-        return
-
-    with pytest.raises(exc.ApiCallFailedError) as err:
-        _ = await put_devices_dhw(auth, dhw["deviceID"])
-    assert err.value.status == HTTPStatus.BAD_REQUEST  # 400
+    json = {  # a no-op
+        "Status": "Scheduled",
+        "Mode": None,
+        "NextTime": None,
+        "SpecialModes": None,
+        "HeatSetpoint": None,
+        "CoolSetpoint": None,
+    }
+    task = await put_devices_dhw(auth, dhw["deviceID"], json)
 
     #
     # GET /commTasks?commTaskId={tsk_id}
-    # _ = await get_comm_tasks(auth, task["id"])
+    await _wait_for_task(auth, task)

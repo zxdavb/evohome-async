@@ -11,6 +11,7 @@ import pytest
 
 import evohomeasync as evo0
 import evohomeasync2 as evo2
+from evohomeasync2.const import SystemMode
 from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
     _DBG_USE_REAL_AIOHTTP,
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping
 
     from _evohome.helpers import Validator
+    from evohomeasync.schemas import TccDeviceResponseT
     from tests.conftest import EvohomeClientV2
 
 if _DBG_USE_REAL_AIOHTTP:
@@ -206,6 +208,89 @@ async def should_fail_v0(
         pytest.fail(f"Did not return expected response: {rsp.content_type}")
 
     return response
+
+
+def is_zone_v0(dev: TccDeviceResponseT) -> bool:
+    """Return True if a (vendor-cased) v0 device is an evohome zone."""
+    # Honeywell TH9320WF3003 can send thermostatModelType as an int, so guard startswith()
+    return isinstance(t := dev["thermostatModelType"], str) and t.startswith("EMEA_")
+
+
+def is_dhw_v0(dev: TccDeviceResponseT) -> bool:
+    """Return True if a (vendor-cased) v0 device is an evohome DHW."""
+    return dev["thermostatModelType"] == "DOMESTIC_HOT_WATER"
+
+
+def is_alive_v0(dev: TccDeviceResponseT) -> bool:
+    """Return True if a (vendor-cased) v0 device is alive (i.e. its gateway is online).
+
+    The vendor rejects any PUT to a device that is not alive: 400, "DeviceIsLost".
+    """
+    return dev.get("isAlive") is True
+
+
+def status_of_v0(dev: TccDeviceResponseT) -> str | None:
+    """Return the status of a (vendor-cased) v0 zone or DHW, e.g. "Scheduled".
+
+    A zone's is under changeableValues.heatSetpoint, a DHW's under changeableValues.
+    """
+
+    values: dict[str, Any] = dict(dev["thermostat"].get("changeableValues", {}))
+    if not is_dhw_v0(dev):
+        values = values.get("heatSetpoint", {})
+    return None if (status := values.get("status")) is None else str(status)
+
+
+def task_id_v0(response: object) -> str:
+    """Return the id of the comm task that a v0 PUT returns (a dict, or a list of one).
+
+    e.g. {"id": "123"} or [{"id": "123"}], as per the older (non-async) client.
+    """
+
+    task = response[0] if isinstance(response, list) else response
+    assert isinstance(task, dict), response
+    assert "id" in task, response
+    return str(task["id"])
+
+
+async def wait_for_comm_task_v0(auth: evo0.auth.Auth, task_id: str) -> dict[str, Any]:
+    """Wait for a v0 communication task (API call) to succeed, and return it.
+
+    Only "Succeeded" is known to be terminal: the older (non-async) client polled until
+    it saw it, and its tests used "pending" otherwise. No other states are documented,
+    so invoke this within an asyncio.timeout().
+    """
+
+    url = f"commTasks?commTaskId={task_id}"
+
+    while True:
+        task = await should_work_v0(auth, HTTPMethod.GET, url)
+        assert isinstance(task, dict), task
+
+        if task["state"] == "Succeeded":
+            return task
+
+        await asyncio.sleep(0.5)
+
+
+async def is_permanent_auto_v2(evo: EvohomeClientV2, loc_id: int | str) -> bool:
+    """Return True if a location's TCS is in permanent Auto mode, as per the v2 API.
+
+    The v0 API cannot read a system mode, so the v2 API is used to confirm that setting
+    a v0 location to Auto would be a no-op (i.e. would not disturb a real system).
+    """
+
+    await evo.update()
+
+    for loc in evo.locations:
+        if loc.id != str(loc_id):
+            continue
+        for gwy in loc.gateways:
+            for tcs in gwy.systems:
+                status = tcs.system_mode_status
+                return status["mode"] == SystemMode.AUTO and status["is_permanent"]
+
+    return False
 
 
 # version 2 helpers ###################################################################
