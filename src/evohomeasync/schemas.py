@@ -24,7 +24,7 @@ The vendor's convention for well-known strings:
 - SCREAMING_SNAKE_CASE for a few type values (e.g. "EMEA_ZONE", "DOMESTIC_HOT_WATER")
 
 The convention is not applied consistently: the user id is "userID" as a JSON key, but
-"userId" as a URL param (see SZ_USER_ID).
+"userId" as a URL param (see S1_USER_ID).
 """
 
 from __future__ import annotations
@@ -58,48 +58,48 @@ _TaskIdT = NewType("_TaskIdT", str)  # TODO: int or str?
 
 
 #
-SZ_ALLOWED_MODES: Final = "allowedModes"
-SZ_CHANGEABLE_VALUES: Final = "changeableValues"
-SZ_CITY: Final = "city"
-SZ_COUNTRY: Final = "country"
+S1_ALLOWED_MODES: Final = "allowedModes"
+S1_CHANGEABLE_VALUES: Final = "changeableValues"
+S1_CITY: Final = "city"
+S1_COUNTRY: Final = "country"
 
-SZ_DEVICE_COUNT: Final = "deviceCount"
-SZ_DEVICE_ID: Final = "deviceID"  # is ID, not Id
-SZ_DEVICES: Final = "devices"
-SZ_DOMAIN_ID: Final = "domainID"  # is ID, not Id
+S1_DEVICE_COUNT: Final = "deviceCount"
+S1_DEVICE_ID: Final = "deviceID"  # is ID, not Id
+S1_DEVICES: Final = "devices"
+S1_DOMAIN_ID: Final = "domainID"  # is ID, not Id
 
-SZ_FIRSTNAME: Final = "firstname"
-SZ_GATEWAY_ID: Final = "gatewayId"
-SZ_INDOOR_TEMPERATURE: Final = "indoorTemperature"
-SZ_INDOOR_TEMPERATURE_STATUS: Final = "indoorTemperatureStatus"
-SZ_INSTANCE: Final = "instance"
-SZ_IS_ACTIVATED: Final = "isActivated"
+S1_FIRSTNAME: Final = "firstname"
+S1_GATEWAY_ID: Final = "gatewayId"
+S1_INDOOR_TEMPERATURE: Final = "indoorTemperature"
+S1_INDOOR_TEMPERATURE_STATUS: Final = "indoorTemperatureStatus"
+S1_INSTANCE: Final = "instance"
+S1_IS_ACTIVATED: Final = "isActivated"
 
-SZ_LASTNAME: Final = "lastname"
-SZ_LATEST_EULA_ACCEPTED: Final = "latestEulaAccepted"
-SZ_LOCATION_ID: Final = "locationID"  # is ID, not Id
+S1_LASTNAME: Final = "lastname"
+S1_LATEST_EULA_ACCEPTED: Final = "latestEulaAccepted"
+S1_LOCATION_ID: Final = "locationID"  # is ID, not Id
 
-SZ_MAC_ID: Final = "macID"  # is ID, not Id
-SZ_MAX_HEAT_SETPOINT: Final = "maxHeatSetpoint"
-SZ_MIN_HEAT_SETPOINT: Final = "minHeatSetpoint"
+S1_MAC_ID: Final = "macID"  # is ID, not Id
+S1_MAX_HEAT_SETPOINT: Final = "maxHeatSetpoint"
+S1_MIN_HEAT_SETPOINT: Final = "minHeatSetpoint"
 
-SZ_NAME: Final = "name"
+S1_NAME: Final = "name"
 
-SZ_SESSION_ID: Final = "sessionId"
-SZ_STATE: Final = "state"
-SZ_STREET_ADDRESS: Final = "streetAddress"
-SZ_TELEPHONE: Final = "telephone"
-SZ_THERMOSTAT: Final = "thermostat"
-SZ_THERMOSTAT_MODEL_TYPE: Final = "thermostatModelType"
+S1_SESSION_ID: Final = "sessionId"
+S1_STATE: Final = "state"
+S1_STREET_ADDRESS: Final = "streetAddress"
+S1_TELEPHONE: Final = "telephone"
+S1_THERMOSTAT: Final = "thermostat"
+S1_THERMOSTAT_MODEL_TYPE: Final = "thermostatModelType"
 
-SZ_USER_ID: Final = "userID"  # is ID, not Id
-SZ_USER_INFO: Final = "userInfo"
-SZ_USER_LANGUAGE: Final = "userLanguage"
-SZ_USERNAME: Final = "username"
+S1_USER_ID: Final = "userID"  # is ID, not Id
+S1_USER_INFO: Final = "userInfo"
+S1_USER_LANGUAGE: Final = "userLanguage"
+S1_USERNAME: Final = "username"
 
-SZ_WEATHER: Final = "weather"
+S1_WEATHER: Final = "weather"
 
-SZ_ZIPCODE: Final = "zipcode"
+S1_ZIPCODE: Final = "zipcode"
 
 
 def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
@@ -127,17 +127,17 @@ def factory_user_account_info_response(
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_USER_ID)): int,
-            vol.Required(fnc(SZ_USERNAME)): vol.All(str, vol.Length(min=1), redact),
-            vol.Optional(fnc(SZ_FIRSTNAME)): vol.All(str, redact),
-            vol.Optional(fnc(SZ_LASTNAME)): vol.All(str, redact),
-            vol.Optional(fnc(SZ_STREET_ADDRESS)): vol.All(str, redact),
-            vol.Optional(fnc(SZ_CITY)): vol.All(str, redact),
-            # l.Optional(fnc(SZ_STATE)): str,  # truly absent
-            vol.Optional(fnc(SZ_ZIPCODE)): vol.All(str, redact),
-            vol.Optional(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),
-            vol.Optional(fnc(SZ_TELEPHONE)): vol.All(str, redact),
-            vol.Optional(fnc(SZ_USER_LANGUAGE)): str,
+            vol.Required(fnc(S1_USER_ID)): int,
+            vol.Required(fnc(S1_USERNAME)): vol.All(str, vol.Length(min=1), redact),
+            vol.Optional(fnc(S1_FIRSTNAME)): vol.All(str, redact),
+            vol.Optional(fnc(S1_LASTNAME)): vol.All(str, redact),
+            vol.Optional(fnc(S1_STREET_ADDRESS)): vol.All(str, redact),
+            vol.Optional(fnc(S1_CITY)): vol.All(str, redact),
+            # l.Optional(fnc(S1_STATE)): str,  # truly absent
+            vol.Optional(fnc(S1_ZIPCODE)): vol.All(str, redact),
+            vol.Optional(fnc(S1_COUNTRY)): vol.All(str, vol.Length(min=2)),
+            vol.Optional(fnc(S1_TELEPHONE)): vol.All(str, redact),
+            vol.Optional(fnc(S1_USER_LANGUAGE)): str,
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -154,21 +154,21 @@ def factory_session_response(
 
     SCH_USER_ACCOUNT_RESPONSE = factory_user_account_info_response(fnc).extend(
         {
-            vol.Optional(fnc(SZ_IS_ACTIVATED)): bool,
-            vol.Optional(fnc(SZ_DEVICE_COUNT)): int,
+            vol.Optional(fnc(S1_IS_ACTIVATED)): bool,
+            vol.Optional(fnc(S1_DEVICE_COUNT)): int,
             vol.Optional(fnc("tenantID")): int,
             vol.Optional(fnc("securityQuestion1")): SCH_SECURITY_QUESTION,
             vol.Optional(fnc("securityQuestion2")): SCH_SECURITY_QUESTION,
             vol.Optional(fnc("securityQuestion3")): SCH_SECURITY_QUESTION,
-            vol.Optional(fnc(SZ_LATEST_EULA_ACCEPTED)): bool,  # via dict.get() only
+            vol.Optional(fnc(S1_LATEST_EULA_ACCEPTED)): bool,  # via dict.get() only
         },
         extra=vol.ALLOW_EXTRA,
     )
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_SESSION_ID)): vol.All(str, redact),
-            vol.Required(fnc(SZ_USER_INFO)): SCH_USER_ACCOUNT_RESPONSE,
+            vol.Required(fnc(S1_SESSION_ID)): vol.All(str, redact),
+            vol.Required(fnc(S1_USER_INFO)): SCH_USER_ACCOUNT_RESPONSE,
         },
         extra=vol.ALLOW_EXTRA,
     )
@@ -181,11 +181,11 @@ def _factory_thermostat_response(
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_INDOOR_TEMPERATURE)): float,
-            vol.Required(fnc(SZ_INDOOR_TEMPERATURE_STATUS)): str,  # Measured, etc.
-            vol.Required(fnc(SZ_ALLOWED_MODES)): [str],  # ThermostatMode
-            vol.Required(fnc(SZ_MAX_HEAT_SETPOINT)): float,
-            vol.Required(fnc(SZ_MIN_HEAT_SETPOINT)): float,
+            vol.Required(fnc(S1_INDOOR_TEMPERATURE)): float,
+            vol.Required(fnc(S1_INDOOR_TEMPERATURE_STATUS)): str,  # Measured, etc.
+            vol.Required(fnc(S1_ALLOWED_MODES)): [str],  # ThermostatMode
+            vol.Required(fnc(S1_MAX_HEAT_SETPOINT)): float,
+            vol.Required(fnc(S1_MIN_HEAT_SETPOINT)): float,
             vol.Optional(fnc("units")): str,
             vol.Optional(fnc("outdoorTemperature")): float,
             vol.Optional(fnc("outdoorTemperatureAvailable")): bool,
@@ -202,7 +202,7 @@ def _factory_thermostat_response(
             vol.Optional(fnc("coolRate")): float,  # is NotRequired
             vol.Optional(fnc("heatRate")): float,  # is NotRequired
             vol.Optional(fnc("isPreCoolCapable")): bool,
-            vol.Optional(fnc(SZ_CHANGEABLE_VALUES)): {str: object},
+            vol.Optional(fnc(S1_CHANGEABLE_VALUES)): {str: object},
             vol.Optional(fnc("equipmentOutputStatus")): str,
             vol.Optional(fnc("scheduleCapable")): bool,
             vol.Optional(fnc("vacationHoldChangeable")): bool,
@@ -223,14 +223,14 @@ def _factory_device_response(
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_DEVICE_ID)): int,  # is ID, not Id
-            vol.Required(fnc(SZ_GATEWAY_ID)): int,
+            vol.Required(fnc(S1_DEVICE_ID)): int,  # is ID, not Id
+            vol.Required(fnc(S1_GATEWAY_ID)): int,
             # NOTE: is an int for the Honeywell TH9320WF3003 (c.f. DOMESTIC_HOT_WATER)
-            vol.Required(fnc(SZ_THERMOSTAT_MODEL_TYPE)): vol.Any(str, int),
-            vol.Required(fnc(SZ_NAME)): str,  # is "" for DHW
-            vol.Required(fnc(SZ_INSTANCE)): int,  # is the zone idx
-            vol.Required(fnc(SZ_MAC_ID)): str,  # is ID, not Id
-            vol.Required(fnc(SZ_THERMOSTAT)): _factory_thermostat_response(fnc),
+            vol.Required(fnc(S1_THERMOSTAT_MODEL_TYPE)): vol.Any(str, int),
+            vol.Required(fnc(S1_NAME)): str,  # is "" for DHW
+            vol.Required(fnc(S1_INSTANCE)): int,  # is the zone idx
+            vol.Required(fnc(S1_MAC_ID)): str,  # is ID, not Id
+            vol.Required(fnc(S1_THERMOSTAT)): _factory_thermostat_response(fnc),
             vol.Optional(fnc("deviceType")): int,
             vol.Optional(fnc("scheduleCapable")): bool,
             vol.Optional(fnc("holdUntilCapable")): bool,
@@ -242,8 +242,8 @@ def _factory_device_response(
             vol.Optional(fnc("isUpgrading")): bool,
             vol.Optional(fnc("isAlive")): bool,
             vol.Optional(fnc("thermostatVersion")): str,
-            vol.Required(fnc(SZ_LOCATION_ID)): int,
-            vol.Optional(fnc(SZ_DOMAIN_ID)): int,
+            vol.Required(fnc(S1_LOCATION_ID)): int,
+            vol.Optional(fnc(S1_DOMAIN_ID)): int,
             vol.Optional(fnc("serialNumber")): str,
             vol.Optional(fnc("pcbNumber")): str,
             vol.Optional(fnc("drEvents")): list,
@@ -260,18 +260,18 @@ def _factory_location_response(
 
     return vol.Schema(
         {
-            vol.Required(fnc(SZ_LOCATION_ID)): int,  # is ID, not Id
-            vol.Required(fnc(SZ_NAME)): vol.All(str, vol.Length(min=1)),
-            vol.Optional(fnc(SZ_STREET_ADDRESS)): str,
-            vol.Optional(fnc(SZ_CITY)): str,
-            vol.Optional(fnc(SZ_STATE)): str,
-            vol.Required(fnc(SZ_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
-            vol.Optional(fnc(SZ_ZIPCODE)): str,
+            vol.Required(fnc(S1_LOCATION_ID)): int,  # is ID, not Id
+            vol.Required(fnc(S1_NAME)): vol.All(str, vol.Length(min=1)),
+            vol.Optional(fnc(S1_STREET_ADDRESS)): str,
+            vol.Optional(fnc(S1_CITY)): str,
+            vol.Optional(fnc(S1_STATE)): str,
+            vol.Required(fnc(S1_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
+            vol.Optional(fnc(S1_ZIPCODE)): str,
             vol.Optional(fnc("type")): vol.In(["Commercial", "Residential"]),
             vol.Optional(fnc("hasStation")): bool,
-            vol.Required(fnc(SZ_DEVICES)): [_factory_device_response(fnc)],
+            vol.Required(fnc(S1_DEVICES)): [_factory_device_response(fnc)],
             vol.Optional(fnc("oneTouchButtons")): list,
-            vol.Optional(fnc(SZ_WEATHER)): {str: object},  # is NotRequired
+            vol.Optional(fnc(S1_WEATHER)): {str: object},  # is NotRequired
             vol.Required(fnc("daylightSavingTimeEnabled")): bool,
             vol.Required(fnc("timeZone")): {str: object},  # TimeZoneResponse
             vol.Optional(fnc("oneTouchActionsSuspended")): bool,
@@ -304,7 +304,7 @@ def factory_location_response_list(
 # NOTE: These validators can return values that do not satisfy their annotations.
 
 # For example, `TccUserAccountInfoResponseT.firstname` is promised to exist (it isn't
-# `NotRequired`), but the schema has `vol.Optional(fnc(SZ_FIRSTNAME))`.
+# `NotRequired`), but the schema has `vol.Optional(fnc(S1_FIRSTNAME))`.
 
 # The factories are used to produce two distinct schemas: as used by vendor API calls
 # and responses (TCC_*) and as used by the runtime validators (EVO_*); the latter would
