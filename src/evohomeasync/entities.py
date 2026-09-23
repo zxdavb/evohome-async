@@ -311,6 +311,9 @@ class Zone(_DeviceBase):  # Zone version of a Device
         if value is not None:  # NOTE: may have to send {SZ_VALUE: None} instead
             data[SZ_VALUE] = value
         if next_time is not None:
+            # TODO: the vendor treats NextTime as the location's local time (ignoring the
+            # Z), so this ends the override early by the UTC offset (e.g. 1h on BST) - it
+            # should be sent as local time (see test_v0_urls_auth.test_zon_heat_setpoint)
             data[SZ_NEXT_TIME] = as_utc_str(next_time)
 
         url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
