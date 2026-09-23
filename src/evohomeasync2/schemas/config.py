@@ -100,7 +100,13 @@ from .helpers import Case, factory_enum, factory_enum_or_str
 
 if TYPE_CHECKING:
     from _evohome.helpers import Validator
-    from evohomeasync2.typedefs import EvoLocConfigResponseT
+    from evohomeasync2.typedefs import (
+        EvoDhwConfigResponseT,
+        EvoGwyConfigResponseT,
+        EvoLocConfigResponseT,
+        EvoTcsConfigResponseT,
+        EvoZonConfigResponseT,
+    )
 
 # These are best guess, mostly based upon evohome
 _MAX_HEAT_SETPOINT_LOWER: Final = 21.0
@@ -111,6 +117,11 @@ _MIN_HEAT_SETPOINT_UPPER: Final = 21.0
 
 _MAX_NUM_ZONES_PER_TCS: Final = 12  # unused; some non-evohome systems supported 16
 _MIN_NUM_ZONES_PER_TCS: Final = 1
+
+
+#
+# Vendor-native typed dicts for InstallationInfo (config) URLs
+# - this is the 'truth', as understood, for this undocumented API
 
 
 # GET /location/installationInfo?userId={user_id} returns list of these dicts
@@ -203,6 +214,30 @@ class TccAllowedFanModeResponseT(TypedDict):
     fanMode: TccFanMode | str  # enum may be incomplete, so allow str
 
 
+class TccDhwConfigResponseT(TypedDict):
+    dhwId: str
+    # Evohome always has schedule capabilities, but some FocusProWifi* may not?
+    scheduleCapabilitiesResponse: NotRequired[TccDhwScheduleCapabilitiesResponseT]
+    dhwStateCapabilitiesResponse: TccDhwStateCapabilitiesResponseT
+
+
+class TccDhwScheduleCapabilitiesResponseT(TypedDict):
+    maxSwitchpointsPerDay: int
+    minSwitchpointsPerDay: int
+    timingResolution: str  # e.g. "00:10:00"
+
+
+class TccDhwStateCapabilitiesResponseT(TypedDict):
+    allowedStates: list[TccDhwState]
+    allowedModes: list[TccZoneMode]
+    maxDuration: str  # #     "1.00:00:00"
+    timingResolution: str  # #  "00:10:00"
+
+
+class TccDhwConfigEntryT(TccDhwConfigResponseT):
+    pass
+
+
 class TccZonScheduleCapabilitiesResponseT(TypedDict):
     maxSwitchpointsPerDay: int
     minSwitchpointsPerDay: int
@@ -240,28 +275,9 @@ class TccZonConfigEntryT(TccZonConfigResponseT):
     pass
 
 
-class TccDhwConfigResponseT(TypedDict):
-    dhwId: str
-    # Evohome always has schedule capabilities, but some FocusProWifi* may not?
-    scheduleCapabilitiesResponse: NotRequired[TccDhwScheduleCapabilitiesResponseT]
-    dhwStateCapabilitiesResponse: TccDhwStateCapabilitiesResponseT
-
-
-class TccDhwScheduleCapabilitiesResponseT(TypedDict):
-    maxSwitchpointsPerDay: int
-    minSwitchpointsPerDay: int
-    timingResolution: str  # e.g. "00:10:00"
-
-
-class TccDhwStateCapabilitiesResponseT(TypedDict):
-    allowedStates: list[TccDhwState]
-    allowedModes: list[TccZoneMode]
-    maxDuration: str  # #     "1.00:00:00"
-    timingResolution: str  # #  "00:10:00"
-
-
-class TccDhwConfigEntryT(TccDhwConfigResponseT):
-    pass
+#
+# Vendor-native schema factories for InstallationInfo (config) URLs
+# - used to validate / coerce data at runtime
 
 
 def factory_system_mode(case: Case = Case.VENDOR) -> vol.All:
@@ -340,8 +356,184 @@ def factory_schedule_capabilities_response(
     )
 
 
-def factory_dhw(case: Case = Case.VENDOR) -> vol.Schema:
-    """Factory for the DHW schema."""
+def factory_time_zone(case: Case = Case.VENDOR) -> vol.Schema:
+    """Factory for the time zone schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S2_TIME_ZONE_ID)): str,  # "GMTStandardTime" (a Windows TZ id)
+            vol.Required(fnc(S2_DISPLAY_NAME)): str,  # "(UTC+00:00) Dublin, Edinburgh, Lisbon, London"
+            vol.Required(fnc(S2_OFFSET_MINUTES)): int,
+            vol.Required(fnc(S2_CURRENT_OFFSET_MINUTES)): int,
+            vol.Required(fnc(S2_SUPPORTS_DAYLIGHT_SAVING)): bool,
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+# User's Locations (Usr) config schema factories
+@overload
+def factory_usr_locations(case: Literal[Case.VENDOR] = ...) -> Validator[list[TccLocConfigResponseT]]: ...
+
+
+@overload
+def factory_usr_locations(case: Literal[Case.PYTHONIC]) -> Validator[list[EvoLocConfigResponseT]]: ...
+
+
+@overload
+def factory_usr_locations(
+    case: Case,
+) -> Validator[list[TccLocConfigResponseT]] | Validator[list[EvoLocConfigResponseT]]: ...
+
+
+def factory_usr_locations(
+    case: Case = Case.VENDOR,
+) -> Validator[list[TccLocConfigResponseT]] | Validator[list[EvoLocConfigResponseT]]:
+    """Factory for the user locations config schema (a list of location configs)."""
+
+    return vol.Schema(
+        [factory_loc_config(case)],
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+# location (Loc) config schema factories
+@overload
+def factory_loc_config(case: Literal[Case.VENDOR] = ...) -> Validator[TccLocConfigResponseT]: ...
+
+
+@overload
+def factory_loc_config(case: Literal[Case.PYTHONIC]) -> Validator[EvoLocConfigResponseT]: ...
+
+
+@overload
+def factory_loc_config(case: Case) -> Validator[TccLocConfigResponseT] | Validator[EvoLocConfigResponseT]: ...
+
+
+def factory_loc_config(case: Case = Case.VENDOR) -> Validator[TccLocConfigResponseT] | Validator[EvoLocConfigResponseT]:
+    """Factory for the location config schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    SCH_LOCATION_OWNER: Final = vol.Schema(
+        {
+            vol.Required(fnc(S2_USER_ID)): str,
+            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), redact),
+            vol.Required(fnc(S2_FIRSTNAME)): str,
+            vol.Required(fnc(S2_LASTNAME)): vol.All(str, redact),
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+    SCH_LOCATION_INFO: Final = vol.Schema(
+        {
+            vol.Required(fnc(S2_LOCATION_ID)): str,
+            vol.Required(fnc(S2_NAME)): str,  # e.g. "My Home"
+            vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, redact),
+            vol.Required(fnc(S2_CITY)): vol.All(str, redact),
+            vol.Required(fnc(S2_COUNTRY)): str,
+            vol.Required(fnc(S2_POSTCODE)): vol.All(str, redact),
+            vol.Required(fnc(S2_LOCATION_TYPE)): factory_enum(case, TccLocationType),  # "Residential"
+            vol.Required(fnc(S2_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
+            vol.Required(fnc(S2_TIME_ZONE)): factory_time_zone(case),
+            vol.Required(fnc(S2_LOCATION_OWNER)): SCH_LOCATION_OWNER,
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S2_LOCATION_INFO)): SCH_LOCATION_INFO,
+            vol.Required(fnc(S2_GATEWAYS)): [factory_gwy_config(case)],
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+# gateway (Gwy) config schema factories
+@overload
+def factory_gwy_config(case: Literal[Case.VENDOR] = ...) -> Validator[TccGwyConfigResponseT]: ...
+
+
+@overload
+def factory_gwy_config(case: Literal[Case.PYTHONIC]) -> Validator[EvoGwyConfigResponseT]: ...
+
+
+@overload
+def factory_gwy_config(case: Case) -> Validator[TccGwyConfigResponseT] | Validator[EvoGwyConfigResponseT]: ...
+
+
+def factory_gwy_config(case: Case = Case.VENDOR) -> Validator[TccGwyConfigResponseT] | Validator[EvoGwyConfigResponseT]:
+    """Factory for the gateway config schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    SCH_GATEWAY_INFO: Final = vol.Schema(
+        {
+            vol.Required(fnc(S2_GATEWAY_ID)): str,
+            vol.Required(fnc(S2_MAC)): str,
+            vol.Required(fnc(S2_CRC)): vol.All(str, redact),
+            vol.Required(fnc(S2_IS_WI_FI)): bool,
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S2_GATEWAY_INFO)): SCH_GATEWAY_INFO,
+            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [factory_tcs_config(case)],
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+# temperatureControlSystem (TCS) config schema factories
+@overload
+def factory_tcs_config(case: Literal[Case.VENDOR] = ...) -> Validator[TccTcsConfigResponseT]: ...
+
+
+@overload
+def factory_tcs_config(case: Literal[Case.PYTHONIC]) -> Validator[EvoTcsConfigResponseT]: ...
+
+
+@overload
+def factory_tcs_config(case: Case) -> Validator[TccTcsConfigResponseT] | Validator[EvoTcsConfigResponseT]: ...
+
+
+def factory_tcs_config(case: Case = Case.VENDOR) -> Validator[TccTcsConfigResponseT] | Validator[EvoTcsConfigResponseT]:
+    """Factory for the TCS config schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
+            vol.Required(fnc(S2_MODEL_TYPE)): factory_enum_or_str(case, TccTcsModelType),
+            vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [factory_system_mode(case)],
+            vol.Required(fnc(S2_ZONES)): vol.All([factory_zon_config(case)], vol.Length(min=_MIN_NUM_ZONES_PER_TCS)),
+            vol.Optional(fnc(S2_DHW)): factory_dhw_config(case),
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+# domesticHotWater (DHW) config schema factories
+@overload
+def factory_dhw_config(case: Literal[Case.VENDOR] = ...) -> Validator[TccDhwConfigResponseT]: ...
+
+
+@overload
+def factory_dhw_config(case: Literal[Case.PYTHONIC]) -> Validator[EvoDhwConfigResponseT]: ...
+
+
+@overload
+def factory_dhw_config(case: Case) -> Validator[TccDhwConfigResponseT] | Validator[EvoDhwConfigResponseT]: ...
+
+
+def factory_dhw_config(case: Case = Case.VENDOR) -> Validator[TccDhwConfigResponseT] | Validator[EvoDhwConfigResponseT]:
+    """Factory for the DHW config schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
 
@@ -368,8 +560,21 @@ def factory_dhw(case: Case = Case.VENDOR) -> vol.Schema:
     )
 
 
-def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
-    """Factory for the zone schema."""
+# temperatureZone (Zon) config schema factories
+@overload
+def factory_zon_config(case: Literal[Case.VENDOR] = ...) -> Validator[TccZonConfigResponseT]: ...
+
+
+@overload
+def factory_zon_config(case: Literal[Case.PYTHONIC]) -> Validator[EvoZonConfigResponseT]: ...
+
+
+@overload
+def factory_zon_config(case: Case) -> Validator[TccZonConfigResponseT] | Validator[EvoZonConfigResponseT]: ...
+
+
+def factory_zon_config(case: Case = Case.VENDOR) -> Validator[TccZonConfigResponseT] | Validator[EvoZonConfigResponseT]:
+    """Factory for the zone config schema."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
 
@@ -438,151 +643,24 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
     )
 
 
-def factory_tcs(case: Case = Case.VENDOR) -> vol.Schema:
-    """Factory for the TCS schema."""
-
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
-            vol.Required(fnc(S2_MODEL_TYPE)): factory_enum_or_str(case, TccTcsModelType),
-            vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [factory_system_mode(case)],
-            vol.Required(fnc(S2_ZONES)): vol.All([factory_zone(case)], vol.Length(min=_MIN_NUM_ZONES_PER_TCS)),
-            vol.Optional(fnc(S2_DHW)): factory_dhw(case),
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
-def factory_gateway(case: Case = Case.VENDOR) -> vol.Schema:
-    """Factory for the gateway schema."""
-
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    SCH_GATEWAY_INFO: Final = vol.Schema(
-        {
-            vol.Required(fnc(S2_GATEWAY_ID)): str,
-            vol.Required(fnc(S2_MAC)): str,
-            vol.Required(fnc(S2_CRC)): vol.All(str, redact),
-            vol.Required(fnc(S2_IS_WI_FI)): bool,
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
-
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_GATEWAY_INFO)): SCH_GATEWAY_INFO,
-            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [factory_tcs(case)],
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
-def factory_time_zone(case: Case = Case.VENDOR) -> vol.Schema:
-    """Factory for the time zone schema."""
-
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_TIME_ZONE_ID)): str,  # "GMTStandardTime" (a Windows TZ id)
-            vol.Required(fnc(S2_DISPLAY_NAME)): str,  # "(UTC+00:00) Dublin, Edinburgh, Lisbon, London"
-            vol.Required(fnc(S2_OFFSET_MINUTES)): int,
-            vol.Required(fnc(S2_CURRENT_OFFSET_MINUTES)): int,
-            vol.Required(fnc(S2_SUPPORTS_DAYLIGHT_SAVING)): bool,
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
-@overload
-def factory_location_installation_info(case: Literal[Case.VENDOR] = ...) -> Validator[TccLocConfigResponseT]: ...
-
-
-@overload
-def factory_location_installation_info(case: Literal[Case.PYTHONIC]) -> Validator[EvoLocConfigResponseT]: ...
-
-
-@overload
-def factory_location_installation_info(
-    case: Case,
-) -> Validator[TccLocConfigResponseT] | Validator[EvoLocConfigResponseT]: ...
-
-
-def factory_location_installation_info(
-    case: Case = Case.VENDOR,
-) -> Validator[TccLocConfigResponseT] | Validator[EvoLocConfigResponseT]:
-    """Factory for the location (config) schema."""
-
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    SCH_LOCATION_OWNER: Final = vol.Schema(
-        {
-            vol.Required(fnc(S2_USER_ID)): str,
-            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), redact),
-            vol.Required(fnc(S2_FIRSTNAME)): str,
-            vol.Required(fnc(S2_LASTNAME)): vol.All(str, redact),
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
-
-    SCH_LOCATION_INFO: Final = vol.Schema(
-        {
-            vol.Required(fnc(S2_LOCATION_ID)): str,
-            vol.Required(fnc(S2_NAME)): str,  # e.g. "My Home"
-            vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, redact),
-            vol.Required(fnc(S2_CITY)): vol.All(str, redact),
-            vol.Required(fnc(S2_COUNTRY)): str,
-            vol.Required(fnc(S2_POSTCODE)): vol.All(str, redact),
-            vol.Required(fnc(S2_LOCATION_TYPE)): factory_enum(case, TccLocationType),  # "Residential"
-            vol.Required(fnc(S2_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
-            vol.Required(fnc(S2_TIME_ZONE)): factory_time_zone(case),
-            vol.Required(fnc(S2_LOCATION_OWNER)): SCH_LOCATION_OWNER,
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
-
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_LOCATION_INFO)): SCH_LOCATION_INFO,
-            vol.Required(fnc(S2_GATEWAYS)): [factory_gateway(case)],
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
-@overload
-def factory_user_locations_installation_info(
-    case: Literal[Case.VENDOR] = ...,
-) -> Validator[list[TccLocConfigResponseT]]: ...
-
-
-@overload
-def factory_user_locations_installation_info(
-    case: Literal[Case.PYTHONIC],
-) -> Validator[list[EvoLocConfigResponseT]]: ...
-
-
-@overload
-def factory_user_locations_installation_info(
-    case: Case,
-) -> Validator[list[TccLocConfigResponseT]] | Validator[list[EvoLocConfigResponseT]]: ...
-
-
-def factory_user_locations_installation_info(
-    case: Case = Case.VENDOR,
-) -> Validator[list[TccLocConfigResponseT]] | Validator[list[EvoLocConfigResponseT]]:
-    """Factory for the user locations (config) schema."""
-
-    return vol.Schema(
-        [factory_location_installation_info(case)],
-        extra=vol.PREVENT_EXTRA,
-    )
-
+#
+# Vendor-native schemas for InstallationInfo (config) URLs
 
 # GET /location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True
-TCC_GET_USR_LOCATIONS: Final = factory_user_locations_installation_info()
+TCC_GET_USR_LOCATIONS: Final[Validator[list[TccLocConfigResponseT]]] = factory_usr_locations()
 
 # GET /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True
-TCC_GET_LOC_INSTALLATION_INFO: Final = factory_location_installation_info()
+TCC_GET_LOC_CONFIG: Final[Validator[TccLocConfigResponseT]] = factory_loc_config()
+TCC_GET_LOC_INSTALLATION_INFO: Final = TCC_GET_LOC_CONFIG
+
+# GET /gateway/{gwy_id}/installationInfo?includeTemperatureControlSystems=True
+TCC_GET_GWY_CONFIG: Final[Validator[TccGwyConfigResponseT]] = factory_gwy_config()
+
+# GET /temperatureControlSystem/{tcs_id}/installationInfo
+TCC_GET_TCS_CONFIG: Final[Validator[TccTcsConfigResponseT]] = factory_tcs_config()
+
+# GET /domesticHotWater/{dhw_id}/installationInfo
+TCC_GET_DHW_CONFIG: Final[Validator[TccDhwConfigResponseT]] = factory_dhw_config()
+
+# GET /temperatureZone/{zone_id}/installationInfo
+TCC_GET_ZON_CONFIG: Final[Validator[TccZonConfigResponseT]] = factory_zon_config()

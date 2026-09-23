@@ -3,8 +3,9 @@
 TypeDicts may not be complete (the API is undocumented), but all keys referenced
 by this library are present.
 
-API endpoints marked 'extrapolated' are inferred by symmetry - they are not
-exercised by the test suite and may not exist.
+Each API endpoint annotated here is exercised by tests/tests_rf/test_v2_urls.py,
+which (with these TypedDicts) documents the vendor's API. Any endpoint marked
+'extrapolated' would be inferred by symmetry: not exercised, so may not exist.
 
 Naming convention
 -----------------
@@ -29,7 +30,6 @@ TypedDict, not a StrEnum like `SystemMode`.
 
 Note: some vendor's key may itself end in '_response'; that does not make the type
 a HTTP response, e.g. `dhw_state_capabilities_response: EvoDhwStateCapabilitiesT`
-
 
 These are not part of the vendor's schema, but useful to the library:
 
@@ -100,11 +100,11 @@ class EvoUsrAccountResponseT(TypedDict):
 
 
 # GET /location/installationInfo?userId={user_id}&include...  (a list of these dicts)
-# GET /location/{loc_id}/installationInfo??includeTemperatureControlSystems=True
+# GET /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True
 class EvoLocConfigResponseT(TypedDict):
-    """Response to `GET /locations.../installationInfo...`.
+    """Response to `GET /location/.../installationInfo...`.
 
-    Response to: `GET /location/installationInfo?userId={user_id}&?includeTemperatureControlSystems=True`
+    Response to: `GET /location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True`
     - the response is a list of these dicts
 
     Response to: `GET /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True`
@@ -147,9 +147,9 @@ class EvoLocationOwnerT(TypedDict):
     lastname: str
 
 
-# GET /gateway/{gwy_id}/... (extrapolated)
+# GET /gateway/{gwy_id}/installationInfo?includeTemperatureControlSystems=True
 class EvoGwyConfigResponseT(TypedDict):
-    """Response to `GET /gateway/{gwy_id}/...`."""
+    """Response to `GET /gateway/{gwy_id}/installationInfo?includeTemperatureControlSystems=True`."""
 
     gateway_info: EvoGatewayInfoT
     temperature_control_systems: list[EvoTcsConfigResponseT]
@@ -162,7 +162,7 @@ class EvoGatewayInfoT(TypedDict):
     is_wi_fi: bool
 
 
-# GET /temperatureControlSystem/{tcs_id}/... (extrapolated)
+# GET /temperatureControlSystem/{tcs_id}/installationInfo
 class _EvoTcsConfigResponseBaseT(TypedDict):
     system_id: str
     model_type: TcsModelType | str  # enum may be incomplete, so allow str
@@ -179,7 +179,7 @@ class EvoAllowedSystemModesT(TypedDict):
 
 
 class EvoTcsConfigResponseT(_EvoTcsConfigResponseBaseT):
-    """Response to `GET /temperatureControlSystem/{tcs_id}/...`."""
+    """Response to `GET /temperatureControlSystem/{tcs_id}/installationInfo`."""
 
     # system_id: str
     # model_type: str
@@ -188,9 +188,9 @@ class EvoTcsConfigResponseT(_EvoTcsConfigResponseBaseT):
     dhw: NotRequired[EvoDhwConfigResponseT]
 
 
-# GET /temperatureZone/{zon_id}/... (extrapolated)
+# GET /temperatureZone/{zon_id}/installationInfo
 class EvoZonConfigResponseT(TypedDict):
-    """Response to `GET /temperatureZone/{zon_id}/...`."""
+    """Response to `GET /temperatureZone/{zon_id}/installationInfo`."""
 
     zone_id: str
     model_type: ZoneModelType | str  # enum may be incomplete, so allow str
@@ -241,9 +241,9 @@ class EvoAllowedFanModesT(TypedDict):
     fan_mode: FanMode | str  # enum may be incomplete, so allow str
 
 
-# GET /domesticHotWater/{dhw_id}/... (extrapolated)
+# GET /domesticHotWater/{dhw_id}/installationInfo
 class EvoDhwConfigResponseT(TypedDict):
-    """Response to `GET /domesticHotWater/{dhw_id}/...`."""
+    """Response to `GET /domesticHotWater/{dhw_id}/installationInfo`."""
 
     dhw_id: str
     # Evohome always has schedule capabilities, but some FocusProWifi* may not?
@@ -276,14 +276,14 @@ class EvoLocStatusResponseT(_EvoLocStatusResponseBaseT):
     gateways: list[EvoGwyStatusResponseT]
 
 
-# GET /gateway/{gwy_id}/status (extrapolated)
+# GET /gateway/{gwy_id}/status
 class _EvoGwyStatusResponseBaseT(TypedDict):
     gateway_id: str
     active_faults: list[EvoActiveFaultT]
 
 
 class EvoGwyStatusResponseT(_EvoGwyStatusResponseBaseT):
-    """Response to `GET /gateway/{gwy_id}/status`."""
+    """Response to `GET /gateway/{gwy_id}/status?includeTemperatureControlSystems=True`."""
 
     temperature_control_systems: list[EvoTcsStatusResponseT]
 
@@ -518,7 +518,7 @@ class EvoDhwStatusT(EvoDhwStatusResponseT):
 
 
 #######################################################################################
-# Pythonic probatio schemas...
+# Pythonic probatio schemas (for validation/coercion)...
 #
 # These validate the JSON returned by the vendor API (after its keys have been
 # converted to snake_case by AbstractAuth.request) and coerce the enum string values
@@ -526,15 +526,15 @@ class EvoDhwStatusT(EvoDhwStatusResponseT):
 # vendor-cased schemas (TCC_GET_*) remain in schemas/__init__.py.
 
 
-# EVO_USR_ACCOUNT: Final = factory_user_account(Case.PYTHONIC)
-# EVO_USR_LOCATIONS: Final = factory_user_locations_installation_info(Case.PYTHONIC)
-# EVO_LOC_CONFIG: Final = factory_location_installation_info(Case.PYTHONIC)
+# EVO_USR_ACCOUNT: Final[Validator[EvoUsrAccountResponseT]] = factory_user_account(Case.PYTHONIC)
+# EVO_USR_LOCATIONS: Final[Validator[EvoUsrLocationsResponseT]] = factory_usr_locations(Case.PYTHONIC)
+# EVO_LOC_CONFIG: Final[Validator[EvoLocConfigResponseT]] = factory_loc_config(Case.PYTHONIC)
 
-# EVO_LOC_STATUS: Final = factory_loc_status(Case.PYTHONIC)
-# EVO_GWY_STATUS: Final = factory_gwy_status(Case.PYTHONIC)
-# EVO_TCS_STATUS: Final = factory_tcs_status(Case.PYTHONIC)
-# EVO_DHW_STATUS: Final = factory_dhw_status(Case.PYTHONIC)
-# EVO_ZON_STATUS: Final = factory_zon_status(Case.PYTHONIC)
+# EVO_LOC_STATUS: Final[Validator[EvoLocStatusResponseT]] = factory_loc_status(Case.PYTHONIC)
+# EVO_GWY_STATUS: Final[Validator[EvoGwyStatusResponseT]] = factory_gwy_status(Case.PYTHONIC)
+# EVO_TCS_STATUS: Final[Validator[EvoTcsStatusResponseT]] = factory_tcs_status(Case.PYTHONIC)
+# EVO_DHW_STATUS: Final[Validator[EvoDhwStatusResponseT]] = factory_dhw_status(Case.PYTHONIC)
+# EVO_ZON_STATUS: Final[Validator[EvoZonStatusResponseT]] = factory_zon_status(Case.PYTHONIC)
 
-# EVO_DHW_SCHEDULE: Final = factory_dhw_schedule(Case.PYTHONIC)
-# EVO_ZON_SCHEDULE: Final = factory_zon_schedule(Case.PYTHONIC)
+# EVO_DHW_SCHEDULE: Final[Validator[EvoDhwScheduleResponseT]] = factory_dhw_schedule(Case.PYTHONIC)
+# EVO_ZON_SCHEDULE: Final[Validator[EvoZonScheduleResponseT]] = factory_zon_schedule(Case.PYTHONIC)

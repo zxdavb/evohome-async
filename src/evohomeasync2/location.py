@@ -27,7 +27,7 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
-from .schemas.config import factory_location_installation_info
+from .schemas.config import factory_loc_config
 from .schemas.const import TccEntityType
 from .schemas.helpers import Case
 from .schemas.status import factory_loc_status
@@ -107,9 +107,7 @@ class Location(EntityBase[EvoLocStatusT]):
 
     _TCC_TYPE = TccEntityType.LOC
 
-    SCH_CONFIG: Validator[EvoLocConfigResponseT] = factory_location_installation_info(
-        Case.PYTHONIC
-    )
+    SCH_CONFIG: Validator[EvoLocConfigResponseT] = factory_loc_config(Case.PYTHONIC)
     SCH_STATUS: Validator[EvoLocStatusResponseT] = factory_loc_status(Case.PYTHONIC)
 
     def __init__(
