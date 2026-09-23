@@ -43,6 +43,11 @@ if TYPE_CHECKING:
     from evohomeasync2.typedefs import EvoUsrAccountResponseT
 
 
+#
+# Vendor-native typed dicts for authentication URLs
+# - this is the 'truth', as understood, for this undocumented API
+
+
 class TccOAuthTokenResponseT(TypedDict):
     """Typed dict for the OAuth authorization response schema.
 
@@ -72,23 +77,9 @@ def factory_post_oauth_token(_: Case = Case.VENDOR) -> Validator[TccOAuthTokenRe
     )
 
 
-class TccErrorResponseT(TypedDict):
-    """Typed dict for error responses from the vendor servers."""
-
-    error: str
-
-
-def factory_error_response(case: Case = Case.VENDOR) -> Validator[TccErrorResponseT]:
-    """Factory for the error response schema."""
-
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_ERROR)): str,
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
+#
+# Vendor-native typed dicts for account URLs
+# - this is the 'truth', as understood, for this undocumented API
 
 
 class TccUsrAccountResponseT(TypedDict):
@@ -106,18 +97,18 @@ class TccUsrAccountResponseT(TypedDict):
 
 
 @overload
-def factory_user_account(case: Literal[Case.VENDOR] = ...) -> Validator[TccUsrAccountResponseT]: ...
+def factory_usr_account(case: Literal[Case.VENDOR] = ...) -> Validator[TccUsrAccountResponseT]: ...
 
 
 @overload
-def factory_user_account(case: Literal[Case.PYTHONIC]) -> Validator[EvoUsrAccountResponseT]: ...
+def factory_usr_account(case: Literal[Case.PYTHONIC]) -> Validator[EvoUsrAccountResponseT]: ...
 
 
 @overload
-def factory_user_account(case: Case) -> Validator[TccUsrAccountResponseT] | Validator[EvoUsrAccountResponseT]: ...
+def factory_usr_account(case: Case) -> Validator[TccUsrAccountResponseT] | Validator[EvoUsrAccountResponseT]: ...
 
 
-def factory_user_account(
+def factory_usr_account(
     case: Case = Case.VENDOR,
 ) -> Validator[TccUsrAccountResponseT] | Validator[EvoUsrAccountResponseT]:
     """Factory for the user account schema."""
@@ -135,6 +126,30 @@ def factory_user_account(
             vol.Required(fnc(S2_POSTCODE)): vol.All(str, redact),
             vol.Required(fnc(S2_COUNTRY)): str,
             vol.Required(fnc(S2_LANGUAGE)): str,
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+#
+# Vendor-native typed dicts for error URLs
+# - this is the 'truth', as understood, for this undocumented API
+
+
+class TccErrorResponseT(TypedDict):
+    """Typed dict for error responses from the vendor servers."""
+
+    error: str
+
+
+def factory_error_response(case: Case = Case.VENDOR) -> Validator[TccErrorResponseT]:
+    """Factory for the error response schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S2_ERROR)): str,
         },
         extra=vol.PREVENT_EXTRA,
     )
@@ -170,11 +185,14 @@ class TccTaskResponseT(TypedDict):
 
 
 #
-TCC_ERROR_RESPONSE: Final = factory_error_response()
-TCC_STATUS_RESPONSE: Final = factory_status_response()
+# Vendor-native schemas
 
-# POST /Auth/OAuth/Token  # TODO: add this
-TCC_POST_OAUTH_TOKEN: Final = factory_post_oauth_token()
+# POST /Auth/OAuth/Token
+TCC_POST_OAUTH_TOKEN: Final[Validator[TccOAuthTokenResponseT]] = factory_post_oauth_token()
 
 # GET /userAccount
-TCC_GET_USR_ACCOUNT: Final = factory_user_account()
+TCC_GET_USR_ACCOUNT: Final[Validator[TccUsrAccountResponseT]] = factory_usr_account()
+
+#
+TCC_ERROR_RESPONSE: Final[Validator[TccErrorResponseT]] = factory_error_response()
+TCC_STATUS_RESPONSE: Final[Validator[list[TccFailureResponseT]]] = factory_status_response()
