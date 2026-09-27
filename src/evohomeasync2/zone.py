@@ -529,7 +529,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     # Config attrs...
 
     @cached_property
-    def model(self) -> ZoneModelType:
+    def model(self) -> ZoneModelType | str:
         return self._config[SZ_MODEL_TYPE]
 
     @property
@@ -539,7 +539,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         return self._config[SZ_NAME]
 
     @cached_property
-    def type(self) -> ZoneType:
+    def type(self) -> ZoneType | str:
         return self._config[SZ_ZONE_TYPE]
 
     @cached_property

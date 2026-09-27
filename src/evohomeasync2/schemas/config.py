@@ -96,7 +96,7 @@ from .const import (
     TccZoneModelType,
     TccZoneType,
 )
-from .helpers import Case, factory_enum
+from .helpers import Case, factory_enum, factory_enum_or_str
 
 if TYPE_CHECKING:
     from _evohome.helpers import Validator
@@ -170,7 +170,7 @@ class TccGwyConfigEntryT(TypedDict):
 
 class TccTcsConfigEntryT(TypedDict):
     systemId: str
-    modelType: TccTcsModelType
+    modelType: TccTcsModelType | str  # may be unknown/unexpected value, so allow str
     allowedSystemModes: list[TccAllowedSystemModeResponseT]
 
 
@@ -190,12 +190,12 @@ class TccTcsConfigResponseT(TccTcsConfigEntryT):
 
 class TccZonConfigResponseT(TypedDict):
     zoneId: str
-    modelType: TccZoneModelType
+    modelType: TccZoneModelType | str  # may be unknown/unexpected value, so allow str
     name: str
     setpointCapabilities: TccZonSetpointCapabilitiesResponseT
     # Evohome always has schedule capabilities, but some FocusProWifi* do not
     scheduleCapabilities: NotRequired[TccZonScheduleCapabilitiesResponseT]
-    zoneType: TccZoneType
+    zoneType: TccZoneType | str  # may be unknown/unexpected value, so allow str
     allowedFanModes: NotRequired[list[TccAllowedFanModeResponseT]]  # FocusProWifi
 
 
@@ -427,11 +427,11 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_ZONE_ID)): vol.Match(REGEX_ZONE_ID),
-            vol.Required(fnc(S2_MODEL_TYPE)): factory_enum(case, TccZoneModelType),
+            vol.Required(fnc(S2_MODEL_TYPE)): factory_enum_or_str(case, TccZoneModelType),
             vol.Required(fnc(S2_NAME)): str,
             vol.Required(fnc(S2_SETPOINT_CAPABILITIES)): SCH_SETPOINT_CAPABILITIES,
             vol.Optional(fnc(S2_SCHEDULE_CAPABILITIES)): SCH_SCHEDULE_CAPABILITIES,
-            vol.Required(fnc(S2_ZONE_TYPE)): factory_enum(case, TccZoneType),
+            vol.Required(fnc(S2_ZONE_TYPE)): factory_enum_or_str(case, TccZoneType),
             vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): [SCH_FAN_MODE],  # FocusProWifiRetail
         },
         extra=vol.PREVENT_EXTRA,
@@ -446,7 +446,7 @@ def factory_tcs(case: Case = Case.VENDOR) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
-            vol.Required(fnc(S2_MODEL_TYPE)): factory_enum(case, TccTcsModelType),
+            vol.Required(fnc(S2_MODEL_TYPE)): factory_enum_or_str(case, TccTcsModelType),
             vol.Required(fnc(S2_ALLOWED_SYSTEM_MODES)): [factory_system_mode(case)],
             vol.Required(fnc(S2_ZONES)): vol.All([factory_zone(case)], vol.Length(min=_MIN_NUM_ZONES_PER_TCS)),
             vol.Optional(fnc(S2_DHW)): factory_dhw(case),

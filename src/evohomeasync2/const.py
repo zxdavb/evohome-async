@@ -234,6 +234,7 @@ class SystemMode(StrEnum):
 class TcsModelType(StrEnum):
     EVO_TOUCH = camel_to_snake(TccTcsModelType.EVO_TOUCH)
     FOCUS_PRO_WIFI_RETAIL = camel_to_snake(TccTcsModelType.FOCUS_PRO_WIFI_RETAIL)
+    SARATOGA = camel_to_snake(TccTcsModelType.SARATOGA)  # not seen with Evohome
     SYDNEY = camel_to_snake(TccTcsModelType.SYDNEY)  # not seen with Evohome
     VISION_PRO_WIFI_RETAIL = camel_to_snake(TccTcsModelType.VISION_PRO_WIFI_RETAIL)
 

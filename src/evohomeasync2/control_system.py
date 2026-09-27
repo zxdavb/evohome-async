@@ -98,6 +98,9 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             SZ_ALLOWED_SYSTEM_MODES: config[SZ_ALLOWED_SYSTEM_MODES],
         }
 
+        if self.model not in TcsModelType:
+            self._logger.warning("%s: Unknown model type '%s' (YMMV)", self, self.model)
+
         for zon_entry in config[SZ_ZONES]:
             try:
                 zone = Zone(self, zon_entry)
@@ -133,7 +136,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
     # Config attrs...
 
     @cached_property
-    def model(self) -> TcsModelType:
+    def model(self) -> TcsModelType | str:
         return self._config[SZ_MODEL_TYPE]
 
     @cached_property

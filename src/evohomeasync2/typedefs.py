@@ -165,7 +165,7 @@ class EvoGatewayInfoT(TypedDict):
 # GET /temperatureControlSystem/{tcs_id}/... (extrapolated)
 class _EvoTcsConfigResponseBaseT(TypedDict):
     system_id: str
-    model_type: TcsModelType
+    model_type: TcsModelType | str  # may be unknown/unexpected value, so allow str
     allowed_system_modes: list[EvoAllowedSystemModesT]
 
 
@@ -193,12 +193,12 @@ class EvoZonConfigResponseT(TypedDict):
     """Response to `GET /temperatureZone/{zon_id}/...`."""
 
     zone_id: str
-    model_type: ZoneModelType
+    model_type: ZoneModelType | str  # may be unknown/unexpected value, so allow str
     name: str
     setpoint_capabilities: EvoZonSetpointCapabilitiesT
     # Evohome always has schedule capabilities, but some FocusProWifi* do not
     schedule_capabilities: NotRequired[EvoZonScheduleCapabilitiesT]
-    zone_type: ZoneType
+    zone_type: ZoneType | str  # may be unknown/unexpected value, so allow str
     allowed_fan_modes: NotRequired[list[EvoAllowedFanModesT]]  # FocusProWifi
 
 
