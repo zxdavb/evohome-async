@@ -33,7 +33,6 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `system_004/` | 2664492 | CET | Synthesised multi-status system (Czech Republic) |
 | `system_006/` | 0001 | Romance | Synthesised minimal system (Belgium) |
 | `evohome_017/` | 6390479 | WEurope | evohome-async issue [#17](https://github.com/zxdavb/evohome-async/issues/17) |
-| `evohome_145/` | 4001011, 4001018 | AUSEastern | evohome-async issue [#145](https://github.com/zxdavb/evohome-async/issues/145) (synthesised: `Saratoga` + unknown model/zone types) |
 | `hass_000000/` | 2738909 | GMT | HA core issue [#000000](https://github.com/home-assistant/core/issues/000000) |
 | `hass_000001/` | 2738909 | GMT | HA core issue [#000001](https://github.com/home-assistant/core/issues/000001) |
 | `hass_000002/` | 2738909 | GMT | HA core issue [#000002](https://github.com/home-assistant/core/issues/000002) |
@@ -55,6 +54,7 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `hass_141882/` | 7680795 | AUSEastern | HA core issue [#141882](https://github.com/home-assistant/core/issues/141882) |
 | `hass_157546/` | 7647411 | GMT | HA core issue [#157546](https://github.com/home-assistant/core/issues/157546) |
 | `hass_178493/` | 6557787 | WEurope | HA core issue [#178493](https://github.com/home-assistant/core/issues/178493) (Netherlands, `BoilerServiceRequired` + a synthesised unknown fault type) |
+| `hass_179414/` | 4001011 | AUSEastern | HA core issue [#179414](https://github.com/home-assistant/core/issues/179414) (synthesised pending real JSON: `Saratoga` + unknown zone model/zone type) |
 | `system_007/` | 4001001 | GMT | Synthesised schema coverage: 2 locations (maximal, minimal) |
 | `null_system_0/` | n/a | n/a | Synthesised null installation: 0 locations (formerly `system_008/`) |
 | `null_system_1/` | 4001005 | GMT | Synthesised null installation: 1 location, no gateways |
