@@ -38,7 +38,7 @@
                         "zones": [
                             {
                                 "zoneId": "4001014",
-                                "modelType": "NoSuchModelType",
+                                "modelType": "FocusProWifiRetail",
                                 "setpointCapabilities": {
                                     "vacationHoldCapabilities": {
                                         "isChangeable": false,
@@ -65,7 +65,7 @@
                                     "setpointValueResolution": 0.5
                                 },
                                 "name": "THERMOSTAT",
-                                "zoneType": "NoSuchZoneType"
+                                "zoneType": "Thermostat"
                             }
                         ],
                         "allowedSystemModes": [

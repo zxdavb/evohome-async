@@ -28,11 +28,9 @@ error message. The shape is based on `hass_141882/` (a `Sydney` system, also in 
 
 - Only the TCS `modelType` of `Saratoga` comes from the report. The rest (zones, system
   modes, setpoint capabilities, IDs) is synthesised.
-- Zone 4001014 has a `modelType` of `NoSuchModelType` and a `zoneType` of `NoSuchZoneType`.
-  These are deliberately not members of their `Tcc*` enums (and never will be), so that the
-  vendor's enums being incomplete is exercised by the existing tests: each is passed
-  through as a (snake_case) str, and logged as unknown. Do not "fix" them by adding them
-  to the enums, as that would silently remove this coverage.
+- The zone's `modelType` of `FocusProWifiRetail` and `zoneType` of `Thermostat` are
+  placeholders, as used by the other Australian non-evohome systems (`hass_094805/`,
+  `hass_118169/`). The reporter's real zone may well differ.
 - When the reporter's JSON arrives, replace the synthesised data with it (per the PII
-  policy), but keep a zone with these two unknown values, as `hass_178493/` does for its
-  synthesised unknown fault type.
+  policy).
+- Coverage of unknown enum values is in `system_009/`, not here.
