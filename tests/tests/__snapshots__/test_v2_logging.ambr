@@ -27,6 +27,30 @@
     ),
   ])
 # ---
+# name: test_system_warnings[evohome_145]
+  list([
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='4001014'): Unknown model type 'no_such_model_type' (YMMV)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='4001016'): Unknown model type 'no_such_model_type' (YMMV)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='4001017'): Unknown Zone type 'no_such_zone_type' (YMMV)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      'There are 2 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
+    ),
+  ])
+# ---
 # name: test_system_warnings[hass_000000]
   list([
     tuple(

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import json
 import logging
-import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import patch
@@ -113,51 +111,3 @@ async def test_multi_location_warning_once_per_config_load(
 
         await evo.update(dont_update_status=True)  # no status updates: don't warn
         assert warnings() == []
-
-
-async def test_unknown_model_types_are_tolerated(
-    credentials_manager: TokenCacheManager,
-    tmp_path: Path,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """An unknown modelType/zoneType should be warned about, not reject the config.
-
-    The vendor's enums are incompletely documented, and a strict enum validator
-    would reject the entire installationInfo payload (see: evohome-async#145).
-    """
-
-    shutil.copytree(FIXTURES / "default", tmp_path, dirs_exist_ok=True)
-
-    file = tmp_path / "user_locations.json"
-    config = json.loads(file.read_text())
-
-    tcs_config = config[0]["gateways"][0]["temperatureControlSystems"][0]
-    tcs_config["modelType"] = "NoSuchModelType"  # deliberately not a TccTcsModelType
-    tcs_config["zones"][0]["modelType"] = "NoSuchModelType"
-    tcs_config["zones"][1]["zoneType"] = "NoSuchZoneType"
-
-    file.write_text(json.dumps(config))
-
-    with (
-        patch("evohomeasync2.auth.Auth.get", auth_get(tmp_path)),
-        caplog.at_level(logging.WARNING),
-    ):
-        evo = EvohomeClientV2(credentials_manager)
-        await evo.update(dont_update_status=True)
-
-    tcs = evo.tcs
-    zon_0, zon_1 = tcs.zones[:2]
-
-    assert len(tcs.zones) == len(tcs_config["zones"])  # no zone was ignored
-
-    assert tcs.model == "no_such_model_type"
-    assert zon_0.model == "no_such_model_type"
-    assert zon_1.type == "no_such_zone_type"
-
-    assert [
-        msg for _, level, msg in caplog.record_tuples if level == logging.WARNING
-    ] == [
-        f"{tcs}: Unknown model type 'no_such_model_type' (YMMV)",
-        f"{zon_0}: Unknown model type 'no_such_model_type' (YMMV)",
-        f"{zon_1}: Unknown Zone type 'no_such_zone_type' (YMMV)",
-    ]

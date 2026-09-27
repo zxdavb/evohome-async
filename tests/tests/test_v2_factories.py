@@ -8,15 +8,8 @@ from enum import StrEnum
 import probatio as vol
 import pytest
 
-from _evohome.helpers import camel_to_snake, convert_keys_to_snake_case
-from evohomeasync2.const import (
-    SZ_FAULT_TYPE,
-    SZ_MODEL_TYPE,
-    SZ_SINCE,
-    FaultType as EvoFaultType,
-    TcsModelType as EvoTcsModelType,
-)
-from evohomeasync2.schemas.config import factory_tcs
+from _evohome.helpers import camel_to_snake
+from evohomeasync2.const import SZ_FAULT_TYPE, SZ_SINCE, FaultType as EvoFaultType
 from evohomeasync2.schemas.const import (
     REGEX_DHW_ID,
     REGEX_GATEWAY_ID,
@@ -24,9 +17,7 @@ from evohomeasync2.schemas.const import (
     REGEX_SYSTEM_ID,
     REGEX_ZONE_ID,
     S2_FAULT_TYPE,
-    S2_MODEL_TYPE,
     TccFaultType,
-    TccTcsModelType,
 )
 from evohomeasync2.schemas.helpers import Case
 from evohomeasync2.schemas.status import factory_active_faults
@@ -92,53 +83,6 @@ def test_factory_active_faults(
 
     else:  # is an unknown value: a plain str, and not an enum member
         assert not isinstance(result[key], StrEnum)
-
-
-@pytest.mark.parametrize(
-    ("case", "key", "expected"),
-    [
-        (Case.VENDOR, S2_MODEL_TYPE, TccTcsModelType.SARATOGA),
-        (Case.PYTHONIC, SZ_MODEL_TYPE, EvoTcsModelType.SARATOGA),
-    ],
-    ids=["vendor", "pythonic"],
-)
-def test_factory_tcs_saratoga(case: Case, key: str, expected: StrEnum) -> None:
-    """Test a TCS modelType of 'Saratoga' is a known member (see: #145)."""
-
-    payload = {
-        "systemId": "1234567",
-        "modelType": "Saratoga",
-        "allowedSystemModes": [
-            {"systemMode": "Auto", "canBePermanent": True, "canBeTemporary": False}
-        ],
-        "zones": [
-            {
-                "zoneId": "2345678",
-                "modelType": "HeatingZone",
-                "name": "Lounge",
-                "setpointCapabilities": {
-                    "maxHeatSetpoint": 35.0,
-                    "minHeatSetpoint": 5.0,
-                    "valueResolution": 0.5,
-                    "canControlHeat": True,
-                    "canControlCool": False,
-                    "allowedSetpointModes": ["FollowSchedule"],
-                    "maxDuration": "1.00:00:00",
-                    "timingResolution": "00:10:00",
-                },
-                "zoneType": "RadiatorZone",
-            }
-        ],
-    }
-
-    result = factory_tcs(case)(
-        payload if case is Case.VENDOR else convert_keys_to_snake_case(payload)
-    )
-
-    if case is Case.VENDOR:
-        assert result[key] == expected
-    else:
-        assert result[key] is expected
 
 
 @pytest.mark.parametrize(

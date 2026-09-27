@@ -33,6 +33,7 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `system_004/` | 2664492 | CET | Synthesised multi-status system (Czech Republic) |
 | `system_006/` | 0001 | Romance | Synthesised minimal system (Belgium) |
 | `evohome_017/` | 6390479 | WEurope | evohome-async issue [#17](https://github.com/zxdavb/evohome-async/issues/17) |
+| `evohome_145/` | 4001011, 4001018 | AUSEastern | evohome-async issue [#145](https://github.com/zxdavb/evohome-async/issues/145) (synthesised: `Saratoga` + unknown model/zone types) |
 | `hass_000000/` | 2738909 | GMT | HA core issue [#000000](https://github.com/home-assistant/core/issues/000000) |
 | `hass_000001/` | 2738909 | GMT | HA core issue [#000001](https://github.com/home-assistant/core/issues/000001) |
 | `hass_000002/` | 2738909 | GMT | HA core issue [#000002](https://github.com/home-assistant/core/issues/000002) |
