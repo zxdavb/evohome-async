@@ -13,6 +13,54 @@
     ),
   ])
 # ---
+# name: test_system_warnings[enums_no_such]
+  list([
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='4001023'): Unknown model type 'no_such_model_type' (YMMV)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='4001024'): Unknown model type 'no_such_model_type' (YMMV)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='4001024'): Unknown Zone type 'no_such_zone_type' (YMMV)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Gateway(id='4001022'): Active fault: 2026-06-28T00:02:25+01:00 no_such_fault_type (unknown)",
+    ),
+  ])
+# ---
+# name: test_system_warnings[enums_unknown]
+  list([
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='4001033'): zone_id='4001034' ignored: Zone(id='4001034'): Invalid model type 'unknown' (is it a ghost zone?)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='4001033'): zone_id='4001035' ignored: Zone(id='4001035'): Invalid Zone type 'unknown' (is it a ghost zone?)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='4001033'): zone_id='4001034' not known, (has the system configuration been changed?)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='4001033'): zone_id='4001035' not known, (has the system configuration been changed?)",
+    ),
+  ])
+# ---
 # name: test_system_warnings[evohome_017]
   list([
     tuple(
@@ -174,11 +222,6 @@
     tuple(
       'evohomeasync2',
       30,
-      "Gateway(id='6208789'): Active fault: 2026-06-28T00:02:30+02:00 no_such_fault_type (unknown)",
-    ),
-    tuple(
-      'evohomeasync2',
-      30,
       "ControlSystem(id='8419116'): Active fault: 2026-06-28T00:02:25+02:00 boiler_service_required",
     ),
     tuple(
@@ -271,35 +314,6 @@
       'evohomeasync2',
       30,
       'There are 2 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
-    ),
-  ])
-# ---
-# name: test_system_warnings[system_009]
-  list([
-    tuple(
-      'evohomeasync2',
-      30,
-      "ControlSystem(id='4001023'): Unknown model type 'no_such_model_type' (YMMV)",
-    ),
-    tuple(
-      'evohomeasync2',
-      30,
-      "Zone(id='4001024'): Unknown model type 'no_such_model_type' (YMMV)",
-    ),
-    tuple(
-      'evohomeasync2',
-      30,
-      "Zone(id='4001025'): Unknown Zone type 'no_such_zone_type' (YMMV)",
-    ),
-    tuple(
-      'evohomeasync2',
-      30,
-      "ControlSystem(id='4001023'): zone_id='4001026' ignored: Zone(id='4001026'): Invalid Zone type 'unknown' (is it a ghost zone?)",
-    ),
-    tuple(
-      'evohomeasync2',
-      30,
-      "ControlSystem(id='4001023'): zone_id='4001026' not known, (has the system configuration been changed?)",
     ),
   ])
 # ---

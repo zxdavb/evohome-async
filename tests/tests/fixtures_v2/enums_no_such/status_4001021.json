@@ -1,0 +1,38 @@
+{
+    "locationId": "4001021",
+    "gateways": [
+        {
+            "gatewayId": "4001022",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "4001023",
+                    "zones": [
+                        {
+                            "zoneId": "4001024",
+                            "temperatureStatus": {
+                                "isAvailable": false
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 5.0,
+                                "setpointMode": "PermanentOverride"
+                            },
+                            "name": "Lounge"
+                        }
+                    ],
+                    "activeFaults": [],
+                    "systemModeStatus": {
+                        "mode": "AutoWithEco",
+                        "isPermanent": true
+                    }
+                }
+            ],
+            "activeFaults": [
+                {
+                    "faultType": "NoSuchFaultType",
+                    "since": "2026-06-28T00:02:25"
+                }
+            ]
+        }
+    ]
+}

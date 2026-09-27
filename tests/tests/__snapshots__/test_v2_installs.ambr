@@ -3179,6 +3179,328 @@
     }),
   ])
 # ---
+# name: test_system_schedules[enums_no_such][4001023_schedules]
+  list([
+    dict({
+      'daily_schedules': list([
+        dict({
+          'day_of_week': <DayOfWeek.MONDAY: 'monday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.1,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:00:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.TUESDAY: 'tuesday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.1,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:00:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.WEDNESDAY: 'wednesday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.1,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:00:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.THURSDAY: 'thursday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.1,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:00:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.FRIDAY: 'friday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.1,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:00:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.SATURDAY: 'saturday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.5,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:30:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.SUNDAY: 'sunday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.5,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:30:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+      ]),
+      'name': 'Lounge',
+      'zone_id': '4001024',
+    }),
+  ])
+# ---
+# name: test_system_schedules[enums_no_such][switchpoints]
+  list([
+    dict({
+      'daily_schedules': list([
+        dict({
+          'day_of_week': <DayOfWeek.MONDAY: 'monday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.1,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:00:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.TUESDAY: 'tuesday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.1,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:00:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.WEDNESDAY: 'wednesday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.1,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:00:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.THURSDAY: 'thursday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.1,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:00:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.FRIDAY: 'friday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.1,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:00:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.SATURDAY: 'saturday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.5,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:30:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+        dict({
+          'day_of_week': <DayOfWeek.SUNDAY: 'sunday'>,
+          'switchpoints': list([
+            dict({
+              'heat_setpoint': 18.5,
+              'time_of_day': '07:00:00',
+            }),
+            dict({
+              'heat_setpoint': 16.0,
+              'time_of_day': '08:30:00',
+            }),
+            dict({
+              'heat_setpoint': 18.6,
+              'time_of_day': '22:10:00',
+            }),
+            dict({
+              'heat_setpoint': 15.9,
+              'time_of_day': '23:00:00',
+            }),
+          ]),
+        }),
+      ]),
+      'name': 'Lounge',
+      'zone_id': '4001024',
+    }),
+  ])
+# ---
+# name: test_system_schedules[enums_unknown][4001033_schedules]
+  list([
+  ])
+# ---
+# name: test_system_schedules[enums_unknown][switchpoints]
+  list([
+  ])
+# ---
 # name: test_system_schedules[evohome_017][8222003_schedules]
   list([
     dict({
@@ -46913,626 +47235,6 @@
     }),
   ])
 # ---
-# name: test_system_schedules[system_009][4001023_schedules]
-  list([
-    dict({
-      'daily_schedules': list([
-        dict({
-          'day_of_week': <DayOfWeek.MONDAY: 'monday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.TUESDAY: 'tuesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.WEDNESDAY: 'wednesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.THURSDAY: 'thursday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.FRIDAY: 'friday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SATURDAY: 'saturday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SUNDAY: 'sunday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-      ]),
-      'name': 'Lounge',
-      'zone_id': '4001024',
-    }),
-    dict({
-      'daily_schedules': list([
-        dict({
-          'day_of_week': <DayOfWeek.MONDAY: 'monday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.TUESDAY: 'tuesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.WEDNESDAY: 'wednesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.THURSDAY: 'thursday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.FRIDAY: 'friday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SATURDAY: 'saturday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SUNDAY: 'sunday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-      ]),
-      'name': 'Kitchen',
-      'zone_id': '4001025',
-    }),
-  ])
-# ---
-# name: test_system_schedules[system_009][switchpoints]
-  list([
-    dict({
-      'daily_schedules': list([
-        dict({
-          'day_of_week': <DayOfWeek.MONDAY: 'monday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.TUESDAY: 'tuesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.WEDNESDAY: 'wednesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.THURSDAY: 'thursday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.FRIDAY: 'friday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SATURDAY: 'saturday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SUNDAY: 'sunday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-      ]),
-      'name': 'Lounge',
-      'zone_id': '4001024',
-    }),
-    dict({
-      'daily_schedules': list([
-        dict({
-          'day_of_week': <DayOfWeek.MONDAY: 'monday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.TUESDAY: 'tuesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.WEDNESDAY: 'wednesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.THURSDAY: 'thursday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.FRIDAY: 'friday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SATURDAY: 'saturday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SUNDAY: 'sunday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-      ]),
-      'name': 'Kitchen',
-      'zone_id': '4001025',
-    }),
-  ])
-# ---
 # name: test_system_snapshot[default][loc_2738909]
   dict({
     'config': '''
@@ -49323,6 +49025,663 @@
           ...
   
           '
+  
+  '''
+# ---
+# name: test_system_snapshot[enums_no_such][loc_4001021]
+  dict({
+    'config': '''
+      city: '********'
+      country: UnitedKingdom
+      location_id: '4001021'
+      location_owner:
+        firstname: John
+        lastname: '********'
+        user_id: '4001020'
+        username: no-reply@redacted.xxx
+      location_type: !!python/object/apply:evohomeasync2.const.LocationType
+      - residential
+      name: My Home
+      postcode: '********'
+      street_address: '********'
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        offset_minutes: 0
+        supports_daylight_saving: true
+        time_zone_id: GMTStandardTime
+      use_daylight_save_switching: true
+  
+    ''',
+    'country': '''
+      UnitedKingdom
+      ...
+  
+    ''',
+    'id': '''
+      '4001021'
+  
+    ''',
+    'name': '''
+      My Home
+      ...
+  
+    ''',
+    'status': '''
+      location_id: '4001021'
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[enums_no_such][loc_4001021_gwy]
+  dict({
+    'active_faults': '''
+      !!python/tuple
+      - fault_type: no_such_fault_type
+        since: '2026-06-28T00:02:25+01:00'
+  
+    ''',
+    'config': '''
+      crc: '********'
+      gateway_id: '4001022'
+      is_wi_fi: false
+      mac: '000000000000'
+  
+    ''',
+    'id': '''
+      '4001022'
+  
+    ''',
+    'mac_address': '''
+      '000000000000'
+  
+    ''',
+    'status': '''
+      active_faults:
+      - fault_type: no_such_fault_type
+        since: '2026-06-28T00:02:25+01:00'
+      gateway_id: '4001022'
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[enums_no_such][loc_4001021_tcs]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_reset
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - day_off
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - custom
+  
+    ''',
+    'allowed_system_modes': '''
+      !!python/tuple
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_reset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - day_off
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - custom
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+  
+    ''',
+    'config': '''
+      allowed_system_modes:
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_reset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - day_off
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - custom
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      model_type: no_such_model_type
+      system_id: '4001023'
+  
+    ''',
+    'hotwater': '''
+      null
+      ...
+  
+    ''',
+    'id': '''
+      '4001023'
+  
+    ''',
+    'is_permanent': '''
+      true
+      ...
+  
+    ''',
+    'mode': '''
+      !!python/object/apply:evohomeasync2.const.SystemMode
+      - auto_with_eco
+  
+    ''',
+    'model': '''
+      no_such_model_type
+      ...
+  
+    ''',
+    'status': '''
+      active_faults: []
+      system_id: '4001023'
+      system_mode_status:
+        is_permanent: true
+        mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: !!python/object/apply:evohomeasync2.const.SystemMode
+      - auto_with_eco
+  
+    ''',
+    'until': '''
+      null
+      ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[enums_no_such][loc_4001021_zon]
+  '''
+  '4001024':
+      active_faults: '!!python/tuple []
+  
+          '
+      allowed_modes: "!!python/tuple\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
+          \  - permanent_override\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
+          \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
+          \  - temporary_override\n"
+      config: "model_type: no_such_model_type\nname: Lounge\nschedule_capabilities:\n\
+          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
+          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
+          \  - !!python/object/apply:evohomeasync2.const.ZoneMode\n    - permanent_override\n\
+          \  - !!python/object/apply:evohomeasync2.const.ZoneMode\n    - follow_schedule\n\
+          \  - !!python/object/apply:evohomeasync2.const.ZoneMode\n    - temporary_override\n\
+          \  can_control_cool: false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n\
+          \  max_heat_setpoint: 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution:\
+          \ 00:10:00\n  value_resolution: 0.5\nzone_id: '4001024'\nzone_type: no_such_zone_type\n"
+      id: '''4001024''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      mode: '!!python/object/apply:evohomeasync2.const.ZoneMode
+  
+          - permanent_override
+  
+          '
+      model: 'no_such_model_type
+  
+          ...
+  
+          '
+      name: 'Lounge
+  
+          ...
+  
+          '
+      next_switchpoint: '!!python/tuple
+  
+          - ''2025-01-01T07:00:00+00:00''
+  
+          - 18.1
+  
+          '
+      schedule: "- day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n\
+          \  - monday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n\
+          \  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - tuesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - wednesday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - thursday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - friday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - saturday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
+          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - sunday\n\
+          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
+          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
+          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
+      schedule_capabilities: 'max_switchpoints_per_day: 6
+  
+          min_switchpoints_per_day: 1
+  
+          setpoint_value_resolution: 0.5
+  
+          timing_resolution: 00:10:00
+  
+          '
+      setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
+          \  - permanent_override\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
+          \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
+          \  - temporary_override\ncan_control_cool: false\ncan_control_heat: true\n\
+          max_duration: 1.00:00:00\nmax_heat_setpoint: 35.0\nmin_heat_setpoint: 5.0\n\
+          timing_resolution: 00:10:00\nvalue_resolution: 0.5\n"
+      setpoint_status: 'setpoint_mode: !!python/object/apply:evohomeasync2.const.ZoneMode
+  
+          - permanent_override
+  
+          target_heat_temperature: 5.0
+  
+          '
+      status: "active_faults: []\nname: Lounge\nsetpoint_status:\n  setpoint_mode: !!python/object/apply:evohomeasync2.const.ZoneMode\n\
+          \  - permanent_override\n  target_heat_temperature: 5.0\ntemperature_status:\n\
+          \  is_available: false\nzone_id: '4001024'\n"
+      target_heat_temperature: '5.0
+  
+          ...
+  
+          '
+      temperature: 'null
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: false
+  
+          '
+      this_switchpoint: '!!python/tuple
+  
+          - ''2024-12-31T23:00:00+00:00''
+  
+          - 15.9
+  
+          '
+      type: 'no_such_zone_type
+  
+          ...
+  
+          '
+      until: 'null
+  
+          ...
+  
+          '
+  
+  '''
+# ---
+# name: test_system_snapshot[enums_unknown][loc_4001031]
+  dict({
+    'config': '''
+      city: '********'
+      country: UnitedKingdom
+      location_id: '4001031'
+      location_owner:
+        firstname: John
+        lastname: '********'
+        user_id: '4001030'
+        username: no-reply@redacted.xxx
+      location_type: !!python/object/apply:evohomeasync2.const.LocationType
+      - residential
+      name: My Home
+      postcode: '********'
+      street_address: '********'
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        offset_minutes: 0
+        supports_daylight_saving: true
+        time_zone_id: GMTStandardTime
+      use_daylight_save_switching: true
+  
+    ''',
+    'country': '''
+      UnitedKingdom
+      ...
+  
+    ''',
+    'id': '''
+      '4001031'
+  
+    ''',
+    'name': '''
+      My Home
+      ...
+  
+    ''',
+    'status': '''
+      location_id: '4001031'
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[enums_unknown][loc_4001031_gwy]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'config': '''
+      crc: '********'
+      gateway_id: '4001032'
+      is_wi_fi: false
+      mac: '000000000000'
+  
+    ''',
+    'id': '''
+      '4001032'
+  
+    ''',
+    'mac_address': '''
+      '000000000000'
+  
+    ''',
+    'status': '''
+      active_faults: []
+      gateway_id: '4001032'
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[enums_unknown][loc_4001031_tcs]
+  dict({
+    'active_faults': '''
+      !!python/tuple []
+  
+    ''',
+    'allowed_modes': '''
+      !!python/tuple
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_reset
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - day_off
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - custom
+  
+    ''',
+    'allowed_system_modes': '''
+      !!python/tuple
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_reset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - day_off
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - custom
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+  
+    ''',
+    'config': '''
+      allowed_system_modes:
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_reset
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - day_off
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - custom
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      model_type: !!python/object/apply:evohomeasync2.const.TcsModelType
+      - evo_touch
+      system_id: '4001033'
+  
+    ''',
+    'hotwater': '''
+      null
+      ...
+  
+    ''',
+    'id': '''
+      '4001033'
+  
+    ''',
+    'is_permanent': '''
+      true
+      ...
+  
+    ''',
+    'mode': '''
+      !!python/object/apply:evohomeasync2.const.SystemMode
+      - auto_with_eco
+  
+    ''',
+    'model': '''
+      !!python/object/apply:evohomeasync2.const.TcsModelType
+      - evo_touch
+  
+    ''',
+    'status': '''
+      active_faults: []
+      system_id: '4001033'
+      system_mode_status:
+        is_permanent: true
+        mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+  
+    ''',
+    'system_mode_status': '''
+      is_permanent: true
+      mode: !!python/object/apply:evohomeasync2.const.SystemMode
+      - auto_with_eco
+  
+    ''',
+    'until': '''
+      null
+      ...
+  
+    ''',
+    'zone_by_id': '''
+      {}
+  
+    ''',
+    'zone_by_name': '''
+      {}
+  
+    ''',
+    'zones': '''
+      []
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[enums_unknown][loc_4001031_zon]
+  '''
+  {}
   
   '''
 # ---
@@ -69668,9 +70027,7 @@
 # name: test_system_snapshot[hass_178493][loc_6557787_gwy]
   dict({
     'active_faults': '''
-      !!python/tuple
-      - fault_type: no_such_fault_type
-        since: '2026-06-28T00:02:30+02:00'
+      !!python/tuple []
   
     ''',
     'config': '''
@@ -69689,9 +70046,7 @@
   
     ''',
     'status': '''
-      active_faults:
-      - fault_type: no_such_fault_type
-        since: '2026-06-28T00:02:30+02:00'
+      active_faults: []
       gateway_id: '6208789'
   
     ''',
@@ -78274,531 +78629,6 @@
       type: '!!python/object/apply:evohomeasync2.const.ZoneType
   
           - radiator_zone
-  
-          '
-      until: 'null
-  
-          ...
-  
-          '
-  
-  '''
-# ---
-# name: test_system_snapshot[system_009][loc_4001021]
-  dict({
-    'config': '''
-      city: '********'
-      country: UnitedKingdom
-      location_id: '4001021'
-      location_owner:
-        firstname: John
-        lastname: '********'
-        user_id: '4001020'
-        username: no-reply@redacted.xxx
-      location_type: !!python/object/apply:evohomeasync2.const.LocationType
-      - residential
-      name: My Home
-      postcode: '********'
-      street_address: '********'
-      time_zone:
-        current_offset_minutes: 60
-        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
-        offset_minutes: 0
-        supports_daylight_saving: true
-        time_zone_id: GMTStandardTime
-      use_daylight_save_switching: true
-  
-    ''',
-    'country': '''
-      UnitedKingdom
-      ...
-  
-    ''',
-    'id': '''
-      '4001021'
-  
-    ''',
-    'name': '''
-      My Home
-      ...
-  
-    ''',
-    'status': '''
-      location_id: '4001021'
-  
-    ''',
-    'tzinfo': '''
-      !!python/object/apply:None._unpickle
-      - Europe/London
-      - 1
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[system_009][loc_4001021_gwy]
-  dict({
-    'active_faults': '''
-      !!python/tuple []
-  
-    ''',
-    'config': '''
-      crc: '********'
-      gateway_id: '4001022'
-      is_wi_fi: false
-      mac: '000000000000'
-  
-    ''',
-    'id': '''
-      '4001022'
-  
-    ''',
-    'mac_address': '''
-      '000000000000'
-  
-    ''',
-    'status': '''
-      active_faults: []
-      gateway_id: '4001022'
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[system_009][loc_4001021_tcs]
-  dict({
-    'active_faults': '''
-      !!python/tuple []
-  
-    ''',
-    'allowed_modes': '''
-      !!python/tuple
-      - !!python/object/apply:evohomeasync2.const.SystemMode
-        - heating_off
-      - !!python/object/apply:evohomeasync2.const.SystemMode
-        - auto
-      - !!python/object/apply:evohomeasync2.const.SystemMode
-        - auto_with_reset
-      - !!python/object/apply:evohomeasync2.const.SystemMode
-        - auto_with_eco
-      - !!python/object/apply:evohomeasync2.const.SystemMode
-        - away
-      - !!python/object/apply:evohomeasync2.const.SystemMode
-        - day_off
-      - !!python/object/apply:evohomeasync2.const.SystemMode
-        - custom
-  
-    ''',
-    'allowed_system_modes': '''
-      !!python/tuple
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - heating_off
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - auto
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - auto_with_reset
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 1.00:00:00
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - auto_with_eco
-        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
-        - duration
-        timing_resolution: 01:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - away
-        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
-        - period
-        timing_resolution: 1.00:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - day_off
-        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
-        - period
-        timing_resolution: 1.00:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - custom
-        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
-        - period
-        timing_resolution: 1.00:00:00
-  
-    ''',
-    'config': '''
-      allowed_system_modes:
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - heating_off
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - auto
-      - can_be_permanent: true
-        can_be_temporary: false
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - auto_with_reset
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 1.00:00:00
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - auto_with_eco
-        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
-        - duration
-        timing_resolution: 01:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - away
-        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
-        - period
-        timing_resolution: 1.00:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - day_off
-        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
-        - period
-        timing_resolution: 1.00:00:00
-      - can_be_permanent: true
-        can_be_temporary: true
-        max_duration: 99.00:00:00
-        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - custom
-        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
-        - period
-        timing_resolution: 1.00:00:00
-      model_type: no_such_model_type
-      system_id: '4001023'
-  
-    ''',
-    'hotwater': '''
-      null
-      ...
-  
-    ''',
-    'id': '''
-      '4001023'
-  
-    ''',
-    'is_permanent': '''
-      true
-      ...
-  
-    ''',
-    'mode': '''
-      !!python/object/apply:evohomeasync2.const.SystemMode
-      - auto_with_eco
-  
-    ''',
-    'model': '''
-      no_such_model_type
-      ...
-  
-    ''',
-    'status': '''
-      active_faults: []
-      system_id: '4001023'
-      system_mode_status:
-        is_permanent: true
-        mode: !!python/object/apply:evohomeasync2.const.SystemMode
-        - auto_with_eco
-  
-    ''',
-    'system_mode_status': '''
-      is_permanent: true
-      mode: !!python/object/apply:evohomeasync2.const.SystemMode
-      - auto_with_eco
-  
-    ''',
-    'until': '''
-      null
-      ...
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[system_009][loc_4001021_zon]
-  '''
-  '4001024':
-      active_faults: '!!python/tuple []
-  
-          '
-      allowed_modes: "!!python/tuple\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - permanent_override\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - temporary_override\n"
-      config: "model_type: no_such_model_type\nname: Lounge\nschedule_capabilities:\n\
-          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
-          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
-          \  - !!python/object/apply:evohomeasync2.const.ZoneMode\n    - permanent_override\n\
-          \  - !!python/object/apply:evohomeasync2.const.ZoneMode\n    - follow_schedule\n\
-          \  - !!python/object/apply:evohomeasync2.const.ZoneMode\n    - temporary_override\n\
-          \  can_control_cool: false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n\
-          \  max_heat_setpoint: 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution:\
-          \ 00:10:00\n  value_resolution: 0.5\nzone_id: '4001024'\nzone_type: !!python/object/apply:evohomeasync2.const.ZoneType\n\
-          - radiator_zone\n"
-      id: '''4001024''
-  
-          '
-      max_heat_setpoint: '35.0
-  
-          ...
-  
-          '
-      min_heat_setpoint: '5.0
-  
-          ...
-  
-          '
-      mode: '!!python/object/apply:evohomeasync2.const.ZoneMode
-  
-          - permanent_override
-  
-          '
-      model: 'no_such_model_type
-  
-          ...
-  
-          '
-      name: 'Lounge
-  
-          ...
-  
-          '
-      next_switchpoint: '!!python/tuple
-  
-          - ''2025-01-01T07:00:00+00:00''
-  
-          - 18.1
-  
-          '
-      schedule: "- day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n\
-          \  - monday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n\
-          \  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - tuesday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - wednesday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - thursday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - friday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - saturday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - sunday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
-      schedule_capabilities: 'max_switchpoints_per_day: 6
-  
-          min_switchpoints_per_day: 1
-  
-          setpoint_value_resolution: 0.5
-  
-          timing_resolution: 00:10:00
-  
-          '
-      setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - permanent_override\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - temporary_override\ncan_control_cool: false\ncan_control_heat: true\n\
-          max_duration: 1.00:00:00\nmax_heat_setpoint: 35.0\nmin_heat_setpoint: 5.0\n\
-          timing_resolution: 00:10:00\nvalue_resolution: 0.5\n"
-      setpoint_status: 'setpoint_mode: !!python/object/apply:evohomeasync2.const.ZoneMode
-  
-          - permanent_override
-  
-          target_heat_temperature: 5.0
-  
-          '
-      status: "active_faults: []\nname: Lounge\nsetpoint_status:\n  setpoint_mode: !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - permanent_override\n  target_heat_temperature: 5.0\ntemperature_status:\n\
-          \  is_available: false\nzone_id: '4001024'\n"
-      target_heat_temperature: '5.0
-  
-          ...
-  
-          '
-      temperature: 'null
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: false
-  
-          '
-      this_switchpoint: '!!python/tuple
-  
-          - ''2024-12-31T23:00:00+00:00''
-  
-          - 15.9
-  
-          '
-      type: '!!python/object/apply:evohomeasync2.const.ZoneType
-  
-          - radiator_zone
-  
-          '
-      until: 'null
-  
-          ...
-  
-          '
-  '4001025':
-      active_faults: '!!python/tuple []
-  
-          '
-      allowed_modes: "!!python/tuple\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - permanent_override\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - temporary_override\n"
-      config: "model_type: !!python/object/apply:evohomeasync2.const.ZoneModelType\n\
-          - heating_zone\nname: Kitchen\nschedule_capabilities:\n  max_switchpoints_per_day:\
-          \ 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution: 0.5\n  timing_resolution:\
-          \ 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \    - permanent_override\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \    - follow_schedule\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \    - temporary_override\n  can_control_cool: false\n  can_control_heat:\
-          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
-          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '4001025'\n\
-          zone_type: no_such_zone_type\n"
-      id: '''4001025''
-  
-          '
-      max_heat_setpoint: '35.0
-  
-          ...
-  
-          '
-      min_heat_setpoint: '5.0
-  
-          ...
-  
-          '
-      mode: '!!python/object/apply:evohomeasync2.const.ZoneMode
-  
-          - permanent_override
-  
-          '
-      model: '!!python/object/apply:evohomeasync2.const.ZoneModelType
-  
-          - heating_zone
-  
-          '
-      name: 'Kitchen
-  
-          ...
-  
-          '
-      next_switchpoint: '!!python/tuple
-  
-          - ''2025-01-01T07:00:00+00:00''
-  
-          - 18.1
-  
-          '
-      schedule: "- day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n\
-          \  - monday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n\
-          \  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - tuesday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - wednesday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - thursday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - friday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - saturday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - sunday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
-      schedule_capabilities: 'max_switchpoints_per_day: 6
-  
-          min_switchpoints_per_day: 1
-  
-          setpoint_value_resolution: 0.5
-  
-          timing_resolution: 00:10:00
-  
-          '
-      setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - permanent_override\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
-          \  - temporary_override\ncan_control_cool: false\ncan_control_heat: true\n\
-          max_duration: 1.00:00:00\nmax_heat_setpoint: 35.0\nmin_heat_setpoint: 5.0\n\
-          timing_resolution: 00:10:00\nvalue_resolution: 0.5\n"
-      setpoint_status: 'setpoint_mode: !!python/object/apply:evohomeasync2.const.ZoneMode
-  
-          - permanent_override
-  
-          target_heat_temperature: 5.0
-  
-          '
-      status: "active_faults: []\nname: Kitchen\nsetpoint_status:\n  setpoint_mode:\
-          \ !!python/object/apply:evohomeasync2.const.ZoneMode\n  - permanent_override\n\
-          \  target_heat_temperature: 5.0\ntemperature_status:\n  is_available: false\n\
-          zone_id: '4001025'\n"
-      target_heat_temperature: '5.0
-  
-          ...
-  
-          '
-      temperature: 'null
-  
-          ...
-  
-          '
-      temperature_status: 'is_available: false
-  
-          '
-      this_switchpoint: '!!python/tuple
-  
-          - ''2024-12-31T23:00:00+00:00''
-  
-          - 15.9
-  
-          '
-      type: 'no_such_zone_type
-  
-          ...
   
           '
       until: 'null

@@ -1,14 +1,14 @@
 {
-    "locationId": "4001021",
+    "locationId": "4001031",
     "gateways": [
         {
-            "gatewayId": "4001022",
+            "gatewayId": "4001032",
             "temperatureControlSystems": [
                 {
-                    "systemId": "4001023",
+                    "systemId": "4001033",
                     "zones": [
                         {
-                            "zoneId": "4001024",
+                            "zoneId": "4001034",
                             "temperatureStatus": {
                                 "isAvailable": false
                             },
@@ -17,22 +17,10 @@
                                 "targetHeatTemperature": 5.0,
                                 "setpointMode": "PermanentOverride"
                             },
-                            "name": "Lounge"
+                            "name": ""
                         },
                         {
-                            "zoneId": "4001025",
-                            "temperatureStatus": {
-                                "isAvailable": false
-                            },
-                            "activeFaults": [],
-                            "setpointStatus": {
-                                "targetHeatTemperature": 5.0,
-                                "setpointMode": "PermanentOverride"
-                            },
-                            "name": "Kitchen"
-                        },
-                        {
-                            "zoneId": "4001026",
+                            "zoneId": "4001035",
                             "temperatureStatus": {
                                 "isAvailable": false
                             },
