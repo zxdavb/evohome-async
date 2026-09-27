@@ -237,7 +237,7 @@ class TccSystemMode(StrEnum):
 class TccTcsModelType(StrEnum):
     EVO_TOUCH = "EvoTouch"
     FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
-    SARATOGA = "Saratoga"  # https://github.com/zxdavb/evohome-async/issues/145
+    SARATOGA = "Saratoga"  # https://github.com/home-assistant/core/issues/179414
     SYDNEY = "Sydney"  # https://github.com/home-assistant/core/issues/141882
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
 
