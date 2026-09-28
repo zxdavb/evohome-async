@@ -18,12 +18,12 @@
     tuple(
       'evohomeasync2',
       30,
-      "ControlSystem(id='4001023'): Unknown model type 'no_such_model_type' (YMMV)",
+      "ControlSystem(id='4001023'): Unknown TCS model 'no_such_model_type' (YMMV)",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='4001024'): Unknown model type 'no_such_model_type' (YMMV)",
+      "Zone(id='4001024'): Unknown Zone model 'no_such_model_type' (YMMV)",
     ),
     tuple(
       'evohomeasync2',
@@ -39,11 +39,6 @@
       'evohomeasync2',
       30,
       "Gateway(id='4001022'): Active fault: 2026-06-28T00:02:25+01:00 no_such_fault_type (unknown, please report it at https://github.com/zxdavb/evohome-async/issues)",
-    ),
-    tuple(
-      'evohomeasync2',
-      30,
-      "Zone(id='4001024'): Unknown fan mode 'no_such_status_fan_mode' (please report it at https://github.com/zxdavb/evohome-async/issues)",
     ),
   ])
 # ---

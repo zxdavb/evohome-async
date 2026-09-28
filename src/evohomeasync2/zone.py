@@ -19,7 +19,6 @@ from .const import (
     SZ_DAILY_SCHEDULES,
     SZ_DHW_STATE,
     SZ_FAN_MODE,
-    SZ_FAN_STATUS,
     SZ_FAULT_TYPE,
     SZ_HEAT_SETPOINT,
     SZ_HEAT_SETPOINT_VALUE,
@@ -520,7 +519,6 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         super().__init__(config[SZ_ZONE_ID], tcs)
 
         self._config: Final = config
-        self._fan_modes_logged: dict[str, dt] = {}  # OK to use a tz=UTC datetimes
 
         if not self.model or self.model is ZoneModelType.UNKNOWN:
             raise exc.InvalidConfigError(
@@ -536,36 +534,16 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         if self.type not in ZoneType:
             self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
 
+        # the schema passes through fan modes that are absent from FanMode, as the
+        # vendor's list is incomplete: ask for them to be reported, so they can be added
         for fan_mode in config.get(SZ_ALLOWED_FAN_MODES, []):
-            self._log_if_unknown_fan_mode(fan_mode[SZ_FAN_MODE])
-
-    def _log_if_unknown_fan_mode(self, fan_mode: FanMode | str) -> None:
-        """Log a fan mode that is absent from FanMode, at most once a day.
-
-        The schema passes through such fan modes, as the vendor's list is incomplete:
-        ask for them to be reported, so they can be added.
-        """
-
-        if fan_mode in FanMode:
-            return
-
-        last_logged = self._fan_modes_logged.get(fan_mode)
-        if last_logged is not None and dt.now(tz=UTC) - last_logged <= _ONE_DAY:
-            return
-
-        self._logger.warning(
-            "%s: Unknown fan mode '%s' (%s)", self, fan_mode, _PLEASE_REPORT
-        )
-        self._fan_modes_logged[fan_mode] = dt.now(tz=UTC)  # correct TZ not required
-
-    def _update_status(self, status: EvoZonStatusT) -> None:
-        """Update the zone's status."""
-
-        super()._update_status(status)
-
-        # a fan mode may appear only in the status, so check it (at most once a day)
-        if fan_status := status.get(SZ_FAN_STATUS):
-            self._log_if_unknown_fan_mode(fan_status[SZ_FAN_MODE])
+            if fan_mode[SZ_FAN_MODE] not in FanMode:
+                self._logger.warning(
+                    "%s: Unknown fan mode '%s' (%s)",
+                    self,
+                    fan_mode[SZ_FAN_MODE],
+                    _PLEASE_REPORT,
+                )
 
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoZonConfigT:

@@ -23,11 +23,10 @@ such value for each of the enums that tolerate them (via `factory_enum_or_str()`
 | `TccZoneType` | zone 4001024 | `zoneType` | `NoSuchZoneType` |
 | `TccFaultType` | gateway 4001022 | `faultType` | `NoSuchFaultType` |
 | `TccFanMode` | zone 4001024 | `allowedFanModes[].fanMode` (config) | `NoSuchFanMode` |
-| `TccFanMode` | zone 4001024 | `fanStatus.fanMode` (status) | `NoSuchStatusFanMode` |
+| `TccFanMode` | zone 4001024 | `fanStatus.fanMode` (status) | `NoSuchFanMode` |
 
-Each is passed through as a (snake_case) str, and logged as unknown. The two fan modes
-differ, as an unknown fan mode is logged at most once a day, whether it is first seen in
-the config or the status.
+Each is passed through as a (snake_case) str, and logged as unknown. A fan mode is logged
+only from the config (`allowedFanModes`), as the status reports one of those.
 
 These values are deliberately not enum members (and never will be). Do not "fix" them by
 adding them to the enums, as that would silently remove this coverage.
