@@ -105,6 +105,7 @@ class EvohomeClientOld(EvohomeClient):
         debug: bool = False,
     ) -> None:
         """Construct the v2 EvohomeClient object."""
+
         self._owns_session = websession is None
         websession = websession or aiohttp.ClientSession()
 
