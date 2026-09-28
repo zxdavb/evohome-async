@@ -420,11 +420,10 @@ class _ScheduleBase[
                 f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable"
             )
 
-        _ = await self._auth.put(
-            f"{self._TCC_TYPE}/{self.id}/schedule",
-            json={SZ_DAILY_SCHEDULES: schedule},
-            schema=self.SCH_SCHEDULE,
-        )
+        schedule_ = {SZ_DAILY_SCHEDULES: schedule}
+
+        url = f"{self._TCC_TYPE}/{self.id}/schedule"
+        _ = await self._auth.put(url, json=schedule_, schema=self.SCH_SCHEDULE)
 
         # TODO: check the status of the task
 
@@ -664,7 +663,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                 f"{self}: Attempting invalid {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
             )
 
-        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/heatSetpoint", json=zon_mode)
+        url = f"{self._TCC_TYPE}/{self.id}/heatSetpoint"
+        _ = await self._auth.put(url, json=zon_mode)
 
     async def set_mode(
         self,
