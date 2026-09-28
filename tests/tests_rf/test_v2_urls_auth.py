@@ -435,7 +435,8 @@ async def _test_dhw_status(evo: EvohomeClientV2) -> None:
     Also tests /domesticHotWater/{dhw.id}/state
     """
 
-    dhw_state: dict[str, str | None]  # TODO: TypedDict
+    # not a TccSetDhwModeT, as some of these bodies are deliberately invalid
+    dhw_state: dict[str, str | None]
 
     # TODO: remove .update() and use URLs only
     await evo.update()
