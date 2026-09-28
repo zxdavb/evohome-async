@@ -227,6 +227,11 @@
     tuple(
       'evohomeasync2',
       30,
+      "Gateway(id='6208789'): Active fault: 2026-06-28T00:02:30+02:00 no_such_fault_type (is unknown, please report it at https://github.com/zxdavb/evohome-async/issues)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
       "ControlSystem(id='8419116'): Active fault: 2026-06-28T00:02:25+02:00 boiler_service_required",
     ),
     tuple(

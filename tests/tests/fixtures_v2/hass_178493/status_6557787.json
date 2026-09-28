@@ -94,7 +94,12 @@
                     }
                 }
             ],
-            "activeFaults": []
+            "activeFaults": [
+                {
+                    "faultType": "NoSuchFaultType",
+                    "since": "2026-06-28T00:02:30"
+                }
+            ]
         }
     ]
 }
