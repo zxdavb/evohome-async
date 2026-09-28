@@ -38,7 +38,12 @@
     tuple(
       'evohomeasync2',
       30,
-      "Gateway(id='4001022'): Active fault: 2026-06-28T00:02:25+01:00 no_such_fault_type (unknown)",
+      "Gateway(id='4001022'): Active fault: 2026-06-28T00:02:25+01:00 no_such_fault_type (unknown, please report it at https://github.com/zxdavb/evohome-async/issues)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='4001024'): Unknown fan mode 'no_such_status_fan_mode' (please report it at https://github.com/zxdavb/evohome-async/issues)",
     ),
   ])
 # ---

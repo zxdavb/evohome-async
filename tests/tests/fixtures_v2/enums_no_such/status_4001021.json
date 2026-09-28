@@ -19,7 +19,7 @@
                             },
                             "name": "Lounge",
                             "fanStatus": {
-                                "fanMode": "NoSuchFanMode",
+                                "fanMode": "NoSuchStatusFanMode",
                                 "canBeChanged": true
                             }
                         }

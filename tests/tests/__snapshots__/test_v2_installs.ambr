@@ -49070,7 +49070,7 @@
           target_heat_temperature: 5.0
   
           '
-      status: "active_faults: []\nfan_status:\n  can_be_changed: true\n  fan_mode: no_such_fan_mode\n\
+      status: "active_faults: []\nfan_status:\n  can_be_changed: true\n  fan_mode: no_such_status_fan_mode\n\
           name: Lounge\nsetpoint_status:\n  setpoint_mode: !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - permanent_override\n  target_heat_temperature: 5.0\ntemperature_status:\n\
           \  is_available: false\nzone_id: '4001024'\n"
