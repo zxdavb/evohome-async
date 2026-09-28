@@ -579,7 +579,7 @@ class TccDeviceResponseT(TypedDict):
     deviceID: _DhwIdT | _ZoneIdT  # is ID, not Id
     gatewayId: _GatewayIdT
     # is an int only for the Honeywell TH9320WF3003 (deviceType 48), which sends 36
-    thermostatModelType: TccThermostatModelType | int  # int: Honeywell TH9320WF3003
+    thermostatModelType: TccThermostatModelType | str | int  # int: Honeywell TH9320WF3003
     deviceType: int
     name: str
     scheduleCapable: bool
