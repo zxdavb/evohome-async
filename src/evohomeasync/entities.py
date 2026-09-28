@@ -41,15 +41,18 @@ from .const import (
     SZ_WEATHER,
 )
 from .schemas import (
-    SZ_MODE,
-    SZ_NEXT_TIME,
-    SZ_QUICK_ACTION,
-    SZ_QUICK_ACTION_NEXT_TIME,
-    SZ_STATUS,
-    SZ_VALUE,
+    S1_MODE,
+    S1_NEXT_TIME,
+    S1_QUICK_ACTION,
+    S1_QUICK_ACTION_NEXT_TIME,
+    S1_STATUS,
+    S1_VALUE,
     TccDhwMode,
     TccSensorStatus,
+    TccSetDhwModeT,
     TccSetpointStatus,
+    TccSetTcsModeT,
+    TccSetZonModeT,
     TccSystemMode,
     TccThermostatModelType,
 )
@@ -193,16 +196,16 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
     ) -> None:
         """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
 
-        dhw_mode: dict[str, str | None] = {
-            SZ_STATUS: status,
-            SZ_MODE: mode,
-            # SZ_NEXT_TIME: None,
-            # SZ_SPECIAL_MODES: None,
-            # SZ_HEAT_SETPOINT: None,
-            # SZ_COOL_SETPOINT: None,
+        dhw_mode: TccSetDhwModeT = {
+            S1_STATUS: status,
+            S1_MODE: mode,
+            # S1_NEXT_TIME: None,
+            # S1_SPECIAL_MODES: None,
+            # S1_HEAT_SETPOINT: None,
+            # S1_COOL_SETPOINT: None,
         }
         if next_time:
-            dhw_mode |= {SZ_NEXT_TIME: as_utc_str(next_time)}
+            dhw_mode |= {S1_NEXT_TIME: as_utc_str(next_time)}
 
         url = f"devices/{self.id}/thermostat/changeableValues"
         _ = await self._auth.put(url, json=dhw_mode)
@@ -306,15 +309,15 @@ class Zone(_DeviceBase):  # Zone version of a Device
     ) -> None:
         """Set zone setpoint, either indefinitely, or until a set time."""
 
-        zon_mode: dict[str, float | str] = {SZ_STATUS: status}
+        zon_mode: TccSetZonModeT = {S1_STATUS: status}
 
-        if value is not None:  # NOTE: may have to send {SZ_VALUE: None} instead
-            zon_mode[SZ_VALUE] = value
+        if value is not None:  # NOTE: may have to send {S1_VALUE: None} instead
+            zon_mode[S1_VALUE] = value
         if next_time is not None:
             # TODO: the vendor treats NextTime as the location's local time (ignoring the
             # Z), so this ends the override early by the UTC offset (e.g. 1h on BST) - it
             # should be sent as local time (see test_v0_urls_auth.test_zon_heat_setpoint)
-            zon_mode[SZ_NEXT_TIME] = as_utc_str(next_time)
+            zon_mode[S1_NEXT_TIME] = as_utc_str(next_time)
 
         url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
         _ = await self._auth.put(url, json=zon_mode)
@@ -374,7 +377,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
     def one_touch_buttons(self) -> tuple[str, ...]:
         return tuple(self._status.get(SZ_ONE_TOUCH_BUTTONS, ()))
 
-    async def _set_mode(self, tcs_mode: dict[str, str]) -> None:
+    async def _set_mode(self, tcs_mode: TccSetTcsModeT) -> None:
         """Set the TCS mode."""
 
         url = f"evoTouchSystems?locationId={self.id}"
@@ -390,9 +393,9 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
     ) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time."""
 
-        request: dict[str, str] = {SZ_QUICK_ACTION: mode}
+        request: TccSetTcsModeT = {S1_QUICK_ACTION: mode}
         if until:
-            request |= {SZ_QUICK_ACTION_NEXT_TIME: as_utc_str(until)}
+            request[S1_QUICK_ACTION_NEXT_TIME] = as_utc_str(until)
 
         await self._set_mode(request)
 

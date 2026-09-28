@@ -1,4 +1,4 @@
-"""Shared constants for the vendor's TCC v2 API.
+"""Shared constants for the vendor's TCC v1 API.
 
 Vendor strings are camelCase (JSON keys), PascalCase (StrEnums).
 """
