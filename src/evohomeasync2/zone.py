@@ -88,7 +88,7 @@ _ONE_DAY = td(days=1)
 
 # for values that the schema passes through, as the vendor's enums are incomplete
 _PLEASE_REPORT = (
-    "(is unknown, please report it at https://github.com/zxdavb/evohome-async/issues)"
+    "is unknown, please report it at https://github.com/zxdavb/evohome-async/issues"
 )
 
 
@@ -165,7 +165,7 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
         def log_as_active(fault: EvoActiveFaultT) -> None:
             # Ask for unknown fault types to be reported, so can be added to the enum
             is_known = isinstance(fault[SZ_FAULT_TYPE], FaultType)
-            unknown = "" if is_known else f" {_PLEASE_REPORT}"
+            unknown = "" if is_known else f" ({_PLEASE_REPORT})"
             self._logger.warning(
                 f"{self}: Active fault: {since(fault)} {fault[SZ_FAULT_TYPE]}{unknown}"
             )
