@@ -78,6 +78,30 @@ def factory_post_oauth_token(_: Case = Case.VENDOR) -> Validator[TccOAuthTokenRe
 
 
 #
+# Vendor-native typed dicts for error URLs
+# - this is the 'truth', as understood, for this undocumented API
+
+
+class TccErrorResponseT(TypedDict):
+    """Typed dict for error responses from the vendor servers."""
+
+    error: str
+
+
+def factory_error_response(case: Case = Case.VENDOR) -> Validator[TccErrorResponseT]:
+    """Factory for the error response schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S2_ERROR)): str,
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+#
 # Vendor-native typed dicts for account URLs
 # - this is the 'truth', as understood, for this undocumented API
 
@@ -131,30 +155,6 @@ def factory_usr_account(
     )
 
 
-#
-# Vendor-native typed dicts for error URLs
-# - this is the 'truth', as understood, for this undocumented API
-
-
-class TccErrorResponseT(TypedDict):
-    """Typed dict for error responses from the vendor servers."""
-
-    error: str
-
-
-def factory_error_response(case: Case = Case.VENDOR) -> Validator[TccErrorResponseT]:
-    """Factory for the error response schema."""
-
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_ERROR)): str,
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
 class TccFailureResponseT(TypedDict):
     """Typed dict for code/message responses from the vendor servers."""
 
@@ -185,6 +185,11 @@ class TccTaskResponseT(TypedDict):
 
 
 #
+TCC_ERROR_RESPONSE: Final[Validator[TccErrorResponseT]] = factory_error_response()
+TCC_STATUS_RESPONSE: Final[Validator[list[TccFailureResponseT]]] = factory_status_response()
+
+
+#
 # Vendor-native schemas
 
 # POST /Auth/OAuth/Token
@@ -192,7 +197,3 @@ TCC_POST_OAUTH_TOKEN: Final[Validator[TccOAuthTokenResponseT]] = factory_post_oa
 
 # GET /userAccount
 TCC_GET_USR_ACCOUNT: Final[Validator[TccUsrAccountResponseT]] = factory_usr_account()
-
-#
-TCC_ERROR_RESPONSE: Final[Validator[TccErrorResponseT]] = factory_error_response()
-TCC_STATUS_RESPONSE: Final[Validator[list[TccFailureResponseT]]] = factory_status_response()

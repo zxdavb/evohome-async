@@ -38,6 +38,16 @@ if TYPE_CHECKING:
     from evohomeasync2.typedefs import EvoDhwScheduleResponseT, EvoZonScheduleResponseT
 
 
+class TccDhwSwitchpointT(TypedDict):
+    dhwState: TccDhwState  # "Off" | "On"
+    timeOfDay: str  # "HH:MM:00"
+
+
+class TccDhwDayOfWeekT(TypedDict):
+    dayOfWeek: TccDayOfWeek  # "Monday" … "Sunday"
+    switchpoints: list[TccDhwSwitchpointT]
+
+
 #
 # Vendor-native typed dicts for schedule URLs
 # - this is the 'truth', as understood, for this undocumented API
@@ -48,19 +58,11 @@ class TccDhwDailySchedulesT(TypedDict):
     dailySchedules: list[TccDhwDayOfWeekT]
 
 
-class TccDhwDayOfWeekT(TypedDict):
-    dayOfWeek: TccDayOfWeek  # "Monday" … "Sunday"
-    switchpoints: list[TccDhwSwitchpointT]
-
-
-class TccDhwSwitchpointT(TypedDict):
-    dhwState: TccDhwState  # "Off" | "On"
+class TccZonSwitchpointT(TypedDict):
+    coolSetpoint: NotRequired[float]  # not confirmed; included defensively
+    heatSetpoint: float
+    fanMode: NotRequired[TccFanMode | str]  # non-evohome; enum may be incomplete, so allow str
     timeOfDay: str  # "HH:MM:00"
-
-
-# GET /temperatureZone/{zone_id}/schedule
-class TccZonDailySchedulesT(TypedDict):
-    dailySchedules: list[TccZonDayOfWeekT]
 
 
 class TccZonDayOfWeekT(TypedDict):
@@ -68,11 +70,9 @@ class TccZonDayOfWeekT(TypedDict):
     switchpoints: list[TccZonSwitchpointT]
 
 
-class TccZonSwitchpointT(TypedDict):
-    coolSetpoint: NotRequired[float]  # not confirmed; included defensively
-    heatSetpoint: float
-    fanMode: NotRequired[TccFanMode | str]  # non-evohome; enum may be incomplete, so allow str
-    timeOfDay: str  # "HH:MM:00"
+# GET /temperatureZone/{zone_id}/schedule
+class TccZonDailySchedulesT(TypedDict):
+    dailySchedules: list[TccZonDayOfWeekT]
 
 
 #

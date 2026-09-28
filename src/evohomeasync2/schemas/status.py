@@ -114,19 +114,6 @@ class TccSystemModeStatusResponseT(TypedDict):
     timeUntil: NotRequired[str]
 
 
-class TccDhwStatusResponseT(TypedDict):
-    dhwId: str
-    activeFaults: list[TccActiveFaultResponseT]
-    stateStatus: TccDhwStateStatusResponseT
-    temperatureStatus: TccTemperatureStatusResponseT
-
-
-class TccDhwStateStatusResponseT(TypedDict):
-    mode: TccZoneMode
-    state: TccDhwState
-    until: NotRequired[str]
-
-
 class TccZonStatusResponseT(TypedDict):
     zoneId: str
     activeFaults: list[TccActiveFaultResponseT]
@@ -150,6 +137,19 @@ class TccZonSetpointStatusResponseT(TypedDict):
 class TccTemperatureStatusResponseT(TypedDict):
     isAvailable: bool
     temperature: NotRequired[float]
+
+
+class TccDhwStatusResponseT(TypedDict):
+    dhwId: str
+    activeFaults: list[TccActiveFaultResponseT]
+    stateStatus: TccDhwStateStatusResponseT
+    temperatureStatus: TccTemperatureStatusResponseT
+
+
+class TccDhwStateStatusResponseT(TypedDict):
+    mode: TccZoneMode
+    state: TccDhwState
+    until: NotRequired[str]
 
 
 #
@@ -190,168 +190,6 @@ def factory_temp_status(case: Case = Case.VENDOR) -> vol.Any:
             },
             extra=vol.PREVENT_EXTRA,
         ),
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
-def factory_system_mode_status(case: Case = Case.VENDOR) -> vol.Any:
-    """Factory for the system mode status schema."""
-
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    # only these modes can be temporary (i.e. have a time_until)
-    temporary_modes = (
-        TccSystemMode.AUTO_WITH_ECO,
-        TccSystemMode.AWAY,
-        TccSystemMode.CUSTOM,
-        TccSystemMode.DAY_OFF,
-    )
-    temporary_mode: vol.In | vol.All
-    if case is Case.VENDOR:
-        temporary_mode = vol.In([str(m) for m in temporary_modes])
-    else:
-        temporary_mode = vol.All(
-            factory_enum(case, TccSystemMode),
-            vol.In([camel_to_snake(str(m)) for m in temporary_modes]),
-        )
-
-    return vol.Any(
-        vol.Schema(
-            {
-                vol.Required(fnc(S2_MODE)): factory_enum(case, TccSystemMode),
-                vol.Required(fnc(S2_IS_PERMANENT)): True,
-            }
-        ),
-        vol.Schema(
-            {
-                vol.Required(fnc(S2_MODE)): temporary_mode,
-                vol.Required(fnc(S2_TIME_UNTIL)): factory_datetime(case),
-                vol.Required(fnc(S2_IS_PERMANENT)): False,
-            }
-        ),
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
-# location (Loc) status schema factories
-@overload
-def factory_loc_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccLocStatusResponseT]: ...
-
-
-@overload
-def factory_loc_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoLocStatusResponseT]: ...
-
-
-@overload
-def factory_loc_status(case: Case) -> Validator[TccLocStatusResponseT] | Validator[EvoLocStatusResponseT]: ...
-
-
-def factory_loc_status(case: Case = Case.VENDOR) -> Validator[TccLocStatusResponseT] | Validator[EvoLocStatusResponseT]:
-    """Factory for the locations status schema."""
-
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_LOCATION_ID)): vol.Match(REGEX_LOCATION_ID),
-            vol.Required(fnc(S2_GATEWAYS)): [factory_gwy_status(case)],
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
-# gateway (Gwy) status schema factories
-@overload
-def factory_gwy_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccGwyStatusResponseT]: ...
-
-
-@overload
-def factory_gwy_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoGwyStatusResponseT]: ...
-
-
-@overload
-def factory_gwy_status(case: Case) -> Validator[TccGwyStatusResponseT] | Validator[EvoGwyStatusResponseT]: ...
-
-
-def factory_gwy_status(case: Case = Case.VENDOR) -> Validator[TccGwyStatusResponseT] | Validator[EvoGwyStatusResponseT]:
-    """Factory for the gateway status schema."""
-
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_GATEWAY_ID)): vol.Match(REGEX_GATEWAY_ID),
-            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [factory_tcs_status(case)],
-            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(case)],
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
-# temperatureControlSystem (TCS) status schema factories
-@overload
-def factory_tcs_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccTcsStatusResponseT]: ...
-
-
-@overload
-def factory_tcs_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoTcsStatusResponseT]: ...
-
-
-@overload
-def factory_tcs_status(case: Case) -> Validator[TccTcsStatusResponseT] | Validator[EvoTcsStatusResponseT]: ...
-
-
-def factory_tcs_status(case: Case = Case.VENDOR) -> Validator[TccTcsStatusResponseT] | Validator[EvoTcsStatusResponseT]:
-    """Factory for the TCS status schema."""
-
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
-            vol.Required(fnc(S2_SYSTEM_MODE_STATUS)): factory_system_mode_status(case),
-            vol.Required(fnc(S2_ZONES)): [factory_zon_status(case)],
-            vol.Optional(fnc(S2_DHW)): factory_dhw_status(case),
-            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(case)],
-        },
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
-# domesticHotWater (DHW) status schema factories
-@overload
-def factory_dhw_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccDhwStatusResponseT]: ...
-
-
-@overload
-def factory_dhw_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoDhwStatusResponseT]: ...
-
-
-@overload
-def factory_dhw_status(case: Case) -> Validator[TccDhwStatusResponseT] | Validator[EvoDhwStatusResponseT]: ...
-
-
-def factory_dhw_status(case: Case = Case.VENDOR) -> Validator[TccDhwStatusResponseT] | Validator[EvoDhwStatusResponseT]:
-    """Factory for the DHW status schema."""
-
-    fnc = noop if case is Case.VENDOR else camel_to_snake
-
-    SCH_STATE_STATUS: Final = vol.Schema(
-        {
-            vol.Required(fnc(S2_STATE)): factory_enum(case, TccDhwState),
-            vol.Required(fnc(S2_MODE)): factory_enum(case, TccZoneMode),
-            vol.Optional(fnc(S2_UNTIL)): factory_datetime(case),
-        },
-        extra=vol.PREVENT_EXTRA,
-    )  # NOTE: S2_UNTIL is present only for some modes
-
-    return vol.Schema(
-        {
-            vol.Required(fnc(S2_DHW_ID)): vol.Match(REGEX_DHW_ID),
-            vol.Required(fnc(S2_TEMPERATURE_STATUS)): factory_temp_status(case),
-            vol.Required(fnc(S2_STATE_STATUS)): SCH_STATE_STATUS,
-            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(case)],
-        },
         extra=vol.PREVENT_EXTRA,
     )
 
@@ -399,6 +237,168 @@ def factory_zon_status(case: Case = Case.VENDOR) -> Validator[TccZonStatusRespon
             vol.Required(fnc(S2_SETPOINT_STATUS)): SCH_SETPOINT_STATUS,
             vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(case)],
             vol.Optional(fnc(S2_FAN_STATUS)): SCH_FAN_STATUS,  # non-evohome
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+# domesticHotWater (DHW) status schema factories
+@overload
+def factory_dhw_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccDhwStatusResponseT]: ...
+
+
+@overload
+def factory_dhw_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoDhwStatusResponseT]: ...
+
+
+@overload
+def factory_dhw_status(case: Case) -> Validator[TccDhwStatusResponseT] | Validator[EvoDhwStatusResponseT]: ...
+
+
+def factory_dhw_status(case: Case = Case.VENDOR) -> Validator[TccDhwStatusResponseT] | Validator[EvoDhwStatusResponseT]:
+    """Factory for the DHW status schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    SCH_STATE_STATUS: Final = vol.Schema(
+        {
+            vol.Required(fnc(S2_STATE)): factory_enum(case, TccDhwState),
+            vol.Required(fnc(S2_MODE)): factory_enum(case, TccZoneMode),
+            vol.Optional(fnc(S2_UNTIL)): factory_datetime(case),
+        },
+        extra=vol.PREVENT_EXTRA,
+    )  # NOTE: S2_UNTIL is present only for some modes
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S2_DHW_ID)): vol.Match(REGEX_DHW_ID),
+            vol.Required(fnc(S2_TEMPERATURE_STATUS)): factory_temp_status(case),
+            vol.Required(fnc(S2_STATE_STATUS)): SCH_STATE_STATUS,
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(case)],
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+def factory_system_mode_status(case: Case = Case.VENDOR) -> vol.Any:
+    """Factory for the system mode status schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    # only these modes can be temporary (i.e. have a time_until)
+    temporary_modes = (
+        TccSystemMode.AUTO_WITH_ECO,
+        TccSystemMode.AWAY,
+        TccSystemMode.CUSTOM,
+        TccSystemMode.DAY_OFF,
+    )
+    temporary_mode: vol.In | vol.All
+    if case is Case.VENDOR:
+        temporary_mode = vol.In([str(m) for m in temporary_modes])
+    else:
+        temporary_mode = vol.All(
+            factory_enum(case, TccSystemMode),
+            vol.In([camel_to_snake(str(m)) for m in temporary_modes]),
+        )
+
+    return vol.Any(
+        vol.Schema(
+            {
+                vol.Required(fnc(S2_MODE)): factory_enum(case, TccSystemMode),
+                vol.Required(fnc(S2_IS_PERMANENT)): True,
+            }
+        ),
+        vol.Schema(
+            {
+                vol.Required(fnc(S2_MODE)): temporary_mode,
+                vol.Required(fnc(S2_TIME_UNTIL)): factory_datetime(case),
+                vol.Required(fnc(S2_IS_PERMANENT)): False,
+            }
+        ),
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+# temperatureControlSystem (TCS) status schema factories
+@overload
+def factory_tcs_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccTcsStatusResponseT]: ...
+
+
+@overload
+def factory_tcs_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoTcsStatusResponseT]: ...
+
+
+@overload
+def factory_tcs_status(case: Case) -> Validator[TccTcsStatusResponseT] | Validator[EvoTcsStatusResponseT]: ...
+
+
+def factory_tcs_status(case: Case = Case.VENDOR) -> Validator[TccTcsStatusResponseT] | Validator[EvoTcsStatusResponseT]:
+    """Factory for the TCS status schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S2_SYSTEM_ID)): vol.Match(REGEX_SYSTEM_ID),
+            vol.Required(fnc(S2_SYSTEM_MODE_STATUS)): factory_system_mode_status(case),
+            vol.Required(fnc(S2_ZONES)): [factory_zon_status(case)],
+            vol.Optional(fnc(S2_DHW)): factory_dhw_status(case),
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(case)],
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+# gateway (Gwy) status schema factories
+@overload
+def factory_gwy_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccGwyStatusResponseT]: ...
+
+
+@overload
+def factory_gwy_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoGwyStatusResponseT]: ...
+
+
+@overload
+def factory_gwy_status(case: Case) -> Validator[TccGwyStatusResponseT] | Validator[EvoGwyStatusResponseT]: ...
+
+
+def factory_gwy_status(case: Case = Case.VENDOR) -> Validator[TccGwyStatusResponseT] | Validator[EvoGwyStatusResponseT]:
+    """Factory for the gateway status schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S2_GATEWAY_ID)): vol.Match(REGEX_GATEWAY_ID),
+            vol.Required(fnc(S2_TEMPERATURE_CONTROL_SYSTEMS)): [factory_tcs_status(case)],
+            vol.Required(fnc(S2_ACTIVE_FAULTS)): [factory_active_faults(case)],
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
+
+
+# location (Loc) status schema factories
+@overload
+def factory_loc_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccLocStatusResponseT]: ...
+
+
+@overload
+def factory_loc_status(case: Literal[Case.PYTHONIC]) -> Validator[EvoLocStatusResponseT]: ...
+
+
+@overload
+def factory_loc_status(case: Case) -> Validator[TccLocStatusResponseT] | Validator[EvoLocStatusResponseT]: ...
+
+
+def factory_loc_status(case: Case = Case.VENDOR) -> Validator[TccLocStatusResponseT] | Validator[EvoLocStatusResponseT]:
+    """Factory for the locations status schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S2_LOCATION_ID)): vol.Match(REGEX_LOCATION_ID),
+            vol.Required(fnc(S2_GATEWAYS)): [factory_gwy_status(case)],
         },
         extra=vol.PREVENT_EXTRA,
     )
