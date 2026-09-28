@@ -292,7 +292,7 @@ def factory_system_mode_status(case: Case = Case.VENDOR) -> vol.Any:
         TccSystemMode.CUSTOM,
         TccSystemMode.DAY_OFF,
     )
-    temporary_mode: vol.In | vol.All
+    temporary_mode: Validator[object]
     if case is Case.VENDOR:
         temporary_mode = vol.In([str(m) for m in temporary_modes])
     else:
