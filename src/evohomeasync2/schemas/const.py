@@ -203,8 +203,8 @@ class TccFaultType(StrEnum):  # NOTE: This list is incomplete
     SYS_B_IF = "BoilerInternalFault"  # only via an Opentherm bridge?
     SYS_B_SR = "BoilerServiceRequired"  # only via an Opentherm bridge?
     SYS_C_CL = "ChValveCommunicationLost"
-    DHW_A_FL = "DHWActuatorFailure"
     # W_A_CL = "DHWActuatorCommunicationLost"  # extrapolated
+    DHW_A_FL = "DHWActuatorFailure"
     DHW_S_CL = "DHWSensorCommunicationLost"
     DHW_S_FL = "DHWSensorFailure"
     DHW_S_LB = "DHWSensorLowBattery"  # extrapolated
@@ -214,6 +214,10 @@ class TccFaultType(StrEnum):  # NOTE: This list is incomplete
     ZON_A_LB = "TempZoneActuatorLowBattery"
     ZON_S_CL = "TempZoneSensorCommunicationLost"
     ZON_S_LB = "TempZoneSensorLowBattery"
+
+    # These are known, but intentionally omitted as not seen with Evohome...
+    # - NeedToRegisterOnline  # Zone fault seen only with Saratoga
+    # - ReminderTimerHumPad  # Zone fault seen only with Saratoga
 
 
 @verify(EnumCheck.UNIQUE)

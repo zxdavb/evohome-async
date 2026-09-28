@@ -18,7 +18,7 @@ Source: [Home Assistant core issue #179414](https://github.com/home-assistant/co
 |------|--------|
 | `user_account.json` | Synthesised — userId 4578816 (real), Australia |
 | `user_locations.json` | From the original report (redacted); PII replaced |
-| `status_5508661.json` | From a later comment; two zone faults unrelated to the issue were removed by the reporter |
+| `status_5508661.json` | From later comments (including its two zone faults); PII replaced |
 | `schedule_zone.json` | From a later comment; times and setpoints substituted by the reporter, structure (incl. `fanMode`) as returned |
 
 ## Notes
@@ -29,6 +29,9 @@ Source: [Home Assistant core issue #179414](https://github.com/home-assistant/co
   integration could not load at all.
 - Once that was fixed, the zone's schedule was rejected too: each switchpoint has a
   `fanMode`, which the schedule schema did not allow.
+- The zone has two active faults of types unknown to `TccFaultType` (`NeedToRegisterOnline`, since
+  2022, with a 7-digit fraction of a second; and `ReminderTimerHumPad`), so they are passed
+  through as str and logged as unknown.
 - The zone status has a `fanStatus`, and a `targetHeatTemperature` of 4.5 (the zone's
   `minHeatSetpoint`), as the system is `Off`.
 - The report arrived pre-redacted by the reporter, with masks that preserved the length
