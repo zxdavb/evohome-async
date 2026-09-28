@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-import evohomeasync as evo0
 from _evohome.helpers import convert_str_enums_to_pascal_case
 from evohomeasync.schemas import (
     TccDhwMode,
@@ -47,21 +46,3 @@ def test_v0_model_type_mangled_by_put() -> None:
 
     member = TccThermostatModelType.DOMESTIC_HOT_WATER
     assert convert_str_enums_to_pascal_case({"x": member})["x"] == "DOMESTICHotWater"
-
-
-@pytest.mark.parametrize(
-    ("name", "value"),
-    [
-        ("SZ_DHW_OFF", "DHWOff"),
-        ("SZ_DHW_ON", "DHWOn"),
-        ("SZ_DOMESTIC_HOT_WATER", "DOMESTIC_HOT_WATER"),
-        ("SZ_EMEA_ZONE", "EMEA_ZONE"),
-        ("SZ_HOLD", "Hold"),
-        ("SZ_SCHEDULED", "Scheduled"),
-        ("SZ_TEMPORARY", "Temporary"),
-    ],
-)
-def test_v0_deprecated_aliases(name: str, value: str) -> None:
-    """Check the deprecated SZ_* exports (now enum members) keep their values."""
-
-    assert getattr(evo0, name) == value
