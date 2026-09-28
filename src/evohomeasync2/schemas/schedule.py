@@ -37,10 +37,6 @@ if TYPE_CHECKING:
     from _evohome.helpers import Validator
     from evohomeasync2.typedefs import EvoDhwScheduleResponseT, EvoZonScheduleResponseT
 
-#######################################################################################
-# GET/PUT DHW / Zone Schedules...
-#
-
 
 class TccDhwSwitchpointT(TypedDict):
     dhwState: TccDhwState  # "Off" | "On"
@@ -52,6 +48,12 @@ class TccDhwDayOfWeekT(TypedDict):
     switchpoints: list[TccDhwSwitchpointT]
 
 
+#
+# Vendor-native typed dicts for schedule URLs
+# - this is the 'truth', as understood, for this undocumented API
+
+
+# GET /domesticHotWater/{dhw_id}/schedule
 class TccDhwDailySchedulesT(TypedDict):
     dailySchedules: list[TccDhwDayOfWeekT]
 
@@ -68,12 +70,17 @@ class TccZonDayOfWeekT(TypedDict):
     switchpoints: list[TccZonSwitchpointT]
 
 
+# GET /temperatureZone/{zone_id}/schedule
 class TccZonDailySchedulesT(TypedDict):
     dailySchedules: list[TccZonDayOfWeekT]
 
 
 #
-# These are returned from vendor's API (GET)...
+# Vendor-native schema factories for schedule URLs
+# - used to validate / coerce data at runtime
+
+
+# domesticHotWater (DHW) schedule schema factories
 @overload
 def factory_dhw_schedule(case: Literal[Case.VENDOR] = ...) -> Validator[TccDhwDailySchedulesT]: ...
 
@@ -117,6 +124,7 @@ def factory_dhw_schedule(
     )
 
 
+# temperatureZone (Zon) schedule schema factories
 @overload
 def factory_zon_schedule(case: Literal[Case.VENDOR] = ...) -> Validator[TccZonDailySchedulesT]: ...
 
@@ -164,30 +172,13 @@ def factory_zon_schedule(
     )
 
 
-# GET /domesticHotWater/{dhw_id}/schedule
-TCC_GET_DHW_SCHEDULE: Final = factory_dhw_schedule()
+#
+# Vendor-native schemas for schedule URLs
 
-# PUT /domesticHotWater/{dhw_id}/schedule
+# GET /domesticHotWater/{dhw_id}/schedule
+TCC_GET_DHW_SCHEDULE: Final[Validator[TccDhwDailySchedulesT]] = factory_dhw_schedule()
 TCC_PUT_DHW_SCHEDULE: Final = TCC_GET_DHW_SCHEDULE
 
 # GET /temperatureZone/{zone_id}/schedule
-TCC_GET_ZON_SCHEDULE: Final = factory_zon_schedule()
-
-# PUT /temperatureZone/{zone_id}/schedule
+TCC_GET_ZON_SCHEDULE: Final[Validator[TccZonDailySchedulesT]] = factory_zon_schedule()
 TCC_PUT_ZON_SCHEDULE: Final = TCC_GET_ZON_SCHEDULE
-
-
-# for convenience...
-def factory_get_schedule(
-    _: Case = Case.VENDOR,
-) -> Validator[TccDhwDailySchedulesT | TccZonDailySchedulesT]:
-    """Factory for the schedule schema."""
-
-    return vol.Schema(
-        vol.Any(TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE),
-        extra=vol.PREVENT_EXTRA,
-    )
-
-
-TCC_GET_SCHEDULE: Final = factory_get_schedule()
-TCC_PUT_SCHEDULE: Final = TCC_GET_SCHEDULE

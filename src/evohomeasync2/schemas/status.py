@@ -71,6 +71,11 @@ if TYPE_CHECKING:
     )
 
 
+#
+# Vendor-native typed dicts for status URLs
+# - this is the 'truth', as understood, for this undocumented API
+
+
 # GET /location/{loc_id}/status?include... returns this dict
 class TccLocStatusResponseT(TypedDict):
     """Response to /location/{loc_id}/status?includeTemperatureControlSystems=True
@@ -147,6 +152,11 @@ class TccDhwStateStatusResponseT(TypedDict):
     until: NotRequired[str]
 
 
+#
+# Vendor-native schema factories for status URLs
+# - used to validate / coerce data at runtime
+
+
 def factory_active_faults(case: Case = Case.VENDOR) -> vol.Schema:
     """Factory for the active faults schema."""
 
@@ -184,6 +194,7 @@ def factory_temp_status(case: Case = Case.VENDOR) -> vol.Any:
     )
 
 
+# temperatureZone (Zon) status schema factories
 @overload
 def factory_zon_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccZonStatusResponseT]: ...
 
@@ -216,7 +227,7 @@ def factory_zon_status(case: Case = Case.VENDOR) -> Validator[TccZonStatusRespon
             vol.Required(fnc(S2_CAN_BE_CHANGED)): bool,
         },
         extra=vol.PREVENT_EXTRA,
-    )  # NOTE: S2_UNTIL is present only for some modes
+    )
 
     return vol.Schema(
         {
@@ -231,6 +242,7 @@ def factory_zon_status(case: Case = Case.VENDOR) -> Validator[TccZonStatusRespon
     )
 
 
+# domesticHotWater (DHW) status schema factories
 @overload
 def factory_dhw_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccDhwStatusResponseT]: ...
 
@@ -307,6 +319,7 @@ def factory_system_mode_status(case: Case = Case.VENDOR) -> vol.Any:
     )
 
 
+# temperatureControlSystem (TCS) status schema factories
 @overload
 def factory_tcs_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccTcsStatusResponseT]: ...
 
@@ -336,6 +349,7 @@ def factory_tcs_status(case: Case = Case.VENDOR) -> Validator[TccTcsStatusRespon
     )
 
 
+# gateway (Gwy) status schema factories
 @overload
 def factory_gwy_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccGwyStatusResponseT]: ...
 
@@ -363,6 +377,7 @@ def factory_gwy_status(case: Case = Case.VENDOR) -> Validator[TccGwyStatusRespon
     )
 
 
+# location (Loc) status schema factories
 @overload
 def factory_loc_status(case: Literal[Case.VENDOR] = ...) -> Validator[TccLocStatusResponseT]: ...
 
@@ -389,20 +404,23 @@ def factory_loc_status(case: Case = Case.VENDOR) -> Validator[TccLocStatusRespon
     )
 
 
-# GET /location/{loc_id}/status?includeTemperatureControlSystems=True
-TCC_GET_LOC_STATUS: Final = factory_loc_status()
+#
+# Vendor-native schemas for status URLs
 
-# GET /gateway/{gwy_id}/status...
-TCC_GET_GWY_STATUS: Final = factory_gwy_status()
+# GET /location/{loc_id}/status?includeTemperatureControlSystems=True
+TCC_GET_LOC_STATUS: Final[Validator[TccLocStatusResponseT]] = factory_loc_status()
+
+# GET /gateway/{gwy_id}/status?includeTemperatureControlSystems=True
+TCC_GET_GWY_STATUS: Final[Validator[TccGwyStatusResponseT]] = factory_gwy_status()
 
 # GET /temperatureControlSystem/{tcs_id}/status
-TCC_GET_TCS_STATUS: Final = factory_tcs_status()
+TCC_GET_TCS_STATUS: Final[Validator[TccTcsStatusResponseT]] = factory_tcs_status()
 
 # GET /domesticHotWater/{dhw_id}/status
-TCC_GET_DHW_STATUS: Final = factory_dhw_status()
-
-# GET /temperatureZone/{zone_id}/heatSetpoint
-# TODO:
+TCC_GET_DHW_STATUS: Final[Validator[TccDhwStatusResponseT]] = factory_dhw_status()
 
 # GET /temperatureZone/{zone_id}/status
-TCC_GET_ZON_STATUS: Final = factory_zon_status()
+TCC_GET_ZON_STATUS: Final[Validator[TccZonStatusResponseT]] = factory_zon_status()
+
+# NOTE: there is no GET /temperatureZone/{zone_id}/heatSetpoint (a 404), as it is a
+# PUT-only URL (the setpoint is in the zone's status, as its setpointStatus)

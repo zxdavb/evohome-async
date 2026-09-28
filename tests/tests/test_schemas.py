@@ -220,7 +220,7 @@ V2_SCHEMAS: dict[str, tuple[Callable[[Case], object], object, object]] = {
         evo2.EvoZonScheduleResponseT,
     ),
     "user_account": (
-        account.factory_user_account,
+        account.factory_usr_account,
         account.TccUsrAccountResponseT,
         evo2.EvoUsrAccountResponseT,
     ),
@@ -229,38 +229,43 @@ V2_SCHEMAS: dict[str, tuple[Callable[[Case], object], object, object]] = {
         account.TccOAuthTokenResponseT,
         evo2.EvoAuthTokensResponseT,
     ),
-    "error_response": (
-        account.factory_error_response,
-        account.TccErrorResponseT,
+    "oauth_error_response": (
+        account.factory_oauth_error_response,
+        account.TccOAuthErrorResponseT,
         None,
     ),
-    "status_response": (
-        account.factory_status_response,
+    "failure_response": (
+        account.factory_failure_response,
         account.TccFailureResponseT,  # a list of these
         None,
     ),
+    "task_response": (
+        account.factory_task_response,
+        account.TccTaskResponseT,
+        None,
+    ),
     "loc_config": (
-        config.factory_location_installation_info,
+        config.factory_loc_config,
         config.TccLocConfigResponseT,
         evo2.EvoLocConfigResponseT,
     ),
     "gwy_config": (
-        config.factory_gateway,
+        config.factory_gwy_config,
         config.TccGwyConfigResponseT,
         evo2.EvoGwyConfigResponseT,
     ),
     "tcs_config": (
-        config.factory_tcs,
+        config.factory_tcs_config,
         config.TccTcsConfigResponseT,
         evo2.EvoTcsConfigResponseT,
     ),
     "zon_config": (
-        config.factory_zone,
+        config.factory_zon_config,
         config.TccZonConfigResponseT,
         evo2.EvoZonConfigResponseT,
     ),
     "dhw_config": (
-        config.factory_dhw,
+        config.factory_dhw_config,
         config.TccDhwConfigResponseT,
         evo2.EvoDhwConfigResponseT,
     ),

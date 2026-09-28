@@ -11,13 +11,13 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 
 from evohomeasync2 import ApiCallFailedError
 from evohomeasync2.auth import Auth
-from evohomeasync2.schemas.account import TCC_GET_USR_ACCOUNT
+from evohomeasync2.schemas.account import TCC_GET_USR_ACCOUNT, TCC_TASK_RESPONSE
 from evohomeasync2.schemas.config import (
     TCC_GET_LOC_INSTALLATION_INFO,
     TCC_GET_USR_LOCATIONS,
@@ -35,7 +35,7 @@ from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohome_cli.auth import TokenCacheManager
-    from evohomeasync2.schemas.account import TccUsrAccountResponseT
+    from evohomeasync2.schemas.account import TccTaskResponseT, TccUsrAccountResponseT
     from evohomeasync2.schemas.config import TccLocConfigResponseT
     from evohomeasync2.schemas.schedule import (
         TccDhwDailySchedulesT,
@@ -47,10 +47,6 @@ if TYPE_CHECKING:
         TccTcsStatusResponseT,
         TccZonStatusResponseT,
     )
-
-
-# TODO: Create a validator for the TccTaskResponseT typedDict (but until then...)
-type _TccTaskResponse = dict[str, Any] | list[dict[str, Any]]  # c.f. TccTaskResponseT
 
 
 async def _post_auth_oauth_token(auth: Auth) -> dict[str, int | str]:
@@ -161,7 +157,7 @@ async def get_tcs_status(auth: Auth, tcs_id: str) -> TccTcsStatusResponseT:
     )
 
 
-async def put_tcs_mode(auth: Auth, tcs_id: str) -> _TccTaskResponse:
+async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
     """Test PUT /temperatureControlSystem/{tcs_id}/mode"""
 
     until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -191,10 +187,12 @@ async def put_tcs_mode(auth: Auth, tcs_id: str) -> _TccTaskResponse:
     assert exc_info.value.status == HTTPStatus.BAD_REQUEST
     assert "SystemModeChangeTimeUntilNotSet" in exc_info.value.message
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"temperatureControlSystem/{tcs_id}/mode",
-        json={"systemMode": "Auto", "permanent": True},
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"temperatureControlSystem/{tcs_id}/mode",
+            json={"systemMode": "Auto", "permanent": True},
+        )
     )
 
 
@@ -262,7 +260,7 @@ async def get_zon_status(auth: Auth, zon_id: str) -> TccZonStatusResponseT:
     )
 
 
-async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> _TccTaskResponse:
+async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
     """Test PUT /temperatureZone/{zon_id}/heatSetpoint"""
 
     until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -298,22 +296,26 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> _TccTaskResponse:
         json={"setpointMode": "PermanentOverride", "HeatSetpointValue": 20.5},
     )
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"temperatureZone/{zon_id}/heatSetpoint",
-        json={"setpointMode": "FollowSchedule"},  # , "HeatSetpointValue": None},
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"temperatureZone/{zon_id}/heatSetpoint",
+            json={"setpointMode": "FollowSchedule"},  # , "HeatSetpointValue": None},
+        )
     )
 
 
 async def put_zon_schedule(
     auth: Auth, zon_id: str, schedule: TccZonDailySchedulesT
-) -> _TccTaskResponse:
+) -> TccTaskResponseT:
     """Test PUT /temperatureZone/{zon_id}/schedule"""
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"temperatureZone/{zon_id}/schedule",
-        json=schedule,
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"temperatureZone/{zon_id}/schedule",
+            json=schedule,
+        )
     )
 
 
@@ -390,7 +392,7 @@ async def get_dhw_status(auth: Auth, dhw_id: str) -> TccDhwStatusResponseT:
     )
 
 
-async def put_dhw_state(auth: Auth, dhw_id: str) -> _TccTaskResponse:
+async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
     """Test PUT /domesticHotWater/{dhw_id}/state"""
 
     until = (dt.now(tz=UTC) + td(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -426,20 +428,24 @@ async def put_dhw_state(auth: Auth, dhw_id: str) -> _TccTaskResponse:
         json={"mode": "PermanentOverride", "state": "Off"},
     )
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"domesticHotWater/{dhw_id}/state",
-        json={"mode": "FollowSchedule"},  # , "state": None},
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"domesticHotWater/{dhw_id}/state",
+            json={"mode": "FollowSchedule"},  # , "state": None},
+        )
     )
 
 
 async def put_dhw_schedule(
     auth: Auth, dhw_id: str, schedule: TccDhwDailySchedulesT
-) -> _TccTaskResponse:
+) -> TccTaskResponseT:
     """Test GET /domesticHotWater/{dhw_id}/schedule"""
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"domesticHotWater/{dhw_id}/schedule",
-        json=schedule,
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"domesticHotWater/{dhw_id}/schedule",
+            json=schedule,
+        )
     )
