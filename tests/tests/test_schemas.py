@@ -229,9 +229,9 @@ V2_SCHEMAS: dict[str, tuple[Callable[[Case], object], object, object]] = {
         account.TccOAuthTokenResponseT,
         evo2.EvoAuthTokensResponseT,
     ),
-    "error_response": (
-        account.factory_error_response,
-        account.TccErrorResponseT,
+    "oauth_error_response": (
+        account.factory_oauth_error_response,
+        account.TccOAuthErrorResponseT,
         None,
     ),
     "failure_response": (

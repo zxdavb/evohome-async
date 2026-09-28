@@ -81,14 +81,14 @@ def factory_post_oauth_token(_: Case = Case.VENDOR) -> Validator[TccOAuthTokenRe
 
 
 # Failed Authentication requests respond with an error
-class TccErrorResponseT(TypedDict):
+class TccOAuthErrorResponseT(TypedDict):
     """Typed dict for responses from the vendor servers for failed authentication."""
 
     error: str  # e.g. "attempt_limit_exceeded" or "invalid_grant"
 
 
-def factory_error_response(case: Case = Case.VENDOR) -> Validator[TccErrorResponseT]:
-    """Factory for the error response schema."""
+def factory_oauth_error_response(case: Case = Case.VENDOR) -> Validator[TccOAuthErrorResponseT]:
+    """Factory for the OAuth error response schema (a failed authentication)."""
 
     fnc = noop if case is Case.VENDOR else camel_to_snake
 
@@ -206,15 +206,17 @@ def factory_usr_account(
 #
 # Vendor-native schemas
 
-# POST /Auth/OAuth/Token
+# POST /Auth/OAuth/Token (successes)
 TCC_POST_OAUTH_TOKEN: Final[Validator[TccOAuthTokenResponseT]] = factory_post_oauth_token()
 
-#
-TCC_ERROR_RESPONSE: Final[Validator[TccErrorResponseT]] = factory_error_response()
+# POST /Auth/OAuth/Token (failures)
+TCC_POST_OAUTH_ERROR: Final[Validator[TccOAuthErrorResponseT]] = factory_oauth_error_response()
+
+# GET/PUT failures (e.g. /temperatureZone/{zone_id}/status)
 TCC_FAILURE_RESPONSE: Final[Validator[list[TccFailureResponseT]]] = factory_failure_response()
 
-# PUT (e.g. /temperatureZone/{zone_id}/heatSetpoint)
+# PUT successes (e.g. /temperatureZone/{zone_id}/heatSetpoint)
 TCC_TASK_RESPONSE: Final[Validator[TccTaskResponseT]] = factory_task_response()
 
-# GET /userAccount
+# GET /userAccount (successes)
 TCC_GET_USR_ACCOUNT: Final[Validator[TccUsrAccountResponseT]] = factory_usr_account()
