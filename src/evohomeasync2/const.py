@@ -186,7 +186,7 @@ class DhwState(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class FanMode(StrEnum):  # not seen with Evohome
+class FanMode(StrEnum):  # non-evohome
     AUTO = camel_to_snake(TccFanMode.AUTO)
     CIRCULATE = camel_to_snake(TccFanMode.CIRCULATE)
     ON = camel_to_snake(TccFanMode.ON)
@@ -226,9 +226,9 @@ class SystemMode(StrEnum):
     CUSTOM = camel_to_snake(TccSystemMode.CUSTOM)
     DAY_OFF = camel_to_snake(TccSystemMode.DAY_OFF)
     HEATING_OFF = camel_to_snake(TccSystemMode.HEATING_OFF)
-    OFF = camel_to_snake(TccSystemMode.OFF)  # not seen with Evohome
-    HEAT = camel_to_snake(TccSystemMode.HEAT)  # not seen with Evohome
-    COOL = camel_to_snake(TccSystemMode.COOL)  # not seen with Evohome
+    OFF = camel_to_snake(TccSystemMode.OFF)  # non-evohome
+    HEAT = camel_to_snake(TccSystemMode.HEAT)  # non-evohome
+    COOL = camel_to_snake(TccSystemMode.COOL)  # non-evohome
 
 
 @verify(EnumCheck.UNIQUE)
@@ -251,7 +251,7 @@ class ZoneMode(StrEnum):
     FOLLOW_SCHEDULE = camel_to_snake(TccZoneMode.FOLLOW_SCHEDULE)
     PERMANENT_OVERRIDE = camel_to_snake(TccZoneMode.PERMANENT_OVERRIDE)
     TEMPORARY_OVERRIDE = camel_to_snake(TccZoneMode.TEMPORARY_OVERRIDE)
-    VACATION_HOLD = camel_to_snake(TccZoneMode.VACATION_HOLD)  # not seen with Evohome
+    VACATION_HOLD = camel_to_snake(TccZoneMode.VACATION_HOLD)  # non-evohome
 
 
 @verify(EnumCheck.UNIQUE)
