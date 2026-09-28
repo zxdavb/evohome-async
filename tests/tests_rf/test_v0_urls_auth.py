@@ -1,11 +1,18 @@
-"""Validate the handling of the vendor's v0 APIs (URLs) for Authorization.
+"""Validate the handling of the vendor's v0 APIs (URLs): their errors and edge cases.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor
   b) confirm the faked server (if any) is behaving as per a)
 
-Testing is at HTTP request layer (e.g. GET).
-Everything to/from the RESTful API is in camelCase (so those schemas are used).
+Where test_v0_urls.py documents each endpoint (and has a list of them all), this module
+documents how they fail: e.g. an unauthorized user or wrong method, a PUT with invalid
+(or forbidden) params, and a PUT to a device that is not alive. It also allows for the
+vendor sometimes not applying a PUT that is equivalent to an earlier one (see
+is_stale_task_v0() in common.py).
+
+Testing is at HTTP request layer (e.g. GET/PUT).
+Everything to/from the RESTful API is in camelCase (so those schemas are used), although
+the keys of a request are case-insensitive (as confirmed here).
 """
 
 from __future__ import annotations
@@ -23,8 +30,11 @@ from evohomeasync.schemas import TCC_GET_USR_LOCS
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import (
+    ensure_zone_follows_schedule_v2,
+    error_codes,
     is_alive_v0,
     is_dhw_v0,
+    is_stale_task_v0,
     is_zone_v0,
     should_fail_v0,
     should_work_v0,
@@ -38,7 +48,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from evohomeasync.schemas import TccDeviceResponseT
-    from tests.conftest import EvohomeClientV0
+    from tests.conftest import EvohomeClientV0, EvohomeClientV2
 
 
 async def _test_usr_locations(evo: EvohomeClientV0) -> None:
@@ -158,18 +168,27 @@ async def test_evo_systems(evohome_v0: EvohomeClientV0) -> None:
         pytest.skip("Unable to authenticate with real server")
 
 
-_TASK_TIMEOUT = 30  # seconds, for a comm task to succeed
+_TASK_TIMEOUT = 60  # seconds, for a comm task to succeed
+# NOTE: a comm task usually succeeds within 10s, but was measured exceeding 30s
+# when several PUTs were in flight, so this budget is deliberately generous
 
-# the older (non-async) client's bodies for reverting an entity to its schedule
+# A change appears via allData=True within ~0.5s of its comm task succeeding, but poll
+# for it anyway (rather than asserting it at once), as there's no guarantee of that.
+_STATUS_TIMEOUT = 30  # seconds, for a change to appear in the allData=True view
+_STATUS_INTERVAL = 2  # seconds, between polls of that view
+
+# the older (non-async) client's body for reverting a zone to its schedule
 _ZON_REVERT = {"Value": None, "Status": "Scheduled", "NextTime": None}
-_DHW_REVERT = {
-    "Status": "Scheduled",
-    "Mode": None,
-    "NextTime": None,
-    "SpecialModes": None,
-    "HeatSetpoint": None,
-    "CoolSetpoint": None,
-}
+
+# NOTE: the vendor now requires "Mode" on a DHW's changeableValues, and forbids Status
+# and NextTime (it validates only non-null values, so the older client's fuller body
+# fails on its Status alone):
+#   {"Status": "Scheduled"} -> 400, ForbiddenParameter: 'Status' is forbidden.
+#   {"NextTime": <dtm>}     -> 400, ForbiddenParameter: 'NextTime' is forbidden.
+#   {}                      -> 400, ParameterIsMissing: 'ThermostatMode' is required.
+# As "Mode" has no Auto member, there is no longer any way to revert a DHW to its
+# schedule via this API. See _test_dhw_forbidden_params() for the full contract.
+_DHW_MODES = ("DHWOn", "DHWOff")
 
 
 async def _get_devices(evo: EvohomeClientV0) -> list[TccDeviceResponseT]:
@@ -192,53 +211,50 @@ async def _get_status(evo: EvohomeClientV0, dev_id: int) -> str | None:
 
 async def _put_and_wait(
     evo: EvohomeClientV0, url: str, json: Mapping[str, object]
-) -> None:
-    """PUT a change, then wait for its comm task to succeed."""
+) -> bool:
+    """PUT a change, wait for its comm task to succeed, and return True if it applied.
+
+    Returns False if the vendor did not apply the PUT (i.e. it returned the comm task of an
+    earlier, equivalent PUT), in which case it has not applied the change.
+    """
+
+    sent = dt.now(tz=UTC)
 
     rsp = await should_work_v0(evo.auth, HTTPMethod.PUT, url, json=json)
-    # {"id": "123"} or [{"id": "123"}]  (as per the older client's tests)
+    # {"id": 1234567890}  (an int; the older client also allowed for a list of one)
 
     async with asyncio.timeout(_TASK_TIMEOUT):
-        _ = await wait_for_comm_task_v0(evo.auth, task_id_v0(rsp))
-    # {"state": "Succeeded"}  (as per the older client's tests)
+        task = await wait_for_comm_task_v0(evo.auth, task_id_v0(rsp))
+    # {"state": "Succeeded", "started": "2026-09-22T20:08:04.053", ...}
+
+    return not is_stale_task_v0(task, sent)
 
 
-async def _test_override_then_revert(
-    evo: EvohomeClientV0,
-    dev_id: int,
-    url: str,
-    /,
-    overrides: tuple[Mapping[str, object], ...],
-    revert: Mapping[str, object],
-    *,
-    expected: str,
-) -> None:
-    """Apply each override in turn, confirm it took, and revert it to its schedule.
+async def _wait_for_status(
+    evo: EvohomeClientV0, dev_id: int, expected: str
+) -> str | None:
+    """Poll a zone/DHW until its status is the expected one, and return the last seen.
 
-    Always leaves the entity following its schedule, even if a step fails.
+    Returns the last-seen status (not necessarily the expected one), so that the caller
+    can assert against it and get a useful failure message.
     """
+
+    status: str | None = None
 
     try:
-        for json in overrides:
-            await _put_and_wait(evo, url, json)
-            assert await _get_status(evo, dev_id) == expected, json
+        async with asyncio.timeout(_STATUS_TIMEOUT):
+            while True:
+                if (status := await _get_status(evo, dev_id)) == expected:
+                    return status
 
-            await _put_and_wait(evo, url, revert)
-            assert await _get_status(evo, dev_id) == "Scheduled", revert
+                await asyncio.sleep(_STATUS_INTERVAL)
 
-    finally:
-        if await _get_status(evo, dev_id) != "Scheduled":
-            await _put_and_wait(evo, url, revert)
+    except TimeoutError:
+        return status
 
 
-async def _test_zon_heat_setpoint(evo: EvohomeClientV0) -> None:
-    """Test PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
-
-    Overrides a zone to its current setpoint (so is a no-op in practice) and reverts it.
-
-    Does so with PascalCase keys (as used by the older client) and with camelCase keys
-    (as used by this library), to confirm the vendor accepts either.
-    """
+async def _find_scheduled_zone(evo: EvohomeClientV0) -> TccDeviceResponseT:
+    """Return a live zone that is following its schedule (else skip the test)."""
 
     dev = next(
         (
@@ -250,77 +266,231 @@ async def _test_zon_heat_setpoint(evo: EvohomeClientV0) -> None:
     )
     if dev is None:
         pytest.skip("No live zone found that is following its schedule")
+    return dev
+
+
+async def _get_utc_offset(evo: EvohomeClientV0, dev_id: int) -> td:
+    """Return the current UTC offset of the location of a device (e.g. 1h, if on BST)."""
+
+    usr_id: int = evo.user_account["user_id"]
+
+    url = f"locations?userId={usr_id}&allData=True"
+    locs = await should_work_v0(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
+
+    loc = next(
+        loc for loc in locs if any(d["deviceID"] == dev_id for d in loc["devices"])
+    )
+    return td(minutes=loc["timeZone"]["currentOffsetMinutes"])
+
+
+async def _get_next_time(evo: EvohomeClientV0, dev_id: int) -> str | None:
+    """Return the NextTime of a zone's setpoint (via v0, so local time, without a Z)."""
+
+    dev = next(d for d in await _get_devices(evo) if d["deviceID"] == dev_id)
+    values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
+    next_time: str | None = values["heatSetpoint"].get("nextTime")
+    return next_time
+
+
+async def _get_until_v2(evo_v2: EvohomeClientV2, zon_id: int) -> str | None:
+    """Return the until of a zone's setpoint (via v2, so UTC, with a Z)."""
+
+    url = f"temperatureZone/{zon_id}/status"
+    status = await evo_v2.auth._make_request(HTTPMethod.GET, url)
+    assert isinstance(status, dict), status
+    until: str | None = status["setpointStatus"].get("until")
+    return until
+
+
+async def _test_zon_heat_setpoint(
+    evo: EvohomeClientV0, evo_v2: EvohomeClientV2
+) -> None:
+    """Test PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
+
+    Overrides a zone to its current setpoint (so is a no-op in practice), confirming that
+    each override is applied, and then reverts it to its schedule.
+
+    Does so with PascalCase keys (as used by the older client) and with camelCase keys
+    (as used by this library), to confirm the vendor accepts either. The two overrides
+    have a different NextTime, as otherwise the vendor might not apply the second.
+
+    Also confirms that a NextTime is in the location's local time, not UTC: a Z on it is
+    ignored, it is returned (via GET) without a Z, and the v2 API (which is in UTC) has
+    it as NextTime less the location's current UTC offset.
+
+    The vendor may not apply a revert (see is_stale_task_v0() in common.py), e.g. if
+    another test has sent one recently, so it is asserted only if it was applied, and
+    the zone is then checked (and reverted again, if need be) via the v2 API. So there
+    is only the one revert (a second one, so soon after, is even less likely to be
+    applied).
+    """
+
+    dev = await _find_scheduled_zone(evo)
+    dev_id: int = dev["deviceID"]
 
     values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
     setpoint: float = values["heatSetpoint"]["value"]
-    until = (dt.now(tz=UTC) + td(hours=1)).strftime(TCC_DTM_STRFTIME)
 
-    url = f"devices/{dev['deviceID']}/thermostat/changeableValues/heatSetpoint"
+    url = f"devices/{dev_id}/thermostat/changeableValues/heatSetpoint"
 
-    await _test_override_then_revert(
-        evo,
-        dev["deviceID"],
-        url,
-        overrides=(
-            {"Value": setpoint, "Status": "Temporary", "NextTime": until},
-            {"value": setpoint, "status": "Temporary", "nextTime": until},
-        ),
-        revert=_ZON_REVERT,
-        expected="Temporary",
-    )
+    offset = await _get_utc_offset(evo, dev_id)  # e.g. td(hours=1), if on BST
+    now = dt.now(tz=UTC).replace(minute=0, second=0, microsecond=0)
+
+    try:
+        for hours, keys in (
+            (2, ("Value", "Status", "NextTime")),  # PascalCase (as the older client)
+            (3, ("value", "status", "nextTime")),  # camelCase (as this library)
+        ):
+            next_time = now + td(hours=hours)  # on the hour (so not rounded)
+            until = next_time.strftime(TCC_DTM_STRFTIME)  # with a Z
+
+            json = dict(zip(keys, (setpoint, "Temporary", until), strict=True))
+
+            assert await _put_and_wait(evo, url, json), json  # i.e. was applied
+            assert await _wait_for_status(evo, dev_id, "Temporary") == "Temporary", json
+
+            # the NextTime is returned as sent, but without the Z (as it's local time)...
+            assert await _get_next_time(evo, dev_id) == until.removesuffix("Z")
+
+            # ...and so, via the v2 API (which is in UTC), it is less the UTC offset
+            expected = (next_time - offset).strftime(TCC_DTM_STRFTIME)
+            assert await _get_until_v2(evo_v2, dev_id) == expected
+
+        if await _put_and_wait(evo, url, _ZON_REVERT):  # i.e. was applied
+            assert await _wait_for_status(evo, dev_id, "Scheduled") == "Scheduled"
+
+    finally:
+        await ensure_zone_follows_schedule_v2(evo_v2.auth, dev_id)
 
 
 async def _test_dhw_changeable_values(evo: EvohomeClientV0) -> None:
     """Test PUT /devices/{dhw_id}/thermostat/changeableValues
 
-    Holds the DHW in its current state (so is a no-op in practice) and reverts it.
+    Sets the DHW to its current mode (so is a no-op in practice).
 
-    Does so with PascalCase keys (as used by the older client) and with camelCase keys
+    Does so with a PascalCase key (as used by the older client) and with a camelCase key
     (as used by this library), to confirm the vendor accepts either.
     """
 
     dev = next(
-        (
-            d
-            for d in await _get_devices(evo)
-            if is_dhw_v0(d) and is_alive_v0(d) and status_of_v0(d) == "Scheduled"
-        ),
+        (d for d in await _get_devices(evo) if is_dhw_v0(d) and is_alive_v0(d)),
         None,
     )
     if dev is None:
-        pytest.skip("No live DHW found that is following its schedule")
+        pytest.skip("No live DHW found")
 
     values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
-    mode: str = values["mode"]  # "DHWOn" | "DHWOff"
+    mode: str = values["mode"]
+    assert mode in _DHW_MODES, mode
+
+    url = f"devices/{dev['deviceID']}/thermostat/changeableValues"
+
+    for json in ({"Mode": mode}, {"mode": mode}):  # the vendor accepts either casing
+        await _put_and_wait(evo, url, json)
+
+
+async def _test_dhw_forbidden_params(evo: EvohomeClientV0) -> None:
+    """Test the params that PUT /devices/{dhw_id}/thermostat/changeableValues rejects.
+
+    The vendor used to accept the older client's full body (Status, Mode, NextTime,
+    SpecialModes, HeatSetpoint, CoolSetpoint), but now accepts only Mode, which it also
+    requires. Note that it normalises key casing before reporting an offending key.
+
+    This documents that breaking change: there is no longer any way to revert a DHW to
+    its schedule via this API, as Status is forbidden and Mode has no Auto member.
+    """
+
+    dev = next(
+        (d for d in await _get_devices(evo) if is_dhw_v0(d) and is_alive_v0(d)),
+        None,
+    )
+    if dev is None:
+        pytest.skip("No live DHW found")
+
+    values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
+    mode: str = values["mode"]
     until = (dt.now(tz=UTC) + td(hours=1)).strftime(TCC_DTM_STRFTIME)
 
     url = f"devices/{dev['deviceID']}/thermostat/changeableValues"
 
-    await _test_override_then_revert(
-        evo,
-        dev["deviceID"],
+    json: Mapping[str, object]
+
+    # Mode is required...
+    for json in ({}, {"Mode": None}):
+        rsp = await should_fail_v0(
+            evo.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
+        )
+        assert error_codes(rsp) == ["ParameterIsMissing"], rsp
+
+    # ...Status and NextTime are forbidden, but only when their value is not null...
+    for json in (
+        {"Mode": mode, "Status": "Hold"},
+        {"Mode": mode, "NextTime": until},
+    ):
+        rsp = await should_fail_v0(
+            evo.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
+        )
+        assert error_codes(rsp) == ["ForbiddenParameter"], rsp
+
+    # ...as the vendor validates only non-null values (and ignores unknown keys), so
+    # the older client's revert body fails on its Status alone...
+    rsp = await should_fail_v0(
+        evo.auth,
+        HTTPMethod.PUT,
         url,
-        overrides=(
-            _DHW_REVERT | {"Status": "Hold", "Mode": mode, "NextTime": until},
-            {
-                "status": "Hold",
-                "mode": mode,
-                "nextTime": until,
-                "specialModes": None,
-                "heatSetpoint": None,
-                "coolSetpoint": None,
-            },
-        ),
-        revert=_DHW_REVERT,
-        expected="Hold",
+        json={
+            "Status": "Scheduled",
+            "Mode": mode,
+            "NextTime": None,
+            "SpecialModes": None,
+            "HeatSetpoint": None,
+            "CoolSetpoint": None,
+        },
+        status=HTTPStatus.BAD_REQUEST,
     )
+    assert error_codes(rsp) == ["ForbiddenParameter"], rsp
+
+    # ...and that same body, with its Status dropped, is accepted...
+    # NOTE: this test documents which params the vendor accepts, so it doesn't wait for
+    # the resulting comm task (each PUT here is a no-op, as Mode is the current mode)
+    _ = await should_work_v0(
+        evo.auth,
+        HTTPMethod.PUT,
+        url,
+        json={
+            "Mode": mode,
+            "NextTime": None,
+            "SpecialModes": None,
+            "HeatSetpoint": None,
+            "CoolSetpoint": None,
+        },
+    )
+
+    # ...and Mode accepts only DHWOn/DHWOff (in particular, there is no Auto)...
+    rsp = await should_fail_v0(
+        evo.auth,
+        HTTPMethod.PUT,
+        url,
+        json={"Mode": "Off"},  # a valid ThermostatMode, but not for a DHW
+        status=HTTPStatus.BAD_REQUEST,
+    )
+    assert error_codes(rsp) == ["ThermostatModeNotAllowed"], rsp
+
+    rsp = await should_fail_v0(
+        evo.auth,
+        HTTPMethod.PUT,
+        url,
+        json={"Mode": "Auto"},  # not a ThermostatMode at all
+        status=HTTPStatus.BAD_REQUEST,
+    )
+    assert error_codes(rsp) == ["InvalidInput"], rsp
 
 
 async def _test_lost_device(evo: EvohomeClientV0, *, is_dhw: bool) -> None:
     """Test a PUT to a device that is not alive (i.e. its gateway is offline).
 
-    The vendor rejects it, whatever the body. Uses the body that reverts a device to its
-    schedule, so would be a no-op even if it were accepted.
+    The vendor rejects it, whatever the body. Uses a body that is accepted for a live
+    device, so would be a no-op even if it were accepted here.
     """
 
     is_type = is_dhw_v0 if is_dhw else is_zone_v0
@@ -332,9 +502,12 @@ async def _test_lost_device(evo: EvohomeClientV0, *, is_dhw: bool) -> None:
     if dev is None:
         pytest.skip(f"No lost {'DHW' if is_dhw else 'zone'} found")
 
+    json: Mapping[str, object]
+
     if is_dhw:
         url = f"devices/{dev['deviceID']}/thermostat/changeableValues"
-        json = _DHW_REVERT
+        values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
+        json = {"Mode": values["mode"]}
     else:
         url = f"devices/{dev['deviceID']}/thermostat/changeableValues/heatSetpoint"
         json = _ZON_REVERT
@@ -342,23 +515,22 @@ async def _test_lost_device(evo: EvohomeClientV0, *, is_dhw: bool) -> None:
     rsp = await should_fail_v0(
         evo.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
     )
-    assert isinstance(rsp, list), rsp
-    assert rsp[0]["code"] == "DeviceIsLost", rsp
-    # zone: [{'code': 'DeviceIsLost', 'message': 'Device is lost.'}]
-    # DHW:  [{'code': 'DeviceIsLost', 'message': 'Device is lost.'},
-    #        {'code': 'ForbiddenParameter', 'message': "'Status' is forbidden."}]
+    assert error_codes(rsp) == ["DeviceIsLost"], rsp
+    # [{'code': 'DeviceIsLost', 'message': 'Device is lost.'}]
 
 
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
 @skipif_auth_failed
-async def test_zon_heat_setpoint(evohome_v0: EvohomeClientV0) -> None:
+async def test_zon_heat_setpoint(
+    evohome_v0: EvohomeClientV0, evohome_v2: EvohomeClientV2
+) -> None:
     """Test /devices/{zone_id}/thermostat/changeableValues/heatSetpoint"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
     await evohome_v0.update()  # get user_id
-    await _test_zon_heat_setpoint(evohome_v0)
+    await _test_zon_heat_setpoint(evohome_v0, evohome_v2)
 
 
 # PUT /devices/{dhw_id}/thermostat/changeableValues
@@ -371,6 +543,18 @@ async def test_dhw_changeable_values(evohome_v0: EvohomeClientV0) -> None:
 
     await evohome_v0.update()  # get user_id
     await _test_dhw_changeable_values(evohome_v0)
+
+
+# PUT /devices/{dhw_id}/thermostat/changeableValues (with rejected params)
+@skipif_auth_failed
+async def test_dhw_forbidden_params(evohome_v0: EvohomeClientV0) -> None:
+    """Test /devices/{dhw_id}/thermostat/changeableValues (rejected params)"""
+
+    if not _DBG_USE_REAL_AIOHTTP:
+        pytest.skip("Mocked server not implemented for this test")
+
+    await evohome_v0.update()  # get user_id
+    await _test_dhw_forbidden_params(evohome_v0)
 
 
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (to a lost zone)
