@@ -71162,9 +71162,9 @@
 # name: test_system_snapshot[hass_179414][loc_5508661_zon]
   '''
   '7171354':
-      active_faults: '!!python/tuple []
-  
-          '
+      active_faults: "!!python/tuple\n- fault_type: need_to_register_online\n  since:\
+          \ '2022-06-11T02:42:04.125279+10:00'\n- fault_type: reminder_timer_hum_pad\n\
+          \  since: '2026-08-16T14:00:01+10:00'\n"
       allowed_modes: "!!python/tuple\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - permanent_override\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -71294,7 +71294,9 @@
           target_heat_temperature: 4.5
   
           '
-      status: "active_faults: []\nfan_status:\n  can_be_changed: true\n  fan_mode: !!python/object/apply:evohomeasync2.const.FanMode\n\
+      status: "active_faults:\n- fault_type: need_to_register_online\n  since: '2022-06-11T02:42:04.125279+10:00'\n\
+          - fault_type: reminder_timer_hum_pad\n  since: '2026-08-16T14:00:01+10:00'\n\
+          fan_status:\n  can_be_changed: true\n  fan_mode: !!python/object/apply:evohomeasync2.const.FanMode\n\
           \  - auto\nname: THERMOSTAT\nsetpoint_status:\n  setpoint_mode: !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - permanent_override\n  target_heat_temperature: 4.5\ntemperature_status:\n\
           \  is_available: true\n  temperature: 21.5\nzone_id: '7171354'\n"

@@ -248,6 +248,16 @@
 # ---
 # name: test_system_warnings[hass_179414]
   list([
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='7171354'): Active fault: 2022-06-11T02:42:04.125279+10:00 need_to_register_online (is unknown, please report it at https://github.com/zxdavb/evohome-async/issues)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='7171354'): Active fault: 2026-08-16T14:00:01+10:00 reminder_timer_hum_pad (is unknown, please report it at https://github.com/zxdavb/evohome-async/issues)",
+    ),
   ])
 # ---
 # name: test_system_warnings[null_system_0]

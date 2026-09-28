@@ -13,7 +13,16 @@
                                 "temperature": 21.5,
                                 "isAvailable": true
                             },
-                            "activeFaults": [],
+                            "activeFaults": [
+                                {
+                                    "faultType": "NeedToRegisterOnline",
+                                    "since": "2022-06-11T02:42:04.1252794"
+                                },
+                                {
+                                    "faultType": "ReminderTimerHumPad",
+                                    "since": "2026-08-16T14:00:01"
+                                }
+                            ],
                             "setpointStatus": {
                                 "targetHeatTemperature": 4.5,
                                 "setpointMode": "PermanentOverride"
