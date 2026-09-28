@@ -218,7 +218,7 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
-    # schedule: TccZonDailySchedulesT  # cant use this, as we GET without a schema
+    # schedule: TccZonDailySchedulesT  # can't use this, as we GET without a schema
 
     zone = evo.locations[0].gateways[0].systems[0].zones[0]
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
