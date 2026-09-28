@@ -91,7 +91,8 @@ class TccGwyStatusResponseT(TypedDict):
 class TccActiveFaultResponseT(TypedDict):
     # the vendor's list is incomplete, so allow str
     faultType: TccFaultType | str  # "TempZoneSensorCommunicationLost"
-    since: str  # #            "2023-10-09T01:45:00", "2023-10-09T01:45:00.123456"
+    since: str  # is naive, e.g. "2023-10-09T01:45:00", "2023-10-09T01:45:00.123456"
+    # NOTE: some gateways have sent 7 fractional digits: "2023-10-09T01:45:00.1234567"
 
 
 class TccTcsStatusResponseT(TypedDict):
@@ -118,7 +119,7 @@ class TccZonStatusResponseT(TypedDict):
 
 
 class TccFanStatusResponseT(TypedDict):
-    fanMode: TccFanMode | str  # may be unknown/unexpected value, so allow str
+    fanMode: TccFanMode | str  # enum may be incomplete, so allow str
     canBeChanged: bool
 
 

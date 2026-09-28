@@ -170,7 +170,7 @@ class TccGwyConfigEntryT(TypedDict):
 
 class TccTcsConfigEntryT(TypedDict):
     systemId: str
-    modelType: TccTcsModelType | str  # may be unknown/unexpected value, so allow str
+    modelType: TccTcsModelType | str  # enum may be incomplete, so allow str
     allowedSystemModes: list[TccAllowedSystemModeResponseT]
 
 
@@ -190,17 +190,17 @@ class TccTcsConfigResponseT(TccTcsConfigEntryT):
 
 class TccZonConfigResponseT(TypedDict):
     zoneId: str
-    modelType: TccZoneModelType | str  # may be unknown/unexpected value, so allow str
+    modelType: TccZoneModelType | str  # enum may be incomplete, so allow str
     name: str
     setpointCapabilities: TccZonSetpointCapabilitiesResponseT
     # Evohome always has schedule capabilities, but some FocusProWifi* do not
     scheduleCapabilities: NotRequired[TccZonScheduleCapabilitiesResponseT]
-    zoneType: TccZoneType | str  # may be unknown/unexpected value, so allow str
+    zoneType: TccZoneType | str  # enum may be incomplete, so allow str
     allowedFanModes: NotRequired[list[TccAllowedFanModeResponseT]]  # non-evohome
 
 
 class TccAllowedFanModeResponseT(TypedDict):
-    fanMode: TccFanMode | str  # may be unknown/unexpected value, so allow str
+    fanMode: TccFanMode | str  # enum may be incomplete, so allow str
 
 
 class TccZonScheduleCapabilitiesResponseT(TypedDict):

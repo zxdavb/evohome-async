@@ -59,7 +59,7 @@ class TccDhwDailySchedulesT(TypedDict):
 class TccZonSwitchpointT(TypedDict):
     coolSetpoint: NotRequired[float]  # not confirmed; included defensively
     heatSetpoint: float
-    fanMode: NotRequired[TccFanMode | str]  # non-evohome; may be unknown, so allow str
+    fanMode: NotRequired[TccFanMode | str]  # non-evohome; enum may be incomplete, so allow str
     timeOfDay: str  # "HH:MM:00"
 
 
