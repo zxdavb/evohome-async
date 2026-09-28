@@ -280,7 +280,7 @@ class TccDhwConfigEntryT(TccDhwConfigResponseT):
 # - used to validate / coerce data at runtime
 
 
-def factory_system_mode(case: Case = Case.VENDOR) -> vol.All:
+def factory_system_mode(case: Case = Case.VENDOR) -> Validator[dict[str, object]]:
     """Factory for the allowed system mode schema.
 
     The duration-related keys are required when canBeTemporary is True, and must be
