@@ -331,6 +331,11 @@ class _ScheduleBase[
                 schema=self.SCH_SCHEDULE,
             )
 
+        except exc.BadApiSchemaError as err:  # the schedule failed validation
+            raise exc.InvalidScheduleError(
+                f"{self}: Schedule is invalid: {err}"
+            ) from err
+
         except exc.ApiCallFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
                 raise exc.InvalidScheduleError(
