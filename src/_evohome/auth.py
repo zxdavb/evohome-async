@@ -103,7 +103,7 @@ class AbstractAuth(ABC):
         self,
         url: StrOrURL,
         /,
-        json: dict[str, Any],
+        json: Mapping[str, object],
         *,
         schema: Validator[Mapping[str, object]] | None = None,
     ) -> _TccResponse:  # NOTE: not _EvoSchemaT

@@ -13,6 +13,11 @@ from typing import Final, Self
 import aiohttp
 
 from .auth import AbstractSessionManager
+from .const import (  # the older client's output keys (not vendor keys)
+    SZ_ID as SZ_ID,
+    SZ_SETPOINT as SZ_SETPOINT,
+    SZ_TEMP as SZ_TEMP,
+)
 from .entities import ControlSystem, Gateway, HotWater, Location, Zone
 from .exceptions import (
     ApiCallFailedError,
@@ -38,22 +43,19 @@ from .schemas import (  # noqa: F401
     S1_CHANGEABLE_VALUES as SZ_CHANGEABLE_VALUES,
     S1_DEVICE_ID as SZ_DEVICE_ID,
     S1_DEVICES as SZ_DEVICES,
+    S1_HEAT_SETPOINT as SZ_HEAT_SETPOINT,
     S1_INDOOR_TEMPERATURE as SZ_INDOOR_TEMPERATURE,
     S1_LOCATION_ID as SZ_LOCATION_ID,
+    S1_MODE as SZ_MODE,
     S1_NAME as SZ_NAME,
+    S1_NEXT_TIME as SZ_NEXT_TIME,
+    S1_QUICK_ACTION as SZ_QUICK_ACTION,
+    S1_QUICK_ACTION_NEXT_TIME as SZ_QUICK_ACTION_NEXT_TIME,
+    S1_STATUS as SZ_STATUS,
     S1_THERMOSTAT as SZ_THERMOSTAT,
     S1_THERMOSTAT_MODEL_TYPE as SZ_THERMOSTAT_MODEL_TYPE,
     S1_USER_INFO as SZ_USER_INFO,
-    SZ_HEAT_SETPOINT,
-    SZ_ID,
-    SZ_MODE,
-    SZ_NEXT_TIME,
-    SZ_QUICK_ACTION,
-    SZ_QUICK_ACTION_NEXT_TIME,
-    SZ_SETPOINT,
-    SZ_STATUS,
-    SZ_TEMP,
-    SZ_VALUE,
+    S1_VALUE as SZ_VALUE,
     TccDhwMode,
     TccSetpointStatus,
     TccThermostatModelType,

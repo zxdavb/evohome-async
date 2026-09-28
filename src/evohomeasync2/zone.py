@@ -642,9 +642,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                 f"{self}: Attempting invalid {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
             )
 
-        await self._auth.put(
-            f"{self._TCC_TYPE}/{self.id}/heatSetpoint", json=dict(zon_mode)
-        )
+        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/heatSetpoint", json=zon_mode)
 
     async def set_mode(
         self,
