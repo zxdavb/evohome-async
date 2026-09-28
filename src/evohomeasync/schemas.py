@@ -55,7 +55,7 @@ _UserIdT = NewType("_UserIdT", int)
 _ZoneIdT = NewType("_ZoneIdT", int)
 
 # TCC other
-_TaskIdT = NewType("_TaskIdT", str)  # TODO: int or str?
+_TaskIdT = NewType("_TaskIdT", int)  # an int, unlike the v2 API (where it is a str)
 
 
 #
@@ -91,6 +91,7 @@ S1_HAS_STATION: Final = "hasStation"
 S1_HEAT_RATE: Final = "heatRate"
 S1_HOLD_UNTIL_CAPABLE: Final = "holdUntilCapable"
 S1_HUMIDIFIER: Final = "humidifier"
+S1_ID: Final = "id"
 
 S1_INDOOR_HUMIDITY: Final = "indoorHumidity"
 S1_INDOOR_HUMIDITY_STATUS: Final = "indoorHumidityStatus"
@@ -244,6 +245,18 @@ def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
     )
 
     return vol.Schema(vol.All([entry], vol.Length(min=1)))
+
+
+# PUT (e.g. api/devices/{zone_id}/thermostat/changeableValues/heatSetpoint) -> task
+def factory_task_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
+    """Factory for the task response schema (a successful PUT)."""
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S1_ID)): int,
+        },
+        extra=vol.PREVENT_EXTRA,
+    )
 
 
 # GET api/accountInfo -> userAccountInfoResponse
@@ -445,6 +458,7 @@ def factory_location_response_list(
 TCC_FAILURE_RESPONSE: Final[Validator[list[TccFailureResponseT]]] = (
     factory_failure_response()
 )
+TCC_TASK_RESPONSE: Final[Validator[TccTaskResponseT]] = factory_task_response()
 TCC_GET_USR_INFO: Final[Validator[TccUserAccountInfoResponseT]] = (
     # This validator can accept {userID, username} because all other account fields are
     # vol.Optional in factory_user_account_info_response, yet its new return type
@@ -496,6 +510,12 @@ class TccFailureResponseT(TypedDict):
 
     code: str
     message: str
+
+
+class TccTaskResponseT(TypedDict):
+    """Typed dict for responses from the vendor servers for successful PUTs."""
+
+    id: _TaskIdT  # e.g. {"id": 1234567890}
 
 
 class TccSessionResponseT(TypedDict):

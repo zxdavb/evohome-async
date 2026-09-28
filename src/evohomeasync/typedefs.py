@@ -21,6 +21,12 @@ class EvoFailureDictT(TypedDict):
     message: str
 
 
+class EvoTaskDictT(TypedDict):
+    """Typed dict for responses from the vendor servers for successful PUTs."""
+
+    id: int  # e.g. {"id": 1234567890}
+
+
 class EvoSessionDictT(TypedDict):
     """POST api/session"""
 
