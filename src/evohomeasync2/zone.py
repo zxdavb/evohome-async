@@ -528,9 +528,13 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             )
 
         if self.model not in ZoneModelType:
-            self._logger.warning("%s: Unknown Zone model '%s' (YMMV)", self, self.model)
+            self._logger.warning(
+                "%s: Unexpected Zone model '%s' (YMMV)", self, self.model
+            )
         if self.type not in ZoneType:
-            self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
+            self._logger.warning(
+                "%s: Unexpected Zone type '%s' (YMMV)", self, self.type
+            )
 
         # Ask for unknown fan modes to be reported, so they can be added to the enum
         for fan_mode in config.get(SZ_ALLOWED_FAN_MODES, []):
