@@ -156,6 +156,7 @@ def _differences(
 # the v0 schemas deliberately don't require keys that this library doesn't use
 V0_SCHEMAS: dict[str, tuple[Callable[[Callable[[str], str]], object], object]] = {
     "failure": (sch0.factory_failure_response, evo0.EvoFailureDictT),
+    "task": (sch0.factory_task_response, evo0.EvoTaskDictT),
     "account_info": (
         sch0.factory_user_account_info_response,
         evo0.EvoUserAccountInfoDictT,
