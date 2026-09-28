@@ -1,4 +1,4 @@
-"""Schema for the vendor's TCC v0 API.
+"""Schema for the vendor's TCC v1 API.
 
 These TypedDict & StrEnums serve as documentation of the vendor's API, even if they are
 unused by this library. There are corresponding factory functions for the probatio
@@ -68,6 +68,7 @@ S1_CITY: Final = "city"
 S1_CODE: Final = "code"
 S1_CONTRACTOR: Final = "contractor"
 S1_COOL_RATE: Final = "coolRate"
+S1_COOL_SETPOINT: Final = "coolSetpoint"
 S1_COUNTRY: Final = "country"
 
 S1_DAYLIGHT_SAVING_TIME_ENABLED: Final = "daylightSavingTimeEnabled"
@@ -89,6 +90,7 @@ S1_GATEWAY_ID: Final = "gatewayId"
 
 S1_HAS_STATION: Final = "hasStation"
 S1_HEAT_RATE: Final = "heatRate"
+S1_HEAT_SETPOINT: Final = "heatSetpoint"
 S1_HOLD_UNTIL_CAPABLE: Final = "holdUntilCapable"
 S1_HUMIDIFIER: Final = "humidifier"
 S1_ID: Final = "id"
@@ -118,8 +120,10 @@ S1_MAX_HEAT_SETPOINT: Final = "maxHeatSetpoint"
 S1_MESSAGE: Final = "message"
 S1_MIN_COOL_SETPOINT: Final = "minCoolSetpoint"
 S1_MIN_HEAT_SETPOINT: Final = "minHeatSetpoint"
+S1_MODE: Final = "mode"
 
 S1_NAME: Final = "name"
+S1_NEXT_TIME: Final = "nextTime"
 
 S1_ONE_TOUCH_ACTIONS_SUSPENDED: Final = "oneTouchActionsSuspended"
 S1_ONE_TOUCH_BUTTONS: Final = "oneTouchButtons"
@@ -132,6 +136,9 @@ S1_OUTDOOT_HUMIDITY_AVAILABLE: Final = "outdootHumidityAvailable"  # NOTE: not a
 
 S1_PCB_NUMBER: Final = "pcbNumber"
 
+S1_QUICK_ACTION: Final = "quickAction"
+S1_QUICK_ACTION_NEXT_TIME: Final = "quickActionNextTime"
+
 S1_SCHEDULE: Final = "schedule"
 S1_SCHEDULE_CAPABLE: Final = "scheduleCapable"
 S1_SCHEDULE_COOL_SP: Final = "scheduleCoolSp"
@@ -141,7 +148,9 @@ S1_SECURITY_QUESTION_2: Final = "securityQuestion2"
 S1_SECURITY_QUESTION_3: Final = "securityQuestion3"
 S1_SERIAL_NUMBER: Final = "serialNumber"
 S1_SESSION_ID: Final = "sessionId"
+S1_SPECIAL_MODES: Final = "specialModes"
 S1_STATE: Final = "state"
+S1_STATUS: Final = "status"
 S1_STREET_ADDRESS: Final = "streetAddress"
 S1_SYSTEM_CONFIGURATION: Final = "systemConfiguration"
 
@@ -161,6 +170,7 @@ S1_USERNAME: Final = "username"
 
 S1_VACATION_HOLD_CANCELABLE: Final = "vacationHoldCancelable"
 S1_VACATION_HOLD_CHANGEABLE: Final = "vacationHoldChangeable"
+S1_VALUE: Final = "value"
 
 S1_WEATHER: Final = "weather"
 
@@ -482,24 +492,6 @@ TCC_POST_USR_SESSION: Final[Validator[TccSessionResponseT]] = (
     factory_session_response()
 )
 
-# AAA - Schema keys (start with a lower case letter)
-SZ_COOL_SETPOINT: Final = "coolSetpoint"  # PUT? (never sent)
-SZ_HEAT_SETPOINT: Final = "heatSetpoint"  # PUT?
-SZ_MODE: Final = "mode"  #               # PUT
-SZ_SPECIAL_MODES: Final = "SpecialModes"  # PUT? (never sent)
-SZ_STATUS: Final = "status"  #           # PUT
-SZ_VALUE: Final = "value"  #             # PUT
-
-# BBB - Used in API calls
-SZ_NEXT_TIME: Final = "NextTime"
-SZ_QUICK_ACTION: Final = "QuickAction"
-SZ_QUICK_ACTION_NEXT_TIME: Final = "QuickActionNextTime"
-
-# CCC - Old Evo library output (i.e. not TCC) - to deprecate?
-SZ_ID: Final = "id"  # is id, not Id/ID
-SZ_SETPOINT: Final = "setpoint"
-SZ_TEMP: Final = "temp"
-
 
 #######################################################################################
 # These the responses via the vendor's API; they have camelCase keys...
@@ -692,3 +684,33 @@ class TccTimeZoneResponseT(TypedDict):
     offsetMinutes: int
     currentOffsetMinutes: int
     usingDaylightSavingTime: bool
+
+
+#######################################################################################
+# These are the request bodies sent to the vendor's API (PUT)
+
+
+class TccSetTcsModeT(TypedDict):
+    """PUT /evoTouchSystems?locationId={loc_id}"""
+
+    quickAction: TccSystemMode
+    quickActionNextTime: NotRequired[str | None]  # "%Y-%m-%dT%H:%M:%SZ"
+
+
+class TccSetDhwModeT(TypedDict):
+    """PUT /devices/{dhw_id}/thermostat/changeableValues"""
+
+    status: TccSetpointStatus  # Scheduled, Hold
+    mode: NotRequired[TccDhwMode | None]  # required by Hold
+    nextTime: NotRequired[str | None]  # "%Y-%m-%dT%H:%M:%SZ"
+    specialModes: NotRequired[None]
+    heatSetpoint: NotRequired[None]
+    coolSetpoint: NotRequired[None]
+
+
+class TccSetZonModeT(TypedDict):
+    """PUT /devices/{zon_id}/thermostat/changeableValues/heatSetpoint"""
+
+    status: TccSetpointStatus  # Scheduled, Temporary, Hold
+    value: NotRequired[float | None]  # required by Temporary, Hold
+    nextTime: NotRequired[str | None]  # required by Temporary; "%Y-%m-%dT%H:%M:%SZ"

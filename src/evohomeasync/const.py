@@ -1,4 +1,4 @@
-"""Shared constants for the vendor's TCC v2 API.
+"""Shared constants for the vendor's TCC v1 API.
 
 Vendor strings are camelCase (JSON keys), PascalCase (StrEnums).
 """
@@ -33,3 +33,8 @@ SZ_THERMOSTAT_MODEL_TYPE: Final = "thermostat_model_type"
 SZ_TIME_ZONE: Final = "time_zone"
 SZ_USER_ID: Final = "user_id"
 SZ_WEATHER: Final = "weather"
+
+# Not vendor keys: the output of the older (non-async) client, no longer produced
+SZ_ID: Final = "id"
+SZ_SETPOINT: Final = "setpoint"
+SZ_TEMP: Final = "temp"
