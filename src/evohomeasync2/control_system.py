@@ -99,7 +99,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         }
 
         if self.model not in TcsModelType:
-            self._logger.warning("%s: Unknown model type '%s' (YMMV)", self, self.model)
+            self._logger.warning("%s: Unknown TCS model '%s' (YMMV)", self, self.model)
 
         for zon_entry in config[SZ_ZONES]:
             try:

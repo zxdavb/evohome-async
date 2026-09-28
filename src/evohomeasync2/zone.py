@@ -532,7 +532,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             )
 
         if self.model not in ZoneModelType:
-            self._logger.warning("%s: Unknown model type '%s' (YMMV)", self, self.model)
+            self._logger.warning("%s: Unknown Zone model '%s' (YMMV)", self, self.model)
         if self.type not in ZoneType:
             self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
 
