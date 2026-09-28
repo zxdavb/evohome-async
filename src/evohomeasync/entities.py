@@ -191,7 +191,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
     ) -> None:
         """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
 
-        data = {
+        dhw_mode = {
             SZ_STATUS: status,
             SZ_MODE: mode,
             # SZ_NEXT_TIME: None,
@@ -200,10 +200,10 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
             # SZ_COOL_SETPOINT: None,
         }
         if next_time:
-            data |= {SZ_NEXT_TIME: as_utc_str(next_time)}
+            dhw_mode |= {SZ_NEXT_TIME: as_utc_str(next_time)}
 
         url = f"devices/{self.id}/thermostat/changeableValues"
-        await self._auth.put(url, json=data)
+        _ = await self._auth.put(url, json=dhw_mode)
 
     async def set_dhw_on(self, until: dt | None = None) -> None:
         """Set DHW to On, either indefinitely, or until a specified time.
@@ -300,15 +300,15 @@ class Zone(_DeviceBase):  # Zone version of a Device
     ) -> None:
         """Set zone setpoint, either indefinitely, or until a set time."""
 
-        data: dict[str, float | str] = {SZ_STATUS: status}
+        zon_mode: dict[str, float | str] = {SZ_STATUS: status}
 
         if value is not None:  # NOTE: may have to send {SZ_VALUE: None} instead
-            data[SZ_VALUE] = value
+            zon_mode[SZ_VALUE] = value
         if next_time is not None:
-            data[SZ_NEXT_TIME] = as_utc_str(next_time)
+            zon_mode[SZ_NEXT_TIME] = as_utc_str(next_time)
 
         url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
-        await self._auth.put(url, json=data)
+        _ = await self._auth.put(url, json=zon_mode)
 
     async def set_temperature(
         self, temperature: float, until: dt | None = None
@@ -365,10 +365,11 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
     def one_touch_buttons(self) -> tuple[str, ...]:
         return tuple(self._status.get(SZ_ONE_TOUCH_BUTTONS, ()))
 
-    async def _set_mode(self, mode: dict[str, str]) -> None:
+    async def _set_mode(self, tcs_mode: dict[str, str]) -> None:
         """Set the TCS mode."""
 
-        await self._auth.put(f"evoTouchSystems?locationId={self.id}", json=mode)
+        url = f"evoTouchSystems?locationId={self.id}"
+        _ = await self._auth.put(url, json=tcs_mode)
 
     async def reset(self) -> None:
         """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""

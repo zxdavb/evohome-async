@@ -236,7 +236,8 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                 f"{self}: Attempting unsupported {SZ_SYSTEM_MODE}: {tcs_mode}..."
             )
 
-        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/mode", json=dict(tcs_mode))
+        url = f"{self._TCC_TYPE}/{self.id}/mode"
+        _ = await self._auth.put(url, json=tcs_mode)
 
     async def set_mode(
         self,
