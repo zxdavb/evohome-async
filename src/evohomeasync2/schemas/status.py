@@ -114,7 +114,7 @@ class TccZonStatusResponseT(TypedDict):
     setpointStatus: TccZonSetpointStatusResponseT
     temperatureStatus: TccTemperatureStatusResponseT
     name: str
-    fanStatus: NotRequired[TccFanStatusResponseT]  # FocusProWifi
+    fanStatus: NotRequired[TccFanStatusResponseT]  # non-evohome
 
 
 class TccFanStatusResponseT(TypedDict):

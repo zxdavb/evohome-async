@@ -196,7 +196,7 @@ class TccZonConfigResponseT(TypedDict):
     # Evohome always has schedule capabilities, but some FocusProWifi* do not
     scheduleCapabilities: NotRequired[TccZonScheduleCapabilitiesResponseT]
     zoneType: TccZoneType | str  # may be unknown/unexpected value, so allow str
-    allowedFanModes: NotRequired[list[TccAllowedFanModeResponseT]]  # FocusProWifi
+    allowedFanModes: NotRequired[list[TccAllowedFanModeResponseT]]  # non-evohome
 
 
 class TccAllowedFanModeResponseT(TypedDict):
@@ -432,7 +432,7 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
             vol.Required(fnc(S2_SETPOINT_CAPABILITIES)): SCH_SETPOINT_CAPABILITIES,
             vol.Optional(fnc(S2_SCHEDULE_CAPABILITIES)): SCH_SCHEDULE_CAPABILITIES,
             vol.Required(fnc(S2_ZONE_TYPE)): factory_enum_or_str(case, TccZoneType),
-            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): [SCH_FAN_MODE],  # FocusProWifiRetail
+            vol.Optional(fnc(S2_ALLOWED_FAN_MODES)): [SCH_FAN_MODE],  # non-evohome
         },
         extra=vol.PREVENT_EXTRA,
     )

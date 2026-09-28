@@ -189,7 +189,7 @@ class TccDhwState(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class TccFanMode(StrEnum):
+class TccFanMode(StrEnum):  # not seen with Evohome
     AUTO = "Auto"
     CIRCULATE = "Circulate"  # https://github.com/home-assistant/core/issues/179414
     ON = "On"

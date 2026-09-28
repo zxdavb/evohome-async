@@ -199,7 +199,7 @@ class EvoZonConfigResponseT(TypedDict):
     # Evohome always has schedule capabilities, but some FocusProWifi* do not
     schedule_capabilities: NotRequired[EvoZonScheduleCapabilitiesT]
     zone_type: ZoneType | str  # may be unknown/unexpected value, so allow str
-    allowed_fan_modes: NotRequired[list[EvoAllowedFanModesT]]  # FocusProWifi
+    allowed_fan_modes: NotRequired[list[EvoAllowedFanModesT]]  # non-evohome
 
 
 class EvoZonSetpointCapabilitiesT(TypedDict):
@@ -322,7 +322,7 @@ class EvoZonStatusResponseT(TypedDict):
     setpoint_status: EvoZonSetpointStatusT
     temperature_status: EvoTemperatureStatusT
     name: str
-    fan_status: NotRequired[EvoFanStatusT]  # FocusProWifi
+    fan_status: NotRequired[EvoFanStatusT]  # non-evohome
 
 
 class EvoZonSetpointStatusT(TypedDict):
