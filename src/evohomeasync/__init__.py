@@ -13,11 +13,6 @@ from typing import Self
 import aiohttp
 
 from .auth import AbstractSessionManager
-from .const import (  # the older client's output keys (not vendor keys)
-    SZ_ID as SZ_ID,
-    SZ_SETPOINT as SZ_SETPOINT,
-    SZ_TEMP as SZ_TEMP,
-)
 from .entities import ControlSystem, Gateway, HotWater, Location, Zone
 from .exceptions import (
     ApiCallFailedError,
