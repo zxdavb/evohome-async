@@ -60,7 +60,12 @@
                                     "setpointValueResolution": 0.5
                                 },
                                 "name": "Lounge",
-                                "zoneType": "NoSuchZoneType"
+                                "zoneType": "NoSuchZoneType",
+                                "allowedFanModes": [
+                                    {
+                                        "fanMode": "NoSuchFanMode"
+                                    }
+                                ]
                             }
                         ],
                         "allowedSystemModes": [

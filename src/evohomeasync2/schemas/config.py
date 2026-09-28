@@ -200,7 +200,7 @@ class TccZonConfigResponseT(TypedDict):
 
 
 class TccAllowedFanModeResponseT(TypedDict):
-    fanMode: TccFanMode
+    fanMode: TccFanMode | str  # may be unknown/unexpected value, so allow str
 
 
 class TccZonScheduleCapabilitiesResponseT(TypedDict):
@@ -375,7 +375,7 @@ def factory_zone(case: Case = Case.VENDOR) -> vol.Schema:
 
     SCH_FAN_MODE: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_FAN_MODE)): factory_enum(case, TccFanMode),
+            vol.Required(fnc(S2_FAN_MODE)): factory_enum_or_str(case, TccFanMode),
         },
         extra=vol.PREVENT_EXTRA,
     )

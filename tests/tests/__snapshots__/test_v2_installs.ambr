@@ -48975,15 +48975,16 @@
           \  - permanent_override\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - follow_schedule\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - temporary_override\n"
-      config: "model_type: no_such_model_type\nname: Lounge\nschedule_capabilities:\n\
-          \  max_switchpoints_per_day: 6\n  min_switchpoints_per_day: 1\n  setpoint_value_resolution:\
-          \ 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n  allowed_setpoint_modes:\n\
-          \  - !!python/object/apply:evohomeasync2.const.ZoneMode\n    - permanent_override\n\
-          \  - !!python/object/apply:evohomeasync2.const.ZoneMode\n    - follow_schedule\n\
-          \  - !!python/object/apply:evohomeasync2.const.ZoneMode\n    - temporary_override\n\
-          \  can_control_cool: false\n  can_control_heat: true\n  max_duration: 1.00:00:00\n\
-          \  max_heat_setpoint: 35.0\n  min_heat_setpoint: 5.0\n  timing_resolution:\
-          \ 00:10:00\n  value_resolution: 0.5\nzone_id: '4001024'\nzone_type: no_such_zone_type\n"
+      config: "allowed_fan_modes:\n- fan_mode: no_such_fan_mode\nmodel_type: no_such_model_type\n\
+          name: Lounge\nschedule_capabilities:\n  max_switchpoints_per_day: 6\n  min_switchpoints_per_day:\
+          \ 1\n  setpoint_value_resolution: 0.5\n  timing_resolution: 00:10:00\nsetpoint_capabilities:\n\
+          \  allowed_setpoint_modes:\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
+          \    - permanent_override\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
+          \    - follow_schedule\n  - !!python/object/apply:evohomeasync2.const.ZoneMode\n\
+          \    - temporary_override\n  can_control_cool: false\n  can_control_heat:\
+          \ true\n  max_duration: 1.00:00:00\n  max_heat_setpoint: 35.0\n  min_heat_setpoint:\
+          \ 5.0\n  timing_resolution: 00:10:00\n  value_resolution: 0.5\nzone_id: '4001024'\n\
+          zone_type: no_such_zone_type\n"
       id: '''4001024''
   
           '
@@ -49069,7 +49070,8 @@
           target_heat_temperature: 5.0
   
           '
-      status: "active_faults: []\nname: Lounge\nsetpoint_status:\n  setpoint_mode: !!python/object/apply:evohomeasync2.const.ZoneMode\n\
+      status: "active_faults: []\nfan_status:\n  can_be_changed: true\n  fan_mode: no_such_fan_mode\n\
+          name: Lounge\nsetpoint_status:\n  setpoint_mode: !!python/object/apply:evohomeasync2.const.ZoneMode\n\
           \  - permanent_override\n  target_heat_temperature: 5.0\ntemperature_status:\n\
           \  is_available: false\nzone_id: '4001024'\n"
       target_heat_temperature: '5.0

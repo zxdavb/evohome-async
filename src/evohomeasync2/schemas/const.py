@@ -191,6 +191,7 @@ class TccDhwState(StrEnum):
 @verify(EnumCheck.UNIQUE)
 class TccFanMode(StrEnum):
     AUTO = "Auto"
+    CIRCULATE = "Circulate"  # https://github.com/home-assistant/core/issues/179414
     ON = "On"
 
 
@@ -262,6 +263,7 @@ class TccZoneModelType(StrEnum):
     HEATING_ZONE = "HeatingZone"
     ROUND_MODULATION = "RoundModulation"
     ROUND_WIRELESS = "RoundWireless"
+    SARATOGA = "Saratoga"  # https://github.com/home-assistant/core/issues/179414
     SYDNEY = "Sydney"  # https://github.com/home-assistant/core/issues/141882
     UNKNOWN = "Unknown"  # see: https://github.com/home-assistant/core/issues/30945
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"

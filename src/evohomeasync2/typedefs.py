@@ -238,7 +238,7 @@ class EvoZonScheduleCapabilitiesT(_EvoScheduleCapabilitiesT):
 
 
 class EvoAllowedFanModesT(TypedDict):
-    fan_mode: FanMode
+    fan_mode: FanMode | str  # may be unknown/unexpected value, so allow str
 
 
 # GET /domesticHotWater/{dhw_id}/... (extrapolated)
@@ -337,7 +337,7 @@ class EvoTemperatureStatusT(TypedDict):
 
 
 class EvoFanStatusT(TypedDict):
-    fan_mode: FanMode
+    fan_mode: FanMode | str  # may be unknown/unexpected value, so allow str
     can_be_changed: bool
 
 

@@ -188,6 +188,7 @@ class DhwState(StrEnum):
 @verify(EnumCheck.UNIQUE)
 class FanMode(StrEnum):
     AUTO = camel_to_snake(TccFanMode.AUTO)
+    CIRCULATE = camel_to_snake(TccFanMode.CIRCULATE)  # not seen with Evohome
     ON = camel_to_snake(TccFanMode.ON)
 
 
@@ -259,6 +260,7 @@ class ZoneModelType(StrEnum):
     HEATING_ZONE = camel_to_snake(TccZoneModelType.HEATING_ZONE)
     ROUND_MODULATION = camel_to_snake(TccZoneModelType.ROUND_MODULATION)
     ROUND_WIRELESS = camel_to_snake(TccZoneModelType.ROUND_WIRELESS)
+    SARATOGA = camel_to_snake(TccZoneModelType.SARATOGA)  # not seen with Evohome
     SYDNEY = camel_to_snake(TccZoneModelType.SYDNEY)  # not seen with Evohome
     UNKNOWN = camel_to_snake(TccZoneModelType.UNKNOWN)
     VISION_PRO_WIFI_RETAIL = camel_to_snake(TccZoneModelType.VISION_PRO_WIFI_RETAIL)

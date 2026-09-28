@@ -17,7 +17,11 @@
                                 "targetHeatTemperature": 5.0,
                                 "setpointMode": "PermanentOverride"
                             },
-                            "name": "Lounge"
+                            "name": "Lounge",
+                            "fanStatus": {
+                                "fanMode": "NoSuchFanMode",
+                                "canBeChanged": true
+                            }
                         }
                     ],
                     "activeFaults": [],

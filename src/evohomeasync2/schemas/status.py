@@ -118,7 +118,7 @@ class TccZonStatusResponseT(TypedDict):
 
 
 class TccFanStatusResponseT(TypedDict):
-    fanMode: TccFanMode
+    fanMode: TccFanMode | str  # may be unknown/unexpected value, so allow str
     canBeChanged: bool
 
 
@@ -211,7 +211,7 @@ def factory_zon_status(case: Case = Case.VENDOR) -> Validator[TccZonStatusRespon
 
     SCH_FAN_STATUS: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_FAN_MODE)): factory_enum(case, TccFanMode),
+            vol.Required(fnc(S2_FAN_MODE)): factory_enum_or_str(case, TccFanMode),
             vol.Required(fnc(S2_CAN_BE_CHANGED)): bool,
         },
         extra=vol.PREVENT_EXTRA,
