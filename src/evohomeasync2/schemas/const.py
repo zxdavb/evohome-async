@@ -192,6 +192,7 @@ class TccDhwState(StrEnum):
 class TccFanMode(StrEnum):  # non-evohome
     AUTO = "Auto"
     CIRCULATE = "Circulate"  # https://github.com/home-assistant/core/issues/179414
+    FOLLOW_SCHEDULE = "FollowSchedule"
     ON = "On"
 
 

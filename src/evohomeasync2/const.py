@@ -189,6 +189,7 @@ class DhwState(StrEnum):
 class FanMode(StrEnum):  # non-evohome
     AUTO = camel_to_snake(TccFanMode.AUTO)
     CIRCULATE = camel_to_snake(TccFanMode.CIRCULATE)
+    FOLLOW_SCHEDULE = camel_to_snake(TccFanMode.FOLLOW_SCHEDULE)
     ON = camel_to_snake(TccFanMode.ON)
 
 
