@@ -165,7 +165,7 @@ class EvoGatewayInfoT(TypedDict):
 # GET /temperatureControlSystem/{tcs_id}/... (extrapolated)
 class _EvoTcsConfigResponseBaseT(TypedDict):
     system_id: str
-    model_type: TcsModelType
+    model_type: TcsModelType | str  # enum may be incomplete, so allow str
     allowed_system_modes: list[EvoAllowedSystemModesT]
 
 
@@ -193,13 +193,13 @@ class EvoZonConfigResponseT(TypedDict):
     """Response to `GET /temperatureZone/{zon_id}/...`."""
 
     zone_id: str
-    model_type: ZoneModelType
+    model_type: ZoneModelType | str  # enum may be incomplete, so allow str
     name: str
     setpoint_capabilities: EvoZonSetpointCapabilitiesT
     # Evohome always has schedule capabilities, but some FocusProWifi* do not
     schedule_capabilities: NotRequired[EvoZonScheduleCapabilitiesT]
-    zone_type: ZoneType
-    allowed_fan_modes: NotRequired[list[EvoAllowedFanModesT]]  # FocusProWifi
+    zone_type: ZoneType | str  # enum may be incomplete, so allow str
+    allowed_fan_modes: NotRequired[list[EvoAllowedFanModesT]]  # non-evohome
 
 
 class EvoZonSetpointCapabilitiesT(TypedDict):
@@ -238,7 +238,7 @@ class EvoZonScheduleCapabilitiesT(_EvoScheduleCapabilitiesT):
 
 
 class EvoAllowedFanModesT(TypedDict):
-    fan_mode: FanMode
+    fan_mode: FanMode | str  # enum may be incomplete, so allow str
 
 
 # GET /domesticHotWater/{dhw_id}/... (extrapolated)
@@ -289,7 +289,7 @@ class EvoGwyStatusResponseT(_EvoGwyStatusResponseBaseT):
 
 
 class EvoActiveFaultT(TypedDict):
-    fault_type: FaultType | str  # may be unknown/unexpected value, so allow str
+    fault_type: FaultType | str  # enum may be incomplete, so allow str
     since: dt  # TZ-naive, no 'Z' suffix in the vendor string
 
 
@@ -322,7 +322,7 @@ class EvoZonStatusResponseT(TypedDict):
     setpoint_status: EvoZonSetpointStatusT
     temperature_status: EvoTemperatureStatusT
     name: str
-    fan_status: NotRequired[EvoFanStatusT]  # FocusProWifi
+    fan_status: NotRequired[EvoFanStatusT]  # non-evohome
 
 
 class EvoZonSetpointStatusT(TypedDict):
@@ -337,7 +337,7 @@ class EvoTemperatureStatusT(TypedDict):
 
 
 class EvoFanStatusT(TypedDict):
-    fan_mode: FanMode
+    fan_mode: FanMode | str  # enum may be incomplete, so allow str
     can_be_changed: bool
 
 
@@ -436,6 +436,7 @@ class EvoZonScheduleDayOfWeekT(TypedDict):
 class EvoZonScheduleSwitchpointT(TypedDict):
     cool_setpoint: NotRequired[float]  # not ever seen in the wild; included defensively
     heat_setpoint: float
+    fan_mode: NotRequired[FanMode | str]  # non-evohome; may be unknown, so allow str
     time_of_day: str
 
 

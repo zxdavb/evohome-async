@@ -17,18 +17,21 @@ import probatio as vol
 
 from _evohome.helpers import camel_to_snake, noop
 
+from .config import _MAX_HEAT_SETPOINT_UPPER, _MIN_HEAT_SETPOINT_LOWER
 from .const import (
     S2_COOL_SETPOINT,
     S2_DAILY_SCHEDULES,
     S2_DAY_OF_WEEK,
     S2_DHW_STATE,
+    S2_FAN_MODE,
     S2_HEAT_SETPOINT,
     S2_SWITCHPOINTS,
     S2_TIME_OF_DAY,
     TccDayOfWeek,
     TccDhwState,
+    TccFanMode,
 )
-from .helpers import Case, factory_enum
+from .helpers import Case, factory_enum, factory_enum_or_str
 
 if TYPE_CHECKING:
     from _evohome.helpers import Validator
@@ -56,6 +59,7 @@ class TccDhwDailySchedulesT(TypedDict):
 class TccZonSwitchpointT(TypedDict):
     coolSetpoint: NotRequired[float]  # not confirmed; included defensively
     heatSetpoint: float
+    fanMode: NotRequired[TccFanMode | str]  # non-evohome; enum may be incomplete, so allow str
     timeOfDay: str  # "HH:MM:00"
 
 
@@ -135,7 +139,10 @@ def factory_zon_schedule(
     SCH_GET_SWITCHPOINT_ZONE: Final = vol.Schema(
         {
             vol.Optional(fnc(S2_COOL_SETPOINT)): float,  # an extrapolation
-            vol.Required(fnc(S2_HEAT_SETPOINT)): vol.All(float, vol.Range(min=5, max=35)),
+            vol.Required(fnc(S2_HEAT_SETPOINT)): vol.All(
+                float, vol.Range(min=_MIN_HEAT_SETPOINT_LOWER, max=_MAX_HEAT_SETPOINT_UPPER)
+            ),
+            vol.Optional(fnc(S2_FAN_MODE)): factory_enum_or_str(case, TccFanMode),  # non-evohome
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
         },
         extra=vol.PREVENT_EXTRA,

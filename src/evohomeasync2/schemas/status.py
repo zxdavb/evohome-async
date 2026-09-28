@@ -91,7 +91,8 @@ class TccGwyStatusResponseT(TypedDict):
 class TccActiveFaultResponseT(TypedDict):
     # the vendor's list is incomplete, so allow str
     faultType: TccFaultType | str  # "TempZoneSensorCommunicationLost"
-    since: str  # #            "2023-10-09T01:45:00", "2023-10-09T01:45:00.123456"
+    since: str  # is naive, e.g. "2023-10-09T01:45:00", "2023-10-09T01:45:00.123456"
+    # NOTE: some gateways have sent 7 fractional digits: "2023-10-09T01:45:00.1234567"
 
 
 class TccTcsStatusResponseT(TypedDict):
@@ -114,11 +115,11 @@ class TccZonStatusResponseT(TypedDict):
     setpointStatus: TccZonSetpointStatusResponseT
     temperatureStatus: TccTemperatureStatusResponseT
     name: str
-    fanStatus: NotRequired[TccFanStatusResponseT]  # FocusProWifi
+    fanStatus: NotRequired[TccFanStatusResponseT]  # non-evohome
 
 
 class TccFanStatusResponseT(TypedDict):
-    fanMode: TccFanMode
+    fanMode: TccFanMode | str  # enum may be incomplete, so allow str
     canBeChanged: bool
 
 
@@ -211,7 +212,7 @@ def factory_zon_status(case: Case = Case.VENDOR) -> Validator[TccZonStatusRespon
 
     SCH_FAN_STATUS: Final = vol.Schema(
         {
-            vol.Required(fnc(S2_FAN_MODE)): factory_enum(case, TccFanMode),
+            vol.Required(fnc(S2_FAN_MODE)): factory_enum_or_str(case, TccFanMode),
             vol.Required(fnc(S2_CAN_BE_CHANGED)): bool,
         },
         extra=vol.PREVENT_EXTRA,

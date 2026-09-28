@@ -189,8 +189,10 @@ class TccDhwState(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class TccFanMode(StrEnum):
+class TccFanMode(StrEnum):  # non-evohome
     AUTO = "Auto"
+    CIRCULATE = "Circulate"  # https://github.com/home-assistant/core/issues/179414
+    FOLLOW_SCHEDULE = "FollowSchedule"
     ON = "On"
 
 
@@ -237,6 +239,7 @@ class TccSystemMode(StrEnum):
 class TccTcsModelType(StrEnum):
     EVO_TOUCH = "EvoTouch"
     FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
+    SARATOGA = "Saratoga"  # https://github.com/home-assistant/core/issues/179414
     SYDNEY = "Sydney"  # https://github.com/home-assistant/core/issues/141882
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
 
@@ -261,6 +264,7 @@ class TccZoneModelType(StrEnum):
     HEATING_ZONE = "HeatingZone"
     ROUND_MODULATION = "RoundModulation"
     ROUND_WIRELESS = "RoundWireless"
+    SARATOGA = "Saratoga"  # https://github.com/home-assistant/core/issues/179414
     SYDNEY = "Sydney"  # https://github.com/home-assistant/core/issues/141882
     UNKNOWN = "Unknown"  # see: https://github.com/home-assistant/core/issues/30945
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"

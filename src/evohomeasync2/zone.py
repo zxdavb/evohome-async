@@ -14,9 +14,11 @@ from . import exceptions as exc
 from .const import (
     _ERR_NOT_AVAILABLE,
     SZ_ACTIVE_FAULTS,
+    SZ_ALLOWED_FAN_MODES,
     SZ_ALLOWED_SETPOINT_MODES,
     SZ_DAILY_SCHEDULES,
     SZ_DHW_STATE,
+    SZ_FAN_MODE,
     SZ_FAULT_TYPE,
     SZ_HEAT_SETPOINT,
     SZ_HEAT_SETPOINT_VALUE,
@@ -40,6 +42,7 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
     DayOfWeek,
+    FanMode,
     FaultType,
     ZoneMode,
     ZoneModelType,
@@ -82,6 +85,11 @@ if TYPE_CHECKING:
 
 
 _ONE_DAY = td(days=1)
+
+# for values that the schema passes through, as the vendor's enums are incomplete
+_PLEASE_REPORT = (
+    "is unknown, please report it at https://github.com/zxdavb/evohome-async/issues"
+)
 
 
 class EntityBase[StatusT]:
@@ -155,11 +163,9 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
             return fault[SZ_SINCE].isoformat()  # an aware dt; log as ISO 8601
 
         def log_as_active(fault: EvoActiveFaultT) -> None:
-            # the schema passes through fault types that are absent from FaultType,
-            # as the vendor's list is incomplete: flag them, so they can be added
-            unknown = (
-                "" if isinstance(fault[SZ_FAULT_TYPE], FaultType) else " (unknown)"
-            )
+            # Ask for unknown fault types to be reported, so can be added to the enum
+            is_known = isinstance(fault[SZ_FAULT_TYPE], FaultType)
+            unknown = "" if is_known else f" ({_PLEASE_REPORT})"
             self._logger.warning(
                 f"{self}: Active fault: {since(fault)} {fault[SZ_FAULT_TYPE]}{unknown}"
             )
@@ -321,6 +327,11 @@ class _ScheduleBase[
                 f"{self._TCC_TYPE}/{self.id}/schedule",
                 schema=self.SCH_SCHEDULE,
             )
+
+        except exc.BadApiSchemaError as err:  # the schedule failed validation
+            raise exc.InvalidScheduleError(
+                f"{self}: Schedule is invalid: {err}"
+            ) from err
 
         except exc.ApiCallFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
@@ -517,9 +528,20 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             )
 
         if self.model not in ZoneModelType:
-            self._logger.warning("%s: Unknown model type '%s' (YMMV)", self, self.model)
+            self._logger.warning(
+                "%s: Unexpected Zone model '%s' (YMMV)", self, self.model
+            )
         if self.type not in ZoneType:
-            self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
+            self._logger.warning(
+                "%s: Unexpected Zone type '%s' (YMMV)", self, self.type
+            )
+
+        # Ask for unknown fan modes to be reported, so they can be added to the enum
+        for fan_mode in config.get(SZ_ALLOWED_FAN_MODES, []):
+            if not isinstance(fan_mode[SZ_FAN_MODE], FanMode):
+                self._logger.warning(
+                    f"{self}: Fan mode '{fan_mode[SZ_FAN_MODE]}' {_PLEASE_REPORT}"
+                )
 
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoZonConfigT:
@@ -529,7 +551,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     # Config attrs...
 
     @cached_property
-    def model(self) -> ZoneModelType:
+    def model(self) -> ZoneModelType | str:
         return self._config[SZ_MODEL_TYPE]
 
     @property
@@ -539,7 +561,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         return self._config[SZ_NAME]
 
     @cached_property
-    def type(self) -> ZoneType:
+    def type(self) -> ZoneType | str:
         return self._config[SZ_ZONE_TYPE]
 
     @cached_property
