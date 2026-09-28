@@ -234,9 +234,14 @@ V2_SCHEMAS: dict[str, tuple[Callable[[Case], object], object, object]] = {
         account.TccErrorResponseT,
         None,
     ),
-    "status_response": (
-        account.factory_status_response,
+    "failure_response": (
+        account.factory_failure_response,
         account.TccFailureResponseT,  # a list of these
+        None,
+    ),
+    "task_response": (
+        account.factory_task_response,
+        account.TccTaskResponseT,
         None,
     ),
     "loc_config": (

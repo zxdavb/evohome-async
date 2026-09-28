@@ -22,9 +22,9 @@ import pytest
 
 from evohomeasync2.schemas.account import (
     TCC_ERROR_RESPONSE,
+    TCC_FAILURE_RESPONSE,
     TCC_GET_USR_ACCOUNT,
     TCC_POST_OAUTH_TOKEN,
-    TCC_STATUS_RESPONSE,
 )
 from tests.const import (
     _DBG_TEST_CRED_URLS,
@@ -142,7 +142,7 @@ async def test_bad2(  # bad access token
         """
 
     assert isinstance(response, list) and response[0]["code"] == "Unauthorized"  # noqa: PT018
-    TCC_STATUS_RESPONSE(response)
+    TCC_FAILURE_RESPONSE(response)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
