@@ -1,11 +1,16 @@
-"""Validate the handling of the v2 APIs (URLs) for Authorization.
+"""Validate the handling of the v2 APIs (URLs): their errors and edge cases.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor
   b) confirm the faked server (if any) is behaving as per a)
 
+Where test_v2_urls.py documents each endpoint (and has a list of them all), this module
+documents how they fail: e.g. an unauthorized user or wrong method, an invalid URL, and
+a PUT with missing or invalid params (with each error code the vendor returns).
+
 Testing is at HTTP request layer (e.g. GET/PUT).
-Everything to/from the RESTful API is in camelCase (so those schemas are used).
+Everything to/from the RESTful API is in camelCase (so those schemas are used), although
+the keys of a request are case-insensitive (as confirmed here).
 """
 
 from __future__ import annotations
@@ -19,15 +24,27 @@ import pytest
 from _evohome.helpers import pascal_to_snake
 from evohomeasync2.schemas.account import TCC_GET_USR_ACCOUNT
 from evohomeasync2.schemas.config import TCC_GET_USR_LOCATIONS
-from evohomeasync2.schemas.const import TCC_DTM_STRFTIME, TccSystemMode, TccZoneMode
+from evohomeasync2.schemas.const import (
+    TCC_DTM_STRFTIME,
+    TccDhwState,
+    TccSystemMode,
+    TccZoneMode,
+)
 from evohomeasync2.schemas.status import (
+    TCC_GET_DHW_STATUS,
     TCC_GET_LOC_STATUS,
     TCC_GET_TCS_STATUS,
     TCC_GET_ZON_STATUS,
 )
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
-from .common import should_fail_v2, should_work_v2, skipif_auth_failed
+from .common import (
+    error_codes,
+    get_dhw,
+    should_fail_v2,
+    should_work_v2,
+    skipif_auth_failed,
+)
 
 if TYPE_CHECKING:
     import evohomeasync2 as evo2
@@ -340,6 +357,17 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
     #
     url = f"{zone._TCC_TYPE}/{zone.id}/heatSetpoint"
 
+    # NOTE: unlike /mode (a TCS) and /state (a DHW), which are 405 for a GET, this is
+    # a 404, as if the URL does not exist (so there is no way to GET the setpoint alone)
+    _ = await should_fail_v2(
+        evo.auth,
+        HTTPMethod.GET,
+        url,
+        status=HTTPStatus.NOT_FOUND,
+        content_type="text/html",  # exception to usual content-type
+    )
+    # '<!DOCTYPE html PUBLIC ...
+
     heat_setpoint = {
         "setpointMode": TccZoneMode.PERMANENT_OVERRIDE,
     }
@@ -401,6 +429,142 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
     # {'id': '1588365922'}
 
 
+async def _test_dhw_status(evo: EvohomeClientV2) -> None:
+    """Test /domesticHotWater/{dhw.id}/status
+
+    Also tests /domesticHotWater/{dhw.id}/state
+    """
+
+    dhw_state: dict[str, str | None]  # TODO: TypedDict
+
+    # TODO: remove .update() and use URLs only
+    await evo.update()
+
+    if not (dhw := get_dhw(evo)):
+        pytest.skip("No available DHW found")
+
+    #
+    # STEP 1: Get the status (which is GET-only)
+    url = f"{dhw._TCC_TYPE}/{dhw.id}/status"
+
+    _ = await should_work_v2(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_DHW_STATUS)
+    # {
+    #     'dhwId': '3933910',
+    #     'temperatureStatus': {'temperature': 55.0, 'isAvailable': True},
+    #     'stateStatus': {'state': 'Off', 'mode': 'FollowSchedule'},
+    #     'activeFaults': []
+    # }
+
+    _ = await should_fail_v2(
+        evo.auth,
+        HTTPMethod.PUT,
+        url,
+        json={"mode": TccZoneMode.FOLLOW_SCHEDULE},
+        status=HTTPStatus.METHOD_NOT_ALLOWED,
+    )
+    # {'message': "The requested resource does not support http method 'PUT'."}
+
+    #
+    # STEP 2: Change the state, but with the wrong method (it is PUT-only)
+    url = f"{dhw._TCC_TYPE}/{dhw.id}/state"
+
+    _ = await should_fail_v2(
+        evo.auth, HTTPMethod.GET, url, status=HTTPStatus.METHOD_NOT_ALLOWED
+    )
+    # {'message': "The requested resource does not support http method 'GET'."}
+
+    #
+    # STEP 3: Change the state, but with missing/invalid request data (JSON)
+    dhw_state = {}
+    rsp = await should_fail_v2(
+        evo.auth, HTTPMethod.PUT, url, json=dhw_state, status=HTTPStatus.BAD_REQUEST
+    )
+    assert error_codes(rsp) == ["ParameterIsMissing"], rsp
+    # [{
+    #     'code': 'ParameterIsMissing',
+    #     'parameterName': 'Mode',
+    #     'message': 'Parameter is missing.'
+    # }]
+
+    dhw_state = {"mode": "xxxxx", "state": TccDhwState.ON}
+    rsp = await should_fail_v2(
+        evo.auth, HTTPMethod.PUT, url, json=dhw_state, status=HTTPStatus.BAD_REQUEST
+    )
+    assert error_codes(rsp) == ["InvalidInput"], rsp
+    # [{'code': 'InvalidInput', 'message': 'Error converting value "xxxxx" to ...'}]
+
+    dhw_state = {"mode": TccZoneMode.PERMANENT_OVERRIDE, "state": "xxxxx"}
+    rsp = await should_fail_v2(
+        evo.auth, HTTPMethod.PUT, url, json=dhw_state, status=HTTPStatus.BAD_REQUEST
+    )
+    assert error_codes(rsp) == ["InvalidInput"], rsp
+    # [{'code': 'InvalidInput', 'message': 'Error converting value "xxxxx" to ...'}]
+
+    #
+    # STEP 4: Change the state, but without data that the mode requires
+    dhw_state = {"mode": TccZoneMode.PERMANENT_OVERRIDE}  # an override needs a state
+    rsp = await should_fail_v2(
+        evo.auth, HTTPMethod.PUT, url, json=dhw_state, status=HTTPStatus.BAD_REQUEST
+    )
+    assert error_codes(rsp) == ["DHWStateNotSet"], rsp
+    # [{
+    #     'code': 'DHWStateNotSet',
+    #     'message': 'Domestic hot water state is not set when required'
+    # }]
+
+    dhw_state = {"mode": TccZoneMode.TEMPORARY_OVERRIDE, "state": TccDhwState.ON}
+    rsp = await should_fail_v2(
+        evo.auth, HTTPMethod.PUT, url, json=dhw_state, status=HTTPStatus.BAD_REQUEST
+    )
+    assert error_codes(rsp) == ["DHWUntilTimeNotSet"], rsp
+    # [{
+    #     'code': 'DHWUntilTimeNotSet',
+    #     'message': 'Domestic hot water until time is not set when required'
+    # }]
+
+    #
+    # STEP 5: Change the state, with valid request data (JSON)
+    dhw_state = {  # NOTE: the keys are case-insensitive
+        "Mode": TccZoneMode.PERMANENT_OVERRIDE,
+        "State": TccDhwState.OFF,
+    }
+    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dhw_state)
+    # {'id': '1278834041'}
+
+    #
+    # STEP 6: Restore the state (so it follows its schedule)
+    dhw_state = {"mode": TccZoneMode.FOLLOW_SCHEDULE}  # no state is needed
+    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dhw_state)
+    # {'id': '1278834119'}
+
+    #
+    # STEP 7: Change the state, but without permission
+    url = f"{dhw._TCC_TYPE}/1234567/state"
+
+    rsp = await should_fail_v2(
+        evo.auth, HTTPMethod.PUT, url, json=dhw_state, status=HTTPStatus.UNAUTHORIZED
+    )
+    assert error_codes(rsp) == ["Unauthorized"], rsp
+    # [{
+    #     'code': 'Unauthorized',
+    #     'message': 'You are not allowed to perform this action.'
+    # }]
+
+    #
+    # STEP 8: Change the state, but with an invalid URL (/mode is for a TCS)
+    url = f"{dhw._TCC_TYPE}/{dhw.id}/mode"
+
+    _ = await should_fail_v2(
+        evo.auth,
+        HTTPMethod.PUT,
+        url,
+        json=dhw_state,
+        status=HTTPStatus.NOT_FOUND,
+        content_type="text/html",  # exception to usual content-type
+    )
+    # '<!DOCTYPE html PUBLIC ...
+
+
 #######################################################################################
 
 
@@ -457,4 +621,17 @@ async def test_zone_status(evohome_v2: EvohomeClientV2) -> None:
         pytest.skip("Mocked server API not implemented")
 
 
-# TODO: test_get_dhw_status( & test_put_dhw_state(
+@skipif_auth_failed  # GET, PUT
+async def test_dhw_status(evohome_v2: EvohomeClientV2) -> None:
+    """Test GET /domesticHotWater/{dhw.id}/status
+
+    Also tests PUT /domesticHotWater/{dhw.id}/state
+    """
+
+    try:
+        await _test_dhw_status(evohome_v2)
+
+    except NotImplementedError:  # TODO: implement
+        if _DBG_USE_REAL_AIOHTTP:
+            raise
+        pytest.skip("Mocked server API not implemented")
