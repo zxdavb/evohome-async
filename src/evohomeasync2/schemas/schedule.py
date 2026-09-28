@@ -17,7 +17,7 @@ import probatio as vol
 
 from _evohome.helpers import camel_to_snake, noop
 
-from .config import _MIN_HEAT_SETPOINT_LOWER
+from .config import _MAX_HEAT_SETPOINT_UPPER, _MIN_HEAT_SETPOINT_LOWER
 from .const import (
     S2_COOL_SETPOINT,
     S2_DAILY_SCHEDULES,
@@ -139,7 +139,9 @@ def factory_zon_schedule(
     SCH_GET_SWITCHPOINT_ZONE: Final = vol.Schema(
         {
             vol.Optional(fnc(S2_COOL_SETPOINT)): float,  # an extrapolation
-            vol.Required(fnc(S2_HEAT_SETPOINT)): vol.All(float, vol.Range(min=_MIN_HEAT_SETPOINT_LOWER, max=35)),
+            vol.Required(fnc(S2_HEAT_SETPOINT)): vol.All(
+                float, vol.Range(min=_MIN_HEAT_SETPOINT_LOWER, max=_MAX_HEAT_SETPOINT_UPPER)
+            ),
             vol.Optional(fnc(S2_FAN_MODE)): factory_enum_or_str(case, TccFanMode),  # non-evohome
             vol.Required(fnc(S2_TIME_OF_DAY)): vol.Datetime(format="%H:%M:00"),
         },
