@@ -14,9 +14,11 @@ from . import exceptions as exc
 from .const import (
     _ERR_NOT_AVAILABLE,
     SZ_ACTIVE_FAULTS,
+    SZ_ALLOWED_FAN_MODES,
     SZ_ALLOWED_SETPOINT_MODES,
     SZ_DAILY_SCHEDULES,
     SZ_DHW_STATE,
+    SZ_FAN_MODE,
     SZ_FAULT_TYPE,
     SZ_HEAT_SETPOINT,
     SZ_HEAT_SETPOINT_VALUE,
@@ -40,6 +42,7 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
     DayOfWeek,
+    FanMode,
     FaultType,
     ZoneMode,
     ZoneModelType,
@@ -520,6 +523,17 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             self._logger.warning("%s: Unknown model type '%s' (YMMV)", self, self.model)
         if self.type not in ZoneType:
             self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
+
+        # the schema passes through fan modes that are absent from FanMode, as the
+        # vendor's list is incomplete: ask for them to be reported, so they can be added
+        for fan_mode in config.get(SZ_ALLOWED_FAN_MODES, []):
+            if fan_mode[SZ_FAN_MODE] not in FanMode:
+                self._logger.warning(
+                    "%s: Unknown fan mode '%s' (please report it at %s)",
+                    self,
+                    fan_mode[SZ_FAN_MODE],
+                    "https://github.com/zxdavb/evohome-async/issues",
+                )
 
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoZonConfigT:
