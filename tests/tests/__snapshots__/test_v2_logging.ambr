@@ -18,7 +18,7 @@
     tuple(
       'evohomeasync2',
       30,
-      "ControlSystem(id='4001023'): Unknown TCS model 'no_such_model_type' (YMMV)",
+      "ControlSystem(id='4001023'): Unexpected TCS model 'no_such_model_type' (YMMV)",
     ),
     tuple(
       'evohomeasync2',
