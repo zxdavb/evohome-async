@@ -23,17 +23,17 @@
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='4001024'): Unknown Zone model 'no_such_model_type' (YMMV)",
+      "Zone(id='4001024'): Unexpected Zone model 'no_such_model_type' (YMMV)",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='4001024'): Unknown Zone type 'no_such_zone_type' (YMMV)",
+      "Zone(id='4001024'): Unexpected Zone type 'no_such_zone_type' (YMMV)",
     ),
     tuple(
       'evohomeasync2',
       30,
-      "Zone(id='4001024'): Fan mode 'no_such_fan_mode' (is unknown, please report it at https://github.com/zxdavb/evohome-async/issues)",
+      "Zone(id='4001024'): Fan mode 'no_such_fan_mode' is unknown, please report it at https://github.com/zxdavb/evohome-async/issues",
     ),
     tuple(
       'evohomeasync2',
