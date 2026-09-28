@@ -18,6 +18,8 @@ Source: [Home Assistant core issue #179414](https://github.com/home-assistant/co
 |------|--------|
 | `user_account.json` | Synthesised — userId 4578816 (real), Australia |
 | `user_locations.json` | From the original report (redacted); PII replaced |
+| `status_5508661.json` | From a later comment; two zone faults unrelated to the issue were removed by the reporter |
+| `schedule_zone.json` | From a later comment; times and setpoints substituted by the reporter, structure (incl. `fanMode`) as returned |
 
 ## Notes
 
@@ -25,8 +27,10 @@ Source: [Home Assistant core issue #179414](https://github.com/home-assistant/co
   `Saratoga`, and the zone's `allowedFanModes` include `Circulate`. None of these were
   known, so the schema rejected the whole `installationInfo` response, and the
   integration could not load at all.
-- **Config-only fixture** — no status file in the original report. Tests that need one
-  correctly xfail.
+- Once that was fixed, the zone's schedule was rejected too: each switchpoint has a
+  `fanMode`, which the schedule schema did not allow.
+- The zone status has a `fanStatus`, and a `targetHeatTemperature` of 4.5 (the zone's
+  `minHeatSetpoint`), as the system is `Off`.
 - The report arrived pre-redacted by the reporter, with masks that preserved the length
   of the original strings (e.g. `"TH********"`). These were replaced with synthesised
   values per the PII policy in the parent README; `mac`/`crc` were zero-filled, and the

@@ -1,0 +1,38 @@
+{
+    "locationId": "5508661",
+    "gateways": [
+        {
+            "gatewayId": "5231562",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "7171354",
+                    "zones": [
+                        {
+                            "zoneId": "7171354",
+                            "temperatureStatus": {
+                                "temperature": 21.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 4.5,
+                                "setpointMode": "PermanentOverride"
+                            },
+                            "name": "THERMOSTAT",
+                            "fanStatus": {
+                                "fanMode": "Auto",
+                                "canBeChanged": true
+                            }
+                        }
+                    ],
+                    "activeFaults": [],
+                    "systemModeStatus": {
+                        "mode": "Off",
+                        "isPermanent": true
+                    }
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}

@@ -54,7 +54,7 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `hass_141882/` | 7680795 | AUSEastern | HA core issue [#141882](https://github.com/home-assistant/core/issues/141882) |
 | `hass_157546/` | 7647411 | GMT | HA core issue [#157546](https://github.com/home-assistant/core/issues/157546) |
 | `hass_178493/` | 6557787 | WEurope | HA core issue [#178493](https://github.com/home-assistant/core/issues/178493) (Netherlands, `BoilerServiceRequired`) |
-| `hass_179414/` | 5508661 | AUSEastern | HA core issue [#179414](https://github.com/home-assistant/core/issues/179414) (`Saratoga`, fan mode `Circulate`; config only) |
+| `hass_179414/` | 5508661 | AUSEastern | HA core issue [#179414](https://github.com/home-assistant/core/issues/179414) (`Saratoga`, fan mode `Circulate`, `fanMode` in schedules) |
 | `system_007/` | 4001001 | GMT | Synthesised schema coverage: 2 locations (maximal, minimal) |
 | `enums_no_such/` | 4001021 | GMT | Synthesised enum values that are not members: TCS/zone `modelType`, `zoneType`, `faultType`, `fanMode` |
 | `enums_unknown/` | 4001031 | GMT | Synthesised `Unknown` enum values: zone `modelType`, `zoneType` (ghost zones) |
@@ -62,8 +62,7 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `null_system_1/` | 4001005 | GMT | Synthesised null installation: 1 location, no gateways |
 | `null_system_2/` | 4001006 | GMT | Synthesised null installation: 1 location, 1 gateway, no TCS |
 
-Config-only dirs (no status file, xfail in tests): `hass_099625/`, `hass_102815/`,
-`hass_179414/`
+Config-only dirs (no status file, xfail in tests): `hass_099625/`, `hass_102815/`
 
 ## PII policy
 

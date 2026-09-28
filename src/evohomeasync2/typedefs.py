@@ -436,6 +436,7 @@ class EvoZonScheduleDayOfWeekT(TypedDict):
 class EvoZonScheduleSwitchpointT(TypedDict):
     cool_setpoint: NotRequired[float]  # not ever seen in the wild; included defensively
     heat_setpoint: float
+    fan_mode: NotRequired[FanMode | str]  # non-evohome; may be unknown, so allow str
     time_of_day: str
 
 

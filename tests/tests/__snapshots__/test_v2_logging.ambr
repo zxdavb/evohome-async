@@ -246,6 +246,10 @@
     ),
   ])
 # ---
+# name: test_system_warnings[hass_179414]
+  list([
+  ])
+# ---
 # name: test_system_warnings[null_system_0]
   list([
   ])
