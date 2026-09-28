@@ -87,7 +87,9 @@ if TYPE_CHECKING:
 _ONE_DAY = td(days=1)
 
 # for values that the schema passes through, as the vendor's enums are incomplete
-_PLEASE_REPORT = "please report it at https://github.com/zxdavb/evohome-async/issues"
+_PLEASE_REPORT = (
+    "(is unknown, please report it at https://github.com/zxdavb/evohome-async/issues)"
+)
 
 
 class EntityBase[StatusT]:
@@ -161,13 +163,9 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
             return fault[SZ_SINCE].isoformat()  # an aware dt; log as ISO 8601
 
         def log_as_active(fault: EvoActiveFaultT) -> None:
-            # the schema passes through fault types that are absent from FaultType,
-            # as the vendor's list is incomplete: flag them, so they can be added
-            unknown = (
-                ""
-                if isinstance(fault[SZ_FAULT_TYPE], FaultType)
-                else f" (unknown, {_PLEASE_REPORT})"
-            )
+            # Ask for unknown fault types to be reported, so can be added to the enum
+            is_known = isinstance(fault[SZ_FAULT_TYPE], FaultType)
+            unknown = "" if is_known else f" {_PLEASE_REPORT}"
             self._logger.warning(
                 f"{self}: Active fault: {since(fault)} {fault[SZ_FAULT_TYPE]}{unknown}"
             )
@@ -534,15 +532,11 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         if self.type not in ZoneType:
             self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
 
-        # the schema passes through fan modes that are absent from FanMode, as the
-        # vendor's list is incomplete: ask for them to be reported, so they can be added
+        # Ask for unknown fan modes to be reported, so they can be added to the enum
         for fan_mode in config.get(SZ_ALLOWED_FAN_MODES, []):
-            if fan_mode[SZ_FAN_MODE] not in FanMode:
+            if not isinstance(fan_mode[SZ_FAN_MODE], FanMode):
                 self._logger.warning(
-                    "%s: Unknown fan mode '%s' (%s)",
-                    self,
-                    fan_mode[SZ_FAN_MODE],
-                    _PLEASE_REPORT,
+                    f"{self}: Fan mode '{fan_mode[SZ_FAN_MODE]}' {_PLEASE_REPORT}"
                 )
 
     @property  # not strictly static, but library largely assumes so
