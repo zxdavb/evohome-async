@@ -209,14 +209,18 @@ class TccSetpointStatus(StrEnum):  # changeableValues[.heatSetpoint].status
 class TccSensorStatus(StrEnum):  # thermostat.(in|out)door(Temperature|Humidity)Status
     MEASURED = "Measured"
     NOT_AVAILABLE = "NotAvailable"
-    SENSOR_ERROR = "SensorError"
     SENSOR_FAULT = "SensorFault"
 
 
 @verify(EnumCheck.UNIQUE)
 class TccThermostatMode(StrEnum):  # changeableValues.mode, allowedModes (of a zone)
+    AUTO_COOL = "AutoCool"  # documented, not seen with EMEA
+    AUTO_HEAT = "AutoHeat"  # documented, not seen with EMEA
+    COOL = "Cool"  # documented, not seen with EMEA
+    EMERGENCY_HEAT = "EmergencyHeat"  # documented, not seen with EMEA
     HEAT = "Heat"
     OFF = "Off"
+    SOUTHERN_AWAY = "SouthernAway"  # documented, not seen with EMEA
 
 
 # NOTE: This list may be incomplete (a zone type need only be prefixed with "EMEA_")
@@ -276,7 +280,7 @@ def factory_user_account_info_response(
             vol.Optional(fnc(S1_LASTNAME)): vol.All(str, redact),
             vol.Optional(fnc(S1_STREET_ADDRESS)): vol.All(str, redact),
             vol.Optional(fnc(S1_CITY)): vol.All(str, redact),
-            # l.Optional(fnc(S1_STATE)): str,  # truly absent
+            vol.Optional(fnc(S1_STATE)): vol.All(str, redact),  # documented, not seen
             vol.Optional(fnc(S1_ZIPCODE)): vol.All(str, redact),
             vol.Optional(fnc(S1_COUNTRY)): vol.All(str, vol.Length(min=2)),
             vol.Optional(fnc(S1_TELEPHONE)): vol.All(str, redact),
@@ -534,7 +538,7 @@ class TccUserAccountInfoResponseT(TypedDict):  # NOTE: is not TccUserAccountResp
     lastname: str
     streetAddress: str
     city: str
-    # state: str  # missing?
+    state: NotRequired[str]  # documented, but absent from all responses seen
     zipcode: str
     country: str  # GB
     telephone: str
@@ -654,6 +658,7 @@ class TccZoneChangeableValuesT(TypedDict):
     mode: TccThermostatMode  # usu. Off
     heatSetpoint: TccHeatSetpointT
     vacationHoldDays: int
+    nextTime: NotRequired[str]  # documented, not seen (a local time)
 
 
 class TccDhwChangeableValuesT(TypedDict):
@@ -664,11 +669,13 @@ class TccDhwChangeableValuesT(TypedDict):
 
     mode: TccDhwMode
     status: TccSetpointStatus  # Scheduled, Hold
+    nextTime: NotRequired[str]  # documented, not seen (a local time)
 
 
 class TccHeatSetpointT(TypedDict):
     value: float
     status: TccSetpointStatus
+    nextTime: NotRequired[str]  # documented, not seen (a local time)
 
 
 class TccWeatherResponseT(TypedDict):

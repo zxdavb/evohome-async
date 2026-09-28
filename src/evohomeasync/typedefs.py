@@ -43,7 +43,7 @@ class EvoUserAccountInfoDictT(TypedDict):  # NOTE: is not EvoUserAccountDictT
     lastname: NotRequired[str]
     street_address: NotRequired[str]
     city: NotRequired[str]
-    # state: str  # missing?
+    state: NotRequired[str]  # documented, but absent from all responses seen
     zipcode: NotRequired[str]
     country: NotRequired[str]  # GB
     telephone: NotRequired[str]
@@ -131,7 +131,7 @@ class EvoThermostatInfoDictT(TypedDict):
     outdoor_humidity: NotRequired[float]
     outdoot_humidity_available: NotRequired[bool]  # NOTE: not a typo
     indoor_humidity: NotRequired[float]
-    indoor_temperature_status: str  # Measured|NotAvailable|SensorError|SensorFault
+    indoor_temperature_status: str  # Measured|NotAvailable|SensorFault
     indoor_humidity_status: NotRequired[str]
     outdoor_temperature_status: NotRequired[str]
     outdoor_humidity_status: NotRequired[str]
