@@ -165,7 +165,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
                 f"{self}: Attempting unsupported {SZ_STATE}: {dhw_mode}..."
             )
 
-        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/state", json=dict(dhw_mode))
+        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/state", json=dhw_mode)
 
     async def set_mode(
         self,

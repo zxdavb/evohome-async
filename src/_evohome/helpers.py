@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Callable  # used by PEP695 runtime type
+from collections.abc import Callable, Mapping  # used at runtime
 from datetime import UTC, datetime as dt
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Final, overload
@@ -56,7 +56,7 @@ def _recurse_keys[T](data: T, fnc: Callable[[str], str]) -> T:
     """
 
     def recurse(data_: Any) -> Any:
-        if isinstance(data_, dict):
+        if isinstance(data_, Mapping):
             return {fnc(k): recurse(v) for k, v in data_.items()}
 
         if isinstance(data_, list):
@@ -74,7 +74,7 @@ def _recurse_str_vals[T](data: T, fnc: Callable[[str], str]) -> T:
     """
 
     def recurse(data_: Any) -> Any:
-        if isinstance(data_, dict):
+        if isinstance(data_, Mapping):
             return {k: recurse(v) for k, v in data_.items()}
 
         if isinstance(data_, list):
@@ -100,7 +100,7 @@ def _recurse_dtm_vals[T](data: T, fnc: Callable[[dt], dt | str]) -> T:
     """
 
     def recurse(data_: Any) -> Any:
-        if isinstance(data_, dict):
+        if isinstance(data_, Mapping):
             return {k: recurse(v) for k, v in data_.items()}
 
         if isinstance(data_, list):
@@ -292,7 +292,7 @@ def redact_secrets[T](data: T) -> T:
         if isinstance(data_, tuple):
             return tuple(recurse(i) for i in data_)
 
-        if not isinstance(data_, dict):  # Mapping?
+        if not isinstance(data_, Mapping):
             return data_
 
         return {
