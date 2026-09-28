@@ -515,26 +515,3 @@ class EvoZonStatusT(EvoZonStatusResponseT):
 
 class EvoDhwStatusT(EvoDhwStatusResponseT):
     """Status of a DHW."""
-
-
-#######################################################################################
-# Pythonic probatio schemas (for validation/coercion)...
-#
-# These validate the JSON returned by the vendor API (after its keys have been
-# converted to snake_case by AbstractAuth.request) and coerce the enum string values
-# to the user-facing enum members above (e.g. "Auto" -> SystemMode.AUTO). The matching
-# vendor-cased schemas (TCC_GET_*) remain in schemas/__init__.py.
-
-
-# EVO_USR_ACCOUNT: Final[Validator[EvoUsrAccountResponseT]] = factory_user_account(Case.PYTHONIC)
-# EVO_USR_LOCATIONS: Final[Validator[EvoUsrLocationsResponseT]] = factory_usr_locations(Case.PYTHONIC)
-# EVO_LOC_CONFIG: Final[Validator[EvoLocConfigResponseT]] = factory_loc_config(Case.PYTHONIC)
-
-# EVO_LOC_STATUS: Final[Validator[EvoLocStatusResponseT]] = factory_loc_status(Case.PYTHONIC)
-# EVO_GWY_STATUS: Final[Validator[EvoGwyStatusResponseT]] = factory_gwy_status(Case.PYTHONIC)
-# EVO_TCS_STATUS: Final[Validator[EvoTcsStatusResponseT]] = factory_tcs_status(Case.PYTHONIC)
-# EVO_DHW_STATUS: Final[Validator[EvoDhwStatusResponseT]] = factory_dhw_status(Case.PYTHONIC)
-# EVO_ZON_STATUS: Final[Validator[EvoZonStatusResponseT]] = factory_zon_status(Case.PYTHONIC)
-
-# EVO_DHW_SCHEDULE: Final[Validator[EvoDhwScheduleResponseT]] = factory_dhw_schedule(Case.PYTHONIC)
-# EVO_ZON_SCHEDULE: Final[Validator[EvoZonScheduleResponseT]] = factory_zon_schedule(Case.PYTHONIC)
