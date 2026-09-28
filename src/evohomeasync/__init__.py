@@ -54,6 +54,14 @@ from .schemas import (  # noqa: F401
     SZ_STATUS,
     SZ_TEMP,
     SZ_VALUE,
+    TccDhwMode,
+    TccEquipmentOutputStatus,
+    TccLocationType,
+    TccSensorStatus,
+    TccSetpointStatus,
+    TccSystemMode,
+    TccThermostatMode,
+    TccThermostatModelType,
 )
 
 
@@ -132,6 +140,15 @@ __all__ = [  # noqa: RUF022
     "ControlSystem",
     "Zone",
     "HotWater",
+    #
+    "TccDhwMode",
+    "TccEquipmentOutputStatus",
+    "TccLocationType",
+    "TccSensorStatus",
+    "TccSetpointStatus",
+    "TccSystemMode",
+    "TccThermostatMode",
+    "TccThermostatModelType",
     #
     "ApiCallFailedError",
     "ApiRateLimitExceededError",
