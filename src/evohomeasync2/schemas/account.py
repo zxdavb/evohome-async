@@ -54,7 +54,7 @@ if TYPE_CHECKING:
 class TccOAuthTokenResponseT(TypedDict):
     """Typed dict for responses from the vendor servers for successful authentication.
 
-    This schemas is snake_case, unlike the RESTful API which is camelCase/PascalCase.
+    This schema uses snake_case, unlike the RESTful API, which uses camelCase/PascalCase.
     """
 
     access_token: str
