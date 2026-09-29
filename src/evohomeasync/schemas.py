@@ -224,13 +224,13 @@ class TccSensorStatus(StrEnum):  # thermostat.(in|out)door(Temperature|Humidity)
 
 @verify(EnumCheck.UNIQUE)
 class TccThermostatMode(StrEnum):  # changeableValues.mode, allowedModes (of a zone)
-    AUTO_COOL = "AutoCool"  # documented, not seen with EMEA
-    AUTO_HEAT = "AutoHeat"  # documented, not seen with EMEA
-    COOL = "Cool"  # documented, not seen with EMEA
-    EMERGENCY_HEAT = "EmergencyHeat"  # documented, not seen with EMEA
+    AUTO_COOL = "AutoCool"  # not seen with EMEA Evohome
+    AUTO_HEAT = "AutoHeat"  # not seen with EMEA Evohome
+    COOL = "Cool"  # not seen with EMEA Evohome
+    EMERGENCY_HEAT = "EmergencyHeat"  # not seen with EMEA Evohome
     HEAT = "Heat"
     OFF = "Off"
-    SOUTHERN_AWAY = "SouthernAway"  # documented, not seen with EMEA
+    SOUTHERN_AWAY = "SouthernAway"  # not seen with EMEA Evohome
 
 
 # NOTE: This list may be incomplete (a zone type need only be prefixed with "EMEA_")
@@ -241,10 +241,21 @@ class TccThermostatModelType(StrEnum):  # device.thermostatModelType
     Unlike the other enums here, these values are not PascalCase. They must not be sent
     in a request body, as the library would mangle them: see AbstractAuth.request(),
     which converts StrEnum values (e.g. DOMESTIC_HOT_WATER -> DOMESTICHotWater).
+
+    This list is not exhaustive, but these systems are expected to work OK.
     """
 
     DOMESTIC_HOT_WATER = "DOMESTIC_HOT_WATER"
+    EVO_TOUCH_SYSTEM = "EVO_TOUCH_SYSTEM"
+    EMEA_ROUND_MODULATION = "EMEA_ROUND_MODULATION"
+    EMEA_ROUND_WIRELESS = "EMEA_ROUND_WIRELESS"
     EMEA_ZONE = "EMEA_ZONE"
+    FOCUS_PRO_REDLINK = "FOCUS_PRO_REDLINK"
+    FOCUS_PRO_WIFI_RETAIL = "FOCUS_PRO_WIFI_RETAIL"
+    FOCUS_PRO_WIFI_TRADE = "FOCUS_PRO_WIFI_TRADE"
+    FOCUS_PRO_WIFI_ETAILER = "FOCUS_PRO_WIFI_ETAILER"
+    SARATOGA = "SARATOGA"
+    UNKNOWN = "UNKNOWN"
 
 
 def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
@@ -578,8 +589,8 @@ class TccLocationResponseT(TypedDict):
 class TccDeviceResponseT(TypedDict):
     deviceID: _DhwIdT | _ZoneIdT  # is ID, not Id
     gatewayId: _GatewayIdT
-    # is an int only for the Honeywell TH9320WF3003 (deviceType 48), which sends 36
-    thermostatModelType: TccThermostatModelType | str | int  # int: Honeywell TH9320WF3003
+    # enum may be incomplete, so allow str; is an int for some (e.g. Honeywell TH9320WF3003)
+    thermostatModelType: TccThermostatModelType | str | int
     deviceType: int
     name: str
     scheduleCapable: bool
