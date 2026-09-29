@@ -156,6 +156,7 @@ def _differences(
 V0_SCHEMAS: dict[str, tuple[Callable[[Case], object], object]] = {
     "failure": (sch0.factory_failure_response, evo0.EvoFailureDictT),
     "task": (sch0.factory_task_response, evo0.EvoTaskDictT),
+    "comm_task": (sch0.factory_comm_task_response, evo0.EvoCommTaskDictT),
     "account_info": (
         sch0.factory_user_account_info_response,
         evo0.EvoUserAccountInfoDictT,

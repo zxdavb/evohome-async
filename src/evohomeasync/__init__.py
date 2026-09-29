@@ -51,6 +51,7 @@ from .schemas import (  # noqa: F401
     S1_THERMOSTAT_MODEL_TYPE as SZ_THERMOSTAT_MODEL_TYPE,
     S1_USER_INFO as SZ_USER_INFO,
     S1_VALUE as SZ_VALUE,
+    TccCommTaskState,
     TccDhwMode,
     TccEquipmentOutputStatus,
     TccLocationType,
@@ -139,6 +140,7 @@ __all__ = [  # noqa: RUF022
     "Zone",
     "HotWater",
     #
+    "TccCommTaskState",
     "TccDhwMode",
     "TccEquipmentOutputStatus",
     "TccLocationType",

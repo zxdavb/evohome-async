@@ -27,6 +27,19 @@ class EvoTaskDictT(TypedDict):
     id: int  # e.g. {"id": 1234567890}
 
 
+class EvoCommTaskDictT(TypedDict):
+    """GET api/commTasks?commTaskId={commTaskId}"""
+
+    state: str  # c.f. TccCommTaskState
+    fault_reasons: NotRequired[str]
+    started: NotRequired[str]
+    finished: NotRequired[str]
+    mac_id: NotRequired[str]
+    gateway_id: _GatewayIdT
+    device_id: _DhwIdT | _ZoneIdT
+    activity_id: NotRequired[str]
+
+
 class EvoSessionDictT(TypedDict):
     """POST api/session"""
 

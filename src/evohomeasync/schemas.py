@@ -58,6 +58,7 @@ if TYPE_CHECKING:
     from _evohome.helpers import Validator
 
     from .typedefs import (
+        EvoCommTaskDictT,
         EvoFailureDictT,
         EvoSessionDictT,
         EvoTaskDictT,
@@ -78,6 +79,7 @@ _TaskIdT = NewType("_TaskIdT", int)  # an int, unlike the v2 API (where it is a 
 
 
 #
+S1_ACTIVITY_ID: Final = "activityId"
 S1_ALERT_SETTINGS: Final = "alertSettings"
 S1_ALLOWED_MODES: Final = "allowedModes"
 
@@ -103,6 +105,8 @@ S1_DR_EVENTS: Final = "drEvents"
 S1_EQUIPMENT_OUTPUT_STATUS: Final = "equipmentOutputStatus"
 
 S1_FAN: Final = "fan"
+S1_FAULT_REASONS: Final = "faultReasons"
+S1_FINISHED: Final = "finished"
 S1_FIRSTNAME: Final = "firstname"
 
 S1_GATEWAY_ID: Final = "gatewayId"
@@ -168,11 +172,14 @@ S1_SECURITY_QUESTION_3: Final = "securityQuestion3"
 S1_SERIAL_NUMBER: Final = "serialNumber"
 S1_SESSION_ID: Final = "sessionId"
 S1_SPECIAL_MODES: Final = "specialModes"
+S1_STARTED: Final = "started"
 S1_STATE: Final = "state"
 S1_STATUS: Final = "status"
 S1_STREET_ADDRESS: Final = "streetAddress"
 S1_SYSTEM_CONFIGURATION: Final = "systemConfiguration"
 
+S1_TASK_DEVICE_ID: Final = "deviceId"  # is Id here, not ID (c.f. S1_DEVICE_ID)
+S1_TASK_MAC_ID: Final = "macId"  # is Id here, not ID (c.f. S1_MAC_ID)
 S1_TELEPHONE: Final = "telephone"
 S1_TENANT_ID: Final = "tenantID"  # is ID, not Id
 S1_THERMOSTAT: Final = "thermostat"
@@ -277,6 +284,15 @@ class TccThermostatModelType(StrEnum):  # device.thermostatModelType
     UNKNOWN = "UNKNOWN"
 
 
+@verify(EnumCheck.UNIQUE)
+class TccCommTaskState(StrEnum):  # commTask.state (as documented by the vendor)
+    CREATED = "Created"
+    RUNNING = "Running"
+    REPEATED = "Repeated"  # is running again, after an earlier run failed
+    SUCCEEDED = "Succeeded"  # is terminal
+    FAILED = "Failed"  # is terminal
+
+
 @overload
 def factory_failure_response(
     case: Literal[Case.VENDOR] = ...,
@@ -342,6 +358,47 @@ def factory_task_response(
             vol.Required(fnc(S1_ID)): int,
         },
         extra=vol.PREVENT_EXTRA,
+    )
+
+
+# GET api/commTasks?commTaskId={commTaskId} -> commTaskResponse
+@overload
+def factory_comm_task_response(
+    case: Literal[Case.VENDOR] = ...,
+) -> Validator[TccCommTaskResponseT]: ...
+
+
+@overload
+def factory_comm_task_response(
+    case: Literal[Case.PYTHONIC],
+) -> Validator[EvoCommTaskDictT]: ...
+
+
+@overload
+def factory_comm_task_response(
+    case: Case,
+) -> Validator[TccCommTaskResponseT] | Validator[EvoCommTaskDictT]: ...
+
+
+def factory_comm_task_response(
+    case: Case = Case.VENDOR,
+) -> Validator[TccCommTaskResponseT] | Validator[EvoCommTaskDictT]:
+    """Factory for the comm task response schema (the state of a PUT's task)."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S1_STATE)): vol.In(TccCommTaskState),
+            vol.Optional(fnc(S1_FAULT_REASONS)): str,  # is NotRequired
+            vol.Optional(fnc(S1_STARTED)): str,
+            vol.Optional(fnc(S1_FINISHED)): str,  # is NotRequired
+            vol.Optional(fnc(S1_TASK_MAC_ID)): str,
+            vol.Required(fnc(S1_GATEWAY_ID)): int,
+            vol.Required(fnc(S1_TASK_DEVICE_ID)): int,
+            vol.Optional(fnc(S1_ACTIVITY_ID)): str,
+        },
+        extra=vol.ALLOW_EXTRA,
     )
 
 
@@ -613,6 +670,7 @@ TCC_FAILURE_RESPONSE: Final[Validator[list[TccFailureResponseT]]] = (
     factory_failure_response()
 )
 TCC_TASK_RESPONSE: Final[Validator[TccTaskResponseT]] = factory_task_response()
+TCC_GET_COMM_TASK: Final[Validator[TccCommTaskResponseT]] = factory_comm_task_response()
 TCC_GET_USR_INFO: Final[Validator[TccUserAccountInfoResponseT]] = (
     # This validator can accept {userID, username} because all other account fields are
     # vol.Optional in factory_user_account_info_response, yet its new return type
@@ -652,6 +710,22 @@ class TccTaskResponseT(TypedDict):
     """Typed dict for responses from the vendor servers for successful PUTs."""
 
     id: _TaskIdT  # e.g. {"id": 1234567890}
+
+
+class TccCommTaskResponseT(TypedDict):
+    """GET api/commTasks?commTaskId={commTaskId}
+
+    The response does not include the id of the task itself.
+    """
+
+    state: TccCommTaskState
+    faultReasons: NotRequired[str]  # a FaultReasons value, documented, not seen
+    started: str  # TZ-naive, e.g. "2026-09-22T20:08:04.053"
+    finished: NotRequired[str]  # TZ-naive, and only once the task has finished
+    macId: str  # is Id here, not ID
+    gatewayId: _GatewayIdT
+    deviceId: _DhwIdT | _ZoneIdT  # is Id here, not ID
+    activityId: str  # a UUID
 
 
 class TccSessionResponseT(TypedDict):

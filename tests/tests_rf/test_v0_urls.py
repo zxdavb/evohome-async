@@ -10,13 +10,18 @@ from __future__ import annotations
 
 import logging
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 
 from _evohome import exceptions as exc
 from evohomeasync.auth import Auth
-from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS, TCC_TASK_RESPONSE
+from evohomeasync.schemas import (
+    TCC_GET_COMM_TASK,
+    TCC_GET_USR_INFO,
+    TCC_GET_USR_LOCS,
+    TCC_TASK_RESPONSE,
+)
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import skipif_auth_failed
@@ -24,6 +29,7 @@ from .common import skipif_auth_failed
 if TYPE_CHECKING:
     from evohome_cli.auth import TokenCacheManager
     from evohomeasync.schemas import (
+        TccCommTaskResponseT,
         TccLocationResponseT,
         TccSessionResponseT,
         TccTaskResponseT,
@@ -54,14 +60,14 @@ async def get_account_info(auth: Auth) -> TccUserAccountInfoResponseT:
     )
 
 
-async def get_comm_tasks(
-    auth: Auth, tsk_id: int
-) -> dict[str, Any] | list[dict[str, Any]]:
+async def get_comm_tasks(auth: Auth, tsk_id: int) -> TccCommTaskResponseT:
     """Test GET /commTasks?commTaskId={tsk_id}"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        f"commTasks?commTaskId={tsk_id}",
+    return TCC_GET_COMM_TASK(
+        await auth._make_request(
+            HTTPMethod.GET,
+            f"commTasks?commTaskId={tsk_id}",
+        )
     )
 
 
