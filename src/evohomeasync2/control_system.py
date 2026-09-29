@@ -6,7 +6,7 @@ import json
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
 
-from _evohome.helpers import as_aware_dtm, as_local_time
+from _evohome.helpers import Case, as_aware_dtm, as_local_time
 
 from . import exceptions as exc
 from .const import (
@@ -32,7 +32,6 @@ from .const import (
 )
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.status import factory_tcs_status
 from .typedefs import EvoTcsStatusT
 from .zone import ActiveFaultsBase, Zone

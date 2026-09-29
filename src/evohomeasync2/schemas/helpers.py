@@ -3,26 +3,18 @@
 from __future__ import annotations
 
 from datetime import datetime as dt
-from enum import StrEnum
 from typing import TYPE_CHECKING
 
 import probatio as vol
 
-from _evohome.helpers import camel_to_snake
+from _evohome.helpers import Case, camel_to_snake
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from enum import StrEnum
 
 
-# The casing convention a schema factory should produce, and the enum-field
-# validator that switches between vendor and pythonic output.
-
-
-class Case(StrEnum):
-    """Selects the casing convention a schema factory should produce."""
-
-    VENDOR = "vendor"  # camelCase keys, PascalCase enum strings (validate only)
-    PYTHONIC = "pythonic"  # snake_case keys, coerced to user-facing enum members
+# The enum-field validator that switches between vendor and pythonic output.
 
 
 def factory_enum(

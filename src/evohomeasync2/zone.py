@@ -8,7 +8,12 @@ from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
-from _evohome.helpers import as_aware_dtm, as_local_time, convert_dtm_to_local_aware
+from _evohome.helpers import (
+    Case,
+    as_aware_dtm,
+    as_local_time,
+    convert_dtm_to_local_aware,
+)
 
 from . import exceptions as exc
 from .const import (
@@ -49,7 +54,6 @@ from .const import (
     ZoneType,
 )
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.schedule import factory_zon_schedule
 from .schemas.status import factory_zon_status
 from .typedefs import EvoZonScheduleDayOfWeekT, EvoZonStatusResponseT, EvoZonStatusT

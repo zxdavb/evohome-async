@@ -5,6 +5,8 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
+from _evohome.helpers import Case
+
 from .const import (
     SZ_ACTIVE_FAULTS,
     SZ_GATEWAY_ID,
@@ -15,7 +17,6 @@ from .const import (
 )
 from .control_system import ControlSystem
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.status import factory_gwy_status
 from .typedefs import EvoGwyStatusT
 from .zone import ActiveFaultsBase

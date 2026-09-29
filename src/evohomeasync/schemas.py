@@ -31,12 +31,23 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from enum import EnumCheck, StrEnum, verify
-from typing import TYPE_CHECKING, Any, Final, NewType, NotRequired, TypedDict
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Final,
+    Literal,
+    NewType,
+    NotRequired,
+    TypedDict,
+    overload,
+)
 
 import probatio as vol
 
 from _evohome.helpers import (
     TCC_DTM_STRFTIME as TCC_DTM_STRFTIME,  # noqa: PLC0414
+    Case,
+    camel_to_snake,
     noop,
     redact,
 )
@@ -45,6 +56,14 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from _evohome.helpers import Validator
+
+    from .typedefs import (
+        EvoFailureDictT,
+        EvoSessionDictT,
+        EvoTaskDictT,
+        EvoTcsInfoDictT,
+        EvoUserAccountInfoDictT,
+    )
 
 # TCC identifiers (Usr, Loc, Gwy, Sys, Zon|Dhw)
 _DhwIdT = NewType("_DhwIdT", int)
@@ -258,8 +277,30 @@ class TccThermostatModelType(StrEnum):  # device.thermostatModelType
     UNKNOWN = "UNKNOWN"
 
 
-def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
+@overload
+def factory_failure_response(
+    case: Literal[Case.VENDOR] = ...,
+) -> Validator[list[TccFailureResponseT]]: ...
+
+
+@overload
+def factory_failure_response(
+    case: Literal[Case.PYTHONIC],
+) -> Validator[list[EvoFailureDictT]]: ...
+
+
+@overload
+def factory_failure_response(
+    case: Case,
+) -> Validator[list[TccFailureResponseT]] | Validator[list[EvoFailureDictT]]: ...
+
+
+def factory_failure_response(
+    case: Case = Case.VENDOR,
+) -> Validator[list[TccFailureResponseT]] | Validator[list[EvoFailureDictT]]:
     """Factory for the code/message response schema."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     entry = vol.Schema(
         {
@@ -273,8 +314,28 @@ def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
 
 # PUT (e.g. api/devices/{zone_id}/thermostat/changeableValues/heatSetpoint) -> task
-def factory_task_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
+@overload
+def factory_task_response(
+    case: Literal[Case.VENDOR] = ...,
+) -> Validator[TccTaskResponseT]: ...
+
+
+@overload
+def factory_task_response(case: Literal[Case.PYTHONIC]) -> Validator[EvoTaskDictT]: ...
+
+
+@overload
+def factory_task_response(
+    case: Case,
+) -> Validator[TccTaskResponseT] | Validator[EvoTaskDictT]: ...
+
+
+def factory_task_response(
+    case: Case = Case.VENDOR,
+) -> Validator[TccTaskResponseT] | Validator[EvoTaskDictT]:
     """Factory for the task response schema (a successful PUT)."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     return vol.Schema(
         {
@@ -285,10 +346,38 @@ def factory_task_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
 
 
 # GET api/accountInfo -> userAccountInfoResponse
+@overload
 def factory_user_account_info_response(
+    case: Literal[Case.VENDOR] = ...,
+) -> Validator[TccUserAccountInfoResponseT]: ...
+
+
+@overload
+def factory_user_account_info_response(
+    case: Literal[Case.PYTHONIC],
+) -> Validator[EvoUserAccountInfoDictT]: ...
+
+
+@overload
+def factory_user_account_info_response(
+    case: Case,
+) -> Validator[TccUserAccountInfoResponseT] | Validator[EvoUserAccountInfoDictT]: ...
+
+
+def factory_user_account_info_response(
+    case: Case = Case.VENDOR,
+) -> Validator[TccUserAccountInfoResponseT] | Validator[EvoUserAccountInfoDictT]:
+    """Schema for the response to GET api/accountInfo."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    return _factory_user_account_info_response(fnc)
+
+
+def _factory_user_account_info_response(
     fnc: Callable[[str], str] = noop,
 ) -> vol.Schema:
-    """Schema for the response to GET api/accountInfo."""
+    """Factory for the user account info schema (also extended by the session's)."""
 
     # username: an email address
     # country:  ISO 3166-1 alpha-2 format (e.g. GB)
@@ -312,15 +401,35 @@ def factory_user_account_info_response(
 
 
 # POST api/session -> sessionResponse
+@overload
 def factory_session_response(
-    fnc: Callable[[str], str] = noop,
-) -> vol.Schema:
+    case: Literal[Case.VENDOR] = ...,
+) -> Validator[TccSessionResponseT]: ...
+
+
+@overload
+def factory_session_response(
+    case: Literal[Case.PYTHONIC],
+) -> Validator[EvoSessionDictT]: ...
+
+
+@overload
+def factory_session_response(
+    case: Case,
+) -> Validator[TccSessionResponseT] | Validator[EvoSessionDictT]: ...
+
+
+def factory_session_response(
+    case: Case = Case.VENDOR,
+) -> Validator[TccSessionResponseT] | Validator[EvoSessionDictT]:
     """Schema for the response to POST api/session."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     # securityQuestionX: usu. "notUsed", a sentinel value
     SCH_SECURITY_QUESTION = vol.Any("notUsed", vol.All(str, redact))
 
-    SCH_USER_ACCOUNT_RESPONSE = factory_user_account_info_response(fnc).extend(
+    SCH_USER_ACCOUNT_RESPONSE = _factory_user_account_info_response(fnc).extend(
         {
             vol.Optional(fnc(S1_IS_ACTIVATED)): bool,
             vol.Optional(fnc(S1_DEVICE_COUNT)): int,
@@ -457,10 +566,30 @@ def _factory_location_response(
 
 
 # GET api/locations?userId={userId}&allData=True -> list[locationResponse]
+@overload
 def factory_location_response_list(
-    fnc: Callable[[str], str] = noop,
-) -> vol.Schema:
+    case: Literal[Case.VENDOR] = ...,
+) -> Validator[list[TccLocationResponseT]]: ...
+
+
+@overload
+def factory_location_response_list(
+    case: Literal[Case.PYTHONIC],
+) -> Validator[list[EvoTcsInfoDictT]]: ...
+
+
+@overload
+def factory_location_response_list(
+    case: Case,
+) -> Validator[list[TccLocationResponseT]] | Validator[list[EvoTcsInfoDictT]]: ...
+
+
+def factory_location_response_list(
+    case: Case = Case.VENDOR,
+) -> Validator[list[TccLocationResponseT]] | Validator[list[EvoTcsInfoDictT]]:
     """Schema for the response to GET api/locations?userId={userId}&allData=True."""
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
 
     return vol.Schema(
         vol.All([_factory_location_response(fnc)], vol.Length(min=0)),

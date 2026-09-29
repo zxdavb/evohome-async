@@ -29,11 +29,10 @@ from typing import (
 import probatio as vol
 import pytest
 
-from _evohome.helpers import camel_to_snake
+from _evohome.helpers import Case
 from evohomeasync import schemas as sch0, typedefs as evo0
 from evohomeasync2 import const as const2, typedefs as evo2
 from evohomeasync2.schemas import account, config, const as sch2_const, schedule, status
-from evohomeasync2.schemas.helpers import Case
 
 from .conftest import FIXTURES_V2
 
@@ -152,9 +151,9 @@ def _differences(
     return result
 
 
-# v0: factory_*(camel_to_snake) and its Evo*DictT - the v0 Tcc*T are not compared, as
+# v0: factory_*(Case.PYTHONIC) and its Evo*DictT - the v0 Tcc*T are not compared, as
 # the v0 schemas deliberately don't require keys that this library doesn't use
-V0_SCHEMAS: dict[str, tuple[Callable[[Callable[[str], str]], object], object]] = {
+V0_SCHEMAS: dict[str, tuple[Callable[[Case], object], object]] = {
     "failure": (sch0.factory_failure_response, evo0.EvoFailureDictT),
     "task": (sch0.factory_task_response, evo0.EvoTaskDictT),
     "account_info": (
@@ -173,7 +172,7 @@ def test_v0_pythonic_typeddicts(name: str) -> None:
     factory, evo_type = V0_SCHEMAS[name]
 
     diffs = _differences(
-        _schema_shape(factory(camel_to_snake)), _typeddict_shape(evo_type, _NS_V0)
+        _schema_shape(factory(Case.PYTHONIC)), _typeddict_shape(evo_type, _NS_V0)
     )
     assert not diffs, "\n".join(diffs)
 

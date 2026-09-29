@@ -8,7 +8,7 @@ from enum import StrEnum
 import probatio as vol
 import pytest
 
-from _evohome.helpers import camel_to_snake
+from _evohome.helpers import Case, camel_to_snake
 from evohomeasync2.const import SZ_FAULT_TYPE, SZ_SINCE, FaultType as EvoFaultType
 from evohomeasync2.schemas.const import (
     REGEX_DHW_ID,
@@ -19,7 +19,6 @@ from evohomeasync2.schemas.const import (
     S2_FAULT_TYPE,
     TccFaultType,
 )
-from evohomeasync2.schemas.helpers import Case
 from evohomeasync2.schemas.status import factory_active_faults
 
 _KNOWN = "BoilerServiceRequired"
