@@ -6,7 +6,7 @@ import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 
-from _evohome.helpers import camel_to_snake
+from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
@@ -22,10 +22,10 @@ if TYPE_CHECKING:
     from .typedefs import EvoTcsInfoDictT, EvoUserAccountInfoDictT
 
 SCH_GET_ACCOUNT_INFO: Final[Validator[EvoUserAccountInfoDictT]] = (
-    factory_user_account_info_response(camel_to_snake)
+    factory_user_account_info_response(Case.PYTHONIC)
 )
 SCH_GET_ACCOUNT_LOCS: Final[Validator[list[EvoTcsInfoDictT]]] = (
-    factory_location_response_list(camel_to_snake)
+    factory_location_response_list(Case.PYTHONIC)
 )
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync"
