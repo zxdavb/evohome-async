@@ -3,10 +3,6 @@
 TypeDicts may not be complete (the API is undocumented), but all keys referenced
 by this library are present.
 
-Each API endpoint annotated here is exercised by tests/tests_rf/test_v2_urls.py,
-which (with these TypedDicts) documents the vendor's API. Any endpoint marked
-'extrapolated' would be inferred by symmetry: not exercised, so may not exist.
-
 Naming convention
 -----------------
 All type names are prefixed with `Evo` to be distinct from the `Tcc` equivalents and
