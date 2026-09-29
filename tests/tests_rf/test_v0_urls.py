@@ -16,7 +16,7 @@ import pytest
 
 from _evohome import exceptions as exc
 from evohomeasync.auth import Auth
-from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS
+from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS, TCC_TASK_RESPONSE
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import skipif_auth_failed
@@ -26,12 +26,9 @@ if TYPE_CHECKING:
     from evohomeasync.schemas import (
         TccLocationResponseT,
         TccSessionResponseT,
+        TccTaskResponseT,
         TccUserAccountInfoResponseT,
     )
-
-
-# TODO: Create a validator for the TccTaskResponseT typedDict (but until then...)
-type _TccTaskResponse = dict[str, Any] | list[dict[str, Any]]  # c.f. TccTaskResponseT
 
 
 async def _post_session(auth: Auth) -> TccSessionResponseT:
@@ -57,11 +54,13 @@ async def get_account_info(auth: Auth) -> TccUserAccountInfoResponseT:
     )
 
 
-async def get_comm_tasks(auth: Auth, tsk_id: int) -> _TccTaskResponse:
+async def get_comm_tasks(
+    auth: Auth, tsk_id: int
+) -> dict[str, Any] | list[dict[str, Any]]:
     """Test GET /commTasks?commTaskId={tsk_id}"""
 
     return await auth._make_request(
-        HTTPMethod.PUT,
+        HTTPMethod.GET,
         f"commTasks?commTaskId={tsk_id}",
     )
 
@@ -77,7 +76,7 @@ async def get_locations(auth: Auth, usr_id: int) -> list[TccLocationResponseT]:
     )
 
 
-async def put_devices_dhw(auth: Auth, dhw_id: int) -> _TccTaskResponse:
+async def put_devices_dhw(auth: Auth, dhw_id: int) -> TccTaskResponseT:
     """Test PUT /devices/{dhw_id}/thermostat/changeableValues
     data = {
         "Status": status,  ["Scheduled","Hold"]  # no: "Temporary"?
@@ -91,14 +90,16 @@ async def put_devices_dhw(auth: Auth, dhw_id: int) -> _TccTaskResponse:
 
     data = {"Status": "Scheduled"}
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"devices/{dhw_id}/thermostat/changeableValues",
-        data=data,
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"devices/{dhw_id}/thermostat/changeableValues",
+            data=data,
+        )
     )
 
 
-async def put_devices_zon(auth: Auth, zon_id: int) -> _TccTaskResponse:
+async def put_devices_zon(auth: Auth, zon_id: int) -> TccTaskResponseT:
     """Test PUT /devices/{zon_id}/thermostat/changeableValues/heatSetpoint
     data = {
         "Status": "Temporary",
@@ -111,14 +112,16 @@ async def put_devices_zon(auth: Auth, zon_id: int) -> _TccTaskResponse:
 
     data = {"Status": "Scheduled"}  # , "NextTime": None, "Value": None}
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"devices/{zon_id}/thermostat/changeableValues/heatSetpoint",
-        data=data,
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"devices/{zon_id}/thermostat/changeableValues/heatSetpoint",
+            data=data,
+        )
     )
 
 
-async def put_evo_touch_systems(auth: Auth, loc_id: int) -> _TccTaskResponse:
+async def put_evo_touch_systems(auth: Auth, loc_id: int) -> TccTaskResponseT:
     """Test PUT /evoTouchSystems?locationId={loc_id}
     data = {
         "QuickAction": status,  All except AuutWithEco, Auto must have QANT None
@@ -128,10 +131,12 @@ async def put_evo_touch_systems(auth: Auth, loc_id: int) -> _TccTaskResponse:
 
     data = {"QuickAction": "Auto", "QuickActionNextTime": None}
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"evoTouchSystems?locationId={loc_id}",
-        data=data,
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"evoTouchSystems?locationId={loc_id}",
+            data=data,
+        )
     )
 
 
