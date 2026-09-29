@@ -1,0 +1,45 @@
+{
+    "locationId": "4001031",
+    "gateways": [
+        {
+            "gatewayId": "4001032",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "4001033",
+                    "zones": [
+                        {
+                            "zoneId": "4001034",
+                            "temperatureStatus": {
+                                "isAvailable": false
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 5.0,
+                                "setpointMode": "PermanentOverride"
+                            },
+                            "name": ""
+                        },
+                        {
+                            "zoneId": "4001035",
+                            "temperatureStatus": {
+                                "isAvailable": false
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 5.0,
+                                "setpointMode": "PermanentOverride"
+                            },
+                            "name": ""
+                        }
+                    ],
+                    "activeFaults": [],
+                    "systemModeStatus": {
+                        "mode": "AutoWithEco",
+                        "isPermanent": true
+                    }
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}

@@ -14,10 +14,10 @@ import yaml
 from freezegun.api import FakeDatetime  # to check schedules, setpoints
 
 if TYPE_CHECKING:
-    import probatio as vol
+    from _evohome.helpers import Validator
 
 
-def assert_schema(folder: Path, schema: vol.Schema, file_name: str) -> None:
+def assert_schema(folder: Path, schema: Validator[object], file_name: str) -> None:
     if not Path(folder).joinpath(file_name).is_file():
         pytest.skip(f"No {file_name} in: {folder.name}")
 

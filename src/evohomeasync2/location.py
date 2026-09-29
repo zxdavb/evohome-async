@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
 
-from _evohome.helpers import convert_dtm_to_local_aware
+from _evohome.helpers import Case, convert_dtm_to_local_aware
 from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
 from .const import (
@@ -27,15 +27,14 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
-from .schemas.config import factory_location_installation_info
+from .schemas.config import factory_loc_config
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.status import factory_loc_status
 from .typedefs import EvoLocStatusT
 from .zone import EntityBase
 
 if TYPE_CHECKING:
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import EvohomeClient
     from .auth import Auth
@@ -107,8 +106,8 @@ class Location(EntityBase[EvoLocStatusT]):
 
     _TCC_TYPE = TccEntityType.LOC
 
-    SCH_CONFIG: vol.Schema = factory_location_installation_info(Case.PYTHONIC)
-    SCH_STATUS: vol.Schema = factory_loc_status(Case.PYTHONIC)
+    SCH_CONFIG: Validator[EvoLocConfigResponseT] = factory_loc_config(Case.PYTHONIC)
+    SCH_STATUS: Validator[EvoLocStatusResponseT] = factory_loc_status(Case.PYTHONIC)
 
     def __init__(
         self,

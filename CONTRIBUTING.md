@@ -95,11 +95,13 @@ See `src/_evohome/exceptions.py`. Key types:
 
 ```text
 EvohomeError
-├── ApiRequestFailedError        # API call failed
+├── ApiCallFailedError           # API call failed (ApiRequestFailedError is a deprecated alias)
 │   ├── ApiRateLimitExceededError
-│   └── AuthenticationFailedError
-│       └── BadUserCredentialsError
-├── BadApiSchemaError            # API returned unexpected data
+│   └── BadApiSchemaError        # API sent/was sent unexpected data
+│       ├── BadApiRequestError
+│       └── BadApiResponseError
+├── AuthenticationFailedError    # NB: not an ApiCallFailedError
+│   └── BadUserCredentialsError
 ├── ConfigError                  # Bad config JSON
 └── StatusError                  # Bad status/schedule JSON
 ```
@@ -170,6 +172,22 @@ tests/
 The **library** (`_evohome`, `evohomeasync`, `evohomeasync2`) is the published
 deliverable. The CLI is a developer convenience and is explicitly excluded from
 code coverage.
+
+### The shared `_evohome` layer
+
+`_evohome` is private: it holds the code that `evohomeasync` and `evohomeasync2`
+share, and each package re-exports the public parts (e.g.
+`evohomeasync2.AuthenticationFailedError` _is_ `_evohome.exceptions.AuthenticationFailedError`).
+
+- **What both packages share can't belong to either.** A class defined in `_evohome`
+  reports `_evohome` as its `__module__` (e.g. on the last line of a traceback),
+  whichever package used it. That is expected — do not duplicate or subclass shared
+  classes per package just to change it.
+- **If `_evohome` needs package-specific behaviour, have the package pass it in**, as is
+  already done for loggers (the `logger=` argument of the `_evohome` base classes),
+  rather than subclassing in each package and translating what `_evohome` produces.
+- **For exceptions, the contract is what callers can catch:** `except evohomeasync2.X`
+  must work — and re-exporting the shared class already guarantees that.
 
 ---
 

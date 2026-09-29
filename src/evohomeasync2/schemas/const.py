@@ -71,6 +71,7 @@ S2_GATEWAYS: Final = "gateways"
 S2_HEAT_SETPOINT: Final = "heatSetpoint"
 S2_HEAT_SETPOINT_VALUE: Final = "heatSetpointValue"
 
+S2_ID: Final = "id"
 S2_IS_AVAILABLE: Final = "isAvailable"
 S2_IS_CANCELABLE: Final = "isCancelable"
 S2_IS_CHANGEABLE: Final = "isChangeable"
@@ -189,8 +190,10 @@ class TccDhwState(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class TccFanMode(StrEnum):
+class TccFanMode(StrEnum):  # non-evohome
     AUTO = "Auto"
+    CIRCULATE = "Circulate"  # https://github.com/home-assistant/core/issues/179414
+    FOLLOW_SCHEDULE = "FollowSchedule"
     ON = "On"
 
 
@@ -200,8 +203,8 @@ class TccFaultType(StrEnum):  # NOTE: This list is incomplete
     SYS_B_IF = "BoilerInternalFault"  # only via an Opentherm bridge?
     SYS_B_SR = "BoilerServiceRequired"  # only via an Opentherm bridge?
     SYS_C_CL = "ChValveCommunicationLost"
-    DHW_A_FL = "DHWActuatorFailure"
     # W_A_CL = "DHWActuatorCommunicationLost"  # extrapolated
+    DHW_A_FL = "DHWActuatorFailure"
     DHW_S_CL = "DHWSensorCommunicationLost"
     DHW_S_FL = "DHWSensorFailure"
     DHW_S_LB = "DHWSensorLowBattery"  # extrapolated
@@ -211,6 +214,10 @@ class TccFaultType(StrEnum):  # NOTE: This list is incomplete
     ZON_A_LB = "TempZoneActuatorLowBattery"
     ZON_S_CL = "TempZoneSensorCommunicationLost"
     ZON_S_LB = "TempZoneSensorLowBattery"
+
+    # These are known, but intentionally omitted as not seen with Evohome...
+    # - NeedToRegisterOnline  # Zone fault seen only with Saratoga
+    # - ReminderTimerHumPad  # Zone fault seen only with Saratoga
 
 
 @verify(EnumCheck.UNIQUE)
@@ -235,14 +242,20 @@ class TccSystemMode(StrEnum):
 
 @verify(EnumCheck.UNIQUE)
 class TccTcsModelType(StrEnum):
+    """The vendor's model type of a TCS device (these values are received, not sent).
+
+    This list is not exhaustive, but these systems are expected to work OK.
+    """
+
     EVO_TOUCH = "EvoTouch"
     FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
+    SARATOGA = "Saratoga"  # https://github.com/home-assistant/core/issues/179414
     SYDNEY = "Sydney"  # https://github.com/home-assistant/core/issues/141882
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
 
 
 @verify(EnumCheck.UNIQUE)
-class TccTimingMode(StrEnum):  # c.f. JSON keys: SZ_DURATION, SZ_PERIOD
+class TccTimingMode(StrEnum):  # c.f. JSON keys (camelCase): "duration, "period"
     DURATION = "Duration"
     PERIOD = "Period"
 
@@ -261,6 +274,7 @@ class TccZoneModelType(StrEnum):
     HEATING_ZONE = "HeatingZone"
     ROUND_MODULATION = "RoundModulation"
     ROUND_WIRELESS = "RoundWireless"
+    SARATOGA = "Saratoga"  # https://github.com/home-assistant/core/issues/179414
     SYDNEY = "Sydney"  # https://github.com/home-assistant/core/issues/141882
     UNKNOWN = "Unknown"  # see: https://github.com/home-assistant/core/issues/30945
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
@@ -280,8 +294,11 @@ class TccZoneType(StrEnum):
 
 # Non-API constants used internally by this module and the probatio schemas.
 
-REGEX_DHW_ID: Final = r"[0-9]*"
-REGEX_GATEWAY_ID: Final = r"[0-9]*"
-REGEX_LOCATION_ID: Final = r"[0-9]*"
-REGEX_SYSTEM_ID: Final = r"[0-9]*"
-REGEX_ZONE_ID: Final = r"[0-9]*"
+# vol.Match uses re.match(), which anchors only at the start, so the end must be
+# anchored here (and the ID must be non-empty), else any string would be accepted
+REGEX_DHW_ID: Final = r"\A[0-9]+\Z"
+REGEX_GATEWAY_ID: Final = r"\A[0-9]+\Z"
+REGEX_LOCATION_ID: Final = r"\A[0-9]+\Z"
+REGEX_SYSTEM_ID: Final = r"\A[0-9]+\Z"
+REGEX_TASK_ID: Final = r"\A[0-9]+\Z"
+REGEX_ZONE_ID: Final = r"\A[0-9]+\Z"

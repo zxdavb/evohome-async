@@ -9,23 +9,30 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from aiozoneinfo import async_get_time_zone
 
+from _evohome.helpers import Case
+
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import _ERR_NOT_AVAILABLE, SZ_USER_ID
 from .location import Location, create_location
-from .schemas.account import factory_user_account
-from .schemas.config import factory_user_locations_installation_info
-from .schemas.helpers import Case
+from .schemas.account import factory_usr_account
+from .schemas.config import factory_usr_locations
 
 if TYPE_CHECKING:
     import aiohttp
+
+    from _evohome.helpers import Validator
 
     from .control_system import ControlSystem
     from .typedefs import EvoLocConfigResponseT, EvoUsrAccountResponseT
 
 
-SCH_USR_ACCOUNT: Final = factory_user_account(Case.PYTHONIC)
-SCH_USR_LOCATIONS: Final = factory_user_locations_installation_info(Case.PYTHONIC)
+SCH_USR_ACCOUNT: Final[Validator[EvoUsrAccountResponseT]] = factory_usr_account(
+    Case.PYTHONIC
+)
+SCH_USR_LOCATIONS: Final[Validator[list[EvoLocConfigResponseT]]] = (
+    factory_usr_locations(Case.PYTHONIC)
+)
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync2"
 

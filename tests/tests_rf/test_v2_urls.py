@@ -1,6 +1,12 @@
 """Invoke every vendor RESTful API (URL) used by the v2 client.
 
-This is used to document the RESTful API that is provided by the vendor.
+This is used to document the RESTful API that is provided by the vendor: together with
+the TypedDicts of evohomeasync2.schemas (and evohomeasync2.typedefs), these tests are
+the documentation of that API.
+
+Each endpoint annotated in those modules should be exercised here, but not all of them
+yet are (e.g. the installationInfo of a gateway, TCS, zone or DHW): any that is not has
+not been verified against the vendor's API.
 
 Testing is at HTTP request layer (e.g. GET/PUT).
 Everything to/from the RESTful API is in camelCase (so those schemas are used).
@@ -17,17 +23,17 @@ import pytest
 
 from evohomeasync2 import ApiCallFailedError
 from evohomeasync2.auth import Auth
-from evohomeasync2.schemas.account import factory_user_account
+from evohomeasync2.schemas.account import TCC_GET_USR_ACCOUNT, TCC_TASK_RESPONSE
 from evohomeasync2.schemas.config import (
-    factory_location_installation_info,
-    factory_user_locations_installation_info,
+    TCC_GET_LOC_INSTALLATION_INFO,
+    TCC_GET_USR_LOCATIONS,
 )
-from evohomeasync2.schemas.schedule import factory_dhw_schedule, factory_zon_schedule
+from evohomeasync2.schemas.schedule import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE
 from evohomeasync2.schemas.status import (
-    factory_dhw_status,
-    factory_loc_status,
-    factory_tcs_status,
-    factory_zon_status,
+    TCC_GET_DHW_STATUS,
+    TCC_GET_LOC_STATUS,
+    TCC_GET_TCS_STATUS,
+    TCC_GET_ZON_STATUS,
 )
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
@@ -58,19 +64,23 @@ async def _post_auth_oauth_token(auth: Auth) -> dict[str, int | str]:
 async def get_usr_account(auth: Auth) -> TccUsrAccountResponseT:
     """Test GET /userAccount"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        "userAccount",
-    )  # type: ignore[return-value]
+    return TCC_GET_USR_ACCOUNT(
+        await auth._make_request(
+            HTTPMethod.GET,
+            "userAccount",
+        )
+    )
 
 
 async def get_usr_locations(auth: Auth, usr_id: str) -> list[TccLocConfigResponseT]:
     """Test GET /location/installationInfo?userId={user_id}"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        f"location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True",
-    )  # type: ignore[return-value]
+    return TCC_GET_USR_LOCATIONS(
+        await auth._make_request(
+            HTTPMethod.GET,
+            f"location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True",
+        )
+    )
 
 
 @skipif_auth_failed
@@ -78,9 +88,9 @@ async def get_usr_locations(auth: Auth, usr_id: str) -> list[TccLocConfigRespons
 async def test_tcs_urls(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test Location, Gateway and TCS URLs."""
+    """Test Location, Gateway and TCS URLs and the corresponding validators."""
 
-    # STEP 0: Create the Auth client...
+    # STEP 0: Create an Auth client stub...
     auth = Auth(
         credentials_manager,
         credentials_manager.websession,
@@ -90,24 +100,20 @@ async def test_tcs_urls(
     #
     # STEP 1: GET /userAccount
     usr_info = await get_usr_account(auth)
-    factory_user_account()(usr_info)
 
     #
     # STEP 2: GET /location/installationInfo?userId={user_id}
     usr_locs = await get_usr_locations(auth, usr_info["userId"])
-    factory_user_locations_installation_info()(usr_locs)
 
     #
     # STEP 3: GET /location/{loc_id}/installationInfo
     loc_id = usr_locs[0]["locationInfo"]["locationId"]
 
     loc_config = await get_loc_config(auth, loc_id)
-    factory_location_installation_info()(loc_config)
 
     #
     # STEP 4: GET /location/{loc_id}/status
-    loc_status = await get_loc_status(auth, loc_id)
-    factory_loc_status()(loc_status)
+    _ = await get_loc_status(auth, loc_id)
 
     #
     #
@@ -116,8 +122,7 @@ async def test_tcs_urls(
 
     #
     # STEP A: GET /temperatureControlSystem/{tcs_id}/status
-    tcs_status = await get_tcs_status(auth, tcs_id)
-    factory_tcs_status()(tcs_status)
+    _ = await get_tcs_status(auth, tcs_id)
 
     #
     # STEP B: PUT /temperatureControlSystem/{tcs_id}/mode
@@ -128,28 +133,34 @@ async def test_tcs_urls(
 async def get_loc_config(auth: Auth, loc_id: str) -> TccLocConfigResponseT:
     """Test GET /location/{loc_id}/installationInfo"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        f"location/{loc_id}/installationInfo?includeTemperatureControlSystems=True",
-    )  # type: ignore[return-value]
+    return TCC_GET_LOC_INSTALLATION_INFO(
+        await auth._make_request(
+            HTTPMethod.GET,
+            f"location/{loc_id}/installationInfo?includeTemperatureControlSystems=True",
+        )
+    )
 
 
 async def get_loc_status(auth: Auth, loc_id: str) -> TccLocStatusResponseT:
     """Test GET /location/{loc_id}/status"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        f"location/{loc_id}/status?includeTemperatureControlSystems=True",
-    )  # type: ignore[return-value]
+    return TCC_GET_LOC_STATUS(
+        await auth._make_request(
+            HTTPMethod.GET,
+            f"location/{loc_id}/status?includeTemperatureControlSystems=True",
+        )
+    )
 
 
 async def get_tcs_status(auth: Auth, tcs_id: str) -> TccTcsStatusResponseT:
     """Test GET /temperatureControlSystem/{tcs_id}/status"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        f"temperatureControlSystem/{tcs_id}/status",
-    )  # type: ignore[return-value]
+    return TCC_GET_TCS_STATUS(
+        await auth._make_request(
+            HTTPMethod.GET,
+            f"temperatureControlSystem/{tcs_id}/status",
+        )
+    )
 
 
 async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
@@ -182,11 +193,13 @@ async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
     assert exc_info.value.status == HTTPStatus.BAD_REQUEST
     assert "SystemModeChangeTimeUntilNotSet" in exc_info.value.message
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"temperatureControlSystem/{tcs_id}/mode",
-        json={"systemMode": "Auto", "permanent": True},
-    )  # type: ignore[return-value]
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"temperatureControlSystem/{tcs_id}/mode",
+            json={"systemMode": "Auto", "permanent": True},
+        )
+    )
 
 
 @skipif_auth_failed
@@ -214,8 +227,7 @@ async def test_zon_urls(
 
     #
     # STEP A: GET /temperatureZone/{zon_id}/status
-    zon_status = await get_zon_status(auth, zon_id)
-    factory_zon_status()(zon_status)
+    _ = await get_zon_status(auth, zon_id)
 
     #
     # STEP B: PUT /temperatureZone/{zon_id}/heatSetpoint
@@ -225,7 +237,6 @@ async def test_zon_urls(
     #
     # STEP C: GET /temperatureZone/{zon_id}/schedule
     zon_schedule = await get_zon_schedule(auth, zon_id)
-    factory_zon_schedule()(zon_schedule)
 
     #
     # STEP D: PUT /temperatureZone/{zon_id}/schedule
@@ -236,19 +247,23 @@ async def test_zon_urls(
 async def get_zon_schedule(auth: Auth, zon_id: str) -> TccZonDailySchedulesT:
     """Test GET /temperatureZone/{zon_id}/schedule"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        f"temperatureZone/{zon_id}/schedule",
-    )  # type: ignore[return-value]
+    return TCC_GET_ZON_SCHEDULE(
+        await auth._make_request(
+            HTTPMethod.GET,
+            f"temperatureZone/{zon_id}/schedule",
+        )
+    )
 
 
 async def get_zon_status(auth: Auth, zon_id: str) -> TccZonStatusResponseT:
     """Test GET /temperatureZone/{zon_id}/status"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        f"temperatureZone/{zon_id}/status",
-    )  # type: ignore[return-value]
+    return TCC_GET_ZON_STATUS(
+        await auth._make_request(
+            HTTPMethod.GET,
+            f"temperatureZone/{zon_id}/status",
+        )
+    )
 
 
 async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
@@ -287,11 +302,13 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
         json={"setpointMode": "PermanentOverride", "HeatSetpointValue": 20.5},
     )
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"temperatureZone/{zon_id}/heatSetpoint",
-        json={"setpointMode": "FollowSchedule"},  # , "HeatSetpointValue": None},
-    )  # type: ignore[return-value]
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"temperatureZone/{zon_id}/heatSetpoint",
+            json={"setpointMode": "FollowSchedule"},  # , "HeatSetpointValue": None},
+        )
+    )
 
 
 async def put_zon_schedule(
@@ -299,11 +316,13 @@ async def put_zon_schedule(
 ) -> TccTaskResponseT:
     """Test PUT /temperatureZone/{zon_id}/schedule"""
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"temperatureZone/{zon_id}/schedule",
-        json=schedule,
-    )  # type: ignore[return-value]
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"temperatureZone/{zon_id}/schedule",
+            json=schedule,
+        )
+    )
 
 
 @skipif_auth_failed
@@ -340,8 +359,7 @@ async def test_dhw_urls(
 
     #
     # STEP A: GET /domesticHotWater/{dhw_id}/status
-    dhw_status = await get_dhw_status(auth, dhw_id)
-    factory_dhw_status()(dhw_status)
+    _ = await get_dhw_status(auth, dhw_id)
 
     #
     # STEP B: PUT /domesticHotWater/{dhw_id}/state
@@ -351,7 +369,6 @@ async def test_dhw_urls(
     #
     # STEP C: GET /domesticHotWater/{dhw_id}/schedule
     dhw_schedule = await get_dhw_schedule(auth, dhw_id)
-    factory_dhw_schedule()(dhw_schedule)
 
     #
     # STEP D: PUT /domesticHotWater/{dhw_id}/schedule
@@ -362,19 +379,23 @@ async def test_dhw_urls(
 async def get_dhw_schedule(auth: Auth, dhw_id: str) -> TccDhwDailySchedulesT:
     """Test GET /domesticHotWater/{dhw_id}/schedule"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        f"domesticHotWater/{dhw_id}/schedule",
-    )  # type: ignore[return-value]
+    return TCC_GET_DHW_SCHEDULE(
+        await auth._make_request(
+            HTTPMethod.GET,
+            f"domesticHotWater/{dhw_id}/schedule",
+        )
+    )
 
 
 async def get_dhw_status(auth: Auth, dhw_id: str) -> TccDhwStatusResponseT:
     """Test GET /domesticHotWater/{dhw_id}/status"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        f"domesticHotWater/{dhw_id}/status",
-    )  # type: ignore[return-value]
+    return TCC_GET_DHW_STATUS(
+        await auth._make_request(
+            HTTPMethod.GET,
+            f"domesticHotWater/{dhw_id}/status",
+        )
+    )
 
 
 async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
@@ -413,11 +434,13 @@ async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
         json={"mode": "PermanentOverride", "state": "Off"},
     )
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"domesticHotWater/{dhw_id}/state",
-        json={"mode": "FollowSchedule"},  # , "state": None},
-    )  # type: ignore[return-value]
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"domesticHotWater/{dhw_id}/state",
+            json={"mode": "FollowSchedule"},  # , "state": None},
+        )
+    )
 
 
 async def put_dhw_schedule(
@@ -425,8 +448,10 @@ async def put_dhw_schedule(
 ) -> TccTaskResponseT:
     """Test GET /domesticHotWater/{dhw_id}/schedule"""
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"domesticHotWater/{dhw_id}/schedule",
-        json=schedule,
-    )  # type: ignore[return-value]
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"domesticHotWater/{dhw_id}/schedule",
+            json=schedule,
+        )
+    )

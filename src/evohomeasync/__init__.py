@@ -34,33 +34,32 @@ from .exceptions import (
 )
 from .main import EvohomeClient
 from .schemas import (  # noqa: F401
-    SZ_ALLOWED_MODES,
-    SZ_CHANGEABLE_VALUES,
-    SZ_DEVICE_ID,
-    SZ_DEVICES,
-    SZ_DHW_OFF,
-    SZ_DHW_ON,
-    SZ_DOMESTIC_HOT_WATER,
-    SZ_EMEA_ZONE,
-    SZ_HEAT_SETPOINT,
-    SZ_HOLD,
-    SZ_ID,
-    SZ_INDOOR_TEMPERATURE,
-    SZ_LOCATION_ID,
-    SZ_MODE,
-    SZ_NAME,
-    SZ_NEXT_TIME,
-    SZ_QUICK_ACTION,
-    SZ_QUICK_ACTION_NEXT_TIME,
-    SZ_SCHEDULED,
-    SZ_SETPOINT,
-    SZ_STATUS,
-    SZ_TEMP,
-    SZ_TEMPORARY,
-    SZ_THERMOSTAT,
-    SZ_THERMOSTAT_MODEL_TYPE,
-    SZ_USER_INFO,
-    SZ_VALUE,
+    S1_ALLOWED_MODES as SZ_ALLOWED_MODES,
+    S1_CHANGEABLE_VALUES as SZ_CHANGEABLE_VALUES,
+    S1_DEVICE_ID as SZ_DEVICE_ID,
+    S1_DEVICES as SZ_DEVICES,
+    S1_HEAT_SETPOINT as SZ_HEAT_SETPOINT,
+    S1_INDOOR_TEMPERATURE as SZ_INDOOR_TEMPERATURE,
+    S1_LOCATION_ID as SZ_LOCATION_ID,
+    S1_MODE as SZ_MODE,
+    S1_NAME as SZ_NAME,
+    S1_NEXT_TIME as SZ_NEXT_TIME,
+    S1_QUICK_ACTION as SZ_QUICK_ACTION,
+    S1_QUICK_ACTION_NEXT_TIME as SZ_QUICK_ACTION_NEXT_TIME,
+    S1_STATUS as SZ_STATUS,
+    S1_THERMOSTAT as SZ_THERMOSTAT,
+    S1_THERMOSTAT_MODEL_TYPE as SZ_THERMOSTAT_MODEL_TYPE,
+    S1_USER_INFO as SZ_USER_INFO,
+    S1_VALUE as SZ_VALUE,
+    TccCommTaskState,
+    TccDhwMode,
+    TccEquipmentOutputStatus,
+    TccLocationType,
+    TccSensorStatus,
+    TccSetpointStatus,
+    TccSystemMode,
+    TccThermostatMode,
+    TccThermostatModelType,
 )
 
 
@@ -107,6 +106,7 @@ class EvohomeClientOld(EvohomeClient):
         debug: bool = False,
     ) -> None:
         """Construct the v0 EvohomeClient object."""
+
         self._owns_session = websession is None
         websession = websession or aiohttp.ClientSession()
 
@@ -139,6 +139,16 @@ __all__ = [  # noqa: RUF022
     "ControlSystem",
     "Zone",
     "HotWater",
+    #
+    "TccCommTaskState",
+    "TccDhwMode",
+    "TccEquipmentOutputStatus",
+    "TccLocationType",
+    "TccSensorStatus",
+    "TccSetpointStatus",
+    "TccSystemMode",
+    "TccThermostatMode",
+    "TccThermostatModelType",
     #
     "ApiCallFailedError",
     "ApiRateLimitExceededError",

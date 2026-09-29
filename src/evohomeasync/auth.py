@@ -15,7 +15,7 @@ from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
-from .schemas import TCC_POST_USR_SESSION
+from .schemas import S1_SESSION_ID, TCC_POST_USR_SESSION
 
 if TYPE_CHECKING:
     import aiohttp
@@ -158,7 +158,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         except vol.Invalid as err:
             self._logger.warning(f"POST {url}: payload may be invalid: {err}")
 
-        session: EvoSessionDictT = convert_keys_to_snake_case(response)  # type:ignore[assignment]
+        session: EvoSessionDictT = convert_keys_to_snake_case(response)  # type: ignore[assignment]
 
         try:
             self._session_id: str = session[SZ_SESSION_ID]
@@ -233,5 +233,5 @@ class Auth(AbstractAuth):
 
         headers = HEADERS_BASE | (headers or {})
         return headers | {
-            "sessionId": await self._session_id(),
+            S1_SESSION_ID: await self._session_id(),
         }

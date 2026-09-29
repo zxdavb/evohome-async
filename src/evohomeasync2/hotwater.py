@@ -7,7 +7,7 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
-from _evohome.helpers import as_aware_dtm, as_local_time
+from _evohome.helpers import Case, as_aware_dtm, as_local_time
 
 from . import exceptions as exc
 from .const import (
@@ -25,7 +25,6 @@ from .const import (
     ZoneMode,
 )
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.schedule import factory_dhw_schedule
 from .schemas.status import factory_dhw_status
 from .typedefs import EvoDhwScheduleDayOfWeekT, EvoDhwStatusT
@@ -34,15 +33,17 @@ from .zone import _ZoneBase
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import ControlSystem
     from .typedefs import (
         EvoDhwConfigResponseT,
         EvoDhwConfigT,
         EvoDhwScheduleCapabilitiesT,
+        EvoDhwScheduleResponseT,
         EvoDhwStateCapabilitiesT,
         EvoDhwStateStatusT,
+        EvoDhwStatusResponseT,
         EvoSetDhwStateT,
     )
 
@@ -52,8 +53,10 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
     _TCC_TYPE = TccEntityType.DHW
 
-    SCH_SCHEDULE: vol.Schema = factory_dhw_schedule(Case.PYTHONIC)
-    SCH_STATUS: vol.Schema = factory_dhw_status(Case.PYTHONIC)
+    SCH_SCHEDULE: Validator[EvoDhwScheduleResponseT] = factory_dhw_schedule(
+        Case.PYTHONIC
+    )
+    SCH_STATUS: Validator[EvoDhwStatusResponseT] = factory_dhw_status(Case.PYTHONIC)
 
     def __init__(self, tcs: ControlSystem, config: EvoDhwConfigResponseT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs)
@@ -78,6 +81,10 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
     @cached_property
     def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesT | None:
         """
+        Return the schedule capabilities of the DHW zone (never None for Evohome).
+
+        This key may be absent for some FocusProWifi* systems.
+
         "scheduleCapabilitiesResponse": {
           "maxSwitchpointsPerDay": 6,
           "minSwitchpointsPerDay": 1,
@@ -85,7 +92,6 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         }
         """
 
-        # key may be absent for FocusProWifiRetail, but is always present for Evohome
         return self._config.get(SZ_SCHEDULE_CAPABILITIES_RESPONSE)
 
     @cached_property  # NOTE: is not dhw_state_capabilities
@@ -158,7 +164,8 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
                 f"{self}: Attempting unsupported {SZ_STATE}: {dhw_mode}..."
             )
 
-        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/state", json=dict(dhw_mode))
+        url = f"{self._TCC_TYPE}/{self.id}/state"
+        _ = await self._auth.put(url, json=dhw_mode)
 
     async def set_mode(
         self,
