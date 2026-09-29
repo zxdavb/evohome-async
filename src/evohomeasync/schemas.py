@@ -241,12 +241,21 @@ class TccThermostatModelType(StrEnum):  # device.thermostatModelType
     Unlike the other enums here, these values are not PascalCase. They must not be sent
     in a request body, as the library would mangle them: see AbstractAuth.request(),
     which converts StrEnum values (e.g. DOMESTIC_HOT_WATER -> DOMESTICHotWater).
+
+    This list is not exhaustive, but these systems are expected to work OK.
     """
 
     DOMESTIC_HOT_WATER = "DOMESTIC_HOT_WATER"
-    # see: https://github.com/home-assistant/core/issues/139906
+    EVO_TOUCH_SYSTEM = "EVO_TOUCH_SYSTEM"
+    EMEA_ROUND_MODULATION = "EMEA_ROUND_MODULATION"
     EMEA_ROUND_WIRELESS = "EMEA_ROUND_WIRELESS"
     EMEA_ZONE = "EMEA_ZONE"
+    FOCUS_PRO_REDLINK = "FOCUS_PRO_REDLINK"
+    FOCUS_PRO_WIFI_RETAIL = "FOCUS_PRO_WIFI_RETAIL"
+    FOCUS_PRO_WIFI_TRADE = "FOCUS_PRO_WIFI_TRADE"
+    FOCUS_PRO_WIFI_ETAILER = "FOCUS_PRO_WIFI_ETAILER"
+    SARATOGA = "SARATOGA"
+    UNKNOWN = "UNKNOWN"
 
 
 def factory_failure_response(fnc: Callable[[str], str] = noop) -> vol.Schema:
