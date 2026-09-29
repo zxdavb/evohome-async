@@ -19,6 +19,13 @@ if TYPE_CHECKING:
 type Validator[T] = Callable[[object], T]
 
 
+class Case(StrEnum):
+    """Selects the casing convention a schema factory should produce."""
+
+    VENDOR = "vendor"  # camelCase keys, PascalCase enum strings (validate only)
+    PYTHONIC = "pythonic"  # snake_case keys, coerced to user-facing enum members
+
+
 # Vendor API datetime format (ISO 8601, UTC, no fractional seconds)
 TCC_DTM_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
 # _TCC_DTM_REGEX: Final = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"

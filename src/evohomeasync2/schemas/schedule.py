@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict, overlo
 
 import probatio as vol
 
-from _evohome.helpers import camel_to_snake, noop
+from _evohome.helpers import Case, camel_to_snake, noop
 
 from .config import _MAX_HEAT_SETPOINT_UPPER, _MIN_HEAT_SETPOINT_LOWER
 from .const import (
@@ -31,7 +31,7 @@ from .const import (
     TccDhwState,
     TccFanMode,
 )
-from .helpers import Case, factory_enum, factory_enum_or_str
+from .helpers import factory_enum, factory_enum_or_str
 
 if TYPE_CHECKING:
     from _evohome.helpers import Validator

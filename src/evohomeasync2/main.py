@@ -9,13 +9,14 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from aiozoneinfo import async_get_time_zone
 
+from _evohome.helpers import Case
+
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import _ERR_NOT_AVAILABLE, SZ_USER_ID
 from .location import Location, create_location
 from .schemas.account import factory_usr_account
 from .schemas.config import factory_usr_locations
-from .schemas.helpers import Case
 
 if TYPE_CHECKING:
     import aiohttp

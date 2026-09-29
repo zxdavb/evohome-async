@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict, overlo
 
 import probatio as vol
 
-from _evohome.helpers import camel_to_snake, noop, redact
+from _evohome.helpers import Case, camel_to_snake, noop, redact
 
 from .const import (
     REGEX_TASK_ID,
@@ -38,7 +38,6 @@ from .const import (
     SZ_SCOPE,
     SZ_TOKEN_TYPE,
 )
-from .helpers import Case
 
 if TYPE_CHECKING:
     from _evohome.helpers import Validator

@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict, overlo
 
 import probatio as vol
 
-from _evohome.helpers import camel_to_snake, noop
+from _evohome.helpers import Case, camel_to_snake, noop
 
 from .const import (
     REGEX_DHW_ID,
@@ -58,7 +58,7 @@ from .const import (
     TccSystemMode,
     TccZoneMode,
 )
-from .helpers import Case, factory_datetime, factory_enum, factory_enum_or_str
+from .helpers import factory_datetime, factory_enum, factory_enum_or_str
 
 if TYPE_CHECKING:
     from _evohome.helpers import Validator

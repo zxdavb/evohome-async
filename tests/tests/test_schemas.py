@@ -29,11 +29,10 @@ from typing import (
 import probatio as vol
 import pytest
 
-from _evohome.helpers import camel_to_snake
+from _evohome.helpers import Case, camel_to_snake
 from evohomeasync import schemas as sch0, typedefs as evo0
 from evohomeasync2 import const as const2, typedefs as evo2
 from evohomeasync2.schemas import account, config, const as sch2_const, schedule, status
-from evohomeasync2.schemas.helpers import Case
 
 from .conftest import FIXTURES_V2
 

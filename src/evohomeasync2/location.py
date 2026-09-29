@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
 
-from _evohome.helpers import convert_dtm_to_local_aware
+from _evohome.helpers import Case, convert_dtm_to_local_aware
 from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
 from .const import (
@@ -29,7 +29,6 @@ from .const import (
 from .gateway import Gateway
 from .schemas.config import factory_loc_config
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.status import factory_loc_status
 from .typedefs import EvoLocStatusT
 from .zone import EntityBase
