@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import functools
+from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, overload
+from typing import TYPE_CHECKING, Any, Final, overload
 
 import pytest
 
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping
 
     from _evohome.helpers import Validator
+    from evohomeasync.schemas import TccDeviceResponseT
     from tests.conftest import EvohomeClientV2
 
 if _DBG_USE_REAL_AIOHTTP:
@@ -151,7 +153,7 @@ async def should_work_v0[T](
             response = await rsp.text()
 
         try:
-            rsp.raise_for_status()  # should be 200/OK
+            rsp.raise_for_status()  # should be 200/OK (a GET), or 201/Created (a PUT)
         except aiohttp.ClientResponseError as err:
             pytest.fail(f"status={err.status}: {response}")
 
@@ -220,6 +222,134 @@ async def should_fail_v0(
     return response
 
 
+def is_zone_v0(dev: TccDeviceResponseT) -> bool:
+    """Return True if a (vendor-cased) v0 device is an evohome zone."""
+    # Honeywell TH9320WF3003 can send thermostatModelType as an int, so guard startswith()
+    return isinstance(t := dev["thermostatModelType"], str) and t.startswith("EMEA_")
+
+
+def is_dhw_v0(dev: TccDeviceResponseT) -> bool:
+    """Return True if a (vendor-cased) v0 device is an evohome DHW."""
+    return dev["thermostatModelType"] == "DOMESTIC_HOT_WATER"
+
+
+def is_alive_v0(dev: TccDeviceResponseT) -> bool:
+    """Return True if a (vendor-cased) v0 device is alive (i.e. its gateway is online).
+
+    The vendor rejects any PUT to a device that is not alive: 400, "DeviceIsLost".
+    """
+    return dev.get("isAlive") is True
+
+
+def status_of_v0(dev: TccDeviceResponseT) -> str | None:
+    """Return the status of a (vendor-cased) v0 zone or DHW, e.g. "Scheduled".
+
+    A zone's is under changeableValues.heatSetpoint, a DHW's under changeableValues.
+    """
+
+    values: dict[str, Any] = dict(dev["thermostat"].get("changeableValues", {}))
+    if not is_dhw_v0(dev):
+        values = values.get("heatSetpoint", {})
+    return None if (status := values.get("status")) is None else str(status)
+
+
+def task_id_v0(response: object) -> str:
+    """Return the id of the comm task that a v0 PUT returns (a dict, or a list of one).
+
+    e.g. {"id": 1234567890} (an int); the older (non-async) client also allowed for a
+    list of one, i.e. [{"id": 1234567890}].
+    """
+
+    task = response[0] if isinstance(response, list) else response
+    assert isinstance(task, dict), response
+    assert "id" in task, response
+    return str(task["id"])
+
+
+# a tolerance for the difference between the vendor's clock and ours
+_CLOCK_SKEW: Final = td(seconds=5)
+
+# the number of consecutive polls for which a zone must be seen to follow its schedule
+_POLLS_IN_A_ROW: Final = 2
+
+# the time allowed for a zone to follow its schedule (the vendor may not apply a revert)
+_REVERT_TIMEOUT: Final = 180  # seconds
+
+
+def is_stale_task_v0(task: Mapping[str, Any], sent: dt) -> bool:
+    """Return True if a v0 comm task had started before its PUT was sent.
+
+    The vendor sometimes answers a v0 PUT with the comm task of an earlier, equivalent
+    PUT to the same device (a task that has already succeeded), and does not apply it,
+    even if the device's state has changed since. This is how to detect that it has.
+
+    The rule for when it does so is not known. It has been seen repeatedly for a revert
+    to schedule (which has only the one form), and sometimes for an override (but never
+    for one with a NextTime not used before), from seconds to minutes after the earlier
+    PUT, but not always. The two PUTs need not be identical: e.g. they have differed in
+    their key casing, and in having a null key vs not having that key at all.
+    """
+
+    started = dt.fromisoformat(task["started"]).replace(tzinfo=UTC)  # TZ-naive UTC
+    return started < sent - _CLOCK_SKEW
+
+
+async def wait_for_comm_task_v0(auth: evo0.auth.Auth, task_id: str) -> dict[str, Any]:
+    """Wait for a v0 communication task (API call) to succeed, and return it.
+
+    Only "Succeeded" is known to be terminal: the older (non-async) client polled until
+    it saw it, and its tests used "pending" otherwise. No other states are documented,
+    so invoke this within an asyncio.timeout().
+    """
+
+    url = f"commTasks?commTaskId={task_id}"
+
+    while True:
+        task = await should_work_v0(auth, HTTPMethod.GET, url)
+        assert isinstance(task, dict), task
+
+        if task["state"] == "Succeeded":
+            return task
+
+        await asyncio.sleep(0.5)
+
+
+async def ensure_zone_follows_schedule_v0(
+    auth: evo0.auth.Auth, zon_id: int | str
+) -> None:
+    """Ensure a zone follows its schedule, using the v0 API.
+
+    Used to tidy up after a v0 test, as the vendor may not apply a v0 revert to schedule
+    (see is_stale_task_v0). Rather than trust a comm task, it checks the zone's status,
+    and reverts it again until it is so.
+
+    Requires that the zone follows its schedule for two polls in a row, reverting it
+    whenever it does not, so as to allow for any v0 PUT that is still in progress (e.g.
+    from the v1 client, which doesn't wait for its comm tasks).
+    """
+
+    url = f"devices/{zon_id}/thermostat/changeableValues"
+    in_a_row = 0
+
+    async with asyncio.timeout(_REVERT_TIMEOUT):
+        while in_a_row < _POLLS_IN_A_ROW:
+            values = await should_work_v0(auth, HTTPMethod.GET, url)
+            assert isinstance(values, dict), values
+
+            if values["heatSetpoint"]["status"] == "Scheduled":
+                in_a_row += 1
+            else:
+                in_a_row = 0
+                _ = await should_work_v0(
+                    auth,
+                    HTTPMethod.PUT,
+                    f"{url}/heatSetpoint",
+                    json={"Status": "Scheduled"},
+                )
+
+            await asyncio.sleep(5)
+
+
 # version 2 helpers ###################################################################
 
 
@@ -276,7 +406,7 @@ async def should_work_v2[T](
             response = await rsp.text()
 
         try:
-            rsp.raise_for_status()  # should be 200/OK
+            rsp.raise_for_status()  # should be 200/OK (a GET), or 201/Created (a PUT)
         except aiohttp.ClientResponseError as err:
             pytest.fail(f"status={err.status}: {response}")
 
