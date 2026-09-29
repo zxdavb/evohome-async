@@ -244,6 +244,8 @@ class TccThermostatModelType(StrEnum):  # device.thermostatModelType
     """
 
     DOMESTIC_HOT_WATER = "DOMESTIC_HOT_WATER"
+    # see: https://github.com/home-assistant/core/issues/139906
+    EMEA_ROUND_WIRELESS = "EMEA_ROUND_WIRELESS"
     EMEA_ZONE = "EMEA_ZONE"
 
 
@@ -578,8 +580,9 @@ class TccLocationResponseT(TypedDict):
 class TccDeviceResponseT(TypedDict):
     deviceID: _DhwIdT | _ZoneIdT  # is ID, not Id
     gatewayId: _GatewayIdT
-    # is an int only for the Honeywell TH9320WF3003 (deviceType 48), which sends 36
-    thermostatModelType: TccThermostatModelType | str | int  # int: Honeywell TH9320WF3003
+    # enum may be incomplete, so allow str; is an int only for the Honeywell TH9320WF3003
+    # (deviceType 48), which sends 36
+    thermostatModelType: TccThermostatModelType | str | int
     deviceType: int
     name: str
     scheduleCapable: bool
