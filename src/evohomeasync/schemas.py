@@ -224,13 +224,13 @@ class TccSensorStatus(StrEnum):  # thermostat.(in|out)door(Temperature|Humidity)
 
 @verify(EnumCheck.UNIQUE)
 class TccThermostatMode(StrEnum):  # changeableValues.mode, allowedModes (of a zone)
-    AUTO_COOL = "AutoCool"  # documented, not seen with EMEA
-    AUTO_HEAT = "AutoHeat"  # documented, not seen with EMEA
-    COOL = "Cool"  # documented, not seen with EMEA
-    EMERGENCY_HEAT = "EmergencyHeat"  # documented, not seen with EMEA
+    AUTO_COOL = "AutoCool"  # not seen with EMEA Evohome
+    AUTO_HEAT = "AutoHeat"  # not seen with EMEA Evohome
+    COOL = "Cool"  # not seen with EMEA Evohome
+    EMERGENCY_HEAT = "EmergencyHeat"  # not seen with EMEA Evohome
     HEAT = "Heat"
     OFF = "Off"
-    SOUTHERN_AWAY = "SouthernAway"  # documented, not seen with EMEA
+    SOUTHERN_AWAY = "SouthernAway"  # not seen with EMEA Evohome
 
 
 # NOTE: This list may be incomplete (a zone type need only be prefixed with "EMEA_")
@@ -589,8 +589,7 @@ class TccLocationResponseT(TypedDict):
 class TccDeviceResponseT(TypedDict):
     deviceID: _DhwIdT | _ZoneIdT  # is ID, not Id
     gatewayId: _GatewayIdT
-    # enum may be incomplete, so allow str; is an int only for the Honeywell TH9320WF3003
-    # (deviceType 48), which sends 36
+    # enum may be incomplete, so allow str; is an int for some (e.g. Honeywell TH9320WF3003)
     thermostatModelType: TccThermostatModelType | str | int
     deviceType: int
     name: str
