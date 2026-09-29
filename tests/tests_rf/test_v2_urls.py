@@ -1,6 +1,12 @@
 """Invoke every vendor RESTful API (URL) used by the v2 client.
 
-This is used to document the RESTful API that is provided by the vendor.
+This is used to document the RESTful API that is provided by the vendor: together with
+the TypedDicts of evohomeasync2.schemas (and evohomeasync2.typedefs), these tests are
+the documentation of that API.
+
+Each endpoint annotated in those modules should be exercised here, but not all of them
+yet are (e.g. the installationInfo of a gateway, TCS, zone or DHW): any that is not has
+not been verified against the vendor's API.
 
 Testing is at HTTP request layer (e.g. GET/PUT).
 Everything to/from the RESTful API is in camelCase (so those schemas are used).
