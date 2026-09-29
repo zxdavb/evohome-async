@@ -242,6 +242,11 @@ class TccSystemMode(StrEnum):
 
 @verify(EnumCheck.UNIQUE)
 class TccTcsModelType(StrEnum):
+    """The vendor's model type of a TCS device (these values are received, not sent).
+
+    This list is not exhaustive, but these systems are expected to work OK.
+    """
+
     EVO_TOUCH = "EvoTouch"
     FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
     SARATOGA = "Saratoga"  # https://github.com/home-assistant/core/issues/179414
@@ -250,7 +255,7 @@ class TccTcsModelType(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class TccTimingMode(StrEnum):  # c.f. JSON keys: SZ_DURATION, SZ_PERIOD
+class TccTimingMode(StrEnum):  # c.f. JSON keys (camelCase): "duration, "period"
     DURATION = "Duration"
     PERIOD = "Period"
 
