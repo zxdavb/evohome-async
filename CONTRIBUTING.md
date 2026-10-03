@@ -91,23 +91,46 @@ this.
 
 ### 4. Use the project's exception hierarchy
 
-See `src/_evohome/exceptions.py`. Key types:
+See `src/_evohome/exceptions.py`. The exceptions are grouped by what the caller can do
+about them:
 
 ```text
 EvohomeError
-├── ApiCallFailedError           # API call failed (ApiRequestFailedError is a deprecated alias)
-│   ├── ApiRateLimitExceededError
-│   └── BadApiSchemaError        # API sent/was sent unexpected data
-│       ├── BadApiRequestError
-│       └── BadApiResponseError
-├── AuthenticationFailedError    # NB: not an ApiCallFailedError
-│   └── BadUserCredentialsError
-├── ConfigError                  # Bad config JSON
-└── StatusError                  # Bad status/schedule JSON
+│
+├── ApiCallFailedError                # No usable reply: try again later
+│   ├── ApiRateLimitExceededError     # HTTP 429; has a retry_after attr
+│   │   └── AuthRateLimitExceededError    # is also an AuthenticationFailedError
+│   ├── AuthenticationFailedError
+│   │   └── BadUserCredentialsError   # NB: trying again will not help
+│   └── RequestRejectedError          # A PUT was refused: trying again will not help
+│
+├── BadApiRequestError                # The arguments are unusable: fix the call
+│   ├── InvalidModeError
+│   └── InvalidScheduleUploadedError
+│
+├── BadApiResponseError               # The reply is not as expected: report it
+│   ├── InvalidConfigError
+│   │   └── GhostZoneError
+│   ├── InvalidStatusError
+│   └── InvalidScheduleError
+│
+└── ClientStateError                  # The client lacks the data: fetch it first
+    ├── NotFetchedError
+    └── NoSingleTcsError
 ```
+
+`ApiRequestFailedError`, `BadScheduleUploadedError` and `InvalidSystemModeError` are
+deprecated aliases, for `ApiCallFailedError`, `InvalidScheduleUploadedError` and
+`InvalidModeError` respectively.
 
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library
   code - instead, raise exceptions based upon `EvohomeError`.
+- An `AuthenticationFailedError` is an `ApiCallFailedError`, and has a `status` too. A
+  handler that acts upon the `status` of an `ApiCallFailedError` (e.g. a 400, or a 401)
+  must first let any `AuthenticationFailedError` pass.
+- A `BadApiRequestError` means a request was never sent, as the arguments failed this
+  library's checks. A `RequestRejectedError` means a PUT was sent, but the vendor
+  refused it (a 4xx).
 - Do **not** use bare `except Exception:` — catch the specific type you expect.
 - Never silently swallow errors with `pass`. At minimum, log a warning.
 

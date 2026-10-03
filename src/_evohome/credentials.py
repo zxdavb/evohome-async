@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import json
-from http import HTTPMethod
+from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
 import aiohttp
 
 from . import exceptions as exc
-from .auth import _payload
+from .auth import _payload, _retry_after
 from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
 
 if TYPE_CHECKING:
@@ -96,6 +96,12 @@ class CredentialsManagerBase:
                 self._logger.error(hint)  # noqa: TRY400
 
             msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
+
+            if err.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
+                raise exc.AuthRateLimitExceededError(
+                    f"Authenticator response is invalid: {msg}",
+                    retry_after=_retry_after(rsp),
+                ) from err
 
             raise exc.AuthenticationFailedError(
                 f"Authenticator response is invalid: {msg}", status=err.status

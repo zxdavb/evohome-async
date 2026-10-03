@@ -26,6 +26,8 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
     from pathlib import Path
 
+    from freezegun.api import FrozenDateTimeFactory
+
     from evohome_cli.auth import TokenCacheManager
 
 
@@ -197,6 +199,94 @@ async def test_bad3(  # bad credentials (refresh token)
         rsp.assert_called_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
     assert evohome_v2._token_manager.is_token_valid() is False
+
+
+@pytest.mark.parametrize(
+    ("headers", "retry_after"),
+    [
+        (None, None),
+        ({"Retry-After": "120"}, 120.0),  # as delay-seconds
+        ({"Retry-After": "Wed, 01 Jan 2025 00:02:00 GMT"}, 120.0),  # as HTTP-date
+        ({"Retry-After": "a while"}, None),
+    ],
+)
+async def test_bad4(  # rate limit exceeded (authentication)
+    credentials: tuple[str, str],
+    evohome_v2: EvohomeClient,
+    freezer: FrozenDateTimeFactory,
+    headers: dict[str, str] | None,
+    retry_after: float | None,
+) -> None:
+    """Test authentication flow when the vendor's rate limit is exceeded."""
+
+    freezer.move_to("2025-01-01T00:00:00+00:00")
+
+    # pre-requisite data (no access token)
+    evohome_v2._token_manager.clear_access_token()
+
+    assert evohome_v2._token_manager.is_token_valid() is False
+
+    # TEST 4: too many authentications -> HTTPStatus.TOO_MANY_REQUESTS
+    with aioresponses() as rsp:
+        rsp.post(
+            URL_CRED_V2,
+            status=HTTPStatus.TOO_MANY_REQUESTS,
+            payload={"error": "attempt_limit_exceeded"},
+            headers=headers,
+        )
+
+        with pytest.raises(exc.AuthRateLimitExceededError) as err:
+            await evohome_v2.update()
+
+        assert isinstance(err.value, exc.ApiRateLimitExceededError)
+        assert isinstance(err.value, exc.AuthenticationFailedError)
+
+        assert err.value.status == HTTPStatus.TOO_MANY_REQUESTS
+        assert err.value.retry_after == retry_after
+        assert len(rsp.requests) == 1
+
+    assert evohome_v2._token_manager.is_token_valid() is False
+
+
+async def test_bad5(  # rate limit exceeded (authorization)
+    credentials: tuple[str, str],
+    evohome_v2: EvohomeClient,
+) -> None:
+    """Test authorization flow when the vendor's rate limit is exceeded."""
+
+    retry_after = 60
+
+    # pre-requisite data (a valid access token)
+    evohome_v2._token_manager._access_token = _TEST_ACCESS_TOKEN
+    evohome_v2._token_manager._access_token_expires = dt.now(tz=UTC) + td(minutes=15)
+    evohome_v2._token_manager._refresh_token = _TEST_REFRESH_TOKEN
+
+    assert evohome_v2._token_manager.is_token_valid() is True
+
+    # TEST 5: too many requests -> HTTPStatus.TOO_MANY_REQUESTS
+    with aioresponses() as rsp:
+        rsp.get(
+            "https://tccna.resideo.com/WebAPI/emea/api/v1/userAccount",
+            status=HTTPStatus.TOO_MANY_REQUESTS,
+            payload=[{"code": "TooManyRequests", "message": "..."}],
+            headers={"Retry-After": str(retry_after)},
+        )
+
+        with pytest.raises(exc.ApiRateLimitExceededError) as err:
+            await evohome_v2.update()
+
+        assert not isinstance(err.value, exc.AuthenticationFailedError)
+
+        assert err.value.status == HTTPStatus.TOO_MANY_REQUESTS
+        assert err.value.retry_after == retry_after
+        assert len(rsp.requests) == 1
+
+        # response 0: Too many requests (the access token is not rejected)
+        rsp.assert_called_once_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
+
+    assert evohome_v2._token_manager.is_token_valid() is True
+
+    evohome_v2._token_manager.clear_access_token()  # is cached; don't leak to next test
 
 
 async def test_good(  # good credentials

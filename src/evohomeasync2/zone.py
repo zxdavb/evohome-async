@@ -8,6 +8,7 @@ from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
+from _evohome.const import _ERR_NO_STATUS
 from _evohome.helpers import (
     Case,
     as_aware_dtm,
@@ -17,7 +18,6 @@ from _evohome.helpers import (
 
 from . import exceptions as exc
 from .const import (
-    _ERR_NOT_AVAILABLE,
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_FAN_MODES,
     SZ_ALLOWED_SETPOINT_MODES,
@@ -128,7 +128,7 @@ class EntityBase[StatusT]:
     def status(self) -> StatusT:
         """Return the latest status of the entity."""
         if self._status is None:
-            raise exc.InvalidStatusError(_ERR_NOT_AVAILABLE.format(self))
+            raise exc.NotFetchedError(_ERR_NO_STATUS.format(self))
         return self._status
 
     async def _get_status(self, *, _update: bool = True) -> StatusT:
@@ -289,6 +289,8 @@ class _ScheduleBase[
     def schedule(self) -> list[DayT]:
         """Return the schedule (assumes it is current)."""
 
+        if self._schedule is None:
+            raise exc.NotFetchedError(f"{self}: No schedule, has it been fetched?")
         if not self._schedule:
             raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
 
@@ -298,8 +300,7 @@ class _ScheduleBase[
     def this_switchpoint(self) -> _SwitchPoint:
         """Return the start datetime and setpoint of the current switchpoint."""
 
-        if not self._schedule:
-            raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
+        _ = self.schedule  # will raise an exception if there is no (valid) schedule
 
         if self._next_switchpoint[0] > (dt_now := dt.now(tz=UTC)):
             return self._this_switchpoint
@@ -311,8 +312,7 @@ class _ScheduleBase[
     def next_switchpoint(self) -> _SwitchPoint:
         """Return the start datetime and setpoint of the next switchpoint."""
 
-        if not self._schedule:
-            raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
+        _ = self.schedule  # will raise an exception if there is no (valid) schedule
 
         if self._next_switchpoint[0] > (dt_now := dt.now(tz=UTC)):
             return self._next_switchpoint
@@ -332,10 +332,13 @@ class _ScheduleBase[
                 schema=self.SCH_SCHEDULE,
             )
 
-        except exc.BadApiSchemaError as err:  # the schedule failed validation
+        except exc.BadApiResponseError as err:  # the schedule failed validation
             raise exc.InvalidScheduleError(
                 f"{self}: Schedule is invalid: {err}"
             ) from err
+
+        except exc.AuthenticationFailedError:  # e.g. bad credentials are a 400 too
+            raise
 
         except exc.ApiCallFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
@@ -405,7 +408,7 @@ class _ScheduleBase[
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
-                raise exc.BadScheduleUploadedError(
+                raise exc.InvalidScheduleUploadedError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
@@ -413,14 +416,14 @@ class _ScheduleBase[
             try:
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as err:
-                raise exc.BadScheduleUploadedError(
+                raise exc.InvalidScheduleUploadedError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
             assert isinstance(schedule, list)  # mypy
 
         else:
-            raise exc.BadScheduleUploadedError(
+            raise exc.InvalidScheduleUploadedError(
                 f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable"
             )
 
@@ -522,11 +525,11 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         self._config: Final = config
 
         if not self.model or self.model is ZoneModelType.UNKNOWN:
-            raise exc.InvalidConfigError(
+            raise exc.GhostZoneError(
                 f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)"
             )
         if not self.type or self.type is ZoneType.UNKNOWN:
-            raise exc.InvalidConfigError(
+            raise exc.GhostZoneError(
                 f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)"
             )
 
@@ -689,27 +692,27 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         try:
             mode = ZoneMode(mode)
         except ValueError as err:
-            raise exc.InvalidZoneModeError(f"{self}: Unknown mode: {mode}") from err
+            raise exc.InvalidModeError(f"{self}: Unknown mode: {mode}") from err
 
         if mode not in self.allowed_modes:
-            raise exc.InvalidZoneModeError(f"{self}: Unsupported mode: {mode}")
+            raise exc.InvalidModeError(f"{self}: Unsupported mode: {mode}")
 
         zone_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: mode}
 
         if temperature is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeError(
                     f"{self}: For {mode}, temperature must not be None"
                 )
 
         else:
             if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeError(
                     f"{self}: For {mode}, temperature must be None"
                 )
 
             if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeError(
                     f"{self}: Invalid temperature: {temperature} (out of range)"
                 )
 
@@ -717,15 +720,13 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeError(
                     f"{self}: For {mode}, until must not be None"
                 )
 
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidZoneModeError(
-                    f"{self}: For {mode}, until must be None"
-                )
+                raise exc.InvalidModeError(f"{self}: For {mode}, until must be None")
 
             zone_mode[SZ_TIME_UNTIL] = as_aware_dtm(until)
 

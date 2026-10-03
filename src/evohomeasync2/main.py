@@ -9,11 +9,12 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from aiozoneinfo import async_get_time_zone
 
+from _evohome.const import _ERR_NO_CONFIG
 from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
-from .const import _ERR_NOT_AVAILABLE, SZ_USER_ID
+from .const import SZ_USER_ID
 from .location import Location, create_location
 from .schemas.account import factory_usr_account
 from .schemas.config import factory_usr_locations
@@ -80,9 +81,7 @@ class EvohomeClient:
         """Return a tzinfo-compliant object for the client's local time."""
 
         if not self._tzinfo_initialized:
-            raise exc.InvalidConfigError(
-                _ERR_NOT_AVAILABLE.format("Timezone information")
-            )
+            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Timezone information"))
 
         return self._tzinfo
 
@@ -113,7 +112,10 @@ class EvohomeClient:
             self._location_by_id = None
 
         if self._user_locs is None:
-            await self._get_config(dont_update_status=dont_update_status)
+            try:
+                await self._get_config(dont_update_status=dont_update_status)
+            except exc.BadApiResponseError as err:  # e.g. failed validation
+                raise exc.InvalidConfigError(err.message) from err
 
         if not dont_update_status:  # don't retrieve/update status of location hierarchy
             #
@@ -155,7 +157,10 @@ class EvohomeClient:
                 self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)
 
             except exc.ApiCallFailedError as err:  # check if 401 - bad access_token
-                if err.status != HTTPStatus.UNAUTHORIZED:  # 401
+                if (
+                    isinstance(err, exc.AuthenticationFailedError)  # no access_token
+                    or err.status != HTTPStatus.UNAUTHORIZED  # 401
+                ):
                     raise
 
                 # as the userAccount URL is open to all authenticated users, any 401 is
@@ -208,9 +213,7 @@ class EvohomeClient:
         """Return the (config) information of the user account."""
 
         if self._user_info is None:  # None: never fetched, []: fetched but empty
-            raise exc.InvalidConfigError(
-                _ERR_NOT_AVAILABLE.format("Account information")
-            )
+            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Account information"))
 
         return self._user_info
 
@@ -219,9 +222,7 @@ class EvohomeClient:
         """Return the list of location entities (may be empty)."""
 
         if self._locations is None:  # None: never fetched, []: fetched but empty
-            raise exc.InvalidConfigError(
-                _ERR_NOT_AVAILABLE.format("Installation information")
-            )
+            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
 
         return self._locations
 
@@ -230,9 +231,7 @@ class EvohomeClient:
         """Return the location entities by id (may be empty)."""
 
         if self._location_by_id is None:  # None: never fetched, []: fetched but empty
-            raise exc.InvalidConfigError(
-                _ERR_NOT_AVAILABLE.format("Installation information")
-            )
+            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
 
         return self._location_by_id
 

@@ -15,6 +15,7 @@ from aiozoneinfo import async_get_time_zone
 from _evohome.helpers import Case, convert_dtm_to_local_aware
 from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
+from . import exceptions as exc
 from .const import (
     SZ_COUNTRY,
     SZ_GATEWAY_ID,
@@ -181,10 +182,13 @@ class Location(EntityBase[EvoLocStatusT]):
         # it is assumed that *only* the location's TZ/DST info can change
         # so don't need ?includeTemperatureControlSystems=True
 
-        config: EvoLocConfigResponseT = await self._auth.get(
-            f"location/{self._id}/installationInfo",
-            schema=self.SCH_CONFIG,
-        )
+        try:
+            config: EvoLocConfigResponseT = await self._auth.get(
+                f"location/{self._id}/installationInfo",
+                schema=self.SCH_CONFIG,
+            )
+        except exc.BadApiResponseError as err:  # the config failed validation
+            raise exc.InvalidConfigError(err.message) from err
 
         self._config = config[SZ_LOCATION_INFO]  # ?exclude TZ/DST
 
@@ -245,10 +249,13 @@ class Location(EntityBase[EvoLocStatusT]):
         location's TZ.
         """
 
-        status: EvoLocStatusResponseT = await self._auth.get(
-            f"{self._TCC_TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
-            schema=self.SCH_STATUS,
-        )
+        try:
+            status: EvoLocStatusResponseT = await self._auth.get(
+                f"{self._TCC_TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
+                schema=self.SCH_STATUS,
+            )
+        except exc.BadApiResponseError as err:  # the status failed validation
+            raise exc.InvalidStatusError(err.message) from err
 
         status = convert_dtm_to_local_aware(status, self.tzinfo)
 
