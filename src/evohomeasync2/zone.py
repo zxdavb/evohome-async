@@ -8,6 +8,7 @@ from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
+from _evohome.const import _ERR_NO_STATUS
 from _evohome.helpers import (
     Case,
     as_aware_dtm,
@@ -17,7 +18,6 @@ from _evohome.helpers import (
 
 from . import exceptions as exc
 from .const import (
-    _ERR_NOT_AVAILABLE,
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_FAN_MODES,
     SZ_ALLOWED_SETPOINT_MODES,
@@ -128,7 +128,7 @@ class EntityBase[StatusT]:
     def status(self) -> StatusT:
         """Return the latest status of the entity."""
         if self._status is None:
-            raise exc.NotFetchedError(_ERR_NOT_AVAILABLE.format(self))
+            raise exc.NotFetchedError(_ERR_NO_STATUS.format(self))
         return self._status
 
     async def _get_status(self, *, _update: bool = True) -> StatusT:
