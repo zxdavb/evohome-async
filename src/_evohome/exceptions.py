@@ -3,20 +3,24 @@
 They are grouped by what the caller can do about them:
 
   EvohomeError
+  │
   ├── ApiCallFailedError                  # no usable reply: try again later
   │   ├── ApiRateLimitExceededError
   │   │   └── AuthRateLimitExceededError  # is also an AuthenticationFailedError
   │   ├── AuthenticationFailedError
   │   │   └── BadUserCredentialsError     # trying again will not help
   │   └── RequestRejectedError            # trying again will not help
+  │
+  ├── BadApiRequestError                  # the arguments are unusable: fix the call
+  │   ├── InvalidModeError
+  │   └── InvalidScheduleUploadedError
+  │
   ├── BadApiResponseError                 # the reply is not as expected: report it
   │   ├── InvalidConfigError
   │   │   └── GhostZoneError
   │   ├── InvalidStatusError
   │   └── InvalidScheduleError
-  ├── BadApiRequestError                  # the arguments are unusable: fix the call
-  │   ├── InvalidModeError
-  │   └── InvalidScheduleUploadedError
+  │
   └── ClientStateError                    # the client lacks the data: fetch it first
       ├── NotFetchedError
       └── NoSingleTcsError                # can't use Evo.tcs attr (to be deprecated)

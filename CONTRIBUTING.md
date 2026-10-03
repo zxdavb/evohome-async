@@ -96,20 +96,24 @@ about them:
 
 ```text
 EvohomeError
+│
 ├── ApiCallFailedError                # No usable reply: try again later
 │   ├── ApiRateLimitExceededError     # HTTP 429; has a retry_after attr
 │   │   └── AuthRateLimitExceededError    # is also an AuthenticationFailedError
 │   ├── AuthenticationFailedError
 │   │   └── BadUserCredentialsError   # NB: trying again will not help
 │   └── RequestRejectedError          # A PUT was refused: trying again will not help
+│
+├── BadApiRequestError                # The arguments are unusable: fix the call
+│   ├── InvalidModeError
+│   └── InvalidScheduleUploadedError
+│
 ├── BadApiResponseError               # The reply is not as expected: report it
 │   ├── InvalidConfigError
 │   │   └── GhostZoneError
 │   ├── InvalidStatusError
 │   └── InvalidScheduleError
-├── BadApiRequestError                # The arguments are unusable: fix the call
-│   ├── InvalidModeError
-│   └── InvalidScheduleUploadedError
+│
 └── ClientStateError                  # The client lacks the data: fetch it first
     ├── NotFetchedError
     └── NoSingleTcsError
