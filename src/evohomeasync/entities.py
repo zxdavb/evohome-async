@@ -170,7 +170,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         """Expose the temperature_status as per the v2 API."""
 
         if self._status is None:
-            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
+            raise exc.NotFetchedError(f"{self} has no state, has it been fetched?")
 
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
@@ -283,7 +283,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
         """Expose the temperature_status as per the v2 API."""
 
         if self._status is None:
-            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
+            raise exc.NotFetchedError(f"{self} has no state, has it been fetched?")
 
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
@@ -438,7 +438,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
             dev = self.zone_by_name.get(zon_id)
 
         if dev is None:
-            raise exc.ConfigError(f"no zone {zon_id} in {self}")
+            raise exc.BadApiRequestError(f"no zone {zon_id} in {self}")
 
         return dev
 

@@ -105,7 +105,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         for zon_entry in config[SZ_ZONES]:
             try:
                 zone = Zone(self, zon_entry)
-            except exc.ConfigError as err:
+            except exc.GhostZoneError as err:
                 self._logger.warning(
                     f"{self}: zone_id='{zon_entry[SZ_ZONE_ID]}' ignored: {err}"
                 )

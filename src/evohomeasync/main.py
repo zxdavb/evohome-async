@@ -98,7 +98,12 @@ class EvohomeClient:
             self._user_locs = None
 
         if self._user_locs is None:
-            await self._get_config()
+            try:
+                await self._get_config()
+            except exc.BadApiResponseError as err:  # e.g. failed validation
+                if self._locations is None:  # the entities are yet to be instantiated
+                    raise exc.InvalidConfigError(err.message) from err
+                raise exc.InvalidStatusError(err.message) from err
 
         assert self._user_locs is not None  # mypy
 
@@ -122,7 +127,10 @@ class EvohomeClient:
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
 
             except exc.ApiCallFailedError as err:  # check if 401 - bad session_id
-                if err.status != HTTPStatus.UNAUTHORIZED:  # 401
+                if (
+                    isinstance(err, exc.AuthenticationFailedError)  # no session_id
+                    or err.status != HTTPStatus.UNAUTHORIZED  # 401
+                ):
                     raise
 
                 # as the accountInfo URL is open to all authenticated users, any 401 is
@@ -170,9 +178,7 @@ class EvohomeClient:
         """Return the information of the user account."""
 
         if self._user_info is None:
-            raise exc.InvalidConfigError(
-                _ERR_NOT_AVAILABLE.format("Account information")
-            )
+            raise exc.NotFetchedError(_ERR_NOT_AVAILABLE.format("Account information"))
 
         return self._user_info
 
@@ -181,7 +187,7 @@ class EvohomeClient:
         """Return the list of locations."""
 
         if self._locations is None:  # None: never fetched, []: fetched but empty
-            raise exc.InvalidConfigError(
+            raise exc.NotFetchedError(
                 _ERR_NOT_AVAILABLE.format("Installation information")
             )
 
@@ -192,7 +198,7 @@ class EvohomeClient:
         """Return the list of locations."""
 
         if self._location_by_id is None:  # None: never fetched, {}: fetched but empty
-            raise exc.InvalidConfigError(
+            raise exc.NotFetchedError(
                 _ERR_NOT_AVAILABLE.format("Installation information")
             )
 
