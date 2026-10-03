@@ -8,7 +8,8 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime as dt, tzinfo
 from functools import cached_property
-from typing import TYPE_CHECKING
+from http import HTTPStatus
+from typing import TYPE_CHECKING, Final
 
 from aiozoneinfo import async_get_time_zone
 
@@ -18,16 +19,23 @@ from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 from . import exceptions as exc
 from .const import (
     SZ_COUNTRY,
+    SZ_DHW,
+    SZ_DHW_ID,
     SZ_GATEWAY_ID,
     SZ_GATEWAYS,
     SZ_LOCATION_ID,
     SZ_LOCATION_INFO,
     SZ_NAME,
+    SZ_SYSTEM_ID,
+    SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_TIME_ZONE,
     SZ_TIME_ZONE_ID,
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
+    SZ_ZONE_ID,
+    SZ_ZONES,
 )
 from .gateway import Gateway
+from .schemas.account import factory_usr_account
 from .schemas.config import factory_loc_config
 from .schemas.const import TccEntityType
 from .schemas.status import factory_loc_status
@@ -44,10 +52,16 @@ if TYPE_CHECKING:
         EvoLocConfigT,
         EvoLocStatusResponseT,
         EvoTimeZoneT,
+        EvoUsrAccountResponseT,
     )
 
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
+
+# the userAccount URL is open to all authenticated users, so is used to check the token
+_SCH_USR_ACCOUNT: Final[Validator[EvoUsrAccountResponseT]] = factory_usr_account(
+    Case.PYTHONIC
+)
 
 
 async def _create_tzinfo(
@@ -128,6 +142,7 @@ class Location(EntityBase[EvoLocStatusT]):
         self.gateway_by_id: dict[str, Gateway] = {}
 
         self._config: EvoLocConfigT = config[SZ_LOCATION_INFO]  # ?exclude TZ/DST
+        self._stale_config: str | None = None  # the last warning, so is logged once
 
         self._tzinfo = tzinfo or EvoZoneInfo(
             time_zone_info=config[SZ_LOCATION_INFO][SZ_TIME_ZONE],
@@ -220,22 +235,33 @@ class Location(EntityBase[EvoLocStatusT]):
     # Status (state) attrs & methods...
 
     async def update(
-        self, *, _update_time_zone_info: bool = False
+        self,
+        *,
+        raise_on_stale_config: bool = False,
+        _update_time_zone_info: bool = False,
     ) -> EvoLocStatusResponseT:
         """Get the latest state of the location and update its status attrs.
 
         Will also update the status of its gateways, their TCSs, and their DHW/zones.
         Returns the raw JSON of the latest state.
+
+        Logs a warning if the status omits any of its known gateways, TCSs, DHW or zones
+        (the status of the others is updated). If `raise_on_stale_config` is true, raises
+        StaleConfigError instead, but only after having updated the others.
+
+        Raises StaleConfigError if the location itself is no longer accessible (e.g. it
+        has been deleted, or is no longer shared).
         """
 
         if _update_time_zone_info:
             await self._get_config()
 
-        return await self._get_status()
+        return await self._get_status(raise_on_stale_config=raise_on_stale_config)
 
     async def _get_status(
         self,
         *,
+        raise_on_stale_config: bool = False,
         _update: bool = True,
     ) -> EvoLocStatusResponseT:
         """Get the latest state of the location and optionally update its status attrs.
@@ -254,17 +280,103 @@ class Location(EntityBase[EvoLocStatusT]):
                 f"{self._TCC_TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
                 schema=self.SCH_STATUS,
             )
+
         except exc.BadApiResponseError as err:  # the status failed validation
             raise exc.InvalidStatusError(err.message) from err
 
+        except exc.ApiCallFailedError as err:  # check if 401 - no access to location
+            if (
+                isinstance(err, exc.AuthenticationFailedError)  # no access_token
+                or err.status != HTTPStatus.UNAUTHORIZED  # 401
+                or not await self._is_access_token_accepted()
+            ):
+                raise
+            raise exc.StaleConfigError(
+                f"{self}: is no longer accessible (has it been deleted, or unshared?)"
+            ) from err
+
         status = convert_dtm_to_local_aware(status, self.tzinfo)
 
-        if _update:
+        if not _update:
+            return status
+
+        try:
             self._update_status(status)
+        except exc.StaleConfigError as err:  # the other entities have been updated
+            if raise_on_stale_config:
+                raise
+            if err.message != self._stale_config:  # only log it once
+                self._logger.warning(err.message)
+            self._stale_config = err.message
+        else:
+            self._stale_config = None
+
         return status
 
+    async def _is_access_token_accepted(self) -> bool:
+        """Return False if the vendor's server rejects the access token.
+
+        A 401 from a location's URL is either because the access token was rejected, or
+        because the user has no access to that location. As the userAccount URL is open
+        to all authenticated users, a 401 from it can only be due to the former.
+        """
+
+        try:
+            await self._auth.get("userAccount", schema=_SCH_USR_ACCOUNT)
+
+        except exc.ApiCallFailedError as err:
+            if (
+                isinstance(err, exc.AuthenticationFailedError)  # no access_token
+                or err.status != HTTPStatus.UNAUTHORIZED  # 401
+            ):
+                raise
+            return False
+
+        return True
+
+    def _missing_from_status(self, status: EvoLocStatusResponseT) -> list[str]:
+        """Return the known (i.e. configured) entities that are absent from the status.
+
+        Entities that are in the status, but not in the config, are ignored here.
+        """
+
+        missing: list[str] = []
+
+        gwy_status_by_id = {g[SZ_GATEWAY_ID]: g for g in status[SZ_GATEWAYS]}
+
+        for gwy in self.gateways:
+            if (gwy_status := gwy_status_by_id.get(gwy.id)) is None:
+                missing.append(f"gateway_id='{gwy.id}'")
+                continue
+
+            tcs_status_by_id = {
+                t[SZ_SYSTEM_ID]: t for t in gwy_status[SZ_TEMPERATURE_CONTROL_SYSTEMS]
+            }
+
+            for tcs in gwy.systems:
+                if (tcs_status := tcs_status_by_id.get(tcs.id)) is None:
+                    missing.append(f"system_id='{tcs.id}'")
+                    continue
+
+                zone_ids = {z[SZ_ZONE_ID] for z in tcs_status[SZ_ZONES]}
+                missing.extend(
+                    f"zone_id='{z.id}'" for z in tcs.zones if z.id not in zone_ids
+                )
+
+                dhw_status = tcs_status.get(SZ_DHW)
+                if tcs.hotwater and (
+                    dhw_status is None or dhw_status[SZ_DHW_ID] != tcs.hotwater.id
+                ):
+                    missing.append(f"dhw_id='{tcs.hotwater.id}'")
+
+        return missing
+
     def _update_status(self, status: EvoLocStatusResponseT) -> None:
-        """Update the LOC's status and cascade to its descendants."""
+        """Update the LOC's status and cascade to its descendants.
+
+        Raises StaleConfigError if the status omits any of the location's known entities,
+        but only after having updated those that it does include.
+        """
 
         # No ActiveFaults in location node of status
 
@@ -283,3 +395,9 @@ class Location(EntityBase[EvoLocStatusT]):
         self._status = {
             SZ_LOCATION_ID: status[SZ_LOCATION_ID],
         }
+
+        if missing := self._missing_from_status(status):
+            raise exc.StaleConfigError(
+                f"{self}: status has no entry for {', '.join(missing)}"
+                ", (has the location configuration changed?)"
+            )

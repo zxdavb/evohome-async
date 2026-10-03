@@ -61,6 +61,8 @@ class EvohomeClient:
         self._locations: list[Location] | None = None  # to preserve the order
         self._location_by_id: dict[str, Location] | None = None
 
+        self._stale_config: str | None = None  # the last warning, so is logged once
+
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(auth='{self.auth}')"
 
@@ -85,6 +87,9 @@ class EvohomeClient:
 
         If `disable_status_update` is true, does not update the status of each location
         hierarchy (note: may have already retrieved the latest version of that data).
+
+        Logs a warning if the locations are not those of the config (the status of the
+        known locations is updated).
         """
 
         if _reset_config:
@@ -111,9 +116,39 @@ class EvohomeClient:
             assert self._location_by_id
             for loc_entry in self._user_locs:  # each entry is both config & status
                 loc_id = str(loc_entry[SZ_LOCATION_ID])
+                if loc_id not in self._location_by_id:  # added since config was fetched
+                    continue
                 self._location_by_id[loc_id]._update_status(loc_entry)  # noqa: SLF001
 
+            self._warn_if_stale_config(self._user_locs)
+
         return self._user_locs
+
+    def _warn_if_stale_config(self, user_locs: list[EvoTcsInfoDictT]) -> None:
+        """Log a warning (only once) if the locations are not those of the config."""
+
+        assert self._location_by_id is not None  # mypy
+
+        loc_ids = {str(loc_entry[SZ_LOCATION_ID]) for loc_entry in user_locs}
+
+        problems = [
+            f"no entry for location_id='{loc_id}'"
+            for loc_id in sorted(self._location_by_id.keys() - loc_ids)
+        ] + [
+            f"location_id='{loc_id}' not known"
+            for loc_id in sorted(loc_ids - self._location_by_id.keys())
+        ]
+
+        msg = (
+            f"{self}: status has {', '.join(problems)}"
+            ", (has the account configuration changed?)"
+            if problems
+            else None
+        )
+
+        if msg and msg != self._stale_config:
+            self._logger.warning(msg)
+        self._stale_config = msg
 
     async def _get_config(self) -> list[EvoTcsInfoDictT]:
         """Ensures the config of the user and their locations.

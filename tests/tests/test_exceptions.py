@@ -39,6 +39,7 @@ HIERARCHY: dict[type[exc.EvohomeError], tuple[type[exc.EvohomeError], ...]] = {
     #
     exc.ClientStateError: (exc.EvohomeError,),
     exc.NotFetchedError: (exc.ClientStateError,),
+    exc.StaleConfigError: (exc.ClientStateError,),
     exc.NoSingleTcsError: (exc.ClientStateError,),
 }
 
