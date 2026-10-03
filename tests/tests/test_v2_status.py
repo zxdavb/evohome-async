@@ -153,6 +153,35 @@ async def test_status_missing_known_entity_warns_once(
         assert warnings() == [warning, warning]
 
 
+async def test_status_missing_known_entity_raises_if_asked(
+    evohome_v2: EvohomeClient,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A status that omits a configured entity should raise, if asked to do so."""
+
+    loc = evohome_v2.locations[0]
+    zone = loc.gateways[0].systems[0].zones[0]  # is never the one dropped
+
+    stale_status = await loc._get_status(_update=False)
+    _drop_zone(stale_status)
+
+    with (
+        caplog.at_level(logging.WARNING),
+        patch("evohomeasync2.auth.Auth.get", AsyncMock(return_value=stale_status)),
+    ):
+        zone._status = None
+
+        with pytest.raises(exc.StaleConfigError, match="zone_id="):
+            await loc.update(raise_on_stale_config=True)
+
+        _ = zone.status  # the others were updated before the raise (else would raise)
+
+        with pytest.raises(exc.StaleConfigError, match="zone_id="):
+            await evohome_v2.update(raise_on_stale_config=True)
+
+    assert not caplog.records  # it is raised, and not logged
+
+
 async def test_status_unknown_entity_is_tolerated(
     evohome_v2: EvohomeClient,
     caplog: pytest.LogCaptureFixture,

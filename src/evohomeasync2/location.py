@@ -235,7 +235,10 @@ class Location(EntityBase[EvoLocStatusT]):
     # Status (state) attrs & methods...
 
     async def update(
-        self, *, _update_time_zone_info: bool = False
+        self,
+        *,
+        raise_on_stale_config: bool = False,
+        _update_time_zone_info: bool = False,
     ) -> EvoLocStatusResponseT:
         """Get the latest state of the location and update its status attrs.
 
@@ -243,18 +246,22 @@ class Location(EntityBase[EvoLocStatusT]):
         Returns the raw JSON of the latest state.
 
         Logs a warning if the status omits any of its known gateways, TCSs, DHW or zones
-        (the status of the others is updated). Raises StaleConfigError if the location
-        itself is no longer accessible (e.g. it has been deleted, or is no longer shared).
+        (the status of the others is updated). If `raise_on_stale_config` is true, raises
+        StaleConfigError instead, but only after having updated the others.
+
+        Raises StaleConfigError if the location itself is no longer accessible (e.g. it
+        has been deleted, or is no longer shared).
         """
 
         if _update_time_zone_info:
             await self._get_config()
 
-        return await self._get_status()
+        return await self._get_status(raise_on_stale_config=raise_on_stale_config)
 
     async def _get_status(
         self,
         *,
+        raise_on_stale_config: bool = False,
         _update: bool = True,
     ) -> EvoLocStatusResponseT:
         """Get the latest state of the location and optionally update its status attrs.
@@ -296,6 +303,8 @@ class Location(EntityBase[EvoLocStatusT]):
         try:
             self._update_status(status)
         except exc.StaleConfigError as err:  # the other entities have been updated
+            if raise_on_stale_config:
+                raise
             if err.message != self._stale_config:  # only log it once
                 self._logger.warning(err.message)
             self._stale_config = err.message
