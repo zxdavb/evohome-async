@@ -32,6 +32,7 @@ from .exceptions import (
     InvalidStatusError,
     NoSingleTcsError,
     NotFetchedError,
+    RequestRejectedError,
 )
 from .main import EvohomeClient
 from .schemas import (  # noqa: F401
@@ -168,4 +169,5 @@ __all__ = [  # noqa: RUF022
     "InvalidStatusError",
     "NoSingleTcsError",
     "NotFetchedError",
+    "RequestRejectedError",
 ]

@@ -6,17 +6,16 @@ They are grouped by what the caller can do about them:
   ├── ApiCallFailedError                  # no usable reply: try again later
   │   ├── ApiRateLimitExceededError
   │   │   └── AuthRateLimitExceededError  # is also an AuthenticationFailedError
-  │   └── AuthenticationFailedError
-  │       └── BadUserCredentialsError     # trying again will not help
+  │   ├── AuthenticationFailedError
+  │   │   └── BadUserCredentialsError     # trying again will not help
+  │   └── RequestRejectedError            # trying again will not help
   ├── BadApiResponseError                 # the reply is not as expected: report it
   │   ├── InvalidConfigError
   │   │   └── GhostZoneError
   │   ├── InvalidStatusError
   │   └── InvalidScheduleError
   ├── BadApiRequestError                  # the arguments are unusable: fix the call
-  │   ├── InvalidSystemModeError
-  │   ├── InvalidZoneModeError
-  │   ├── InvalidDhwModeError
+  │   ├── InvalidModeError
   │   └── InvalidScheduleUploadedError
   └── ClientStateError                    # the client lacks the data: fetch it first
       ├── NotFetchedError
@@ -96,6 +95,15 @@ class BadUserCredentialsError(AuthenticationFailedError):
     """
 
 
+class RequestRejectedError(ApiCallFailedError):
+    """The vendor rejected a PUT request (e.g. 400, SystemModeChangeTimeUntilNotSet).
+
+    The request was sent, but the vendor refused it, so nothing will have changed.
+    Trying again will not help. Unlike a BadApiRequestError, the arguments passed
+    this library's checks, so the request (or this library) must change.
+    """
+
+
 # 2. Response failures: there was a reply, but it is not as expected; trying again will
 #    not help, as either the vendor's JSON or this library's schemas must change. Can be:
 #    a) failing schema validation (immediately after a HTTP GET), or (later on)
@@ -130,16 +138,8 @@ class BadApiRequestError(EvohomeError):  # a base exception
     """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode)."""
 
 
-class InvalidSystemModeError(BadApiRequestError):  # failed to set a TCS mode
-    """The requested system mode is not supported by this TCS."""
-
-
-class InvalidZoneModeError(BadApiRequestError):  # failed to set a zone mode/temperature
-    """The requested mode is not supported by this heating zone."""
-
-
-class InvalidDhwModeError(BadApiRequestError):  # failed to set a DHW zone mode/state
-    """The requested mode is not supported by this DHW zone."""
+class InvalidModeError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
+    """The requested mode is not supported by this TCS/zone/DHW zone."""
 
 
 class InvalidScheduleUploadedError(BadApiRequestError):  # failed to set a schedule
@@ -169,3 +169,4 @@ class NoSingleTcsError(ClientStateError):
 # Backward-compatibility aliases (deprecated names, e.g. as used by the HA integration)
 ApiRequestFailedError = ApiCallFailedError  # renamed to ApiCallFailedError
 BadScheduleUploadedError = InvalidScheduleUploadedError  # renamed
+InvalidSystemModeError = InvalidModeError  # merged into InvalidModeError

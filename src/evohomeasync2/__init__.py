@@ -41,14 +41,14 @@ from .exceptions import (
     EvohomeError,
     GhostZoneError,
     InvalidConfigError,
-    InvalidDhwModeError,
+    InvalidModeError,
     InvalidScheduleError,
     InvalidScheduleUploadedError,
     InvalidStatusError,
     InvalidSystemModeError,
-    InvalidZoneModeError,
     NoSingleTcsError,
     NotFetchedError,
+    RequestRejectedError,
 )
 from .gateway import Gateway
 from .hotwater import HotWater
@@ -188,12 +188,12 @@ __all__ = [  # noqa: RUF022
     "EvohomeError",
     "GhostZoneError",
     "InvalidConfigError",
-    "InvalidDhwModeError",
+    "InvalidModeError",
     "InvalidScheduleError",
     "InvalidScheduleUploadedError",
     "InvalidStatusError",
-    "InvalidSystemModeError",
-    "InvalidZoneModeError",
+    "InvalidSystemModeError",  # deprecated alias for InvalidModeError
     "NoSingleTcsError",
     "NotFetchedError",
+    "RequestRejectedError",
 ]

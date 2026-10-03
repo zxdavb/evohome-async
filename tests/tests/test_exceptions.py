@@ -24,6 +24,7 @@ HIERARCHY: dict[type[exc.EvohomeError], tuple[type[exc.EvohomeError], ...]] = {
         exc.AuthenticationFailedError,
     ),
     exc.BadUserCredentialsError: (exc.AuthenticationFailedError,),
+    exc.RequestRejectedError: (exc.ApiCallFailedError,),
     #
     exc.BadApiResponseError: (exc.EvohomeError,),
     exc.InvalidConfigError: (exc.BadApiResponseError,),
@@ -32,9 +33,7 @@ HIERARCHY: dict[type[exc.EvohomeError], tuple[type[exc.EvohomeError], ...]] = {
     exc.InvalidScheduleError: (exc.BadApiResponseError,),
     #
     exc.BadApiRequestError: (exc.EvohomeError,),
-    exc.InvalidSystemModeError: (exc.BadApiRequestError,),
-    exc.InvalidZoneModeError: (exc.BadApiRequestError,),
-    exc.InvalidDhwModeError: (exc.BadApiRequestError,),
+    exc.InvalidModeError: (exc.BadApiRequestError,),
     exc.InvalidScheduleUploadedError: (exc.BadApiRequestError,),
     #
     exc.ClientStateError: (exc.EvohomeError,),
@@ -46,6 +45,11 @@ HIERARCHY: dict[type[exc.EvohomeError], tuple[type[exc.EvohomeError], ...]] = {
 DEPRECATED_ALIASES: dict[str, str] = {
     "ApiRequestFailedError": "ApiCallFailedError",
     "BadScheduleUploadedError": "InvalidScheduleUploadedError",
+}
+
+# As above, but only for v2 (v1 has never exported the mode exceptions)
+DEPRECATED_ALIASES_V2: dict[str, str] = {
+    "InvalidSystemModeError": "InvalidModeError",
 }
 
 
@@ -78,6 +82,16 @@ def test_hierarchy_is_complete() -> None:
 @pytest.mark.parametrize(("old_name", "new_name"), DEPRECATED_ALIASES.items())
 def test_deprecated_aliases(module: ModuleType, old_name: str, new_name: str) -> None:
     """Test each deprecated name is still available, as an alias of the new name."""
+
+    assert getattr(module, old_name) is getattr(module, new_name)
+
+
+@pytest.mark.parametrize("module", [exc, evohomeasync2])
+@pytest.mark.parametrize(("old_name", "new_name"), DEPRECATED_ALIASES_V2.items())
+def test_deprecated_aliases_v2(
+    module: ModuleType, old_name: str, new_name: str
+) -> None:
+    """Test each deprecated v2 name is still available, as an alias of the new name."""
 
     assert getattr(module, old_name) is getattr(module, new_name)
 

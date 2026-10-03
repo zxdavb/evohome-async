@@ -16,14 +16,14 @@ from _evohome.exceptions import (
     EvohomeError,
     GhostZoneError,
     InvalidConfigError,
-    InvalidDhwModeError,
+    InvalidModeError,
     InvalidScheduleError,
     InvalidScheduleUploadedError,
     InvalidStatusError,
     InvalidSystemModeError,
-    InvalidZoneModeError,
     NoSingleTcsError,
     NotFetchedError,
+    RequestRejectedError,
 )
 
 __all__ = [
@@ -40,12 +40,12 @@ __all__ = [
     "EvohomeError",
     "GhostZoneError",
     "InvalidConfigError",
-    "InvalidDhwModeError",
+    "InvalidModeError",
     "InvalidScheduleError",
     "InvalidScheduleUploadedError",
     "InvalidStatusError",
-    "InvalidSystemModeError",
-    "InvalidZoneModeError",
+    "InvalidSystemModeError",  # deprecated alias for InvalidModeError
     "NoSingleTcsError",
     "NotFetchedError",
+    "RequestRejectedError",
 ]
