@@ -24,6 +24,7 @@ from _evohome.exceptions import (
     InvalidZoneModeError,
     NoSingleTcsError,
     NotFetchedError,
+    StaleConfigError,
 )
 
 __all__ = [
@@ -48,4 +49,5 @@ __all__ = [
     "InvalidZoneModeError",
     "NoSingleTcsError",
     "NotFetchedError",
+    "StaleConfigError",
 ]

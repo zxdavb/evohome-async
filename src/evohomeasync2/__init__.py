@@ -49,6 +49,7 @@ from .exceptions import (
     InvalidZoneModeError,
     NoSingleTcsError,
     NotFetchedError,
+    StaleConfigError,
 )
 from .gateway import Gateway
 from .hotwater import HotWater
@@ -196,4 +197,5 @@ __all__ = [  # noqa: RUF022
     "InvalidZoneModeError",
     "NoSingleTcsError",
     "NotFetchedError",
+    "StaleConfigError",
 ]

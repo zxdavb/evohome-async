@@ -113,6 +113,7 @@ EvohomeError
 │   └── InvalidScheduleUploadedError
 └── ClientStateError                  # The client lacks the data: fetch it first
     ├── NotFetchedError
+    ├── StaleConfigError
     └── NoSingleTcsError
 ```
 
