@@ -108,16 +108,16 @@ EvohomeError
 │   ├── InvalidStatusError
 │   └── InvalidScheduleError
 ├── BadApiRequestError                # The arguments are unusable: fix the call
-│   ├── InvalidModeSchemaError
-│   └── InvalidScheduleSchemaError
+│   ├── InvalidModeError
+│   └── InvalidScheduleUploadedError
 └── ClientStateError                  # The client lacks the data: fetch it first
     ├── NotFetchedError
     └── NoSingleTcsError
 ```
 
 `ApiRequestFailedError`, `BadScheduleUploadedError` and `InvalidSystemModeError` are
-deprecated aliases, for `ApiCallFailedError`, `InvalidScheduleSchemaError` and
-`InvalidModeSchemaError` respectively.
+deprecated aliases, for `ApiCallFailedError`, `InvalidScheduleUploadedError` and
+`InvalidModeError` respectively.
 
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library
   code - instead, raise exceptions based upon `EvohomeError`.

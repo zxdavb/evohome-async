@@ -256,12 +256,12 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         try:
             system_mode = SystemMode(system_mode)
         except ValueError as err:
-            raise exc.InvalidModeSchemaError(
+            raise exc.InvalidModeError(
                 f"{self}: Unknown system_mode: {system_mode}"
             ) from err
 
         if system_mode not in self.allowed_modes:
-            raise exc.InvalidModeSchemaError(
+            raise exc.InvalidModeError(
                 f"{self}: Unsupported system_mode: {system_mode}"
             )
 
@@ -279,7 +279,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
 
         else:
             if mode_entry[SZ_CAN_BE_TEMPORARY] is False:
-                raise exc.InvalidModeSchemaError(
+                raise exc.InvalidModeError(
                     f"{self}: For {system_mode}, until must be None"
                 )
 
@@ -325,7 +325,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             SystemMode.AUTO in self.allowed_modes
             or SystemMode.HEAT not in self.allowed_modes
         ):
-            await self.set_mode(SystemMode.AUTO)  # ?raise InvalidModeSchemaError
+            await self.set_mode(SystemMode.AUTO)  # ?raise InvalidModeError
             return
 
         # some systems have "Heat" mode instead of "Auto"...
@@ -373,7 +373,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             SystemMode.HEATING_OFF in self.allowed_modes
             or SystemMode.OFF not in self.allowed_modes
         ):
-            await self.set_mode(SystemMode.HEATING_OFF)  # ?raise InvalidModeSchemaError
+            await self.set_mode(SystemMode.HEATING_OFF)  # ?raise InvalidModeError
             return
 
         # some systems have "Off" mode instead of "HeatingOff"...

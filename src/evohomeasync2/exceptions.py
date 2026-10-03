@@ -16,9 +16,9 @@ from _evohome.exceptions import (
     EvohomeError,
     GhostZoneError,
     InvalidConfigError,
-    InvalidModeSchemaError,
+    InvalidModeError,
     InvalidScheduleError,
-    InvalidScheduleSchemaError,
+    InvalidScheduleUploadedError,
     InvalidStatusError,
     InvalidSystemModeError,
     NoSingleTcsError,
@@ -34,17 +34,17 @@ __all__ = [
     "AuthenticationFailedError",
     "BadApiRequestError",
     "BadApiResponseError",
-    "BadScheduleUploadedError",  # deprecated alias for InvalidScheduleSchemaError
+    "BadScheduleUploadedError",  # deprecated alias for InvalidScheduleUploadedError
     "BadUserCredentialsError",
     "ClientStateError",
     "EvohomeError",
     "GhostZoneError",
     "InvalidConfigError",
-    "InvalidModeSchemaError",
+    "InvalidModeError",
     "InvalidScheduleError",
-    "InvalidScheduleSchemaError",
+    "InvalidScheduleUploadedError",
     "InvalidStatusError",
-    "InvalidSystemModeError",  # deprecated alias for InvalidModeSchemaError
+    "InvalidSystemModeError",  # deprecated alias for InvalidModeError
     "NoSingleTcsError",
     "NotFetchedError",
     "RequestRejectedError",
