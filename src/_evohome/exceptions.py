@@ -15,8 +15,8 @@ They are grouped by what the caller can do about them:
   │   ├── InvalidStatusError
   │   └── InvalidScheduleError
   ├── BadApiRequestError                  # the arguments are unusable: fix the call
-  │   ├── InvalidModeError
-  │   └── InvalidScheduleUploadedError
+  │   ├── InvalidModeSchemaError
+  │   └── InvalidScheduleSchemaError
   └── ClientStateError                    # the client lacks the data: fetch it first
       ├── NotFetchedError
       └── NoSingleTcsError                # can't use Evo.tcs attr (to be deprecated)
@@ -138,11 +138,11 @@ class BadApiRequestError(EvohomeError):  # a base exception
     """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode)."""
 
 
-class InvalidModeError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
+class InvalidModeSchemaError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
     """The requested mode is not supported by this TCS/zone/DHW zone."""
 
 
-class InvalidScheduleUploadedError(BadApiRequestError):  # failed to set a schedule
+class InvalidScheduleSchemaError(BadApiRequestError):  # failed to set a schedule
     """The supplied schedule JSON is not supported / is invalid."""
 
 
@@ -168,5 +168,5 @@ class NoSingleTcsError(ClientStateError):
 
 # Backward-compatibility aliases (deprecated names, e.g. as used by the HA integration)
 ApiRequestFailedError = ApiCallFailedError  # renamed to ApiCallFailedError
-BadScheduleUploadedError = InvalidScheduleUploadedError  # renamed
-InvalidSystemModeError = InvalidModeError  # merged into InvalidModeError
+BadScheduleUploadedError = InvalidScheduleSchemaError  # renamed
+InvalidSystemModeError = InvalidModeSchemaError  # merged, with zone/DHW mode errors

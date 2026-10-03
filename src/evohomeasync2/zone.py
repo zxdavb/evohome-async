@@ -408,7 +408,7 @@ class _ScheduleBase[
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
-                raise exc.InvalidScheduleUploadedError(
+                raise exc.InvalidScheduleSchemaError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
@@ -416,14 +416,14 @@ class _ScheduleBase[
             try:
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as err:
-                raise exc.InvalidScheduleUploadedError(
+                raise exc.InvalidScheduleSchemaError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
             assert isinstance(schedule, list)  # mypy
 
         else:
-            raise exc.InvalidScheduleUploadedError(
+            raise exc.InvalidScheduleSchemaError(
                 f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable"
             )
 
@@ -692,27 +692,27 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         try:
             mode = ZoneMode(mode)
         except ValueError as err:
-            raise exc.InvalidModeError(f"{self}: Unknown mode: {mode}") from err
+            raise exc.InvalidModeSchemaError(f"{self}: Unknown mode: {mode}") from err
 
         if mode not in self.allowed_modes:
-            raise exc.InvalidModeError(f"{self}: Unsupported mode: {mode}")
+            raise exc.InvalidModeSchemaError(f"{self}: Unsupported mode: {mode}")
 
         zone_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: mode}
 
         if temperature is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidModeError(
+                raise exc.InvalidModeSchemaError(
                     f"{self}: For {mode}, temperature must not be None"
                 )
 
         else:
             if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidModeError(
+                raise exc.InvalidModeSchemaError(
                     f"{self}: For {mode}, temperature must be None"
                 )
 
             if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
-                raise exc.InvalidModeError(
+                raise exc.InvalidModeSchemaError(
                     f"{self}: Invalid temperature: {temperature} (out of range)"
                 )
 
@@ -720,13 +720,15 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidModeError(
+                raise exc.InvalidModeSchemaError(
                     f"{self}: For {mode}, until must not be None"
                 )
 
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidModeError(f"{self}: For {mode}, until must be None")
+                raise exc.InvalidModeSchemaError(
+                    f"{self}: For {mode}, until must be None"
+                )
 
             zone_mode[SZ_TIME_UNTIL] = as_aware_dtm(until)
 
