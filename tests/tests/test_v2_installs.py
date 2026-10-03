@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 import yaml
+
+from _evohome import exceptions as exc
 
 from .common import serializable_attrs
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -69,8 +72,14 @@ async def test_system_snapshot(
                     await dhw.get_schedule()
                     assert serializable_attrs(dhw) == snapshot(name=f"loc_{loc.id}_dhw")
 
+                errors = {}
                 for z in tcs.zones:  # is 1-12
-                    await z.get_schedule()  # needed for serializable_attrs(z), below
+                    try:  # the schedule is needed for serializable_attrs(z), below
+                        await z.get_schedule()
+                    except exc.InvalidScheduleError as err:  # e.g. system_006
+                        errors[z.id] = str(err)
+                if errors:
+                    assert errors == snapshot(name=f"loc_{loc.id}_zon_err")
 
                 zones = {z.id: serializable_attrs(z) for z in tcs.zones}
                 assert yaml.dump(zones, indent=4) == snapshot(name=f"loc_{loc.id}_zon")
@@ -103,7 +112,10 @@ async def test_system_schedules(
         result = await tcs.set_schedules(schedules, match_by_name=True)
     assert result is True
 
-    data = [(z.this_switchpoint, z.next_switchpoint) for z in tcs.zones]
+    data = []
+    for z in tcs.zones:
+        with contextlib.suppress(exc.InvalidScheduleError):  # e.g. system_006
+            data.append((z.this_switchpoint, z.next_switchpoint))
     if dhw := tcs.hotwater:
         data.append((dhw.this_switchpoint, dhw.next_switchpoint))
 

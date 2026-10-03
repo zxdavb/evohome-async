@@ -31,7 +31,7 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `default/` | 2738909 | GMT | Synthesised default system (UK, 9 zones + DHW) |
 | `system_002/` | 2738909 | GMT | Same system as default, different test scenario |
 | `system_004/` | 2664492 | CET | Synthesised multi-status system (Czech Republic) |
-| `system_006/` | 0001 | Romance | Synthesised minimal system (Belgium) |
+| `system_006/` | 0001 | Romance | Synthesised minimal system (Belgium), with an invalid zone schedule |
 | `evohome_017/` | 6390479 | WEurope | evohome-async issue [#17](https://github.com/zxdavb/evohome-async/issues/17) |
 | `hass_000000/` | 2738909 | GMT | HA core issue [#000000](https://github.com/home-assistant/core/issues/000000) |
 | `hass_000001/` | 2738909 | GMT | HA core issue [#000001](https://github.com/home-assistant/core/issues/000001) |

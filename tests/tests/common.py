@@ -13,6 +13,8 @@ import pytest
 import yaml
 from freezegun.api import FakeDatetime  # to check schedules, setpoints
 
+from _evohome import exceptions as exc
+
 if TYPE_CHECKING:
     from _evohome.helpers import Validator
 
@@ -54,6 +56,10 @@ def serializable_attrs(obj: object) -> dict[str, str]:
             try:
                 result[k] = yaml.dump(getattr(obj, k))
             except TypeError:  # non-serializable, e.g. client, gateways, zone_by_name
+                continue
+            except exc.InvalidScheduleError:  # e.g. schedule, if it is invalid
+                continue
+            except exc.NotFetchedError:  # e.g. schedule, if get_schedule() raised
                 continue
 
     return result
