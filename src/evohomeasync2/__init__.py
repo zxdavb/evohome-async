@@ -29,6 +29,7 @@ from .const import (
 from .control_system import ControlSystem
 from .exceptions import (
     ApiCallFailedError,
+    ApiCallRejectedError,
     ApiRateLimitExceededError,
     ApiRequestFailedError,
     AuthenticationFailedError,
@@ -41,14 +42,13 @@ from .exceptions import (
     EvohomeError,
     GhostZoneError,
     InvalidConfigError,
-    InvalidModeError,
+    InvalidModeRequestError,
     InvalidScheduleError,
-    InvalidScheduleUploadedError,
+    InvalidScheduleRequestError,
     InvalidStatusError,
     InvalidSystemModeError,
     NoSingleTcsError,
     NotFetchedError,
-    RequestRejectedError,
     StaleConfigError,
 )
 from .gateway import Gateway
@@ -177,6 +177,7 @@ __all__ = [  # noqa: RUF022
     "ZoneType",
     #
     "ApiCallFailedError",
+    "ApiCallRejectedError",
     "ApiRateLimitExceededError",
     "ApiRequestFailedError",
     "AuthenticationFailedError",
@@ -189,13 +190,12 @@ __all__ = [  # noqa: RUF022
     "EvohomeError",
     "GhostZoneError",
     "InvalidConfigError",
-    "InvalidModeError",
+    "InvalidModeRequestError",
     "InvalidScheduleError",
-    "InvalidScheduleUploadedError",
+    "InvalidScheduleRequestError",
     "InvalidStatusError",
-    "InvalidSystemModeError",  # deprecated alias for InvalidModeError
+    "InvalidSystemModeError",  # deprecated alias for InvalidModeRequestError
     "NoSingleTcsError",
     "NotFetchedError",
-    "RequestRejectedError",
     "StaleConfigError",
 ]

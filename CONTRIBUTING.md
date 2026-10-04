@@ -97,18 +97,18 @@ about them:
 ```text
 EvohomeError
 │
-├── ApiCallFailedError                # No usable reply: try again later
-│   ├── ApiRateLimitExceededError     # HTTP 429; has a retry_after attr
+├── ApiCallFailedError                # No usable reply (not a 200): fix issue/try again later
+│   ├── ApiRateLimitExceededError     # HTTP 429; has a retry_after attr: trying later on will help
 │   │   └── AuthRateLimitExceededError    # is also an AuthenticationFailedError
 │   ├── AuthenticationFailedError
 │   │   └── BadUserCredentialsError   # NB: trying again will not help
-│   └── RequestRejectedError          # A PUT was refused: trying again will not help
+│   └── ApiCallRejectedError          # A PUT was refused (a 4xx): trying again will not help
 │
-├── BadApiRequestError                # The arguments are unusable: fix the call
-│   ├── InvalidModeError
-│   └── InvalidScheduleUploadedError
+├── BadApiRequestError                # The arguments are unusable (no API call attempted)
+│   ├── InvalidModeRequestError
+│   └── InvalidScheduleRequestError
 │
-├── BadApiResponseError               # The reply is not as expected: report it
+├── BadApiResponseError               # The reply (a 200) is not as expected: report it
 │   ├── InvalidConfigError
 │   │   └── GhostZoneError
 │   ├── InvalidStatusError
@@ -121,8 +121,8 @@ EvohomeError
 ```
 
 `ApiRequestFailedError`, `BadScheduleUploadedError` and `InvalidSystemModeError` are
-deprecated aliases, for `ApiCallFailedError`, `InvalidScheduleUploadedError` and
-`InvalidModeError` respectively.
+deprecated aliases, for `ApiCallFailedError`, `InvalidScheduleRequestError` and
+`InvalidModeRequestError` respectively.
 
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library
   code - instead, raise exceptions based upon `EvohomeError`.
@@ -130,7 +130,7 @@ deprecated aliases, for `ApiCallFailedError`, `InvalidScheduleUploadedError` and
   handler that acts upon the `status` of an `ApiCallFailedError` (e.g. a 400, or a 401)
   must first let any `AuthenticationFailedError` pass.
 - A `BadApiRequestError` means a request was never sent, as the arguments failed this
-  library's checks. A `RequestRejectedError` means a PUT was sent, but the vendor
+  library's checks. A `ApiCallRejectedError` means a PUT was sent, but the vendor
   refused it (a 4xx).
 - Do **not** use bare `except Exception:` — catch the specific type you expect.
 - Never silently swallow errors with `pass`. At minimum, log a warning.

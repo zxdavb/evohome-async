@@ -4,18 +4,18 @@ They are grouped by what the caller can do about them:
 
   EvohomeError
   │
-  ├── ApiCallFailedError                  # no usable reply: try again later
-  │   ├── ApiRateLimitExceededError
+  ├── ApiCallFailedError                  # no usable reply (not a 200): fix/try later
+  │   ├── ApiRateLimitExceededError       # trying later on will help
   │   │   └── AuthRateLimitExceededError  # is also an AuthenticationFailedError
   │   ├── AuthenticationFailedError
   │   │   └── BadUserCredentialsError     # trying again will not help
-  │   └── RequestRejectedError            # trying again will not help
+  │   └── ApiCallRejectedError            # trying again will not help
   │
-  ├── BadApiRequestError                  # the arguments are unusable: fix the call
-  │   ├── InvalidModeError
-  │   └── InvalidScheduleUploadedError
+  ├── BadApiRequestError                  # the arguments are unusable (no API call)
+  │   ├── InvalidModeRequestError
+  │   └── InvalidScheduleRequestError
   │
-  ├── BadApiResponseError                 # the reply is not as expected: report it
+  ├── BadApiResponseError                 # the reply (a 200) is not as expected
   │   ├── InvalidConfigError
   │   │   └── GhostZoneError
   │   ├── InvalidStatusError
@@ -100,7 +100,7 @@ class BadUserCredentialsError(AuthenticationFailedError):
     """
 
 
-class RequestRejectedError(ApiCallFailedError):
+class ApiCallRejectedError(ApiCallFailedError):
     """The vendor rejected a PUT request (e.g. 400, SystemModeChangeTimeUntilNotSet).
 
     The request was sent, but the vendor refused it, so nothing will have changed.
@@ -143,11 +143,11 @@ class BadApiRequestError(EvohomeError):  # a base exception
     """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode)."""
 
 
-class InvalidModeError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
+class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
     """The requested mode is not supported by this TCS/zone/DHW zone."""
 
 
-class InvalidScheduleUploadedError(BadApiRequestError):  # failed to set a schedule
+class InvalidScheduleRequestError(BadApiRequestError):  # failed to set a schedule
     """The supplied schedule JSON is not supported / is invalid."""
 
 
@@ -182,5 +182,5 @@ class NoSingleTcsError(ClientStateError):
 
 # Backward-compatibility aliases (deprecated names, e.g. as used by the HA integration)
 ApiRequestFailedError = ApiCallFailedError  # renamed to ApiCallFailedError
-BadScheduleUploadedError = InvalidScheduleUploadedError  # renamed
-InvalidSystemModeError = InvalidModeError  # merged into InvalidModeError
+BadScheduleUploadedError = InvalidScheduleRequestError  # renamed
+InvalidSystemModeError = InvalidModeRequestError  # merged into InvalidModeRequestError
