@@ -16,6 +16,7 @@ from .auth import AbstractSessionManager
 from .entities import ControlSystem, Gateway, HotWater, Location, Zone
 from .exceptions import (
     ApiCallFailedError,
+    ApiCallRejectedError,
     ApiRateLimitExceededError,
     ApiRequestFailedError,
     AuthenticationFailedError,
@@ -28,11 +29,10 @@ from .exceptions import (
     EvohomeError,
     InvalidConfigError,
     InvalidScheduleError,
-    InvalidScheduleUploadedError,
+    InvalidScheduleRequestError,
     InvalidStatusError,
     NoSingleTcsError,
     NotFetchedError,
-    RequestRejectedError,
 )
 from .main import EvohomeClient
 from .schemas import (  # noqa: F401
@@ -153,6 +153,7 @@ __all__ = [  # noqa: RUF022
     "TccThermostatModelType",
     #
     "ApiCallFailedError",
+    "ApiCallRejectedError",
     "ApiRateLimitExceededError",
     "ApiRequestFailedError",
     "AuthenticationFailedError",
@@ -165,9 +166,8 @@ __all__ = [  # noqa: RUF022
     "EvohomeError",
     "InvalidConfigError",
     "InvalidScheduleError",
-    "InvalidScheduleUploadedError",
+    "InvalidScheduleRequestError",
     "InvalidStatusError",
     "NoSingleTcsError",
     "NotFetchedError",
-    "RequestRejectedError",
 ]

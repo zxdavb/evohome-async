@@ -24,7 +24,7 @@ HIERARCHY: dict[type[exc.EvohomeError], tuple[type[exc.EvohomeError], ...]] = {
         exc.AuthenticationFailedError,
     ),
     exc.BadUserCredentialsError: (exc.AuthenticationFailedError,),
-    exc.RequestRejectedError: (exc.ApiCallFailedError,),
+    exc.ApiCallRejectedError: (exc.ApiCallFailedError,),
     #
     exc.BadApiResponseError: (exc.EvohomeError,),
     exc.InvalidConfigError: (exc.BadApiResponseError,),
@@ -33,8 +33,8 @@ HIERARCHY: dict[type[exc.EvohomeError], tuple[type[exc.EvohomeError], ...]] = {
     exc.InvalidScheduleError: (exc.BadApiResponseError,),
     #
     exc.BadApiRequestError: (exc.EvohomeError,),
-    exc.InvalidModeError: (exc.BadApiRequestError,),
-    exc.InvalidScheduleUploadedError: (exc.BadApiRequestError,),
+    exc.InvalidModeRequestError: (exc.BadApiRequestError,),
+    exc.InvalidScheduleRequestError: (exc.BadApiRequestError,),
     #
     exc.ClientStateError: (exc.EvohomeError,),
     exc.NotFetchedError: (exc.ClientStateError,),
@@ -44,12 +44,12 @@ HIERARCHY: dict[type[exc.EvohomeError], tuple[type[exc.EvohomeError], ...]] = {
 # The deprecated names, and the names that replaced them
 DEPRECATED_ALIASES: dict[str, str] = {
     "ApiRequestFailedError": "ApiCallFailedError",
-    "BadScheduleUploadedError": "InvalidScheduleUploadedError",
+    "BadScheduleUploadedError": "InvalidScheduleRequestError",
 }
 
 # As above, but only for v2 (v1 has never exported the mode exceptions)
 DEPRECATED_ALIASES_V2: dict[str, str] = {
-    "InvalidSystemModeError": "InvalidModeError",
+    "InvalidSystemModeError": "InvalidModeRequestError",
 }
 
 

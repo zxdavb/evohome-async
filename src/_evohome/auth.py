@@ -144,7 +144,7 @@ class AbstractAuth(ABC):
         A schema is optional and any vol.Invalid is merely logged as a warning.
 
         If the vendor rejects the request (a 4xx, other than a 401 or a 429), then
-        raise a RequestRejectedError.
+        raise an ApiCallRejectedError.
         """
 
         payload: Mapping[str, object] = json
@@ -166,7 +166,7 @@ class AbstractAuth(ABC):
                 raise  # e.g. no connection; a 401 is as for request(), above
             if err.status >= HTTPStatus.INTERNAL_SERVER_ERROR:  # a 5xx, not a 4xx
                 raise
-            raise exc.RequestRejectedError(str(err), status=err.status) from err
+            raise exc.ApiCallRejectedError(str(err), status=err.status) from err
 
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
