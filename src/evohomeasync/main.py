@@ -90,7 +90,7 @@ class EvohomeClient:
         if _reset_config:
             self._clear_config()
 
-        self._user_locs = None  # the config/status of the locations is always re-fetched
+        self._user_locs = None  # the locations (config & status) are always re-fetched
 
         user_locs = await self._get_config()
 
