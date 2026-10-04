@@ -4,48 +4,46 @@ from __future__ import annotations
 
 from _evohome.exceptions import (
     ApiCallFailedError,
+    ApiCallRejectedError,
     ApiRateLimitExceededError,
     ApiRequestFailedError,
     AuthenticationFailedError,
     AuthRateLimitExceededError,
     BadApiRequestError,
     BadApiResponseError,
-    BadScheduleUploadedError,
     BadUserCredentialsError,
     ClientStateError,
     EvohomeError,
     GhostZoneError,
     InvalidConfigError,
-    InvalidModeError,
+    InvalidModeRequestError,
     InvalidScheduleError,
-    InvalidScheduleUploadedError,
+    InvalidScheduleRequestError,
     InvalidStatusError,
     InvalidSystemModeError,
     NoSingleTcsError,
     NotFetchedError,
-    RequestRejectedError,
 )
 
 __all__ = [
     "ApiCallFailedError",
+    "ApiCallRejectedError",
     "ApiRateLimitExceededError",
     "ApiRequestFailedError",  # deprecated alias for ApiCallFailedError
     "AuthRateLimitExceededError",
     "AuthenticationFailedError",
     "BadApiRequestError",
     "BadApiResponseError",
-    "BadScheduleUploadedError",  # deprecated alias for InvalidScheduleUploadedError
     "BadUserCredentialsError",
     "ClientStateError",
     "EvohomeError",
     "GhostZoneError",
     "InvalidConfigError",
-    "InvalidModeError",
+    "InvalidModeRequestError",
     "InvalidScheduleError",
-    "InvalidScheduleUploadedError",
+    "InvalidScheduleRequestError",
     "InvalidStatusError",
-    "InvalidSystemModeError",  # deprecated alias for InvalidModeError
+    "InvalidSystemModeError",  # deprecated alias for InvalidModeRequestError
     "NoSingleTcsError",
     "NotFetchedError",
-    "RequestRejectedError",
 ]
