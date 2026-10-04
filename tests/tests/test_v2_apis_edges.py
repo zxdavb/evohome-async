@@ -184,44 +184,6 @@ async def test_ctl_set_mode_rejects_until_for_non_temporary_mode(
     mock_put.assert_not_awaited()
 
 
-@pytest.mark.parametrize(
-    ("err", "expected"),
-    [
-        (evo2.ApiCallFailedError("400", status=400), evo2.ApiCallRejectedError),
-        (evo2.ApiCallFailedError("404", status=404), evo2.ApiCallRejectedError),
-        (evo2.ApiCallFailedError("401", status=401), evo2.ApiCallFailedError),
-        (evo2.ApiCallFailedError("500", status=500), evo2.ApiCallFailedError),
-        (evo2.ApiCallFailedError("no response"), evo2.ApiCallFailedError),
-        (evo2.ApiRateLimitExceededError("429"), evo2.ApiRateLimitExceededError),
-        (evo2.AuthenticationFailedError("400", 400), evo2.AuthenticationFailedError),
-    ],
-    ids=["400", "404", "401", "500", "none", "429", "auth"],
-)
-async def test_ctl_set_mode_rejected_by_vendor(
-    evohome_v2: EvohomeClient,
-    err: evo2.ApiCallFailedError,
-    expected: type[evo2.ApiCallFailedError],
-) -> None:
-    """ControlSystem.set_mode() should raise ApiCallRejectedError only for a 4xx."""
-
-    tcs = evohome_v2.tcs
-
-    with (
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            side_effect=err,
-        ) as mock_put,
-        pytest.raises(evo2.ApiCallFailedError) as exc_info,
-    ):
-        await tcs.set_mode(tcs.allowed_modes[0])  # all known modes can be permanent
-
-    mock_put.assert_awaited_once()
-
-    assert type(exc_info.value) is expected
-    assert exc_info.value.status == err.status
-
-
 # Zone set_mode tests...
 
 

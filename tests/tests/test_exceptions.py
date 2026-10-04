@@ -45,7 +45,6 @@ HIERARCHY: dict[type[exc.EvohomeError], tuple[type[exc.EvohomeError], ...]] = {
 # The deprecated names, and the names that replaced them
 DEPRECATED_ALIASES: dict[str, str] = {
     "ApiRequestFailedError": "ApiCallFailedError",
-    "BadScheduleUploadedError": "InvalidScheduleRequestError",
 }
 
 # As above, but only for v2 (v1 has never exported the mode exceptions)

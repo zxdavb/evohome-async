@@ -74,10 +74,20 @@ def _retry_after(r: aiohttp.ClientResponse | None) -> float | None:
 def _api_call_failed(
     message: str, status: int, r: aiohttp.ClientResponse | None
 ) -> exc.ApiCallFailedError:
-    """Return the exception for a response that has an HTTP error status."""
+    """Return the exception for a response that has an HTTP error status.
+
+    A 4xx (other than a 401 or a 429) means the vendor rejected the request (e.g. a 400
+    with SystemModeChangeTimeUntilNotSet, or a 404), and trying again will not help.
+    A 401 is left to higher layers (see AbstractAuth.request()).
+    """
 
     if status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
         return exc.ApiRateLimitExceededError(message, retry_after=_retry_after(r))
+    if (
+        HTTPStatus.BAD_REQUEST <= status < HTTPStatus.INTERNAL_SERVER_ERROR  # a 4xx
+        and status != HTTPStatus.UNAUTHORIZED  # 401
+    ):
+        return exc.ApiCallRejectedError(message, status=status)
     return exc.ApiCallFailedError(message, status=status)
 
 
@@ -142,9 +152,6 @@ class AbstractAuth(ABC):
         """Call the vendor's TCC API with a PUT.
 
         A schema is optional and any vol.Invalid is merely logged as a warning.
-
-        If the vendor rejects the request (a 4xx, other than a 401 or a 429), then
-        raise an ApiCallRejectedError.
         """
 
         payload: Mapping[str, object] = json
@@ -155,18 +162,7 @@ class AbstractAuth(ABC):
             except vol.Invalid as err:
                 self._logger.warning(f"PUT {url}: payload failed validation: {err}")
 
-        try:
-            return await self.request(HTTPMethod.PUT, url, json=payload)
-
-        except (exc.AuthenticationFailedError, exc.ApiRateLimitExceededError):
-            raise
-
-        except exc.ApiCallFailedError as err:
-            if err.status is None or err.status == HTTPStatus.UNAUTHORIZED:  # 401
-                raise  # e.g. no connection; a 401 is as for request(), above
-            if err.status >= HTTPStatus.INTERNAL_SERVER_ERROR:  # a 5xx, not a 4xx
-                raise
-            raise exc.ApiCallRejectedError(str(err), status=err.status) from err
+        return await self.request(HTTPMethod.PUT, url, json=payload)
 
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any

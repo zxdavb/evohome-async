@@ -97,32 +97,31 @@ about them:
 ```text
 EvohomeError
 │
-├── ApiCallFailedError                # No usable reply (not a 200): fix issue/try again later
-│   ├── ApiRateLimitExceededError     # HTTP 429; has a retry_after attr: trying later on will help
-│   │   └── AuthRateLimitExceededError    # is also an AuthenticationFailedError
+├── ApiCallFailedError                # No usable reply: fix issue/try again later
+│   ├── ApiRateLimitExceededError     # HTTP 429; has a retry_after attr: here, try again later
+│   │   ├── AuthRateLimitExceededError    # - is also an AuthenticationFailedError
 │   ├── AuthenticationFailedError
-│   │   └── BadUserCredentialsError   # NB: trying again will not help
-│   └── ApiCallRejectedError          # A PUT was refused (a 4xx): trying again will not help
+│   │   └── BadUserCredentialsError   # correct credentials before trying again
+│   └── ApiCallRejectedError          # A 4xx (not a 401/429): trying again will not help
 │
 ├── BadApiRequestError                # The arguments are unusable (no API call attempted)
 │   ├── InvalidModeRequestError
 │   └── InvalidScheduleRequestError
 │
-├── BadApiResponseError               # The reply (a 200) is not as expected: report it
+├── BadApiResponseError               # The reply is not as expected: report it
 │   ├── InvalidConfigError
-│   │   └── GhostZoneError
+│   │   └── GhostZoneError            # a corrupt zone (delete it?)
 │   ├── InvalidStatusError
 │   └── InvalidScheduleError
 │
 └── ClientStateError                  # The client lacks the data: fetch it first
-    ├── NotFetchedError
+    ├── NotFetchedError               # - config, status or schedule data absent
     ├── StaleConfigError
     └── NoSingleTcsError
 ```
 
-`ApiRequestFailedError`, `BadScheduleUploadedError` and `InvalidSystemModeError` are
-deprecated aliases, for `ApiCallFailedError`, `InvalidScheduleRequestError` and
-`InvalidModeRequestError` respectively.
+`ApiRequestFailedError` and `InvalidSystemModeError` are deprecated aliases (used by
+the HA integration), for `ApiCallFailedError` and `InvalidModeRequestError`.
 
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library
   code - instead, raise exceptions based upon `EvohomeError`.

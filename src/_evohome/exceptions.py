@@ -4,27 +4,27 @@ They are grouped by what the caller can do about them:
 
   EvohomeError
   │
-  ├── ApiCallFailedError                  # no usable reply (not a 200): fix/try later
-  │   ├── ApiRateLimitExceededError       # trying later on will help
-  │   │   └── AuthRateLimitExceededError  # is also an AuthenticationFailedError
+  ├── ApiCallFailedError                  # no usable reply: fix issue/try again later
+  │   ├── ApiRateLimitExceededError       # here, try again later
+  │   │   ├── AuthRateLimitExceededError  # - is also an AuthenticationFailedError
   │   ├── AuthenticationFailedError
-  │   │   └── BadUserCredentialsError     # trying again will not help
-  │   └── ApiCallRejectedError            # trying again will not help
+  │   │   └── BadUserCredentialsError     # correct credentials before trying again
+  │   └── ApiCallRejectedError
   │
   ├── BadApiRequestError                  # the arguments are unusable (no API call)
   │   ├── InvalidModeRequestError
   │   └── InvalidScheduleRequestError
   │
-  ├── BadApiResponseError                 # the reply (a 200) is not as expected
+  ├── BadApiResponseError                 # the reply is not as expected: report it
   │   ├── InvalidConfigError
-  │   │   └── GhostZoneError
+  │   │   └── GhostZoneError              # a corrupt zone (delete it?)
   │   ├── InvalidStatusError
   │   └── InvalidScheduleError
   │
   └── ClientStateError                    # the client lacks the data: fetch it first
-      ├── NotFetchedError
+      ├── NotFetchedError                 # - config, status or schedule data absent
       ├── StaleConfigError
-      └── NoSingleTcsError                # can't use Evo.tcs attr (to be deprecated)
+      └── NoSingleTcsError
 """
 
 from __future__ import annotations
@@ -101,11 +101,12 @@ class BadUserCredentialsError(AuthenticationFailedError):
 
 
 class ApiCallRejectedError(ApiCallFailedError):
-    """The vendor rejected a PUT request (e.g. 400, SystemModeChangeTimeUntilNotSet).
+    """The vendor rejected the request (a 4xx, other than a 401 or a 429).
 
-    The request was sent, but the vendor refused it, so nothing will have changed.
-    Trying again will not help. Unlike a BadApiRequestError, the arguments passed
-    this library's checks, so the request (or this library) must change.
+    For example, a PUT with a 400 (e.g. SystemModeChangeTimeUntilNotSet), or a GET with
+    a 404. The request was sent, but the vendor refused it (so a PUT will not have
+    changed anything), and trying again will not help. Unlike a BadApiRequestError,
+    the arguments passed this library's checks.
     """
 
 
@@ -182,5 +183,4 @@ class NoSingleTcsError(ClientStateError):
 
 # Backward-compatibility aliases (deprecated names, e.g. as used by the HA integration)
 ApiRequestFailedError = ApiCallFailedError  # renamed to ApiCallFailedError
-BadScheduleUploadedError = InvalidScheduleRequestError  # renamed
 InvalidSystemModeError = InvalidModeRequestError  # merged into InvalidModeRequestError

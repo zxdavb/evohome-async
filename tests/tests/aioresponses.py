@@ -140,6 +140,16 @@ class AioResponses:
     ) -> None:
         self._register("GET", url, status=status, payload=payload, headers=headers)
 
+    def put(
+        self,
+        url: str,
+        *,
+        status: int | HTTPStatus = HTTPStatus.OK,
+        payload: Any = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
+        self._register("PUT", url, status=status, payload=payload, headers=headers)
+
     def post(
         self,
         url: str,
