@@ -164,6 +164,14 @@ def _input_file_option[FC: Callable[..., object]](f: FC) -> FC:
     )(f)
 
 
+async def _setup(evo: EvohomeClient) -> None:
+    """Get the config of the user's locations, and then the status of each."""
+
+    await evo.setup()
+    for loc in evo.locations:
+        await loc.get_status()
+
+
 @click.group()
 @click.option("--username", "-u", default=None, help="The TCC account username.")
 @click.option("--password", "-p", default=None, help="The TCC account password.")
@@ -233,7 +241,7 @@ async def cli(
     click.echo("Authenticating and retrieving installation...", err=True)
 
     try:
-        await evo.update()
+        await _setup(evo)
     except exc.AuthenticationFailedError:
         await websession.close()
         raise
@@ -286,7 +294,7 @@ async def dump_location(
 
         result = {
             "config": evo.locations[loc_idx].config,
-            "status": await evo.locations[loc_idx].update(),
+            "status": await evo.locations[loc_idx].get_status(),
         }
 
         output_file.write(json.dumps(result, indent=4) + "\n")

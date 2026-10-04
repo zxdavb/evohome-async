@@ -215,6 +215,15 @@ class Location(EntityBase[EvoLocStatusT]):
 
     # Status (state) attrs & methods...
 
+    async def get_status(self) -> EvoLocStatusResponseT:
+        """Get the latest state of the location and update its status attrs.
+
+        Will also update the status of its gateways, their TCSs, and their DHW/zones.
+        Returns the raw JSON of the latest state.
+        """
+
+        return await self._get_status()
+
     async def update(
         self, *, _update_time_zone_info: bool = False
     ) -> EvoLocStatusResponseT:
@@ -227,7 +236,7 @@ class Location(EntityBase[EvoLocStatusT]):
         if _update_time_zone_info:
             await self._get_config()
 
-        return await self._get_status()
+        return await self.get_status()
 
     async def _get_status(
         self,
