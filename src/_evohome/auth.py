@@ -142,6 +142,9 @@ class AbstractAuth(ABC):
         """Call the vendor's TCC API with a PUT.
 
         A schema is optional and any vol.Invalid is merely logged as a warning.
+
+        If the vendor rejects the request (a 4xx, other than a 401 or a 429), then
+        raise a RequestRejectedError.
         """
 
         payload: Mapping[str, object] = json
@@ -152,7 +155,18 @@ class AbstractAuth(ABC):
             except vol.Invalid as err:
                 self._logger.warning(f"PUT {url}: payload failed validation: {err}")
 
-        return await self.request(HTTPMethod.PUT, url, json=payload)
+        try:
+            return await self.request(HTTPMethod.PUT, url, json=payload)
+
+        except (exc.AuthenticationFailedError, exc.ApiRateLimitExceededError):
+            raise
+
+        except exc.ApiCallFailedError as err:
+            if err.status is None or err.status == HTTPStatus.UNAUTHORIZED:  # 401
+                raise  # e.g. no connection; a 401 is as for request(), above
+            if err.status >= HTTPStatus.INTERNAL_SERVER_ERROR:  # a 5xx, not a 4xx
+                raise
+            raise exc.RequestRejectedError(str(err), status=err.status) from err
 
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any

@@ -20,6 +20,7 @@ from _evohome.exceptions import (
     InvalidStatusError,
     NoSingleTcsError,
     NotFetchedError,
+    RequestRejectedError,
 )
 
 __all__ = [
@@ -40,4 +41,5 @@ __all__ = [
     "InvalidStatusError",
     "NoSingleTcsError",
     "NotFetchedError",
+    "RequestRejectedError",
 ]

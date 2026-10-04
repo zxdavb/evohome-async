@@ -186,41 +186,39 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         try:
             mode = ZoneMode(mode)
         except ValueError as err:
-            raise exc.InvalidDhwModeError(f"{self}: Unknown mode: {mode}") from err
+            raise exc.InvalidModeError(f"{self}: Unknown mode: {mode}") from err
 
         if mode not in self.allowed_modes:
-            raise exc.InvalidDhwModeError(f"{self}: Unsupported mode: {mode}")
+            raise exc.InvalidModeError(f"{self}: Unsupported mode: {mode}")
 
         dhw_mode: EvoSetDhwStateT = {SZ_MODE: mode}
 
         if state is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidDhwModeError(
+                raise exc.InvalidModeError(
                     f"{self}: For {mode}, state must not be None"
                 )
 
         else:
             if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidDhwModeError(f"{self}: For {mode}, state must be None")
+                raise exc.InvalidModeError(f"{self}: For {mode}, state must be None")
 
             try:
                 state = DhwState(state)
             except ValueError as err:
-                raise exc.InvalidDhwModeError(
-                    f"{self}: Unknown state: {state}"
-                ) from err
+                raise exc.InvalidModeError(f"{self}: Unknown state: {state}") from err
 
             dhw_mode[SZ_STATE] = state
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidDhwModeError(
+                raise exc.InvalidModeError(
                     f"{self}: For {mode}, until must not be None"
                 )
 
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidDhwModeError(f"{self}: For {mode}, until must be None")
+                raise exc.InvalidModeError(f"{self}: For {mode}, until must be None")
 
             dhw_mode[SZ_UNTIL_TIME] = as_aware_dtm(until)
 
