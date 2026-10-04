@@ -147,7 +147,7 @@ async def test_ctl_set_mode_rejects_unsupported_mode(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidModeRequestError),
+        pytest.raises(evo2.InvalidSystemModeError),
     ):
         await tcs.set_mode(system_mode)
 
@@ -177,7 +177,7 @@ async def test_ctl_set_mode_rejects_until_for_non_temporary_mode(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidModeRequestError),
+        pytest.raises(evo2.InvalidSystemModeError),
     ):
         await tcs.set_mode(non_temporary, until=dt.now(tz=UTC) + td(days=1))
 
