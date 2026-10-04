@@ -11,7 +11,6 @@ from _evohome.exceptions import (
     AuthRateLimitExceededError,
     BadApiRequestError,
     BadApiResponseError,
-    BadScheduleUploadedError,
     BadUserCredentialsError,
     ClientStateError,
     EvohomeError,
@@ -35,7 +34,6 @@ __all__ = [
     "AuthenticationFailedError",
     "BadApiRequestError",
     "BadApiResponseError",
-    "BadScheduleUploadedError",  # deprecated alias for InvalidScheduleRequestError
     "BadUserCredentialsError",
     "ClientStateError",
     "EvohomeError",

@@ -31,6 +31,8 @@ if TYPE_CHECKING:
     from evohome_cli.auth import TokenCacheManager
 
 
+URL_BASE_V2 = "https://tccna.resideo.com/WebAPI/emea/api/v1"
+
 _TEST_ACCESS_TOKEN = "-- access token --"  # noqa: S105
 _TEST_REFRESH_TOKEN = "-- refresh token --"  # noqa: S105
 
@@ -285,6 +287,59 @@ async def test_bad5(  # rate limit exceeded (authorization)
         rsp.assert_called_once_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
     assert evohome_v2._token_manager.is_token_valid() is True
+
+    evohome_v2._token_manager.clear_access_token()  # is cached; don't leak to next test
+
+
+@pytest.mark.parametrize(
+    ("method", "status", "expected"),
+    [
+        (HTTPMethod.GET, HTTPStatus.BAD_REQUEST, exc.ApiCallRejectedError),
+        (HTTPMethod.GET, HTTPStatus.FORBIDDEN, exc.ApiCallRejectedError),
+        (HTTPMethod.GET, HTTPStatus.NOT_FOUND, exc.ApiCallRejectedError),
+        (HTTPMethod.GET, HTTPStatus.UNAUTHORIZED, exc.ApiCallFailedError),
+        (HTTPMethod.GET, HTTPStatus.INTERNAL_SERVER_ERROR, exc.ApiCallFailedError),
+        (HTTPMethod.PUT, HTTPStatus.BAD_REQUEST, exc.ApiCallRejectedError),
+        (HTTPMethod.PUT, HTTPStatus.NOT_FOUND, exc.ApiCallRejectedError),
+        (HTTPMethod.PUT, HTTPStatus.UNAUTHORIZED, exc.ApiCallFailedError),
+        (HTTPMethod.PUT, HTTPStatus.SERVICE_UNAVAILABLE, exc.ApiCallFailedError),
+    ],
+    ids=lambda v: str(v.value) if isinstance(v, HTTPStatus) else None,
+)
+async def test_rejected(  # the vendor rejects a request (a 4xx, but not a 401/429)
+    evohome_v2: EvohomeClient,
+    method: HTTPMethod,
+    status: HTTPStatus,
+    expected: type[exc.ApiCallFailedError],
+) -> None:
+    """Test a 4xx (other than a 401/429) is an ApiCallRejectedError, GET or PUT."""
+
+    # pre-requisite data (a valid access token)
+    evohome_v2._token_manager._access_token = _TEST_ACCESS_TOKEN
+    evohome_v2._token_manager._access_token_expires = dt.now(tz=UTC) + td(minutes=15)
+    evohome_v2._token_manager._refresh_token = _TEST_REFRESH_TOKEN
+
+    url = "temperatureControlSystem/1234567/mode"
+    payload = [{"code": "SystemModeChangeTimeUntilNotSet", "message": "..."}]
+
+    with aioresponses() as rsp:
+        if method == HTTPMethod.GET:
+            rsp.get(f"{URL_BASE_V2}/{url}", status=status, payload=payload)
+        else:
+            rsp.put(f"{URL_BASE_V2}/{url}", status=status, payload=payload)
+
+        with pytest.raises(exc.ApiCallFailedError) as err:
+            await evohome_v2.auth.request(
+                method,
+                url,
+                **(
+                    {"json": {"systemMode": "Auto"}} if method == HTTPMethod.PUT else {}
+                ),
+            )
+
+        assert type(err.value) is expected
+        assert err.value.status == status
+        assert len(rsp.requests) == 1
 
     evohome_v2._token_manager.clear_access_token()  # is cached; don't leak to next test
 
