@@ -140,6 +140,38 @@ async def test_get_schedule_failures(
     assert type(err.value) is expected
 
 
+async def test_empty_schedule(evohome_v2: EvohomeClient) -> None:
+    """Test an empty schedule is valid, and has no switchpoints."""
+
+    zone = _first_zone(evohome_v2)
+
+    with patch(
+        "evohomeasync2.auth.Auth.get", AsyncMock(return_value={"daily_schedules": []})
+    ):
+        assert await zone.get_schedule() == []
+
+    assert zone.schedule == []
+    assert zone.this_switchpoint is None
+    assert zone.next_switchpoint is None
+
+
+async def test_set_schedule_before_get(evohome_v2: EvohomeClient) -> None:
+    """Test the switchpoints are available after set_schedule(), without a get."""
+
+    zones = evohome_v2.locations[0].gateways[0].systems[0].zones
+    schedule = await zones[0].get_schedule()
+
+    zone = zones[1]  # its schedule has not been fetched
+
+    with patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock):
+        await zone.set_schedule(schedule)
+
+    assert zone.schedule == schedule
+    assert zone.this_switchpoint is not None
+    assert zone.next_switchpoint is not None
+    assert zone.this_switchpoint[0] < zone.next_switchpoint[0]
+
+
 async def test_ghost_zone(evohome_v2: EvohomeClient) -> None:
     """Test a zone without a (known) model type raises GhostZoneError."""
 
