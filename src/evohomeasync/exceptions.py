@@ -4,19 +4,19 @@ from __future__ import annotations
 
 from _evohome.exceptions import (
     ApiCallFailedError,
+    ApiCallRejectedError,
     ApiRateLimitExceededError,
     ApiRequestFailedError,
     AuthenticationFailedError,
     AuthRateLimitExceededError,
     BadApiRequestError,
     BadApiResponseError,
-    BadScheduleUploadedError,
     BadUserCredentialsError,
     ClientStateError,
     EvohomeError,
     InvalidConfigError,
     InvalidScheduleError,
-    InvalidScheduleUploadedError,
+    InvalidScheduleRequestError,
     InvalidStatusError,
     NoSingleTcsError,
     NotFetchedError,
@@ -24,19 +24,19 @@ from _evohome.exceptions import (
 
 __all__ = [
     "ApiCallFailedError",
+    "ApiCallRejectedError",
     "ApiRateLimitExceededError",
     "ApiRequestFailedError",  # deprecated alias for ApiCallFailedError
     "AuthRateLimitExceededError",
     "AuthenticationFailedError",
     "BadApiRequestError",
     "BadApiResponseError",
-    "BadScheduleUploadedError",  # deprecated alias for InvalidScheduleUploadedError
     "BadUserCredentialsError",
     "ClientStateError",
     "EvohomeError",
     "InvalidConfigError",
     "InvalidScheduleError",
-    "InvalidScheduleUploadedError",
+    "InvalidScheduleRequestError",
     "InvalidStatusError",
     "NoSingleTcsError",
     "NotFetchedError",

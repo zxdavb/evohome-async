@@ -6,11 +6,12 @@ import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 
+from _evohome.const import _ERR_NO_CONFIG
 from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
-from .const import _ERR_NOT_AVAILABLE, SZ_LOCATION_ID, SZ_USER_ID
+from .const import SZ_LOCATION_ID, SZ_USER_ID
 from .entities import Location
 from .schemas import factory_location_response_list, factory_user_account_info_response
 
@@ -178,7 +179,7 @@ class EvohomeClient:
         """Return the information of the user account."""
 
         if self._user_info is None:
-            raise exc.NotFetchedError(_ERR_NOT_AVAILABLE.format("Account information"))
+            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Account information"))
 
         return self._user_info
 
@@ -187,9 +188,7 @@ class EvohomeClient:
         """Return the list of locations."""
 
         if self._locations is None:  # None: never fetched, []: fetched but empty
-            raise exc.NotFetchedError(
-                _ERR_NOT_AVAILABLE.format("Installation information")
-            )
+            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
 
         return self._locations
 
@@ -198,9 +197,7 @@ class EvohomeClient:
         """Return the list of locations."""
 
         if self._location_by_id is None:  # None: never fetched, {}: fetched but empty
-            raise exc.NotFetchedError(
-                _ERR_NOT_AVAILABLE.format("Installation information")
-            )
+            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
 
         return self._location_by_id
 

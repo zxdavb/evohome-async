@@ -272,7 +272,7 @@ async def test_zon_set_mode_rejects_vacation_hold(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidZoneModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await zone.set_mode(ZoneMode.VACATION_HOLD, temperature=20.0)
 
@@ -321,7 +321,7 @@ async def test_zon_set_mode_follow_schedule_rejects_extra_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidZoneModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await zone.set_mode(ZoneMode.FOLLOW_SCHEDULE, temperature=20.0)
 
@@ -329,7 +329,7 @@ async def test_zon_set_mode_follow_schedule_rejects_extra_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidZoneModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await zone.set_mode(
             ZoneMode.FOLLOW_SCHEDULE, until=dt.now(tz=UTC) + td(hours=1)
@@ -347,7 +347,7 @@ async def test_zon_set_mode_permanent_override_rejects_bad_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidZoneModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await zone.set_mode(ZoneMode.PERMANENT_OVERRIDE)
 
@@ -355,7 +355,7 @@ async def test_zon_set_mode_permanent_override_rejects_bad_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidZoneModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await zone.set_mode(
             ZoneMode.PERMANENT_OVERRIDE,
@@ -375,7 +375,7 @@ async def test_zon_set_mode_temporary_override_rejects_bad_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidZoneModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await zone.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, until=dt.now(tz=UTC) + td(hours=1)
@@ -385,7 +385,7 @@ async def test_zon_set_mode_temporary_override_rejects_bad_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidZoneModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0)
 
@@ -393,7 +393,7 @@ async def test_zon_set_mode_temporary_override_rejects_bad_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidZoneModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await zone.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE,
@@ -503,7 +503,7 @@ async def test_dhw_set_mode_rejects_unsupported_mode(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidDhwModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await dhw.set_mode(mode)
 
@@ -521,7 +521,7 @@ async def test_dhw_set_mode_follow_schedule_rejects_extra_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidDhwModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await dhw.set_mode(ZoneMode.FOLLOW_SCHEDULE, state=DhwState.ON)
 
@@ -529,7 +529,7 @@ async def test_dhw_set_mode_follow_schedule_rejects_extra_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidDhwModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await dhw.set_mode(ZoneMode.FOLLOW_SCHEDULE, until=dt.now(tz=UTC) + td(hours=1))
 
@@ -547,7 +547,7 @@ async def test_dhw_set_mode_permanent_override_rejects_bad_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidDhwModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await dhw.set_mode(ZoneMode.PERMANENT_OVERRIDE)
 
@@ -555,7 +555,7 @@ async def test_dhw_set_mode_permanent_override_rejects_bad_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidDhwModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await dhw.set_mode(
             ZoneMode.PERMANENT_OVERRIDE,
@@ -577,7 +577,7 @@ async def test_dhw_set_mode_temporary_override_rejects_bad_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidDhwModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await dhw.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, until=dt.now(tz=UTC) + td(hours=1)
@@ -587,7 +587,7 @@ async def test_dhw_set_mode_temporary_override_rejects_bad_args(
 
     with (
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
-        pytest.raises(evo2.InvalidDhwModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await dhw.set_mode(ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.OFF)
 

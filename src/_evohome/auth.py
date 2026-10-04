@@ -74,10 +74,20 @@ def _retry_after(r: aiohttp.ClientResponse | None) -> float | None:
 def _api_call_failed(
     message: str, status: int, r: aiohttp.ClientResponse | None
 ) -> exc.ApiCallFailedError:
-    """Return the exception for a response that has an HTTP error status."""
+    """Return the exception for a response that has an HTTP error status.
+
+    A 4xx (other than a 401 or a 429) means the vendor rejected the request (e.g. a 400
+    with SystemModeChangeTimeUntilNotSet, or a 404), and trying again will not help.
+    A 401 is left to higher layers (see AbstractAuth.request()).
+    """
 
     if status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
         return exc.ApiRateLimitExceededError(message, retry_after=_retry_after(r))
+    if (
+        HTTPStatus.BAD_REQUEST <= status < HTTPStatus.INTERNAL_SERVER_ERROR  # a 4xx
+        and status != HTTPStatus.UNAUTHORIZED  # 401
+    ):
+        return exc.ApiCallRejectedError(message, status=status)
     return exc.ApiCallFailedError(message, status=status)
 
 

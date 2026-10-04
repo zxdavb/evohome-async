@@ -3,24 +3,27 @@
 They are grouped by what the caller can do about them:
 
   EvohomeError
-  ├── ApiCallFailedError                  # no usable reply: try again later
-  │   ├── ApiRateLimitExceededError
-  │   │   └── AuthRateLimitExceededError  # is also an AuthenticationFailedError
-  │   └── AuthenticationFailedError
-  │       └── BadUserCredentialsError     # trying again will not help
+  │
+  ├── ApiCallFailedError                  # no usable reply: fix issue/try again later
+  │   ├── ApiRateLimitExceededError       # here, try again later
+  │   │   ├── AuthRateLimitExceededError  # - is also an AuthenticationFailedError
+  │   ├── AuthenticationFailedError
+  │   │   └── BadUserCredentialsError     # correct credentials before trying again
+  │   └── ApiCallRejectedError
+  │
+  ├── BadApiRequestError                  # the arguments are unusable (no API call)
+  │   ├── InvalidModeRequestError
+  │   └── InvalidScheduleRequestError
+  │
   ├── BadApiResponseError                 # the reply is not as expected: report it
   │   ├── InvalidConfigError
-  │   │   └── GhostZoneError
+  │   │   └── GhostZoneError              # a corrupt zone (delete it?)
   │   ├── InvalidStatusError
   │   └── InvalidScheduleError
-  ├── BadApiRequestError                  # the arguments are unusable: fix the call
-  │   ├── InvalidSystemModeError
-  │   ├── InvalidZoneModeError
-  │   ├── InvalidDhwModeError
-  │   └── InvalidScheduleUploadedError
+  │
   └── ClientStateError                    # the client lacks the data: fetch it first
-      ├── NotFetchedError
-      └── NoSingleTcsError                # can't use Evo.tcs attr (to be deprecated)
+      ├── NotFetchedError                 # - config, status or schedule data absent
+      └── NoSingleTcsError
 """
 
 from __future__ import annotations
@@ -96,6 +99,16 @@ class BadUserCredentialsError(AuthenticationFailedError):
     """
 
 
+class ApiCallRejectedError(ApiCallFailedError):
+    """The vendor rejected the request (a 4xx, other than a 401 or a 429).
+
+    For example, a PUT with a 400 (e.g. SystemModeChangeTimeUntilNotSet), or a GET with
+    a 404. The request was sent, but the vendor refused it (so a PUT will not have
+    changed anything), and trying again will not help. Unlike a BadApiRequestError,
+    the arguments passed this library's checks.
+    """
+
+
 # 2. Response failures: there was a reply, but it is not as expected; trying again will
 #    not help, as either the vendor's JSON or this library's schemas must change. Can be:
 #    a) failing schema validation (immediately after a HTTP GET), or (later on)
@@ -130,19 +143,11 @@ class BadApiRequestError(EvohomeError):  # a base exception
     """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode)."""
 
 
-class InvalidSystemModeError(BadApiRequestError):  # failed to set a TCS mode
-    """The requested system mode is not supported by this TCS."""
+class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
+    """The requested mode is not supported by this TCS/zone/DHW zone."""
 
 
-class InvalidZoneModeError(BadApiRequestError):  # failed to set a zone mode/temperature
-    """The requested mode is not supported by this heating zone."""
-
-
-class InvalidDhwModeError(BadApiRequestError):  # failed to set a DHW zone mode/state
-    """The requested mode is not supported by this DHW zone."""
-
-
-class InvalidScheduleUploadedError(BadApiRequestError):  # failed to set a schedule
+class InvalidScheduleRequestError(BadApiRequestError):  # failed to set a schedule
     """The supplied schedule JSON is not supported / is invalid."""
 
 
@@ -168,4 +173,4 @@ class NoSingleTcsError(ClientStateError):
 
 # Backward-compatibility aliases (deprecated names, e.g. as used by the HA integration)
 ApiRequestFailedError = ApiCallFailedError  # renamed to ApiCallFailedError
-BadScheduleUploadedError = InvalidScheduleUploadedError  # renamed
+InvalidSystemModeError = InvalidModeRequestError  # merged into InvalidModeRequestError

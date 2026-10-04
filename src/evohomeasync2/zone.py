@@ -8,6 +8,7 @@ from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
+from _evohome.const import _ERR_NO_STATUS
 from _evohome.helpers import (
     Case,
     as_aware_dtm,
@@ -17,7 +18,6 @@ from _evohome.helpers import (
 
 from . import exceptions as exc
 from .const import (
-    _ERR_NOT_AVAILABLE,
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_FAN_MODES,
     SZ_ALLOWED_SETPOINT_MODES,
@@ -128,7 +128,7 @@ class EntityBase[StatusT]:
     def status(self) -> StatusT:
         """Return the latest status of the entity."""
         if self._status is None:
-            raise exc.NotFetchedError(_ERR_NOT_AVAILABLE.format(self))
+            raise exc.NotFetchedError(_ERR_NO_STATUS.format(self))
         return self._status
 
     async def _get_status(self, *, _update: bool = True) -> StatusT:
@@ -408,7 +408,7 @@ class _ScheduleBase[
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
-                raise exc.InvalidScheduleUploadedError(
+                raise exc.InvalidScheduleRequestError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
@@ -416,14 +416,14 @@ class _ScheduleBase[
             try:
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as err:
-                raise exc.InvalidScheduleUploadedError(
+                raise exc.InvalidScheduleRequestError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
             assert isinstance(schedule, list)  # mypy
 
         else:
-            raise exc.InvalidScheduleUploadedError(
+            raise exc.InvalidScheduleRequestError(
                 f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable"
             )
 
@@ -692,27 +692,27 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         try:
             mode = ZoneMode(mode)
         except ValueError as err:
-            raise exc.InvalidZoneModeError(f"{self}: Unknown mode: {mode}") from err
+            raise exc.InvalidModeRequestError(f"{self}: Unknown mode: {mode}") from err
 
         if mode not in self.allowed_modes:
-            raise exc.InvalidZoneModeError(f"{self}: Unsupported mode: {mode}")
+            raise exc.InvalidModeRequestError(f"{self}: Unsupported mode: {mode}")
 
         zone_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: mode}
 
         if temperature is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, temperature must not be None"
                 )
 
         else:
             if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, temperature must be None"
                 )
 
             if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: Invalid temperature: {temperature} (out of range)"
                 )
 
@@ -720,13 +720,13 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, until must not be None"
                 )
 
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, until must be None"
                 )
 
