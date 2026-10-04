@@ -20,7 +20,7 @@ from tests.const import (
 )
 
 from .aioresponses import aioresponses
-from .const import LOG_00, LOG_09, LOG_21, LOG_24, LOG_90, LOG_99
+from .const import LOG_00, LOG_08, LOG_09, LOG_21, LOG_24, LOG_90, LOG_99
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -136,7 +136,7 @@ async def test_bad2(  # bad session id
 
         assert err.value.status is None  # Connection refused
 
-        assert caplog.record_tuples == [LOG_00, LOG_21, LOG_24, LOG_99]
+        assert caplog.record_tuples == [LOG_08, LOG_00, LOG_21, LOG_24, LOG_99]
 
         assert len(rsp.requests) == 2  # noqa: PLR2004
 

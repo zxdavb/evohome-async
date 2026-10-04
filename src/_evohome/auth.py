@@ -143,7 +143,7 @@ class AbstractAuth(ABC):
         except exc.AuthenticationFailedError:  # was unable to authenticate
             raise
         except exc.ApiCallFailedError as err:
-            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
+            if err.status == HTTPStatus.UNAUTHORIZED:  # 401
                 # leave it up to higher layers to handle 401s as they can either be
                 # - authentication errors: bad access_token, bad session_id
                 # - authorization errors:  bad URL (e.g. no access to that loc_id)
