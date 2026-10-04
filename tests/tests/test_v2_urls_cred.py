@@ -20,7 +20,17 @@ from tests.const import (
 )
 
 from .aioresponses import aioresponses
-from .const import LOG_01, LOG_02, LOG_03, LOG_04, LOG_20, LOG_29, LOG_90, LOG_99
+from .const import (
+    LOG_01,
+    LOG_02,
+    LOG_03,
+    LOG_04,
+    LOG_20,
+    LOG_28,
+    LOG_29,
+    LOG_90,
+    LOG_99,
+)
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -149,7 +159,7 @@ async def test_bad2(  # bad access token
             await evohome_v2.update()
 
         assert err.value.status is None  # Connection refused
-        assert caplog.record_tuples == [LOG_20, LOG_01, LOG_02, LOG_99]
+        assert caplog.record_tuples == [LOG_28, LOG_20, LOG_01, LOG_02, LOG_99]
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
         # response 0: Unauthorized (bad access token)
