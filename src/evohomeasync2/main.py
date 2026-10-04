@@ -155,7 +155,10 @@ class EvohomeClient:
                 self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)
 
             except exc.ApiCallFailedError as err:  # check if 401 - bad access_token
-                if err.status != HTTPStatus.UNAUTHORIZED:  # 401
+                if (
+                    isinstance(err, exc.AuthenticationFailedError)  # no access_token
+                    or err.status != HTTPStatus.UNAUTHORIZED  # 401
+                ):
                     raise
 
                 # as the userAccount URL is open to all authenticated users, any 401 is
