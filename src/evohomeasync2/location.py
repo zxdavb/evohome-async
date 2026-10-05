@@ -284,10 +284,12 @@ class Location(EntityBase[EvoLocStatusT]):
         except exc.BadApiResponseError as err:  # the status failed validation
             raise exc.InvalidStatusError(err.message) from err
 
+        except exc.AuthenticationFailedError:  # unable to get an access_token
+            raise
+
         except exc.ApiCallFailedError as err:  # check if 401 - no access to location
             if (
-                isinstance(err, exc.AuthenticationFailedError)  # no access_token
-                or err.status != HTTPStatus.UNAUTHORIZED  # 401
+                err.status != HTTPStatus.UNAUTHORIZED  # 401
                 or not await self._is_access_token_accepted()
             ):
                 raise
@@ -324,11 +326,11 @@ class Location(EntityBase[EvoLocStatusT]):
         try:
             await self._auth.get("userAccount", schema=_SCH_USR_ACCOUNT)
 
+        except exc.AuthenticationFailedError:  # unable to get an access_token
+            raise
+
         except exc.ApiCallFailedError as err:
-            if (
-                isinstance(err, exc.AuthenticationFailedError)  # no access_token
-                or err.status != HTTPStatus.UNAUTHORIZED  # 401
-            ):
+            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                 raise
             return False
 
