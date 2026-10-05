@@ -128,8 +128,8 @@ the HA integration), for `ApiCallFailedError` and `InvalidModeRequestError`.
   handler that acts upon the `status` of an `ApiCallFailedError` (e.g. a 400, or a 401)
   must first let any `AuthenticationFailedError` pass.
 - A `BadApiRequestError` means a request was never sent, as the arguments failed this
-  library's checks. A `ApiCallRejectedError` means a PUT was sent, but the vendor
-  refused it (a 4xx).
+  library's checks. An `ApiCallRejectedError` means a request (a GET or a PUT) was
+  sent, but the vendor refused it (a 4xx, other than a 401 or a 429).
 - Do **not** use bare `except Exception:` — catch the specific type you expect.
 - Never silently swallow errors with `pass`. At minimum, log a warning.
 
