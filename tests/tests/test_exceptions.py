@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from http import HTTPStatus
 from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -11,8 +12,12 @@ import evohomeasync
 import evohomeasync2
 from _evohome import exceptions as exc
 
+from .conftest import FIXTURES_V2
+
 if TYPE_CHECKING:
     from types import ModuleType
+
+    from evohomeasync2 import EvohomeClient
 
 # Every exception, and its immediate parent(s)
 HIERARCHY: dict[type[exc.EvohomeError], tuple[type[exc.EvohomeError], ...]] = {
@@ -141,3 +146,27 @@ def test_rate_limit_failures_have_a_retry_after(
 
     assert err.status == HTTPStatus.TOO_MANY_REQUESTS
     assert err.retry_after == retry_after
+
+
+@pytest.mark.parametrize("fixture_folder", [FIXTURES_V2 / "default"], ids=["default"])
+async def test_get_schedule_lets_authentication_failures_pass(
+    evohome_v2: EvohomeClient,
+) -> None:
+    """Test get_schedule() does not turn bad credentials into InvalidScheduleError.
+
+    An AuthenticationFailedError is an ApiCallFailedError, and bad credentials are a 400,
+    so get_schedule()'s handler for a 400 (no schedule) must first let it pass.
+    """
+
+    zone = evohome_v2.locations[0].gateways[0].systems[0].zones[0]
+    error = exc.BadUserCredentialsError(
+        "bad credentials", status=HTTPStatus.BAD_REQUEST
+    )
+
+    with (
+        patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
+        pytest.raises(exc.BadUserCredentialsError) as err,
+    ):
+        await zone.get_schedule()
+
+    assert err.value is error
