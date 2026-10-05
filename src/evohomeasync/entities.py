@@ -438,7 +438,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
             dev = self.zone_by_name.get(zon_id)
 
         if dev is None:
-            raise exc.ConfigError(f"no zone {zon_id} in {self}")
+            raise exc.BadApiRequestError(f"no zone {zon_id} in {self}")
 
         return dev
 

@@ -121,6 +121,9 @@ class EvohomeClient:
             try:
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
 
+            except exc.AuthenticationFailedError:  # unable to get a session_id
+                raise
+
             except exc.ApiCallFailedError as err:  # check if 401 - bad session_id
                 if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                     raise

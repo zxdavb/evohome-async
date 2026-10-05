@@ -1,6 +1,34 @@
-"""An async client for the v2 Resideo TCC API."""
+"""The exceptions raised by the async clients for the Resideo TCC API.
+
+They are grouped by what the caller can do about them:
+
+  EvohomeError
+  │
+  ├── ApiCallFailedError                  # no usable reply: fix issue/try again later
+  │   ├── ApiRateLimitExceededError       # here, try again later
+  │   │   ├── AuthRateLimitExceededError  # - is also an AuthenticationFailedError
+  │   ├── AuthenticationFailedError
+  │   │   └── BadUserCredentialsError     # correct credentials before trying again
+  │   └── ApiCallRejectedError
+  │
+  ├── BadApiRequestError                  # the arguments are unusable (no API call)
+  │   ├── InvalidModeRequestError
+  │   └── InvalidScheduleRequestError
+  │
+  ├── BadApiResponseError                 # the reply is not as expected: report it
+  │   ├── InvalidConfigError
+  │   │   └── GhostZoneError              # a corrupt zone (delete it?)
+  │   ├── InvalidStatusError
+  │   └── InvalidScheduleError
+  │
+  └── ClientStateError                    # the client lacks the data: fetch it first
+      ├── NotFetchedError                 # - config, status or schedule data absent
+      └── NoSingleTcsError
+"""
 
 from __future__ import annotations
+
+from http import HTTPStatus
 
 
 class _EvohomeBaseError(Exception):
@@ -15,33 +43,52 @@ class EvohomeError(_EvohomeBaseError):
     """The base class for all exceptions."""
 
 
-# These occur whilst a RESTful API call is being made
+# 1. Call failures: there was no usable reply (e.g. no connection, rate limit exceeded,
+#    authentication failed); other than for bad credentials, try again later
 
 
-class _ApiCallFailedError(EvohomeError):
-    """The API request failed for some reason (no/invalid/unexpected response)."""
-
-    def __init__(self, message: str, status: int | None = None) -> None:
-        super().__init__(message)
-        self.status = status  # useful, available if via aiohttp.ClientResponseError
-
-
-class ApiCallFailedError(_ApiCallFailedError):  # a base exception, API failed
+class ApiCallFailedError(EvohomeError):  # a base exception
     """The API request failed for some reason (no/invalid/unexpected response).
 
     Could be caused by any aiohttp.ClientError, for example: ConnectionError.  If the
     cause was a ClientResponseError, then the `status` attr will have an integer value.
     """
 
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status  # useful, available if via aiohttp.ClientResponseError
+
 
 class ApiRateLimitExceededError(ApiCallFailedError):
-    """The API request failed because the vendor's API rate limit was exceeded."""
+    """The API request failed because the vendor's API rate limit was exceeded.
+
+    If the vendor said how long to wait before trying again, then the `retry_after`
+    attr will have that period, in seconds.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        status: int | None = HTTPStatus.TOO_MANY_REQUESTS,  # 429
+        *,
+        retry_after: float | None = None,
+    ) -> None:
+        super().__init__(message, status)
+        self.retry_after = retry_after
 
 
-class AuthenticationFailedError(_ApiCallFailedError):
+class AuthenticationFailedError(ApiCallFailedError):
     """Unable to authenticate the user credentials (unable to obtain an access token).
 
-    The cause could be any ApiCallFailedError, including RateLimitExceeded.
+    The cause could be any ApiCallFailedError, including ApiRateLimitExceededError.
+    """
+
+
+class AuthRateLimitExceededError(ApiRateLimitExceededError, AuthenticationFailedError):
+    """Unable to authenticate because the vendor's API rate limit was exceeded.
+
+    The limit is on how often the user is authenticated, and not on how often their
+    locations are polled.
     """
 
 
@@ -52,77 +99,78 @@ class BadUserCredentialsError(AuthenticationFailedError):
     """
 
 
-# Request/Response failures (of a RESTful API call)
+class ApiCallRejectedError(ApiCallFailedError):
+    """The vendor rejected the request (a 4xx, other than a 401 or a 429).
+
+    For example, a PUT with a 400 (e.g. SystemModeChangeTimeUntilNotSet), or a GET with
+    a 404. The request was sent, but the vendor refused it (so a PUT will not have
+    changed anything), and trying again will not help. Unlike a BadApiRequestError,
+    the arguments passed this library's checks.
+    """
 
 
-class BadApiSchemaError(ApiCallFailedError):  # a base exception, API data bad
-    """The received/supplied JSON is not as expected (e.g. missing a required key)."""
+# 2. Response failures: there was a reply, but it is not as expected; trying again will
+#    not help, as either the vendor's JSON or this library's schemas must change. Can be:
+#    a) failing schema validation (immediately after a HTTP GET), or (later on)
+#    b) internally inconsistent (e.g. a zone without a model type)
 
 
-class BadApiResponseError(BadApiSchemaError):
+class BadApiResponseError(EvohomeError):  # a base exception
     """The received JSON is not as expected (e.g. missing a required key)."""
 
 
-class BadApiRequestError(BadApiSchemaError):
+class InvalidConfigError(BadApiResponseError):  # config/account JSON is invalid
+    """The account/config JSON is not as expected (e.g. an unknown TCS model type)."""
+
+
+class GhostZoneError(InvalidConfigError):  # the zone will be ignored
+    """The config JSON of a zone has no model type or zone type (is it a ghost zone?)."""
+
+
+class InvalidStatusError(BadApiResponseError):  # status JSON is invalid
+    """The status JSON is not as expected (e.g. an unknown fault type)."""
+
+
+class InvalidScheduleError(BadApiResponseError):  # schedule JSON is invalid/missing
+    """The schedule JSON is not as expected, or there is no schedule."""
+
+
+# 3. Request failures: the supplied arguments are unusable (e.g. an unsupported zone
+#    mode); these are detected before making any API request, so nothing was sent
+
+
+class BadApiRequestError(EvohomeError):  # a base exception
     """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode)."""
 
 
-class InvalidSystemModeError(BadApiRequestError):  # failed to set a TCS mode
-    """The requested system mode is not supported by this TCS."""
+class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
+    """The requested mode is not supported by this TCS/zone/DHW zone."""
 
 
-class InvalidZoneModeError(BadApiRequestError):  # failed to set a zone mode/temperature
-    """The requested mode is not supported by this zone."""
+class InvalidScheduleRequestError(BadApiRequestError):  # failed to set a schedule
+    """The supplied schedule JSON is not supported / is invalid."""
 
 
-class InvalidDhwModeError(InvalidZoneModeError):  # failed to set a DHW zone mode/state
-    """The requested mode is not supported by this DHW zone."""
+# 4. State failures: the client does not hold the data needed to answer (after/without
+#    a successful API call); fetch the data first
 
 
-class BadScheduleUploadedError(BadApiRequestError):  # failed to set a zone/DHW schedule
-    """The supplied schedule JSON is invalid / was not accepted by the vendor."""
+class ClientStateError(EvohomeError):  # a base exception
+    """The client's config/status data cannot provide what was asked for."""
 
 
-# Other, higher failures (after/without a successful API call)
+class NotFetchedError(ClientStateError):
+    """The config/status/schedule JSON has not been fetched yet.
 
-
-class _ConfigStatusError(EvohomeError):  # invalid/missing JSON
-    """The config/status JSON is missing or somehow invalid (has it been fetched?)."""
-
-
-class ConfigError(_ConfigStatusError):  # account/config JSON is invalid/missing
-    """The config JSON is missing or somehow invalid (e.g. InvalidSchemaError)."""
-
-
-class InvalidConfigError(ConfigError):  # account/config JSON is invalid/missing
-    """The system config JSON is missing/invalid (has it been fetched?).
-
-    This is likely because the user has not yet been authenticated (or authentication
-    has failed).
+    This is likely because the user has not yet called `EvohomeClient.update()`,
+    `Location.update()` or `Zone.get_schedule()`.
     """
 
 
-class NoSingleTcsError(ConfigError):
+class NoSingleTcsError(ClientStateError):
     """There is no default TCS (e.g. the user has more than one location)."""
 
 
-class StatusError(_ConfigStatusError):  # status/schedule JSON is invalid/missing
-    """The status JSON is missing or somehow invalid (e.g. BadApiResponseSchemaError)."""
-
-
-class InvalidStatusError(StatusError):  # status JSON is invalid/missing
-    """The status JSON is missing/invalid (has it been fetched?).
-
-    This is likely because the user has not yet called `Location.update()`.
-    """
-
-
-class InvalidScheduleError(StatusError):  # schedule JSON is invalid/missing
-    """The schedule JSON is missing/invalid (has it been fetched?).
-
-    This is likely because the user has not yet called `Zone.get_schedule()`.
-    """
-
-
-# Backward-compatibility aliases (deprecated names used by HA integration)
+# Backward-compatibility aliases (deprecated names, e.g. as used by the HA integration)
 ApiRequestFailedError = ApiCallFailedError  # renamed to ApiCallFailedError
+InvalidSystemModeError = InvalidModeRequestError  # merged into InvalidModeRequestError
