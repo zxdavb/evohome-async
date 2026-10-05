@@ -325,7 +325,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             SystemMode.AUTO in self.allowed_modes
             or SystemMode.HEAT not in self.allowed_modes
         ):
-            await self.set_mode(SystemMode.AUTO)  # ?raise InvalidModeRequestError
+            await self.set_mode(SystemMode.AUTO)
             return
 
         # some systems have "Heat" mode instead of "Auto"...
@@ -373,9 +373,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             SystemMode.HEATING_OFF in self.allowed_modes
             or SystemMode.OFF not in self.allowed_modes
         ):
-            await self.set_mode(
-                SystemMode.HEATING_OFF
-            )  # ?raise InvalidModeRequestError
+            await self.set_mode(SystemMode.HEATING_OFF)
             return
 
         # some systems have "Off" mode instead of "HeatingOff"...
