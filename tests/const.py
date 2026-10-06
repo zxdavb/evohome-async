@@ -15,7 +15,7 @@ _DBG_USE_REAL_AIOHTTP = False  # use 'real' aiohttp to reach vendor's servers
 
 #
 # the longest that any one wait may take (e.g. a request, or polling a comm task)
-TIMEOUT: Final = 30  # seconds
+REAL_AIOHTTP_TIMEOUT: Final = 30  # seconds
 
 #
 # used to construct the default token cache

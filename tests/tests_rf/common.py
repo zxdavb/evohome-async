@@ -14,7 +14,7 @@ import evohomeasync2 as evo2
 from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
     _DBG_USE_REAL_AIOHTTP,
-    TIMEOUT,
+    REAL_AIOHTTP_TIMEOUT,
     URL_BASE_V0,
     URL_BASE_V2,
 )
@@ -358,12 +358,12 @@ async def should_fail_v2(
 async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
     """Wait for a communication task (API call) to complete.
 
-    Raises TimeoutError if it has not done so within TIMEOUT seconds.
+    Raises TimeoutError if it has not done so within REAL_AIOHTTP_TIMEOUT seconds.
     """
 
     url = f"commTasks?commTaskId={task_id}"
 
-    async with asyncio.timeout(TIMEOUT):
+    async with asyncio.timeout(REAL_AIOHTTP_TIMEOUT):
         while True:
             rsp = await auth.websession.request(HTTPMethod.GET, f"{URL_BASE_V2}/{url}")
 
