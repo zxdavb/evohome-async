@@ -430,6 +430,8 @@ class _ScheduleBase[
         schedule_ = {SZ_DAILY_SCHEDULES: schedule}
 
         url = f"{self._TCC_TYPE}/{self.id}/schedule"
+        # TODO: return a future (that resolves when the vendor's comm task succeeds),
+        # rather than discarding the response (its comm task id), e.g. {'id': '1234567890'}
         _ = await self._auth.put(url, json=schedule_, schema=self.SCH_SCHEDULE)
 
         # TODO: check the status of the task
@@ -671,6 +673,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             )
 
         url = f"{self._TCC_TYPE}/{self.id}/heatSetpoint"
+        # TODO: return a future (that resolves when the vendor's comm task succeeds),
+        # rather than discarding the response (its comm task id), e.g. {'id': '1234567890'}
         _ = await self._auth.put(url, json=zon_mode)
 
     async def set_mode(

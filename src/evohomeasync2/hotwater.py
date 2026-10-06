@@ -165,6 +165,8 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             )
 
         url = f"{self._TCC_TYPE}/{self.id}/state"
+        # TODO: return a future (that resolves when the vendor's comm task succeeds),
+        # rather than discarding the response (its comm task id), e.g. {'id': '1234567890'}
         _ = await self._auth.put(url, json=dhw_mode)
 
     async def set_mode(

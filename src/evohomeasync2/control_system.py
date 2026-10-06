@@ -236,6 +236,8 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             )
 
         url = f"{self._TCC_TYPE}/{self.id}/mode"
+        # TODO: return a future (that resolves when the vendor's comm task succeeds),
+        # rather than discarding the response (its comm task id), e.g. {'id': '1234567890'}
         _ = await self._auth.put(url, json=tcs_mode)
 
     async def set_mode(
