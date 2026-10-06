@@ -42,6 +42,7 @@ S2_CAN_CONTROL_COOL: Final = "canControlCool"
 S2_CAN_CONTROL_HEAT: Final = "canControlHeat"
 S2_CITY: Final = "city"
 S2_CODE: Final = "code"
+S2_COMMTASK_ID: Final = "commtaskId"  # NOTE: not commTaskId (c.f. the URL param)
 S2_COOL_SETPOINT: Final = "coolSetpoint"
 S2_COOL_SETPOINT_VALUE: Final = "coolSetpointValue"  # extrapolated
 S2_COUNTRY: Final = "country"
@@ -71,6 +72,7 @@ S2_GATEWAYS: Final = "gateways"
 S2_HEAT_SETPOINT: Final = "heatSetpoint"
 S2_HEAT_SETPOINT_VALUE: Final = "heatSetpointValue"
 
+S2_ID: Final = "id"
 S2_IS_AVAILABLE: Final = "isAvailable"
 S2_IS_CANCELABLE: Final = "isCancelable"
 S2_IS_CHANGEABLE: Final = "isChangeable"
@@ -172,6 +174,15 @@ class TccEntityType(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
+class TccCommTaskState(StrEnum):  # NOTE: only Created/Running/Succeeded are observed
+    CREATED = "Created"
+    RUNNING = "Running"
+    REPEATED = "Repeated"  # is running again, after an earlier run failed (as per v0)
+    SUCCEEDED = "Succeeded"  # is terminal
+    FAILED = "Failed"  # is terminal (as per v0)
+
+
+@verify(EnumCheck.UNIQUE)
 class TccDayOfWeek(StrEnum):
     MONDAY = "Monday"
     TUESDAY = "Tuesday"
@@ -189,8 +200,10 @@ class TccDhwState(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class TccFanMode(StrEnum):
+class TccFanMode(StrEnum):  # non-evohome
     AUTO = "Auto"
+    CIRCULATE = "Circulate"  # https://github.com/home-assistant/core/issues/179414
+    FOLLOW_SCHEDULE = "FollowSchedule"
     ON = "On"
 
 
@@ -211,6 +224,10 @@ class TccFaultType(StrEnum):  # NOTE: This list is incomplete
     ZON_A_LB = "TempZoneActuatorLowBattery"
     ZON_S_CL = "TempZoneSensorCommunicationLost"
     ZON_S_LB = "TempZoneSensorLowBattery"
+
+    # These are known, but intentionally omitted as not seen with Evohome...
+    # - NeedToRegisterOnline  # Zone fault seen only with Saratoga
+    # - ReminderTimerHumPad  # Zone fault seen only with Saratoga
 
 
 @verify(EnumCheck.UNIQUE)
@@ -235,14 +252,20 @@ class TccSystemMode(StrEnum):
 
 @verify(EnumCheck.UNIQUE)
 class TccTcsModelType(StrEnum):
+    """The vendor's model type of a TCS device (these values are received, not sent).
+
+    This list is not exhaustive, but these systems are expected to work OK.
+    """
+
     EVO_TOUCH = "EvoTouch"
     FOCUS_PRO_WIFI_RETAIL = "FocusProWifiRetail"
+    SARATOGA = "Saratoga"  # https://github.com/home-assistant/core/issues/179414
     SYDNEY = "Sydney"  # https://github.com/home-assistant/core/issues/141882
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
 
 
 @verify(EnumCheck.UNIQUE)
-class TccTimingMode(StrEnum):  # c.f. JSON keys: SZ_DURATION, SZ_PERIOD
+class TccTimingMode(StrEnum):  # c.f. JSON keys (camelCase): "duration, "period"
     DURATION = "Duration"
     PERIOD = "Period"
 
@@ -261,6 +284,7 @@ class TccZoneModelType(StrEnum):
     HEATING_ZONE = "HeatingZone"
     ROUND_MODULATION = "RoundModulation"
     ROUND_WIRELESS = "RoundWireless"
+    SARATOGA = "Saratoga"  # https://github.com/home-assistant/core/issues/179414
     SYDNEY = "Sydney"  # https://github.com/home-assistant/core/issues/141882
     UNKNOWN = "Unknown"  # see: https://github.com/home-assistant/core/issues/30945
     VISION_PRO_WIFI_RETAIL = "VisionProWifiRetail"
@@ -280,8 +304,11 @@ class TccZoneType(StrEnum):
 
 # Non-API constants used internally by this module and the probatio schemas.
 
-REGEX_DHW_ID: Final = r"[0-9]*"
-REGEX_GATEWAY_ID: Final = r"[0-9]*"
-REGEX_LOCATION_ID: Final = r"[0-9]*"
-REGEX_SYSTEM_ID: Final = r"[0-9]*"
-REGEX_ZONE_ID: Final = r"[0-9]*"
+# vol.Match uses re.match(), which anchors only at the start, so the end must be
+# anchored here (and the ID must be non-empty), else any string would be accepted
+REGEX_DHW_ID: Final = r"\A[0-9]+\Z"
+REGEX_GATEWAY_ID: Final = r"\A[0-9]+\Z"
+REGEX_LOCATION_ID: Final = r"\A[0-9]+\Z"
+REGEX_SYSTEM_ID: Final = r"\A[0-9]+\Z"
+REGEX_TASK_ID: Final = r"\A[0-9]+\Z"
+REGEX_ZONE_ID: Final = r"\A[0-9]+\Z"

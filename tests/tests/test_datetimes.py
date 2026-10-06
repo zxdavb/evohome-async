@@ -7,9 +7,9 @@ from datetime import UTC, datetime as dt, timedelta as td, timezone as tz
 import probatio as vol
 import pytest
 
-from _evohome.helpers import as_aware_dtm, convert_dtms_to_utc_str
+from _evohome.helpers import Case, as_aware_dtm, convert_dtms_to_utc_str
 from evohomeasync2 import BadApiRequestError
-from evohomeasync2.schemas.helpers import Case, factory_datetime
+from evohomeasync2.schemas.helpers import factory_datetime
 
 # a fixed +01:00 offset (e.g. London in summer); avoids a tzdata dependency
 PLUS_ONE = tz(td(hours=1))

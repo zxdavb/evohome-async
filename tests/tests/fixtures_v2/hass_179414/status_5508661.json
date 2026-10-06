@@ -1,0 +1,47 @@
+{
+    "locationId": "5508661",
+    "gateways": [
+        {
+            "gatewayId": "5231562",
+            "temperatureControlSystems": [
+                {
+                    "systemId": "7171354",
+                    "zones": [
+                        {
+                            "zoneId": "7171354",
+                            "temperatureStatus": {
+                                "temperature": 21.5,
+                                "isAvailable": true
+                            },
+                            "activeFaults": [
+                                {
+                                    "faultType": "NeedToRegisterOnline",
+                                    "since": "2022-06-11T02:42:04.1252794"
+                                },
+                                {
+                                    "faultType": "ReminderTimerHumPad",
+                                    "since": "2026-08-16T14:00:01"
+                                }
+                            ],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 4.5,
+                                "setpointMode": "PermanentOverride"
+                            },
+                            "name": "THERMOSTAT",
+                            "fanStatus": {
+                                "fanMode": "Auto",
+                                "canBeChanged": true
+                            }
+                        }
+                    ],
+                    "activeFaults": [],
+                    "systemModeStatus": {
+                        "mode": "Off",
+                        "isPermanent": true
+                    }
+                }
+            ],
+            "activeFaults": []
+        }
+    ]
+}

@@ -6,7 +6,7 @@ import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 
-from _evohome.helpers import camel_to_snake
+from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
@@ -17,10 +17,16 @@ from .schemas import factory_location_response_list, factory_user_account_info_r
 if TYPE_CHECKING:
     import aiohttp
 
-    from .typedefs import EvoTcsInfoDictT, EvoUserAccountDictT
+    from _evohome.helpers import Validator
 
-SCH_GET_ACCOUNT_INFO: Final = factory_user_account_info_response(camel_to_snake)
-SCH_GET_ACCOUNT_LOCS: Final = factory_location_response_list(camel_to_snake)
+    from .typedefs import EvoTcsInfoDictT, EvoUserAccountInfoDictT
+
+SCH_GET_ACCOUNT_INFO: Final[Validator[EvoUserAccountInfoDictT]] = (
+    factory_user_account_info_response(Case.PYTHONIC)
+)
+SCH_GET_ACCOUNT_LOCS: Final[Validator[list[EvoTcsInfoDictT]]] = (
+    factory_location_response_list(Case.PYTHONIC)
+)
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync"
 
@@ -28,7 +34,7 @@ _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync"
 class EvohomeClient:
     """Provide a client to access the Resideo TCC API."""
 
-    _user_info: EvoUserAccountDictT | None = None
+    _user_info: EvoUserAccountInfoDictT | None = None
     _user_locs: list[EvoTcsInfoDictT] | None = None  # all locations of the user
 
     def __init__(
@@ -115,6 +121,9 @@ class EvohomeClient:
             try:
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
 
+            except exc.AuthenticationFailedError:  # unable to get a session_id
+                raise
+
             except exc.ApiCallFailedError as err:  # check if 401 - bad session_id
                 if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                     raise
@@ -160,7 +169,7 @@ class EvohomeClient:
         return self._user_locs
 
     @property
-    def user_account(self) -> EvoUserAccountDictT:
+    def user_account(self) -> EvoUserAccountInfoDictT:
         """Return the information of the user account."""
 
         if self._user_info is None:

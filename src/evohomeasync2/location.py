@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from aiozoneinfo import async_get_time_zone
 
-from _evohome.helpers import convert_dtm_to_local_aware
+from _evohome.helpers import Case, convert_dtm_to_local_aware
 from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
 from .const import (
@@ -27,15 +27,14 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
 )
 from .gateway import Gateway
-from .schemas.config import factory_location_installation_info
+from .schemas.config import factory_loc_config
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.status import factory_loc_status
 from .typedefs import EvoLocStatusT
 from .zone import EntityBase
 
 if TYPE_CHECKING:
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import EvohomeClient
     from .auth import Auth
@@ -107,8 +106,8 @@ class Location(EntityBase[EvoLocStatusT]):
 
     _TCC_TYPE = TccEntityType.LOC
 
-    SCH_CONFIG: vol.Schema = factory_location_installation_info(Case.PYTHONIC)
-    SCH_STATUS: vol.Schema = factory_loc_status(Case.PYTHONIC)
+    SCH_CONFIG: Validator[EvoLocConfigResponseT] = factory_loc_config(Case.PYTHONIC)
+    SCH_STATUS: Validator[EvoLocStatusResponseT] = factory_loc_status(Case.PYTHONIC)
 
     def __init__(
         self,
@@ -176,23 +175,36 @@ class Location(EntityBase[EvoLocStatusT]):
         """Get the latest config of the location and update its TZ/DST attrs.
 
         Usually called when DST starts/stops or the location's DST config changes (i.e.
-        there is no _update_config() method). Returns the raw JSON of the latest config.
+        there is no _update_config() method). Only the TZ/DST attrs are updated: the
+        rest of the location's config (and its descendants) is left as it was. Returns
+        the raw JSON of the latest config.
         """
 
-        # it is assumed that *only* the location's TZ/DST info can change
-        # so don't need ?includeTemperatureControlSystems=True
+        # it is assumed that *only* the location's TZ/DST info can change, but without
+        # ?includeTemperatureControlSystems=True, the vendor omits each gateway's TCSs,
+        # which SCH_CONFIG (the schema of a location's config) requires
+
+        # TODO: GET f"location/{self._id}/installationInfo" (i.e. without the TCSs), as
+        # only the TZ/DST attrs are used; will need a new schema (a Tcc*T TypedDict, in
+        # which gateways have no TCSs) and a new validator (its factory_*)
 
         config: EvoLocConfigResponseT = await self._auth.get(
-            f"location/{self._id}/installationInfo",
+            f"location/{self._id}/installationInfo?includeTemperatureControlSystems=True",
             schema=self.SCH_CONFIG,
         )
 
-        self._config = config[SZ_LOCATION_INFO]  # ?exclude TZ/DST
+        # update only the TZ/DST attrs: the rest of the config is assumed static
+        # self._config is also the client's _user_locs entry, so it is updated too
+        loc_info = config[SZ_LOCATION_INFO]
+        self._config[SZ_TIME_ZONE] = loc_info[SZ_TIME_ZONE]
+        self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING] = loc_info[
+            SZ_USE_DAYLIGHT_SAVE_SWITCHING
+        ]
 
         # new TzInfo object, or update the existing one?
         self._tzinfo = await _create_tzinfo(
-            config[SZ_LOCATION_INFO][SZ_TIME_ZONE],
-            use_dst_switching=config[SZ_LOCATION_INFO][SZ_USE_DAYLIGHT_SAVE_SWITCHING],
+            loc_info[SZ_TIME_ZONE],
+            use_dst_switching=loc_info[SZ_USE_DAYLIGHT_SAVE_SWITCHING],
         )
         # self._tzinfo._update(  # but, only for EvoZoneInfo...
         #     time_zone_info=config[SZ_LOCATION_INFO][SZ_TIME_ZONE],

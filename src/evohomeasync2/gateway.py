@@ -5,6 +5,8 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
+from _evohome.helpers import Case
+
 from .const import (
     SZ_ACTIVE_FAULTS,
     SZ_GATEWAY_ID,
@@ -15,7 +17,6 @@ from .const import (
 )
 from .control_system import ControlSystem
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.status import factory_gwy_status
 from .typedefs import EvoGwyStatusT
 from .zone import ActiveFaultsBase
@@ -23,7 +24,7 @@ from .zone import ActiveFaultsBase
 if TYPE_CHECKING:
     import logging
 
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import Location
     from .auth import Auth
@@ -35,7 +36,7 @@ class Gateway(ActiveFaultsBase[EvoGwyStatusT]):
 
     _TCC_TYPE = TccEntityType.GWY
 
-    SCH_STATUS: vol.Schema = factory_gwy_status(Case.PYTHONIC)
+    SCH_STATUS: Validator[EvoGwyStatusResponseT] = factory_gwy_status(Case.PYTHONIC)
 
     def __init__(self, location: Location, config: EvoGwyConfigResponseT) -> None:
         super().__init__(config[SZ_GATEWAY_INFO][SZ_GATEWAY_ID])

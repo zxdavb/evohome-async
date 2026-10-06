@@ -25,21 +25,23 @@ type _TccResponse = dict[str, Any] | list[dict[str, Any]]
 
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Mapping
 
     from aiohttp.typedefs import StrOrURL
 
+    from .helpers import Validator
 
-async def _payload(r: aiohttp.ClientResponse | None) -> str:
-    if r is None:
+
+async def _payload(rsp: aiohttp.ClientResponse | None) -> str:
+    if rsp is None:
         return "<no response>"
 
     try:
-        if r.content_type == "application/json":
-            return json.dumps(await r.json())
-        if r.content_type == "text/plain":
-            return await r.text()
-        return await r.text()  # text/html?
+        if rsp.content_type == "application/json":
+            return json.dumps(await rsp.json())
+        if rsp.content_type == "text/plain":
+            return await rsp.text()
+        return await rsp.text()  # text/html?
 
     except aiohttp.ClientPayloadError:
         return "<no response>"
@@ -81,7 +83,7 @@ class AbstractAuth(ABC):
         """Return the URL base used for GET/PUT requests."""
         return self._url_base
 
-    async def get[T](self, url: StrOrURL, /, schema: Callable[[Any], T]) -> T:
+    async def get[T](self, url: StrOrURL, /, schema: Validator[T]) -> T:
         """Call the vendor's TCC API with a GET.
 
         A schema is required; it is used to convert datetimes and strEnums from the
@@ -93,7 +95,7 @@ class AbstractAuth(ABC):
         try:
             return schema(response)
         except vol.Invalid as err:
-            raise exc.BadApiSchemaError(
+            raise exc.BadApiResponseError(
                 f"GET {url}: response failed validation: {err}"
             ) from err
 
@@ -101,22 +103,24 @@ class AbstractAuth(ABC):
         self,
         url: StrOrURL,
         /,
-        json: dict[str, Any],
+        json: Mapping[str, object],
         *,
-        schema: vol.Schema | None = None,
+        schema: Validator[Mapping[str, object]] | None = None,
     ) -> _TccResponse:  # NOTE: not _EvoSchemaT
         """Call the vendor's TCC API with a PUT.
 
         A schema is optional and any vol.Invalid is merely logged as a warning.
         """
 
+        payload: Mapping[str, object] = json
+
         if schema:
             try:
-                json = schema(json)
+                payload = schema(json)
             except vol.Invalid as err:
                 self._logger.warning(f"PUT {url}: payload failed validation: {err}")
 
-        return await self.request(HTTPMethod.PUT, url, json=json)
+        return await self.request(HTTPMethod.PUT, url, json=payload)
 
     async def request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
@@ -136,8 +140,10 @@ class AbstractAuth(ABC):
 
         try:
             response = await self._make_request(method, url, **kwargs)
+        except exc.AuthenticationFailedError:  # was unable to authenticate
+            raise
         except exc.ApiCallFailedError as err:
-            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
+            if err.status == HTTPStatus.UNAUTHORIZED:  # 401
                 # leave it up to higher layers to handle 401s as they can either be
                 # - authentication errors: bad access_token, bad session_id
                 # - authorization errors:  bad URL (e.g. no access to that loc_id)

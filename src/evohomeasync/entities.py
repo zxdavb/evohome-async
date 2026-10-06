@@ -31,28 +31,30 @@ from .const import (
     SZ_MAC_ID,
     SZ_MAX_HEAT_SETPOINT,
     SZ_MIN_HEAT_SETPOINT,
+    SZ_NAME,
     SZ_ONE_TOUCH_ACTIONS_SUSPENDED,
     SZ_ONE_TOUCH_BUTTONS,
     SZ_TEMPERATURE,
+    SZ_THERMOSTAT,
     SZ_THERMOSTAT_MODEL_TYPE,
     SZ_TIME_ZONE,
     SZ_WEATHER,
 )
 from .schemas import (
-    SZ_DHW_OFF,
-    SZ_DHW_ON,
-    SZ_HOLD,
-    SZ_MODE,
-    SZ_NAME,
-    SZ_NEXT_TIME,
-    SZ_QUICK_ACTION,
-    SZ_QUICK_ACTION_NEXT_TIME,
-    SZ_SCHEDULED,
-    SZ_STATUS,
-    SZ_TEMPORARY,
-    SZ_THERMOSTAT,
-    SZ_VALUE,
+    S1_MODE,
+    S1_NEXT_TIME,
+    S1_QUICK_ACTION,
+    S1_QUICK_ACTION_NEXT_TIME,
+    S1_STATUS,
+    S1_VALUE,
+    TccDhwMode,
+    TccSensorStatus,
+    TccSetDhwModeT,
+    TccSetpointStatus,
+    TccSetTcsModeT,
+    TccSetZonModeT,
     TccSystemMode,
+    TccThermostatModelType,
 )
 from .typedefs import EvoGwyInfoDictT
 
@@ -75,6 +77,9 @@ if TYPE_CHECKING:
 
 
 _TEMP_IS_NA: Final = 128
+
+# e.g. EMEA_ZONE, but any such prefixed type is a zone (c.f. TccThermostatModelType)
+_ZONE_MODEL_TYPE_PREFIX: Final = "EMEA_"
 
 
 class _EntityBase(ABC):
@@ -170,7 +175,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
 
-        is_available = temp_status == "Measured"
+        is_available = temp_status == TccSensorStatus.MEASURED
         if temp == _TEMP_IS_NA:
             return {SZ_IS_AVAILABLE: is_available}
         return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
@@ -185,25 +190,25 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
 
     async def _set_dhw(
         self,
-        status: str,  # "Scheduled" | "Hold"
-        mode: str | None = None,  # "DHWOn" | "DHWOff"
+        status: TccSetpointStatus,  # Scheduled | Hold
+        mode: TccDhwMode | None = None,
         next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
     ) -> None:
         """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
 
-        data = {
-            SZ_STATUS: status,
-            SZ_MODE: mode,
-            # SZ_NEXT_TIME: None,
-            # SZ_SPECIAL_TIMES: None,
-            # SZ_HEAT_SETPOINT: None,
-            # SZ_COOL_SETPOINT: None,
+        dhw_mode: TccSetDhwModeT = {
+            S1_STATUS: status,
+            S1_MODE: mode,
+            # S1_NEXT_TIME: None,
+            # S1_SPECIAL_MODES: None,
+            # S1_HEAT_SETPOINT: None,
+            # S1_COOL_SETPOINT: None,
         }
         if next_time:
-            data |= {SZ_NEXT_TIME: as_utc_str(next_time)}
+            dhw_mode |= {S1_NEXT_TIME: as_utc_str(next_time)}
 
         url = f"devices/{self.id}/thermostat/changeableValues"
-        await self._auth.put(url, json=data)
+        _ = await self._auth.put(url, json=dhw_mode)
 
     async def set_dhw_on(self, until: dt | None = None) -> None:
         """Set DHW to On, either indefinitely, or until a specified time.
@@ -213,7 +218,9 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         scheduled behaviour.
         """
 
-        await self._set_dhw(status=SZ_HOLD, mode=SZ_DHW_ON, next_time=until)
+        await self._set_dhw(
+            status=TccSetpointStatus.HOLD, mode=TccDhwMode.DHW_ON, next_time=until
+        )
 
     async def set_dhw_off(self, until: dt | None = None) -> None:
         """Set DHW to Off, either indefinitely, or until a specified time.
@@ -222,11 +229,13 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         specified time, it will revert to its scheduled behaviour.
         """
 
-        await self._set_dhw(status=SZ_HOLD, mode=SZ_DHW_OFF, next_time=until)
+        await self._set_dhw(
+            status=TccSetpointStatus.HOLD, mode=TccDhwMode.DHW_OFF, next_time=until
+        )
 
     async def set_dhw_auto(self) -> None:
         """Allow DHW to switch between On and Off, according to its schedule."""
-        await self._set_dhw(status=SZ_SCHEDULED)
+        await self._set_dhw(status=TccSetpointStatus.SCHEDULED)
 
 
 class Zone(_DeviceBase):  # Zone version of a Device
@@ -279,7 +288,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
 
-        is_available = temp_status == "Measured"
+        is_available = temp_status == TccSensorStatus.MEASURED
         if temp == _TEMP_IS_NA:
             return {SZ_IS_AVAILABLE: is_available}
         return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
@@ -294,21 +303,24 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
     async def _set_heat_setpoint(
         self,
-        status: str,  # "Scheduled" | "Temporary" | "Hold"
+        status: TccSetpointStatus,  # Scheduled | Temporary | Hold
         value: float | None = None,
         next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
     ) -> None:
         """Set zone setpoint, either indefinitely, or until a set time."""
 
-        data: dict[str, float | str] = {SZ_STATUS: status}
+        zon_mode: TccSetZonModeT = {S1_STATUS: status}
 
-        if value is not None:  # NOTE: may have to send {SZ_VALUE: None} instead
-            data[SZ_VALUE] = value
+        if value is not None:  # NOTE: may have to send {S1_VALUE: None} instead
+            zon_mode[S1_VALUE] = value
         if next_time is not None:
-            data[SZ_NEXT_TIME] = as_utc_str(next_time)
+            # TODO: the vendor treats NextTime as the location's local time (ignoring the
+            # Z), so this ends the override early by the UTC offset (e.g. 1h on BST) - it
+            # should be sent as local time
+            zon_mode[S1_NEXT_TIME] = as_utc_str(next_time)
 
         url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
-        await self._auth.put(url, json=data)
+        _ = await self._auth.put(url, json=zon_mode)
 
     async def set_temperature(
         self, temperature: float, until: dt | None = None
@@ -317,14 +329,14 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
         if until:
             await self._set_heat_setpoint(
-                SZ_TEMPORARY, value=temperature, next_time=until
+                TccSetpointStatus.TEMPORARY, value=temperature, next_time=until
             )
         else:
-            await self._set_heat_setpoint(SZ_HOLD, value=temperature)
+            await self._set_heat_setpoint(TccSetpointStatus.HOLD, value=temperature)
 
     async def set_zone_auto(self) -> None:
         """Set a zone to follow its schedule."""
-        await self._set_heat_setpoint(status=SZ_SCHEDULED)
+        await self._set_heat_setpoint(status=TccSetpointStatus.SCHEDULED)
 
 
 class ControlSystem(_EntityBase):  # TCS portion of a Location
@@ -365,10 +377,11 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
     def one_touch_buttons(self) -> tuple[str, ...]:
         return tuple(self._status.get(SZ_ONE_TOUCH_BUTTONS, ()))
 
-    async def _set_mode(self, mode: dict[str, str]) -> None:
+    async def _set_mode(self, tcs_mode: TccSetTcsModeT) -> None:
         """Set the TCS mode."""
 
-        await self._auth.put(f"evoTouchSystems?locationId={self.id}", json=mode)
+        url = f"evoTouchSystems?locationId={self.id}"
+        _ = await self._auth.put(url, json=tcs_mode)
 
     async def reset(self) -> None:
         """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
@@ -380,9 +393,9 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
     ) -> None:
         """Set the TCS to a mode, either indefinitely, or for a set time."""
 
-        request: dict[str, str] = {SZ_QUICK_ACTION: mode}
+        request: TccSetTcsModeT = {S1_QUICK_ACTION: mode}
         if until:
-            request |= {SZ_QUICK_ACTION_NEXT_TIME: as_utc_str(until)}
+            request[S1_QUICK_ACTION_NEXT_TIME] = as_utc_str(until)
 
         await self._set_mode(request)
 
@@ -425,7 +438,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
             dev = self.zone_by_name.get(zon_id)
 
         if dev is None:
-            raise exc.ConfigError(f"no zone {zon_id} in {self}")
+            raise exc.BadApiRequestError(f"no zone {zon_id} in {self}")
 
         return dev
 
@@ -503,11 +516,13 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
                 self.gateways.append(gwy)
                 self.gateway_by_id[gwy.id] = gwy
 
-            if (type_ := dev_config[SZ_THERMOSTAT_MODEL_TYPE]) == "DOMESTIC_HOT_WATER":
+            if (
+                type_ := dev_config[SZ_THERMOSTAT_MODEL_TYPE]
+            ) == TccThermostatModelType.DOMESTIC_HOT_WATER:
                 self.hotwater = HotWater(self, dev_config)
 
             # check is string to handle edge-case of Honeywell TH9320WF3003
-            elif isinstance(type_, str) and type_.startswith("EMEA_"):
+            elif isinstance(type_, str) and type_.startswith(_ZONE_MODEL_TYPE_PREFIX):
                 self._add_zone(Zone(self, dev_config))
 
             else:  # assume everything else is a zone

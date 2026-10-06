@@ -7,9 +7,10 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
-from _evohome.helpers import as_aware_dtm, as_local_time
+from _evohome.helpers import Case, as_aware_dtm, as_local_time
 
 from . import exceptions as exc
+from .comm_task import CommTask
 from .const import (
     SZ_ALLOWED_MODES,
     SZ_ALLOWED_STATES,
@@ -25,7 +26,6 @@ from .const import (
     ZoneMode,
 )
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.schedule import factory_dhw_schedule
 from .schemas.status import factory_dhw_status
 from .typedefs import EvoDhwScheduleDayOfWeekT, EvoDhwStatusT
@@ -34,15 +34,17 @@ from .zone import _ZoneBase
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import ControlSystem
     from .typedefs import (
         EvoDhwConfigResponseT,
         EvoDhwConfigT,
         EvoDhwScheduleCapabilitiesT,
+        EvoDhwScheduleResponseT,
         EvoDhwStateCapabilitiesT,
         EvoDhwStateStatusT,
+        EvoDhwStatusResponseT,
         EvoSetDhwStateT,
     )
 
@@ -52,8 +54,10 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
     _TCC_TYPE = TccEntityType.DHW
 
-    SCH_SCHEDULE: vol.Schema = factory_dhw_schedule(Case.PYTHONIC)
-    SCH_STATUS: vol.Schema = factory_dhw_status(Case.PYTHONIC)
+    SCH_SCHEDULE: Validator[EvoDhwScheduleResponseT] = factory_dhw_schedule(
+        Case.PYTHONIC
+    )
+    SCH_STATUS: Validator[EvoDhwStatusResponseT] = factory_dhw_status(Case.PYTHONIC)
 
     def __init__(self, tcs: ControlSystem, config: EvoDhwConfigResponseT) -> None:
         super().__init__(config[SZ_DHW_ID], tcs)
@@ -78,6 +82,10 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
     @cached_property
     def schedule_capabilities(self) -> EvoDhwScheduleCapabilitiesT | None:
         """
+        Return the schedule capabilities of the DHW zone (never None for Evohome).
+
+        This key may be absent for some FocusProWifi* systems.
+
         "scheduleCapabilitiesResponse": {
           "maxSwitchpointsPerDay": 6,
           "minSwitchpointsPerDay": 1,
@@ -85,7 +93,6 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         }
         """
 
-        # key may be absent for FocusProWifiRetail, but is always present for Evohome
         return self._config.get(SZ_SCHEDULE_CAPABILITIES_RESPONSE)
 
     @cached_property  # NOTE: is not dhw_state_capabilities
@@ -138,8 +145,8 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, dhw_mode: EvoSetDhwStateT, /) -> None:
-        """Set the DHW mode (state)."""
+    async def _set_mode(self, dhw_mode: EvoSetDhwStateT, /) -> CommTask:
+        """Set the DHW mode (state), and return the vendor's comm task."""
 
         # Issue a warning if we fail some basic sanity checks...
         if dhw_mode[SZ_MODE] not in self.allowed_modes:
@@ -158,7 +165,9 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
                 f"{self}: Attempting unsupported {SZ_STATE}: {dhw_mode}..."
             )
 
-        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/state", json=dict(dhw_mode))
+        url = f"{self._TCC_TYPE}/{self.id}/state"
+        response = await self._auth.put(url, json=dhw_mode)
+        return CommTask.from_response(self._auth, response)
 
     async def set_mode(
         self,
@@ -167,39 +176,43 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         *,
         state: DhwState | str | None = None,
         until: dt | str | None = None,
-    ) -> None:
+    ) -> CommTask:
         """Set the DHW to a mode, either indefinitely, or until a given time.
 
         Will accept a ZoneMode/DhwState or a (snake_case) string for 'mode'/'state'.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
         try:
             mode = ZoneMode(mode)
         except ValueError as err:
-            raise exc.InvalidDhwModeError(f"{self}: Unknown mode: {mode}") from err
+            raise exc.InvalidModeRequestError(f"{self}: Unknown mode: {mode}") from err
 
         if mode not in self.allowed_modes:
-            raise exc.InvalidDhwModeError(f"{self}: Unsupported mode: {mode}")
+            raise exc.InvalidModeRequestError(f"{self}: Unsupported mode: {mode}")
 
         dhw_mode: EvoSetDhwStateT = {SZ_MODE: mode}
 
         if state is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidDhwModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, state must not be None"
                 )
 
         else:
             if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidDhwModeError(f"{self}: For {mode}, state must be None")
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {mode}, state must be None"
+                )
 
             try:
                 state = DhwState(state)
             except ValueError as err:
-                raise exc.InvalidDhwModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: Unknown state: {state}"
                 ) from err
 
@@ -207,33 +220,35 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidDhwModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, until must not be None"
                 )
 
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidDhwModeError(f"{self}: For {mode}, until must be None")
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {mode}, until must be None"
+                )
 
             dhw_mode[SZ_UNTIL_TIME] = as_aware_dtm(until)
 
-        await self._set_mode(dhw_mode)
+        return await self._set_mode(dhw_mode)
 
-    async def reset(self) -> None:
+    async def reset(self) -> CommTask:
         """Cancel any override and allow the DHW to follow its schedule."""
-        await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
+        return await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
 
-    async def set_off(self, /, *, until: dt | str | None = None) -> None:
+    async def set_off(self, /, *, until: dt | str | None = None) -> CommTask:
         """Set the DHW off until a given time, or permanently."""
-        await self.set_state(DhwState.OFF, until=until)
+        return await self.set_state(DhwState.OFF, until=until)
 
-    async def set_on(self, /, *, until: dt | str | None = None) -> None:
+    async def set_on(self, /, *, until: dt | str | None = None) -> CommTask:
         """Set the DHW on until a given time, or permanently."""
-        await self.set_state(DhwState.ON, until=until)
+        return await self.set_state(DhwState.ON, until=until)
 
     async def set_state(
         self, state: DhwState | str, /, *, until: dt | str | None = None
-    ) -> None:
+    ) -> CommTask:
         """Set the DHW state, either indefinitely or until a given time."""
 
         mode = (
@@ -241,4 +256,4 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             if until is None
             else ZoneMode.TEMPORARY_OVERRIDE
         )
-        await self.set_mode(mode, state=state, until=until)
+        return await self.set_mode(mode, state=state, until=until)
