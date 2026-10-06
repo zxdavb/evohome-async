@@ -11,6 +11,7 @@ from evohomeasync2.auth import _APPLICATION_ID as _APPLICATION_ID_V2
 # all _DBG_* flags are only for dev/test and should be False for published code
 _DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 _DBG_TEST_CRED_URLS = False  # avoid 429s: dont invalidate the credential cache
+_DBG_TEST_UNUSED_APIS = False  # also invoke vendor APIs that the client doesn't use
 _DBG_USE_REAL_AIOHTTP = False  # use 'real' aiohttp to reach vendor's servers
 
 #
