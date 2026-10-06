@@ -126,9 +126,10 @@ _MIN_NUM_ZONES_PER_TCS: Final = 1
 
 # GET /location/installationInfo?userId={user_id} returns list of these dicts
 class TccLocConfigResponseT(TypedDict):
-    """Response to GET /locations?userId={user_id}&allData=True
+    """Response to GET /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True
 
-    The response is a list of these dicts.
+    The response to GET /location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True
+    is a list of these dicts (one per location).
     """
 
     locationInfo: TccLocConfigEntryT
