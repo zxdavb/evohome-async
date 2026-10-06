@@ -184,6 +184,10 @@ class Location(EntityBase[EvoLocStatusT]):
         # ?includeTemperatureControlSystems=True, the vendor omits each gateway's TCSs,
         # which SCH_CONFIG (the schema of a location's config) requires
 
+        # TODO: GET f"location/{self._id}/installationInfo" (i.e. without the TCSs), as
+        # only the TZ/DST attrs are used; will need a new schema (a Tcc*T TypedDict, in
+        # which gateways have no TCSs) and a new validator (its factory_*)
+
         config: EvoLocConfigResponseT = await self._auth.get(
             f"location/{self._id}/installationInfo?includeTemperatureControlSystems=True",
             schema=self.SCH_CONFIG,
