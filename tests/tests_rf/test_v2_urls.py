@@ -96,11 +96,18 @@ from evohomeasync2.schemas.status import (
     TCC_GET_TCS_STATUS,
     TCC_GET_ZON_STATUS,
 )
-from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP, TEST_LOCATION_IDX
+from tests.const import (
+    _DBG_TEST_UNUSED_APIS,
+    _DBG_USE_REAL_AIOHTTP,
+    _DBG_WAIT_FOR_COMM_TASKS,
+    TEST_LOCATION_IDX,
+)
 
-from .common import skipif_auth_failed
+from .common import skipif_auth_failed, wait_for_comm_task_v2
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from evohome_cli.auth import TokenCacheManager
     from evohomeasync2.schemas.account import TccTaskResponseT, TccUsrAccountResponseT
     from evohomeasync2.schemas.config import (
@@ -126,6 +133,22 @@ if TYPE_CHECKING:
 def _until(hours: int = 3) -> str:
     """Return a (UTC) datetime, some hours hence, in the vendor's format."""
     return (dt.now(tz=UTC) + td(hours=hours)).strftime(TCC_DTM_STRFTIME)
+
+
+async def _put(
+    auth: Auth, url: str, /, *, json: Mapping[str, object]
+) -> TccTaskResponseT:
+    """PUT a (valid) request and return its comm task, e.g. {"id": "1668279943"}.
+
+    Only if _DBG_WAIT_FOR_COMM_TASKS, wait for the task to succeed.
+    """
+
+    task = TCC_TASK_RESPONSE(await auth._make_request(HTTPMethod.PUT, url, json=json))
+
+    if _DBG_WAIT_FOR_COMM_TASKS:
+        _ = await wait_for_comm_task_v2(auth, task["id"])
+
+    return task
 
 
 #######################################################################################
@@ -436,8 +459,8 @@ async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
       SystemModeChangeTimeUntilNotSet:  temporary, but no timeUntil (e.g. untilTime)
     """
 
-    _ = await auth._make_request(
-        HTTPMethod.PUT,
+    _ = await _put(
+        auth,
         f"temperatureControlSystem/{tcs_id}/mode",
         json={
             "systemMode": "Away",
@@ -461,12 +484,10 @@ async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
     assert exc_info.value.status == HTTPStatus.BAD_REQUEST
     assert "SystemModeChangeTimeUntilNotSet" in exc_info.value.message
 
-    return TCC_TASK_RESPONSE(
-        await auth._make_request(
-            HTTPMethod.PUT,
-            f"temperatureControlSystem/{tcs_id}/mode",
-            json={"systemMode": "Auto", "permanent": True},
-        )
+    return await _put(
+        auth,
+        f"temperatureControlSystem/{tcs_id}/mode",
+        json={"systemMode": "Auto", "permanent": True},
     )
 
 
@@ -589,8 +610,8 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
       HeatSetpointChangeTargetTemperatureNotSet:  an override, but no heatSetpointValue
     """
 
-    _ = await auth._make_request(
-        HTTPMethod.PUT,
+    _ = await _put(
+        auth,
         f"temperatureZone/{zon_id}/heatSetpoint",
         json={
             "setpointMode": "TemporaryOverride",
@@ -614,8 +635,8 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
     assert exc_info.value.status == HTTPStatus.BAD_REQUEST
     assert "HeatSetpointChangeTimeUntilNotSet" in exc_info.value.message
 
-    _ = await auth._make_request(
-        HTTPMethod.PUT,
+    _ = await _put(
+        auth,
         f"temperatureZone/{zon_id}/heatSetpoint",
         json={
             "setpointMode": "PermanentOverride",
@@ -623,12 +644,10 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
         },
     )
 
-    return TCC_TASK_RESPONSE(
-        await auth._make_request(
-            HTTPMethod.PUT,
-            f"temperatureZone/{zon_id}/heatSetpoint",
-            json={"setpointMode": "FollowSchedule"},  # no heatSetpointValue is needed
-        )
+    return await _put(
+        auth,
+        f"temperatureZone/{zon_id}/heatSetpoint",
+        json={"setpointMode": "FollowSchedule"},  # no heatSetpointValue is needed
     )
 
 
@@ -669,12 +688,10 @@ async def put_zon_schedule(
     already is (so is a no-op). See test_v2_urls_sked.py for more about schedules.
     """
 
-    return TCC_TASK_RESPONSE(
-        await auth._make_request(
-            HTTPMethod.PUT,
-            f"temperatureZone/{zon_id}/schedule",
-            json=schedule,
-        )
+    return await _put(
+        auth,
+        f"temperatureZone/{zon_id}/schedule",
+        json=schedule,
     )
 
 
@@ -803,8 +820,8 @@ async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
       DHWUntilTimeNotSet:  temporary, but no untilTime (e.g. timeUntil)
     """
 
-    _ = await auth._make_request(
-        HTTPMethod.PUT,
+    _ = await _put(
+        auth,
         f"domesticHotWater/{dhw_id}/state",
         json={
             "mode": "TemporaryOverride",
@@ -828,18 +845,16 @@ async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
     assert exc_info.value.status == HTTPStatus.BAD_REQUEST
     assert "DHWUntilTimeNotSet" in exc_info.value.message
 
-    _ = await auth._make_request(
-        HTTPMethod.PUT,
+    _ = await _put(
+        auth,
         f"domesticHotWater/{dhw_id}/state",
         json={"mode": "PermanentOverride", "state": "Off"},
     )
 
-    return TCC_TASK_RESPONSE(
-        await auth._make_request(
-            HTTPMethod.PUT,
-            f"domesticHotWater/{dhw_id}/state",
-            json={"mode": "FollowSchedule"},  # no state is needed
-        )
+    return await _put(
+        auth,
+        f"domesticHotWater/{dhw_id}/state",
+        json={"mode": "FollowSchedule"},  # no state is needed
     )
 
 
@@ -880,10 +895,8 @@ async def put_dhw_schedule(
     already is (so is a no-op). See test_v2_urls_sked.py for more about schedules.
     """
 
-    return TCC_TASK_RESPONSE(
-        await auth._make_request(
-            HTTPMethod.PUT,
-            f"domesticHotWater/{dhw_id}/schedule",
-            json=schedule,
-        )
+    return await _put(
+        auth,
+        f"domesticHotWater/{dhw_id}/schedule",
+        json=schedule,
     )
