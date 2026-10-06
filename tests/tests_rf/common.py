@@ -268,6 +268,8 @@ async def should_work_v2[T](
     """Make a HTTP request and check it succeeds as expected.
 
     Used to document the behaviour of a 'real' server and to validate the faked server.
+
+    Only if _DBG_WAIT_FOR_COMM_TASKS, after a PUT, wait for its comm task to succeed.
     """
 
     response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
@@ -295,7 +297,12 @@ async def should_work_v2[T](
             return response
 
         assert isinstance(response, dict | list)  # mypy
-        return schema(response) if schema else response  # may raise vol.Invalid
+
+    if _DBG_WAIT_FOR_COMM_TASKS and method == HTTPMethod.PUT:
+        task = response[0] if isinstance(response, list) else response
+        _ = await wait_for_comm_task_v2(auth, task["id"])  # e.g. {"id": "1668279943"}
+
+    return schema(response) if schema else response  # may raise vol.Invalid
 
 
 async def should_fail_v2(
