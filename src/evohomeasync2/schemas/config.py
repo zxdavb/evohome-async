@@ -124,7 +124,7 @@ _MIN_NUM_ZONES_PER_TCS: Final = 1
 # - this is the 'truth', as understood, for this undocumented API
 
 
-# GET /location/installationInfo?userId={user_id} returns list of these dicts
+# GET /location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True returns a list of these dicts
 class TccLocConfigResponseT(TypedDict):
     """Response to GET /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True
 
