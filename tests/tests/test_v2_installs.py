@@ -16,10 +16,10 @@ if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
     from syrupy.assertion import SnapshotAssertion
 
+    from evohomeasync2 import EvohomeClient as EvohomeClientV2
     from evohomeasync2.control_system import ControlSystem
     from evohomeasync2.gateway import Gateway
     from evohomeasync2.location import Location
-    from tests.conftest import EvohomeClientV2
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:

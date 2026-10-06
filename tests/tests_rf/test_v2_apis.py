@@ -17,7 +17,7 @@ from . import faked_server as faked
 from .common import get_dhw, get_zon, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from tests.conftest import EvohomeClientV2
+    from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 
 #######################################################################################

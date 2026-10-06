@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping
 
     from _evohome.helpers import Validator
-    from tests.conftest import EvohomeClientV2
+    from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 if _DBG_USE_REAL_AIOHTTP:
     import aiohttp
