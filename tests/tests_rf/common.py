@@ -16,7 +16,6 @@ from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     _DBG_WAIT_FOR_COMM_TASKS,
     REAL_AIOHTTP_TIMEOUT,
-    TEST_LOCATION_IDX,
     URL_BASE_V0,
     URL_BASE_V2,
 )
@@ -34,8 +33,8 @@ else:
 
 
 def get_loc(evo: EvohomeClientV2) -> evo2.Location:
-    """Return the Location object to test against (see TEST_LOCATION_IDX)."""
-    return evo.locations[TEST_LOCATION_IDX if _DBG_USE_REAL_AIOHTTP else 0]
+    """Return the Location object to test against (the user's only location)."""
+    return evo.locations[0]
 
 
 def get_dhw(evo: EvohomeClientV2) -> evo2.HotWater | None:
