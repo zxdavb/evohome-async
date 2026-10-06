@@ -14,6 +14,10 @@ _DBG_TEST_CRED_URLS = False  # avoid 429s: dont invalidate the credential cache
 _DBG_USE_REAL_AIOHTTP = False  # use 'real' aiohttp to reach vendor's servers
 
 #
+# the longest that any one wait may take (e.g. a request, or polling a comm task)
+TIMEOUT: Final = 30  # seconds
+
+#
 # used to construct the default token cache
 TEST_USERNAME: Final = "username@email.com"
 TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
