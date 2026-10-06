@@ -91,7 +91,7 @@ from evohomeasync.schemas import (
     TCC_GET_USR_LOCS,
     TCC_TASK_RESPONSE,
 )
-from tests.const import _DBG_USE_REAL_AIOHTTP
+from tests.const import _DBG_USE_REAL_AIOHTTP, TIMEOUT
 
 from .common import (
     is_alive_v0,
@@ -114,10 +114,6 @@ if TYPE_CHECKING:
         TccUserAccountInfoResponseT,
     )
 
-
-_TASK_TIMEOUT = 60  # seconds, for a comm task to succeed
-# NOTE: a comm task usually succeeds within 10s, but was measured exceeding 30s
-# when several PUTs were in flight, so this budget is deliberately generous
 
 # The keys that allData=True adds to each entity (i.e. its children, and some others);
 # a location's weather & contractor are NotRequired (c.f. TccLocationResponseT)
@@ -711,7 +707,7 @@ async def _wait_for_task(auth: Auth, response: TccTaskResponseT) -> None:
 
     task_id = task_id_v0(response)
 
-    async with asyncio.timeout(_TASK_TIMEOUT):
+    async with asyncio.timeout(TIMEOUT):
         while True:
             task = await get_comm_tasks(auth, task_id)
             if task["state"] == "Succeeded":

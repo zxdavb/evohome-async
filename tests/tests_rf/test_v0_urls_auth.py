@@ -27,10 +27,9 @@ import pytest
 import evohomeasync as evo0
 from _evohome.helpers import TCC_DTM_STRFTIME
 from evohomeasync.schemas import TCC_GET_USR_LOCS
-from tests.const import _DBG_USE_REAL_AIOHTTP, URL_BASE_V0
+from tests.const import _DBG_USE_REAL_AIOHTTP, TIMEOUT, URL_BASE_V0
 
 from .common import (
-    ensure_zone_follows_schedule_v0,
     error_codes,
     is_alive_v0,
     is_dhw_v0,
@@ -168,13 +167,8 @@ async def test_evo_systems(evohome_v0: EvohomeClientV0) -> None:
         pytest.skip("Unable to authenticate with real server")
 
 
-_TASK_TIMEOUT = 60  # seconds, for a comm task to succeed
-# NOTE: a comm task usually succeeds within 10s, but was measured exceeding 30s
-# when several PUTs were in flight, so this budget is deliberately generous
-
 # A change appears via allData=True within ~0.5s of its comm task succeeding, but poll
 # for it anyway (rather than asserting it at once), as there's no guarantee of that.
-_STATUS_TIMEOUT = 30  # seconds, for a change to appear in the allData=True view
 _STATUS_INTERVAL = 2  # seconds, between polls of that view
 
 # the older (non-async) client's body for reverting a zone to its schedule
@@ -224,8 +218,7 @@ async def _put_and_wait(
     rsp = await should_work_v0(evo.auth, HTTPMethod.PUT, url, json=json)
     # {"id": 1234567890}  (an int; the older client also allowed for a list of one)
 
-    async with asyncio.timeout(_TASK_TIMEOUT):
-        task = await wait_for_comm_task_v0(evo.auth, task_id_v0(rsp))
+    task = await wait_for_comm_task_v0(evo.auth, task_id_v0(rsp))
     # {"state": "Succeeded", "started": "2026-09-22T20:08:04.053", ...}
 
     return not is_stale_task_v0(task, sent)
@@ -243,7 +236,7 @@ async def _wait_for_status(
     status: str | None = None
 
     try:
-        async with asyncio.timeout(_STATUS_TIMEOUT):
+        async with asyncio.timeout(TIMEOUT):
             while True:
                 if (status := await _get_status(evo, dev_id)) == expected:
                     return status
@@ -283,7 +276,8 @@ async def _test_zon_heat_setpoint(evo: EvohomeClientV0) -> None:
     """Test PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
 
     Overrides a zone to its current setpoint (so is a no-op in practice), confirming that
-    each override is applied, and then reverts it to its schedule.
+    each override is applied, and then reverts it to its schedule (with the older
+    client's body).
 
     Does so with PascalCase keys (as used by the older client) and with camelCase keys
     (as used by this library), to confirm the vendor accepts either. The two overrides
@@ -293,8 +287,7 @@ async def _test_zon_heat_setpoint(evo: EvohomeClientV0) -> None:
     is the location's local time, not UTC.
 
     The vendor may not apply a revert (see is_stale_task_v0() in common.py), e.g. if
-    another test has sent one recently, so it is asserted only if it was applied, and
-    the zone is then checked (and reverted again, if need be).
+    another test has sent one recently, so it is asserted only if it was applied.
     """
 
     dev = await _find_scheduled_zone(evo)
@@ -307,27 +300,23 @@ async def _test_zon_heat_setpoint(evo: EvohomeClientV0) -> None:
 
     now = dt.now(tz=UTC).replace(minute=0, second=0, microsecond=0)
 
-    try:
-        for hours, keys in (
-            (2, ("Value", "Status", "NextTime")),  # PascalCase (as the older client)
-            (3, ("value", "status", "nextTime")),  # camelCase (as this library)
-        ):
-            next_time = now + td(hours=hours)  # on the hour (so not rounded)
-            until = next_time.strftime(TCC_DTM_STRFTIME)  # with a Z
+    for hours, keys in (
+        (2, ("Value", "Status", "NextTime")),  # PascalCase (as the older client)
+        (3, ("value", "status", "nextTime")),  # camelCase (as this library)
+    ):
+        next_time = now + td(hours=hours)  # on the hour (so not rounded)
+        until = next_time.strftime(TCC_DTM_STRFTIME)  # with a Z
 
-            json = dict(zip(keys, (setpoint, "Temporary", until), strict=True))
+        json = dict(zip(keys, (setpoint, "Temporary", until), strict=True))
 
-            assert await _put_and_wait(evo, url, json), json  # i.e. was applied
-            assert await _wait_for_status(evo, dev_id, "Temporary") == "Temporary", json
+        assert await _put_and_wait(evo, url, json), json  # i.e. was applied
+        assert await _wait_for_status(evo, dev_id, "Temporary") == "Temporary", json
 
-            # the NextTime is returned as sent, but without the Z (as it's local time)
-            assert await _get_next_time(evo, dev_id) == until.removesuffix("Z")
+        # the NextTime is returned as sent, but without the Z (as it's local time)
+        assert await _get_next_time(evo, dev_id) == until.removesuffix("Z")
 
-        if await _put_and_wait(evo, url, _ZON_REVERT):  # i.e. was applied
-            assert await _wait_for_status(evo, dev_id, "Scheduled") == "Scheduled"
-
-    finally:
-        await ensure_zone_follows_schedule_v0(evo.auth, dev_id)
+    if await _put_and_wait(evo, url, _ZON_REVERT):  # i.e. was applied
+        assert await _wait_for_status(evo, dev_id, "Scheduled") == "Scheduled"
 
 
 async def _test_dhw_changeable_values(evo: EvohomeClientV0) -> None:

@@ -2,14 +2,12 @@
 
 Every method that changes state is used so that it is a no-op on a real system: it
 reasserts the current setpoint/state of an entity that is already following its
-schedule, and then reverts it to its schedule (a TCS is left in Auto mode). Entities
-that are not alive, or not following their schedule, are skipped.
+schedule, and then reverts it to its schedule. Entities that are not alive, or not
+following their schedule, are skipped. Nothing else is done to restore an entity's
+state: that is left to the end of the test run (see reset_systems() in conftest.py).
 
 Unlike the URL tests, the library does not wait for the vendor's comm tasks, so these
-tests confirm that each request is accepted, not that it has taken effect. Note that the
-vendor sometimes does not apply a v0 PUT that is equivalent to an earlier one (e.g. a
-revert to schedule, see is_stale_task_v0() in common.py), so a zone is then checked (and
-reverted again, if need be).
+tests confirm that each request is accepted, not that it has taken effect.
 """
 
 from __future__ import annotations
@@ -23,7 +21,7 @@ import pytest
 import evohomeasync as evo0
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
-from .common import ensure_zone_follows_schedule_v0, skipif_auth_failed
+from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohomeasync.entities import HotWater, Location, Zone
@@ -147,7 +145,7 @@ async def _test_dhw_apis(evo: EvohomeClientV0) -> None:
             pytest.xfail("This DHW forbids Status/NextTime (see test_v0_urls_auth.py)")
         raise
 
-    await dhw.set_dhw_auto()  # revert the override
+    await dhw.set_dhw_auto()
 
 
 async def _test_zon_apis(evo: EvohomeClientV0) -> None:
@@ -168,17 +166,11 @@ async def _test_zon_apis(evo: EvohomeClientV0) -> None:
     setpoint: float = _changeable_values(zone)["heat_setpoint"]["value"]
 
     # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
-    try:
-        await zone.set_temperature(setpoint, until=dt.now(tz=UTC) + td(hours=1))
-        await zone.set_temperature(setpoint)
+    await zone.set_temperature(setpoint, until=dt.now(tz=UTC) + td(hours=1))
+    await zone.set_temperature(setpoint)
 
-    finally:
-        # NOTE: sends no "Value" key, whereas the older client sent "Value": None
-        await zone.set_zone_auto()
-
-        # the vendor may not apply the above, e.g. if another test has sent a revert
-        # recently (see is_stale_task_v0), so make sure of it
-        await ensure_zone_follows_schedule_v0(evo.auth, zone.id)
+    # NOTE: sends no "Value" key, whereas the older client sent "Value": None
+    await zone.set_zone_auto()
 
 
 #######################################################################################

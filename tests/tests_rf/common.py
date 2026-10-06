@@ -270,12 +270,6 @@ def task_id_v0(response: object) -> str:
 # a tolerance for the difference between the vendor's clock and ours
 _CLOCK_SKEW: Final = td(seconds=5)
 
-# the number of consecutive polls for which a zone must be seen to follow its schedule
-_POLLS_IN_A_ROW: Final = 2
-
-# the time allowed for a zone to follow its schedule (the vendor may not apply a revert)
-_REVERT_TIMEOUT: Final = 180  # seconds
-
 
 def is_stale_task_v0(task: Mapping[str, Any], sent: dt) -> bool:
     """Return True if a v0 comm task had started before its PUT was sent.
@@ -300,55 +294,20 @@ async def wait_for_comm_task_v0(auth: evo0.auth.Auth, task_id: str) -> dict[str,
 
     Only "Succeeded" is known to be terminal: the older (non-async) client polled until
     it saw it, and its tests used "pending" otherwise. No other states are documented,
-    so invoke this within an asyncio.timeout().
+    so raises TimeoutError if it has not succeeded within TIMEOUT seconds.
     """
 
     url = f"commTasks?commTaskId={task_id}"
 
-    while True:
-        task = await should_work_v0(auth, HTTPMethod.GET, url)
-        assert isinstance(task, dict), task
+    async with asyncio.timeout(TIMEOUT):
+        while True:
+            task = await should_work_v0(auth, HTTPMethod.GET, url)
+            assert isinstance(task, dict), task
 
-        if task["state"] == "Succeeded":
-            return task
+            if task["state"] == "Succeeded":
+                return task
 
-        await asyncio.sleep(0.5)
-
-
-async def ensure_zone_follows_schedule_v0(
-    auth: evo0.auth.Auth, zon_id: int | str
-) -> None:
-    """Ensure a zone follows its schedule, using the v0 API.
-
-    Used to tidy up after a v0 test, as the vendor may not apply a v0 revert to schedule
-    (see is_stale_task_v0). Rather than trust a comm task, it checks the zone's status,
-    and reverts it again until it is so.
-
-    Requires that the zone follows its schedule for two polls in a row, reverting it
-    whenever it does not, so as to allow for any v0 PUT that is still in progress (e.g.
-    from the v1 client, which doesn't wait for its comm tasks).
-    """
-
-    url = f"devices/{zon_id}/thermostat/changeableValues"
-    in_a_row = 0
-
-    async with asyncio.timeout(_REVERT_TIMEOUT):
-        while in_a_row < _POLLS_IN_A_ROW:
-            values = await should_work_v0(auth, HTTPMethod.GET, url)
-            assert isinstance(values, dict), values
-
-            if values["heatSetpoint"]["status"] == "Scheduled":
-                in_a_row += 1
-            else:
-                in_a_row = 0
-                _ = await should_work_v0(
-                    auth,
-                    HTTPMethod.PUT,
-                    f"{url}/heatSetpoint",
-                    json={"Status": "Scheduled"},
-                )
-
-            await asyncio.sleep(5)
+            await asyncio.sleep(0.5)
 
 
 # version 2 helpers ###################################################################
