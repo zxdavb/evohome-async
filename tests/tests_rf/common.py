@@ -14,6 +14,7 @@ import evohomeasync2 as evo2
 from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
     _DBG_USE_REAL_AIOHTTP,
+    TIMEOUT,
     URL_BASE_V0,
     URL_BASE_V2,
 )
@@ -355,37 +356,39 @@ async def should_fail_v2(
 
 
 async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
-    """Wait for a communication task (API call) to complete."""
+    """Wait for a communication task (API call) to complete.
 
-    # invoke via:
-    # async with asyncio.timeout(2):
-    #     await wait_for_comm_task()
+    Raises TimeoutError if it has not done so within TIMEOUT seconds.
+    """
 
     url = f"commTasks?commTaskId={task_id}"
 
-    while True:
-        rsp = await auth.websession.request(HTTPMethod.GET, f"{URL_BASE_V2}/{url}")
+    async with asyncio.timeout(TIMEOUT):
+        while True:
+            rsp = await auth.websession.request(HTTPMethod.GET, f"{URL_BASE_V2}/{url}")
 
-        # need to do this before raise_for_status()
-        if rsp.content_type == "application/json":
-            response = await rsp.json()
-        else:
-            response = await rsp.text()
+            # need to do this before raise_for_status()
+            if rsp.content_type == "application/json":
+                response = await rsp.json()
+            else:
+                response = await rsp.text()
 
-        try:
-            rsp.raise_for_status()  # should be 200/OK
-        except aiohttp.ClientResponseError as err:
-            pytest.fail(f"status={err.status}: {response}")
+            try:
+                rsp.raise_for_status()  # should be 200/OK
+            except aiohttp.ClientResponseError as err:
+                pytest.fail(f"status={err.status}: {response}")
 
-        assert rsp.content_type == "application/json", response
+            assert rsp.content_type == "application/json", response
 
-        task: dict[str, str] = response[0] if isinstance(response, list) else response
+            task: dict[str, str] = (
+                response[0] if isinstance(response, list) else response
+            )
 
-        if task["state"] == "Succeeded":
-            return True
+            if task["state"] == "Succeeded":
+                return True
 
-        if task["state"] in ("Created", "Running"):
-            await asyncio.sleep(0.3)
-            continue
+            if task["state"] in ("Created", "Running"):
+                await asyncio.sleep(0.3)
+                continue
 
-        pytest.fail(f"Unexpected task state: {task}")
+            pytest.fail(f"Unexpected task state: {task}")

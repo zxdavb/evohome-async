@@ -58,8 +58,10 @@ The API is regular, and these tests confirm the following conventions:
 
 - a TemporaryOverride of a TCS or zone requires timeUntil, but that of a DHW untilTime
 
-Some PUTs here change the state of an entity (e.g. put a TCS in Away mode), but each
-then reverts it: to Auto (a TCS), or to FollowSchedule (a zone or DHW).
+Some PUTs here change the state of an entity (e.g. put a TCS in Away mode), and most
+end with a PUT of Auto (a TCS), or of FollowSchedule (a zone or DHW). Nothing else is
+done to restore an entity's state: that is left to the end of the test run (see
+reset_systems() in conftest.py).
 """
 
 from __future__ import annotations
