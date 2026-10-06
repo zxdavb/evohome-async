@@ -21,7 +21,7 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import should_fail_v0, should_work_v0, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from tests.conftest import EvohomeClientV0
+    from evohomeasync import EvohomeClient as EvohomeClientV0
 
 
 async def _test_usr_locations(evo: EvohomeClientV0) -> None:

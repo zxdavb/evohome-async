@@ -21,8 +21,8 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import get_dhw, should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
+    from evohomeasync2 import EvohomeClient as EvohomeClientV2
     from evohomeasync2.schemas.schedule import TccZonDailySchedulesT
-    from tests.conftest import EvohomeClientV2
 
 
 async def _test_schedule_put(evo: EvohomeClientV2) -> None:

@@ -31,9 +31,9 @@ from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
     import evohomeasync2 as evo2
+    from evohomeasync2 import EvohomeClient as EvohomeClientV2
     from evohomeasync2.schemas.state import TccSetTcsModeT
     from evohomeasync2.schemas.status import TccTcsStatusResponseT
-    from tests.conftest import EvohomeClientV2
 
 
 #######################################################################################

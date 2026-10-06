@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tests.conftest import EvohomeClientV2
+from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 from .conftest import FIXTURES_V2 as FIXTURES, auth_get, load_fixture
 
