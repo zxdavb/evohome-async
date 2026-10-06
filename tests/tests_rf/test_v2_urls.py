@@ -14,27 +14,30 @@ https://tccna.resideo.com/WebAPI/emea/api/v1, and all endpoints below are relati
   user      GET       /userAccount
 
   location  GET       /location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True
-            GET       /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True
+            GET       /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True  (*)
             GET       /location/{loc_id}/status?includeTemperatureControlSystems=True
 
-  gateway   GET       /gateway/{gwy_id}/installationInfo?includeTemperatureControlSystems=True
-            GET       /gateway/{gwy_id}/status?includeTemperatureControlSystems=True
+  gateway   GET       /gateway/{gwy_id}/installationInfo?includeTemperatureControlSystems=True  (*)
+            GET       /gateway/{gwy_id}/status?includeTemperatureControlSystems=True  (*)
 
-  TCS       GET       /temperatureControlSystem/{tcs_id}/installationInfo
-            GET       /temperatureControlSystem/{tcs_id}/status
+  TCS       GET       /temperatureControlSystem/{tcs_id}/installationInfo  (*)
+            GET       /temperatureControlSystem/{tcs_id}/status  (*)
             PUT       /temperatureControlSystem/{tcs_id}/mode
 
-  zone      GET       /temperatureZone/{zon_id}/installationInfo
-            GET       /temperatureZone/{zon_id}/status
+  zone      GET       /temperatureZone/{zon_id}/installationInfo  (*)
+            GET       /temperatureZone/{zon_id}/status  (*)
             PUT       /temperatureZone/{zon_id}/heatSetpoint
             GET, PUT  /temperatureZone/{zon_id}/schedule
 
-  DHW       GET       /domesticHotWater/{dhw_id}/installationInfo
-            GET       /domesticHotWater/{dhw_id}/status
+  DHW       GET       /domesticHotWater/{dhw_id}/installationInfo  (*)
+            GET       /domesticHotWater/{dhw_id}/status  (*)
             PUT       /domesticHotWater/{dhw_id}/state
             GET, PUT  /domesticHotWater/{dhw_id}/schedule
 
   task      GET       /commTasks?commTaskId={tsk_id}  (see test_v2_urls_task.py)
+
+  (*) not used by the client, so tested only if _DBG_TEST_UNUSED_APIS (as are the
+      variants without includeTemperatureControlSystems=True)
 
 The API is regular, and these tests confirm the following conventions:
 - every entity has an installationInfo endpoint (its config) and a status endpoint (its
@@ -93,7 +96,7 @@ from evohomeasync2.schemas.status import (
     TCC_GET_TCS_STATUS,
     TCC_GET_ZON_STATUS,
 )
-from tests.const import _DBG_USE_REAL_AIOHTTP
+from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from .common import skipif_auth_failed
 
@@ -198,44 +201,47 @@ async def test_tcs_urls(
     usr_locs = await get_usr_locations(auth, usr_info["userId"])
 
     #
-    # STEP 3: GET /location/{loc_id}/installationInfo
-    loc_id = next(loc for loc in usr_locs if loc["gateways"])["locationInfo"][
-        "locationId"
-    ]
+    #
+    loc_config = next(loc for loc in usr_locs if loc["gateways"])
+    loc_id = loc_config["locationInfo"]["locationId"]
+    gwy_id = loc_config["gateways"][0]["gatewayInfo"]["gatewayId"]
+    tcs_id = loc_config["gateways"][0]["temperatureControlSystems"][0]["systemId"]
 
-    loc_config = await get_loc_config(auth, loc_id)
+    #
+    # STEP 3: GET /location/{loc_id}/installationInfo (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await get_loc_config(auth, loc_id)
 
     #
     # STEP 4: GET /location/{loc_id}/status
     _ = await get_loc_status(auth, loc_id)
 
     #
-    # STEP 5: GET /gateway/{gwy_id}/installationInfo
-    gwy_id = loc_config["gateways"][0]["gatewayInfo"]["gatewayId"]
-
-    gwy_config = await get_gwy_config(auth, gwy_id)
-    assert gwy_config == loc_config["gateways"][0]  # is as nested within its location
-
-    #
-    # STEP 6: GET /gateway/{gwy_id}/status
-    _ = await get_gwy_status(auth, gwy_id)
+    # STEP 5: GET /gateway/{gwy_id}/installationInfo (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        gwy_config = await get_gwy_config(auth, gwy_id)
+        assert gwy_config == loc_config["gateways"][0]  # as nested within its location
 
     #
-    # STEP 7: without includeTemperatureControlSystems, the TCSs are omitted
-    await _test_without_tcss(auth, loc_id, gwy_id)
+    # STEP 6: GET /gateway/{gwy_id}/status (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await get_gwy_status(auth, gwy_id)
 
     #
-    #
-    tcs_id = gwy_config["temperatureControlSystems"][0]["systemId"]
+    # STEP 7: without includeTemperatureControlSystems, the TCSs are omitted (as above)
+    if _DBG_TEST_UNUSED_APIS:
+        await _test_without_tcss(auth, loc_id, gwy_id)
 
     #
-    # STEP A: GET /temperatureControlSystem/{tcs_id}/installationInfo
-    tcs_config = await get_tcs_config(auth, tcs_id)
-    assert tcs_config == gwy_config["temperatureControlSystems"][0]  # as nested
+    # STEP A: GET /temperatureControlSystem/{tcs_id}/installationInfo (not used...)
+    if _DBG_TEST_UNUSED_APIS:
+        tcs_config = await get_tcs_config(auth, tcs_id)
+        assert tcs_config == loc_config["gateways"][0]["temperatureControlSystems"][0]
 
     #
-    # STEP B: GET /temperatureControlSystem/{tcs_id}/status
-    _ = await get_tcs_status(auth, tcs_id)
+    # STEP B: GET /temperatureControlSystem/{tcs_id}/status (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await get_tcs_status(auth, tcs_id)
 
     #
     # STEP C: PUT /temperatureControlSystem/{tcs_id}/mode
@@ -493,13 +499,15 @@ async def test_zon_urls(
     zon_id = tcs_config["zones"][0]["zoneId"]
 
     #
-    # STEP A: GET /temperatureZone/{zon_id}/installationInfo
-    zon_config = await get_zon_config(auth, zon_id)
-    assert zon_config == tcs_config["zones"][0]  # is as nested within its TCS
+    # STEP A: GET /temperatureZone/{zon_id}/installationInfo (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        zon_config = await get_zon_config(auth, zon_id)
+        assert zon_config == tcs_config["zones"][0]  # is as nested within its TCS
 
     #
-    # STEP B: GET /temperatureZone/{zon_id}/status
-    _ = await get_zon_status(auth, zon_id)
+    # STEP B: GET /temperatureZone/{zon_id}/status (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await get_zon_status(auth, zon_id)
 
     #
     # STEP C: PUT /temperatureZone/{zon_id}/heatSetpoint
@@ -707,13 +715,15 @@ async def test_dhw_urls(
     dhw_id = tcs_config["dhw"]["dhwId"]
 
     #
-    # STEP A: GET /domesticHotWater/{dhw_id}/installationInfo
-    dhw_config = await get_dhw_config(auth, dhw_id)
-    assert dhw_config == tcs_config["dhw"]  # is as nested within its TCS
+    # STEP A: GET /domesticHotWater/{dhw_id}/installationInfo (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        dhw_config = await get_dhw_config(auth, dhw_id)
+        assert dhw_config == tcs_config["dhw"]  # is as nested within its TCS
 
     #
-    # STEP B: GET /domesticHotWater/{dhw_id}/status
-    _ = await get_dhw_status(auth, dhw_id)
+    # STEP B: GET /domesticHotWater/{dhw_id}/status (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await get_dhw_status(auth, dhw_id)
 
     #
     # STEP C: PUT /domesticHotWater/{dhw_id}/state
