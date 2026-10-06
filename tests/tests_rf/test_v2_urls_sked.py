@@ -18,7 +18,13 @@ import pytest
 from evohomeasync2.schemas.schedule import TCC_GET_ZON_SCHEDULE
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
-from .common import get_dhw, should_fail_v2, should_work_v2, skipif_auth_failed
+from .common import (
+    get_dhw,
+    should_fail_v2,
+    should_work_v2,
+    skipif_auth_failed,
+    wait_for_comm_task_v2,
+)
 
 if TYPE_CHECKING:
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
@@ -152,16 +158,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     if _DBG_USE_REAL_AIOHTTP:
         task_id = status[0]["id"] if isinstance(status, list) else status["id"]
 
-        status = await should_work_v2(
-            evo.auth, HTTPMethod.GET, f"commTasks?commTaskId={task_id}"
-        )
-        # {'commtaskId': '840367013', 'state': 'Created'}
-        # {'commtaskId': '840367013', 'state': 'Running'}
-        # {'commtaskId': '840367013', 'state': 'Succeeded'}
-
-        assert isinstance(status, dict)  # mypy  # TODO: use a SCHEMA
-        assert status["commtaskId"] == task_id
-        assert status["state"] in ("Created", "Running", "Succeeded")
+        _ = await wait_for_comm_task_v2(evo.auth, task_id)
 
     #
     # STEP 3: check the new schedule was effected

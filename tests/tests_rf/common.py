@@ -14,6 +14,7 @@ import evohomeasync2 as evo2
 from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
     _DBG_USE_REAL_AIOHTTP,
+    _DBG_WAIT_FOR_COMM_TASKS,
     REAL_AIOHTTP_TIMEOUT,
     URL_BASE_V0,
     URL_BASE_V2,
@@ -356,39 +357,33 @@ async def should_fail_v2(
 
 
 async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
-    """Wait for a communication task (API call) to complete.
+    """Check the state of a communication task (i.e. of an earlier PUT).
 
-    Raises TimeoutError if it has not done so within REAL_AIOHTTP_TIMEOUT seconds.
+    Only if _DBG_WAIT_FOR_COMM_TASKS, wait for the task to succeed, and raise
+    TimeoutError if it has not done so within REAL_AIOHTTP_TIMEOUT seconds. Otherwise,
+    check its state once only. Return True if the task has succeeded.
     """
 
     url = f"commTasks?commTaskId={task_id}"
 
     async with asyncio.timeout(REAL_AIOHTTP_TIMEOUT):
         while True:
-            rsp = await auth.websession.request(HTTPMethod.GET, f"{URL_BASE_V2}/{url}")
+            response = await should_work_v2(auth, HTTPMethod.GET, url)
+            # {'commtaskId': '840367013', 'state': 'Created'}
+            # {'commtaskId': '840367013', 'state': 'Running'}
+            # {'commtaskId': '840367013', 'state': 'Succeeded'}
 
-            # need to do this before raise_for_status()
-            if rsp.content_type == "application/json":
-                response = await rsp.json()
-            else:
-                response = await rsp.text()
-
-            try:
-                rsp.raise_for_status()  # should be 200/OK
-            except aiohttp.ClientResponseError as err:
-                pytest.fail(f"status={err.status}: {response}")
-
-            assert rsp.content_type == "application/json", response
-
-            task: dict[str, str] = (
-                response[0] if isinstance(response, list) else response
-            )
+            task = response[0] if isinstance(response, list) else response
+            assert isinstance(task, dict), task  # mypy  # TODO: use a SCHEMA
+            assert task["commtaskId"] == task_id, task
 
             if task["state"] == "Succeeded":
                 return True
 
-            if task["state"] in ("Created", "Running"):
-                await asyncio.sleep(0.3)
-                continue
+            if task["state"] not in ("Created", "Running"):
+                pytest.fail(f"Unexpected task state: {task}")
 
-            pytest.fail(f"Unexpected task state: {task}")
+            if not _DBG_WAIT_FOR_COMM_TASKS:
+                return False
+
+            await asyncio.sleep(0.3)
