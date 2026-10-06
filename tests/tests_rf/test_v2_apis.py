@@ -37,7 +37,7 @@ from evohomeasync2.zone import Zone
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from . import faked_server as faked
-from .common import get_dhw, get_zon, skipif_auth_failed
+from .common import get_dhw, get_loc, get_zon, skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
@@ -59,15 +59,15 @@ async def _test_usr_apis(evo: EvohomeClientV2) -> None:
     assert evo2.main.SCH_USR_LOCATIONS(evo._user_locs)
 
     # STEP 2: GET /location/{loc.id}/status
-    for loc in evo.locations:
-        loc_status = await loc.update()
-        assert evo2.Location.SCH_STATUS(loc_status)
+    loc = get_loc(evo)
+
+    loc_status = await loc.update()
+    assert evo2.Location.SCH_STATUS(loc_status)
 
     # STEP 3: GET /location/{loc.id}/installationInfo (not used by the client)
     if _DBG_TEST_UNUSED_APIS:
-        for loc in evo.locations:
-            loc_status = await loc.update(_update_time_zone_info=True)
-            assert evo2.Location.SCH_STATUS(loc_status)
+        loc_status = await loc.update(_update_time_zone_info=True)
+        assert evo2.Location.SCH_STATUS(loc_status)
 
 
 async def _test_tcs_apis(evo: EvohomeClientV2) -> None:
@@ -81,7 +81,7 @@ async def _test_tcs_apis(evo: EvohomeClientV2) -> None:
     await evo.update(dont_update_status=False)
 
     # STEP 2: GET /temperatureControlSystem/{tcs.id}/status
-    tcs = evo.locations[0].gateways[0].systems[0]
+    tcs = get_loc(evo).gateways[0].systems[0]
 
     # tcs_status = await tcs._update()
     # assert evo2.ControlSystem.SCH_STATUS(tcs_status)

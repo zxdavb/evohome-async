@@ -44,6 +44,7 @@ from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 from .common import (
     error_codes,
     get_dhw,
+    get_loc,
     should_fail_v2,
     should_work_v2,
     skipif_auth_failed,
@@ -160,7 +161,7 @@ async def _test_loc_status(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
-    loc = evo.locations[0]
+    loc = get_loc(evo)
     #
 
     url = f"location/{loc.id}/status"
@@ -217,7 +218,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
     await evo.update(dont_update_status=True)
 
     tcs: evo2.ControlSystem
-    if not (tcs := evo.locations[0].gateways[0].systems[0]):
+    if not (tcs := get_loc(evo).gateways[0].systems[0]):
         pytest.skip("No available TCS found")
 
     #
@@ -359,7 +360,7 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update()
 
-    if not (zone := evo.locations[0].gateways[0].systems[0].zones[0]):
+    if not (zone := get_loc(evo).gateways[0].systems[0].zones[0]):
         pytest.skip("No available zones found")
 
     #

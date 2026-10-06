@@ -20,6 +20,7 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import (
     get_dhw,
+    get_loc,
     should_fail_v2,
     should_work_v2,
     skipif_auth_failed,
@@ -39,7 +40,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
-    zone = evo.locations[0].gateways[0].systems[0].zones[0]
+    zone = get_loc(evo).gateways[0].systems[0].zones[0]
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
@@ -133,7 +134,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
-    zone = evo.locations[0].gateways[0].systems[0].zones[0]
+    zone = get_loc(evo).gateways[0].systems[0].zones[0]
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
@@ -217,7 +218,7 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
 
     # schedule: TccZonDailySchedulesT  # can't use this, as we GET without a schema
 
-    zone = evo.locations[0].gateways[0].systems[0].zones[0]
+    zone = get_loc(evo).gateways[0].systems[0].zones[0]
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
