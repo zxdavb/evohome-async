@@ -102,7 +102,8 @@ EvohomeError
 │   │   ├── AuthRateLimitExceededError    # - is also an AuthenticationFailedError
 │   ├── AuthenticationFailedError
 │   │   └── BadUserCredentialsError   # correct credentials before trying again
-│   └── ApiCallRejectedError          # A 4xx (not a 401/429): trying again will not help
+│   ├── ApiCallRejectedError          # A 4xx (not a 401/429): trying again will not help
+│   └── CommTaskFailedError           # A PUT was accepted, but its comm task failed
 │
 ├── BadApiRequestError                # The arguments are unusable (no API call attempted)
 │   ├── InvalidModeRequestError

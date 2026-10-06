@@ -11,6 +11,7 @@ import yaml
 
 from .common import serializable_attrs
 from .conftest import FIXTURES_V2 as FIXTURES
+from .const import PUT_RESPONSE_V2
 
 if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
@@ -95,11 +96,11 @@ async def test_system_schedules(
 
     assert schedules == snapshot(name=f"{tcs.id}_schedules")  # needs freezer
 
-    with patch("_evohome.auth.AbstractAuth.request"):
+    with patch("_evohome.auth.AbstractAuth.request", return_value=PUT_RESPONSE_V2):
         result = await tcs.set_schedules(schedules)
     assert result is True
 
-    with patch("_evohome.auth.AbstractAuth.request"):
+    with patch("_evohome.auth.AbstractAuth.request", return_value=PUT_RESPONSE_V2):
         result = await tcs.set_schedules(schedules, match_by_name=True)
     assert result is True
 

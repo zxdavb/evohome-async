@@ -42,6 +42,7 @@ S2_CAN_CONTROL_COOL: Final = "canControlCool"
 S2_CAN_CONTROL_HEAT: Final = "canControlHeat"
 S2_CITY: Final = "city"
 S2_CODE: Final = "code"
+S2_COMMTASK_ID: Final = "commtaskId"  # NOTE: not commTaskId (c.f. the URL param)
 S2_COOL_SETPOINT: Final = "coolSetpoint"
 S2_COOL_SETPOINT_VALUE: Final = "coolSetpointValue"  # extrapolated
 S2_COUNTRY: Final = "country"
@@ -170,6 +171,15 @@ class TccEntityType(StrEnum):
 
 
 # Vendor StrEnum classes - StrEnums use PascalCase
+
+
+@verify(EnumCheck.UNIQUE)
+class TccCommTaskState(StrEnum):  # NOTE: only Created/Running/Succeeded are observed
+    CREATED = "Created"
+    RUNNING = "Running"
+    REPEATED = "Repeated"  # is running again, after an earlier run failed (as per v0)
+    SUCCEEDED = "Succeeded"  # is terminal
+    FAILED = "Failed"  # is terminal (as per v0)
 
 
 @verify(EnumCheck.UNIQUE)

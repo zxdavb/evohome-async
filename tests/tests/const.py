@@ -12,6 +12,10 @@ TEST_DIR = Path(__file__).resolve().parent
 FIXTURES_DIR = TEST_DIR / "fixtures"
 
 
+# the vendor's response to a successful PUT: the id of its comm task
+PUT_RESPONSE_V2: Final = {"id": "1234567890"}
+
+
 MSG_INVALID_SESSION: Final = (
     "The session_id has been rejected (will re-authenticate): "
     "GET https://tccna.resideo.com/WebAPI/api/accountInfo: "
