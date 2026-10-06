@@ -83,6 +83,18 @@ def skipif_auth_failed[**P](
     return wrapper
 
 
+def error_codes(response: object) -> list[str]:
+    """Return the distinct error codes of a vendor error response (a list of dicts).
+
+    Both APIs return errors in this form (although v2 may add a parameterName), e.g.:
+      [{"code": "ForbiddenParameter", "message": "'Status' is forbidden."}]
+      [{"code": "ParameterIsMissing", "parameterName": "Mode", "message": "..."}]
+    """
+
+    assert isinstance(response, list), response
+    return sorted({str(err["code"]) for err in response})
+
+
 # version 1 helpers ###################################################################
 
 
