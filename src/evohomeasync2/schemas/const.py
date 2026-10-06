@@ -213,7 +213,7 @@ class TccFaultType(StrEnum):  # NOTE: This list is incomplete
     SYS_B_IF = "BoilerInternalFault"  # only via an Opentherm bridge?
     SYS_B_SR = "BoilerServiceRequired"  # only via an Opentherm bridge?
     SYS_C_CL = "ChValveCommunicationLost"
-    # W_A_CL = "DHWActuatorCommunicationLost"  # extrapolated
+    DHW_A_CL = "DHWActuatorCommunicationLost"  # observed 2026-10-06
     DHW_A_FL = "DHWActuatorFailure"
     DHW_S_CL = "DHWSensorCommunicationLost"
     DHW_S_FL = "DHWSensorFailure"

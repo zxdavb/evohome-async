@@ -206,7 +206,7 @@ class FanMode(StrEnum):  # non-evohome
 
 @verify(EnumCheck.UNIQUE)
 class FaultType(StrEnum):  # NOTE: This list is incomplete
-    # W_A_CL = camel_to_snake(TccFaultType.DHW_A_CL)  # extrapolated
+    DHW_A_CL = camel_to_snake(TccFaultType.DHW_A_CL)
     DHW_A_FL = camel_to_snake(TccFaultType.DHW_A_FL)
     DHW_S_CL = camel_to_snake(TccFaultType.DHW_S_CL)
     DHW_S_FL = camel_to_snake(TccFaultType.DHW_S_FL)
