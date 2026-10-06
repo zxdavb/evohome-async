@@ -16,6 +16,7 @@ from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     _DBG_WAIT_FOR_COMM_TASKS,
     REAL_AIOHTTP_TIMEOUT,
+    TEST_LOCATION_IDX,
     URL_BASE_V0,
     URL_BASE_V2,
 )
@@ -32,23 +33,26 @@ else:
     from .faked_server import aiohttp  # type: ignore[no-redef]
 
 
+def get_loc(evo: EvohomeClientV2) -> evo2.Location:
+    """Return the Location object to test against (see TEST_LOCATION_IDX)."""
+    return evo.locations[TEST_LOCATION_IDX if _DBG_USE_REAL_AIOHTTP else 0]
+
+
 def get_dhw(evo: EvohomeClientV2) -> evo2.HotWater | None:
-    """Return the first DHW object found across all TCSs of the user's installation."""
-    for loc in evo.locations:
-        for gwy in loc.gateways:
-            for tcs in gwy.systems:
-                if tcs.hotwater:
-                    return tcs.hotwater
+    """Return the first DHW object found across all TCSs of the location under test."""
+    for gwy in get_loc(evo).gateways:
+        for tcs in gwy.systems:
+            if tcs.hotwater:
+                return tcs.hotwater
     return None
 
 
 def get_zon(evo: EvohomeClientV2) -> evo2.Zone | None:
-    """Return the first Zone object found across all TCSs of the user's installation."""
-    for loc in evo.locations:
-        for gwy in loc.gateways:
-            for tcs in gwy.systems:
-                if tcs.zones:
-                    return tcs.zones[0]
+    """Return the first Zone object found across all TCSs of the location under test."""
+    for gwy in get_loc(evo).gateways:
+        for tcs in gwy.systems:
+            if tcs.zones:
+                return tcs.zones[0]
     return None
 
 

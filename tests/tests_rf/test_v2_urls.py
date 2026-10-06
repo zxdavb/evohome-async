@@ -96,7 +96,7 @@ from evohomeasync2.schemas.status import (
     TCC_GET_TCS_STATUS,
     TCC_GET_ZON_STATUS,
 )
-from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
+from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP, TEST_LOCATION_IDX
 
 from .common import skipif_auth_failed
 
@@ -202,7 +202,7 @@ async def test_tcs_urls(
 
     #
     #
-    loc_config = next(loc for loc in usr_locs if loc["gateways"])
+    loc_config = usr_locs[TEST_LOCATION_IDX]
     loc_id = loc_config["locationInfo"]["locationId"]
     gwy_id = loc_config["gateways"][0]["gatewayInfo"]["gatewayId"]
     tcs_id = loc_config["gateways"][0]["temperatureControlSystems"][0]["systemId"]
@@ -494,7 +494,7 @@ async def test_zon_urls(
 
     #
     #
-    loc_config = next(loc for loc in usr_locs if loc["gateways"])
+    loc_config = usr_locs[TEST_LOCATION_IDX]
     tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
     zon_id = tcs_config["zones"][0]["zoneId"]
 
@@ -702,14 +702,12 @@ async def test_dhw_urls(
 
     #
     #
-    for loc_config in usr_locs:
-        try:
-            tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
-            if "dhw" in tcs_config:
-                break
-        except (KeyError, IndexError):
-            continue
-    else:
+    loc_config = usr_locs[TEST_LOCATION_IDX]
+    try:
+        tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
+    except (KeyError, IndexError):
+        pytest.skip("No TCS found")
+    if "dhw" not in tcs_config:
         pytest.skip("No DHW found")
 
     dhw_id = tcs_config["dhw"]["dhwId"]
