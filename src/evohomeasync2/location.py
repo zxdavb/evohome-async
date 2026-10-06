@@ -190,6 +190,7 @@ class Location(EntityBase[EvoLocStatusT]):
         )
 
         # update only the TZ/DST attrs: the rest of the config is assumed static
+        # self._config is also the client's _user_locs entry, so it is updated too
         loc_info = config[SZ_LOCATION_INFO]
         self._config[SZ_TIME_ZONE] = loc_info[SZ_TIME_ZONE]
         self._config[SZ_USE_DAYLIGHT_SAVE_SWITCHING] = loc_info[
