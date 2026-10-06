@@ -28,7 +28,8 @@ from evohomeasync2.schemas.const import (
     TccDhwState,
     TccZoneMode,
 )
-from tests.const import _DBG_USE_REAL_AIOHTTP
+from evohomeasync2.schemas.status import TCC_GET_DHW_STATUS, TCC_GET_LOC_STATUS
+from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from .common import (
     should_fail_v2,
@@ -39,6 +40,7 @@ from .common import (
 
 if TYPE_CHECKING:
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
+    from evohomeasync2.schemas.status import TccDhwStatusResponseT
 
 #######################################################################################
 
@@ -48,6 +50,9 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
+
+    The DHW's status URL is not used by the client (its status is included in that of
+    its location), so it is used here only if _DBG_TEST_UNUSED_APIS.
     """
 
     await evo.update(dont_update_status=True)
@@ -70,8 +75,24 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     #
     # PART 0: Get initial state...
-    old_status = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
-    assert isinstance(old_status, dict)  # mypy  TODO: use a SCHEMA
+    old_status: TccDhwStatusResponseT
+
+    if _DBG_TEST_UNUSED_APIS:  # GET the DHW's status (not used by the client)
+        old_status = await should_work_v2(
+            evo.auth, HTTPMethod.GET, GET_URL, schema=TCC_GET_DHW_STATUS
+        )
+
+    else:  # GET it from its location's status, as does the client
+        url = f"location/{dhw.location.id}/status?includeTemperatureControlSystems=True"
+        loc_status = await should_work_v2(
+            evo.auth, HTTPMethod.GET, url, schema=TCC_GET_LOC_STATUS
+        )
+        old_status = next(
+            t["dhw"]
+            for g in loc_status["gateways"]
+            for t in g["temperatureControlSystems"]
+            if "dhw" in t and t["dhw"]["dhwId"] == dhw.id
+        )
     # {
     #     'dhwId': '3933910',
     #     'temperatureStatus': {'isAvailable': False},
@@ -114,8 +135,6 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     _ = await wait_for_comm_task_v2(evo.auth, task_id)
 
-    # _ = await wait_for_comm_task_v2(evo.auth, task_id)
-
     #
     # PART 2A: Try different capitalisations of the JSON keys...
     new_mode = {
@@ -129,7 +148,8 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     # _ = await wait_for_comm_task_v2(evo.auth, task_id)
 
-    _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time
         camel_to_pascal(S2_MODE): TccZoneMode.TEMPORARY_OVERRIDE,
@@ -142,7 +162,8 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     # _ = await wait_for_comm_task_v2(evo.auth, task_id)
 
-    _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
 
     #
     # PART 3: Restore the original mode
@@ -150,7 +171,8 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     # _ = await wait_for_comm_task_v2(evo.auth, task_id)
 
-    _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
 
     # assert status # != old_status
 
