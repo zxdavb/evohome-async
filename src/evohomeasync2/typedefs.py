@@ -44,6 +44,7 @@ if TYPE_CHECKING:
     from datetime import datetime as dt
 
     from .const import (
+        CommTaskState,
         DayOfWeek,
         DhwState,
         FanMode,
@@ -75,6 +76,14 @@ class EvoAuthTokensResponseT(TypedDict):
 
 #######################################################################################
 # Schema for the GETs for the vendor's RESTful API - config/status endpoints
+
+
+# GET /commTasks?commTaskId={task_id}
+class EvoCommTaskResponseT(TypedDict):
+    """Response to `GET /commTasks?commTaskId={task_id}`."""
+
+    commtask_id: str
+    state: CommTaskState | str  # enum may be incomplete, so allow str
 
 
 # GET /userAccount
