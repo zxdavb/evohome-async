@@ -20,10 +20,6 @@ _DBG_WAIT_FOR_COMM_TASKS = False  # poll each comm task until it succeeds
 REAL_AIOHTTP_TIMEOUT: Final = 30  # seconds
 
 #
-# the location to test against (its index in the user's installation), when using the
-# vendor's servers (the faked server has only one location, so its index is always 0)
-TEST_LOCATION_IDX: Final = 2
-
 #
 # used to construct the default token cache
 TEST_USERNAME: Final = "username@email.com"

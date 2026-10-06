@@ -100,7 +100,6 @@ from tests.const import (
     _DBG_TEST_UNUSED_APIS,
     _DBG_USE_REAL_AIOHTTP,
     _DBG_WAIT_FOR_COMM_TASKS,
-    TEST_LOCATION_IDX,
 )
 
 from .common import skipif_auth_failed, wait_for_comm_task_v2
@@ -225,7 +224,7 @@ async def test_tcs_urls(
 
     #
     #
-    loc_config = usr_locs[TEST_LOCATION_IDX]
+    loc_config = usr_locs[0]
     loc_id = loc_config["locationInfo"]["locationId"]
     gwy_id = loc_config["gateways"][0]["gatewayInfo"]["gatewayId"]
     tcs_id = loc_config["gateways"][0]["temperatureControlSystems"][0]["systemId"]
@@ -515,7 +514,7 @@ async def test_zon_urls(
 
     #
     #
-    loc_config = usr_locs[TEST_LOCATION_IDX]
+    loc_config = usr_locs[0]
     tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
     zon_id = tcs_config["zones"][0]["zoneId"]
 
@@ -719,7 +718,7 @@ async def test_dhw_urls(
 
     #
     #
-    loc_config = usr_locs[TEST_LOCATION_IDX]
+    loc_config = usr_locs[0]
     try:
         tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
     except (KeyError, IndexError):
