@@ -178,11 +178,12 @@ class Location(EntityBase[EvoLocStatusT]):
         there is no _update_config() method). Returns the raw JSON of the latest config.
         """
 
-        # it is assumed that *only* the location's TZ/DST info can change
-        # so don't need ?includeTemperatureControlSystems=True
+        # it is assumed that *only* the location's TZ/DST info can change, but without
+        # ?includeTemperatureControlSystems=True, the vendor omits each gateway's TCSs,
+        # which SCH_CONFIG (the schema of a location's config) requires
 
         config: EvoLocConfigResponseT = await self._auth.get(
-            f"location/{self._id}/installationInfo",
+            f"location/{self._id}/installationInfo?includeTemperatureControlSystems=True",
             schema=self.SCH_CONFIG,
         )
 
