@@ -1,0 +1,38 @@
+[
+  {
+    "locationInfo": {
+      "locationId": "4001006",
+      "name": "My Home",
+      "streetAddress": "1 Main Street",
+      "city": "London",
+      "country": "UnitedKingdom",
+      "postcode": "E1 1AA",
+      "locationType": "Residential",
+      "useDaylightSaveSwitching": true,
+      "timeZone": {
+        "timeZoneId": "GMTStandardTime",
+        "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+        "offsetMinutes": 0,
+        "currentOffsetMinutes": 60,
+        "supportsDaylightSaving": true
+      },
+      "locationOwner": {
+        "userId": "4000021",
+        "username": "user_4000021@gmail.com",
+        "firstname": "John",
+        "lastname": "Smith"
+      }
+    },
+    "gateways": [
+      {
+        "gatewayInfo": {
+          "gatewayId": "4002006",
+          "mac": "000000000000",
+          "crc": "0000",
+          "isWiFi": false
+        },
+        "temperatureControlSystems": []
+      }
+    ]
+  }
+]

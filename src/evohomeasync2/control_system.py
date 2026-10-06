@@ -6,7 +6,7 @@ import json
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
 
-from _evohome.helpers import as_aware_dtm, as_local_time
+from _evohome.helpers import Case, as_aware_dtm, as_local_time
 
 from . import exceptions as exc
 from .const import (
@@ -32,7 +32,6 @@ from .const import (
 )
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.status import factory_tcs_status
 from .typedefs import EvoTcsStatusT
 from .zone import ActiveFaultsBase, Zone
@@ -43,7 +42,7 @@ if TYPE_CHECKING:
     from datetime import datetime as dt
     from typing import Any
 
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import Gateway, Location
     from .auth import Auth
@@ -77,7 +76,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
 
     _TCC_TYPE = TccEntityType.TCS
 
-    SCH_STATUS: vol.Schema = factory_tcs_status(Case.PYTHONIC)
+    SCH_STATUS: Validator[EvoTcsStatusResponseT] = factory_tcs_status(Case.PYTHONIC)
 
     def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:
         super().__init__(config[SZ_SYSTEM_ID])
@@ -98,10 +97,15 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             SZ_ALLOWED_SYSTEM_MODES: config[SZ_ALLOWED_SYSTEM_MODES],
         }
 
+        if self.model not in TcsModelType:
+            self._logger.warning(
+                "%s: Unexpected TCS model '%s' (YMMV)", self, self.model
+            )
+
         for zon_entry in config[SZ_ZONES]:
             try:
                 zone = Zone(self, zon_entry)
-            except exc.ConfigError as err:
+            except exc.InvalidConfigError as err:
                 self._logger.warning(
                     f"{self}: zone_id='{zon_entry[SZ_ZONE_ID]}' ignored: {err}"
                 )
@@ -133,7 +137,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
     # Config attrs...
 
     @cached_property
-    def model(self) -> TcsModelType:
+    def model(self) -> TcsModelType | str:
         return self._config[SZ_MODEL_TYPE]
 
     @cached_property
@@ -231,7 +235,8 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                 f"{self}: Attempting unsupported {SZ_SYSTEM_MODE}: {tcs_mode}..."
             )
 
-        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/mode", json=dict(tcs_mode))
+        url = f"{self._TCC_TYPE}/{self.id}/mode"
+        _ = await self._auth.put(url, json=tcs_mode)
 
     async def set_mode(
         self,
@@ -251,12 +256,12 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         try:
             system_mode = SystemMode(system_mode)
         except ValueError as err:
-            raise exc.InvalidSystemModeError(
+            raise exc.InvalidModeRequestError(
                 f"{self}: Unknown system_mode: {system_mode}"
             ) from err
 
         if system_mode not in self.allowed_modes:
-            raise exc.InvalidSystemModeError(
+            raise exc.InvalidModeRequestError(
                 f"{self}: Unsupported system_mode: {system_mode}"
             )
 
@@ -274,7 +279,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
 
         else:
             if mode_entry[SZ_CAN_BE_TEMPORARY] is False:
-                raise exc.InvalidSystemModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {system_mode}, until must be None"
                 )
 
@@ -320,7 +325,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             SystemMode.AUTO in self.allowed_modes
             or SystemMode.HEAT not in self.allowed_modes
         ):
-            await self.set_mode(SystemMode.AUTO)  # ?raise InvalidSystemModeError
+            await self.set_mode(SystemMode.AUTO)
             return
 
         # some systems have "Heat" mode instead of "Auto"...
@@ -368,7 +373,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             SystemMode.HEATING_OFF in self.allowed_modes
             or SystemMode.OFF not in self.allowed_modes
         ):
-            await self.set_mode(SystemMode.HEATING_OFF)  # ?raise InvalidSystemModeError
+            await self.set_mode(SystemMode.HEATING_OFF)
             return
 
         # some systems have "Off" mode instead of "HeatingOff"...

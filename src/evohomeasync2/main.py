@@ -9,23 +9,30 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from aiozoneinfo import async_get_time_zone
 
+from _evohome.helpers import Case
+
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import _ERR_NOT_AVAILABLE, SZ_USER_ID
 from .location import Location, create_location
-from .schemas.account import factory_user_account
-from .schemas.config import factory_user_locations_installation_info
-from .schemas.helpers import Case
+from .schemas.account import factory_usr_account
+from .schemas.config import factory_usr_locations
 
 if TYPE_CHECKING:
     import aiohttp
+
+    from _evohome.helpers import Validator
 
     from .control_system import ControlSystem
     from .typedefs import EvoLocConfigResponseT, EvoUsrAccountResponseT
 
 
-SCH_USR_ACCOUNT: Final = factory_user_account(Case.PYTHONIC)
-SCH_USR_LOCATIONS: Final = factory_user_locations_installation_info(Case.PYTHONIC)
+SCH_USR_ACCOUNT: Final[Validator[EvoUsrAccountResponseT]] = factory_usr_account(
+    Case.PYTHONIC
+)
+SCH_USR_LOCATIONS: Final[Validator[list[EvoLocConfigResponseT]]] = (
+    factory_usr_locations(Case.PYTHONIC)
+)
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync2"
 
@@ -131,6 +138,30 @@ class EvohomeClient:
         finally:
             self._tzinfo_initialized = True
 
+    async def _get_user_account(self) -> EvoUsrAccountResponseT:
+        """Get the user's account, re-authenticating if the access_token is rejected."""
+
+        url = "userAccount"
+        try:
+            return await self.auth.get(url, schema=SCH_USR_ACCOUNT)
+
+        except exc.AuthenticationFailedError:  # unable to get an access_token
+            raise
+
+        except exc.ApiCallFailedError as err:  # check if 401 - bad access_token
+            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
+                raise
+
+            # as the userAccount URL is open to all authenticated users, any 401 is
+            # due the (albeit valid) access_token being rejected by the server
+
+            self._logger.warning(
+                f"The access_token has been rejected (will re-authenticate): {err}"
+            )
+
+            self._token_manager.clear_access_token()
+            return await self.auth.get(url, schema=SCH_USR_ACCOUNT)
+
     async def _get_config(
         self, /, *, dont_update_status: bool = False
     ) -> list[EvoLocConfigResponseT]:
@@ -143,25 +174,7 @@ class EvohomeClient:
             await self._async_init_tzinfo()
 
         if self._user_info is None:  # will handle access_token rejection
-            url = "userAccount"
-            try:
-                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)
-
-            except exc.ApiCallFailedError as err:  # check if 401 - bad access_token
-                if err.status != HTTPStatus.UNAUTHORIZED:  # 401
-                    raise
-
-                # as the userAccount URL is open to all authenticated users, any 401 is
-                # due the (albeit valid) access_token being rejected by the server
-
-                self._logger.warning(
-                    f"The access_token has been rejected (will re-authenticate): {err}"
-                )
-
-                self._token_manager.clear_access_token()
-                self._user_info = await self.auth.get(url, schema=SCH_USR_ACCOUNT)
-
-            assert self._user_info is not None  # mypy
+            self._user_info = await self._get_user_account()
 
         if self._user_locs is None:
             try:

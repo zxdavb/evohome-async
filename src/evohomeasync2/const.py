@@ -186,8 +186,10 @@ class DhwState(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class FanMode(StrEnum):
+class FanMode(StrEnum):  # non-evohome
     AUTO = camel_to_snake(TccFanMode.AUTO)
+    CIRCULATE = camel_to_snake(TccFanMode.CIRCULATE)
+    FOLLOW_SCHEDULE = camel_to_snake(TccFanMode.FOLLOW_SCHEDULE)
     ON = camel_to_snake(TccFanMode.ON)
 
 
@@ -225,16 +227,17 @@ class SystemMode(StrEnum):
     CUSTOM = camel_to_snake(TccSystemMode.CUSTOM)
     DAY_OFF = camel_to_snake(TccSystemMode.DAY_OFF)
     HEATING_OFF = camel_to_snake(TccSystemMode.HEATING_OFF)
-    OFF = camel_to_snake(TccSystemMode.OFF)  # not seen with Evohome
-    HEAT = camel_to_snake(TccSystemMode.HEAT)  # not seen with Evohome
-    COOL = camel_to_snake(TccSystemMode.COOL)  # not seen with Evohome
+    OFF = camel_to_snake(TccSystemMode.OFF)  # non-evohome
+    HEAT = camel_to_snake(TccSystemMode.HEAT)  # non-evohome
+    COOL = camel_to_snake(TccSystemMode.COOL)  # non-evohome
 
 
 @verify(EnumCheck.UNIQUE)
 class TcsModelType(StrEnum):
     EVO_TOUCH = camel_to_snake(TccTcsModelType.EVO_TOUCH)
     FOCUS_PRO_WIFI_RETAIL = camel_to_snake(TccTcsModelType.FOCUS_PRO_WIFI_RETAIL)
-    SYDNEY = camel_to_snake(TccTcsModelType.SYDNEY)  # not seen with Evohome
+    SARATOGA = camel_to_snake(TccTcsModelType.SARATOGA)
+    SYDNEY = camel_to_snake(TccTcsModelType.SYDNEY)
     VISION_PRO_WIFI_RETAIL = camel_to_snake(TccTcsModelType.VISION_PRO_WIFI_RETAIL)
 
 
@@ -249,7 +252,7 @@ class ZoneMode(StrEnum):
     FOLLOW_SCHEDULE = camel_to_snake(TccZoneMode.FOLLOW_SCHEDULE)
     PERMANENT_OVERRIDE = camel_to_snake(TccZoneMode.PERMANENT_OVERRIDE)
     TEMPORARY_OVERRIDE = camel_to_snake(TccZoneMode.TEMPORARY_OVERRIDE)
-    VACATION_HOLD = camel_to_snake(TccZoneMode.VACATION_HOLD)  # not seen with Evohome
+    VACATION_HOLD = camel_to_snake(TccZoneMode.VACATION_HOLD)  # non-evohome
 
 
 @verify(EnumCheck.UNIQUE)
@@ -258,7 +261,8 @@ class ZoneModelType(StrEnum):
     HEATING_ZONE = camel_to_snake(TccZoneModelType.HEATING_ZONE)
     ROUND_MODULATION = camel_to_snake(TccZoneModelType.ROUND_MODULATION)
     ROUND_WIRELESS = camel_to_snake(TccZoneModelType.ROUND_WIRELESS)
-    SYDNEY = camel_to_snake(TccZoneModelType.SYDNEY)  # not seen with Evohome
+    SARATOGA = camel_to_snake(TccZoneModelType.SARATOGA)
+    SYDNEY = camel_to_snake(TccZoneModelType.SYDNEY)
     UNKNOWN = camel_to_snake(TccZoneModelType.UNKNOWN)
     VISION_PRO_WIFI_RETAIL = camel_to_snake(TccZoneModelType.VISION_PRO_WIFI_RETAIL)
 

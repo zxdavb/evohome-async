@@ -7,11 +7,6 @@ Further information at: https://evohome-client.readthedocs.io
 
 from __future__ import annotations
 
-from datetime import UTC, datetime as dt
-from typing import Self
-
-import aiohttp
-
 from .auth import AbstractTokenManager
 from .const import (
     DayOfWeek,
@@ -29,126 +24,31 @@ from .const import (
 from .control_system import ControlSystem
 from .exceptions import (
     ApiCallFailedError,
+    ApiCallRejectedError,
     ApiRateLimitExceededError,
     ApiRequestFailedError,
     AuthenticationFailedError,
+    AuthRateLimitExceededError,
     BadApiRequestError,
     BadApiResponseError,
-    BadApiSchemaError,
-    BadScheduleUploadedError,
     BadUserCredentialsError,
-    ConfigError,
+    ClientStateError,
     EvohomeError,
+    GhostZoneError,
     InvalidConfigError,
-    InvalidDhwModeError,
+    InvalidModeRequestError,
     InvalidScheduleError,
+    InvalidScheduleRequestError,
     InvalidStatusError,
     InvalidSystemModeError,
-    InvalidZoneModeError,
     NoSingleTcsError,
-    StatusError,
+    NotFetchedError,
 )
 from .gateway import Gateway
 from .hotwater import HotWater
 from .location import Location
 from .main import EvohomeClient
 from .zone import Zone
-
-
-class _TokenManager(AbstractTokenManager):  # used only by EvohomeClientOld
-    """A TokenManager wrapper to help expose the refactored EvohomeClient."""
-
-    def __init__(
-        self,
-        username: str,
-        password: str,
-        websession: aiohttp.ClientSession,
-        /,
-        *,
-        access_token: str | None = None,
-        access_token_expires: dt | None = None,  # should be aware
-        refresh_token: str | None = None,
-    ) -> None:
-        super().__init__(username, password, websession)
-
-        # to maintain compatibility, allow these to be passed in here
-        if access_token_expires is not None and not access_token_expires.tzinfo:
-            access_token_expires = access_token_expires.replace(tzinfo=UTC)
-
-        self._access_token_expires = access_token_expires or dt.min.replace(tzinfo=UTC)
-        self._access_token = access_token or ""
-        self._refresh_token = refresh_token or ""
-
-    async def load_access_token(self) -> None:
-        raise NotImplementedError
-
-    async def save_access_token(self) -> None:
-        pass
-
-
-class EvohomeClientOld(EvohomeClient):
-    """A wrapper to use EvohomeClient without passing in a TokenManager.
-
-    Also allows auth tokens to be passed in.
-    """
-
-    def __init__(
-        self,
-        username: str,
-        password: str,
-        /,
-        *,
-        refresh_token: str | None = None,
-        access_token: str | None = None,
-        access_token_expires: dt | None = None,
-        websession: aiohttp.ClientSession | None = None,
-        debug: bool = False,
-    ) -> None:
-        """Construct the v2 EvohomeClient object."""
-        self._owns_session = websession is None
-        websession = websession or aiohttp.ClientSession()
-
-        self._token_manager = _TokenManager(
-            username,
-            password,
-            websession,
-            refresh_token=refresh_token,
-            access_token=access_token,
-            access_token_expires=access_token_expires,
-        )
-        super().__init__(self._token_manager, debug=debug)
-
-    async def close(self) -> None:
-        """Close the owned aiohttp.ClientSession, if any."""
-        if self._owns_session:
-            await self._token_manager.websession.close()
-
-    async def __aenter__(self) -> Self:
-        return self
-
-    async def __aexit__(self, *args: object) -> None:
-        await self.close()
-
-    @property
-    def access_token(self) -> str:
-        """Return the access_token attr."""
-        return self._token_manager.access_token
-
-    @property
-    def access_token_expires(self) -> dt:
-        """Return the access_token_expires attr."""
-        return self._token_manager.access_token_expires
-
-    @property
-    def refresh_token(self) -> str:
-        """Return the refresh_token attr."""
-        return self._token_manager.refresh_token
-
-    @property
-    def username(self) -> str:
-        """Return the username attr."""
-        return self._token_manager.client_id
-
 
 __all__ = [  # noqa: RUF022
     "EvohomeClient",
@@ -173,22 +73,23 @@ __all__ = [  # noqa: RUF022
     "ZoneType",
     #
     "ApiCallFailedError",
+    "ApiCallRejectedError",
     "ApiRateLimitExceededError",
     "ApiRequestFailedError",
     "AuthenticationFailedError",
+    "AuthRateLimitExceededError",
     "BadApiRequestError",
     "BadApiResponseError",
-    "BadApiSchemaError",
-    "BadScheduleUploadedError",
     "BadUserCredentialsError",
-    "ConfigError",
+    "ClientStateError",
     "EvohomeError",
+    "GhostZoneError",
     "InvalidConfigError",
-    "InvalidDhwModeError",
+    "InvalidModeRequestError",
     "InvalidScheduleError",
+    "InvalidScheduleRequestError",
     "InvalidStatusError",
-    "InvalidSystemModeError",
-    "InvalidZoneModeError",
+    "InvalidSystemModeError",  # deprecated alias for InvalidModeRequestError
     "NoSingleTcsError",
-    "StatusError",
+    "NotFetchedError",
 ]

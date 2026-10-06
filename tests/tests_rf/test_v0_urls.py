@@ -10,15 +10,17 @@ from __future__ import annotations
 
 import logging
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 
 from _evohome import exceptions as exc
 from evohomeasync.auth import Auth
 from evohomeasync.schemas import (
-    factory_location_response_list,
-    factory_user_account_info_response,
+    TCC_GET_COMM_TASK,
+    TCC_GET_USR_INFO,
+    TCC_GET_USR_LOCS,
+    TCC_TASK_RESPONSE,
 )
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
@@ -27,8 +29,10 @@ from .common import skipif_auth_failed
 if TYPE_CHECKING:
     from evohome_cli.auth import TokenCacheManager
     from evohomeasync.schemas import (
+        TccCommTaskResponseT,
         TccLocationResponseT,
         TccSessionResponseT,
+        TccTaskResponseT,
         TccUserAccountInfoResponseT,
     )
 
@@ -48,31 +52,37 @@ async def _post_session(auth: Auth) -> TccSessionResponseT:
 async def get_account_info(auth: Auth) -> TccUserAccountInfoResponseT:
     """Test GET /accountInfo"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        "accountInfo",
-    )  # type: ignore[return-value]
+    return TCC_GET_USR_INFO(
+        await auth._make_request(
+            HTTPMethod.GET,
+            "accountInfo",
+        )
+    )
 
 
-async def get_comm_tasks(auth: Auth, tsk_id: int) -> dict[str, Any]:
+async def get_comm_tasks(auth: Auth, tsk_id: int) -> TccCommTaskResponseT:
     """Test GET /commTasks?commTaskId={tsk_id}"""
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"commTasks?commTaskId={tsk_id}",
-    )  # type: ignore[return-value]
+    return TCC_GET_COMM_TASK(
+        await auth._make_request(
+            HTTPMethod.GET,
+            f"commTasks?commTaskId={tsk_id}",
+        )
+    )
 
 
 async def get_locations(auth: Auth, usr_id: int) -> list[TccLocationResponseT]:
     """Test GET /locations?userId={usr_id}&allData=True"""
 
-    return await auth._make_request(
-        HTTPMethod.GET,
-        f"locations?userId={usr_id}&allData=True",
-    )  # type: ignore[return-value]
+    return TCC_GET_USR_LOCS(
+        await auth._make_request(
+            HTTPMethod.GET,
+            f"locations?userId={usr_id}&allData=True",
+        )
+    )
 
 
-async def put_devices_dhw(auth: Auth, dhw_id: int) -> dict[str, Any]:
+async def put_devices_dhw(auth: Auth, dhw_id: int) -> TccTaskResponseT:
     """Test PUT /devices/{dhw_id}/thermostat/changeableValues
     data = {
         "Status": status,  ["Scheduled","Hold"]  # no: "Temporary"?
@@ -86,14 +96,16 @@ async def put_devices_dhw(auth: Auth, dhw_id: int) -> dict[str, Any]:
 
     data = {"Status": "Scheduled"}
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"devices/{dhw_id}/thermostat/changeableValues",
-        data=data,
-    )  # type: ignore[return-value]
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"devices/{dhw_id}/thermostat/changeableValues",
+            data=data,
+        )
+    )
 
 
-async def put_devices_zon(auth: Auth, zon_id: int) -> dict[str, Any]:
+async def put_devices_zon(auth: Auth, zon_id: int) -> TccTaskResponseT:
     """Test PUT /devices/{zon_id}/thermostat/changeableValues/heatSetpoint
     data = {
         "Status": "Temporary",
@@ -106,14 +118,16 @@ async def put_devices_zon(auth: Auth, zon_id: int) -> dict[str, Any]:
 
     data = {"Status": "Scheduled"}  # , "NextTime": None, "Value": None}
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"devices/{zon_id}/thermostat/changeableValues/heatSetpoint",
-        data=data,
-    )  # type: ignore[return-value]
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"devices/{zon_id}/thermostat/changeableValues/heatSetpoint",
+            data=data,
+        )
+    )
 
 
-async def put_evo_touch_systems(auth: Auth, loc_id: int) -> dict[str, Any]:
+async def put_evo_touch_systems(auth: Auth, loc_id: int) -> TccTaskResponseT:
     """Test PUT /evoTouchSystems?locationId={loc_id}
     data = {
         "QuickAction": status,  All except AuutWithEco, Auto must have QANT None
@@ -123,11 +137,13 @@ async def put_evo_touch_systems(auth: Auth, loc_id: int) -> dict[str, Any]:
 
     data = {"QuickAction": "Auto", "QuickActionNextTime": None}
 
-    return await auth._make_request(
-        HTTPMethod.PUT,
-        f"evoTouchSystems?locationId={loc_id}",
-        data=data,
-    )  # type: ignore[return-value]
+    return TCC_TASK_RESPONSE(
+        await auth._make_request(
+            HTTPMethod.PUT,
+            f"evoTouchSystems?locationId={loc_id}",
+            data=data,
+        )
+    )
 
 
 @skipif_auth_failed
@@ -147,12 +163,10 @@ async def test_tcs_urls(
     #
     # GET /accountInfo
     usr_info = await get_account_info(auth)
-    factory_user_account_info_response()(usr_info)
 
     #
     # GET /locations?userId={usr_id}&allData=True
     usr_locs = await get_locations(auth, usr_info["userID"])
-    factory_location_response_list()(usr_locs)
 
     #
     # PUT /evoTouchSystems?locationId={loc_id}  # NOTE: this URL doesn't work?
