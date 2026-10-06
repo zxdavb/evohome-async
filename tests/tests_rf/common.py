@@ -397,3 +397,16 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
                 return False
 
             await asyncio.sleep(0.3)
+
+
+async def wait_for_comm_task(task: evo2.CommTask) -> None:
+    """Wait for the comm task returned by a client method (i.e. of its PUT) to succeed.
+
+    Only if _DBG_WAIT_FOR_COMM_TASKS, wait for the task to succeed, and raise
+    TimeoutError if it has not done so within REAL_AIOHTTP_TIMEOUT seconds. Otherwise,
+    do nothing (unlike wait_for_comm_task_v2(), the faked server has no comm tasks).
+    """
+
+    if _DBG_WAIT_FOR_COMM_TASKS:
+        async with asyncio.timeout(REAL_AIOHTTP_TIMEOUT):
+            await task.wait()

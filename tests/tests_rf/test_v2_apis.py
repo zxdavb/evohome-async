@@ -20,6 +20,8 @@ zone is included in that of its location). They are invoked only if _DBG_TEST_UN
   GET       /temperatureZone/{zon_id}/status                            zon._get_status()
   GET       /domesticHotWater/{dhw_id}/status                           dhw._get_status()
 
+Only if _DBG_WAIT_FOR_COMM_TASKS, every PUT waits for its comm task to succeed.
+
 For every vendor API, including those with no client method, see test_v2_urls.py.
 """
 
@@ -37,7 +39,7 @@ from evohomeasync2.zone import Zone
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from . import faked_server as faked
-from .common import get_dhw, get_loc, get_zon, skipif_auth_failed
+from .common import get_dhw, get_loc, get_zon, skipif_auth_failed, wait_for_comm_task
 
 if TYPE_CHECKING:
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
@@ -92,10 +94,10 @@ async def _test_tcs_apis(evo: EvohomeClientV2) -> None:
     assert mode in SystemMode
 
     # STEP 3: PUT /temperatureControlSystem/{tcs.id}/mode
-    await tcs.set_mode(SystemMode.AWAY)
+    await wait_for_comm_task(await tcs.set_mode(SystemMode.AWAY))
     await evo.update()
 
-    await tcs.set_mode(mode)
+    await wait_for_comm_task(await tcs.set_mode(mode))
 
 
 async def _test_dhw_apis(evo: EvohomeClientV2) -> None:
@@ -120,7 +122,7 @@ async def _test_dhw_apis(evo: EvohomeClientV2) -> None:
     schedule = await dhw.get_schedule()
     assert HotWater.SCH_SCHEDULE({"daily_schedules": schedule})
 
-    await dhw.set_schedule(schedule)
+    await wait_for_comm_task(await dhw.set_schedule(schedule))
 
 
 async def _test_dhw_mode(evo: EvohomeClientV2) -> None:
@@ -136,8 +138,8 @@ async def _test_dhw_mode(evo: EvohomeClientV2) -> None:
         pytest.skip("No DHW found in TCS")
 
     # STEP 2: PUT /domesticHotWater/{dhw.id}/state
-    await dhw.set_off()  # PermanentOverride
-    await dhw.reset()  # FollowSchedule
+    await wait_for_comm_task(await dhw.set_off())  # PermanentOverride
+    await wait_for_comm_task(await dhw.reset())  # FollowSchedule
 
 
 async def _test_zon_apis(evo: EvohomeClientV2) -> None:
@@ -163,7 +165,7 @@ async def _test_zon_apis(evo: EvohomeClientV2) -> None:
         schedule = await zone.get_schedule()
         assert Zone.SCH_SCHEDULE({"daily_schedules": schedule})
 
-        await zone.set_schedule(schedule)
+        await wait_for_comm_task(await zone.set_schedule(schedule))
 
     if zone := zone.tcs.zone_by_id.get(faked.GHOST_ZONE_ID):
         try:
@@ -187,8 +189,9 @@ async def _test_zon_mode(evo: EvohomeClientV2) -> None:
         pytest.skip("No zones found in TCS")
 
     # STEP 2: PUT /temperatureZone/{zon.id}/heatSetpoint
-    await zone.set_temperature(zone.min_heat_setpoint)  # PermanentOverride
-    await zone.reset()  # FollowSchedule
+    task = await zone.set_temperature(zone.min_heat_setpoint)  # PermanentOverride
+    await wait_for_comm_task(task)
+    await wait_for_comm_task(await zone.reset())  # FollowSchedule
 
 
 #######################################################################################
