@@ -81,6 +81,40 @@ async def test_put_returns_comm_task(evohome_v2: EvohomeClient) -> None:
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
 
+async def test_set_schedule_returns_comm_task(evohome_v2: EvohomeClient) -> None:
+    """Check set_schedule() of a zone and of a DHW returns the PUT's comm task."""
+
+    zone = evohome_v2.tcs.zones[0]
+    zon_schedule = await zone.get_schedule()
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_request:
+        task = await zone.set_schedule(zon_schedule)
+
+    assert isinstance(task, CommTask)
+    assert task.id == TASK_ID
+    mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
+
+    if (dhw := evohome_v2.tcs.hotwater) is None:
+        return
+
+    dhw_schedule = await dhw.get_schedule()
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_request:
+        task = await dhw.set_schedule(dhw_schedule)
+
+    assert isinstance(task, CommTask)
+    assert task.id == TASK_ID
+    mock_request.assert_awaited_once()
+
+
 async def test_put_with_bad_response(evohome_v2: EvohomeClient) -> None:
     """Check a PUT whose response is not a comm task raises BadApiResponseError."""
 

@@ -17,7 +17,7 @@ import pytest
 from freezegun.api import FakeDatetime
 
 import evohomeasync2 as evo2
-from evohomeasync2 import HotWater, Zone
+from evohomeasync2 import CommTask, HotWater, Zone
 from evohomeasync2.const import DhwState, SystemMode, ZoneMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -50,17 +50,30 @@ async def test_ctl_reset_emulates_auto_with_reset(
 
     tcs = evohome_v2.tcs
 
+    # each emulated PUT returns its own comm task, to check their order
+    tcs_task = CommTask(evohome_v2.auth, "1000000001")
+    zon_tasks = [
+        CommTask(evohome_v2.auth, str(2000000001 + i)) for i in range(len(tcs.zones))
+    ]
+    dhw_task = CommTask(evohome_v2.auth, "3000000001")
+
     with (
-        patch.object(Zone, "reset", new_callable=AsyncMock) as mock_zone_reset,
-        patch.object(HotWater, "reset", new_callable=AsyncMock) as mock_dhw_reset,
-        patch.object(tcs, "set_auto", new_callable=AsyncMock) as mock_set_auto,
+        patch.object(
+            Zone, "reset", new_callable=AsyncMock, side_effect=zon_tasks
+        ) as mock_zone_reset,
+        patch.object(
+            HotWater, "reset", new_callable=AsyncMock, return_value=dhw_task
+        ) as mock_dhw_reset,
+        patch.object(
+            tcs, "set_auto", new_callable=AsyncMock, return_value=tcs_task
+        ) as mock_set_auto,
         patch(
             "_evohome.auth.AbstractAuth.request",
             new_callable=AsyncMock,
             return_value=PUT_RESPONSE_V2,
         ) as mock_put,
     ):
-        await tcs.reset()
+        tasks = await tcs.reset()
 
     if SystemMode.AUTO_WITH_RESET in tcs.allowed_modes:
         url = f"temperatureControlSystem/{tcs.id}/mode"
@@ -76,6 +89,8 @@ async def test_ctl_reset_emulates_auto_with_reset(
         if tcs.hotwater is not None:
             mock_dhw_reset.assert_not_awaited()
 
+        assert [t.id for t in tasks] == [PUT_RESPONSE_V2["id"]]
+
     else:
         mock_set_auto.assert_awaited_once()
         mock_put.assert_not_awaited()
@@ -83,6 +98,10 @@ async def test_ctl_reset_emulates_auto_with_reset(
 
         if tcs.hotwater is not None:
             mock_dhw_reset.assert_awaited_once()
+
+        # the TCS's task, then each zone's, then the DHW's (if any)
+        expected = [tcs_task, *zon_tasks] + ([dhw_task] if tcs.hotwater else [])
+        assert tasks == expected
 
 
 async def test_ctl_set_auto_falls_back_to_heat(
