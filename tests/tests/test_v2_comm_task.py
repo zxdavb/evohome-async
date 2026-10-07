@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from unittest.mock import AsyncMock as AsyncMockT
 
-    from evohomeasync2 import HotWater, Zone
+    from evohomeasync2 import Zone
     from evohomeasync2.auth import Auth
 
 
@@ -65,9 +65,7 @@ def _task(state: str, task_id: str = TASK_ID) -> dict[str, str]:
     return {"commtask_id": task_id, "state": state}  # NOTE: is snake_case
 
 
-async def test_put_returns_comm_task(
-    zone: Zone,
-) -> None:
+async def test_put_returns_comm_task(zone: Zone) -> None:
     """Check a set_* method returns the PUT's comm task, without polling it."""
 
     with patch(
@@ -82,8 +80,12 @@ async def test_put_returns_comm_task(
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
 
-async def test_zon_set_schedule_returns_comm_task(zone: Zone) -> None:
-    """Check set_schedule() of a zone returns the PUT's comm task."""
+async def test_set_schedule_returns_comm_task(zone: Zone) -> None:
+    """Check set_schedule() returns the PUT's comm task.
+
+    Zone and HotWater share set_schedule() (only their schedule schema differs), so
+    only a zone is tested.
+    """
 
     schedule = await zone.get_schedule()
 
@@ -99,26 +101,7 @@ async def test_zon_set_schedule_returns_comm_task(zone: Zone) -> None:
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
 
-async def test_dhw_set_schedule_returns_comm_task(dhw: HotWater) -> None:
-    """Check set_schedule() of a DHW returns the PUT's comm task."""
-
-    schedule = await dhw.get_schedule()
-
-    with patch(
-        "_evohome.auth.AbstractAuth.request",
-        new_callable=AsyncMock,
-        return_value=PUT_RESPONSE_V2,
-    ) as mock_request:
-        task = await dhw.set_schedule(schedule)
-
-    assert isinstance(task, CommTask)
-    assert task.id == TASK_ID
-    mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
-
-
-async def test_put_with_bad_response(
-    zone: Zone,
-) -> None:
+async def test_put_with_bad_response(zone: Zone) -> None:
     """Check a PUT whose response is not a comm task raises BadApiResponseError."""
 
     with (

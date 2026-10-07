@@ -40,9 +40,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 # NOTE: not all systems support all modes, below we only test evohome modes
 
 
-async def test_ctl_reset(
-    tcs: ControlSystem,
-) -> None:
+async def test_ctl_reset(tcs: ControlSystem) -> None:
     """Test ControlSystem.reset() method."""
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
@@ -152,9 +150,7 @@ async def test_ctl_set_mode_with_until(
 # Test the HotWater APIs...
 
 
-async def test_dhw_set_off(
-    dhw: HotWater,
-) -> None:
+async def test_dhw_set_off(dhw: HotWater) -> None:
     """Test HotWater.set_off() method."""
 
     with patch(
@@ -176,9 +172,7 @@ async def test_dhw_set_off(
     assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
-async def test_dhw_set_on(
-    dhw: HotWater,
-) -> None:
+async def test_dhw_set_on(dhw: HotWater) -> None:
     """Test HotWater.set_on() method."""
 
     with patch(
@@ -200,9 +194,7 @@ async def test_dhw_set_on(
     assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
-async def test_dhw_reset(
-    dhw: HotWater,
-) -> None:
+async def test_dhw_reset(dhw: HotWater) -> None:
     """Test HotWater.reset() method."""
 
     with patch(
@@ -272,9 +264,7 @@ async def test_dhw_set_state(
 # Test the Zone APIs...
 
 
-async def test_zon_reset(
-    zone: Zone,
-) -> None:
+async def test_zon_reset(zone: Zone) -> None:
     """Test Zone.reset() method."""
 
     with patch(
@@ -344,9 +334,7 @@ async def test_zon_set_temperature(
 # Test input flexibility (accept str/StrEnum mode/state, dt|str until, reject naive)...
 
 
-async def test_ctl_set_mode_accepts_str_mode(
-    tcs: ControlSystem,
-) -> None:
+async def test_ctl_set_mode_accepts_str_mode(tcs: ControlSystem) -> None:
     """A snake_case string mode is accepted (and coerced to the StrEnum)."""
 
     with patch(
@@ -361,9 +349,7 @@ async def test_ctl_set_mode_accepts_str_mode(
     assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
-async def test_dhw_set_state_accepts_str_inputs(
-    dhw: HotWater,
-) -> None:
+async def test_dhw_set_state_accepts_str_inputs(dhw: HotWater) -> None:
     """A string state and an ISO-string until are accepted and normalised."""
 
     with patch(
@@ -384,9 +370,7 @@ async def test_dhw_set_state_accepts_str_inputs(
     assert mock_put.call_args[1] == {"json": EXPECTED_JSON}
 
 
-async def test_set_mode_rejects_naive_until(
-    tcs: ControlSystem,
-) -> None:
+async def test_set_mode_rejects_naive_until(tcs: ControlSystem) -> None:
     """A naive (TZ-unaware) until is rejected before any request is made."""
 
     naive = dt.fromisoformat("2025-07-13T12:00:00")  # no offset
