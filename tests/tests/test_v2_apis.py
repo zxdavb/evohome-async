@@ -20,7 +20,7 @@ from .const import PUT_RESPONSE_V2
 if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
 
-    from evohomeasync2 import EvohomeClient
+    from evohomeasync2 import ControlSystem, HotWater, Zone
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -41,11 +41,9 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 
 async def test_ctl_reset(
-    evohome_v2: EvohomeClient,
+    tcs: ControlSystem,
 ) -> None:
     """Test ControlSystem.reset() method."""
-
-    tcs = evohome_v2.tcs
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
@@ -71,12 +69,10 @@ CTL_APIS_SANS_UNTIL = {  # system mode APIs that can not take an until kwarg
 
 @pytest.mark.parametrize("api_name", CTL_APIS_SANS_UNTIL)
 async def test_ctl_set_mode_sans_until(
-    evohome_v2: EvohomeClient,
+    tcs: ControlSystem,
     api_name: str,
 ) -> None:
     """Test ControlSystem.set_auto() method."""
-
-    tcs = evohome_v2.tcs
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
@@ -114,13 +110,11 @@ CTL_APIS_WITH_UNTIL = {  # system mode APIs that can take an until kwarg
 
 @pytest.mark.parametrize("api_name", CTL_APIS_WITH_UNTIL)
 async def test_ctl_set_mode_with_until(
-    evohome_v2: EvohomeClient,
+    tcs: ControlSystem,
     api_name: str,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test ControlSystem.set_*() methods (that can take an until kwarg)."""
-
-    tcs = evohome_v2.tcs
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {
@@ -159,12 +153,9 @@ async def test_ctl_set_mode_with_until(
 
 
 async def test_dhw_set_off(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
 ) -> None:
     """Test HotWater.set_off() method."""
-
-    dhw = evohome_v2.tcs.hotwater
-    assert dhw is not None
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -186,12 +177,9 @@ async def test_dhw_set_off(
 
 
 async def test_dhw_set_on(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
 ) -> None:
     """Test HotWater.set_on() method."""
-
-    dhw = evohome_v2.tcs.hotwater
-    assert dhw is not None
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -213,12 +201,9 @@ async def test_dhw_set_on(
 
 
 async def test_dhw_reset(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
 ) -> None:
     """Test HotWater.reset() method."""
-
-    dhw = evohome_v2.tcs.hotwater
-    assert dhw is not None
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -239,13 +224,10 @@ async def test_dhw_reset(
 
 
 async def test_dhw_set_state(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test HotWater.set_state() method."""
-
-    dhw = evohome_v2.tcs.hotwater
-    assert dhw is not None
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -291,11 +273,9 @@ async def test_dhw_set_state(
 
 
 async def test_zon_reset(
-    evohome_v2: EvohomeClient,
+    zone: Zone,
 ) -> None:
     """Test Zone.reset() method."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -316,12 +296,10 @@ async def test_zon_reset(
 
 
 async def test_zon_set_temperature(
-    evohome_v2: EvohomeClient,
+    zone: Zone,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test Zone.set_temperature() method."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -367,11 +345,9 @@ async def test_zon_set_temperature(
 
 
 async def test_ctl_set_mode_accepts_str_mode(
-    evohome_v2: EvohomeClient,
+    tcs: ControlSystem,
 ) -> None:
     """A snake_case string mode is accepted (and coerced to the StrEnum)."""
-
-    tcs = evohome_v2.tcs
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -386,12 +362,9 @@ async def test_ctl_set_mode_accepts_str_mode(
 
 
 async def test_dhw_set_state_accepts_str_inputs(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
 ) -> None:
     """A string state and an ISO-string until are accepted and normalised."""
-
-    dhw = evohome_v2.tcs.hotwater
-    assert dhw is not None
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -412,11 +385,10 @@ async def test_dhw_set_state_accepts_str_inputs(
 
 
 async def test_set_mode_rejects_naive_until(
-    evohome_v2: EvohomeClient,
+    tcs: ControlSystem,
 ) -> None:
     """A naive (TZ-unaware) until is rejected before any request is made."""
 
-    tcs = evohome_v2.tcs
     naive = dt.fromisoformat("2025-07-13T12:00:00")  # no offset
 
     with (

@@ -29,9 +29,10 @@ from evohomeasync2.schemas.const import (
     TccZoneMode,
 )
 from evohomeasync2.schemas.status import TCC_GET_DHW_STATUS, TCC_GET_LOC_STATUS
+from tests.common import get_dhw, get_zon
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
-from .common import get_loc, should_fail_v2, should_work_v2, skipif_auth_failed
+from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
@@ -52,18 +53,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     await evo.update(dont_update_status=True)
 
-    dhw: evo2.HotWater | None = None
-
-    loc = get_loc(evo)
-
-    for gwy in loc.gateways:
-        for tcs in gwy.systems:
-            if tcs.hotwater:
-                # if (dhw := tcs.hotwater) and dhw.temperatureStatus['isAvailable']:
-                dhw = tcs.hotwater
-                break
-
-    if dhw is None:
+    if not (dhw := get_dhw(evo)):
         pytest.skip("No available DHW found")
 
     GET_URL = f"{dhw._TCC_TYPE}/{dhw.id}/status"
@@ -118,7 +108,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     new_mode = {
         S2_MODE: TccZoneMode.TEMPORARY_OVERRIDE,
         S2_STATE: TccDhwState.ON,
-        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
+        S2_UNTIL_TIME: (dhw.location.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
 
     result = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
@@ -134,7 +124,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     new_mode = {
         S2_MODE: TccZoneMode.TEMPORARY_OVERRIDE,
         S2_STATE: TccDhwState.ON,
-        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
+        S2_UNTIL_TIME: (dhw.location.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
     _ = await should_work_v2(
         evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode
@@ -148,7 +138,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     new_mode = {  # NOTE: different capitalisation, until time
         camel_to_pascal(S2_MODE): TccZoneMode.TEMPORARY_OVERRIDE,
         camel_to_pascal(S2_STATE): TccDhwState.ON,
-        camel_to_pascal(S2_UNTIL_TIME): (loc.now() + td(hours=2)).strftime(
+        camel_to_pascal(S2_UNTIL_TIME): (dhw.location.now() + td(hours=2)).strftime(
             TCC_DTM_STRFTIME
         ),
     }
@@ -217,16 +207,7 @@ async def _test_task_id_zone(evo: EvohomeClientV2) -> None:
 
     await evo.update(dont_update_status=True)
 
-    loc = get_loc(evo)
-
-    for gwy in loc.gateways:
-        for tcs in gwy.systems:
-            if not tcs.zones:
-                continue
-            zone = tcs.zones[0]
-            break
-
-    if zone is None:
+    if not (zone := get_zon(evo)):
         pytest.skip("No available Zone found")
 
     GET_URL = f"{zone._TCC_TYPE}/{zone.id}/status"
