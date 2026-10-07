@@ -11,13 +11,13 @@ import pytest
 
 import evohomeasync2 as evo2
 from evohome_cli.auth import TokenCacheManager
+from tests.common import get_loc
 from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     TEST_PASSWORD,
     TEST_USERNAME,
     TIMEOUT_REAL_AIOHTTP,
 )
-from tests.helpers import get_loc
 
 from .common import timed_out_comm_task
 

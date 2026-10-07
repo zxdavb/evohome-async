@@ -39,16 +39,10 @@ from evohomeasync2.schemas.status import (
     TCC_GET_TCS_STATUS,
     TCC_GET_ZON_STATUS,
 )
+from tests.common import get_dhw, get_loc, get_tcs
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
-from tests.helpers import get_loc, get_tcs
 
-from .common import (
-    error_codes,
-    get_dhw,
-    should_fail_v2,
-    should_work_v2,
-    skipif_auth_failed,
-)
+from .common import error_codes, should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
     import evohomeasync2 as evo2

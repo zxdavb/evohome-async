@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from evohomeasync import EvohomeClient, exceptions as exc
-from tests.helpers import get_loc
+from tests.common import get_loc
 
 from .conftest import FIXTURES_V0 as FIXTURES
 

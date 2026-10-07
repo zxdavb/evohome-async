@@ -27,13 +27,13 @@ import pytest
 import evohomeasync as evo0
 from _evohome.helpers import TCC_DTM_STRFTIME
 from evohomeasync.schemas import TCC_GET_USR_LOCS
+from tests.common import get_loc
 from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     TEST_LOC_IDX,
     TIMEOUT_COMM_TASK_V0,
     URL_BASE_V0,
 )
-from tests.helpers import get_loc
 
 from .common import (
     error_codes,

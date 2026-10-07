@@ -19,8 +19,8 @@ from evohomeasync2.const import (
     SZ_ZONES,
     ZoneModelType,
 )
+from tests.common import get_loc, get_tcs
 from tests.const import TEST_LOC_IDX
-from tests.helpers import get_loc, get_tcs
 
 from .conftest import FIXTURES_V2 as FIXTURES, auth_get
 

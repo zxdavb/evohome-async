@@ -32,3 +32,21 @@ def get_tcs(evo: evo2.EvohomeClient) -> evo2.ControlSystem:
     The v1 API has no TCS: its zones/DHW belong to the location (see get_loc()).
     """
     return get_loc(evo).gateways[0].systems[0]
+
+
+def get_dhw(evo: evo2.EvohomeClient) -> evo2.HotWater | None:
+    """Return the first DHW object found across all TCSs of the location under test."""
+    for gwy in get_loc(evo).gateways:
+        for tcs in gwy.systems:
+            if tcs.hotwater:
+                return tcs.hotwater
+    return None
+
+
+def get_zon(evo: evo2.EvohomeClient) -> evo2.Zone | None:
+    """Return the first Zone object found across all TCSs of the location under test."""
+    for gwy in get_loc(evo).gateways:
+        for tcs in gwy.systems:
+            if tcs.zones:
+                return tcs.zones[0]
+    return None

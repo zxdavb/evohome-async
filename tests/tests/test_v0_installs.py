@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import pytest
 import yaml
 
-from tests.helpers import get_loc
+from tests.common import get_loc
 
 from .common import serializable_attrs
 from .conftest import FIXTURES_V0 as FIXTURES

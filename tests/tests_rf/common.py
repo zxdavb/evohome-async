@@ -23,37 +23,17 @@ from tests.const import (
     URL_BASE_V0,
     URL_BASE_V2,
 )
-from tests.helpers import get_loc
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping
 
     from _evohome.helpers import Validator
     from evohomeasync.schemas import TccCommTaskResponseT, TccDeviceResponseT
-    from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 if _DBG_USE_REAL_AIOHTTP:
     import aiohttp
 else:
     from .faked_server import aiohttp  # type: ignore[no-redef]
-
-
-def get_dhw(evo: EvohomeClientV2) -> evo2.HotWater | None:
-    """Return the first DHW object found across all TCSs of the location under test."""
-    for gwy in get_loc(evo).gateways:
-        for tcs in gwy.systems:
-            if tcs.hotwater:
-                return tcs.hotwater
-    return None
-
-
-def get_zon(evo: EvohomeClientV2) -> evo2.Zone | None:
-    """Return the first Zone object found across all TCSs of the location under test."""
-    for gwy in get_loc(evo).gateways:
-        for tcs in gwy.systems:
-            if tcs.zones:
-                return tcs.zones[0]
-    return None
 
 
 # NOTE: Global flag to indicate if AuthenticationFailedError has been encountered

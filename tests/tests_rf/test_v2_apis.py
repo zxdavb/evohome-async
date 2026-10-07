@@ -36,11 +36,11 @@ from evohomeasync2.const import SystemMode
 from evohomeasync2.hotwater import HotWater
 from evohomeasync2.schemas.const import S2_MODE
 from evohomeasync2.zone import Zone
+from tests.common import get_dhw, get_loc, get_tcs, get_zon
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
-from tests.helpers import get_loc, get_tcs
 
 from . import faked_server as faked
-from .common import get_dhw, get_zon, skipif_auth_failed, wait_for_comm_task_obj
+from .common import skipif_auth_failed, wait_for_comm_task_obj
 
 if TYPE_CHECKING:
     from evohomeasync2 import EvohomeClient as EvohomeClientV2

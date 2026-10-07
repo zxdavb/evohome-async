@@ -16,9 +16,9 @@ from typing import TYPE_CHECKING
 import pytest
 
 from evohomeasync2.schemas.schedule import TCC_GET_ZON_SCHEDULE
-from tests.helpers import get_tcs
+from tests.common import get_dhw, get_tcs
 
-from .common import get_dhw, should_fail_v2, should_work_v2, skipif_auth_failed
+from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
