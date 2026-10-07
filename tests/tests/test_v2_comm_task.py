@@ -21,7 +21,8 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from unittest.mock import AsyncMock as AsyncMockT
 
-    from evohomeasync2 import EvohomeClient
+    from evohomeasync2 import Zone
+    from evohomeasync2.auth import Auth
 
 
 TASK_ID = PUT_RESPONSE_V2["id"]
@@ -64,10 +65,8 @@ def _task(state: str, task_id: str = TASK_ID) -> dict[str, str]:
     return {"commtask_id": task_id, "state": state}  # NOTE: is snake_case
 
 
-async def test_put_returns_comm_task(evohome_v2: EvohomeClient) -> None:
+async def test_put_returns_comm_task(zone: Zone) -> None:
     """Check a set_* method returns the PUT's comm task, without polling it."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -81,44 +80,29 @@ async def test_put_returns_comm_task(evohome_v2: EvohomeClient) -> None:
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
 
-async def test_set_schedule_returns_comm_task(evohome_v2: EvohomeClient) -> None:
-    """Check set_schedule() of a zone and of a DHW returns the PUT's comm task."""
+async def test_set_schedule_returns_comm_task(zone: Zone) -> None:
+    """Check set_schedule() returns the PUT's comm task.
 
-    zone = evohome_v2.tcs.zones[0]
-    zon_schedule = await zone.get_schedule()
+    Zone and HotWater share set_schedule() (only their schedule schema differs), so
+    only a zone is tested.
+    """
+
+    schedule = await zone.get_schedule()
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
         new_callable=AsyncMock,
         return_value=PUT_RESPONSE_V2,
     ) as mock_request:
-        task = await zone.set_schedule(zon_schedule)
+        task = await zone.set_schedule(schedule)
 
     assert isinstance(task, CommTask)
     assert task.id == TASK_ID
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
-    if (dhw := evohome_v2.tcs.hotwater) is None:
-        return
 
-    dhw_schedule = await dhw.get_schedule()
-
-    with patch(
-        "_evohome.auth.AbstractAuth.request",
-        new_callable=AsyncMock,
-        return_value=PUT_RESPONSE_V2,
-    ) as mock_request:
-        task = await dhw.set_schedule(dhw_schedule)
-
-    assert isinstance(task, CommTask)
-    assert task.id == TASK_ID
-    mock_request.assert_awaited_once()
-
-
-async def test_put_with_bad_response(evohome_v2: EvohomeClient) -> None:
+async def test_put_with_bad_response(zone: Zone) -> None:
     """Check a PUT whose response is not a comm task raises BadApiResponseError."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     with (
         patch(
@@ -132,10 +116,10 @@ async def test_put_with_bad_response(evohome_v2: EvohomeClient) -> None:
 
 
 @pytest.mark.parametrize("as_list", [False, True], ids=["dict", "list"])
-async def test_get_state(evohome_v2: EvohomeClient, *, as_list: bool) -> None:
+async def test_get_state(auth: Auth, *, as_list: bool) -> None:
     """Check get_state() GETs the task's state (the vendor may wrap it in a list)."""
 
-    task = CommTask(evohome_v2.auth, TASK_ID)
+    task = CommTask(auth, TASK_ID)
     response = [_task("Running")] if as_list else _task("Running")
 
     with patch_request(
@@ -146,10 +130,10 @@ async def test_get_state(evohome_v2: EvohomeClient, *, as_list: bool) -> None:
     mock_request.assert_awaited_once_with(HTTPMethod.GET, URL)
 
 
-async def test_get_state_unknown(evohome_v2: EvohomeClient) -> None:
+async def test_get_state_unknown(auth: Auth) -> None:
     """Check get_state() tolerates an unknown state (passed thru as a str)."""
 
-    task = CommTask(evohome_v2.auth, TASK_ID)
+    task = CommTask(auth, TASK_ID)
 
     with patch_request(
         return_value=_task("Postponed"),
@@ -157,10 +141,10 @@ async def test_get_state_unknown(evohome_v2: EvohomeClient) -> None:
         assert await task.get_state() == "postponed"
 
 
-async def test_get_state_wrong_task(evohome_v2: EvohomeClient) -> None:
+async def test_get_state_wrong_task(auth: Auth) -> None:
     """Check get_state() raises BadApiResponseError if the vendor returns another task."""
 
-    task = CommTask(evohome_v2.auth, TASK_ID)
+    task = CommTask(auth, TASK_ID)
 
     with (
         patch_request(
@@ -171,10 +155,10 @@ async def test_get_state_wrong_task(evohome_v2: EvohomeClient) -> None:
         await task.get_state()
 
 
-async def test_wait_succeeds(evohome_v2: EvohomeClient) -> None:
+async def test_wait_succeeds(auth: Auth) -> None:
     """Check wait() polls until the task succeeds (an unknown state isn't terminal)."""
 
-    task = CommTask(evohome_v2.auth, TASK_ID)
+    task = CommTask(auth, TASK_ID)
     states = ["Created", "Running", "Postponed", "Repeated", "Succeeded"]
 
     with patch_request(
@@ -185,10 +169,10 @@ async def test_wait_succeeds(evohome_v2: EvohomeClient) -> None:
     assert mock_request.await_count == len(states)
 
 
-async def test_wait_fails(evohome_v2: EvohomeClient) -> None:
+async def test_wait_fails(auth: Auth) -> None:
     """Check wait() raises CommTaskFailedError if the task fails."""
 
-    task = CommTask(evohome_v2.auth, TASK_ID)
+    task = CommTask(auth, TASK_ID)
 
     with (
         patch_request(
