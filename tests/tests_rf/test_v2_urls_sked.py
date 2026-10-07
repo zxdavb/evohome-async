@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from evohomeasync2.schemas.schedule import TCC_GET_ZON_SCHEDULE
-from tests.const import _DBG_USE_REAL_AIOHTTP
+from tests.const import _DBG_USE_REAL_AIOHTTP, _DBG_WAIT_FOR_COMM_TASKS
 
 from .common import (
     get_dhw,
@@ -156,7 +156,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 2: check the status of the task
-    if _DBG_USE_REAL_AIOHTTP:
+    if _DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS:
         task_id = status[0]["id"] if isinstance(status, list) else status["id"]
 
         _ = await wait_for_comm_task_v2(evo.auth, task_id)
