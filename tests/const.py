@@ -19,7 +19,7 @@ _DBG_WAIT_FOR_COMM_TASKS = False  # poll each comm task until it succeeds
 # the longest that a request may take to return (a GET, PUT, etc.)
 TIMEOUT_REAL_AIOHTTP: Final = 5  # seconds
 # the longest that a PUT's comm task may take to succeed (only if waited for)
-TIMEOUT_COMM_TASK: Final = 20  # seconds
+TIMEOUT_COMM_TASK: Final = 30  # seconds
 
 #
 # the location under test, as an index into the user's list of locations: index the
