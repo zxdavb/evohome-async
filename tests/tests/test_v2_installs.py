@@ -120,4 +120,4 @@ async def test_system_schedules(
     if dhw := tcs.hotwater:
         data.append((dhw.this_switchpoint, dhw.next_switchpoint))
 
-    assert schedules == snapshot(name="switchpoints")  # needs freezer
+    assert data == snapshot(name="switchpoints")  # needs freezer
