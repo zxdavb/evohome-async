@@ -140,12 +140,13 @@ async def _put(
 ) -> TccTaskResponseT:
     """PUT a (valid) request and return its comm task, e.g. {"id": "1668279943"}.
 
-    Only if _DBG_WAIT_FOR_COMM_TASKS, wait for the task to succeed.
+    Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), wait for the
+    task to succeed.
     """
 
     task = TCC_TASK_RESPONSE(await auth._make_request(HTTPMethod.PUT, url, json=json))
 
-    if _DBG_WAIT_FOR_COMM_TASKS:
+    if _DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS:
         _ = await wait_for_comm_task_v2(auth, task["id"])
 
     return task

@@ -278,7 +278,8 @@ async def should_work_v2[T](
 
     Used to document the behaviour of a 'real' server and to validate the faked server.
 
-    Only if _DBG_WAIT_FOR_COMM_TASKS, after a PUT, wait for its comm task to succeed.
+    Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), after a PUT,
+    wait for its comm task to succeed.
     """
 
     response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
@@ -307,7 +308,7 @@ async def should_work_v2[T](
 
         assert isinstance(response, dict | list)  # mypy
 
-    if _DBG_WAIT_FOR_COMM_TASKS and method == HTTPMethod.PUT:
+    if _DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS and method == HTTPMethod.PUT:
         task = response[0] if isinstance(response, list) else response
         _ = await wait_for_comm_task_v2(auth, task["id"])  # e.g. {"id": "1668279943"}
 
@@ -412,11 +413,12 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
 async def wait_for_comm_task(task: evo2.CommTask) -> None:
     """Wait for the comm task returned by a client method (i.e. of its PUT) to succeed.
 
-    Only if _DBG_WAIT_FOR_COMM_TASKS, wait for the task to succeed, and raise
-    TimeoutError if it has not done so within REAL_AIOHTTP_TIMEOUT seconds. Otherwise,
-    do nothing (unlike wait_for_comm_task_v2(), the faked server has no comm tasks).
+    Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), wait for the
+    task to succeed, and raise TimeoutError if it has not done so within
+    REAL_AIOHTTP_TIMEOUT seconds. Otherwise, do nothing (the faked server has no comm
+    tasks).
     """
 
-    if _DBG_WAIT_FOR_COMM_TASKS:
+    if _DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS:
         async with asyncio.timeout(REAL_AIOHTTP_TIMEOUT):
             await task.wait()
