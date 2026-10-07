@@ -168,6 +168,13 @@ async def _setup(evo: EvohomeClient) -> None:
     """Get the config of the user's locations, and then the status of each."""
 
     await evo.setup()
+
+    if (num := len(evo.locations)) > 1:  # as EvohomeClient.update() warns
+        evo.logger.warning(
+            f"There are {num} locations. Reduce the risk of exceeding API rate "
+            "limits by individually updating only necessary locations."
+        )
+
     for loc in evo.locations:
         await loc.get_status()
 
