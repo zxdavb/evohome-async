@@ -10,9 +10,8 @@ import probatio as vol
 from _evohome.helpers import Case
 
 from . import exceptions as exc
-from .const import SZ_COMMTASK_ID, SZ_STATE, CommTaskState
+from .const import SZ_COMMTASK_ID, SZ_ID, SZ_STATE, CommTaskState
 from .schemas.account import factory_comm_task_response, factory_task_response
-from .schemas.const import S2_ID
 
 if TYPE_CHECKING:
     from _evohome.auth import AbstractAuth
@@ -23,7 +22,7 @@ if TYPE_CHECKING:
 
 
 # the period between each GET of the task's state, when waiting for it to succeed
-DEFAULT_INTERVAL: Final = 1.0  # seconds
+DEFAULT_INTERVAL: Final = 0.5  # seconds
 
 
 _SCH_COMM_TASK: Final[Validator[EvoCommTaskResponseT]] = factory_comm_task_response(
@@ -70,7 +69,7 @@ class CommTask:
                 f"PUT response is not a comm task: {response}: {err}"
             ) from err
 
-        return cls(auth, task[S2_ID])
+        return cls(auth, task[SZ_ID])
 
     def __repr__(self) -> str:
         """Return an unambiguous string representation of the comm task."""
