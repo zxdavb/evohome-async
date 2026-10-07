@@ -16,6 +16,7 @@ from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     _DBG_WAIT_FOR_COMM_TASKS,
     REAL_AIOHTTP_TIMEOUT,
+    TEST_LOC_IDX,
     URL_BASE_V0,
     URL_BASE_V2,
 )
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping
 
     from _evohome.helpers import Validator
+    from evohomeasync import EvohomeClient as EvohomeClientV0
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 if _DBG_USE_REAL_AIOHTTP:
@@ -32,9 +34,17 @@ else:
     from .faked_server import aiohttp  # type: ignore[no-redef]
 
 
-def get_loc(evo: EvohomeClientV2) -> evo2.Location:
-    """Return the Location object to test against (the user's only location)."""
-    return evo.locations[0]
+@overload
+def get_loc(evo: EvohomeClientV0) -> evo0.Location: ...
+
+
+@overload
+def get_loc(evo: EvohomeClientV2) -> evo2.Location: ...
+
+
+def get_loc(evo: EvohomeClientV0 | EvohomeClientV2) -> evo0.Location | evo2.Location:
+    """Return the Location object to test against (see TEST_LOC_IDX)."""
+    return evo.locations[TEST_LOC_IDX]
 
 
 def get_dhw(evo: EvohomeClientV2) -> evo2.HotWater | None:

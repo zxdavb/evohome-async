@@ -20,6 +20,11 @@ _DBG_WAIT_FOR_COMM_TASKS = False  # poll each comm task until it succeeds
 REAL_AIOHTTP_TIMEOUT: Final = 30  # seconds
 
 #
+# the location under test, as an index into the user's list of locations: index the
+# vendor's JSON with it, or use get_loc() (tests_rf/common.py) for a Location object
+TEST_LOC_IDX: Final = 0  # the test account has only one location
+
+#
 #
 # used to construct the default token cache
 TEST_USERNAME: Final = "username@email.com"
