@@ -42629,153 +42629,6 @@
   list([
     dict({
       'daily_schedules': list([
-        dict({
-          'day_of_week': <DayOfWeek.MONDAY: 'monday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.TUESDAY: 'tuesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.WEDNESDAY: 'wednesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.THURSDAY: 'thursday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.FRIDAY: 'friday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SATURDAY: 'saturday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SUNDAY: 'sunday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
       ]),
       'name': 'Main Room',
       'zone_id': '0004',
@@ -42786,153 +42639,6 @@
   list([
     dict({
       'daily_schedules': list([
-        dict({
-          'day_of_week': <DayOfWeek.MONDAY: 'monday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.TUESDAY: 'tuesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.WEDNESDAY: 'wednesday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.THURSDAY: 'thursday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.FRIDAY: 'friday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.1,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:00:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SATURDAY: 'saturday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
-        dict({
-          'day_of_week': <DayOfWeek.SUNDAY: 'sunday'>,
-          'switchpoints': list([
-            dict({
-              'heat_setpoint': 18.5,
-              'time_of_day': '07:00:00',
-            }),
-            dict({
-              'heat_setpoint': 16.0,
-              'time_of_day': '08:30:00',
-            }),
-            dict({
-              'heat_setpoint': 18.6,
-              'time_of_day': '22:10:00',
-            }),
-            dict({
-              'heat_setpoint': 15.9,
-              'time_of_day': '23:00:00',
-            }),
-          ]),
-        }),
       ]),
       'name': 'Main Room',
       'zone_id': '0004',
@@ -75606,41 +75312,6 @@
           ...
   
           '
-      next_switchpoint: '!!python/tuple
-  
-          - ''2025-01-01T07:00:00+01:00''
-  
-          - 18.1
-  
-          '
-      schedule: "- day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n\
-          \  - monday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n\
-          \  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - tuesday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - wednesday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - thursday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - friday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - saturday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - sunday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
       schedule_capabilities: 'max_switchpoints_per_day: 6
   
           min_switchpoints_per_day: 1
@@ -75685,13 +75356,6 @@
           temperature: 19.5
   
           '
-      this_switchpoint: '!!python/tuple
-  
-          - ''2024-12-31T23:00:00+01:00''
-  
-          - 15.9
-  
-          '
       type: '!!python/object/apply:evohomeasync2.const.ZoneType
   
           - zone_temperature_control
@@ -75704,6 +75368,11 @@
           '
   
   '''
+# ---
+# name: test_system_snapshot[system_006][loc_0001_zon_err]
+  dict({
+    '0004': "Zone(id='0004'): Schedule is invalid: GET temperatureZone/0004/schedule: response failed validation: value must be at least 4.5 at 'daily_schedules[0].switchpoints[1].heat_setpoint'",
+  })
 # ---
 # name: test_system_snapshot[system_006][loc_0002]
   dict({
@@ -75911,41 +75580,6 @@
           ...
   
           '
-      next_switchpoint: '!!python/tuple
-  
-          - ''2025-01-01T07:00:00+01:00''
-  
-          - 18.1
-  
-          '
-      schedule: "- day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n\
-          \  - monday\n  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n\
-          \  - heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - tuesday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - wednesday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - thursday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - friday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.1\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:00:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - saturday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n\
-          - day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n  - sunday\n\
-          \  switchpoints:\n  - heat_setpoint: 18.5\n    time_of_day: 07:00:00\n  -\
-          \ heat_setpoint: 16.0\n    time_of_day: 08:30:00\n  - heat_setpoint: 18.6\n\
-          \    time_of_day: '22:10:00'\n  - heat_setpoint: 15.9\n    time_of_day: '23:00:00'\n"
       schedule_capabilities: 'max_switchpoints_per_day: 6
   
           min_switchpoints_per_day: 1
@@ -75990,13 +75624,6 @@
           temperature: 19.5
   
           '
-      this_switchpoint: '!!python/tuple
-  
-          - ''2024-12-31T23:00:00+01:00''
-  
-          - 15.9
-  
-          '
       type: '!!python/object/apply:evohomeasync2.const.ZoneType
   
           - zone_temperature_control
@@ -76009,6 +75636,11 @@
           '
   
   '''
+# ---
+# name: test_system_snapshot[system_006][loc_0002_zon_err]
+  dict({
+    '0004': "Zone(id='0004'): Schedule is invalid: GET temperatureZone/0004/schedule: response failed validation: value must be at least 4.5 at 'daily_schedules[0].switchpoints[1].heat_setpoint'",
+  })
 # ---
 # name: test_system_snapshot[system_007][loc_4001001]
   dict({
