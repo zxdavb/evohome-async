@@ -411,13 +411,15 @@ async def test_loc_urls(
         cvs = await get_changeable_values(auth, dev_id)
         extra = set(cvs) - set(dev_all["thermostat"]["changeableValues"])
 
-        source = (
-            "modeChangeSource" if is_dhw_v0(dev_all) else "heatSetpointChangeSource"
+        # the GET adds the source of each change made via the API (if any): so neither
+        # if there has been none (e.g. a lost device), and a zone's mode can be changed
+        # too, e.g. {"modeChangeSource": {"partnerName": "EMEA", "changeTag": ""}}
+        sources = (
+            {"modeChangeSource"}
+            if is_dhw_v0(dev_all)
+            else {"modeChangeSource", "heatSetpointChangeSource"}
         )
-        if is_alive_v0(dev_all):
-            assert extra == {source}, extra
-        else:  # it has been seen absent for a lost device (maybe as it's not changed?)
-            assert extra <= {source}, extra
+        assert extra <= sources, extra
 
 
 #######################################################################################
