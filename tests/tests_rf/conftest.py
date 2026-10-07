@@ -66,7 +66,7 @@ async def _reset_systems(username: str, password: str) -> None:
     async def attempt(coro: Awaitable[object], entity: object) -> None:
         try:
             await coro
-        except evo2.EvohomeError as err:
+        except (evo2.EvohomeError, TimeoutError) as err:  # TimeoutError is not wrapped
             warnings.warn(f"Unable to reset {entity}: {err}", stacklevel=1)
 
     async with aiohttp.ClientSession(
@@ -79,7 +79,7 @@ async def _reset_systems(username: str, password: str) -> None:
 
         try:
             await evo.update()
-        except evo2.EvohomeError as err:
+        except (evo2.EvohomeError, TimeoutError) as err:  # TimeoutError is not wrapped
             warnings.warn(f"Unable to reset any system: {err}", stacklevel=1)
             return
 
