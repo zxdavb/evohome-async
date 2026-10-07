@@ -33,10 +33,10 @@ from tests.const import (
     TIMEOUT_COMM_TASK_V0,
     URL_BASE_V0,
 )
+from tests.helpers import get_loc
 
 from .common import (
     error_codes,
-    get_loc,
     is_alive_v0,
     is_dhw_v0,
     is_stale_task_v0,

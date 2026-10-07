@@ -37,15 +37,10 @@ from evohomeasync2.hotwater import HotWater
 from evohomeasync2.schemas.const import S2_MODE
 from evohomeasync2.zone import Zone
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
+from tests.helpers import get_loc, get_tcs
 
 from . import faked_server as faked
-from .common import (
-    get_dhw,
-    get_loc,
-    get_zon,
-    skipif_auth_failed,
-    wait_for_comm_task_obj,
-)
+from .common import get_dhw, get_zon, skipif_auth_failed, wait_for_comm_task_obj
 
 if TYPE_CHECKING:
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
@@ -89,7 +84,7 @@ async def _test_tcs_apis(evo: EvohomeClientV2) -> None:
     await evo.update(dont_update_status=False)
 
     # STEP 2: GET /temperatureControlSystem/{tcs.id}/status
-    tcs = get_loc(evo).gateways[0].systems[0]
+    tcs = get_tcs(evo)
 
     # tcs_status = await tcs._update()
     # assert evo2.ControlSystem.SCH_STATUS(tcs_status)

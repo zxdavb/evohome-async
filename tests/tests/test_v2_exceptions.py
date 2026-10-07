@@ -19,6 +19,8 @@ from evohomeasync2.const import (
     SZ_ZONES,
     ZoneModelType,
 )
+from tests.const import TEST_LOC_IDX
+from tests.helpers import get_loc, get_tcs
 
 from .conftest import FIXTURES_V2 as FIXTURES, auth_get
 
@@ -44,10 +46,6 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     )
 
 
-def _first_zone(evo: EvohomeClient) -> Zone:
-    return evo.locations[0].gateways[0].systems[0].zones[0]
-
-
 async def test_config_not_fetched(credentials_manager: TokenCacheManager) -> None:
     """Test the config attrs raise NotFetchedError until update() is called."""
 
@@ -66,7 +64,7 @@ async def test_config_not_fetched(credentials_manager: TokenCacheManager) -> Non
 async def test_schedule_not_fetched(evohome_v2: EvohomeClient) -> None:
     """Test the schedule attrs raise NotFetchedError until get_schedule() is called."""
 
-    zone = _first_zone(evohome_v2)
+    zone = get_tcs(evohome_v2).zones[0]
 
     with pytest.raises(exc.NotFetchedError):
         _ = zone.schedule
@@ -86,7 +84,7 @@ async def test_status_not_fetched(
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
         await evo.update(dont_update_status=True)  # i.e. the config only
 
-    tcs = evo.locations[0].gateways[0].systems[0]
+    tcs = get_tcs(evo)
 
     with pytest.raises(exc.NotFetchedError):
         _ = tcs.status
@@ -116,7 +114,7 @@ async def test_invalid_config(credentials_manager: TokenCacheManager) -> None:
 async def test_invalid_status(evohome_v2: EvohomeClient) -> None:
     """Test update() raises InvalidStatusError if the status fails validation."""
 
-    loc = evohome_v2.locations[0]
+    loc = get_loc(evohome_v2)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
@@ -158,7 +156,7 @@ async def test_get_schedule_failures(
 ) -> None:
     """Test get_schedule() raises InvalidScheduleError only for a bad schedule."""
 
-    zone = _first_zone(evohome_v2)
+    zone = get_tcs(evohome_v2).zones[0]
 
     with (
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
@@ -172,7 +170,7 @@ async def test_get_schedule_failures(
 async def test_ghost_zone(evohome_v2: EvohomeClient) -> None:
     """Test a zone without a (known) model type raises GhostZoneError."""
 
-    zone = _first_zone(evohome_v2)
+    zone = get_tcs(evohome_v2).zones[0]
 
     config = zone._config.copy()
     config[SZ_MODEL_TYPE] = ZoneModelType.UNKNOWN
@@ -185,10 +183,12 @@ async def test_ghost_zone_skipped(evohome_v2: EvohomeClient) -> None:
     """Test a TCS skips a ghost zone, and only that zone."""
 
     assert evohome_v2._user_locs is not None  # mypy
-    tcs = evohome_v2.locations[0].gateways[0].systems[0]
+    tcs = get_tcs(evohome_v2)
 
     config = copy.deepcopy(
-        evohome_v2._user_locs[0][SZ_GATEWAYS][0][SZ_TEMPERATURE_CONTROL_SYSTEMS][0]
+        evohome_v2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][
+            SZ_TEMPERATURE_CONTROL_SYSTEMS
+        ][0]
     )
     ghost = config[SZ_ZONES][1]
     ghost[SZ_MODEL_TYPE] = ZoneModelType.UNKNOWN
@@ -205,9 +205,11 @@ async def test_ghost_zone_other_errors(evohome_v2: EvohomeClient) -> None:
     """Test a TCS skips only a GhostZoneError: any other InvalidConfigError is raised."""
 
     assert evohome_v2._user_locs is not None  # mypy
-    tcs = evohome_v2.locations[0].gateways[0].systems[0]
+    tcs = get_tcs(evohome_v2)
 
-    config = evohome_v2._user_locs[0][SZ_GATEWAYS][0][SZ_TEMPERATURE_CONTROL_SYSTEMS][0]
+    config = evohome_v2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][
+        SZ_TEMPERATURE_CONTROL_SYSTEMS
+    ][0]
     error = exc.InvalidConfigError("Not a ghost zone")
 
     with (

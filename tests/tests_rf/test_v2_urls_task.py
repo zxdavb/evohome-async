@@ -30,8 +30,9 @@ from evohomeasync2.schemas.const import (
 )
 from evohomeasync2.schemas.status import TCC_GET_DHW_STATUS, TCC_GET_LOC_STATUS
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
+from tests.helpers import get_loc
 
-from .common import get_loc, should_fail_v2, should_work_v2, skipif_auth_failed
+from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohomeasync2 import EvohomeClient as EvohomeClientV2

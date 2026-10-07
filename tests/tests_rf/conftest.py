@@ -17,8 +17,9 @@ from tests.const import (
     TEST_USERNAME,
     TIMEOUT_REAL_AIOHTTP,
 )
+from tests.helpers import get_loc
 
-from .common import get_loc, timed_out_comm_task
+from .common import timed_out_comm_task
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Generator
