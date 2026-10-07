@@ -102,7 +102,9 @@ async def test_ctl_reset_emulates_auto_with_reset(
         assert tasks == expected
 
 
-async def test_ctl_set_auto_falls_back_to_heat(tcs: ControlSystem) -> None:
+async def test_ctl_set_auto_falls_back_to_heat(
+    tcs: ControlSystem,
+) -> None:
     """ControlSystem.set_auto() should use `Heat` if `Auto` is unavailable."""
 
     expected_mode = (
@@ -125,7 +127,9 @@ async def test_ctl_set_auto_falls_back_to_heat(tcs: ControlSystem) -> None:
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
 
 
-async def test_ctl_set_heatingoff_falls_back_to_off(tcs: ControlSystem) -> None:
+async def test_ctl_set_heatingoff_falls_back_to_off(
+    tcs: ControlSystem,
+) -> None:
     """ControlSystem.set_heatingoff() should use `Off` if `HeatingOff` is unavailable."""
 
     expected_mode = (
@@ -150,7 +154,9 @@ async def test_ctl_set_heatingoff_falls_back_to_off(tcs: ControlSystem) -> None:
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
 
 
-async def test_ctl_set_mode_rejects_unsupported_mode(tcs: ControlSystem) -> None:
+async def test_ctl_set_mode_rejects_unsupported_mode(
+    tcs: ControlSystem,
+) -> None:
     """ControlSystem.set_mode() should reject modes not supported by the current TCS."""
 
     for system_mode in SystemMode:
@@ -207,7 +213,9 @@ async def test_ctl_set_mode_rejects_until_for_non_temporary_mode(
 # Zone set_mode tests...
 
 
-async def test_zon_set_mode_follow_schedule(zone: Zone) -> None:
+async def test_zon_set_mode_follow_schedule(
+    zone: Zone,
+) -> None:
     """Zone.set_mode(FollowSchedule) should PUT the correct payload."""
 
     with patch(
@@ -226,7 +234,9 @@ async def test_zon_set_mode_follow_schedule(zone: Zone) -> None:
     )
 
 
-async def test_zon_set_mode_permanent_override(zone: Zone) -> None:
+async def test_zon_set_mode_permanent_override(
+    zone: Zone,
+) -> None:
     """Zone.set_mode(PermanentOverride) should PUT the correct payload."""
 
     with patch(
@@ -276,7 +286,9 @@ async def test_zon_set_mode_temporary_override(
     )
 
 
-async def test_zon_set_mode_rejects_vacation_hold(zone: Zone) -> None:
+async def test_zon_set_mode_rejects_vacation_hold(
+    zone: Zone,
+) -> None:
     """Zone.set_mode(VacationHold) should raise when VacationHold is not supported."""
 
     if ZoneMode.VACATION_HOLD in zone.allowed_modes:
@@ -328,7 +340,9 @@ async def test_zon_set_mode_vacation_hold(
     )
 
 
-async def test_zon_set_mode_follow_schedule_rejects_extra_args(zone: Zone) -> None:
+async def test_zon_set_mode_follow_schedule_rejects_extra_args(
+    zone: Zone,
+) -> None:
     """Zone.set_mode(FollowSchedule) should reject temperature or until arguments."""
 
     with (
@@ -358,7 +372,9 @@ async def test_zon_set_mode_follow_schedule_rejects_extra_args(zone: Zone) -> No
     mock_put.assert_not_awaited()
 
 
-async def test_zon_set_mode_permanent_override_rejects_bad_args(zone: Zone) -> None:
+async def test_zon_set_mode_permanent_override_rejects_bad_args(
+    zone: Zone,
+) -> None:
     """Zone.set_mode(PermanentOverride) should reject missing temperature or extra until."""
 
     with (
@@ -390,7 +406,9 @@ async def test_zon_set_mode_permanent_override_rejects_bad_args(zone: Zone) -> N
     mock_put.assert_not_awaited()
 
 
-async def test_zon_set_mode_temporary_override_rejects_bad_args(zone: Zone) -> None:
+async def test_zon_set_mode_temporary_override_rejects_bad_args(
+    zone: Zone,
+) -> None:
     """Zone.set_mode(TemporaryOverride) should reject missing temperature or until."""
 
     with (
@@ -439,7 +457,9 @@ async def test_zon_set_mode_temporary_override_rejects_bad_args(zone: Zone) -> N
 # HotWater set_mode tests...
 
 
-async def test_dhw_set_mode_follow_schedule(dhw: HotWater) -> None:
+async def test_dhw_set_mode_follow_schedule(
+    dhw: HotWater,
+) -> None:
     """HotWater.set_mode(FollowSchedule) should PUT the correct payload."""
 
     with patch(
@@ -458,7 +478,9 @@ async def test_dhw_set_mode_follow_schedule(dhw: HotWater) -> None:
     )
 
 
-async def test_dhw_set_mode_permanent_override(dhw: HotWater) -> None:
+async def test_dhw_set_mode_permanent_override(
+    dhw: HotWater,
+) -> None:
     """HotWater.set_mode(PermanentOverride) should PUT the correct payload."""
 
     with patch(
@@ -508,7 +530,9 @@ async def test_dhw_set_mode_temporary_override(
     )
 
 
-async def test_dhw_set_mode_rejects_unsupported_mode(dhw: HotWater) -> None:
+async def test_dhw_set_mode_rejects_unsupported_mode(
+    dhw: HotWater,
+) -> None:
     """HotWater.set_mode() should reject modes not supported by this DHW."""
 
     for mode in ZoneMode:
@@ -530,7 +554,9 @@ async def test_dhw_set_mode_rejects_unsupported_mode(dhw: HotWater) -> None:
     mock_put.assert_not_awaited()
 
 
-async def test_dhw_set_mode_follow_schedule_rejects_extra_args(dhw: HotWater) -> None:
+async def test_dhw_set_mode_follow_schedule_rejects_extra_args(
+    dhw: HotWater,
+) -> None:
     """HotWater.set_mode(FollowSchedule) should reject state or until arguments."""
 
     with (
@@ -558,7 +584,9 @@ async def test_dhw_set_mode_follow_schedule_rejects_extra_args(dhw: HotWater) ->
     mock_put.assert_not_awaited()
 
 
-async def test_dhw_set_mode_permanent_override_rejects_bad_args(dhw: HotWater) -> None:
+async def test_dhw_set_mode_permanent_override_rejects_bad_args(
+    dhw: HotWater,
+) -> None:
     """HotWater.set_mode(PermanentOverride) should reject missing state or extra until."""
 
     with (
@@ -590,7 +618,9 @@ async def test_dhw_set_mode_permanent_override_rejects_bad_args(dhw: HotWater) -
     mock_put.assert_not_awaited()
 
 
-async def test_dhw_set_mode_temporary_override_rejects_bad_args(dhw: HotWater) -> None:
+async def test_dhw_set_mode_temporary_override_rejects_bad_args(
+    dhw: HotWater,
+) -> None:
     """HotWater.set_mode(TemporaryOverride) should reject missing state or until."""
 
     with (
