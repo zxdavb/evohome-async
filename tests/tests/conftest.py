@@ -265,7 +265,10 @@ def zone(evohome_v2: EvohomeClientV2) -> Zone:
 
 @pytest.fixture
 def dhw(evohome_v2: EvohomeClientV2) -> HotWater:
-    """Return the DHW of the location under test (see get_dhw())."""
+    """Return the DHW of the location under test (see get_dhw()).
+
+    Fail the test if there is none, as then the test is using the wrong fixture.
+    """
     if (hwt := get_dhw(evohome_v2)) is None:
-        pytest.skip("The location under test has no DHW")
+        pytest.fail("The location under test has no DHW")
     return hwt

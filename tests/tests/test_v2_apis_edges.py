@@ -31,8 +31,18 @@ if TYPE_CHECKING:
 
 
 # Fixtures with old/new system modes to test fallback and error handling logic
+_FIXTURES = ("default", "hass_118169")
+# ...of which, those with a DHW (for the DHW tests, as hass_118169 has no DHW)
+_FIXTURES_WITH_DHW = ("default",)
+
+
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
-    folders = [Path(FIXTURES) / name for name in ("default", "hass_118169")]
+    names = (
+        _FIXTURES_WITH_DHW
+        if metafunc.function.__name__.startswith("test_dhw_")
+        else _FIXTURES
+    )
+    folders = [Path(FIXTURES) / name for name in names]
 
     if missing := [p for p in folders if not p.is_dir()]:
         raise pytest.fail(
