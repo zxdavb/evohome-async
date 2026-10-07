@@ -29,7 +29,7 @@ from evohomeasync2.schemas.const import (
     TccZoneMode,
 )
 from evohomeasync2.schemas.status import TCC_GET_DHW_STATUS, TCC_GET_LOC_STATUS
-from tests.common import get_dhw, get_loc, get_zon
+from tests.common import get_dhw, get_zon
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
@@ -55,8 +55,6 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     if not (dhw := get_dhw(evo)):
         pytest.skip("No available DHW found")
-
-    loc = get_loc(evo)
 
     GET_URL = f"{dhw._TCC_TYPE}/{dhw.id}/status"
     PUT_URL = f"{dhw._TCC_TYPE}/{dhw.id}/state"
@@ -110,7 +108,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     new_mode = {
         S2_MODE: TccZoneMode.TEMPORARY_OVERRIDE,
         S2_STATE: TccDhwState.ON,
-        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
+        S2_UNTIL_TIME: (dhw.location.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
 
     result = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
@@ -126,7 +124,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     new_mode = {
         S2_MODE: TccZoneMode.TEMPORARY_OVERRIDE,
         S2_STATE: TccDhwState.ON,
-        S2_UNTIL_TIME: (loc.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
+        S2_UNTIL_TIME: (dhw.location.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
     _ = await should_work_v2(
         evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode
@@ -140,7 +138,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     new_mode = {  # NOTE: different capitalisation, until time
         camel_to_pascal(S2_MODE): TccZoneMode.TEMPORARY_OVERRIDE,
         camel_to_pascal(S2_STATE): TccDhwState.ON,
-        camel_to_pascal(S2_UNTIL_TIME): (loc.now() + td(hours=2)).strftime(
+        camel_to_pascal(S2_UNTIL_TIME): (dhw.location.now() + td(hours=2)).strftime(
             TCC_DTM_STRFTIME
         ),
     }
