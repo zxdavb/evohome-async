@@ -19,6 +19,7 @@ from freezegun.api import FakeDatetime
 import evohomeasync2 as evo2
 from evohomeasync2 import CommTask, HotWater, Zone
 from evohomeasync2.const import DhwState, SystemMode, ZoneMode
+from tests.const import EDGE_FIXTURES, EDGE_FIXTURES_WITH_DHW
 
 from .conftest import FIXTURES_V2 as FIXTURES
 from .const import PUT_RESPONSE_V2
@@ -26,12 +27,17 @@ from .const import PUT_RESPONSE_V2
 if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
 
-    from evohomeasync2 import EvohomeClient
+    from evohomeasync2 import ControlSystem
+    from evohomeasync2.auth import Auth
 
 
-# Fixtures with old/new system modes to test fallback and error handling logic
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
-    folders = [Path(FIXTURES) / name for name in ("default", "hass_118169")]
+    names = (
+        EDGE_FIXTURES_WITH_DHW
+        if metafunc.function.__name__.startswith("test_dhw_")
+        else EDGE_FIXTURES
+    )
+    folders = [Path(FIXTURES) / name for name in names]
 
     if missing := [p for p in folders if not p.is_dir()]:
         raise pytest.fail(
@@ -44,18 +50,15 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 
 async def test_ctl_reset_emulates_auto_with_reset(
-    evohome_v2: EvohomeClient,
+    auth: Auth,
+    tcs: ControlSystem,
 ) -> None:
     """ControlSystem.reset() should emulate `AutoWithReset` if it is unavailable."""
 
-    tcs = evohome_v2.tcs
-
     # each emulated PUT returns its own comm task, to check their order
-    tcs_task = CommTask(evohome_v2.auth, "1000000001")
-    zon_tasks = [
-        CommTask(evohome_v2.auth, str(2000000001 + i)) for i in range(len(tcs.zones))
-    ]
-    dhw_task = CommTask(evohome_v2.auth, "3000000001")
+    tcs_task = CommTask(auth, "1000000001")
+    zon_tasks = [CommTask(auth, str(2000000001 + i)) for i in range(len(tcs.zones))]
+    dhw_task = CommTask(auth, "3000000001")
 
     with (
         patch.object(
@@ -105,11 +108,9 @@ async def test_ctl_reset_emulates_auto_with_reset(
 
 
 async def test_ctl_set_auto_falls_back_to_heat(
-    evohome_v2: EvohomeClient,
+    tcs: ControlSystem,
 ) -> None:
     """ControlSystem.set_auto() should use `Heat` if `Auto` is unavailable."""
-
-    tcs = evohome_v2.tcs
 
     expected_mode = (
         SystemMode.AUTO if SystemMode.AUTO in tcs.allowed_modes else SystemMode.HEAT
@@ -132,11 +133,9 @@ async def test_ctl_set_auto_falls_back_to_heat(
 
 
 async def test_ctl_set_heatingoff_falls_back_to_off(
-    evohome_v2: EvohomeClient,
+    tcs: ControlSystem,
 ) -> None:
     """ControlSystem.set_heatingoff() should use `Off` if `HeatingOff` is unavailable."""
-
-    tcs = evohome_v2.tcs
 
     expected_mode = (
         SystemMode.OFF
@@ -161,11 +160,9 @@ async def test_ctl_set_heatingoff_falls_back_to_off(
 
 
 async def test_ctl_set_mode_rejects_unsupported_mode(
-    evohome_v2: EvohomeClient,
+    tcs: ControlSystem,
 ) -> None:
     """ControlSystem.set_mode() should reject modes not supported by the current TCS."""
-
-    tcs = evohome_v2.tcs
 
     for system_mode in SystemMode:
         if system_mode not in tcs.allowed_modes:
@@ -187,12 +184,10 @@ async def test_ctl_set_mode_rejects_unsupported_mode(
 
 
 async def test_ctl_set_mode_rejects_until_for_non_temporary_mode(
-    evohome_v2: EvohomeClient,
+    tcs: ControlSystem,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """ControlSystem.set_mode() should reject an until kwarg for non-temporary modes."""
-
-    tcs = evohome_v2.tcs
 
     non_temporary = next(
         (
@@ -224,11 +219,9 @@ async def test_ctl_set_mode_rejects_until_for_non_temporary_mode(
 
 
 async def test_zon_set_mode_follow_schedule(
-    evohome_v2: EvohomeClient,
+    zone: Zone,
 ) -> None:
     """Zone.set_mode(FollowSchedule) should PUT the correct payload."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -247,11 +240,9 @@ async def test_zon_set_mode_follow_schedule(
 
 
 async def test_zon_set_mode_permanent_override(
-    evohome_v2: EvohomeClient,
+    zone: Zone,
 ) -> None:
     """Zone.set_mode(PermanentOverride) should PUT the correct payload."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -271,12 +262,10 @@ async def test_zon_set_mode_permanent_override(
 
 
 async def test_zon_set_mode_temporary_override(
-    evohome_v2: EvohomeClient,
+    zone: Zone,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Zone.set_mode(TemporaryOverride) should PUT the correct payload."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     freezer.move_to("2025-07-10T12:00:00Z")
 
@@ -303,11 +292,9 @@ async def test_zon_set_mode_temporary_override(
 
 
 async def test_zon_set_mode_rejects_vacation_hold(
-    evohome_v2: EvohomeClient,
+    zone: Zone,
 ) -> None:
     """Zone.set_mode(VacationHold) should raise when VacationHold is not supported."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     if ZoneMode.VACATION_HOLD in zone.allowed_modes:
         pytest.skip("Zone supports VacationHold mode")
@@ -326,12 +313,10 @@ async def test_zon_set_mode_rejects_vacation_hold(
 
 
 async def test_zon_set_mode_vacation_hold(
-    evohome_v2: EvohomeClient,
+    zone: Zone,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """Zone.set_mode(VacationHold) should PUT the correct payload when supported."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
         pytest.skip("Zone does not support VacationHold mode")
@@ -361,11 +346,9 @@ async def test_zon_set_mode_vacation_hold(
 
 
 async def test_zon_set_mode_follow_schedule_rejects_extra_args(
-    evohome_v2: EvohomeClient,
+    zone: Zone,
 ) -> None:
     """Zone.set_mode(FollowSchedule) should reject temperature or until arguments."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     with (
         patch(
@@ -395,11 +378,9 @@ async def test_zon_set_mode_follow_schedule_rejects_extra_args(
 
 
 async def test_zon_set_mode_permanent_override_rejects_bad_args(
-    evohome_v2: EvohomeClient,
+    zone: Zone,
 ) -> None:
     """Zone.set_mode(PermanentOverride) should reject missing temperature or extra until."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     with (
         patch(
@@ -431,11 +412,9 @@ async def test_zon_set_mode_permanent_override_rejects_bad_args(
 
 
 async def test_zon_set_mode_temporary_override_rejects_bad_args(
-    evohome_v2: EvohomeClient,
+    zone: Zone,
 ) -> None:
     """Zone.set_mode(TemporaryOverride) should reject missing temperature or until."""
-
-    zone = evohome_v2.tcs.zones[0]
 
     with (
         patch(
@@ -484,13 +463,9 @@ async def test_zon_set_mode_temporary_override_rejects_bad_args(
 
 
 async def test_dhw_set_mode_follow_schedule(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
 ) -> None:
     """HotWater.set_mode(FollowSchedule) should PUT the correct payload."""
-
-    dhw = evohome_v2.tcs.hotwater
-    if dhw is None:
-        pytest.skip("No DHW in this fixture")
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -509,13 +484,9 @@ async def test_dhw_set_mode_follow_schedule(
 
 
 async def test_dhw_set_mode_permanent_override(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
 ) -> None:
     """HotWater.set_mode(PermanentOverride) should PUT the correct payload."""
-
-    dhw = evohome_v2.tcs.hotwater
-    if dhw is None:
-        pytest.skip("No DHW in this fixture")
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -535,14 +506,10 @@ async def test_dhw_set_mode_permanent_override(
 
 
 async def test_dhw_set_mode_temporary_override(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """HotWater.set_mode(TemporaryOverride) should PUT the correct payload."""
-
-    dhw = evohome_v2.tcs.hotwater
-    if dhw is None:
-        pytest.skip("No DHW in this fixture")
 
     freezer.move_to("2025-07-10T12:00:00Z")
 
@@ -569,13 +536,9 @@ async def test_dhw_set_mode_temporary_override(
 
 
 async def test_dhw_set_mode_rejects_unsupported_mode(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
 ) -> None:
     """HotWater.set_mode() should reject modes not supported by this DHW."""
-
-    dhw = evohome_v2.tcs.hotwater
-    if dhw is None:
-        pytest.skip("No DHW in this fixture")
 
     for mode in ZoneMode:
         if mode not in dhw.allowed_modes:
@@ -597,13 +560,9 @@ async def test_dhw_set_mode_rejects_unsupported_mode(
 
 
 async def test_dhw_set_mode_follow_schedule_rejects_extra_args(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
 ) -> None:
     """HotWater.set_mode(FollowSchedule) should reject state or until arguments."""
-
-    dhw = evohome_v2.tcs.hotwater
-    if dhw is None:
-        pytest.skip("No DHW in this fixture")
 
     with (
         patch(
@@ -631,13 +590,9 @@ async def test_dhw_set_mode_follow_schedule_rejects_extra_args(
 
 
 async def test_dhw_set_mode_permanent_override_rejects_bad_args(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
 ) -> None:
     """HotWater.set_mode(PermanentOverride) should reject missing state or extra until."""
-
-    dhw = evohome_v2.tcs.hotwater
-    if dhw is None:
-        pytest.skip("No DHW in this fixture")
 
     with (
         patch(
@@ -669,13 +624,9 @@ async def test_dhw_set_mode_permanent_override_rejects_bad_args(
 
 
 async def test_dhw_set_mode_temporary_override_rejects_bad_args(
-    evohome_v2: EvohomeClient,
+    dhw: HotWater,
 ) -> None:
     """HotWater.set_mode(TemporaryOverride) should reject missing state or until."""
-
-    dhw = evohome_v2.tcs.hotwater
-    if dhw is None:
-        pytest.skip("No DHW in this fixture")
 
     with (
         patch(
