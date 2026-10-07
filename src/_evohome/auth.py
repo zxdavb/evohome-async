@@ -35,16 +35,16 @@ if TYPE_CHECKING:
     from .helpers import Validator
 
 
-async def _payload(r: aiohttp.ClientResponse | None) -> str:
-    if r is None:
+async def _payload(rsp: aiohttp.ClientResponse | None) -> str:
+    if rsp is None:
         return "<no response>"
 
     try:
-        if r.content_type == "application/json":
-            return json.dumps(await r.json())
-        if r.content_type == "text/plain":
-            return await r.text()
-        return await r.text()  # text/html?
+        if rsp.content_type == "application/json":
+            return json.dumps(await rsp.json())
+        if rsp.content_type == "text/plain":
+            return await rsp.text()
+        return await rsp.text()  # text/html?
 
     except aiohttp.ClientPayloadError:
         return "<no response>"

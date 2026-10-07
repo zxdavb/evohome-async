@@ -22,7 +22,7 @@ from evohomeasync.schemas import (
     TCC_GET_USR_LOCS,
     TCC_TASK_RESPONSE,
 )
-from tests.const import _DBG_USE_REAL_AIOHTTP
+from tests.const import _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX
 
 from .common import skipif_auth_failed
 
@@ -171,7 +171,7 @@ async def test_tcs_urls(
     #
     # PUT /evoTouchSystems?locationId={loc_id}  # NOTE: this URL doesn't work?
     with pytest.raises(exc.ApiCallFailedError) as err:
-        _ = await put_evo_touch_systems(auth, usr_locs[0]["locationID"])
+        _ = await put_evo_touch_systems(auth, usr_locs[TEST_LOC_IDX]["locationID"])
     assert err.value.status == HTTPStatus.NOT_FOUND  # 404
 
     #
@@ -198,13 +198,11 @@ async def test_zon_urls(
     usr_info = await get_account_info(auth)
     usr_locs = await get_locations(auth, usr_info["userID"])
 
-    loc_idx = 2
-
     #
     # PUT /devices/{zon_id}/thermostat/changeableValues/heatSetpoint
     zon_id = next(  # Honeywell TH9320WF3003 can send thermostatModelType as an int, so guard .startswith()
         d["deviceID"]
-        for d in usr_locs[loc_idx]["devices"]
+        for d in usr_locs[TEST_LOC_IDX]["devices"]
         if isinstance(t := d["thermostatModelType"], str) and t.startswith("EMEA_")
     )
 
@@ -236,12 +234,10 @@ async def test_dhw_urls(
     usr_info = await get_account_info(auth)
     usr_locs = await get_locations(auth, usr_info["userID"])
 
-    loc_idx = 2
-
     #
     # PUT /devices/{dhw_id}/thermostat/changeableValues
     dhw = None
-    for dev in usr_locs[loc_idx]["devices"]:
+    for dev in usr_locs[TEST_LOC_IDX]["devices"]:
         if dev["thermostatModelType"] == "DOMESTIC_HOT_WATER":
             dhw = dev
             break
