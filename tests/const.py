@@ -11,8 +11,22 @@ from evohomeasync2.auth import _APPLICATION_ID as _APPLICATION_ID_V2
 # all _DBG_* flags are only for dev/test and should be False for published code
 _DBG_DISABLE_STRICT_ASSERTS = False  # of response content-type, schema
 _DBG_TEST_CRED_URLS = False  # avoid 429s: dont invalidate the credential cache
+_DBG_TEST_UNUSED_APIS = False  # also invoke vendor APIs that the client doesn't use
 _DBG_USE_REAL_AIOHTTP = False  # use 'real' aiohttp to reach vendor's servers
+_DBG_WAIT_FOR_COMM_TASKS = False  # poll each comm task until it succeeds
 
+#
+# the longest that a request may take to return (a GET, PUT, etc.)
+TIMEOUT_REAL_AIOHTTP: Final = 5  # seconds
+# the longest that a PUT's comm task may take to succeed (only if waited for), else skip
+TIMEOUT_COMM_TASK: Final = 15  # seconds
+
+#
+# the location under test, as an index into the user's list of locations: index the
+# vendor's JSON with it, or use get_loc() (tests_rf/common.py) for a Location object
+TEST_LOC_IDX: Final = 0  # the test account has only one location
+
+#
 #
 # used to construct the default token cache
 TEST_USERNAME: Final = "username@email.com"

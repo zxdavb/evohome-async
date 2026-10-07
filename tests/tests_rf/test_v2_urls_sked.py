@@ -16,9 +16,8 @@ from typing import TYPE_CHECKING
 import pytest
 
 from evohomeasync2.schemas.schedule import TCC_GET_ZON_SCHEDULE
-from tests.const import _DBG_USE_REAL_AIOHTTP
 
-from .common import get_dhw, should_fail_v2, should_work_v2, skipif_auth_failed
+from .common import get_dhw, get_loc, should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
@@ -33,7 +32,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
-    zone = evo.locations[0].gateways[0].systems[0].zones[0]
+    zone = get_loc(evo).gateways[0].systems[0].zones[0]
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
@@ -127,7 +126,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
-    zone = evo.locations[0].gateways[0].systems[0].zones[0]
+    zone = get_loc(evo).gateways[0].systems[0].zones[0]
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
@@ -146,22 +145,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
 
     assert isinstance(status, dict | list)  # mypy
-
-    #
-    # STEP 2: check the status of the task
-    if _DBG_USE_REAL_AIOHTTP:
-        task_id = status[0]["id"] if isinstance(status, list) else status["id"]
-
-        status = await should_work_v2(
-            evo.auth, HTTPMethod.GET, f"commTasks?commTaskId={task_id}"
-        )
-        # {'commtaskId': '840367013', 'state': 'Created'}
-        # {'commtaskId': '840367013', 'state': 'Running'}
-        # {'commtaskId': '840367013', 'state': 'Succeeded'}
-
-        assert isinstance(status, dict)  # mypy  # TODO: use a SCHEMA
-        assert status["commtaskId"] == task_id
-        assert status["state"] in ("Created", "Running", "Succeeded")
+    # should_work_v2() waits for the task to succeed (see wait_for_comm_task_id())
 
     #
     # STEP 3: check the new schedule was effected
@@ -220,7 +204,7 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
 
     # schedule: TccZonDailySchedulesT  # can't use this, as we GET without a schema
 
-    zone = evo.locations[0].gateways[0].systems[0].zones[0]
+    zone = get_loc(evo).gateways[0].systems[0].zones[0]
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
