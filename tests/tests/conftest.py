@@ -132,6 +132,7 @@ def zone_schedule_fixture(folder: Path, zon_type: str, zon_id: str) -> JsonObjec
 
     Use the dhw/zone's own schedule (schedule_{id}.json), if the fixture has one.
     """
+
     try:
         schedule = load_fixture(folder / f"schedule_{zon_id}.json")
     except FileNotFoundError:
@@ -139,6 +140,7 @@ def zone_schedule_fixture(folder: Path, zon_type: str, zon_id: str) -> JsonObjec
             folder,
             f"schedule_{'dhw' if zon_type == 'domesticHotWater' else 'zone'}.json",
         )
+
     assert isinstance(schedule, dict), schedule  # a schedule is a JSON object
     return schedule
 
