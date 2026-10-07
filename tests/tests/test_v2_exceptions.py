@@ -13,6 +13,7 @@ from evohomeasync2 import EvohomeClient, Zone, exceptions as exc
 from evohomeasync2.const import SZ_MODEL_TYPE, ZoneModelType
 
 from .conftest import FIXTURES_V2 as FIXTURES
+from .const import PUT_RESPONSE_V2
 
 if TYPE_CHECKING:
     from evohome_cli.auth import TokenCacheManager
@@ -163,7 +164,11 @@ async def test_set_schedule_before_get(evohome_v2: EvohomeClient) -> None:
 
     zone = zones[1]  # its schedule has not been fetched
 
-    with patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock):
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ):
         await zone.set_schedule(schedule)
 
     assert zone.schedule == schedule

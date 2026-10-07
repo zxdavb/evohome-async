@@ -12,9 +12,7 @@ from evohome_cli.auth import TokenCacheManager
 from evohomeasync import EvohomeClient as EvohomeClientV0
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
-from .const import TEST_PASSWORD, TEST_USERNAME
-
-__all__ = ["EvohomeClientV0", "EvohomeClientV2"]
+from .const import TEST_PASSWORD, TEST_USERNAME, TIMEOUT_REAL_AIOHTTP
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -34,7 +32,9 @@ async def client_session(
     if use_real_aiohttp:
         import aiohttp  # noqa: PLC0415
 
-        client_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30))
+        client_session = aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=TIMEOUT_REAL_AIOHTTP)
+        )
 
     else:
         from .tests_rf import faked_server as fake  # noqa: I001, PLC0415
