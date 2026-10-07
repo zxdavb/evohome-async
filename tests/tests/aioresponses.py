@@ -25,13 +25,22 @@ from yarl import URL
 class _MockResponse:
     """Duck-typed aiohttp.ClientResponse stub."""
 
-    def __init__(self, method: str, url: str, status: int, payload: Any) -> None:
+    def __init__(
+        self,
+        method: str,
+        url: str,
+        status: int,
+        payload: Any,
+        headers: dict[str, str] | None = None,
+    ) -> None:
         self.method = method
         self.url = URL(url)
         self.status = status
         self._payload = payload
         self.content_type = "application/json"
-        self.headers: CIMultiDictProxy[str] = CIMultiDictProxy(CIMultiDict())
+        self.headers: CIMultiDictProxy[str] = CIMultiDictProxy(
+            CIMultiDict(headers or {})
+        )
 
     async def read(self) -> bytes:
         return json.dumps(self._payload).encode()
@@ -114,21 +123,42 @@ class AioResponses:
         *,
         status: int | HTTPStatus = HTTPStatus.OK,
         payload: Any = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
         key = self._key(method, url)
         self._registered[key].append(
-            _MockResponse(method.upper(), url, int(status), payload)
+            _MockResponse(method.upper(), url, int(status), payload, headers)
         )
 
     def get(
-        self, url: str, *, status: int | HTTPStatus = HTTPStatus.OK, payload: Any = None
+        self,
+        url: str,
+        *,
+        status: int | HTTPStatus = HTTPStatus.OK,
+        payload: Any = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
-        self._register("GET", url, status=status, payload=payload)
+        self._register("GET", url, status=status, payload=payload, headers=headers)
+
+    def put(
+        self,
+        url: str,
+        *,
+        status: int | HTTPStatus = HTTPStatus.OK,
+        payload: Any = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
+        self._register("PUT", url, status=status, payload=payload, headers=headers)
 
     def post(
-        self, url: str, *, status: int | HTTPStatus = HTTPStatus.OK, payload: Any = None
+        self,
+        url: str,
+        *,
+        status: int | HTTPStatus = HTTPStatus.OK,
+        payload: Any = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
-        self._register("POST", url, status=status, payload=payload)
+        self._register("POST", url, status=status, payload=payload, headers=headers)
 
     def _call_matches(self, actual: dict[str, Any], expected: dict[str, Any]) -> bool:
         return all(actual.get(k) == v for k, v in expected.items())

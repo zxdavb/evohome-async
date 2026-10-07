@@ -5,11 +5,14 @@ from __future__ import annotations
 import json
 import logging
 from abc import ABC, abstractmethod
+from datetime import UTC, datetime as dt
+from email.utils import parsedate_to_datetime
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
 import aiohttp
 import probatio as vol
+from aiohttp import hdrs
 
 from . import exceptions as exc
 from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
@@ -47,6 +50,45 @@ async def _payload(rsp: aiohttp.ClientResponse | None) -> str:
         return "<no response>"
     except aiohttp.ClientError:
         return "<no response>"
+
+
+def _retry_after(r: aiohttp.ClientResponse | None) -> float | None:
+    """Return the period of a response's Retry-After header, in seconds (if any)."""
+
+    if r is None or (value := r.headers.get(hdrs.RETRY_AFTER)) is None:
+        return None
+
+    if value.strip().isdecimal():  # is delay-seconds
+        return float(value)
+
+    try:  # is HTTP-date
+        dtm = parsedate_to_datetime(value)
+    except ValueError:
+        return None
+
+    if dtm.tzinfo is None:  # e.g. a zone of -0000
+        dtm = dtm.replace(tzinfo=UTC)
+    return max(0.0, (dtm - dt.now(tz=UTC)).total_seconds())
+
+
+def _api_call_failed(
+    message: str, status: int, r: aiohttp.ClientResponse | None
+) -> exc.ApiCallFailedError:
+    """Return the exception for a response that has an HTTP error status.
+
+    A 4xx (other than a 401 or a 429) means the vendor rejected the request (e.g. a 400
+    with SystemModeChangeTimeUntilNotSet, or a 404), and trying again will not help.
+    A 401 is left to higher layers (see AbstractAuth.request()).
+    """
+
+    if status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
+        return exc.ApiRateLimitExceededError(message, retry_after=_retry_after(r))
+    if (
+        HTTPStatus.BAD_REQUEST <= status < HTTPStatus.INTERNAL_SERVER_ERROR  # a 4xx
+        and status != HTTPStatus.UNAUTHORIZED  # 401
+    ):
+        return exc.ApiCallRejectedError(message, status=status)
+    return exc.ApiCallFailedError(message, status=status)
 
 
 class AbstractAuth(ABC):
@@ -215,9 +257,7 @@ class AbstractAuth(ABC):
             if rsp:
                 msg += f", response={await _payload(rsp)}"
 
-            raise exc.ApiCallFailedError(
-                f"{method} {url}: {msg}", status=err.status
-            ) from err
+            raise _api_call_failed(f"{method} {url}: {msg}", err.status, rsp) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
             self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400

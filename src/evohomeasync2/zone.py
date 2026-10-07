@@ -8,6 +8,7 @@ from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
+from _evohome.const import _ERR_NO_STATUS
 from _evohome.helpers import (
     Case,
     as_aware_dtm,
@@ -18,7 +19,6 @@ from _evohome.helpers import (
 from . import exceptions as exc
 from .comm_task import CommTask
 from .const import (
-    _ERR_NOT_AVAILABLE,
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_FAN_MODES,
     SZ_ALLOWED_SETPOINT_MODES,
@@ -129,7 +129,7 @@ class EntityBase[StatusT]:
     def status(self) -> StatusT:
         """Return the latest status of the entity."""
         if self._status is None:
-            raise exc.InvalidStatusError(_ERR_NOT_AVAILABLE.format(self))
+            raise exc.NotFetchedError(_ERR_NO_STATUS.format(self))
         return self._status
 
     async def _get_status(self, *, _update: bool = True) -> StatusT:
@@ -290,6 +290,8 @@ class _ScheduleBase[
     def schedule(self) -> list[DayT]:
         """Return the schedule (assumes it is current)."""
 
+        if self._schedule is None:
+            raise exc.NotFetchedError(f"{self}: No schedule, has it been fetched?")
         if not self._schedule:
             raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
 
@@ -299,8 +301,7 @@ class _ScheduleBase[
     def this_switchpoint(self) -> _SwitchPoint:
         """Return the start datetime and setpoint of the current switchpoint."""
 
-        if not self._schedule:
-            raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
+        _ = self.schedule  # will raise an exception if there is no (valid) schedule
 
         if self._next_switchpoint[0] > (dt_now := dt.now(tz=UTC)):
             return self._this_switchpoint
@@ -312,8 +313,7 @@ class _ScheduleBase[
     def next_switchpoint(self) -> _SwitchPoint:
         """Return the start datetime and setpoint of the next switchpoint."""
 
-        if not self._schedule:
-            raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
+        _ = self.schedule  # will raise an exception if there is no (valid) schedule
 
         if self._next_switchpoint[0] > (dt_now := dt.now(tz=UTC)):
             return self._next_switchpoint
@@ -528,11 +528,11 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         self._config: Final = config
 
         if not self.model or self.model is ZoneModelType.UNKNOWN:
-            raise exc.InvalidConfigError(
+            raise exc.GhostZoneError(
                 f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)"
             )
         if not self.type or self.type is ZoneType.UNKNOWN:
-            raise exc.InvalidConfigError(
+            raise exc.GhostZoneError(
                 f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)"
             )
 

@@ -25,8 +25,6 @@ from .schemas.const import (
     TccZoneType,
 )
 
-_ERR_NOT_AVAILABLE: Final = "{} not available until after Location.update() is called"
-
 # HDR_STRFTIME: Final = "%Y-%m-%d %H:%M:%S"  # used by HTTP headers
 
 # snake_case equivalents of every S2_* key in schemas/const.py.
