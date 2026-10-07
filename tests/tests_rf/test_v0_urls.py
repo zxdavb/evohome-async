@@ -91,7 +91,7 @@ from evohomeasync.schemas import (
     TCC_GET_USR_LOCS,
     TCC_TASK_RESPONSE,
 )
-from tests.const import _DBG_USE_REAL_AIOHTTP, TIMEOUT
+from tests.const import _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX, TIMEOUT_COMM_TASK
 
 from .common import (
     is_alive_v0,
@@ -349,8 +349,8 @@ async def test_loc_urls(
     # GET /locations?userId={usr_id}&allData=True
     usr_locs = await get_locations(auth, usr_info["userID"])
 
-    loc = next((loc for loc in usr_locs if loc["devices"]), None)
-    if loc is None:
+    loc = usr_locs[TEST_LOC_IDX]
+    if not loc["devices"]:
         pytest.skip("No location with devices found")
 
     loc_id: int = loc["locationID"]
@@ -475,16 +475,10 @@ async def test_tcs_urls(
     usr_locs = await get_locations(auth, usr_info["userID"])
 
     # an evohome location (not, say, a Round Thermostat)
-    loc_id = next(
-        (
-            loc["locationID"]
-            for loc in usr_locs
-            if any(is_zone_v0(d) for d in loc["devices"])
-        ),
-        None,
-    )
-    if loc_id is None:
+    loc = usr_locs[TEST_LOC_IDX]
+    if not any(is_zone_v0(d) for d in loc["devices"]):
         pytest.skip("No evohome location found")
+    loc_id = loc["locationID"]
 
     #
     # PUT /evoTouchSystems?locationId={loc_id}
@@ -592,8 +586,7 @@ async def test_zon_urls(
     zone = next(
         (
             d
-            for loc in usr_locs
-            for d in loc["devices"]
+            for d in usr_locs[TEST_LOC_IDX]["devices"]
             if is_zone_v0(d) and is_alive_v0(d) and status_of_v0(d) == "Scheduled"
         ),
         None,
@@ -653,8 +646,7 @@ async def test_dhw_urls(
     dhw = next(
         (
             d
-            for loc in usr_locs
-            for d in loc["devices"]
+            for d in usr_locs[TEST_LOC_IDX]["devices"]
             if is_dhw_v0(d) and is_alive_v0(d)
         ),
         None,
@@ -707,7 +699,7 @@ async def _wait_for_task(auth: Auth, response: TccTaskResponseT) -> None:
 
     task_id = task_id_v0(response)
 
-    async with asyncio.timeout(TIMEOUT):
+    async with asyncio.timeout(TIMEOUT_COMM_TASK):
         while True:
             task = await get_comm_tasks(auth, task_id)
             if task["state"] == "Succeeded":

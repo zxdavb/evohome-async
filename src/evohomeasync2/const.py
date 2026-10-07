@@ -11,6 +11,7 @@ from typing import Final
 from _evohome.helpers import camel_to_snake
 
 from .schemas.const import (
+    TccCommTaskState,
     TccDayOfWeek,
     TccDhwState,
     TccFanMode,
@@ -45,6 +46,7 @@ SZ_CAN_CONTROL_COOL: Final = "can_control_cool"
 SZ_CAN_CONTROL_HEAT: Final = "can_control_heat"
 SZ_CITY: Final = "city"
 SZ_CODE: Final = "code"
+SZ_COMMTASK_ID: Final = "commtask_id"
 SZ_COOL_SETPOINT: Final = "cool_setpoint"
 SZ_COOL_SETPOINT_VALUE: Final = "cool_setpoint_value"
 SZ_COUNTRY: Final = "country"
@@ -169,6 +171,15 @@ SZ_THERMOSTAT: Final = "thermostat"
 
 
 @verify(EnumCheck.UNIQUE)
+class CommTaskState(StrEnum):
+    CREATED = camel_to_snake(TccCommTaskState.CREATED)
+    RUNNING = camel_to_snake(TccCommTaskState.RUNNING)
+    REPEATED = camel_to_snake(TccCommTaskState.REPEATED)
+    SUCCEEDED = camel_to_snake(TccCommTaskState.SUCCEEDED)
+    FAILED = camel_to_snake(TccCommTaskState.FAILED)
+
+
+@verify(EnumCheck.UNIQUE)
 class DayOfWeek(StrEnum):
     MONDAY = camel_to_snake(TccDayOfWeek.MONDAY)
     TUESDAY = camel_to_snake(TccDayOfWeek.TUESDAY)
@@ -195,7 +206,7 @@ class FanMode(StrEnum):  # non-evohome
 
 @verify(EnumCheck.UNIQUE)
 class FaultType(StrEnum):  # NOTE: This list is incomplete
-    # W_A_CL = camel_to_snake(TccFaultType.DHW_A_CL)  # extrapolated
+    DHW_A_CL = camel_to_snake(TccFaultType.DHW_A_CL)
     DHW_A_FL = camel_to_snake(TccFaultType.DHW_A_FL)
     DHW_S_CL = camel_to_snake(TccFaultType.DHW_S_CL)
     DHW_S_FL = camel_to_snake(TccFaultType.DHW_S_FL)

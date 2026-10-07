@@ -12,10 +12,13 @@ import pytest
 
 import evohomeasync as evo0
 import evohomeasync2 as evo2
+from evohomeasync2.comm_task import DEFAULT_INTERVAL
 from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
     _DBG_USE_REAL_AIOHTTP,
-    TIMEOUT,
+    _DBG_WAIT_FOR_COMM_TASKS,
+    TEST_LOC_IDX,
+    TIMEOUT_COMM_TASK,
     URL_BASE_V0,
     URL_BASE_V2,
 )
@@ -24,8 +27,9 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping
 
     from _evohome.helpers import Validator
+    from evohomeasync import EvohomeClient as EvohomeClientV0
     from evohomeasync.schemas import TccDeviceResponseT
-    from tests.conftest import EvohomeClientV2
+    from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 if _DBG_USE_REAL_AIOHTTP:
     import aiohttp
@@ -33,23 +37,34 @@ else:
     from .faked_server import aiohttp  # type: ignore[no-redef]
 
 
+@overload
+def get_loc(evo: EvohomeClientV0) -> evo0.Location: ...
+
+
+@overload
+def get_loc(evo: EvohomeClientV2) -> evo2.Location: ...
+
+
+def get_loc(evo: EvohomeClientV0 | EvohomeClientV2) -> evo0.Location | evo2.Location:
+    """Return the Location object to test against (see TEST_LOC_IDX)."""
+    return evo.locations[TEST_LOC_IDX]
+
+
 def get_dhw(evo: EvohomeClientV2) -> evo2.HotWater | None:
-    """Return the first DHW object found across all TCSs of the user's installation."""
-    for loc in evo.locations:
-        for gwy in loc.gateways:
-            for tcs in gwy.systems:
-                if tcs.hotwater:
-                    return tcs.hotwater
+    """Return the first DHW object found across all TCSs of the location under test."""
+    for gwy in get_loc(evo).gateways:
+        for tcs in gwy.systems:
+            if tcs.hotwater:
+                return tcs.hotwater
     return None
 
 
 def get_zon(evo: EvohomeClientV2) -> evo2.Zone | None:
-    """Return the first Zone object found across all TCSs of the user's installation."""
-    for loc in evo.locations:
-        for gwy in loc.gateways:
-            for tcs in gwy.systems:
-                if tcs.zones:
-                    return tcs.zones[0]
+    """Return the first Zone object found across all TCSs of the location under test."""
+    for gwy in get_loc(evo).gateways:
+        for tcs in gwy.systems:
+            if tcs.zones:
+                return tcs.zones[0]
     return None
 
 
@@ -294,12 +309,12 @@ async def wait_for_comm_task_v0(auth: evo0.auth.Auth, task_id: str) -> dict[str,
 
     Only "Succeeded" is known to be terminal: the older (non-async) client polled until
     it saw it, and its tests used "pending" otherwise. No other states are documented,
-    so raises TimeoutError if it has not succeeded within TIMEOUT seconds.
+    so raises TimeoutError if it has not succeeded within TIMEOUT_COMM_TASK seconds.
     """
 
     url = f"commTasks?commTaskId={task_id}"
 
-    async with asyncio.timeout(TIMEOUT):
+    async with asyncio.timeout(TIMEOUT_COMM_TASK):
         while True:
             task = await should_work_v0(auth, HTTPMethod.GET, url)
             assert isinstance(task, dict), task
@@ -352,6 +367,8 @@ async def should_work_v2[T](
     """Make a HTTP request and check it succeeds as expected.
 
     Used to document the behaviour of a 'real' server and to validate the faked server.
+
+    After a PUT, wait for its comm task to succeed (see wait_for_comm_task_id()).
     """
 
     response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
@@ -379,7 +396,12 @@ async def should_work_v2[T](
             return response
 
         assert isinstance(response, dict | list)  # mypy
-        return schema(response) if schema else response  # may raise vol.Invalid
+
+    if method == HTTPMethod.PUT:
+        task = response[0] if isinstance(response, list) else response
+        await wait_for_comm_task_id(auth, task["id"])  # e.g. {"id": "1668279943"}
+
+    return schema(response) if schema else response  # may raise vol.Invalid
 
 
 async def should_fail_v2(
@@ -444,40 +466,84 @@ async def should_fail_v2(
     return response
 
 
-async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
-    """Wait for a communication task (API call) to complete.
+# the id of the first comm task (if any) that did not succeed within TIMEOUT_COMM_TASK
+_timed_out_comm_tasks: Final[list[str]] = []
 
-    Raises TimeoutError if it has not done so within TIMEOUT seconds.
+
+def timed_out_comm_task() -> str | None:
+    """Return the id of the first comm task that timed out, if any (else None).
+
+    After such a timeout, the gateway's queue of tasks is likely backed up, so the
+    remaining real-API tests are skipped (see tests_rf/conftest.py).
     """
+    return _timed_out_comm_tasks[0] if _timed_out_comm_tasks else None
+
+
+async def _wait_or_skip(wait: Awaitable[None], task_id: str) -> None:
+    """Await a wait for a comm task to succeed, within TIMEOUT_COMM_TASK seconds.
+
+    If the task has not succeeded by then (the vendor's gateway may be slow), skip the
+    test (and, via timed_out_comm_task(), all those after it): that is not a failure of
+    the test. Any other TimeoutError (e.g. of a request, within TIMEOUT_REAL_AIOHTTP
+    seconds) is raised.
+    """
+
+    timeout = asyncio.timeout(TIMEOUT_COMM_TASK)
+
+    try:
+        async with timeout:
+            await wait
+    except TimeoutError:
+        if not timeout.expired():
+            raise
+        _timed_out_comm_tasks.append(task_id)
+        pytest.skip(f"Comm task {task_id} did not succeed within {TIMEOUT_COMM_TASK}s")
+
+
+async def wait_for_comm_task_id(auth: evo2.auth.Auth, task_id: str) -> None:
+    """Wait for a comm task (i.e. of an earlier PUT) to succeed.
+
+    Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), poll the task's
+    state until it succeeds, and skip the test if it has not done so within
+    TIMEOUT_COMM_TASK seconds. Otherwise, do nothing (not even check its state once).
+    """
+
+    if not (_DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS):
+        return
 
     url = f"commTasks?commTaskId={task_id}"
 
-    async with asyncio.timeout(TIMEOUT):
+    async def poll() -> None:
         while True:
-            rsp = await auth.websession.request(HTTPMethod.GET, f"{URL_BASE_V2}/{url}")
+            response = await should_work_v2(auth, HTTPMethod.GET, url)
+            # {'commtaskId': '840367013', 'state': 'Created'}
+            # {'commtaskId': '840367013', 'state': 'Running'}
+            # {'commtaskId': '840367013', 'state': 'Succeeded'}
 
-            # need to do this before raise_for_status()
-            if rsp.content_type == "application/json":
-                response = await rsp.json()
-            else:
-                response = await rsp.text()
-
-            try:
-                rsp.raise_for_status()  # should be 200/OK
-            except aiohttp.ClientResponseError as err:
-                pytest.fail(f"status={err.status}: {response}")
-
-            assert rsp.content_type == "application/json", response
-
-            task: dict[str, str] = (
-                response[0] if isinstance(response, list) else response
-            )
+            task = response[0] if isinstance(response, list) else response
+            assert isinstance(task, dict), task  # mypy  # TODO: use a SCHEMA
+            assert task["commtaskId"] == task_id, task
 
             if task["state"] == "Succeeded":
-                return True
+                return
 
-            if task["state"] in ("Created", "Running"):
-                await asyncio.sleep(0.3)
-                continue
+            if task["state"] not in ("Created", "Running"):
+                pytest.fail(f"Unexpected task state: {task}")
 
-            pytest.fail(f"Unexpected task state: {task}")
+            await asyncio.sleep(DEFAULT_INTERVAL)  # as per CommTask.wait()
+
+    await _wait_or_skip(poll(), task_id)
+
+
+async def wait_for_comm_task_obj(task: evo2.CommTask) -> None:
+    """Wait for the comm task returned by a client method (i.e. of its PUT) to succeed.
+
+    Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), wait for the
+    task to succeed, and skip the test if it has not done so within TIMEOUT_COMM_TASK
+    seconds. Otherwise, do nothing (not even check its state once).
+    """
+
+    if not (_DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS):
+        return
+
+    await _wait_or_skip(task.wait(), task.id)

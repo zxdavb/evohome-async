@@ -8,6 +8,9 @@ Where test_v2_urls.py documents each endpoint (and has a list of them all), this
 documents how they fail: e.g. an unauthorized user or wrong method, an invalid URL, and
 a PUT with missing or invalid params (with each error code the vendor returns).
 
+URLs that are not used by the client (e.g. the status of a TCS, zone or DHW, as it is
+included in that of its location) are tested only if _DBG_TEST_UNUSED_APIS.
+
 Testing is at HTTP request layer (e.g. GET/PUT).
 Everything to/from the RESTful API is in camelCase (so those schemas are used), although
 the keys of a request are case-insensitive (as confirmed here).
@@ -36,11 +39,12 @@ from evohomeasync2.schemas.status import (
     TCC_GET_TCS_STATUS,
     TCC_GET_ZON_STATUS,
 )
-from tests.const import _DBG_USE_REAL_AIOHTTP
+from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from .common import (
     error_codes,
     get_dhw,
+    get_loc,
     should_fail_v2,
     should_work_v2,
     skipif_auth_failed,
@@ -48,9 +52,9 @@ from .common import (
 
 if TYPE_CHECKING:
     import evohomeasync2 as evo2
+    from evohomeasync2 import EvohomeClient as EvohomeClientV2
     from evohomeasync2.schemas.state import TccSetTcsModeT
     from evohomeasync2.schemas.status import TccTcsStatusResponseT
-    from tests.conftest import EvohomeClientV2
 
 
 #######################################################################################
@@ -103,12 +107,13 @@ async def _test_user_locations(evo: EvohomeClientV2) -> None:
 
     #
     url = f"location/installationInfo?userId={user_info['userId']}"
-    _ = await should_work_v2(
-        evo.auth,
-        HTTPMethod.GET,
-        url,
-        schema=None,  # schema not tested here
-    )
+    if _DBG_TEST_UNUSED_APIS:  # without the param (not used by the client)
+        _ = await should_work_v2(
+            evo.auth,
+            HTTPMethod.GET,
+            url,
+            schema=None,  # schema not tested here
+        )
 
     # url = f"location/{loc_id}/installationInfo"  # no TCS info
     # _ = await should_work_v2(
@@ -156,16 +161,17 @@ async def _test_loc_status(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
-    loc = evo.locations[0]
+    loc = get_loc(evo)
     #
 
     url = f"location/{loc.id}/status"
-    _ = await should_work_v2(
-        evo.auth,
-        HTTPMethod.GET,
-        url,
-        schema=None,  # schema not tested here
-    )
+    if _DBG_TEST_UNUSED_APIS:  # without the param (not used by the client)
+        _ = await should_work_v2(
+            evo.auth,
+            HTTPMethod.GET,
+            url,
+            schema=None,  # schema not tested here
+        )
 
     url += "?includeTemperatureControlSystems=True"
     _ = await should_work_v2(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_LOC_STATUS)
@@ -212,16 +218,30 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
     await evo.update(dont_update_status=True)
 
     tcs: evo2.ControlSystem
-    if not (tcs := evo.locations[0].gateways[0].systems[0]):
+    if not (tcs := get_loc(evo).gateways[0].systems[0]):
         pytest.skip("No available TCS found")
 
     #
     # STEP 0: Get/keep the current mode, so we can restore it later
-    url = f"{tcs._TCC_TYPE}/{tcs.id}/status"
+    old_status: TccTcsStatusResponseT
 
-    old_status: TccTcsStatusResponseT = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_TCS_STATUS
-    )
+    if _DBG_TEST_UNUSED_APIS:  # GET the TCS's status (not used by the client)
+        url = f"{tcs._TCC_TYPE}/{tcs.id}/status"
+        old_status = await should_work_v2(
+            evo.auth, HTTPMethod.GET, url, schema=TCC_GET_TCS_STATUS
+        )
+
+    else:  # GET it from its location's status, as does the client
+        url = f"location/{tcs.location.id}/status?includeTemperatureControlSystems=True"
+        loc_status = await should_work_v2(
+            evo.auth, HTTPMethod.GET, url, schema=TCC_GET_LOC_STATUS
+        )
+        old_status = next(
+            t
+            for g in loc_status["gateways"]
+            for t in g["temperatureControlSystems"]
+            if t["systemId"] == tcs.id
+        )
     # {
     #      'systemId': '1234567',
     #      'zones': [...]
@@ -340,12 +360,15 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update()
 
-    if not (zone := evo.locations[0].gateways[0].systems[0].zones[0]):
+    if not (zone := get_loc(evo).gateways[0].systems[0].zones[0]):
         pytest.skip("No available zones found")
 
     #
     url = f"{zone._TCC_TYPE}/{zone.id}/status"
-    _ = await should_work_v2(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_STATUS)
+    if _DBG_TEST_UNUSED_APIS:  # GET the zone's status (not used by the client)
+        _ = await should_work_v2(
+            evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_STATUS
+        )
     # {
     #     'zoneId': '3432576',
     #     'temperatureStatus': {'temperature': 25.5, 'isAvailable': True},
@@ -445,10 +468,13 @@ async def _test_dhw_status(evo: EvohomeClientV2) -> None:
         pytest.skip("No available DHW found")
 
     #
-    # STEP 1: Get the status (which is GET-only)
+    # STEP 1: Get the status (which is GET-only) (not used by the client)
     url = f"{dhw._TCC_TYPE}/{dhw.id}/status"
 
-    _ = await should_work_v2(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_DHW_STATUS)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await should_work_v2(
+            evo.auth, HTTPMethod.GET, url, schema=TCC_GET_DHW_STATUS
+        )
     # {
     #     'dhwId': '3933910',
     #     'temperatureStatus': {'temperature': 55.0, 'isAvailable': True},
@@ -456,13 +482,14 @@ async def _test_dhw_status(evo: EvohomeClientV2) -> None:
     #     'activeFaults': []
     # }
 
-    _ = await should_fail_v2(
-        evo.auth,
-        HTTPMethod.PUT,
-        url,
-        json={"mode": TccZoneMode.FOLLOW_SCHEDULE},
-        status=HTTPStatus.METHOD_NOT_ALLOWED,
-    )
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await should_fail_v2(
+            evo.auth,
+            HTTPMethod.PUT,
+            url,
+            json={"mode": TccZoneMode.FOLLOW_SCHEDULE},
+            status=HTTPStatus.METHOD_NOT_ALLOWED,
+        )
     # {'message': "The requested resource does not support http method 'PUT'."}
 
     #

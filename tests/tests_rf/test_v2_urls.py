@@ -14,27 +14,30 @@ https://tccna.resideo.com/WebAPI/emea/api/v1, and all endpoints below are relati
   user      GET       /userAccount
 
   location  GET       /location/installationInfo?userId={usr_id}&includeTemperatureControlSystems=True
-            GET       /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True
+            GET       /location/{loc_id}/installationInfo?includeTemperatureControlSystems=True  (*)
             GET       /location/{loc_id}/status?includeTemperatureControlSystems=True
 
-  gateway   GET       /gateway/{gwy_id}/installationInfo?includeTemperatureControlSystems=True
-            GET       /gateway/{gwy_id}/status?includeTemperatureControlSystems=True
+  gateway   GET       /gateway/{gwy_id}/installationInfo?includeTemperatureControlSystems=True  (*)
+            GET       /gateway/{gwy_id}/status?includeTemperatureControlSystems=True  (*)
 
-  TCS       GET       /temperatureControlSystem/{tcs_id}/installationInfo
-            GET       /temperatureControlSystem/{tcs_id}/status
+  TCS       GET       /temperatureControlSystem/{tcs_id}/installationInfo  (*)
+            GET       /temperatureControlSystem/{tcs_id}/status  (*)
             PUT       /temperatureControlSystem/{tcs_id}/mode
 
-  zone      GET       /temperatureZone/{zon_id}/installationInfo
-            GET       /temperatureZone/{zon_id}/status
+  zone      GET       /temperatureZone/{zon_id}/installationInfo  (*)
+            GET       /temperatureZone/{zon_id}/status  (*)
             PUT       /temperatureZone/{zon_id}/heatSetpoint
             GET, PUT  /temperatureZone/{zon_id}/schedule
 
-  DHW       GET       /domesticHotWater/{dhw_id}/installationInfo
-            GET       /domesticHotWater/{dhw_id}/status
+  DHW       GET       /domesticHotWater/{dhw_id}/installationInfo  (*)
+            GET       /domesticHotWater/{dhw_id}/status  (*)
             PUT       /domesticHotWater/{dhw_id}/state
             GET, PUT  /domesticHotWater/{dhw_id}/schedule
 
   task      GET       /commTasks?commTaskId={tsk_id}  (see test_v2_urls_task.py)
+
+  (*) not used by the client, so tested only if _DBG_TEST_UNUSED_APIS (as are the
+      variants without includeTemperatureControlSystems=True)
 
 The API is regular, and these tests confirm the following conventions:
 - every entity has an installationInfo endpoint (its config) and a status endpoint (its
@@ -93,11 +96,13 @@ from evohomeasync2.schemas.status import (
     TCC_GET_TCS_STATUS,
     TCC_GET_ZON_STATUS,
 )
-from tests.const import _DBG_USE_REAL_AIOHTTP
+from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX
 
-from .common import skipif_auth_failed
+from .common import skipif_auth_failed, wait_for_comm_task_id
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from evohome_cli.auth import TokenCacheManager
     from evohomeasync2.schemas.account import TccTaskResponseT, TccUsrAccountResponseT
     from evohomeasync2.schemas.config import (
@@ -123,6 +128,21 @@ if TYPE_CHECKING:
 def _until(hours: int = 3) -> str:
     """Return a (UTC) datetime, some hours hence, in the vendor's format."""
     return (dt.now(tz=UTC) + td(hours=hours)).strftime(TCC_DTM_STRFTIME)
+
+
+async def _put(
+    auth: Auth, url: str, /, *, json: Mapping[str, object]
+) -> TccTaskResponseT:
+    """PUT a (valid) request and return its comm task, e.g. {"id": "1668279943"}.
+
+    Then, wait for the task to succeed (see wait_for_comm_task_id()).
+    """
+
+    task = TCC_TASK_RESPONSE(await auth._make_request(HTTPMethod.PUT, url, json=json))
+
+    await wait_for_comm_task_id(auth, task["id"])
+
+    return task
 
 
 #######################################################################################
@@ -198,44 +218,47 @@ async def test_tcs_urls(
     usr_locs = await get_usr_locations(auth, usr_info["userId"])
 
     #
-    # STEP 3: GET /location/{loc_id}/installationInfo
-    loc_id = next(loc for loc in usr_locs if loc["gateways"])["locationInfo"][
-        "locationId"
-    ]
+    #
+    loc_config = usr_locs[TEST_LOC_IDX]
+    loc_id = loc_config["locationInfo"]["locationId"]
+    gwy_id = loc_config["gateways"][0]["gatewayInfo"]["gatewayId"]
+    tcs_id = loc_config["gateways"][0]["temperatureControlSystems"][0]["systemId"]
 
-    loc_config = await get_loc_config(auth, loc_id)
+    #
+    # STEP 3: GET /location/{loc_id}/installationInfo (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await get_loc_config(auth, loc_id)
 
     #
     # STEP 4: GET /location/{loc_id}/status
     _ = await get_loc_status(auth, loc_id)
 
     #
-    # STEP 5: GET /gateway/{gwy_id}/installationInfo
-    gwy_id = loc_config["gateways"][0]["gatewayInfo"]["gatewayId"]
-
-    gwy_config = await get_gwy_config(auth, gwy_id)
-    assert gwy_config == loc_config["gateways"][0]  # is as nested within its location
-
-    #
-    # STEP 6: GET /gateway/{gwy_id}/status
-    _ = await get_gwy_status(auth, gwy_id)
+    # STEP 5: GET /gateway/{gwy_id}/installationInfo (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        gwy_config = await get_gwy_config(auth, gwy_id)
+        assert gwy_config == loc_config["gateways"][0]  # as nested within its location
 
     #
-    # STEP 7: without includeTemperatureControlSystems, the TCSs are omitted
-    await _test_without_tcss(auth, loc_id, gwy_id)
+    # STEP 6: GET /gateway/{gwy_id}/status (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await get_gwy_status(auth, gwy_id)
 
     #
-    #
-    tcs_id = gwy_config["temperatureControlSystems"][0]["systemId"]
+    # STEP 7: without includeTemperatureControlSystems, the TCSs are omitted (as above)
+    if _DBG_TEST_UNUSED_APIS:
+        await _test_without_tcss(auth, loc_id, gwy_id)
 
     #
-    # STEP A: GET /temperatureControlSystem/{tcs_id}/installationInfo
-    tcs_config = await get_tcs_config(auth, tcs_id)
-    assert tcs_config == gwy_config["temperatureControlSystems"][0]  # as nested
+    # STEP A: GET /temperatureControlSystem/{tcs_id}/installationInfo (not used...)
+    if _DBG_TEST_UNUSED_APIS:
+        tcs_config = await get_tcs_config(auth, tcs_id)
+        assert tcs_config == loc_config["gateways"][0]["temperatureControlSystems"][0]
 
     #
-    # STEP B: GET /temperatureControlSystem/{tcs_id}/status
-    _ = await get_tcs_status(auth, tcs_id)
+    # STEP B: GET /temperatureControlSystem/{tcs_id}/status (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await get_tcs_status(auth, tcs_id)
 
     #
     # STEP C: PUT /temperatureControlSystem/{tcs_id}/mode
@@ -430,8 +453,8 @@ async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
       SystemModeChangeTimeUntilNotSet:  temporary, but no timeUntil (e.g. untilTime)
     """
 
-    _ = await auth._make_request(
-        HTTPMethod.PUT,
+    _ = await _put(
+        auth,
         f"temperatureControlSystem/{tcs_id}/mode",
         json={
             "systemMode": "Away",
@@ -455,12 +478,10 @@ async def put_tcs_mode(auth: Auth, tcs_id: str) -> TccTaskResponseT:
     assert exc_info.value.status == HTTPStatus.BAD_REQUEST
     assert "SystemModeChangeTimeUntilNotSet" in exc_info.value.message
 
-    return TCC_TASK_RESPONSE(
-        await auth._make_request(
-            HTTPMethod.PUT,
-            f"temperatureControlSystem/{tcs_id}/mode",
-            json={"systemMode": "Auto", "permanent": True},
-        )
+    return await _put(
+        auth,
+        f"temperatureControlSystem/{tcs_id}/mode",
+        json={"systemMode": "Auto", "permanent": True},
     )
 
 
@@ -488,18 +509,20 @@ async def test_zon_urls(
 
     #
     #
-    loc_config = next(loc for loc in usr_locs if loc["gateways"])
+    loc_config = usr_locs[TEST_LOC_IDX]
     tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
     zon_id = tcs_config["zones"][0]["zoneId"]
 
     #
-    # STEP A: GET /temperatureZone/{zon_id}/installationInfo
-    zon_config = await get_zon_config(auth, zon_id)
-    assert zon_config == tcs_config["zones"][0]  # is as nested within its TCS
+    # STEP A: GET /temperatureZone/{zon_id}/installationInfo (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        zon_config = await get_zon_config(auth, zon_id)
+        assert zon_config == tcs_config["zones"][0]  # is as nested within its TCS
 
     #
-    # STEP B: GET /temperatureZone/{zon_id}/status
-    _ = await get_zon_status(auth, zon_id)
+    # STEP B: GET /temperatureZone/{zon_id}/status (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await get_zon_status(auth, zon_id)
 
     #
     # STEP C: PUT /temperatureZone/{zon_id}/heatSetpoint
@@ -581,8 +604,8 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
       HeatSetpointChangeTargetTemperatureNotSet:  an override, but no heatSetpointValue
     """
 
-    _ = await auth._make_request(
-        HTTPMethod.PUT,
+    _ = await _put(
+        auth,
         f"temperatureZone/{zon_id}/heatSetpoint",
         json={
             "setpointMode": "TemporaryOverride",
@@ -606,8 +629,8 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
     assert exc_info.value.status == HTTPStatus.BAD_REQUEST
     assert "HeatSetpointChangeTimeUntilNotSet" in exc_info.value.message
 
-    _ = await auth._make_request(
-        HTTPMethod.PUT,
+    _ = await _put(
+        auth,
         f"temperatureZone/{zon_id}/heatSetpoint",
         json={
             "setpointMode": "PermanentOverride",
@@ -615,12 +638,10 @@ async def put_zon_heat_setpoint(auth: Auth, zon_id: str) -> TccTaskResponseT:
         },
     )
 
-    return TCC_TASK_RESPONSE(
-        await auth._make_request(
-            HTTPMethod.PUT,
-            f"temperatureZone/{zon_id}/heatSetpoint",
-            json={"setpointMode": "FollowSchedule"},  # no heatSetpointValue is needed
-        )
+    return await _put(
+        auth,
+        f"temperatureZone/{zon_id}/heatSetpoint",
+        json={"setpointMode": "FollowSchedule"},  # no heatSetpointValue is needed
     )
 
 
@@ -661,12 +682,10 @@ async def put_zon_schedule(
     already is (so is a no-op). See test_v2_urls_sked.py for more about schedules.
     """
 
-    return TCC_TASK_RESPONSE(
-        await auth._make_request(
-            HTTPMethod.PUT,
-            f"temperatureZone/{zon_id}/schedule",
-            json=schedule,
-        )
+    return await _put(
+        auth,
+        f"temperatureZone/{zon_id}/schedule",
+        json=schedule,
     )
 
 
@@ -694,26 +713,26 @@ async def test_dhw_urls(
 
     #
     #
-    for loc_config in usr_locs:
-        try:
-            tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
-            if "dhw" in tcs_config:
-                break
-        except (KeyError, IndexError):
-            continue
-    else:
+    loc_config = usr_locs[TEST_LOC_IDX]
+    try:
+        tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
+    except (KeyError, IndexError):
+        pytest.skip("No TCS found")
+    if "dhw" not in tcs_config:
         pytest.skip("No DHW found")
 
     dhw_id = tcs_config["dhw"]["dhwId"]
 
     #
-    # STEP A: GET /domesticHotWater/{dhw_id}/installationInfo
-    dhw_config = await get_dhw_config(auth, dhw_id)
-    assert dhw_config == tcs_config["dhw"]  # is as nested within its TCS
+    # STEP A: GET /domesticHotWater/{dhw_id}/installationInfo (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        dhw_config = await get_dhw_config(auth, dhw_id)
+        assert dhw_config == tcs_config["dhw"]  # is as nested within its TCS
 
     #
-    # STEP B: GET /domesticHotWater/{dhw_id}/status
-    _ = await get_dhw_status(auth, dhw_id)
+    # STEP B: GET /domesticHotWater/{dhw_id}/status (not used by the client)
+    if _DBG_TEST_UNUSED_APIS:
+        _ = await get_dhw_status(auth, dhw_id)
 
     #
     # STEP C: PUT /domesticHotWater/{dhw_id}/state
@@ -795,8 +814,8 @@ async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
       DHWUntilTimeNotSet:  temporary, but no untilTime (e.g. timeUntil)
     """
 
-    _ = await auth._make_request(
-        HTTPMethod.PUT,
+    _ = await _put(
+        auth,
         f"domesticHotWater/{dhw_id}/state",
         json={
             "mode": "TemporaryOverride",
@@ -820,18 +839,16 @@ async def put_dhw_state(auth: Auth, dhw_id: str) -> TccTaskResponseT:
     assert exc_info.value.status == HTTPStatus.BAD_REQUEST
     assert "DHWUntilTimeNotSet" in exc_info.value.message
 
-    _ = await auth._make_request(
-        HTTPMethod.PUT,
+    _ = await _put(
+        auth,
         f"domesticHotWater/{dhw_id}/state",
         json={"mode": "PermanentOverride", "state": "Off"},
     )
 
-    return TCC_TASK_RESPONSE(
-        await auth._make_request(
-            HTTPMethod.PUT,
-            f"domesticHotWater/{dhw_id}/state",
-            json={"mode": "FollowSchedule"},  # no state is needed
-        )
+    return await _put(
+        auth,
+        f"domesticHotWater/{dhw_id}/state",
+        json={"mode": "FollowSchedule"},  # no state is needed
     )
 
 
@@ -872,10 +889,8 @@ async def put_dhw_schedule(
     already is (so is a no-op). See test_v2_urls_sked.py for more about schedules.
     """
 
-    return TCC_TASK_RESPONSE(
-        await auth._make_request(
-            HTTPMethod.PUT,
-            f"domesticHotWater/{dhw_id}/schedule",
-            json=schedule,
-        )
+    return await _put(
+        auth,
+        f"domesticHotWater/{dhw_id}/schedule",
+        json=schedule,
     )

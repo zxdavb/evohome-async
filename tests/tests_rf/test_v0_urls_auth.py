@@ -27,10 +27,11 @@ import pytest
 import evohomeasync as evo0
 from _evohome.helpers import TCC_DTM_STRFTIME
 from evohomeasync.schemas import TCC_GET_USR_LOCS
-from tests.const import _DBG_USE_REAL_AIOHTTP, TIMEOUT, URL_BASE_V0
+from tests.const import _DBG_USE_REAL_AIOHTTP, TIMEOUT_COMM_TASK, URL_BASE_V0
 
 from .common import (
     error_codes,
+    get_loc,
     is_alive_v0,
     is_dhw_v0,
     is_stale_task_v0,
@@ -46,8 +47,8 @@ from .common import (
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from evohomeasync import EvohomeClient as EvohomeClientV0
     from evohomeasync.schemas import TccDeviceResponseT
-    from tests.conftest import EvohomeClientV0
 
 
 async def _test_usr_locations(evo: EvohomeClientV0) -> None:
@@ -89,7 +90,7 @@ async def _test_evo_systems(evo: EvohomeClientV0) -> None:
     """Test /evoTouchSystems?locationId={loc_id}"""
 
     # usr_id: int = evo.user_account["user_id"]
-    loc_id = evo.locations[0].id
+    loc_id = get_loc(evo).id
 
     #
     # TEST 0: unsupported method?
@@ -236,7 +237,7 @@ async def _wait_for_status(
     status: str | None = None
 
     try:
-        async with asyncio.timeout(TIMEOUT):
+        async with asyncio.timeout(TIMEOUT_COMM_TASK):
             while True:
                 if (status := await _get_status(evo, dev_id)) == expected:
                     return status

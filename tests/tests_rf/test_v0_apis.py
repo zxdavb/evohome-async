@@ -24,8 +24,8 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
+    from evohomeasync import EvohomeClient as EvohomeClientV0
     from evohomeasync.entities import HotWater, Location, Zone
-    from tests.conftest import EvohomeClientV0
 
 
 #######################################################################################
