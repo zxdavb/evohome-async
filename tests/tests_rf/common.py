@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import functools
+from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, Final, overload
 
@@ -11,6 +12,7 @@ import pytest
 
 import evohomeasync as evo0
 import evohomeasync2 as evo2
+from evohomeasync.schemas import TCC_GET_COMM_TASK
 from evohomeasync2.comm_task import DEFAULT_INTERVAL
 from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
@@ -18,6 +20,7 @@ from tests.const import (
     _DBG_WAIT_FOR_COMM_TASKS,
     TEST_LOC_IDX,
     TIMEOUT_COMM_TASK,
+    TIMEOUT_COMM_TASK_V0,
     URL_BASE_V0,
     URL_BASE_V2,
 )
@@ -27,6 +30,7 @@ if TYPE_CHECKING:
 
     from _evohome.helpers import Validator
     from evohomeasync import EvohomeClient as EvohomeClientV0
+    from evohomeasync.schemas import TccCommTaskResponseT, TccDeviceResponseT
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 if _DBG_USE_REAL_AIOHTTP:
@@ -167,7 +171,7 @@ async def should_work_v0[T](
             response = await rsp.text()
 
         try:
-            rsp.raise_for_status()  # should be 200/OK
+            rsp.raise_for_status()  # should be 200/OK (a GET), or 201/Created (a PUT)
         except aiohttp.ClientResponseError as err:
             pytest.fail(f"status={err.status}: {response}")
 
@@ -236,6 +240,114 @@ async def should_fail_v0(
     return response
 
 
+def is_zone_v0(dev: TccDeviceResponseT) -> bool:
+    """Return True if a (vendor-cased) v0 device is an evohome zone."""
+    # Honeywell TH9320WF3003 can send thermostatModelType as an int, so guard startswith()
+    return isinstance(t := dev["thermostatModelType"], str) and t.startswith("EMEA_")
+
+
+def is_dhw_v0(dev: TccDeviceResponseT) -> bool:
+    """Return True if a (vendor-cased) v0 device is an evohome DHW."""
+    return dev["thermostatModelType"] == "DOMESTIC_HOT_WATER"
+
+
+def is_alive_v0(dev: TccDeviceResponseT) -> bool:
+    """Return True if a (vendor-cased) v0 device is alive (i.e. its gateway is online).
+
+    The vendor rejects any PUT to a device that is not alive: 400, "DeviceIsLost".
+    """
+    return dev.get("isAlive") is True
+
+
+def status_of_v0(dev: TccDeviceResponseT) -> str | None:
+    """Return the status of a (vendor-cased) v0 zone or DHW, e.g. "Scheduled".
+
+    A zone's is under changeableValues.heatSetpoint, a DHW's under changeableValues.
+    """
+
+    values: dict[str, Any] = dict(dev["thermostat"].get("changeableValues", {}))
+    if not is_dhw_v0(dev):
+        values = values.get("heatSetpoint", {})
+    return None if (status := values.get("status")) is None else str(status)
+
+
+def task_id_v0(response: object) -> str:
+    """Return the id of the comm task that a v0 PUT returns (a dict, or a list of one).
+
+    e.g. {"id": 1234567890} (an int); the older (non-async) client also allowed for a
+    list of one, i.e. [{"id": 1234567890}].
+    """
+
+    task = response[0] if isinstance(response, list) else response
+    assert isinstance(task, dict), response
+    assert "id" in task, response
+    return str(task["id"])
+
+
+# a tolerance for the difference between the vendor's clock and ours
+_CLOCK_SKEW: Final = td(seconds=5)
+
+
+def is_stale_task_v0(task: Mapping[str, Any], sent: dt) -> bool:
+    """Return True if a v0 comm task had started before its PUT was sent.
+
+    The vendor sometimes answers a v0 PUT with the comm task of an earlier, equivalent
+    PUT to the same device (a task that has already succeeded), and does not apply it,
+    even if the device's state has changed since. This is how to detect that it has.
+
+    The rule for when it does so is not known. It has been seen repeatedly for a revert
+    to schedule (which has only the one form), and sometimes for an override (but never
+    for one with a NextTime not used before), from seconds to minutes after the earlier
+    PUT, but not always. The two PUTs need not be identical: e.g. they have differed in
+    their key casing, and in having a null key vs not having that key at all.
+    """
+
+    started = dt.fromisoformat(task["started"]).replace(tzinfo=UTC)  # TZ-naive UTC
+    return started < sent - _CLOCK_SKEW
+
+
+async def wait_for_comm_task_v0(
+    auth: evo0.auth.Auth, task_id: str
+) -> TccCommTaskResponseT:
+    """Wait for a v0 communication task (API call) to succeed, and return it.
+
+    GET /commTasks?commTaskId={task_id} returns the state of the comm task (as returned
+    by a PUT), and what it acted upon (but not the task's own id):
+      {
+        "state": "Succeeded",
+        "started": "2026-09-22T20:08:04.053",  # TZ-naive
+        "finished": "2026-09-22T20:08:07.13",  # TZ-naive, and only once finished
+        "macId": "00D02D67C990",
+        "gatewayId": 2678129,
+        "deviceId": 6860918,
+        "activityId": "0187be9d-1f3c-41e7-abd6-28f5442feddd"
+      }
+
+    Only "Succeeded" is known to be terminal: the older (non-async) client polled until
+    it saw it, and its tests used "pending" otherwise. No other states are documented.
+
+    Unlike the v2 tests, always waits (the caller needs the succeeded task), and skips
+    the test if it has not succeeded within TIMEOUT_COMM_TASK_V0 seconds.
+    """
+
+    url = f"commTasks?commTaskId={task_id}"
+
+    async def poll() -> TccCommTaskResponseT:
+        while True:
+            task = await should_work_v0(
+                auth, HTTPMethod.GET, url, schema=TCC_GET_COMM_TASK
+            )
+            if task["state"] == "Succeeded":
+                return task
+
+            if task["state"] == "Failed":  # is terminal, as is Succeeded
+                pytest.fail(f"Comm task {task_id} failed: {task}")
+
+            await asyncio.sleep(DEFAULT_INTERVAL)  # as per CommTask.wait()
+
+    return await _wait_or_skip(poll(), task_id, seconds=TIMEOUT_COMM_TASK_V0)
+
+
 # version 2 helpers ###################################################################
 
 
@@ -294,7 +406,7 @@ async def should_work_v2[T](
             response = await rsp.text()
 
         try:
-            rsp.raise_for_status()  # should be 200/OK
+            rsp.raise_for_status()  # should be 200/OK (a GET), or 201/Created (a PUT)
         except aiohttp.ClientResponseError as err:
             pytest.fail(f"status={err.status}: {response}")
 
@@ -377,7 +489,7 @@ async def should_fail_v2(
     return response
 
 
-# the id of the first comm task (if any) that did not succeed within TIMEOUT_COMM_TASK
+# the id of the first comm task (if any) that did not succeed within its timeout
 _timed_out_comm_tasks: Final[list[str]] = []
 
 
@@ -390,8 +502,12 @@ def timed_out_comm_task() -> str | None:
     return _timed_out_comm_tasks[0] if _timed_out_comm_tasks else None
 
 
-async def _wait_or_skip(wait: Awaitable[None], task_id: str) -> None:
-    """Await a wait for a comm task to succeed, within TIMEOUT_COMM_TASK seconds.
+async def _wait_or_skip[T](
+    wait: Awaitable[T], task_id: str, *, seconds: float = TIMEOUT_COMM_TASK
+) -> T:
+    """Await a wait for a comm task to succeed, within the given seconds.
+
+    Returns what the wait returns (e.g. the succeeded task).
 
     If the task has not succeeded by then (the vendor's gateway may be slow), skip the
     test (and, via timed_out_comm_task(), all those after it): that is not a failure of
@@ -399,16 +515,16 @@ async def _wait_or_skip(wait: Awaitable[None], task_id: str) -> None:
     seconds) is raised.
     """
 
-    timeout = asyncio.timeout(TIMEOUT_COMM_TASK)
+    cm = asyncio.timeout(seconds)
 
     try:
-        async with timeout:
-            await wait
+        async with cm:
+            return await wait
     except TimeoutError:
-        if not timeout.expired():
+        if not cm.expired():
             raise
         _timed_out_comm_tasks.append(task_id)
-        pytest.skip(f"Comm task {task_id} did not succeed within {TIMEOUT_COMM_TASK}s")
+        pytest.skip(f"Comm task {task_id} did not succeed within {seconds}s")
 
 
 async def wait_for_comm_task_id(auth: evo2.auth.Auth, task_id: str) -> None:
