@@ -90,6 +90,7 @@ class EvohomeClient:
         /,
         *,
         dont_update_status: bool = False,
+        raise_on_stale_config: bool = False,
         _reset_config: bool = False,  # for use by test suite
     ) -> list[EvoLocConfigResponseT]:
         """Retrieve the latest state of the user's locations.
@@ -102,6 +103,10 @@ class EvohomeClient:
 
         If `disable_status_update` is true, does not update the status of each location
         hierarchy (and so, does not make those additional API calls).
+
+        If `raise_on_stale_config` is true, a location's status that omits any of its
+        known entities raises StaleConfigError, rather than logging a warning (see
+        `Location.update()`).
         """
 
         if _reset_config:
@@ -120,7 +125,7 @@ class EvohomeClient:
         if not dont_update_status:  # don't retrieve/update status of location hierarchy
             #
             for loc in self.locations:
-                await loc.update()
+                await loc.update(raise_on_stale_config=raise_on_stale_config)
                 #
 
         assert self._user_locs is not None  # mypy

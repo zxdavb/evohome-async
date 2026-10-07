@@ -24,6 +24,7 @@ from _evohome.exceptions import (
     InvalidSystemModeError,
     NoSingleTcsError,
     NotFetchedError,
+    StaleConfigError,
 )
 
 __all__ = [
@@ -48,4 +49,5 @@ __all__ = [
     "InvalidSystemModeError",  # deprecated alias for InvalidModeRequestError
     "NoSingleTcsError",
     "NotFetchedError",
+    "StaleConfigError",
 ]
