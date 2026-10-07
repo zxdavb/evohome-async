@@ -85,7 +85,7 @@ import pytest
 from _evohome import exceptions as exc
 from evohomeasync.auth import Auth
 from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS, TCC_TASK_RESPONSE
-from tests.const import _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX
+from tests.const import _DBG_USE_REAL_AIOHTTP, _DBG_WAIT_FOR_COMM_TASKS, TEST_LOC_IDX
 
 from .common import (
     is_alive_v0,
@@ -665,6 +665,15 @@ async def test_dhw_urls(
 
 
 async def _wait_for_task(auth: Auth, response: TccTaskResponseT) -> None:
-    """Wait for the comm task of a PUT to succeed (GET /commTasks?commTaskId=...)."""
+    """Wait for the comm task of a PUT to succeed (GET /commTasks?commTaskId=...).
+
+    Only if _DBG_WAIT_FOR_COMM_TASKS, as per the v2 tests (wait_for_comm_task_id()).
+    Otherwise, do nothing (not even check its state once).
+
+    NOTE: test_v0_urls_auth.py always waits, as it needs the succeeded task.
+    """
+
+    if not _DBG_WAIT_FOR_COMM_TASKS:
+        return
 
     _ = await wait_for_comm_task_v0(auth, task_id_v0(response))
