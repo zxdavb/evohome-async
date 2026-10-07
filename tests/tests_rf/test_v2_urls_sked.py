@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from evohomeasync2.schemas.schedule import TCC_GET_ZON_SCHEDULE
-from tests.common import get_dhw, get_tcs
+from tests.common import get_dhw, get_zon
 
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
@@ -33,7 +33,8 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
-    zone = get_tcs(evo).zones[0]
+    if not (zone := get_zon(evo)):
+        pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
@@ -127,7 +128,8 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update(dont_update_status=True)
 
-    zone = get_tcs(evo).zones[0]
+    if not (zone := get_zon(evo)):
+        pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
@@ -205,7 +207,8 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
 
     # schedule: TccZonDailySchedulesT  # can't use this, as we GET without a schema
 
-    zone = get_tcs(evo).zones[0]
+    if not (zone := get_zon(evo)):
+        pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #

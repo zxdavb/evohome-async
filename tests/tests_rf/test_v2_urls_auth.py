@@ -39,7 +39,7 @@ from evohomeasync2.schemas.status import (
     TCC_GET_TCS_STATUS,
     TCC_GET_ZON_STATUS,
 )
-from tests.common import get_dhw, get_loc, get_tcs
+from tests.common import get_dhw, get_loc, get_tcs, get_zon
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from .common import error_codes, should_fail_v2, should_work_v2, skipif_auth_failed
@@ -354,7 +354,7 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
     # TODO: remove .update() and use URLs only
     await evo.update()
 
-    if not (zone := get_tcs(evo).zones[0]):
+    if not (zone := get_zon(evo)):
         pytest.skip("No available zones found")
 
     #

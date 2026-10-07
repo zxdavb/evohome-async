@@ -29,7 +29,7 @@ from evohomeasync2.schemas.const import (
     TccZoneMode,
 )
 from evohomeasync2.schemas.status import TCC_GET_DHW_STATUS, TCC_GET_LOC_STATUS
-from tests.common import get_loc
+from tests.common import get_dhw, get_loc, get_zon
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
@@ -53,19 +53,10 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     await evo.update(dont_update_status=True)
 
-    dhw: evo2.HotWater | None = None
+    if not (dhw := get_dhw(evo)):
+        pytest.skip("No available DHW found")
 
     loc = get_loc(evo)
-
-    for gwy in loc.gateways:
-        for tcs in gwy.systems:
-            if tcs.hotwater:
-                # if (dhw := tcs.hotwater) and dhw.temperatureStatus['isAvailable']:
-                dhw = tcs.hotwater
-                break
-
-    if dhw is None:
-        pytest.skip("No available DHW found")
 
     GET_URL = f"{dhw._TCC_TYPE}/{dhw.id}/status"
     PUT_URL = f"{dhw._TCC_TYPE}/{dhw.id}/state"
@@ -218,16 +209,7 @@ async def _test_task_id_zone(evo: EvohomeClientV2) -> None:
 
     await evo.update(dont_update_status=True)
 
-    loc = get_loc(evo)
-
-    for gwy in loc.gateways:
-        for tcs in gwy.systems:
-            if not tcs.zones:
-                continue
-            zone = tcs.zones[0]
-            break
-
-    if zone is None:
+    if not (zone := get_zon(evo)):
         pytest.skip("No available Zone found")
 
     GET_URL = f"{zone._TCC_TYPE}/{zone.id}/status"

@@ -19,7 +19,7 @@ from evohomeasync2.const import (
     SZ_ZONES,
     ZoneModelType,
 )
-from tests.common import get_loc, get_tcs
+from tests.common import get_dhw, get_loc, get_tcs, get_zon
 from tests.const import TEST_LOC_IDX
 
 from .conftest import FIXTURES_V2 as FIXTURES, auth_get
@@ -86,11 +86,13 @@ async def test_status_not_fetched(
 
     with pytest.raises(exc.NotFetchedError):
         _ = tcs.status
+    zone = get_zon(evo)
+    assert zone is not None  # the default/ fixture has zones
     with pytest.raises(exc.NotFetchedError):
-        _ = tcs.zones[0].status
-    if tcs.hotwater:
+        _ = zone.status
+    if dhw := get_dhw(evo):
         with pytest.raises(exc.NotFetchedError):
-            _ = tcs.hotwater.status
+            _ = dhw.status
 
 
 async def test_invalid_config(credentials_manager: TokenCacheManager) -> None:
