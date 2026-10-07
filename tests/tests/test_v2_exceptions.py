@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from http import HTTPStatus
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -9,10 +10,17 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from evohomeasync2 import EvohomeClient, Zone, exceptions as exc
-from evohomeasync2.const import SZ_MODEL_TYPE, ZoneModelType
+from evohomeasync2 import ControlSystem, EvohomeClient, Zone, exceptions as exc
+from evohomeasync2.const import (
+    SZ_GATEWAYS,
+    SZ_MODEL_TYPE,
+    SZ_TEMPERATURE_CONTROL_SYSTEMS,
+    SZ_ZONE_ID,
+    SZ_ZONES,
+    ZoneModelType,
+)
 
-from .conftest import FIXTURES_V2 as FIXTURES
+from .conftest import FIXTURES_V2 as FIXTURES, auth_get
 
 if TYPE_CHECKING:
     from evohome_cli.auth import TokenCacheManager
@@ -66,6 +74,27 @@ async def test_schedule_not_fetched(evohome_v2: EvohomeClient) -> None:
         _ = zone.this_switchpoint
     with pytest.raises(exc.NotFetchedError):
         _ = zone.next_switchpoint
+
+
+async def test_status_not_fetched(
+    credentials_manager: TokenCacheManager, fixture_folder: Path
+) -> None:
+    """Test the status attrs raise NotFetchedError until the status is fetched."""
+
+    evo = EvohomeClient(credentials_manager)
+
+    with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
+        await evo.update(dont_update_status=True)  # i.e. the config only
+
+    tcs = evo.locations[0].gateways[0].systems[0]
+
+    with pytest.raises(exc.NotFetchedError):
+        _ = tcs.status
+    with pytest.raises(exc.NotFetchedError):
+        _ = tcs.zones[0].status
+    if tcs.hotwater:
+        with pytest.raises(exc.NotFetchedError):
+            _ = tcs.hotwater.status
 
 
 async def test_invalid_config(credentials_manager: TokenCacheManager) -> None:
@@ -150,3 +179,41 @@ async def test_ghost_zone(evohome_v2: EvohomeClient) -> None:
 
     with pytest.raises(exc.GhostZoneError):
         Zone(zone.tcs, config)
+
+
+async def test_ghost_zone_skipped(evohome_v2: EvohomeClient) -> None:
+    """Test a TCS skips a ghost zone, and only that zone."""
+
+    assert evohome_v2._user_locs is not None  # mypy
+    tcs = evohome_v2.locations[0].gateways[0].systems[0]
+
+    config = copy.deepcopy(
+        evohome_v2._user_locs[0][SZ_GATEWAYS][0][SZ_TEMPERATURE_CONTROL_SYSTEMS][0]
+    )
+    ghost = config[SZ_ZONES][1]
+    ghost[SZ_MODEL_TYPE] = ZoneModelType.UNKNOWN
+
+    new_tcs = ControlSystem(tcs.gateway, config)
+
+    assert [z.id for z in new_tcs.zones] == [
+        z.id for z in tcs.zones if z.id != ghost[SZ_ZONE_ID]
+    ]
+    assert len(new_tcs.zones) == len(tcs.zones) - 1
+
+
+async def test_ghost_zone_other_errors(evohome_v2: EvohomeClient) -> None:
+    """Test a TCS skips only a GhostZoneError: any other InvalidConfigError is raised."""
+
+    assert evohome_v2._user_locs is not None  # mypy
+    tcs = evohome_v2.locations[0].gateways[0].systems[0]
+
+    config = evohome_v2._user_locs[0][SZ_GATEWAYS][0][SZ_TEMPERATURE_CONTROL_SYSTEMS][0]
+    error = exc.InvalidConfigError("Not a ghost zone")
+
+    with (
+        patch("evohomeasync2.control_system.Zone", side_effect=error),
+        pytest.raises(exc.InvalidConfigError) as err,
+    ):
+        ControlSystem(tcs.gateway, config)
+
+    assert err.value is error
