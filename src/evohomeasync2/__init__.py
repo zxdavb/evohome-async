@@ -8,7 +8,9 @@ Further information at: https://evohome-client.readthedocs.io
 from __future__ import annotations
 
 from .auth import AbstractTokenManager
+from .comm_task import CommTask
 from .const import (
+    CommTaskState,
     DayOfWeek,
     DhwState,
     FanMode,
@@ -33,6 +35,7 @@ from .exceptions import (
     BadApiResponseError,
     BadUserCredentialsError,
     ClientStateError,
+    CommTaskFailedError,
     EvohomeError,
     GhostZoneError,
     InvalidConfigError,
@@ -60,7 +63,9 @@ __all__ = [  # noqa: RUF022
     "ControlSystem",
     "Zone",
     "HotWater",
+    "CommTask",
     #
+    "CommTaskState",
     "DayOfWeek",
     "DhwState",
     "FanMode",
@@ -83,6 +88,7 @@ __all__ = [  # noqa: RUF022
     "BadApiResponseError",
     "BadUserCredentialsError",
     "ClientStateError",
+    "CommTaskFailedError",
     "EvohomeError",
     "GhostZoneError",
     "InvalidConfigError",

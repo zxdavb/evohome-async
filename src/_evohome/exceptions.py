@@ -9,7 +9,8 @@ They are grouped by what the caller can do about them:
   │   │   ├── AuthRateLimitExceededError  # - is also an AuthenticationFailedError
   │   ├── AuthenticationFailedError
   │   │   └── BadUserCredentialsError     # correct credentials before trying again
-  │   └── ApiCallRejectedError
+  │   ├── ApiCallRejectedError
+  │   └── CommTaskFailedError             # a PUT was accepted, but its task failed
   │
   ├── BadApiRequestError                  # the arguments are unusable (no API call)
   │   ├── InvalidModeRequestError
@@ -107,6 +108,14 @@ class ApiCallRejectedError(ApiCallFailedError):
     a 404. The request was sent, but the vendor refused it (so a PUT will not have
     changed anything), and trying again will not help. Unlike a BadApiRequestError,
     the arguments passed this library's checks.
+    """
+
+
+class CommTaskFailedError(ApiCallFailedError):
+    """The comm task of a PUT failed (its state is "Failed").
+
+    The PUT was accepted by the vendor, but the change did not reach the system (e.g.
+    the gateway is offline).
     """
 
 

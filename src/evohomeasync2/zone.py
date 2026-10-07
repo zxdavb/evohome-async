@@ -17,6 +17,7 @@ from _evohome.helpers import (
 )
 
 from . import exceptions as exc
+from .comm_task import CommTask
 from .const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_FAN_MODES,
@@ -399,8 +400,11 @@ class _ScheduleBase[
     async def set_schedule(
         self,
         schedule: list[DayT] | str,
-    ) -> None:
-        """Set the schedule for this DHW/zone object."""
+    ) -> CommTask:
+        """Set the schedule for this DHW/zone object.
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
 
         self._logger.debug(f"{self}: Setting schedule...")
 
@@ -430,11 +434,10 @@ class _ScheduleBase[
         schedule_ = {SZ_DAILY_SCHEDULES: schedule}
 
         url = f"{self._TCC_TYPE}/{self.id}/schedule"
-        _ = await self._auth.put(url, json=schedule_, schema=self.SCH_SCHEDULE)
+        response = await self._auth.put(url, json=schedule_, schema=self.SCH_SCHEDULE)
 
-        # TODO: check the status of the task
-
-        self._schedule = schedule
+        self._schedule = schedule  # NOTE: the comm task may yet fail
+        return CommTask.from_response(self._auth, response)
 
 
 class _ZoneBase[
@@ -650,8 +653,11 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, zon_mode: EvoSetZoneHeatSetpointT, /) -> None:
-        """Set the Zone mode (heating only; cooling is not exposed by the API)."""
+    async def _set_mode(self, zon_mode: EvoSetZoneHeatSetpointT, /) -> CommTask:
+        """Set the Zone mode, and return the vendor's comm task.
+
+        Heating only; cooling is not exposed by the API.
+        """
 
         # Issue a warning if we fail some basic sanity checks...
         if zon_mode[SZ_SETPOINT_MODE] not in self.allowed_modes:
@@ -671,7 +677,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             )
 
         url = f"{self._TCC_TYPE}/{self.id}/heatSetpoint"
-        _ = await self._auth.put(url, json=zon_mode)
+        response = await self._auth.put(url, json=zon_mode)
+        return CommTask.from_response(self._auth, response)
 
     async def set_mode(
         self,
@@ -680,13 +687,15 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         *,
         temperature: float | None = None,
         until: dt | str | None = None,
-    ) -> None:
+    ) -> CommTask:
         """Set the Zone to a (heating) mode, either indefinitely, or for a set time.
 
         Will accept a ZoneMode or a (snake_case) string for the 'mode'.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
         try:
@@ -732,11 +741,11 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
             zone_mode[SZ_TIME_UNTIL] = as_aware_dtm(until)
 
-        await self._set_mode(zone_mode)
+        return await self._set_mode(zone_mode)
 
-    async def reset(self) -> None:
+    async def reset(self) -> CommTask:
         """Cancel any override and allow the Zone to follow its schedule."""
-        await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
+        return await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
 
     # NOTE: no provision for cooling (not supported by API)
     async def set_temperature(
@@ -745,7 +754,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         /,
         *,
         until: dt | str | None = None,
-    ) -> None:
+    ) -> CommTask:
         """Set the temperature of the zone (no provision for cooling)."""
 
         mode = (
@@ -753,4 +762,4 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             if until is None
             else ZoneMode.TEMPORARY_OVERRIDE
         )
-        await self.set_mode(mode, temperature=temperature, until=until)
+        return await self.set_mode(mode, temperature=temperature, until=until)

@@ -21,6 +21,7 @@ from .const import (
     REGEX_TASK_ID,
     S2_CITY,
     S2_CODE,
+    S2_COMMTASK_ID,
     S2_COUNTRY,
     S2_ERROR,
     S2_FIRSTNAME,
@@ -29,6 +30,7 @@ from .const import (
     S2_LASTNAME,
     S2_MESSAGE,
     S2_POSTCODE,
+    S2_STATE,
     S2_STREET_ADDRESS,
     S2_USER_ID,
     S2_USERNAME,
@@ -37,11 +39,13 @@ from .const import (
     SZ_REFRESH_TOKEN,
     SZ_SCOPE,
     SZ_TOKEN_TYPE,
+    TccCommTaskState,
 )
+from .helpers import factory_enum_or_str
 
 if TYPE_CHECKING:
     from _evohome.helpers import Validator
-    from evohomeasync2.typedefs import EvoUsrAccountResponseT
+    from evohomeasync2.typedefs import EvoCommTaskResponseT, EvoUsrAccountResponseT
 
 
 #
@@ -132,6 +136,45 @@ def factory_task_response(case: Case = Case.VENDOR) -> Validator[TccTaskResponse
     )
 
 
+# GET /commTasks?commTaskId={task_id} responds with the state of that task
+class TccCommTaskResponseT(TypedDict):
+    """Typed dict for responses from the vendor servers for a comm task's state."""
+
+    commtaskId: str  # '1668279943' (NOTE: not commTaskId)
+    state: TccCommTaskState | str  # enum may be incomplete, so allow str
+
+
+@overload
+def factory_comm_task_response(case: Literal[Case.VENDOR] = ...) -> Validator[TccCommTaskResponseT]: ...
+
+
+@overload
+def factory_comm_task_response(case: Literal[Case.PYTHONIC]) -> Validator[EvoCommTaskResponseT]: ...
+
+
+@overload
+def factory_comm_task_response(case: Case) -> Validator[TccCommTaskResponseT] | Validator[EvoCommTaskResponseT]: ...
+
+
+def factory_comm_task_response(
+    case: Case = Case.VENDOR,
+) -> Validator[TccCommTaskResponseT] | Validator[EvoCommTaskResponseT]:
+    """Factory for the comm task response schema (the state of a PUT's task).
+
+    Only these keys have been observed (unlike for v0, which has many more).
+    """
+
+    fnc = noop if case is Case.VENDOR else camel_to_snake
+
+    return vol.Schema(
+        {
+            vol.Required(fnc(S2_COMMTASK_ID)): vol.Match(REGEX_TASK_ID),
+            vol.Required(fnc(S2_STATE)): factory_enum_or_str(case, TccCommTaskState),
+        },
+        extra=vol.ALLOW_EXTRA,
+    )
+
+
 def factory_failure_response(case: Case = Case.VENDOR) -> Validator[list[TccFailureResponseT]]:
     """Factory for the failure response schema (a failed GET / PUT)."""
 
@@ -216,6 +259,9 @@ TCC_FAILURE_RESPONSE: Final[Validator[list[TccFailureResponseT]]] = factory_fail
 
 # PUT successes (e.g. /temperatureZone/{zone_id}/heatSetpoint)
 TCC_TASK_RESPONSE: Final[Validator[TccTaskResponseT]] = factory_task_response()
+
+# GET /commTasks?commTaskId={task_id} (successes)
+TCC_GET_COMM_TASK: Final[Validator[TccCommTaskResponseT]] = factory_comm_task_response()
 
 # GET /userAccount (successes)
 TCC_GET_USR_ACCOUNT: Final[Validator[TccUsrAccountResponseT]] = factory_usr_account()
