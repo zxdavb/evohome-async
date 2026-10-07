@@ -27,7 +27,7 @@ import pytest
 import evohomeasync as evo0
 from _evohome.helpers import TCC_DTM_STRFTIME
 from evohomeasync.schemas import TCC_GET_USR_LOCS
-from tests.const import _DBG_USE_REAL_AIOHTTP, TIMEOUT_COMM_TASK, URL_BASE_V0
+from tests.const import _DBG_USE_REAL_AIOHTTP, TIMEOUT_COMM_TASK_V0, URL_BASE_V0
 
 from .common import (
     error_codes,
@@ -237,7 +237,7 @@ async def _wait_for_status(
     status: str | None = None
 
     try:
-        async with asyncio.timeout(TIMEOUT_COMM_TASK):
+        async with asyncio.timeout(TIMEOUT_COMM_TASK_V0):
             while True:
                 if (status := await _get_status(evo, dev_id)) == expected:
                     return status

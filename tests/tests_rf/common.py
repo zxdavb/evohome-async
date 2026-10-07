@@ -20,6 +20,7 @@ from tests.const import (
     _DBG_WAIT_FOR_COMM_TASKS,
     TEST_LOC_IDX,
     TIMEOUT_COMM_TASK,
+    TIMEOUT_COMM_TASK_V0,
     URL_BASE_V0,
     URL_BASE_V2,
 )
@@ -326,7 +327,7 @@ async def wait_for_comm_task_v0(
     it saw it, and its tests used "pending" otherwise. No other states are documented.
 
     Unlike the v2 tests, always waits (the caller needs the succeeded task), and skips
-    the test if it has not succeeded within TIMEOUT_COMM_TASK seconds.
+    the test if it has not succeeded within TIMEOUT_COMM_TASK_V0 seconds.
     """
 
     url = f"commTasks?commTaskId={task_id}"
@@ -341,7 +342,7 @@ async def wait_for_comm_task_v0(
 
             await asyncio.sleep(DEFAULT_INTERVAL)  # as per CommTask.wait()
 
-    return await _wait_or_skip(poll(), task_id)
+    return await _wait_or_skip(poll(), task_id, seconds=TIMEOUT_COMM_TASK_V0)
 
 
 # version 2 helpers ###################################################################
@@ -485,7 +486,7 @@ async def should_fail_v2(
     return response
 
 
-# the id of the first comm task (if any) that did not succeed within TIMEOUT_COMM_TASK
+# the id of the first comm task (if any) that did not succeed within its timeout
 _timed_out_comm_tasks: Final[list[str]] = []
 
 
@@ -498,8 +499,10 @@ def timed_out_comm_task() -> str | None:
     return _timed_out_comm_tasks[0] if _timed_out_comm_tasks else None
 
 
-async def _wait_or_skip[T](wait: Awaitable[T], task_id: str) -> T:
-    """Await a wait for a comm task to succeed, within TIMEOUT_COMM_TASK seconds.
+async def _wait_or_skip[T](
+    wait: Awaitable[T], task_id: str, *, seconds: float = TIMEOUT_COMM_TASK
+) -> T:
+    """Await a wait for a comm task to succeed, within the given seconds.
 
     Returns what the wait returns (e.g. the succeeded task).
 
@@ -509,16 +512,16 @@ async def _wait_or_skip[T](wait: Awaitable[T], task_id: str) -> T:
     seconds) is raised.
     """
 
-    timeout = asyncio.timeout(TIMEOUT_COMM_TASK)
+    cm = asyncio.timeout(seconds)
 
     try:
-        async with timeout:
+        async with cm:
             return await wait
     except TimeoutError:
-        if not timeout.expired():
+        if not cm.expired():
             raise
         _timed_out_comm_tasks.append(task_id)
-        pytest.skip(f"Comm task {task_id} did not succeed within {TIMEOUT_COMM_TASK}s")
+        pytest.skip(f"Comm task {task_id} did not succeed within {seconds}s")
 
 
 async def wait_for_comm_task_id(auth: evo2.auth.Auth, task_id: str) -> None:
