@@ -76,7 +76,6 @@ The request bodies are those of the older (non-async) client, which were in Pasc
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any
@@ -85,13 +84,8 @@ import pytest
 
 from _evohome import exceptions as exc
 from evohomeasync.auth import Auth
-from evohomeasync.schemas import (
-    TCC_GET_COMM_TASK,
-    TCC_GET_USR_INFO,
-    TCC_GET_USR_LOCS,
-    TCC_TASK_RESPONSE,
-)
-from tests.const import _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX, TIMEOUT_COMM_TASK
+from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS, TCC_TASK_RESPONSE
+from tests.const import _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX
 
 from .common import (
     is_alive_v0,
@@ -100,6 +94,7 @@ from .common import (
     skipif_auth_failed,
     status_of_v0,
     task_id_v0,
+    wait_for_comm_task_v0,
 )
 
 if TYPE_CHECKING:
@@ -107,7 +102,6 @@ if TYPE_CHECKING:
 
     from evohome_cli.auth import TokenCacheManager
     from evohomeasync.schemas import (
-        TccCommTaskResponseT,
         TccLocationResponseT,
         TccSessionResponseT,
         TccTaskResponseT,
@@ -668,40 +662,7 @@ async def test_dhw_urls(
 # A comm task
 
 
-async def get_comm_tasks(auth: Auth, tsk_id: int | str) -> TccCommTaskResponseT:
-    """Test GET /commTasks?commTaskId={tsk_id}
-
-    Returns the state of the comm task (as returned by a PUT), and what it acted upon:
-      {
-        "state": "Succeeded",
-        "started": "2026-09-22T20:08:04.053",  # TZ-naive
-        "finished": "2026-09-22T20:08:07.13",  # TZ-naive, and only once finished
-        "macId": "00D02D67C990",
-        "gatewayId": 2678129,
-        "deviceId": 6860918,
-        "activityId": "0187be9d-1f3c-41e7-abd6-28f5442feddd"
-      }
-
-    NOTE: the task's own id is not included. Only "Succeeded" is known to be terminal
-    (the older client polled until it saw it).
-    """
-
-    return TCC_GET_COMM_TASK(
-        await auth._make_request(
-            HTTPMethod.GET,
-            f"commTasks?commTaskId={tsk_id}",
-        )
-    )
-
-
 async def _wait_for_task(auth: Auth, response: TccTaskResponseT) -> None:
     """Wait for the comm task of a PUT to succeed (GET /commTasks?commTaskId=...)."""
 
-    task_id = task_id_v0(response)
-
-    async with asyncio.timeout(TIMEOUT_COMM_TASK):
-        while True:
-            task = await get_comm_tasks(auth, task_id)
-            if task["state"] == "Succeeded":
-                return
-            await asyncio.sleep(0.5)
+    _ = await wait_for_comm_task_v0(auth, task_id_v0(response))

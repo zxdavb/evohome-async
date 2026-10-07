@@ -12,6 +12,7 @@ import pytest
 
 import evohomeasync as evo0
 import evohomeasync2 as evo2
+from evohomeasync.schemas import TCC_GET_COMM_TASK
 from evohomeasync2.comm_task import DEFAULT_INTERVAL
 from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
 
     from _evohome.helpers import Validator
     from evohomeasync import EvohomeClient as EvohomeClientV0
-    from evohomeasync.schemas import TccDeviceResponseT
+    from evohomeasync.schemas import TccCommTaskResponseT, TccDeviceResponseT
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 if _DBG_USE_REAL_AIOHTTP:
@@ -304,25 +305,43 @@ def is_stale_task_v0(task: Mapping[str, Any], sent: dt) -> bool:
     return started < sent - _CLOCK_SKEW
 
 
-async def wait_for_comm_task_v0(auth: evo0.auth.Auth, task_id: str) -> dict[str, Any]:
+async def wait_for_comm_task_v0(
+    auth: evo0.auth.Auth, task_id: str
+) -> TccCommTaskResponseT:
     """Wait for a v0 communication task (API call) to succeed, and return it.
 
+    GET /commTasks?commTaskId={task_id} returns the state of the comm task (as returned
+    by a PUT), and what it acted upon (but not the task's own id):
+      {
+        "state": "Succeeded",
+        "started": "2026-09-22T20:08:04.053",  # TZ-naive
+        "finished": "2026-09-22T20:08:07.13",  # TZ-naive, and only once finished
+        "macId": "00D02D67C990",
+        "gatewayId": 2678129,
+        "deviceId": 6860918,
+        "activityId": "0187be9d-1f3c-41e7-abd6-28f5442feddd"
+      }
+
     Only "Succeeded" is known to be terminal: the older (non-async) client polled until
-    it saw it, and its tests used "pending" otherwise. No other states are documented,
-    so raises TimeoutError if it has not succeeded within TIMEOUT_COMM_TASK seconds.
+    it saw it, and its tests used "pending" otherwise. No other states are documented.
+
+    Unlike the v2 tests, always waits (the caller needs the succeeded task), and skips
+    the test if it has not succeeded within TIMEOUT_COMM_TASK seconds.
     """
 
     url = f"commTasks?commTaskId={task_id}"
 
-    async with asyncio.timeout(TIMEOUT_COMM_TASK):
+    async def poll() -> TccCommTaskResponseT:
         while True:
-            task = await should_work_v0(auth, HTTPMethod.GET, url)
-            assert isinstance(task, dict), task
-
+            task = await should_work_v0(
+                auth, HTTPMethod.GET, url, schema=TCC_GET_COMM_TASK
+            )
             if task["state"] == "Succeeded":
                 return task
 
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(DEFAULT_INTERVAL)  # as per CommTask.wait()
+
+    return await _wait_or_skip(poll(), task_id)
 
 
 # version 2 helpers ###################################################################
@@ -479,8 +498,10 @@ def timed_out_comm_task() -> str | None:
     return _timed_out_comm_tasks[0] if _timed_out_comm_tasks else None
 
 
-async def _wait_or_skip(wait: Awaitable[None], task_id: str) -> None:
+async def _wait_or_skip[T](wait: Awaitable[T], task_id: str) -> T:
     """Await a wait for a comm task to succeed, within TIMEOUT_COMM_TASK seconds.
+
+    Returns what the wait returns (e.g. the succeeded task).
 
     If the task has not succeeded by then (the vendor's gateway may be slow), skip the
     test (and, via timed_out_comm_task(), all those after it): that is not a failure of
@@ -492,7 +513,7 @@ async def _wait_or_skip(wait: Awaitable[None], task_id: str) -> None:
 
     try:
         async with timeout:
-            await wait
+            return await wait
     except TimeoutError:
         if not timeout.expired():
             raise
