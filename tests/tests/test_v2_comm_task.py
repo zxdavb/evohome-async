@@ -13,7 +13,6 @@ import pytest
 from _evohome.auth import AbstractAuth
 from evohomeasync2 import BadApiResponseError, CommTask, CommTaskFailedError
 from evohomeasync2.const import CommTaskState
-from tests.common import get_dhw
 
 from .conftest import FIXTURES_V2 as FIXTURES
 from .const import PUT_RESPONSE_V2
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from unittest.mock import AsyncMock as AsyncMockT
 
-    from evohomeasync2 import EvohomeClient, Zone
+    from evohomeasync2 import HotWater, Zone
     from evohomeasync2.auth import Auth
 
 
@@ -83,40 +82,38 @@ async def test_put_returns_comm_task(
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
 
-async def test_set_schedule_returns_comm_task(
-    evohome_v2: EvohomeClient,
-    zone: Zone,
-) -> None:
-    """Check set_schedule() of a zone and of a DHW returns the PUT's comm task."""
+async def test_zon_set_schedule_returns_comm_task(zone: Zone) -> None:
+    """Check set_schedule() of a zone returns the PUT's comm task."""
 
-    zon_schedule = await zone.get_schedule()
+    schedule = await zone.get_schedule()
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
         new_callable=AsyncMock,
         return_value=PUT_RESPONSE_V2,
     ) as mock_request:
-        task = await zone.set_schedule(zon_schedule)
+        task = await zone.set_schedule(schedule)
 
     assert isinstance(task, CommTask)
     assert task.id == TASK_ID
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
-    if (dhw := get_dhw(evohome_v2)) is None:
-        return
 
-    dhw_schedule = await dhw.get_schedule()
+async def test_dhw_set_schedule_returns_comm_task(dhw: HotWater) -> None:
+    """Check set_schedule() of a DHW returns the PUT's comm task."""
+
+    schedule = await dhw.get_schedule()
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
         new_callable=AsyncMock,
         return_value=PUT_RESPONSE_V2,
     ) as mock_request:
-        task = await dhw.set_schedule(dhw_schedule)
+        task = await dhw.set_schedule(schedule)
 
     assert isinstance(task, CommTask)
     assert task.id == TASK_ID
-    mock_request.assert_awaited_once()
+    mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
 
 async def test_put_with_bad_response(
