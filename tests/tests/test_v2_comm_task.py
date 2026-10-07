@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from unittest.mock import AsyncMock as AsyncMockT
 
     from evohomeasync2 import EvohomeClient, Zone
+    from evohomeasync2.auth import Auth
 
 
 TASK_ID = PUT_RESPONSE_V2["id"]
@@ -135,10 +136,10 @@ async def test_put_with_bad_response(
 
 
 @pytest.mark.parametrize("as_list", [False, True], ids=["dict", "list"])
-async def test_get_state(evohome_v2: EvohomeClient, *, as_list: bool) -> None:
+async def test_get_state(auth: Auth, *, as_list: bool) -> None:
     """Check get_state() GETs the task's state (the vendor may wrap it in a list)."""
 
-    task = CommTask(evohome_v2.auth, TASK_ID)
+    task = CommTask(auth, TASK_ID)
     response = [_task("Running")] if as_list else _task("Running")
 
     with patch_request(
@@ -149,10 +150,10 @@ async def test_get_state(evohome_v2: EvohomeClient, *, as_list: bool) -> None:
     mock_request.assert_awaited_once_with(HTTPMethod.GET, URL)
 
 
-async def test_get_state_unknown(evohome_v2: EvohomeClient) -> None:
+async def test_get_state_unknown(auth: Auth) -> None:
     """Check get_state() tolerates an unknown state (passed thru as a str)."""
 
-    task = CommTask(evohome_v2.auth, TASK_ID)
+    task = CommTask(auth, TASK_ID)
 
     with patch_request(
         return_value=_task("Postponed"),
@@ -160,10 +161,10 @@ async def test_get_state_unknown(evohome_v2: EvohomeClient) -> None:
         assert await task.get_state() == "postponed"
 
 
-async def test_get_state_wrong_task(evohome_v2: EvohomeClient) -> None:
+async def test_get_state_wrong_task(auth: Auth) -> None:
     """Check get_state() raises BadApiResponseError if the vendor returns another task."""
 
-    task = CommTask(evohome_v2.auth, TASK_ID)
+    task = CommTask(auth, TASK_ID)
 
     with (
         patch_request(
@@ -174,10 +175,10 @@ async def test_get_state_wrong_task(evohome_v2: EvohomeClient) -> None:
         await task.get_state()
 
 
-async def test_wait_succeeds(evohome_v2: EvohomeClient) -> None:
+async def test_wait_succeeds(auth: Auth) -> None:
     """Check wait() polls until the task succeeds (an unknown state isn't terminal)."""
 
-    task = CommTask(evohome_v2.auth, TASK_ID)
+    task = CommTask(auth, TASK_ID)
     states = ["Created", "Running", "Postponed", "Repeated", "Succeeded"]
 
     with patch_request(
@@ -188,10 +189,10 @@ async def test_wait_succeeds(evohome_v2: EvohomeClient) -> None:
     assert mock_request.await_count == len(states)
 
 
-async def test_wait_fails(evohome_v2: EvohomeClient) -> None:
+async def test_wait_fails(auth: Auth) -> None:
     """Check wait() raises CommTaskFailedError if the task fails."""
 
-    task = CommTask(evohome_v2.auth, TASK_ID)
+    task = CommTask(auth, TASK_ID)
 
     with (
         patch_request(

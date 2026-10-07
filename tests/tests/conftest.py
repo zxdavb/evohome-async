@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from _evohome.helpers import Validator
     from evohome_cli.auth import TokenCacheManager
     from evohomeasync2 import ControlSystem, HotWater, Zone
+    from evohomeasync2.auth import Auth
 
 
 type JsonValueType = (
@@ -231,6 +232,12 @@ async def evohome_v2(
             yield evo
         finally:
             pass
+
+
+@pytest.fixture
+def auth(evohome_v2: EvohomeClientV2) -> Auth:
+    """Return the Auth object of the client (e.g. to create a CommTask)."""
+    return evohome_v2.auth
 
 
 @pytest.fixture

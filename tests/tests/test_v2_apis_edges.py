@@ -26,7 +26,8 @@ from .const import PUT_RESPONSE_V2
 if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
 
-    from evohomeasync2 import ControlSystem, EvohomeClient
+    from evohomeasync2 import ControlSystem
+    from evohomeasync2.auth import Auth
 
 
 # Fixtures with old/new system modes to test fallback and error handling logic
@@ -44,17 +45,15 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 
 async def test_ctl_reset_emulates_auto_with_reset(
-    evohome_v2: EvohomeClient,
+    auth: Auth,
     tcs: ControlSystem,
 ) -> None:
     """ControlSystem.reset() should emulate `AutoWithReset` if it is unavailable."""
 
     # each emulated PUT returns its own comm task, to check their order
-    tcs_task = CommTask(evohome_v2.auth, "1000000001")
-    zon_tasks = [
-        CommTask(evohome_v2.auth, str(2000000001 + i)) for i in range(len(tcs.zones))
-    ]
-    dhw_task = CommTask(evohome_v2.auth, "3000000001")
+    tcs_task = CommTask(auth, "1000000001")
+    zon_tasks = [CommTask(auth, str(2000000001 + i)) for i in range(len(tcs.zones))]
+    dhw_task = CommTask(auth, "3000000001")
 
     with (
         patch.object(
