@@ -53,7 +53,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from evohomeasync import EvohomeClient as EvohomeClientV0
-    from evohomeasync.schemas import TccDeviceResponseT
+    from evohomeasync.schemas import TccDeviceResponseT, TccLocationResponseT
 
 
 async def _test_usr_locations(evo: EvohomeClientV0) -> None:
@@ -192,15 +192,20 @@ _ZON_REVERT = {"Value": None, "Status": "Scheduled", "NextTime": None}
 _DHW_MODES = ("DHWOn", "DHWOff")
 
 
-async def _get_devices(evo: EvohomeClientV0) -> list[TccDeviceResponseT]:
-    """Return all the (vendor-cased) devices of the location under test."""
+async def _get_location(evo: EvohomeClientV0) -> TccLocationResponseT:
+    """Return the (vendor-cased) location under test."""
 
     usr_id: int = evo.user_account["user_id"]
 
     url = f"locations?userId={usr_id}&allData=True"
     locs = await should_work_v0(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
 
-    return locs[TEST_LOC_IDX]["devices"]
+    return locs[TEST_LOC_IDX]
+
+
+async def _get_devices(evo: EvohomeClientV0) -> list[TccDeviceResponseT]:
+    """Return all the (vendor-cased) devices of the location under test."""
+    return (await _get_location(evo))["devices"]
 
 
 async def _get_status(evo: EvohomeClientV0, dev_id: int) -> str | None:
@@ -304,7 +309,12 @@ async def _test_zon_heat_setpoint(evo: EvohomeClientV0) -> None:
 
     url = f"devices/{dev_id}/thermostat/changeableValues/heatSetpoint"
 
-    now = dt.now(tz=UTC).replace(minute=0, second=0, microsecond=0)
+    # the location's wall-clock time, as the vendor treats NextTime as such (and so
+    # ignores its Z), else the overrides would be shorter/longer (or in the past)
+    offset: int = (await _get_location(evo))["timeZone"]["currentOffsetMinutes"]
+    now = (dt.now(tz=UTC) + td(minutes=offset)).replace(
+        minute=0, second=0, microsecond=0
+    )
 
     for hours, keys in (
         (2, ("Value", "Status", "NextTime")),  # PascalCase (as the older client)

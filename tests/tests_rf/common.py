@@ -340,6 +340,9 @@ async def wait_for_comm_task_v0(
             if task["state"] == "Succeeded":
                 return task
 
+            if task["state"] == "Failed":  # is terminal, as is Succeeded
+                pytest.fail(f"Comm task {task_id} failed: {task}")
+
             await asyncio.sleep(DEFAULT_INTERVAL)  # as per CommTask.wait()
 
     return await _wait_or_skip(poll(), task_id, seconds=TIMEOUT_COMM_TASK_V0)
