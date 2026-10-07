@@ -127,7 +127,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     task_id = result[0]["id"] if isinstance(result, list) else result["id"]
 
-    assert int(task_id)  # should_work_v2() waited for it (see wait_for_comm_task_v2())
+    assert int(task_id)  # should_work_v2() waited for it (see wait_for_comm_task_id())
 
     #
     # PART 2A: Try different capitalisations of the JSON keys...
@@ -140,7 +140,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
         evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode
     )  # HTTP 201
 
-    # _ = await wait_for_comm_task_v2(evo.auth, task_id)
+    # _ = await wait_for_comm_task_id(evo.auth, task_id)
 
     if _DBG_TEST_UNUSED_APIS:
         _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
@@ -154,7 +154,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     }
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
 
-    # _ = await wait_for_comm_task_v2(evo.auth, task_id)
+    # _ = await wait_for_comm_task_id(evo.auth, task_id)
 
     if _DBG_TEST_UNUSED_APIS:
         _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
@@ -163,7 +163,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     # PART 3: Restore the original mode
     _ = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=old_mode)
 
-    # _ = await wait_for_comm_task_v2(evo.auth, task_id)
+    # _ = await wait_for_comm_task_id(evo.auth, task_id)
 
     if _DBG_TEST_UNUSED_APIS:
         _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)

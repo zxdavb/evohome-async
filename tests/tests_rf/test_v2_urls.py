@@ -98,7 +98,7 @@ from evohomeasync2.schemas.status import (
 )
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX
 
-from .common import skipif_auth_failed, wait_for_comm_task_v2
+from .common import skipif_auth_failed, wait_for_comm_task_id
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -135,12 +135,12 @@ async def _put(
 ) -> TccTaskResponseT:
     """PUT a (valid) request and return its comm task, e.g. {"id": "1668279943"}.
 
-    Then, wait for the task to succeed (see wait_for_comm_task_v2()).
+    Then, wait for the task to succeed (see wait_for_comm_task_id()).
     """
 
     task = TCC_TASK_RESPONSE(await auth._make_request(HTTPMethod.PUT, url, json=json))
 
-    await wait_for_comm_task_v2(auth, task["id"])
+    await wait_for_comm_task_id(auth, task["id"])
 
     return task
 

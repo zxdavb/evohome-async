@@ -145,7 +145,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
 
     assert isinstance(status, dict | list)  # mypy
-    # should_work_v2() waits for the task to succeed (see wait_for_comm_task_v2())
+    # should_work_v2() waits for the task to succeed (see wait_for_comm_task_id())
 
     #
     # STEP 3: check the new schedule was effected

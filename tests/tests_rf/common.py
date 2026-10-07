@@ -278,7 +278,7 @@ async def should_work_v2[T](
 
     Used to document the behaviour of a 'real' server and to validate the faked server.
 
-    After a PUT, wait for its comm task to succeed (see wait_for_comm_task_v2()).
+    After a PUT, wait for its comm task to succeed (see wait_for_comm_task_id()).
     """
 
     response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
@@ -309,7 +309,7 @@ async def should_work_v2[T](
 
     if method == HTTPMethod.PUT:
         task = response[0] if isinstance(response, list) else response
-        await wait_for_comm_task_v2(auth, task["id"])  # e.g. {"id": "1668279943"}
+        await wait_for_comm_task_id(auth, task["id"])  # e.g. {"id": "1668279943"}
 
     return schema(response) if schema else response  # may raise vol.Invalid
 
@@ -376,7 +376,7 @@ async def should_fail_v2(
     return response
 
 
-async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> None:
+async def wait_for_comm_task_id(auth: evo2.auth.Auth, task_id: str) -> None:
     """Wait for a comm task (i.e. of an earlier PUT) to succeed.
 
     Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), poll the task's
@@ -409,7 +409,7 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> None:
             await asyncio.sleep(1.0)  # as per CommTask.wait()
 
 
-async def wait_for_comm_task(task: evo2.CommTask) -> None:
+async def wait_for_comm_task_obj(task: evo2.CommTask) -> None:
     """Wait for the comm task returned by a client method (i.e. of its PUT) to succeed.
 
     Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), wait for the
