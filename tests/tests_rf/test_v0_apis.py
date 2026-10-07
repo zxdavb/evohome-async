@@ -21,7 +21,7 @@ import pytest
 import evohomeasync as evo0
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
-from .common import skipif_auth_failed
+from .common import get_loc, skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohomeasync import EvohomeClient as EvohomeClientV0
@@ -96,8 +96,8 @@ async def _test_tcs_apis(evo: EvohomeClientV0) -> None:
 
     await evo.update()
 
-    if not (loc := next((x for x in evo.locations if _is_evohome(x)), None)):
-        pytest.skip("No evohome location found")
+    if not _is_evohome(loc := get_loc(evo)):
+        pytest.skip("The location under test is not an evohome system")
 
     # PUT /evoTouchSystems?locationId={loc_id}
     # NOTE: the vendor has removed this URL, so all the TCS set_*() methods now fail
@@ -119,15 +119,8 @@ async def _test_dhw_apis(evo: EvohomeClientV0) -> None:
 
     await evo.update()
 
-    dhw = next(
-        (
-            loc.hotwater
-            for loc in evo.locations
-            if loc.hotwater and _is_live(loc.hotwater)
-        ),
-        None,
-    )
-    if dhw is None:
+    dhw = get_loc(evo).hotwater
+    if dhw is None or not _is_live(dhw):
         pytest.skip("No live DHW found")
 
     until = dt.now(tz=UTC) + td(hours=1)
@@ -156,10 +149,7 @@ async def _test_zon_apis(evo: EvohomeClientV0) -> None:
 
     await evo.update()
 
-    zone = next(
-        (z for loc in evo.locations for z in loc.zones if _is_live_and_scheduled(z)),
-        None,
-    )
+    zone = next((z for z in get_loc(evo).zones if _is_live_and_scheduled(z)), None)
     if zone is None:
         pytest.skip("No live zone found that is following its schedule")
 

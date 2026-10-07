@@ -27,7 +27,12 @@ import pytest
 import evohomeasync as evo0
 from _evohome.helpers import TCC_DTM_STRFTIME
 from evohomeasync.schemas import TCC_GET_USR_LOCS
-from tests.const import _DBG_USE_REAL_AIOHTTP, TIMEOUT_COMM_TASK_V0, URL_BASE_V0
+from tests.const import (
+    _DBG_USE_REAL_AIOHTTP,
+    TEST_LOC_IDX,
+    TIMEOUT_COMM_TASK_V0,
+    URL_BASE_V0,
+)
 
 from .common import (
     error_codes,
@@ -188,14 +193,14 @@ _DHW_MODES = ("DHWOn", "DHWOff")
 
 
 async def _get_devices(evo: EvohomeClientV0) -> list[TccDeviceResponseT]:
-    """Return all the (vendor-cased) devices of all the user's locations."""
+    """Return all the (vendor-cased) devices of the location under test."""
 
     usr_id: int = evo.user_account["user_id"]
 
     url = f"locations?userId={usr_id}&allData=True"
     locs = await should_work_v0(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
 
-    return [d for loc in locs for d in loc["devices"]]
+    return locs[TEST_LOC_IDX]["devices"]
 
 
 async def _get_status(evo: EvohomeClientV0, dev_id: int) -> str | None:
