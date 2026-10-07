@@ -149,6 +149,44 @@ async def test_bad2(  # bad session id
     assert evohome_v0._session_manager.is_session_valid() is False
 
 
+async def test_bad3(  # rate limit exceeded (authentication)
+    credentials: tuple[str, str],
+    evohome_v0: EvohomeClient,
+) -> None:
+    """Test authentication flow when the vendor's rate limit is exceeded."""
+
+    retry_after = 120
+
+    # pre-requisite data (no session_id)
+    evohome_v0._session_manager.clear_session_id()
+
+    assert evohome_v0._session_manager.is_session_valid() is False
+
+    # TEST 3: too many authentications -> HTTPStatus.TOO_MANY_REQUESTS
+    with aioresponses() as rsp:
+        rsp.post(
+            URL_CRED_V0,
+            status=HTTPStatus.TOO_MANY_REQUESTS,
+            payload=[{"code": "TooManyRequests", "message": "..."}],
+            headers={"Retry-After": str(retry_after)},
+        )
+
+        with pytest.raises(exc.AuthRateLimitExceededError) as err:
+            await evohome_v0.update()
+
+        assert isinstance(err.value, exc.ApiRateLimitExceededError)
+        assert isinstance(err.value, exc.AuthenticationFailedError)
+
+        assert err.value.status == HTTPStatus.TOO_MANY_REQUESTS
+        assert err.value.retry_after == retry_after
+        assert len(rsp.requests) == 1
+
+        # response 0: Too many requests
+        rsp.assert_called_once_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
+
+    assert evohome_v0._session_manager.is_session_valid() is False
+
+
 async def test_good(  # good credentials
     credentials: tuple[str, str],
     evohome_v0: EvohomeClient,

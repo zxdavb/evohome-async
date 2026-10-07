@@ -169,9 +169,6 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
     def temperature_status(self) -> EvoTemperatureStatusT:
         """Expose the temperature_status as per the v2 API."""
 
-        if self._status is None:
-            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
-
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
 
@@ -281,9 +278,6 @@ class Zone(_DeviceBase):  # Zone version of a Device
     @property  # emulate the v2 API...
     def temperature_status(self) -> EvoTemperatureStatusT:
         """Expose the temperature_status as per the v2 API."""
-
-        if self._status is None:
-            raise exc.InvalidStatusError(f"{self} has no state, has it been fetched?")
 
         temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
         temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]

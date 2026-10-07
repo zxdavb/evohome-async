@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 async def test_update_v0(evohome_v0: EvohomeClientV0) -> None:
     """Make a minimal test of instantiation/update of the v0 client."""
 
-    with pytest.raises(exc.InvalidConfigError):
+    with pytest.raises(exc.NotFetchedError):
         assert evohome_v0.user_account
 
     await evohome_v0.update()
@@ -40,7 +40,7 @@ async def test_update_v0(evohome_v0: EvohomeClientV0) -> None:
 async def test_update_v2(evohome_v2: EvohomeClientV2) -> None:
     """Make a minimal test of instantiation/update of the v2 client."""
 
-    with pytest.raises(exc.InvalidConfigError):
+    with pytest.raises(exc.NotFetchedError):
         assert evohome_v2.user_account
 
     await evohome_v2.update(dont_update_status=True)
