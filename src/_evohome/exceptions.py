@@ -24,6 +24,7 @@ They are grouped by what the caller can do about them:
   │
   └── ClientStateError                    # the client lacks the data: fetch it first
       ├── NotFetchedError                 # - config, status or schedule data absent
+      ├── StaleConfigError
       └── NoSingleTcsError
 """
 
@@ -173,6 +174,15 @@ class NotFetchedError(ClientStateError):
 
     This is likely because the user has not yet called `EvohomeClient.update()`,
     `Location.update()` or `Zone.get_schedule()`.
+    """
+
+
+class StaleConfigError(ClientStateError):
+    """The config JSON is inconsistent with the latest status JSON.
+
+    For example, an entity (e.g. a zone) that is in the config is absent from the
+    status, or a location is no longer accessible. This is likely because the
+    installation has been changed since the config was fetched.
     """
 
 

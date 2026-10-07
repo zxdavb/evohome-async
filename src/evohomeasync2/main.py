@@ -114,6 +114,7 @@ class EvohomeClient:
         /,
         *,
         dont_update_status: bool = False,
+        raise_on_stale_config: bool = False,
         _reset_config: bool = False,  # for use by test suite
     ) -> list[EvoLocConfigResponseT]:
         """Retrieve the config of the user's locations, and then their status.
@@ -121,6 +122,10 @@ class EvohomeClient:
         Kept for compatibility: use `setup()`, and then `Location.get_status()`.
 
         If `dont_update_status` is true, is the same as `setup()`.
+
+        If `raise_on_stale_config` is true, a location's status that omits any of its
+        known entities raises StaleConfigError, rather than logging a warning (see
+        `Location.get_status()`).
         """
 
         is_new_config = _reset_config or self._locations is None
@@ -136,7 +141,7 @@ class EvohomeClient:
                 )
 
             for loc in self.locations:
-                await loc.get_status()
+                await loc.get_status(raise_on_stale_config=raise_on_stale_config)
 
         assert self._user_locs is not None  # mypy
         return self._user_locs

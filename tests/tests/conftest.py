@@ -10,8 +10,10 @@ from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
 import aiohttp
+import probatio as vol
 import pytest
 
+from _evohome import exceptions as exc
 from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync import EvohomeClient as EvohomeClientV0
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
@@ -127,24 +129,31 @@ def location_status_fixture(folder: Path, loc_id: str) -> JsonObjectType:
     return _load_fixture(folder, f"status_{loc_id}.json")  # type: ignore[return-value]
 
 
-def zone_schedule_fixture(folder: Path, zon_type: str) -> JsonObjectType:
-    """Load the JSON of the schedule of a dhw/zone."""
-    return _load_schedule_fixture(
-        folder, f"schedule_{'dhw' if zon_type == 'domesticHotWater' else 'zone'}.json"
-    )  # type: ignore[return-value]
+def zone_schedule_fixture(folder: Path, zon_type: str, zon_id: str) -> JsonObjectType:
+    """Load the JSON of the schedule of a dhw/zone.
+
+    Use the dhw/zone's own schedule (schedule_{id}.json), if the fixture has one.
+    """
+
+    try:
+        schedule = load_fixture(folder / f"schedule_{zon_id}.json")
+    except FileNotFoundError:
+        schedule = _load_schedule_fixture(
+            folder,
+            f"schedule_{'dhw' if zon_type == 'domesticHotWater' else 'zone'}.json",
+        )
+
+    assert isinstance(schedule, dict), schedule  # a schedule is a JSON object
+    return schedule
 
 
 def auth_get(fixture: Path) -> Callable[[Any, str, Validator[Any]], Any]:
     """Return a mock of Auth.get() for both v0 and v2 API."""
 
-    async def get[T](  # type: ignore[no-untyped-def]
-        self,  # noqa: ANN001
-        url: str,
-        /,
-        schema: Validator[T],
-    ) -> T:
+    def _get[T](url: str, schema: Validator[T]) -> T:
         # mirror what auth.request() + auth.get() do: snake-case keys, then apply
         # the schema the model passes (it is required) so enum values are coerced to members
+        # (a failure of that schema is wrapped by get(), below)
         data: object
 
         # "accountInfo"
@@ -177,11 +186,24 @@ def auth_get(fixture: Path) -> Callable[[Any, str, Validator[Any]], Any]:
         # f"{_TCC_TYPE}/{id}/schedule"
         if "schedule" in url:
             data = convert_keys_to_snake_case(
-                zone_schedule_fixture(fixture, url.split("/", maxsplit=1)[0])
+                zone_schedule_fixture(fixture, *url.split("/")[:2])
             )
             return schema(data)
 
         pytest.fail(f"Unexpected/unknown URL: {url}")
+
+    async def get[T](  # type: ignore[no-untyped-def]
+        self,  # noqa: ANN001
+        url: str,
+        /,
+        schema: Validator[T],
+    ) -> T:
+        try:
+            return _get(url, schema)
+        except vol.Invalid as err:  # as does Auth.get()
+            raise exc.BadApiResponseError(
+                f"GET {url}: response failed validation: {err}"
+            ) from err
 
     return get
 

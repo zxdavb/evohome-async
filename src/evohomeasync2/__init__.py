@@ -46,6 +46,7 @@ from .exceptions import (
     InvalidSystemModeError,
     NoSingleTcsError,
     NotFetchedError,
+    StaleConfigError,
 )
 from .gateway import Gateway
 from .hotwater import HotWater
@@ -98,4 +99,5 @@ __all__ = [  # noqa: RUF022
     "InvalidSystemModeError",  # deprecated alias for InvalidModeRequestError
     "NoSingleTcsError",
     "NotFetchedError",
+    "StaleConfigError",
 ]

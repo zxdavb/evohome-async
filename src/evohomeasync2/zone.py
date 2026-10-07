@@ -8,7 +8,7 @@ from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
-from _evohome.const import _ERR_NO_STATUS
+from _evohome.const import _ERR_NO_SCHEDULE, _ERR_NO_STATUS
 from _evohome.helpers import (
     Case,
     as_aware_dtm,
@@ -277,10 +277,10 @@ class _ScheduleBase[
 
     SCH_SCHEDULE: Validator[_DailySchedulesT[DayT]]
 
-    _schedule: list[DayT] | None = None
+    _schedule: list[DayT] | None = None  # None: not fetched, []: there is no schedule
 
-    _this_switchpoint: _SwitchPoint  # is float for zones...
-    _next_switchpoint: _SwitchPoint  # and str for DHW
+    # this/next switchpoints (each has a float for zones, and a str for DHW)
+    _switchpoints: tuple[_SwitchPoint, _SwitchPoint] | None = None
 
     location: Location  # used to get tzinfo
 
@@ -288,39 +288,54 @@ class _ScheduleBase[
 
     @property
     def schedule(self) -> list[DayT]:
-        """Return the schedule (assumes it is current)."""
+        """Return the schedule (assumes it is current).
 
-        if self._schedule is None:
-            raise exc.NotFetchedError(f"{self}: No schedule, has it been fetched?")
-        if not self._schedule:
-            raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
+        The schedule is an empty list if the DHW/zone has no schedule.
+        """
+
+        if self._schedule is None:  # never fetched (successfully)
+            raise exc.NotFetchedError(_ERR_NO_SCHEDULE.format(self))
 
         return self._schedule
 
     @property
-    def this_switchpoint(self) -> _SwitchPoint:
-        """Return the start datetime and setpoint of the current switchpoint."""
+    def this_switchpoint(self) -> _SwitchPoint | None:
+        """Return the start datetime and setpoint of the current switchpoint.
 
-        _ = self.schedule  # will raise an exception if there is no (valid) schedule
+        Return None if the DHW/zone has no schedule.
+        """
 
-        if self._next_switchpoint[0] > (dt_now := dt.now(tz=UTC)):
-            return self._this_switchpoint
-
-        self._this_switchpoint, self._next_switchpoint = self._find_switchpoints(dt_now)
-        return self._this_switchpoint
+        if (switchpoints := self._current_switchpoints()) is None:
+            return None
+        return switchpoints[0]
 
     @property
-    def next_switchpoint(self) -> _SwitchPoint:
-        """Return the start datetime and setpoint of the next switchpoint."""
+    def next_switchpoint(self) -> _SwitchPoint | None:
+        """Return the start datetime and setpoint of the next switchpoint.
 
-        _ = self.schedule  # will raise an exception if there is no (valid) schedule
+        Return None if the DHW/zone has no schedule.
+        """
 
-        if self._next_switchpoint[0] > (dt_now := dt.now(tz=UTC)):
-            return self._next_switchpoint
+        if (switchpoints := self._current_switchpoints()) is None:
+            return None
+        return switchpoints[1]
 
-        self._this_switchpoint, self._next_switchpoint = self._find_switchpoints(dt_now)
+    def _current_switchpoints(self) -> tuple[_SwitchPoint, _SwitchPoint] | None:
+        """Return the this/next switchpoints, or None if there is no schedule.
 
-        return self._next_switchpoint
+        Raise NotFetchedError if the schedule has not been fetched, and
+        InvalidScheduleError if the switchpoints can't be found in the schedule.
+        """
+
+        if not (schedule := self.schedule):
+            return None
+
+        dt_now = dt.now(tz=UTC)
+
+        if self._switchpoints is None or self._switchpoints[1][0] <= dt_now:
+            self._switchpoints = self._find_switchpoints(schedule, dt_now)
+
+        return self._switchpoints
 
     async def get_schedule(self) -> list[DayT]:
         """Get the schedule for this DHW/zone object."""
@@ -348,15 +363,24 @@ class _ScheduleBase[
                 ) from err
             raise
 
-        self._schedule = response[SZ_DAILY_SCHEDULES]
+        schedule = response[SZ_DAILY_SCHEDULES]  # is [] if there is no schedule
 
-        self._this_switchpoint, self._next_switchpoint = self._find_switchpoints(
-            dt.now(tz=UTC)
-        )
+        try:  # check the switchpoints can be found, before storing the schedule
+            switchpoints = (
+                self._find_switchpoints(schedule, dt.now(tz=UTC)) if schedule else None
+            )
+        except exc.InvalidScheduleError as err:
+            raise exc.InvalidScheduleError(
+                f"{self}: Schedule is invalid: {err}"
+            ) from err
+
+        self._schedule, self._switchpoints = schedule, switchpoints
 
         return self._schedule
 
-    def _find_switchpoints(self, dtm: dt) -> tuple[_SwitchPoint, _SwitchPoint]:
+    def _find_switchpoints(
+        self, schedule: list[DayT], dtm: dt
+    ) -> tuple[_SwitchPoint, _SwitchPoint]:
         """Find the current (this) and next switchpoints for a given datetime.
 
         FYI: HA has traditionally exposed (as an extended_state_attr):
@@ -371,7 +395,7 @@ class _ScheduleBase[
         dtm = as_local_time(dtm, self.location.tzinfo)
 
         this_sp, this_offset, next_sp, next_offset = _find_switchpoints(
-            self.schedule, *_dt_to_dow_and_tod(dtm, self.location.tzinfo)
+            schedule, *_dt_to_dow_and_tod(dtm, self.location.tzinfo)
         )
 
         this_tod = tm.fromisoformat(this_sp[SZ_TIME_OF_DAY])
@@ -437,6 +461,7 @@ class _ScheduleBase[
         response = await self._auth.put(url, json=schedule_, schema=self.SCH_SCHEDULE)
 
         self._schedule = schedule  # NOTE: the comm task may yet fail
+        self._switchpoints = None  # will be found from the new schedule, when needed
         return CommTask.from_response(self._auth, response)
 
 
