@@ -135,13 +135,12 @@ def zone_schedule_fixture(folder: Path, zon_type: str, zon_id: str) -> JsonObjec
     try:
         schedule = load_fixture(folder / f"schedule_{zon_id}.json")
     except FileNotFoundError:
-        pass
-    else:
-        assert isinstance(schedule, dict), schedule  # a schedule is a JSON object
-        return schedule
-    return _load_schedule_fixture(
-        folder, f"schedule_{'dhw' if zon_type == 'domesticHotWater' else 'zone'}.json"
-    )  # type: ignore[return-value]
+        schedule = _load_schedule_fixture(
+            folder,
+            f"schedule_{'dhw' if zon_type == 'domesticHotWater' else 'zone'}.json",
+        )
+    assert isinstance(schedule, dict), schedule  # a schedule is a JSON object
+    return schedule
 
 
 def auth_get(fixture: Path) -> Callable[[Any, str, Validator[Any]], Any]:
