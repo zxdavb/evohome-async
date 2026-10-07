@@ -31,13 +31,7 @@ from evohomeasync2.schemas.const import (
 from evohomeasync2.schemas.status import TCC_GET_DHW_STATUS, TCC_GET_LOC_STATUS
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
-from .common import (
-    get_loc,
-    should_fail_v2,
-    should_work_v2,
-    skipif_auth_failed,
-    wait_for_comm_task_v2,
-)
+from .common import get_loc, should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
@@ -133,9 +127,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     task_id = result[0]["id"] if isinstance(result, list) else result["id"]
 
-    assert int(task_id)
-
-    _ = await wait_for_comm_task_v2(evo.auth, task_id)
+    assert int(task_id)  # should_work_v2() waited for it (see wait_for_comm_task_v2())
 
     #
     # PART 2A: Try different capitalisations of the JSON keys...

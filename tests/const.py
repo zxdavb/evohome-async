@@ -16,8 +16,10 @@ _DBG_USE_REAL_AIOHTTP = False  # use 'real' aiohttp to reach vendor's servers
 _DBG_WAIT_FOR_COMM_TASKS = False  # poll each comm task until it succeeds
 
 #
-# the longest that any one wait may take (e.g. a request, or polling a comm task)
-REAL_AIOHTTP_TIMEOUT: Final = 30  # seconds
+# the longest that a request may take to return (a GET, PUT, etc.)
+REAL_AIOHTTP_TIMEOUT: Final = 15  # seconds
+# the longest that a PUT's comm task may take to succeed (only if waited for)
+COMM_TASK_TIMEOUT: Final = 15  # seconds
 
 #
 # the location under test, as an index into the user's list of locations: index the

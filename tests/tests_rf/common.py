@@ -15,7 +15,7 @@ from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
     _DBG_USE_REAL_AIOHTTP,
     _DBG_WAIT_FOR_COMM_TASKS,
-    REAL_AIOHTTP_TIMEOUT,
+    COMM_TASK_TIMEOUT,
     TEST_LOC_IDX,
     URL_BASE_V0,
     URL_BASE_V2,
@@ -278,8 +278,7 @@ async def should_work_v2[T](
 
     Used to document the behaviour of a 'real' server and to validate the faked server.
 
-    Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), after a PUT,
-    wait for its comm task to succeed.
+    After a PUT, wait for its comm task to succeed (see wait_for_comm_task_v2()).
     """
 
     response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
@@ -308,9 +307,9 @@ async def should_work_v2[T](
 
         assert isinstance(response, dict | list)  # mypy
 
-    if _DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS and method == HTTPMethod.PUT:
+    if method == HTTPMethod.PUT:
         task = response[0] if isinstance(response, list) else response
-        _ = await wait_for_comm_task_v2(auth, task["id"])  # e.g. {"id": "1668279943"}
+        await wait_for_comm_task_v2(auth, task["id"])  # e.g. {"id": "1668279943"}
 
     return schema(response) if schema else response  # may raise vol.Invalid
 
@@ -377,17 +376,20 @@ async def should_fail_v2(
     return response
 
 
-async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
-    """Check the state of a communication task (i.e. of an earlier PUT).
+async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> None:
+    """Wait for a comm task (i.e. of an earlier PUT) to succeed.
 
-    Only if _DBG_WAIT_FOR_COMM_TASKS, wait for the task to succeed, and raise
-    TimeoutError if it has not done so within REAL_AIOHTTP_TIMEOUT seconds. Otherwise,
-    check its state once only. Return True if the task has succeeded.
+    Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), poll the task's
+    state until it succeeds, and raise TimeoutError if it has not done so within
+    COMM_TASK_TIMEOUT seconds. Otherwise, do nothing (not even check its state once).
     """
+
+    if not (_DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS):
+        return
 
     url = f"commTasks?commTaskId={task_id}"
 
-    async with asyncio.timeout(REAL_AIOHTTP_TIMEOUT):
+    async with asyncio.timeout(COMM_TASK_TIMEOUT):
         while True:
             response = await should_work_v2(auth, HTTPMethod.GET, url)
             # {'commtaskId': '840367013', 'state': 'Created'}
@@ -399,15 +401,12 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> bool:
             assert task["commtaskId"] == task_id, task
 
             if task["state"] == "Succeeded":
-                return True
+                return
 
             if task["state"] not in ("Created", "Running"):
                 pytest.fail(f"Unexpected task state: {task}")
 
-            if not _DBG_WAIT_FOR_COMM_TASKS:
-                return False
-
-            await asyncio.sleep(0.3)
+            await asyncio.sleep(1.0)  # as per CommTask.wait()
 
 
 async def wait_for_comm_task(task: evo2.CommTask) -> None:
@@ -415,10 +414,9 @@ async def wait_for_comm_task(task: evo2.CommTask) -> None:
 
     Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), wait for the
     task to succeed, and raise TimeoutError if it has not done so within
-    REAL_AIOHTTP_TIMEOUT seconds. Otherwise, do nothing (the faked server has no comm
-    tasks).
+    COMM_TASK_TIMEOUT seconds. Otherwise, do nothing (not even check its state once).
     """
 
     if _DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS:
-        async with asyncio.timeout(REAL_AIOHTTP_TIMEOUT):
+        async with asyncio.timeout(COMM_TASK_TIMEOUT):
             await task.wait()
