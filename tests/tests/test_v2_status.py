@@ -31,6 +31,7 @@ from evohomeasync2.schemas.const import (
     S2_ZONES,
 )
 from evohomeasync2.schemas.status import factory_loc_status
+from tests.common import get_loc
 
 from .conftest import FIXTURES_V2 as FIXTURES
 
@@ -105,7 +106,7 @@ async def test_status_missing_known_entity(
 ) -> None:
     """A status that omits a configured entity should raise, after updating the rest."""
 
-    loc = evohome_v2.locations[0]
+    loc = get_loc(evohome_v2)
     zone = loc.gateways[0].systems[0].zones[0]  # is never the one dropped
 
     status = await loc._get_status(_update=False)
@@ -125,7 +126,7 @@ async def test_status_missing_known_entity_warns_once(
 ) -> None:
     """A status that omits a configured entity should log a warning, but only once."""
 
-    loc = evohome_v2.locations[0]
+    loc = get_loc(evohome_v2)
 
     status = await loc._get_status(_update=False)
     stale_status = await loc._get_status(_update=False)
@@ -159,7 +160,7 @@ async def test_status_missing_known_entity_raises_if_asked(
 ) -> None:
     """A status that omits a configured entity should raise, if asked to do so."""
 
-    loc = evohome_v2.locations[0]
+    loc = get_loc(evohome_v2)
     zone = loc.gateways[0].systems[0].zones[0]  # is never the one dropped
 
     stale_status = await loc._get_status(_update=False)
@@ -188,7 +189,7 @@ async def test_status_unknown_entity_is_tolerated(
 ) -> None:
     """A status that has an entity absent from the config should only log a warning."""
 
-    loc = evohome_v2.locations[0]
+    loc = get_loc(evohome_v2)
     tcs = loc.gateways[0].systems[0]
 
     status = await loc._get_status(_update=False)
@@ -205,6 +206,10 @@ _UNAUTHORIZED = exc.ApiCallFailedError(
     "GET url: 401 Unauthorized", status=HTTPStatus.UNAUTHORIZED
 )
 _NO_CONNECTION = exc.ApiCallFailedError("GET url: Connection refused")
+_SERVER_ERROR = exc.ApiCallFailedError(
+    "GET url: 500 Internal Server Error", status=HTTPStatus.INTERNAL_SERVER_ERROR
+)
+_BAD_RESPONSE = exc.BadApiResponseError("GET url: response failed validation: ...")
 
 
 @pytest.mark.parametrize(
@@ -213,17 +218,28 @@ _NO_CONNECTION = exc.ApiCallFailedError("GET url: Connection refused")
         (None, exc.StaleConfigError),  # the access token is OK, so: no such location
         (_UNAUTHORIZED, exc.ApiCallFailedError),  # the access token was rejected
         (_NO_CONNECTION, exc.ApiCallFailedError),  # can't tell
+        (_SERVER_ERROR, exc.ApiCallFailedError),  # can't tell
+        (_BAD_RESPONSE, exc.ApiCallFailedError),  # can't tell
     ],
-    ids=["location_absent", "token_rejected", "no_connection"],
+    ids=[
+        "location_absent",
+        "token_rejected",
+        "no_connection",
+        "server_error",
+        "bad_response",
+    ],
 )
 async def test_location_absent(
     evohome_v2: EvohomeClient,
-    account_error: exc.ApiCallFailedError | None,
+    account_error: exc.EvohomeError | None,
     expected: type[exc.EvohomeError],
 ) -> None:
-    """A 401 from the location's status is StaleConfigError, if the token is OK."""
+    """A 401 from the location's status is StaleConfigError, if the token is OK.
 
-    loc = evohome_v2.locations[0]
+    Otherwise (the token was rejected, or that can't be determined), it is the 401.
+    """
+
+    loc = get_loc(evohome_v2)
 
     def get(url: str, schema: object) -> object:
         if url != "userAccount":  # i.e. is the location's status
@@ -239,3 +255,5 @@ async def test_location_absent(
         await loc.update()
 
     assert type(err.value) is expected
+    if expected is not exc.StaleConfigError:
+        assert err.value is _UNAUTHORIZED  # the original 401, not the probe's error

@@ -329,11 +329,14 @@ class Location(EntityBase[EvoLocStatusT]):
         return status
 
     async def _is_access_token_accepted(self) -> bool:
-        """Return False if the vendor's server rejects the access token.
+        """Return True only if the vendor's server accepts the access token.
 
         A 401 from a location's URL is either because the access token was rejected, or
         because the user has no access to that location. As the userAccount URL is open
         to all authenticated users, a 401 from it can only be due to the former.
+
+        Return False if the token is rejected, or if that can't be determined (e.g. no
+        connection, or a 5xx), so that the caller raises its original error (the 401).
         """
 
         try:
@@ -342,9 +345,7 @@ class Location(EntityBase[EvoLocStatusT]):
         except exc.AuthenticationFailedError:  # unable to get an access_token
             raise
 
-        except exc.ApiCallFailedError as err:
-            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
-                raise
+        except (exc.ApiCallFailedError, exc.BadApiResponseError):  # 401, or unsure
             return False
 
         return True
