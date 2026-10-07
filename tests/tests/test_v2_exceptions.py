@@ -185,6 +185,46 @@ async def test_empty_schedule(evohome_v2: EvohomeClient) -> None:
     assert zone.next_switchpoint is None
 
 
+async def test_invalid_schedule_not_stored(evohome_v2: EvohomeClient) -> None:
+    """Test a schedule whose switchpoints can't be found is not stored.
+
+    A zone keeps its earlier schedule & switchpoints (if any), else it still has none.
+    """
+
+    zones = evohome_v2.locations[0].gateways[0].systems[0].zones
+
+    fetched = zones[0]
+    schedule = await fetched.get_schedule()
+    switchpoints = (fetched.this_switchpoint, fetched.next_switchpoint)
+
+    unfetched = zones[1]  # its schedule has not been fetched
+
+    with (
+        patch(
+            "evohomeasync2.auth.Auth.get",
+            AsyncMock(return_value={"daily_schedules": schedule}),
+        ),
+        patch.object(
+            Zone,
+            "_find_switchpoints",
+            side_effect=exc.InvalidScheduleError("No switchpoints for next day"),
+        ),
+    ):
+        for zone in (fetched, unfetched):
+            with pytest.raises(exc.InvalidScheduleError):
+                await zone.get_schedule()
+
+    assert fetched.schedule == schedule
+    assert (fetched.this_switchpoint, fetched.next_switchpoint) == switchpoints
+
+    with pytest.raises(exc.NotFetchedError):
+        _ = unfetched.schedule
+    with pytest.raises(exc.NotFetchedError):
+        _ = unfetched.this_switchpoint
+    with pytest.raises(exc.NotFetchedError):
+        _ = unfetched.next_switchpoint
+
+
 async def test_set_schedule_before_get(evohome_v2: EvohomeClient) -> None:
     """Test the switchpoints are available after set_schedule(), without a get."""
 
