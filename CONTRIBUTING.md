@@ -169,6 +169,25 @@ still warrant justification.
 | Exception binding | `except SomeError as err:`                                    |
 | Build backend     | Hatchling — version lives in `src/_evohome/__init__.py`       |
 
+### Function signatures
+
+Put each parameter on its own line, with a trailing comma (which stops `ruff format`
+from joining them back onto one line):
+
+```python
+async def test_dhw_set_off(
+    dhw: HotWater,
+) -> None:
+```
+
+- **Tests** (`tests/`): obligatory for any new or changed test, even if it has only one
+  parameter (e.g. a fixture). Existing tests will be converted in due course.
+- **Library code** (`src/`): recommended, except for a method whose only parameter is
+  `self` (e.g. `def id(self) -> str:`), which stays on one line. Existing code will not
+  be converted.
+
+`ruff` accepts either layout, so this is not enforced by the linter.
+
 ### Logging vs printing
 
 - **Library code** (`_evohome`, `evohomeasync`, `evohomeasync2`): use `_LOGGER`,
@@ -265,3 +284,5 @@ to the following — these are the most common mistakes:
 8. **Do not modify `pyproject.toml`** unless the change is to project metadata
    (description, URLs, classifiers). Lint/type/test config changes require
    explicit maintainer approval.
+9. **Put each parameter of a new test on its own line** (see
+   [Function signatures](#function-signatures)); `ruff` does not enforce this.
