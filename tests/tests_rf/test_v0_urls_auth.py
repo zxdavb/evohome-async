@@ -18,10 +18,10 @@ import pytest
 import evohomeasync as evo0
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
-from .common import should_fail_v0, should_work_v0, skipif_auth_failed
+from .common import get_loc, should_fail_v0, should_work_v0, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from tests.conftest import EvohomeClientV0
+    from evohomeasync import EvohomeClient as EvohomeClientV0
 
 
 async def _test_usr_locations(evo: EvohomeClientV0) -> None:
@@ -63,7 +63,7 @@ async def _test_evo_systems(evo: EvohomeClientV0) -> None:
     """Test /evoTouchSystems?locationId={loc_id}"""
 
     # usr_id: int = evo.user_account["user_id"]
-    loc_id = evo.locations[0].id
+    loc_id = get_loc(evo).id
 
     #
     # TEST 0: unsupported method?
