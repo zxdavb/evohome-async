@@ -15,6 +15,7 @@ import pytest
 from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync import EvohomeClient as EvohomeClientV0
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
+from tests.common import get_dhw, get_tcs, get_zon
 
 from .aioresponses import AioResponses, aioresponses
 
@@ -23,6 +24,7 @@ if TYPE_CHECKING:
 
     from _evohome.helpers import Validator
     from evohome_cli.auth import TokenCacheManager
+    from evohomeasync2 import ControlSystem, HotWater, Zone
 
 
 type JsonValueType = (
@@ -229,3 +231,25 @@ async def evohome_v2(
             yield evo
         finally:
             pass
+
+
+@pytest.fixture
+def tcs(evohome_v2: EvohomeClientV2) -> ControlSystem:
+    """Return the first TCS of the location under test (see get_tcs())."""
+    return get_tcs(evohome_v2)
+
+
+@pytest.fixture
+def zone(evohome_v2: EvohomeClientV2) -> Zone:
+    """Return the first zone of the location under test (see get_zon())."""
+    if (zon := get_zon(evohome_v2)) is None:
+        pytest.skip("The location under test has no zone")
+    return zon
+
+
+@pytest.fixture
+def dhw(evohome_v2: EvohomeClientV2) -> HotWater:
+    """Return the DHW of the location under test (see get_dhw())."""
+    if (hwt := get_dhw(evohome_v2)) is None:
+        pytest.skip("The location under test has no DHW")
+    return hwt

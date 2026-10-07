@@ -61,10 +61,8 @@ async def test_config_not_fetched(credentials_manager: TokenCacheManager) -> Non
         _ = evo.location_by_id
 
 
-async def test_schedule_not_fetched(evohome_v2: EvohomeClient) -> None:
+async def test_schedule_not_fetched(zone: Zone) -> None:
     """Test the schedule attrs raise NotFetchedError until get_schedule() is called."""
-
-    zone = get_tcs(evohome_v2).zones[0]
 
     with pytest.raises(exc.NotFetchedError):
         _ = zone.schedule
@@ -150,13 +148,11 @@ async def test_invalid_status(evohome_v2: EvohomeClient) -> None:
     ids=lambda v: v.__name__ if isinstance(v, type) else type(v).__name__,
 )
 async def test_get_schedule_failures(
-    evohome_v2: EvohomeClient,
+    zone: Zone,
     error: exc.EvohomeError,
     expected: type[exc.EvohomeError],
 ) -> None:
     """Test get_schedule() raises InvalidScheduleError only for a bad schedule."""
-
-    zone = get_tcs(evohome_v2).zones[0]
 
     with (
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
@@ -167,10 +163,8 @@ async def test_get_schedule_failures(
     assert type(err.value) is expected
 
 
-async def test_ghost_zone(evohome_v2: EvohomeClient) -> None:
+async def test_ghost_zone(zone: Zone) -> None:
     """Test a zone without a (known) model type raises GhostZoneError."""
-
-    zone = get_tcs(evohome_v2).zones[0]
 
     config = zone._config.copy()
     config[SZ_MODEL_TYPE] = ZoneModelType.UNKNOWN
@@ -179,11 +173,12 @@ async def test_ghost_zone(evohome_v2: EvohomeClient) -> None:
         Zone(zone.tcs, config)
 
 
-async def test_ghost_zone_skipped(evohome_v2: EvohomeClient) -> None:
+async def test_ghost_zone_skipped(
+    evohome_v2: EvohomeClient, tcs: ControlSystem
+) -> None:
     """Test a TCS skips a ghost zone, and only that zone."""
 
     assert evohome_v2._user_locs is not None  # mypy
-    tcs = get_tcs(evohome_v2)
 
     config = copy.deepcopy(
         evohome_v2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][
@@ -201,11 +196,12 @@ async def test_ghost_zone_skipped(evohome_v2: EvohomeClient) -> None:
     assert len(new_tcs.zones) == len(tcs.zones) - 1
 
 
-async def test_ghost_zone_other_errors(evohome_v2: EvohomeClient) -> None:
+async def test_ghost_zone_other_errors(
+    evohome_v2: EvohomeClient, tcs: ControlSystem
+) -> None:
     """Test a TCS skips only a GhostZoneError: any other InvalidConfigError is raised."""
 
     assert evohome_v2._user_locs is not None  # mypy
-    tcs = get_tcs(evohome_v2)
 
     config = evohome_v2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][
         SZ_TEMPERATURE_CONTROL_SYSTEMS
