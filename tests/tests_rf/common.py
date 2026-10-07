@@ -11,6 +11,7 @@ import pytest
 
 import evohomeasync as evo0
 import evohomeasync2 as evo2
+from evohomeasync2.comm_task import DEFAULT_INTERVAL
 from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
     _DBG_USE_REAL_AIOHTTP,
@@ -406,7 +407,7 @@ async def wait_for_comm_task_id(auth: evo2.auth.Auth, task_id: str) -> None:
             if task["state"] not in ("Created", "Running"):
                 pytest.fail(f"Unexpected task state: {task}")
 
-            await asyncio.sleep(1.0)  # as per CommTask.wait()
+            await asyncio.sleep(DEFAULT_INTERVAL)  # as per CommTask.wait()
 
 
 async def wait_for_comm_task_obj(task: evo2.CommTask) -> None:
