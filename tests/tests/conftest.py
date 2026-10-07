@@ -242,15 +242,24 @@ def auth(evohome_v2: EvohomeClientV2) -> Auth:
 
 @pytest.fixture
 def tcs(evohome_v2: EvohomeClientV2) -> ControlSystem:
-    """Return the first TCS of the location under test (see get_tcs())."""
-    return get_tcs(evohome_v2)
+    """Return the first TCS of the location under test (see get_tcs()).
+
+    Fail the test if there is none, as then the test is using the wrong fixture.
+    """
+    try:
+        return get_tcs(evohome_v2)
+    except IndexError:
+        pytest.fail("The location under test has no TCS")
 
 
 @pytest.fixture
 def zone(evohome_v2: EvohomeClientV2) -> Zone:
-    """Return the first zone of the location under test (see get_zon())."""
+    """Return the first zone of the location under test (see get_zon()).
+
+    Fail the test if there is none, as then the test is using the wrong fixture.
+    """
     if (zon := get_zon(evohome_v2)) is None:
-        pytest.skip("The location under test has no zone")
+        pytest.fail("The location under test has no zone")
     return zon
 
 
