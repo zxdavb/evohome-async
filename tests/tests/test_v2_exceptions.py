@@ -82,6 +82,8 @@ async def test_status_not_fetched(
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
         await evo.update(dont_update_status=True)  # i.e. the config only
 
+    # not the tcs/zone/dhw fixtures: they come from evohome_v2, which has fetched the
+    # status (so nothing would raise), whereas this client has fetched only the config
     tcs = get_tcs(evo)
 
     with pytest.raises(exc.NotFetchedError):
@@ -90,7 +92,7 @@ async def test_status_not_fetched(
     assert zone is not None  # the default/ fixture has zones
     with pytest.raises(exc.NotFetchedError):
         _ = zone.status
-    if dhw := get_dhw(evo):
+    if dhw := get_dhw(evo):  # not the dhw fixture (see above)
         with pytest.raises(exc.NotFetchedError):
             _ = dhw.status
 
