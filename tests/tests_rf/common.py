@@ -377,11 +377,30 @@ async def should_fail_v2(
     return response
 
 
+async def _wait_or_skip(wait: Awaitable[None], task_id: str) -> None:
+    """Await a wait for a comm task to succeed, within TIMEOUT_COMM_TASK seconds.
+
+    If the task has not succeeded by then (the vendor's gateway may be slow), skip the
+    test: that is not a failure of the test. Any other TimeoutError (e.g. of a request,
+    within TIMEOUT_REAL_AIOHTTP seconds) is raised.
+    """
+
+    timeout = asyncio.timeout(TIMEOUT_COMM_TASK)
+
+    try:
+        async with timeout:
+            await wait
+    except TimeoutError:
+        if not timeout.expired():
+            raise
+        pytest.skip(f"Comm task {task_id} did not succeed within {TIMEOUT_COMM_TASK}s")
+
+
 async def wait_for_comm_task_id(auth: evo2.auth.Auth, task_id: str) -> None:
     """Wait for a comm task (i.e. of an earlier PUT) to succeed.
 
     Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), poll the task's
-    state until it succeeds, and raise TimeoutError if it has not done so within
+    state until it succeeds, and skip the test if it has not done so within
     TIMEOUT_COMM_TASK seconds. Otherwise, do nothing (not even check its state once).
     """
 
@@ -390,7 +409,7 @@ async def wait_for_comm_task_id(auth: evo2.auth.Auth, task_id: str) -> None:
 
     url = f"commTasks?commTaskId={task_id}"
 
-    async with asyncio.timeout(TIMEOUT_COMM_TASK):
+    async def poll() -> None:
         while True:
             response = await should_work_v2(auth, HTTPMethod.GET, url)
             # {'commtaskId': '840367013', 'state': 'Created'}
@@ -409,17 +428,18 @@ async def wait_for_comm_task_id(auth: evo2.auth.Auth, task_id: str) -> None:
 
             await asyncio.sleep(DEFAULT_INTERVAL)  # as per CommTask.wait()
 
+    await _wait_or_skip(poll(), task_id)
+
 
 async def wait_for_comm_task_obj(task: evo2.CommTask) -> None:
     """Wait for the comm task returned by a client method (i.e. of its PUT) to succeed.
 
     Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), wait for the
-    task to succeed, and raise TimeoutError if it has not done so within
-    TIMEOUT_COMM_TASK seconds. Otherwise, do nothing (not even check its state once).
+    task to succeed, and skip the test if it has not done so within TIMEOUT_COMM_TASK
+    seconds. Otherwise, do nothing (not even check its state once).
     """
 
     if not (_DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS):
         return
 
-    async with asyncio.timeout(TIMEOUT_COMM_TASK):
-        await task.wait()
+    await _wait_or_skip(task.wait(), task.id)
