@@ -15,6 +15,7 @@ from evohomeasync2 import BadApiRequestError
 from evohomeasync2.const import DhwState, SystemMode, ZoneMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
+from .const import PUT_RESPONSE_V2
 
 if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
@@ -53,7 +54,9 @@ async def test_ctl_reset(
     }
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await tcs.reset()
 
@@ -82,14 +85,20 @@ async def test_ctl_set_mode_sans_until(
     }
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await getattr(tcs, api_name)()
 
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
 
     with (
-        patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
         pytest.raises(TypeError),  # got an unexpected keyword argument 'until'
     ):
         await getattr(tcs, api_name)(until=dt.now(tz=UTC) + td(days=3))
@@ -120,7 +129,9 @@ async def test_ctl_set_mode_with_until(
     }
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await getattr(tcs, api_name)()
 
@@ -135,7 +146,9 @@ async def test_ctl_set_mode_with_until(
     }
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await getattr(tcs, api_name)(until=dt.now(tz=UTC) + td(days=3))
 
@@ -154,7 +167,9 @@ async def test_dhw_set_off(
     assert dhw is not None
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await dhw.set_off()
 
@@ -179,7 +194,9 @@ async def test_dhw_set_on(
     assert dhw is not None
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await dhw.set_on()
 
@@ -204,7 +221,9 @@ async def test_dhw_reset(
     assert dhw is not None
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await dhw.reset()
 
@@ -229,7 +248,9 @@ async def test_dhw_set_state(
     assert dhw is not None
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await dhw.set_state(DhwState.OFF)
 
@@ -247,7 +268,9 @@ async def test_dhw_set_state(
     freezer.move_to("2025-07-10T12:00:00Z")
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await dhw.set_state(DhwState.ON, until=dt.now(tz=UTC) + td(hours=3))
 
@@ -275,7 +298,9 @@ async def test_zon_reset(
     zone = evohome_v2.tcs.zones[0]
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await zone.reset()
 
@@ -299,7 +324,9 @@ async def test_zon_set_temperature(
     zone = evohome_v2.tcs.zones[0]
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await zone.set_temperature(19.5)
 
@@ -317,7 +344,9 @@ async def test_zon_set_temperature(
     freezer.move_to("2025-07-10T12:00:00Z")
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await zone.set_temperature(20.5, until=dt.now(tz=UTC) + td(hours=1))
 
@@ -345,7 +374,9 @@ async def test_ctl_set_mode_accepts_str_mode(
     tcs = evohome_v2.tcs
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await tcs.set_mode("away")  # instead of SystemMode.AWAY
 
@@ -363,7 +394,9 @@ async def test_dhw_set_state_accepts_str_inputs(
     assert dhw is not None
 
     with patch(
-        "_evohome.auth.AbstractAuth.request", new_callable=AsyncMock
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
     ) as mock_put:
         await dhw.set_state(
             "on", until="2025-07-13T12:00:00Z"
@@ -387,7 +420,11 @@ async def test_set_mode_rejects_naive_until(
     naive = dt.fromisoformat("2025-07-13T12:00:00")  # no offset
 
     with (
-        patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock_put,
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
         pytest.raises(BadApiRequestError),
     ):
         await tcs.set_away(until=naive)

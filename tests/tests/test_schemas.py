@@ -245,6 +245,11 @@ V2_SCHEMAS: dict[str, tuple[Callable[[Case], object], object, object]] = {
         account.TccTaskResponseT,
         None,
     ),
+    "comm_task_response": (
+        account.factory_comm_task_response,
+        account.TccCommTaskResponseT,
+        evo2.EvoCommTaskResponseT,
+    ),
     "loc_config": (
         config.factory_loc_config,
         config.TccLocConfigResponseT,

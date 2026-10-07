@@ -39,10 +39,10 @@ cli = [
 ]
 dev = [
   # linting
-  "prek>=0.5.3",
-  "ruff>=0.16.9",
+  "prek>=0.5.5",
+  "ruff>=0.16.10",
   # typing
-  "mypy>=2.3.1",
+  "mypy>=2.4.0",
   "types-aiofiles>=25.1.0.20260518",
   "types-PyYAML>=6.0.12.20260906",
   # testing
