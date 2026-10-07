@@ -417,6 +417,8 @@ async def wait_for_comm_task_obj(task: evo2.CommTask) -> None:
     TIMEOUT_COMM_TASK seconds. Otherwise, do nothing (not even check its state once).
     """
 
-    if _DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS:
-        async with asyncio.timeout(TIMEOUT_COMM_TASK):
-            await task.wait()
+    if not (_DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS):
+        return
+
+    async with asyncio.timeout(TIMEOUT_COMM_TASK):
+        await task.wait()
