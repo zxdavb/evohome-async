@@ -20,11 +20,17 @@ _DBG_WAIT_FOR_COMM_TASKS = False  # poll each comm task until it succeeds
 TIMEOUT_REAL_AIOHTTP: Final = 5  # seconds
 # the longest that a PUT's comm task may take to succeed (only if waited for), else skip
 TIMEOUT_COMM_TASK: Final = 15  # seconds
+# ...the same, but for a v1 PUT (one was seen to take 29s, 2026-10-07)
+TIMEOUT_COMM_TASK_V0: Final = 45  # seconds
 
 #
 # the location under test, as an index into the user's list of locations: index the
 # vendor's JSON with it, or use get_loc() (tests_rf/common.py) for a Location object
 TEST_LOC_IDX: Final = 0  # the test account has only one location
+# TODO: select the location by its id, not by an index: it is assumed that the v1
+# and v2 APIs list the same locations, in the same order, but that is unconfirmed
+# (the ids are the same in both, e.g. v1's 2738909 is v2's '2738909'). If not, the v1
+# tests would use a different location to that reset by reset_systems() (via v2).
 
 #
 #
