@@ -269,6 +269,6 @@ def dhw(evohome_v2: EvohomeClientV2) -> HotWater:
 
     Fail the test if there is none, as then the test is using the wrong fixture.
     """
-    if (hwt := get_dhw(evohome_v2)) is None:
+    if (dhw := get_dhw(evohome_v2)) is None:
         pytest.fail("The location under test has no DHW")
-    return hwt
+    return dhw
