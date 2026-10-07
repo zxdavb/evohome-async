@@ -19,6 +19,7 @@ from freezegun.api import FakeDatetime
 import evohomeasync2 as evo2
 from evohomeasync2 import CommTask, HotWater, Zone
 from evohomeasync2.const import DhwState, SystemMode, ZoneMode
+from tests.const import EDGE_FIXTURES, EDGE_FIXTURES_WITH_DHW
 
 from .conftest import FIXTURES_V2 as FIXTURES
 from .const import PUT_RESPONSE_V2
@@ -30,17 +31,11 @@ if TYPE_CHECKING:
     from evohomeasync2.auth import Auth
 
 
-# Fixtures with old/new system modes to test fallback and error handling logic
-_FIXTURES = ("default", "hass_118169")
-# ...of which, those with a DHW (for the DHW tests, as hass_118169 has no DHW)
-_FIXTURES_WITH_DHW = ("default",)
-
-
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     names = (
-        _FIXTURES_WITH_DHW
+        EDGE_FIXTURES_WITH_DHW
         if metafunc.function.__name__.startswith("test_dhw_")
-        else _FIXTURES
+        else EDGE_FIXTURES
     )
     folders = [Path(FIXTURES) / name for name in names]
 
