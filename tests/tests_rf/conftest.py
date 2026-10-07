@@ -15,7 +15,6 @@ from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     TEST_PASSWORD,
     TEST_USERNAME,
-    TIMEOUT_COMM_TASK,
     TIMEOUT_REAL_AIOHTTP,
 )
 
@@ -53,10 +52,7 @@ def skipif_comm_task_timed_out() -> None:
     """
 
     if task_id := timed_out_comm_task():
-        pytest.skip(
-            f"An earlier comm task ({task_id}) did not succeed "
-            f"within {TIMEOUT_COMM_TASK}s"
-        )
+        pytest.skip(f"An earlier comm task ({task_id}) did not succeed in time")
 
 
 @pytest.fixture(scope="session", autouse=True)
