@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 import pytest
 import yaml
 
+from tests.common import get_loc
+
 from .common import serializable_attrs
 from .conftest import FIXTURES_V0 as FIXTURES
 
@@ -42,7 +44,7 @@ async def test_system_snapshot(
 
     # architecture is: loc/tcs -> gwy, loc/tcs -> dhw|zon
 
-    loc = evohome_v0.locations[0]
+    loc = get_loc(evohome_v0)
     assert serializable_attrs(loc) == snapshot(name="location")
 
     gwy = loc.gateways[0]

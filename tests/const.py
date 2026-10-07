@@ -33,6 +33,13 @@ TEST_LOC_IDX: Final = 0  # the test account has only one location
 # tests would use a different location to that reset by reset_systems() (via v2).
 
 #
+# the fixtures (folders of tests/tests/fixtures_v2) used by test_v2_apis_edges.py, as
+# they have old/new system modes, to test fallback and error handling logic
+EDGE_FIXTURES: Final = ("default", "hass_118169")
+# ...of which, those with a DHW (for its test_dhw_* tests, as hass_118169 has no DHW)
+EDGE_FIXTURES_WITH_DHW: Final = ("default",)
+
+#
 #
 # used to construct the default token cache
 TEST_USERNAME: Final = "username@email.com"

@@ -27,6 +27,7 @@ import pytest
 import evohomeasync as evo0
 from _evohome.helpers import TCC_DTM_STRFTIME
 from evohomeasync.schemas import TCC_GET_USR_LOCS
+from tests.common import get_loc
 from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     TEST_LOC_IDX,
@@ -36,7 +37,6 @@ from tests.const import (
 
 from .common import (
     error_codes,
-    get_loc,
     is_alive_v0,
     is_dhw_v0,
     is_stale_task_v0,
