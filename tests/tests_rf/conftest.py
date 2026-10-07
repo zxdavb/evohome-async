@@ -13,9 +13,9 @@ import evohomeasync2 as evo2
 from evohome_cli.auth import TokenCacheManager
 from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
-    REAL_AIOHTTP_TIMEOUT,
     TEST_PASSWORD,
     TEST_USERNAME,
+    TIMEOUT_REAL_AIOHTTP,
 )
 
 if TYPE_CHECKING:
@@ -70,7 +70,7 @@ async def _reset_systems(username: str, password: str) -> None:
             warnings.warn(f"Unable to reset {entity}: {err}", stacklevel=1)
 
     async with aiohttp.ClientSession(
-        timeout=aiohttp.ClientTimeout(total=REAL_AIOHTTP_TIMEOUT)
+        timeout=aiohttp.ClientTimeout(total=TIMEOUT_REAL_AIOHTTP)
     ) as websession:
         manager = TokenCacheManager(username, password, websession)  # the real cache
         await manager.load_from_cache()

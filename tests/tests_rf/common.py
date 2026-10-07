@@ -15,8 +15,8 @@ from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
     _DBG_USE_REAL_AIOHTTP,
     _DBG_WAIT_FOR_COMM_TASKS,
-    COMM_TASK_TIMEOUT,
     TEST_LOC_IDX,
+    TIMEOUT_COMM_TASK,
     URL_BASE_V0,
     URL_BASE_V2,
 )
@@ -381,7 +381,7 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> None:
 
     Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), poll the task's
     state until it succeeds, and raise TimeoutError if it has not done so within
-    COMM_TASK_TIMEOUT seconds. Otherwise, do nothing (not even check its state once).
+    TIMEOUT_COMM_TASK seconds. Otherwise, do nothing (not even check its state once).
     """
 
     if not (_DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS):
@@ -389,7 +389,7 @@ async def wait_for_comm_task_v2(auth: evo2.auth.Auth, task_id: str) -> None:
 
     url = f"commTasks?commTaskId={task_id}"
 
-    async with asyncio.timeout(COMM_TASK_TIMEOUT):
+    async with asyncio.timeout(TIMEOUT_COMM_TASK):
         while True:
             response = await should_work_v2(auth, HTTPMethod.GET, url)
             # {'commtaskId': '840367013', 'state': 'Created'}
@@ -414,9 +414,9 @@ async def wait_for_comm_task(task: evo2.CommTask) -> None:
 
     Only if _DBG_WAIT_FOR_COMM_TASKS (and against the vendor's server), wait for the
     task to succeed, and raise TimeoutError if it has not done so within
-    COMM_TASK_TIMEOUT seconds. Otherwise, do nothing (not even check its state once).
+    TIMEOUT_COMM_TASK seconds. Otherwise, do nothing (not even check its state once).
     """
 
     if _DBG_USE_REAL_AIOHTTP and _DBG_WAIT_FOR_COMM_TASKS:
-        async with asyncio.timeout(COMM_TASK_TIMEOUT):
+        async with asyncio.timeout(TIMEOUT_COMM_TASK):
             await task.wait()
