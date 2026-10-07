@@ -10,8 +10,9 @@ import probatio as vol
 from _evohome.helpers import Case
 
 from . import exceptions as exc
-from .const import CommTaskState
+from .const import SZ_COMMTASK_ID, SZ_STATE, CommTaskState
 from .schemas.account import factory_comm_task_response, factory_task_response
+from .schemas.const import S2_ID
 
 if TYPE_CHECKING:
     from _evohome.auth import AbstractAuth
@@ -69,7 +70,7 @@ class CommTask:
                 f"PUT response is not a comm task: {response}: {err}"
             ) from err
 
-        return cls(auth, task["id"])
+        return cls(auth, task[S2_ID])
 
     def __repr__(self) -> str:
         """Return an unambiguous string representation of the comm task."""
@@ -89,10 +90,10 @@ class CommTask:
         url = f"commTasks?commTaskId={self._id}"
         task = await self._auth.get(url, schema=SCH_COMM_TASK)
 
-        if task["commtask_id"] != self._id:
+        if task[SZ_COMMTASK_ID] != self._id:
             raise exc.BadApiResponseError(f"{self}: GET {url}: wrong comm task: {task}")
 
-        return task["state"]
+        return task[SZ_STATE]
 
     async def wait(self, *, interval: float = DEFAULT_INTERVAL) -> None:
         """Wait for the comm task to succeed, polling its state every `interval` secs.
