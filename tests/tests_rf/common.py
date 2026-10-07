@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import functools
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, overload
+from typing import TYPE_CHECKING, Any, Final, overload
 
 import pytest
 
@@ -377,12 +377,26 @@ async def should_fail_v2(
     return response
 
 
+# the id of the first comm task (if any) that did not succeed within TIMEOUT_COMM_TASK
+_timed_out_comm_tasks: Final[list[str]] = []
+
+
+def timed_out_comm_task() -> str | None:
+    """Return the id of the first comm task that timed out, if any (else None).
+
+    After such a timeout, the gateway's queue of tasks is likely backed up, so the
+    remaining real-API tests are skipped (see tests_rf/conftest.py).
+    """
+    return _timed_out_comm_tasks[0] if _timed_out_comm_tasks else None
+
+
 async def _wait_or_skip(wait: Awaitable[None], task_id: str) -> None:
     """Await a wait for a comm task to succeed, within TIMEOUT_COMM_TASK seconds.
 
     If the task has not succeeded by then (the vendor's gateway may be slow), skip the
-    test: that is not a failure of the test. Any other TimeoutError (e.g. of a request,
-    within TIMEOUT_REAL_AIOHTTP seconds) is raised.
+    test (and, via timed_out_comm_task(), all those after it): that is not a failure of
+    the test. Any other TimeoutError (e.g. of a request, within TIMEOUT_REAL_AIOHTTP
+    seconds) is raised.
     """
 
     timeout = asyncio.timeout(TIMEOUT_COMM_TASK)
@@ -393,6 +407,7 @@ async def _wait_or_skip(wait: Awaitable[None], task_id: str) -> None:
     except TimeoutError:
         if not timeout.expired():
             raise
+        _timed_out_comm_tasks.append(task_id)
         pytest.skip(f"Comm task {task_id} did not succeed within {TIMEOUT_COMM_TASK}s")
 
 
