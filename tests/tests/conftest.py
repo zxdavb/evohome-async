@@ -129,11 +129,22 @@ def location_status_fixture(folder: Path, loc_id: str) -> JsonObjectType:
     return _load_fixture(folder, f"status_{loc_id}.json")  # type: ignore[return-value]
 
 
-def zone_schedule_fixture(folder: Path, zon_type: str) -> JsonObjectType:
-    """Load the JSON of the schedule of a dhw/zone."""
-    return _load_schedule_fixture(
-        folder, f"schedule_{'dhw' if zon_type == 'domesticHotWater' else 'zone'}.json"
-    )  # type: ignore[return-value]
+def zone_schedule_fixture(folder: Path, zon_type: str, zon_id: str) -> JsonObjectType:
+    """Load the JSON of the schedule of a dhw/zone.
+
+    Use the dhw/zone's own schedule (schedule_{id}.json), if the fixture has one.
+    """
+
+    try:
+        schedule = load_fixture(folder / f"schedule_{zon_id}.json")
+    except FileNotFoundError:
+        schedule = _load_schedule_fixture(
+            folder,
+            f"schedule_{'dhw' if zon_type == 'domesticHotWater' else 'zone'}.json",
+        )
+
+    assert isinstance(schedule, dict), schedule  # a schedule is a JSON object
+    return schedule
 
 
 def auth_get(fixture: Path) -> Callable[[Any, str, Validator[Any]], Any]:
@@ -175,7 +186,7 @@ def auth_get(fixture: Path) -> Callable[[Any, str, Validator[Any]], Any]:
         # f"{_TCC_TYPE}/{id}/schedule"
         if "schedule" in url:
             data = convert_keys_to_snake_case(
-                zone_schedule_fixture(fixture, url.split("/", maxsplit=1)[0])
+                zone_schedule_fixture(fixture, *url.split("/")[:2])
             )
             return schema(data)
 
