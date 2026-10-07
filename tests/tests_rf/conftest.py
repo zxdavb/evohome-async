@@ -19,7 +19,7 @@ from tests.const import (
     TIMEOUT_REAL_AIOHTTP,
 )
 
-from .common import timed_out_comm_task
+from .common import get_loc, timed_out_comm_task
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Generator
@@ -64,10 +64,12 @@ def reset_systems(
     use_real_aiohttp: bool,  # noqa: FBT001 (is a fixture)
     credentials: tuple[str, str],
 ) -> Generator[None]:
-    """After the last test, set every TCS to Auto, and its zones/DHW to FollowSchedule.
+    """After the last test, reset the location under test (see TEST_LOC_IDX).
 
-    The tests do not restore what they change (the test system is decommissioned), so
-    this is a best-effort tidy up: any failure (e.g. a lost device) is only a warning.
+    That is, set its TCS to Auto, and its zones/DHW to FollowSchedule. Only against the
+    vendor's server. The tests do not restore what they change (the test system is
+    decommissioned), so this is a best-effort tidy up: any failure (e.g. a lost device)
+    is only a warning.
     """
 
     yield
@@ -77,7 +79,7 @@ def reset_systems(
 
 
 async def _reset_systems(username: str, password: str) -> None:
-    """Set every TCS to Auto, and its zones/DHW to FollowSchedule (v2 API)."""
+    """Reset the location under test (TCS to Auto, zones/DHW to FollowSchedule)."""
 
     import aiohttp  # noqa: PLC0415
 
@@ -101,9 +103,7 @@ async def _reset_systems(username: str, password: str) -> None:
             warnings.warn(f"Unable to reset any system: {err}", stacklevel=1)
             return
 
-        for tcs in (
-            t for loc in evo.locations for g in loc.gateways for t in g.systems
-        ):
+        for tcs in (t for g in get_loc(evo).gateways for t in g.systems):
             await attempt(tcs.set_auto(), tcs)
             for zone in tcs.zones:
                 await attempt(zone.reset(), zone)
