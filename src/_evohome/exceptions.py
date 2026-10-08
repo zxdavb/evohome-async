@@ -173,7 +173,7 @@ class NotFetchedError(ClientStateError):
     """The config/status/schedule JSON has not been fetched yet.
 
     This is likely because the user has not yet called `EvohomeClient.setup()`,
-    `Location.get_status()` or `Zone.get_schedule()`.
+    `Location.get_status()`, `HotWater.get_schedule()` or `Zone.get_schedule()`.
     """
 
 
