@@ -47,7 +47,8 @@ The API is regular, and these tests confirm the following conventions:
 
 - responses are camelCase, but IDs are cased inconsistently: userID, locationID,
   deviceID and gatewayID (of a gateway), but gatewayId (of a device), and locationId
-  (of a gateway); the keys of a request are case-insensitive
+  (of a gateway); the path & query keys of a URL, and the keys & enum values of a
+  request, are case-insensitive
 
 - datetimes are in the location's local time, not UTC: e.g. a
   NextTime is returned without a Z, and a Z on one that is sent is ignored (so

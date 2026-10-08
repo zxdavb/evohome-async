@@ -12,7 +12,8 @@ is_stale_task_v0() in common.py).
 
 Testing is at HTTP request layer (e.g. GET/PUT).
 Everything to/from the RESTful API is in camelCase (so those schemas are used), although
-the keys of a request are case-insensitive (as confirmed here).
+the path & query keys of a URL, and the keys & enum values of a request, are
+case-insensitive (as confirmed here).
 """
 
 from __future__ import annotations
@@ -25,6 +26,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 import evohomeasync as evo0
+from _evohome.const import HOSTNAME
 from _evohome.helpers import TCC_DTM_STRFTIME
 from evohomeasync.schemas import TCC_GET_USR_LOCS
 from tests.common import get_loc
@@ -545,6 +547,127 @@ async def test_dhw_forbidden_params(
 
     await evohome_v0.update()  # get user_id
     await _test_dhw_forbidden_params(evohome_v0)
+
+
+# GET /accountInfo & /locations?userId={user_id}&allData=True (URL casing)
+@skipif_auth_failed
+async def test_url_case_insensitive(
+    evohome_v0: EvohomeClientV0,
+) -> None:
+    """Test the path and the query keys of a URL are case-insensitive.
+
+    Expected (as confirmed against the vendor's server):
+      - the base path (WebAPI/api) and the endpoint path are case-insensitive: e.g.
+        webapi/API/ACCOUNTINFO gives the same response as WebAPI/api/accountInfo
+      - the query keys are case-insensitive: e.g. LOCATIONS?USERID={id}&ALLDATA=True
+        gives the location's devices, as does locations?userId={id}&allData=True
+
+    Some controls show that the query keys are recognised, not merely ignored: without
+    a (recognised) userId the vendor returns 404 (a JSON message), and without allData
+    there are no devices. An unknown path also gives 404 (but as HTML).
+    """
+
+    if not _DBG_USE_REAL_AIOHTTP:
+        pytest.skip("Mocked server not implemented for this test")
+
+    await evohome_v0.update()  # get user_id
+
+    auth = evohome_v0.auth
+    usr_id: int = evohome_v0.user_account["user_id"]
+
+    # the path (here, the base path too), all of which give the same response...
+    expected = await should_work_v0(auth, HTTPMethod.GET, "accountInfo")
+
+    for path in (
+        "WebAPI/api/accountinfo",  # lower case endpoint
+        "WebAPI/api/ACCOUNTINFO",  # upper case endpoint
+        "webapi/API/accountInfo",  # mixed case base path
+        "WEBAPI/API/ACCOUNTINFO",  # upper case base path & endpoint
+    ):
+        async with auth.websession.get(
+            f"https://{HOSTNAME}/{path}", headers=await auth._headers()
+        ) as rsp:
+            assert rsp.status == HTTPStatus.OK, (path, rsp.status)
+            assert await rsp.json() == expected, path
+
+    # the query keys (and path), all of which give the devices...
+    for url in (
+        f"locations?userId={usr_id}&allData=True",  # camelCase keys (as this library)
+        f"locations?USERID={usr_id}&ALLDATA=True",  # upper case keys
+        f"locations?userid={usr_id}&alldata=True",  # lower case keys
+        f"LOCATIONS?UserId={usr_id}&AllData=True",  # upper case path, PascalCase keys
+    ):
+        locs = await should_work_v0(auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
+        assert locs[TEST_LOC_IDX]["devices"], url  # so allData was recognised
+
+    # the controls...
+    url = f"locations?userId={usr_id}"  # no allData: so no devices
+    locs_ = await should_work_v0(auth, HTTPMethod.GET, url)
+    assert isinstance(locs_, list)  # mypy
+    assert "devices" not in locs_[TEST_LOC_IDX], url
+
+    url = f"locations?noSuchKey={usr_id}"  # no userId: so 404 (JSON)
+    _ = await should_fail_v0(auth, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    # {'message': "No HTTP resource was found that matches the request URI '...'."}
+
+    url = "noSuchThing"  # an unknown path: so 404 (HTML)
+    _ = await should_fail_v0(
+        auth,
+        HTTPMethod.GET,
+        url,
+        content_type="text/html",
+        status=HTTPStatus.NOT_FOUND,
+    )
+    # '<!DOCTYPE html PUBLIC ... >'
+
+
+# PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (casing; rejected)
+@skipif_auth_failed
+async def test_case_insensitive(
+    evohome_v0: EvohomeClientV0,
+) -> None:
+    """Test the keys and enum values of a PUT are case-insensitive.
+
+    Each PUT is a Hold without the Value that a Hold requires, so the vendor rejects it
+    (and nothing is changed). A Status it recognises gives ParameterIsMissing, whereas
+    one it doesn't gives InvalidInput. A lost zone also gives DeviceIsLost (ignored).
+    """
+
+    if not _DBG_USE_REAL_AIOHTTP:
+        pytest.skip("Mocked server not implemented for this test")
+
+    await evohome_v0.update()  # get user_id
+
+    dev_id = next(
+        d["deviceID"] for d in await _get_devices(evohome_v0) if is_zone_v0(d)
+    )
+    url = f"devices/{dev_id}/thermostat/changeableValues/heatSetpoint"
+
+    recognised: tuple[dict[str, str], ...] = (
+        {"status": "Hold"},  # camelCase key (as this library), PascalCase value
+        {"Status": "Hold"},  # PascalCase key (as the older client)
+        {"STATUS": "Hold"},  # upper case key
+        {"status": "hold"},  # lower case value
+        {"status": "HOLD"},  # upper case value
+    )
+    for json in recognised:
+        rsp = await should_fail_v0(
+            evohome_v0.auth,
+            HTTPMethod.PUT,
+            url,
+            json=json,
+            status=HTTPStatus.BAD_REQUEST,
+        )
+        assert "ParameterIsMissing" in error_codes(rsp), (json, rsp)
+        assert "InvalidInput" not in error_codes(rsp), (json, rsp)
+        # [{'code': 'ParameterIsMissing', 'message': "'Value' is required."}, ...]
+
+    json = {"status": "NoSuchStatus"}  # not a valid Status
+    rsp = await should_fail_v0(
+        evohome_v0.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
+    )
+    assert "InvalidInput" in error_codes(rsp), (json, rsp)
+    # [{'code': 'InvalidInput', 'message': 'Error converting value "NoSuchStatus" ...'}]
 
 
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (to a lost zone)
