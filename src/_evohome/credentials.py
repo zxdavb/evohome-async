@@ -91,7 +91,6 @@ class CredentialsManagerBase:
             ) from err
 
         except aiohttp.ClientResponseError as err:
-            # TODO: process payload and raise BadCredentialsError if code = EmailOrPasswordIncorrect
             if hint := ERR_MSG_LOOKUP_BASE.get(err.status):
                 self._logger.error(hint)  # noqa: TRY400
 

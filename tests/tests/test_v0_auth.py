@@ -57,7 +57,7 @@ async def test_get_session_id(
         ]
         rsp.post(URL_CRED_V0, status=HTTPStatus.UNAUTHORIZED, payload=response)
 
-        with pytest.raises(exc.AuthenticationFailedError):
+        with pytest.raises(exc.BadUserCredentialsError):
             await session_manager.get_session_id()
 
         rsp.assert_called_once_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
