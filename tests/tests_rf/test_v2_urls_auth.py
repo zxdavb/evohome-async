@@ -13,7 +13,7 @@ included in that of its location) are tested only if _DBG_TEST_UNUSED_APIS.
 
 Testing is at HTTP request layer (e.g. GET/PUT).
 Everything to/from the RESTful API is in camelCase (so those schemas are used), although
-the keys of a request are case-insensitive (as confirmed here).
+the keys and enum values of a request are case-insensitive (as confirmed here).
 """
 
 from __future__ import annotations
@@ -657,3 +657,63 @@ async def test_dhw_status(evohome_v2: EvohomeClientV2) -> None:
         if _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Mocked server API not implemented")
+
+
+# PUT /temperatureZone/{zone.id}/heatSetpoint (casing; rejected)
+@skipif_auth_failed
+async def test_case_insensitive(
+    evohome_v2: EvohomeClientV2,
+) -> None:
+    """Test the keys and enum values of a PUT are case-insensitive, but not snake_case.
+
+    Each PUT is a PermanentOverride without the heatSetpointValue that it requires, so
+    the vendor rejects it (and nothing is changed). A setpointMode it recognises gives
+    HeatSetpointChangeTargetTemperatureNotSet, whereas one it doesn't gives InvalidInput.
+    So a snake_case value (e.g. "permanent_override") is not recognised.
+    """
+
+    if not _DBG_USE_REAL_AIOHTTP:
+        pytest.skip("Mocked server not implemented for this test")
+
+    await evohome_v2.setup()
+
+    if not (zone := get_zon(evohome_v2)):
+        pytest.skip("No available zones found")
+
+    url = f"temperatureZone/{zone.id}/heatSetpoint"
+
+    recognised: tuple[dict[str, str], ...] = (
+        {"setpointMode": "PermanentOverride"},  # camelCase key, PascalCase value
+        {"SetpointMode": "PermanentOverride"},  # PascalCase key
+        {"SETPOINTMODE": "PermanentOverride"},  # upper case key
+        {"setpointMode": "permanentoverride"},  # lower case value
+        {"setpointMode": "PERMANENTOVERRIDE"},  # upper case value
+        {"setpointMode": "permanentOverride"},  # camelCase value
+    )
+    for json in recognised:
+        rsp = await should_fail_v2(
+            evohome_v2.auth,
+            HTTPMethod.PUT,
+            url,
+            json=json,
+            status=HTTPStatus.BAD_REQUEST,
+        )
+        assert error_codes(rsp) == ["HeatSetpointChangeTargetTemperatureNotSet"], (
+            json,
+            rsp,
+        )
+
+    unrecognised: tuple[dict[str, str], ...] = (
+        {"setpointMode": "permanent_override"},  # snake_case value
+        {"setpointMode": "NoSuchMode"},  # not a valid setpointMode
+    )
+    for json in unrecognised:
+        rsp = await should_fail_v2(
+            evohome_v2.auth,
+            HTTPMethod.PUT,
+            url,
+            json=json,
+            status=HTTPStatus.BAD_REQUEST,
+        )
+        assert error_codes(rsp) == ["InvalidInput"], (json, rsp)
+        # [{'code': 'InvalidInput', 'message': 'Error converting value "NoSuchMode" ...'}]

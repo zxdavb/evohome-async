@@ -12,7 +12,7 @@ is_stale_task_v0() in common.py).
 
 Testing is at HTTP request layer (e.g. GET/PUT).
 Everything to/from the RESTful API is in camelCase (so those schemas are used), although
-the keys of a request are case-insensitive (as confirmed here).
+the keys and enum values of a request are case-insensitive (as confirmed here).
 """
 
 from __future__ import annotations
@@ -535,6 +535,55 @@ async def test_dhw_forbidden_params(evohome_v0: EvohomeClientV0) -> None:
 
     await evohome_v0.update()  # get user_id
     await _test_dhw_forbidden_params(evohome_v0)
+
+
+# PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (casing; rejected)
+@skipif_auth_failed
+async def test_case_insensitive(
+    evohome_v0: EvohomeClientV0,
+) -> None:
+    """Test the keys and enum values of a PUT are case-insensitive.
+
+    Each PUT is a Hold without the Value that a Hold requires, so the vendor rejects it
+    (and nothing is changed). A Status it recognises gives ParameterIsMissing, whereas
+    one it doesn't gives InvalidInput. A lost zone also gives DeviceIsLost (ignored).
+    """
+
+    if not _DBG_USE_REAL_AIOHTTP:
+        pytest.skip("Mocked server not implemented for this test")
+
+    await evohome_v0.update()  # get user_id
+
+    dev_id = next(
+        d["deviceID"] for d in await _get_devices(evohome_v0) if is_zone_v0(d)
+    )
+    url = f"devices/{dev_id}/thermostat/changeableValues/heatSetpoint"
+
+    recognised: tuple[dict[str, str], ...] = (
+        {"status": "Hold"},  # camelCase key (as this library), PascalCase value
+        {"Status": "Hold"},  # PascalCase key (as the older client)
+        {"STATUS": "Hold"},  # upper case key
+        {"status": "hold"},  # lower case value
+        {"status": "HOLD"},  # upper case value
+    )
+    for json in recognised:
+        rsp = await should_fail_v0(
+            evohome_v0.auth,
+            HTTPMethod.PUT,
+            url,
+            json=json,
+            status=HTTPStatus.BAD_REQUEST,
+        )
+        assert "ParameterIsMissing" in error_codes(rsp), (json, rsp)
+        assert "InvalidInput" not in error_codes(rsp), (json, rsp)
+        # [{'code': 'ParameterIsMissing', 'message': "'Value' is required."}, ...]
+
+    json = {"status": "NoSuchStatus"}  # not a valid Status
+    rsp = await should_fail_v0(
+        evohome_v0.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
+    )
+    assert "InvalidInput" in error_codes(rsp), (json, rsp)
+    # [{'code': 'InvalidInput', 'message': 'Error converting value "NoSuchStatus" ...'}]
 
 
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (to a lost zone)
