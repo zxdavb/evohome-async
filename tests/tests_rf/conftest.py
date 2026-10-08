@@ -7,6 +7,7 @@ import os
 import warnings
 from typing import TYPE_CHECKING
 
+import aiohttp
 import pytest
 
 import evohomeasync2 as evo2
@@ -58,7 +59,8 @@ def skipif_comm_task_timed_out() -> None:
 
 @pytest.fixture(scope="session", autouse=True)
 def reset_systems(
-    use_real_aiohttp: bool,  # noqa: FBT001 (is a fixture)
+    *,
+    use_real_aiohttp: bool,
     credentials: tuple[str, str],
 ) -> Generator[None]:
     """After the last test, reset the location under test (see TEST_LOC_IDX).
@@ -77,8 +79,6 @@ def reset_systems(
 
 async def _reset_systems(username: str, password: str) -> None:
     """Reset the location under test (TCS to Auto, zones/DHW to FollowSchedule)."""
-
-    import aiohttp  # noqa: PLC0415
 
     async def attempt(coro: Awaitable[object], entity: object) -> None:
         try:
