@@ -9,20 +9,26 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
+from datetime import timedelta as td, timezone
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
 
-from _evohome.helpers import as_utc_str
+from aiozoneinfo import async_get_time_zone
+
+from _evohome.helpers import as_local_str
+from _evohome.time_zone import iana_tz_from_windows_tz
 
 from . import exceptions as exc
 from .auth import Auth
 from .const import (
     SZ_ALLOWED_MODES,
     SZ_COUNTRY,
+    SZ_CURRENT_OFFSET_MINUTES,
     SZ_DAYLIGHT_SAVING_TIME_ENABLED,
     SZ_DEVICE_ID,
     SZ_DEVICES,
     SZ_GATEWAY_ID,
+    SZ_ID,
     SZ_INDOOR_TEMPERATURE,
     SZ_INDOOR_TEMPERATURE_STATUS,
     SZ_INSTANCE,
@@ -60,7 +66,7 @@ from .typedefs import EvoGwyInfoDictT
 
 if TYPE_CHECKING:
     import logging
-    from datetime import datetime as dt
+    from datetime import datetime as dt, tzinfo
 
     # NOTE: the .temperature_status method intentionally emulate the v2 API...
     from evohomeasync2.typedefs import EvoTemperatureStatusT
@@ -189,7 +195,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         self,
         status: TccSetpointStatus,  # Scheduled | Hold
         mode: TccDhwMode | None = None,
-        next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
+        next_time: dt | None = None,  # sent as local time: "%Y-%m-%dT%H:%M:%S"
     ) -> None:
         """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
 
@@ -201,8 +207,8 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
             # S1_HEAT_SETPOINT: None,
             # S1_COOL_SETPOINT: None,
         }
-        if next_time:
-            dhw_mode |= {S1_NEXT_TIME: as_utc_str(next_time)}
+        if next_time:  # the vendor treats it as the location's local time
+            dhw_mode |= {S1_NEXT_TIME: as_local_str(next_time, self._loc.tzinfo)}
 
         url = f"devices/{self.id}/thermostat/changeableValues"
         _ = await self._auth.put(url, json=dhw_mode)
@@ -299,7 +305,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
         self,
         status: TccSetpointStatus,  # Scheduled | Temporary | Hold
         value: float | None = None,
-        next_time: dt | None = None,  # "%Y-%m-%dT%H:%M:%SZ"
+        next_time: dt | None = None,  # sent as local time: "%Y-%m-%dT%H:%M:%S"
     ) -> None:
         """Set zone setpoint, either indefinitely, or until a set time."""
 
@@ -307,11 +313,8 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
         if value is not None:  # NOTE: may have to send {S1_VALUE: None} instead
             zon_mode[S1_VALUE] = value
-        if next_time is not None:
-            # TODO: the vendor treats NextTime as the location's local time (ignoring the
-            # Z), so this ends the override early by the UTC offset (e.g. 1h on BST) - it
-            # should be sent as local time
-            zon_mode[S1_NEXT_TIME] = as_utc_str(next_time)
+        if next_time is not None:  # the vendor treats it as the location's local time
+            zon_mode[S1_NEXT_TIME] = as_local_str(next_time, self._loc.tzinfo)
 
         url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
         _ = await self._auth.put(url, json=zon_mode)
@@ -340,10 +343,20 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
     _status: EvoTcsInfoDictT
 
-    def __init__(self, entity_id: int, config: EvoTcsInfoDictT, /) -> None:
+    def __init__(
+        self,
+        entity_id: int,
+        config: EvoTcsInfoDictT,
+        /,
+        *,
+        tzinfo: tzinfo | None = None,
+    ) -> None:
         super().__init__(entity_id)
 
         self._config: Final = config
+
+        # without the IANA TZ, fall back to the current UTC offset (so ignoring DST)
+        self._tzinfo: Final = tzinfo or _fixed_offset_tzinfo(config[SZ_TIME_ZONE])
 
         self.hotwater: HotWater | None = None
         self.zones: list[Zone] = []
@@ -355,6 +368,11 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
     def config(self) -> EvoTcsInfoDictT:
         """Return the config of the entity."""
         return self._config
+
+    @property
+    def tzinfo(self) -> tzinfo:
+        """Return a tzinfo-compliant object for this Location (as for the v2 API)."""
+        return self._tzinfo
 
     @property
     def zone_by_name(self) -> dict[str, Zone]:
@@ -388,8 +406,8 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
         """Set the TCS to a mode, either indefinitely, or for a set time."""
 
         request: TccSetTcsModeT = {S1_QUICK_ACTION: mode}
-        if until:
-            request[S1_QUICK_ACTION_NEXT_TIME] = as_utc_str(until)
+        if until:  # the vendor treats it as the location's local time
+            request[S1_QUICK_ACTION_NEXT_TIME] = as_local_str(until, self.tzinfo)
 
         await self._set_mode(request)
 
@@ -489,11 +507,45 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
         return self._config[SZ_MAC_ID]
 
 
+def _fixed_offset_tzinfo(time_zone_info: EvoTimeZoneInfoDictT) -> tzinfo:
+    """Return a tzinfo with the location's current UTC offset (so it ignores DST)."""
+    return timezone(td(minutes=time_zone_info[SZ_CURRENT_OFFSET_MINUTES]))
+
+
+async def create_location(client: EvohomeClient, config: EvoTcsInfoDictT) -> Location:
+    """Create a Location entity and return it (as for the v2 API).
+
+    A constructor function is used to keep the async creation of the location's tzinfo
+    (from its IANA TZ, as it does I/O) tightly coupled with the Location's creation.
+    """
+
+    time_zone_id = config[SZ_TIME_ZONE][SZ_ID]  # a Windows TZ id
+
+    try:
+        tzinfo = await async_get_time_zone(iana_tz_from_windows_tz(time_zone_id))
+    except (KeyError, ModuleNotFoundError):  # as for v2 (KeyError: no such TZ)
+        client.logger.warning(
+            f"Unable to find IANA TZ identifier for '{time_zone_id}'; using the "
+            "location's current UTC offset (so a NextTime after a DST transition will "
+            "be an hour out)"
+        )
+        tzinfo = None
+
+    return Location(client, config, tzinfo=tzinfo)
+
+
 class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     """Instance of an account's location/TCS."""
 
-    def __init__(self, client: EvohomeClient, config: EvoTcsInfoDictT, /) -> None:
-        super().__init__(config[SZ_LOCATION_ID], config)
+    def __init__(
+        self,
+        client: EvohomeClient,
+        config: EvoTcsInfoDictT,
+        /,
+        *,
+        tzinfo: tzinfo | None = None,
+    ) -> None:
+        super().__init__(config[SZ_LOCATION_ID], config, tzinfo=tzinfo)
 
         self._cli = client  # proxy for parent
 

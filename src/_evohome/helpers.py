@@ -28,6 +28,8 @@ class Case(StrEnum):
 
 # Vendor API datetime format (ISO 8601, UTC, no fractional seconds)
 TCC_DTM_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
+# ...but the v0 API's is the location's local time (so is without a Z)
+TCC_DTM_LOCAL_STRFTIME: Final = "%Y-%m-%dT%H:%M:%S"
 # _TCC_DTM_REGEX: Final = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
 
 # However, the 'since' datetime used for Faults is naive, and has milliseconds
@@ -133,6 +135,21 @@ def as_utc_str(dtm: dt) -> str:
         raise BadApiRequestError(f"Datetime must be TZ-aware (not naive): {dtm!r}")
 
     return dtm.astimezone(UTC).strftime(TCC_DTM_STRFTIME)
+
+
+def as_local_str(dtm: dt, tzinfo: tzinfo) -> str:
+    """Return a vendor (ISO 8601) datetime string, in a location's local time (no Z).
+
+    The v0 API treats a datetime that is sent to it (e.g. a NextTime) as the location's
+    local time, and ignores any Z. So, an aware datetime is converted to the location's
+    TZ before formatting (and so is sent as the correct instant). A naive datetime is
+    rejected, as with as_utc_str().
+    """
+
+    if dtm.tzinfo is None:  # else astimezone() would assume the local TZ
+        raise BadApiRequestError(f"Datetime must be TZ-aware (not naive): {dtm!r}")
+
+    return dtm.astimezone(tzinfo).strftime(TCC_DTM_LOCAL_STRFTIME)
 
 
 def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:

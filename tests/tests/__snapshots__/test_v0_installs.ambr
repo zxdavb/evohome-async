@@ -1550,6 +1550,12 @@
       using_daylight_saving_time: true
   
     ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
     'weather': '''
       condition: MostlyCloudy
       humidity: 92
@@ -2684,6 +2690,12 @@
       using_daylight_saving_time: true
   
     ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/Berlin
+      - 1
+  
+    ''',
     'weather': '''
       condition: Sunny
       humidity: 66
@@ -3121,6 +3133,12 @@
       id: W. Europe Standard Time
       offset_minutes: 60
       using_daylight_saving_time: true
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/Berlin
+      - 1
   
     ''',
     'weather': '''
@@ -3866,6 +3884,12 @@
       id: AUS Eastern Standard Time
       offset_minutes: 600
       using_daylight_saving_time: true
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Australia/Sydney
+      - 1
   
     ''',
     'weather': '''
@@ -4849,6 +4873,12 @@
       id: W. Europe Standard Time
       offset_minutes: 60
       using_daylight_saving_time: true
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/Berlin
+      - 1
   
     ''',
     'weather': '''
@@ -5887,6 +5917,12 @@
       id: GMT Standard Time
       offset_minutes: 0
       using_daylight_saving_time: true
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
   
     ''',
     'weather': '''
