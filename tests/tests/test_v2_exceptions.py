@@ -47,7 +47,9 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     )
 
 
-async def test_config_not_fetched(credentials_manager: TokenCacheManager) -> None:
+async def test_config_not_fetched(
+    credentials_manager: TokenCacheManager,
+) -> None:
     """Test the config attrs raise NotFetchedError until update() is called."""
 
     evo = EvohomeClient(credentials_manager)
@@ -62,7 +64,9 @@ async def test_config_not_fetched(credentials_manager: TokenCacheManager) -> Non
         _ = evo.location_by_id
 
 
-async def test_schedule_not_fetched(zone: Zone) -> None:
+async def test_schedule_not_fetched(
+    zone: Zone,
+) -> None:
     """Test the schedule attrs raise NotFetchedError until get_schedule() is called."""
 
     with pytest.raises(exc.NotFetchedError):
@@ -74,7 +78,8 @@ async def test_schedule_not_fetched(zone: Zone) -> None:
 
 
 async def test_status_not_fetched(
-    credentials_manager: TokenCacheManager, fixture_folder: Path
+    credentials_manager: TokenCacheManager,
+    fixture_folder: Path,
 ) -> None:
     """Test the status attrs raise NotFetchedError until the status is fetched."""
 
@@ -98,7 +103,9 @@ async def test_status_not_fetched(
             _ = dhw.status
 
 
-async def test_invalid_config(credentials_manager: TokenCacheManager) -> None:
+async def test_invalid_config(
+    credentials_manager: TokenCacheManager,
+) -> None:
     """Test update() raises InvalidConfigError if the config fails validation."""
 
     evo = EvohomeClient(credentials_manager)
@@ -114,7 +121,9 @@ async def test_invalid_config(credentials_manager: TokenCacheManager) -> None:
     assert err.value.__cause__ is error
 
 
-async def test_invalid_status(evohome_v2: EvohomeClient) -> None:
+async def test_invalid_status(
+    evohome_v2: EvohomeClient,
+) -> None:
     """Test update() raises InvalidStatusError if the status fails validation."""
 
     loc = get_loc(evohome_v2)
@@ -250,7 +259,9 @@ async def test_set_schedule_before_get(
     assert zone.this_switchpoint[0] < zone.next_switchpoint[0]
 
 
-async def test_ghost_zone(zone: Zone) -> None:
+async def test_ghost_zone(
+    zone: Zone,
+) -> None:
     """Test a zone without a (known) model type raises GhostZoneError."""
 
     config = zone._config.copy()
@@ -261,7 +272,8 @@ async def test_ghost_zone(zone: Zone) -> None:
 
 
 async def test_ghost_zone_skipped(
-    evohome_v2: EvohomeClient, tcs: ControlSystem
+    evohome_v2: EvohomeClient,
+    tcs: ControlSystem,
 ) -> None:
     """Test a TCS skips a ghost zone, and only that zone."""
 
@@ -284,7 +296,8 @@ async def test_ghost_zone_skipped(
 
 
 async def test_ghost_zone_other_errors(
-    evohome_v2: EvohomeClient, tcs: ControlSystem
+    evohome_v2: EvohomeClient,
+    tcs: ControlSystem,
 ) -> None:
     """Test a TCS skips only a GhostZoneError: any other InvalidConfigError is raised."""
 

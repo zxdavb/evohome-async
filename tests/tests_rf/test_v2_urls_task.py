@@ -230,7 +230,9 @@ async def _test_task_id_zone(evo: EvohomeClientV2) -> None:
 
 
 @skipif_auth_failed
-async def test_task_id_dhw(evohome_v2: EvohomeClientV2) -> None:
+async def test_task_id_dhw(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test /commTasks?commTaskId={task_id}"""
 
     if not _DBG_USE_REAL_AIOHTTP:
