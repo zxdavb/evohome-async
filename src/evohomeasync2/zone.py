@@ -14,6 +14,7 @@ from _evohome.helpers import (
     as_aware_dtm,
     as_local_time,
     convert_dtm_to_local_aware,
+    snake_to_pascal,
 )
 
 from . import exceptions as exc
@@ -269,6 +270,34 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
     return this_sp, this_offset, next_sp, next_offset
 
 
+def _fan_modes_to_pascal_case(
+    schedule: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Return a (validated) schedule with its fan modes, if any, in PascalCase.
+
+    A fan mode that is not a FanMode member (as that enum may be incomplete) is passed
+    through as a snake_case str, e.g. "HighSpeed" as "high_speed". Unlike a member, it
+    would be sent as is, but the vendor does not recognise a snake_case value (although
+    it does recognise one in any other case).
+    """
+
+    return {
+        **schedule,
+        SZ_DAILY_SCHEDULES: [
+            {
+                **day,
+                SZ_SWITCHPOINTS: [
+                    {**sp, SZ_FAN_MODE: snake_to_pascal(sp[SZ_FAN_MODE])}
+                    if SZ_FAN_MODE in sp
+                    else sp
+                    for sp in day[SZ_SWITCHPOINTS]
+                ],
+            }
+            for day in schedule[SZ_DAILY_SCHEDULES]
+        ],
+    }
+
+
 class _ScheduleBase[
     StatusT,
     DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT),
@@ -457,8 +486,11 @@ class _ScheduleBase[
 
         schedule_ = {SZ_DAILY_SCHEDULES: schedule}
 
+        def schema(data: object) -> Mapping[str, object]:
+            return _fan_modes_to_pascal_case(self.SCH_SCHEDULE(data))
+
         url = f"{self._TCC_TYPE}/{self.id}/schedule"
-        response = await self._auth.put(url, json=schedule_, schema=self.SCH_SCHEDULE)
+        response = await self._auth.put(url, json=schedule_, schema=schema)
 
         self._schedule = schedule  # NOTE: the comm task may yet fail
         self._switchpoints = None  # will be found from the new schedule, when needed

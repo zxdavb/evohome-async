@@ -3,6 +3,8 @@
 Older systems do not support all system modes, and some modes have been renamed in
 newer systems. These tests check that the client handles these cases correctly, falling
 back to appropriate alternatives where possible and raising errors where not.
+
+Also, that a schedule's fan modes (even unknown ones) are sent as the vendor expects.
 """
 
 from __future__ import annotations
@@ -18,7 +20,7 @@ from freezegun.api import FakeDatetime
 
 import evohomeasync2 as evo2
 from evohomeasync2 import CommTask, HotWater, Zone
-from evohomeasync2.const import DhwState, SystemMode, ZoneMode
+from evohomeasync2.const import DayOfWeek, DhwState, FanMode, SystemMode, ZoneMode
 from tests.const import EDGE_FIXTURES, EDGE_FIXTURES_WITH_DHW
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -29,6 +31,7 @@ if TYPE_CHECKING:
 
     from evohomeasync2 import ControlSystem
     from evohomeasync2.auth import Auth
+    from evohomeasync2.typedefs import EvoZonScheduleDayOfWeekT
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -653,3 +656,74 @@ async def test_dhw_set_mode_temporary_override_rejects_bad_args(
         await dhw.set_mode(ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.OFF)
 
     mock_put.assert_not_awaited()
+
+
+async def test_zon_set_schedule_fan_modes(
+    zone: Zone,
+) -> None:
+    """Zone.set_schedule() should PUT any fan mode in PascalCase, even an unknown one.
+
+    The FanMode enum may be incomplete, so a fan mode that is not a member is passed
+    through as a snake_case str (e.g. the vendor's "HighSpeed" as "high_speed"). The
+    vendor recognises a value in any case except snake_case, so it must be sent as
+    PascalCase, as a member is (see: tests_rf/test_v2_urls_auth.py).
+    """
+
+    schedule: list[EvoZonScheduleDayOfWeekT] = [
+        {
+            "day_of_week": DayOfWeek.MONDAY,
+            "switchpoints": [
+                {"heat_setpoint": 21.0, "time_of_day": "06:30:00"},  # no fan mode
+                {
+                    "heat_setpoint": 20.0,
+                    "time_of_day": "08:00:00",
+                    "fan_mode": FanMode.FOLLOW_SCHEDULE,  # a member
+                },
+                {
+                    "heat_setpoint": 19.0,
+                    "time_of_day": "17:00:00",
+                    "fan_mode": "high_speed",  # not a member (as from get_schedule())
+                },
+                {
+                    "heat_setpoint": 18.0,
+                    "time_of_day": "22:00:00",
+                    "fan_mode": "LowSpeed",  # not a member (as from the vendor)
+                },
+            ],
+        }
+    ]
+
+    with patch(  # after the keys/values are converted to the vendor's format
+        "_evohome.auth.AbstractAuth._make_request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
+        await zone.set_schedule(schedule)
+
+    mock_put.assert_awaited_once()
+    assert mock_put.await_args is not None  # mypy
+    assert mock_put.await_args.kwargs["json"] == {  # as sent to the vendor
+        "dailySchedules": [
+            {
+                "dayOfWeek": "Monday",
+                "switchpoints": [
+                    {"heatSetpoint": 21.0, "timeOfDay": "06:30:00"},
+                    {
+                        "heatSetpoint": 20.0,
+                        "timeOfDay": "08:00:00",
+                        "fanMode": "FollowSchedule",
+                    },
+                    {
+                        "heatSetpoint": 19.0,
+                        "timeOfDay": "17:00:00",
+                        "fanMode": "HighSpeed",
+                    },
+                    {
+                        "heatSetpoint": 18.0,
+                        "timeOfDay": "22:00:00",
+                        "fanMode": "LowSpeed",
+                    },
+                ],
+            }
+        ]
+    }
