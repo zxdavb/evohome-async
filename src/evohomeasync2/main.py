@@ -136,9 +136,8 @@ class EvohomeClient:
             # only warn once per config refresh (i.e. not on every status update)
             if is_new_config and (num := len(self.locations)) > 1:
                 self._logger.warning(
-                    f"There are {num} locations, and update() gets the status of each. "
-                    "To reduce the risk of exceeding the API rate limit, use "
-                    "Location.get_status() for only those locations you need."
+                    f"There are {num} locations. Reduce the risk of exceeding API rate "
+                    "limits by individually updating only necessary locations."
                 )
 
             for loc in self.locations:

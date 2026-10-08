@@ -286,7 +286,7 @@
     tuple(
       'evohomeasync2',
       30,
-      'There are 4 locations, and update() gets the status of each. To reduce the risk of exceeding the API rate limit, use Location.get_status() for only those locations you need.',
+      'There are 4 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
     ),
     tuple(
       'evohomeasync2',
@@ -304,7 +304,7 @@
     tuple(
       'evohomeasync2',
       30,
-      'There are 2 locations, and update() gets the status of each. To reduce the risk of exceeding the API rate limit, use Location.get_status() for only those locations you need.',
+      'There are 2 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
     ),
     tuple(
       'evohomeasync2',
@@ -333,7 +333,7 @@
     tuple(
       'evohomeasync2',
       30,
-      'There are 2 locations, and update() gets the status of each. To reduce the risk of exceeding the API rate limit, use Location.get_status() for only those locations you need.',
+      'There are 2 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
     ),
   ])
 # ---

@@ -169,10 +169,10 @@ async def _setup(evo: EvohomeClient) -> None:
 
     await evo.setup()
 
-    if (num := len(evo.locations)) > 1:  # as EvohomeClient.update() does
+    if (num := len(evo.locations)) > 1:  # as EvohomeClient.update() warns
         evo.logger.warning(
-            f"There are {num} locations, and the status of each is fetched. "
-            "This increases the risk of exceeding the API rate limit."
+            f"There are {num} locations. Reduce the risk of exceeding API rate "
+            "limits by individually updating only necessary locations."
         )
 
     for loc in evo.locations:

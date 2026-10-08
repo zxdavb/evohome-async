@@ -76,9 +76,8 @@ async def test_multi_location_warning_once_per_config_load(
 
     num = _num_locations(multi_location_fixtures)
     warning = (
-        f"There are {num} locations, and update() gets the status of each. "
-        "To reduce the risk of exceeding the API rate limit, use "
-        "Location.get_status() for only those locations you need."
+        f"There are {num} locations. Reduce the risk of exceeding API rate "
+        "limits by individually updating only necessary locations."
     )
 
     def warnings() -> list[str]:
