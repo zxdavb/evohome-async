@@ -664,9 +664,11 @@ async def test_zon_set_schedule_fan_modes(
     """Zone.set_schedule() should PUT any fan mode in PascalCase, even an unknown one.
 
     The FanMode enum may be incomplete, so a fan mode that is not a member is passed
-    through as a snake_case str (e.g. the vendor's "HighSpeed" as "high_speed"). The
-    vendor recognises a value in any case except snake_case, so it must be sent as
-    PascalCase, as a member is (see: tests_rf/test_v2_urls_auth.py).
+    through as a snake_case str (e.g. "NoSuchFanMode" as "no_such_fan_mode"). The vendor
+    recognises a value in any case except snake_case, so it must be sent as PascalCase,
+    as a member is (see: tests_rf/test_v2_urls_auth.py).
+
+    "NoSuchFanMode" is deliberately not a fan mode (see: fixtures_v2/enums_no_such/).
     """
 
     schedule: list[EvoZonScheduleDayOfWeekT] = [
@@ -682,12 +684,12 @@ async def test_zon_set_schedule_fan_modes(
                 {
                     "heat_setpoint": 19.0,
                     "time_of_day": "17:00:00",
-                    "fan_mode": "high_speed",  # not a member (as from get_schedule())
+                    "fan_mode": "no_such_fan_mode",  # not a member (as from get_schedule())
                 },
                 {
                     "heat_setpoint": 18.0,
                     "time_of_day": "22:00:00",
-                    "fan_mode": "LowSpeed",  # not a member (as from the vendor)
+                    "fan_mode": "NoSuchFanMode",  # not a member (as from the vendor)
                 },
             ],
         }
@@ -716,12 +718,12 @@ async def test_zon_set_schedule_fan_modes(
                     {
                         "heatSetpoint": 19.0,
                         "timeOfDay": "17:00:00",
-                        "fanMode": "HighSpeed",
+                        "fanMode": "NoSuchFanMode",
                     },
                     {
                         "heatSetpoint": 18.0,
                         "timeOfDay": "22:00:00",
-                        "fanMode": "LowSpeed",
+                        "fanMode": "NoSuchFanMode",
                     },
                 ],
             }

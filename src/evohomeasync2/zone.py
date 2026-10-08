@@ -276,9 +276,9 @@ def _fan_modes_to_pascal_case(
     """Return a (validated) schedule with its fan modes, if any, in PascalCase.
 
     A fan mode that is not a FanMode member (as that enum may be incomplete) is passed
-    through as a snake_case str, e.g. "HighSpeed" as "high_speed". Unlike a member, it
-    would be sent as is, but the vendor does not recognise a snake_case value (although
-    it does recognise one in any other case).
+    through as a snake_case str, e.g. "NoSuchFanMode" as "no_such_fan_mode". Unlike a
+    member, it would be sent as is, but the vendor does not recognise a snake_case value
+    (although it does recognise one in any other case).
     """
 
     return {
