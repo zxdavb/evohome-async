@@ -135,11 +135,11 @@ class EntityBase[StatusT]:
     async def _get_status(self, *, _update: bool = True) -> StatusT:
         """Return the latest state of the entity.
 
-        It is more efficient to call Location.update() as all descendants are updated
+        It is more efficient to call Location.get_status() as all descendants are updated
         with a single GET. Returns the raw JSON of the latest state.
         """
 
-        raise NotImplementedError("Use Location.update() to update status")
+        raise NotImplementedError("Use Location.get_status() to update status")
 
 
 class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
@@ -493,11 +493,11 @@ class _ZoneBase[
         """Get the latest state of this DHW/zone and optionally update its status attrs.
 
         This is a working vendor API endpoint, retained only for use by the test suite.
-        For normal use, prefer Location.update as a single GET updates all descendants.
+        For normal use, prefer Location.get_status as a single GET updates all descendants.
         """
 
         self._logger.warning(
-            f"{self}: prefer Location.update() for more efficient status retrieval"
+            f"{self}: prefer Location.get_status() for more efficient status retrieval"
         )
 
         status: StatusT = await self._auth.get(

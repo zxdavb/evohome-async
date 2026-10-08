@@ -71,6 +71,52 @@ class EvohomeClient:
     def logger(self) -> logging.Logger:
         return self._logger
 
+    async def setup(self, *, _reset_config: bool = False) -> None:
+        """Retrieve the user information & the configuration of all their locations.
+
+        This is usually called only once, before using the client. In v1, the config
+        and status of a location are one GET, so this also retrieves their status.
+        """
+
+        await self.get_status(_reset_config=_reset_config)
+
+    async def get_status(self, *, _reset_config: bool = False) -> list[EvoTcsInfoDictT]:
+        """Retrieve the latest state of the user's locations.
+
+        If required (or when `_reset_config` is true, for use by the test suite), first
+        retrieves the user information.
+
+        There is one API call for the user info, and a second for the config/status of
+        all the user's locations (in v1, these are one GET).
+
+        Logs a warning if the locations are not those of the config (the status of the
+        known locations is updated).
+        """
+
+        if _reset_config:
+            self._clear_config()
+
+        self._user_locs = None  # the locations (config & status) are always re-fetched
+
+        try:
+            user_locs = await self._get_config()
+        except exc.BadApiResponseError as err:  # e.g. failed validation
+            if self._locations is None:  # the entities are yet to be instantiated
+                raise exc.InvalidConfigError(err.message) from err
+            raise exc.InvalidStatusError(err.message) from err
+
+        assert self._location_by_id is not None  # mypy
+
+        for loc_entry in user_locs:  # each entry is both config & status
+            loc_id = str(loc_entry[SZ_LOCATION_ID])
+            if loc_id not in self._location_by_id:  # added since config was fetched
+                continue
+            self._location_by_id[loc_id]._update_status(loc_entry)  # noqa: SLF001
+
+        self._warn_if_stale_config(user_locs)
+
+        return user_locs
+
     async def update(
         self,
         /,
@@ -80,50 +126,28 @@ class EvohomeClient:
     ) -> list[EvoTcsInfoDictT]:
         """Retrieve the latest state of the user's locations.
 
-        If required (or when `_reset_config` was true), first retrieves the user
-        information & the configuration of all their locations.
+        Kept for compatibility: use `setup()`, and then `get_status()`.
 
-        There is one API call for the user info, and a second for the config/status of
-        all the user's locations.
-
-        If `disable_status_update` is true, does not update the status of each location
-        hierarchy (note: may have already retrieved the latest version of that data).
-
-        Logs a warning if the locations are not those of the config (the status of the
-        known locations is updated).
+        If `dont_update_status` is true, does nothing if the config has already been
+        retrieved (otherwise, is the same as `get_status()`).
         """
 
         if _reset_config:
-            self._user_info = None
-            self._user_locs = None
+            self._clear_config()
 
-            self._locations = None
-            self._location_by_id = None
+        if dont_update_status and self._user_locs is not None:
+            return self._user_locs
 
-        if not dont_update_status:
-            self._user_locs = None
+        return await self.get_status()
 
-        if self._user_locs is None:
-            try:
-                await self._get_config()
-            except exc.BadApiResponseError as err:  # e.g. failed validation
-                if self._locations is None:  # the entities are yet to be instantiated
-                    raise exc.InvalidConfigError(err.message) from err
-                raise exc.InvalidStatusError(err.message) from err
+    def _clear_config(self) -> None:
+        """Clear the user information & the config of their locations."""
 
-        assert self._user_locs is not None  # mypy
+        self._user_info = None
+        self._user_locs = None
 
-        if not dont_update_status:  # don't update status of location hierarchy
-            assert self._location_by_id
-            for loc_entry in self._user_locs:  # each entry is both config & status
-                loc_id = str(loc_entry[SZ_LOCATION_ID])
-                if loc_id not in self._location_by_id:  # added since config was fetched
-                    continue
-                self._location_by_id[loc_id]._update_status(loc_entry)  # noqa: SLF001
-
-            self._warn_if_stale_config(self._user_locs)
-
-        return self._user_locs
+        self._locations = None
+        self._location_by_id = None
 
     def _warn_if_stale_config(self, user_locs: list[EvoTcsInfoDictT]) -> None:
         """Log a warning (only once) if the locations are not those of the config."""

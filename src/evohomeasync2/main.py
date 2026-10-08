@@ -85,28 +85,15 @@ class EvohomeClient:
 
         return self._tzinfo
 
-    async def update(
-        self,
-        /,
-        *,
-        dont_update_status: bool = False,
-        raise_on_stale_config: bool = False,
-        _reset_config: bool = False,  # for use by test suite
-    ) -> list[EvoLocConfigResponseT]:
-        """Retrieve the latest state of the user's locations.
+    async def setup(self, *, _reset_config: bool = False) -> None:
+        """Retrieve the user information & the configuration of all their locations.
 
-        If required (or when `_reset_config` was true), first retrieves the user
-        information & the configuration of all their locations.
+        This is usually called only once, before using the client. It does not
+        retrieve the status of any location: use `Location.get_status()` for that.
 
         There is one API call for the user info, and a second for the config of all the
-        user's locations; there are additional API calls for each location's status.
-
-        If `disable_status_update` is true, does not update the status of each location
-        hierarchy (and so, does not make those additional API calls).
-
-        If `raise_on_stale_config` is true, a location's status that omits any of its
-        known entities raises StaleConfigError, rather than logging a warning (see
-        `Location.update()`).
+        user's locations. If they have already been retrieved, there are none (unless
+        `_reset_config` is true, for use by the test suite).
         """
 
         if _reset_config:
@@ -118,15 +105,43 @@ class EvohomeClient:
 
         if self._user_locs is None:
             try:
-                await self._get_config(dont_update_status=dont_update_status)
+                await self._get_config()
             except exc.BadApiResponseError as err:  # e.g. failed validation
                 raise exc.InvalidConfigError(err.message) from err
 
+    async def update(
+        self,
+        /,
+        *,
+        dont_update_status: bool = False,
+        raise_on_stale_config: bool = False,
+        _reset_config: bool = False,  # for use by test suite
+    ) -> list[EvoLocConfigResponseT]:
+        """Retrieve the config of the user's locations, and then their status.
+
+        Kept for compatibility: use `setup()`, and then `Location.get_status()`.
+
+        If `dont_update_status` is true, is the same as `setup()`.
+
+        If `raise_on_stale_config` is true, a location's status that omits any of its
+        known entities raises StaleConfigError, rather than logging a warning (see
+        `Location.get_status()`).
+        """
+
+        is_new_config = _reset_config or self._locations is None
+
+        await self.setup(_reset_config=_reset_config)
+
         if not dont_update_status:  # don't retrieve/update status of location hierarchy
-            #
+            # only warn once per config refresh (i.e. not on every status update)
+            if is_new_config and (num := len(self.locations)) > 1:
+                self._logger.warning(
+                    f"There are {num} locations. Reduce the risk of exceeding API rate "
+                    "limits by individually updating only necessary locations."
+                )
+
             for loc in self.locations:
-                await loc.update(raise_on_stale_config=raise_on_stale_config)
-                #
+                await loc.get_status(raise_on_stale_config=raise_on_stale_config)
 
         assert self._user_locs is not None  # mypy
         return self._user_locs
@@ -169,9 +184,7 @@ class EvohomeClient:
             self._token_manager.clear_access_token()
             return await self.auth.get(url, schema=SCH_USR_ACCOUNT)
 
-    async def _get_config(
-        self, /, *, dont_update_status: bool = False
-    ) -> list[EvoLocConfigResponseT]:
+    async def _get_config(self) -> list[EvoLocConfigResponseT]:
         """Ensures the config of the user and their locations.
 
         If required, first retrieves the user information & installation configuration.
@@ -206,13 +219,6 @@ class EvohomeClient:
                 loc = await create_location(self, loc_config)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
-
-            # only warn once per config refresh (i.e. not on every status update)
-            if not dont_update_status and (num := len(self._locations)) > 1:
-                self._logger.warning(
-                    f"There are {num} locations. Reduce the risk of exceeding API rate "
-                    "limits by individually updating only necessary locations."
-                )
 
         return self._user_locs
 

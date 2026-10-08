@@ -178,6 +178,9 @@ async def test_status_missing_known_entity_raises_if_asked(
         _ = zone.status  # the others were updated before the raise (else would raise)
 
         with pytest.raises(exc.StaleConfigError, match="zone_id="):
+            await loc.get_status(raise_on_stale_config=True)
+
+        with pytest.raises(exc.StaleConfigError, match="zone_id="):
             await evohome_v2.update(raise_on_stale_config=True)
 
     assert not caplog.records  # it is raised, and not logged

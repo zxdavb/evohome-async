@@ -445,7 +445,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
         """A convenience function to obtain the high-precision temperatures."""
 
         if not dont_update_status:
-            await self._cli.update()
+            await self._cli.get_status()
 
         return {z.id: z.temperature for z in self.zones}
 
