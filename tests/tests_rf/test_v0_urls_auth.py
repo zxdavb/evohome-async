@@ -137,7 +137,9 @@ async def _test_evo_systems(evo: EvohomeClientV0) -> None:
 
 # GET /locations?userId={user_id}&allData=True
 @skipif_auth_failed
-async def test_usr_locations(evohome_v0: EvohomeClientV0) -> None:
+async def test_usr_locations(
+    evohome_v0: EvohomeClientV0,
+) -> None:
     """Test /locations?userId={user_id}&allData=True"""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -156,7 +158,9 @@ async def test_usr_locations(evohome_v0: EvohomeClientV0) -> None:
 
 # PUT /evoTouchSystems?locationId={loc_id}
 @skipif_auth_failed
-async def test_evo_systems(evohome_v0: EvohomeClientV0) -> None:
+async def test_evo_systems(
+    evohome_v0: EvohomeClientV0,
+) -> None:
     """Test /evoTouchSystems?locationId={loc_id}"""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -503,7 +507,9 @@ async def _test_lost_device(evo: EvohomeClientV0, *, is_dhw: bool) -> None:
 
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
 @skipif_auth_failed
-async def test_zon_heat_setpoint(evohome_v0: EvohomeClientV0) -> None:
+async def test_zon_heat_setpoint(
+    evohome_v0: EvohomeClientV0,
+) -> None:
     """Test /devices/{zone_id}/thermostat/changeableValues/heatSetpoint"""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -515,7 +521,9 @@ async def test_zon_heat_setpoint(evohome_v0: EvohomeClientV0) -> None:
 
 # PUT /devices/{dhw_id}/thermostat/changeableValues
 @skipif_auth_failed
-async def test_dhw_changeable_values(evohome_v0: EvohomeClientV0) -> None:
+async def test_dhw_changeable_values(
+    evohome_v0: EvohomeClientV0,
+) -> None:
     """Test /devices/{dhw_id}/thermostat/changeableValues"""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -527,7 +535,9 @@ async def test_dhw_changeable_values(evohome_v0: EvohomeClientV0) -> None:
 
 # PUT /devices/{dhw_id}/thermostat/changeableValues (with rejected params)
 @skipif_auth_failed
-async def test_dhw_forbidden_params(evohome_v0: EvohomeClientV0) -> None:
+async def test_dhw_forbidden_params(
+    evohome_v0: EvohomeClientV0,
+) -> None:
     """Test /devices/{dhw_id}/thermostat/changeableValues (rejected params)"""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -539,7 +549,9 @@ async def test_dhw_forbidden_params(evohome_v0: EvohomeClientV0) -> None:
 
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (to a lost zone)
 @skipif_auth_failed
-async def test_zon_lost(evohome_v0: EvohomeClientV0) -> None:
+async def test_zon_lost(
+    evohome_v0: EvohomeClientV0,
+) -> None:
     """Test /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (lost zone)"""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -551,7 +563,9 @@ async def test_zon_lost(evohome_v0: EvohomeClientV0) -> None:
 
 # PUT /devices/{dhw_id}/thermostat/changeableValues (to a lost DHW)
 @skipif_auth_failed
-async def test_dhw_lost(evohome_v0: EvohomeClientV0) -> None:
+async def test_dhw_lost(
+    evohome_v0: EvohomeClientV0,
+) -> None:
     """Test /devices/{dhw_id}/thermostat/changeableValues (lost DHW)"""
 
     if not _DBG_USE_REAL_AIOHTTP:

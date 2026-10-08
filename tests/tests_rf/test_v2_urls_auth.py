@@ -591,28 +591,36 @@ async def _test_dhw_status(evo: EvohomeClientV2) -> None:
 
 
 @skipif_auth_failed  # GET
-async def test_usr_account(evohome_v2: EvohomeClientV2) -> None:
+async def test_usr_account(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test GET /userAccount"""
 
     await _test_usr_account(evohome_v2)
 
 
 @skipif_auth_failed  # GET
-async def test_usr_locations(evohome_v2: EvohomeClientV2) -> None:
+async def test_usr_locations(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test GET /location/installationInfo"""
 
     await _test_user_locations(evohome_v2)
 
 
 @skipif_auth_failed  # GET
-async def test_loc_status(evohome_v2: EvohomeClientV2) -> None:
+async def test_loc_status(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test GET /location/{loc.id}/status"""
 
     await _test_loc_status(evohome_v2)
 
 
 @skipif_auth_failed  # GET, PUT
-async def test_tcs_status(evohome_v2: EvohomeClientV2) -> None:
+async def test_tcs_status(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test GET /temperatureControlSystem/{tcs.id}/status
 
     Also tests PUT /temperatureControlSystem/{tcs.id}/mode
@@ -628,7 +636,9 @@ async def test_tcs_status(evohome_v2: EvohomeClientV2) -> None:
 
 
 @skipif_auth_failed  # GET, PUT
-async def test_zone_status(evohome_v2: EvohomeClientV2) -> None:
+async def test_zone_status(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test GET /temperatureZone/{zone.id}/status
 
     Also tests PUT /temperatureZone/{zone.id}/heatSetpoint
@@ -644,7 +654,9 @@ async def test_zone_status(evohome_v2: EvohomeClientV2) -> None:
 
 
 @skipif_auth_failed  # GET, PUT
-async def test_dhw_status(evohome_v2: EvohomeClientV2) -> None:
+async def test_dhw_status(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test GET /domesticHotWater/{dhw.id}/status
 
     Also tests PUT /domesticHotWater/{dhw.id}/state
