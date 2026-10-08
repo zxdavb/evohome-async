@@ -199,7 +199,9 @@ async def _test_zon_mode(evo: EvohomeClientV2) -> None:
 
 
 @skipif_auth_failed
-async def test_usr_apis(evohome_v2: EvohomeClientV2) -> None:
+async def test_usr_apis(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test user_account() and installation()."""
 
     try:
@@ -212,7 +214,9 @@ async def test_usr_apis(evohome_v2: EvohomeClientV2) -> None:
 
 
 @skipif_auth_failed
-async def test_tcs(evohome_v2: EvohomeClientV2) -> None:
+async def test_tcs(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test set_mode() for TCS"""
 
     try:
@@ -225,13 +229,17 @@ async def test_tcs(evohome_v2: EvohomeClientV2) -> None:
 
 
 @skipif_auth_failed
-async def test_dhw_apis(evohome_v2: EvohomeClientV2) -> None:
+async def test_dhw_apis(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test get_schedule() and get_schedule()."""
     await _test_dhw_apis(evohome_v2)
 
 
 @skipif_auth_failed
-async def test_dhw_mode(evohome_v2: EvohomeClientV2) -> None:
+async def test_dhw_mode(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test set_off() and reset() for DHW."""
 
     try:
@@ -244,13 +252,17 @@ async def test_dhw_mode(evohome_v2: EvohomeClientV2) -> None:
 
 
 @skipif_auth_failed
-async def test_zon_apis(evohome_v2: EvohomeClientV2) -> None:
+async def test_zon_apis(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test _update() for DHW/zone."""
     await _test_zon_apis(evohome_v2)
 
 
 @skipif_auth_failed
-async def test_zon_mode(evohome_v2: EvohomeClientV2) -> None:
+async def test_zon_mode(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test set_temperature() and reset() for zone."""
 
     try:

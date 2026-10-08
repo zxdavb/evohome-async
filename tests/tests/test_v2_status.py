@@ -56,7 +56,9 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     )
 
 
-def test_tcs_status_requires_zones(fixture_folder: Path) -> None:
+def test_tcs_status_requires_zones(
+    fixture_folder: Path,
+) -> None:
     """A TCS status with no zones should fail validation, as does its config."""
 
     (status_file,) = fixture_folder.glob("status_*.json")

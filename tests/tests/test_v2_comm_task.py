@@ -65,7 +65,9 @@ def _task(state: str, task_id: str = TASK_ID) -> dict[str, str]:
     return {"commtask_id": task_id, "state": state}  # NOTE: is snake_case
 
 
-async def test_put_returns_comm_task(zone: Zone) -> None:
+async def test_put_returns_comm_task(
+    zone: Zone,
+) -> None:
     """Check a set_* method returns the PUT's comm task, without polling it."""
 
     with patch(
@@ -80,7 +82,9 @@ async def test_put_returns_comm_task(zone: Zone) -> None:
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
 
-async def test_set_schedule_returns_comm_task(zone: Zone) -> None:
+async def test_set_schedule_returns_comm_task(
+    zone: Zone,
+) -> None:
     """Check set_schedule() returns the PUT's comm task.
 
     Zone and HotWater share set_schedule() (only their schedule schema differs), so
@@ -101,7 +105,9 @@ async def test_set_schedule_returns_comm_task(zone: Zone) -> None:
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
 
-async def test_put_with_bad_response(zone: Zone) -> None:
+async def test_put_with_bad_response(
+    zone: Zone,
+) -> None:
     """Check a PUT whose response is not a comm task raises BadApiResponseError."""
 
     with (
@@ -116,7 +122,11 @@ async def test_put_with_bad_response(zone: Zone) -> None:
 
 
 @pytest.mark.parametrize("as_list", [False, True], ids=["dict", "list"])
-async def test_get_state(auth: Auth, *, as_list: bool) -> None:
+async def test_get_state(
+    auth: Auth,
+    *,
+    as_list: bool,
+) -> None:
     """Check get_state() GETs the task's state (the vendor may wrap it in a list)."""
 
     task = CommTask(auth, TASK_ID)
@@ -130,7 +140,9 @@ async def test_get_state(auth: Auth, *, as_list: bool) -> None:
     mock_request.assert_awaited_once_with(HTTPMethod.GET, URL)
 
 
-async def test_get_state_unknown(auth: Auth) -> None:
+async def test_get_state_unknown(
+    auth: Auth,
+) -> None:
     """Check get_state() tolerates an unknown state (passed thru as a str)."""
 
     task = CommTask(auth, TASK_ID)
@@ -141,7 +153,9 @@ async def test_get_state_unknown(auth: Auth) -> None:
         assert await task.get_state() == "postponed"
 
 
-async def test_get_state_wrong_task(auth: Auth) -> None:
+async def test_get_state_wrong_task(
+    auth: Auth,
+) -> None:
     """Check get_state() raises BadApiResponseError if the vendor returns another task."""
 
     task = CommTask(auth, TASK_ID)
@@ -155,7 +169,9 @@ async def test_get_state_wrong_task(auth: Auth) -> None:
         await task.get_state()
 
 
-async def test_wait_succeeds(auth: Auth) -> None:
+async def test_wait_succeeds(
+    auth: Auth,
+) -> None:
     """Check wait() polls until the task succeeds (an unknown state isn't terminal)."""
 
     task = CommTask(auth, TASK_ID)
@@ -169,7 +185,9 @@ async def test_wait_succeeds(auth: Auth) -> None:
     assert mock_request.await_count == len(states)
 
 
-async def test_wait_fails(auth: Auth) -> None:
+async def test_wait_fails(
+    auth: Auth,
+) -> None:
     """Check wait() raises CommTaskFailedError if the task fails."""
 
     task = CommTask(auth, TASK_ID)

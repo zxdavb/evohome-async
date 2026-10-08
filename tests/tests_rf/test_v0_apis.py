@@ -168,7 +168,9 @@ async def _test_zon_apis(evo: EvohomeClientV0) -> None:
 
 
 @skipif_auth_failed
-async def test_usr_apis(evohome_v0: EvohomeClientV0) -> None:
+async def test_usr_apis(
+    evohome_v0: EvohomeClientV0,
+) -> None:
     """Test update(), user_account and locations."""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -178,7 +180,9 @@ async def test_usr_apis(evohome_v0: EvohomeClientV0) -> None:
 
 
 @skipif_auth_failed
-async def test_tcs_apis(evohome_v0: EvohomeClientV0) -> None:
+async def test_tcs_apis(
+    evohome_v0: EvohomeClientV0,
+) -> None:
     """Test set_auto() for a TCS."""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -188,7 +192,9 @@ async def test_tcs_apis(evohome_v0: EvohomeClientV0) -> None:
 
 
 @skipif_auth_failed
-async def test_dhw_apis(evohome_v0: EvohomeClientV0) -> None:
+async def test_dhw_apis(
+    evohome_v0: EvohomeClientV0,
+) -> None:
     """Test set_dhw_on()/set_dhw_off() and set_dhw_auto() for a DHW."""
 
     if not _DBG_USE_REAL_AIOHTTP:
@@ -198,7 +204,9 @@ async def test_dhw_apis(evohome_v0: EvohomeClientV0) -> None:
 
 
 @skipif_auth_failed
-async def test_zon_apis(evohome_v0: EvohomeClientV0) -> None:
+async def test_zon_apis(
+    evohome_v0: EvohomeClientV0,
+) -> None:
     """Test set_temperature() and set_zone_auto() for a zone."""
 
     if not _DBG_USE_REAL_AIOHTTP:

@@ -167,7 +167,9 @@ V0_SCHEMAS: dict[str, tuple[Callable[[Case], object], object]] = {
 
 
 @pytest.mark.parametrize("name", V0_SCHEMAS)
-def test_v0_pythonic_typeddicts(name: str) -> None:
+def test_v0_pythonic_typeddicts(
+    name: str,
+) -> None:
     """Test the v0 schemas (with snake_case keys) agree with their Evo*DictT."""
 
     factory, evo_type = V0_SCHEMAS[name]
@@ -284,7 +286,9 @@ V2_SCHEMAS: dict[str, tuple[Callable[[Case], object], object, object]] = {
 
 
 @pytest.mark.parametrize("name", [k for k, v in V2_SCHEMAS.items() if v[2] is not None])
-def test_v2_pythonic_typeddicts(name: str) -> None:
+def test_v2_pythonic_typeddicts(
+    name: str,
+) -> None:
     """Test the v2 pythonic schemas (snake_case keys) agree with their Evo*T."""
 
     factory, _, evo_type = V2_SCHEMAS[name]
@@ -296,7 +300,9 @@ def test_v2_pythonic_typeddicts(name: str) -> None:
 
 
 @pytest.mark.parametrize("name", V2_SCHEMAS)
-def test_v2_vendor_typeddicts(name: str) -> None:
+def test_v2_vendor_typeddicts(
+    name: str,
+) -> None:
     """Test the v2 vendor schemas (camelCase keys) agree with their Tcc*T."""
 
     factory, tcc_type, _ = V2_SCHEMAS[name]
@@ -328,7 +334,10 @@ FIXTURE_TYPEDDICTS: dict[str, vol.Schema] = {
         for path in sorted(FIXTURES_V2.glob(f"*/{pattern}"))
     ],
 )
-def test_v2_fixtures_typeddicts(pattern: str, path: Path) -> None:
+def test_v2_fixtures_typeddicts(
+    pattern: str,
+    path: Path,
+) -> None:
     """Test the vendor's JSON (as per the fixtures) is valid per the Tcc*T."""
 
     FIXTURE_TYPEDDICTS[pattern](json.loads(path.read_text()))

@@ -100,7 +100,12 @@ def test_factory_active_faults(
         ("1234567\n", False),
     ],
 )
-def test_regex_entity_ids(regex: str, value: str, *, is_valid: bool) -> None:
+def test_regex_entity_ids(
+    regex: str,
+    value: str,
+    *,
+    is_valid: bool,
+) -> None:
     """Test an entity ID must be wholly numeric (vol.Match anchors only at the start)."""
 
     schema = vol.Schema(vol.Match(regex))

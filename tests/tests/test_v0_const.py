@@ -35,7 +35,9 @@ PASCAL_CASE_ENUMS = (
 
 
 @pytest.mark.parametrize("member", [m for e in PASCAL_CASE_ENUMS for m in e], ids=str)
-def test_v0_enum_survives_put(member: StrEnum) -> None:
+def test_v0_enum_survives_put(
+    member: StrEnum,
+) -> None:
     """Check a PascalCase enum value is sent unchanged (see AbstractAuth.request())."""
 
     assert convert_str_enums_to_pascal_case({"x": member})["x"] == member.value

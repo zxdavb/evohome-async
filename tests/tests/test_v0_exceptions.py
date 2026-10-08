@@ -35,7 +35,9 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     )
 
 
-async def test_config_not_fetched(credentials_manager: TokenCacheManager) -> None:
+async def test_config_not_fetched(
+    credentials_manager: TokenCacheManager,
+) -> None:
     """Test the config attrs raise NotFetchedError until update() is called."""
 
     evo = EvohomeClient(credentials_manager)
@@ -48,7 +50,9 @@ async def test_config_not_fetched(credentials_manager: TokenCacheManager) -> Non
         _ = evo.location_by_id
 
 
-async def test_invalid_config(credentials_manager: TokenCacheManager) -> None:
+async def test_invalid_config(
+    credentials_manager: TokenCacheManager,
+) -> None:
     """Test update() raises InvalidConfigError if the config fails validation."""
 
     evo = EvohomeClient(credentials_manager)
@@ -64,7 +68,9 @@ async def test_invalid_config(credentials_manager: TokenCacheManager) -> None:
     assert err.value.__cause__ is error
 
 
-async def test_invalid_status(evohome_v0: EvohomeClient) -> None:
+async def test_invalid_status(
+    evohome_v0: EvohomeClient,
+) -> None:
     """Test update() raises InvalidStatusError if the status fails validation."""
 
     error = exc.BadApiResponseError(_ERR_MSG)
@@ -79,7 +85,9 @@ async def test_invalid_status(evohome_v0: EvohomeClient) -> None:
     assert err.value.__cause__ is error
 
 
-async def test_unknown_zone(evohome_v0: EvohomeClient) -> None:
+async def test_unknown_zone(
+    evohome_v0: EvohomeClient,
+) -> None:
     """Test asking for a zone that does not exist raises BadApiRequestError."""
 
     loc = get_loc(evohome_v0)
