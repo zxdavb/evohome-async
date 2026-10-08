@@ -13,7 +13,8 @@ included in that of its location) are tested only if _DBG_TEST_UNUSED_APIS.
 
 Testing is at HTTP request layer (e.g. GET/PUT).
 Everything to/from the RESTful API is in camelCase (so those schemas are used), although
-the keys and enum values of a request are case-insensitive (as confirmed here).
+the path & query keys of a URL, and the keys & enum values of a request, are
+case-insensitive (as confirmed here).
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from _evohome.const import HOSTNAME
 from _evohome.helpers import pascal_to_snake
 from evohomeasync2.schemas.account import TCC_GET_USR_ACCOUNT
 from evohomeasync2.schemas.config import TCC_GET_USR_LOCATIONS
@@ -657,6 +659,88 @@ async def test_dhw_status(evohome_v2: EvohomeClientV2) -> None:
         if _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Mocked server API not implemented")
+
+
+# GET /userAccount & /location/installationInfo?userId={user_id}&... (URL casing)
+@skipif_auth_failed
+async def test_url_case_insensitive(
+    evohome_v2: EvohomeClientV2,
+) -> None:
+    """Test the path and the query keys of a URL are case-insensitive.
+
+    Expected (as confirmed against the vendor's server):
+      - the base path (WebAPI/emea/api/v1) and the endpoint path are case-insensitive:
+        e.g. webapi/EMEA/API/V1/USERACCOUNT gives the same response as
+        WebAPI/emea/api/v1/userAccount
+      - the query keys are case-insensitive: e.g.
+        installationInfo?USERID={id}&INCLUDETEMPERATURECONTROLSYSTEMS=True gives the
+        user's locations with their TCSs, as does
+        installationInfo?userId={id}&includeTemperatureControlSystems=True
+
+    Some controls show that the query keys are recognised, not merely ignored: without
+    a (recognised) userId the vendor returns 404 (a JSON message), and without
+    includeTemperatureControlSystems the gateways have no TCSs. An unknown path also
+    gives 404 (but as HTML).
+    """
+
+    if not _DBG_USE_REAL_AIOHTTP:
+        pytest.skip("Mocked server not implemented for this test")
+
+    await evohome_v2.setup()
+
+    auth = evohome_v2.auth
+    usr_id: str = evohome_v2.user_account["user_id"]
+
+    # the path (here, the base path too), all of which give the same response...
+    expected = await should_work_v2(auth, HTTPMethod.GET, "userAccount")
+
+    for path in (
+        "WebAPI/emea/api/v1/useraccount",  # lower case endpoint
+        "WebAPI/emea/api/v1/USERACCOUNT",  # upper case endpoint
+        "webapi/EMEA/API/V1/userAccount",  # mixed case base path
+        "WEBAPI/EMEA/API/V1/USERACCOUNT",  # upper case base path & endpoint
+    ):
+        async with auth.websession.get(
+            f"https://{HOSTNAME}/{path}", headers=await auth._headers()
+        ) as rsp:
+            assert rsp.status == HTTPStatus.OK, (path, rsp.status)
+            assert await rsp.json() == expected, path
+
+    # the query keys (and path), all of which give the user's locations with TCSs...
+    for path, usr_key, tcs_key in (
+        # camelCase keys (as this library)
+        ("location/installationInfo", "userId", "includeTemperatureControlSystems"),
+        # upper case keys
+        ("location/installationInfo", "USERID", "INCLUDETEMPERATURECONTROLSYSTEMS"),
+        # lower case keys
+        ("location/installationInfo", "userid", "includetemperaturecontrolsystems"),
+        # upper case path, PascalCase keys
+        ("LOCATION/INSTALLATIONINFO", "UserId", "IncludeTemperatureControlSystems"),
+    ):
+        url = f"{path}?{usr_key}={usr_id}&{tcs_key}=True"
+        _ = await should_work_v2(  # the schema requires the TCSs
+            auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCATIONS
+        )
+
+    # the controls...
+    url = f"location/installationInfo?userId={usr_id}"  # no TCSs (needs the include)
+    locs = await should_work_v2(auth, HTTPMethod.GET, url)
+    assert isinstance(locs, list)  # mypy
+    assert all("temperatureControlSystems" not in g for g in locs[0]["gateways"]), url
+
+    url = f"location/installationInfo?noSuchKey={usr_id}"  # no userId: so 404 (JSON)
+    _ = await should_fail_v2(auth, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    # {'message': "No HTTP resource was found that matches the request URI '...'."}
+
+    url = "noSuchThing"  # an unknown path: so 404 (HTML)
+    _ = await should_fail_v2(
+        auth,
+        HTTPMethod.GET,
+        url,
+        content_type="text/html",
+        status=HTTPStatus.NOT_FOUND,
+    )
+    # '<!DOCTYPE html PUBLIC ... >'
 
 
 # PUT /temperatureZone/{zone.id}/heatSetpoint (casing; rejected)

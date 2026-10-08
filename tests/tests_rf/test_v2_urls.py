@@ -57,8 +57,9 @@ The API is regular, and these tests confirm the following conventions:
 - a GET of a PUT-only URL is 405 (Method Not Allowed), except for a zone's heatSetpoint,
   which is 404 (Not Found), as is any other invalid URL (which returns HTML, not JSON)
 
-- responses are camelCase, but the keys and enum values of a request are case-insensitive
-  (but not snake_case: e.g. "permanentoverride" is accepted, "permanent_override" is not)
+- responses are camelCase, but the path & query keys of a URL, and the keys & enum
+  values of a request, are case-insensitive (but not snake_case: e.g. the enum value
+  "permanentoverride" is accepted, "permanent_override" is not)
 
 - a TemporaryOverride of a TCS or zone requires timeUntil, but that of a DHW untilTime
 
