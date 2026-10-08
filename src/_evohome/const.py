@@ -16,7 +16,7 @@ _ERR_NO_CONFIG: Final = "{} not available until after EvohomeClient.setup() is c
 _ERR_NO_STATUS: Final = (
     "{} has no state, has it been fetched via Location.get_status()?"
 )
-_ERR_NO_SCHEDULE: Final = "{} has no schedule, has it been fetched via get_schedule()?"
+_ERR_NO_SCHEDULE: Final = "{} has no schedule, has it been fetched via .get_schedule()?"
 
 REGEX_EMAIL_ADDRESS = re.compile(
     r"^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,63})$"
