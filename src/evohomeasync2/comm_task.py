@@ -25,18 +25,11 @@ if TYPE_CHECKING:
 DEFAULT_INTERVAL: Final = 0.5  # seconds
 
 
-_SCH_COMM_TASK: Final[Validator[EvoCommTaskResponseT]] = factory_comm_task_response(
+# the state of a comm task (a dict: only an error response is seen as a list)
+SCH_COMM_TASK: Final[Validator[EvoCommTaskResponseT]] = factory_comm_task_response(
     Case.PYTHONIC
 )
 _SCH_TASK: Final[Validator[TccTaskResponseT]] = factory_task_response()
-
-# the comm task is expected to be a dict, but the vendor may wrap it in a list
-SCH_COMM_TASK: Final[Validator[EvoCommTaskResponseT]] = vol.Schema(
-    vol.Any(
-        _SCH_COMM_TASK,
-        vol.All([_SCH_COMM_TASK], vol.Length(min=1, max=1), lambda x: x[0]),
-    )
-)
 
 
 class CommTask:
