@@ -28,7 +28,16 @@ DEFAULT_INTERVAL: Final = 0.5  # seconds
 _SCH_COMM_TASK: Final[Validator[EvoCommTaskResponseT]] = factory_comm_task_response(
     Case.PYTHONIC
 )
-_SCH_TASK: Final[Validator[TccTaskResponseT]] = factory_task_response()
+_SCH_TASK_DICT: Final[Validator[TccTaskResponseT]] = factory_task_response()
+
+# the response to a PUT is expected to be a dict, but tolerate it being wrapped in a list
+# (as is the comm task, below), else an accepted PUT would raise BadApiResponseError
+_SCH_TASK: Final[Validator[TccTaskResponseT]] = vol.Schema(
+    vol.Any(
+        _SCH_TASK_DICT,
+        vol.All([_SCH_TASK_DICT], vol.Length(min=1, max=1), lambda x: x[0]),
+    )
+)
 
 # the comm task is expected to be a dict, but the vendor may wrap it in a list
 SCH_COMM_TASK: Final[Validator[EvoCommTaskResponseT]] = vol.Schema(
@@ -59,7 +68,7 @@ class CommTask:
     def from_response(cls, auth: AbstractAuth, response: object) -> CommTask:
         """Create the comm task from the vendor's response to a PUT.
 
-        The response is e.g. {"id": "1668279943"}.
+        The response is e.g. {"id": "1668279943"} (or that, wrapped in a list of one).
         """
 
         try:

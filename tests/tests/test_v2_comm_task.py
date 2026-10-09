@@ -65,15 +65,21 @@ def _task(state: str, task_id: str = TASK_ID) -> dict[str, str]:
     return {"commtask_id": task_id, "state": state}  # NOTE: is snake_case
 
 
+@pytest.mark.parametrize("as_list", [False, True], ids=["dict", "list"])
 async def test_put_returns_comm_task(
     zone: Zone,
+    *,
+    as_list: bool,
 ) -> None:
-    """Check a set_* method returns the PUT's comm task, without polling it."""
+    """Check a set_* method returns the PUT's comm task, without polling it.
+
+    The vendor's response is expected to be a dict, but may be wrapped in a list.
+    """
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
         new_callable=AsyncMock,
-        return_value=PUT_RESPONSE_V2,
+        return_value=[PUT_RESPONSE_V2] if as_list else PUT_RESPONSE_V2,
     ) as mock_request:
         task = await zone.set_temperature(19.5)
 
@@ -105,8 +111,19 @@ async def test_set_schedule_returns_comm_task(
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
 
+@pytest.mark.parametrize(
+    "response",
+    [
+        {"id": "not_a_task_id"},
+        [{"id": "not_a_task_id"}],
+        [PUT_RESPONSE_V2, PUT_RESPONSE_V2],  # a list, but not of one
+        [],
+    ],
+    ids=["bad_id", "list_of_bad_id", "list_of_two", "empty_list"],
+)
 async def test_put_with_bad_response(
     zone: Zone,
+    response: object,
 ) -> None:
     """Check a PUT whose response is not a comm task raises BadApiResponseError."""
 
@@ -114,7 +131,7 @@ async def test_put_with_bad_response(
         patch(
             "_evohome.auth.AbstractAuth.request",
             new_callable=AsyncMock,
-            return_value={"id": "not_a_task_id"},
+            return_value=response,
         ),
         pytest.raises(BadApiResponseError),
     ):
