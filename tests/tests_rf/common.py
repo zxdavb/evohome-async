@@ -240,8 +240,9 @@ def status_of_v0(dev: TccDeviceResponseT) -> str | None:
 def task_id_v0(response: object) -> str:
     """Return the id of the comm task that a v0 PUT returns (a dict, or a list of one).
 
-    e.g. {"id": 1234567890} (an int); the older (non-async) client also allowed for a
-    list of one, i.e. [{"id": 1234567890}].
+    e.g. {"id": 1234567890} (an int). A list of one, i.e. [{"id": 1234567890}], has not
+    been seen, but is allowed for as the original (2014) v0 client did so (it is not
+    known if it ever saw one).
     """
 
     task = response[0] if isinstance(response, list) else response
@@ -386,9 +387,9 @@ async def should_work_v2[T](
 
         assert isinstance(response, dict | list)  # mypy
 
-    if method == HTTPMethod.PUT:
-        task = response[0] if isinstance(response, list) else response
-        await wait_for_comm_task_id(auth, task["id"])  # e.g. {"id": "1668279943"}
+    if method == HTTPMethod.PUT:  # a comm task is a dict, not a list (as is an error)
+        assert isinstance(response, dict), response
+        await wait_for_comm_task_id(auth, response["id"])  # e.g. {"id": "1668279943"}
 
     return schema(response) if schema else response  # may raise vol.Invalid
 
@@ -513,8 +514,8 @@ async def wait_for_comm_task_id(auth: evo2.auth.Auth, task_id: str) -> None:
             # {'commtaskId': '840367013', 'state': 'Running'}
             # {'commtaskId': '840367013', 'state': 'Succeeded'}
 
-            task = response[0] if isinstance(response, list) else response
-            assert isinstance(task, dict), task  # mypy  # TODO: use a SCHEMA
+            task = response  # a comm task is a dict, not a list (as is an error)
+            assert isinstance(task, dict), task  # TODO: use a SCHEMA
             assert task["commtaskId"] == task_id, task
 
             if task["state"] == "Succeeded":
