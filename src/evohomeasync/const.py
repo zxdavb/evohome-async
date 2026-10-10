@@ -7,11 +7,13 @@ from typing import Final
 
 SZ_ALLOWED_MODES: Final = "allowed_modes"
 SZ_COUNTRY: Final = "country"
+SZ_CURRENT_OFFSET_MINUTES: Final = "current_offset_minutes"
 SZ_DAYLIGHT_SAVING_TIME_ENABLED: Final = "daylight_saving_time_enabled"
 SZ_DEVICE_ID: Final = "device_id"
 SZ_DEVICE_TYPE: Final = "device_type"
 SZ_DEVICES: Final = "devices"
 SZ_GATEWAY_ID: Final = "gateway_id"
+SZ_ID: Final = "id"  # of a time_zone
 SZ_INDOOR_TEMPERATURE: Final = "indoor_temperature"
 SZ_INDOOR_TEMPERATURE_STATUS: Final = "indoor_temperature_status"
 SZ_INSTANCE: Final = "instance"

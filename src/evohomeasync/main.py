@@ -12,7 +12,7 @@ from _evohome.helpers import Case
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
 from .const import SZ_LOCATION_ID, SZ_USER_ID
-from .entities import Location
+from .entities import Location, create_location
 from .schemas import factory_location_response_list, factory_user_account_info_response
 
 if TYPE_CHECKING:
@@ -224,7 +224,7 @@ class EvohomeClient:
             self._location_by_id = {}
 
             for loc_entry in self._user_locs:  # each entry is both config & status
-                loc = Location(self, loc_entry)
+                loc = await create_location(self, loc_entry)
                 self._locations.append(loc)
                 self._location_by_id[loc.id] = loc
 

@@ -1,8 +1,7 @@
 """Validate how the vendor interprets the end of a zone's temporary override.
 
 A zone's temporary override ends at a datetime: its NextTime (v0 API), or its timeUntil
-(v2 API). This library sends either in UTC, with a Z (see as_utc_str()), as the v2 API
-expects. These tests confirm how the vendor interprets each, by setting an override via
+(v2 API). These tests confirm how the vendor interprets each, by setting an override via
 one API and reading it back via both:
   - v2: setpointStatus.until (of the zone's status) is in UTC, with a Z (this is taken
     as the reference, as it is the instant that HA displays, and it has not been
@@ -16,14 +15,17 @@ Expected (as documented in test_v0_urls.py):
     nextTime (v0) is as sent (but without a Z), and the until (v2) is that local time
     in UTC (i.e. earlier than sent, by the location's UTC offset)
 
-If so, a v0 override is ended early (or late) by the location's UTC offset, as this
-library sends its NextTime in UTC (since v2.0.0), but the vendor treats it as local.
+So, the v2 client sends a timeUntil in UTC (with a Z, see as_utc_str()), but the v0
+client sends a NextTime in the location's local time (see as_local_str()). Between
+v2.0.0 and v3.0.0, the v0 client sent it in UTC, so (e.g. in BST) its override was
+ended early by the location's UTC offset. test_v0_client_until() confirms that the v0
+client's override now ends at the instant given.
 
 The two interpretations differ only if the location's UTC offset is not zero (e.g. the
 UK in summer), and so the tests are skipped otherwise.
 
 Each test overrides a live zone to its current setpoint (so is a no-op in practice), and
-then reverts it to its schedule (see also: reset_systems() in conftest.py).
+then reverts it to its schedule, and waits until it is (see _revert()).
 """
 
 from __future__ import annotations
@@ -38,7 +40,8 @@ import pytest
 from _evohome.helpers import TCC_DTM_STRFTIME
 from evohomeasync.schemas import TCC_GET_USR_LOCS
 from evohomeasync2.schemas.status import TCC_GET_ZON_STATUS
-from tests.const import _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX, TIMEOUT_COMM_TASK_V0
+from tests.common import get_loc
+from tests.const import _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX
 
 from .common import (
     is_alive_v0,
@@ -59,6 +62,7 @@ if TYPE_CHECKING:
 
 _LOCAL_STRFTIME = "%Y-%m-%dT%H:%M:%S"  # as a v0 nextTime (i.e. without a Z)
 _STATUS_INTERVAL = 3  # seconds, between polls of the status
+_STATUS_TIMEOUT = 120  # seconds, as the gateway can take a while to apply a change
 
 
 async def _get_location(evo: EvohomeClientV0) -> TccLocationResponseT:
@@ -138,15 +142,22 @@ async def _get_next_time(evo: EvohomeClientV0, zon_id: int) -> str | None:
     return next_time
 
 
-async def _get_until(evo: EvohomeClientV2, zon_id: int) -> str | None:
-    """Return the until of a zone's override, via v2 (it is UTC, with a Z)."""
+async def _get_setpoint_status(evo: EvohomeClientV2, zon_id: int) -> dict[str, Any]:
+    """Return the setpointStatus of a zone, via v2."""
 
     url = f"temperatureZone/{zon_id}/status"
     status = await should_work_v2(
         evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_STATUS
     )
 
-    return status["setpointStatus"].get("until")
+    return dict(status["setpointStatus"])
+
+
+async def _get_until(evo: EvohomeClientV2, zon_id: int) -> str | None:
+    """Return the until of a zone's override, via v2 (it is UTC, with a Z)."""
+
+    until: str | None = (await _get_setpoint_status(evo, zon_id)).get("until")
+    return until
 
 
 async def _wait_for_until(
@@ -161,7 +172,7 @@ async def _wait_for_until(
     until: str | None = previous
 
     try:
-        async with asyncio.timeout(TIMEOUT_COMM_TASK_V0):
+        async with asyncio.timeout(_STATUS_TIMEOUT):
             while True:
                 if (until := await _get_until(evo, zon_id)) != previous:
                     return until
@@ -172,13 +183,49 @@ async def _wait_for_until(
         return until
 
 
-async def _revert(evo: EvohomeClientV2, zon_id: int) -> None:
-    """Revert a zone to its schedule, via v2 (waits for its comm task)."""
+async def _is_following_schedule(evo: EvohomeClientV2, zon_id: int) -> bool:
+    """Poll a zone (via v2) until it follows its schedule, and return True if it does."""
+
+    try:
+        async with asyncio.timeout(_STATUS_TIMEOUT):
+            while True:
+                status = await _get_setpoint_status(evo, zon_id)
+                if status["setpointMode"] == "FollowSchedule":
+                    return True
+
+                await asyncio.sleep(_STATUS_INTERVAL)
+
+    except TimeoutError:
+        return False
+
+
+async def _revert(
+    evo0: EvohomeClientV0,
+    evo2: EvohomeClientV2,
+    zon_id: int,
+) -> None:
+    """Revert a zone to its schedule, and wait until it is.
+
+    The vendor sometimes answers a PUT with the comm task of an earlier, equivalent PUT,
+    and then does not apply it (see is_stale_task_v0() in common.py), e.g. if another
+    test has just sent a revert. So, the revert is sent via v2, and if that is not
+    applied, then via v0.
+    """
 
     url = f"temperatureZone/{zon_id}/heatSetpoint"
-    json = {"setpointMode": "FollowSchedule"}
+    json: dict[str, object] = {"setpointMode": "FollowSchedule"}
 
-    await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=json)
+    await should_work_v2(evo2.auth, HTTPMethod.PUT, url, json=json)
+    if await _is_following_schedule(evo2, zon_id):
+        return
+
+    url = f"devices/{zon_id}/thermostat/changeableValues/heatSetpoint"
+    json = {"status": "Scheduled", "value": None, "nextTime": None}
+
+    rsp = await should_work_v0(evo0.auth, HTTPMethod.PUT, url, json=json)
+    await wait_for_comm_task_v0(evo0.auth, task_id_v0(rsp))
+
+    assert await _is_following_schedule(evo2, zon_id), "Unable to revert the zone"
 
 
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (NextTime)
@@ -228,7 +275,7 @@ async def test_v0_next_time(
             assert until == (sent - offset).strftime(TCC_DTM_STRFTIME), json
 
     finally:
-        await _revert(evohome_v2, zon_id)
+        await _revert(evohome_v0, evohome_v2, zon_id)
 
 
 # PUT /temperatureZone/{zone_id}/heatSetpoint (timeUntil)
@@ -275,4 +322,45 @@ async def test_v2_time_until(
         ), json
 
     finally:
-        await _revert(evohome_v2, zon_id)
+        await _revert(evohome_v0, evohome_v2, zon_id)
+
+
+# via the v0 client: Zone.set_temperature(..., until=...)
+@skipif_auth_failed
+async def test_v0_client_until(
+    evohome_v0: EvohomeClientV0,
+    evohome_v2: EvohomeClientV2,
+) -> None:
+    """Test the v0 client's Zone.set_temperature() ends its override when it should.
+
+    The until is an aware (UTC) datetime on the hour. The client sends it as a NextTime
+    in the location's local time, so:
+      - the until (v2) is the same instant (in UTC)
+      - the nextTime (v0) is that instant in the location's local time (without a Z)
+
+    For example, in BST: an until of 21:00 UTC is sent as a NextTime of 22:00 (local),
+    and so gives an until (v2) of 21:00 UTC (but gave 20:00 UTC before v3.0.0).
+    """
+
+    zon_id, setpoint, offset, now = await _setup(evohome_v0, evohome_v2)
+
+    zone = get_loc(evohome_v0).zone_by_id[str(zon_id)]
+    until: str | None = await _get_until(evohome_v2, zon_id)  # None, as Scheduled
+
+    try:
+        sent = now + td(hours=2)  # on the hour (so not rounded)
+
+        await zone.set_temperature(setpoint, until=sent)
+
+        until = await _wait_for_until(evohome_v2, zon_id, until)
+
+        # the until is the instant sent...
+        assert until == sent.strftime(TCC_DTM_STRFTIME)
+
+        # ...and the nextTime is that instant, but in local time
+        assert await _get_next_time(evohome_v0, zon_id) == (sent + offset).strftime(
+            _LOCAL_STRFTIME
+        )
+
+    finally:
+        await _revert(evohome_v0, evohome_v2, zon_id)
