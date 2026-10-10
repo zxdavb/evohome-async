@@ -19,7 +19,8 @@ _DBG_WAIT_FOR_COMM_TASKS = False  # poll each comm task until it succeeds
 # the longest that a request may take to return (a GET, PUT, etc.)
 TIMEOUT_REAL_AIOHTTP: Final = 5  # seconds
 # the longest that a PUT's comm task may take to succeed (only if waited for), else skip
-TIMEOUT_COMM_TASK: Final = 15  # seconds
+# (the gateway carries out its tasks one at a time, so a task may wait behind others)
+TIMEOUT_COMM_TASK: Final = 60  # seconds
 # ...the same, but for a v1 PUT (one was seen to take 29s, 2026-10-07)
 TIMEOUT_COMM_TASK_V0: Final = 45  # seconds
 
