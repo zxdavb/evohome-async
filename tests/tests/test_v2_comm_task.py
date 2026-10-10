@@ -121,23 +121,38 @@ async def test_put_with_bad_response(
         await zone.reset()
 
 
-@pytest.mark.parametrize("as_list", [False, True], ids=["dict", "list"])
 async def test_get_state(
     auth: Auth,
-    *,
-    as_list: bool,
 ) -> None:
-    """Check get_state() GETs the task's state (the vendor may wrap it in a list)."""
+    """Check get_state() GETs the task's state."""
 
     task = CommTask(auth, TASK_ID)
-    response = [_task("Running")] if as_list else _task("Running")
 
     with patch_request(
-        return_value=response,
+        return_value=_task("Running"),
     ) as mock_request:
         assert await task.get_state() == CommTaskState.RUNNING
 
     mock_request.assert_awaited_once_with(HTTPMethod.GET, URL)
+
+
+async def test_get_state_as_list(
+    auth: Auth,
+) -> None:
+    """Check get_state() raises BadApiResponseError if the state is not a dict.
+
+    The vendor's comm task is always a dict: only an error response is seen as a list.
+    """
+
+    task = CommTask(auth, TASK_ID)
+
+    with (
+        patch_request(
+            return_value=[_task("Running")],
+        ),
+        pytest.raises(BadApiResponseError),
+    ):
+        await task.get_state()
 
 
 async def test_get_state_unknown(
