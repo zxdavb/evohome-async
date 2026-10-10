@@ -111,7 +111,7 @@ class EvohomeClient:
                 raise exc.InvalidConfigError(err.message) from err
 
     @deprecated(
-        "EvohomeClient.update() is deprecated: use setup(), then Location.get_status()"
+        "EvohomeClient.update() is deprecated: use .setup(), then Location.get_status()"
     )
     async def update(
         self,

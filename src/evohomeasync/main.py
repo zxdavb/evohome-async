@@ -118,7 +118,9 @@ class EvohomeClient:
 
         return user_locs
 
-    @deprecated("EvohomeClient.update() is deprecated: use setup(), then get_status()")
+    @deprecated(
+        "EvohomeClient.update() is deprecated: use .setup(), then .get_status()"
+    )
     async def update(
         self,
         /,

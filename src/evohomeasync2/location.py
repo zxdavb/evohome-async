@@ -268,7 +268,7 @@ class Location(EntityBase[EvoLocStatusT]):
 
         return await self._get_status(raise_on_stale_config=raise_on_stale_config)
 
-    @deprecated("Location.update() is deprecated: use get_status()")
+    @deprecated("Location.update() is deprecated: use .get_status()")
     async def update(
         self,
         *,
