@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 import pytest
 import yaml
 
+from tests.common import get_loc
+
 from .common import serializable_attrs
 from .conftest import FIXTURES_V0 as FIXTURES
 
@@ -15,7 +17,7 @@ if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
     from syrupy.assertion import SnapshotAssertion
 
-    from tests.conftest import EvohomeClientV0
+    from evohomeasync import EvohomeClient as EvohomeClientV0
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -42,7 +44,7 @@ async def test_system_snapshot(
 
     # architecture is: loc/tcs -> gwy, loc/tcs -> dhw|zon
 
-    loc = evohome_v0.locations[0]
+    loc = get_loc(evohome_v0)
     assert serializable_attrs(loc) == snapshot(name="location")
 
     gwy = loc.gateways[0]

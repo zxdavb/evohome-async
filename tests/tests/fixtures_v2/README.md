@@ -31,7 +31,7 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `default/` | 2738909 | GMT | Synthesised default system (UK, 9 zones + DHW) |
 | `system_002/` | 2738909 | GMT | Same system as default, different test scenario |
 | `system_004/` | 2664492 | CET | Synthesised multi-status system (Czech Republic) |
-| `system_006/` | 0001 | Romance | Synthesised minimal system (Belgium) |
+| `system_006/` | 0001 | Romance | Synthesised minimal system (Belgium), with an invalid zone schedule |
 | `evohome_017/` | 6390479 | WEurope | evohome-async issue [#17](https://github.com/zxdavb/evohome-async/issues/17) |
 | `hass_000000/` | 2738909 | GMT | HA core issue [#000000](https://github.com/home-assistant/core/issues/000000) |
 | `hass_000001/` | 2738909 | GMT | HA core issue [#000001](https://github.com/home-assistant/core/issues/000001) |
@@ -54,8 +54,13 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `hass_141882/` | 7680795 | AUSEastern | HA core issue [#141882](https://github.com/home-assistant/core/issues/141882) |
 | `hass_157546/` | 7647411 | GMT | HA core issue [#157546](https://github.com/home-assistant/core/issues/157546) |
 | `hass_178493/` | 6557787 | WEurope | HA core issue [#178493](https://github.com/home-assistant/core/issues/178493) (Netherlands, `BoilerServiceRequired` + a synthesised unknown fault type) |
-| `system_007/` | 4001001 | GMT | Synthesised schema coverage: 4 locations (maximal, minimal, no TCS, no gateway) |
-| `system_008/` | n/a | n/a | Synthesised schema coverage: empty installation (0 locations) |
+| `hass_179414/` | 5508661 | AUSEastern | HA core issue [#179414](https://github.com/home-assistant/core/issues/179414) (`Saratoga`, fan mode `Circulate`, `fanMode` in schedules) |
+| `system_007/` | 4001001 | GMT | Synthesised schema coverage: 2 locations (maximal, minimal) |
+| `enums_no_such/` | 4001021 | GMT | Synthesised enum values that are not members: TCS/zone `modelType`, `zoneType`, `faultType`, `fanMode` |
+| `enums_unknown/` | 4001031 | GMT | Synthesised `Unknown` enum values: zone `modelType`, `zoneType` (ghost zones) |
+| `null_system_0/` | n/a | n/a | Synthesised null installation: 0 locations (formerly `system_008/`) |
+| `null_system_1/` | 4001005 | GMT | Synthesised null installation: 1 location, no gateways |
+| `null_system_2/` | 4001006 | GMT | Synthesised null installation: 1 location, 1 gateway, no TCS |
 
 Config-only dirs (no status file, xfail in tests): `hass_099625/`, `hass_102815/`
 

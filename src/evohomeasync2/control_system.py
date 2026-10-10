@@ -6,9 +6,10 @@ import json
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
 
-from _evohome.helpers import as_aware_dtm, as_local_time
+from _evohome.helpers import Case, as_aware_dtm, as_local_time
 
 from . import exceptions as exc
+from .comm_task import CommTask
 from .const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
@@ -32,7 +33,6 @@ from .const import (
 )
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.status import factory_tcs_status
 from .typedefs import EvoTcsStatusT
 from .zone import ActiveFaultsBase, Zone
@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     from datetime import datetime as dt
     from typing import Any
 
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import Gateway, Location
     from .auth import Auth
@@ -77,7 +77,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
 
     _TCC_TYPE = TccEntityType.TCS
 
-    SCH_STATUS: vol.Schema = factory_tcs_status(Case.PYTHONIC)
+    SCH_STATUS: Validator[EvoTcsStatusResponseT] = factory_tcs_status(Case.PYTHONIC)
 
     def __init__(self, gateway: Gateway, config: EvoTcsConfigResponseT) -> None:
         super().__init__(config[SZ_SYSTEM_ID])
@@ -98,10 +98,15 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             SZ_ALLOWED_SYSTEM_MODES: config[SZ_ALLOWED_SYSTEM_MODES],
         }
 
+        if self.model not in TcsModelType:
+            self._logger.warning(
+                "%s: Unexpected TCS model '%s' (YMMV)", self, self.model
+            )
+
         for zon_entry in config[SZ_ZONES]:
             try:
                 zone = Zone(self, zon_entry)
-            except exc.ConfigError as err:
+            except exc.GhostZoneError as err:
                 self._logger.warning(
                     f"{self}: zone_id='{zon_entry[SZ_ZONE_ID]}' ignored: {err}"
                 )
@@ -133,7 +138,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
     # Config attrs...
 
     @cached_property
-    def model(self) -> TcsModelType:
+    def model(self) -> TcsModelType | str:
         return self._config[SZ_MODEL_TYPE]
 
     @cached_property
@@ -222,8 +227,8 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, tcs_mode: EvoSetSystemModeT, /) -> None:
-        """Set the TCS mode."""
+    async def _set_mode(self, tcs_mode: EvoSetSystemModeT, /) -> CommTask:
+        """Set the TCS mode, and return the vendor's comm task."""
 
         # Issue a warning if we fail some basic sanity checks...
         if tcs_mode[SZ_SYSTEM_MODE] not in self.allowed_modes:
@@ -231,7 +236,9 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                 f"{self}: Attempting unsupported {SZ_SYSTEM_MODE}: {tcs_mode}..."
             )
 
-        await self._auth.put(f"{self._TCC_TYPE}/{self.id}/mode", json=dict(tcs_mode))
+        url = f"{self._TCC_TYPE}/{self.id}/mode"
+        response = await self._auth.put(url, json=tcs_mode)
+        return CommTask.from_response(self._auth, response)
 
     async def set_mode(
         self,
@@ -239,24 +246,26 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         /,
         *,
         until: dt | str | None = None,
-    ) -> None:
+    ) -> CommTask:
         """Set the TCS to a mode, either indefinitely, or for a set time.
 
         Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
         try:
             system_mode = SystemMode(system_mode)
         except ValueError as err:
-            raise exc.InvalidSystemModeError(
+            raise exc.InvalidModeRequestError(
                 f"{self}: Unknown system_mode: {system_mode}"
             ) from err
 
         if system_mode not in self.allowed_modes:
-            raise exc.InvalidSystemModeError(
+            raise exc.InvalidModeRequestError(
                 f"{self}: Unsupported system_mode: {system_mode}"
             )
 
@@ -274,7 +283,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
 
         else:
             if mode_entry[SZ_CAN_BE_TEMPORARY] is False:
-                raise exc.InvalidSystemModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {system_mode}, until must be None"
                 )
 
@@ -284,33 +293,34 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                 SZ_TIME_UNTIL: as_aware_dtm(until),
             }
 
-        await self._set_mode(tcs_mode)
+        return await self._set_mode(tcs_mode)
 
     # most, but not all, TCC-compatible systems support these modes...
 
-    async def reset(self) -> None:
+    async def reset(self) -> list[CommTask]:
         """Set the TCS to auto mode (and set DHW/all zones to FollowSchedule mode).
 
-        Some systems do not support 'AutoWithReset' mode.
+        Some systems do not support 'AutoWithReset' mode, so it is emulated (with one
+        PUT for the TCS, and one for each zone/DHW). Return the vendor's comm tasks.
         """
 
         # some systems have "AutoWithReset" mode...
         if SystemMode.AUTO_WITH_RESET in self.allowed_modes:
-            await self.set_mode(SystemMode.AUTO_WITH_RESET)
-            return
+            return [await self.set_mode(SystemMode.AUTO_WITH_RESET)]
 
         self._logger.debug(
             f"{self}: Emulating {SZ_SYSTEM_MODE}: {SystemMode.AUTO_WITH_RESET}..."
         )
 
-        await self.set_auto()
+        tasks = [await self.set_auto()]
 
-        for zone in self.zones:
-            await zone.reset()
+        tasks.extend([await zone.reset() for zone in self.zones])
         if self.hotwater:
-            await self.hotwater.reset()
+            tasks.append(await self.hotwater.reset())
 
-    async def set_auto(self) -> None:
+        return tasks
+
+    async def set_auto(self) -> CommTask:
         """Set the TCS to auto mode.
 
         Some systems use 'Heat' instead of 'Auto' for this mode.
@@ -320,45 +330,44 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             SystemMode.AUTO in self.allowed_modes
             or SystemMode.HEAT not in self.allowed_modes
         ):
-            await self.set_mode(SystemMode.AUTO)  # ?raise InvalidSystemModeError
-            return
+            return await self.set_mode(SystemMode.AUTO)
 
         # some systems have "Heat" mode instead of "Auto"...
         self._logger.debug(
             f"{self}: Emulating {SZ_SYSTEM_MODE}: {SystemMode.AUTO} as {SystemMode.HEAT}"
         )
 
-        await self.set_mode(SystemMode.HEAT)
+        return await self.set_mode(SystemMode.HEAT)
 
-    async def set_away(self, /, *, until: dt | str | None = None) -> None:
+    async def set_away(self, /, *, until: dt | str | None = None) -> CommTask:
         """Set the TCS to away mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
-        await self.set_mode(SystemMode.AWAY, until=until)
+        return await self.set_mode(SystemMode.AWAY, until=until)
 
-    async def set_custom(self, /, *, until: dt | str | None = None) -> None:
+    async def set_custom(self, /, *, until: dt | str | None = None) -> CommTask:
         """Set the TCS to custom mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
-        await self.set_mode(SystemMode.CUSTOM, until=until)
+        return await self.set_mode(SystemMode.CUSTOM, until=until)
 
-    async def set_dayoff(self, /, *, until: dt | str | None = None) -> None:
+    async def set_dayoff(self, /, *, until: dt | str | None = None) -> CommTask:
         """Set the TCS to day_off mode (usu. for period of days).
 
         Some systems do not support this mode.
         """
-        await self.set_mode(SystemMode.DAY_OFF, until=until)
+        return await self.set_mode(SystemMode.DAY_OFF, until=until)
 
-    async def set_eco(self, /, *, until: dt | str | None = None) -> None:
+    async def set_eco(self, /, *, until: dt | str | None = None) -> CommTask:
         """Set the TCS to economy mode (usu. for duration of hours).
 
         Some systems do not support this mode.
         """
-        await self.set_mode(SystemMode.AUTO_WITH_ECO, until=until)
+        return await self.set_mode(SystemMode.AUTO_WITH_ECO, until=until)
 
-    async def set_heatingoff(self) -> None:
+    async def set_heatingoff(self) -> CommTask:
         """Set the TCS to heating_off mode.
 
         Some systems use 'Off' instead of 'HeatingOff' for this mode.
@@ -368,15 +377,14 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             SystemMode.HEATING_OFF in self.allowed_modes
             or SystemMode.OFF not in self.allowed_modes
         ):
-            await self.set_mode(SystemMode.HEATING_OFF)  # ?raise InvalidSystemModeError
-            return
+            return await self.set_mode(SystemMode.HEATING_OFF)
 
         # some systems have "Off" mode instead of "HeatingOff"...
         self._logger.debug(
             f"{self}: Emulating {SZ_SYSTEM_MODE}: {SystemMode.HEATING_OFF} as {SystemMode.OFF}"
         )
 
-        await self.set_mode(SystemMode.OFF)
+        return await self.set_mode(SystemMode.OFF)
 
     # these are convenience methods
 

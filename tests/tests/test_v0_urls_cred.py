@@ -20,7 +20,7 @@ from tests.const import (
 )
 
 from .aioresponses import aioresponses
-from .const import LOG_00, LOG_09, LOG_21, LOG_24, LOG_90, LOG_99
+from .const import LOG_00, LOG_08, LOG_09, LOG_21, LOG_24, LOG_90, LOG_99
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -95,7 +95,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
         )
 
         with pytest.raises(exc.BadUserCredentialsError) as err:
-            await evohome_v0.update()
+            await evohome_v0.get_status()
 
         assert err.value.status == HTTPStatus.UNAUTHORIZED
 
@@ -132,11 +132,11 @@ async def test_bad2(  # bad session id
         )
 
         with pytest.raises(exc.AuthenticationFailedError) as err:
-            await evohome_v0.update()
+            await evohome_v0.get_status()
 
         assert err.value.status is None  # Connection refused
 
-        assert caplog.record_tuples == [LOG_00, LOG_21, LOG_24, LOG_99]
+        assert caplog.record_tuples == [LOG_08, LOG_00, LOG_21, LOG_24, LOG_99]
 
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
@@ -145,6 +145,44 @@ async def test_bad2(  # bad session id
 
         # response 1: Connection refused (as no response provided by us)
         rsp.assert_called_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
+
+    assert evohome_v0._session_manager.is_session_valid() is False
+
+
+async def test_bad3(  # rate limit exceeded (authentication)
+    credentials: tuple[str, str],
+    evohome_v0: EvohomeClient,
+) -> None:
+    """Test authentication flow when the vendor's rate limit is exceeded."""
+
+    retry_after = 120
+
+    # pre-requisite data (no session_id)
+    evohome_v0._session_manager.clear_session_id()
+
+    assert evohome_v0._session_manager.is_session_valid() is False
+
+    # TEST 3: too many authentications -> HTTPStatus.TOO_MANY_REQUESTS
+    with aioresponses() as rsp:
+        rsp.post(
+            URL_CRED_V0,
+            status=HTTPStatus.TOO_MANY_REQUESTS,
+            payload=[{"code": "TooManyRequests", "message": "..."}],
+            headers={"Retry-After": str(retry_after)},
+        )
+
+        with pytest.raises(exc.AuthRateLimitExceededError) as err:
+            await evohome_v0.get_status()
+
+        assert isinstance(err.value, exc.ApiRateLimitExceededError)
+        assert isinstance(err.value, exc.AuthenticationFailedError)
+
+        assert err.value.status == HTTPStatus.TOO_MANY_REQUESTS
+        assert err.value.retry_after == retry_after
+        assert len(rsp.requests) == 1
+
+        # response 0: Too many requests
+        rsp.assert_called_once_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
     assert evohome_v0._session_manager.is_session_valid() is False
 
@@ -190,7 +228,7 @@ async def test_good(  # good credentials
         )
 
         with pytest.raises(exc.ApiCallFailedError) as err:
-            await evohome_v0.update()
+            await evohome_v0.get_status()
 
         assert err.value.status is None  # Connection refused
 

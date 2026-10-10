@@ -53,7 +53,10 @@ token_manager = TokenManager(username, password, websession)
 await token_manager.load_access_token()
 
 evo = EvohomeClient(token_manager)
-await evo.update()
+await evo.setup()  # usually only once: gets the config of the user's locations
+
+loc = evo.locations[0]
+await loc.get_status()  # e.g. every few minutes: gets the status of the location
 
 ...
 

@@ -1,19 +1,19 @@
-"""Shared constants for the vendor's TCC v2 API.
+"""Shared constants for the vendor's TCC v1 API.
 
 Vendor strings are camelCase (JSON keys), PascalCase (StrEnums).
 """
 
 from typing import Final
 
-_ERR_NOT_AVAILABLE: Final = "{} not available until after Client.update() is called"
-
 SZ_ALLOWED_MODES: Final = "allowed_modes"
 SZ_COUNTRY: Final = "country"
+SZ_CURRENT_OFFSET_MINUTES: Final = "current_offset_minutes"
 SZ_DAYLIGHT_SAVING_TIME_ENABLED: Final = "daylight_saving_time_enabled"
 SZ_DEVICE_ID: Final = "device_id"
 SZ_DEVICE_TYPE: Final = "device_type"
 SZ_DEVICES: Final = "devices"
 SZ_GATEWAY_ID: Final = "gateway_id"
+SZ_ID: Final = "id"  # of a time_zone
 SZ_INDOOR_TEMPERATURE: Final = "indoor_temperature"
 SZ_INDOOR_TEMPERATURE_STATUS: Final = "indoor_temperature_status"
 SZ_INSTANCE: Final = "instance"
@@ -22,11 +22,13 @@ SZ_LOCATION_ID: Final = "location_id"
 SZ_MAC_ID: Final = "mac_id"
 SZ_MAX_HEAT_SETPOINT: Final = "max_heat_setpoint"
 SZ_MIN_HEAT_SETPOINT: Final = "min_heat_setpoint"
+SZ_NAME: Final = "name"
 SZ_ONE_TOUCH_ACTIONS_SUSPENDED: Final = "one_touch_actions_suspended"
 SZ_ONE_TOUCH_BUTTONS: Final = "one_touch_buttons"
 SZ_PCB_NUMBER: Final = "pcb_number"
 SZ_SERIAL_NUMBER: Final = "serial_number"
 SZ_TEMPERATURE: Final = "temperature"
+SZ_THERMOSTAT: Final = "thermostat"
 SZ_THERMOSTAT_MODEL_TYPE: Final = "thermostat_model_type"
 SZ_TIME_ZONE: Final = "time_zone"
 SZ_USER_ID: Final = "user_id"

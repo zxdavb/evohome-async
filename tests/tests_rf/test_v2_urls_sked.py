@@ -15,17 +15,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from evohomeasync2.schemas.schedule import TCC_GET_SCHEDULE
-from tests.const import _DBG_USE_REAL_AIOHTTP
+from evohomeasync2.schemas.schedule import TCC_GET_ZON_SCHEDULE
+from tests.common import get_dhw, get_zon
 
-from .common import get_dhw, should_fail_v2, should_work_v2, skipif_auth_failed
+from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas.schedule import (
-        TccDhwDailySchedulesT,
-        TccZonDailySchedulesT,
-    )
-    from tests.conftest import EvohomeClientV2
+    from evohomeasync2 import EvohomeClient as EvohomeClientV2
+    from evohomeasync2.schemas.schedule import TccZonDailySchedulesT
 
 
 async def _test_schedule_put(evo: EvohomeClientV2) -> None:
@@ -34,16 +31,17 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
 
     # TODO: remove .update() and use URLs only
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
-    zone = evo.locations[0].gateways[0].systems[0].zones[0]
+    if not (zone := get_zon(evo)):
+        pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
     # STEP 1: GET the current schedule
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
-    )  # type: ignore[assignment]
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+    )
 
     # an example of the expected response:
     """
@@ -111,7 +109,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 4: PUT a valid schedule
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
+    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
 
     # an example of the expected response:
     """
@@ -128,16 +126,17 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
 
     # TODO: remove .update() and use URLs only
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
-    zone = evo.locations[0].gateways[0].systems[0].zones[0]
+    if not (zone := get_zon(evo)):
+        pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
     # STEP 1: GET the current schedule
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
-    )  # type: ignore[assignment]
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+    )
 
     assert isinstance(schedule, dict)  # mypy
 
@@ -146,38 +145,23 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     temp = schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp + 1
 
-    status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
+    status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
 
     assert isinstance(status, dict | list)  # mypy
-
-    #
-    # STEP 2: check the status of the task
-    if _DBG_USE_REAL_AIOHTTP:
-        task_id = status[0]["id"] if isinstance(status, list) else status["id"]
-
-        status = await should_work_v2(
-            evo.auth, HTTPMethod.GET, f"commTasks?commTaskId={task_id}"
-        )
-        # {'commtaskId': '840367013', 'state': 'Created'}
-        # {'commtaskId': '840367013', 'state': 'Running'}
-        # {'commtaskId': '840367013', 'state': 'Succeeded'}
-
-        assert isinstance(status, dict)  # mypy  # TODO: use a SCHEMA
-        assert status["commtaskId"] == task_id
-        assert status["state"] in ("Created", "Running", "Succeeded")
+    # should_work_v2() waits for the task to succeed (see wait_for_comm_task_id())
 
     #
     # STEP 3: check the new schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
-    )  # type: ignore[assignment]
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+    )
 
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp + 1
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp
 
     #
     # STEP 4: PUT the original schedule back
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=dict(schedule))
+    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
 
     #
     # STEP 5: (optional) check the status of the task
@@ -185,14 +169,16 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     #
     # STEP 6: check the original schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_SCHEDULE
-    )  # type: ignore[assignment]
+        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+    )
 
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp
 
 
 @skipif_auth_failed  # GET, PUT
-async def test_schedule_put(evohome_v2: EvohomeClientV2) -> None:
+async def test_schedule_put(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule
 
     Does not test /commTasks?commTaskId={task_id}
@@ -202,7 +188,9 @@ async def test_schedule_put(evohome_v2: EvohomeClientV2) -> None:
 
 
 @skipif_auth_failed  # GET, PUT
-async def test_schedule_tsk(evohome_v2: EvohomeClientV2) -> None:
+async def test_schedule_tsk(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule
 
     Also tests /commTasks?commTaskId={task_id}
@@ -219,16 +207,18 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
     """
 
     # TODO: remove .update() and use URLs only
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
-    zone = evo.locations[0].gateways[0].systems[0].zones[0]
+    # schedule: TccZonDailySchedulesT  # can't use this, as we GET without a schema
+
+    if not (zone := get_zon(evo)):
+        pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
     # GET without schema so we capture whatever the server actually sends back
-    schedule: TccZonDailySchedulesT = await should_work_v2(  # type: ignore[assignment]
-        evo.auth, HTTPMethod.GET, url
-    )
+    schedule = await should_work_v2(evo.auth, HTTPMethod.GET, url)
+    assert isinstance(schedule, dict)  # mypy
 
     # an example of the expected response:
     """
@@ -266,7 +256,9 @@ async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
     instead of heatSetpoint, but the same camelCase key convention applies.
     """
     # TODO: remove .update() and use URLs only
-    await evo.update(dont_update_status=True)
+    await evo.setup()
+
+    # schedule: TccDhwDailySchedulesT  # cant use this, as we GET without a schema
 
     if not (dhw := get_dhw(evo)):
         pytest.skip("No DHW found in TCS")
@@ -275,9 +267,8 @@ async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
 
     #
     # GET without schema so we capture whatever the server actually sends back
-    schedule: TccDhwDailySchedulesT = await should_work_v2(  # type: ignore[assignment]
-        evo.auth, HTTPMethod.GET, url
-    )
+    schedule = await should_work_v2(evo.auth, HTTPMethod.GET, url)
+    assert isinstance(schedule, dict)  # mypy
 
     # an example of the expected response:
     """
@@ -309,7 +300,9 @@ async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
 
 
 @skipif_auth_failed  # GET
-async def test_schedule_get_schema_zon(evohome_v2: EvohomeClientV2) -> None:
+async def test_schedule_get_schema_zon(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test GET /{x._TCC_TYPE}/{x.id}/schedule key casing.
 
     Documents that the vendor returns camelCase keys in GET responses even
@@ -320,7 +313,9 @@ async def test_schedule_get_schema_zon(evohome_v2: EvohomeClientV2) -> None:
 
 
 @skipif_auth_failed  # GET
-async def test_schedule_get_schema_dhw(evohome_v2: EvohomeClientV2) -> None:
+async def test_schedule_get_schema_dhw(
+    evohome_v2: EvohomeClientV2,
+) -> None:
     """Test GET /{dhw._TCC_TYPE}/{dhw.id}/schedule key casing.
 
     DHW mirror of test_schedule_get_schema — skipped if no DHW in the TCS.

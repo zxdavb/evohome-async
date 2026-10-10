@@ -8,15 +8,23 @@ from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
-from _evohome.helpers import as_aware_dtm, as_local_time, convert_dtm_to_local_aware
+from _evohome.const import _ERR_NO_SCHEDULE, _ERR_NO_STATUS
+from _evohome.helpers import (
+    Case,
+    as_aware_dtm,
+    as_local_time,
+    convert_dtm_to_local_aware,
+)
 
 from . import exceptions as exc
+from .comm_task import CommTask
 from .const import (
-    _ERR_NOT_AVAILABLE,
     SZ_ACTIVE_FAULTS,
+    SZ_ALLOWED_FAN_MODES,
     SZ_ALLOWED_SETPOINT_MODES,
     SZ_DAILY_SCHEDULES,
     SZ_DHW_STATE,
+    SZ_FAN_MODE,
     SZ_FAULT_TYPE,
     SZ_HEAT_SETPOINT,
     SZ_HEAT_SETPOINT_VALUE,
@@ -40,13 +48,13 @@ from .const import (
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
     DayOfWeek,
+    FanMode,
     FaultType,
     ZoneMode,
     ZoneModelType,
     ZoneType,
 )
 from .schemas.const import TccEntityType
-from .schemas.helpers import Case
 from .schemas.schedule import factory_zon_schedule
 from .schemas.status import factory_zon_status
 from .typedefs import EvoZonScheduleDayOfWeekT, EvoZonStatusResponseT, EvoZonStatusT
@@ -57,7 +65,7 @@ if TYPE_CHECKING:
     from datetime import tzinfo
     from typing import TypedDict
 
-    import probatio as vol
+    from _evohome.helpers import Validator
 
     from . import ControlSystem, Location
     from .auth import Auth
@@ -70,6 +78,7 @@ if TYPE_CHECKING:
         EvoZonConfigResponseT,
         EvoZonConfigT,
         EvoZonScheduleCapabilitiesT,
+        EvoZonScheduleResponseT,
         EvoZonSetpointCapabilitiesT,
         EvoZonSetpointStatusT,
     )
@@ -81,6 +90,11 @@ if TYPE_CHECKING:
 
 
 _ONE_DAY = td(days=1)
+
+# for values that the schema passes through, as the vendor's enums are incomplete
+_PLEASE_REPORT = (
+    "is unknown, please report it at https://github.com/zxdavb/evohome-async/issues"
+)
 
 
 class EntityBase[StatusT]:
@@ -115,17 +129,17 @@ class EntityBase[StatusT]:
     def status(self) -> StatusT:
         """Return the latest status of the entity."""
         if self._status is None:
-            raise exc.InvalidStatusError(_ERR_NOT_AVAILABLE.format(self))
+            raise exc.NotFetchedError(_ERR_NO_STATUS.format(self))
         return self._status
 
     async def _get_status(self, *, _update: bool = True) -> StatusT:
         """Return the latest state of the entity.
 
-        It is more efficient to call Location.update() as all descendants are updated
+        It is more efficient to call Location.get_status() as all descendants are updated
         with a single GET. Returns the raw JSON of the latest state.
         """
 
-        raise NotImplementedError("Use Location.update() to update status")
+        raise NotImplementedError("Use Location.get_status() to update status")
 
 
 class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
@@ -154,11 +168,9 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
             return fault[SZ_SINCE].isoformat()  # an aware dt; log as ISO 8601
 
         def log_as_active(fault: EvoActiveFaultT) -> None:
-            # the schema passes through fault types that are absent from FaultType,
-            # as the vendor's list is incomplete: flag them, so they can be added
-            unknown = (
-                "" if isinstance(fault[SZ_FAULT_TYPE], FaultType) else " (unknown)"
-            )
+            # Ask for unknown fault types to be reported, so can be added to the enum
+            is_known = isinstance(fault[SZ_FAULT_TYPE], FaultType)
+            unknown = "" if is_known else f" ({_PLEASE_REPORT})"
             self._logger.warning(
                 f"{self}: Active fault: {since(fault)} {fault[SZ_FAULT_TYPE]}{unknown}"
             )
@@ -263,12 +275,12 @@ class _ScheduleBase[
 ](ActiveFaultsBase[StatusT]):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    SCH_SCHEDULE: vol.Schema
+    SCH_SCHEDULE: Validator[_DailySchedulesT[DayT]]
 
-    _schedule: list[DayT] | None = None
+    _schedule: list[DayT] | None = None  # None: not fetched, []: there is no schedule
 
-    _this_switchpoint: _SwitchPoint  # is float for zones...
-    _next_switchpoint: _SwitchPoint  # and str for DHW
+    # this/next switchpoints (each has a float for zones, and a str for DHW)
+    _switchpoints: tuple[_SwitchPoint, _SwitchPoint] | None = None
 
     location: Location  # used to get tzinfo
 
@@ -276,39 +288,54 @@ class _ScheduleBase[
 
     @property
     def schedule(self) -> list[DayT]:
-        """Return the schedule (assumes it is current)."""
+        """Return the schedule (assumes it is current).
 
-        if not self._schedule:
-            raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
+        The schedule is an empty list if the DHW/zone has no schedule.
+        """
+
+        if self._schedule is None:  # never fetched (successfully)
+            raise exc.NotFetchedError(_ERR_NO_SCHEDULE.format(self))
 
         return self._schedule
 
     @property
-    def this_switchpoint(self) -> _SwitchPoint:
-        """Return the start datetime and setpoint of the current switchpoint."""
+    def this_switchpoint(self) -> _SwitchPoint | None:
+        """Return the start datetime and setpoint of the current switchpoint.
 
-        if not self._schedule:
-            raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
+        Return None if the DHW/zone has no schedule.
+        """
 
-        if self._next_switchpoint[0] > (dt_now := dt.now(tz=UTC)):
-            return self._this_switchpoint
-
-        self._this_switchpoint, self._next_switchpoint = self._find_switchpoints(dt_now)
-        return self._this_switchpoint
+        if (switchpoints := self._current_switchpoints()) is None:
+            return None
+        return switchpoints[0]
 
     @property
-    def next_switchpoint(self) -> _SwitchPoint:
-        """Return the start datetime and setpoint of the next switchpoint."""
+    def next_switchpoint(self) -> _SwitchPoint | None:
+        """Return the start datetime and setpoint of the next switchpoint.
 
-        if not self._schedule:
-            raise exc.InvalidScheduleError(f"{self}: No Schedule, or is invalid")
+        Return None if the DHW/zone has no schedule.
+        """
 
-        if self._next_switchpoint[0] > (dt_now := dt.now(tz=UTC)):
-            return self._next_switchpoint
+        if (switchpoints := self._current_switchpoints()) is None:
+            return None
+        return switchpoints[1]
 
-        self._this_switchpoint, self._next_switchpoint = self._find_switchpoints(dt_now)
+    def _current_switchpoints(self) -> tuple[_SwitchPoint, _SwitchPoint] | None:
+        """Return the this/next switchpoints, or None if there is no schedule.
 
-        return self._next_switchpoint
+        Raise NotFetchedError if the schedule has not been fetched, and
+        InvalidScheduleError if the switchpoints can't be found in the schedule.
+        """
+
+        if not (schedule := self.schedule):
+            return None
+
+        dt_now = dt.now(tz=UTC)
+
+        if self._switchpoints is None or self._switchpoints[1][0] <= dt_now:
+            self._switchpoints = self._find_switchpoints(schedule, dt_now)
+
+        return self._switchpoints
 
     async def get_schedule(self) -> list[DayT]:
         """Get the schedule for this DHW/zone object."""
@@ -321,6 +348,14 @@ class _ScheduleBase[
                 schema=self.SCH_SCHEDULE,
             )
 
+        except exc.BadApiResponseError as err:  # the schedule failed validation
+            raise exc.InvalidScheduleError(
+                f"{self}: Schedule is invalid: {err}"
+            ) from err
+
+        except exc.AuthenticationFailedError:  # e.g. bad credentials are a 400 too
+            raise
+
         except exc.ApiCallFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
                 raise exc.InvalidScheduleError(
@@ -328,15 +363,24 @@ class _ScheduleBase[
                 ) from err
             raise
 
-        self._schedule = response[SZ_DAILY_SCHEDULES]
+        schedule = response[SZ_DAILY_SCHEDULES]  # is [] if there is no schedule
 
-        self._this_switchpoint, self._next_switchpoint = self._find_switchpoints(
-            dt.now(tz=UTC)
-        )
+        try:  # check the switchpoints can be found, before storing the schedule
+            switchpoints = (
+                self._find_switchpoints(schedule, dt.now(tz=UTC)) if schedule else None
+            )
+        except exc.InvalidScheduleError as err:
+            raise exc.InvalidScheduleError(
+                f"{self}: Schedule is invalid: {err}"
+            ) from err
+
+        self._schedule, self._switchpoints = schedule, switchpoints
 
         return self._schedule
 
-    def _find_switchpoints(self, dtm: dt) -> tuple[_SwitchPoint, _SwitchPoint]:
+    def _find_switchpoints(
+        self, schedule: list[DayT], dtm: dt
+    ) -> tuple[_SwitchPoint, _SwitchPoint]:
         """Find the current (this) and next switchpoints for a given datetime.
 
         FYI: HA has traditionally exposed (as an extended_state_attr):
@@ -351,7 +395,7 @@ class _ScheduleBase[
         dtm = as_local_time(dtm, self.location.tzinfo)
 
         this_sp, this_offset, next_sp, next_offset = _find_switchpoints(
-            self.schedule, *_dt_to_dow_and_tod(dtm, self.location.tzinfo)
+            schedule, *_dt_to_dow_and_tod(dtm, self.location.tzinfo)
         )
 
         this_tod = tm.fromisoformat(this_sp[SZ_TIME_OF_DAY])
@@ -380,8 +424,11 @@ class _ScheduleBase[
     async def set_schedule(
         self,
         schedule: list[DayT] | str,
-    ) -> None:
-        """Set the schedule for this DHW/zone object."""
+    ) -> CommTask:
+        """Set the schedule for this DHW/zone object.
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
 
         self._logger.debug(f"{self}: Setting schedule...")
 
@@ -389,7 +436,7 @@ class _ScheduleBase[
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
-                raise exc.BadScheduleUploadedError(
+                raise exc.InvalidScheduleRequestError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
@@ -397,26 +444,25 @@ class _ScheduleBase[
             try:
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as err:
-                raise exc.BadScheduleUploadedError(
+                raise exc.InvalidScheduleRequestError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
             assert isinstance(schedule, list)  # mypy
 
         else:
-            raise exc.BadScheduleUploadedError(
+            raise exc.InvalidScheduleRequestError(
                 f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable"
             )
 
-        _ = await self._auth.put(
-            f"{self._TCC_TYPE}/{self.id}/schedule",
-            json={"daily_schedules": schedule},
-            schema=self.SCH_SCHEDULE,
-        )
+        schedule_ = {SZ_DAILY_SCHEDULES: schedule}
 
-        # TODO: check the status of the task
+        url = f"{self._TCC_TYPE}/{self.id}/schedule"
+        response = await self._auth.put(url, json=schedule_, schema=self.SCH_SCHEDULE)
 
-        self._schedule = schedule
+        self._schedule = schedule  # NOTE: the comm task may yet fail
+        self._switchpoints = None  # will be found from the new schedule, when needed
+        return CommTask.from_response(self._auth, response)
 
 
 class _ZoneBase[
@@ -425,7 +471,7 @@ class _ZoneBase[
 ](_ScheduleBase[StatusT, DayT]):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
-    SCH_STATUS: vol.Schema
+    SCH_STATUS: Validator[StatusT]
 
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id)
@@ -447,11 +493,11 @@ class _ZoneBase[
         """Get the latest state of this DHW/zone and optionally update its status attrs.
 
         This is a working vendor API endpoint, retained only for use by the test suite.
-        For normal use, prefer Location.update as a single GET updates all descendants.
+        For normal use, prefer Location.get_status as a single GET updates all descendants.
         """
 
         self._logger.warning(
-            f"{self}: prefer Location.update() for more efficient status retrieval"
+            f"{self}: prefer Location.get_status() for more efficient status retrieval"
         )
 
         status: StatusT = await self._auth.get(
@@ -496,8 +542,10 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
     _TCC_TYPE = TccEntityType.ZON
 
-    SCH_SCHEDULE: vol.Schema = factory_zon_schedule(Case.PYTHONIC)
-    SCH_STATUS: vol.Schema = factory_zon_status(Case.PYTHONIC)
+    SCH_SCHEDULE: Validator[EvoZonScheduleResponseT] = factory_zon_schedule(
+        Case.PYTHONIC
+    )
+    SCH_STATUS: Validator[EvoZonStatusResponseT] = factory_zon_status(Case.PYTHONIC)
 
     def __init__(self, tcs: ControlSystem, config: EvoZonConfigResponseT) -> None:
         super().__init__(config[SZ_ZONE_ID], tcs)
@@ -505,18 +553,29 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         self._config: Final = config
 
         if not self.model or self.model is ZoneModelType.UNKNOWN:
-            raise exc.InvalidConfigError(
+            raise exc.GhostZoneError(
                 f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)"
             )
         if not self.type or self.type is ZoneType.UNKNOWN:
-            raise exc.InvalidConfigError(
+            raise exc.GhostZoneError(
                 f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)"
             )
 
         if self.model not in ZoneModelType:
-            self._logger.warning("%s: Unknown model type '%s' (YMMV)", self, self.model)
+            self._logger.warning(
+                "%s: Unexpected Zone model '%s' (YMMV)", self, self.model
+            )
         if self.type not in ZoneType:
-            self._logger.warning("%s: Unknown Zone type '%s' (YMMV)", self, self.type)
+            self._logger.warning(
+                "%s: Unexpected Zone type '%s' (YMMV)", self, self.type
+            )
+
+        # Ask for unknown fan modes to be reported, so they can be added to the enum
+        for fan_mode in config.get(SZ_ALLOWED_FAN_MODES, []):
+            if not isinstance(fan_mode[SZ_FAN_MODE], FanMode):
+                self._logger.warning(
+                    f"{self}: Fan mode '{fan_mode[SZ_FAN_MODE]}' {_PLEASE_REPORT}"
+                )
 
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoZonConfigT:
@@ -526,7 +585,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     # Config attrs...
 
     @cached_property
-    def model(self) -> ZoneModelType:
+    def model(self) -> ZoneModelType | str:
         return self._config[SZ_MODEL_TYPE]
 
     @property
@@ -536,12 +595,16 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         return self._config[SZ_NAME]
 
     @cached_property
-    def type(self) -> ZoneType:
+    def type(self) -> ZoneType | str:
         return self._config[SZ_ZONE_TYPE]
 
     @cached_property
     def schedule_capabilities(self) -> EvoZonScheduleCapabilitiesT | None:
         """
+        Return the schedule capabilities of the heating zone (never None for Evohome).
+
+        This key may be absent for some FocusProWifi* systems.
+
         "scheduleCapabilities": {
             "maxSwitchpointsPerDay": 6,
             "minSwitchpointsPerDay": 1,
@@ -550,7 +613,6 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         }
         """
 
-        # key can be absent for FocusProWifiRetail, but is always present for Evohome
         return self._config.get(SZ_SCHEDULE_CAPABILITIES)
 
     @property
@@ -616,8 +678,11 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, zon_mode: EvoSetZoneHeatSetpointT, /) -> None:
-        """Set the Zone mode (heating only; cooling is not exposed by the API)."""
+    async def _set_mode(self, zon_mode: EvoSetZoneHeatSetpointT, /) -> CommTask:
+        """Set the Zone mode, and return the vendor's comm task.
+
+        Heating only; cooling is not exposed by the API.
+        """
 
         # Issue a warning if we fail some basic sanity checks...
         if zon_mode[SZ_SETPOINT_MODE] not in self.allowed_modes:
@@ -636,9 +701,9 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                 f"{self}: Attempting invalid {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
             )
 
-        await self._auth.put(
-            f"{self._TCC_TYPE}/{self.id}/heatSetpoint", json=dict(zon_mode)
-        )
+        url = f"{self._TCC_TYPE}/{self.id}/heatSetpoint"
+        response = await self._auth.put(url, json=zon_mode)
+        return CommTask.from_response(self._auth, response)
 
     async def set_mode(
         self,
@@ -647,39 +712,41 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         *,
         temperature: float | None = None,
         until: dt | str | None = None,
-    ) -> None:
+    ) -> CommTask:
         """Set the Zone to a (heating) mode, either indefinitely, or for a set time.
 
         Will accept a ZoneMode or a (snake_case) string for the 'mode'.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
         try:
             mode = ZoneMode(mode)
         except ValueError as err:
-            raise exc.InvalidZoneModeError(f"{self}: Unknown mode: {mode}") from err
+            raise exc.InvalidModeRequestError(f"{self}: Unknown mode: {mode}") from err
 
         if mode not in self.allowed_modes:
-            raise exc.InvalidZoneModeError(f"{self}: Unsupported mode: {mode}")
+            raise exc.InvalidModeRequestError(f"{self}: Unsupported mode: {mode}")
 
         zone_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: mode}
 
         if temperature is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, temperature must not be None"
                 )
 
         else:
             if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, temperature must be None"
                 )
 
             if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: Invalid temperature: {temperature} (out of range)"
                 )
 
@@ -687,23 +754,23 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, until must not be None"
                 )
 
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidZoneModeError(
+                raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, until must be None"
                 )
 
             zone_mode[SZ_TIME_UNTIL] = as_aware_dtm(until)
 
-        await self._set_mode(zone_mode)
+        return await self._set_mode(zone_mode)
 
-    async def reset(self) -> None:
+    async def reset(self) -> CommTask:
         """Cancel any override and allow the Zone to follow its schedule."""
-        await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
+        return await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
 
     # NOTE: no provision for cooling (not supported by API)
     async def set_temperature(
@@ -712,7 +779,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         /,
         *,
         until: dt | str | None = None,
-    ) -> None:
+    ) -> CommTask:
         """Set the temperature of the zone (no provision for cooling)."""
 
         mode = (
@@ -720,4 +787,4 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             if until is None
             else ZoneMode.TEMPORARY_OVERRIDE
         )
-        await self.set_mode(mode, temperature=temperature, until=until)
+        return await self.set_mode(mode, temperature=temperature, until=until)

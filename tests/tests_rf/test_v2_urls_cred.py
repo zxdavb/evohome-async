@@ -21,10 +21,10 @@ import aiohttp
 import pytest
 
 from evohomeasync2.schemas.account import (
-    TCC_ERROR_RESPONSE,
+    TCC_FAILURE_RESPONSE,
     TCC_GET_USR_ACCOUNT,
+    TCC_POST_OAUTH_ERROR,
     TCC_POST_OAUTH_TOKEN,
-    TCC_STATUS_RESPONSE,
 )
 from tests.const import (
     _DBG_TEST_CRED_URLS,
@@ -37,8 +37,8 @@ from tests.const import (
 
 if TYPE_CHECKING:
     from evohomeasync2.schemas.account import (
-        TccErrorResponseT,
         TccFailureResponseT,
+        TccOAuthErrorResponseT,
         TccOAuthTokenResponseT,
         TccUsrAccountResponseT,
     )
@@ -48,7 +48,7 @@ async def _skip_if_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     if rsp.status != HTTPStatus.TOO_MANY_REQUESTS:  # 429
         return
 
-    response: TccErrorResponseT = await rsp.json()
+    response: TccOAuthErrorResponseT = await rsp.json()
 
     # the expected response for TOO_MANY_REQUESTS
     """
@@ -56,7 +56,7 @@ async def _skip_if_too_many_requests(rsp: aiohttp.ClientResponse) -> None:
     """
 
     assert response["error"] == "attempt_limit_exceeded"
-    TCC_ERROR_RESPONSE(response)
+    TCC_POST_OAUTH_ERROR(response)
 
     pytest.skip("Too many requests")
 
@@ -102,7 +102,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
         await _skip_if_too_many_requests(rsp)
         assert rsp.status == HTTPStatus.BAD_REQUEST  # 400
 
-        response: TccErrorResponseT = await rsp.json()
+        response: TccOAuthErrorResponseT = await rsp.json()
 
         # the expected response for bad credentials
         """
@@ -110,7 +110,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
         """
 
     assert response["error"] == "invalid_grant"
-    TCC_ERROR_RESPONSE(response)
+    TCC_POST_OAUTH_ERROR(response)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -142,7 +142,7 @@ async def test_bad2(  # bad access token
         """
 
     assert isinstance(response, list) and response[0]["code"] == "Unauthorized"  # noqa: PT018
-    TCC_STATUS_RESPONSE(response)
+    TCC_FAILURE_RESPONSE(response)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -168,7 +168,7 @@ async def test_bad3(  # bad credentials (refresh token)
         await _skip_if_too_many_requests(rsp)
         assert rsp.status == HTTPStatus.BAD_REQUEST  # 400
 
-        response: TccErrorResponseT = await rsp.json()
+        response: TccOAuthErrorResponseT = await rsp.json()
 
         # the expected response for bad refresh tokens
         """
@@ -176,7 +176,7 @@ async def test_bad3(  # bad credentials (refresh token)
         """
 
     assert response["error"] == "invalid_grant"
-    TCC_ERROR_RESPONSE(response)
+    TCC_POST_OAUTH_ERROR(response)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")

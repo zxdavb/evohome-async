@@ -91,21 +91,49 @@ this.
 
 ### 4. Use the project's exception hierarchy
 
-See `src/_evohome/exceptions.py`. Key types:
+See `src/_evohome/exceptions.py`. The exceptions are grouped by what the caller can do
+about them:
 
 ```text
 EvohomeError
-├── ApiRequestFailedError        # API call failed
-│   ├── ApiRateLimitExceededError
-│   └── AuthenticationFailedError
-│       └── BadUserCredentialsError
-├── BadApiSchemaError            # API returned unexpected data
-├── ConfigError                  # Bad config JSON
-└── StatusError                  # Bad status/schedule JSON
+│
+├── ApiCallFailedError                # No usable reply: fix issue/try again later
+│   ├── ApiRateLimitExceededError     # HTTP 429; has a retry_after attr: here, try again later
+│   │   ├── AuthRateLimitExceededError    # - is also an AuthenticationFailedError
+│   ├── AuthenticationFailedError
+│   │   └── BadUserCredentialsError   # correct credentials before trying again
+│   ├── ApiCallRejectedError          # A 4xx (not a 401/429): trying again will not help
+│   └── CommTaskFailedError           # A PUT was accepted, but its comm task failed
+│
+├── BadApiRequestError                # The arguments are unusable (no API call attempted)
+│   ├── InvalidModeRequestError
+│   └── InvalidScheduleRequestError
+│
+├── BadApiResponseError               # The reply is not as expected: report it
+│   ├── InvalidConfigError
+│   │   └── GhostZoneError            # a corrupt zone (delete it?)
+│   ├── InvalidStatusError
+│   └── InvalidScheduleError
+│
+└── ClientStateError                  # The client lacks the data: fetch it first
+    ├── NotFetchedError               # - config, status or schedule data absent
+    ├── StaleConfigError
+    └── NoSingleTcsError
 ```
+
+`ApiRequestFailedError` and `InvalidSystemModeError` are deprecated aliases (used by
+the HA integration), for `ApiCallFailedError` and `InvalidModeRequestError`. Accessing
+either emits a `DeprecationWarning` (they are served by a module `__getattr__()`, from
+`deprecated_getattr()` in `_evohome/exceptions.py`).
 
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library
   code - instead, raise exceptions based upon `EvohomeError`.
+- An `AuthenticationFailedError` is an `ApiCallFailedError`, and has a `status` too. A
+  handler that acts upon the `status` of an `ApiCallFailedError` (e.g. a 400, or a 401)
+  must first let any `AuthenticationFailedError` pass.
+- A `BadApiRequestError` means a request was never sent, as the arguments failed this
+  library's checks. An `ApiCallRejectedError` means a request (a GET or a PUT) was
+  sent, but the vendor refused it (a 4xx, other than a 401 or a 429).
 - Do **not** use bare `except Exception:` — catch the specific type you expect.
 - Never silently swallow errors with `pass`. At minimum, log a warning.
 
@@ -143,6 +171,33 @@ still warrant justification.
 | Exception binding | `except SomeError as err:`                                    |
 | Build backend     | Hatchling — version lives in `src/_evohome/__init__.py`       |
 
+### Deprecations
+
+Deprecate a method with `@warnings.deprecated(...)`, and a module-level name with
+`deprecated_getattr()`; the message names the replacement. Tests use the replacement,
+except those that test the deprecated name itself, which do so under
+`pytest.warns(DeprecationWarning)` (so the test suite passes with
+`-W error::DeprecationWarning`).
+
+### Function signatures
+
+Put each parameter on its own line, with a trailing comma (which stops `ruff format`
+from joining them back onto one line):
+
+```python
+async def test_dhw_set_off(
+    dhw: HotWater,
+) -> None:
+```
+
+- **Tests** (`tests/`): obligatory for any new or changed test, even if it has only one
+  parameter (e.g. a fixture). Existing tests will be converted in due course.
+- **Library code** (`src/`): recommended, except for a method whose only parameter is
+  `self` (e.g. `def id(self) -> str:`), which stays on one line. Existing code will not
+  be converted.
+
+`ruff` accepts either layout, so this is not enforced by the linter.
+
 ### Logging vs printing
 
 - **Library code** (`_evohome`, `evohomeasync`, `evohomeasync2`): use `_LOGGER`,
@@ -170,6 +225,22 @@ tests/
 The **library** (`_evohome`, `evohomeasync`, `evohomeasync2`) is the published
 deliverable. The CLI is a developer convenience and is explicitly excluded from
 code coverage.
+
+### The shared `_evohome` layer
+
+`_evohome` is private: it holds the code that `evohomeasync` and `evohomeasync2`
+share, and each package re-exports the public parts (e.g.
+`evohomeasync2.AuthenticationFailedError` _is_ `_evohome.exceptions.AuthenticationFailedError`).
+
+- **What both packages share can't belong to either.** A class defined in `_evohome`
+  reports `_evohome` as its `__module__` (e.g. on the last line of a traceback),
+  whichever package used it. That is expected — do not duplicate or subclass shared
+  classes per package just to change it.
+- **If `_evohome` needs package-specific behaviour, have the package pass it in**, as is
+  already done for loggers (the `logger=` argument of the `_evohome` base classes),
+  rather than subclassing in each package and translating what `_evohome` produces.
+- **For exceptions, the contract is what callers can catch:** `except evohomeasync2.X`
+  must work — and re-exporting the shared class already guarantees that.
 
 ---
 
@@ -223,3 +294,5 @@ to the following — these are the most common mistakes:
 8. **Do not modify `pyproject.toml`** unless the change is to project metadata
    (description, URLs, classifiers). Lint/type/test config changes require
    explicit maintainer approval.
+9. **Put each parameter of a new test on its own line** (see
+   [Function signatures](#function-signatures)); `ruff` does not enforce this.

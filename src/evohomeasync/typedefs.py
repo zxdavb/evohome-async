@@ -21,6 +21,25 @@ class EvoFailureDictT(TypedDict):
     message: str
 
 
+class EvoTaskDictT(TypedDict):
+    """Typed dict for responses from the vendor servers for successful PUTs."""
+
+    id: int  # e.g. {"id": 1234567890}
+
+
+class EvoCommTaskDictT(TypedDict):
+    """GET api/commTasks?commTaskId={commTaskId}"""
+
+    state: str  # c.f. TccCommTaskState
+    fault_reasons: NotRequired[str]
+    started: NotRequired[str]
+    finished: NotRequired[str]
+    mac_id: NotRequired[str]
+    gateway_id: _GatewayIdT
+    device_id: _DhwIdT | _ZoneIdT
+    activity_id: NotRequired[str]
+
+
 class EvoSessionDictT(TypedDict):
     """POST api/session"""
 
@@ -37,7 +56,7 @@ class EvoUserAccountInfoDictT(TypedDict):  # NOTE: is not EvoUserAccountDictT
     lastname: NotRequired[str]
     street_address: NotRequired[str]
     city: NotRequired[str]
-    # state: str  # missing?
+    state: NotRequired[str]  # documented, but absent from all responses seen
     zipcode: NotRequired[str]
     country: NotRequired[str]  # GB
     telephone: NotRequired[str]
@@ -125,7 +144,7 @@ class EvoThermostatInfoDictT(TypedDict):
     outdoor_humidity: NotRequired[float]
     outdoot_humidity_available: NotRequired[bool]  # NOTE: not a typo
     indoor_humidity: NotRequired[float]
-    indoor_temperature_status: str  # Measured|NotAvailable|SensorError|SensorFault
+    indoor_temperature_status: str  # Measured|NotAvailable|SensorFault
     indoor_humidity_status: NotRequired[str]
     outdoor_temperature_status: NotRequired[str]
     outdoor_humidity_status: NotRequired[str]

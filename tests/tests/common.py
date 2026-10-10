@@ -13,11 +13,13 @@ import pytest
 import yaml
 from freezegun.api import FakeDatetime  # to check schedules, setpoints
 
+from _evohome import exceptions as exc
+
 if TYPE_CHECKING:
-    import probatio as vol
+    from _evohome.helpers import Validator
 
 
-def assert_schema(folder: Path, schema: vol.Schema, file_name: str) -> None:
+def assert_schema(folder: Path, schema: Validator[object], file_name: str) -> None:
     if not Path(folder).joinpath(file_name).is_file():
         pytest.skip(f"No {file_name} in: {folder.name}")
 
@@ -54,6 +56,10 @@ def serializable_attrs(obj: object) -> dict[str, str]:
             try:
                 result[k] = yaml.dump(getattr(obj, k))
             except TypeError:  # non-serializable, e.g. client, gateways, zone_by_name
+                continue
+            except exc.InvalidScheduleError:  # e.g. schedule, if it is invalid
+                continue
+            except exc.NotFetchedError:  # e.g. schedule, if get_schedule() raised
                 continue
 
     return result

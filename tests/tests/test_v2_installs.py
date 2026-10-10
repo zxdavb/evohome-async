@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import patch
@@ -9,17 +10,20 @@ from unittest.mock import patch
 import pytest
 import yaml
 
+from _evohome import exceptions as exc
+
 from .common import serializable_attrs
 from .conftest import FIXTURES_V2 as FIXTURES
+from .const import PUT_RESPONSE_V2
 
 if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
     from syrupy.assertion import SnapshotAssertion
 
+    from evohomeasync2 import EvohomeClient as EvohomeClientV2
     from evohomeasync2.control_system import ControlSystem
     from evohomeasync2.gateway import Gateway
     from evohomeasync2.location import Location
-    from tests.conftest import EvohomeClientV2
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -69,8 +73,14 @@ async def test_system_snapshot(
                     await dhw.get_schedule()
                     assert serializable_attrs(dhw) == snapshot(name=f"loc_{loc.id}_dhw")
 
+                errors = {}
                 for z in tcs.zones:  # is 1-12
-                    await z.get_schedule()  # needed for serializable_attrs(z), below
+                    try:  # the schedule is needed for serializable_attrs(z), below
+                        await z.get_schedule()
+                    except exc.InvalidScheduleError as err:  # e.g. system_006
+                        errors[z.id] = str(err)
+                if errors:
+                    assert errors == snapshot(name=f"loc_{loc.id}_zon_err")
 
                 zones = {z.id: serializable_attrs(z) for z in tcs.zones}
                 assert yaml.dump(zones, indent=4) == snapshot(name=f"loc_{loc.id}_zon")
@@ -95,16 +105,19 @@ async def test_system_schedules(
 
     assert schedules == snapshot(name=f"{tcs.id}_schedules")  # needs freezer
 
-    with patch("_evohome.auth.AbstractAuth.request"):
+    with patch("_evohome.auth.AbstractAuth.request", return_value=PUT_RESPONSE_V2):
         result = await tcs.set_schedules(schedules)
     assert result is True
 
-    with patch("_evohome.auth.AbstractAuth.request"):
+    with patch("_evohome.auth.AbstractAuth.request", return_value=PUT_RESPONSE_V2):
         result = await tcs.set_schedules(schedules, match_by_name=True)
     assert result is True
 
-    data = [(z.this_switchpoint, z.next_switchpoint) for z in tcs.zones]
+    data = []
+    for z in tcs.zones:
+        with contextlib.suppress(exc.InvalidScheduleError):  # e.g. system_006
+            data.append((z.this_switchpoint, z.next_switchpoint))
     if dhw := tcs.hotwater:
         data.append((dhw.this_switchpoint, dhw.next_switchpoint))
 
-    assert schedules == snapshot(name="switchpoints")  # needs freezer
+    assert data == snapshot(name="switchpoints")  # needs freezer

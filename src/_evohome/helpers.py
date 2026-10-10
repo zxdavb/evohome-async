@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable, Mapping  # used at runtime
 from datetime import UTC, datetime as dt
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Final, overload
@@ -11,12 +12,24 @@ from .const import _DBG_DONT_REDACT_SECRETS, REGEX_EMAIL_ADDRESS
 from .exceptions import BadApiRequestError
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
     from datetime import tzinfo
+
+
+# A schema (validator) whose output is known to be of type T, e.g. a TypedDict
+type Validator[T] = Callable[[object], T]
+
+
+class Case(StrEnum):
+    """Selects the casing convention a schema factory should produce."""
+
+    VENDOR = "vendor"  # camelCase keys, PascalCase enum strings (validate only)
+    PYTHONIC = "pythonic"  # snake_case keys, coerced to user-facing enum members
 
 
 # Vendor API datetime format (ISO 8601, UTC, no fractional seconds)
 TCC_DTM_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
+# ...but the v0 API's is the location's local time (so is without a Z)
+TCC_DTM_LOCAL_STRFTIME: Final = "%Y-%m-%dT%H:%M:%S"
 # _TCC_DTM_REGEX: Final = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
 
 # However, the 'since' datetime used for Faults is naive, and has milliseconds
@@ -52,7 +65,7 @@ def _recurse_keys[T](data: T, fnc: Callable[[str], str]) -> T:
     """
 
     def recurse(data_: Any) -> Any:
-        if isinstance(data_, dict):
+        if isinstance(data_, Mapping):
             return {fnc(k): recurse(v) for k, v in data_.items()}
 
         if isinstance(data_, list):
@@ -60,7 +73,7 @@ def _recurse_keys[T](data: T, fnc: Callable[[str], str]) -> T:
 
         return data_
 
-    return recurse(data)  # type:ignore[no-any-return]
+    return recurse(data)  # type: ignore[no-any-return]
 
 
 def _recurse_str_vals[T](data: T, fnc: Callable[[str], str]) -> T:
@@ -70,7 +83,7 @@ def _recurse_str_vals[T](data: T, fnc: Callable[[str], str]) -> T:
     """
 
     def recurse(data_: Any) -> Any:
-        if isinstance(data_, dict):
+        if isinstance(data_, Mapping):
             return {k: recurse(v) for k, v in data_.items()}
 
         if isinstance(data_, list):
@@ -81,7 +94,7 @@ def _recurse_str_vals[T](data: T, fnc: Callable[[str], str]) -> T:
 
         return fnc(data_)
 
-    return recurse(data)  # type:ignore[no-any-return]
+    return recurse(data)  # type: ignore[no-any-return]
 
 
 def _recurse_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
@@ -96,7 +109,7 @@ def _recurse_dtm_vals[T](data: T, fnc: Callable[[dt], dt | str]) -> T:
     """
 
     def recurse(data_: Any) -> Any:
-        if isinstance(data_, dict):
+        if isinstance(data_, Mapping):
             return {k: recurse(v) for k, v in data_.items()}
 
         if isinstance(data_, list):
@@ -107,7 +120,7 @@ def _recurse_dtm_vals[T](data: T, fnc: Callable[[dt], dt | str]) -> T:
 
         return fnc(data_)
 
-    return recurse(data)  # type:ignore[no-any-return]
+    return recurse(data)  # type: ignore[no-any-return]
 
 
 def as_utc_str(dtm: dt) -> str:
@@ -122,6 +135,21 @@ def as_utc_str(dtm: dt) -> str:
         raise BadApiRequestError(f"Datetime must be TZ-aware (not naive): {dtm!r}")
 
     return dtm.astimezone(UTC).strftime(TCC_DTM_STRFTIME)
+
+
+def as_local_str(dtm: dt, tzinfo: tzinfo) -> str:
+    """Return a vendor (ISO 8601) datetime string, in a location's local time (no Z).
+
+    The v0 API treats a datetime that is sent to it (e.g. a NextTime) as the location's
+    local time, and ignores any Z. So, an aware datetime is converted to the location's
+    TZ before formatting (and so is sent as the correct instant). A naive datetime is
+    rejected, as with as_utc_str().
+    """
+
+    if dtm.tzinfo is None:  # else astimezone() would assume the local TZ
+        raise BadApiRequestError(f"Datetime must be TZ-aware (not naive): {dtm!r}")
+
+    return dtm.astimezone(tzinfo).strftime(TCC_DTM_LOCAL_STRFTIME)
 
 
 def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
@@ -288,7 +316,7 @@ def redact_secrets[T](data: T) -> T:
         if isinstance(data_, tuple):
             return tuple(recurse(i) for i in data_)
 
-        if not isinstance(data_, dict):  # Mapping?
+        if not isinstance(data_, Mapping):
             return data_
 
         return {
