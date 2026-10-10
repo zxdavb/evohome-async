@@ -30,7 +30,12 @@ They are grouped by what the caller can do about them:
 
 from __future__ import annotations
 
+import warnings
 from http import HTTPStatus
+from typing import TYPE_CHECKING, Final
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Collection
 
 
 class _EvohomeBaseError(Exception):
@@ -190,6 +195,44 @@ class NoSingleTcsError(ClientStateError):
     """There is no default TCS (e.g. the user has more than one location)."""
 
 
-# Backward-compatibility aliases (deprecated names, e.g. as used by the HA integration)
-ApiRequestFailedError = ApiCallFailedError  # renamed to ApiCallFailedError
-InvalidSystemModeError = InvalidModeRequestError  # merged into InvalidModeRequestError
+# Backward-compatibility aliases (deprecated names, e.g. as used by the HA integration):
+# each is its replacement, but is served by a module __getattr__() that warns when it is
+# accessed (e.g. imported, or evaluated in an except clause)
+_DEPRECATED_ALIASES: Final[dict[str, type[EvohomeError]]] = {
+    "ApiRequestFailedError": ApiCallFailedError,  # renamed to ApiCallFailedError
+    "InvalidSystemModeError": InvalidModeRequestError,  # merged into it
+}
+
+if TYPE_CHECKING:  # at runtime, they are served by __getattr__(), below
+    ApiRequestFailedError = ApiCallFailedError
+    InvalidSystemModeError = InvalidModeRequestError
+
+
+def deprecated_getattr(
+    module: str,
+    names: Collection[str],
+) -> Callable[[str], type[EvohomeError]]:
+    """Return a module __getattr__() that serves the named deprecated aliases.
+
+    Each access to an alias emits a DeprecationWarning that names its replacement, and
+    is attributed to the caller's line (e.g. its import, or its except clause).
+    """
+
+    def module_getattr(name: str) -> type[EvohomeError]:
+        if name not in names:
+            raise AttributeError(f"module {module!r} has no attribute {name!r}")
+
+        new = _DEPRECATED_ALIASES[name]
+        warnings.warn(
+            f"{name} is deprecated: use {new.__name__} instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return new
+
+    return module_getattr
+
+
+# hidden from type checkers, which would otherwise accept any name in this module
+if not TYPE_CHECKING:
+    __getattr__ = deprecated_getattr(__name__, _DEPRECATED_ALIASES)

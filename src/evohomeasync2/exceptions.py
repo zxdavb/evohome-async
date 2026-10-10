@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from _evohome.exceptions import (
     ApiCallFailedError,
     ApiCallRejectedError,
     ApiRateLimitExceededError,
-    ApiRequestFailedError,
     AuthenticationFailedError,
     AuthRateLimitExceededError,
     BadApiRequestError,
@@ -21,11 +22,14 @@ from _evohome.exceptions import (
     InvalidScheduleError,
     InvalidScheduleRequestError,
     InvalidStatusError,
-    InvalidSystemModeError,
     NoSingleTcsError,
     NotFetchedError,
     StaleConfigError,
+    deprecated_getattr,
 )
+
+if TYPE_CHECKING:  # at runtime, they are served by __getattr__() (and warn)
+    from _evohome.exceptions import ApiRequestFailedError, InvalidSystemModeError
 
 __all__ = [
     "ApiCallFailedError",
@@ -51,3 +55,13 @@ __all__ = [
     "NotFetchedError",
     "StaleConfigError",
 ]
+
+# hidden from type checkers, which would otherwise accept any name in this module
+if not TYPE_CHECKING:
+    __getattr__ = deprecated_getattr(
+        __name__,
+        (
+            "ApiRequestFailedError",
+            "InvalidSystemModeError",
+        ),
+    )

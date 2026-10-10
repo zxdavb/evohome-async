@@ -56,7 +56,7 @@ async def _test_usr_apis(evo: EvohomeClientV2) -> None:
     """
 
     # STEP 1: retrieve config only: evo.user_account(), evo.installation()
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
     assert evo2.main.SCH_USR_ACCOUNT(evo.user_account)
     assert evo2.main.SCH_USR_LOCATIONS(evo._user_locs)
@@ -64,12 +64,13 @@ async def _test_usr_apis(evo: EvohomeClientV2) -> None:
     # STEP 2: GET /location/{loc.id}/status
     loc = get_loc(evo)
 
-    loc_status = await loc.update()
+    loc_status = await loc.get_status()
     assert evo2.Location.SCH_STATUS(loc_status)
 
     # STEP 3: GET /location/{loc.id}/installationInfo (not used by the client)
     if _DBG_TEST_UNUSED_APIS:
-        loc_status = await loc.update(_update_time_zone_info=True)
+        await loc._get_config()
+        loc_status = await loc.get_status()
         assert evo2.Location.SCH_STATUS(loc_status)
 
 
@@ -80,8 +81,10 @@ async def _test_tcs_apis(evo: EvohomeClientV2) -> None:
     Does not include tcs.get_schedules(), tcs.set_schedules().
     """
 
-    # STEP 1: retrieve config only
-    await evo.update(dont_update_status=False)
+    # STEP 1: retrieve config and status
+    await evo.setup()
+    for loc in evo.locations:
+        await loc.get_status()
 
     # STEP 2: GET /temperatureControlSystem/{tcs.id}/status
     tcs = get_tcs(evo)
@@ -96,7 +99,7 @@ async def _test_tcs_apis(evo: EvohomeClientV2) -> None:
 
     # STEP 3: PUT /temperatureControlSystem/{tcs.id}/mode
     await wait_for_comm_task_obj(await tcs.set_mode(SystemMode.AWAY))
-    await evo.update()
+    await tcs.location.get_status()
 
     await wait_for_comm_task_obj(await tcs.set_mode(mode))
 
@@ -109,7 +112,7 @@ async def _test_dhw_apis(evo: EvohomeClientV2) -> None:
     """
 
     # STEP 1: retrieve config only
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
     if not (dhw := get_dhw(evo)):
         pytest.skip("No DHW found in TCS")
@@ -133,7 +136,7 @@ async def _test_dhw_mode(evo: EvohomeClientV2) -> None:
     """
 
     # STEP 1: retrieve config only
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
     if not (dhw := get_dhw(evo)):
         pytest.skip("No DHW found in TCS")
@@ -151,7 +154,7 @@ async def _test_zon_apis(evo: EvohomeClientV2) -> None:
     """
 
     # STEP 1: retrieve config only
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
     if not (zone := get_zon(evo)):
         pytest.skip("No zones found in TCS")
@@ -184,7 +187,7 @@ async def _test_zon_mode(evo: EvohomeClientV2) -> None:
     """
 
     # STEP 1: retrieve config only
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
     if not (zone := get_zon(evo)):
         pytest.skip("No zones found in TCS")

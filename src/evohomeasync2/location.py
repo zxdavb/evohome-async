@@ -10,6 +10,7 @@ from datetime import UTC, datetime as dt, tzinfo
 from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
+from warnings import deprecated
 
 from aiozoneinfo import async_get_time_zone
 
@@ -267,6 +268,7 @@ class Location(EntityBase[EvoLocStatusT]):
 
         return await self._get_status(raise_on_stale_config=raise_on_stale_config)
 
+    @deprecated("Location.update() is deprecated: use .get_status()")
     async def update(
         self,
         *,

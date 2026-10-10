@@ -230,7 +230,7 @@ async def evohome_v0(
     with patch("evohomeasync.auth.Auth.get", auth_get(fixture_folder)):
         evo = EvohomeClientV0(credentials_manager)
 
-        await evo.update()
+        await evo.setup()
 
         try:
             yield evo
@@ -248,7 +248,9 @@ async def evohome_v2(
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
         evo = EvohomeClientV2(credentials_manager)
 
-        await evo.update()
+        await evo.setup()
+        for loc in evo.locations:
+            await loc.get_status()
 
         try:
             yield evo

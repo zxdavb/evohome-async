@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
+from warnings import deprecated
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from aiozoneinfo import async_get_time_zone
@@ -109,6 +110,9 @@ class EvohomeClient:
             except exc.BadApiResponseError as err:  # e.g. failed validation
                 raise exc.InvalidConfigError(err.message) from err
 
+    @deprecated(
+        "EvohomeClient.update() is deprecated: use .setup(), then Location.get_status()"
+    )
     async def update(
         self,
         /,

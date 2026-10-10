@@ -148,7 +148,7 @@ async def test_usr_locations(
         pytest.skip("Mocked server not implemented for this test")
 
     try:
-        await evohome_v0.update()  # get user_id and location_id
+        await evohome_v0.get_status()  # get user_id and location_id
 
         await _test_usr_locations(evohome_v0)
 
@@ -169,7 +169,7 @@ async def test_evo_systems(
         pytest.skip("Mocked server not implemented for this test")
 
     try:
-        await evohome_v0.update()  # get user_id and location_id
+        await evohome_v0.get_status()  # get user_id and location_id
 
         await _test_evo_systems(evohome_v0)
 
@@ -517,7 +517,7 @@ async def test_zon_heat_setpoint(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.update()  # get user_id
+    await evohome_v0.get_status()  # get user_id
     await _test_zon_heat_setpoint(evohome_v0)
 
 
@@ -531,7 +531,7 @@ async def test_dhw_changeable_values(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.update()  # get user_id
+    await evohome_v0.get_status()  # get user_id
     await _test_dhw_changeable_values(evohome_v0)
 
 
@@ -545,7 +545,7 @@ async def test_dhw_forbidden_params(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.update()  # get user_id
+    await evohome_v0.get_status()  # get user_id
     await _test_dhw_forbidden_params(evohome_v0)
 
 
@@ -570,7 +570,7 @@ async def test_url_case_insensitive(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.update()  # get user_id
+    await evohome_v0.get_status()  # get user_id
 
     auth = evohome_v0.auth
     usr_id: int = evohome_v0.user_account["user_id"]
@@ -636,7 +636,7 @@ async def test_case_insensitive(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.update()  # get user_id
+    await evohome_v0.get_status()  # get user_id
 
     dev_id = next(
         d["deviceID"] for d in await _get_devices(evohome_v0) if is_zone_v0(d)
@@ -680,7 +680,7 @@ async def test_zon_lost(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.update()  # get user_id
+    await evohome_v0.get_status()  # get user_id
     await _test_lost_device(evohome_v0, is_dhw=False)
 
 
@@ -694,7 +694,7 @@ async def test_dhw_lost(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.update()  # get user_id
+    await evohome_v0.get_status()  # get user_id
     await _test_lost_device(evohome_v0, is_dhw=True)
 
 
