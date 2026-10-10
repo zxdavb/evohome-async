@@ -64,7 +64,8 @@ async def test_system_warnings(
         with (
             caplog.at_level(logging.WARNING),
             pytest.warns(
-                DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+                DeprecationWarning,
+                match=r"use \.setup\(\), then Location\.get_status\(\)",
             ),
         ):
             await evo.update()
@@ -103,19 +104,19 @@ async def test_multi_location_warning_once_per_config_load(
         evo = EvohomeClientV2(credentials_manager)
 
         with pytest.warns(
-            DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+            DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
         ):
             await evo.update()  # config will be loaded: warn
         assert warnings() == [warning]
 
         with pytest.warns(
-            DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+            DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
         ):
             await evo.update()  # status update only: don't warn again
         assert warnings() == []
 
         with pytest.warns(
-            DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+            DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
         ):
             await evo.update(_reset_config=True)  # config reloaded: warn again
         assert warnings() == [warning]
@@ -124,7 +125,7 @@ async def test_multi_location_warning_once_per_config_load(
         evo = EvohomeClientV2(credentials_manager)
 
         with pytest.warns(
-            DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+            DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
         ):
             await evo.update(dont_update_status=True)  # no status updates: don't warn
         assert warnings() == []

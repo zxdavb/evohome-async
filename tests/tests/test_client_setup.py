@@ -53,7 +53,7 @@ async def test_v2_update_is_unchanged(
     with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "default")):
         evo = evo2.EvohomeClient(credentials_manager)
         with pytest.warns(
-            DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+            DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
         ):
             await evo.update()
 
@@ -62,7 +62,7 @@ async def test_v2_update_is_unchanged(
         assert zone.status["zone_id"] == zone.id  # update() got the status too
 
         loc = get_loc(evo)
-        with pytest.warns(DeprecationWarning, match=r"use get_status\(\)"):
+        with pytest.warns(DeprecationWarning, match=r"use \.get_status\(\)"):
             status = await loc.update()
         assert status == await loc.get_status()
 
@@ -75,7 +75,7 @@ async def test_v2_update_without_status(
     with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "default")):
         evo = evo2.EvohomeClient(credentials_manager)
         with pytest.warns(
-            DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+            DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
         ):
             await evo.update(dont_update_status=True)
 
@@ -119,7 +119,7 @@ async def test_v1_get_status(
 
         result = await evo.get_status()  # also gets the config, as it is first
         with pytest.warns(
-            DeprecationWarning, match=r"use setup\(\), then get_status\(\)"
+            DeprecationWarning, match=r"use \.setup\(\), then \.get_status\(\)"
         ):
             assert result == await evo.update()
 
