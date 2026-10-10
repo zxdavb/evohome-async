@@ -51,7 +51,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     its location), so it is used here only if _DBG_TEST_UNUSED_APIS.
     """
 
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
     if not (dhw := get_dhw(evo)):
         pytest.skip("No available DHW found")
@@ -205,7 +205,7 @@ async def _test_task_id_zone(evo: EvohomeClientV2) -> None:
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
     """
 
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
     if not (zone := get_zon(evo)):
         pytest.skip("No available Zone found")

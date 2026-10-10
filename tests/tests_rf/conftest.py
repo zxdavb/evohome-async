@@ -95,7 +95,9 @@ async def _reset_systems(username: str, password: str) -> None:
         evo = evo2.EvohomeClient(manager)
 
         try:
-            await evo.update()
+            await evo.setup()
+            for loc in evo.locations:
+                await loc.get_status()
         except (evo2.EvohomeError, TimeoutError) as err:  # TimeoutError is not wrapped
             warnings.warn(f"Unable to reset any system: {err}", stacklevel=1)
             return

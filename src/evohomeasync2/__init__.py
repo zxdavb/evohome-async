@@ -7,6 +7,10 @@ Further information at: https://evohome-client.readthedocs.io
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+from _evohome.exceptions import deprecated_getattr
+
 from .auth import AbstractTokenManager
 from .comm_task import CommTask
 from .const import (
@@ -28,7 +32,6 @@ from .exceptions import (
     ApiCallFailedError,
     ApiCallRejectedError,
     ApiRateLimitExceededError,
-    ApiRequestFailedError,
     AuthenticationFailedError,
     AuthRateLimitExceededError,
     BadApiRequestError,
@@ -43,7 +46,6 @@ from .exceptions import (
     InvalidScheduleError,
     InvalidScheduleRequestError,
     InvalidStatusError,
-    InvalidSystemModeError,
     NoSingleTcsError,
     NotFetchedError,
     StaleConfigError,
@@ -53,6 +55,9 @@ from .hotwater import HotWater
 from .location import Location
 from .main import EvohomeClient
 from .zone import Zone
+
+if TYPE_CHECKING:  # at runtime, they are served by __getattr__() (and warn)
+    from .exceptions import ApiRequestFailedError, InvalidSystemModeError
 
 __all__ = [  # noqa: RUF022
     "EvohomeClient",
@@ -101,3 +106,13 @@ __all__ = [  # noqa: RUF022
     "NotFetchedError",
     "StaleConfigError",
 ]
+
+# hidden from type checkers, which would otherwise accept any name in this module
+if not TYPE_CHECKING:
+    __getattr__ = deprecated_getattr(
+        __name__,
+        (
+            "ApiRequestFailedError",
+            "InvalidSystemModeError",
+        ),
+    )

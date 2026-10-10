@@ -52,7 +52,7 @@ async def test_location_unknown(
         caplog.at_level(logging.WARNING),
         patch("evohomeasync.auth.Auth.get", AsyncMock(return_value=user_locs)),
     ):
-        await evohome_v0.update()
+        await evohome_v0.get_status()
         await evohome_v0.get_status()  # the same as update()
 
     msg = (
@@ -74,7 +74,7 @@ async def test_location_absent(
         caplog.at_level(logging.WARNING),
         patch("evohomeasync.auth.Auth.get", AsyncMock(return_value=[])),
     ):
-        await evohome_v0.update()
+        await evohome_v0.get_status()
         await evohome_v0.get_status()  # the same as update()
 
     msg = (

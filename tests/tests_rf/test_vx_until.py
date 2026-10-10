@@ -97,7 +97,7 @@ async def _setup(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evo0.update()  # get user_id
+    await evo0.get_status()  # get user_id
     await evo2.setup()  # needed by should_work_v2()
 
     loc = await _get_location(evo0)

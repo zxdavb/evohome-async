@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
+from warnings import deprecated
 
 from _evohome.const import _ERR_NO_CONFIG
 from _evohome.helpers import Case
@@ -117,6 +118,7 @@ class EvohomeClient:
 
         return user_locs
 
+    @deprecated("EvohomeClient.update() is deprecated: use setup(), then get_status()")
     async def update(
         self,
         /,

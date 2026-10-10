@@ -139,19 +139,19 @@ async def test_status_missing_known_entity_warns_once(
 
     with caplog.at_level(logging.WARNING):
         with patch("evohomeasync2.auth.Auth.get", AsyncMock(return_value=stale_status)):
-            await loc.update()
-            await loc.update()
+            await loc.get_status()
+            await loc.get_status()
 
         (warning,) = warnings()  # i.e. is logged only once
         assert "has no entry for zone_id=" in warning
 
         with patch("evohomeasync2.auth.Auth.get", AsyncMock(return_value=status)):
-            await loc.update()  # the entity is back, so no warning
+            await loc.get_status()  # the entity is back, so no warning
 
         assert warnings() == [warning]
 
         with patch("evohomeasync2.auth.Auth.get", AsyncMock(return_value=stale_status)):
-            await loc.update()  # the entity is absent again, so warn again
+            await loc.get_status()  # the entity is absent again, so warn again
 
         assert warnings() == [warning, warning]
 
@@ -174,16 +174,24 @@ async def test_status_missing_known_entity_raises_if_asked(
     ):
         zone._status = None
 
-        with pytest.raises(exc.StaleConfigError, match="zone_id="):
-            await loc.update(raise_on_stale_config=True)
+        with (
+            pytest.warns(DeprecationWarning, match=r"use get_status\(\)"),
+            pytest.raises(exc.StaleConfigError, match="zone_id="),
+        ):
+            await loc.update(raise_on_stale_config=True)  # still passes it on
 
         _ = zone.status  # the others were updated before the raise (else would raise)
 
         with pytest.raises(exc.StaleConfigError, match="zone_id="):
             await loc.get_status(raise_on_stale_config=True)
 
-        with pytest.raises(exc.StaleConfigError, match="zone_id="):
-            await evohome_v2.update(raise_on_stale_config=True)
+        with (
+            pytest.warns(
+                DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+            ),
+            pytest.raises(exc.StaleConfigError, match="zone_id="),
+        ):
+            await evohome_v2.update(raise_on_stale_config=True)  # still passes it on
 
     assert not caplog.records  # it is raised, and not logged
 
@@ -257,7 +265,7 @@ async def test_location_absent(
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=get)),
         pytest.raises(expected) as err,
     ):
-        await loc.update()
+        await loc.get_status()
 
     assert type(err.value) is expected
     if expected is not exc.StaleConfigError:

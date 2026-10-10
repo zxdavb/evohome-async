@@ -155,7 +155,7 @@ async def _test_loc_status(evo: EvohomeClientV2) -> None:
     """Test /location/{loc.id}/status"""
 
     # TODO: remove .update() and use URLs only
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
     loc = get_loc(evo)
     #
@@ -211,7 +211,7 @@ async def _test_tcs_status(evo: EvohomeClientV2) -> None:
     """
 
     # TODO: remove .update() and use URLs only?
-    await evo.update(dont_update_status=True)
+    await evo.setup()
 
     tcs: evo2.ControlSystem
     if not (tcs := get_tcs(evo)):
@@ -354,7 +354,9 @@ async def _test_zone_status(evo: EvohomeClientV2) -> None:
     heat_setpoint: dict[str, float | str | None]  # TODO: TypedDict
 
     # TODO: remove .update() and use URLs only
-    await evo.update()
+    await evo.setup()
+    for loc in evo.locations:
+        await loc.get_status()
 
     if not (zone := get_zon(evo)):
         pytest.skip("No available zones found")
@@ -458,7 +460,9 @@ async def _test_dhw_status(evo: EvohomeClientV2) -> None:
     dhw_state: dict[str, str | None]
 
     # TODO: remove .update() and use URLs only
-    await evo.update()
+    await evo.setup()
+    for loc in evo.locations:
+        await loc.get_status()
 
     if not (dhw := get_dhw(evo)):
         pytest.skip("No available DHW found")

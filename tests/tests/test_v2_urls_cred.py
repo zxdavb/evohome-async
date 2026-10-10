@@ -125,7 +125,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
         )
 
         with pytest.raises(exc.BadUserCredentialsError) as err:
-            await evohome_v2.update()
+            await evohome_v2.setup()  # raises at its first API call
 
         assert err.value.status == HTTPStatus.BAD_REQUEST
         assert caplog.record_tuples == [LOG_01, LOG_04, LOG_90]
@@ -160,7 +160,7 @@ async def test_bad2(  # bad access token
         )
 
         with pytest.raises(exc.AuthenticationFailedError) as err:
-            await evohome_v2.update()
+            await evohome_v2.setup()  # raises at its first API call
 
         assert err.value.status is None  # Connection refused
         assert caplog.record_tuples == [LOG_28, LOG_20, LOG_01, LOG_02, LOG_99]
@@ -198,7 +198,7 @@ async def test_bad3(  # bad credentials (refresh token)
         )
 
         with pytest.raises(exc.AuthenticationFailedError) as err:
-            await evohome_v2.update()
+            await evohome_v2.setup()  # raises at its first API call
 
         assert err.value.status is None  # Connection refused
         assert caplog.record_tuples == [LOG_01, LOG_02, LOG_03, LOG_04, LOG_99]
@@ -248,7 +248,7 @@ async def test_bad4(  # rate limit exceeded (authentication)
         )
 
         with pytest.raises(exc.AuthRateLimitExceededError) as err:
-            await evohome_v2.update()
+            await evohome_v2.setup()  # raises at its first API call
 
         assert isinstance(err.value, exc.ApiRateLimitExceededError)
         assert isinstance(err.value, exc.AuthenticationFailedError)
@@ -285,7 +285,7 @@ async def test_bad5(  # rate limit exceeded (authorization)
         )
 
         with pytest.raises(exc.ApiRateLimitExceededError) as err:
-            await evohome_v2.update()
+            await evohome_v2.setup()  # raises at its first API call
 
         assert not isinstance(err.value, exc.AuthenticationFailedError)
 
@@ -380,7 +380,7 @@ async def test_good(  # good credentials
         )
 
         with pytest.raises(exc.ApiCallFailedError) as err:
-            await evohome_v2.update()
+            await evohome_v2.setup()  # raises at its first API call
 
         assert err.value.status is None  # Connection refused
         assert caplog.record_tuples == [LOG_29]

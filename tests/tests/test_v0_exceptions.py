@@ -62,7 +62,7 @@ async def test_invalid_config(
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=error)),
         pytest.raises(exc.InvalidConfigError) as err,
     ):
-        await evo.update()
+        await evo.get_status()
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
@@ -79,7 +79,7 @@ async def test_invalid_status(
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=error)),
         pytest.raises(exc.InvalidStatusError) as err,
     ):
-        await evohome_v0.update()  # the entities exist, so this is a status update
+        await evohome_v0.get_status()  # the entities exist, so this is a status update
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error

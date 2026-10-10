@@ -176,7 +176,7 @@ async def test_ctl_set_mode_rejects_unsupported_mode(
             new_callable=AsyncMock,
             return_value=PUT_RESPONSE_V2,
         ) as mock_put,
-        pytest.raises(evo2.InvalidSystemModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await tcs.set_mode(system_mode)
 
@@ -208,7 +208,7 @@ async def test_ctl_set_mode_rejects_until_for_non_temporary_mode(
             new_callable=AsyncMock,
             return_value=PUT_RESPONSE_V2,
         ) as mock_put,
-        pytest.raises(evo2.InvalidSystemModeError),
+        pytest.raises(evo2.InvalidModeRequestError),
     ):
         await tcs.set_mode(non_temporary, until=dt.now(tz=UTC) + td(days=1))
 

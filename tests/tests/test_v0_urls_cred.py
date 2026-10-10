@@ -95,7 +95,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
         )
 
         with pytest.raises(exc.BadUserCredentialsError) as err:
-            await evohome_v0.update()
+            await evohome_v0.get_status()
 
         assert err.value.status == HTTPStatus.UNAUTHORIZED
 
@@ -132,7 +132,7 @@ async def test_bad2(  # bad session id
         )
 
         with pytest.raises(exc.AuthenticationFailedError) as err:
-            await evohome_v0.update()
+            await evohome_v0.get_status()
 
         assert err.value.status is None  # Connection refused
 
@@ -172,7 +172,7 @@ async def test_bad3(  # rate limit exceeded (authentication)
         )
 
         with pytest.raises(exc.AuthRateLimitExceededError) as err:
-            await evohome_v0.update()
+            await evohome_v0.get_status()
 
         assert isinstance(err.value, exc.ApiRateLimitExceededError)
         assert isinstance(err.value, exc.AuthenticationFailedError)
@@ -228,7 +228,7 @@ async def test_good(  # good credentials
         )
 
         with pytest.raises(exc.ApiCallFailedError) as err:
-            await evohome_v0.update()
+            await evohome_v0.get_status()
 
         assert err.value.status is None  # Connection refused
 

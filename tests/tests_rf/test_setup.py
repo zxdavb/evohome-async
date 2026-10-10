@@ -32,7 +32,7 @@ async def test_update_v0(
     with pytest.raises(exc.NotFetchedError):
         assert evohome_v0.user_account
 
-    await evohome_v0.update()
+    await evohome_v0.get_status()
 
     assert evohome_v0.user_account
 
@@ -47,6 +47,6 @@ async def test_update_v2(
     with pytest.raises(exc.NotFetchedError):
         assert evohome_v2.user_account
 
-    await evohome_v2.update(dont_update_status=True)
+    await evohome_v2.setup()
 
     assert evohome_v2.user_account

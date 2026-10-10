@@ -86,7 +86,7 @@ async def test_status_not_fetched(
     evo = EvohomeClient(credentials_manager)
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
-        await evo.update(dont_update_status=True)  # i.e. the config only
+        await evo.setup()  # i.e. the config only
 
     # not the tcs/zone/dhw fixtures: they come from evohome_v2, which has fetched the
     # status (so nothing would raise), whereas this client has fetched only the config
@@ -115,7 +115,7 @@ async def test_invalid_config(
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
         pytest.raises(exc.InvalidConfigError) as err,
     ):
-        await evo.update()
+        await evo.setup()
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
@@ -133,7 +133,7 @@ async def test_invalid_status(
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
         pytest.raises(exc.InvalidStatusError) as err,
     ):
-        await loc.update()
+        await loc.get_status()
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error

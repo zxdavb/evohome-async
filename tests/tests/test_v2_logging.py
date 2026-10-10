@@ -61,7 +61,12 @@ async def test_system_warnings(
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
         evo = EvohomeClientV2(credentials_manager)
 
-        with caplog.at_level(logging.WARNING):
+        with (
+            caplog.at_level(logging.WARNING),
+            pytest.warns(
+                DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+            ),
+        ):
             await evo.update()
 
     assert caplog.record_tuples == snapshot
@@ -97,17 +102,29 @@ async def test_multi_location_warning_once_per_config_load(
     ):
         evo = EvohomeClientV2(credentials_manager)
 
-        await evo.update()  # config will be loaded: warn
+        with pytest.warns(
+            DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+        ):
+            await evo.update()  # config will be loaded: warn
         assert warnings() == [warning]
 
-        await evo.update()  # status update only: don't warn again
+        with pytest.warns(
+            DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+        ):
+            await evo.update()  # status update only: don't warn again
         assert warnings() == []
 
-        await evo.update(_reset_config=True)  # config reloaded: warn again
+        with pytest.warns(
+            DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+        ):
+            await evo.update(_reset_config=True)  # config reloaded: warn again
         assert warnings() == [warning]
 
         # test no warnings are given when status updates are skipped
         evo = EvohomeClientV2(credentials_manager)
 
-        await evo.update(dont_update_status=True)  # no status updates: don't warn
+        with pytest.warns(
+            DeprecationWarning, match=r"use setup\(\), then Location.get_status\(\)"
+        ):
+            await evo.update(dont_update_status=True)  # no status updates: don't warn
         assert warnings() == []

@@ -73,7 +73,7 @@ async def _test_usr_apis(evo: EvohomeClientV0) -> None:
     """
 
     # STEP 1: GET /accountInfo, GET /locations?userId={usr_id}&allData=True
-    await evo.update()
+    await evo.get_status()
 
     assert evo0.main.SCH_GET_ACCOUNT_INFO(evo.user_account)
     assert evo0.main.SCH_GET_ACCOUNT_LOCS(evo._user_locs)
@@ -95,7 +95,7 @@ async def _test_tcs_apis(evo: EvohomeClientV0) -> None:
     Includes loc.set_auto() (which would leave the TCS in Auto mode).
     """
 
-    await evo.update()
+    await evo.get_status()
 
     if not _is_evohome(loc := get_loc(evo)):
         pytest.skip("The location under test is not an evohome system")
@@ -118,7 +118,7 @@ async def _test_dhw_apis(evo: EvohomeClientV0) -> None:
     test is an xfail (see test_v0_urls_auth.py for that contract).
     """
 
-    await evo.update()
+    await evo.get_status()
 
     dhw = get_loc(evo).hotwater
     if dhw is None or not _is_live(dhw):
@@ -148,7 +148,7 @@ async def _test_zon_apis(evo: EvohomeClientV0) -> None:
     Includes zone.set_temperature() (temporary & permanent) and zone.set_zone_auto().
     """
 
-    await evo.update()
+    await evo.get_status()
 
     zone = next((z for z in get_loc(evo).zones if _is_live_and_scheduled(z)), None)
     if zone is None:
