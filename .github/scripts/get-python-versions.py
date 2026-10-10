@@ -5,7 +5,13 @@ requires-python floor (read from pyproject.toml). If the API is unavailable
 the script exits with an error. Also adds HA dev's required Python if it is
 a pre-release not yet listed on endoflife.date.
 
-Writes a JSON array to $GITHUB_OUTPUT as `matrix=["3.x.y", ...]`.
+Each entry is a cycle (e.g. "3.15"), not its latest patch (e.g. "3.15.0"): a new
+patch is listed by endoflife.date before actions/python-versions publishes a build
+for it, so an exact patch can fail setup-python. With `allow-prereleases: true`,
+setup-python resolves a cycle to its newest build, falling back to a pre-release
+when no GA build is available yet.
+
+Writes a JSON array to $GITHUB_OUTPUT as `matrix=["3.x", ...]`.
 """
 
 import json
@@ -34,7 +40,7 @@ with urllib.request.urlopen("https://endoflife.date/api/python.json", timeout=10
     cycles = json.loads(r.read())
 today = dt.now(tz=UTC).date().isoformat()
 versions: list[str] = sorted(
-    c["latest"]
+    c["cycle"]
     for c in cycles
     if c["eol"] > today and tuple(int(x) for x in c["cycle"].split(".")) >= FLOOR
 )
