@@ -120,6 +120,13 @@ async def _setup(
     values: dict[str, Any] = dict(zone["thermostat"]["changeableValues"])
     setpoint: float = values["heatSetpoint"]["value"]
 
+    # the current setpoint is used, so the override is a no-op in practice, but it may be
+    # out of range (e.g. 99.0, after another test's PermanentOverride of 99), and so would
+    # be rejected (ValueOutOfRange): if so, use the minimum setpoint (i.e. less heating)
+    min_setpoint: float = zone["thermostat"]["minHeatSetpoint"]
+    if not min_setpoint <= setpoint <= zone["thermostat"]["maxHeatSetpoint"]:
+        setpoint = min_setpoint
+
     now = dt.now(tz=UTC).replace(minute=0, second=0, microsecond=0)  # on the hour
 
     return zone["deviceID"], setpoint, offset, now
