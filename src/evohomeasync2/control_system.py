@@ -26,10 +26,12 @@ from .const import (
     SZ_SYSTEM_MODE,
     SZ_SYSTEM_MODE_STATUS,
     SZ_TIME_UNTIL,
+    SZ_TIMING_MODE,
     SZ_ZONE_ID,
     SZ_ZONES,
     SystemMode,
     TcsModelType,
+    TimingMode,
 )
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
@@ -40,7 +42,7 @@ from .zone import ActiveFaultsBase, Zone
 if TYPE_CHECKING:
     import logging
     from collections.abc import Mapping
-    from datetime import datetime as dt
+    from datetime import datetime as dt, timedelta as td
     from typing import Any
 
     from _evohome.helpers import Validator
@@ -294,6 +296,73 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             }
 
         return await self._set_mode(tcs_mode)
+
+    async def set_system_mode(
+        self,
+        system_mode: SystemMode | str,
+        /,
+        *,
+        duration: td | None = None,
+        period: td | None = None,
+    ) -> CommTask:
+        """Set the TCS to a mode, either indefinitely, or for a duration/period.
+
+        Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
+
+        A 'duration' (usu. of hours) ends that long from now. A 'period' (usu. of
+        days) ends at that long after the start of the current day (in the location's
+        local time), so a period of one day ends at the coming midnight.
+
+        Which of the two (if either) is allowed depends upon the mode's timing_mode
+        (see allowed_system_modes). Without either, the mode is set indefinitely.
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
+
+        if duration is not None and period is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of duration or period may be given"
+            )
+
+        try:
+            system_mode = SystemMode(system_mode)
+        except ValueError as err:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Unknown system_mode: {system_mode}"
+            ) from err
+
+        mode_entry = next(
+            (d for d in self.allowed_system_modes if d[SZ_SYSTEM_MODE] == system_mode),
+            None,
+        )
+        if mode_entry is None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Unsupported system_mode: {system_mode}"
+            )
+
+        until: dt | None
+
+        if duration is not None:
+            if mode_entry.get(SZ_TIMING_MODE) != TimingMode.DURATION:
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {system_mode}, duration must be None"
+                )
+            until = self.location.now() + duration
+
+        elif period is not None:
+            if mode_entry.get(SZ_TIMING_MODE) != TimingMode.PERIOD:
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {system_mode}, period must be None"
+                )
+            start_of_day = self.location.now().replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+            until = start_of_day + period
+
+        else:
+            until = None
+
+        return await self.set_mode(system_mode, until=until)
 
     # most, but not all, TCC-compatible systems support these modes...
 
