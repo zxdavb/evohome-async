@@ -48,6 +48,7 @@ if TYPE_CHECKING:
 
     from . import EvohomeClient
     from .auth import Auth
+    from .control_system import ControlSystem
     from .typedefs import (
         EvoLocConfigResponseT,
         EvoLocConfigT,
@@ -187,6 +188,26 @@ class Location(EntityBase[EvoLocStatusT]):
     @property
     def name(self) -> str:
         return self._config[SZ_NAME]
+
+    # A significant majority of locations have exactly one TCS, thus for convenience...
+    @property
+    def tcs(self) -> ControlSystem:
+        """If the location has a single TCS, return it, or raise an exception.
+
+        The majority of locations have one gateway, with one TCS.
+        """
+
+        if not (gwys := self.gateways) or len(gwys) != 1:
+            raise exc.NoSingleTcsError(
+                f"Location {self.id}: there is not a single gateway (only)"
+            )
+
+        if not (tcss := gwys[0].systems) or len(tcss) != 1:
+            raise exc.NoSingleTcsError(
+                f"Location {self.id}: there is not a single TCS (only) for its gateway"
+            )
+
+        return tcss[0]
 
     async def _get_config(self) -> EvoLocConfigResponseT:
         """Get the latest config of the location and update its TZ/DST attrs.

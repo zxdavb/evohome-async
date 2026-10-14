@@ -128,3 +128,61 @@ async def test_v1_get_status(
 
     assert len(calls) == 1
     assert calls[0].startswith("locations?userId=")
+
+
+async def test_v2_location_tcs(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test Location.tcs is the TCS of a location with a single gateway/TCS."""
+
+    with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "default")):
+        evo = evo2.EvohomeClient(credentials_manager)
+        await evo.setup()
+
+    loc = get_loc(evo)
+    assert loc.tcs is loc.gateways[0].systems[0]
+
+    with pytest.warns(DeprecationWarning, match=r"use \.locations\[idx\]\.tcs"):
+        assert evo.tcs is loc.tcs
+
+
+@pytest.mark.parametrize(
+    "fixture",
+    [
+        pytest.param("null_system_1", id="no_gateway"),
+        pytest.param("null_system_2", id="no_tcs"),
+    ],
+)
+async def test_v2_location_tcs_no_single(
+    credentials_manager: TokenCacheManager,
+    fixture: str,
+) -> None:
+    """Test Location.tcs raises NoSingleTcsError if the location has no single TCS."""
+
+    with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / fixture)):
+        evo = evo2.EvohomeClient(credentials_manager)
+        await evo.setup()
+
+    with pytest.raises(exc.NoSingleTcsError):
+        _ = get_loc(evo).tcs
+
+
+async def test_v2_client_tcs_many_locations(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test the deprecated EvohomeClient.tcs raises if there is more than one location.
+
+    Even though each location has a single TCS (Location.tcs).
+    """
+
+    with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "system_006")):
+        evo = evo2.EvohomeClient(credentials_manager)
+        await evo.setup()
+
+    assert all(loc.tcs for loc in evo.locations)
+
+    with (
+        pytest.warns(DeprecationWarning, match=r"use \.locations\[idx\]\.tcs"),
+        pytest.raises(exc.NoSingleTcsError),
+    ):
+        _ = evo.tcs
