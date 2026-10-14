@@ -25,7 +25,6 @@ if TYPE_CHECKING:
 
     from _evohome.helpers import Validator
 
-    from .control_system import ControlSystem
     from .typedefs import EvoLocConfigResponseT, EvoUsrAccountResponseT
 
 
@@ -252,20 +251,3 @@ class EvohomeClient:
             raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
 
         return self._location_by_id
-
-    @property
-    @deprecated(
-        "EvohomeClient.tcs is deprecated: use .locations[idx].tcs (i.e. Location.tcs)"
-    )
-    def tcs(self) -> ControlSystem:
-        """If there is a single location with a single TCS, return it, or raise.
-
-        Kept for compatibility: use `Location.tcs`.
-        """
-
-        if not (locs := self.locations) or len(locs) != 1:
-            raise exc.NoSingleTcsError(
-                "There is not a single location (only) for this account"
-            )
-
-        return locs[0].tcs

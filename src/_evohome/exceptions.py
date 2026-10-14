@@ -192,7 +192,7 @@ class StaleConfigError(ClientStateError):
 
 
 class NoSingleTcsError(ClientStateError):
-    """There is no default TCS (e.g. the user has more than one location)."""
+    """There is no single TCS (e.g. the location has more than one gateway/TCS)."""
 
 
 # Backward-compatibility aliases (deprecated names, e.g. as used by the HA integration):

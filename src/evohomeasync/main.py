@@ -263,18 +263,3 @@ class EvohomeClient:
             raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
 
         return self._location_by_id
-
-    # A significant majority of users will have exactly one TCS, thus for convenience...
-    @property
-    def tcs(self) -> Location:
-        """If there is a single location/TCS, return it, or raise an exception.
-
-        The majority of users will have only one location/TCS.
-        """
-
-        if not (locs := self.locations) or len(locs) != 1:
-            raise exc.NoSingleTcsError(
-                "There is not a single location (only) for this account"
-            )
-
-        return locs[0]
