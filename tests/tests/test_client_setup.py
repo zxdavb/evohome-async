@@ -133,14 +133,18 @@ async def test_v1_get_status(
 async def test_v2_location_tcs(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test Location.tcs is the TCS of a location with a single gateway/TCS."""
+    """Test Location.tcs is the TCS of a location (each has 0-1 TCSs)."""
 
-    with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "default")):
+    with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "system_004")):
         evo = evo2.EvohomeClient(credentials_manager)
         await evo.setup()
 
-    loc = get_loc(evo)
-    assert loc.tcs is loc.gateways[0].systems[0]
+    *locs, loc_sans_gwy = evo.locations  # the last location has no gateway
+
+    for loc in locs:
+        assert loc.tcs is loc.gateways[0].systems[0]
+
+    assert loc_sans_gwy.tcs is None
 
 
 @pytest.mark.parametrize(
@@ -150,15 +154,33 @@ async def test_v2_location_tcs(
         pytest.param("null_system_2", id="no_tcs"),
     ],
 )
-async def test_v2_location_tcs_no_single(
+async def test_v2_location_tcs_none(
     credentials_manager: TokenCacheManager,
     fixture: str,
 ) -> None:
-    """Test Location.tcs raises NoSingleTcsError if the location has no single TCS."""
+    """Test Location.tcs is None if the location has no TCS."""
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / fixture)):
         evo = evo2.EvohomeClient(credentials_manager)
         await evo.setup()
 
+    assert get_loc(evo).tcs is None
+
+
+async def test_v2_location_tcs_many(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test Location.tcs raises NoSingleTcsError if a location has >1 TCS.
+
+    No such location has been seen, although the schema allows it.
+    """
+
+    with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "default")):
+        evo = evo2.EvohomeClient(credentials_manager)
+        await evo.setup()
+
+    loc = get_loc(evo)
+    loc.gateways.append(loc.gateways[0])  # i.e. a second gateway, with its own TCS
+
     with pytest.raises(exc.NoSingleTcsError):
-        _ = get_loc(evo).tcs
+        _ = loc.tcs

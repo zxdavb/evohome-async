@@ -61,7 +61,5 @@ def serializable_attrs(obj: object) -> dict[str, str]:
                 continue
             except exc.NotFetchedError:  # e.g. schedule, if get_schedule() raised
                 continue
-            except exc.NoSingleTcsError:  # e.g. tcs, if a location has no single TCS
-                continue
 
     return result
