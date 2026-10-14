@@ -165,22 +165,3 @@ async def test_v2_location_tcs_none(
         await evo.setup()
 
     assert get_loc(evo).tcs is None
-
-
-async def test_v2_location_tcs_many(
-    credentials_manager: TokenCacheManager,
-) -> None:
-    """Test Location.tcs raises NoSingleTcsError if a location has >1 TCS.
-
-    No such location has been seen, although the schema allows it.
-    """
-
-    with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "default")):
-        evo = evo2.EvohomeClient(credentials_manager)
-        await evo.setup()
-
-    loc = get_loc(evo)
-    loc.gateways.append(loc.gateways[0])  # i.e. a second gateway, with its own TCS
-
-    with pytest.raises(exc.NoSingleTcsError):
-        _ = loc.tcs

@@ -193,18 +193,9 @@ class Location(EntityBase[EvoLocStatusT]):
     def tcs(self) -> ControlSystem | None:
         """Return the location's TCS, or None if it has none.
 
-        A location has 0-1 gateways, each with 0-1 TCSs (although the schema allows
-        0-many of each), so raise NoSingleTcsError if it has more than one TCS.
+        A location has 0-1 gateways, each with 0-1 TCSs.
         """
-
-        tcss = [tcs for gwy in self.gateways for tcs in gwy.systems]
-
-        if len(tcss) > 1:
-            raise exc.NoSingleTcsError(
-                f"Location {self.id}: there is more than one TCS ({len(tcss)})"
-            )
-
-        return tcss[0] if tcss else None
+        return next((tcs for gwy in self.gateways for tcs in gwy.systems), None)
 
     async def _get_config(self) -> EvoLocConfigResponseT:
         """Get the latest config of the location and update its TZ/DST attrs.
