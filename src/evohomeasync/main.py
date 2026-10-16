@@ -187,6 +187,14 @@ class EvohomeClient:
 
         if self._user_info is None:  # will handle session_id rejection
             url = "accountInfo"
+
+            # if valid, auth.get() sends this id (without yielding), else it fetches another
+            session_id = (
+                self._session_manager.session_id
+                if self._session_manager.is_session_valid()
+                else None
+            )
+
             try:
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
 
@@ -204,7 +212,9 @@ class EvohomeClient:
                     f"The session_id has been rejected (will re-authenticate): {err}"
                 )
 
-                self._session_manager.clear_session_id()
+                # another task may have since refreshed it, so don't clear the new one
+                if session_id is None or self._session_manager.session_id == session_id:
+                    self._session_manager.clear_session_id()
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
 
             assert self._user_info is not None  # mypy
