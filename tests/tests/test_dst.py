@@ -100,7 +100,11 @@ def _utc(day: int, month: int, hour: int, minute: int) -> dt:
     ],
 )
 def test_switchpoints_across_dst(
-    now: dt, this_start: dt, this_val: float, next_start: dt, next_val: float
+    now: dt,
+    this_start: dt,
+    this_val: float,
+    next_start: dt,
+    next_val: float,
 ) -> None:
     """Test this/next switchpoints when a switchpoint is skipped/repeated by DST."""
 
@@ -202,7 +206,8 @@ def test_switchpoints_coalesced_in_gap() -> None:
     "fixture_folder", [Path(FIXTURES) / "default"], ids=["default"]
 )
 async def test_switchpoints_across_dst_sequential(
-    zone: Zone, freezer: FrozenDateTimeFactory
+    zone: Zone,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test the public properties through both passes of a repeated hour.
 
