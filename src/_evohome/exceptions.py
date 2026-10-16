@@ -24,8 +24,7 @@ They are grouped by what the caller can do about them:
   │
   └── ClientStateError                    # the client lacks the data: fetch it first
       ├── NotFetchedError                 # - config, status or schedule data absent
-      ├── StaleConfigError
-      └── NoSingleTcsError
+      └── StaleConfigError
 """
 
 from __future__ import annotations
@@ -189,10 +188,6 @@ class StaleConfigError(ClientStateError):
     status, or a location is no longer accessible. This is likely because the
     installation has been changed since the config was fetched.
     """
-
-
-class NoSingleTcsError(ClientStateError):
-    """There is no default TCS (e.g. the user has more than one location)."""
 
 
 # Backward-compatibility aliases (deprecated names, e.g. as used by the HA integration):

@@ -1,186 +1,5 @@
 # serializer version: 1
-# name: test_system_snapshot[default][gateway]
-  dict({
-    'config': '''
-      device_type: 128
-      gateway_id: 2499896
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
-  
-    ''',
-    'id': '''
-      '2499896'
-  
-    ''',
-    'mac_address': '''
-      00D02DEE4E22
-      ...
-  
-    ''',
-    'status': '''
-      device_type: 128
-      gateway_id: 2499896
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[default][hot_water]
-  dict({
-    'config': '''
-      alert_settings:
-        communication_failure_active: true
-        communication_failure_minutes: 15
-        communication_lost_active: false
-        communication_lost_hours: 0
-        device_id: 3933910
-        device_lost_active: false
-        device_lost_hours: 0
-        fault_condition_exists_active: false
-        fault_condition_exists_hours: 0
-        normal_conditions_active: true
-        temp_higher_than: 30.0
-        temp_higher_than_active: true
-        temp_higher_than_minutes: 0
-        temp_lower_than: 5.0
-        temp_lower_than_active: true
-        temp_lower_than_minutes: 0
-      device_id: 3933910
-      device_type: 128
-      domain_id: 20054
-      gateway_id: 2499896
-      hold_until_capable: false
-      instance: 250
-      is_alive: true
-      is_upgrading: false
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
-      name: ''
-      schedule_capable: false
-      thermostat:
-        allowed_modes:
-        - DHWOn
-        - DHWOff
-        changeable_values:
-          mode: DHWOff
-          status: Scheduled
-        deadband: 0.0
-        indoor_humidity: 128.0
-        indoor_humidity_status: NotAvailable
-        indoor_temperature: 38.91
-        indoor_temperature_status: Measured
-        is_commercial: false
-        max_cool_setpoint: 90.0
-        max_heat_setpoint: 30.0
-        min_cool_setpoint: 50.0
-        min_heat_setpoint: 5.0
-        outdoor_humidity: 128.0
-        outdoor_humidity_status: NotAvailable
-        outdoor_temperature: 128.0
-        outdoor_temperature_available: false
-        outdoor_temperature_status: NotAvailable
-        outdoot_humidity_available: false
-        schedule_capable: false
-        schedule_cool_sp: 0.0
-        schedule_heat_sp: 0.0
-        units: Celsius
-        vacation_hold_cancelable: false
-        vacation_hold_changeable: false
-      thermostat_model_type: DOMESTIC_HOT_WATER
-      thermostat_version: 02.00.19.33
-  
-    ''',
-    'id': '''
-      '3933910'
-  
-    ''',
-    'idx': '''
-      HW
-      ...
-  
-    ''',
-    'name': '''
-      Domestic Hot Water
-      ...
-  
-    ''',
-    'status': '''
-      alert_settings:
-        communication_failure_active: true
-        communication_failure_minutes: 15
-        communication_lost_active: false
-        communication_lost_hours: 0
-        device_id: 3933910
-        device_lost_active: false
-        device_lost_hours: 0
-        fault_condition_exists_active: false
-        fault_condition_exists_hours: 0
-        normal_conditions_active: true
-        temp_higher_than: 30.0
-        temp_higher_than_active: true
-        temp_higher_than_minutes: 0
-        temp_lower_than: 5.0
-        temp_lower_than_active: true
-        temp_lower_than_minutes: 0
-      device_id: 3933910
-      device_type: 128
-      domain_id: 20054
-      gateway_id: 2499896
-      hold_until_capable: false
-      instance: 250
-      is_alive: true
-      is_upgrading: false
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
-      name: ''
-      schedule_capable: false
-      thermostat:
-        allowed_modes:
-        - DHWOn
-        - DHWOff
-        changeable_values:
-          mode: DHWOff
-          status: Scheduled
-        deadband: 0.0
-        indoor_humidity: 128.0
-        indoor_humidity_status: NotAvailable
-        indoor_temperature: 38.91
-        indoor_temperature_status: Measured
-        is_commercial: false
-        max_cool_setpoint: 90.0
-        max_heat_setpoint: 30.0
-        min_cool_setpoint: 50.0
-        min_heat_setpoint: 5.0
-        outdoor_humidity: 128.0
-        outdoor_humidity_status: NotAvailable
-        outdoor_temperature: 128.0
-        outdoor_temperature_available: false
-        outdoor_temperature_status: NotAvailable
-        outdoot_humidity_available: false
-        schedule_capable: false
-        schedule_cool_sp: 0.0
-        schedule_heat_sp: 0.0
-        units: Celsius
-        vacation_hold_cancelable: false
-        vacation_hold_changeable: false
-      thermostat_model_type: DOMESTIC_HOT_WATER
-      thermostat_version: 02.00.19.33
-  
-    ''',
-    'temperature': '''
-      38.91
-      ...
-  
-    ''',
-    'temperature_status': '''
-      is_available: true
-      temperature: 38.91
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[default][location]
+# name: test_system_snapshot[default][loc_2738909]
   dict({
     'config': '''
       can_search_for_contractors: true
@@ -865,15 +684,6 @@
     'name': '''
       My Home
       ...
-  
-    ''',
-    'one_touch_actions_suspended': '''
-      false
-      ...
-  
-    ''',
-    'one_touch_buttons': '''
-      !!python/tuple []
   
     ''',
     'status': '''
@@ -1566,7 +1376,221 @@
     ''',
   })
 # ---
-# name: test_system_snapshot[default][zones]
+# name: test_system_snapshot[default][loc_2738909_dhw]
+  dict({
+    'config': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+    'id': '''
+      '3933910'
+  
+    ''',
+    'idx': '''
+      HW
+      ...
+  
+    ''',
+    'name': '''
+      Domestic Hot Water
+      ...
+  
+    ''',
+    'status': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+    'temperature': '''
+      38.91
+      ...
+  
+    ''',
+    'temperature_status': '''
+      is_available: true
+      temperature: 38.91
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[default][loc_2738909_gwy]
+  dict({
+    'config': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+  
+    ''',
+    'id': '''
+      '2499896'
+  
+    ''',
+    'mac_address': '''
+      00D02DEE4E22
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[default][loc_2738909_tcs]
+  dict({
+    'config': '''
+      location_id: 2738909
+  
+    ''',
+    'id': '''
+      '2738909'
+  
+    ''',
+    'one_touch_actions_suspended': '''
+      false
+      ...
+  
+    ''',
+    'one_touch_buttons': '''
+      !!python/tuple []
+  
+    ''',
+    'status': '''
+      location_id: 2738909
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[default][loc_2738909_zon]
   '''
   '3432521':
       allowed_modes: '!!python/tuple
@@ -2302,34 +2326,7 @@
   
   '''
 # ---
-# name: test_system_snapshot[hass_139906][gateway]
-  dict({
-    'config': '''
-      device_type: 96
-      gateway_id: 2513794
-      location_id: 2727366
-      mac_id: 00D02DCBDB60
-  
-    ''',
-    'id': '''
-      '2513794'
-  
-    ''',
-    'mac_address': '''
-      00D02DCBDB60
-      ...
-  
-    ''',
-    'status': '''
-      device_type: 96
-      gateway_id: 2513794
-      location_id: 2727366
-      mac_id: 00D02DCBDB61
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[hass_139906][location]
+# name: test_system_snapshot[hass_139906][loc_2727366]
   dict({
     'config': '''
       can_search_for_contractors: true
@@ -2500,11 +2497,6 @@
       ...
   
     ''',
-    'hotwater': '''
-      null
-      ...
-  
-    ''',
     'id': '''
       '2727366'
   
@@ -2512,15 +2504,6 @@
     'name': '''
       My Home
       ...
-  
-    ''',
-    'one_touch_actions_suspended': '''
-      false
-      ...
-  
-    ''',
-    'one_touch_buttons': '''
-      !!python/tuple []
   
     ''',
     'status': '''
@@ -2706,7 +2689,72 @@
     ''',
   })
 # ---
-# name: test_system_snapshot[hass_139906][zones]
+# name: test_system_snapshot[hass_139906][loc_2727366_gwy]
+  dict({
+    'config': '''
+      device_type: 96
+      gateway_id: 2513794
+      location_id: 2727366
+      mac_id: 00D02DCBDB60
+  
+    ''',
+    'id': '''
+      '2513794'
+  
+    ''',
+    'mac_address': '''
+      00D02DCBDB60
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 96
+      gateway_id: 2513794
+      location_id: 2727366
+      mac_id: 00D02DCBDB60
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_139906][loc_2727366_tcs]
+  dict({
+    'config': '''
+      location_id: 2727366
+  
+    ''',
+    'hotwater': '''
+      null
+      ...
+  
+    ''',
+    'id': '''
+      '2727366'
+  
+    ''',
+    'one_touch_actions_suspended': '''
+      false
+      ...
+  
+    ''',
+    'one_touch_buttons': '''
+      !!python/tuple []
+  
+    ''',
+    'status': '''
+      location_id: 2727366
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/Berlin
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_139906][loc_2727366_zon]
   '''
   '3454854':
       allowed_modes: '!!python/tuple
@@ -2873,34 +2921,7 @@
   
   '''
 # ---
-# name: test_system_snapshot[hass_139945][gateway]
-  dict({
-    'config': '''
-      device_type: 96
-      gateway_id: 2080025
-      location_id: 2080024
-      mac_id: 00D02DCBDB60
-  
-    ''',
-    'id': '''
-      '2080025'
-  
-    ''',
-    'mac_address': '''
-      00D02DCBDB60
-      ...
-  
-    ''',
-    'status': '''
-      device_type: 96
-      gateway_id: 2080025
-      location_id: 2080024
-      mac_id: 00D02DCBDB60
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[hass_139945][location]
+# name: test_system_snapshot[hass_139945][loc_2080024]
   dict({
     'config': '''
       can_search_for_contractors: true
@@ -3008,11 +3029,6 @@
       ...
   
     ''',
-    'hotwater': '''
-      null
-      ...
-  
-    ''',
     'id': '''
       '2080024'
   
@@ -3020,15 +3036,6 @@
     'name': '''
       My Home
       ...
-  
-    ''',
-    'one_touch_actions_suspended': '''
-      false
-      ...
-  
-    ''',
-    'one_touch_buttons': '''
-      !!python/tuple []
   
     ''',
     'status': '''
@@ -3151,7 +3158,72 @@
     ''',
   })
 # ---
-# name: test_system_snapshot[hass_139945][zones]
+# name: test_system_snapshot[hass_139945][loc_2080024_gwy]
+  dict({
+    'config': '''
+      device_type: 96
+      gateway_id: 2080025
+      location_id: 2080024
+      mac_id: 00D02DCBDB60
+  
+    ''',
+    'id': '''
+      '2080025'
+  
+    ''',
+    'mac_address': '''
+      00D02DCBDB60
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 96
+      gateway_id: 2080025
+      location_id: 2080024
+      mac_id: 00D02DCBDB60
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_139945][loc_2080024_tcs]
+  dict({
+    'config': '''
+      location_id: 2080024
+  
+    ''',
+    'hotwater': '''
+      null
+      ...
+  
+    ''',
+    'id': '''
+      '2080024'
+  
+    ''',
+    'one_touch_actions_suspended': '''
+      false
+      ...
+  
+    ''',
+    'one_touch_buttons': '''
+      !!python/tuple []
+  
+    ''',
+    'status': '''
+      location_id: 2080024
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/Berlin
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_139945][loc_2080024_zon]
   '''
   '1383194':
       allowed_modes: '!!python/tuple
@@ -3237,33 +3309,7 @@
   
   '''
 # ---
-# name: test_system_snapshot[hass_141882][gateway]
-  dict({
-    'config': '''
-      device_type: 48
-      gateway_id: 7242198
-      location_id: 7680795
-      mac_id: '************'
-  
-    ''',
-    'id': '''
-      '7242198'
-  
-    ''',
-    'mac_address': '''
-      '************'
-  
-    ''',
-    'status': '''
-      device_type: 48
-      gateway_id: 7242198
-      location_id: 7680795
-      mac_id: '************'
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[hass_141882][location]
+# name: test_system_snapshot[hass_141882][loc_7680795]
   dict({
     'config': '''
       can_search_for_contractors: true
@@ -3565,11 +3611,6 @@
       ...
   
     ''',
-    'hotwater': '''
-      null
-      ...
-  
-    ''',
     'id': '''
       '7680795'
   
@@ -3577,15 +3618,6 @@
     'name': '''
       My Home
       ...
-  
-    ''',
-    'one_touch_actions_suspended': '''
-      false
-      ...
-  
-    ''',
-    'one_touch_buttons': '''
-      !!python/tuple []
   
     ''',
     'status': '''
@@ -3902,7 +3934,71 @@
     ''',
   })
 # ---
-# name: test_system_snapshot[hass_141882][zones]
+# name: test_system_snapshot[hass_141882][loc_7680795_gwy]
+  dict({
+    'config': '''
+      device_type: 48
+      gateway_id: 7242198
+      location_id: 7680795
+      mac_id: '************'
+  
+    ''',
+    'id': '''
+      '7242198'
+  
+    ''',
+    'mac_address': '''
+      '************'
+  
+    ''',
+    'status': '''
+      device_type: 48
+      gateway_id: 7242198
+      location_id: 7680795
+      mac_id: '************'
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_141882][loc_7680795_tcs]
+  dict({
+    'config': '''
+      location_id: 7680795
+  
+    ''',
+    'hotwater': '''
+      null
+      ...
+  
+    ''',
+    'id': '''
+      '7680795'
+  
+    ''',
+    'one_touch_actions_suspended': '''
+      false
+      ...
+  
+    ''',
+    'one_touch_buttons': '''
+      !!python/tuple []
+  
+    ''',
+    'status': '''
+      location_id: 7680795
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Australia/Sydney
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_141882][loc_7680795_zon]
   '''
   '9727448':
       allowed_modes: '!!python/tuple
@@ -4108,33 +4204,7 @@
   
   '''
 # ---
-# name: test_system_snapshot[hass_178510][gateway]
-  dict({
-    'config': '''
-      device_type: 96
-      gateway_id: 4444444
-      location_id: 1111111
-      mac_id: '************'
-  
-    ''',
-    'id': '''
-      '4444444'
-  
-    ''',
-    'mac_address': '''
-      '************'
-  
-    ''',
-    'status': '''
-      device_type: 96
-      gateway_id: 4444444
-      location_id: 1111111
-      mac_id: '************'
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[hass_178510][location]
+# name: test_system_snapshot[hass_178510][loc_1111111]
   dict({
     'config': '''
       can_search_for_contractors: true
@@ -4495,11 +4565,6 @@
       ...
   
     ''',
-    'hotwater': '''
-      null
-      ...
-  
-    ''',
     'id': '''
       '1111111'
   
@@ -4507,15 +4572,6 @@
     'name': '''
       My Home
       ...
-  
-    ''',
-    'one_touch_actions_suspended': '''
-      false
-      ...
-  
-    ''',
-    'one_touch_buttons': '''
-      !!python/tuple []
   
     ''',
     'status': '''
@@ -4888,7 +4944,71 @@
     ''',
   })
 # ---
-# name: test_system_snapshot[hass_178510][zones]
+# name: test_system_snapshot[hass_178510][loc_1111111_gwy]
+  dict({
+    'config': '''
+      device_type: 96
+      gateway_id: 4444444
+      location_id: 1111111
+      mac_id: '************'
+  
+    ''',
+    'id': '''
+      '4444444'
+  
+    ''',
+    'mac_address': '''
+      '************'
+  
+    ''',
+    'status': '''
+      device_type: 96
+      gateway_id: 4444444
+      location_id: 1111111
+      mac_id: '************'
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_178510][loc_1111111_tcs]
+  dict({
+    'config': '''
+      location_id: 1111111
+  
+    ''',
+    'hotwater': '''
+      null
+      ...
+  
+    ''',
+    'id': '''
+      '1111111'
+  
+    ''',
+    'one_touch_actions_suspended': '''
+      false
+      ...
+  
+    ''',
+    'one_touch_buttons': '''
+      !!python/tuple []
+  
+    ''',
+    'status': '''
+      location_id: 1111111
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/Berlin
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_178510][loc_1111111_zon]
   '''
   '3000001':
       allowed_modes: '!!python/tuple
@@ -5376,188 +5496,7 @@
   
   '''
 # ---
-# name: test_system_snapshot[minimal][gateway]
-  dict({
-    'config': '''
-      device_type: 128
-      gateway_id: 2499896
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
-  
-    ''',
-    'id': '''
-      '2499896'
-  
-    ''',
-    'mac_address': '''
-      00D02DEE4E22
-      ...
-  
-    ''',
-    'status': '''
-      device_type: 128
-      gateway_id: 2499896
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[minimal][hot_water]
-  dict({
-    'config': '''
-      alert_settings:
-        communication_failure_active: true
-        communication_failure_minutes: 15
-        communication_lost_active: false
-        communication_lost_hours: 0
-        device_id: 3933910
-        device_lost_active: false
-        device_lost_hours: 0
-        fault_condition_exists_active: false
-        fault_condition_exists_hours: 0
-        normal_conditions_active: true
-        temp_higher_than: 30.0
-        temp_higher_than_active: true
-        temp_higher_than_minutes: 0
-        temp_lower_than: 5.0
-        temp_lower_than_active: true
-        temp_lower_than_minutes: 0
-      device_id: 3933910
-      device_type: 128
-      domain_id: 20054
-      gateway_id: 2499896
-      hold_until_capable: false
-      instance: 250
-      is_alive: true
-      is_upgrading: false
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
-      name: ''
-      schedule_capable: false
-      thermostat:
-        allowed_modes:
-        - DHWOn
-        - DHWOff
-        changeable_values:
-          mode: DHWOff
-          status: Scheduled
-        deadband: 0.0
-        indoor_humidity: 128.0
-        indoor_humidity_status: NotAvailable
-        indoor_temperature: 38.91
-        indoor_temperature_status: Measured
-        is_commercial: false
-        max_cool_setpoint: 90.0
-        max_heat_setpoint: 30.0
-        min_cool_setpoint: 50.0
-        min_heat_setpoint: 5.0
-        outdoor_humidity: 128.0
-        outdoor_humidity_status: NotAvailable
-        outdoor_temperature: 128.0
-        outdoor_temperature_available: false
-        outdoor_temperature_status: NotAvailable
-        outdoot_humidity_available: false
-        schedule_capable: false
-        schedule_cool_sp: 0.0
-        schedule_heat_sp: 0.0
-        units: Celsius
-        vacation_hold_cancelable: false
-        vacation_hold_changeable: false
-      thermostat_model_type: DOMESTIC_HOT_WATER
-      thermostat_version: 02.00.19.33
-  
-    ''',
-    'id': '''
-      '3933910'
-  
-    ''',
-    'idx': '''
-      HW
-      ...
-  
-    ''',
-    'name': '''
-      Domestic Hot Water
-      ...
-  
-    ''',
-    'status': '''
-      alert_settings:
-        communication_failure_active: true
-        communication_failure_minutes: 15
-        communication_lost_active: false
-        communication_lost_hours: 0
-        device_id: 3933910
-        device_lost_active: false
-        device_lost_hours: 0
-        fault_condition_exists_active: false
-        fault_condition_exists_hours: 0
-        normal_conditions_active: true
-        temp_higher_than: 30.0
-        temp_higher_than_active: true
-        temp_higher_than_minutes: 0
-        temp_lower_than: 5.0
-        temp_lower_than_active: true
-        temp_lower_than_minutes: 0
-      device_id: 3933910
-      device_type: 128
-      domain_id: 20054
-      gateway_id: 2499896
-      hold_until_capable: false
-      instance: 250
-      is_alive: true
-      is_upgrading: false
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
-      name: ''
-      schedule_capable: false
-      thermostat:
-        allowed_modes:
-        - DHWOn
-        - DHWOff
-        changeable_values:
-          mode: DHWOff
-          status: Scheduled
-        deadband: 0.0
-        indoor_humidity: 128.0
-        indoor_humidity_status: NotAvailable
-        indoor_temperature: 38.91
-        indoor_temperature_status: Measured
-        is_commercial: false
-        max_cool_setpoint: 90.0
-        max_heat_setpoint: 30.0
-        min_cool_setpoint: 50.0
-        min_heat_setpoint: 5.0
-        outdoor_humidity: 128.0
-        outdoor_humidity_status: NotAvailable
-        outdoor_temperature: 128.0
-        outdoor_temperature_available: false
-        outdoor_temperature_status: NotAvailable
-        outdoot_humidity_available: false
-        schedule_capable: false
-        schedule_cool_sp: 0.0
-        schedule_heat_sp: 0.0
-        units: Celsius
-        vacation_hold_cancelable: false
-        vacation_hold_changeable: false
-      thermostat_model_type: DOMESTIC_HOT_WATER
-      thermostat_version: 02.00.19.33
-  
-    ''',
-    'temperature': '''
-      38.91
-      ...
-  
-    ''',
-    'temperature_status': '''
-      is_available: true
-      temperature: 38.91
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[minimal][location]
+# name: test_system_snapshot[minimal][loc_2738909]
   dict({
     'config': '''
       can_search_for_contractors: true
@@ -5738,15 +5677,6 @@
     'name': '''
       My Home
       ...
-  
-    ''',
-    'one_touch_actions_suspended': '''
-      false
-      ...
-  
-    ''',
-    'one_touch_buttons': '''
-      !!python/tuple []
   
     ''',
     'status': '''
@@ -5935,7 +5865,221 @@
     ''',
   })
 # ---
-# name: test_system_snapshot[minimal][zones]
+# name: test_system_snapshot[minimal][loc_2738909_dhw]
+  dict({
+    'config': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+    'id': '''
+      '3933910'
+  
+    ''',
+    'idx': '''
+      HW
+      ...
+  
+    ''',
+    'name': '''
+      Domestic Hot Water
+      ...
+  
+    ''',
+    'status': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 3933910
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 3933910
+      device_type: 128
+      domain_id: 20054
+      gateway_id: 2499896
+      hold_until_capable: false
+      instance: 250
+      is_alive: true
+      is_upgrading: false
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOff
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 38.91
+        indoor_temperature_status: Measured
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 02.00.19.33
+  
+    ''',
+    'temperature': '''
+      38.91
+      ...
+  
+    ''',
+    'temperature_status': '''
+      is_available: true
+      temperature: 38.91
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[minimal][loc_2738909_gwy]
+  dict({
+    'config': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+  
+    ''',
+    'id': '''
+      '2499896'
+  
+    ''',
+    'mac_address': '''
+      00D02DEE4E22
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[minimal][loc_2738909_tcs]
+  dict({
+    'config': '''
+      location_id: 2738909
+  
+    ''',
+    'id': '''
+      '2738909'
+  
+    ''',
+    'one_touch_actions_suspended': '''
+      false
+      ...
+  
+    ''',
+    'one_touch_buttons': '''
+      !!python/tuple []
+  
+    ''',
+    'status': '''
+      location_id: 2738909
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[minimal][loc_2738909_zon]
   '''
   '3432577':
       allowed_modes: '!!python/tuple
@@ -6016,6 +6160,1186 @@
       temperature_status: 'is_available: true
   
           temperature: 19.78
+  
+          '
+  
+  '''
+# ---
+# name: test_system_snapshot[system_009][loc_2738909]
+  dict({
+    'config': '''
+      can_search_for_contractors: true
+      city: London
+      contractor:
+        info:
+          contractor_id: 1839
+        monitoring:
+          contact_preferences: []
+          level_of_access: Partial
+      country: GB
+      daylight_saving_time_enabled: true
+      devices:
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432521
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432521
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 0
+        is_alive: false
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E56
+        name: Living room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Hold
+              value: 14.5
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 17.88
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.01.01.01
+      has_station: true
+      is_location_owner: false
+      location_id: 2738909
+      location_owner_id: 2263181
+      location_owner_name: John Smith
+      location_owner_user_name: user@example.com
+      name: My Home
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: 1 Main Street
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        id: GMT Standard Time
+        offset_minutes: 0
+        using_daylight_saving_time: true
+      type: Residential
+      weather:
+        condition: MostlySunny
+        humidity: 65
+        phrase: Mostly sunny
+        temperature: 13.9
+        units: Celsius
+      zipcode: AB1 2CD
+  
+    ''',
+    'country': '''
+      GB
+      ...
+  
+    ''',
+    'dst_enabled': '''
+      true
+      ...
+  
+    ''',
+    'id': '''
+      '2738909'
+  
+    ''',
+    'name': '''
+      My Home
+      ...
+  
+    ''',
+    'status': '''
+      can_search_for_contractors: true
+      city: London
+      contractor:
+        info:
+          contractor_id: 1839
+        monitoring:
+          contact_preferences: []
+          level_of_access: Partial
+      country: GB
+      daylight_saving_time_enabled: true
+      devices:
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3432521
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3432521
+        device_type: 128
+        domain_id: 20054
+        gateway_id: 2499896
+        hold_until_capable: false
+        instance: 0
+        is_alive: false
+        is_upgrading: false
+        location_id: 2738909
+        mac_id: 00D02DEE4E56
+        name: Living room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Hold
+              value: 14.5
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 17.88
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 02.01.01.01
+      has_station: true
+      is_location_owner: false
+      location_id: 2738909
+      location_owner_id: 2263181
+      location_owner_name: John Smith
+      location_owner_user_name: user@example.com
+      name: My Home
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: 1 Main Street
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        id: GMT Standard Time
+        offset_minutes: 0
+        using_daylight_saving_time: true
+      type: Residential
+      weather:
+        condition: MostlySunny
+        humidity: 65
+        phrase: Mostly sunny
+        temperature: 13.9
+        units: Celsius
+      zipcode: AB1 2CD
+  
+    ''',
+    'time_zone_info': '''
+      current_offset_minutes: 60
+      display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+      id: GMT Standard Time
+      offset_minutes: 0
+      using_daylight_saving_time: true
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+    'weather': '''
+      condition: MostlySunny
+      humidity: 65
+      phrase: Mostly sunny
+      temperature: 13.9
+      units: Celsius
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_009][loc_2738909_gwy]
+  dict({
+    'config': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E56
+  
+    ''',
+    'id': '''
+      '2499896'
+  
+    ''',
+    'mac_address': '''
+      00D02DEE4E56
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E56
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_009][loc_2738909_tcs]
+  dict({
+    'config': '''
+      location_id: 2738909
+  
+    ''',
+    'hotwater': '''
+      null
+      ...
+  
+    ''',
+    'id': '''
+      '2738909'
+  
+    ''',
+    'one_touch_actions_suspended': '''
+      false
+      ...
+  
+    ''',
+    'one_touch_buttons': '''
+      !!python/tuple []
+  
+    ''',
+    'status': '''
+      location_id: 2738909
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_009][loc_2738909_zon]
+  '''
+  '3432521':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432521\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432521\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 0\nis_alive: false\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E56\n\
+          name: Living room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Hold\n      value: 14.5\n    mode: 'Off'\n    vacation_hold_days: 0\n  deadband:\
+          \ 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 17.88\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.01.01.01\n"
+      id: '''3432521''
+  
+          '
+      idx: '''00''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      name: 'Living room
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3432521\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3432521\ndevice_type: 128\n\
+          domain_id: 20054\ngateway_id: 2499896\nhold_until_capable: false\ninstance:\
+          \ 0\nis_alive: false\nis_upgrading: false\nlocation_id: 2738909\nmac_id: 00D02DEE4E56\n\
+          name: Living room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Hold\n      value: 14.5\n    mode: 'Off'\n    vacation_hold_days: 0\n  deadband:\
+          \ 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 17.88\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 02.01.01.01\n"
+      temperature: '17.88
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 17.88
+  
+          '
+  
+  '''
+# ---
+# name: test_system_snapshot[system_009][loc_3164610]
+  dict({
+    'config': '''
+      can_search_for_contractors: false
+      city: London
+      country: NL
+      daylight_saving_time_enabled: true
+      devices: []
+      has_station: true
+      is_location_owner: false
+      location_id: 3164610
+      location_owner_id: 2624305
+      location_owner_name: John Smith
+      location_owner_user_name: user@example.com
+      name: Living room
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: 1 Main Street
+      time_zone:
+        current_offset_minutes: 120
+        display_name: (UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
+        id: W. Europe Standard Time
+        offset_minutes: 60
+        using_daylight_saving_time: true
+      type: Residential
+      weather:
+        condition: Showers
+        humidity: 96
+        phrase: Light rain
+        temperature: 15.1
+        units: Celsius
+      zipcode: AB1 2CD
+  
+    ''',
+    'country': '''
+      NL
+      ...
+  
+    ''',
+    'dst_enabled': '''
+      true
+      ...
+  
+    ''',
+    'gateway_by_id': '''
+      {}
+  
+    ''',
+    'gateways': '''
+      []
+  
+    ''',
+    'id': '''
+      '3164610'
+  
+    ''',
+    'name': '''
+      Living room
+      ...
+  
+    ''',
+    'status': '''
+      can_search_for_contractors: false
+      city: London
+      country: NL
+      daylight_saving_time_enabled: true
+      devices: []
+      has_station: true
+      is_location_owner: false
+      location_id: 3164610
+      location_owner_id: 2624305
+      location_owner_name: John Smith
+      location_owner_user_name: user@example.com
+      name: Living room
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: 1 Main Street
+      time_zone:
+        current_offset_minutes: 120
+        display_name: (UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
+        id: W. Europe Standard Time
+        offset_minutes: 60
+        using_daylight_saving_time: true
+      type: Residential
+      weather:
+        condition: Showers
+        humidity: 96
+        phrase: Light rain
+        temperature: 15.1
+        units: Celsius
+      zipcode: AB1 2CD
+  
+    ''',
+    'tcs': '''
+      null
+      ...
+  
+    ''',
+    'time_zone_info': '''
+      current_offset_minutes: 120
+      display_name: (UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
+      id: W. Europe Standard Time
+      offset_minutes: 60
+      using_daylight_saving_time: true
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/Berlin
+      - 1
+  
+    ''',
+    'weather': '''
+      condition: Showers
+      humidity: 96
+      phrase: Light rain
+      temperature: 15.1
+      units: Celsius
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_009][loc_8380809]
+  dict({
+    'config': '''
+      can_search_for_contractors: true
+      city: London
+      country: GB
+      daylight_saving_time_enabled: true
+      devices:
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 6860918
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 6860918
+        device_type: 96
+        domain_id: 51600
+        gateway_id: 2678129
+        hold_until_capable: false
+        instance: 250
+        is_alive: false
+        is_upgrading: false
+        location_id: 8380809
+        mac_id: 00D02D67C990
+        name: ''
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - DHWOn
+          - DHWOff
+          changeable_values:
+            mode: DHWOn
+            status: Scheduled
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 128.0
+          indoor_temperature_status: NotAvailable
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 30.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: DOMESTIC_HOT_WATER
+        thermostat_version: 03.00.10.06
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3744415
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3744415
+        device_type: 96
+        domain_id: 51600
+        gateway_id: 2678129
+        hold_until_capable: false
+        instance: 0
+        is_alive: false
+        is_upgrading: false
+        location_id: 8380809
+        mac_id: 00D02D67C990
+        name: Living room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 21.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 21.44
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      has_station: true
+      is_location_owner: false
+      location_id: 8380809
+      location_owner_id: 9859228
+      location_owner_name: John Smith
+      location_owner_user_name: user@example.com
+      name: My Home (RFG100)
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: 1 Main Street
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        id: GMT Standard Time
+        offset_minutes: 0
+        using_daylight_saving_time: true
+      type: Residential
+      weather:
+        condition: MostlySunny
+        humidity: 65
+        phrase: Mostly sunny
+        temperature: 13.9
+        units: Celsius
+      zipcode: AB1 2CD
+  
+    ''',
+    'country': '''
+      GB
+      ...
+  
+    ''',
+    'dst_enabled': '''
+      true
+      ...
+  
+    ''',
+    'id': '''
+      '8380809'
+  
+    ''',
+    'name': '''
+      My Home (RFG100)
+      ...
+  
+    ''',
+    'status': '''
+      can_search_for_contractors: true
+      city: London
+      country: GB
+      daylight_saving_time_enabled: true
+      devices:
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 6860918
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 6860918
+        device_type: 96
+        domain_id: 51600
+        gateway_id: 2678129
+        hold_until_capable: false
+        instance: 250
+        is_alive: false
+        is_upgrading: false
+        location_id: 8380809
+        mac_id: 00D02D67C990
+        name: ''
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - DHWOn
+          - DHWOff
+          changeable_values:
+            mode: DHWOn
+            status: Scheduled
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 128.0
+          indoor_temperature_status: NotAvailable
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 30.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: DOMESTIC_HOT_WATER
+        thermostat_version: 03.00.10.06
+      - alert_settings:
+          communication_failure_active: true
+          communication_failure_minutes: 15
+          communication_lost_active: false
+          communication_lost_hours: 0
+          device_id: 3744415
+          device_lost_active: false
+          device_lost_hours: 0
+          fault_condition_exists_active: false
+          fault_condition_exists_hours: 0
+          normal_conditions_active: true
+          temp_higher_than: 30.0
+          temp_higher_than_active: true
+          temp_higher_than_minutes: 0
+          temp_lower_than: 5.0
+          temp_lower_than_active: true
+          temp_lower_than_minutes: 0
+        device_id: 3744415
+        device_type: 96
+        domain_id: 51600
+        gateway_id: 2678129
+        hold_until_capable: false
+        instance: 0
+        is_alive: false
+        is_upgrading: false
+        location_id: 8380809
+        mac_id: 00D02D67C990
+        name: Living room
+        schedule_capable: false
+        thermostat:
+          allowed_modes:
+          - Heat
+          - 'Off'
+          changeable_values:
+            heat_setpoint:
+              status: Scheduled
+              value: 21.0
+            mode: 'Off'
+            vacation_hold_days: 0
+          deadband: 0.0
+          indoor_humidity: 128.0
+          indoor_humidity_status: NotAvailable
+          indoor_temperature: 21.44
+          indoor_temperature_status: Measured
+          is_commercial: false
+          max_cool_setpoint: 90.0
+          max_heat_setpoint: 35.0
+          min_cool_setpoint: 50.0
+          min_heat_setpoint: 5.0
+          outdoor_humidity: 128.0
+          outdoor_humidity_status: NotAvailable
+          outdoor_temperature: 128.0
+          outdoor_temperature_available: false
+          outdoor_temperature_status: NotAvailable
+          outdoot_humidity_available: false
+          schedule_capable: false
+          schedule_cool_sp: 0.0
+          schedule_heat_sp: 0.0
+          units: Celsius
+          vacation_hold_cancelable: false
+          vacation_hold_changeable: false
+        thermostat_model_type: EMEA_ZONE
+        thermostat_version: 03.00.10.06
+      has_station: true
+      is_location_owner: false
+      location_id: 8380809
+      location_owner_id: 9859228
+      location_owner_name: John Smith
+      location_owner_user_name: user@example.com
+      name: My Home (RFG100)
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+      state: ''
+      street_address: 1 Main Street
+      time_zone:
+        current_offset_minutes: 60
+        display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+        id: GMT Standard Time
+        offset_minutes: 0
+        using_daylight_saving_time: true
+      type: Residential
+      weather:
+        condition: MostlySunny
+        humidity: 65
+        phrase: Mostly sunny
+        temperature: 13.9
+        units: Celsius
+      zipcode: AB1 2CD
+  
+    ''',
+    'time_zone_info': '''
+      current_offset_minutes: 60
+      display_name: (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+      id: GMT Standard Time
+      offset_minutes: 0
+      using_daylight_saving_time: true
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+    'weather': '''
+      condition: MostlySunny
+      humidity: 65
+      phrase: Mostly sunny
+      temperature: 13.9
+      units: Celsius
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_009][loc_8380809_dhw]
+  dict({
+    'config': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 6860918
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 6860918
+      device_type: 96
+      domain_id: 51600
+      gateway_id: 2678129
+      hold_until_capable: false
+      instance: 250
+      is_alive: false
+      is_upgrading: false
+      location_id: 8380809
+      mac_id: 00D02D67C990
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOn
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 128.0
+        indoor_temperature_status: NotAvailable
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 03.00.10.06
+  
+    ''',
+    'id': '''
+      '6860918'
+  
+    ''',
+    'idx': '''
+      HW
+      ...
+  
+    ''',
+    'name': '''
+      Domestic Hot Water
+      ...
+  
+    ''',
+    'status': '''
+      alert_settings:
+        communication_failure_active: true
+        communication_failure_minutes: 15
+        communication_lost_active: false
+        communication_lost_hours: 0
+        device_id: 6860918
+        device_lost_active: false
+        device_lost_hours: 0
+        fault_condition_exists_active: false
+        fault_condition_exists_hours: 0
+        normal_conditions_active: true
+        temp_higher_than: 30.0
+        temp_higher_than_active: true
+        temp_higher_than_minutes: 0
+        temp_lower_than: 5.0
+        temp_lower_than_active: true
+        temp_lower_than_minutes: 0
+      device_id: 6860918
+      device_type: 96
+      domain_id: 51600
+      gateway_id: 2678129
+      hold_until_capable: false
+      instance: 250
+      is_alive: false
+      is_upgrading: false
+      location_id: 8380809
+      mac_id: 00D02D67C990
+      name: ''
+      schedule_capable: false
+      thermostat:
+        allowed_modes:
+        - DHWOn
+        - DHWOff
+        changeable_values:
+          mode: DHWOn
+          status: Scheduled
+        deadband: 0.0
+        indoor_humidity: 128.0
+        indoor_humidity_status: NotAvailable
+        indoor_temperature: 128.0
+        indoor_temperature_status: NotAvailable
+        is_commercial: false
+        max_cool_setpoint: 90.0
+        max_heat_setpoint: 30.0
+        min_cool_setpoint: 50.0
+        min_heat_setpoint: 5.0
+        outdoor_humidity: 128.0
+        outdoor_humidity_status: NotAvailable
+        outdoor_temperature: 128.0
+        outdoor_temperature_available: false
+        outdoor_temperature_status: NotAvailable
+        outdoot_humidity_available: false
+        schedule_capable: false
+        schedule_cool_sp: 0.0
+        schedule_heat_sp: 0.0
+        units: Celsius
+        vacation_hold_cancelable: false
+        vacation_hold_changeable: false
+      thermostat_model_type: DOMESTIC_HOT_WATER
+      thermostat_version: 03.00.10.06
+  
+    ''',
+    'temperature': '''
+      null
+      ...
+  
+    ''',
+    'temperature_status': '''
+      is_available: false
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_009][loc_8380809_gwy]
+  dict({
+    'config': '''
+      device_type: 96
+      gateway_id: 2678129
+      location_id: 8380809
+      mac_id: 00D02D67C990
+  
+    ''',
+    'id': '''
+      '2678129'
+  
+    ''',
+    'mac_address': '''
+      00D02D67C990
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 96
+      gateway_id: 2678129
+      location_id: 8380809
+      mac_id: 00D02D67C990
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_009][loc_8380809_tcs]
+  dict({
+    'config': '''
+      location_id: 8380809
+  
+    ''',
+    'id': '''
+      '8380809'
+  
+    ''',
+    'one_touch_actions_suspended': '''
+      false
+      ...
+  
+    ''',
+    'one_touch_buttons': '''
+      !!python/tuple []
+  
+    ''',
+    'status': '''
+      location_id: 8380809
+      one_touch_actions_suspended: false
+      one_touch_buttons: []
+  
+    ''',
+    'tzinfo': '''
+      !!python/object/apply:None._unpickle
+      - Europe/London
+      - 1
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_009][loc_8380809_zon]
+  '''
+  '3744415':
+      allowed_modes: '!!python/tuple
+  
+          - Heat
+  
+          - ''Off''
+  
+          '
+      config: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3744415\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3744415\ndevice_type: 96\n\
+          domain_id: 51600\ngateway_id: 2678129\nhold_until_capable: false\ninstance:\
+          \ 0\nis_alive: false\nis_upgrading: false\nlocation_id: 8380809\nmac_id: 00D02D67C990\n\
+          name: Living room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 21.0\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 21.44\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 03.00.10.06\n"
+      id: '''3744415''
+  
+          '
+      idx: '''00''
+  
+          '
+      max_heat_setpoint: '35.0
+  
+          ...
+  
+          '
+      min_heat_setpoint: '5.0
+  
+          ...
+  
+          '
+      name: 'Living room
+  
+          ...
+  
+          '
+      status: "alert_settings:\n  communication_failure_active: true\n  communication_failure_minutes:\
+          \ 15\n  communication_lost_active: false\n  communication_lost_hours: 0\n\
+          \  device_id: 3744415\n  device_lost_active: false\n  device_lost_hours: 0\n\
+          \  fault_condition_exists_active: false\n  fault_condition_exists_hours: 0\n\
+          \  normal_conditions_active: true\n  temp_higher_than: 30.0\n  temp_higher_than_active:\
+          \ true\n  temp_higher_than_minutes: 0\n  temp_lower_than: 5.0\n  temp_lower_than_active:\
+          \ true\n  temp_lower_than_minutes: 0\ndevice_id: 3744415\ndevice_type: 96\n\
+          domain_id: 51600\ngateway_id: 2678129\nhold_until_capable: false\ninstance:\
+          \ 0\nis_alive: false\nis_upgrading: false\nlocation_id: 8380809\nmac_id: 00D02D67C990\n\
+          name: Living room\nschedule_capable: false\nthermostat:\n  allowed_modes:\n\
+          \  - Heat\n  - 'Off'\n  changeable_values:\n    heat_setpoint:\n      status:\
+          \ Scheduled\n      value: 21.0\n    mode: 'Off'\n    vacation_hold_days: 0\n\
+          \  deadband: 0.0\n  indoor_humidity: 128.0\n  indoor_humidity_status: NotAvailable\n\
+          \  indoor_temperature: 21.44\n  indoor_temperature_status: Measured\n  is_commercial:\
+          \ false\n  max_cool_setpoint: 90.0\n  max_heat_setpoint: 35.0\n  min_cool_setpoint:\
+          \ 50.0\n  min_heat_setpoint: 5.0\n  outdoor_humidity: 128.0\n  outdoor_humidity_status:\
+          \ NotAvailable\n  outdoor_temperature: 128.0\n  outdoor_temperature_available:\
+          \ false\n  outdoor_temperature_status: NotAvailable\n  outdoot_humidity_available:\
+          \ false\n  schedule_capable: false\n  schedule_cool_sp: 0.0\n  schedule_heat_sp:\
+          \ 0.0\n  units: Celsius\n  vacation_hold_cancelable: false\n  vacation_hold_changeable:\
+          \ false\nthermostat_model_type: EMEA_ZONE\nthermostat_version: 03.00.10.06\n"
+      temperature: '21.44
+  
+          ...
+  
+          '
+      temperature_status: 'is_available: true
+  
+          temperature: 21.44
   
           '
   

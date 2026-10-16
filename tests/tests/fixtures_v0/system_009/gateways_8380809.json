@@ -1,0 +1,148 @@
+[
+  {
+    "gatewayID": 2678129,
+    "mac": "00D02D67C990",
+    "crc": "0000",
+    "devices": [
+      {
+        "gatewayId": 2678129,
+        "deviceID": 3744415,
+        "thermostatModelType": "EMEA_ZONE",
+        "deviceType": 96,
+        "name": "Living room",
+        "scheduleCapable": false,
+        "holdUntilCapable": false,
+        "thermostat": {
+          "units": "Celsius",
+          "indoorTemperature": 21.44,
+          "outdoorTemperature": 128.0,
+          "outdoorTemperatureAvailable": false,
+          "outdoorHumidity": 128.0,
+          "outdootHumidityAvailable": false,
+          "indoorHumidity": 128.0,
+          "indoorTemperatureStatus": "Measured",
+          "indoorHumidityStatus": "NotAvailable",
+          "outdoorTemperatureStatus": "NotAvailable",
+          "outdoorHumidityStatus": "NotAvailable",
+          "isCommercial": false,
+          "allowedModes": [
+            "Heat",
+            "Off"
+          ],
+          "deadband": 0.0,
+          "minHeatSetpoint": 5.0,
+          "maxHeatSetpoint": 35.0,
+          "minCoolSetpoint": 50.0,
+          "maxCoolSetpoint": 90.0,
+          "changeableValues": {
+            "mode": "Off",
+            "heatSetpoint": {
+              "value": 21.0,
+              "status": "Scheduled"
+            },
+            "vacationHoldDays": 0
+          },
+          "scheduleCapable": false,
+          "vacationHoldChangeable": false,
+          "vacationHoldCancelable": false,
+          "scheduleHeatSp": 0.0,
+          "scheduleCoolSp": 0.0
+        },
+        "alertSettings": {
+          "deviceID": 3744415,
+          "tempHigherThanActive": true,
+          "tempHigherThan": 30.0,
+          "tempHigherThanMinutes": 0,
+          "tempLowerThanActive": true,
+          "tempLowerThan": 5.0,
+          "tempLowerThanMinutes": 0,
+          "faultConditionExistsActive": false,
+          "faultConditionExistsHours": 0,
+          "normalConditionsActive": true,
+          "communicationLostActive": false,
+          "communicationLostHours": 0,
+          "communicationFailureActive": true,
+          "communicationFailureMinutes": 15,
+          "deviceLostActive": false,
+          "deviceLostHours": 0
+        },
+        "isUpgrading": false,
+        "isAlive": false,
+        "thermostatVersion": "03.00.10.06",
+        "macID": "00D02D67C990",
+        "locationID": 8380809,
+        "domainID": 51600,
+        "instance": 0
+      },
+      {
+        "gatewayId": 2678129,
+        "deviceID": 6860918,
+        "thermostatModelType": "DOMESTIC_HOT_WATER",
+        "deviceType": 96,
+        "name": "",
+        "scheduleCapable": false,
+        "holdUntilCapable": false,
+        "thermostat": {
+          "units": "Celsius",
+          "indoorTemperature": 128.0,
+          "outdoorTemperature": 128.0,
+          "outdoorTemperatureAvailable": false,
+          "outdoorHumidity": 128.0,
+          "outdootHumidityAvailable": false,
+          "indoorHumidity": 128.0,
+          "indoorTemperatureStatus": "NotAvailable",
+          "indoorHumidityStatus": "NotAvailable",
+          "outdoorTemperatureStatus": "NotAvailable",
+          "outdoorHumidityStatus": "NotAvailable",
+          "isCommercial": false,
+          "allowedModes": [
+            "DHWOn",
+            "DHWOff"
+          ],
+          "deadband": 0.0,
+          "minHeatSetpoint": 5.0,
+          "maxHeatSetpoint": 30.0,
+          "minCoolSetpoint": 50.0,
+          "maxCoolSetpoint": 90.0,
+          "changeableValues": {
+            "mode": "DHWOn",
+            "status": "Scheduled"
+          },
+          "scheduleCapable": false,
+          "vacationHoldChangeable": false,
+          "vacationHoldCancelable": false,
+          "scheduleHeatSp": 0.0,
+          "scheduleCoolSp": 0.0
+        },
+        "alertSettings": {
+          "deviceID": 6860918,
+          "tempHigherThanActive": true,
+          "tempHigherThan": 30.0,
+          "tempHigherThanMinutes": 0,
+          "tempLowerThanActive": true,
+          "tempLowerThan": 5.0,
+          "tempLowerThanMinutes": 0,
+          "faultConditionExistsActive": false,
+          "faultConditionExistsHours": 0,
+          "normalConditionsActive": true,
+          "communicationLostActive": false,
+          "communicationLostHours": 0,
+          "communicationFailureActive": true,
+          "communicationFailureMinutes": 15,
+          "deviceLostActive": false,
+          "deviceLostHours": 0
+        },
+        "isUpgrading": false,
+        "isAlive": false,
+        "thermostatVersion": "03.00.10.06",
+        "macID": "00D02D67C990",
+        "locationID": 8380809,
+        "domainID": 51600,
+        "instance": 250
+      }
+    ],
+    "locationId": 8380809,
+    "isUpgrading": false,
+    "isRedlinkGateway": true
+  }
+]

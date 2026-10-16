@@ -1,0 +1,11 @@
+{
+  "userId": "2512649",
+  "username": "user@example.com",
+  "firstname": "John",
+  "lastname": "Smith",
+  "streetAddress": "1 Main Street",
+  "city": "London",
+  "postcode": "AB1 2CD",
+  "country": "UnitedKingdom",
+  "language": "enGB"
+}

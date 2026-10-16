@@ -327,7 +327,7 @@ async def get_gwy_config(auth: Auth, gwy_id: str) -> TccGwyConfigResponseT:
     Returns the config of the gateway, including that of its TCSs:
       {
         "gatewayInfo": {
-          "gatewayId": "2499896", "mac": "00D02DEE4E56", "crc": "17C2", "isWiFi": false
+          "gatewayId": "2499896", "mac": "00D02DEE4E56", "crc": "0000", "isWiFi": false
         },
         "temperatureControlSystems": [{"systemId": "3432522", ...}]
       }

@@ -117,8 +117,7 @@ EvohomeError
 │
 └── ClientStateError                  # The client lacks the data: fetch it first
     ├── NotFetchedError               # - config, status or schedule data absent
-    ├── StaleConfigError
-    └── NoSingleTcsError
+    └── StaleConfigError
 ```
 
 `ApiRequestFailedError` and `InvalidSystemModeError` are deprecated aliases (used by

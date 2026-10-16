@@ -25,7 +25,6 @@ if TYPE_CHECKING:
 
     from _evohome.helpers import Validator
 
-    from .control_system import ControlSystem
     from .typedefs import EvoLocConfigResponseT, EvoUsrAccountResponseT
 
 
@@ -262,28 +261,3 @@ class EvohomeClient:
             raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
 
         return self._location_by_id
-
-    # A significant majority of users will have exactly one TCS, thus for convenience...
-    @property
-    def tcs(self) -> ControlSystem:
-        """If there is a single TCS, return it, or raise an exception.
-
-        The majority of users will have only one TCS.
-        """
-
-        if not (locs := self.locations) or len(locs) != 1:
-            raise exc.NoSingleTcsError(
-                "There is not a single location (only) for this account"
-            )
-
-        if not (gwys := locs[0].gateways) or len(gwys) != 1:
-            raise exc.NoSingleTcsError(
-                "There is not a single gateway (only) for this account/location"
-            )
-
-        if not (tcss := gwys[0].systems) or len(tcss) != 1:
-            raise exc.NoSingleTcsError(
-                "There is not a single TCS (only) for this account/location/gateway"
-            )
-
-        return tcss[0]
