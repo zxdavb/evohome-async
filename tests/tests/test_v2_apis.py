@@ -428,6 +428,18 @@ async def test_set_mode_rejects_naive_until(
             ("2025-10-25T12:00:00Z", dt(2025, 10, 27, 0, 0, tzinfo=UTC)),
             id="period_over_dst",
         ),
+        pytest.param(  # 01:30 BST + 1h is 01:30 GMT (the clocks go back at 02:00 BST)
+            SystemMode.AUTO_WITH_ECO,
+            {"duration": td(hours=1)},
+            ("2025-10-26T00:30:00Z", dt(2025, 10, 26, 1, 30, tzinfo=UTC)),
+            id="duration_over_dst_end",
+        ),
+        pytest.param(  # 00:30 GMT + 2h is 03:30 BST (the clocks go forward at 01:00 GMT)
+            SystemMode.AUTO_WITH_ECO,
+            {"duration": td(hours=2)},
+            ("2025-03-30T00:30:00Z", dt(2025, 3, 30, 2, 30, tzinfo=UTC)),
+            id="duration_over_dst_start",
+        ),
         pytest.param(  # the maximum duration is allowed
             SystemMode.AUTO_WITH_ECO,
             {"duration": td(days=1)},

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import timedelta as td
+from datetime import UTC, timedelta as td
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
 
@@ -355,7 +355,8 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                     f"{self}: For {system_mode}, duration must be None"
                 )
             self._check_temporary_length(mode_entry, duration, is_period=False)
-            until = self.location.now() + duration
+            # in UTC, as local arithmetic is wall-clock (wrong if it spans a DST change)
+            until = self.location.now().astimezone(UTC) + duration
 
         elif period is not None:
             if mode_entry.get(SZ_TIMING_MODE) != TimingMode.PERIOD:
