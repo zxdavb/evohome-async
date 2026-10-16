@@ -1,8 +1,9 @@
 """Provides handling of TCC v0 entities.
 
-The entity hierarchy is flattened, similar to: Location(TCS) -> DHW | Zone
+The vendor's entity hierarchy is flattened: Location -> devices (each a DHW or a Zone,
+and each with the id of its gateway). There is no TCS entity (nor a TCS id).
 
-But here it is implemented as: Location -> Gateway -> TCS -> DHW | Zone
+But here it is implemented as for the v2 API: Location -> Gateway -> TCS -> DHW | Zone
 """
 
 from __future__ import annotations
@@ -124,20 +125,23 @@ class _DeviceBase(_EntityBase):
 
     _status: EvoDevInfoDictT | EvoGwyInfoDictT
 
-    def __init__(self, location: Location, config: EvoDevInfoDictT, /) -> None:
+    location: Location
+
+    def __init__(self, tcs: ControlSystem, config: EvoDevInfoDictT, /) -> None:
         super().__init__(config[SZ_DEVICE_ID])
 
-        self._loc = location  # parent
+        self.location = tcs.location
+        self.tcs = tcs  # parent
 
         self._status = config  # not a typo, config is a superset of status
 
     @cached_property
     def _auth(self) -> Auth:
-        return self._loc.client.auth
+        return self.location.client.auth
 
     @cached_property
     def _logger(self) -> logging.Logger:
-        return self._loc.client.logger
+        return self.location.client.logger
 
     def _update_status(self, status: EvoDevInfoDictT | EvoGwyInfoDictT) -> None:
         """Update the device's status."""
@@ -145,12 +149,12 @@ class _DeviceBase(_EntityBase):
 
 
 class HotWater(_DeviceBase):  # Hotwater version of a Device
-    """Instance of a location's DHW zone."""
+    """Instance of a TCS's DHW zone."""
 
     _status: EvoDevInfoDictT
 
-    def __init__(self, location: Location, config: EvoDevInfoDictT, /) -> None:
-        super().__init__(location, config)
+    def __init__(self, tcs: ControlSystem, config: EvoDevInfoDictT, /) -> None:
+        super().__init__(tcs, config)
 
         self._config: Final = config
 
@@ -208,7 +212,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
             # S1_COOL_SETPOINT: None,
         }
         if next_time:  # the vendor treats it as the location's local time
-            dhw_mode |= {S1_NEXT_TIME: as_local_str(next_time, self._loc.tzinfo)}
+            dhw_mode |= {S1_NEXT_TIME: as_local_str(next_time, self.location.tzinfo)}
 
         url = f"devices/{self.id}/thermostat/changeableValues"
         _ = await self._auth.put(url, json=dhw_mode)
@@ -242,12 +246,12 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
 
 
 class Zone(_DeviceBase):  # Zone version of a Device
-    """Instance of a location's heating zone."""
+    """Instance of a TCS's heating zone."""
 
     _status: EvoDevInfoDictT
 
-    def __init__(self, location: Location, config: EvoDevInfoDictT, /) -> None:
-        super().__init__(location, config)
+    def __init__(self, tcs: ControlSystem, config: EvoDevInfoDictT, /) -> None:
+        super().__init__(tcs, config)
 
         self._config: Final = config
 
@@ -314,7 +318,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
         if value is not None:  # NOTE: may have to send {S1_VALUE: None} instead
             zon_mode[S1_VALUE] = value
         if next_time is not None:  # the vendor treats it as the location's local time
-            zon_mode[S1_NEXT_TIME] = as_local_str(next_time, self._loc.tzinfo)
+            zon_mode[S1_NEXT_TIME] = as_local_str(next_time, self.location.tzinfo)
 
         url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
         _ = await self._auth.put(url, json=zon_mode)
@@ -336,27 +340,19 @@ class Zone(_DeviceBase):  # Zone version of a Device
         await self._set_heat_setpoint(status=TccSetpointStatus.SCHEDULED)
 
 
-class ControlSystem(_EntityBase):  # TCS portion of a Location
-    """Instance of a TCS (a portion of a location)."""
+class ControlSystem(_EntityBase):
+    """Instance of a gateway's TCS.
 
-    _cli: EvohomeClient  # proxy for parent
+    The vendor has no TCS entity: its config/status is that of its location, its DHW
+    and zones are those of the location's devices with its gateway's id, and its mode
+    is set via its location's id (so that is used as its id).
+    """
 
-    _status: EvoTcsInfoDictT
+    def __init__(self, gateway: Gateway, /) -> None:
+        super().__init__(gateway.location.config[SZ_LOCATION_ID])
 
-    def __init__(
-        self,
-        entity_id: int,
-        config: EvoTcsInfoDictT,
-        /,
-        *,
-        tzinfo: tzinfo | None = None,
-    ) -> None:
-        super().__init__(entity_id)
-
-        self._config: Final = config
-
-        # without the IANA TZ, fall back to the current UTC offset (so ignoring DST)
-        self._tzinfo: Final = tzinfo or _fixed_offset_tzinfo(config[SZ_TIME_ZONE])
+        self.location = gateway.location
+        self.gateway = gateway  # parent
 
         self.hotwater: HotWater | None = None
         self.zones: list[Zone] = []
@@ -364,15 +360,53 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
         self.zone_by_id: dict[str, Zone] = {}  # id is fixed to zone
         self.zone_by_idx: dict[str, Zone] = {}  #  not sure if fixed, or attr like name
 
+        for dev_config in self.location.config[SZ_DEVICES]:
+            if str(dev_config[SZ_GATEWAY_ID]) != gateway.id:
+                continue
+
+            if (
+                type_ := dev_config[SZ_THERMOSTAT_MODEL_TYPE]
+            ) == TccThermostatModelType.DOMESTIC_HOT_WATER:
+                self.hotwater = HotWater(self, dev_config)
+
+            # check is string to handle edge-case of Honeywell TH9320WF3003
+            elif isinstance(type_, str) and type_.startswith(_ZONE_MODEL_TYPE_PREFIX):
+                self._add_zone(Zone(self, dev_config))
+
+            else:  # assume everything else is a zone
+                self._logger.warning(
+                    f"{self}: Unknown device type, assuming is a zone: {type_}"
+                )
+                self._add_zone(Zone(self, dev_config))
+
+    @cached_property
+    def _auth(self) -> Auth:
+        return self.location.client.auth
+
+    @cached_property
+    def _logger(self) -> logging.Logger:
+        return self.location.client.logger
+
+    def _add_zone(self, zone: Zone) -> None:
+        self.zones.append(zone)
+
+        self.zone_by_id[zone.id] = zone
+        self.zone_by_idx[zone.idx] = zone
+
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoTcsInfoDictT:
-        """Return the config of the entity."""
-        return self._config
+        """Return the config of the entity (that of its location)."""
+        return self.location.config
+
+    @property
+    def status(self) -> EvoTcsInfoDictT:
+        """Return the latest status of the entity (that of its location)."""
+        return self.location.status
 
     @property
     def tzinfo(self) -> tzinfo:
-        """Return a tzinfo-compliant object for this Location (as for the v2 API)."""
-        return self._tzinfo
+        """Return a tzinfo-compliant object for this TCS (that of its location)."""
+        return self.location.tzinfo
 
     @property
     def zone_by_name(self) -> dict[str, Zone]:
@@ -383,11 +417,11 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
 
     @property
     def one_touch_actions_suspended(self) -> bool:
-        return bool(self._status.get(SZ_ONE_TOUCH_ACTIONS_SUSPENDED))
+        return bool(self.status.get(SZ_ONE_TOUCH_ACTIONS_SUSPENDED))
 
     @property
     def one_touch_buttons(self) -> tuple[str, ...]:
-        return tuple(self._status.get(SZ_ONE_TOUCH_BUTTONS, ()))
+        return tuple(self.status.get(SZ_ONE_TOUCH_BUTTONS, ()))
 
     async def _set_mode(self, tcs_mode: TccSetTcsModeT) -> None:
         """Set the TCS mode."""
@@ -463,7 +497,7 @@ class ControlSystem(_EntityBase):  # TCS portion of a Location
         """A convenience function to obtain the high-precision temperatures."""
 
         if not dont_update_status:
-            await self._cli.get_status()
+            await self.location.client.get_status()
 
         return {z.id: z.temperature for z in self.zones}
 
@@ -474,9 +508,16 @@ class Gateway(_DeviceBase):  # Gateway portion of a Device
     def __init__(self, location: Location, config: EvoDevInfoDictT, /) -> None:
         _EntityBase.__init__(self, config[SZ_GATEWAY_ID])  # uses gateway_id
 
-        self._loc = location
+        self.location = location  # parent
+
         self._config: Final = config
         self._status = config
+
+        # children: the vendor has no TCS entity, so there is one per gateway
+        tcs = ControlSystem(self)
+
+        self.systems: list[ControlSystem] = [tcs]
+        self.system_by_id: dict[str, ControlSystem] = {tcs.id: tcs}
 
     _status: EvoGwyInfoDictT  # initial state
 
@@ -534,8 +575,10 @@ async def create_location(client: EvohomeClient, config: EvoTcsInfoDictT) -> Loc
     return Location(client, config, tzinfo=tzinfo)
 
 
-class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
-    """Instance of an account's location/TCS."""
+class Location(_EntityBase):
+    """Instance of an account's location."""
+
+    _status: EvoTcsInfoDictT
 
     def __init__(
         self,
@@ -545,37 +588,26 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
         *,
         tzinfo: tzinfo | None = None,
     ) -> None:
-        super().__init__(config[SZ_LOCATION_ID], config, tzinfo=tzinfo)
+        super().__init__(config[SZ_LOCATION_ID])
 
         self._cli = client  # proxy for parent
 
-        self._status: EvoTcsInfoDictT = config  # initial state
+        self._config: Final = config
+        self._status = config  # initial state
 
+        # without the IANA TZ, fall back to the current UTC offset (so ignoring DST)
+        self._tzinfo: Final = tzinfo or _fixed_offset_tzinfo(config[SZ_TIME_ZONE])
+
+        # children
         self.gateways: list[Gateway] = []
         self.gateway_by_id: dict[str, Gateway] = {}
 
-        # process config[SZ_DEVICES]...
         for dev_config in config[SZ_DEVICES]:
             if str(dev_config[SZ_GATEWAY_ID]) not in self.gateway_by_id:
                 gwy = Gateway(self, dev_config)
 
                 self.gateways.append(gwy)
                 self.gateway_by_id[gwy.id] = gwy
-
-            if (
-                type_ := dev_config[SZ_THERMOSTAT_MODEL_TYPE]
-            ) == TccThermostatModelType.DOMESTIC_HOT_WATER:
-                self.hotwater = HotWater(self, dev_config)
-
-            # check is string to handle edge-case of Honeywell TH9320WF3003
-            elif isinstance(type_, str) and type_.startswith(_ZONE_MODEL_TYPE_PREFIX):
-                self._add_zone(Zone(self, dev_config))
-
-            else:  # assume everything else is a zone
-                self._logger.warning(
-                    f"{self}: Unknown device type, assuming is a zone: {type_}"
-                )
-                self._add_zone(Zone(self, dev_config))
 
     @cached_property
     def _auth(self) -> Auth:
@@ -589,11 +621,28 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
     def client(self) -> EvohomeClient:
         return self._cli
 
-    def _add_zone(self, zone: Zone) -> None:
-        self.zones.append(zone)
+    @property  # not strictly static, but library largely assumes so
+    def config(self) -> EvoTcsInfoDictT:
+        """Return the config of the entity."""
+        return self._config
 
-        self.zone_by_id[zone.id] = zone
-        self.zone_by_idx[zone.idx] = zone
+    @property
+    def status(self) -> EvoTcsInfoDictT:
+        """Return the latest status of the entity."""
+        return self._status
+
+    @property
+    def tzinfo(self) -> tzinfo:
+        """Return a tzinfo-compliant object for this Location (as for the v2 API)."""
+        return self._tzinfo
+
+    @property
+    def tcs(self) -> ControlSystem | None:
+        """Return the location's TCS, or None if it has none.
+
+        A location has 0-1 gateways, each with 0-1 TCSs.
+        """
+        return next((tcs for gwy in self.gateways for tcs in gwy.systems), None)
 
     # Config attrs...
 
@@ -630,8 +679,8 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
         self._status = status
 
         for dev_status in status[SZ_DEVICES]:
-            if (gwy_id := str(dev_status[SZ_GATEWAY_ID])) in self.gateway_by_id:
-                self.gateway_by_id[gwy_id]._update_status(dev_status)  # noqa: SLF001
+            if gwy := self.gateway_by_id.get(gwy_id := str(dev_status[SZ_GATEWAY_ID])):
+                gwy._update_status(dev_status)  # noqa: SLF001
 
             else:
                 self._logger.warning(
@@ -640,11 +689,13 @@ class Location(ControlSystem, _EntityBase):  # assumes 1 TCS per Location
                 )
                 continue
 
-            if (dev_id := str(dev_status[SZ_DEVICE_ID])) in self.zone_by_id:
-                self.zone_by_id[dev_id]._update_status(dev_status)  # noqa: SLF001
+            tcs = gwy.systems[0]
 
-            elif self.hotwater and self.hotwater.id == dev_id:
-                self.hotwater._update_status(dev_status)  # noqa: SLF001
+            if (dev_id := str(dev_status[SZ_DEVICE_ID])) in tcs.zone_by_id:
+                tcs.zone_by_id[dev_id]._update_status(dev_status)  # noqa: SLF001
+
+            elif tcs.hotwater and tcs.hotwater.id == dev_id:
+                tcs.hotwater._update_status(dev_status)  # noqa: SLF001
 
             else:
                 self._logger.warning(

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
@@ -10,7 +11,7 @@ import pytest
 import evohomeasync as evo1
 import evohomeasync2 as evo2
 from _evohome import exceptions as exc
-from tests.common import get_loc, get_zon
+from tests.common import get_loc, get_tcs, get_zon
 
 from .conftest import FIXTURES_V0, FIXTURES_V2, auth_get
 
@@ -99,7 +100,7 @@ async def test_v1_setup(
 
         await evo.setup()
 
-        assert get_loc(evo).zones[0].temperature is not None
+        assert get_tcs(evo).zones[0].temperature is not None
 
 
 async def test_v1_get_status(
@@ -165,3 +166,21 @@ async def test_v2_location_tcs_none(
         await evo.setup()
 
     assert get_loc(evo).tcs is None
+
+
+async def test_v1_location_tcs(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test Location.tcs is the TCS of its gateway, or None if it has no gateway."""
+
+    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V0 / "default")):
+        evo = evo1.EvohomeClient(credentials_manager)
+        await evo.setup()
+
+    loc = get_loc(evo)
+    assert loc.tcs is loc.gateways[0].systems[0]
+
+    config = copy.deepcopy(loc.config)
+    config["devices"] = []  # so, no gateway
+
+    assert (await evo1.entities.create_location(evo, config)).tcs is None

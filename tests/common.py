@@ -26,11 +26,18 @@ def get_loc(
     return evo.locations[TEST_LOC_IDX]
 
 
-def get_tcs(evo: evo2.EvohomeClient) -> evo2.ControlSystem:
-    """Return the first TCS of the location to test against (v2 only).
+@overload
+def get_tcs(evo: evo0.EvohomeClient) -> evo0.ControlSystem: ...
 
-    The v1 API has no TCS: its zones/DHW belong to the location (see get_loc()).
-    """
+
+@overload
+def get_tcs(evo: evo2.EvohomeClient) -> evo2.ControlSystem: ...
+
+
+def get_tcs(
+    evo: evo0.EvohomeClient | evo2.EvohomeClient,
+) -> evo0.ControlSystem | evo2.ControlSystem:
+    """Return the first TCS of the location to test against."""
     return get_loc(evo).gateways[0].systems[0]
 
 
