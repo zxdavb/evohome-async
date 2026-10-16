@@ -6,6 +6,7 @@ import logging
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
+from unittest.mock import ANY, AsyncMock, call, patch
 
 import pytest
 
@@ -393,3 +394,40 @@ async def test_good(  # good credentials
         rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
     assert evohome_v2._token_manager.is_token_valid() is True
+
+
+async def test_rejected_token_refreshed_meanwhile(
+    evohome_v2: EvohomeClient,
+) -> None:
+    """Test a 401 doesn't clear an access token that another task has since refreshed."""
+
+    token_manager = evohome_v2._token_manager
+
+    # pre-requisite data (a valid access token that will nonetheless be rejected)
+    token_manager._access_token = _TEST_ACCESS_TOKEN
+    token_manager._access_token_expires = dt.now(tz=UTC) + td(minutes=15)
+
+    refreshed = "-- refreshed --"
+    rejected = False
+
+    def get(url: str, schema: object) -> object:
+        nonlocal rejected
+        if rejected:
+            return {}
+
+        # while this request is in flight, another task refreshes the access token
+        token_manager._access_token = refreshed
+        rejected = True
+        raise exc.ApiCallFailedError(
+            "GET userAccount: 401 Unauthorized", status=HTTPStatus.UNAUTHORIZED
+        )
+
+    with (
+        patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=get)) as req,
+        patch.object(token_manager, "fetch_access_token") as fetch,
+    ):
+        await evohome_v2._get_user_account()
+
+    assert req.await_args_list == [call("userAccount", schema=ANY)] * 2
+    fetch.assert_not_awaited()
+    assert token_manager.access_token == refreshed

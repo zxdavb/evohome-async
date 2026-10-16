@@ -56,9 +56,10 @@ evo = EvohomeClient(token_manager)
 await evo.setup()  # usually only once: gets the config of the user's locations
 
 loc = evo.locations[0]
-await loc.get_status()  # e.g. every few minutes: gets the status of the location
+await loc.get_status()  # e.g. every few minutes: gets the status of this location
 
-...
+comm_task = await loc.gateways[0].systems[0].set_mode(SystemMode.AUTO)
+await comm_task.wait()  # until the system has the change (raises CommTaskFailedError if not)
 
 await token_manager.save_access_token()
 await websession.close()
