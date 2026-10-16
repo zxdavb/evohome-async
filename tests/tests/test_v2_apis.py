@@ -511,6 +511,12 @@ async def test_ctl_set_system_mode_permanent(
         pytest.param(  # max_duration is "99.00:00:00"
             SystemMode.AWAY, {"period": td(days=100)}, id="period_too_long"
         ),
+        pytest.param(  # timing_resolution is "01:00:00"
+            SystemMode.AUTO_WITH_ECO, {"duration": td(minutes=90)}, id="dur_resolution"
+        ),
+        pytest.param(  # timing_resolution is "1.00:00:00"
+            SystemMode.AWAY, {"period": td(days=1, hours=6)}, id="period_resolution"
+        ),
     ],
 )
 async def test_ctl_set_system_mode_rejects(

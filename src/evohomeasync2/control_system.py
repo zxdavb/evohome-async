@@ -29,6 +29,7 @@ from .const import (
     SZ_SYSTEM_MODE_STATUS,
     SZ_TIME_UNTIL,
     SZ_TIMING_MODE,
+    SZ_TIMING_RESOLUTION,
     SZ_ZONE_ID,
     SZ_ZONES,
     SystemMode,
@@ -318,8 +319,9 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         Which of the two (if either) is allowed depends upon the mode's timing_mode
         (see allowed_system_modes). Without either, the mode is set indefinitely.
 
-        A duration must be positive, and a period at least one day; neither may exceed
-        the mode's max_duration (the vendor's API accepts such values).
+        A duration must be positive, and a period at least one day. Either must be a
+        multiple of the mode's timing_resolution, and not exceed its max_duration (the
+        vendor's API accepts such values).
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -388,7 +390,13 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                 f"{self}: For {mode}, {name} must be at least {minimum}: {length}"
             )
 
-        # if max_duration is absent or unparseable, defer to the vendor
+        # if timing_resolution/max_duration is absent or unparseable, defer to the vendor
+        resolution = as_timedelta(mode_entry.get(SZ_TIMING_RESOLUTION, ""))
+        if resolution and length % resolution:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {name} must be a multiple of {resolution}: {length}"
+            )
+
         maximum = as_timedelta(mode_entry.get(SZ_MAX_DURATION, ""))
         if maximum is not None and length > maximum:
             raise exc.InvalidModeRequestError(
