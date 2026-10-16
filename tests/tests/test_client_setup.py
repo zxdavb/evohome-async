@@ -188,3 +188,37 @@ async def test_v1_location_tcs(
     config["devices"] = []
 
     assert (await evo1.entities.create_location(evo, config)).tcs is None
+
+
+async def test_vx_location_tcs(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test each location's TCS has the same DHW/zones via the v1 and v2 APIs.
+
+    The system_009/ fixtures are of the same (multi-location) account, captured at the
+    same time. Its locations are in a different order for each API.
+    """
+
+    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V0 / "system_009")):
+        evo_v1 = evo1.EvohomeClient(credentials_manager)
+        await evo_v1.setup()
+
+    with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "system_009")):
+        evo_v2 = evo2.EvohomeClient(credentials_manager)
+        await evo_v2.setup()
+
+    def devices(tcs: evo1.ControlSystem | evo2.ControlSystem | None) -> set[str] | None:
+        if tcs is None:
+            return None
+        dhw = {tcs.hotwater.id} if tcs.hotwater else set()
+        return {z.id for z in tcs.zones} | dhw
+
+    v1_devs = {loc.id: devices(loc.tcs) for loc in evo_v1.locations}
+    v2_devs = {loc.id: devices(loc.tcs) for loc in evo_v2.locations}
+
+    assert v1_devs == v2_devs
+    assert v1_devs == {
+        "2738909": {"3432521"},
+        "3164610": None,  # this location has no devices (v1), nor gateway (v2)
+        "8380809": {"3744415", "6860918"},
+    }

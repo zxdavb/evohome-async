@@ -1,0 +1,77 @@
+{
+  "locationId": "8380809",
+  "gateways": [
+    {
+      "gatewayId": "2678129",
+      "temperatureControlSystems": [
+        {
+          "systemId": "3744416",
+          "zones": [
+            {
+              "zoneId": "3744415",
+              "temperatureStatus": {
+                "temperature": 21.0,
+                "isAvailable": true
+              },
+              "activeFaults": [
+                {
+                  "faultType": "TempZoneActuatorCommunicationLost",
+                  "since": "2026-10-08T21:03:47"
+                }
+              ],
+              "setpointStatus": {
+                "targetHeatTemperature": 21.0,
+                "setpointMode": "FollowSchedule"
+              },
+              "name": "Living room"
+            }
+          ],
+          "dhw": {
+            "dhwId": "6860918",
+            "temperatureStatus": {
+              "isAvailable": false
+            },
+            "stateStatus": {
+              "state": "On",
+              "mode": "FollowSchedule"
+            },
+            "activeFaults": [
+              {
+                "faultType": "DHWActuatorCommunicationLost",
+                "since": "2026-10-08T21:03:47"
+              },
+              {
+                "faultType": "DHWSensorCommunicationLost",
+                "since": "2026-10-08T21:03:47"
+              }
+            ]
+          },
+          "activeFaults": [
+            {
+              "faultType": "BoilerCommunicationLost",
+              "since": "2026-10-08T21:03:47"
+            },
+            {
+              "faultType": "ChValveCommunicationLost",
+              "since": "2026-10-08T21:03:47"
+            },
+            {
+              "faultType": "TempControlSystemCommunicationLost",
+              "since": "2026-10-10T16:15:28"
+            }
+          ],
+          "systemModeStatus": {
+            "mode": "Auto",
+            "isPermanent": true
+          }
+        }
+      ],
+      "activeFaults": [
+        {
+          "faultType": "GatewayCommunicationLost",
+          "since": "2026-10-10T18:00:41.9880278"
+        }
+      ]
+    }
+  ]
+}

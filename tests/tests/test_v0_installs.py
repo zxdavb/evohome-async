@@ -8,8 +8,6 @@ from typing import TYPE_CHECKING
 import pytest
 import yaml
 
-from tests.common import get_loc, get_tcs
-
 from .common import serializable_attrs
 from .conftest import FIXTURES_V0 as FIXTURES
 
@@ -44,14 +42,16 @@ async def test_system_snapshot(
 
     # architecture is: loc -> tcs -> dhw|zon (as for v2, but without gateways)
 
-    loc = get_loc(evohome_v0)
-    assert serializable_attrs(loc) == snapshot(name="location")
+    for loc in evohome_v0.locations:  # is 0-many
+        assert serializable_attrs(loc) == snapshot(name=f"loc_{loc.id}")
 
-    tcs = get_tcs(evohome_v0)
-    assert serializable_attrs(tcs) == snapshot(name="control_system")
+        if (tcs := loc.tcs) is None:  # is 0-1
+            continue
 
-    if dhw := tcs.hotwater:
-        assert serializable_attrs(dhw) == snapshot(name="hot_water")
+        assert serializable_attrs(tcs) == snapshot(name=f"loc_{loc.id}_tcs")
 
-    zones = {z.id: serializable_attrs(z) for z in tcs.zones}
-    assert yaml.dump(zones, indent=4) == snapshot(name="zones")
+        if dhw := tcs.hotwater:  # is 0-1
+            assert serializable_attrs(dhw) == snapshot(name=f"loc_{loc.id}_dhw")
+
+        zones = {z.id: serializable_attrs(z) for z in tcs.zones}
+        assert yaml.dump(zones, indent=4) == snapshot(name=f"loc_{loc.id}_zon")

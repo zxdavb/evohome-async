@@ -1,0 +1,39 @@
+{
+  "locationId": "2738909",
+  "gateways": [
+    {
+      "gatewayId": "2499896",
+      "temperatureControlSystems": [
+        {
+          "systemId": "3432522",
+          "zones": [
+            {
+              "zoneId": "3432521",
+              "temperatureStatus": {
+                "temperature": 17.5,
+                "isAvailable": true
+              },
+              "activeFaults": [],
+              "setpointStatus": {
+                "targetHeatTemperature": 14.5,
+                "setpointMode": "PermanentOverride"
+              },
+              "name": "Living room"
+            }
+          ],
+          "activeFaults": [],
+          "systemModeStatus": {
+            "mode": "Auto",
+            "isPermanent": true
+          }
+        }
+      ],
+      "activeFaults": [
+        {
+          "faultType": "GatewayCommunicationLost",
+          "since": "2025-02-23T22:34:25.0408092"
+        }
+      ]
+    }
+  ]
+}
