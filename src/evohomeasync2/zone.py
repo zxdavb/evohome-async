@@ -218,6 +218,34 @@ def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
     return DayOfWeek(day_of_week), dtm.strftime("%H:%M")  # TODO: localize, e.g. Montag?
 
 
+def _wall_to_aware(wall: dt, tzinfo: tzinfo) -> tuple[dt, dt]:
+    """Return the first and last instants at which a naive local time occurs in a TZ.
+
+    They differ only for a time in the hour that is repeated as DST ends (i.e. fold=0
+    and fold=1). A time in the hour that is skipped as DST starts never occurs, so both
+    are the end of that gap (when the local time first passes it).
+    """
+
+    first, last = (wall.replace(tzinfo=tzinfo, fold=f) for f in (0, 1))
+
+    if first.astimezone(UTC).astimezone(tzinfo).replace(tzinfo=None) == wall:
+        return first, (last if last.utcoffset() != first.utcoffset() else first)
+
+    # in a gap, fold=0 uses the offset before it (so is after the transition), and
+    # fold=1 the offset after it (so is before): bisect for the transition
+    lo, hi = int(last.timestamp()), int(first.timestamp())
+    offset = dt.fromtimestamp(hi, tzinfo).utcoffset()
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        if dt.fromtimestamp(mid, tzinfo).utcoffset() == offset:
+            hi = mid
+        else:
+            lo = mid
+
+    end = dt.fromtimestamp(hi, tzinfo)
+    return end, end
+
+
 def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT)](
     schedule: list[DayT],
     day_of_week: DayOfWeek,
@@ -269,6 +297,63 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
     return this_sp, this_offset, next_sp, next_offset
 
 
+def _find_switchpoint_dtms[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT)](
+    schedule: list[DayT], dtm: dt, tzinfo: tzinfo
+) -> tuple[_SwitchPoint, _SwitchPoint]:
+    """Find the current (this) and next switchpoints for a given datetime and TZ.
+
+    Each switchpoint is its start (an aware datetime in the TZ) and its setpoint. Across
+    a DST transition, this is its most recent start, and next is its soonest one.
+    """
+
+    # get the instant first: converting a repeated time may lose its fold (e.g. as with
+    # freezegun's FakeDatetime), and so the instant, but not its wall-clock fields
+    now = (dtm if dtm.tzinfo else dtm.replace(tzinfo=tzinfo)).astimezone(UTC)
+    dtm = as_local_time(dtm, tzinfo)
+
+    this_sp, this_offset, next_sp, next_offset = _find_switchpoints(
+        schedule, *_dt_to_dow_and_tod(dtm, tzinfo)
+    )
+
+    this_tod = tm.fromisoformat(this_sp[SZ_TIME_OF_DAY])
+    next_tod = tm.fromisoformat(next_sp[SZ_TIME_OF_DAY])
+
+    this_first, this_last = _wall_to_aware(
+        dt.combine(dtm + td(days=this_offset), this_tod), tzinfo
+    )
+    next_first, next_last = _wall_to_aware(
+        dt.combine(dtm + td(days=next_offset), next_tod), tzinfo
+    )
+
+    # compare with a UTC now: aware datetimes with the same tzinfo are compared by
+    # wall-clock (ignoring fold), so a repeated time would be mis-ordered
+    this_dtm = this_last if this_last <= now else this_first
+    next_dtm = next_first if next_first > now else next_last
+
+    # switchpoints skipped by the same DST gap all start at its end, when only the last
+    # of them becomes active (this_sp is already the last, as it is found by wall-clock)
+    next_day = dtm + td(days=next_offset)
+    for sp in schedule[next_day.weekday()][SZ_SWITCHPOINTS]:
+        if sp[SZ_TIME_OF_DAY] <= next_sp[SZ_TIME_OF_DAY]:
+            continue
+        start, _ = _wall_to_aware(
+            dt.combine(next_day, tm.fromisoformat(sp[SZ_TIME_OF_DAY])), tzinfo
+        )
+        if start != next_dtm:  # NB: same tzinfo, so compared by wall-clock
+            break
+        next_sp = sp
+
+    # exactly one of "dhw_state" (str) or "heat_setpoint" (float) will be present
+    this_val = (
+        this_sp[SZ_DHW_STATE] if SZ_DHW_STATE in this_sp else this_sp[SZ_HEAT_SETPOINT]
+    )
+    next_val = (
+        next_sp[SZ_DHW_STATE] if SZ_DHW_STATE in next_sp else next_sp[SZ_HEAT_SETPOINT]
+    )
+
+    return (this_dtm, this_val), (next_dtm, next_val)
+
+
 class _ScheduleBase[
     StatusT,
     DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT),
@@ -278,9 +363,6 @@ class _ScheduleBase[
     SCH_SCHEDULE: Validator[_DailySchedulesT[DayT]]
 
     _schedule: list[DayT] | None = None  # None: not fetched, []: there is no schedule
-
-    # this/next switchpoints (each has a float for zones, and a str for DHW)
-    _switchpoints: tuple[_SwitchPoint, _SwitchPoint] | None = None
 
     location: Location  # used to get tzinfo
 
@@ -330,12 +412,9 @@ class _ScheduleBase[
         if not (schedule := self.schedule):
             return None
 
-        dt_now = dt.now(tz=UTC)
-
-        if self._switchpoints is None or self._switchpoints[1][0] <= dt_now:
-            self._switchpoints = self._find_switchpoints(schedule, dt_now)
-
-        return self._switchpoints
+        # not cached, as a cached pair can be stale after DST ends (as local time
+        # repeats, an earlier switchpoint becomes this again)
+        return self._find_switchpoints(schedule, dt.now(tz=UTC))
 
     async def get_schedule(self) -> list[DayT]:
         """Get the schedule for this DHW/zone object."""
@@ -366,15 +445,14 @@ class _ScheduleBase[
         schedule = response[SZ_DAILY_SCHEDULES]  # is [] if there is no schedule
 
         try:  # check the switchpoints can be found, before storing the schedule
-            switchpoints = (
-                self._find_switchpoints(schedule, dt.now(tz=UTC)) if schedule else None
-            )
+            if schedule:
+                self._find_switchpoints(schedule, dt.now(tz=UTC))
         except exc.InvalidScheduleError as err:
             raise exc.InvalidScheduleError(
                 f"{self}: Schedule is invalid: {err}"
             ) from err
 
-        self._schedule, self._switchpoints = schedule, switchpoints
+        self._schedule = schedule
 
         return self._schedule
 
@@ -391,35 +469,7 @@ class _ScheduleBase[
             "next_sp_temp": 18.6,
         }
         """
-
-        dtm = as_local_time(dtm, self.location.tzinfo)
-
-        this_sp, this_offset, next_sp, next_offset = _find_switchpoints(
-            schedule, *_dt_to_dow_and_tod(dtm, self.location.tzinfo)
-        )
-
-        this_tod = tm.fromisoformat(this_sp[SZ_TIME_OF_DAY])
-        next_tod = tm.fromisoformat(next_sp[SZ_TIME_OF_DAY])
-
-        this_dtm = dt.combine(dtm + td(days=this_offset), this_tod)
-        next_dtm = dt.combine(dtm + td(days=next_offset), next_tod)
-
-        # exactly one of "dhw_state" (str) or "heat_setpoint" (float) will be present
-        this_val = (
-            this_sp[SZ_DHW_STATE]
-            if SZ_DHW_STATE in this_sp
-            else this_sp[SZ_HEAT_SETPOINT]
-        )
-        next_val = (
-            next_sp[SZ_DHW_STATE]
-            if SZ_DHW_STATE in next_sp
-            else next_sp[SZ_HEAT_SETPOINT]
-        )
-
-        return (
-            (this_dtm.replace(tzinfo=self.location.tzinfo), this_val),
-            (next_dtm.replace(tzinfo=self.location.tzinfo), next_val),
-        )
+        return _find_switchpoint_dtms(schedule, dtm, self.location.tzinfo)
 
     async def set_schedule(
         self,
@@ -461,7 +511,6 @@ class _ScheduleBase[
         response = await self._auth.put(url, json=schedule_, schema=self.SCH_SCHEDULE)
 
         self._schedule = schedule  # NOTE: the comm task may yet fail
-        self._switchpoints = None  # will be found from the new schedule, when needed
         return CommTask.from_response(self._auth, response)
 
 
