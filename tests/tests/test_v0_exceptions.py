@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from evohomeasync import EvohomeClient, exceptions as exc
-from tests.common import get_loc
+from tests.common import get_tcs
 
 from .conftest import FIXTURES_V0 as FIXTURES
 
@@ -90,7 +90,7 @@ async def test_unknown_zone(
 ) -> None:
     """Test asking for a zone that does not exist raises BadApiRequestError."""
 
-    loc = get_loc(evohome_v0)
+    tcs = get_tcs(evohome_v0)
 
     with pytest.raises(exc.BadApiRequestError):
-        loc._get_zone("no such zone")
+        tcs._get_zone("no such zone")

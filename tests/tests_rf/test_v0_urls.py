@@ -227,7 +227,7 @@ async def get_gateways(auth: Auth, loc_id: int) -> list[dict[str, Any]]:
         {
           "gatewayID": 2499896,
           "mac": "00D02DEE4E56",
-          "crc": "17C2",
+          "crc": "0000",
           "locationId": 2738909,
           "isUpgrading": false,
           "isRedlinkGateway": false

@@ -57,7 +57,7 @@ MOCK_FULL_CONFIG = [  # of a specific user account
                 "gatewayInfo": {
                     "gatewayId": "2499896",
                     "mac": "00D02DEE1234",
-                    "crc": "9999",
+                    "crc": "0000",
                     "isWiFi": False,
                 },
                 "temperatureControlSystems": [

@@ -48,6 +48,7 @@ if TYPE_CHECKING:
 
     from . import EvohomeClient
     from .auth import Auth
+    from .control_system import ControlSystem
     from .typedefs import (
         EvoLocConfigResponseT,
         EvoLocConfigT,
@@ -187,6 +188,14 @@ class Location(EntityBase[EvoLocStatusT]):
     @property
     def name(self) -> str:
         return self._config[SZ_NAME]
+
+    @property
+    def tcs(self) -> ControlSystem | None:
+        """Return the location's TCS, or None if it has none.
+
+        A location has 0-1 gateways, each with 0-1 TCSs.
+        """
+        return next((tcs for gwy in self.gateways for tcs in gwy.systems), None)
 
     async def _get_config(self) -> EvoLocConfigResponseT:
         """Get the latest config of the location and update its TZ/DST attrs.

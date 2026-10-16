@@ -19,7 +19,6 @@ from _evohome.exceptions import (
     InvalidScheduleError,
     InvalidScheduleRequestError,
     InvalidStatusError,
-    NoSingleTcsError,
     NotFetchedError,
     deprecated_getattr,
 )
@@ -43,7 +42,6 @@ __all__ = [
     "InvalidScheduleError",
     "InvalidScheduleRequestError",
     "InvalidStatusError",
-    "NoSingleTcsError",
     "NotFetchedError",
 ]
 

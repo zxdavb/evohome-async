@@ -28,7 +28,6 @@ from .exceptions import (
     InvalidScheduleError,
     InvalidScheduleRequestError,
     InvalidStatusError,
-    NoSingleTcsError,
     NotFetchedError,
 )
 from .main import EvohomeClient
@@ -99,7 +98,6 @@ __all__ = [  # noqa: RUF022
     "InvalidScheduleError",
     "InvalidScheduleRequestError",
     "InvalidStatusError",
-    "NoSingleTcsError",
     "NotFetchedError",
 ]
 

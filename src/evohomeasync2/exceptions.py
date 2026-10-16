@@ -22,7 +22,6 @@ from _evohome.exceptions import (
     InvalidScheduleError,
     InvalidScheduleRequestError,
     InvalidStatusError,
-    NoSingleTcsError,
     NotFetchedError,
     StaleConfigError,
     deprecated_getattr,
@@ -51,7 +50,6 @@ __all__ = [
     "InvalidScheduleRequestError",
     "InvalidStatusError",
     "InvalidSystemModeError",  # deprecated alias for InvalidModeRequestError
-    "NoSingleTcsError",
     "NotFetchedError",
     "StaleConfigError",
 ]

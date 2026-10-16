@@ -1,0 +1,321 @@
+[
+  {
+    "locationID": 3164610,
+    "name": "Living room",
+    "streetAddress": "1 Main Street",
+    "city": "London",
+    "state": "",
+    "country": "NL",
+    "zipcode": "AB1 2CD",
+    "type": "Residential",
+    "hasStation": true,
+    "devices": [],
+    "oneTouchButtons": [],
+    "weather": {
+      "condition": "Showers",
+      "temperature": 15.1,
+      "units": "Celsius",
+      "humidity": 96,
+      "phrase": "Light rain"
+    },
+    "daylightSavingTimeEnabled": true,
+    "timeZone": {
+      "id": "W. Europe Standard Time",
+      "displayName": "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna",
+      "offsetMinutes": 60,
+      "currentOffsetMinutes": 120,
+      "usingDaylightSavingTime": true
+    },
+    "oneTouchActionsSuspended": false,
+    "isLocationOwner": false,
+    "locationOwnerID": 2624305,
+    "locationOwnerName": "John Smith",
+    "locationOwnerUserName": "user@example.com",
+    "canSearchForContractors": false
+  },
+  {
+    "locationID": 2738909,
+    "name": "My Home",
+    "streetAddress": "1 Main Street",
+    "city": "London",
+    "state": "",
+    "country": "GB",
+    "zipcode": "AB1 2CD",
+    "type": "Residential",
+    "hasStation": true,
+    "devices": [
+      {
+        "gatewayId": 2499896,
+        "deviceID": 3432521,
+        "thermostatModelType": "EMEA_ZONE",
+        "deviceType": 128,
+        "name": "Living room",
+        "scheduleCapable": false,
+        "holdUntilCapable": false,
+        "thermostat": {
+          "units": "Celsius",
+          "indoorTemperature": 17.88,
+          "outdoorTemperature": 128.0,
+          "outdoorTemperatureAvailable": false,
+          "outdoorHumidity": 128.0,
+          "outdootHumidityAvailable": false,
+          "indoorHumidity": 128.0,
+          "indoorTemperatureStatus": "Measured",
+          "indoorHumidityStatus": "NotAvailable",
+          "outdoorTemperatureStatus": "NotAvailable",
+          "outdoorHumidityStatus": "NotAvailable",
+          "isCommercial": false,
+          "allowedModes": [
+            "Heat",
+            "Off"
+          ],
+          "deadband": 0.0,
+          "minHeatSetpoint": 5.0,
+          "maxHeatSetpoint": 35.0,
+          "minCoolSetpoint": 50.0,
+          "maxCoolSetpoint": 90.0,
+          "changeableValues": {
+            "mode": "Off",
+            "heatSetpoint": {
+              "value": 14.5,
+              "status": "Hold"
+            },
+            "vacationHoldDays": 0
+          },
+          "scheduleCapable": false,
+          "vacationHoldChangeable": false,
+          "vacationHoldCancelable": false,
+          "scheduleHeatSp": 0.0,
+          "scheduleCoolSp": 0.0
+        },
+        "alertSettings": {
+          "deviceID": 3432521,
+          "tempHigherThanActive": true,
+          "tempHigherThan": 30.0,
+          "tempHigherThanMinutes": 0,
+          "tempLowerThanActive": true,
+          "tempLowerThan": 5.0,
+          "tempLowerThanMinutes": 0,
+          "faultConditionExistsActive": false,
+          "faultConditionExistsHours": 0,
+          "normalConditionsActive": true,
+          "communicationLostActive": false,
+          "communicationLostHours": 0,
+          "communicationFailureActive": true,
+          "communicationFailureMinutes": 15,
+          "deviceLostActive": false,
+          "deviceLostHours": 0
+        },
+        "isUpgrading": false,
+        "isAlive": false,
+        "thermostatVersion": "02.01.01.01",
+        "macID": "00D02DEE4E56",
+        "locationID": 2738909,
+        "domainID": 20054,
+        "instance": 0
+      }
+    ],
+    "oneTouchButtons": [],
+    "weather": {
+      "condition": "MostlySunny",
+      "temperature": 13.9,
+      "units": "Celsius",
+      "humidity": 65,
+      "phrase": "Mostly sunny"
+    },
+    "daylightSavingTimeEnabled": true,
+    "timeZone": {
+      "id": "GMT Standard Time",
+      "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+      "offsetMinutes": 0,
+      "currentOffsetMinutes": 60,
+      "usingDaylightSavingTime": true
+    },
+    "oneTouchActionsSuspended": false,
+    "isLocationOwner": false,
+    "locationOwnerID": 2263181,
+    "locationOwnerName": "John Smith",
+    "locationOwnerUserName": "user@example.com",
+    "canSearchForContractors": true,
+    "contractor": {
+      "info": {
+        "contractorID": 1839
+      },
+      "monitoring": {
+        "levelOfAccess": "Partial",
+        "contactPreferences": []
+      }
+    }
+  },
+  {
+    "locationID": 8380809,
+    "name": "My Home (RFG100)",
+    "streetAddress": "1 Main Street",
+    "city": "London",
+    "state": "",
+    "country": "GB",
+    "zipcode": "AB1 2CD",
+    "type": "Residential",
+    "hasStation": true,
+    "devices": [
+      {
+        "gatewayId": 2678129,
+        "deviceID": 6860918,
+        "thermostatModelType": "DOMESTIC_HOT_WATER",
+        "deviceType": 96,
+        "name": "",
+        "scheduleCapable": false,
+        "holdUntilCapable": false,
+        "thermostat": {
+          "units": "Celsius",
+          "indoorTemperature": 128.0,
+          "outdoorTemperature": 128.0,
+          "outdoorTemperatureAvailable": false,
+          "outdoorHumidity": 128.0,
+          "outdootHumidityAvailable": false,
+          "indoorHumidity": 128.0,
+          "indoorTemperatureStatus": "NotAvailable",
+          "indoorHumidityStatus": "NotAvailable",
+          "outdoorTemperatureStatus": "NotAvailable",
+          "outdoorHumidityStatus": "NotAvailable",
+          "isCommercial": false,
+          "allowedModes": [
+            "DHWOn",
+            "DHWOff"
+          ],
+          "deadband": 0.0,
+          "minHeatSetpoint": 5.0,
+          "maxHeatSetpoint": 30.0,
+          "minCoolSetpoint": 50.0,
+          "maxCoolSetpoint": 90.0,
+          "changeableValues": {
+            "mode": "DHWOn",
+            "status": "Scheduled"
+          },
+          "scheduleCapable": false,
+          "vacationHoldChangeable": false,
+          "vacationHoldCancelable": false,
+          "scheduleHeatSp": 0.0,
+          "scheduleCoolSp": 0.0
+        },
+        "alertSettings": {
+          "deviceID": 6860918,
+          "tempHigherThanActive": true,
+          "tempHigherThan": 30.0,
+          "tempHigherThanMinutes": 0,
+          "tempLowerThanActive": true,
+          "tempLowerThan": 5.0,
+          "tempLowerThanMinutes": 0,
+          "faultConditionExistsActive": false,
+          "faultConditionExistsHours": 0,
+          "normalConditionsActive": true,
+          "communicationLostActive": false,
+          "communicationLostHours": 0,
+          "communicationFailureActive": true,
+          "communicationFailureMinutes": 15,
+          "deviceLostActive": false,
+          "deviceLostHours": 0
+        },
+        "isUpgrading": false,
+        "isAlive": false,
+        "thermostatVersion": "03.00.10.06",
+        "macID": "00D02D67C990",
+        "locationID": 8380809,
+        "domainID": 51600,
+        "instance": 250
+      },
+      {
+        "gatewayId": 2678129,
+        "deviceID": 3744415,
+        "thermostatModelType": "EMEA_ZONE",
+        "deviceType": 96,
+        "name": "Living room",
+        "scheduleCapable": false,
+        "holdUntilCapable": false,
+        "thermostat": {
+          "units": "Celsius",
+          "indoorTemperature": 21.44,
+          "outdoorTemperature": 128.0,
+          "outdoorTemperatureAvailable": false,
+          "outdoorHumidity": 128.0,
+          "outdootHumidityAvailable": false,
+          "indoorHumidity": 128.0,
+          "indoorTemperatureStatus": "Measured",
+          "indoorHumidityStatus": "NotAvailable",
+          "outdoorTemperatureStatus": "NotAvailable",
+          "outdoorHumidityStatus": "NotAvailable",
+          "isCommercial": false,
+          "allowedModes": [
+            "Heat",
+            "Off"
+          ],
+          "deadband": 0.0,
+          "minHeatSetpoint": 5.0,
+          "maxHeatSetpoint": 35.0,
+          "minCoolSetpoint": 50.0,
+          "maxCoolSetpoint": 90.0,
+          "changeableValues": {
+            "mode": "Off",
+            "heatSetpoint": {
+              "value": 21.0,
+              "status": "Scheduled"
+            },
+            "vacationHoldDays": 0
+          },
+          "scheduleCapable": false,
+          "vacationHoldChangeable": false,
+          "vacationHoldCancelable": false,
+          "scheduleHeatSp": 0.0,
+          "scheduleCoolSp": 0.0
+        },
+        "alertSettings": {
+          "deviceID": 3744415,
+          "tempHigherThanActive": true,
+          "tempHigherThan": 30.0,
+          "tempHigherThanMinutes": 0,
+          "tempLowerThanActive": true,
+          "tempLowerThan": 5.0,
+          "tempLowerThanMinutes": 0,
+          "faultConditionExistsActive": false,
+          "faultConditionExistsHours": 0,
+          "normalConditionsActive": true,
+          "communicationLostActive": false,
+          "communicationLostHours": 0,
+          "communicationFailureActive": true,
+          "communicationFailureMinutes": 15,
+          "deviceLostActive": false,
+          "deviceLostHours": 0
+        },
+        "isUpgrading": false,
+        "isAlive": false,
+        "thermostatVersion": "03.00.10.06",
+        "macID": "00D02D67C990",
+        "locationID": 8380809,
+        "domainID": 51600,
+        "instance": 0
+      }
+    ],
+    "oneTouchButtons": [],
+    "weather": {
+      "condition": "MostlySunny",
+      "temperature": 13.9,
+      "units": "Celsius",
+      "humidity": 65,
+      "phrase": "Mostly sunny"
+    },
+    "daylightSavingTimeEnabled": true,
+    "timeZone": {
+      "id": "GMT Standard Time",
+      "displayName": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+      "offsetMinutes": 0,
+      "currentOffsetMinutes": 60,
+      "usingDaylightSavingTime": true
+    },
+    "oneTouchActionsSuspended": false,
+    "isLocationOwner": false,
+    "locationOwnerID": 9859228,
+    "locationOwnerName": "John Smith",
+    "locationOwnerUserName": "user@example.com",
+    "canSearchForContractors": true
+  }
+]

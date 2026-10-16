@@ -26,6 +26,7 @@ token that should never be hardcoded in test fixtures.
 | `hass_139906/` | 2727366 | NL | HA core issue [#139906](https://github.com/home-assistant/core/issues/139906) |
 | `hass_139945/` | 2080024 | NL | HA core issue [#139945](https://github.com/home-assistant/core/issues/139945) |
 | `hass_141882/` | 7680795 | AU | HA core issue [#141882](https://github.com/home-assistant/core/issues/141882) |
+| `system_009/` | 3164610, 2738909, 8380809 | GB | Captured from a real (dummy) account; 3 locations |
 
 ## PII policy
 
@@ -46,3 +47,4 @@ Systems that appear in both `fixtures_v0/` and `fixtures_v2/`:
 | 2727366 | `hass_139906/` | `fixtures_v2/hass_139906/` |
 | 2080024 | `hass_139945/` | `fixtures_v2/hass_139945/` |
 | 7680795 | `hass_141882/` | `fixtures_v2/hass_141882/` |
+| 3164610, 2738909, 8380809 | `system_009/` | `fixtures_v2/system_009/` |

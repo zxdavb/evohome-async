@@ -337,3 +337,52 @@
     ),
   ])
 # ---
+# name: test_system_warnings[system_009]
+  list([
+    tuple(
+      'evohomeasync2',
+      30,
+      'There are 3 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Gateway(id='2499896'): Active fault: 2025-02-23T22:34:25.040809+00:00 gateway_communication_lost",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Gateway(id='2678129'): Active fault: 2026-10-10T18:00:41.988027+01:00 gateway_communication_lost",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='3744416'): Active fault: 2026-10-08T21:03:47+01:00 boiler_communication_lost",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='3744416'): Active fault: 2026-10-08T21:03:47+01:00 ch_valve_communication_lost",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "ControlSystem(id='3744416'): Active fault: 2026-10-10T16:15:28+01:00 temp_control_system_communication_lost (is unknown, please report it at https://github.com/zxdavb/evohome-async/issues)",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "Zone(id='3744415'): Active fault: 2026-10-08T21:03:47+01:00 temp_zone_actuator_communication_lost",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "HotWater(id='6860918'): Active fault: 2026-10-08T21:03:47+01:00 dhw_actuator_communication_lost",
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
+      "HotWater(id='6860918'): Active fault: 2026-10-08T21:03:47+01:00 dhw_sensor_communication_lost",
+    ),
+  ])
+# ---
