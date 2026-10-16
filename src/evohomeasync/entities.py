@@ -81,6 +81,7 @@ if TYPE_CHECKING:
         EvoDevInfoDictT,
         EvoGwyInfoDictT,
         EvoLocInfoDictT,
+        EvoTcsDictT,
         EvoTcsInfoDictT,
         EvoTimeZoneInfoDictT,
         EvoWeatherDictT,
@@ -96,7 +97,13 @@ _ZONE_MODEL_TYPE_PREFIX: Final = "EMEA_"
 class _EntityBase(ABC):
     """Base class for all entities."""
 
-    _status: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
+    _status: (
+        EvoDevInfoDictT
+        | EvoGwyInfoDictT
+        | EvoLocInfoDictT
+        | EvoTcsDictT
+        | EvoTcsInfoDictT
+    )
 
     def __init__(self, entity_id: int) -> None:
         self._id: Final = entity_id
@@ -119,7 +126,13 @@ class _EntityBase(ABC):
     @property
     def status(
         self,
-    ) -> EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT:
+    ) -> (
+        EvoDevInfoDictT
+        | EvoGwyInfoDictT
+        | EvoLocInfoDictT
+        | EvoTcsDictT
+        | EvoTcsInfoDictT
+    ):
         """Return the latest config of the entity."""
         return self._status
 
@@ -345,9 +358,9 @@ class Zone(_DeviceBase):  # Zone version of a Device
 class ControlSystem(_EntityBase):
     """Instance of a gateway's TCS.
 
-    The vendor has no TCS entity: its config/status is that of its location, its DHW
-    and zones are the location's devices (with its gateway's id), and its mode is set
-    via its location's id (so that is used as its id).
+    The vendor has no TCS entity: its config/status is a portion of that of its
+    location, its DHW and zones are the location's devices (with its gateway's id), and
+    its mode is set via its location's id (so that is used as its id).
     """
 
     def __init__(self, gateway: Gateway, /) -> None:
@@ -396,14 +409,23 @@ class ControlSystem(_EntityBase):
         self.zone_by_idx[zone.idx] = zone
 
     @property  # not strictly static, but library largely assumes so
-    def config(self) -> EvoTcsInfoDictT:
-        """Return the config of the entity (that of its location)."""
-        return self.location.config
+    def config(self) -> EvoTcsDictT:
+        """Return the config of the entity (a portion of its location's)."""
+        return {SZ_LOCATION_ID: self.location.config[SZ_LOCATION_ID]}
 
     @property
-    def status(self) -> EvoTcsInfoDictT:
-        """Return the latest status of the entity (that of its location)."""
-        return self.location.status
+    def status(self) -> EvoTcsDictT:
+        """Return the latest status of the entity (a portion of its location's)."""
+
+        loc_status = self.location.status
+        status: EvoTcsDictT = {SZ_LOCATION_ID: loc_status[SZ_LOCATION_ID]}
+
+        if (suspended := loc_status.get(SZ_ONE_TOUCH_ACTIONS_SUSPENDED)) is not None:
+            status[SZ_ONE_TOUCH_ACTIONS_SUSPENDED] = suspended
+        if (buttons := loc_status.get(SZ_ONE_TOUCH_BUTTONS)) is not None:
+            status[SZ_ONE_TOUCH_BUTTONS] = buttons
+
+        return status
 
     @property
     def tzinfo(self) -> tzinfo:
