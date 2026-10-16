@@ -340,7 +340,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                 f"{self}: Unsupported system_mode: {system_mode}"
             )
 
-        until: dt | None
+        until: dt
 
         if duration is not None:
             if mode_entry.get(SZ_TIMING_MODE) != TimingMode.DURATION:
@@ -359,10 +359,14 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             )
             until = start_of_day + period
 
-        else:
-            until = None
+        else:  # all known modes can be permanent
+            return await self._set_mode(
+                {SZ_SYSTEM_MODE: system_mode, SZ_PERMANENT: True}
+            )
 
-        return await self.set_mode(system_mode, until=until)
+        return await self._set_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME
+            {SZ_SYSTEM_MODE: system_mode, SZ_PERMANENT: False, SZ_TIME_UNTIL: until}
+        )
 
     # most, but not all, TCC-compatible systems support these modes...
 
