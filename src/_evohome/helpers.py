@@ -37,8 +37,10 @@ TCC_DTM_LOCAL_STRFTIME: Final = "%Y-%m-%dT%H:%M:%S"
 # _TCC_SINCE_DTM: Final = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,}$"
 
 # A .NET TimeSpan, as used by the vendor for durations, e.g. "1.00:00:00", "01:00:00"
+# (days capped at 9 digits, as timedelta's limit is 999,999,999 days)
 _TCC_TIMESPAN_REGEX: Final = re.compile(
-    r"^(?:(?P<days>\d+)\.)?(?P<hours>\d{1,2}):(?P<minutes>\d{2}):(?P<seconds>\d{2})$"
+    r"^(?:(?P<days>\d{1,9})\.)?(?P<hours>[01]?\d|2[0-3])"
+    r":(?P<minutes>[0-5]\d):(?P<seconds>[0-5]\d)$"
 )
 
 _REDACTED_EMAIL_ADDRESS = "no-reply@redacted.xxx"
