@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from freezegun.api import FakeDatetime
 
-from evohomeasync2 import BadApiRequestError
+from evohomeasync2 import BadApiRequestError, InvalidModeRequestError
 from evohomeasync2.const import DhwState, SystemMode, ZoneMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -400,5 +400,152 @@ async def test_set_mode_rejects_naive_until(
         pytest.raises(BadApiRequestError),
     ):
         await tcs.set_away(until=naive)
+
+    mock_put.assert_not_awaited()
+
+
+# Test ControlSystem.set_system_mode() (a duration/period, rather than an until)...
+
+
+@pytest.mark.parametrize(
+    ("system_mode", "kwargs", "now_until"),
+    [
+        pytest.param(
+            SystemMode.AUTO_WITH_ECO,
+            {"duration": td(hours=2)},
+            ("2025-07-10T12:00:00Z", dt(2025, 7, 10, 14, 0, tzinfo=UTC)),
+            id="duration",
+        ),
+        pytest.param(  # midnight BST (UTC+1) is 23:00 UTC
+            SystemMode.AWAY,
+            {"period": td(days=3)},
+            ("2025-07-10T12:00:00Z", dt(2025, 7, 12, 23, 0, tzinfo=UTC)),
+            id="period",
+        ),
+        pytest.param(  # the clocks go back (BST -> GMT) on 2025-10-26
+            SystemMode.DAY_OFF,
+            {"period": td(days=2)},
+            ("2025-10-25T12:00:00Z", dt(2025, 10, 27, 0, 0, tzinfo=UTC)),
+            id="period_over_dst",
+        ),
+        pytest.param(  # 01:30 BST + 1h is 01:30 GMT (the clocks go back at 02:00 BST)
+            SystemMode.AUTO_WITH_ECO,
+            {"duration": td(hours=1)},
+            ("2025-10-26T00:30:00Z", dt(2025, 10, 26, 1, 30, tzinfo=UTC)),
+            id="duration_over_dst_end",
+        ),
+        pytest.param(  # 00:30 GMT + 2h is 03:30 BST (the clocks go forward at 01:00 GMT)
+            SystemMode.AUTO_WITH_ECO,
+            {"duration": td(hours=2)},
+            ("2025-03-30T00:30:00Z", dt(2025, 3, 30, 2, 30, tzinfo=UTC)),
+            id="duration_over_dst_start",
+        ),
+        pytest.param(  # the maximum duration is allowed
+            SystemMode.AUTO_WITH_ECO,
+            {"duration": td(days=1)},
+            ("2025-07-10T12:00:00Z", dt(2025, 7, 11, 12, 0, tzinfo=UTC)),
+            id="duration_max",
+        ),
+        pytest.param(  # the maximum period is allowed (midnight BST is 23:00 UTC)
+            SystemMode.AWAY,
+            {"period": td(days=99)},
+            ("2025-07-10T12:00:00Z", dt(2025, 10, 16, 23, 0, tzinfo=UTC)),
+            id="period_max",
+        ),
+    ],
+)
+async def test_ctl_set_system_mode_temporary(
+    tcs: ControlSystem,
+    freezer: FrozenDateTimeFactory,
+    system_mode: SystemMode,
+    kwargs: dict[str, td],
+    now_until: tuple[str, dt],
+) -> None:
+    """Test set_system_mode() ends a duration from now, and a period from midnight."""
+
+    now, expected = now_until
+    freezer.move_to(now)
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
+        await tcs.set_system_mode(system_mode, **kwargs)
+
+    json = mock_put.call_args[1]["json"]
+
+    assert json["system_mode"] == system_mode
+    assert json["permanent"] is False
+    assert json["time_until"] == expected  # the same instant, whatever its TZ
+
+
+async def test_ctl_set_system_mode_permanent(
+    tcs: ControlSystem,
+) -> None:
+    """Test set_system_mode() without a duration/period sets the mode indefinitely."""
+
+    url = f"temperatureControlSystem/{tcs.id}/mode"
+    mode = {"system_mode": SystemMode.AWAY, "permanent": True}
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
+        await tcs.set_system_mode("away")
+
+    mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
+
+
+@pytest.mark.parametrize(
+    ("system_mode", "kwargs"),
+    [
+        pytest.param("no_such_mode", {}, id="unknown_mode"),
+        pytest.param(SystemMode.HEAT, {}, id="unsupported_mode"),
+        pytest.param(
+            SystemMode.AWAY,
+            {"duration": td(hours=1), "period": td(days=1)},
+            id="duration_and_period",
+        ),
+        pytest.param(SystemMode.AUTO, {"duration": td(hours=1)}, id="not_temporary"),
+        pytest.param(SystemMode.AWAY, {"duration": td(hours=1)}, id="period_only"),
+        pytest.param(SystemMode.AUTO_WITH_ECO, {"period": td(days=1)}, id="dur_only"),
+        pytest.param(SystemMode.AUTO_WITH_ECO, {"duration": td(0)}, id="dur_zero"),
+        pytest.param(
+            SystemMode.AUTO_WITH_ECO, {"duration": td(hours=-1)}, id="dur_negative"
+        ),
+        pytest.param(  # max_duration is "1.00:00:00"
+            SystemMode.AUTO_WITH_ECO, {"duration": td(hours=25)}, id="dur_too_long"
+        ),
+        pytest.param(SystemMode.AWAY, {"period": td(0)}, id="period_zero"),
+        pytest.param(SystemMode.AWAY, {"period": td(hours=12)}, id="period_too_short"),
+        pytest.param(  # max_duration is "99.00:00:00"
+            SystemMode.AWAY, {"period": td(days=100)}, id="period_too_long"
+        ),
+        pytest.param(  # timing_resolution is "01:00:00"
+            SystemMode.AUTO_WITH_ECO, {"duration": td(minutes=90)}, id="dur_resolution"
+        ),
+        pytest.param(  # timing_resolution is "1.00:00:00"
+            SystemMode.AWAY, {"period": td(days=1, hours=6)}, id="period_resolution"
+        ),
+    ],
+)
+async def test_ctl_set_system_mode_rejects(
+    tcs: ControlSystem,
+    system_mode: SystemMode | str,
+    kwargs: dict[str, td],
+) -> None:
+    """Test set_system_mode() rejects an invalid request before any PUT is made."""
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        pytest.raises(InvalidModeRequestError),
+    ):
+        await tcs.set_system_mode(system_mode, **kwargs)
 
     mock_put.assert_not_awaited()
