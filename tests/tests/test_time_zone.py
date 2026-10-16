@@ -30,7 +30,10 @@ from _evohome.time_zone import iana_tz_from_windows_tz
         ),
     ],
 )
-def test_iana_tz_from_windows_tz(time_zone_id: str, expected: str) -> None:
+def test_iana_tz_from_windows_tz(
+    time_zone_id: str,
+    expected: str,
+) -> None:
     """Test Windows TZ ids, in the forms used by the v1 and v2 APIs."""
     assert iana_tz_from_windows_tz(time_zone_id) == expected
 
