@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
@@ -74,6 +75,10 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
         self._eula_warned: bool = False  # Only warn the user once
 
+        self._session_lock = asyncio.Lock()
+        self._session_fetches = 0  # completed fetches, so waiters can share a failure
+        self._session_error: exc.EvohomeError | None = None
+
     def clear_session_id(self) -> None:
         """Clear the session id attrs (set to falsey state)."""
 
@@ -97,11 +102,32 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         """Return a valid session id.
 
         If required, fetch (and save) a new session id via the vendor's web API.
+
+        Concurrent callers share a single fetch. If that fetch fails, the callers that
+        were waiting on it raise the same exception (rather than each trying again);
+        later callers will try again.
         """
 
-        if not self.is_session_valid():  # although may be rejected for other reasons
-            await self.fetch_session_id()
-            await self.save_session_id()
+        if self.is_session_valid():  # although may be rejected for other reasons
+            return self.session_id
+
+        fetches = self._session_fetches
+
+        async with self._session_lock:
+            if fetches != self._session_fetches and self._session_error is not None:
+                raise self._session_error
+
+            if not self.is_session_valid():  # it may have been refreshed meanwhile
+                self._session_error = None
+                try:
+                    await self.fetch_session_id()
+                except exc.EvohomeError as err:
+                    self._session_error = err
+                    raise
+                finally:
+                    self._session_fetches += 1
+
+                await self.save_session_id()
 
         return self.session_id
 

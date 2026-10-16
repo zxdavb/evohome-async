@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import logging
 from abc import ABC, abstractmethod
@@ -104,6 +105,10 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         )
         self.clear_access_token()  # initialise the attrs
 
+        self._token_lock = asyncio.Lock()
+        self._token_fetches = 0  # completed fetches, so waiters can share a failure
+        self._token_error: exc.EvohomeError | None = None
+
     def clear_access_token(self) -> None:
         """Clear the auth tokens attrs (set to falsey state)."""
 
@@ -129,11 +134,32 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """Return a valid access token.
 
         If required, fetch (and save) a new token via the vendor's web API.
+
+        Concurrent callers share a single fetch. If that fetch fails, the callers that
+        were waiting on it raise the same exception (rather than each trying again);
+        later callers will try again.
         """
 
-        if not self.is_token_valid():  # although may be rejected for other reasons
-            await self.fetch_access_token()
-            await self.save_access_token()
+        if self.is_token_valid():  # although may be rejected for other reasons
+            return self.access_token
+
+        fetches = self._token_fetches
+
+        async with self._token_lock:
+            if fetches != self._token_fetches and self._token_error is not None:
+                raise self._token_error
+
+            if not self.is_token_valid():  # it may have been refreshed meanwhile
+                self._token_error = None
+                try:
+                    await self.fetch_access_token()
+                except exc.EvohomeError as err:
+                    self._token_error = err
+                    raise
+                finally:
+                    self._token_fetches += 1
+
+                await self.save_access_token()
 
         return self.access_token
 
