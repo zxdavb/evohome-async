@@ -428,6 +428,18 @@ async def test_set_mode_rejects_naive_until(
             ("2025-10-25T12:00:00Z", dt(2025, 10, 27, 0, 0, tzinfo=UTC)),
             id="period_over_dst",
         ),
+        pytest.param(  # the maximum duration is allowed
+            SystemMode.AUTO_WITH_ECO,
+            {"duration": td(days=1)},
+            ("2025-07-10T12:00:00Z", dt(2025, 7, 11, 12, 0, tzinfo=UTC)),
+            id="duration_max",
+        ),
+        pytest.param(  # the maximum period is allowed (midnight BST is 23:00 UTC)
+            SystemMode.AWAY,
+            {"period": td(days=99)},
+            ("2025-07-10T12:00:00Z", dt(2025, 10, 16, 23, 0, tzinfo=UTC)),
+            id="period_max",
+        ),
     ],
 )
 async def test_ctl_set_system_mode_temporary(
@@ -487,6 +499,18 @@ async def test_ctl_set_system_mode_permanent(
         pytest.param(SystemMode.AUTO, {"duration": td(hours=1)}, id="not_temporary"),
         pytest.param(SystemMode.AWAY, {"duration": td(hours=1)}, id="period_only"),
         pytest.param(SystemMode.AUTO_WITH_ECO, {"period": td(days=1)}, id="dur_only"),
+        pytest.param(SystemMode.AUTO_WITH_ECO, {"duration": td(0)}, id="dur_zero"),
+        pytest.param(
+            SystemMode.AUTO_WITH_ECO, {"duration": td(hours=-1)}, id="dur_negative"
+        ),
+        pytest.param(  # max_duration is "1.00:00:00"
+            SystemMode.AUTO_WITH_ECO, {"duration": td(hours=25)}, id="dur_too_long"
+        ),
+        pytest.param(SystemMode.AWAY, {"period": td(0)}, id="period_zero"),
+        pytest.param(SystemMode.AWAY, {"period": td(hours=12)}, id="period_too_short"),
+        pytest.param(  # max_duration is "99.00:00:00"
+            SystemMode.AWAY, {"period": td(days=100)}, id="period_too_long"
+        ),
     ],
 )
 async def test_ctl_set_system_mode_rejects(

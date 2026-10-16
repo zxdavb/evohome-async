@@ -7,7 +7,7 @@ from datetime import UTC, datetime as dt, timedelta as td, timezone as tz
 import probatio as vol
 import pytest
 
-from _evohome.helpers import Case, as_aware_dtm, convert_dtms_to_utc_str
+from _evohome.helpers import Case, as_aware_dtm, as_timedelta, convert_dtms_to_utc_str
 from evohomeasync2 import BadApiRequestError
 from evohomeasync2.schemas.helpers import factory_datetime
 
@@ -119,3 +119,20 @@ def test_factory_datetime_vendor_validates_but_keeps_string() -> None:
     assert validate("2023-11-30T22:10:00Z") == "2023-11-30T22:10:00Z"
     with pytest.raises(vol.Invalid):
         validate("not-a-datetime")
+
+
+@pytest.mark.parametrize(
+    ("timespan", "expected"),
+    [
+        pytest.param("1.00:00:00", td(days=1), id="day"),
+        pytest.param("99.00:00:00", td(days=99), id="days"),
+        pytest.param("01:00:00", td(hours=1), id="hour"),
+        pytest.param("365.23:45:00", td(days=365, hours=23, minutes=45), id="mixed"),
+        pytest.param("", None, id="empty"),
+        pytest.param("P1D", None, id="iso_8601"),
+        pytest.param("1.00:00", None, id="no_seconds"),
+    ],
+)
+def test_as_timedelta(timespan: str, expected: td | None) -> None:
+    """Test as_timedelta() parses a vendor TimeSpan, and returns None if it can't."""
+    assert as_timedelta(timespan) == expected

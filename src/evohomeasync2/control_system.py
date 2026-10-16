@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import json
+from datetime import timedelta as td
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
 
-from _evohome.helpers import Case, as_aware_dtm, as_local_time
+from _evohome.helpers import Case, as_aware_dtm, as_local_time, as_timedelta
 
 from . import exceptions as exc
 from .comm_task import CommTask
@@ -18,6 +19,7 @@ from .const import (
     SZ_DHW,
     SZ_DHW_ID,
     SZ_IS_PERMANENT,
+    SZ_MAX_DURATION,
     SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_NAME,
@@ -42,7 +44,7 @@ from .zone import ActiveFaultsBase, Zone
 if TYPE_CHECKING:
     import logging
     from collections.abc import Mapping
-    from datetime import datetime as dt, timedelta as td
+    from datetime import datetime as dt
     from typing import Any
 
     from _evohome.helpers import Validator
@@ -316,6 +318,9 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         Which of the two (if either) is allowed depends upon the mode's timing_mode
         (see allowed_system_modes). Without either, the mode is set indefinitely.
 
+        A duration must be positive, and a period at least one day; neither may exceed
+        the mode's max_duration (the vendor's API accepts such values).
+
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
@@ -347,6 +352,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                 raise exc.InvalidModeRequestError(
                     f"{self}: For {system_mode}, duration must be None"
                 )
+            self._check_temporary_length(mode_entry, duration, is_period=False)
             until = self.location.now() + duration
 
         elif period is not None:
@@ -354,6 +360,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                 raise exc.InvalidModeRequestError(
                     f"{self}: For {system_mode}, period must be None"
                 )
+            self._check_temporary_length(mode_entry, period, is_period=True)
             start_of_day = self.location.now().replace(
                 hour=0, minute=0, second=0, microsecond=0
             )
@@ -367,6 +374,26 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         return await self._set_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME
             {SZ_SYSTEM_MODE: system_mode, SZ_PERMANENT: False, SZ_TIME_UNTIL: until}
         )
+
+    def _check_temporary_length(
+        self, mode_entry: EvoAllowedSystemModesT, length: td, /, *, is_period: bool
+    ) -> None:
+        """Raise InvalidModeRequestError if a duration/period is out of range."""
+
+        name = "period" if is_period else "duration"
+        mode = mode_entry[SZ_SYSTEM_MODE]
+
+        if length < (minimum := td(days=1) if is_period else td(microseconds=1)):
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {name} must be at least {minimum}: {length}"
+            )
+
+        # if max_duration is absent or unparseable, defer to the vendor
+        maximum = as_timedelta(mode_entry.get(SZ_MAX_DURATION, ""))
+        if maximum is not None and length > maximum:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {name} must be at most {maximum}: {length}"
+            )
 
     # most, but not all, TCC-compatible systems support these modes...
 
