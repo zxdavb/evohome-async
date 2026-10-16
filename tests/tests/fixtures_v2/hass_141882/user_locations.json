@@ -28,7 +28,7 @@
                 "gatewayInfo": {
                     "gatewayId": "7242198",
                     "mac": "************",
-                    "crc": "****",
+                    "crc": "0000",
                     "isWiFi": true
                 },
                 "temperatureControlSystems": [

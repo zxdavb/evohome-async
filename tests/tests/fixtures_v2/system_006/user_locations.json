@@ -104,7 +104,7 @@
                 "gatewayInfo": {
                     "gatewayId": "0002",
                     "mac": "-REDACTED-",
-                    "crc": "-REDACTED-",
+                    "crc": "0000",
                     "isWiFi": false
                 },
                 "temperatureControlSystems": [
