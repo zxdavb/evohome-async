@@ -1,11 +1,12 @@
 """Provides handling of TCC v0 entities.
 
-The vendor's entity hierarchy is flattened: Location -> devices (each a DHW or a Zone).
-There is no TCS entity (nor a TCS id), nor a gateway entity (only each device's
-gateway_id).
+The vendor's entity hierarchy is flattened: Location -> devices (each a DHW or a Zone,
+and each with the gateway_id and mac_id of its gateway). There is no TCS entity (nor a
+TCS id).
 
-But here it is implemented as for the v2 API (but without gateways):
-    Location -> TCS -> DHW | Zone
+But here it is implemented as for the v2 API: Location -> Gateway -> TCS -> DHW | Zone
+
+As for v2, the vendor allows at most one gateway per location, and one TCS per gateway.
 """
 
 from __future__ import annotations
@@ -29,13 +30,16 @@ from .const import (
     SZ_CURRENT_OFFSET_MINUTES,
     SZ_DAYLIGHT_SAVING_TIME_ENABLED,
     SZ_DEVICE_ID,
+    SZ_DEVICE_TYPE,
     SZ_DEVICES,
+    SZ_GATEWAY_ID,
     SZ_ID,
     SZ_INDOOR_TEMPERATURE,
     SZ_INDOOR_TEMPERATURE_STATUS,
     SZ_INSTANCE,
     SZ_IS_AVAILABLE,
     SZ_LOCATION_ID,
+    SZ_MAC_ID,
     SZ_MAX_HEAT_SETPOINT,
     SZ_MIN_HEAT_SETPOINT,
     SZ_NAME,
@@ -75,6 +79,7 @@ if TYPE_CHECKING:
     from .auth import Auth
     from .typedefs import (
         EvoDevInfoDictT,
+        EvoGwyInfoDictT,
         EvoLocInfoDictT,
         EvoTcsInfoDictT,
         EvoTimeZoneInfoDictT,
@@ -91,7 +96,7 @@ _ZONE_MODEL_TYPE_PREFIX: Final = "EMEA_"
 class _EntityBase(ABC):
     """Base class for all entities."""
 
-    _status: EvoDevInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
+    _status: EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT
 
     def __init__(self, entity_id: int) -> None:
         self._id: Final = entity_id
@@ -114,7 +119,7 @@ class _EntityBase(ABC):
     @property
     def status(
         self,
-    ) -> EvoDevInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT:
+    ) -> EvoDevInfoDictT | EvoGwyInfoDictT | EvoLocInfoDictT | EvoTcsInfoDictT:
         """Return the latest config of the entity."""
         return self._status
 
@@ -338,17 +343,18 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
 
 class ControlSystem(_EntityBase):
-    """Instance of a location's TCS.
+    """Instance of a gateway's TCS.
 
     The vendor has no TCS entity: its config/status is that of its location, its DHW
-    and zones are the location's devices, and its mode is set via its location's id
-    (so that is used as its id).
+    and zones are the location's devices (with its gateway's id), and its mode is set
+    via its location's id (so that is used as its id).
     """
 
-    def __init__(self, location: Location, /) -> None:
-        super().__init__(location.config[SZ_LOCATION_ID])
+    def __init__(self, gateway: Gateway, /) -> None:
+        super().__init__(gateway.location.config[SZ_LOCATION_ID])
 
-        self.location = location  # parent
+        self.location = gateway.location
+        self.gateway = gateway  # parent
 
         self.hotwater: HotWater | None = None
         self.zones: list[Zone] = []
@@ -357,6 +363,9 @@ class ControlSystem(_EntityBase):
         self.zone_by_idx: dict[str, Zone] = {}  #  not sure if fixed, or attr like name
 
         for dev_config in self.location.config[SZ_DEVICES]:
+            if str(dev_config[SZ_GATEWAY_ID]) != gateway.id:
+                continue
+
             if (
                 type_ := dev_config[SZ_THERMOSTAT_MODEL_TYPE]
             ) == TccThermostatModelType.DOMESTIC_HOT_WATER:
@@ -495,6 +504,59 @@ class ControlSystem(_EntityBase):
         return {z.id: z.temperature for z in self.zones}
 
 
+class Gateway(_EntityBase):
+    """Instance of a location's gateway.
+
+    The vendor's locations response has no gateway entity (unlike its gateways
+    response), but each device has the gateway_id and mac_id of its gateway.
+    """
+
+    _status: EvoGwyInfoDictT
+
+    def __init__(self, location: Location, config: EvoDevInfoDictT, /) -> None:
+        super().__init__(config[SZ_GATEWAY_ID])
+
+        self.location = location  # parent
+
+        self._config: EvoGwyInfoDictT = {
+            SZ_GATEWAY_ID: config[SZ_GATEWAY_ID],
+            SZ_MAC_ID: config[SZ_MAC_ID],
+            SZ_LOCATION_ID: config[SZ_LOCATION_ID],
+        }
+        if (device_type := config.get(SZ_DEVICE_TYPE)) is not None:
+            self._config[SZ_DEVICE_TYPE] = device_type
+
+        self._status = self._config  # it has no state of its own
+
+        # children: the vendor has no TCS entity, so there is one per gateway
+        tcs = ControlSystem(self)
+
+        self.systems: list[ControlSystem] = [tcs]
+        self.system_by_id: dict[str, ControlSystem] = {tcs.id: tcs}
+
+    @cached_property
+    def _auth(self) -> Auth:
+        return self.location.client.auth
+
+    @cached_property
+    def _logger(self) -> logging.Logger:
+        return self.location.client.logger
+
+    @property  # not strictly static, but library largely assumes so
+    def config(self) -> EvoGwyInfoDictT:
+        """Return the config of the entity."""
+        return self._config
+
+    @property
+    def status(self) -> EvoGwyInfoDictT:
+        """Return the latest status of the entity (the same as its config)."""
+        return self._status
+
+    @cached_property
+    def mac_address(self) -> str:
+        return self._config[SZ_MAC_ID]
+
+
 def _fixed_offset_tzinfo(time_zone_info: EvoTimeZoneInfoDictT) -> tzinfo:
     """Return a tzinfo with the location's current UTC offset (so it ignores DST)."""
     return timezone(td(minutes=time_zone_info[SZ_CURRENT_OFFSET_MINUTES]))
@@ -545,10 +607,16 @@ class Location(_EntityBase):
         # without the IANA TZ, fall back to the current UTC offset (so ignoring DST)
         self._tzinfo: Final = tzinfo or _fixed_offset_tzinfo(config[SZ_TIME_ZONE])
 
-        # child: a location without devices has no TCS
-        self.tcs: ControlSystem | None = (
-            ControlSystem(self) if config[SZ_DEVICES] else None
-        )
+        # children
+        self.gateways: list[Gateway] = []
+        self.gateway_by_id: dict[str, Gateway] = {}
+
+        for dev_config in config[SZ_DEVICES]:
+            if str(dev_config[SZ_GATEWAY_ID]) not in self.gateway_by_id:
+                gwy = Gateway(self, dev_config)
+
+                self.gateways.append(gwy)
+                self.gateway_by_id[gwy.id] = gwy
 
     @cached_property
     def _auth(self) -> Auth:
@@ -576,6 +644,14 @@ class Location(_EntityBase):
     def tzinfo(self) -> tzinfo:
         """Return a tzinfo-compliant object for this Location (as for the v2 API)."""
         return self._tzinfo
+
+    @property
+    def tcs(self) -> ControlSystem | None:
+        """Return the location's TCS, or None if it has none.
+
+        A location has 0-1 gateways, each with 0-1 TCSs.
+        """
+        return next((tcs for gwy in self.gateways for tcs in gwy.systems), None)
 
     # Config attrs...
 
@@ -611,15 +687,20 @@ class Location(_EntityBase):
 
         self._status = status
 
-        tcs = self.tcs
-
         for dev_status in status[SZ_DEVICES]:
-            dev_id = str(dev_status[SZ_DEVICE_ID])
+            if not (gwy := self.gateway_by_id.get(str(dev_status[SZ_GATEWAY_ID]))):
+                self._logger.warning(
+                    f"{self}: Ignoring gateway_id={dev_status[SZ_GATEWAY_ID]}"
+                    ", (has the location configuration changed?)"
+                )
+                continue
 
-            if tcs and dev_id in tcs.zone_by_id:
+            tcs = gwy.systems[0]
+
+            if (dev_id := str(dev_status[SZ_DEVICE_ID])) in tcs.zone_by_id:
                 tcs.zone_by_id[dev_id]._update_status(dev_status)  # noqa: SLF001
 
-            elif tcs and tcs.hotwater and tcs.hotwater.id == dev_id:
+            elif tcs.hotwater and tcs.hotwater.id == dev_id:
                 tcs.hotwater._update_status(dev_status)  # noqa: SLF001
 
             else:

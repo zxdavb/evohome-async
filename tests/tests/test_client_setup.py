@@ -179,6 +179,7 @@ async def test_v1_location_tcs(
 
     loc = get_loc(evo)
     assert (tcs := loc.tcs) is not None
+    assert tcs is loc.gateways[0].systems[0]
     assert tcs.hotwater is not None  # the default/ fixture has a DHW
 
     dev_ids = {str(d["device_id"]) for d in loc.config["devices"]}
@@ -193,7 +194,7 @@ async def test_v1_location_tcs(
 async def test_vx_location_tcs(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test each location's TCS has the same DHW/zones via the v1 and v2 APIs.
+    """Test each location's gateway/TCS has the same ids via the v1 and v2 APIs.
 
     The system_009/ fixtures are of the same (multi-location) account, captured at the
     same time. Its locations are in a different order for each API.
@@ -212,6 +213,25 @@ async def test_vx_location_tcs(
             return None
         dhw = {tcs.hotwater.id} if tcs.hotwater else set()
         return {z.id for z in tcs.zones} | dhw
+
+    for loc in evo_v1.locations + evo_v2.locations:  # 0-1 gateway, 0-1 TCS
+        assert loc.tcs is next((t for g in loc.gateways for t in g.systems), None)
+
+    v1_gwys = {
+        loc.id: [(g.id, g.mac_address) for g in loc.gateways]
+        for loc in evo_v1.locations
+    }
+    v2_gwys = {
+        loc.id: [(g.id, g.mac_address) for g in loc.gateways]
+        for loc in evo_v2.locations
+    }
+
+    assert v1_gwys == v2_gwys
+    assert v1_gwys == {
+        "2738909": [("2499896", "00D02DEE4E56")],
+        "3164610": [],
+        "8380809": [("2678129", "00D02D67C990")],
+    }
 
     v1_devs = {loc.id: devices(loc.tcs) for loc in evo_v1.locations}
     v2_devs = {loc.id: devices(loc.tcs) for loc in evo_v2.locations}

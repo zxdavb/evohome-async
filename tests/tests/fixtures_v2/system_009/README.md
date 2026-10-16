@@ -15,6 +15,7 @@ Contains 3 locations (in this order, which differs from that of the v0 API):
 - `user_account.json`
 - `user_locations.json`
 - `status_2738909.json`, `status_3164610.json`, `status_8380809.json`
+- `schedule_3432521.json`, `schedule_3744415.json` (zones), `schedule_6860918.json` (DHW)
 
 ## Notes
 

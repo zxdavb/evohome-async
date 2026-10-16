@@ -40,18 +40,20 @@ async def test_system_snapshot(
 
     freezer.move_to("2025-01-01T00:00:00+00:00")
 
-    # architecture is: loc -> tcs -> dhw|zon (as for v2, but without gateways)
+    # architecture is: loc -> gwy -> tcs -> dhw|zon (as for v2)
 
     for loc in evohome_v0.locations:  # is 0-many
         assert serializable_attrs(loc) == snapshot(name=f"loc_{loc.id}")
 
-        if (tcs := loc.tcs) is None:  # is 0-1
-            continue
+        for gwy in loc.gateways:  # is 0-1
+            assert serializable_attrs(gwy) == snapshot(name=f"loc_{loc.id}_gwy")
 
-        assert serializable_attrs(tcs) == snapshot(name=f"loc_{loc.id}_tcs")
+            for tcs in gwy.systems:  # is exactly 1
+                assert loc.tcs is tcs
+                assert serializable_attrs(tcs) == snapshot(name=f"loc_{loc.id}_tcs")
 
-        if dhw := tcs.hotwater:  # is 0-1
-            assert serializable_attrs(dhw) == snapshot(name=f"loc_{loc.id}_dhw")
+                if dhw := tcs.hotwater:  # is 0-1
+                    assert serializable_attrs(dhw) == snapshot(name=f"loc_{loc.id}_dhw")
 
-        zones = {z.id: serializable_attrs(z) for z in tcs.zones}
-        assert yaml.dump(zones, indent=4) == snapshot(name=f"loc_{loc.id}_zon")
+                zones = {z.id: serializable_attrs(z) for z in tcs.zones}
+                assert yaml.dump(zones, indent=4) == snapshot(name=f"loc_{loc.id}_zon")

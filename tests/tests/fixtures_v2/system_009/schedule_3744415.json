@@ -1,0 +1,151 @@
+{
+  "dailySchedules": [
+    {
+      "dayOfWeek": "Monday",
+      "switchpoints": [
+        {
+          "heatSetpoint": 23.0,
+          "timeOfDay": "06:30:00"
+        },
+        {
+          "heatSetpoint": 18.0,
+          "timeOfDay": "08:00:00"
+        },
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "18:00:00"
+        },
+        {
+          "heatSetpoint": 16.0,
+          "timeOfDay": "22:30:00"
+        }
+      ]
+    },
+    {
+      "dayOfWeek": "Tuesday",
+      "switchpoints": [
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "06:30:00"
+        },
+        {
+          "heatSetpoint": 18.0,
+          "timeOfDay": "08:00:00"
+        },
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "18:00:00"
+        },
+        {
+          "heatSetpoint": 16.0,
+          "timeOfDay": "22:30:00"
+        }
+      ]
+    },
+    {
+      "dayOfWeek": "Wednesday",
+      "switchpoints": [
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "06:30:00"
+        },
+        {
+          "heatSetpoint": 18.0,
+          "timeOfDay": "08:00:00"
+        },
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "18:00:00"
+        },
+        {
+          "heatSetpoint": 16.0,
+          "timeOfDay": "22:30:00"
+        }
+      ]
+    },
+    {
+      "dayOfWeek": "Thursday",
+      "switchpoints": [
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "06:30:00"
+        },
+        {
+          "heatSetpoint": 18.0,
+          "timeOfDay": "08:00:00"
+        },
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "18:00:00"
+        },
+        {
+          "heatSetpoint": 16.0,
+          "timeOfDay": "22:30:00"
+        }
+      ]
+    },
+    {
+      "dayOfWeek": "Friday",
+      "switchpoints": [
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "06:30:00"
+        },
+        {
+          "heatSetpoint": 18.0,
+          "timeOfDay": "08:00:00"
+        },
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "18:00:00"
+        },
+        {
+          "heatSetpoint": 16.0,
+          "timeOfDay": "22:30:00"
+        }
+      ]
+    },
+    {
+      "dayOfWeek": "Saturday",
+      "switchpoints": [
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "08:00:00"
+        },
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "10:00:00"
+        },
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "18:00:00"
+        },
+        {
+          "heatSetpoint": 16.0,
+          "timeOfDay": "23:00:00"
+        }
+      ]
+    },
+    {
+      "dayOfWeek": "Sunday",
+      "switchpoints": [
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "08:00:00"
+        },
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "10:00:00"
+        },
+        {
+          "heatSetpoint": 21.0,
+          "timeOfDay": "18:00:00"
+        },
+        {
+          "heatSetpoint": 16.0,
+          "timeOfDay": "23:00:00"
+        }
+      ]
+    }
+  ]
+}

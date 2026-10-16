@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 from _evohome.exceptions import deprecated_getattr
 
 from .auth import AbstractSessionManager
-from .entities import ControlSystem, HotWater, Location, Zone
+from .entities import ControlSystem, Gateway, HotWater, Location, Zone
 from .exceptions import (
     ApiCallFailedError,
     ApiCallRejectedError,
@@ -68,6 +68,7 @@ __all__ = [  # noqa: RUF022
     "AbstractSessionManager",
     #
     "Location",
+    "Gateway",
     "ControlSystem",
     "Zone",
     "HotWater",

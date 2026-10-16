@@ -1,0 +1,38 @@
+[
+  {
+    "date": "2026-10-16T05:00:00",
+    "condition": "Rain",
+    "low": 10.8,
+    "lowUnit": "Celsius",
+    "high": 17.9,
+    "highUnit": "Celsius",
+    "phrase": "Cloudy; a couple of brief showers later this morning, then afternoon rain",
+    "icon": 18,
+    "uvIndex": 1,
+    "windSpeed": "14.8"
+  },
+  {
+    "date": "2026-10-17T05:00:00",
+    "condition": "MostlyCloudyWithShowers",
+    "low": 8.7,
+    "lowUnit": "Celsius",
+    "high": 14.6,
+    "highUnit": "Celsius",
+    "phrase": "A little morning rain; otherwise, sunny breaks",
+    "icon": 13,
+    "uvIndex": 2,
+    "windSpeed": "20.4"
+  },
+  {
+    "date": "2026-10-18T05:00:00",
+    "condition": "Showers",
+    "low": 8.5,
+    "lowUnit": "Celsius",
+    "high": 12.3,
+    "highUnit": "Celsius",
+    "phrase": "Occasional rain and drizzle in the morning; otherwise, broken intervals",
+    "icon": 12,
+    "uvIndex": 1,
+    "windSpeed": "13"
+  }
+]

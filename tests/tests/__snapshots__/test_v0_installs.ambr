@@ -1530,6 +1530,33 @@
     ''',
   })
 # ---
+# name: test_system_snapshot[default][loc_2738909_gwy]
+  dict({
+    'config': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+  
+    ''',
+    'id': '''
+      '2499896'
+  
+    ''',
+    'mac_address': '''
+      00D02DEE4E22
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+  
+    ''',
+  })
+# ---
 # name: test_system_snapshot[default][loc_2738909_tcs]
   dict({
     'config': '''
@@ -3984,6 +4011,33 @@
     ''',
   })
 # ---
+# name: test_system_snapshot[hass_139906][loc_2727366_gwy]
+  dict({
+    'config': '''
+      device_type: 96
+      gateway_id: 2513794
+      location_id: 2727366
+      mac_id: 00D02DCBDB60
+  
+    ''',
+    'id': '''
+      '2513794'
+  
+    ''',
+    'mac_address': '''
+      00D02DCBDB60
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 96
+      gateway_id: 2513794
+      location_id: 2727366
+      mac_id: 00D02DCBDB60
+  
+    ''',
+  })
+# ---
 # name: test_system_snapshot[hass_139906][loc_2727366_tcs]
   dict({
     'config': '''
@@ -4730,6 +4784,33 @@
       phrase: Sunny
       temperature: 15.1
       units: Celsius
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_139945][loc_2080024_gwy]
+  dict({
+    'config': '''
+      device_type: 96
+      gateway_id: 2080025
+      location_id: 2080024
+      mac_id: 00D02DCBDB60
+  
+    ''',
+    'id': '''
+      '2080025'
+  
+    ''',
+    'mac_address': '''
+      00D02DCBDB60
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 96
+      gateway_id: 2080025
+      location_id: 2080024
+      mac_id: 00D02DCBDB60
   
     ''',
   })
@@ -5661,6 +5742,32 @@
       phrase: Cloudy
       temperature: 18.0
       units: Celsius
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_141882][loc_7680795_gwy]
+  dict({
+    'config': '''
+      device_type: 48
+      gateway_id: 7242198
+      location_id: 7680795
+      mac_id: '************'
+  
+    ''',
+    'id': '''
+      '7242198'
+  
+    ''',
+    'mac_address': '''
+      '************'
+  
+    ''',
+    'status': '''
+      device_type: 48
+      gateway_id: 7242198
+      location_id: 7680795
+      mac_id: '************'
   
     ''',
   })
@@ -7215,6 +7322,32 @@
     'weather': '''
       null
       ...
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[hass_178510][loc_1111111_gwy]
+  dict({
+    'config': '''
+      device_type: 96
+      gateway_id: 4444444
+      location_id: 1111111
+      mac_id: '************'
+  
+    ''',
+    'id': '''
+      '4444444'
+  
+    ''',
+    'mac_address': '''
+      '************'
+  
+    ''',
+    'status': '''
+      device_type: 96
+      gateway_id: 4444444
+      location_id: 1111111
+      mac_id: '************'
   
     ''',
   })
@@ -8956,6 +9089,33 @@
     ''',
   })
 # ---
+# name: test_system_snapshot[minimal][loc_2738909_gwy]
+  dict({
+    'config': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+  
+    ''',
+    'id': '''
+      '2499896'
+  
+    ''',
+    'mac_address': '''
+      00D02DEE4E22
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E22
+  
+    ''',
+  })
+# ---
 # name: test_system_snapshot[minimal][loc_2738909_tcs]
   dict({
     'config': '''
@@ -9638,6 +9798,33 @@
     ''',
   })
 # ---
+# name: test_system_snapshot[system_009][loc_2738909_gwy]
+  dict({
+    'config': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E56
+  
+    ''',
+    'id': '''
+      '2499896'
+  
+    ''',
+    'mac_address': '''
+      00D02DEE4E56
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 128
+      gateway_id: 2499896
+      location_id: 2738909
+      mac_id: 00D02DEE4E56
+  
+    ''',
+  })
+# ---
 # name: test_system_snapshot[system_009][loc_2738909_tcs]
   dict({
     'config': '''
@@ -9999,6 +10186,14 @@
     'dst_enabled': '''
       true
       ...
+  
+    ''',
+    'gateway_by_id': '''
+      {}
+  
+    ''',
+    'gateways': '''
+      []
   
     ''',
     'id': '''
@@ -10578,6 +10773,33 @@
     ''',
     'temperature_status': '''
       is_available: false
+  
+    ''',
+  })
+# ---
+# name: test_system_snapshot[system_009][loc_8380809_gwy]
+  dict({
+    'config': '''
+      device_type: 96
+      gateway_id: 2678129
+      location_id: 8380809
+      mac_id: 00D02D67C990
+  
+    ''',
+    'id': '''
+      '2678129'
+  
+    ''',
+    'mac_address': '''
+      00D02D67C990
+      ...
+  
+    ''',
+    'status': '''
+      device_type: 96
+      gateway_id: 2678129
+      location_id: 8380809
+      mac_id: 00D02D67C990
   
     ''',
   })
