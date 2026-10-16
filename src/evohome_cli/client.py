@@ -115,10 +115,9 @@ def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
             f"loc-idx {loc_idx} is out of range (max idx: {len(evo.locations) - 1})"
         ) from None
 
-    try:
-        return location.gateways[0].systems[0]
-    except IndexError:
-        raise click.ClickException(f"No TCS found at loc-idx: {loc_idx}") from None
+    if (tcs := location.tcs) is None:
+        raise click.ClickException(f"No TCS found at loc-idx: {loc_idx}")
+    return tcs
 
 
 def _require_keyring() -> None:
