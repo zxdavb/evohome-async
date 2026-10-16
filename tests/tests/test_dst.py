@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime as dt, timedelta as td
+from pathlib import Path
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
@@ -13,8 +14,17 @@ from _evohome.time_zone import EvoZoneInfo
 from evohomeasync2.const import DayOfWeek
 from evohomeasync2.zone import _find_switchpoint_dtms, _wall_to_aware
 
+from .conftest import FIXTURES_V2 as FIXTURES
+
 if TYPE_CHECKING:
-    from evohomeasync2.typedefs import EvoTimeZoneT, EvoZonScheduleDayOfWeekT
+    from freezegun.api import FrozenDateTimeFactory
+
+    from evohomeasync2 import Zone
+    from evohomeasync2.typedefs import (
+        EvoTimeZoneT,
+        EvoZonScheduleDayOfWeekT,
+        EvoZonScheduleSwitchpointT,
+    )
 
 LONDON = ZoneInfo("Europe/London")  # 2026: BST from 01:00Z 29/3, until 01:00Z 25/10
 
@@ -160,3 +170,59 @@ def test_evo_zone_info_astimezone() -> None:
     (this_dtm, _), (next_dtm, _) = _find_switchpoint_dtms(SCHEDULE, dtm, tzinfo)
     assert this_dtm.isoformat() == "2026-07-01T06:30:00+01:00"
     assert next_dtm.isoformat() == "2026-07-01T22:00:00+01:00"
+
+
+def test_switchpoints_coalesced_in_gap() -> None:
+    """Test switchpoints skipped by the same gap: only the last ever becomes active."""
+
+    switchpoints: list[EvoZonScheduleSwitchpointT] = [
+        {"time_of_day": "01:10:00", "heat_setpoint": 15.0},
+        {"time_of_day": "01:40:00", "heat_setpoint": 20.0},
+        {"time_of_day": "02:00:00", "heat_setpoint": 21.0},  # i.e. the end of the gap
+        {"time_of_day": "22:00:00", "heat_setpoint": 16.0},
+    ]
+    schedule: list[EvoZonScheduleDayOfWeekT] = [
+        {"day_of_week": d, "switchpoints": switchpoints} for d in DayOfWeek
+    ]
+
+    # 00:45 GMT: all three start at 02:00 BST, so next is the last of them
+    _, (next_dtm, next_val) = _find_switchpoint_dtms(
+        schedule, _utc(29, 3, 0, 45), LONDON
+    )
+    assert (next_dtm.isoformat(), next_val) == ("2026-03-29T02:00:00+01:00", 21.0)
+
+    # 02:15 BST: ...and it is this
+    (this_dtm, this_val), _ = _find_switchpoint_dtms(
+        schedule, _utc(29, 3, 1, 15), LONDON
+    )
+    assert (this_dtm.isoformat(), this_val) == ("2026-03-29T02:00:00+01:00", 21.0)
+
+
+@pytest.mark.parametrize(
+    "fixture_folder", [Path(FIXTURES) / "default"], ids=["default"]
+)
+async def test_switchpoints_across_dst_sequential(
+    zone: Zone, freezer: FrozenDateTimeFactory
+) -> None:
+    """Test the public properties through both passes of a repeated hour.
+
+    The switchpoints must not be stale after DST ends (e.g. if they were cached).
+    """
+
+    assert zone.location.tzinfo == LONDON  # the fixture's location is GMTStandardTime
+    zone._schedule = SCHEDULE
+
+    # the same instants (and expected switchpoints) as test_switchpoints_across_dst()
+    for now, this_start, this_val, next_start, next_val in [
+        (_utc(25, 10, 0, 15), _utc(24, 10, 21, 0), 16.0, _utc(25, 10, 0, 30), 15.0),
+        (_utc(25, 10, 0, 45), _utc(25, 10, 0, 30), 15.0, _utc(25, 10, 6, 30), 20.0),
+        (_utc(25, 10, 1, 15), _utc(24, 10, 21, 0), 16.0, _utc(25, 10, 1, 30), 15.0),
+        (_utc(25, 10, 1, 45), _utc(25, 10, 1, 30), 15.0, _utc(25, 10, 6, 30), 20.0),
+    ]:
+        freezer.move_to(now)
+
+        assert (this_sp := zone.this_switchpoint) is not None
+        assert (next_sp := zone.next_switchpoint) is not None
+
+        assert (this_sp[0].astimezone(UTC), this_sp[1]) == (this_start, this_val)
+        assert (next_sp[0].astimezone(UTC), next_sp[1]) == (next_start, next_val)
