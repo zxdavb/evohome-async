@@ -160,14 +160,28 @@ WINDOWS_TO_IANA_EMEA = {
     "Volgograd Standard Time": "Europe/Volgograd",
 }
 
+# fixed offsets, without DST (NB: the sign of an Etc/GMT zone is the POSIX one, so
+# Etc/GMT+12 is UTC-12); the vendor offers all but UTC-08, UTC-09 & UTC+13
+WINDOWS_TO_IANA_ETC = {
+    "Dateline Standard Time": "Etc/GMT+12",
+    "UTC-11": "Etc/GMT+11",
+    "UTC-09": "Etc/GMT+9",
+    "UTC-08": "Etc/GMT+8",
+    "UTC-02": "Etc/GMT+2",
+    "UTC": "Etc/UTC",
+    "UTC+12": "Etc/GMT-12",
+    "UTC+13": "Etc/GMT-13",
+}
+
 
 # the v2 API's form of a Windows TZ id, e.g. "CentralStandardTimeMexico" for
-# "Central Standard Time (Mexico)" (the v1 API's has the spaces)
-_NOT_IN_TZ_ID = str.maketrans("", "", " .()")
+# "Central Standard Time (Mexico)" (the v1 API's has the spaces), and "UTC11" for
+# "UTC-11" (no Windows TZ id differs only by the sign of its offset)
+_NOT_IN_TZ_ID = str.maketrans("", "", " .()+-")
 
 
 def normalise_windows_tz_id(time_zone: str) -> str:
-    """Return a Windows TZ id without spaces, dots or parentheses."""
+    """Return a Windows TZ id without spaces, dots, parentheses or signs."""
     return time_zone.translate(_NOT_IN_TZ_ID)
 
 
@@ -178,5 +192,6 @@ WINDOWS_TO_IANA_LOOKUP = {
         | WINDOWS_TO_IANA_ASIA
         | WINDOWS_TO_IANA_EMEA
         | WINDOWS_TO_IANA_NASA
+        | WINDOWS_TO_IANA_ETC
     ).items()
 }
