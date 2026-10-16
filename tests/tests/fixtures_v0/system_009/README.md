@@ -16,7 +16,7 @@ Captured from a real (dummy) account on 2026-10-16 — multiple locations (UK).
 |------|--------|
 | `user_info.json` | `accountInfo`, wrapped in `{"userInfo": ...}`; PII replaced |
 | `user_locs.json` | `locations?userId=2512649&allData=True`; PII replaced |
-| `gateways_{loc_id}.json` | `gateways?locationId={loc_id}&allData=True` (`[]` for `3164610`) |
+| `gateways_{loc_id}.json` | `gateways?locationId={loc_id}&allData=True` (`[]` for `3164610`); CRC replaced with `"0000"` |
 | `weather_{loc_id}.json` | `weather/currentweather?locationId={loc_id}&language=en-GB` |
 | `forecast_{loc_id}.json` | `weather/dailyforecast?locationId={loc_id}&days=3&language=en-GB` |
 

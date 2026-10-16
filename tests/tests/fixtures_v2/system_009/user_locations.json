@@ -28,7 +28,7 @@
         "gatewayInfo": {
           "gatewayId": "2499896",
           "mac": "00D02DEE4E56",
-          "crc": "17C2",
+          "crc": "0000",
           "isWiFi": false
         },
         "temperatureControlSystems": [
@@ -172,7 +172,7 @@
         "gatewayInfo": {
           "gatewayId": "2678129",
           "mac": "00D02D67C990",
-          "crc": "0BF5",
+          "crc": "0000",
           "isWiFi": false
         },
         "temperatureControlSystems": [
