@@ -161,8 +161,18 @@ WINDOWS_TO_IANA_EMEA = {
 }
 
 
+# the v2 API's form of a Windows TZ id, e.g. "CentralStandardTimeMexico" for
+# "Central Standard Time (Mexico)" (the v1 API's has the spaces)
+_NOT_IN_TZ_ID = str.maketrans("", "", " .()")
+
+
+def normalise_windows_tz_id(time_zone: str) -> str:
+    """Return a Windows TZ id without spaces, dots or parentheses."""
+    return time_zone.translate(_NOT_IN_TZ_ID)
+
+
 WINDOWS_TO_IANA_LOOKUP = {
-    k.replace(" ", "").replace(".", ""): v
+    normalise_windows_tz_id(k): v
     for k, v in (
         WINDOWS_TO_IANA_APAC
         | WINDOWS_TO_IANA_ASIA

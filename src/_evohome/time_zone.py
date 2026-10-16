@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime as dt, timedelta as td, tzinfo
 from typing import TYPE_CHECKING, Final
 
-from .windows_zones import WINDOWS_TO_IANA_LOOKUP
+from .windows_zones import WINDOWS_TO_IANA_LOOKUP, normalise_windows_tz_id
 
 if TYPE_CHECKING:
     from evohomeasync2.typedefs import EvoTimeZoneT
@@ -17,7 +17,7 @@ SZ_TIME_ZONE_ID: Final = "time_zone_id"
 
 def iana_tz_from_windows_tz(time_zone: str) -> str:
     """Return the IANA TZ identifier from the Windows TZ id."""
-    return WINDOWS_TO_IANA_LOOKUP[time_zone.replace(" ", "").replace(".", "")]
+    return WINDOWS_TO_IANA_LOOKUP[normalise_windows_tz_id(time_zone)]
 
 
 # it is ostensibly optional to provide this data to the EvoZoneInfo class
