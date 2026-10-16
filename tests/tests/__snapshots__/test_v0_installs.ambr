@@ -1354,33 +1354,6 @@
     ''',
   })
 # ---
-# name: test_system_snapshot[default][gateway]
-  dict({
-    'config': '''
-      device_type: 128
-      gateway_id: 2499896
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
-  
-    ''',
-    'id': '''
-      '2499896'
-  
-    ''',
-    'mac_address': '''
-      00D02DEE4E22
-      ...
-  
-    ''',
-    'status': '''
-      device_type: 128
-      gateway_id: 2499896
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
-  
-    ''',
-  })
-# ---
 # name: test_system_snapshot[default][hot_water]
   dict({
     'config': '''
@@ -3994,33 +3967,6 @@
     ''',
   })
 # ---
-# name: test_system_snapshot[hass_139906][gateway]
-  dict({
-    'config': '''
-      device_type: 96
-      gateway_id: 2513794
-      location_id: 2727366
-      mac_id: 00D02DCBDB60
-  
-    ''',
-    'id': '''
-      '2513794'
-  
-    ''',
-    'mac_address': '''
-      00D02DCBDB60
-      ...
-  
-    ''',
-    'status': '''
-      device_type: 96
-      gateway_id: 2513794
-      location_id: 2727366
-      mac_id: 00D02DCBDB61
-  
-    ''',
-  })
-# ---
 # name: test_system_snapshot[hass_139906][location]
   dict({
     'config': '''
@@ -4767,33 +4713,6 @@
       !!python/object/apply:None._unpickle
       - Europe/Berlin
       - 1
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[hass_139945][gateway]
-  dict({
-    'config': '''
-      device_type: 96
-      gateway_id: 2080025
-      location_id: 2080024
-      mac_id: 00D02DCBDB60
-  
-    ''',
-    'id': '''
-      '2080025'
-  
-    ''',
-    'mac_address': '''
-      00D02DCBDB60
-      ...
-  
-    ''',
-    'status': '''
-      device_type: 96
-      gateway_id: 2080025
-      location_id: 2080024
-      mac_id: 00D02DCBDB60
   
     ''',
   })
@@ -5725,32 +5644,6 @@
       !!python/object/apply:None._unpickle
       - Australia/Sydney
       - 1
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[hass_141882][gateway]
-  dict({
-    'config': '''
-      device_type: 48
-      gateway_id: 7242198
-      location_id: 7680795
-      mac_id: '************'
-  
-    ''',
-    'id': '''
-      '7242198'
-  
-    ''',
-    'mac_address': '''
-      '************'
-  
-    ''',
-    'status': '''
-      device_type: 48
-      gateway_id: 7242198
-      location_id: 7680795
-      mac_id: '************'
   
     ''',
   })
@@ -7308,32 +7201,6 @@
       !!python/object/apply:None._unpickle
       - Europe/Berlin
       - 1
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[hass_178510][gateway]
-  dict({
-    'config': '''
-      device_type: 96
-      gateway_id: 4444444
-      location_id: 1111111
-      mac_id: '************'
-  
-    ''',
-    'id': '''
-      '4444444'
-  
-    ''',
-    'mac_address': '''
-      '************'
-  
-    ''',
-    'status': '''
-      device_type: 96
-      gateway_id: 4444444
-      location_id: 1111111
-      mac_id: '************'
   
     ''',
   })
@@ -8909,33 +8776,6 @@
       !!python/object/apply:None._unpickle
       - Europe/London
       - 1
-  
-    ''',
-  })
-# ---
-# name: test_system_snapshot[minimal][gateway]
-  dict({
-    'config': '''
-      device_type: 128
-      gateway_id: 2499896
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
-  
-    ''',
-    'id': '''
-      '2499896'
-  
-    ''',
-    'mac_address': '''
-      00D02DEE4E22
-      ...
-  
-    ''',
-    'status': '''
-      device_type: 128
-      gateway_id: 2499896
-      location_id: 2738909
-      mac_id: 00D02DEE4E22
   
     ''',
   })

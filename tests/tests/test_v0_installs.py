@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import pytest
 import yaml
 
-from tests.common import get_loc
+from tests.common import get_loc, get_tcs
 
 from .common import serializable_attrs
 from .conftest import FIXTURES_V0 as FIXTURES
@@ -42,16 +42,12 @@ async def test_system_snapshot(
 
     freezer.move_to("2025-01-01T00:00:00+00:00")
 
-    # architecture is: loc -> gwy -> tcs -> dhw|zon (as for v2)
+    # architecture is: loc -> tcs -> dhw|zon (as for v2, but without gateways)
 
     loc = get_loc(evohome_v0)
     assert serializable_attrs(loc) == snapshot(name="location")
 
-    gwy = loc.gateways[0]
-    assert serializable_attrs(gwy) == snapshot(name="gateway")
-
-    tcs = gwy.systems[0]
-    assert loc.tcs is tcs
+    tcs = get_tcs(evohome_v0)
     assert serializable_attrs(tcs) == snapshot(name="control_system")
 
     if dhw := tcs.hotwater:

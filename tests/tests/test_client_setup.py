@@ -171,16 +171,20 @@ async def test_v2_location_tcs_none(
 async def test_v1_location_tcs(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test Location.tcs is the TCS of its gateway, or None if it has no gateway."""
+    """Test Location.tcs has the location's devices, or is None if it has none."""
 
     with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V0 / "default")):
         evo = evo1.EvohomeClient(credentials_manager)
         await evo.setup()
 
     loc = get_loc(evo)
-    assert loc.tcs is loc.gateways[0].systems[0]
+    assert (tcs := loc.tcs) is not None
+    assert tcs.hotwater is not None  # the default/ fixture has a DHW
+
+    dev_ids = {str(d["device_id"]) for d in loc.config["devices"]}
+    assert dev_ids == set(tcs.zone_by_id) | {tcs.hotwater.id}
 
     config = copy.deepcopy(loc.config)
-    config["devices"] = []  # so, no gateway
+    config["devices"] = []
 
     assert (await evo1.entities.create_location(evo, config)).tcs is None

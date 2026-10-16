@@ -37,8 +37,13 @@ def get_tcs(evo: evo2.EvohomeClient) -> evo2.ControlSystem: ...
 def get_tcs(
     evo: evo0.EvohomeClient | evo2.EvohomeClient,
 ) -> evo0.ControlSystem | evo2.ControlSystem:
-    """Return the first TCS of the location to test against."""
-    return get_loc(evo).gateways[0].systems[0]
+    """Return the TCS of the location to test against.
+
+    Raise IndexError if it has no TCS.
+    """
+    if (tcs := get_loc(evo).tcs) is None:
+        raise IndexError("The location under test has no TCS")
+    return tcs
 
 
 def get_dhw(evo: evo2.EvohomeClient) -> evo2.HotWater | None:
