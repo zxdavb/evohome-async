@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import uuid
+from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from _evohome.const import HINT_BAD_CREDS
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync import exceptions as exc
 from tests.const import URL_CRED_V0
@@ -191,3 +194,86 @@ async def test_session_manager(  # noqa: PLR0917  # pytest injects fixtures by k
         wrt.assert_called_once()
 
     assert session_manager.is_session_valid() is True
+
+
+async def test_concurrent_get_session_id_fetches_once(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    cache_path: Path,
+) -> None:
+    """Test that concurrent callers of .get_session_id() share a single fetch."""
+
+    session_manager = TokenCacheManager(
+        *credentials, client_session, cache_path=cache_path
+    )
+    assert session_manager.is_session_valid() is False
+
+    async def fetch_session_id() -> None:
+        for _ in range(3):  # yield, so that the other callers queue behind this one
+            await asyncio.sleep(0)
+        session_manager._session_id = str(uuid.uuid4())
+        session_manager._session_id_expires = dt.now(tz=UTC) + td(minutes=15)
+
+    with (
+        patch.object(
+            session_manager, "fetch_session_id", side_effect=fetch_session_id
+        ) as fetch,
+        patch.object(
+            session_manager, "save_session_id", new_callable=AsyncMock
+        ) as save,
+    ):
+        results = await asyncio.gather(
+            *(session_manager.get_session_id() for _ in range(5))
+        )
+
+    assert len(set(results)) == 1
+    assert results[0] == session_manager.session_id
+    assert fetch.call_count == 1
+    save.assert_awaited_once()
+
+
+async def test_concurrent_get_session_id_failure(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    cache_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that concurrent callers of .get_session_id() share a failed fetch."""
+
+    session_manager = TokenCacheManager(
+        *credentials, client_session, cache_path=cache_path
+    )
+
+    async def _fetch_session_id(credentials: dict[str, str]) -> None:
+        for _ in range(3):  # yield, so that the other callers queue behind this one
+            await asyncio.sleep(0)
+        raise exc.AuthenticationFailedError(
+            '[{"code": "EmailOrPasswordIncorrect"}]', status=HTTPStatus.UNAUTHORIZED
+        )
+
+    with (
+        patch.object(
+            session_manager, "_fetch_session_id", side_effect=_fetch_session_id
+        ) as fetch,
+        patch.object(
+            session_manager, "save_session_id", new_callable=AsyncMock
+        ) as save,
+    ):
+        results = await asyncio.gather(
+            *(session_manager.get_session_id() for _ in range(5)),
+            return_exceptions=True,
+        )
+
+        assert all(isinstance(r, exc.BadUserCredentialsError) for r in results)
+        assert fetch.call_count == 1
+        save.assert_not_awaited()
+        assert [r.message for r in caplog.records].count(HINT_BAD_CREDS) == 1
+
+        # a failure is shared only with the callers queued behind it, not later ones
+        fetch.reset_mock()
+        with pytest.raises(exc.BadUserCredentialsError):
+            await session_manager.get_session_id()
+
+        fetch.assert_called_once()
+
+    assert session_manager.is_session_valid() is False

@@ -6,6 +6,7 @@ import logging
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
+from unittest.mock import ANY, AsyncMock, patch
 
 import pytest
 
@@ -243,3 +244,40 @@ async def test_good(  # good credentials
         rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
     assert evohome_v0._session_manager.is_session_valid() is True
+
+
+async def test_rejected_session_id_refreshed_meanwhile(
+    evohome_v0: EvohomeClient,
+) -> None:
+    """Test a 401 doesn't clear a session id that another task has since refreshed."""
+
+    session_manager = evohome_v0._session_manager
+
+    # pre-requisite data (a valid session_id that will nonetheless be rejected)
+    session_manager._session_id = _TEST_SESSION_ID
+    session_manager._session_id_expires = dt.now(tz=UTC) + td(minutes=15)
+
+    new_session_id = "-- new session id --"
+    rejected = False
+
+    def get(url: str, schema: object) -> object:
+        nonlocal rejected
+        if rejected:
+            return {"user_id": 1234567} if url == "accountInfo" else []
+
+        # while this request is in flight, another task refreshes the session id
+        session_manager._session_id = new_session_id
+        rejected = True
+        raise exc.ApiCallFailedError(
+            "GET accountInfo: 401 Unauthorized", status=HTTPStatus.UNAUTHORIZED
+        )
+
+    with (
+        patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=get)) as req,
+        patch.object(session_manager, "fetch_session_id") as fetch,
+    ):
+        await evohome_v0._get_config()
+
+    req.assert_any_await("accountInfo", schema=ANY)
+    fetch.assert_not_awaited()
+    assert session_manager.session_id == new_session_id
