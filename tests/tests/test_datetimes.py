@@ -139,6 +139,9 @@ def test_factory_datetime_vendor_validates_but_keeps_string() -> None:
         pytest.param("99.99:99:99", None, id="all_out_of_range"),
     ],
 )
-def test_as_timedelta(timespan: str, expected: td | None) -> None:
+def test_as_timedelta(
+    timespan: str,
+    expected: td | None,
+) -> None:
     """Test as_timedelta() parses a vendor TimeSpan, and returns None if it can't."""
     assert as_timedelta(timespan) == expected
