@@ -39,8 +39,8 @@ if TYPE_CHECKING:
 # all _DBG_* flags are only for dev/test and should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of click
 
-_DEBUG_ADDR: Final = "127.0.0.1"
-_DEBUG_PORT: Final = 5679
+DEBUG_ADDR: Final = "127.0.0.1"
+DEBUG_PORT: Final = 5679
 
 _CLEANUP: Final = "cleanup"
 _EC2: Final = "ec2"
@@ -70,15 +70,15 @@ def _start_debugging(*, wait_for_client: bool | None = None) -> None:
     import debugpy  # noqa: PLC0415
 
     try:
-        debugpy.listen((_DEBUG_ADDR, _DEBUG_PORT))
+        debugpy.listen((DEBUG_ADDR, DEBUG_PORT))
     except RuntimeError:
         click.echo(
-            f"Debugging is already enabled on: {_DEBUG_ADDR}:{_DEBUG_PORT}", err=True
+            f"Debugging is already enabled on: {DEBUG_ADDR}:{DEBUG_PORT}", err=True
         )
         raise
     else:
         click.echo(
-            f"Debugging is enabled, listening on: {_DEBUG_ADDR}:{_DEBUG_PORT}", err=True
+            f"Debugging is enabled, listening on: {DEBUG_ADDR}:{DEBUG_PORT}", err=True
         )
 
     if wait_for_client and not debugpy.is_client_connected():

@@ -31,8 +31,8 @@ if TYPE_CHECKING:
 
 
 _CACHE_PATH: Final = Path.home() / ".config" / "evohome" / ".evo-cache.tmp~"
-_KEYRING_SERVICE_KEY: Final = "evohome-client"
-_KEYRING_USERNAME_KEY: Final = "username"
+KEYRING_SERVICE_KEY: Final = "evohome-client"
+KEYRING_USERNAME_KEY: Final = "username"
 
 _LOGGER: Final = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ def get_password_from_keyring(username: str) -> str | None:
     """Retrieve the TCC password for the given username from the system keyring."""
 
     try:
-        return keyring.get_password(_KEYRING_SERVICE_KEY, username)
+        return keyring.get_password(KEYRING_SERVICE_KEY, username)
     except KeyringError as err:
         _LOGGER.debug("Failed to retrieve password from keyring: %s", err)
         return None
@@ -60,7 +60,7 @@ def save_password_to_keyring(username: str, password: str) -> None:
     """Save the TCC password for the given username to the system keyring."""
 
     try:
-        keyring.set_password(_KEYRING_SERVICE_KEY, username, password)
+        keyring.set_password(KEYRING_SERVICE_KEY, username, password)
     except KeyringError as err:
         _LOGGER.debug("Failed to save password to keyring: %s", err)
 
@@ -69,7 +69,7 @@ def get_username_from_keyring() -> str | None:
     """Retrieve the stored default TCC username from the system keyring."""
 
     try:
-        return keyring.get_password(_KEYRING_SERVICE_KEY, _KEYRING_USERNAME_KEY)
+        return keyring.get_password(KEYRING_SERVICE_KEY, KEYRING_USERNAME_KEY)
     except KeyringError as err:
         _LOGGER.debug("Failed to retrieve username from keyring: %s", err)
         return None
@@ -79,7 +79,7 @@ def save_username_to_keyring(username: str) -> None:
     """Save the TCC username as the default in the system keyring."""
 
     try:
-        keyring.set_password(_KEYRING_SERVICE_KEY, _KEYRING_USERNAME_KEY, username)
+        keyring.set_password(KEYRING_SERVICE_KEY, KEYRING_USERNAME_KEY, username)
     except KeyringError as err:
         _LOGGER.debug("Failed to save username to keyring: %s", err)
 
@@ -88,7 +88,7 @@ def delete_password_from_keyring(username: str) -> bool:
     """Remove the TCC password for the given username from the system keyring."""
 
     try:
-        keyring.delete_password(_KEYRING_SERVICE_KEY, username)
+        keyring.delete_password(KEYRING_SERVICE_KEY, username)
     except KeyringError as err:
         _LOGGER.debug("Failed to delete password from keyring: %s", err)
         return False
@@ -99,7 +99,7 @@ def delete_username_from_keyring() -> bool:
     """Remove the stored default TCC username from the system keyring."""
 
     try:
-        keyring.delete_password(_KEYRING_SERVICE_KEY, _KEYRING_USERNAME_KEY)
+        keyring.delete_password(KEYRING_SERVICE_KEY, KEYRING_USERNAME_KEY)
     except KeyringError as err:
         _LOGGER.debug("Failed to delete username from keyring: %s", err)
         return False
