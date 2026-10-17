@@ -315,3 +315,41 @@ async def test_vx_client_tcs_raises(
         pytest.raises(exc.ClientStateError, match=match),
     ):
         _ = evo.tcs
+
+
+async def test_v1_location_get_temperatures(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test the deprecated v1 Location.get_temperatures() is that of its TCS."""
+
+    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V0 / "default")):
+        evo = evo1.EvohomeClient(credentials_manager)
+        await evo.setup()
+
+    loc = evo.locations[0]
+    assert loc.tcs is not None
+
+    with pytest.warns(DeprecationWarning, match=r"use Location\.tcs\.get_temp"):
+        temps = await loc.get_temperatures(dont_update_status=True)
+
+    assert temps == await loc.tcs.get_temperatures(dont_update_status=True)
+    assert temps  # the default fixture has zones
+
+
+async def test_v1_location_get_temperatures_raises(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test the deprecated v1 Location.get_temperatures() raises if it has no TCS."""
+
+    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V0 / "system_009")):
+        evo = evo1.EvohomeClient(credentials_manager)
+        await evo.setup()
+
+    loc = evo.location_by_id["3164610"]  # this location has no devices
+    assert loc.tcs is None
+
+    with (
+        pytest.warns(DeprecationWarning, match=r"use Location\.tcs\.get_temp"),
+        pytest.raises(exc.ClientStateError, match="has no TCS"),
+    ):
+        await loc.get_temperatures(dont_update_status=True)
