@@ -1,4 +1,4 @@
-# fixtures_v0/hass_139945
+# fixtures_v1/hass_139945
 
 Source: [Home Assistant core issue #139945](https://github.com/home-assistant/core/issues/139945)
 

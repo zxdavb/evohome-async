@@ -1,6 +1,6 @@
-# fixtures_v0/default
+# fixtures_v1/default
 
-Default v0 fixture used as fallback when a test directory has no `user_info.json`.
+Default v1 fixture used as fallback when a test directory has no `user_info.json`.
 
 ## System
 
@@ -17,4 +17,4 @@ Default v0 fixture used as fallback when a test directory has no `user_info.json
 ## Notes
 
 - Same location (2738909) as `fixtures_v2/default/` and `system_002/`.
-- This directory is the v0 fallback; `user_info.json` here intentionally has no `sessionId`.
+- This directory is the v1 fallback; `user_info.json` here intentionally has no `sessionId`.

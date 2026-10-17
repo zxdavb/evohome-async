@@ -15,7 +15,7 @@ import pytest
 
 from _evohome import exceptions as exc
 from _evohome.helpers import convert_keys_to_snake_case
-from evohomeasync import EvohomeClient as EvohomeClientV0
+from evohomeasync import EvohomeClient as EvohomeClientV1
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
 from tests.common import get_dhw, get_tcs, get_zon
 
@@ -74,7 +74,7 @@ def load_fixture(file: Path) -> JsonArrayType | JsonObjectType:
     return json.loads(text)  # type: ignore[no-any-return]
 
 
-FIXTURES_V0 = Path(__file__).parent / "fixtures_v0"
+FIXTURES_V1 = Path(__file__).parent / "fixtures_v1"
 FIXTURES_V2 = Path(__file__).parent / "fixtures_v2"
 
 
@@ -105,12 +105,12 @@ def _load_schedule_fixture(
 
 
 def user_info_fixture(folder: Path) -> JsonObjectType:
-    """Load the JSON of the v0 user information."""
+    """Load the JSON of the v1 user information."""
     return _load_fixture(folder, "user_info.json")  # type: ignore[return-value]
 
 
 def user_locs_fixture(folder: Path) -> JsonObjectType:
-    """Load the JSON of the v0 user installation (locations)."""
+    """Load the JSON of the v1 user installation (locations)."""
     return _load_fixture(folder, "user_locs.json")  # type: ignore[return-value]
 
 
@@ -148,7 +148,7 @@ def zone_schedule_fixture(folder: Path, zon_type: str, zon_id: str) -> JsonObjec
 
 
 def auth_get(fixture: Path) -> Callable[[Any, str, Validator[Any]], Any]:
-    """Return a mock of Auth.get() for both v0 and v2 API."""
+    """Return a mock of Auth.get() for both v1 and v2 API."""
 
     def _get[T](url: str, schema: Validator[T]) -> T:
         # mirror what auth.request() + auth.get() do: snake-case keys, then apply
@@ -221,14 +221,14 @@ def use_real_aiohttp() -> bool:
 
 
 @pytest.fixture
-async def evohome_v0(
+async def evohome_v1(
     credentials_manager: TokenCacheManager,
     fixture_folder: Path,
-) -> AsyncGenerator[EvohomeClientV0]:
+) -> AsyncGenerator[EvohomeClientV1]:
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync.auth.Auth.get", auth_get(fixture_folder)):
-        evo = EvohomeClientV0(credentials_manager)
+        evo = EvohomeClientV1(credentials_manager)
 
         await evo.setup()
 

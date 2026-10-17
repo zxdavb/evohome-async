@@ -1,4 +1,4 @@
-"""Validate the handling of the vendor's v0 APIs (URLs) for Authentication.
+"""Validate the handling of the vendor's v1 APIs (URLs) for Authentication.
 
 This is used to:
 a) document the RESTful API that is provided by the vendor
@@ -30,9 +30,9 @@ from tests.const import (
     _DBG_TEST_CRED_URLS,
     _DBG_USE_REAL_AIOHTTP,
     HEADERS_BASE,
-    HEADERS_CRED_V0,
-    URL_BASE_V0,
-    URL_CRED_V0,
+    HEADERS_CRED_V1,
+    URL_BASE_V1,
+    URL_CRED_V1,
 )
 
 if TYPE_CHECKING:
@@ -71,7 +71,7 @@ async def _test_bad0(  # invalid server certificate
 
     #
     # TEST 0: invalid server certificate
-    parsed_url = urlparse(URL_CRED_V0)
+    parsed_url = urlparse(URL_CRED_V1)
     ip_address = socket.gethostbyname(parsed_url.hostname)  # type: ignore[arg-type]
     url = f"{parsed_url.scheme}://{ip_address}{parsed_url.path}"  # path[:1] == "/"
 
@@ -80,7 +80,7 @@ async def _test_bad0(  # invalid server certificate
     # [SSLCertVerificationError: ... certificate is not valid for ...]
 
     with pytest.raises(aiohttp.ClientConnectorCertificateError):
-        await client_session.post(url, headers=HEADERS_CRED_V0, data={})
+        await client_session.post(url, headers=HEADERS_CRED_V1, data={})
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
@@ -98,7 +98,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
     }
 
     async with client_session.post(
-        URL_CRED_V0, headers=HEADERS_CRED_V0, data=data
+        URL_CRED_V1, headers=HEADERS_CRED_V1, data=data
     ) as rsp:
         await _skip_if_too_many_requests(rsp)
         assert rsp.status == HTTPStatus.UNAUTHORIZED  # 401
@@ -128,7 +128,7 @@ async def test_bad2(  # bad session id
 
     #
     # TEST 9: bad session id -> HTTPStatus.UNAUTHORIZED
-    url = f"{URL_BASE_V0}/accountInfo"
+    url = f"{URL_BASE_V1}/accountInfo"
     headers = HEADERS_BASE | {"sessionId": session_id}
 
     async with client_session.get(url, headers=headers) as rsp:
@@ -166,7 +166,7 @@ async def test_good(  # good credentials
     }
 
     async with client_session.post(
-        URL_CRED_V0, headers=HEADERS_CRED_V0, data=data
+        URL_CRED_V1, headers=HEADERS_CRED_V1, data=data
     ) as rsp:
         await _skip_if_too_many_requests(rsp)
         assert rsp.status == HTTPStatus.OK  # 200
@@ -209,7 +209,7 @@ async def test_good(  # good credentials
 
     #
     # TEST 9: good session id -> HTTPStatus.OK
-    url = f"{URL_BASE_V0}/accountInfo"
+    url = f"{URL_BASE_V1}/accountInfo"
     headers = HEADERS_BASE | {"sessionId": session_id}
 
     async with client_session.get(url, headers=headers) as rsp:

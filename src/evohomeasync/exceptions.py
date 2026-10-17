@@ -1,4 +1,4 @@
-"""An async client for the v0 Resideo TCC API."""
+"""An async client for the v1 Resideo TCC API."""
 
 from __future__ import annotations
 

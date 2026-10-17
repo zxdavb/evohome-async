@@ -1,11 +1,11 @@
-"""Invoke every vendor RESTful API (URL) of the v0 API (as used by the v1 client).
+"""Invoke every vendor RESTful API (URL) of the v1 API (as used by the v1 client).
 
 This is used to document the RESTful API that is provided by the vendor. Together with
 the schema module (src/evohomeasync/schemas.py), whose TypedDicts record the shape of
 each request/response, these tests are the documentation of that API: they confirm that
 each endpoint exists, and how it behaves.
 
-Testing is at HTTP request layer (e.g. GET/PUT). The base URL is URL_BASE_V0, i.e.
+Testing is at HTTP request layer (e.g. GET/PUT). The base URL is URL_BASE_V1, i.e.
 https://tccna.resideo.com/WebAPI/api, and all endpoints below are relative to it.
 
   Entity    Method    Endpoint (all tested here, unless noted otherwise)
@@ -29,7 +29,7 @@ https://tccna.resideo.com/WebAPI/api, and all endpoints below are relative to it
 
   task      GET       /commTasks?commTaskId={tsk_id}
 
-There is no longer any v0 URL to change a TCS's mode. Zones and
+There is no longer any v1 URL to change a TCS's mode. Zones and
 DHW are both devices, distinguished by thermostatModelType (e.g. EMEA_ZONE, or
 DOMESTIC_HOT_WATER), and so share the same URLs, except that only a zone has
 .../heatSetpoint (a shortcut to the HeatSetpoint of its changeableValues). A PUT of
@@ -60,11 +60,11 @@ The API is regular, and these tests confirm the following conventions:
 - a GET of a PUT-only URL is 404 (Not Found), as is any other invalid URL (which
   returns HTML, not JSON), and the id of another user's entity is 401 (Unauthorized)
 
-- a PUT to a device that is not alive is 400 (DeviceIsLost), see test_v0_urls_auth.py
+- a PUT to a device that is not alive is 400 (DeviceIsLost), see test_v1_urls_auth.py
 
 - a PUT is sometimes answered with the comm task of an earlier, equivalent PUT (which
   has already succeeded), and is not applied, e.g. a revert to schedule within minutes
-  of another; the rule for this is not known (see is_stale_task_v0() in common.py)
+  of another; the rule for this is not known (see is_stale_task_v1() in common.py)
 
 - otherwise, a change has appeared via GET within a second of its comm task succeeding
 
@@ -89,13 +89,13 @@ from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS, TCC_TASK_RE
 from tests.const import _DBG_USE_REAL_AIOHTTP, _DBG_WAIT_FOR_COMM_TASKS, TEST_LOC_IDX
 
 from .common import (
-    is_alive_v0,
-    is_dhw_v0,
-    is_zone_v0,
+    is_alive_v1,
+    is_dhw_v1,
+    is_zone_v1,
     skipif_auth_failed,
-    status_of_v0,
-    task_id_v0,
-    wait_for_comm_task_v0,
+    status_of_v1,
+    task_id_v1,
+    wait_for_comm_task_v1,
 )
 
 if TYPE_CHECKING:
@@ -148,7 +148,7 @@ async def _post_session(auth: Auth) -> TccSessionResponseT:
         "ApplicationId": "91db1612-73fd-4500-91b2-e63b069b185c",
       }
 
-    It is tested in test_v0_urls_cred.py (which is where it is documented).
+    It is tested in test_v1_urls_cred.py (which is where it is documented).
     """
 
     raise NotImplementedError
@@ -417,7 +417,7 @@ async def test_loc_urls(
         # too, e.g. {"modeChangeSource": {"partnerName": "EMEA", "changeTag": ""}}
         sources = (
             {"modeChangeSource"}
-            if is_dhw_v0(dev_all)
+            if is_dhw_v1(dev_all)
             else {"modeChangeSource", "heatSetpointChangeSource"}
         )
         assert extra <= sources, extra
@@ -473,7 +473,7 @@ async def test_tcs_urls(
 
     # an evohome location (not, say, a Round Thermostat)
     loc = usr_locs[TEST_LOC_IDX]
-    if not any(is_zone_v0(d) for d in loc["devices"]):
+    if not any(is_zone_v1(d) for d in loc["devices"]):
         pytest.skip("No evohome location found")
     loc_id = loc["locationID"]
 
@@ -506,14 +506,14 @@ async def put_changeable_values(
 
     Returns a comm task, e.g. {"id": 1234567890}.
 
-    Errors (all 400, Bad Request), for more see test_v0_urls_auth.py:
+    Errors (all 400, Bad Request), for more see test_v1_urls_auth.py:
       ParameterIsMissing:        e.g. no Mode, or (a zone) no HeatSetpoint
       ThermostatModeNotAllowed:  e.g. "Allowed modes are Heat, Off." (a zone)
 
     NOTE: on some installations (e.g. the test installation), the vendor forbids a DHW's
     Status and NextTime (which the older client sent), so a DHW can't be set to follow
     its schedule, nor to a mode until a given time, via this API - see
-    test_v0_urls_auth.py.
+    test_v1_urls_auth.py.
     """
 
     return TCC_TASK_RESPONSE(
@@ -549,7 +549,7 @@ async def put_devices_zon(
     NOTE: the vendor sometimes answers this with the comm task of an earlier, equivalent
     PUT (which has already succeeded), and does not apply it, even if the zone has since
     been overridden: this has been seen repeatedly for a revert to schedule (which has
-    only the one form). See is_stale_task_v0() in common.py.
+    only the one form). See is_stale_task_v1() in common.py.
     """
 
     return TCC_TASK_RESPONSE(
@@ -584,7 +584,7 @@ async def test_zon_urls(
         (
             d
             for d in usr_locs[TEST_LOC_IDX]["devices"]
-            if is_zone_v0(d) and is_alive_v0(d) and status_of_v0(d) == "Scheduled"
+            if is_zone_v1(d) and is_alive_v1(d) and status_of_v1(d) == "Scheduled"
         ),
         None,
     )
@@ -644,7 +644,7 @@ async def test_dhw_urls(
         (
             d
             for d in usr_locs[TEST_LOC_IDX]["devices"]
-            if is_dhw_v0(d) and is_alive_v0(d)
+            if is_dhw_v1(d) and is_alive_v1(d)
         ),
         None,
     )
@@ -671,10 +671,10 @@ async def _wait_for_task(auth: Auth, response: TccTaskResponseT) -> None:
     Only if _DBG_WAIT_FOR_COMM_TASKS, as per the v2 tests (wait_for_comm_task_id()).
     Otherwise, do nothing (not even check its state once).
 
-    NOTE: test_v0_urls_auth.py always waits, as it needs the succeeded task.
+    NOTE: test_v1_urls_auth.py always waits, as it needs the succeeded task.
     """
 
     if not _DBG_WAIT_FOR_COMM_TASKS:
         return
 
-    _ = await wait_for_comm_task_v0(auth, task_id_v0(response))
+    _ = await wait_for_comm_task_v1(auth, task_id_v1(response))

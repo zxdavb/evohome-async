@@ -1,4 +1,4 @@
-# fixtures_v0/system_009
+# fixtures_v1/system_009
 
 Captured from a real (dummy) account on 2026-10-16 — multiple locations (UK).
 
@@ -30,7 +30,7 @@ application id).
 - v2 counterpart: `fixtures_v2/system_009/` (the same account, captured at the same time)
 - Each device's `macID` is that of its gateway (c.f. the `mac` of the gateway in
   `gateways_{loc_id}.json`, and of its v2 gateway).
-- There are no v0 schedules: `schedule/{device_id}` (and `schedule?deviceId=`) returns
+- There are no v1 schedules: `schedule/{device_id}` (and `schedule?deviceId=`) returns
   `400 [{"code": "ScheduleNotSupported"}]` for every device (all have
   `"scheduleCapable": false`). See `fixtures_v2/system_009/` for their schedules.
 - The `weather` of each location (in `user_locs.json`) is a summary of

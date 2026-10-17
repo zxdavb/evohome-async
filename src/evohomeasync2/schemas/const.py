@@ -177,9 +177,9 @@ class TccEntityType(StrEnum):
 class TccCommTaskState(StrEnum):  # NOTE: only Created/Running/Succeeded are observed
     CREATED = "Created"
     RUNNING = "Running"
-    REPEATED = "Repeated"  # is running again, after an earlier run failed (as per v0)
+    REPEATED = "Repeated"  # is running again, after an earlier run failed (as per v1)
     SUCCEEDED = "Succeeded"  # is terminal
-    FAILED = "Failed"  # is terminal (as per v0)
+    FAILED = "Failed"  # is terminal (as per v1)
 
 
 @verify(EnumCheck.UNIQUE)

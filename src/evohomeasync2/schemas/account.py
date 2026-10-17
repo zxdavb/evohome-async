@@ -161,7 +161,7 @@ def factory_comm_task_response(
 ) -> Validator[TccCommTaskResponseT] | Validator[EvoCommTaskResponseT]:
     """Factory for the comm task response schema (the state of a PUT's task).
 
-    Only these keys have been observed (unlike for v0, which has many more).
+    Only these keys have been observed (unlike for v1, which has many more).
     """
 
     fnc = noop if case is Case.VENDOR else camel_to_snake

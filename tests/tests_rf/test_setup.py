@@ -15,7 +15,7 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
-    from evohomeasync import EvohomeClient as EvohomeClientV0
+    from evohomeasync import EvohomeClient as EvohomeClientV1
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 
@@ -24,17 +24,17 @@ if TYPE_CHECKING:
 
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_update_v0(
-    evohome_v0: EvohomeClientV0,
+async def test_update_v1(
+    evohome_v1: EvohomeClientV1,
 ) -> None:
-    """Make a minimal test of instantiation/update of the v0 client."""
+    """Make a minimal test of instantiation/update of the v1 client."""
 
     with pytest.raises(exc.NotFetchedError):
-        assert evohome_v0.user_account
+        assert evohome_v1.user_account
 
-    await evohome_v0.get_status()
+    await evohome_v1.get_status()
 
-    assert evohome_v0.user_account
+    assert evohome_v1.user_account
 
 
 @skipif_auth_failed

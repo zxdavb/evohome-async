@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING, overload
 from tests.const import TEST_LOC_IDX
 
 if TYPE_CHECKING:
-    import evohomeasync as evo0
+    import evohomeasync as evo1
     import evohomeasync2 as evo2
 
 
 @overload
-def get_loc(evo: evo0.EvohomeClient) -> evo0.Location: ...
+def get_loc(evo: evo1.EvohomeClient) -> evo1.Location: ...
 
 
 @overload
@@ -20,14 +20,14 @@ def get_loc(evo: evo2.EvohomeClient) -> evo2.Location: ...
 
 
 def get_loc(
-    evo: evo0.EvohomeClient | evo2.EvohomeClient,
-) -> evo0.Location | evo2.Location:
+    evo: evo1.EvohomeClient | evo2.EvohomeClient,
+) -> evo1.Location | evo2.Location:
     """Return the Location object to test against (see TEST_LOC_IDX)."""
     return evo.locations[TEST_LOC_IDX]
 
 
 @overload
-def get_tcs(evo: evo0.EvohomeClient) -> evo0.ControlSystem: ...
+def get_tcs(evo: evo1.EvohomeClient) -> evo1.ControlSystem: ...
 
 
 @overload
@@ -35,8 +35,8 @@ def get_tcs(evo: evo2.EvohomeClient) -> evo2.ControlSystem: ...
 
 
 def get_tcs(
-    evo: evo0.EvohomeClient | evo2.EvohomeClient,
-) -> evo0.ControlSystem | evo2.ControlSystem:
+    evo: evo1.EvohomeClient | evo2.EvohomeClient,
+) -> evo1.ControlSystem | evo2.ControlSystem:
     """Return the TCS of the location to test against.
 
     Raise IndexError if it has no TCS.
