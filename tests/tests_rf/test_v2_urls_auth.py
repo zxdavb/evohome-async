@@ -41,7 +41,6 @@ from evohomeasync2.schemas.status import (
     TCC_GET_TCS_STATUS,
     TCC_GET_ZON_STATUS,
 )
-from tests.common import get_dhw, get_loc, get_tcs, get_zon
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from .common import error_codes, should_fail_v2, should_work_v2, skipif_auth_failed
@@ -156,14 +155,9 @@ async def _test_user_locations(
 
 async def _test_loc_status(
     ec2: EvohomeClientV2,
+    loc: evo2.Location,
 ) -> None:
     """Test /location/{loc.id}/status"""
-
-    # TODO: remove .setup() and use URLs only
-    await ec2.setup()
-
-    loc = get_loc(ec2)
-    #
 
     url = f"location/{loc.id}/status"
     if _DBG_TEST_UNUSED_APIS:  # without the param (not used by the client)
@@ -211,18 +205,12 @@ async def _test_loc_status(
 
 async def _test_tcs_status(
     ec2: EvohomeClientV2,
+    tcs: evo2.ControlSystem,
 ) -> None:
     """Test GET /temperatureControlSystem/{tcs.id}/status
 
     Also tests PUT /temperatureControlSystem/{tcs.id}/mode
     """
-
-    # TODO: remove .setup() and use URLs only?
-    await ec2.setup()
-
-    tcs: evo2.ControlSystem
-    if not (tcs := get_tcs(ec2)):
-        pytest.skip("No available TCS found")
 
     #
     # STEP 0: Get/keep the current mode, so we can restore it later
@@ -354,6 +342,7 @@ async def _test_tcs_status(
 
 async def _test_zone_status(
     ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test /temperatureZone/{zone.id}/status
 
@@ -361,14 +350,6 @@ async def _test_zone_status(
     """
 
     heat_setpoint: dict[str, float | str | None]  # TODO: TypedDict
-
-    # TODO: remove .setup()/.get_status() and use URLs only
-    await ec2.setup()
-    for loc in ec2.locations:
-        await loc.get_status()
-
-    if not (zone := get_zon(ec2)):
-        pytest.skip("No available zones found")
 
     #
     url = f"{zone._TCC_TYPE}/{zone.id}/status"
@@ -461,6 +442,7 @@ async def _test_zone_status(
 
 async def _test_dhw_status(
     ec2: EvohomeClientV2,
+    dhw: evo2.HotWater,
 ) -> None:
     """Test /domesticHotWater/{dhw.id}/status
 
@@ -469,14 +451,6 @@ async def _test_dhw_status(
 
     # not a TccSetDhwModeT, as some of these bodies are deliberately invalid
     dhw_state: dict[str, str | None]
-
-    # TODO: remove .setup()/.get_status() and use URLs only
-    await ec2.setup()
-    for loc in ec2.locations:
-        await loc.get_status()
-
-    if not (dhw := get_dhw(ec2)):
-        pytest.skip("No available DHW found")
 
     #
     # STEP 1: Get the status (which is GET-only) (not used by the client)
@@ -628,15 +602,17 @@ async def test_usr_locations(
 @skipif_auth_failed  # GET
 async def test_loc_status(
     ec2: EvohomeClientV2,
+    loc: evo2.Location,
 ) -> None:
     """Test GET /location/{loc.id}/status"""
 
-    await _test_loc_status(ec2)
+    await _test_loc_status(ec2, loc)
 
 
 @skipif_auth_failed  # GET, PUT
 async def test_tcs_status(
     ec2: EvohomeClientV2,
+    tcs: evo2.ControlSystem,
 ) -> None:
     """Test GET /temperatureControlSystem/{tcs.id}/status
 
@@ -644,7 +620,7 @@ async def test_tcs_status(
     """
 
     try:
-        await _test_tcs_status(ec2)
+        await _test_tcs_status(ec2, tcs)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -655,6 +631,7 @@ async def test_tcs_status(
 @skipif_auth_failed  # GET, PUT
 async def test_zone_status(
     ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test GET /temperatureZone/{zone.id}/status
 
@@ -662,7 +639,7 @@ async def test_zone_status(
     """
 
     try:
-        await _test_zone_status(ec2)
+        await _test_zone_status(ec2, zone)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -673,6 +650,7 @@ async def test_zone_status(
 @skipif_auth_failed  # GET, PUT
 async def test_dhw_status(
     ec2: EvohomeClientV2,
+    dhw: evo2.HotWater,
 ) -> None:
     """Test GET /domesticHotWater/{dhw.id}/status
 
@@ -680,7 +658,7 @@ async def test_dhw_status(
     """
 
     try:
-        await _test_dhw_status(ec2)
+        await _test_dhw_status(ec2, dhw)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -774,6 +752,7 @@ async def test_url_case_insensitive(
 @skipif_auth_failed
 async def test_case_insensitive(
     ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test the keys and enum values of a PUT are case-insensitive, but not snake_case.
 
@@ -785,11 +764,6 @@ async def test_case_insensitive(
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
-
-    await ec2.setup()
-
-    if not (zone := get_zon(ec2)):
-        pytest.skip("No available zones found")
 
     url = f"temperatureZone/{zone.id}/heatSetpoint"
 

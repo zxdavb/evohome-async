@@ -20,10 +20,12 @@ from tests.const import (
     TIMEOUT_REAL_AIOHTTP,
 )
 
-from .common import timed_out_comm_task
+from .common import skipif_auth_failed, timed_out_comm_task
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Generator
+
+    from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 
 @pytest.fixture(scope="session")
@@ -43,6 +45,59 @@ def credentials() -> tuple[str, str]:
     password: str = os.getenv("TEST_PASSWORD") or TEST_PASSWORD
 
     return username, password
+
+
+@pytest.fixture
+async def loc(
+    ec2: EvohomeClientV2,
+) -> evo2.Location:
+    """Return the location under test (see get_loc()), with its config and status.
+
+    The client (the ec2 fixture, which the test may also use) is set up, as is the
+    location's status fetched. If either fails to authenticate, so do any later tests.
+    """
+
+    # TODO: the *_urls tests use the client only to find the entities under test; they
+    # could do so via the URLs alone
+
+    await skipif_auth_failed(ec2.setup)()
+    loc = get_loc(ec2)
+    await skipif_auth_failed(loc.get_status)()
+
+    return loc
+
+
+@pytest.fixture
+def tcs(
+    loc: evo2.Location,
+) -> evo2.ControlSystem:
+    """Return the TCS of the location under test; skip the test if there is none."""
+
+    if (tcs := loc.tcs) is None:
+        pytest.skip("The location under test has no TCS")
+    return tcs
+
+
+@pytest.fixture
+def zone(
+    tcs: evo2.ControlSystem,
+) -> evo2.Zone:
+    """Return the first zone of the TCS under test; skip the test if there is none."""
+
+    if not tcs.zones:
+        pytest.skip("The TCS under test has no zones")
+    return tcs.zones[0]
+
+
+@pytest.fixture
+def dhw(
+    tcs: evo2.ControlSystem,
+) -> evo2.HotWater:
+    """Return the DHW of the TCS under test; skip the test if there is none."""
+
+    if (dhw := tcs.hotwater) is None:
+        pytest.skip("The TCS under test has no DHW")
+    return dhw
 
 
 @pytest.fixture(autouse=True)
