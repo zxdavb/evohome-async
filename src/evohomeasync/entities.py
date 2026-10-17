@@ -589,9 +589,6 @@ async def create_location(client: EvohomeClient, config: EvoTcsInfoDictT) -> Loc
 
     A constructor function is used to keep the async creation of the location's tzinfo
     (from its IANA TZ, as it does I/O) tightly coupled with the Location's creation.
-
-    The location's `daylight_saving_time_enabled` does not change the IANA TZ, as for
-    v2's `use_dst_switching` (see evohomeasync2.location._create_tzinfo()).
     """
 
     time_zone_id = config[SZ_TIME_ZONE][SZ_ID]  # a Windows TZ id

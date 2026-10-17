@@ -73,11 +73,6 @@ async def _create_tzinfo(
 
     Note that `dst_enabled` (DST will be active at some times) is distinct from
     `dst_active` (DST is active now).
-
-    The location's `use_dst_switching` does not change the IANA TZ: the vendor's own
-    offsets ignore it (when it was False, an AU location's current_offset_minutes still
-    followed DST, an hour after it was changed). The web portal offers it for AU/NZ
-    locations only, and it may affect only the device's clock (this is unverified).
     """
 
     time_zone_id = time_zone_info[SZ_TIME_ZONE_ID]
