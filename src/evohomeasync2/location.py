@@ -73,6 +73,11 @@ async def _create_tzinfo(
 
     Note that `dst_enabled` (DST will be active at some times) is distinct from
     `dst_active` (DST is active now).
+
+    The location's `use_dst_switching` does not change the IANA TZ: the vendor's own
+    offsets ignore it (when it was False, an AU location's current_offset_minutes still
+    followed DST, an hour after it was changed). The web portal offers it for AU/NZ
+    locations only, and it may affect only the device's clock (this is unverified).
     """
 
     time_zone_id = time_zone_info[SZ_TIME_ZONE_ID]
@@ -87,9 +92,9 @@ async def _create_tzinfo(
     # - unable to determine if a given datetime was/will be during DST
 
     msg = f"Unable to find IANA TZ identifier for '{time_zone_id}'"
-    _LOGGER.warning(
-        msg + "; DST support will be very limited" if use_dst_switching else ""
-    )
+    if use_dst_switching:
+        msg += "; DST support will be very limited"
+    _LOGGER.warning(msg)
 
     return EvoZoneInfo(
         time_zone_info=time_zone_info, use_dst_switching=use_dst_switching
