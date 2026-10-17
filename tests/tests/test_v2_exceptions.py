@@ -52,16 +52,16 @@ async def test_config_not_fetched(
 ) -> None:
     """Test the config attrs raise NotFetchedError until update() is called."""
 
-    evo = EvohomeClient(credentials_manager)
+    ec2 = EvohomeClient(credentials_manager)
 
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.tzinfo
+        _ = ec2.tzinfo
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.user_account
+        _ = ec2.user_account
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.locations
+        _ = ec2.locations
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.location_by_id
+        _ = ec2.location_by_id
 
 
 async def test_schedule_not_fetched(
@@ -83,22 +83,22 @@ async def test_status_not_fetched(
 ) -> None:
     """Test the status attrs raise NotFetchedError until the status is fetched."""
 
-    evo = EvohomeClient(credentials_manager)
+    ec2 = EvohomeClient(credentials_manager)
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
-        await evo.setup()  # i.e. the config only
+        await ec2.setup()  # i.e. the config only
 
-    # not the tcs/zone/dhw fixtures: they come from ec2, which has fetched the
+    # not the tcs/zone/dhw fixtures: they come from the ec2 fixture, which has fetched the
     # status (so nothing would raise), whereas this client has fetched only the config
-    tcs = get_tcs(evo)
+    tcs = get_tcs(ec2)
 
     with pytest.raises(exc.NotFetchedError):
         _ = tcs.status
-    zone = get_zon(evo)
+    zone = get_zon(ec2)
     assert zone is not None  # the default/ fixture has zones
     with pytest.raises(exc.NotFetchedError):
         _ = zone.status
-    if dhw := get_dhw(evo):  # not the dhw fixture (see above)
+    if dhw := get_dhw(ec2):  # not the dhw fixture (see above)
         with pytest.raises(exc.NotFetchedError):
             _ = dhw.status
 
@@ -108,14 +108,14 @@ async def test_invalid_config(
 ) -> None:
     """Test update() raises InvalidConfigError if the config fails validation."""
 
-    evo = EvohomeClient(credentials_manager)
+    ec2 = EvohomeClient(credentials_manager)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
         pytest.raises(exc.InvalidConfigError) as err,
     ):
-        await evo.setup()
+        await ec2.setup()
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error

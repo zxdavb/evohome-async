@@ -66,20 +66,20 @@ def _is_evohome(tcs: ControlSystem) -> bool:
     )
 
 
-async def _test_usr_apis(evo: EvohomeClientV1) -> None:
+async def _test_usr_apis(ec1: EvohomeClientV1) -> None:
     """Test User and Location methods.
 
-    Includes: evo.update(), evo.user_account, evo.locations, and zone/DHW temperatures.
+    Includes: ec1.update(), ec1.user_account, ec1.locations, and zone/DHW temperatures.
     """
 
     # STEP 1: GET /accountInfo, GET /locations?userId={usr_id}&allData=True
-    await evo.get_status()
+    await ec1.get_status()
 
-    assert evo1.main.SCH_GET_ACCOUNT_INFO(evo.user_account)
-    assert evo1.main.SCH_GET_ACCOUNT_LOCS(evo._user_locs)
+    assert evo1.main.SCH_GET_ACCOUNT_INFO(ec1.user_account)
+    assert evo1.main.SCH_GET_ACCOUNT_LOCS(ec1._user_locs)
 
     # STEP 2: the high-precision temperatures (from the latest update)
-    for tcs in (loc.tcs for loc in evo.locations if loc.tcs):
+    for tcs in (loc.tcs for loc in ec1.locations if loc.tcs):
         temps = await tcs.get_temperatures(dont_update_status=True)
         assert set(temps) == {z.id for z in tcs.zones}
 
@@ -89,15 +89,15 @@ async def _test_usr_apis(evo: EvohomeClientV1) -> None:
             )
 
 
-async def _test_tcs_apis(evo: EvohomeClientV1) -> None:
+async def _test_tcs_apis(ec1: EvohomeClientV1) -> None:
     """Test ControlSystem methods.
 
     Includes tcs.set_auto() (which would leave the TCS in Auto mode).
     """
 
-    await evo.get_status()
+    await ec1.get_status()
 
-    if not _is_evohome(tcs := get_tcs(evo)):
+    if not _is_evohome(tcs := get_tcs(ec1)):
         pytest.skip("The location under test is not an evohome system")
 
     # PUT /evoTouchSystems?locationId={loc_id}
@@ -107,7 +107,7 @@ async def _test_tcs_apis(evo: EvohomeClientV1) -> None:
     assert err.value.status == HTTPStatus.NOT_FOUND
 
 
-async def _test_dhw_apis(evo: EvohomeClientV1) -> None:
+async def _test_dhw_apis(ec1: EvohomeClientV1) -> None:
     """Test HotWater methods.
 
     Includes dhw.set_dhw_on() or dhw.set_dhw_off() (whichever is its current state),
@@ -118,9 +118,9 @@ async def _test_dhw_apis(evo: EvohomeClientV1) -> None:
     test is an xfail (see test_v1_urls_auth.py for that contract).
     """
 
-    await evo.get_status()
+    await ec1.get_status()
 
-    dhw = get_tcs(evo).hotwater
+    dhw = get_tcs(ec1).hotwater
     if dhw is None or not _is_live(dhw):
         pytest.skip("No live DHW found")
 
@@ -142,15 +142,15 @@ async def _test_dhw_apis(evo: EvohomeClientV1) -> None:
     await dhw.set_dhw_auto()
 
 
-async def _test_zon_apis(evo: EvohomeClientV1) -> None:
+async def _test_zon_apis(ec1: EvohomeClientV1) -> None:
     """Test Zone methods.
 
     Includes zone.set_temperature() (temporary & permanent) and zone.set_zone_auto().
     """
 
-    await evo.get_status()
+    await ec1.get_status()
 
-    zone = next((z for z in get_tcs(evo).zones if _is_live_and_scheduled(z)), None)
+    zone = next((z for z in get_tcs(ec1).zones if _is_live_and_scheduled(z)), None)
     if zone is None:
         pytest.skip("No live zone found that is following its schedule")
 

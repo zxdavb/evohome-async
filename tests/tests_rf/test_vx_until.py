@@ -65,21 +65,21 @@ _STATUS_INTERVAL = 3  # seconds, between polls of the status
 _STATUS_TIMEOUT = 120  # seconds, as the gateway can take a while to apply a change
 
 
-async def _get_location(evo: EvohomeClientV1) -> TccLocationResponseT:
+async def _get_location(ec1: EvohomeClientV1) -> TccLocationResponseT:
     """Return the (vendor-cased) location under test, via v1."""
 
-    usr_id: int = evo.user_account["user_id"]
+    usr_id: int = ec1.user_account["user_id"]
 
     url = f"locations?userId={usr_id}&allData=True"
-    locs = await should_work_v1(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
+    locs = await should_work_v1(ec1.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
 
     return locs[TEST_LOC_IDX]
 
 
-async def _get_zone(evo: EvohomeClientV1, zon_id: int) -> TccDeviceResponseT:
+async def _get_zone(ec1: EvohomeClientV1, zon_id: int) -> TccDeviceResponseT:
     """Return the (vendor-cased) zone, via v1."""
     return next(
-        d for d in (await _get_location(evo))["devices"] if d["deviceID"] == zon_id
+        d for d in (await _get_location(ec1))["devices"] if d["deviceID"] == zon_id
     )
 
 
@@ -132,36 +132,36 @@ async def _setup(
     return zone["deviceID"], setpoint, offset, now
 
 
-async def _get_next_time(evo: EvohomeClientV1, zon_id: int) -> str | None:
+async def _get_next_time(ec1: EvohomeClientV1, zon_id: int) -> str | None:
     """Return the nextTime of a zone's override, via v1 (it is without a Z)."""
 
     values: dict[str, Any] = dict(
-        (await _get_zone(evo, zon_id))["thermostat"]["changeableValues"]
+        (await _get_zone(ec1, zon_id))["thermostat"]["changeableValues"]
     )
     next_time: str | None = values["heatSetpoint"].get("nextTime")
     return next_time
 
 
-async def _get_setpoint_status(evo: EvohomeClientV2, zon_id: int) -> dict[str, Any]:
+async def _get_setpoint_status(ec2: EvohomeClientV2, zon_id: int) -> dict[str, Any]:
     """Return the setpointStatus of a zone, via v2."""
 
     url = f"temperatureZone/{zon_id}/status"
     status = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_STATUS
+        ec2.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_STATUS
     )
 
     return dict(status["setpointStatus"])
 
 
-async def _get_until(evo: EvohomeClientV2, zon_id: int) -> str | None:
+async def _get_until(ec2: EvohomeClientV2, zon_id: int) -> str | None:
     """Return the until of a zone's override, via v2 (it is UTC, with a Z)."""
 
-    until: str | None = (await _get_setpoint_status(evo, zon_id)).get("until")
+    until: str | None = (await _get_setpoint_status(ec2, zon_id)).get("until")
     return until
 
 
 async def _wait_for_until(
-    evo: EvohomeClientV2, zon_id: int, previous: str | None
+    ec2: EvohomeClientV2, zon_id: int, previous: str | None
 ) -> str | None:
     """Poll a zone (via v2) until the until of its override changes, and return it.
 
@@ -174,7 +174,7 @@ async def _wait_for_until(
     try:
         async with asyncio.timeout(_STATUS_TIMEOUT):
             while True:
-                if (until := await _get_until(evo, zon_id)) != previous:
+                if (until := await _get_until(ec2, zon_id)) != previous:
                     return until
 
                 await asyncio.sleep(_STATUS_INTERVAL)
@@ -183,13 +183,13 @@ async def _wait_for_until(
         return until
 
 
-async def _is_following_schedule(evo: EvohomeClientV2, zon_id: int) -> bool:
+async def _is_following_schedule(ec2: EvohomeClientV2, zon_id: int) -> bool:
     """Poll a zone (via v2) until it follows its schedule, and return True if it does."""
 
     try:
         async with asyncio.timeout(_STATUS_TIMEOUT):
             while True:
-                status = await _get_setpoint_status(evo, zon_id)
+                status = await _get_setpoint_status(ec2, zon_id)
                 if status["setpointMode"] == "FollowSchedule":
                     return True
 

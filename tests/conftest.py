@@ -155,12 +155,12 @@ async def ec1(
 ) -> AsyncGenerator[EvohomeClientV1]:
     """Yield an instance of a v1 EvohomeClient."""
 
-    evo = EvohomeClientV1(credentials_manager)
+    ec1 = EvohomeClientV1(credentials_manager)
 
-    # await evo.update()
+    # await ec1.update()
 
     try:
-        yield evo
+        yield ec1
     finally:
         pass
 
@@ -171,11 +171,11 @@ async def ec2(
 ) -> AsyncGenerator[EvohomeClientV2]:
     """Yield an instance of a v2 EvohomeClient."""
 
-    evo = EvohomeClientV2(credentials_manager)
+    ec2 = EvohomeClientV2(credentials_manager)
 
-    # await evo.update()
+    # await ec2.update()
 
     try:
-        yield evo
+        yield ec2
     finally:
         pass

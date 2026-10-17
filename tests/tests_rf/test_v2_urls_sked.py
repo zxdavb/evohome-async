@@ -25,22 +25,22 @@ if TYPE_CHECKING:
     from evohomeasync2.schemas.schedule import TccZonDailySchedulesT
 
 
-async def _test_schedule_put(evo: EvohomeClientV2) -> None:
+async def _test_schedule_put(ec2: EvohomeClientV2) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule"""
 
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
 
     # TODO: remove .update() and use URLs only
-    await evo.setup()
+    await ec2.setup()
 
-    if not (zone := get_zon(evo)):
+    if not (zone := get_zon(ec2)):
         pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
     # STEP 1: GET the current schedule
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+        ec2.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
     )
 
     # an example of the expected response:
@@ -81,7 +81,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     #
     # STEP 2: PUT a null schedule  # NOTE: json=None
     _ = await should_fail_v2(
-        evo.auth, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST
+        ec2.auth, HTTPMethod.PUT, url, json=None, status=HTTPStatus.BAD_REQUEST
     )
 
     # the expected response:
@@ -96,7 +96,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     #
     # STEP 3: PUT an invalid schedule  # NOTE: json={}
     _ = await should_fail_v2(
-        evo.auth, HTTPMethod.PUT, url, json={}, status=HTTPStatus.BAD_REQUEST
+        ec2.auth, HTTPMethod.PUT, url, json={}, status=HTTPStatus.BAD_REQUEST
     )
 
     # the expected response:
@@ -109,7 +109,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 4: PUT a valid schedule
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
+    _ = await should_work_v2(ec2.auth, HTTPMethod.PUT, url, json=schedule)
 
     # an example of the expected response:
     """
@@ -117,7 +117,7 @@ async def _test_schedule_put(evo: EvohomeClientV2) -> None:
     """
 
 
-async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
+async def _test_schedule_tsk(ec2: EvohomeClientV2) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule
 
     Also test commTasks?commTaskId={task_id}
@@ -126,16 +126,16 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
 
     # TODO: remove .update() and use URLs only
-    await evo.setup()
+    await ec2.setup()
 
-    if not (zone := get_zon(evo)):
+    if not (zone := get_zon(ec2)):
         pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
     # STEP 1: GET the current schedule
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+        ec2.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
     )
 
     assert isinstance(schedule, dict)  # mypy
@@ -145,7 +145,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     temp = schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"]
     schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] = temp + 1
 
-    status = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
+    status = await should_work_v2(ec2.auth, HTTPMethod.PUT, url, json=schedule)
 
     assert isinstance(status, dict | list)  # mypy
     # should_work_v2() waits for the task to succeed (see wait_for_comm_task_id())
@@ -153,7 +153,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     #
     # STEP 3: check the new schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+        ec2.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
     )
 
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp + 1
@@ -161,7 +161,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
 
     #
     # STEP 4: PUT the original schedule back
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, url, json=schedule)
+    _ = await should_work_v2(ec2.auth, HTTPMethod.PUT, url, json=schedule)
 
     #
     # STEP 5: (optional) check the status of the task
@@ -169,7 +169,7 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
     #
     # STEP 6: check the original schedule was effected
     schedule = await should_work_v2(
-        evo.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
+        ec2.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_SCHEDULE
     )
 
     assert schedule["dailySchedules"][0]["switchpoints"][0]["heatSetpoint"] == temp
@@ -199,7 +199,7 @@ async def test_schedule_tsk(
     await _test_schedule_tsk(ec2)
 
 
-async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
+async def _test_schedule_get_schema_zon(ec2: EvohomeClientV2) -> None:
     """Document the exact key casing in the vendor's GET schedule response.
 
     The vendor API is reportedly case-insensitive on PUT, but this confirms
@@ -207,17 +207,17 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
     """
 
     # TODO: remove .update() and use URLs only
-    await evo.setup()
+    await ec2.setup()
 
     # schedule: TccZonDailySchedulesT  # can't use this, as we GET without a schema
 
-    if not (zone := get_zon(evo)):
+    if not (zone := get_zon(ec2)):
         pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
     # GET without schema so we capture whatever the server actually sends back
-    schedule = await should_work_v2(evo.auth, HTTPMethod.GET, url)
+    schedule = await should_work_v2(ec2.auth, HTTPMethod.GET, url)
     assert isinstance(schedule, dict)  # mypy
 
     # an example of the expected response:
@@ -249,25 +249,25 @@ async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
     assert isinstance(sp["timeOfDay"], str)  # e.g. "06:30:00"
 
 
-async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
+async def _test_schedule_get_schema_dhw(ec2: EvohomeClientV2) -> None:
     """Document the exact key casing in the vendor's GET DHW schedule response.
 
     Mirrors _test_schedule_get_schema for DHW — switchpoints use dhwState
     instead of heatSetpoint, but the same camelCase key convention applies.
     """
     # TODO: remove .update() and use URLs only
-    await evo.setup()
+    await ec2.setup()
 
     # schedule: TccDhwDailySchedulesT  # cant use this, as we GET without a schema
 
-    if not (dhw := get_dhw(evo)):
+    if not (dhw := get_dhw(ec2)):
         pytest.skip("No DHW found in TCS")
 
     url = f"{dhw._TCC_TYPE}/{dhw.id}/schedule"
 
     #
     # GET without schema so we capture whatever the server actually sends back
-    schedule = await should_work_v2(evo.auth, HTTPMethod.GET, url)
+    schedule = await should_work_v2(ec2.auth, HTTPMethod.GET, url)
     assert isinstance(schedule, dict)  # mypy
 
     # an example of the expected response:

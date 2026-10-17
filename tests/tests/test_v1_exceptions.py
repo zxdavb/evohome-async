@@ -40,14 +40,14 @@ async def test_config_not_fetched(
 ) -> None:
     """Test the config attrs raise NotFetchedError until update() is called."""
 
-    evo = EvohomeClient(credentials_manager)
+    ec1 = EvohomeClient(credentials_manager)
 
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.user_account
+        _ = ec1.user_account
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.locations
+        _ = ec1.locations
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.location_by_id
+        _ = ec1.location_by_id
 
 
 async def test_invalid_config(
@@ -55,14 +55,14 @@ async def test_invalid_config(
 ) -> None:
     """Test update() raises InvalidConfigError if the config fails validation."""
 
-    evo = EvohomeClient(credentials_manager)
+    ec1 = EvohomeClient(credentials_manager)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=error)),
         pytest.raises(exc.InvalidConfigError) as err,
     ):
-        await evo.get_status()
+        await ec1.get_status()
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error

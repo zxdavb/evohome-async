@@ -228,12 +228,12 @@ async def ec1(
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync.auth.Auth.get", auth_get(fixture_folder)):
-        evo = EvohomeClientV1(credentials_manager)
+        ec1 = EvohomeClientV1(credentials_manager)
 
-        await evo.setup()
+        await ec1.setup()
 
         try:
-            yield evo
+            yield ec1
         finally:
             pass
 
@@ -246,14 +246,14 @@ async def ec2(
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
-        evo = EvohomeClientV2(credentials_manager)
+        ec2 = EvohomeClientV2(credentials_manager)
 
-        await evo.setup()
-        for loc in evo.locations:
+        await ec2.setup()
+        for loc in ec2.locations:
             await loc.get_status()
 
         try:
-            yield evo
+            yield ec2
         finally:
             pass
 

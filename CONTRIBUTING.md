@@ -170,6 +170,24 @@ still warrant justification.
 | Exception binding | `except SomeError as err:`                                    |
 | Build backend     | Hatchling — version lives in `src/_evohome/__init__.py`       |
 
+### Naming the clients
+
+| Name                                  | For                                                    |
+| ------------------------------------- | ------------------------------------------------------ |
+| `import evohomeasync as evo1`         | the v1 package                                         |
+| `import evohomeasync2 as evo2`        | the v2 package                                         |
+| `EvohomeClientV1` / `EvohomeClientV2` | the client classes, as aliases (not `EvohomeClient1`)  |
+| `ec1` / `ec2`                         | a client instance (or a fixture that yields one)       |
+| `ec`                                  | a client instance, only where noted below              |
+
+Use a bare `ec` only:
+
+- in a function that takes either version (e.g. `get_loc(ec: evo1.EvohomeClient | evo2.EvohomeClient)`), or
+- within `src/evohomeasync` or `src/evohomeasync2`, which never refer to the other version.
+
+Elsewhere, i.e. in `src/_evohome`, `src/evohome_cli` and `tests/`, use `ec1` or `ec2`.
+Do not use `evo` for a client. In the CLI, the click context key is `SZ_EC2` (`"ec2"`).
+
 ### Deprecations
 
 Deprecate a method with `@warnings.deprecated(...)`, and a module-level name with
