@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 
     from _evohome.helpers import Validator
 
+    from .entities import ControlSystem
     from .typedefs import EvoTcsInfoDictT, EvoUserAccountInfoDictT
 
 SCH_GET_ACCOUNT_INFO: Final[Validator[EvoUserAccountInfoDictT]] = (
@@ -273,3 +274,21 @@ class EvohomeClient:
             raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
 
         return self._location_by_id
+
+    @property
+    @deprecated("EvohomeClient.tcs is deprecated: use Location.tcs")
+    def tcs(self) -> ControlSystem:
+        """Return the TCS of the account's single location, or raise an exception.
+
+        The majority of users will have only one location, with one TCS.
+        """
+
+        if len(locs := self.locations) != 1:
+            raise exc.ClientStateError(
+                "There is not a single location (only) for this account"
+            )
+
+        if (tcs := locs[0].tcs) is None:
+            raise exc.ClientStateError("The location of this account has no TCS")
+
+        return tcs
