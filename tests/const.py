@@ -1,4 +1,4 @@
-"""Tests for evohome-async."""
+"""Constants shared by the offline tests and the real-API tests."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ TIMEOUT_REAL_AIOHTTP: Final = 5  # seconds
 # (the gateway carries out its tasks one at a time, so a task may wait behind others)
 TIMEOUT_COMM_TASK: Final = 60  # seconds
 # ...the same, but for a v1 PUT (one was seen to take 29s, 2026-10-07)
-TIMEOUT_COMM_TASK_V0: Final = 45  # seconds
+TIMEOUT_COMM_TASK_V1: Final = 45  # seconds
 
 #
 # the location under test, as an index into the user's list of locations: index the
@@ -47,8 +47,8 @@ TEST_USERNAME: Final = "username@email.com"
 TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
 
 # vendors API URLs - the older API
-URL_CRED_V0 = f"https://{HOSTNAME}/WebAPI/api/session"
-URL_BASE_V0 = f"https://{HOSTNAME}/WebAPI/api"
+URL_CRED_V1 = f"https://{HOSTNAME}/WebAPI/api/session"
+URL_BASE_V1 = f"https://{HOSTNAME}/WebAPI/api"
 
 # - the newer API
 URL_CRED_V2 = f"https://{HOSTNAME}/Auth/OAuth/Token"
@@ -58,7 +58,7 @@ HEADERS_BASE = {
     "Accept": "application/json",
     "Connection": "Keep-Alive",
 }
-HEADERS_CRED_V0 = HEADERS_BASE | {
+HEADERS_CRED_V1 = HEADERS_BASE | {
     "Cache-Control": "no-cache, no-store",
     "Pragma": "no-cache",
 }

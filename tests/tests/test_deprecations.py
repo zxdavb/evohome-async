@@ -1,4 +1,4 @@
-"""Tests for evohome-async - the deprecated names warn, but still work.
+"""Test that the deprecated names warn, but still work.
 
 The deprecated methods (the `update()`s) are tested in test_client_setup.py.
 """
@@ -10,7 +10,7 @@ import importlib
 import pytest
 
 import _evohome.exceptions as exc
-import evohomeasync2 as ec2
+import evohomeasync2 as evo2
 
 # (module, deprecated name, its replacement)
 ALIASES = [
@@ -49,7 +49,7 @@ def _catch_with_alias(err: exc.ApiCallFailedError) -> exc.ApiCallFailedError:
 
     try:
         raise err
-    except ec2.ApiRequestFailedError as caught:
+    except evo2.ApiRequestFailedError as caught:
         return caught
 
 

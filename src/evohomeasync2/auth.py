@@ -1,4 +1,4 @@
-"""evohomeasync provides an async client for the v2 Resideo TCC API."""
+"""Authentication (access token) for the TCC v2 API."""
 
 from __future__ import annotations
 

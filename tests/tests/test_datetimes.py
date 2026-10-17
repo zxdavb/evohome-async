@@ -1,4 +1,4 @@
-"""evohome-async - validate the datetime handling helpers."""
+"""Test the datetime helpers."""
 
 from __future__ import annotations
 

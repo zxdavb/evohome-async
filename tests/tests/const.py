@@ -1,4 +1,4 @@
-"""Tests for evohome-async - helper functions."""
+"""Constants for the offline tests."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ MSG_INVALID_TOKEN: Final = (
     '401 Unauthorized, response=[{"code": "Unauthorized", "message": "Unauthorized"}]'
 )
 
-MSG_MAY_BE_INVALID_V0: Final = (
+MSG_MAY_BE_INVALID_V1: Final = (
     "The access_token/session_id may be invalid (it shouldn't be): "
     "GET https://tccna.resideo.com/WebAPI/api/accountInfo: "
     '401 Unauthorized, response=[{"code": "Unauthorized", "message": "Unauthorized"}]'
@@ -53,7 +53,7 @@ LOG_90 = ("evohome_cli.auth", logging.ERROR, HINT_BAD_CREDS)
 LOG_99 = ("evohome_cli.auth", logging.ERROR, HINT_CHECK_NETWORK)
 
 LOG_00 = ("evohomeasync", logging.WARNING, MSG_INVALID_SESSION)
-LOG_08 = ("evohomeasync.auth", logging.DEBUG, MSG_MAY_BE_INVALID_V0)
+LOG_08 = ("evohomeasync.auth", logging.DEBUG, MSG_MAY_BE_INVALID_V1)
 LOG_09 = ("evohomeasync.auth", logging.ERROR, HINT_CHECK_NETWORK)
 
 LOG_20 = ("evohomeasync2", logging.WARNING, MSG_INVALID_TOKEN)

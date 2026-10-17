@@ -1,4 +1,4 @@
-"""Tests for evohome-async - check the TypedDicts agree with the probatio schemas.
+"""Test that the TypedDicts agree with the probatio schemas.
 
 The vendor's API is undocumented, so the Tcc*T TypedDicts are its documentation, and
 the Evo*T TypedDicts describe what this library returns - but it is the schemas (built
@@ -30,7 +30,7 @@ import probatio as vol
 import pytest
 
 from _evohome.helpers import Case
-from evohomeasync import schemas as sch0, typedefs as evo0
+from evohomeasync import schemas as sch1, typedefs as evo1
 from evohomeasync2 import const as const2, typedefs as evo2
 from evohomeasync2.schemas import account, config, const as sch2_const, schedule, status
 
@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 type _Shape = dict[str, tuple[bool, _Shape | None]]
 
 # the modules of the TypedDicts import some names only when TYPE_CHECKING
-_NS_V0: dict[str, Any] = vars(sch0) | vars(evo0)
+_NS_V1: dict[str, Any] = vars(sch1) | vars(evo1)
 _NS_V2_TCC: dict[str, Any] = (
     vars(sch2_const) | vars(account) | vars(config) | vars(schedule) | vars(status)
 )
@@ -151,31 +151,31 @@ def _differences(
     return result
 
 
-# v0: factory_*(Case.PYTHONIC) and its Evo*DictT - the v0 Tcc*T are not compared, as
-# the v0 schemas deliberately don't require keys that this library doesn't use
-V0_SCHEMAS: dict[str, tuple[Callable[[Case], object], object]] = {
-    "failure": (sch0.factory_failure_response, evo0.EvoFailureDictT),
-    "task": (sch0.factory_task_response, evo0.EvoTaskDictT),
-    "comm_task": (sch0.factory_comm_task_response, evo0.EvoCommTaskDictT),
+# v1: factory_*(Case.PYTHONIC) and its Evo*DictT - the v1 Tcc*T are not compared, as
+# the v1 schemas deliberately don't require keys that this library doesn't use
+V1_SCHEMAS: dict[str, tuple[Callable[[Case], object], object]] = {
+    "failure": (sch1.factory_failure_response, evo1.EvoFailureDictT),
+    "task": (sch1.factory_task_response, evo1.EvoTaskDictT),
+    "comm_task": (sch1.factory_comm_task_response, evo1.EvoCommTaskDictT),
     "account_info": (
-        sch0.factory_user_account_info_response,
-        evo0.EvoUserAccountInfoDictT,
+        sch1.factory_user_account_info_response,
+        evo1.EvoUserAccountInfoDictT,
     ),
-    "session": (sch0.factory_session_response, evo0.EvoSessionDictT),
-    "locations": (sch0.factory_location_response_list, evo0.EvoTcsInfoDictT),
+    "session": (sch1.factory_session_response, evo1.EvoSessionDictT),
+    "locations": (sch1.factory_location_response_list, evo1.EvoTcsInfoDictT),
 }
 
 
-@pytest.mark.parametrize("name", V0_SCHEMAS)
-def test_v0_pythonic_typeddicts(
+@pytest.mark.parametrize("name", V1_SCHEMAS)
+def test_v1_pythonic_typeddicts(
     name: str,
 ) -> None:
-    """Test the v0 schemas (with snake_case keys) agree with their Evo*DictT."""
+    """Test the v1 schemas (with snake_case keys) agree with their Evo*DictT."""
 
-    factory, evo_type = V0_SCHEMAS[name]
+    factory, evo_type = V1_SCHEMAS[name]
 
     diffs = _differences(
-        _schema_shape(factory(Case.PYTHONIC)), _typeddict_shape(evo_type, _NS_V0)
+        _schema_shape(factory(Case.PYTHONIC)), _typeddict_shape(evo_type, _NS_V1)
     )
     assert not diffs, "\n".join(diffs)
 

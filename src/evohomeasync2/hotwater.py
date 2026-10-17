@@ -1,4 +1,4 @@
-"""Provides handling of TCC DHW zones."""
+"""DHW zones (for the TCC v2 API)."""
 
 # TODO: extend set_mode() for non-evohome modes
 

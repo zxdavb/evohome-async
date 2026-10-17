@@ -1,4 +1,4 @@
-"""evohome-async - validate the v2 API for DHW."""
+"""Test the v2 methods that set the mode of a TCS, DHW or zone."""
 
 from __future__ import annotations
 

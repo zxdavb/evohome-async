@@ -1,4 +1,4 @@
-"""evohome-async - validate the v0 API session manager."""
+"""Test the v1 session manager."""
 
 from __future__ import annotations
 
@@ -15,10 +15,10 @@ import pytest
 from _evohome.const import HINT_BAD_CREDS
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync import exceptions as exc
-from tests.const import URL_CRED_V0
+from tests.const import URL_CRED_V1
 
 from .aioresponses import aioresponses
-from .test_v0_urls_cred import POST_CREDS  # HACK, should be in const.py, or a fixture
+from .test_v1_urls_cred import POST_CREDS  # HACK, should be in const.py, or a fixture
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -58,7 +58,7 @@ async def test_get_session_id(
                 "message": "The email or password provided is incorrect.",
             }
         ]
-        rsp.post(URL_CRED_V0, status=HTTPStatus.UNAUTHORIZED, payload=response)
+        rsp.post(URL_CRED_V1, status=HTTPStatus.UNAUTHORIZED, payload=response)
 
         with pytest.raises(exc.BadUserCredentialsError):
             await session_manager.get_session_id()
@@ -72,7 +72,7 @@ async def test_get_session_id(
     payload = server_response()
 
     with aioresponses() as rsp:
-        rsp.post(URL_CRED_V0, payload=payload)
+        rsp.post(URL_CRED_V1, payload=payload)
 
         assert await session_manager.get_session_id() == payload["sessionId"]
 
@@ -104,7 +104,7 @@ async def test_get_session_id(
     payload = server_response()
 
     with aioresponses() as rsp:
-        rsp.post(URL_CRED_V0, payload=payload)
+        rsp.post(URL_CRED_V1, payload=payload)
 
         assert await session_manager.get_session_id() == payload["sessionId"]
 

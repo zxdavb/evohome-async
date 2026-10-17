@@ -1,14 +1,14 @@
-"""Validate the handling of the vendor's v0 APIs (URLs): their errors and edge cases.
+"""Test the vendor's v1 URLs: their errors and edge cases.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor
   b) confirm the faked server (if any) is behaving as per a)
 
-Where test_v0_urls.py documents each endpoint (and has a list of them all), this module
+Where test_v1_urls.py documents each endpoint (and has a list of them all), this module
 documents how they fail: e.g. an unauthorized user or wrong method, a PUT with invalid
 (or forbidden) params, and a PUT to a device that is not alive. It also allows for the
 vendor sometimes not applying a PUT that is equivalent to an earlier one (see
-is_stale_task_v0() in common.py).
+is_stale_task_v1() in common.py).
 
 Testing is at HTTP request layer (e.g. GET/PUT).
 Everything to/from the RESTful API is in camelCase (so those schemas are used), although
@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-import evohomeasync as evo0
+import evohomeasync as evo1
 from _evohome.const import HOSTNAME
 from _evohome.helpers import TCC_DTM_STRFTIME
 from evohomeasync.schemas import TCC_GET_USR_LOCS
@@ -33,59 +33,61 @@ from tests.common import get_loc
 from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     TEST_LOC_IDX,
-    TIMEOUT_COMM_TASK_V0,
-    URL_BASE_V0,
+    TIMEOUT_COMM_TASK_V1,
+    URL_BASE_V1,
 )
 
 from .common import (
     error_codes,
-    is_alive_v0,
-    is_dhw_v0,
-    is_stale_task_v0,
-    is_zone_v0,
-    should_fail_v0,
-    should_work_v0,
+    is_alive_v1,
+    is_dhw_v1,
+    is_stale_task_v1,
+    is_zone_v1,
+    should_fail_v1,
+    should_work_v1,
     skipif_auth_failed,
-    status_of_v0,
-    task_id_v0,
-    wait_for_comm_task_v0,
+    status_of_v1,
+    task_id_v1,
+    wait_for_comm_task_v1,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from evohomeasync import EvohomeClient as EvohomeClientV0
+    from evohomeasync import EvohomeClient as EvohomeClientV1
     from evohomeasync.schemas import TccDeviceResponseT, TccLocationResponseT
 
 
-async def _test_usr_locations(evo: EvohomeClientV0) -> None:
+async def _test_usr_locations(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test /locations?userId={user_id}&allData=True"""
 
-    usr_id: int = evo.user_account["user_id"]
-    # loc_id: int = evo.location_id
+    usr_id: int = ec1.user_account["user_id"]
+    # loc_id: int = ec1.location_id
 
     url = f"locations?userId={usr_id}&allData=True"
-    _ = await should_work_v0(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
+    _ = await should_work_v1(ec1.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
 
     # why isn't this one METHOD_NOT_ALLOWED?
-    _ = await should_fail_v0(evo.auth, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
+    _ = await should_fail_v1(ec1.auth, HTTPMethod.PUT, url, status=HTTPStatus.NOT_FOUND)
 
     url = f"locations?userId={usr_id}"
-    _ = await should_work_v0(evo.auth, HTTPMethod.GET, url, schema=None)
+    _ = await should_work_v1(ec1.auth, HTTPMethod.GET, url, schema=None)
 
     url = "locations?userId=123456"
-    _ = await should_fail_v0(
-        evo.auth, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED
+    _ = await should_fail_v1(
+        ec1.auth, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED
     )
 
     url = "locations?userId='123456'"
-    _ = await should_fail_v0(
-        evo.auth, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST
+    _ = await should_fail_v1(
+        ec1.auth, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST
     )
 
     url = "xxxxxxx"  # NOTE: a general test, not a test specific to the 'locations' URL
-    _ = await should_fail_v0(
-        evo.auth,
+    _ = await should_fail_v1(
+        ec1.auth,
         HTTPMethod.GET,
         url,
         status=HTTPStatus.NOT_FOUND,
@@ -93,17 +95,19 @@ async def _test_usr_locations(evo: EvohomeClientV0) -> None:
     )
 
 
-async def _test_evo_systems(evo: EvohomeClientV0) -> None:
+async def _test_evo_systems(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test /evoTouchSystems?locationId={loc_id}"""
 
-    # usr_id: int = evo.user_account["user_id"]
-    loc_id = get_loc(evo).id
+    # usr_id: int = ec1.user_account["user_id"]
+    loc_id = get_loc(ec1).id
 
     #
     # TEST 0: unsupported method?
     url = f"evoTouchSystems?locationId={loc_id}"
-    _ = await should_fail_v0(
-        evo.auth,
+    _ = await should_fail_v1(
+        ec1.auth,
         HTTPMethod.GET,
         url,
         content_type="text/html",  # not the usual content-type
@@ -120,8 +124,8 @@ async def _test_evo_systems(evo: EvohomeClientV0) -> None:
 
     #       evoTouchSystems?locationId=$locationId
     url = f"evoTouchSystems?locationId={loc_id}"
-    _ = await should_fail_v0(
-        evo.auth,
+    _ = await should_fail_v1(
+        ec1.auth,
         HTTPMethod.PUT,
         url,
         json=json,
@@ -131,16 +135,16 @@ async def _test_evo_systems(evo: EvohomeClientV0) -> None:
     # '<!DOCTYPE html PUBLIC ... not found ...'
 
 
-# GET /accountInfo (is also in test_v0_urls_auth.py)
+# GET /accountInfo (is also in test_v1_urls_auth.py)
 # @skipif_auth_failed
-# async def test_usr_account(evohome_v0: EvohomeClientV0) -> None:
+# async def test_usr_account(ec1: EvohomeClientV1) -> None:
 #     """Test /accountInfo"""
 
 
 # GET /locations?userId={user_id}&allData=True
 @skipif_auth_failed
 async def test_usr_locations(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /locations?userId={user_id}&allData=True"""
 
@@ -148,11 +152,11 @@ async def test_usr_locations(
         pytest.skip("Mocked server not implemented for this test")
 
     try:
-        await evohome_v0.get_status()  # get user_id and location_id
+        await ec1.get_status()  # get user_id and location_id
 
-        await _test_usr_locations(evohome_v0)
+        await _test_usr_locations(ec1)
 
-    except evo0.AuthenticationFailedError:
+    except evo1.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate with real server")
@@ -161,7 +165,7 @@ async def test_usr_locations(
 # PUT /evoTouchSystems?locationId={loc_id}
 @skipif_auth_failed
 async def test_evo_systems(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /evoTouchSystems?locationId={loc_id}"""
 
@@ -169,11 +173,11 @@ async def test_evo_systems(
         pytest.skip("Mocked server not implemented for this test")
 
     try:
-        await evohome_v0.get_status()  # get user_id and location_id
+        await ec1.get_status()  # get user_id and location_id
 
-        await _test_evo_systems(evohome_v0)
+        await _test_evo_systems(ec1)
 
-    except evo0.AuthenticationFailedError:
+    except evo1.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate with real server")
@@ -198,31 +202,38 @@ _ZON_REVERT = {"Value": None, "Status": "Scheduled", "NextTime": None}
 _DHW_MODES = ("DHWOn", "DHWOff")
 
 
-async def _get_location(evo: EvohomeClientV0) -> TccLocationResponseT:
+async def _get_location(
+    ec1: EvohomeClientV1,
+) -> TccLocationResponseT:
     """Return the (vendor-cased) location under test."""
 
-    usr_id: int = evo.user_account["user_id"]
+    usr_id: int = ec1.user_account["user_id"]
 
     url = f"locations?userId={usr_id}&allData=True"
-    locs = await should_work_v0(evo.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
+    locs = await should_work_v1(ec1.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
 
     return locs[TEST_LOC_IDX]
 
 
-async def _get_devices(evo: EvohomeClientV0) -> list[TccDeviceResponseT]:
+async def _get_devices(
+    ec1: EvohomeClientV1,
+) -> list[TccDeviceResponseT]:
     """Return all the (vendor-cased) devices of the location under test."""
-    return (await _get_location(evo))["devices"]
+    return (await _get_location(ec1))["devices"]
 
 
-async def _get_status(evo: EvohomeClientV0, dev_id: int) -> str | None:
+async def _get_status(
+    ec1: EvohomeClientV1,
+    dev_id: int,
+) -> str | None:
     """Return the current status of a zone/DHW, e.g. "Scheduled"."""
-    return status_of_v0(
-        next(d for d in await _get_devices(evo) if d["deviceID"] == dev_id)
+    return status_of_v1(
+        next(d for d in await _get_devices(ec1) if d["deviceID"] == dev_id)
     )
 
 
 async def _put_and_wait(
-    evo: EvohomeClientV0, url: str, json: Mapping[str, object]
+    ec1: EvohomeClientV1, url: str, json: Mapping[str, object]
 ) -> bool:
     """PUT a change, wait for its comm task to succeed, and return True if it applied.
 
@@ -232,17 +243,17 @@ async def _put_and_wait(
 
     sent = dt.now(tz=UTC)
 
-    rsp = await should_work_v0(evo.auth, HTTPMethod.PUT, url, json=json)
+    rsp = await should_work_v1(ec1.auth, HTTPMethod.PUT, url, json=json)
     # {"id": 1234567890}  (an int; the older client also allowed for a list of one)
 
-    task = await wait_for_comm_task_v0(evo.auth, task_id_v0(rsp))
+    task = await wait_for_comm_task_v1(ec1.auth, task_id_v1(rsp))
     # {"state": "Succeeded", "started": "2026-09-22T20:08:04.053", ...}
 
-    return not is_stale_task_v0(task, sent)
+    return not is_stale_task_v1(task, sent)
 
 
 async def _wait_for_status(
-    evo: EvohomeClientV0, dev_id: int, expected: str
+    ec1: EvohomeClientV1, dev_id: int, expected: str
 ) -> str | None:
     """Poll a zone/DHW until its status is the expected one, and return the last seen.
 
@@ -253,9 +264,9 @@ async def _wait_for_status(
     status: str | None = None
 
     try:
-        async with asyncio.timeout(TIMEOUT_COMM_TASK_V0):
+        async with asyncio.timeout(TIMEOUT_COMM_TASK_V1):
             while True:
-                if (status := await _get_status(evo, dev_id)) == expected:
+                if (status := await _get_status(ec1, dev_id)) == expected:
                     return status
 
                 await asyncio.sleep(_STATUS_INTERVAL)
@@ -264,14 +275,16 @@ async def _wait_for_status(
         return status
 
 
-async def _find_scheduled_zone(evo: EvohomeClientV0) -> TccDeviceResponseT:
+async def _find_scheduled_zone(
+    ec1: EvohomeClientV1,
+) -> TccDeviceResponseT:
     """Return a live zone that is following its schedule (else skip the test)."""
 
     dev = next(
         (
             d
-            for d in await _get_devices(evo)
-            if is_zone_v0(d) and is_alive_v0(d) and status_of_v0(d) == "Scheduled"
+            for d in await _get_devices(ec1)
+            if is_zone_v1(d) and is_alive_v1(d) and status_of_v1(d) == "Scheduled"
         ),
         None,
     )
@@ -280,16 +293,21 @@ async def _find_scheduled_zone(evo: EvohomeClientV0) -> TccDeviceResponseT:
     return dev
 
 
-async def _get_next_time(evo: EvohomeClientV0, dev_id: int) -> str | None:
-    """Return the NextTime of a zone's setpoint (via v0, so local time, without a Z)."""
+async def _get_next_time(
+    ec1: EvohomeClientV1,
+    dev_id: int,
+) -> str | None:
+    """Return the NextTime of a zone's setpoint (via v1, so local time, without a Z)."""
 
-    dev = next(d for d in await _get_devices(evo) if d["deviceID"] == dev_id)
+    dev = next(d for d in await _get_devices(ec1) if d["deviceID"] == dev_id)
     values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
     next_time: str | None = values["heatSetpoint"].get("nextTime")
     return next_time
 
 
-async def _test_zon_heat_setpoint(evo: EvohomeClientV0) -> None:
+async def _test_zon_heat_setpoint(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
 
     Overrides a zone to its current setpoint (so is a no-op in practice), confirming that
@@ -303,11 +321,11 @@ async def _test_zon_heat_setpoint(evo: EvohomeClientV0) -> None:
     Also confirms that a NextTime is returned (via GET) as sent, but without its Z: it
     is the location's local time, not UTC.
 
-    The vendor may not apply a revert (see is_stale_task_v0() in common.py), e.g. if
+    The vendor may not apply a revert (see is_stale_task_v1() in common.py), e.g. if
     another test has sent one recently, so it is asserted only if it was applied.
     """
 
-    dev = await _find_scheduled_zone(evo)
+    dev = await _find_scheduled_zone(ec1)
     dev_id: int = dev["deviceID"]
 
     values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
@@ -317,7 +335,7 @@ async def _test_zon_heat_setpoint(evo: EvohomeClientV0) -> None:
 
     # the location's wall-clock time, as the vendor treats NextTime as such (and so
     # ignores its Z), else the overrides would be shorter/longer (or in the past)
-    offset: int = (await _get_location(evo))["timeZone"]["currentOffsetMinutes"]
+    offset: int = (await _get_location(ec1))["timeZone"]["currentOffsetMinutes"]
     now = (dt.now(tz=UTC) + td(minutes=offset)).replace(
         minute=0, second=0, microsecond=0
     )
@@ -331,17 +349,19 @@ async def _test_zon_heat_setpoint(evo: EvohomeClientV0) -> None:
 
         json = dict(zip(keys, (setpoint, "Temporary", until), strict=True))
 
-        assert await _put_and_wait(evo, url, json), json  # i.e. was applied
-        assert await _wait_for_status(evo, dev_id, "Temporary") == "Temporary", json
+        assert await _put_and_wait(ec1, url, json), json  # i.e. was applied
+        assert await _wait_for_status(ec1, dev_id, "Temporary") == "Temporary", json
 
         # the NextTime is returned as sent, but without the Z (as it's local time)
-        assert await _get_next_time(evo, dev_id) == until.removesuffix("Z")
+        assert await _get_next_time(ec1, dev_id) == until.removesuffix("Z")
 
-    if await _put_and_wait(evo, url, _ZON_REVERT):  # i.e. was applied
-        assert await _wait_for_status(evo, dev_id, "Scheduled") == "Scheduled"
+    if await _put_and_wait(ec1, url, _ZON_REVERT):  # i.e. was applied
+        assert await _wait_for_status(ec1, dev_id, "Scheduled") == "Scheduled"
 
 
-async def _test_dhw_changeable_values(evo: EvohomeClientV0) -> None:
+async def _test_dhw_changeable_values(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test PUT /devices/{dhw_id}/thermostat/changeableValues
 
     Sets the DHW to its current mode (so is a no-op in practice).
@@ -351,7 +371,7 @@ async def _test_dhw_changeable_values(evo: EvohomeClientV0) -> None:
     """
 
     dev = next(
-        (d for d in await _get_devices(evo) if is_dhw_v0(d) and is_alive_v0(d)),
+        (d for d in await _get_devices(ec1) if is_dhw_v1(d) and is_alive_v1(d)),
         None,
     )
     if dev is None:
@@ -364,10 +384,12 @@ async def _test_dhw_changeable_values(evo: EvohomeClientV0) -> None:
     url = f"devices/{dev['deviceID']}/thermostat/changeableValues"
 
     for json in ({"Mode": mode}, {"mode": mode}):  # the vendor accepts either casing
-        await _put_and_wait(evo, url, json)
+        await _put_and_wait(ec1, url, json)
 
 
-async def _test_dhw_forbidden_params(evo: EvohomeClientV0) -> None:
+async def _test_dhw_forbidden_params(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test the params that PUT /devices/{dhw_id}/thermostat/changeableValues rejects.
 
     On some installations (e.g. the test installation), the vendor forbids a DHW's
@@ -378,7 +400,7 @@ async def _test_dhw_forbidden_params(evo: EvohomeClientV0) -> None:
     """
 
     dev = next(
-        (d for d in await _get_devices(evo) if is_dhw_v0(d) and is_alive_v0(d)),
+        (d for d in await _get_devices(ec1) if is_dhw_v1(d) and is_alive_v1(d)),
         None,
     )
     if dev is None:
@@ -392,11 +414,11 @@ async def _test_dhw_forbidden_params(evo: EvohomeClientV0) -> None:
 
     # the DHW's current Mode and Status, so this probe is a no-op if accepted
     probe = {"Mode": mode, "Status": values["status"]}
-    async with evo.auth.websession.request(
+    async with ec1.auth.websession.request(
         HTTPMethod.PUT,
-        f"{URL_BASE_V0}/{url}",
+        f"{URL_BASE_V1}/{url}",
         json=probe,
-        headers=await evo.auth._headers(),
+        headers=await ec1.auth._headers(),
     ) as probe_rsp:
         if probe_rsp.ok:
             pytest.skip("This DHW accepts a Status, so doesn't have this contract")
@@ -405,8 +427,8 @@ async def _test_dhw_forbidden_params(evo: EvohomeClientV0) -> None:
 
     # Mode is required...
     for json in ({}, {"Mode": None}):
-        rsp = await should_fail_v0(
-            evo.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
+        rsp = await should_fail_v1(
+            ec1.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
         )
         assert error_codes(rsp) == ["ParameterIsMissing"], rsp
 
@@ -415,15 +437,15 @@ async def _test_dhw_forbidden_params(evo: EvohomeClientV0) -> None:
         {"Mode": mode, "Status": "Hold"},
         {"Mode": mode, "NextTime": until},
     ):
-        rsp = await should_fail_v0(
-            evo.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
+        rsp = await should_fail_v1(
+            ec1.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
         )
         assert error_codes(rsp) == ["ForbiddenParameter"], rsp
 
     # ...as the vendor validates only non-null values (and ignores unknown keys), so
     # the older client's revert body fails on its Status alone...
-    rsp = await should_fail_v0(
-        evo.auth,
+    rsp = await should_fail_v1(
+        ec1.auth,
         HTTPMethod.PUT,
         url,
         json={
@@ -441,8 +463,8 @@ async def _test_dhw_forbidden_params(evo: EvohomeClientV0) -> None:
     # ...and that same body, with its Status dropped, is accepted...
     # NOTE: this test documents which params the vendor accepts, so it doesn't wait for
     # the resulting comm task (each PUT here is a no-op, as Mode is the current mode)
-    _ = await should_work_v0(
-        evo.auth,
+    _ = await should_work_v1(
+        ec1.auth,
         HTTPMethod.PUT,
         url,
         json={
@@ -455,8 +477,8 @@ async def _test_dhw_forbidden_params(evo: EvohomeClientV0) -> None:
     )
 
     # ...and Mode accepts only DHWOn/DHWOff (in particular, there is no Auto)...
-    rsp = await should_fail_v0(
-        evo.auth,
+    rsp = await should_fail_v1(
+        ec1.auth,
         HTTPMethod.PUT,
         url,
         json={"Mode": "Off"},  # a valid ThermostatMode, but not for a DHW
@@ -464,8 +486,8 @@ async def _test_dhw_forbidden_params(evo: EvohomeClientV0) -> None:
     )
     assert error_codes(rsp) == ["ThermostatModeNotAllowed"], rsp
 
-    rsp = await should_fail_v0(
-        evo.auth,
+    rsp = await should_fail_v1(
+        ec1.auth,
         HTTPMethod.PUT,
         url,
         json={"Mode": "Auto"},  # not a ThermostatMode at all
@@ -474,17 +496,21 @@ async def _test_dhw_forbidden_params(evo: EvohomeClientV0) -> None:
     assert error_codes(rsp) == ["InvalidInput"], rsp
 
 
-async def _test_lost_device(evo: EvohomeClientV0, *, is_dhw: bool) -> None:
+async def _test_lost_device(
+    ec1: EvohomeClientV1,
+    *,
+    is_dhw: bool,
+) -> None:
     """Test a PUT to a device that is not alive (i.e. its gateway is offline).
 
     The vendor rejects it, whatever the body. Uses a body that is accepted for a live
     device, so would be a no-op even if it were accepted here.
     """
 
-    is_type = is_dhw_v0 if is_dhw else is_zone_v0
+    is_type = is_dhw_v1 if is_dhw else is_zone_v1
 
     dev = next(
-        (d for d in await _get_devices(evo) if is_type(d) and not is_alive_v0(d)),
+        (d for d in await _get_devices(ec1) if is_type(d) and not is_alive_v1(d)),
         None,
     )
     if dev is None:
@@ -500,8 +526,8 @@ async def _test_lost_device(evo: EvohomeClientV0, *, is_dhw: bool) -> None:
         url = f"devices/{dev['deviceID']}/thermostat/changeableValues/heatSetpoint"
         json = _ZON_REVERT
 
-    rsp = await should_fail_v0(
-        evo.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
+    rsp = await should_fail_v1(
+        ec1.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
     )
     assert error_codes(rsp) == ["DeviceIsLost"], rsp
     # [{'code': 'DeviceIsLost', 'message': 'Device is lost.'}]
@@ -510,49 +536,49 @@ async def _test_lost_device(evo: EvohomeClientV0, *, is_dhw: bool) -> None:
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
 @skipif_auth_failed
 async def test_zon_heat_setpoint(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /devices/{zone_id}/thermostat/changeableValues/heatSetpoint"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.get_status()  # get user_id
-    await _test_zon_heat_setpoint(evohome_v0)
+    await ec1.get_status()  # get user_id
+    await _test_zon_heat_setpoint(ec1)
 
 
 # PUT /devices/{dhw_id}/thermostat/changeableValues
 @skipif_auth_failed
 async def test_dhw_changeable_values(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /devices/{dhw_id}/thermostat/changeableValues"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.get_status()  # get user_id
-    await _test_dhw_changeable_values(evohome_v0)
+    await ec1.get_status()  # get user_id
+    await _test_dhw_changeable_values(ec1)
 
 
 # PUT /devices/{dhw_id}/thermostat/changeableValues (with rejected params)
 @skipif_auth_failed
 async def test_dhw_forbidden_params(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /devices/{dhw_id}/thermostat/changeableValues (rejected params)"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.get_status()  # get user_id
-    await _test_dhw_forbidden_params(evohome_v0)
+    await ec1.get_status()  # get user_id
+    await _test_dhw_forbidden_params(ec1)
 
 
 # GET /accountInfo & /locations?userId={user_id}&allData=True (URL casing)
 @skipif_auth_failed
 async def test_url_case_insensitive(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test the path and the query keys of a URL are case-insensitive.
 
@@ -570,13 +596,13 @@ async def test_url_case_insensitive(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.get_status()  # get user_id
+    await ec1.get_status()  # get user_id
 
-    auth = evohome_v0.auth
-    usr_id: int = evohome_v0.user_account["user_id"]
+    auth = ec1.auth
+    usr_id: int = ec1.user_account["user_id"]
 
     # the path (here, the base path too), all of which give the same response...
-    expected = await should_work_v0(auth, HTTPMethod.GET, "accountInfo")
+    expected = await should_work_v1(auth, HTTPMethod.GET, "accountInfo")
 
     for path in (
         "WebAPI/api/accountinfo",  # lower case endpoint
@@ -597,21 +623,21 @@ async def test_url_case_insensitive(
         f"locations?userid={usr_id}&alldata=True",  # lower case keys
         f"LOCATIONS?UserId={usr_id}&AllData=True",  # upper case path, PascalCase keys
     ):
-        locs = await should_work_v0(auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
+        locs = await should_work_v1(auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
         assert locs[TEST_LOC_IDX]["devices"], url  # so allData was recognised
 
     # the controls...
     url = f"locations?userId={usr_id}"  # no allData: so no devices
-    locs_ = await should_work_v0(auth, HTTPMethod.GET, url)
+    locs_ = await should_work_v1(auth, HTTPMethod.GET, url)
     assert isinstance(locs_, list)  # mypy
     assert "devices" not in locs_[TEST_LOC_IDX], url
 
     url = f"locations?noSuchKey={usr_id}"  # no userId: so 404 (JSON)
-    _ = await should_fail_v0(auth, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
+    _ = await should_fail_v1(auth, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
     # {'message': "No HTTP resource was found that matches the request URI '...'."}
 
     url = "noSuchThing"  # an unknown path: so 404 (HTML)
-    _ = await should_fail_v0(
+    _ = await should_fail_v1(
         auth,
         HTTPMethod.GET,
         url,
@@ -624,7 +650,7 @@ async def test_url_case_insensitive(
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (casing; rejected)
 @skipif_auth_failed
 async def test_case_insensitive(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test the keys and enum values of a PUT are case-insensitive.
 
@@ -636,11 +662,9 @@ async def test_case_insensitive(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.get_status()  # get user_id
+    await ec1.get_status()  # get user_id
 
-    dev_id = next(
-        d["deviceID"] for d in await _get_devices(evohome_v0) if is_zone_v0(d)
-    )
+    dev_id = next(d["deviceID"] for d in await _get_devices(ec1) if is_zone_v1(d))
     url = f"devices/{dev_id}/thermostat/changeableValues/heatSetpoint"
 
     recognised: tuple[dict[str, str], ...] = (
@@ -651,8 +675,8 @@ async def test_case_insensitive(
         {"status": "HOLD"},  # upper case value
     )
     for json in recognised:
-        rsp = await should_fail_v0(
-            evohome_v0.auth,
+        rsp = await should_fail_v1(
+            ec1.auth,
             HTTPMethod.PUT,
             url,
             json=json,
@@ -663,8 +687,8 @@ async def test_case_insensitive(
         # [{'code': 'ParameterIsMissing', 'message': "'Value' is required."}, ...]
 
     json = {"status": "NoSuchStatus"}  # not a valid Status
-    rsp = await should_fail_v0(
-        evohome_v0.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
+    rsp = await should_fail_v1(
+        ec1.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
     )
     assert "InvalidInput" in error_codes(rsp), (json, rsp)
     # [{'code': 'InvalidInput', 'message': 'Error converting value "NoSuchStatus" ...'}]
@@ -673,29 +697,29 @@ async def test_case_insensitive(
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (to a lost zone)
 @skipif_auth_failed
 async def test_zon_lost(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (lost zone)"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.get_status()  # get user_id
-    await _test_lost_device(evohome_v0, is_dhw=False)
+    await ec1.get_status()  # get user_id
+    await _test_lost_device(ec1, is_dhw=False)
 
 
 # PUT /devices/{dhw_id}/thermostat/changeableValues (to a lost DHW)
 @skipif_auth_failed
 async def test_dhw_lost(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /devices/{dhw_id}/thermostat/changeableValues (lost DHW)"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v0.get_status()  # get user_id
-    await _test_lost_device(evohome_v0, is_dhw=True)
+    await ec1.get_status()  # get user_id
+    await _test_lost_device(ec1, is_dhw=True)
 
 
 USER_DATA = {

@@ -1,4 +1,4 @@
-"""Tests for evohome-async - the mapping of Windows TZ ids to IANA TZ ids."""
+"""Test the mapping of Windows time zone ids to IANA time zones."""
 
 from __future__ import annotations
 

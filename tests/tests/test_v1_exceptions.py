@@ -1,4 +1,4 @@
-"""Tests for evohome-async - validate the exceptions raised by the v0 client."""
+"""Test the exceptions raised by the v1 client."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import pytest
 from evohomeasync import EvohomeClient, exceptions as exc
 from tests.common import get_tcs
 
-from .conftest import FIXTURES_V0 as FIXTURES
+from .conftest import FIXTURES_V1 as FIXTURES
 
 if TYPE_CHECKING:
     from evohome_cli.auth import TokenCacheManager
@@ -40,14 +40,14 @@ async def test_config_not_fetched(
 ) -> None:
     """Test the config attrs raise NotFetchedError until update() is called."""
 
-    evo = EvohomeClient(credentials_manager)
+    ec1 = EvohomeClient(credentials_manager)
 
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.user_account
+        _ = ec1.user_account
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.locations
+        _ = ec1.locations
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.location_by_id
+        _ = ec1.location_by_id
 
 
 async def test_invalid_config(
@@ -55,21 +55,21 @@ async def test_invalid_config(
 ) -> None:
     """Test update() raises InvalidConfigError if the config fails validation."""
 
-    evo = EvohomeClient(credentials_manager)
+    ec1 = EvohomeClient(credentials_manager)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=error)),
         pytest.raises(exc.InvalidConfigError) as err,
     ):
-        await evo.get_status()
+        await ec1.get_status()
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
 
 
 async def test_invalid_status(
-    evohome_v0: EvohomeClient,
+    ec1: EvohomeClient,
 ) -> None:
     """Test update() raises InvalidStatusError if the status fails validation."""
 
@@ -79,18 +79,18 @@ async def test_invalid_status(
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=error)),
         pytest.raises(exc.InvalidStatusError) as err,
     ):
-        await evohome_v0.get_status()  # the entities exist, so this is a status update
+        await ec1.get_status()  # the entities exist, so this is a status update
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
 
 
 async def test_unknown_zone(
-    evohome_v0: EvohomeClient,
+    ec1: EvohomeClient,
 ) -> None:
     """Test asking for a zone that does not exist raises BadApiRequestError."""
 
-    tcs = get_tcs(evohome_v0)
+    tcs = get_tcs(ec1)
 
     with pytest.raises(exc.BadApiRequestError):
         tcs._get_zone("no such zone")

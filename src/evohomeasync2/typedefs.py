@@ -1,4 +1,4 @@
-"""evohomeasync schema - shared types (WIP).
+"""Shared types for the v2 client.
 
 TypeDicts may not be complete (the API is undocumented), but all keys referenced
 by this library are present.

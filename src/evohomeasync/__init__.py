@@ -1,4 +1,4 @@
-"""evohomeasync provides an async client for the v0 Resideo TCC API.
+"""An async client for Resideo's TCC v1 API.
 
 It is an async port of https://github.com/watchforstock/evohome-client
 

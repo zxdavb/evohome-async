@@ -1,4 +1,4 @@
-"""evohomeasync provides an async client for the Resideo TCC API."""
+"""Helpers (case conversion, datetimes, redaction) shared by the v1 and v2 clients."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ class Case(StrEnum):
 
 # Vendor API datetime format (ISO 8601, UTC, no fractional seconds)
 TCC_DTM_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
-# ...but the v0 API's is the location's local time (so is without a Z)
+# ...but the v1 API's is the location's local time (so is without a Z)
 TCC_DTM_LOCAL_STRFTIME: Final = "%Y-%m-%dT%H:%M:%S"
 # _TCC_DTM_REGEX: Final = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
 
@@ -157,7 +157,7 @@ def as_timedelta(timespan: str) -> td | None:
 def as_local_str(dtm: dt, tzinfo: tzinfo) -> str:
     """Return a vendor (ISO 8601) datetime string, in a location's local time (no Z).
 
-    The v0 API treats a datetime that is sent to it (e.g. a NextTime) as the location's
+    The v1 API treats a datetime that is sent to it (e.g. a NextTime) as the location's
     local time, and ignores any Z. So, an aware datetime is converted to the location's
     TZ before formatting (and so is sent as the correct instant). A naive datetime is
     rejected, as with as_utc_str().

@@ -1,4 +1,4 @@
-"""evohomeasync provides an async client for the v0 Resideo TCC API."""
+"""Authentication (session id) for the TCC v1 API."""
 
 from __future__ import annotations
 
@@ -234,7 +234,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
 
 class Auth(AbstractAuth):
-    """A class to provide to access the v0 Resideo TCC API."""
+    """A class to provide to access the v1 Resideo TCC API."""
 
     def __init__(
         self,
@@ -245,7 +245,7 @@ class Auth(AbstractAuth):
         logger: logging.Logger | None = None,
         _hostname: str | None = None,
     ) -> None:
-        """A class for interacting with the v0 Resideo TCC API."""
+        """A class for interacting with the v1 Resideo TCC API."""
 
         logger = logger or logging.getLogger(__name__)
 

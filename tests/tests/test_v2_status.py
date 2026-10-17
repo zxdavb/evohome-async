@@ -1,4 +1,4 @@
-"""Tests for evohome-async - the status JSON must be consistent with the config JSON.
+"""Test that the v2 status JSON is consistent with the config JSON.
 
 Every entity known from the config (gateway, TCS, DHW, zone) should be in the status. If
 one is not, a warning is logged (the others are still updated). The converse is
@@ -100,7 +100,7 @@ def _drop_zone(status: EvoLocStatusResponseT) -> None:
     ids=["gateway", "tcs", "dhw", "zone"],
 )
 async def test_status_missing_known_entity(
-    evohome_v2: EvohomeClient,
+    ec2: EvohomeClient,
     *,
     mutate: Callable[[EvoLocStatusResponseT], None],
     entity: str,
@@ -108,7 +108,7 @@ async def test_status_missing_known_entity(
 ) -> None:
     """A status that omits a configured entity should raise, after updating the rest."""
 
-    loc = get_loc(evohome_v2)
+    loc = get_loc(ec2)
     zone = loc.gateways[0].systems[0].zones[0]  # is never the one dropped
 
     status = await loc._get_status(_update=False)
@@ -123,12 +123,12 @@ async def test_status_missing_known_entity(
 
 
 async def test_status_missing_known_entity_warns_once(
-    evohome_v2: EvohomeClient,
+    ec2: EvohomeClient,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A status that omits a configured entity should log a warning, but only once."""
 
-    loc = get_loc(evohome_v2)
+    loc = get_loc(ec2)
 
     status = await loc._get_status(_update=False)
     stale_status = await loc._get_status(_update=False)
@@ -157,12 +157,12 @@ async def test_status_missing_known_entity_warns_once(
 
 
 async def test_status_missing_known_entity_raises_if_asked(
-    evohome_v2: EvohomeClient,
+    ec2: EvohomeClient,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A status that omits a configured entity should raise, if asked to do so."""
 
-    loc = get_loc(evohome_v2)
+    loc = get_loc(ec2)
     zone = loc.gateways[0].systems[0].zones[0]  # is never the one dropped
 
     stale_status = await loc._get_status(_update=False)
@@ -192,18 +192,18 @@ async def test_status_missing_known_entity_raises_if_asked(
             ),
             pytest.raises(exc.StaleConfigError, match="zone_id="),
         ):
-            await evohome_v2.update(raise_on_stale_config=True)  # still passes it on
+            await ec2.update(raise_on_stale_config=True)  # still passes it on
 
     assert not caplog.records  # it is raised, and not logged
 
 
 async def test_status_unknown_entity_is_tolerated(
-    evohome_v2: EvohomeClient,
+    ec2: EvohomeClient,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A status that has an entity absent from the config should only log a warning."""
 
-    loc = get_loc(evohome_v2)
+    loc = get_loc(ec2)
     tcs = loc.gateways[0].systems[0]
 
     status = await loc._get_status(_update=False)
@@ -244,7 +244,7 @@ _BAD_RESPONSE = exc.BadApiResponseError("GET url: response failed validation: ..
     ],
 )
 async def test_location_absent(
-    evohome_v2: EvohomeClient,
+    ec2: EvohomeClient,
     account_error: exc.EvohomeError | None,
     expected: type[exc.EvohomeError],
 ) -> None:
@@ -253,7 +253,7 @@ async def test_location_absent(
     Otherwise (the token was rejected, or that can't be determined), it is the 401.
     """
 
-    loc = get_loc(evohome_v2)
+    loc = get_loc(ec2)
 
     def get(url: str, schema: object) -> object:
         if url != "userAccount":  # i.e. is the location's status

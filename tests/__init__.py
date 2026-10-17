@@ -1,1 +1,1 @@
-"""Tests for evohome-async."""
+"""The tests of evohome-async."""

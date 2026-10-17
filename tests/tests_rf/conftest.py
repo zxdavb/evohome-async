@@ -1,4 +1,4 @@
-"""evohome-async - test config."""
+"""Fixtures for the real-API tests."""
 
 from __future__ import annotations
 
@@ -92,17 +92,17 @@ async def _reset_systems(username: str, password: str) -> None:
         manager = TokenCacheManager(username, password, websession)  # the real cache
         await manager.load_from_cache()
 
-        evo = evo2.EvohomeClient(manager)
+        ec2 = evo2.EvohomeClient(manager)
 
         try:
-            await evo.setup()
-            for loc in evo.locations:
+            await ec2.setup()
+            for loc in ec2.locations:
                 await loc.get_status()
         except (evo2.EvohomeError, TimeoutError) as err:  # TimeoutError is not wrapped
             warnings.warn(f"Unable to reset any system: {err}", stacklevel=1)
             return
 
-        for tcs in (t for g in get_loc(evo).gateways for t in g.systems):
+        for tcs in (t for g in get_loc(ec2).gateways for t in g.systems):
             await attempt(tcs.set_auto(), tcs)
             for zone in tcs.zones:
                 await attempt(zone.reset(), zone)

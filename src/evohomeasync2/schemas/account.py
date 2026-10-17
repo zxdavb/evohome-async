@@ -1,4 +1,4 @@
-"""Schema for the vendor's TCC v2 API - for GET account of User, etc.
+"""Schemas for the vendor's TCC v2 API - for GET account of User, etc.
 
 These TypedDict & StrEnums serve as documentation of the vendor's API, even if they are
 unused by this library. There are corresponding factory functions for the probatio
@@ -161,7 +161,7 @@ def factory_comm_task_response(
 ) -> Validator[TccCommTaskResponseT] | Validator[EvoCommTaskResponseT]:
     """Factory for the comm task response schema (the state of a PUT's task).
 
-    Only these keys have been observed (unlike for v0, which has many more).
+    Only these keys have been observed (unlike for v1, which has many more).
     """
 
     fnc = noop if case is Case.VENDOR else camel_to_snake

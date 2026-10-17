@@ -1,6 +1,6 @@
-# fixtures_v0/minimal
+# fixtures_v1/minimal
 
-Minimal v0 fixture — used to test the v0 client with the smallest possible valid response.
+Minimal v1 fixture — used to test the v1 client with the smallest possible valid response.
 
 ## System
 

@@ -1,4 +1,4 @@
-"""Tests for evohome-async - validate the exceptions raised by the v2 client."""
+"""Test the exceptions raised by the v2 client."""
 
 from __future__ import annotations
 
@@ -52,16 +52,16 @@ async def test_config_not_fetched(
 ) -> None:
     """Test the config attrs raise NotFetchedError until update() is called."""
 
-    evo = EvohomeClient(credentials_manager)
+    ec2 = EvohomeClient(credentials_manager)
 
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.tzinfo
+        _ = ec2.tzinfo
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.user_account
+        _ = ec2.user_account
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.locations
+        _ = ec2.locations
     with pytest.raises(exc.NotFetchedError):
-        _ = evo.location_by_id
+        _ = ec2.location_by_id
 
 
 async def test_schedule_not_fetched(
@@ -83,22 +83,22 @@ async def test_status_not_fetched(
 ) -> None:
     """Test the status attrs raise NotFetchedError until the status is fetched."""
 
-    evo = EvohomeClient(credentials_manager)
+    ec2 = EvohomeClient(credentials_manager)
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
-        await evo.setup()  # i.e. the config only
+        await ec2.setup()  # i.e. the config only
 
-    # not the tcs/zone/dhw fixtures: they come from evohome_v2, which has fetched the
+    # not the tcs/zone/dhw fixtures: they come from the ec2 fixture, which has fetched the
     # status (so nothing would raise), whereas this client has fetched only the config
-    tcs = get_tcs(evo)
+    tcs = get_tcs(ec2)
 
     with pytest.raises(exc.NotFetchedError):
         _ = tcs.status
-    zone = get_zon(evo)
+    zone = get_zon(ec2)
     assert zone is not None  # the default/ fixture has zones
     with pytest.raises(exc.NotFetchedError):
         _ = zone.status
-    if dhw := get_dhw(evo):  # not the dhw fixture (see above)
+    if dhw := get_dhw(ec2):  # not the dhw fixture (see above)
         with pytest.raises(exc.NotFetchedError):
             _ = dhw.status
 
@@ -108,25 +108,25 @@ async def test_invalid_config(
 ) -> None:
     """Test update() raises InvalidConfigError if the config fails validation."""
 
-    evo = EvohomeClient(credentials_manager)
+    ec2 = EvohomeClient(credentials_manager)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
         pytest.raises(exc.InvalidConfigError) as err,
     ):
-        await evo.setup()
+        await ec2.setup()
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
 
 
 async def test_invalid_status(
-    evohome_v2: EvohomeClient,
+    ec2: EvohomeClient,
 ) -> None:
     """Test update() raises InvalidStatusError if the status fails validation."""
 
-    loc = get_loc(evohome_v2)
+    loc = get_loc(ec2)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
@@ -193,15 +193,15 @@ async def test_empty_schedule(
 
 
 async def test_invalid_schedule_not_stored(
-    evohome_v2: EvohomeClient,
+    ec2: EvohomeClient,
 ) -> None:
     """Test a schedule whose switchpoints can't be found is not stored.
 
     A zone keeps its earlier schedule & switchpoints (if any), else it still has none.
     """
 
-    fetched = get_zon(evohome_v2)
-    unfetched = get_zon(evohome_v2, 1)  # its schedule will not have been fetched
+    fetched = get_zon(ec2)
+    unfetched = get_zon(ec2, 1)  # its schedule will not have been fetched
     assert fetched is not None  # the default/ fixture has 2+ zones
     assert unfetched is not None
 
@@ -235,12 +235,12 @@ async def test_invalid_schedule_not_stored(
 
 
 async def test_set_schedule_before_get(
-    evohome_v2: EvohomeClient,
+    ec2: EvohomeClient,
 ) -> None:
     """Test the switchpoints are available after set_schedule(), without a get."""
 
-    fetched = get_zon(evohome_v2)
-    zone = get_zon(evohome_v2, 1)  # its schedule will not have been fetched
+    fetched = get_zon(ec2)
+    zone = get_zon(ec2, 1)  # its schedule will not have been fetched
     assert fetched is not None  # the default/ fixture has 2+ zones
     assert zone is not None
 
@@ -272,17 +272,15 @@ async def test_ghost_zone(
 
 
 async def test_ghost_zone_skipped(
-    evohome_v2: EvohomeClient,
+    ec2: EvohomeClient,
     tcs: ControlSystem,
 ) -> None:
     """Test a TCS skips a ghost zone, and only that zone."""
 
-    assert evohome_v2._user_locs is not None  # mypy
+    assert ec2._user_locs is not None  # mypy
 
     config = copy.deepcopy(
-        evohome_v2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][
-            SZ_TEMPERATURE_CONTROL_SYSTEMS
-        ][0]
+        ec2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][SZ_TEMPERATURE_CONTROL_SYSTEMS][0]
     )
     ghost = config[SZ_ZONES][1]
     ghost[SZ_MODEL_TYPE] = ZoneModelType.UNKNOWN
@@ -296,14 +294,14 @@ async def test_ghost_zone_skipped(
 
 
 async def test_ghost_zone_other_errors(
-    evohome_v2: EvohomeClient,
+    ec2: EvohomeClient,
     tcs: ControlSystem,
 ) -> None:
     """Test a TCS skips only a GhostZoneError: any other InvalidConfigError is raised."""
 
-    assert evohome_v2._user_locs is not None  # mypy
+    assert ec2._user_locs is not None  # mypy
 
-    config = evohome_v2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][
+    config = ec2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][
         SZ_TEMPERATURE_CONTROL_SYSTEMS
     ][0]
     error = exc.InvalidConfigError("Not a ghost zone")

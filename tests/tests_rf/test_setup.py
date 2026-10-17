@@ -1,4 +1,4 @@
-"""Validate the instantiation/update of each client.
+"""Test the instantiation/update of each client.
 
 Performs the bare minimum of tests.
 """
@@ -15,7 +15,7 @@ from tests.const import _DBG_USE_REAL_AIOHTTP
 from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
-    from evohomeasync import EvohomeClient as EvohomeClientV0
+    from evohomeasync import EvohomeClient as EvohomeClientV1
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 
@@ -24,29 +24,29 @@ if TYPE_CHECKING:
 
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_update_v0(
-    evohome_v0: EvohomeClientV0,
+async def test_update_v1(
+    ec1: EvohomeClientV1,
 ) -> None:
-    """Make a minimal test of instantiation/update of the v0 client."""
+    """Make a minimal test of instantiation/update of the v1 client."""
 
     with pytest.raises(exc.NotFetchedError):
-        assert evohome_v0.user_account
+        assert ec1.user_account
 
-    await evohome_v0.get_status()
+    await ec1.get_status()
 
-    assert evohome_v0.user_account
+    assert ec1.user_account
 
 
 @skipif_auth_failed
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
 async def test_update_v2(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Make a minimal test of instantiation/update of the v2 client."""
 
     with pytest.raises(exc.NotFetchedError):
-        assert evohome_v2.user_account
+        assert ec2.user_account
 
-    await evohome_v2.setup()
+    await ec2.setup()
 
-    assert evohome_v2.user_account
+    assert ec2.user_account

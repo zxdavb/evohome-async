@@ -1,4 +1,4 @@
-"""Mocked vendor server for provision via a hacked aiohttp."""
+"""The faked vendor server (v1 and v2 APIs)."""
 
 from __future__ import annotations
 
@@ -148,25 +148,25 @@ class FakedServerBase:
         return self.body
 
 
-class FakedServerV0(FakedServerBase):
-    """Mocked vendor server for provision of v0 URL responses."""
+class FakedServerV1(FakedServerBase):
+    """Mocked vendor server for provision of v1 URL responses."""
 
-    def v0_session(self) -> _bodyT | None:
+    def v1_session(self) -> _bodyT | None:
         raise NotImplementedError
 
-    def v0_account_info(self) -> _bodyT | None:
+    def v1_account_info(self) -> _bodyT | None:
         raise NotImplementedError
 
-    def v0_locations(self) -> _bodyT | None:
+    def v1_locations(self) -> _bodyT | None:
         raise NotImplementedError
 
-    def v0_evo_touch_systems(self) -> _bodyT | None:
+    def v1_evo_touch_systems(self) -> _bodyT | None:
         raise NotImplementedError
 
-    def v0_heat_setpoint(self) -> _bodyT | None:
+    def v1_heat_setpoint(self) -> _bodyT | None:
         raise NotImplementedError
 
-    def v0_changeable_values(self) -> _bodyT | None:
+    def v1_changeable_values(self) -> _bodyT | None:
         raise NotImplementedError
 
 
@@ -322,22 +322,22 @@ class FakedServerV2(FakedServerBase):
         return _user_config_from_full_config(full_config)
 
 
-class FakedServer(FakedServerV2, FakedServerV0):
+class FakedServer(FakedServerV2, FakedServerV1):
     """Mocked vendor server for provision via a hacked aiohttp."""
 
 
-REQUEST_MAP_V0: dict[str, Callable] = {
+REQUEST_MAP_V1: dict[str, Callable] = {
     #
-    r"/session": FakedServer.v0_session,  # authentication
+    r"/session": FakedServer.v1_session,  # authentication
     #
-    r"/accountInfo$": FakedServer.v0_account_info,
+    r"/accountInfo$": FakedServer.v1_account_info,
     #
-    r"/locations?userId=": FakedServer.v0_locations,
+    r"/locations?userId=": FakedServer.v1_locations,
     #
-    r"/evoTouchSystems?locationId=": FakedServer.v0_evo_touch_systems,
+    r"/evoTouchSystems?locationId=": FakedServer.v1_evo_touch_systems,
     #
-    r"/devices/.*/thermostat/changeableValues/heatSetpoint": FakedServer.v0_heat_setpoint,
-    r"/devices/.*/thermostat/changeableValues": FakedServer.v0_changeable_values,
+    r"/devices/.*/thermostat/changeableValues/heatSetpoint": FakedServer.v1_heat_setpoint,
+    r"/devices/.*/thermostat/changeableValues": FakedServer.v1_changeable_values,
 }
 REQUEST_MAP_V2: dict[str, Callable] = {
     #
@@ -360,4 +360,4 @@ REQUEST_MAP_V2: dict[str, Callable] = {
     r"/domesticHotWater/.*/state": FakedServer.dhw_mode,
     r"/domesticHotWater/.*/schedule": FakedServer.dhw_schedule,
 }
-REQUEST_MAP = REQUEST_MAP_V0 | REQUEST_MAP_V2
+REQUEST_MAP = REQUEST_MAP_V1 | REQUEST_MAP_V2

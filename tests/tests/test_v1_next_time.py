@@ -1,6 +1,6 @@
-"""Tests for evohome-async - the v0 client sends a NextTime as the location's local time.
+"""Test that the v1 client sends a NextTime as the location's local time.
 
-The v0 API treats a NextTime (and a QuickActionNextTime) as the location's local time,
+The v1 API treats a NextTime (and a QuickActionNextTime) as the location's local time,
 and ignores any Z (see: tests_rf/test_vx_until.py). So, the client must send it as such,
 in the location's TZ (which is DST-aware, as its IANA TZ is used).
 
@@ -25,7 +25,7 @@ from evohomeasync.entities import create_location
 from evohomeasync.schemas import TccSystemMode
 from tests.common import get_loc, get_tcs
 
-from .conftest import FIXTURES_V0 as FIXTURES
+from .conftest import FIXTURES_V1 as FIXTURES
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
     from freezegun.api import FrozenDateTimeFactory
 
-    from evohomeasync import EvohomeClient as EvohomeClientV0
+    from evohomeasync import EvohomeClient as EvohomeClientV1
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -82,14 +82,14 @@ def mock_put() -> Iterator[AsyncMockT]:
     ids=("winter", "summer", "other_tz"),
 )
 async def test_zone_next_time(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
     mock_put: AsyncMockT,
     until: dt,
     next_time: str,
 ) -> None:
     """Test Zone.set_temperature() sends its NextTime as the location's local time."""
 
-    zone = get_tcs(evohome_v0).zones[0]
+    zone = get_tcs(ec1).zones[0]
 
     await zone.set_temperature(19.5, until=until)
 
@@ -101,7 +101,7 @@ async def test_zone_next_time(
 
 
 async def test_next_time_after_dst_ends(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
     freezer: FrozenDateTimeFactory,
     mock_put: AsyncMockT,
 ) -> None:
@@ -113,7 +113,7 @@ async def test_next_time_after_dst_ends(
 
     freezer.move_to("2026-10-24T12:00:00+00:00")  # BST (UTC+1)
 
-    zone = get_tcs(evohome_v0).zones[0]
+    zone = get_tcs(ec1).zones[0]
 
     await zone.set_temperature(19.5, until=dt(2026, 10, 26, 12, 0, tzinfo=UTC))
 
@@ -121,12 +121,12 @@ async def test_next_time_after_dst_ends(
 
 
 async def test_dhw_next_time(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
     mock_put: AsyncMockT,
 ) -> None:
     """Test HotWater.set_dhw_on() sends its NextTime as the location's local time."""
 
-    dhw = get_tcs(evohome_v0).hotwater
+    dhw = get_tcs(ec1).hotwater
     assert dhw is not None  # the default/ fixture has a DHW
 
     await dhw.set_dhw_on(until=dt(2026, 7, 1, 12, 0, tzinfo=UTC))
@@ -135,16 +135,16 @@ async def test_dhw_next_time(
 
 
 async def test_tcs_quick_action_next_time(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
     mock_put: AsyncMockT,
 ) -> None:
     """Test ControlSystem.set_mode() sends its QuickActionNextTime as the local time.
 
-    NOTE: the vendor has removed this URL (it is now a 404, see test_v0_urls.py), so
+    NOTE: the vendor has removed this URL (it is now a 404, see test_v1_urls.py), so
     this tests only the payload, as it can't be confirmed against the vendor's server.
     """
 
-    tcs = get_tcs(evohome_v0)
+    tcs = get_tcs(ec1)
 
     await tcs.set_mode(TccSystemMode.AWAY, until=dt(2026, 7, 1, 12, 0, tzinfo=UTC))
 
@@ -155,12 +155,12 @@ async def test_tcs_quick_action_next_time(
 
 
 async def test_naive_next_time(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
     mock_put: AsyncMockT,
 ) -> None:
     """Test a naive NextTime is rejected (as its instant would be ambiguous)."""
 
-    zone = get_tcs(evohome_v0).zones[0]
+    zone = get_tcs(ec1).zones[0]
 
     naive = dt(2026, 7, 1, 12, 0, tzinfo=UTC).replace(tzinfo=None)
 
@@ -171,17 +171,17 @@ async def test_naive_next_time(
 
 
 async def test_unknown_time_zone(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test a location with an unknown TZ falls back to its current UTC offset."""
 
-    config = copy.deepcopy(get_loc(evohome_v0).config)
+    config = copy.deepcopy(get_loc(ec1).config)
     config["time_zone"]["id"] = "No Such Standard Time"
     config["time_zone"]["current_offset_minutes"] = 60
 
     with caplog.at_level(logging.WARNING):
-        loc = await create_location(evohome_v0, config)
+        loc = await create_location(ec1, config)
 
     assert "Unable to find IANA TZ identifier" in caplog.text
     assert loc.tzinfo.utcoffset(None) == td(hours=1)

@@ -1,4 +1,4 @@
-"""Tests for evohome-async - validate the schedule schemas."""
+"""Test the schedule schemas."""
 
 from __future__ import annotations
 

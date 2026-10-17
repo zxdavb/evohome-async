@@ -1,4 +1,4 @@
-"""evohome-async - helper functions."""
+"""Helpers for the real-API tests."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Final, overload
 
 import pytest
 
-import evohomeasync as evo0
+import evohomeasync as evo1
 import evohomeasync2 as evo2
 from evohomeasync.schemas import TCC_GET_COMM_TASK
 from evohomeasync2.comm_task import DEFAULT_INTERVAL
@@ -19,8 +19,8 @@ from tests.const import (
     _DBG_USE_REAL_AIOHTTP,
     _DBG_WAIT_FOR_COMM_TASKS,
     TIMEOUT_COMM_TASK,
-    TIMEOUT_COMM_TASK_V0,
-    URL_BASE_V0,
+    TIMEOUT_COMM_TASK_V1,
+    URL_BASE_V1,
     URL_BASE_V2,
 )
 
@@ -57,7 +57,7 @@ def skipif_auth_failed[**P](
             return await fnc(*args, **kwargs)
 
         except (
-            evo0.AuthenticationFailedError,
+            evo1.AuthenticationFailedError,
             evo2.AuthenticationFailedError,
         ) as err:
             if not _DBG_USE_REAL_AIOHTTP:
@@ -85,8 +85,8 @@ def error_codes(response: object) -> list[str]:
 
 
 @overload
-async def should_work_v0[T](
-    auth: evo0.auth.Auth,
+async def should_work_v1[T](
+    auth: evo1.auth.Auth,
     method: HTTPMethod,
     url: str,
     /,
@@ -98,8 +98,8 @@ async def should_work_v0[T](
 
 
 @overload
-async def should_work_v0(
-    auth: evo0.auth.Auth,
+async def should_work_v1(
+    auth: evo1.auth.Auth,
     method: HTTPMethod,
     url: str,
     /,
@@ -110,8 +110,8 @@ async def should_work_v0(
 ) -> dict[str, Any] | list[dict[str, Any]] | str: ...
 
 
-async def should_work_v0[T](
-    auth: evo0.auth.Auth,
+async def should_work_v1[T](
+    auth: evo1.auth.Auth,
     method: HTTPMethod,
     url: str,
     /,
@@ -128,7 +128,7 @@ async def should_work_v0[T](
     response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
 
     async with auth.websession.request(
-        method, f"{URL_BASE_V0}/{url}", json=json, headers=await auth._headers()
+        method, f"{URL_BASE_V1}/{url}", json=json, headers=await auth._headers()
     ) as rsp:
         # need to do this before raise_for_status()
         if rsp.content_type == "application/json":
@@ -153,8 +153,8 @@ async def should_work_v0[T](
         return schema(response) if schema else response
 
 
-async def should_fail_v0(
-    auth: evo0.auth.Auth,
+async def should_fail_v1(
+    auth: evo1.auth.Auth,
     method: HTTPMethod,
     url: str,
     /,
@@ -171,7 +171,7 @@ async def should_fail_v0(
     response: dict[str, Any] | list[dict[str, Any]] | str  # JSON or text
 
     rsp = await auth.websession.request(
-        method, f"{URL_BASE_V0}/{url}", json=json, headers=await auth._headers()
+        method, f"{URL_BASE_V1}/{url}", json=json, headers=await auth._headers()
     )
 
     # need to do this before raise_for_status()
@@ -206,42 +206,52 @@ async def should_fail_v0(
     return response
 
 
-def is_zone_v0(dev: TccDeviceResponseT) -> bool:
-    """Return True if a (vendor-cased) v0 device is an evohome zone."""
+def is_zone_v1(
+    dev: TccDeviceResponseT,
+) -> bool:
+    """Return True if a (vendor-cased) v1 device is an evohome zone."""
     # Honeywell TH9320WF3003 can send thermostatModelType as an int, so guard startswith()
     return isinstance(t := dev["thermostatModelType"], str) and t.startswith("EMEA_")
 
 
-def is_dhw_v0(dev: TccDeviceResponseT) -> bool:
-    """Return True if a (vendor-cased) v0 device is an evohome DHW."""
+def is_dhw_v1(
+    dev: TccDeviceResponseT,
+) -> bool:
+    """Return True if a (vendor-cased) v1 device is an evohome DHW."""
     return dev["thermostatModelType"] == "DOMESTIC_HOT_WATER"
 
 
-def is_alive_v0(dev: TccDeviceResponseT) -> bool:
-    """Return True if a (vendor-cased) v0 device is alive (i.e. its gateway is online).
+def is_alive_v1(
+    dev: TccDeviceResponseT,
+) -> bool:
+    """Return True if a (vendor-cased) v1 device is alive (i.e. its gateway is online).
 
     The vendor rejects any PUT to a device that is not alive: 400, "DeviceIsLost".
     """
     return dev.get("isAlive") is True
 
 
-def status_of_v0(dev: TccDeviceResponseT) -> str | None:
-    """Return the status of a (vendor-cased) v0 zone or DHW, e.g. "Scheduled".
+def status_of_v1(
+    dev: TccDeviceResponseT,
+) -> str | None:
+    """Return the status of a (vendor-cased) v1 zone or DHW, e.g. "Scheduled".
 
     A zone's is under changeableValues.heatSetpoint, a DHW's under changeableValues.
     """
 
     values: dict[str, Any] = dict(dev["thermostat"].get("changeableValues", {}))
-    if not is_dhw_v0(dev):
+    if not is_dhw_v1(dev):
         values = values.get("heatSetpoint", {})
     return None if (status := values.get("status")) is None else str(status)
 
 
-def task_id_v0(response: object) -> str:
-    """Return the id of the comm task that a v0 PUT returns (a dict, or a list of one).
+def task_id_v1(
+    response: object,
+) -> str:
+    """Return the id of the comm task that a v1 PUT returns (a dict, or a list of one).
 
     e.g. {"id": 1234567890} (an int). A list of one, i.e. [{"id": 1234567890}], has not
-    been seen, but is allowed for as the original (2014) v0 client did so (it is not
+    been seen, but is allowed for as the original (2014) v1 client did so (it is not
     known if it ever saw one).
     """
 
@@ -255,10 +265,13 @@ def task_id_v0(response: object) -> str:
 _CLOCK_SKEW: Final = td(seconds=5)
 
 
-def is_stale_task_v0(task: Mapping[str, Any], sent: dt) -> bool:
-    """Return True if a v0 comm task had started before its PUT was sent.
+def is_stale_task_v1(
+    task: Mapping[str, Any],
+    sent: dt,
+) -> bool:
+    """Return True if a v1 comm task had started before its PUT was sent.
 
-    The vendor sometimes answers a v0 PUT with the comm task of an earlier, equivalent
+    The vendor sometimes answers a v1 PUT with the comm task of an earlier, equivalent
     PUT to the same device (a task that has already succeeded), and does not apply it,
     even if the device's state has changed since. This is how to detect that it has.
 
@@ -273,10 +286,10 @@ def is_stale_task_v0(task: Mapping[str, Any], sent: dt) -> bool:
     return started < sent - _CLOCK_SKEW
 
 
-async def wait_for_comm_task_v0(
-    auth: evo0.auth.Auth, task_id: str
+async def wait_for_comm_task_v1(
+    auth: evo1.auth.Auth, task_id: str
 ) -> TccCommTaskResponseT:
-    """Wait for a v0 communication task (API call) to succeed, and return it.
+    """Wait for a v1 communication task (API call) to succeed, and return it.
 
     GET /commTasks?commTaskId={task_id} returns the state of the comm task (as returned
     by a PUT), and what it acted upon (but not the task's own id):
@@ -294,14 +307,14 @@ async def wait_for_comm_task_v0(
     it saw it, and its tests used "pending" otherwise. No other states are documented.
 
     Unlike the v2 tests, always waits (the caller needs the succeeded task), and skips
-    the test if it has not succeeded within TIMEOUT_COMM_TASK_V0 seconds.
+    the test if it has not succeeded within TIMEOUT_COMM_TASK_V1 seconds.
     """
 
     url = f"commTasks?commTaskId={task_id}"
 
     async def poll() -> TccCommTaskResponseT:
         while True:
-            task = await should_work_v0(
+            task = await should_work_v1(
                 auth, HTTPMethod.GET, url, schema=TCC_GET_COMM_TASK
             )
             if task["state"] == "Succeeded":
@@ -312,7 +325,7 @@ async def wait_for_comm_task_v0(
 
             await asyncio.sleep(DEFAULT_INTERVAL)  # as per CommTask.wait()
 
-    return await _wait_or_skip(poll(), task_id, seconds=TIMEOUT_COMM_TASK_V0)
+    return await _wait_or_skip(poll(), task_id, seconds=TIMEOUT_COMM_TASK_V1)
 
 
 # version 2 helpers ###################################################################

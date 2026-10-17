@@ -1,4 +1,4 @@
-"""Tests for evohome-async - validate the schema of HA's debug JSON (newer ver)."""
+"""Fixtures for the offline tests."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import pytest
 
 from _evohome import exceptions as exc
 from _evohome.helpers import convert_keys_to_snake_case
-from evohomeasync import EvohomeClient as EvohomeClientV0
+from evohomeasync import EvohomeClient as EvohomeClientV1
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
 from tests.common import get_dhw, get_tcs, get_zon
 
@@ -74,7 +74,7 @@ def load_fixture(file: Path) -> JsonArrayType | JsonObjectType:
     return json.loads(text)  # type: ignore[no-any-return]
 
 
-FIXTURES_V0 = Path(__file__).parent / "fixtures_v0"
+FIXTURES_V1 = Path(__file__).parent / "fixtures_v1"
 FIXTURES_V2 = Path(__file__).parent / "fixtures_v2"
 
 
@@ -105,12 +105,12 @@ def _load_schedule_fixture(
 
 
 def user_info_fixture(folder: Path) -> JsonObjectType:
-    """Load the JSON of the v0 user information."""
+    """Load the JSON of the v1 user information."""
     return _load_fixture(folder, "user_info.json")  # type: ignore[return-value]
 
 
 def user_locs_fixture(folder: Path) -> JsonObjectType:
-    """Load the JSON of the v0 user installation (locations)."""
+    """Load the JSON of the v1 user installation (locations)."""
     return _load_fixture(folder, "user_locs.json")  # type: ignore[return-value]
 
 
@@ -148,7 +148,7 @@ def zone_schedule_fixture(folder: Path, zon_type: str, zon_id: str) -> JsonObjec
 
 
 def auth_get(fixture: Path) -> Callable[[Any, str, Validator[Any]], Any]:
-    """Return a mock of Auth.get() for both v0 and v2 API."""
+    """Return a mock of Auth.get() for both v1 and v2 API."""
 
     def _get[T](url: str, schema: Validator[T]) -> T:
         # mirror what auth.request() + auth.get() do: snake-case keys, then apply
@@ -221,78 +221,86 @@ def use_real_aiohttp() -> bool:
 
 
 @pytest.fixture
-async def evohome_v0(
+async def ec1(
     credentials_manager: TokenCacheManager,
     fixture_folder: Path,
-) -> AsyncGenerator[EvohomeClientV0]:
+) -> AsyncGenerator[EvohomeClientV1]:
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync.auth.Auth.get", auth_get(fixture_folder)):
-        evo = EvohomeClientV0(credentials_manager)
+        ec1 = EvohomeClientV1(credentials_manager)
 
-        await evo.setup()
+        await ec1.setup()
 
         try:
-            yield evo
+            yield ec1
         finally:
             pass
 
 
 @pytest.fixture
-async def evohome_v2(
+async def ec2(
     credentials_manager: TokenCacheManager,
     fixture_folder: Path,
 ) -> AsyncGenerator[EvohomeClientV2]:
     """Yield an instance of a v2 EvohomeClient."""
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
-        evo = EvohomeClientV2(credentials_manager)
+        ec2 = EvohomeClientV2(credentials_manager)
 
-        await evo.setup()
-        for loc in evo.locations:
+        await ec2.setup()
+        for loc in ec2.locations:
             await loc.get_status()
 
         try:
-            yield evo
+            yield ec2
         finally:
             pass
 
 
 @pytest.fixture
-def auth(evohome_v2: EvohomeClientV2) -> Auth:
+def auth(
+    ec2: EvohomeClientV2,
+) -> Auth:
     """Return the Auth object of the client (e.g. to create a CommTask)."""
-    return evohome_v2.auth
+    return ec2.auth
 
 
 @pytest.fixture
-def tcs(evohome_v2: EvohomeClientV2) -> ControlSystem:
+def tcs(
+    ec2: EvohomeClientV2,
+) -> ControlSystem:
     """Return the first TCS of the location under test (see get_tcs()).
 
     Fail the test if there is none, as then the test is using the wrong fixture.
     """
     try:
-        return get_tcs(evohome_v2)
+        return get_tcs(ec2)
     except IndexError:
         pytest.fail("The location under test has no TCS")
 
 
 @pytest.fixture
-def zone(evohome_v2: EvohomeClientV2) -> Zone:
+def zone(
+    ec2: EvohomeClientV2,
+) -> Zone:
     """Return the first zone of the location under test (see get_zon()).
 
     Fail the test if there is none, as then the test is using the wrong fixture.
     """
-    if (zon := get_zon(evohome_v2)) is None:
+    if (zon := get_zon(ec2)) is None:
         pytest.fail("The location under test has no zone")
     return zon
 
 
 @pytest.fixture
-def dhw(evohome_v2: EvohomeClientV2) -> HotWater:
+def dhw(
+    ec2: EvohomeClientV2,
+) -> HotWater:
     """Return the DHW of the location under test (see get_dhw()).
 
     Fail the test if there is none, as then the test is using the wrong fixture.
     """
-    if (dhw := get_dhw(evohome_v2)) is None:
+    if (dhw := get_dhw(ec2)) is None:
         pytest.fail("The location under test has no DHW")
     return dhw

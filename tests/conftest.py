@@ -1,4 +1,4 @@
-"""Tests for evohome-async."""
+"""Fixtures shared by the offline tests and the real-API tests."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from evohome_cli.auth import TokenCacheManager
-from evohomeasync import EvohomeClient as EvohomeClientV0
+from evohomeasync import EvohomeClient as EvohomeClientV1
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 from .const import TEST_PASSWORD, TEST_USERNAME, TIMEOUT_REAL_AIOHTTP
@@ -150,32 +150,32 @@ async def credentials_manager(
 
 
 @pytest.fixture
-async def evohome_v0(
+async def ec1(
     credentials_manager: TokenCacheManager,
-) -> AsyncGenerator[EvohomeClientV0]:
-    """Yield an instance of a v0 EvohomeClient."""
+) -> AsyncGenerator[EvohomeClientV1]:
+    """Yield an instance of a v1 EvohomeClient."""
 
-    evo = EvohomeClientV0(credentials_manager)
+    ec1 = EvohomeClientV1(credentials_manager)
 
-    # await evo.update()
+    # await ec1.update()
 
     try:
-        yield evo
+        yield ec1
     finally:
         pass
 
 
 @pytest.fixture
-async def evohome_v2(
+async def ec2(
     credentials_manager: TokenCacheManager,
 ) -> AsyncGenerator[EvohomeClientV2]:
     """Yield an instance of a v2 EvohomeClient."""
 
-    evo = EvohomeClientV2(credentials_manager)
+    ec2 = EvohomeClientV2(credentials_manager)
 
-    # await evo.update()
+    # await ec2.update()
 
     try:
-        yield evo
+        yield ec2
     finally:
         pass

@@ -1,4 +1,4 @@
-"""Validate the evohome-async v0 APIs (methods).
+"""Test the v1 client's methods.
 
 Every method that changes state is used so that it is a no-op on a real system: it
 reasserts the current setpoint/state of an entity that is already following its
@@ -18,14 +18,14 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-import evohomeasync as evo0
+import evohomeasync as evo1
 from tests.common import get_tcs
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
-    from evohomeasync import EvohomeClient as EvohomeClientV0
+    from evohomeasync import EvohomeClient as EvohomeClientV1
     from evohomeasync.entities import ControlSystem, HotWater, Zone
 
 
@@ -66,20 +66,22 @@ def _is_evohome(tcs: ControlSystem) -> bool:
     )
 
 
-async def _test_usr_apis(evo: EvohomeClientV0) -> None:
+async def _test_usr_apis(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test User and Location methods.
 
-    Includes: evo.update(), evo.user_account, evo.locations, and zone/DHW temperatures.
+    Includes: ec1.update(), ec1.user_account, ec1.locations, and zone/DHW temperatures.
     """
 
     # STEP 1: GET /accountInfo, GET /locations?userId={usr_id}&allData=True
-    await evo.get_status()
+    await ec1.get_status()
 
-    assert evo0.main.SCH_GET_ACCOUNT_INFO(evo.user_account)
-    assert evo0.main.SCH_GET_ACCOUNT_LOCS(evo._user_locs)
+    assert evo1.main.SCH_GET_ACCOUNT_INFO(ec1.user_account)
+    assert evo1.main.SCH_GET_ACCOUNT_LOCS(ec1._user_locs)
 
     # STEP 2: the high-precision temperatures (from the latest update)
-    for tcs in (loc.tcs for loc in evo.locations if loc.tcs):
+    for tcs in (loc.tcs for loc in ec1.locations if loc.tcs):
         temps = await tcs.get_temperatures(dont_update_status=True)
         assert set(temps) == {z.id for z in tcs.zones}
 
@@ -89,25 +91,29 @@ async def _test_usr_apis(evo: EvohomeClientV0) -> None:
             )
 
 
-async def _test_tcs_apis(evo: EvohomeClientV0) -> None:
+async def _test_tcs_apis(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test ControlSystem methods.
 
     Includes tcs.set_auto() (which would leave the TCS in Auto mode).
     """
 
-    await evo.get_status()
+    await ec1.get_status()
 
-    if not _is_evohome(tcs := get_tcs(evo)):
+    if not _is_evohome(tcs := get_tcs(ec1)):
         pytest.skip("The location under test is not an evohome system")
 
     # PUT /evoTouchSystems?locationId={loc_id}
     # NOTE: the vendor has removed this URL, so all the TCS set_*() methods now fail
-    with pytest.raises(evo0.ApiCallFailedError) as err:
+    with pytest.raises(evo1.ApiCallFailedError) as err:
         await tcs.set_auto()
     assert err.value.status == HTTPStatus.NOT_FOUND
 
 
-async def _test_dhw_apis(evo: EvohomeClientV0) -> None:
+async def _test_dhw_apis(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test HotWater methods.
 
     Includes dhw.set_dhw_on() or dhw.set_dhw_off() (whichever is its current state),
@@ -115,12 +121,12 @@ async def _test_dhw_apis(evo: EvohomeClientV0) -> None:
 
     NOTE: on some installations (e.g. the test installation), the vendor forbids a DHW's
     Status and NextTime, which these methods send, so they fail with a 400: then this
-    test is an xfail (see test_v0_urls_auth.py for that contract).
+    test is an xfail (see test_v1_urls_auth.py for that contract).
     """
 
-    await evo.get_status()
+    await ec1.get_status()
 
-    dhw = get_tcs(evo).hotwater
+    dhw = get_tcs(ec1).hotwater
     if dhw is None or not _is_live(dhw):
         pytest.skip("No live DHW found")
 
@@ -134,23 +140,25 @@ async def _test_dhw_apis(evo: EvohomeClientV0) -> None:
 
     try:
         await coro
-    except evo0.ApiCallFailedError as err:
+    except evo1.ApiCallFailedError as err:
         if err.status == HTTPStatus.BAD_REQUEST and "ForbiddenParameter" in str(err):
-            pytest.xfail("This DHW forbids Status/NextTime (see test_v0_urls_auth.py)")
+            pytest.xfail("This DHW forbids Status/NextTime (see test_v1_urls_auth.py)")
         raise
 
     await dhw.set_dhw_auto()
 
 
-async def _test_zon_apis(evo: EvohomeClientV0) -> None:
+async def _test_zon_apis(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test Zone methods.
 
     Includes zone.set_temperature() (temporary & permanent) and zone.set_zone_auto().
     """
 
-    await evo.get_status()
+    await ec1.get_status()
 
-    zone = next((z for z in get_tcs(evo).zones if _is_live_and_scheduled(z)), None)
+    zone = next((z for z in get_tcs(ec1).zones if _is_live_and_scheduled(z)), None)
     if zone is None:
         pytest.skip("No live zone found that is following its schedule")
 
@@ -169,47 +177,47 @@ async def _test_zon_apis(evo: EvohomeClientV0) -> None:
 
 @skipif_auth_failed
 async def test_usr_apis(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test update(), user_account and locations."""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await _test_usr_apis(evohome_v0)
+    await _test_usr_apis(ec1)
 
 
 @skipif_auth_failed
 async def test_tcs_apis(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test set_auto() for a TCS."""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await _test_tcs_apis(evohome_v0)
+    await _test_tcs_apis(ec1)
 
 
 @skipif_auth_failed
 async def test_dhw_apis(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test set_dhw_on()/set_dhw_off() and set_dhw_auto() for a DHW."""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await _test_dhw_apis(evohome_v0)
+    await _test_dhw_apis(ec1)
 
 
 @skipif_auth_failed
 async def test_zon_apis(
-    evohome_v0: EvohomeClientV0,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test set_temperature() and set_zone_auto() for a zone."""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await _test_zon_apis(evohome_v0)
+    await _test_zon_apis(ec1)

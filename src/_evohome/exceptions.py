@@ -1,4 +1,4 @@
-"""The exceptions raised by the async clients for the Resideo TCC API.
+"""The exceptions raised by the v1 and v2 clients.
 
 They are grouped by what the caller can do about them:
 

@@ -1,4 +1,4 @@
-"""evohomeasync provides an async client for the v0 Resideo TCC API."""
+"""The client for the TCC v1 API."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ class EvohomeClient:
         websession: aiohttp.ClientSession | None = None,
         debug: bool = False,
     ) -> None:
-        """Construct the v0 EvohomeClient object."""
+        """Construct the v1 EvohomeClient object."""
 
         self._logger = _LOGGER
         if debug:

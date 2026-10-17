@@ -1,4 +1,4 @@
-"""Invoke every vendor RESTful API (URL) of the v2 API.
+"""Invoke every vendor URL of the v2 API.
 
 This is used to document the RESTful API that is provided by the vendor. Together with
 the schema modules (src/evohomeasync2/schemas/*.py), whose TypedDicts record the shape
@@ -52,7 +52,7 @@ The API is regular, and these tests confirm the following conventions:
   e.g. {"id": "1234567890"}, which can be polled (see test_v2_urls_task.py)
 
 - a PUT is sometimes answered with the comm task of an earlier, equivalent PUT, as via
-  the v0 API (the rule for this is not known, see is_stale_task_v0() in common.py)
+  the v1 API (the rule for this is not known, see is_stale_task_v1() in common.py)
 
 - a GET of a PUT-only URL is 405 (Method Not Allowed), except for a zone's heatSetpoint,
   which is 404 (Not Found), as is any other invalid URL (which returns HTML, not JSON)
