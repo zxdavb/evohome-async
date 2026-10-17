@@ -29,16 +29,12 @@ import evohomeasync as evo1
 from _evohome.const import HOSTNAME
 from _evohome.helpers import TCC_DTM_STRFTIME
 from evohomeasync.schemas import TCC_GET_USR_LOCS
-from tests.common import get_loc
-from tests.const import (
-    _DBG_USE_REAL_AIOHTTP,
-    TEST_LOC_IDX,
-    TIMEOUT_COMM_TASK_V1,
-    URL_BASE_V1,
-)
+from tests.common import find_loc_v1, get_loc
+from tests.const import _DBG_USE_REAL_AIOHTTP, TIMEOUT_COMM_TASK_V1, URL_BASE_V1
 
 from .common import (
     error_codes,
+    fetch_loc_v1,
     is_alive_v1,
     is_dhw_v1,
     is_stale_task_v1,
@@ -55,7 +51,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from evohomeasync import EvohomeClient as EvohomeClientV1
-    from evohomeasync.schemas import TccDeviceResponseT, TccLocationResponseT
+    from evohomeasync.schemas import TccDeviceResponseT
 
 
 async def _test_usr_locations(
@@ -202,24 +198,11 @@ _ZON_REVERT = {"Value": None, "Status": "Scheduled", "NextTime": None}
 _DHW_MODES = ("DHWOn", "DHWOff")
 
 
-async def _get_location(
-    ec1: EvohomeClientV1,
-) -> TccLocationResponseT:
-    """Return the (vendor-cased) location under test."""
-
-    usr_id: int = ec1.user_account["user_id"]
-
-    url = f"locations?userId={usr_id}&allData=True"
-    locs = await should_work_v1(ec1.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
-
-    return locs[TEST_LOC_IDX]
-
-
 async def _get_devices(
     ec1: EvohomeClientV1,
 ) -> list[TccDeviceResponseT]:
     """Return all the (vendor-cased) devices of the location under test."""
-    return (await _get_location(ec1))["devices"]
+    return (await fetch_loc_v1(ec1))["devices"]
 
 
 async def _get_status(
@@ -335,7 +318,7 @@ async def _test_zon_heat_setpoint(
 
     # the location's wall-clock time, as the vendor treats NextTime as such (and so
     # ignores its Z), else the overrides would be shorter/longer (or in the past)
-    offset: int = (await _get_location(ec1))["timeZone"]["currentOffsetMinutes"]
+    offset: int = (await fetch_loc_v1(ec1))["timeZone"]["currentOffsetMinutes"]
     now = (dt.now(tz=UTC) + td(minutes=offset)).replace(
         minute=0, second=0, microsecond=0
     )
@@ -624,13 +607,13 @@ async def test_url_case_insensitive(
         f"LOCATIONS?UserId={usr_id}&AllData=True",  # upper case path, PascalCase keys
     ):
         locs = await should_work_v1(auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
-        assert locs[TEST_LOC_IDX]["devices"], url  # so allData was recognised
+        assert find_loc_v1(locs)["devices"], url  # so allData was recognised
 
     # the controls...
     url = f"locations?userId={usr_id}"  # no allData: so no devices
     locs_ = await should_work_v1(auth, HTTPMethod.GET, url)
     assert isinstance(locs_, list)  # mypy
-    assert "devices" not in locs_[TEST_LOC_IDX], url
+    assert all("devices" not in loc for loc in locs_), url
 
     url = f"locations?noSuchKey={usr_id}"  # no userId: so 404 (JSON)
     _ = await should_fail_v1(auth, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)

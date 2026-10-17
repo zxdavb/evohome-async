@@ -14,19 +14,20 @@ from evohomeasync2 import ControlSystem, EvohomeClient, Zone, exceptions as exc
 from evohomeasync2.const import (
     SZ_GATEWAYS,
     SZ_MODEL_TYPE,
+    SZ_SYSTEM_ID,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
     SZ_ZONE_ID,
     SZ_ZONES,
     ZoneModelType,
 )
 from tests.common import get_dhw, get_loc, get_tcs, get_zon
-from tests.const import TEST_LOC_IDX
 
 from .conftest import FIXTURES_V2 as FIXTURES, auth_get
 from .const import PUT_RESPONSE_V2
 
 if TYPE_CHECKING:
     from evohome_cli.auth import TokenCacheManager
+    from evohomeasync2.typedefs import EvoTcsConfigResponseT
 
 _ERR_MSG = "GET url: response failed validation: ..."
 
@@ -271,17 +272,30 @@ async def test_ghost_zone(
         Zone(zone.tcs, config)
 
 
+def _tcs_config(
+    ec2: EvohomeClient,
+    tcs: ControlSystem,
+) -> EvoTcsConfigResponseT:
+    """Return the config of the TCS (with its zones), as received by the client."""
+
+    assert ec2._user_locs is not None  # mypy
+
+    return next(
+        t
+        for loc in ec2._user_locs
+        for gwy in loc[SZ_GATEWAYS]
+        for t in gwy[SZ_TEMPERATURE_CONTROL_SYSTEMS]
+        if t[SZ_SYSTEM_ID] == tcs.id
+    )
+
+
 async def test_ghost_zone_skipped(
     ec2: EvohomeClient,
     tcs: ControlSystem,
 ) -> None:
     """Test a TCS skips a ghost zone, and only that zone."""
 
-    assert ec2._user_locs is not None  # mypy
-
-    config = copy.deepcopy(
-        ec2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][SZ_TEMPERATURE_CONTROL_SYSTEMS][0]
-    )
+    config = copy.deepcopy(_tcs_config(ec2, tcs))
     ghost = config[SZ_ZONES][1]
     ghost[SZ_MODEL_TYPE] = ZoneModelType.UNKNOWN
 
@@ -299,11 +313,7 @@ async def test_ghost_zone_other_errors(
 ) -> None:
     """Test a TCS skips only a GhostZoneError: any other InvalidConfigError is raised."""
 
-    assert ec2._user_locs is not None  # mypy
-
-    config = ec2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][
-        SZ_TEMPERATURE_CONTROL_SYSTEMS
-    ][0]
+    config = _tcs_config(ec2, tcs)
     error = exc.InvalidConfigError("Not a ghost zone")
 
     with (
