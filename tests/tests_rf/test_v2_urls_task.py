@@ -231,7 +231,7 @@ async def _test_task_id_zone(evo: EvohomeClientV2) -> None:
 
 @skipif_auth_failed
 async def test_task_id_dhw(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test /commTasks?commTaskId={task_id}"""
 
@@ -239,7 +239,7 @@ async def test_task_id_dhw(
         pytest.skip("Test is only valid with a real server")
 
     try:
-        await _test_task_id_dhw(evohome_v2)
+        await _test_task_id_dhw(ec2)
 
     except evo2.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:
@@ -248,14 +248,14 @@ async def test_task_id_dhw(
 
 
 @skipif_auth_failed
-async def _out_test_task_id_zone(evohome_v2: EvohomeClientV2) -> None:
+async def _out_test_task_id_zone(ec2: EvohomeClientV2) -> None:
     """Test /commTasks?commTaskId={task_id}"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Test is only valid with a real server")
 
     try:
-        await _test_task_id_zone(evohome_v2)
+        await _test_task_id_zone(ec2)
 
     except evo2.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:

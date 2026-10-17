@@ -169,47 +169,47 @@ async def _test_zon_apis(evo: EvohomeClientV1) -> None:
 
 @skipif_auth_failed
 async def test_usr_apis(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test update(), user_account and locations."""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await _test_usr_apis(evohome_v1)
+    await _test_usr_apis(ec1)
 
 
 @skipif_auth_failed
 async def test_tcs_apis(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test set_auto() for a TCS."""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await _test_tcs_apis(evohome_v1)
+    await _test_tcs_apis(ec1)
 
 
 @skipif_auth_failed
 async def test_dhw_apis(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test set_dhw_on()/set_dhw_off() and set_dhw_auto() for a DHW."""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await _test_dhw_apis(evohome_v1)
+    await _test_dhw_apis(ec1)
 
 
 @skipif_auth_failed
 async def test_zon_apis(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test set_temperature() and set_zone_auto() for a zone."""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await _test_zon_apis(evohome_v1)
+    await _test_zon_apis(ec1)

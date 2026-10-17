@@ -203,12 +203,12 @@ async def _test_zon_mode(evo: EvohomeClientV2) -> None:
 
 @skipif_auth_failed
 async def test_usr_apis(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test user_account() and installation()."""
 
     try:
-        await _test_usr_apis(evohome_v2)
+        await _test_usr_apis(ec2)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -218,12 +218,12 @@ async def test_usr_apis(
 
 @skipif_auth_failed
 async def test_tcs(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test set_mode() for TCS"""
 
     try:
-        await _test_tcs_apis(evohome_v2)
+        await _test_tcs_apis(ec2)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -233,20 +233,20 @@ async def test_tcs(
 
 @skipif_auth_failed
 async def test_dhw_apis(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test get_schedule() and get_schedule()."""
-    await _test_dhw_apis(evohome_v2)
+    await _test_dhw_apis(ec2)
 
 
 @skipif_auth_failed
 async def test_dhw_mode(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test set_off() and reset() for DHW."""
 
     try:
-        await _test_dhw_mode(evohome_v2)
+        await _test_dhw_mode(ec2)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -256,20 +256,20 @@ async def test_dhw_mode(
 
 @skipif_auth_failed
 async def test_zon_apis(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test _update() for DHW/zone."""
-    await _test_zon_apis(evohome_v2)
+    await _test_zon_apis(ec2)
 
 
 @skipif_auth_failed
 async def test_zon_mode(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test set_temperature() and reset() for zone."""
 
     try:
-        await _test_zon_mode(evohome_v2)
+        await _test_zon_mode(ec2)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:

@@ -46,7 +46,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 def patch_request(
     *, return_value: object = None, side_effect: list[object] | None = None
 ) -> Iterator[AsyncMockT]:
-    """Mock AbstractAuth.request(), and undo the evohome_v2 fixture's patch of get()."""
+    """Mock AbstractAuth.request(), and undo the ec2 fixture's patch of get()."""
 
     with (
         patch("evohomeasync2.auth.Auth.get", AbstractAuth.get),
