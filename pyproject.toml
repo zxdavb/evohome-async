@@ -4,7 +4,7 @@
 [project]
 name = "evohome-async"
 dynamic = ["version"]
-description = "An async client for connecting to Honeywell's TCC RESTful API."
+description = "An async client for Resideo's TCC v1 and v2 APIs."
 readme = "README.md"
 authors = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]
 maintainers = [{ name = "David Bonnes", email = "zxdavb@bonnes.me" }]

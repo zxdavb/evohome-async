@@ -1,4 +1,4 @@
-"""Schema for the vendor's TCC v2 API.
+"""Schemas for the vendor's TCC v2 API.
 
 The API is undocumented, so the TypedDicts (Tcc*T) defined across the submodules of this
 package (account.py, config.py, status.py, state.py, schedule.py) are the best known

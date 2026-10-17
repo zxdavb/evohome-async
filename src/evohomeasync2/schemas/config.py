@@ -1,4 +1,4 @@
-"""Schema for the vendor's TCC v2 API - for GET config of user's Installation.
+"""Schemas for the vendor's TCC v2 API - for GET config of user's Installation.
 
 These TypedDict & StrEnums serve as documentation of the vendor's API, even if they are
 unused by this library. There are corresponding factory functions for the probatio

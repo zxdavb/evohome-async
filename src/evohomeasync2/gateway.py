@@ -1,4 +1,4 @@
-"""Provides handling of TCC gateways."""
+"""Gateways (for the TCC v2 API)."""
 
 from __future__ import annotations
 

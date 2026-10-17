@@ -1,4 +1,4 @@
-"""Provides handling of TCC comm tasks (the vendor's tasks created by PUTs)."""
+"""Comm tasks (for the TCC v2 API): the vendor's tasks created by PUTs."""
 
 from __future__ import annotations
 

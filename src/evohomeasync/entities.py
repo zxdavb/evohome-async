@@ -1,4 +1,4 @@
-"""Provides handling of TCC v1 entities.
+"""Entities (for the TCC v1 API).
 
 The vendor's entity hierarchy is flattened: Location -> devices (each a DHW or a Zone,
 and each with the gateway_id and mac_id of its gateway). There is no TCS entity (nor a

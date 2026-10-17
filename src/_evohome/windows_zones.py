@@ -1,3 +1,5 @@
+"""Windows time zone ids, mapped to IANA time zones (from Unicode CLDR)."""
+
 # see: https://github.com/unicode-org/cldr/blob/main/common/supplemental/windowsZones.xml
 
 # def extract_timezones(file_path: str) -> dict[str, str]:
@@ -15,7 +17,6 @@
 #         timezones[mapZone.get("other")] = mapZone.get("type")
 
 #     return timezones
-
 
 WINDOWS_TO_IANA_APAC = {
     "Hawaiian Standard Time": "Pacific/Honolulu",

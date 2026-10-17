@@ -1,1 +1,1 @@
-"""evohomeasync provides an async client for the Resideo TCC API."""
+"""A CLI for the evohomeasync2 client (not part of the library)."""

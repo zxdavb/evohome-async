@@ -1,4 +1,4 @@
-"""Provides handling of TCC v2 locations.
+"""Locations (for the TCC v2 API).
 
 The entity hierarchy is: Location -> Gateway -> TCS -> DHW | Zone.
 """

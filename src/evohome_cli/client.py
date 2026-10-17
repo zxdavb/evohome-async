@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""evohomeasync - a CLI utility that is not a core part of the library."""
+"""The commands of the evohome CLI."""
 
 from __future__ import annotations
 
