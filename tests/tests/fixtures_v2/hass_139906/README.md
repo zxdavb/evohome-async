@@ -24,4 +24,4 @@ Source: [Home Assistant core issue #139906](https://github.com/home-assistant/co
 ## Notes
 
 - Real userId 2276512 and locationId 2727366 kept from original.
-- v0 counterpart: `fixtures_v0/hass_139906/`
+- v1 counterpart: `fixtures_v1/hass_139906/`

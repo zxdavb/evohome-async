@@ -1,4 +1,4 @@
-"""Tests for evohome-async v0 schema - the vendor's enum values."""
+"""Tests for evohome-async v1 schema - the vendor's enum values."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ PASCAL_CASE_ENUMS = (
 
 
 @pytest.mark.parametrize("member", [m for e in PASCAL_CASE_ENUMS for m in e], ids=str)
-def test_v0_enum_survives_put(
+def test_v1_enum_survives_put(
     member: StrEnum,
 ) -> None:
     """Check a PascalCase enum value is sent unchanged (see AbstractAuth.request())."""
@@ -43,7 +43,7 @@ def test_v0_enum_survives_put(
     assert convert_str_enums_to_pascal_case({"x": member})["x"] == member.value
 
 
-def test_v0_model_type_mangled_by_put() -> None:
+def test_v1_model_type_mangled_by_put() -> None:
     """Check why a TccThermostatModelType must never be sent in a request body."""
 
     member = TccThermostatModelType.DOMESTIC_HOT_WATER

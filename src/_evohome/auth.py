@@ -1,4 +1,4 @@
-"""evohomeasync provides an async client for the v0 Resideo TCC API."""
+"""evohomeasync provides an async client for the v1 Resideo TCC API."""
 
 from __future__ import annotations
 

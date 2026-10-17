@@ -24,5 +24,5 @@ Source: [Home Assistant core issue #141882](https://github.com/home-assistant/co
 
 - FocusProWifi device — single-zone thermostat.
 - Real userId 6324020, locationId 7680795, gatewayId 7242198, systemId 9727448 from original.
-- v0 counterpart: `fixtures_v0/hass_141882/`
-- Original data was in `fixtures/hass_141882/`; migrated and split across v0/v2 dirs.
+- v1 counterpart: `fixtures_v1/hass_141882/`
+- Original data was in `fixtures/hass_141882/`; migrated and split across v1/v2 dirs.

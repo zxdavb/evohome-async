@@ -13,7 +13,7 @@ import evohomeasync2 as evo2
 from _evohome import exceptions as exc
 from tests.common import get_loc, get_tcs, get_zon
 
-from .conftest import FIXTURES_V0, FIXTURES_V2, auth_get
+from .conftest import FIXTURES_V1, FIXTURES_V2, auth_get
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -94,7 +94,7 @@ async def test_v1_setup(
 ) -> None:
     """Test setup() gets the config and, as v1 has them in one GET, the status."""
 
-    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V0 / "default")):
+    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V1 / "default")):
         evo = evo1.EvohomeClient(credentials_manager)
 
         with pytest.raises(exc.EvohomeError):
@@ -110,7 +110,7 @@ async def test_v1_get_status(
 ) -> None:
     """Test get_status() gets the latest status every time it is called."""
 
-    mock_get = auth_get(FIXTURES_V0 / "default")
+    mock_get = auth_get(FIXTURES_V1 / "default")
     calls: list[str] = []
 
     async def get(self: object, url: str, /, schema: Validator[Any]) -> object:
@@ -175,7 +175,7 @@ async def test_v1_location_tcs(
 ) -> None:
     """Test Location.tcs has the location's devices, or is None if it has none."""
 
-    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V0 / "default")):
+    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V1 / "default")):
         evo = evo1.EvohomeClient(credentials_manager)
         await evo.setup()
 
@@ -202,7 +202,7 @@ async def test_vx_location_tcs(
     same time. Its locations are in a different order for each API.
     """
 
-    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V0 / "system_009")):
+    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V1 / "system_009")):
         evo_v1 = evo1.EvohomeClient(credentials_manager)
         await evo_v1.setup()
 
@@ -249,7 +249,7 @@ async def test_vx_location_tcs(
 @pytest.mark.parametrize(
     ("evo_cls", "target", "fixtures"),
     [
-        pytest.param(evo1.EvohomeClient, "evohomeasync", FIXTURES_V0, id="v1"),
+        pytest.param(evo1.EvohomeClient, "evohomeasync", FIXTURES_V1, id="v1"),
         pytest.param(evo2.EvohomeClient, "evohomeasync2", FIXTURES_V2, id="v2"),
     ],
 )
@@ -277,7 +277,7 @@ async def test_vx_client_tcs(
         pytest.param(
             evo1.EvohomeClient,
             "evohomeasync",
-            FIXTURES_V0 / "system_009",
+            FIXTURES_V1 / "system_009",
             "not a single location",
             id="v1_multi_location",
         ),
@@ -322,7 +322,7 @@ async def test_v1_location_get_temperatures(
 ) -> None:
     """Test the deprecated v1 Location.get_temperatures() is that of its TCS."""
 
-    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V0 / "default")):
+    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V1 / "default")):
         evo = evo1.EvohomeClient(credentials_manager)
         await evo.setup()
 
@@ -341,7 +341,7 @@ async def test_v1_location_get_temperatures_raises(
 ) -> None:
     """Test the deprecated v1 Location.get_temperatures() raises if it has no TCS."""
 
-    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V0 / "system_009")):
+    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V1 / "system_009")):
         evo = evo1.EvohomeClient(credentials_manager)
         await evo.setup()
 

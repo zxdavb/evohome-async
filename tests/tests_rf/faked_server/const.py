@@ -7,8 +7,8 @@ from typing import Any, Final, Literal
 HOSTNAME: Final = "tccna.resideo.com"
 
 # vendors API URLs - the older API
-URL_CRED_V0 = f"https://{HOSTNAME}/WebAPI/api/session"
-URL_BASE_V0 = f"https://{HOSTNAME}/WebAPI/api"
+URL_CRED_V1 = f"https://{HOSTNAME}/WebAPI/api/session"
+URL_BASE_V1 = f"https://{HOSTNAME}/WebAPI/api"
 
 # - the newer API
 URL_CRED_V2 = f"https://{HOSTNAME}/Auth/OAuth/Token"

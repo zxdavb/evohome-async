@@ -214,7 +214,7 @@ cli/
   evohome_cli/        # CLI tool (excluded from coverage)
 src/
   _evohome/           # Shared internals (auth, exceptions, helpers, timezone)
-  evohomeasync/       # Legacy v0 API client (backward compat)
+  evohomeasync/       # Legacy v1 API client (backward compat)
   evohomeasync2/      # Primary v2 API client — most work happens here
 tests/
   tests/              # Main test suite
