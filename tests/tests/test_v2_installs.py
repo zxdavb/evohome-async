@@ -1,4 +1,4 @@
-"""Tests for evohome-async - validate the instantiation of entities."""
+"""Test the instantiation of the v2 entities."""
 
 from __future__ import annotations
 

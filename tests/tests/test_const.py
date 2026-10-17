@@ -1,4 +1,4 @@
-"""Tests for evohome-async v2 schema - validate completeness of constants and enums."""
+"""Test that the v2 constants and enums are complete and correct."""
 
 from __future__ import annotations
 

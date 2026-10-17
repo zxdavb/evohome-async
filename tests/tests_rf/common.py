@@ -1,4 +1,4 @@
-"""evohome-async - helper functions."""
+"""Helpers for the real-API tests."""
 
 from __future__ import annotations
 

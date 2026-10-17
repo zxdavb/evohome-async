@@ -1,4 +1,4 @@
-"""Mocked vendor server for provision via a hacked aiohttp."""
+"""The faked vendor server (v1 and v2 APIs)."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Tests for evohome-async - the locations must be consistent with the config JSON.
+"""Test that the v1 locations are consistent with the config JSON.
 
 Every location known from the config should be in the status, and vice versa. If not, a
 warning is logged (the known locations are still updated).

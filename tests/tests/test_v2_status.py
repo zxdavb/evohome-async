@@ -1,4 +1,4 @@
-"""Tests for evohome-async - the status JSON must be consistent with the config JSON.
+"""Test that the v2 status JSON is consistent with the config JSON.
 
 Every entity known from the config (gateway, TCS, DHW, zone) should be in the status. If
 one is not, a warning is logged (the others are still updated). The converse is

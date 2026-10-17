@@ -1,4 +1,4 @@
-"""Validate the handling of the vendor's v1 APIs (URLs) for Authentication.
+"""Test the vendor's v1 URLs for authentication.
 
 This is used to:
 a) document the RESTful API that is provided by the vendor

@@ -1,4 +1,4 @@
-"""Tests for evohome-async - the setup() and get_status() methods of both clients."""
+"""Test the setup() and get_status() methods of both clients."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Validate the handling of the vendor's v2 APIs (URLs) for Schedules.
+"""Test the vendor's v2 URLs for schedules.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor

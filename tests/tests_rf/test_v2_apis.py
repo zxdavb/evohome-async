@@ -1,4 +1,4 @@
-"""Validate the evohome-async v2 APIs (methods).
+"""Test the v2 client's methods.
 
 Invokes every vendor API (URL) that the client uses, via the client's methods:
 

@@ -1,4 +1,4 @@
-"""Validate the handling of the v2 APIs (URLs): their errors and edge cases.
+"""Test the vendor's v2 URLs: their errors and edge cases.
 
 This is used to:
   a) document the RESTful API that is provided by the vendor

@@ -1,4 +1,4 @@
-"""Validate how the vendor interprets the end of a zone's temporary override.
+"""Test how the vendor interprets the end of a zone's temporary override.
 
 A zone's temporary override ends at a datetime: its NextTime (v1 API), or its timeUntil
 (v2 API). These tests confirm how the vendor interprets each, by setting an override via

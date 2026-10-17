@@ -1,4 +1,4 @@
-"""Tests for evohome-async."""
+"""Constants shared by the offline tests and the real-API tests."""
 
 from __future__ import annotations
 

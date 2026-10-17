@@ -1,4 +1,4 @@
-"""Tests for evohome-async - datetimes across DST transitions."""
+"""Test datetimes across DST transitions."""
 
 from __future__ import annotations
 

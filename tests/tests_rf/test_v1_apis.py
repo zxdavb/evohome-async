@@ -1,4 +1,4 @@
-"""Validate the evohome-async v1 APIs (methods).
+"""Test the v1 client's methods.
 
 Every method that changes state is used so that it is a no-op on a real system: it
 reasserts the current setpoint/state of an entity that is already following its
