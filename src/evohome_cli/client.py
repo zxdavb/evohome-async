@@ -7,7 +7,7 @@ import asyncio
 import json
 import logging
 import sys
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, TypedDict
 
 import aiohttp
 import asyncclick as click
@@ -19,7 +19,7 @@ from evohomeasync2 import (
     Zone,
     exceptions as exc,
 )
-from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE
+from evohomeasync2.const import SZ_NAME, SZ_SCHEDULE, SZ_USERNAME
 
 from .auth import (
     TokenCacheManager,
@@ -33,18 +33,31 @@ from .auth import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Awaitable, Callable
     from io import TextIOWrapper
 
 # all _DBG_* flags are only for dev/test and should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of click
 
-DEBUG_ADDR = "127.0.0.1"
-DEBUG_PORT = 5679
+DEBUG_ADDR: Final = "127.0.0.1"
+DEBUG_PORT: Final = 5679
 
-SZ_CLEANUP: Final = "cleanup"
-SZ_EC2: Final = "ec2"
-SZ_USERNAME: Final = "username"
+_CLEANUP: Final = "cleanup"
+_EC2: Final = "ec2"
+
+
+class _ApiCtxObjT(TypedDict):
+    """The ctx.obj of a command that uses the vendor's API."""
+
+    cleanup: Callable[[], Awaitable[None]]
+    ec2: EvohomeClient
+
+
+class _NoApiCtxObjT(TypedDict):
+    """The ctx.obj of a command that does not use the vendor's API."""
+
+    cleanup: Callable[[], Awaitable[None]]
+    username: str | None
 
 
 # User-facing messages go to stderr via click.echo(err=True), keeping stdout
@@ -222,8 +235,11 @@ async def cli(
         async def noop() -> None:
             pass
 
-        ctx.obj[SZ_CLEANUP] = noop
-        ctx.obj[SZ_USERNAME] = username  # may be None; command will handle it
+        no_api_obj: _NoApiCtxObjT = {
+            _CLEANUP: noop,
+            SZ_USERNAME: username,  # may be None; command will handle it
+        }
+        ctx.obj.update(no_api_obj)
         return
 
     if username is None:
@@ -257,9 +273,8 @@ async def cli(
         save_username_to_keyring(username)
         save_password_to_keyring(username, password)
 
-    # TODO: use a typed dict for ctx.obj
-    ctx.obj[SZ_EC2] = ec2
-    ctx.obj[SZ_CLEANUP] = cleanup
+    api_obj: _ApiCtxObjT = {_EC2: ec2, _CLEANUP: cleanup}
+    ctx.obj.update(api_obj)
 
 
 @cli.command()
@@ -271,7 +286,8 @@ async def get_system_mode(
 ) -> None:
     """Retrieve the system mode."""
 
-    ec2: EvohomeClient = ctx.obj[SZ_EC2]
+    obj: _ApiCtxObjT = ctx.obj
+    ec2 = obj[_EC2]
 
     try:
         click.echo("Retrieving TCS mode...\n", err=True)
@@ -281,7 +297,7 @@ async def get_system_mode(
         output_file.write(json.dumps(result, indent=4) + "\n")
 
     finally:
-        await ctx.obj[SZ_CLEANUP]()
+        await obj[_CLEANUP]()
 
 
 @cli.command()
@@ -293,7 +309,8 @@ async def dump_location(
 ) -> None:
     """Download all the global config and the location status."""
 
-    ec2: EvohomeClient = ctx.obj[SZ_EC2]
+    obj: _ApiCtxObjT = ctx.obj
+    ec2 = obj[_EC2]
 
     try:
         click.echo("Retrieving location status...\n", err=True)
@@ -306,7 +323,7 @@ async def dump_location(
         output_file.write(json.dumps(result, indent=4) + "\n")
 
     finally:
-        await ctx.obj[SZ_CLEANUP]()
+        await obj[_CLEANUP]()
 
 
 @cli.command()
@@ -323,7 +340,8 @@ async def get_schedule(
 ) -> None:
     """Download the schedule of a zone of a TCS (WIP)."""
 
-    ec2 = ctx.obj[SZ_EC2]
+    obj: _ApiCtxObjT = ctx.obj
+    ec2 = obj[_EC2]
 
     try:
         click.echo("Retrieving zone/DHW schedule...\n", err=True)
@@ -347,7 +365,7 @@ async def get_schedule(
         output_file.write(json.dumps(schedule, indent=4) + "\n")
 
     finally:
-        await ctx.obj[SZ_CLEANUP]()
+        await obj[_CLEANUP]()
 
 
 @cli.command()
@@ -359,7 +377,8 @@ async def get_schedules(
 ) -> None:
     """Download all the schedules from a TCS."""
 
-    ec2: EvohomeClient = ctx.obj[SZ_EC2]
+    obj: _ApiCtxObjT = ctx.obj
+    ec2 = obj[_EC2]
 
     try:
         tcs = _get_tcs(ec2, loc_idx)
@@ -371,7 +390,7 @@ async def get_schedules(
         output_file.write(json.dumps(schedules, indent=4) + "\n")
 
     finally:
-        await ctx.obj[SZ_CLEANUP]()
+        await obj[_CLEANUP]()
 
 
 @cli.command()
@@ -383,7 +402,8 @@ async def set_schedules(
 ) -> None:
     """Upload schedules to a TCS."""
 
-    ec2: EvohomeClient = ctx.obj[SZ_EC2]
+    obj: _ApiCtxObjT = ctx.obj
+    ec2 = obj[_EC2]
 
     try:
         tcs = _get_tcs(ec2, loc_idx)
@@ -396,7 +416,7 @@ async def set_schedules(
             raise click.ClickException("Schedule restore completed with errors.")
 
     finally:
-        await ctx.obj[SZ_CLEANUP]()
+        await obj[_CLEANUP]()
 
 
 @cli.command()
@@ -413,7 +433,9 @@ async def clear_credentials(ctx: click.Context) -> None:
         cleared = True
 
     # also delete password for the CLI-supplied username, if different
-    cli_username: str | None = ctx.obj[SZ_USERNAME]
+    obj: _NoApiCtxObjT = ctx.obj
+
+    cli_username = obj[SZ_USERNAME]
     if cli_username and cli_username != stored_username:
         delete_password_from_keyring(cli_username)
         cleared = True
