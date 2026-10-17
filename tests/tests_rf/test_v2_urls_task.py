@@ -42,7 +42,9 @@ if TYPE_CHECKING:
 
 
 # NOTE: a long test, but not all systems have DHW
-async def _test_task_id_dhw(ec2: EvohomeClientV2) -> None:
+async def _test_task_id_dhw(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
@@ -199,7 +201,9 @@ async def _test_task_id_dhw(ec2: EvohomeClientV2) -> None:
 
 
 # TODO: a short test
-async def _test_task_id_zone(ec2: EvohomeClientV2) -> None:
+async def _test_task_id_zone(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
@@ -248,7 +252,9 @@ async def test_task_id_dhw(
 
 
 @skipif_auth_failed
-async def _out_test_task_id_zone(ec2: EvohomeClientV2) -> None:
+async def _out_test_task_id_zone(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test /commTasks?commTaskId={task_id}"""
 
     if not _DBG_USE_REAL_AIOHTTP:

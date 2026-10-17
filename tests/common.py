@@ -12,11 +12,15 @@ if TYPE_CHECKING:
 
 
 @overload
-def get_loc(ec: evo1.EvohomeClient) -> evo1.Location: ...
+def get_loc(
+    ec: evo1.EvohomeClient,
+) -> evo1.Location: ...
 
 
 @overload
-def get_loc(ec: evo2.EvohomeClient) -> evo2.Location: ...
+def get_loc(
+    ec: evo2.EvohomeClient,
+) -> evo2.Location: ...
 
 
 def get_loc(
@@ -27,11 +31,15 @@ def get_loc(
 
 
 @overload
-def get_tcs(ec: evo1.EvohomeClient) -> evo1.ControlSystem: ...
+def get_tcs(
+    ec: evo1.EvohomeClient,
+) -> evo1.ControlSystem: ...
 
 
 @overload
-def get_tcs(ec: evo2.EvohomeClient) -> evo2.ControlSystem: ...
+def get_tcs(
+    ec: evo2.EvohomeClient,
+) -> evo2.ControlSystem: ...
 
 
 def get_tcs(
@@ -46,7 +54,9 @@ def get_tcs(
     return tcs
 
 
-def get_dhw(ec2: evo2.EvohomeClient) -> evo2.HotWater | None:
+def get_dhw(
+    ec2: evo2.EvohomeClient,
+) -> evo2.HotWater | None:
     """Return the first DHW object found across all TCSs of the location under test."""
     for gwy in get_loc(ec2).gateways:
         for tcs in gwy.systems:
@@ -55,7 +65,10 @@ def get_dhw(ec2: evo2.EvohomeClient) -> evo2.HotWater | None:
     return None
 
 
-def get_zon(ec2: evo2.EvohomeClient, idx: int = 0) -> evo2.Zone | None:
+def get_zon(
+    ec2: evo2.EvohomeClient,
+    idx: int = 0,
+) -> evo2.Zone | None:
     """Return a Zone object of the location under test (by default, its first).
 
     The zones are counted across all the TCSs of the location. Return None if it has

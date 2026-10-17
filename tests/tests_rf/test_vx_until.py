@@ -65,7 +65,9 @@ _STATUS_INTERVAL = 3  # seconds, between polls of the status
 _STATUS_TIMEOUT = 120  # seconds, as the gateway can take a while to apply a change
 
 
-async def _get_location(ec1: EvohomeClientV1) -> TccLocationResponseT:
+async def _get_location(
+    ec1: EvohomeClientV1,
+) -> TccLocationResponseT:
     """Return the (vendor-cased) location under test, via v1."""
 
     usr_id: int = ec1.user_account["user_id"]
@@ -76,7 +78,10 @@ async def _get_location(ec1: EvohomeClientV1) -> TccLocationResponseT:
     return locs[TEST_LOC_IDX]
 
 
-async def _get_zone(ec1: EvohomeClientV1, zon_id: int) -> TccDeviceResponseT:
+async def _get_zone(
+    ec1: EvohomeClientV1,
+    zon_id: int,
+) -> TccDeviceResponseT:
     """Return the (vendor-cased) zone, via v1."""
     return next(
         d for d in (await _get_location(ec1))["devices"] if d["deviceID"] == zon_id
@@ -132,7 +137,10 @@ async def _setup(
     return zone["deviceID"], setpoint, offset, now
 
 
-async def _get_next_time(ec1: EvohomeClientV1, zon_id: int) -> str | None:
+async def _get_next_time(
+    ec1: EvohomeClientV1,
+    zon_id: int,
+) -> str | None:
     """Return the nextTime of a zone's override, via v1 (it is without a Z)."""
 
     values: dict[str, Any] = dict(
@@ -142,7 +150,10 @@ async def _get_next_time(ec1: EvohomeClientV1, zon_id: int) -> str | None:
     return next_time
 
 
-async def _get_setpoint_status(ec2: EvohomeClientV2, zon_id: int) -> dict[str, Any]:
+async def _get_setpoint_status(
+    ec2: EvohomeClientV2,
+    zon_id: int,
+) -> dict[str, Any]:
     """Return the setpointStatus of a zone, via v2."""
 
     url = f"temperatureZone/{zon_id}/status"
@@ -153,7 +164,10 @@ async def _get_setpoint_status(ec2: EvohomeClientV2, zon_id: int) -> dict[str, A
     return dict(status["setpointStatus"])
 
 
-async def _get_until(ec2: EvohomeClientV2, zon_id: int) -> str | None:
+async def _get_until(
+    ec2: EvohomeClientV2,
+    zon_id: int,
+) -> str | None:
     """Return the until of a zone's override, via v2 (it is UTC, with a Z)."""
 
     until: str | None = (await _get_setpoint_status(ec2, zon_id)).get("until")
@@ -183,7 +197,10 @@ async def _wait_for_until(
         return until
 
 
-async def _is_following_schedule(ec2: EvohomeClientV2, zon_id: int) -> bool:
+async def _is_following_schedule(
+    ec2: EvohomeClientV2,
+    zon_id: int,
+) -> bool:
     """Poll a zone (via v2) until it follows its schedule, and return True if it does."""
 
     try:

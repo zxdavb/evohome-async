@@ -49,7 +49,9 @@ if TYPE_CHECKING:
 #######################################################################################
 
 
-async def _test_usr_apis(ec2: EvohomeClientV2) -> None:
+async def _test_usr_apis(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test User and Location methods.
 
     Includes: ec2.user_account(), ec2.installation() and loc.update() methods.
@@ -74,7 +76,9 @@ async def _test_usr_apis(ec2: EvohomeClientV2) -> None:
         assert evo2.Location.SCH_STATUS(loc_status)
 
 
-async def _test_tcs_apis(ec2: EvohomeClientV2) -> None:
+async def _test_tcs_apis(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test ControlSystem methods.
 
     Includes tcs.update() and tcs.set_mode().
@@ -104,7 +108,9 @@ async def _test_tcs_apis(ec2: EvohomeClientV2) -> None:
     await wait_for_comm_task_obj(await tcs.set_mode(mode))
 
 
-async def _test_dhw_apis(ec2: EvohomeClientV2) -> None:
+async def _test_dhw_apis(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test Hotwater methods.
 
     Includes dhw.get_schedule() and dhw.set_schedule(), and dhw._get_status() (only if
@@ -129,7 +135,9 @@ async def _test_dhw_apis(ec2: EvohomeClientV2) -> None:
     await wait_for_comm_task_obj(await dhw.set_schedule(schedule))
 
 
-async def _test_dhw_mode(ec2: EvohomeClientV2) -> None:
+async def _test_dhw_mode(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test Hotwater mode methods.
 
     Includes dhw.set_off() and dhw.reset().
@@ -146,7 +154,9 @@ async def _test_dhw_mode(ec2: EvohomeClientV2) -> None:
     await wait_for_comm_task_obj(await dhw.reset())  # FollowSchedule
 
 
-async def _test_zon_apis(ec2: EvohomeClientV2) -> None:
+async def _test_zon_apis(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test Zone methods.
 
     Includes zon.get_schedule() and zon.set_schedule(), and zon._get_status() (only if
@@ -180,7 +190,9 @@ async def _test_zon_apis(ec2: EvohomeClientV2) -> None:
             pytest.fail("Did not raise expected exception")
 
 
-async def _test_zon_mode(ec2: EvohomeClientV2) -> None:
+async def _test_zon_mode(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test Zone mode methods.
 
     Includes zon.set_temperature() and zon.reset().
