@@ -186,7 +186,7 @@ Use a bare `ec` only:
 - within `src/evohomeasync` or `src/evohomeasync2`, which never refer to the other version.
 
 Elsewhere, i.e. in `src/_evohome`, `src/evohome_cli` and `tests/`, use `ec1` or `ec2`.
-Do not use `evo` for a client. In the CLI, the click context key is `SZ_EC2` (`"ec2"`).
+Do not use `evo` for a client. In the CLI, the click context key is `_EC2` (`"ec2"`).
 
 ### Deprecations
 
