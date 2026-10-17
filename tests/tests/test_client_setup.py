@@ -16,6 +16,8 @@ from tests.common import get_loc, get_tcs, get_zon
 from .conftest import FIXTURES_V0, FIXTURES_V2, auth_get
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from _evohome.helpers import Validator
     from evohome_cli.auth import TokenCacheManager
 
@@ -242,3 +244,74 @@ async def test_vx_location_tcs(
         "3164610": None,  # this location has no devices (v1), nor gateway (v2)
         "8380809": {"3744415", "6860918"},
     }
+
+
+@pytest.mark.parametrize(
+    ("evo_cls", "target", "fixtures"),
+    [
+        pytest.param(evo1.EvohomeClient, "evohomeasync", FIXTURES_V0, id="v1"),
+        pytest.param(evo2.EvohomeClient, "evohomeasync2", FIXTURES_V2, id="v2"),
+    ],
+)
+async def test_vx_client_tcs(
+    credentials_manager: TokenCacheManager,
+    evo_cls: type[evo1.EvohomeClient | evo2.EvohomeClient],
+    target: str,
+    fixtures: Path,
+) -> None:
+    """Test the deprecated EvohomeClient.tcs is the TCS of the single location."""
+
+    with patch(f"{target}.auth.Auth.get", auth_get(fixtures / "default")):
+        evo = evo_cls(credentials_manager)
+        await evo.setup()
+
+    with pytest.warns(DeprecationWarning, match=r"use Location\.tcs"):
+        tcs = evo.tcs
+
+    assert tcs is evo.locations[0].tcs is not None
+
+
+@pytest.mark.parametrize(
+    ("evo_cls", "target", "fixture", "match"),
+    [
+        pytest.param(
+            evo1.EvohomeClient,
+            "evohomeasync",
+            FIXTURES_V0 / "system_009",
+            "not a single location",
+            id="v1_multi_location",
+        ),
+        pytest.param(
+            evo2.EvohomeClient,
+            "evohomeasync2",
+            FIXTURES_V2 / "system_009",
+            "not a single location",
+            id="v2_multi_location",
+        ),
+        pytest.param(
+            evo2.EvohomeClient,
+            "evohomeasync2",
+            FIXTURES_V2 / "null_system_1",
+            "has no TCS",
+            id="v2_no_tcs",
+        ),
+    ],
+)
+async def test_vx_client_tcs_raises(
+    credentials_manager: TokenCacheManager,
+    evo_cls: type[evo1.EvohomeClient | evo2.EvohomeClient],
+    target: str,
+    fixture: Path,
+    match: str,
+) -> None:
+    """Test the deprecated EvohomeClient.tcs raises if there is no single TCS."""
+
+    with patch(f"{target}.auth.Auth.get", auth_get(fixture)):
+        evo = evo_cls(credentials_manager)
+        await evo.setup()
+
+    with (
+        pytest.warns(DeprecationWarning, match=r"use Location\.tcs"),
+        pytest.raises(exc.ClientStateError, match=match),
+    ):
+        _ = evo.tcs
