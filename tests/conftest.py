@@ -150,7 +150,7 @@ async def credentials_manager(
 
 
 @pytest.fixture
-async def evohome_v1(
+async def ec1(
     credentials_manager: TokenCacheManager,
 ) -> AsyncGenerator[EvohomeClientV1]:
     """Yield an instance of a v1 EvohomeClient."""
@@ -166,7 +166,7 @@ async def evohome_v1(
 
 
 @pytest.fixture
-async def evohome_v2(
+async def ec2(
     credentials_manager: TokenCacheManager,
 ) -> AsyncGenerator[EvohomeClientV2]:
     """Yield an instance of a v2 EvohomeClient."""

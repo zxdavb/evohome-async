@@ -133,14 +133,14 @@ async def _test_evo_systems(evo: EvohomeClientV1) -> None:
 
 # GET /accountInfo (is also in test_v1_urls_auth.py)
 # @skipif_auth_failed
-# async def test_usr_account(evohome_v1: EvohomeClientV1) -> None:
+# async def test_usr_account(ec1: EvohomeClientV1) -> None:
 #     """Test /accountInfo"""
 
 
 # GET /locations?userId={user_id}&allData=True
 @skipif_auth_failed
 async def test_usr_locations(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /locations?userId={user_id}&allData=True"""
 
@@ -148,9 +148,9 @@ async def test_usr_locations(
         pytest.skip("Mocked server not implemented for this test")
 
     try:
-        await evohome_v1.get_status()  # get user_id and location_id
+        await ec1.get_status()  # get user_id and location_id
 
-        await _test_usr_locations(evohome_v1)
+        await _test_usr_locations(ec1)
 
     except evo1.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:
@@ -161,7 +161,7 @@ async def test_usr_locations(
 # PUT /evoTouchSystems?locationId={loc_id}
 @skipif_auth_failed
 async def test_evo_systems(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /evoTouchSystems?locationId={loc_id}"""
 
@@ -169,9 +169,9 @@ async def test_evo_systems(
         pytest.skip("Mocked server not implemented for this test")
 
     try:
-        await evohome_v1.get_status()  # get user_id and location_id
+        await ec1.get_status()  # get user_id and location_id
 
-        await _test_evo_systems(evohome_v1)
+        await _test_evo_systems(ec1)
 
     except evo1.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:
@@ -510,49 +510,49 @@ async def _test_lost_device(evo: EvohomeClientV1, *, is_dhw: bool) -> None:
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
 @skipif_auth_failed
 async def test_zon_heat_setpoint(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /devices/{zone_id}/thermostat/changeableValues/heatSetpoint"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v1.get_status()  # get user_id
-    await _test_zon_heat_setpoint(evohome_v1)
+    await ec1.get_status()  # get user_id
+    await _test_zon_heat_setpoint(ec1)
 
 
 # PUT /devices/{dhw_id}/thermostat/changeableValues
 @skipif_auth_failed
 async def test_dhw_changeable_values(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /devices/{dhw_id}/thermostat/changeableValues"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v1.get_status()  # get user_id
-    await _test_dhw_changeable_values(evohome_v1)
+    await ec1.get_status()  # get user_id
+    await _test_dhw_changeable_values(ec1)
 
 
 # PUT /devices/{dhw_id}/thermostat/changeableValues (with rejected params)
 @skipif_auth_failed
 async def test_dhw_forbidden_params(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /devices/{dhw_id}/thermostat/changeableValues (rejected params)"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v1.get_status()  # get user_id
-    await _test_dhw_forbidden_params(evohome_v1)
+    await ec1.get_status()  # get user_id
+    await _test_dhw_forbidden_params(ec1)
 
 
 # GET /accountInfo & /locations?userId={user_id}&allData=True (URL casing)
 @skipif_auth_failed
 async def test_url_case_insensitive(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test the path and the query keys of a URL are case-insensitive.
 
@@ -570,10 +570,10 @@ async def test_url_case_insensitive(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v1.get_status()  # get user_id
+    await ec1.get_status()  # get user_id
 
-    auth = evohome_v1.auth
-    usr_id: int = evohome_v1.user_account["user_id"]
+    auth = ec1.auth
+    usr_id: int = ec1.user_account["user_id"]
 
     # the path (here, the base path too), all of which give the same response...
     expected = await should_work_v1(auth, HTTPMethod.GET, "accountInfo")
@@ -624,7 +624,7 @@ async def test_url_case_insensitive(
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (casing; rejected)
 @skipif_auth_failed
 async def test_case_insensitive(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test the keys and enum values of a PUT are case-insensitive.
 
@@ -636,11 +636,9 @@ async def test_case_insensitive(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v1.get_status()  # get user_id
+    await ec1.get_status()  # get user_id
 
-    dev_id = next(
-        d["deviceID"] for d in await _get_devices(evohome_v1) if is_zone_v1(d)
-    )
+    dev_id = next(d["deviceID"] for d in await _get_devices(ec1) if is_zone_v1(d))
     url = f"devices/{dev_id}/thermostat/changeableValues/heatSetpoint"
 
     recognised: tuple[dict[str, str], ...] = (
@@ -652,7 +650,7 @@ async def test_case_insensitive(
     )
     for json in recognised:
         rsp = await should_fail_v1(
-            evohome_v1.auth,
+            ec1.auth,
             HTTPMethod.PUT,
             url,
             json=json,
@@ -664,7 +662,7 @@ async def test_case_insensitive(
 
     json = {"status": "NoSuchStatus"}  # not a valid Status
     rsp = await should_fail_v1(
-        evohome_v1.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
+        ec1.auth, HTTPMethod.PUT, url, json=json, status=HTTPStatus.BAD_REQUEST
     )
     assert "InvalidInput" in error_codes(rsp), (json, rsp)
     # [{'code': 'InvalidInput', 'message': 'Error converting value "NoSuchStatus" ...'}]
@@ -673,29 +671,29 @@ async def test_case_insensitive(
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (to a lost zone)
 @skipif_auth_failed
 async def test_zon_lost(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (lost zone)"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v1.get_status()  # get user_id
-    await _test_lost_device(evohome_v1, is_dhw=False)
+    await ec1.get_status()  # get user_id
+    await _test_lost_device(ec1, is_dhw=False)
 
 
 # PUT /devices/{dhw_id}/thermostat/changeableValues (to a lost DHW)
 @skipif_auth_failed
 async def test_dhw_lost(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
 ) -> None:
     """Test /devices/{dhw_id}/thermostat/changeableValues (lost DHW)"""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v1.get_status()  # get user_id
-    await _test_lost_device(evohome_v1, is_dhw=True)
+    await ec1.get_status()  # get user_id
+    await _test_lost_device(ec1, is_dhw=True)
 
 
 USER_DATA = {

@@ -598,34 +598,34 @@ async def _test_dhw_status(evo: EvohomeClientV2) -> None:
 
 @skipif_auth_failed  # GET
 async def test_usr_account(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test GET /userAccount"""
 
-    await _test_usr_account(evohome_v2)
+    await _test_usr_account(ec2)
 
 
 @skipif_auth_failed  # GET
 async def test_usr_locations(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test GET /location/installationInfo"""
 
-    await _test_user_locations(evohome_v2)
+    await _test_user_locations(ec2)
 
 
 @skipif_auth_failed  # GET
 async def test_loc_status(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test GET /location/{loc.id}/status"""
 
-    await _test_loc_status(evohome_v2)
+    await _test_loc_status(ec2)
 
 
 @skipif_auth_failed  # GET, PUT
 async def test_tcs_status(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test GET /temperatureControlSystem/{tcs.id}/status
 
@@ -633,7 +633,7 @@ async def test_tcs_status(
     """
 
     try:
-        await _test_tcs_status(evohome_v2)
+        await _test_tcs_status(ec2)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -643,7 +643,7 @@ async def test_tcs_status(
 
 @skipif_auth_failed  # GET, PUT
 async def test_zone_status(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test GET /temperatureZone/{zone.id}/status
 
@@ -651,7 +651,7 @@ async def test_zone_status(
     """
 
     try:
-        await _test_zone_status(evohome_v2)
+        await _test_zone_status(ec2)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -661,7 +661,7 @@ async def test_zone_status(
 
 @skipif_auth_failed  # GET, PUT
 async def test_dhw_status(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test GET /domesticHotWater/{dhw.id}/status
 
@@ -669,7 +669,7 @@ async def test_dhw_status(
     """
 
     try:
-        await _test_dhw_status(evohome_v2)
+        await _test_dhw_status(ec2)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -680,7 +680,7 @@ async def test_dhw_status(
 # GET /userAccount & /location/installationInfo?userId={user_id}&... (URL casing)
 @skipif_auth_failed
 async def test_url_case_insensitive(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test the path and the query keys of a URL are case-insensitive.
 
@@ -702,10 +702,10 @@ async def test_url_case_insensitive(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v2.setup()
+    await ec2.setup()
 
-    auth = evohome_v2.auth
-    usr_id: str = evohome_v2.user_account["user_id"]
+    auth = ec2.auth
+    usr_id: str = ec2.user_account["user_id"]
 
     # the path (here, the base path too), all of which give the same response...
     expected = await should_work_v2(auth, HTTPMethod.GET, "userAccount")
@@ -762,7 +762,7 @@ async def test_url_case_insensitive(
 # PUT /temperatureZone/{zone.id}/heatSetpoint (casing; rejected)
 @skipif_auth_failed
 async def test_case_insensitive(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test the keys and enum values of a PUT are case-insensitive, but not snake_case.
 
@@ -775,9 +775,9 @@ async def test_case_insensitive(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evohome_v2.setup()
+    await ec2.setup()
 
-    if not (zone := get_zon(evohome_v2)):
+    if not (zone := get_zon(ec2)):
         pytest.skip("No available zones found")
 
     url = f"temperatureZone/{zone.id}/heatSetpoint"
@@ -792,7 +792,7 @@ async def test_case_insensitive(
     )
     for json in recognised:
         rsp = await should_fail_v2(
-            evohome_v2.auth,
+            ec2.auth,
             HTTPMethod.PUT,
             url,
             json=json,
@@ -809,7 +809,7 @@ async def test_case_insensitive(
     )
     for json in unrecognised:
         rsp = await should_fail_v2(
-            evohome_v2.auth,
+            ec2.auth,
             HTTPMethod.PUT,
             url,
             json=json,

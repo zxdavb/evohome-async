@@ -69,7 +69,7 @@ async def test_invalid_config(
 
 
 async def test_invalid_status(
-    evohome_v1: EvohomeClient,
+    ec1: EvohomeClient,
 ) -> None:
     """Test update() raises InvalidStatusError if the status fails validation."""
 
@@ -79,18 +79,18 @@ async def test_invalid_status(
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=error)),
         pytest.raises(exc.InvalidStatusError) as err,
     ):
-        await evohome_v1.get_status()  # the entities exist, so this is a status update
+        await ec1.get_status()  # the entities exist, so this is a status update
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
 
 
 async def test_unknown_zone(
-    evohome_v1: EvohomeClient,
+    ec1: EvohomeClient,
 ) -> None:
     """Test asking for a zone that does not exist raises BadApiRequestError."""
 
-    tcs = get_tcs(evohome_v1)
+    tcs = get_tcs(ec1)
 
     with pytest.raises(exc.BadApiRequestError):
         tcs._get_zone("no such zone")

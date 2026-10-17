@@ -40,9 +40,9 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 
 def _first_system(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> tuple[Location, Gateway, ControlSystem] | None:
-    for location in evohome_v2.locations:
+    for location in ec2.locations:
         for gateway in location.gateways:
             if gateway.systems:
                 return location, gateway, gateway.systems[0]
@@ -50,7 +50,7 @@ def _first_system(
 
 
 async def test_system_snapshot(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
     freezer: FrozenDateTimeFactory,
     snapshot: SnapshotAssertion,
 ) -> None:
@@ -60,7 +60,7 @@ async def test_system_snapshot(
 
     # architecture is: loc -> gwy -> tcs -> dhw|zon
 
-    for loc in evohome_v2.locations:  # is 0-many
+    for loc in ec2.locations:  # is 0-many
         assert serializable_attrs(loc) == snapshot(name=f"loc_{loc.id}")
 
         for gwy in loc.gateways:  # is 0-1
@@ -87,7 +87,7 @@ async def test_system_snapshot(
 
 
 async def test_system_schedules(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
     freezer: FrozenDateTimeFactory,
     snapshot: SnapshotAssertion,
 ) -> None:
@@ -95,7 +95,7 @@ async def test_system_schedules(
 
     freezer.move_to("2025-01-01T00:00:00+00:00")
 
-    hierarchy = _first_system(evohome_v2)
+    hierarchy = _first_system(ec2)
     if hierarchy is None:
         pytest.skip("Fixture has no location->gateway->TCS hierarchy")
 

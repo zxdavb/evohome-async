@@ -177,26 +177,26 @@ async def _test_schedule_tsk(evo: EvohomeClientV2) -> None:
 
 @skipif_auth_failed  # GET, PUT
 async def test_schedule_put(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule
 
     Does not test /commTasks?commTaskId={task_id}
     """
 
-    await _test_schedule_put(evohome_v2)
+    await _test_schedule_put(ec2)
 
 
 @skipif_auth_failed  # GET, PUT
 async def test_schedule_tsk(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule
 
     Also tests /commTasks?commTaskId={task_id}
     """
 
-    await _test_schedule_tsk(evohome_v2)
+    await _test_schedule_tsk(ec2)
 
 
 async def _test_schedule_get_schema_zon(evo: EvohomeClientV2) -> None:
@@ -301,7 +301,7 @@ async def _test_schedule_get_schema_dhw(evo: EvohomeClientV2) -> None:
 
 @skipif_auth_failed  # GET
 async def test_schedule_get_schema_zon(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test GET /{x._TCC_TYPE}/{x.id}/schedule key casing.
 
@@ -309,16 +309,16 @@ async def test_schedule_get_schema_zon(
     though the API is reportedly case-insensitive for PUT request bodies.
     """
 
-    await _test_schedule_get_schema_zon(evohome_v2)
+    await _test_schedule_get_schema_zon(ec2)
 
 
 @skipif_auth_failed  # GET
 async def test_schedule_get_schema_dhw(
-    evohome_v2: EvohomeClientV2,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test GET /{dhw._TCC_TYPE}/{dhw.id}/schedule key casing.
 
     DHW mirror of test_schedule_get_schema — skipped if no DHW in the TCS.
     """
 
-    await _test_schedule_get_schema_dhw(evohome_v2)
+    await _test_schedule_get_schema_dhw(ec2)

@@ -203,12 +203,12 @@ async def test_vx_location_tcs(
     """
 
     with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V1 / "system_009")):
-        evo_v1 = evo1.EvohomeClient(credentials_manager)
-        await evo_v1.setup()
+        ec1 = evo1.EvohomeClient(credentials_manager)
+        await ec1.setup()
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "system_009")):
-        evo_v2 = evo2.EvohomeClient(credentials_manager)
-        await evo_v2.setup()
+        ec2 = evo2.EvohomeClient(credentials_manager)
+        await ec2.setup()
 
     def devices(tcs: evo1.ControlSystem | evo2.ControlSystem | None) -> set[str] | None:
         if tcs is None:
@@ -216,16 +216,14 @@ async def test_vx_location_tcs(
         dhw = {tcs.hotwater.id} if tcs.hotwater else set()
         return {z.id for z in tcs.zones} | dhw
 
-    for loc in evo_v1.locations + evo_v2.locations:  # 0-1 gateway, 0-1 TCS
+    for loc in ec1.locations + ec2.locations:  # 0-1 gateway, 0-1 TCS
         assert loc.tcs is next((t for g in loc.gateways for t in g.systems), None)
 
     v1_gwys = {
-        loc.id: [(g.id, g.mac_address) for g in loc.gateways]
-        for loc in evo_v1.locations
+        loc.id: [(g.id, g.mac_address) for g in loc.gateways] for loc in ec1.locations
     }
     v2_gwys = {
-        loc.id: [(g.id, g.mac_address) for g in loc.gateways]
-        for loc in evo_v2.locations
+        loc.id: [(g.id, g.mac_address) for g in loc.gateways] for loc in ec2.locations
     }
 
     assert v1_gwys == v2_gwys
@@ -235,8 +233,8 @@ async def test_vx_location_tcs(
         "8380809": [("2678129", "00D02D67C990")],
     }
 
-    v1_devs = {loc.id: devices(loc.tcs) for loc in evo_v1.locations}
-    v2_devs = {loc.id: devices(loc.tcs) for loc in evo_v2.locations}
+    v1_devs = {loc.id: devices(loc.tcs) for loc in ec1.locations}
+    v2_devs = {loc.id: devices(loc.tcs) for loc in ec2.locations}
 
     assert v1_devs == v2_devs
     assert v1_devs == {

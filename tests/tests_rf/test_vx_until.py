@@ -84,8 +84,8 @@ async def _get_zone(evo: EvohomeClientV1, zon_id: int) -> TccDeviceResponseT:
 
 
 async def _setup(
-    evo1: EvohomeClientV1,
-    evo2: EvohomeClientV2,
+    ec1: EvohomeClientV1,
+    ec2: EvohomeClientV2,
 ) -> tuple[int, float, td, dt]:
     """Return a live zone's id & setpoint, the location's UTC offset, and the hour.
 
@@ -97,10 +97,10 @@ async def _setup(
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")
 
-    await evo1.get_status()  # get user_id
-    await evo2.setup()  # needed by should_work_v2()
+    await ec1.get_status()  # get user_id
+    await ec2.setup()  # needed by should_work_v2()
 
-    loc = await _get_location(evo1)
+    loc = await _get_location(ec1)
 
     offset = td(minutes=loc["timeZone"]["currentOffsetMinutes"])
     if not offset:
@@ -200,8 +200,8 @@ async def _is_following_schedule(evo: EvohomeClientV2, zon_id: int) -> bool:
 
 
 async def _revert(
-    evo1: EvohomeClientV1,
-    evo2: EvohomeClientV2,
+    ec1: EvohomeClientV1,
+    ec2: EvohomeClientV2,
     zon_id: int,
 ) -> None:
     """Revert a zone to its schedule, and wait until it is.
@@ -215,24 +215,24 @@ async def _revert(
     url = f"temperatureZone/{zon_id}/heatSetpoint"
     json: dict[str, object] = {"setpointMode": "FollowSchedule"}
 
-    await should_work_v2(evo2.auth, HTTPMethod.PUT, url, json=json)
-    if await _is_following_schedule(evo2, zon_id):
+    await should_work_v2(ec2.auth, HTTPMethod.PUT, url, json=json)
+    if await _is_following_schedule(ec2, zon_id):
         return
 
     url = f"devices/{zon_id}/thermostat/changeableValues/heatSetpoint"
     json = {"status": "Scheduled", "value": None, "nextTime": None}
 
-    rsp = await should_work_v1(evo1.auth, HTTPMethod.PUT, url, json=json)
-    await wait_for_comm_task_v1(evo1.auth, task_id_v1(rsp))
+    rsp = await should_work_v1(ec1.auth, HTTPMethod.PUT, url, json=json)
+    await wait_for_comm_task_v1(ec1.auth, task_id_v1(rsp))
 
-    assert await _is_following_schedule(evo2, zon_id), "Unable to revert the zone"
+    assert await _is_following_schedule(ec2, zon_id), "Unable to revert the zone"
 
 
 # PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint (NextTime)
 @skipif_auth_failed
 async def test_v1_next_time(
-    evohome_v1: EvohomeClientV1,
-    evohome_v2: EvohomeClientV2,
+    ec1: EvohomeClientV1,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test a v1 NextTime is the location's local time (and that any Z is ignored).
 
@@ -247,10 +247,10 @@ async def test_v1_next_time(
     nextTime of "2026-10-08T21:00:00" and an until of "2026-10-08T20:00:00Z".
     """
 
-    zon_id, setpoint, offset, now = await _setup(evohome_v1, evohome_v2)
+    zon_id, setpoint, offset, now = await _setup(ec1, ec2)
 
     url = f"devices/{zon_id}/thermostat/changeableValues/heatSetpoint"
-    until: str | None = await _get_until(evohome_v2, zon_id)  # None, as Scheduled
+    until: str | None = await _get_until(ec2, zon_id)  # None, as Scheduled
 
     try:
         for hours, suffix in (
@@ -261,13 +261,13 @@ async def test_v1_next_time(
             next_time = sent.strftime(_LOCAL_STRFTIME) + suffix
 
             json = {"value": setpoint, "status": "Temporary", "nextTime": next_time}
-            rsp = await should_work_v1(evohome_v1.auth, HTTPMethod.PUT, url, json=json)
-            await wait_for_comm_task_v1(evohome_v1.auth, task_id_v1(rsp))
+            rsp = await should_work_v1(ec1.auth, HTTPMethod.PUT, url, json=json)
+            await wait_for_comm_task_v1(ec1.auth, task_id_v1(rsp))
 
-            until = await _wait_for_until(evohome_v2, zon_id, until)
+            until = await _wait_for_until(ec2, zon_id, until)
 
             # the nextTime is as sent, but without any Z (as it's in local time)...
-            assert await _get_next_time(evohome_v1, zon_id) == sent.strftime(
+            assert await _get_next_time(ec1, zon_id) == sent.strftime(
                 _LOCAL_STRFTIME
             ), json
 
@@ -275,14 +275,14 @@ async def test_v1_next_time(
             assert until == (sent - offset).strftime(TCC_DTM_STRFTIME), json
 
     finally:
-        await _revert(evohome_v1, evohome_v2, zon_id)
+        await _revert(ec1, ec2, zon_id)
 
 
 # PUT /temperatureZone/{zone_id}/heatSetpoint (timeUntil)
 @skipif_auth_failed
 async def test_v2_time_until(
-    evohome_v1: EvohomeClientV1,
-    evohome_v2: EvohomeClientV2,
+    ec1: EvohomeClientV1,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test a v2 timeUntil is UTC (as is the until of the zone's status).
 
@@ -295,10 +295,10 @@ async def test_v2_time_until(
     "2026-10-08T21:00:00Z" and a nextTime of "2026-10-08T22:00:00".
     """
 
-    zon_id, setpoint, offset, now = await _setup(evohome_v1, evohome_v2)
+    zon_id, setpoint, offset, now = await _setup(ec1, ec2)
 
     url = f"temperatureZone/{zon_id}/heatSetpoint"
-    until: str | None = await _get_until(evohome_v2, zon_id)  # None, as Scheduled
+    until: str | None = await _get_until(ec2, zon_id)  # None, as Scheduled
 
     try:
         sent = now + td(hours=2)  # on the hour (so not rounded)
@@ -309,27 +309,27 @@ async def test_v2_time_until(
             "heatSetpointValue": setpoint,
             "timeUntil": time_until,
         }
-        await should_work_v2(evohome_v2.auth, HTTPMethod.PUT, url, json=json)
+        await should_work_v2(ec2.auth, HTTPMethod.PUT, url, json=json)
 
-        until = await _wait_for_until(evohome_v2, zon_id, until)
+        until = await _wait_for_until(ec2, zon_id, until)
 
         # the until is as sent (as it's in UTC)...
         assert until == time_until, json
 
         # ...and the nextTime is that instant, but in local time
-        assert await _get_next_time(evohome_v1, zon_id) == (sent + offset).strftime(
+        assert await _get_next_time(ec1, zon_id) == (sent + offset).strftime(
             _LOCAL_STRFTIME
         ), json
 
     finally:
-        await _revert(evohome_v1, evohome_v2, zon_id)
+        await _revert(ec1, ec2, zon_id)
 
 
 # via the v1 client: Zone.set_temperature(..., until=...)
 @skipif_auth_failed
 async def test_v1_client_until(
-    evohome_v1: EvohomeClientV1,
-    evohome_v2: EvohomeClientV2,
+    ec1: EvohomeClientV1,
+    ec2: EvohomeClientV2,
 ) -> None:
     """Test the v1 client's Zone.set_temperature() ends its override when it should.
 
@@ -342,25 +342,25 @@ async def test_v1_client_until(
     and so gives an until (v2) of 21:00 UTC (but gave 20:00 UTC before v3.0.0).
     """
 
-    zon_id, setpoint, offset, now = await _setup(evohome_v1, evohome_v2)
+    zon_id, setpoint, offset, now = await _setup(ec1, ec2)
 
-    zone = get_tcs(evohome_v1).zone_by_id[str(zon_id)]
-    until: str | None = await _get_until(evohome_v2, zon_id)  # None, as Scheduled
+    zone = get_tcs(ec1).zone_by_id[str(zon_id)]
+    until: str | None = await _get_until(ec2, zon_id)  # None, as Scheduled
 
     try:
         sent = now + td(hours=2)  # on the hour (so not rounded)
 
         await zone.set_temperature(setpoint, until=sent)
 
-        until = await _wait_for_until(evohome_v2, zon_id, until)
+        until = await _wait_for_until(ec2, zon_id, until)
 
         # the until is the instant sent...
         assert until == sent.strftime(TCC_DTM_STRFTIME)
 
         # ...and the nextTime is that instant, but in local time
-        assert await _get_next_time(evohome_v1, zon_id) == (sent + offset).strftime(
+        assert await _get_next_time(ec1, zon_id) == (sent + offset).strftime(
             _LOCAL_STRFTIME
         )
 
     finally:
-        await _revert(evohome_v1, evohome_v2, zon_id)
+        await _revert(ec1, ec2, zon_id)

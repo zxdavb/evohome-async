@@ -32,7 +32,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
 
 async def test_system_snapshot(
-    evohome_v1: EvohomeClientV1,
+    ec1: EvohomeClientV1,
     freezer: FrozenDateTimeFactory,
     snapshot: SnapshotAssertion,
 ) -> None:
@@ -42,7 +42,7 @@ async def test_system_snapshot(
 
     # architecture is: loc -> gwy -> tcs -> dhw|zon (as for v2)
 
-    for loc in evohome_v1.locations:  # is 0-many
+    for loc in ec1.locations:  # is 0-many
         assert serializable_attrs(loc) == snapshot(name=f"loc_{loc.id}")
 
         for gwy in loc.gateways:  # is 0-1

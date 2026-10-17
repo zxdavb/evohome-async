@@ -64,7 +64,7 @@ def cache_path(
 
 # NOTE: using fixture_folder will break these tests; we don't want evo.update() either
 @pytest.fixture
-async def evohome_v1(
+async def ec1(
     credentials_manager: TokenCacheManager,
 ) -> AsyncGenerator[EvohomeClient]:
     """Yield a client with an vailla credentials manager."""
@@ -79,13 +79,13 @@ async def evohome_v1(
 
 async def test_bad1(  # bad credentials (client_id/secret)
     credentials: tuple[str, str],
-    evohome_v1: EvohomeClient,
+    ec1: EvohomeClient,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test authentication flow with bad credentials (client_id/secret)."""
 
     # pre-requisite data (no session_id)
-    assert evohome_v1._session_manager.is_session_valid() is False
+    assert ec1._session_manager.is_session_valid() is False
 
     # TEST 1: bad credentials (client_id/secret) -> HTTPStatus.UNAUTHORIZED
     with aioresponses() as rsp, caplog.at_level(logging.DEBUG):
@@ -96,7 +96,7 @@ async def test_bad1(  # bad credentials (client_id/secret)
         )
 
         with pytest.raises(exc.BadUserCredentialsError) as err:
-            await evohome_v1.get_status()
+            await ec1.get_status()
 
         assert err.value.status == HTTPStatus.UNAUTHORIZED
 
@@ -107,21 +107,21 @@ async def test_bad1(  # bad credentials (client_id/secret)
         # response 0: EmailOrPasswordIncorrect
         rsp.assert_called_once_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
-    assert evohome_v1._session_manager.is_session_valid() is False
+    assert ec1._session_manager.is_session_valid() is False
 
 
 async def test_bad2(  # bad session id
     credentials: tuple[str, str],
-    evohome_v1: EvohomeClient,
+    ec1: EvohomeClient,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test authentication flow with an invalid/expired session id."""
 
     # pre-requisite data (a valid session_id that will be rejected by the server)
-    evohome_v1._session_manager._session_id = _TEST_SESSION_ID
-    evohome_v1._session_manager._session_id_expires = dt.now(tz=UTC) + td(minutes=15)
+    ec1._session_manager._session_id = _TEST_SESSION_ID
+    ec1._session_manager._session_id_expires = dt.now(tz=UTC) + td(minutes=15)
 
-    assert evohome_v1._session_manager.is_session_valid() is True
+    assert ec1._session_manager.is_session_valid() is True
 
     #
     # TEST 9: bad session id -> HTTPStatus.UNAUTHORIZED
@@ -133,7 +133,7 @@ async def test_bad2(  # bad session id
         )
 
         with pytest.raises(exc.AuthenticationFailedError) as err:
-            await evohome_v1.get_status()
+            await ec1.get_status()
 
         assert err.value.status is None  # Connection refused
 
@@ -147,21 +147,21 @@ async def test_bad2(  # bad session id
         # response 1: Connection refused (as no response provided by us)
         rsp.assert_called_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
-    assert evohome_v1._session_manager.is_session_valid() is False
+    assert ec1._session_manager.is_session_valid() is False
 
 
 async def test_bad3(  # rate limit exceeded (authentication)
     credentials: tuple[str, str],
-    evohome_v1: EvohomeClient,
+    ec1: EvohomeClient,
 ) -> None:
     """Test authentication flow when the vendor's rate limit is exceeded."""
 
     retry_after = 120
 
     # pre-requisite data (no session_id)
-    evohome_v1._session_manager.clear_session_id()
+    ec1._session_manager.clear_session_id()
 
-    assert evohome_v1._session_manager.is_session_valid() is False
+    assert ec1._session_manager.is_session_valid() is False
 
     # TEST 3: too many authentications -> HTTPStatus.TOO_MANY_REQUESTS
     with aioresponses() as rsp:
@@ -173,7 +173,7 @@ async def test_bad3(  # rate limit exceeded (authentication)
         )
 
         with pytest.raises(exc.AuthRateLimitExceededError) as err:
-            await evohome_v1.get_status()
+            await ec1.get_status()
 
         assert isinstance(err.value, exc.ApiRateLimitExceededError)
         assert isinstance(err.value, exc.AuthenticationFailedError)
@@ -185,18 +185,18 @@ async def test_bad3(  # rate limit exceeded (authentication)
         # response 0: Too many requests
         rsp.assert_called_once_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
-    assert evohome_v1._session_manager.is_session_valid() is False
+    assert ec1._session_manager.is_session_valid() is False
 
 
 async def test_good(  # good credentials
     credentials: tuple[str, str],
-    evohome_v1: EvohomeClient,
+    ec1: EvohomeClient,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test authentication flow (and authorization) with good credentials."""
 
     # pre-requisite data (no session_id)
-    assert evohome_v1._session_manager.is_session_valid() is False
+    assert ec1._session_manager.is_session_valid() is False
 
     #
     # TEST 9: good session id -> HTTPStatus.OK
@@ -229,7 +229,7 @@ async def test_good(  # good credentials
         )
 
         with pytest.raises(exc.ApiCallFailedError) as err:
-            await evohome_v1.get_status()
+            await ec1.get_status()
 
         assert err.value.status is None  # Connection refused
 
@@ -243,15 +243,15 @@ async def test_good(  # good credentials
         # response 1: Connection refused (as no subsequent response)
         rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
-    assert evohome_v1._session_manager.is_session_valid() is True
+    assert ec1._session_manager.is_session_valid() is True
 
 
 async def test_rejected_session_id_refreshed_meanwhile(
-    evohome_v1: EvohomeClient,
+    ec1: EvohomeClient,
 ) -> None:
     """Test a 401 doesn't clear a session id that another task has since refreshed."""
 
-    session_manager = evohome_v1._session_manager
+    session_manager = ec1._session_manager
 
     # pre-requisite data (a valid session_id that will nonetheless be rejected)
     session_manager._session_id = _TEST_SESSION_ID
@@ -276,7 +276,7 @@ async def test_rejected_session_id_refreshed_meanwhile(
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=get)) as req,
         patch.object(session_manager, "fetch_session_id") as fetch,
     ):
-        await evohome_v1._get_config()
+        await ec1._get_config()
 
     req.assert_any_await("accountInfo", schema=ANY)
     fetch.assert_not_awaited()
