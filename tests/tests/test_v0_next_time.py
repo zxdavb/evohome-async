@@ -140,7 +140,7 @@ async def test_tcs_quick_action_next_time(
 ) -> None:
     """Test ControlSystem.set_mode() sends its QuickActionNextTime as the local time.
 
-    NOTE: the vendor has removed this URL (it is now a 404, see test_v1_urls.py), so
+    NOTE: the vendor has removed this URL (it is now a 404, see test_v0_urls.py), so
     this tests only the payload, as it can't be confirmed against the vendor's server.
     """
 

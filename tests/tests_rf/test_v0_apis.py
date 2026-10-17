@@ -115,7 +115,7 @@ async def _test_dhw_apis(evo: EvohomeClientV1) -> None:
 
     NOTE: on some installations (e.g. the test installation), the vendor forbids a DHW's
     Status and NextTime, which these methods send, so they fail with a 400: then this
-    test is an xfail (see test_v1_urls_auth.py for that contract).
+    test is an xfail (see test_v0_urls_auth.py for that contract).
     """
 
     await evo.get_status()
@@ -136,7 +136,7 @@ async def _test_dhw_apis(evo: EvohomeClientV1) -> None:
         await coro
     except evo1.ApiCallFailedError as err:
         if err.status == HTTPStatus.BAD_REQUEST and "ForbiddenParameter" in str(err):
-            pytest.xfail("This DHW forbids Status/NextTime (see test_v1_urls_auth.py)")
+            pytest.xfail("This DHW forbids Status/NextTime (see test_v0_urls_auth.py)")
         raise
 
     await dhw.set_dhw_auto()

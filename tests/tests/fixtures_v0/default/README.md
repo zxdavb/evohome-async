@@ -1,4 +1,4 @@
-# fixtures_v1/default
+# fixtures_v0/default
 
 Default v1 fixture used as fallback when a test directory has no `user_info.json`.
 
