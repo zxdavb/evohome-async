@@ -181,7 +181,7 @@ async def _setup(ec2: EvohomeClient) -> None:
 
     await ec2.setup()
 
-    if (num := len(ec2.locations)) > 1:  # as EvohomeClient.update() warns
+    if (num := len(ec2.locations)) > 1:
         ec2.logger.warning(
             f"There are {num} locations. Reduce the risk of exceeding API rate "
             "limits by individually updating only necessary locations."

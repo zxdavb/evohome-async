@@ -157,8 +157,6 @@ async def ec1(
 
     ec1 = EvohomeClientV1(credentials_manager)
 
-    # await ec1.update()
-
     try:
         yield ec1
     finally:
@@ -172,8 +170,6 @@ async def ec2(
     """Yield an instance of a v2 EvohomeClient."""
 
     ec2 = EvohomeClientV2(credentials_manager)
-
-    # await ec2.update()
 
     try:
         yield ec2
