@@ -1,4 +1,4 @@
-"""evohomeasync schema - shared types.
+"""Shared types for the v1 client.
 
 These mirror the probatio schemas in schemas.py (after their keys are converted to
 snake_case), and so a key is NotRequired here whenever it is vol.Optional there: that

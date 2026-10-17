@@ -1,4 +1,4 @@
-"""Tests for evohome-async v1 schema - the vendor's enum values."""
+"""Test the vendor's v1 enum values."""
 
 from __future__ import annotations
 

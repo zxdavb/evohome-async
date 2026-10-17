@@ -1,4 +1,4 @@
-"""Provides handling of TCC zones (heating and DHW)."""
+"""Zones, heating and DHW (for the TCC v2 API)."""
 
 from __future__ import annotations
 

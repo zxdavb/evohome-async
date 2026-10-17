@@ -1,4 +1,4 @@
-"""Invoke every vendor RESTful API (URL) of the v2 API.
+"""Invoke every vendor URL of the v2 API.
 
 This is used to document the RESTful API that is provided by the vendor. Together with
 the schema modules (src/evohomeasync2/schemas/*.py), whose TypedDicts record the shape

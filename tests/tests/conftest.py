@@ -1,4 +1,4 @@
-"""Tests for evohome-async - validate the schema of HA's debug JSON (newer ver)."""
+"""Fixtures for the offline tests."""
 
 from __future__ import annotations
 

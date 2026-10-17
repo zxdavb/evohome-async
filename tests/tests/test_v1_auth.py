@@ -1,4 +1,4 @@
-"""evohome-async - validate the v1 API session manager."""
+"""Test the v1 session manager."""
 
 from __future__ import annotations
 

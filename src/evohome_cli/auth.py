@@ -1,4 +1,4 @@
-"""evohome_cli - a credentials manager for the evohome CLI."""
+"""A credentials manager for the evohome CLI."""
 
 from __future__ import annotations
 

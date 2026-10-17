@@ -1,4 +1,4 @@
-"""Tests for evohome-async - ControlSystem/Zone/HotWater mode edge cases.
+"""Test the edge cases of the ControlSystem, Zone and HotWater modes.
 
 Older systems do not support all system modes, and some modes have been renamed in
 newer systems. These tests check that the client handles these cases correctly, falling

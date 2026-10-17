@@ -1,4 +1,4 @@
-"""Tests for evohome-async - the v1 client sends a NextTime as the location's local time.
+"""Test that the v1 client sends a NextTime as the location's local time.
 
 The v1 API treats a NextTime (and a QuickActionNextTime) as the location's local time,
 and ignores any Z (see: tests_rf/test_vx_until.py). So, the client must send it as such,

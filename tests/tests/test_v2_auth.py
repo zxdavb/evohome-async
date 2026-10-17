@@ -1,4 +1,4 @@
-"""evohome-async - validate the v2 API token manager."""
+"""Test the v2 token manager."""
 
 from __future__ import annotations
 

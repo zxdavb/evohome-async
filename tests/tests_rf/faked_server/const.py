@@ -1,4 +1,4 @@
-"""Mocked vendor RESTful API via a hacked aiohttp."""
+"""Constants (URLs, canned JSON) for the faked vendor server."""
 
 from __future__ import annotations
 

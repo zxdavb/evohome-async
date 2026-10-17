@@ -1,4 +1,4 @@
-"""Tests for evohome-async - the deprecated names warn, but still work.
+"""Test that the deprecated names warn, but still work.
 
 The deprecated methods (the `update()`s) are tested in test_client_setup.py.
 """

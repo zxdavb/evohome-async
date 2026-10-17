@@ -1,4 +1,4 @@
-"""Tests for evohome-async - validate the exceptions raised by the v1 client."""
+"""Test the exceptions raised by the v1 client."""
 
 from __future__ import annotations
 

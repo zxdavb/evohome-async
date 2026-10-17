@@ -1,4 +1,4 @@
-"""evohomeasync provides an async client for the Resideo TCC API."""
+"""Time zone handling, shared by the v1 and v2 clients."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Tests for evohome-async - check the TypedDicts agree with the probatio schemas.
+"""Test that the TypedDicts agree with the probatio schemas.
 
 The vendor's API is undocumented, so the Tcc*T TypedDicts are its documentation, and
 the Evo*T TypedDicts describe what this library returns - but it is the schemas (built

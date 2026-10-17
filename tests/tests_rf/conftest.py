@@ -1,4 +1,4 @@
-"""evohome-async - test config."""
+"""Fixtures for the real-API tests."""
 
 from __future__ import annotations
 

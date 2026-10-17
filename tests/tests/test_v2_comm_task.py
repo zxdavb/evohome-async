@@ -1,4 +1,4 @@
-"""evohome-async - validate the handling of comm tasks (the result of a PUT)."""
+"""Test the handling of comm tasks (the result of a PUT)."""
 
 from __future__ import annotations
 

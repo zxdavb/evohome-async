@@ -1,4 +1,4 @@
-"""Validate the instantiation/update of each client.
+"""Test the instantiation/update of each client.
 
 Performs the bare minimum of tests.
 """

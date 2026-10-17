@@ -1,4 +1,4 @@
-"""Tests for evohome-async - validate the schemas of vendor's RESTful JSON."""
+"""Test the v2 schema factories (active faults) and the entity id regex."""
 
 from __future__ import annotations
 
