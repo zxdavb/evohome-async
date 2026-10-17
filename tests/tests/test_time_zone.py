@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime as dt, timedelta as td
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 import pytest
 
-from _evohome.time_zone import iana_tz_from_windows_tz
+from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
+from evohomeasync2.location import _create_tzinfo
+
+if TYPE_CHECKING:
+    from evohomeasync2.typedefs import EvoTimeZoneT
 
 
 @pytest.mark.parametrize(
@@ -70,3 +76,31 @@ def test_iana_tz_from_windows_tz_fixed_offset(
         assert dt(2026, month, 1, tzinfo=UTC).astimezone(tzinfo).utcoffset() == td(
             minutes=offset_minutes
         )
+
+
+@pytest.mark.parametrize("use_dst_switching", [True, False], ids=["dst", "no_dst"])
+async def test_create_tzinfo_unknown_logs_warning(
+    caplog: pytest.LogCaptureFixture,
+    *,
+    use_dst_switching: bool,
+) -> None:
+    """Test an unknown Windows TZ id logs a (non-empty) warning, and falls back."""
+
+    time_zone_info: EvoTimeZoneT = {
+        "time_zone_id": "NoSuchStandardTime",
+        "display_name": "(UTC+01:00) Nowhere",
+        "offset_minutes": 60,
+        "current_offset_minutes": 60,
+        "supports_daylight_saving": use_dst_switching,
+    }
+
+    with caplog.at_level(logging.WARNING):
+        tzinfo = await _create_tzinfo(
+            time_zone_info, use_dst_switching=use_dst_switching
+        )
+
+    assert isinstance(tzinfo, EvoZoneInfo)
+    assert [r.getMessage() for r in caplog.records] == [
+        "Unable to find IANA TZ identifier for 'NoSuchStandardTime'"
+        + ("; DST support will be very limited" if use_dst_switching else "")
+    ]

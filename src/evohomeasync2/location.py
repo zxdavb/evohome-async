@@ -87,9 +87,9 @@ async def _create_tzinfo(
     # - unable to determine if a given datetime was/will be during DST
 
     msg = f"Unable to find IANA TZ identifier for '{time_zone_id}'"
-    _LOGGER.warning(
-        msg + "; DST support will be very limited" if use_dst_switching else ""
-    )
+    if use_dst_switching:
+        msg += "; DST support will be very limited"
+    _LOGGER.warning(msg)
 
     return EvoZoneInfo(
         time_zone_info=time_zone_info, use_dst_switching=use_dst_switching
