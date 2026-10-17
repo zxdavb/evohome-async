@@ -16,7 +16,6 @@ from abc import ABC, abstractmethod
 from datetime import timedelta as td, timezone
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
-from warnings import deprecated
 
 from aiozoneinfo import async_get_time_zone
 
@@ -675,22 +674,6 @@ class Location(_EntityBase):
         A location has 0-1 gateways, each with 0-1 TCSs.
         """
         return next((tcs for gwy in self.gateways for tcs in gwy.systems), None)
-
-    @deprecated(
-        "Location.get_temperatures() is deprecated: use Location.tcs.get_temperatures()"
-    )
-    async def get_temperatures(
-        self,
-        /,
-        *,
-        dont_update_status: bool = False,
-    ) -> dict[str, float | None]:
-        """Return the high-precision temperatures of the location's TCS, or raise."""
-
-        if (tcs := self.tcs) is None:
-            raise exc.ClientStateError(f"{self}: This location has no TCS")
-
-        return await tcs.get_temperatures(dont_update_status=dont_update_status)
 
     # Config attrs...
 
