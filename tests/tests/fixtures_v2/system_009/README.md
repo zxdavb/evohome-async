@@ -19,7 +19,7 @@ Contains 3 locations (in this order, which differs from that of the v1 API):
 
 ## Notes
 
-- v1 counterpart: `fixtures_v0/system_009/` (the same account, captured at the same time)
+- v1 counterpart: `fixtures_v1/system_009/` (the same account, captured at the same time)
 - The JSON is as returned by the vendor, except that personal fields (names, address,
   username) and CRCs (with `"0000"`) have been replaced; ids and MAC addresses are
   unaltered (the cross-API test compares the MACs).

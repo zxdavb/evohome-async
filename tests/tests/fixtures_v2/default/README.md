@@ -28,4 +28,4 @@ schedule fallback for other systems.
 
 - `schedule_zone.json` and `schedule_dhw.json` in this dir are the fallback used by the
   conftest for any zone/DHW in any fixture dir that doesn't have its own schedule file.
-- v1 counterpart: `fixtures_v0/default/`
+- v1 counterpart: `fixtures_v1/default/`

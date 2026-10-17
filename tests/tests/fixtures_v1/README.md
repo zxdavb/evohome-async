@@ -1,4 +1,4 @@
-# fixtures_v0/
+# fixtures_v1/
 
 Test fixtures for the `evohomeasync` package (Resideo v1 API).
 
@@ -39,7 +39,7 @@ All personally identifiable data has been removed or replaced:
 
 ## Cross-API coverage
 
-Systems that appear in both `fixtures_v0/` and `fixtures_v2/`:
+Systems that appear in both `fixtures_v1/` and `fixtures_v2/`:
 
 | System | v1 dir | v2 dir |
 |--------|--------|--------|

@@ -60,7 +60,7 @@ The API is regular, and these tests confirm the following conventions:
 - a GET of a PUT-only URL is 404 (Not Found), as is any other invalid URL (which
   returns HTML, not JSON), and the id of another user's entity is 401 (Unauthorized)
 
-- a PUT to a device that is not alive is 400 (DeviceIsLost), see test_v0_urls_auth.py
+- a PUT to a device that is not alive is 400 (DeviceIsLost), see test_v1_urls_auth.py
 
 - a PUT is sometimes answered with the comm task of an earlier, equivalent PUT (which
   has already succeeded), and is not applied, e.g. a revert to schedule within minutes
@@ -148,7 +148,7 @@ async def _post_session(auth: Auth) -> TccSessionResponseT:
         "ApplicationId": "91db1612-73fd-4500-91b2-e63b069b185c",
       }
 
-    It is tested in test_v0_urls_cred.py (which is where it is documented).
+    It is tested in test_v1_urls_cred.py (which is where it is documented).
     """
 
     raise NotImplementedError
@@ -506,14 +506,14 @@ async def put_changeable_values(
 
     Returns a comm task, e.g. {"id": 1234567890}.
 
-    Errors (all 400, Bad Request), for more see test_v0_urls_auth.py:
+    Errors (all 400, Bad Request), for more see test_v1_urls_auth.py:
       ParameterIsMissing:        e.g. no Mode, or (a zone) no HeatSetpoint
       ThermostatModeNotAllowed:  e.g. "Allowed modes are Heat, Off." (a zone)
 
     NOTE: on some installations (e.g. the test installation), the vendor forbids a DHW's
     Status and NextTime (which the older client sent), so a DHW can't be set to follow
     its schedule, nor to a mode until a given time, via this API - see
-    test_v0_urls_auth.py.
+    test_v1_urls_auth.py.
     """
 
     return TCC_TASK_RESPONSE(
@@ -671,7 +671,7 @@ async def _wait_for_task(auth: Auth, response: TccTaskResponseT) -> None:
     Only if _DBG_WAIT_FOR_COMM_TASKS, as per the v2 tests (wait_for_comm_task_id()).
     Otherwise, do nothing (not even check its state once).
 
-    NOTE: test_v0_urls_auth.py always waits, as it needs the succeeded task.
+    NOTE: test_v1_urls_auth.py always waits, as it needs the succeeded task.
     """
 
     if not _DBG_WAIT_FOR_COMM_TASKS:

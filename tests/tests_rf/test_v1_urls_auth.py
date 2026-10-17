@@ -4,7 +4,7 @@ This is used to:
   a) document the RESTful API that is provided by the vendor
   b) confirm the faked server (if any) is behaving as per a)
 
-Where test_v0_urls.py documents each endpoint (and has a list of them all), this module
+Where test_v1_urls.py documents each endpoint (and has a list of them all), this module
 documents how they fail: e.g. an unauthorized user or wrong method, a PUT with invalid
 (or forbidden) params, and a PUT to a device that is not alive. It also allows for the
 vendor sometimes not applying a PUT that is equivalent to an earlier one (see
@@ -131,7 +131,7 @@ async def _test_evo_systems(evo: EvohomeClientV1) -> None:
     # '<!DOCTYPE html PUBLIC ... not found ...'
 
 
-# GET /accountInfo (is also in test_v0_urls_auth.py)
+# GET /accountInfo (is also in test_v1_urls_auth.py)
 # @skipif_auth_failed
 # async def test_usr_account(evohome_v1: EvohomeClientV1) -> None:
 #     """Test /accountInfo"""

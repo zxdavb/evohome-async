@@ -8,7 +8,7 @@ one API and reading it back via both:
     reported as wrong)
   - v1: heatSetpoint.nextTime (of the zone's changeableValues) is without a Z
 
-Expected (as documented in test_v0_urls.py):
+Expected (as documented in test_v1_urls.py):
   - v2: a timeUntil is UTC: so the until (v2) is as sent, and the nextTime (v1) is the
     same instant, but in the location's local time (and without a Z)
   - v1: a NextTime is the location's local time, and its Z (if any) is ignored: so the

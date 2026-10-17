@@ -74,7 +74,7 @@ def load_fixture(file: Path) -> JsonArrayType | JsonObjectType:
     return json.loads(text)  # type: ignore[no-any-return]
 
 
-FIXTURES_V1 = Path(__file__).parent / "fixtures_v0"
+FIXTURES_V1 = Path(__file__).parent / "fixtures_v1"
 FIXTURES_V2 = Path(__file__).parent / "fixtures_v2"
 
 
