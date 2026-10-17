@@ -168,6 +168,14 @@ class EvohomeClient:
         """Get the user's account, re-authenticating if the access_token is rejected."""
 
         url = "userAccount"
+
+        # if valid, auth.get() sends this token (without yielding), else it fetches another
+        access_token = (
+            self._token_manager.access_token
+            if self._token_manager.is_token_valid()
+            else None
+        )
+
         try:
             return await self.auth.get(url, schema=SCH_USR_ACCOUNT)
 
@@ -185,7 +193,9 @@ class EvohomeClient:
                 f"The access_token has been rejected (will re-authenticate): {err}"
             )
 
-            self._token_manager.clear_access_token()
+            # another task may have since refreshed it, so don't clear the new one
+            if access_token is None or self._token_manager.access_token == access_token:
+                self._token_manager.clear_access_token()
             return await self.auth.get(url, schema=SCH_USR_ACCOUNT)
 
     async def _get_config(self) -> list[EvoLocConfigResponseT]:
@@ -253,27 +263,20 @@ class EvohomeClient:
 
         return self._location_by_id
 
-    # A significant majority of users will have exactly one TCS, thus for convenience...
     @property
+    @deprecated("EvohomeClient.tcs is deprecated: use Location.tcs")
     def tcs(self) -> ControlSystem:
-        """If there is a single TCS, return it, or raise an exception.
+        """Return the TCS of the account's single location, or raise an exception.
 
-        The majority of users will have only one TCS.
+        The majority of users will have only one location, with one TCS.
         """
 
-        if not (locs := self.locations) or len(locs) != 1:
-            raise exc.NoSingleTcsError(
+        if len(locs := self.locations) != 1:
+            raise exc.ClientStateError(
                 "There is not a single location (only) for this account"
             )
 
-        if not (gwys := locs[0].gateways) or len(gwys) != 1:
-            raise exc.NoSingleTcsError(
-                "There is not a single gateway (only) for this account/location"
-            )
+        if (tcs := locs[0].tcs) is None:
+            raise exc.ClientStateError("The location of this account has no TCS")
 
-        if not (tcss := gwys[0].systems) or len(tcss) != 1:
-            raise exc.NoSingleTcsError(
-                "There is not a single TCS (only) for this account/location/gateway"
-            )
-
-        return tcss[0]
+        return tcs

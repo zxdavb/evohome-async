@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import uuid
+from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from _evohome.const import HINT_BAD_CREDS
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync2 import exceptions as exc
 from tests.const import HEADERS_CRED_V2, URL_CRED_V2
@@ -246,3 +249,100 @@ async def test_token_manager(  # noqa: PLR0917  # pytest injects fixtures by key
         wrt.assert_called_once()
 
     assert token_manager.is_token_valid() is True
+
+
+async def test_concurrent_get_access_token_fetches_once(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    cache_path: Path,
+) -> None:
+    """Test that concurrent callers of .get_access_token() share a single fetch."""
+
+    token_manager = TokenCacheManager(
+        *credentials, client_session, cache_path=cache_path
+    )
+    assert token_manager.is_token_valid() is False
+
+    async def fetch_access_token() -> None:
+        for _ in range(3):  # yield, so that the other callers queue behind this one
+            await asyncio.sleep(0)
+        token_manager._access_token = str(uuid.uuid4())
+        token_manager._access_token_expires = dt.now(tz=UTC) + td(seconds=1800)
+
+    with (
+        patch.object(
+            token_manager, "fetch_access_token", side_effect=fetch_access_token
+        ) as fetch,
+        patch.object(
+            token_manager, "save_access_token", new_callable=AsyncMock
+        ) as save,
+    ):
+        results = await asyncio.gather(
+            *(token_manager.get_access_token() for _ in range(5))
+        )
+
+    assert len(set(results)) == 1
+    assert results[0] == token_manager.access_token
+    assert fetch.call_count == 1
+    save.assert_awaited_once()
+
+
+async def test_concurrent_get_access_token_failure(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    cache_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that concurrent callers of .get_access_token() share a failed fetch."""
+
+    token_manager = TokenCacheManager(
+        *credentials, client_session, cache_path=cache_path
+    )
+
+    async def _fetch_access_token(credentials: dict[str, str]) -> None:
+        for _ in range(3):  # yield, so that the other callers queue behind this one
+            await asyncio.sleep(0)
+        raise exc.AuthenticationFailedError(
+            '{"error": "invalid_grant"}', status=HTTPStatus.BAD_REQUEST
+        )
+
+    with (
+        patch.object(
+            token_manager, "_fetch_access_token", side_effect=_fetch_access_token
+        ) as fetch,
+        patch.object(
+            token_manager, "save_access_token", new_callable=AsyncMock
+        ) as save,
+    ):
+        results = await asyncio.gather(
+            *(token_manager.get_access_token() for _ in range(5)),
+            return_exceptions=True,
+        )
+
+        assert all(isinstance(r, exc.BadUserCredentialsError) for r in results)
+        assert fetch.call_count == 1
+        save.assert_not_awaited()
+        assert [r.message for r in caplog.records].count(HINT_BAD_CREDS) == 1
+
+        # a failure is shared only with the callers queued behind it, not later ones
+        fetch.reset_mock()
+        with pytest.raises(exc.BadUserCredentialsError):
+            await token_manager.get_access_token()
+
+        fetch.assert_called_once()
+
+    assert token_manager.is_token_valid() is False
+
+
+def test_credential_locks_are_independent(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    cache_path: Path,
+) -> None:
+    """Test that the access token and session id are refreshed under separate locks."""
+
+    manager = TokenCacheManager(*credentials, client_session, cache_path=cache_path)
+
+    assert isinstance(manager._token_lock, asyncio.Lock)
+    assert isinstance(manager._session_lock, asyncio.Lock)
+    assert manager._token_lock is not manager._session_lock

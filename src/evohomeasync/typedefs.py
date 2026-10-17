@@ -112,6 +112,13 @@ class EvoTcsInfoDictT(EvoLocInfoDictT):
     one_touch_buttons: NotRequired[list[str]]
 
 
+# Not in the JSON: the TCS portion of a location (the vendor has no TCS entity)
+class EvoTcsDictT(TypedDict):
+    location_id: _LocationIdT
+    one_touch_actions_suspended: NotRequired[bool]  # status only
+    one_touch_buttons: NotRequired[list[str]]  # status only
+
+
 class EvoDevInfoDictT(EvoGwyInfoDictT):
     device_id: _DhwIdT | _ZoneIdT
     name: str

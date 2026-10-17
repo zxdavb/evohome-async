@@ -1,0 +1,14 @@
+{
+  "userInfo": {
+    "userID": 2512649,
+    "username": "user@example.com",
+    "firstname": "John",
+    "lastname": "Smith",
+    "streetAddress": "1 Main Street",
+    "city": "London",
+    "zipcode": "AB1 2CD",
+    "country": "GB",
+    "telephone": "",
+    "userLanguage": "en-GB"
+  }
+}

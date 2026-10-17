@@ -19,14 +19,14 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 import evohomeasync as evo0
-from tests.common import get_loc
+from tests.common import get_tcs
 from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import skipif_auth_failed
 
 if TYPE_CHECKING:
     from evohomeasync import EvohomeClient as EvohomeClientV0
-    from evohomeasync.entities import HotWater, Location, Zone
+    from evohomeasync.entities import ControlSystem, HotWater, Zone
 
 
 #######################################################################################
@@ -57,12 +57,12 @@ def _is_live_and_scheduled(dev: HotWater | Zone) -> bool:
     return bool(values.get("status") == "Scheduled")  # a DHW
 
 
-def _is_evohome(loc: Location) -> bool:
-    """Return True if the location is an evohome system (not, say, a Round)."""
+def _is_evohome(tcs: ControlSystem) -> bool:
+    """Return True if the TCS is an evohome system (not, say, a Round)."""
     return any(
         isinstance(t := z.config["thermostat_model_type"], str)
         and t.startswith("EMEA_")
-        for z in loc.zones
+        for z in tcs.zones
     )
 
 
@@ -79,31 +79,31 @@ async def _test_usr_apis(evo: EvohomeClientV0) -> None:
     assert evo0.main.SCH_GET_ACCOUNT_LOCS(evo._user_locs)
 
     # STEP 2: the high-precision temperatures (from the latest update)
-    for loc in evo.locations:
-        temps = await loc.get_temperatures(dont_update_status=True)
-        assert set(temps) == {z.id for z in loc.zones}
+    for tcs in (loc.tcs for loc in evo.locations if loc.tcs):
+        temps = await tcs.get_temperatures(dont_update_status=True)
+        assert set(temps) == {z.id for z in tcs.zones}
 
-        if loc.hotwater:
-            assert loc.hotwater.temperature is None or isinstance(
-                loc.hotwater.temperature, float
+        if tcs.hotwater:
+            assert tcs.hotwater.temperature is None or isinstance(
+                tcs.hotwater.temperature, float
             )
 
 
 async def _test_tcs_apis(evo: EvohomeClientV0) -> None:
     """Test ControlSystem methods.
 
-    Includes loc.set_auto() (which would leave the TCS in Auto mode).
+    Includes tcs.set_auto() (which would leave the TCS in Auto mode).
     """
 
     await evo.get_status()
 
-    if not _is_evohome(loc := get_loc(evo)):
+    if not _is_evohome(tcs := get_tcs(evo)):
         pytest.skip("The location under test is not an evohome system")
 
     # PUT /evoTouchSystems?locationId={loc_id}
     # NOTE: the vendor has removed this URL, so all the TCS set_*() methods now fail
     with pytest.raises(evo0.ApiCallFailedError) as err:
-        await loc.set_auto()
+        await tcs.set_auto()
     assert err.value.status == HTTPStatus.NOT_FOUND
 
 
@@ -120,7 +120,7 @@ async def _test_dhw_apis(evo: EvohomeClientV0) -> None:
 
     await evo.get_status()
 
-    dhw = get_loc(evo).hotwater
+    dhw = get_tcs(evo).hotwater
     if dhw is None or not _is_live(dhw):
         pytest.skip("No live DHW found")
 
@@ -150,7 +150,7 @@ async def _test_zon_apis(evo: EvohomeClientV0) -> None:
 
     await evo.get_status()
 
-    zone = next((z for z in get_loc(evo).zones if _is_live_and_scheduled(z)), None)
+    zone = next((z for z in get_tcs(evo).zones if _is_live_and_scheduled(z)), None)
     if zone is None:
         pytest.skip("No live zone found that is following its schedule")
 

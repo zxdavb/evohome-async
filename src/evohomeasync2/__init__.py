@@ -46,7 +46,6 @@ from .exceptions import (
     InvalidScheduleError,
     InvalidScheduleRequestError,
     InvalidStatusError,
-    NoSingleTcsError,
     NotFetchedError,
     StaleConfigError,
 )
@@ -102,7 +101,6 @@ __all__ = [  # noqa: RUF022
     "InvalidScheduleRequestError",
     "InvalidStatusError",
     "InvalidSystemModeError",  # deprecated alias for InvalidModeRequestError
-    "NoSingleTcsError",
     "NotFetchedError",
     "StaleConfigError",
 ]

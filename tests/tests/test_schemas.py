@@ -314,7 +314,7 @@ def test_v2_vendor_typeddicts(
 
 
 # the vendor's JSON (fixtures), and the schema built from the TypedDict it should match
-FIXTURE_TYPEDDICTS: dict[str, vol.Schema] = {
+FIXTURE_TYPEDDICTS: dict[str, vol.Schema | vol.Any] = {
     "user_account.json": vol.TypedDictSchema(account.TccUsrAccountResponseT),
     "user_locations.json": vol.Schema(
         [vol.TypedDictSchema(config.TccLocConfigResponseT)]
@@ -322,7 +322,10 @@ FIXTURE_TYPEDDICTS: dict[str, vol.Schema] = {
     "status_*.json": vol.TypedDictSchema(status.TccLocStatusResponseT),
     "schedule_dhw.json": vol.TypedDictSchema(schedule.TccDhwDailySchedulesT),
     "schedule_zone.json": vol.TypedDictSchema(schedule.TccZonDailySchedulesT),
-    "schedule_[0-9]*.json": vol.TypedDictSchema(schedule.TccZonDailySchedulesT),
+    "schedule_[0-9]*.json": vol.Any(  # a zone's or a DHW's (by its id)
+        vol.TypedDictSchema(schedule.TccZonDailySchedulesT),
+        vol.TypedDictSchema(schedule.TccDhwDailySchedulesT),
+    ),
 }
 
 

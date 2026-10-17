@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable, Mapping  # used at runtime
-from datetime import UTC, datetime as dt
+from datetime import UTC, datetime as dt, timedelta as td
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Final, overload
 
@@ -36,6 +36,12 @@ TCC_DTM_LOCAL_STRFTIME: Final = "%Y-%m-%dT%H:%M:%S"
 # NOTE: "2023-05-04T18:47:36.7727046" (7, not 6 digits) seen with gateway fault
 # _TCC_SINCE_DTM: Final = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,}$"
 
+# A .NET TimeSpan, as used by the vendor for durations, e.g. "1.00:00:00", "01:00:00"
+# (days capped at 9 digits, as timedelta's limit is 999,999,999 days)
+_TCC_TIMESPAN_REGEX: Final = re.compile(
+    r"^(?:(?P<days>\d{1,9})\.)?(?P<hours>[01]?\d|2[0-3])"
+    r":(?P<minutes>[0-5]\d):(?P<seconds>[0-5]\d)$"
+)
 
 _REDACTED_EMAIL_ADDRESS = "no-reply@redacted.xxx"
 _REDACTED_STRING = "********"
@@ -135,6 +141,17 @@ def as_utc_str(dtm: dt) -> str:
         raise BadApiRequestError(f"Datetime must be TZ-aware (not naive): {dtm!r}")
 
     return dtm.astimezone(UTC).strftime(TCC_DTM_STRFTIME)
+
+
+def as_timedelta(timespan: str) -> td | None:
+    """Return a timedelta from a vendor TimeSpan string (e.g. "99.00:00:00").
+
+    Return None if the string is not in the expected format.
+    """
+
+    if not (match := _TCC_TIMESPAN_REGEX.match(timespan)):
+        return None
+    return td(**{k: int(v or 0) for k, v in match.groupdict().items()})
 
 
 def as_local_str(dtm: dt, tzinfo: tzinfo) -> str:

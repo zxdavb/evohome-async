@@ -8,8 +8,6 @@ from typing import TYPE_CHECKING
 import pytest
 import yaml
 
-from tests.common import get_loc
-
 from .common import serializable_attrs
 from .conftest import FIXTURES_V0 as FIXTURES
 
@@ -42,19 +40,20 @@ async def test_system_snapshot(
 
     freezer.move_to("2025-01-01T00:00:00+00:00")
 
-    # architecture is: loc/tcs -> gwy, loc/tcs -> dhw|zon
+    # architecture is: loc -> gwy -> tcs -> dhw|zon (as for v2)
 
-    loc = get_loc(evohome_v0)
-    assert serializable_attrs(loc) == snapshot(name="location")
+    for loc in evohome_v0.locations:  # is 0-many
+        assert serializable_attrs(loc) == snapshot(name=f"loc_{loc.id}")
 
-    gwy = loc.gateways[0]
-    assert serializable_attrs(gwy) == snapshot(name="gateway")
+        for gwy in loc.gateways:  # is 0-1
+            assert serializable_attrs(gwy) == snapshot(name=f"loc_{loc.id}_gwy")
 
-    # tcs = gwy.systems[0]  # V0 does *not* have loc -> gwy -> tcs
-    # assert serializable_attrs(tcs) == snapshot(name="control_system")
+            for tcs in gwy.systems:  # is exactly 1
+                assert loc.tcs is tcs
+                assert serializable_attrs(tcs) == snapshot(name=f"loc_{loc.id}_tcs")
 
-    if dhw := loc.hotwater:
-        assert serializable_attrs(dhw) == snapshot(name="hot_water")
+                if dhw := tcs.hotwater:  # is 0-1
+                    assert serializable_attrs(dhw) == snapshot(name=f"loc_{loc.id}_dhw")
 
-    zones = {z.id: serializable_attrs(z) for z in loc.zones}
-    assert yaml.dump(zones, indent=4) == snapshot(name="zones")
+                zones = {z.id: serializable_attrs(z) for z in tcs.zones}
+                assert yaml.dump(zones, indent=4) == snapshot(name=f"loc_{loc.id}_zon")

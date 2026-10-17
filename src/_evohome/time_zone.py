@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime as dt, timedelta as td, tzinfo
 from typing import TYPE_CHECKING, Final
 
-from .windows_zones import WINDOWS_TO_IANA_LOOKUP
+from .windows_zones import WINDOWS_TO_IANA_LOOKUP, normalise_windows_tz_id
 
 if TYPE_CHECKING:
     from evohomeasync2.typedefs import EvoTimeZoneT
@@ -17,7 +17,7 @@ SZ_TIME_ZONE_ID: Final = "time_zone_id"
 
 def iana_tz_from_windows_tz(time_zone: str) -> str:
     """Return the IANA TZ identifier from the Windows TZ id."""
-    return WINDOWS_TO_IANA_LOOKUP[time_zone.replace(" ", "").replace(".", "")]
+    return WINDOWS_TO_IANA_LOOKUP[normalise_windows_tz_id(time_zone)]
 
 
 # it is ostensibly optional to provide this data to the EvoZoneInfo class
@@ -112,14 +112,15 @@ class EvoZoneInfo(tzinfo):
         # if not self._use_dst_switching:
         #     assert self._dst == td(0), "DST is not enabled, but the offset is non-zero"
 
-    def dst(self, dt: dt | None) -> td:
+    def dst(self, _dtm: dt | None) -> td:
         """Return the daylight saving time adjustment, as a timedelta object.
 
         Return 0 if DST not in effect. utcoffset() must include the DST offset.
-        """
 
-        if dt:  # we can't know when DST starts/stops
-            raise NotImplementedError("DST transitions are not implemented")
+        As for utcoffset(), this is the location's current value, whatever the datetime
+        (its DST transitions are unknown). It must not raise, as tzinfo.fromutc() (and
+        so datetime.astimezone()) calls it.
+        """
 
         return self._dst
 

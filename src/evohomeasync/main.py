@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 
     from _evohome.helpers import Validator
 
+    from .entities import ControlSystem
     from .typedefs import EvoTcsInfoDictT, EvoUserAccountInfoDictT
 
 SCH_GET_ACCOUNT_INFO: Final[Validator[EvoUserAccountInfoDictT]] = (
@@ -187,6 +188,14 @@ class EvohomeClient:
 
         if self._user_info is None:  # will handle session_id rejection
             url = "accountInfo"
+
+            # if valid, auth.get() sends this id (without yielding), else it fetches another
+            session_id = (
+                self._session_manager.session_id
+                if self._session_manager.is_session_valid()
+                else None
+            )
+
             try:
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
 
@@ -204,7 +213,9 @@ class EvohomeClient:
                     f"The session_id has been rejected (will re-authenticate): {err}"
                 )
 
-                self._session_manager.clear_session_id()
+                # another task may have since refreshed it, so don't clear the new one
+                if session_id is None or self._session_manager.session_id == session_id:
+                    self._session_manager.clear_session_id()
                 self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
 
             assert self._user_info is not None  # mypy
@@ -264,17 +275,20 @@ class EvohomeClient:
 
         return self._location_by_id
 
-    # A significant majority of users will have exactly one TCS, thus for convenience...
     @property
-    def tcs(self) -> Location:
-        """If there is a single location/TCS, return it, or raise an exception.
+    @deprecated("EvohomeClient.tcs is deprecated: use Location.tcs")
+    def tcs(self) -> ControlSystem:
+        """Return the TCS of the account's single location, or raise an exception.
 
-        The majority of users will have only one location/TCS.
+        The majority of users will have only one location, with one TCS.
         """
 
-        if not (locs := self.locations) or len(locs) != 1:
-            raise exc.NoSingleTcsError(
+        if len(locs := self.locations) != 1:
+            raise exc.ClientStateError(
                 "There is not a single location (only) for this account"
             )
 
-        return locs[0]
+        if (tcs := locs[0].tcs) is None:
+            raise exc.ClientStateError("The location of this account has no TCS")
+
+        return tcs

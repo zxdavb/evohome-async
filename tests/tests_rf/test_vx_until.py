@@ -40,7 +40,7 @@ import pytest
 from _evohome.helpers import TCC_DTM_STRFTIME
 from evohomeasync.schemas import TCC_GET_USR_LOCS
 from evohomeasync2.schemas.status import TCC_GET_ZON_STATUS
-from tests.common import get_loc
+from tests.common import get_tcs
 from tests.const import _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX
 
 from .common import (
@@ -344,7 +344,7 @@ async def test_v0_client_until(
 
     zon_id, setpoint, offset, now = await _setup(evohome_v0, evohome_v2)
 
-    zone = get_loc(evohome_v0).zone_by_id[str(zon_id)]
+    zone = get_tcs(evohome_v0).zone_by_id[str(zon_id)]
     until: str | None = await _get_until(evohome_v2, zon_id)  # None, as Scheduled
 
     try:

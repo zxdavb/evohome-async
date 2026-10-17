@@ -1,0 +1,9 @@
+{
+  "icon": 2,
+  "temperature": 13.4,
+  "temperatureUnit": "Celsius",
+  "phrase": "Mostly sunny",
+  "humidity": 67,
+  "uvIndex": 1,
+  "windSpeed": "21.1"
+}

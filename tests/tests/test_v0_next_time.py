@@ -23,7 +23,7 @@ import pytest
 from _evohome.exceptions import BadApiRequestError
 from evohomeasync.entities import create_location
 from evohomeasync.schemas import TccSystemMode
-from tests.common import get_loc
+from tests.common import get_loc, get_tcs
 
 from .conftest import FIXTURES_V0 as FIXTURES
 
@@ -89,7 +89,7 @@ async def test_zone_next_time(
 ) -> None:
     """Test Zone.set_temperature() sends its NextTime as the location's local time."""
 
-    zone = get_loc(evohome_v0).zones[0]
+    zone = get_tcs(evohome_v0).zones[0]
 
     await zone.set_temperature(19.5, until=until)
 
@@ -113,7 +113,7 @@ async def test_next_time_after_dst_ends(
 
     freezer.move_to("2026-10-24T12:00:00+00:00")  # BST (UTC+1)
 
-    zone = get_loc(evohome_v0).zones[0]
+    zone = get_tcs(evohome_v0).zones[0]
 
     await zone.set_temperature(19.5, until=dt(2026, 10, 26, 12, 0, tzinfo=UTC))
 
@@ -126,7 +126,7 @@ async def test_dhw_next_time(
 ) -> None:
     """Test HotWater.set_dhw_on() sends its NextTime as the location's local time."""
 
-    dhw = get_loc(evohome_v0).hotwater
+    dhw = get_tcs(evohome_v0).hotwater
     assert dhw is not None  # the default/ fixture has a DHW
 
     await dhw.set_dhw_on(until=dt(2026, 7, 1, 12, 0, tzinfo=UTC))
@@ -138,15 +138,15 @@ async def test_tcs_quick_action_next_time(
     evohome_v0: EvohomeClientV0,
     mock_put: AsyncMockT,
 ) -> None:
-    """Test Location.set_mode() sends its QuickActionNextTime as the local time.
+    """Test ControlSystem.set_mode() sends its QuickActionNextTime as the local time.
 
     NOTE: the vendor has removed this URL (it is now a 404, see test_v0_urls.py), so
     this tests only the payload, as it can't be confirmed against the vendor's server.
     """
 
-    loc = get_loc(evohome_v0)
+    tcs = get_tcs(evohome_v0)
 
-    await loc.set_mode(TccSystemMode.AWAY, until=dt(2026, 7, 1, 12, 0, tzinfo=UTC))
+    await tcs.set_mode(TccSystemMode.AWAY, until=dt(2026, 7, 1, 12, 0, tzinfo=UTC))
 
     assert _put_json(mock_put) == {
         "quickAction": "Away",
@@ -160,7 +160,7 @@ async def test_naive_next_time(
 ) -> None:
     """Test a naive NextTime is rejected (as its instant would be ambiguous)."""
 
-    zone = get_loc(evohome_v0).zones[0]
+    zone = get_tcs(evohome_v0).zones[0]
 
     naive = dt(2026, 7, 1, 12, 0, tzinfo=UTC).replace(tzinfo=None)
 
