@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 
 
 # NOTE: a long test, but not all systems have DHW
-async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
+async def _test_task_id_dhw(ec2: EvohomeClientV2) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
@@ -51,9 +51,9 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     its location), so it is used here only if _DBG_TEST_UNUSED_APIS.
     """
 
-    await evo.setup()
+    await ec2.setup()
 
-    if not (dhw := get_dhw(evo)):
+    if not (dhw := get_dhw(ec2)):
         pytest.skip("No available DHW found")
 
     GET_URL = f"{dhw._TCC_TYPE}/{dhw.id}/status"
@@ -65,13 +65,13 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
 
     if _DBG_TEST_UNUSED_APIS:  # GET the DHW's status (not used by the client)
         old_status = await should_work_v2(
-            evo.auth, HTTPMethod.GET, GET_URL, schema=TCC_GET_DHW_STATUS
+            ec2.auth, HTTPMethod.GET, GET_URL, schema=TCC_GET_DHW_STATUS
         )
 
     else:  # GET it from its location's status, as does the client
         url = f"location/{dhw.location.id}/status?includeTemperatureControlSystems=True"
         loc_status = await should_work_v2(
-            evo.auth, HTTPMethod.GET, url, schema=TCC_GET_LOC_STATUS
+            ec2.auth, HTTPMethod.GET, url, schema=TCC_GET_LOC_STATUS
         )
         old_status = next(
             t["dhw"]
@@ -111,7 +111,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
         S2_UNTIL_TIME: (dhw.location.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
 
-    result = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
+    result = await should_work_v2(ec2.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
     assert isinstance(result, dict | list)  # mypy
     # {'id': '840367013'}  # HTTP 201/Created
 
@@ -127,13 +127,13 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
         S2_UNTIL_TIME: (dhw.location.now() + td(hours=1)).strftime(TCC_DTM_STRFTIME),
     }
     _ = await should_work_v2(
-        evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode
+        ec2.auth, HTTPMethod.PUT, PUT_URL, json=new_mode
     )  # HTTP 201
 
-    # _ = await wait_for_comm_task_id(evo.auth, task_id)
+    # _ = await wait_for_comm_task_id(ec2.auth, task_id)
 
     if _DBG_TEST_UNUSED_APIS:
-        _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
+        _ = await should_work_v2(ec2.auth, HTTPMethod.GET, GET_URL)
 
     new_mode = {  # NOTE: different capitalisation, until time
         camel_to_pascal(S2_MODE): TccZoneMode.TEMPORARY_OVERRIDE,
@@ -142,21 +142,21 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
             TCC_DTM_STRFTIME
         ),
     }
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
+    _ = await should_work_v2(ec2.auth, HTTPMethod.PUT, PUT_URL, json=new_mode)
 
-    # _ = await wait_for_comm_task_id(evo.auth, task_id)
+    # _ = await wait_for_comm_task_id(ec2.auth, task_id)
 
     if _DBG_TEST_UNUSED_APIS:
-        _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
+        _ = await should_work_v2(ec2.auth, HTTPMethod.GET, GET_URL)
 
     #
     # PART 3: Restore the original mode
-    _ = await should_work_v2(evo.auth, HTTPMethod.PUT, PUT_URL, json=old_mode)
+    _ = await should_work_v2(ec2.auth, HTTPMethod.PUT, PUT_URL, json=old_mode)
 
-    # _ = await wait_for_comm_task_id(evo.auth, task_id)
+    # _ = await wait_for_comm_task_id(ec2.auth, task_id)
 
     if _DBG_TEST_UNUSED_APIS:
-        _ = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
+        _ = await should_work_v2(ec2.auth, HTTPMethod.GET, GET_URL)
 
     # assert status # != old_status
 
@@ -168,7 +168,7 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
         S2_UNTIL_TIME: None,
     }
     _ = await should_fail_v2(
-        evo.auth, HTTPMethod.PUT, PUT_URL, json=bad_mode, status=HTTPStatus.BAD_REQUEST
+        ec2.auth, HTTPMethod.PUT, PUT_URL, json=bad_mode, status=HTTPStatus.BAD_REQUEST
     )
 
     # _ = [{
@@ -189,25 +189,25 @@ async def _test_task_id_dhw(evo: EvohomeClientV2) -> None:
     # PART 4B: Try 'bad' task_id values...
     url_tsk = "commTasks?commTaskId=ABC"
     _ = await should_fail_v2(
-        evo.auth, HTTPMethod.GET, url_tsk, status=HTTPStatus.BAD_REQUEST
+        ec2.auth, HTTPMethod.GET, url_tsk, status=HTTPStatus.BAD_REQUEST
     )  # [{"code": "InvalidInput", "message": "Invalid Input."}]
 
     url_tsk = "commTasks?commTaskId=12345678"
     _ = await should_fail_v2(
-        evo.auth, HTTPMethod.GET, url_tsk, status=HTTPStatus.NOT_FOUND
+        ec2.auth, HTTPMethod.GET, url_tsk, status=HTTPStatus.NOT_FOUND
     )  # [{"code": "CommTaskNotFound", "message": "Communication task not found."}]
 
 
 # TODO: a short test
-async def _test_task_id_zone(evo: EvohomeClientV2) -> None:
+async def _test_task_id_zone(ec2: EvohomeClientV2) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
     """
 
-    await evo.setup()
+    await ec2.setup()
 
-    if not (zone := get_zon(evo)):
+    if not (zone := get_zon(ec2)):
         pytest.skip("No available Zone found")
 
     GET_URL = f"{zone._TCC_TYPE}/{zone.id}/status"
@@ -215,7 +215,7 @@ async def _test_task_id_zone(evo: EvohomeClientV2) -> None:
 
     #
     # PART 0: Get the initial mode...
-    old_status = await should_work_v2(evo.auth, HTTPMethod.GET, GET_URL)
+    old_status = await should_work_v2(ec2.auth, HTTPMethod.GET, GET_URL)
     assert isinstance(old_status, dict)  # mypy
     # {
     #     'zoneId': '3432576',

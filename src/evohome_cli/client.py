@@ -43,7 +43,7 @@ DEBUG_ADDR = "127.0.0.1"
 DEBUG_PORT = 5679
 
 SZ_CLEANUP: Final = "cleanup"
-SZ_EVO: Final = "evohome"
+SZ_EC2: Final = "ec2"
 SZ_USERNAME: Final = "username"
 
 
@@ -102,17 +102,17 @@ def _check_positive_int(ctx: click.Context, param: click.Option, value: int) -> 
     return value
 
 
-def _get_tcs(evo: EvohomeClient, loc_idx: int | None) -> ControlSystem:
+def _get_tcs(ec2: EvohomeClient, loc_idx: int | None) -> ControlSystem:
     """Get the ControlSystem object for the specified location idx."""
 
     if loc_idx is None:
         loc_idx = 0
 
     try:
-        location = evo.locations[loc_idx]
+        location = ec2.locations[loc_idx]
     except IndexError:
         raise click.ClickException(
-            f"loc-idx {loc_idx} is out of range (max idx: {len(evo.locations) - 1})"
+            f"loc-idx {loc_idx} is out of range (max idx: {len(ec2.locations) - 1})"
         ) from None
 
     if (tcs := location.tcs) is None:
@@ -163,18 +163,18 @@ def _input_file_option[FC: Callable[..., object]](f: FC) -> FC:
     )(f)
 
 
-async def _setup(evo: EvohomeClient) -> None:
+async def _setup(ec2: EvohomeClient) -> None:
     """Get the config of the user's locations, and then the status of each."""
 
-    await evo.setup()
+    await ec2.setup()
 
-    if (num := len(evo.locations)) > 1:  # as EvohomeClient.update() warns
-        evo.logger.warning(
+    if (num := len(ec2.locations)) > 1:  # as EvohomeClient.update() warns
+        ec2.logger.warning(
             f"There are {num} locations. Reduce the risk of exceeding API rate "
             "limits by individually updating only necessary locations."
         )
 
-    for loc in evo.locations:
+    for loc in ec2.locations:
         await loc.get_status()
 
 
@@ -242,12 +242,12 @@ async def cli(
     if not no_load_tokens:  # then restore cached tokens, if any
         await token_manager.load_from_cache()
 
-    evo = EvohomeClient(token_manager, debug=bool(debug))
+    ec2 = EvohomeClient(token_manager, debug=bool(debug))
 
     click.echo("Authenticating and retrieving installation...", err=True)
 
     try:
-        await _setup(evo)
+        await _setup(ec2)
     except exc.AuthenticationFailedError:
         await websession.close()
         raise
@@ -258,7 +258,7 @@ async def cli(
         save_password_to_keyring(username, password)
 
     # TODO: use a typed dict for ctx.obj
-    ctx.obj[SZ_EVO] = evo
+    ctx.obj[SZ_EC2] = ec2
     ctx.obj[SZ_CLEANUP] = cleanup
 
 
@@ -271,12 +271,12 @@ async def get_system_mode(
 ) -> None:
     """Retrieve the system mode."""
 
-    evo: EvohomeClient = ctx.obj[SZ_EVO]
+    ec2: EvohomeClient = ctx.obj[SZ_EC2]
 
     try:
         click.echo("Retrieving TCS mode...\n", err=True)
 
-        tcs = _get_tcs(evo, loc_idx)
+        tcs = _get_tcs(ec2, loc_idx)
         result = tcs.system_mode_status
         output_file.write(json.dumps(result, indent=4) + "\n")
 
@@ -293,14 +293,14 @@ async def dump_location(
 ) -> None:
     """Download all the global config and the location status."""
 
-    evo: EvohomeClient = ctx.obj[SZ_EVO]
+    ec2: EvohomeClient = ctx.obj[SZ_EC2]
 
     try:
         click.echo("Retrieving location status...\n", err=True)
 
         result = {
-            "config": evo.locations[loc_idx].config,
-            "status": await evo.locations[loc_idx].get_status(),
+            "config": ec2.locations[loc_idx].config,
+            "status": await ec2.locations[loc_idx].get_status(),
         }
 
         output_file.write(json.dumps(result, indent=4) + "\n")
@@ -323,12 +323,12 @@ async def get_schedule(
 ) -> None:
     """Download the schedule of a zone of a TCS (WIP)."""
 
-    evo = ctx.obj[SZ_EVO]
+    ec2 = ctx.obj[SZ_EC2]
 
     try:
         click.echo("Retrieving zone/DHW schedule...\n", err=True)
 
-        tcs = _get_tcs(evo, loc_idx)
+        tcs = _get_tcs(ec2, loc_idx)
 
         zon: HotWater | Zone
         if zone_id.upper() == "HW":
@@ -359,10 +359,10 @@ async def get_schedules(
 ) -> None:
     """Download all the schedules from a TCS."""
 
-    evo: EvohomeClient = ctx.obj[SZ_EVO]
+    ec2: EvohomeClient = ctx.obj[SZ_EC2]
 
     try:
-        tcs = _get_tcs(evo, loc_idx)
+        tcs = _get_tcs(ec2, loc_idx)
 
         click.echo("Retrieving TCS schedules...\n", err=True)
 
@@ -383,10 +383,10 @@ async def set_schedules(
 ) -> None:
     """Upload schedules to a TCS."""
 
-    evo: EvohomeClient = ctx.obj[SZ_EVO]
+    ec2: EvohomeClient = ctx.obj[SZ_EC2]
 
     try:
-        tcs = _get_tcs(evo, loc_idx)
+        tcs = _get_tcs(ec2, loc_idx)
 
         content = input_file.read()
 

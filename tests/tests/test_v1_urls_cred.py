@@ -62,17 +62,17 @@ def cache_path(
     return tmp_path_factory.mktemp(__name__) / ".evo-cache.tst"
 
 
-# NOTE: using fixture_folder will break these tests; we don't want evo.update() either
+# NOTE: using fixture_folder will break these tests; we don't want ec1.update() either
 @pytest.fixture
 async def ec1(
     credentials_manager: TokenCacheManager,
 ) -> AsyncGenerator[EvohomeClient]:
     """Yield a client with an vailla credentials manager."""
 
-    evo = EvohomeClient(credentials_manager)
+    ec1 = EvohomeClient(credentials_manager)
 
     try:
-        yield evo
+        yield ec1
     finally:
         pass
 

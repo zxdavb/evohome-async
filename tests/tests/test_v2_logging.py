@@ -59,7 +59,7 @@ async def test_system_warnings(
     freezer.move_to("2025-01-01T00:00:00+00:00")
 
     with patch("evohomeasync2.auth.Auth.get", auth_get(fixture_folder)):
-        evo = EvohomeClientV2(credentials_manager)
+        ec2 = EvohomeClientV2(credentials_manager)
 
         with (
             caplog.at_level(logging.WARNING),
@@ -68,7 +68,7 @@ async def test_system_warnings(
                 match=r"use \.setup\(\), then Location\.get_status\(\)",
             ),
         ):
-            await evo.update()
+            await ec2.update()
 
     assert caplog.record_tuples == snapshot
 
@@ -101,31 +101,31 @@ async def test_multi_location_warning_once_per_config_load(
         patch("evohomeasync2.auth.Auth.get", auth_get(multi_location_fixtures)),
         caplog.at_level(logging.WARNING),
     ):
-        evo = EvohomeClientV2(credentials_manager)
+        ec2 = EvohomeClientV2(credentials_manager)
 
         with pytest.warns(
             DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
         ):
-            await evo.update()  # config will be loaded: warn
+            await ec2.update()  # config will be loaded: warn
         assert warnings() == [warning]
 
         with pytest.warns(
             DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
         ):
-            await evo.update()  # status update only: don't warn again
+            await ec2.update()  # status update only: don't warn again
         assert warnings() == []
 
         with pytest.warns(
             DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
         ):
-            await evo.update(_reset_config=True)  # config reloaded: warn again
+            await ec2.update(_reset_config=True)  # config reloaded: warn again
         assert warnings() == [warning]
 
         # test no warnings are given when status updates are skipped
-        evo = EvohomeClientV2(credentials_manager)
+        ec2 = EvohomeClientV2(credentials_manager)
 
         with pytest.warns(
             DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
         ):
-            await evo.update(dont_update_status=True)  # no status updates: don't warn
+            await ec2.update(dont_update_status=True)  # no status updates: don't warn
         assert warnings() == []
