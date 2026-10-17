@@ -206,18 +206,24 @@ async def should_fail_v1(
     return response
 
 
-def is_zone_v1(dev: TccDeviceResponseT) -> bool:
+def is_zone_v1(
+    dev: TccDeviceResponseT,
+) -> bool:
     """Return True if a (vendor-cased) v1 device is an evohome zone."""
     # Honeywell TH9320WF3003 can send thermostatModelType as an int, so guard startswith()
     return isinstance(t := dev["thermostatModelType"], str) and t.startswith("EMEA_")
 
 
-def is_dhw_v1(dev: TccDeviceResponseT) -> bool:
+def is_dhw_v1(
+    dev: TccDeviceResponseT,
+) -> bool:
     """Return True if a (vendor-cased) v1 device is an evohome DHW."""
     return dev["thermostatModelType"] == "DOMESTIC_HOT_WATER"
 
 
-def is_alive_v1(dev: TccDeviceResponseT) -> bool:
+def is_alive_v1(
+    dev: TccDeviceResponseT,
+) -> bool:
     """Return True if a (vendor-cased) v1 device is alive (i.e. its gateway is online).
 
     The vendor rejects any PUT to a device that is not alive: 400, "DeviceIsLost".
@@ -225,7 +231,9 @@ def is_alive_v1(dev: TccDeviceResponseT) -> bool:
     return dev.get("isAlive") is True
 
 
-def status_of_v1(dev: TccDeviceResponseT) -> str | None:
+def status_of_v1(
+    dev: TccDeviceResponseT,
+) -> str | None:
     """Return the status of a (vendor-cased) v1 zone or DHW, e.g. "Scheduled".
 
     A zone's is under changeableValues.heatSetpoint, a DHW's under changeableValues.
@@ -237,7 +245,9 @@ def status_of_v1(dev: TccDeviceResponseT) -> str | None:
     return None if (status := values.get("status")) is None else str(status)
 
 
-def task_id_v1(response: object) -> str:
+def task_id_v1(
+    response: object,
+) -> str:
     """Return the id of the comm task that a v1 PUT returns (a dict, or a list of one).
 
     e.g. {"id": 1234567890} (an int). A list of one, i.e. [{"id": 1234567890}], has not
@@ -255,7 +265,10 @@ def task_id_v1(response: object) -> str:
 _CLOCK_SKEW: Final = td(seconds=5)
 
 
-def is_stale_task_v1(task: Mapping[str, Any], sent: dt) -> bool:
+def is_stale_task_v1(
+    task: Mapping[str, Any],
+    sent: dt,
+) -> bool:
     """Return True if a v1 comm task had started before its PUT was sent.
 
     The vendor sometimes answers a v1 PUT with the comm task of an earlier, equivalent

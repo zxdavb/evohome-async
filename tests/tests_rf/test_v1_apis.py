@@ -66,7 +66,9 @@ def _is_evohome(tcs: ControlSystem) -> bool:
     )
 
 
-async def _test_usr_apis(ec1: EvohomeClientV1) -> None:
+async def _test_usr_apis(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test User and Location methods.
 
     Includes: ec1.update(), ec1.user_account, ec1.locations, and zone/DHW temperatures.
@@ -89,7 +91,9 @@ async def _test_usr_apis(ec1: EvohomeClientV1) -> None:
             )
 
 
-async def _test_tcs_apis(ec1: EvohomeClientV1) -> None:
+async def _test_tcs_apis(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test ControlSystem methods.
 
     Includes tcs.set_auto() (which would leave the TCS in Auto mode).
@@ -107,7 +111,9 @@ async def _test_tcs_apis(ec1: EvohomeClientV1) -> None:
     assert err.value.status == HTTPStatus.NOT_FOUND
 
 
-async def _test_dhw_apis(ec1: EvohomeClientV1) -> None:
+async def _test_dhw_apis(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test HotWater methods.
 
     Includes dhw.set_dhw_on() or dhw.set_dhw_off() (whichever is its current state),
@@ -142,7 +148,9 @@ async def _test_dhw_apis(ec1: EvohomeClientV1) -> None:
     await dhw.set_dhw_auto()
 
 
-async def _test_zon_apis(ec1: EvohomeClientV1) -> None:
+async def _test_zon_apis(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test Zone methods.
 
     Includes zone.set_temperature() (temporary & permanent) and zone.set_zone_auto().

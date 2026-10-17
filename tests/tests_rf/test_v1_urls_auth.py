@@ -58,7 +58,9 @@ if TYPE_CHECKING:
     from evohomeasync.schemas import TccDeviceResponseT, TccLocationResponseT
 
 
-async def _test_usr_locations(ec1: EvohomeClientV1) -> None:
+async def _test_usr_locations(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test /locations?userId={user_id}&allData=True"""
 
     usr_id: int = ec1.user_account["user_id"]
@@ -93,7 +95,9 @@ async def _test_usr_locations(ec1: EvohomeClientV1) -> None:
     )
 
 
-async def _test_evo_systems(ec1: EvohomeClientV1) -> None:
+async def _test_evo_systems(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test /evoTouchSystems?locationId={loc_id}"""
 
     # usr_id: int = ec1.user_account["user_id"]
@@ -198,7 +202,9 @@ _ZON_REVERT = {"Value": None, "Status": "Scheduled", "NextTime": None}
 _DHW_MODES = ("DHWOn", "DHWOff")
 
 
-async def _get_location(ec1: EvohomeClientV1) -> TccLocationResponseT:
+async def _get_location(
+    ec1: EvohomeClientV1,
+) -> TccLocationResponseT:
     """Return the (vendor-cased) location under test."""
 
     usr_id: int = ec1.user_account["user_id"]
@@ -209,12 +215,17 @@ async def _get_location(ec1: EvohomeClientV1) -> TccLocationResponseT:
     return locs[TEST_LOC_IDX]
 
 
-async def _get_devices(ec1: EvohomeClientV1) -> list[TccDeviceResponseT]:
+async def _get_devices(
+    ec1: EvohomeClientV1,
+) -> list[TccDeviceResponseT]:
     """Return all the (vendor-cased) devices of the location under test."""
     return (await _get_location(ec1))["devices"]
 
 
-async def _get_status(ec1: EvohomeClientV1, dev_id: int) -> str | None:
+async def _get_status(
+    ec1: EvohomeClientV1,
+    dev_id: int,
+) -> str | None:
     """Return the current status of a zone/DHW, e.g. "Scheduled"."""
     return status_of_v1(
         next(d for d in await _get_devices(ec1) if d["deviceID"] == dev_id)
@@ -264,7 +275,9 @@ async def _wait_for_status(
         return status
 
 
-async def _find_scheduled_zone(ec1: EvohomeClientV1) -> TccDeviceResponseT:
+async def _find_scheduled_zone(
+    ec1: EvohomeClientV1,
+) -> TccDeviceResponseT:
     """Return a live zone that is following its schedule (else skip the test)."""
 
     dev = next(
@@ -280,7 +293,10 @@ async def _find_scheduled_zone(ec1: EvohomeClientV1) -> TccDeviceResponseT:
     return dev
 
 
-async def _get_next_time(ec1: EvohomeClientV1, dev_id: int) -> str | None:
+async def _get_next_time(
+    ec1: EvohomeClientV1,
+    dev_id: int,
+) -> str | None:
     """Return the NextTime of a zone's setpoint (via v1, so local time, without a Z)."""
 
     dev = next(d for d in await _get_devices(ec1) if d["deviceID"] == dev_id)
@@ -289,7 +305,9 @@ async def _get_next_time(ec1: EvohomeClientV1, dev_id: int) -> str | None:
     return next_time
 
 
-async def _test_zon_heat_setpoint(ec1: EvohomeClientV1) -> None:
+async def _test_zon_heat_setpoint(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test PUT /devices/{zone_id}/thermostat/changeableValues/heatSetpoint
 
     Overrides a zone to its current setpoint (so is a no-op in practice), confirming that
@@ -341,7 +359,9 @@ async def _test_zon_heat_setpoint(ec1: EvohomeClientV1) -> None:
         assert await _wait_for_status(ec1, dev_id, "Scheduled") == "Scheduled"
 
 
-async def _test_dhw_changeable_values(ec1: EvohomeClientV1) -> None:
+async def _test_dhw_changeable_values(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test PUT /devices/{dhw_id}/thermostat/changeableValues
 
     Sets the DHW to its current mode (so is a no-op in practice).
@@ -367,7 +387,9 @@ async def _test_dhw_changeable_values(ec1: EvohomeClientV1) -> None:
         await _put_and_wait(ec1, url, json)
 
 
-async def _test_dhw_forbidden_params(ec1: EvohomeClientV1) -> None:
+async def _test_dhw_forbidden_params(
+    ec1: EvohomeClientV1,
+) -> None:
     """Test the params that PUT /devices/{dhw_id}/thermostat/changeableValues rejects.
 
     On some installations (e.g. the test installation), the vendor forbids a DHW's
@@ -474,7 +496,11 @@ async def _test_dhw_forbidden_params(ec1: EvohomeClientV1) -> None:
     assert error_codes(rsp) == ["InvalidInput"], rsp
 
 
-async def _test_lost_device(ec1: EvohomeClientV1, *, is_dhw: bool) -> None:
+async def _test_lost_device(
+    ec1: EvohomeClientV1,
+    *,
+    is_dhw: bool,
+) -> None:
     """Test a PUT to a device that is not alive (i.e. its gateway is offline).
 
     The vendor rejects it, whatever the body. Uses a body that is accepted for a live

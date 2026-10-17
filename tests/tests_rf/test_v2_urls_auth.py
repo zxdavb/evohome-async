@@ -56,7 +56,9 @@ if TYPE_CHECKING:
 #######################################################################################
 
 
-async def _test_usr_account(ec2: EvohomeClientV2) -> None:
+async def _test_usr_account(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test /userAccount"""
 
     # STEP 1:
@@ -88,7 +90,9 @@ async def _test_usr_account(ec2: EvohomeClientV2) -> None:
     # '<!DOCTYPE html PUBLIC ...
 
 
-async def _test_user_locations(ec2: EvohomeClientV2) -> None:
+async def _test_user_locations(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test /location/installationInfo?userId={user_id}"""
 
     # TODO: can't use .update(); in any case, should use URLs only
@@ -151,7 +155,9 @@ async def _test_user_locations(ec2: EvohomeClientV2) -> None:
     _ = await should_fail_v2(ec2.auth, HTTPMethod.GET, url, status=HTTPStatus.NOT_FOUND)
 
 
-async def _test_loc_status(ec2: EvohomeClientV2) -> None:
+async def _test_loc_status(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test /location/{loc.id}/status"""
 
     # TODO: remove .update() and use URLs only
@@ -204,7 +210,9 @@ async def _test_loc_status(ec2: EvohomeClientV2) -> None:
     )
 
 
-async def _test_tcs_status(ec2: EvohomeClientV2) -> None:
+async def _test_tcs_status(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test GET /temperatureControlSystem/{tcs.id}/status
 
     Also tests PUT /temperatureControlSystem/{tcs.id}/mode
@@ -345,7 +353,9 @@ async def _test_tcs_status(ec2: EvohomeClientV2) -> None:
     # '<!DOCTYPE html PUBLIC ...
 
 
-async def _test_zone_status(ec2: EvohomeClientV2) -> None:
+async def _test_zone_status(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test /temperatureZone/{zone.id}/status
 
     Also tests /temperatureZone/{zone.id}/heatSetpoint
@@ -450,7 +460,9 @@ async def _test_zone_status(ec2: EvohomeClientV2) -> None:
     # {'id': '1588365922'}
 
 
-async def _test_dhw_status(ec2: EvohomeClientV2) -> None:
+async def _test_dhw_status(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test /domesticHotWater/{dhw.id}/status
 
     Also tests /domesticHotWater/{dhw.id}/state

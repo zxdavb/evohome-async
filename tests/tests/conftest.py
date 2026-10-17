@@ -259,13 +259,17 @@ async def ec2(
 
 
 @pytest.fixture
-def auth(ec2: EvohomeClientV2) -> Auth:
+def auth(
+    ec2: EvohomeClientV2,
+) -> Auth:
     """Return the Auth object of the client (e.g. to create a CommTask)."""
     return ec2.auth
 
 
 @pytest.fixture
-def tcs(ec2: EvohomeClientV2) -> ControlSystem:
+def tcs(
+    ec2: EvohomeClientV2,
+) -> ControlSystem:
     """Return the first TCS of the location under test (see get_tcs()).
 
     Fail the test if there is none, as then the test is using the wrong fixture.
@@ -277,7 +281,9 @@ def tcs(ec2: EvohomeClientV2) -> ControlSystem:
 
 
 @pytest.fixture
-def zone(ec2: EvohomeClientV2) -> Zone:
+def zone(
+    ec2: EvohomeClientV2,
+) -> Zone:
     """Return the first zone of the location under test (see get_zon()).
 
     Fail the test if there is none, as then the test is using the wrong fixture.
@@ -288,7 +294,9 @@ def zone(ec2: EvohomeClientV2) -> Zone:
 
 
 @pytest.fixture
-def dhw(ec2: EvohomeClientV2) -> HotWater:
+def dhw(
+    ec2: EvohomeClientV2,
+) -> HotWater:
     """Return the DHW of the location under test (see get_dhw()).
 
     Fail the test if there is none, as then the test is using the wrong fixture.

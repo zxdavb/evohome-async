@@ -25,7 +25,9 @@ if TYPE_CHECKING:
     from evohomeasync2.schemas.schedule import TccZonDailySchedulesT
 
 
-async def _test_schedule_put(ec2: EvohomeClientV2) -> None:
+async def _test_schedule_put(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule"""
 
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
@@ -117,7 +119,9 @@ async def _test_schedule_put(ec2: EvohomeClientV2) -> None:
     """
 
 
-async def _test_schedule_tsk(ec2: EvohomeClientV2) -> None:
+async def _test_schedule_tsk(
+    ec2: EvohomeClientV2,
+) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule
 
     Also test commTasks?commTaskId={task_id}
@@ -199,7 +203,9 @@ async def test_schedule_tsk(
     await _test_schedule_tsk(ec2)
 
 
-async def _test_schedule_get_schema_zon(ec2: EvohomeClientV2) -> None:
+async def _test_schedule_get_schema_zon(
+    ec2: EvohomeClientV2,
+) -> None:
     """Document the exact key casing in the vendor's GET schedule response.
 
     The vendor API is reportedly case-insensitive on PUT, but this confirms
@@ -249,7 +255,9 @@ async def _test_schedule_get_schema_zon(ec2: EvohomeClientV2) -> None:
     assert isinstance(sp["timeOfDay"], str)  # e.g. "06:30:00"
 
 
-async def _test_schedule_get_schema_dhw(ec2: EvohomeClientV2) -> None:
+async def _test_schedule_get_schema_dhw(
+    ec2: EvohomeClientV2,
+) -> None:
     """Document the exact key casing in the vendor's GET DHW schedule response.
 
     Mirrors _test_schedule_get_schema for DHW — switchpoints use dhwState
