@@ -25457,7 +25457,7 @@
       timing_resolution: 00:10:00
   
     ''',
-    'schedule_fetched_at': '''
+    'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
     ''',
@@ -25816,7 +25816,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -25956,7 +25956,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -26099,7 +26099,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -26241,7 +26241,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -26383,7 +26383,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -26525,7 +26525,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -26667,7 +26667,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -26809,7 +26809,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -26951,7 +26951,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -27349,7 +27349,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -28008,7 +28008,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -28150,7 +28150,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -28291,7 +28291,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -28432,7 +28432,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -28574,7 +28574,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -28715,7 +28715,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -29109,7 +29109,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -29250,7 +29250,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -29392,7 +29392,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -29535,7 +29535,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -29677,7 +29677,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -29818,7 +29818,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -29960,7 +29960,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -30102,7 +30102,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -30243,7 +30243,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -30574,7 +30574,7 @@
       timing_resolution: 00:10:00
   
     ''',
-    'schedule_fetched_at': '''
+    'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
     ''',
@@ -30933,7 +30933,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -31075,7 +31075,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -31217,7 +31217,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -31359,7 +31359,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -31501,7 +31501,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -31643,7 +31643,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -31785,7 +31785,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -31927,7 +31927,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -32260,7 +32260,7 @@
       timing_resolution: 00:10:00
   
     ''',
-    'schedule_fetched_at': '''
+    'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
     ''',
@@ -32620,7 +32620,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -32762,7 +32762,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -32904,7 +32904,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -33046,7 +33046,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -33188,7 +33188,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -33330,7 +33330,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -33472,7 +33472,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -33614,7 +33614,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -33756,7 +33756,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -34086,7 +34086,7 @@
       timing_resolution: 00:10:00
   
     ''',
-    'schedule_fetched_at': '''
+    'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
     ''',
@@ -34445,7 +34445,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -34587,7 +34587,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -34729,7 +34729,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -34871,7 +34871,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -35013,7 +35013,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -35155,7 +35155,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -35297,7 +35297,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -35439,7 +35439,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -35757,7 +35757,7 @@
           timing_resolution: 00:15:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -36090,7 +36090,7 @@
       timing_resolution: 00:10:00
   
     ''',
-    'schedule_fetched_at': '''
+    'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
     ''',
@@ -36449,7 +36449,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -36591,7 +36591,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -36733,7 +36733,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -36874,7 +36874,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -37017,7 +37017,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -37158,7 +37158,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -37301,7 +37301,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -37443,7 +37443,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -37585,7 +37585,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -37727,7 +37727,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -37868,7 +37868,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -38010,7 +38010,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -38319,7 +38319,7 @@
           ...
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -38970,7 +38970,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -39112,7 +39112,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -39254,7 +39254,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -39395,7 +39395,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -39537,7 +39537,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -39679,7 +39679,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -39821,7 +39821,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -39963,7 +39963,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -40105,7 +40105,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -40247,7 +40247,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -40389,7 +40389,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -40531,7 +40531,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -40926,7 +40926,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -41068,7 +41068,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -41209,7 +41209,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -41351,7 +41351,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -41493,7 +41493,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -41635,7 +41635,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -41776,7 +41776,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -41917,7 +41917,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -42059,7 +42059,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -42453,7 +42453,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -42594,7 +42594,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -42736,7 +42736,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -42878,7 +42878,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -43019,7 +43019,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -43414,7 +43414,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -43556,7 +43556,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -43698,7 +43698,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -43839,7 +43839,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -43980,7 +43980,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -44122,7 +44122,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -44263,7 +44263,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -44405,7 +44405,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -44547,7 +44547,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -44863,7 +44863,7 @@
           timing_resolution: 00:15:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -45186,7 +45186,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -45326,7 +45326,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -45675,7 +45675,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -46059,7 +46059,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -46190,7 +46190,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -46320,7 +46320,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -46451,7 +46451,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -46582,7 +46582,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -46713,7 +46713,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -46844,7 +46844,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -46978,7 +46978,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -47294,7 +47294,7 @@
           timing_resolution: 00:15:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -47645,7 +47645,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -47787,7 +47787,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -47929,7 +47929,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -48071,7 +48071,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -48213,7 +48213,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -48618,7 +48618,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -48760,7 +48760,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -48902,7 +48902,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -49044,7 +49044,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -49187,7 +49187,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -49531,7 +49531,7 @@
           timing_resolution: 00:15:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -50024,7 +50024,7 @@
       timing_resolution: 00:10:00
   
     ''',
-    'schedule_fetched_at': '''
+    'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
     ''',
@@ -50385,7 +50385,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -50525,7 +50525,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -50667,7 +50667,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -50809,7 +50809,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -50951,7 +50951,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -51093,7 +51093,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -51235,7 +51235,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -51377,7 +51377,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -51519,7 +51519,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -51870,7 +51870,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -52012,7 +52012,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -52408,7 +52408,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -52548,7 +52548,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -52690,7 +52690,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -52832,7 +52832,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -52974,7 +52974,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -53116,7 +53116,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -53258,7 +53258,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -53400,7 +53400,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -53542,7 +53542,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -53898,7 +53898,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -54231,7 +54231,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: 'null
+      schedule_last_fetched: 'null
   
           ...
   
@@ -54504,7 +54504,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: 'null
+      schedule_last_fetched: 'null
   
           ...
   
@@ -54837,7 +54837,7 @@
       timing_resolution: 00:10:00
   
     ''',
-    'schedule_fetched_at': '''
+    'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
     ''',
@@ -55114,7 +55114,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -55256,7 +55256,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -55398,7 +55398,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -55540,7 +55540,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -55682,7 +55682,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -55824,7 +55824,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -55966,7 +55966,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -56108,7 +56108,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -56250,7 +56250,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -56392,7 +56392,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -56534,7 +56534,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -56676,7 +56676,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -56989,7 +56989,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -57391,7 +57391,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
@@ -57791,7 +57791,7 @@
       timing_resolution: 00:10:00
   
     ''',
-    'schedule_fetched_at': '''
+    'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
     ''',
@@ -58166,7 +58166,7 @@
           timing_resolution: 00:10:00
   
           '
-      schedule_fetched_at: '''2025-01-01T00:00:00+00:00''
+      schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
       setpoint_capabilities: "allowed_setpoint_modes:\n- !!python/object/apply:evohomeasync2.const.ZoneMode\n\
