@@ -63,7 +63,7 @@ def reset_systems(
     use_real_aiohttp: bool,
     credentials: tuple[str, str],
 ) -> Generator[None]:
-    """After the last test, reset the location under test (see TEST_LOC_IDX).
+    """After the last test, reset the location under test (see get_loc()).
 
     That is, set its TCS to Auto, and its zones/DHW to FollowSchedule. Only against the
     vendor's server. The tests do not restore what they change (the test system is
