@@ -71,7 +71,7 @@ async def _test_usr_apis(
 ) -> None:
     """Test User and Location methods.
 
-    Includes: ec1.update(), ec1.user_account, ec1.locations, and zone/DHW temperatures.
+    Includes: ec1.get_status(), ec1.user_account, ec1.locations, and zone/DHW temperatures.
     """
 
     # STEP 1: GET /accountInfo, GET /locations?userId={usr_id}&allData=True
@@ -179,7 +179,7 @@ async def _test_zon_apis(
 async def test_usr_apis(
     ec1: EvohomeClientV1,
 ) -> None:
-    """Test update(), user_account and locations."""
+    """Test get_status(), user_account and locations."""
 
     if not _DBG_USE_REAL_AIOHTTP:
         pytest.skip("Mocked server not implemented for this test")

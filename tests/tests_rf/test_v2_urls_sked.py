@@ -32,7 +32,7 @@ async def _test_schedule_put(
 
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
 
-    # TODO: remove .update() and use URLs only
+    # TODO: remove .setup() and use URLs only
     await ec2.setup()
 
     if not (zone := get_zon(ec2)):
@@ -129,7 +129,7 @@ async def _test_schedule_tsk(
 
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
 
-    # TODO: remove .update() and use URLs only
+    # TODO: remove .setup() and use URLs only
     await ec2.setup()
 
     if not (zone := get_zon(ec2)):
@@ -212,7 +212,7 @@ async def _test_schedule_get_schema_zon(
     what casing GET actually returns (expected: camelCase throughout).
     """
 
-    # TODO: remove .update() and use URLs only
+    # TODO: remove .setup() and use URLs only
     await ec2.setup()
 
     # schedule: TccZonDailySchedulesT  # can't use this, as we GET without a schema
@@ -263,7 +263,7 @@ async def _test_schedule_get_schema_dhw(
     Mirrors _test_schedule_get_schema for DHW — switchpoints use dhwState
     instead of heatSetpoint, but the same camelCase key convention applies.
     """
-    # TODO: remove .update() and use URLs only
+    # TODO: remove .setup() and use URLs only
     await ec2.setup()
 
     # schedule: TccDhwDailySchedulesT  # cant use this, as we GET without a schema

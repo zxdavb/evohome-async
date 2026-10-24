@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+from datetime import UTC, datetime as dt
 from http import HTTPStatus
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -26,6 +27,8 @@ from .conftest import FIXTURES_V2 as FIXTURES, auth_get
 from .const import PUT_RESPONSE_V2
 
 if TYPE_CHECKING:
+    from freezegun.api import FrozenDateTimeFactory
+
     from evohome_cli.auth import TokenCacheManager
 
 _ERR_MSG = "GET url: response failed validation: ..."
@@ -50,7 +53,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 async def test_config_not_fetched(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test the config attrs raise NotFetchedError until update() is called."""
+    """Test the config attrs raise NotFetchedError until setup() is called."""
 
     ec2 = EvohomeClient(credentials_manager)
 
@@ -68,6 +71,8 @@ async def test_schedule_not_fetched(
     zone: Zone,
 ) -> None:
     """Test the schedule attrs raise NotFetchedError until get_schedule() is called."""
+
+    assert zone.schedule_last_fetched is None
 
     with pytest.raises(exc.NotFetchedError):
         _ = zone.schedule
@@ -106,7 +111,7 @@ async def test_status_not_fetched(
 async def test_invalid_config(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test update() raises InvalidConfigError if the config fails validation."""
+    """Test setup() raises InvalidConfigError if the config fails validation."""
 
     ec2 = EvohomeClient(credentials_manager)
     error = exc.BadApiResponseError(_ERR_MSG)
@@ -124,7 +129,7 @@ async def test_invalid_config(
 async def test_invalid_status(
     ec2: EvohomeClient,
 ) -> None:
-    """Test update() raises InvalidStatusError if the status fails validation."""
+    """Test Location.get_status() raises InvalidStatusError if the status fails validation."""
 
     loc = get_loc(ec2)
     error = exc.BadApiResponseError(_ERR_MSG)
@@ -175,18 +180,23 @@ async def test_get_schedule_failures(
         await zone.get_schedule()
 
     assert type(err.value) is expected
+    assert zone.schedule_last_fetched is None
 
 
 async def test_empty_schedule(
     zone: Zone,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test an empty schedule is valid, and has no switchpoints."""
+
+    freezer.move_to("2025-01-01T00:00:00+00:00")
 
     with patch(
         "evohomeasync2.auth.Auth.get", AsyncMock(return_value={"daily_schedules": []})
     ):
         assert await zone.get_schedule() == []
 
+    assert zone.schedule_last_fetched == dt(2025, 1, 1, tzinfo=UTC)
     assert zone.schedule == []
     assert zone.this_switchpoint is None
     assert zone.next_switchpoint is None
@@ -207,6 +217,8 @@ async def test_invalid_schedule_not_stored(
 
     schedule = await fetched.get_schedule()
     switchpoints = (fetched.this_switchpoint, fetched.next_switchpoint)
+    last_fetched = fetched.schedule_last_fetched
+    assert last_fetched is not None
 
     with (
         patch(
@@ -225,7 +237,9 @@ async def test_invalid_schedule_not_stored(
 
     assert fetched.schedule == schedule
     assert (fetched.this_switchpoint, fetched.next_switchpoint) == switchpoints
+    assert fetched.schedule_last_fetched == last_fetched
 
+    assert unfetched.schedule_last_fetched is None
     with pytest.raises(exc.NotFetchedError):
         _ = unfetched.schedule
     with pytest.raises(exc.NotFetchedError):
