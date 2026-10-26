@@ -39,8 +39,8 @@ cli = [
 ]
 dev = [
   # linting
-  "prek>=0.5.6",
-  "ruff>=0.17.1",
+  "prek>=0.5.7",
+  "ruff>=0.17.2",
   # typing
   "mypy>=2.4.0",
   "types-aiofiles>=25.1.0.20260518",
@@ -48,7 +48,7 @@ dev = [
   # testing
   "PyYAML>=6.0.3",
   "pytest>=9.1.1",
-  "pytest-asyncio>=1.4.0",
+  "pytest-asyncio>=1.4.1",
   "pytest-cov>=7.1.0",
   "pytest-freezer>=0.4.9",
   "pytest-sugar>=1.1.1",
