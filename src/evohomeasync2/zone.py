@@ -363,10 +363,20 @@ class _ScheduleBase[
     SCH_SCHEDULE: Validator[_DailySchedulesT[DayT]]
 
     _schedule: list[DayT] | None = None  # None: not fetched, []: there is no schedule
+    _schedule_last_fetched: dt | None = None  # None: not fetched (successfully)
 
     location: Location  # used to get tzinfo
 
     # Status (state) attrs & methods...
+
+    @property
+    def schedule_last_fetched(self) -> dt | None:
+        """Return when the schedule was last fetched (successfully), else None.
+
+        Schedules are weekly, so a consumer can use this to re-fetch them only as often
+        as is needed to pick up any changes made elsewhere (e.g. via the vendor's app).
+        """
+        return self._schedule_last_fetched
 
     @property
     def schedule(self) -> list[DayT]:
@@ -453,6 +463,7 @@ class _ScheduleBase[
             ) from err
 
         self._schedule = schedule
+        self._schedule_last_fetched = dt.now(tz=UTC)
 
         return self._schedule
 

@@ -131,8 +131,11 @@ jobs:
       - name: Extract Python version from pyproject.toml
         id: get-version
         run: |
-          # Extract requires-python, e.g., ">=3.13.2" -> "3.13.2"
-          python_version=$(grep -oP 'requires-python\s*=\s*"[><=]*\K[0-9]+\.[0-9]+(\.[0-9]+)?' pyproject.toml)
+          # Extract major.minor of requires-python, e.g., ">=3.14.2" -> "3.14"
+          # requires-python is a floor, so the latest patch release of that minor satisfies it;
+          # pinning the exact patch fails on runner images that never got a build of it (e.g.
+          # 3.14.2 does not exist for Ubuntu 26.04 in actions/python-versions)
+          python_version=$(grep -oP 'requires-python\s*=\s*"[><=]*\K[0-9]+\.[0-9]+' pyproject.toml)
           echo "python-version=${python_version}" >> $GITHUB_OUTPUT
           echo "Detected Python version: ${python_version}"
 
@@ -206,6 +209,12 @@ jobs:
 
           # Install Home Assistant in editable mode (needed for compiled translations)
           uv pip install -e . --config-settings editable_mode=compat
+
+          # HA's tests import their shared fixtures from this in-repo package;
+          # older HA versions don't have it
+          if [ -d packages/pytest-home-assistant ]; then
+            uv pip install -e packages/pytest-home-assistant --config-settings editable_mode=compat
+          fi
 
       - name: Compile English translations
         working-directory: home-assistant-core
