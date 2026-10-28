@@ -738,7 +738,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, zon_mode: EvoSetZoneHeatSetpointT, /) -> CommTask:
+    async def _put_mode(self, zon_mode: EvoSetZoneHeatSetpointT, /) -> CommTask:
         """Set the Zone mode, and return the vendor's comm task.
 
         Heating only; cooling is not exposed by the API.
@@ -826,7 +826,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
             zone_mode[SZ_TIME_UNTIL] = as_aware_dtm(until)
 
-        return await self._set_mode(zone_mode)
+        return await self._put_mode(zone_mode)
 
     async def reset(self) -> CommTask:
         """Cancel any override and allow the Zone to follow its schedule."""
