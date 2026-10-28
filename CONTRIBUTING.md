@@ -120,6 +120,11 @@ EvohomeError
     └── StaleConfigError
 ```
 
+`ApiRequestFailedError` and `InvalidSystemModeError` are deprecated aliases (used by
+the HA integration), for `ApiCallFailedError` and `InvalidModeRequestError`. Accessing
+either emits a `DeprecationWarning` (they are served by a module `__getattr__()`, from
+`deprecated_getattr()` in `_evohome/exceptions.py`).
+
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library
   code - instead, raise exceptions based upon `EvohomeError`.
 - An `AuthenticationFailedError` is an `ApiCallFailedError`, and has a `status` too. A
@@ -185,11 +190,11 @@ Do not use `evo` for a client. In the CLI, the click context key is `_EC2` (`"ec
 
 ### Deprecations
 
-Deprecate a method with `@warnings.deprecated(...)`, and a module-level name with a
-module `__getattr__()` that emits a `DeprecationWarning`; the message names the
-replacement. Tests use the replacement, except those that test the deprecated name
-itself, which do so under `pytest.warns(DeprecationWarning)` (so the test suite passes
-with `-W error::DeprecationWarning`).
+Deprecate a method with `@warnings.deprecated(...)`, and a module-level name with
+`deprecated_getattr()`; the message names the replacement. Tests use the replacement,
+except those that test the deprecated name itself, which do so under
+`pytest.warns(DeprecationWarning)` (so the test suite passes with
+`-W error::DeprecationWarning`).
 
 ### Function signatures
 

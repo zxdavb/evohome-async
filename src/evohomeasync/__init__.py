@@ -7,6 +7,10 @@ Further information at: https://evohome-client.readthedocs.io
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+from _evohome.exceptions import deprecated_getattr
+
 from .auth import AbstractSessionManager
 from .entities import ControlSystem, Gateway, HotWater, Location, Zone
 from .exceptions import (
@@ -56,6 +60,9 @@ from .schemas import (  # noqa: F401
     TccThermostatModelType,
 )
 
+if TYPE_CHECKING:  # at runtime, they are served by __getattr__() (and warn)
+    from .exceptions import ApiRequestFailedError
+
 __all__ = [  # noqa: RUF022
     "EvohomeClient",
     "AbstractSessionManager",
@@ -79,6 +86,7 @@ __all__ = [  # noqa: RUF022
     "ApiCallFailedError",
     "ApiCallRejectedError",
     "ApiRateLimitExceededError",
+    "ApiRequestFailedError",
     "AuthenticationFailedError",
     "AuthRateLimitExceededError",
     "BadApiRequestError",
@@ -92,3 +100,7 @@ __all__ = [  # noqa: RUF022
     "InvalidStatusError",
     "NotFetchedError",
 ]
+
+# hidden from type checkers, which would otherwise accept any name in this module
+if not TYPE_CHECKING:
+    __getattr__ = deprecated_getattr(__name__, ("ApiRequestFailedError",))

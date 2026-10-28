@@ -4,9 +4,9 @@ Invokes every vendor API (URL) that the client uses, via the client's methods:
 
   Method    Endpoint                                                    Client method
   --------  ----------------------------------------------------------  ---------------------------
-  GET       /userAccount                                                ec2.setup()
-  GET       /location/installationInfo?userId={usr_id}&include...=True  ec2.setup()
-  GET       /location/{loc_id}/status?includeTemperatureControlSystems  loc.get_status()
+  GET       /userAccount                                                ec2.update()
+  GET       /location/installationInfo?userId={usr_id}&include...=True  ec2.update()
+  GET       /location/{loc_id}/status?includeTemperatureControlSystems  loc.update()
   PUT       /temperatureControlSystem/{tcs_id}/mode                     tcs.set_mode()
   PUT       /temperatureZone/{zon_id}/heatSetpoint                      zon.set_temperature(), reset()
   GET, PUT  /temperatureZone/{zon_id}/schedule                          zon.get/set_schedule()
@@ -16,7 +16,7 @@ Invokes every vendor API (URL) that the client uses, via the client's methods:
 The client has methods for some other APIs, but does not use them (e.g. the status of a
 zone is included in that of its location). They are invoked only if _DBG_TEST_UNUSED_APIS:
 
-  GET       /location/{loc_id}/installationInfo                         loc._get_config()
+  GET       /location/{loc_id}/installationInfo                         loc.update(_update_time_zone_info=True)
   GET       /temperatureZone/{zon_id}/status                            zon._get_status()
   GET       /domesticHotWater/{dhw_id}/status                           dhw._get_status()
 
@@ -54,7 +54,7 @@ async def _test_usr_apis(
 ) -> None:
     """Test User and Location methods.
 
-    Includes: ec2.user_account(), ec2.installation() and loc.get_status() methods.
+    Includes: ec2.user_account(), ec2.installation() and loc.update() methods.
     """
 
     # STEP 1: retrieve config only: ec2.user_account(), ec2.installation()
@@ -81,7 +81,7 @@ async def _test_tcs_apis(
 ) -> None:
     """Test ControlSystem methods.
 
-    Includes loc.get_status() (for the TCS status) and tcs.set_mode().
+    Includes tcs.update() and tcs.set_mode().
     Does not include tcs.get_schedules(), tcs.set_schedules().
     """
 

@@ -53,7 +53,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 async def test_config_not_fetched(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test the config attrs raise NotFetchedError until setup() is called."""
+    """Test the config attrs raise NotFetchedError until update() is called."""
 
     ec2 = EvohomeClient(credentials_manager)
 
@@ -111,7 +111,7 @@ async def test_status_not_fetched(
 async def test_invalid_config(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test setup() raises InvalidConfigError if the config fails validation."""
+    """Test update() raises InvalidConfigError if the config fails validation."""
 
     ec2 = EvohomeClient(credentials_manager)
     error = exc.BadApiResponseError(_ERR_MSG)
@@ -129,7 +129,7 @@ async def test_invalid_config(
 async def test_invalid_status(
     ec2: EvohomeClient,
 ) -> None:
-    """Test Location.get_status() raises InvalidStatusError if the status fails validation."""
+    """Test update() raises InvalidStatusError if the status fails validation."""
 
     loc = get_loc(ec2)
     error = exc.BadApiResponseError(_ERR_MSG)

@@ -410,6 +410,10 @@ class EvoDhwScheduleDayOfWeekT(TypedDict):
     switchpoints: list[EvoDhwScheduleSwitchpointT]
 
 
+class EvoDayOfWeekDhwT(EvoDhwScheduleDayOfWeekT):
+    """A shim for compatibility with HA, that is to be deprecated."""
+
+
 class EvoDhwScheduleSwitchpointT(TypedDict):
     dhw_state: DhwState
     time_of_day: str
@@ -439,6 +443,30 @@ class EvoZonScheduleSwitchpointT(TypedDict):
     heat_setpoint: float
     fan_mode: NotRequired[FanMode | str]  # non-evohome; may be unknown, so allow str
     time_of_day: str
+
+
+# These are to be deprecated in favour of the above
+class EvoSwitchpointT(TypedDict):
+    time_of_day: str
+    dhw_state: NotRequired[DhwState]  # mutex with heat_setpoint
+    heat_setpoint: NotRequired[float]
+
+
+class EvoDayOfWeekT(TypedDict):
+    day_of_week: DayOfWeek
+    switchpoints: list[EvoSwitchpointT]
+
+
+class EvoDailySchedulesT(TypedDict):
+    daily_schedules: list[EvoDayOfWeekT]
+
+
+class EvoScheduleT(EvoDailySchedulesT):  # for export/import to/from file
+    """Schedule for a zone or DHW, for export/import to/from file."""
+
+    dhw_id: NotRequired[str]  # exactly one of these two IDs will be present
+    zone_id: NotRequired[str]
+    name: NotRequired[str]  # would normally be present, but be OK if not
 
 
 #######################################################################################
