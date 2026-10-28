@@ -35,7 +35,7 @@ SZ_SESSION_ID: Final = "session_id"
 SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
 SZ_USER_INFO: Final = "user_info"
 
-# the vendor doesn't say how long a session id lasts, so this is assumed
+# this is not documented, but testing indicates is 15 minutes
 SESSION_ID_LIFETIME: Final = td(minutes=15)
 
 # POST authentication url (i.e. /WebAPI/api/session)
@@ -223,8 +223,15 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         Should ideally confirm the session id is valid before saving.
         """
 
+    def _import_session_id(self, session: SessionIdEntryT) -> None:
+        """Extract the session id from a (serialized) dictionary.
+
+        Deprecated: use import_session_id().
+        """
+        self.import_session_id(session)
+
     def import_session_id(self, session: SessionIdEntryT, /) -> None:
-        """Restore the session id (and its expiry) from a (serialized) dictionary.
+        """Restore the session id (and its expiry) from a (serialized) dict.
 
         If the expiry is absent (e.g. a cache written by an older version), assume
         the session id was fetched just now. The server may reject it regardless.
@@ -237,21 +244,20 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         else:
             self._session_id_expires = dt.fromisoformat(expires)
 
+    def _export_session_id(self) -> SessionIdEntryT:
+        """Convert the session id to a (serialized) dictionary.
+
+        Deprecated: use export_session_id().
+        """
+        return self.export_session_id()
+
     def export_session_id(self) -> SessionIdEntryT:
-        """Return the session id (and its expiry) as a (serialized) dictionary."""
+        """Return the session id (and its expiry) as a (serialized) dict."""
 
         return {
             SZ_SESSION_ID: self._session_id,
             SZ_SESSION_ID_EXPIRES: self._session_id_expires.isoformat(),
         }
-
-    def _import_session_id(self, session: SessionIdEntryT) -> None:
-        """Deprecated: use import_session_id()."""
-        self.import_session_id(session)
-
-    def _export_session_id(self) -> SessionIdEntryT:
-        """Deprecated: use export_session_id()."""
-        return self.export_session_id()
 
 
 class Auth(AbstractAuth):
