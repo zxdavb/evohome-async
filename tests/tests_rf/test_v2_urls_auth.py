@@ -95,6 +95,7 @@ async def _test_user_locations(
 ) -> None:
     """Test /location/installationInfo?userId={user_id}"""
 
+    # TODO: can't use .update(); in any case, should use URLs only
     url = "userAccount"
     user_info = await should_work_v2(
         ec2.auth,
@@ -159,7 +160,7 @@ async def _test_loc_status(
 ) -> None:
     """Test /location/{loc.id}/status"""
 
-    # TODO: remove .setup() and use URLs only
+    # TODO: remove .update() and use URLs only
     await ec2.setup()
 
     loc = get_loc(ec2)
@@ -217,7 +218,7 @@ async def _test_tcs_status(
     Also tests PUT /temperatureControlSystem/{tcs.id}/mode
     """
 
-    # TODO: remove .setup() and use URLs only?
+    # TODO: remove .update() and use URLs only?
     await ec2.setup()
 
     tcs: evo2.ControlSystem
@@ -362,7 +363,7 @@ async def _test_zone_status(
 
     heat_setpoint: dict[str, float | str | None]  # TODO: TypedDict
 
-    # TODO: remove .setup()/.get_status() and use URLs only
+    # TODO: remove .update() and use URLs only
     await ec2.setup()
     for loc in ec2.locations:
         await loc.get_status()
@@ -470,7 +471,7 @@ async def _test_dhw_status(
     # not a TccSetDhwModeT, as some of these bodies are deliberately invalid
     dhw_state: dict[str, str | None]
 
-    # TODO: remove .setup()/.get_status() and use URLs only
+    # TODO: remove .update() and use URLs only
     await ec2.setup()
     for loc in ec2.locations:
         await loc.get_status()

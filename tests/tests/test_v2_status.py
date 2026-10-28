@@ -174,10 +174,25 @@ async def test_status_missing_known_entity_raises_if_asked(
     ):
         zone._status = None
 
+        with (
+            pytest.warns(DeprecationWarning, match=r"use \.get_status\(\)"),
+            pytest.raises(exc.StaleConfigError, match="zone_id="),
+        ):
+            await loc.update(raise_on_stale_config=True)  # still passes it on
+
+        _ = zone.status  # the others were updated before the raise (else would raise)
+
         with pytest.raises(exc.StaleConfigError, match="zone_id="):
             await loc.get_status(raise_on_stale_config=True)
 
-        _ = zone.status  # the others were updated before the raise (else would raise)
+        with (
+            pytest.warns(
+                DeprecationWarning,
+                match=r"use \.setup\(\), then Location\.get_status\(\)",
+            ),
+            pytest.raises(exc.StaleConfigError, match="zone_id="),
+        ):
+            await ec2.update(raise_on_stale_config=True)  # still passes it on
 
     assert not caplog.records  # it is raised, and not logged
 
