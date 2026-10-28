@@ -223,10 +223,10 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
 
         # if not self._access_token:  # not needed as dt.min is sentinel for this
         if self._access_token_expires.isoformat() < tokens[SZ_ACCESS_TOKEN_EXPIRES]:
-            self._import_access_token(tokens)
+            self.import_access_token(tokens)
 
     async def _load_session_id(self, cache: CacheDataT | None = None) -> None:
-        """Load the (serialized) session id from the cache."""
+        """Load the (serialized) session ID from the cache."""
 
         cache = cache or await self._read_cache_from_file()
 
@@ -240,7 +240,7 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
 
         # if not self._session_id:  # not needed as dt.min is sentinel for this
         if self._session_id_expires.isoformat() < session[SZ_SESSION_ID_EXPIRES]:
-            self._import_session_id(session)
+            self.import_session_id(session)
 
     async def save_to_cache(self) -> None:
         """Save the user entry to the cache."""
@@ -259,14 +259,14 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
         if self.client_id not in cache:
             cache[self.client_id] = {}
 
-        cache[self.client_id][SZ_ACCESS_TOKEN] = self._export_access_token()
+        cache[self.client_id][SZ_ACCESS_TOKEN] = self.export_access_token()
 
         await self._write_cache_to_file(self._clean_cache(cache))
 
     async def save_session_id(self) -> None:
-        """Save the (serialized) session id to the cache.
+        """Save the (serialized) session ID to the cache.
 
-        Includes the session id expiry datetime.
+        Includes the session ID expiry datetime.
         """
 
         cache: CacheDataT = await self._read_cache_from_file()
@@ -274,6 +274,6 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
         if self.client_id not in cache:
             cache[self.client_id] = {}
 
-        cache[self.client_id][SZ_SESSION_ID] = self._export_session_id()
+        cache[self.client_id][SZ_SESSION_ID] = self.export_session_id()
 
         await self._write_cache_to_file(self._clean_cache(cache))

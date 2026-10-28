@@ -1,4 +1,4 @@
-"""Authentication (session id / access token) for the TCC v1 and v2 APIs."""
+"""Authentication (session ID / access token) for the TCC v1 and v2 APIs."""
 
 from __future__ import annotations
 
@@ -205,7 +205,7 @@ class AbstractAuth(ABC):
     async def _headers(self, headers: dict[str, str]) -> dict[str, str]:
         """Ensure the authorization header is valid.
 
-        This could take the form of an access token, or a session id.
+        This could take the form of an access token, or a session ID.
         """
 
     async def _make_request(
