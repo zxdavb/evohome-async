@@ -73,6 +73,7 @@ async def test_schedule_not_fetched(
     """Test the schedule attrs raise NotFetchedError until get_schedule() is called."""
 
     assert zone.schedule_last_fetched is None
+    assert zone.schedule_last_checked is None
 
     with pytest.raises(exc.NotFetchedError):
         _ = zone.schedule
@@ -145,33 +146,55 @@ async def test_invalid_status(
 
 
 @pytest.mark.parametrize(
-    ("error", "expected"),
+    ("error", "expected", "last_checked"),
     [
         # the schedule failed validation, or there is no schedule
-        (exc.BadApiResponseError(_ERR_MSG), exc.InvalidScheduleError),
+        (
+            exc.BadApiResponseError(_ERR_MSG),
+            exc.InvalidScheduleError,
+            dt(2025, 1, 1, tzinfo=UTC),
+        ),
         (
             exc.ApiCallFailedError(_ERR_MSG, status=HTTPStatus.BAD_REQUEST),
             exc.InvalidScheduleError,
+            dt(2025, 1, 1, tzinfo=UTC),
         ),
         # all other failures are not about the schedule, and so are left as they are
         (
             exc.ApiCallFailedError(_ERR_MSG, status=HTTPStatus.INTERNAL_SERVER_ERROR),
             exc.ApiCallFailedError,
+            None,
         ),
         (
             exc.BadUserCredentialsError(_ERR_MSG, status=HTTPStatus.BAD_REQUEST),
             exc.BadUserCredentialsError,
+            None,
         ),
-        (exc.AuthRateLimitExceededError(_ERR_MSG), exc.AuthRateLimitExceededError),
+        (
+            exc.AuthRateLimitExceededError(_ERR_MSG),
+            exc.AuthRateLimitExceededError,
+            None,
+        ),
     ],
-    ids=lambda v: v.__name__ if isinstance(v, type) else type(v).__name__,
+    ids=lambda v: (
+        v.__name__
+        if isinstance(v, type)
+        else ("checked" if isinstance(v, dt) else type(v).__name__)
+    ),
 )
 async def test_get_schedule_failures(
     zone: Zone,
+    freezer: FrozenDateTimeFactory,
     error: exc.EvohomeError,
     expected: type[exc.EvohomeError],
+    last_checked: dt | None,
 ) -> None:
-    """Test get_schedule() raises InvalidScheduleError only for a bad schedule."""
+    """Test get_schedule() raises InvalidScheduleError only for a bad schedule.
+
+    Only a bad schedule is a definitive answer, and so sets schedule_last_checked.
+    """
+
+    freezer.move_to("2025-01-01T00:00:00+00:00")
 
     with (
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
@@ -181,6 +204,7 @@ async def test_get_schedule_failures(
 
     assert type(err.value) is expected
     assert zone.schedule_last_fetched is None
+    assert zone.schedule_last_checked == last_checked
 
 
 async def test_empty_schedule(
@@ -197,6 +221,7 @@ async def test_empty_schedule(
         assert await zone.get_schedule() == []
 
     assert zone.schedule_last_fetched == dt(2025, 1, 1, tzinfo=UTC)
+    assert zone.schedule_last_checked == dt(2025, 1, 1, tzinfo=UTC)
     assert zone.schedule == []
     assert zone.this_switchpoint is None
     assert zone.next_switchpoint is None
@@ -238,6 +263,12 @@ async def test_invalid_schedule_not_stored(
     assert fetched.schedule == schedule
     assert (fetched.this_switchpoint, fetched.next_switchpoint) == switchpoints
     assert fetched.schedule_last_fetched == last_fetched
+    assert unfetched.schedule_last_fetched is None
+
+    # the vendor answered, so neither will ask again until the schedule is stale
+    assert fetched.schedule_last_checked is not None
+    assert fetched.schedule_last_checked > last_fetched
+    assert unfetched.schedule_last_checked is not None
 
     assert unfetched.schedule_last_fetched is None
     with pytest.raises(exc.NotFetchedError):

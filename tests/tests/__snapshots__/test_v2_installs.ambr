@@ -25457,6 +25457,10 @@
       timing_resolution: 00:10:00
   
     ''',
+    'schedule_last_checked': '''
+      '2025-01-01T00:00:00+00:00'
+  
+    ''',
     'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
@@ -25816,6 +25820,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -25954,6 +25961,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -26099,6 +26109,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -26239,6 +26252,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -26383,6 +26399,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -26523,6 +26542,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -26667,6 +26689,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -26809,6 +26834,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -26949,6 +26977,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -27347,6 +27378,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -28008,6 +28042,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -28148,6 +28185,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -28291,6 +28331,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -28430,6 +28473,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -28574,6 +28620,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -28713,6 +28762,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -29109,6 +29161,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -29248,6 +29303,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -29390,6 +29448,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -29535,6 +29596,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -29677,6 +29741,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -29816,6 +29883,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -29960,6 +30030,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -30102,6 +30175,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -30241,6 +30317,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -30572,6 +30651,10 @@
       max_switchpoints_per_day: 6
       min_switchpoints_per_day: 1
       timing_resolution: 00:10:00
+  
+    ''',
+    'schedule_last_checked': '''
+      '2025-01-01T00:00:00+00:00'
   
     ''',
     'schedule_last_fetched': '''
@@ -30933,6 +31016,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -31073,6 +31159,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -31217,6 +31306,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -31357,6 +31449,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -31501,6 +31596,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -31641,6 +31739,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -31785,6 +31886,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -31925,6 +32029,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -32258,6 +32365,10 @@
       max_switchpoints_per_day: 6
       min_switchpoints_per_day: 1
       timing_resolution: 00:10:00
+  
+    ''',
+    'schedule_last_checked': '''
+      '2025-01-01T00:00:00+00:00'
   
     ''',
     'schedule_last_fetched': '''
@@ -32620,6 +32731,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -32760,6 +32874,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -32904,6 +33021,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -33044,6 +33164,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -33188,6 +33311,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -33328,6 +33454,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -33472,6 +33601,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -33614,6 +33746,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -33754,6 +33889,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -34084,6 +34222,10 @@
       max_switchpoints_per_day: 6
       min_switchpoints_per_day: 1
       timing_resolution: 00:10:00
+  
+    ''',
+    'schedule_last_checked': '''
+      '2025-01-01T00:00:00+00:00'
   
     ''',
     'schedule_last_fetched': '''
@@ -34445,6 +34587,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -34585,6 +34730,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -34729,6 +34877,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -34869,6 +35020,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -35013,6 +35167,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -35153,6 +35310,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -35297,6 +35457,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -35437,6 +35600,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -35755,6 +35921,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:15:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -36088,6 +36257,10 @@
       max_switchpoints_per_day: 6
       min_switchpoints_per_day: 1
       timing_resolution: 00:10:00
+  
+    ''',
+    'schedule_last_checked': '''
+      '2025-01-01T00:00:00+00:00'
   
     ''',
     'schedule_last_fetched': '''
@@ -36449,6 +36622,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -36589,6 +36765,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -36733,6 +36912,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -36872,6 +37054,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -37017,6 +37202,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -37156,6 +37344,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -37301,6 +37492,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -37441,6 +37635,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -37585,6 +37782,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -37725,6 +37925,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -37868,6 +38071,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -38008,6 +38214,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -38317,6 +38526,9 @@
       schedule_capabilities: 'null
   
           ...
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -38970,6 +39182,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -39110,6 +39325,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -39254,6 +39472,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -39393,6 +39614,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -39537,6 +39761,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -39677,6 +39904,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -39821,6 +40051,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -39961,6 +40194,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -40105,6 +40341,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -40245,6 +40484,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -40389,6 +40631,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -40529,6 +40774,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -40926,6 +41174,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -41068,6 +41319,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -41207,6 +41461,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -41351,6 +41608,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -41491,6 +41751,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -41635,6 +41898,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -41774,6 +42040,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -41917,6 +42186,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -42057,6 +42329,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -42453,6 +42728,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -42592,6 +42870,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -42736,6 +43017,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -42878,6 +43162,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -43017,6 +43304,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -43414,6 +43704,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -43554,6 +43847,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -43698,6 +43994,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -43839,6 +44138,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -43978,6 +44280,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -44122,6 +44427,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -44261,6 +44569,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -44405,6 +44716,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -44545,6 +44859,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -44861,6 +45178,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:15:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -45186,6 +45506,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -45324,6 +45647,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -45673,6 +45999,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -46059,6 +46388,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -46190,6 +46522,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -46318,6 +46653,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -46451,6 +46789,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -46580,6 +46921,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -46713,6 +47057,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -46842,6 +47189,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -46976,6 +47326,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -47292,6 +47645,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:15:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -47645,6 +48001,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -47785,6 +48144,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -47929,6 +48291,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -48071,6 +48436,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -48211,6 +48579,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -48618,6 +48989,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -48758,6 +49132,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -48902,6 +49279,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -49042,6 +49422,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -49185,6 +49568,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -49529,6 +49915,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:15:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -50024,6 +50413,10 @@
       timing_resolution: 00:10:00
   
     ''',
+    'schedule_last_checked': '''
+      '2025-01-01T00:00:00+00:00'
+  
+    ''',
     'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
@@ -50385,6 +50778,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -50523,6 +50919,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -50667,6 +51066,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -50807,6 +51209,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -50951,6 +51356,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -51091,6 +51499,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -51235,6 +51646,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -51377,6 +51791,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -51517,6 +51934,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -51870,6 +52290,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -52010,6 +52433,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -52408,6 +52834,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -52546,6 +52975,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -52690,6 +53122,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -52830,6 +53265,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -52974,6 +53412,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -53114,6 +53555,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -53258,6 +53702,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -53400,6 +53847,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -53540,6 +53990,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -53898,6 +54351,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -54231,6 +54687,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: 'null
   
           ...
@@ -54502,6 +54961,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: 'null
@@ -54837,6 +55299,10 @@
       timing_resolution: 00:10:00
   
     ''',
+    'schedule_last_checked': '''
+      '2025-01-01T00:00:00+00:00'
+  
+    ''',
     'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
@@ -55114,6 +55580,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -55254,6 +55723,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -55398,6 +55870,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -55538,6 +56013,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -55682,6 +56160,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -55822,6 +56303,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -55966,6 +56450,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -56106,6 +56593,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -56250,6 +56740,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -56390,6 +56883,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -56534,6 +57030,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -56674,6 +57173,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -56987,6 +57489,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
@@ -57391,6 +57896,9 @@
           timing_resolution: 00:10:00
   
           '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
+  
+          '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''
   
           '
@@ -57791,6 +58299,10 @@
       timing_resolution: 00:10:00
   
     ''',
+    'schedule_last_checked': '''
+      '2025-01-01T00:00:00+00:00'
+  
+    ''',
     'schedule_last_fetched': '''
       '2025-01-01T00:00:00+00:00'
   
@@ -58164,6 +58676,9 @@
           setpoint_value_resolution: 0.5
   
           timing_resolution: 00:10:00
+  
+          '
+      schedule_last_checked: '''2025-01-01T00:00:00+00:00''
   
           '
       schedule_last_fetched: '''2025-01-01T00:00:00+00:00''

@@ -364,6 +364,7 @@ class _ScheduleBase[
 
     _schedule: list[DayT] | None = None  # None: not fetched, []: there is no schedule
     _schedule_last_fetched: dt | None = None  # None: not fetched (successfully)
+    _schedule_last_checked: dt | None = None  # None: no definitive answer, yet
 
     location: Location  # used to get tzinfo
 
@@ -377,6 +378,18 @@ class _ScheduleBase[
         as is needed to pick up any changes made elsewhere (e.g. via the vendor's app).
         """
         return self._schedule_last_fetched
+
+    @property
+    def schedule_last_checked(self) -> dt | None:
+        """Return when the vendor last gave a definitive answer for the schedule.
+
+        That is, when get_schedule() last returned a schedule or raised
+        InvalidScheduleError (the schedule is absent or invalid), else None. Unlike
+        schedule_last_fetched, a consumer can use this to wait before asking again
+        for a schedule that is invalid, rather than asking on every poll. Other
+        failures (e.g. a connection error) leave it unchanged.
+        """
+        return self._schedule_last_checked
 
     @property
     def schedule(self) -> list[DayT]:
@@ -429,6 +442,20 @@ class _ScheduleBase[
     async def get_schedule(self) -> list[DayT]:
         """Get the schedule for this DHW/zone object."""
 
+        try:
+            schedule = await self._fetch_schedule()
+        except exc.InvalidScheduleError:
+            self._schedule_last_checked = dt.now(tz=UTC)
+            raise
+
+        self._schedule = schedule
+        self._schedule_last_fetched = self._schedule_last_checked = dt.now(tz=UTC)
+
+        return self._schedule
+
+    async def _fetch_schedule(self) -> list[DayT]:
+        """Fetch the schedule, raising InvalidScheduleError if it is absent/invalid."""
+
         self._logger.debug(f"{self}: Getting schedule...")
 
         try:
@@ -462,10 +489,7 @@ class _ScheduleBase[
                 f"{self}: Schedule is invalid: {err}"
             ) from err
 
-        self._schedule = schedule
-        self._schedule_last_fetched = dt.now(tz=UTC)
-
-        return self._schedule
+        return schedule
 
     def _find_switchpoints(
         self, schedule: list[DayT], dtm: dt
