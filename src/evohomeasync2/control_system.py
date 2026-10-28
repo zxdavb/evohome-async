@@ -232,7 +232,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, tcs_mode: EvoSetSystemModeT, /) -> CommTask:
+    async def _put_mode(self, tcs_mode: EvoSetSystemModeT, /) -> CommTask:
         """Set the TCS mode, and return the vendor's comm task."""
 
         # Issue a warning if we fail some basic sanity checks...
@@ -298,7 +298,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                 SZ_TIME_UNTIL: as_aware_dtm(until),
             }
 
-        return await self._set_mode(tcs_mode)
+        return await self._put_mode(tcs_mode)
 
     async def set_system_mode(
         self,
@@ -370,11 +370,11 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             until = start_of_day + period
 
         else:  # all known modes can be permanent
-            return await self._set_mode(
+            return await self._put_mode(
                 {SZ_SYSTEM_MODE: system_mode, SZ_PERMANENT: True}
             )
 
-        return await self._set_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME
+        return await self._put_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME
             {SZ_SYSTEM_MODE: system_mode, SZ_PERMANENT: False, SZ_TIME_UNTIL: until}
         )
 

@@ -145,7 +145,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, dhw_mode: EvoSetDhwStateT, /) -> CommTask:
+    async def _put_mode(self, dhw_mode: EvoSetDhwStateT, /) -> CommTask:
         """Set the DHW mode (state), and return the vendor's comm task."""
 
         # Issue a warning if we fail some basic sanity checks...
@@ -232,7 +232,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
             dhw_mode[SZ_UNTIL_TIME] = as_aware_dtm(until)
 
-        return await self._set_mode(dhw_mode)
+        return await self._put_mode(dhw_mode)
 
     async def reset(self) -> CommTask:
         """Cancel any override and allow the DHW to follow its schedule."""
