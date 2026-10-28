@@ -226,7 +226,7 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
             self.import_access_token(tokens)
 
     async def _load_session_id(self, cache: CacheDataT | None = None) -> None:
-        """Load the (serialized) session id from the cache."""
+        """Load the (serialized) session ID from the cache."""
 
         cache = cache or await self._read_cache_from_file()
 
@@ -264,9 +264,9 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
         await self._write_cache_to_file(self._clean_cache(cache))
 
     async def save_session_id(self) -> None:
-        """Save the (serialized) session id to the cache.
+        """Save the (serialized) session ID to the cache.
 
-        Includes the session id expiry datetime.
+        Includes the session ID expiry datetime.
         """
 
         cache: CacheDataT = await self._read_cache_from_file()

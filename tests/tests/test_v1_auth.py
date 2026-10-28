@@ -82,7 +82,7 @@ async def test_get_session_id(
     assert session_manager.is_session_valid() is True
 
     #
-    # check doesn't invoke the URL again, as session id still valid
+    # check doesn't invoke the URL again, as session ID still valid
     freezer.tick(600)  # advance time by 5 minutes
 
     with patch("aiohttp.ClientSession.post", new_callable=AsyncMock) as mok:
@@ -93,13 +93,13 @@ async def test_get_session_id(
     assert session_manager.is_session_valid() is True
 
     #
-    # check session id now expired
+    # check session ID now expired
     freezer.tick(1200)  # advance time by another 10 minutes, 15 total
 
     assert session_manager.is_session_valid() is False
 
     #
-    # check does invoke the URL, as session id now expired
+    # check does invoke the URL, as session ID now expired
     #
     #
     payload = server_response()
@@ -285,7 +285,7 @@ def test_session_id_round_trip(
     credentials: tuple[str, str],
     cache_path: Path,
 ) -> None:
-    """Test an exported session id can be imported by another session manager."""
+    """Test an exported session ID can be imported by another session manager."""
 
     expires = dt.now(tz=UTC) + td(minutes=10)
     session: SessionIdEntryT = {

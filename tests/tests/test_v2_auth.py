@@ -340,7 +340,7 @@ def test_credential_locks_are_independent(
     credentials: tuple[str, str],
     cache_path: Path,
 ) -> None:
-    """Test that the access token and session id are refreshed under separate locks."""
+    """Test that the access token and session ID are refreshed under separate locks."""
 
     manager = TokenCacheManager(*credentials, client_session, cache_path=cache_path)
 
