@@ -92,7 +92,7 @@ def cache_path(
     return tmp_path_factory.mktemp(__name__) / ".evo-cache.tst"
 
 
-# NOTE: using fixture_folder will break these tests; we don't want ec2.update() either
+# NOTE: using fixture_folder will break these tests; we don't want ec2.setup() either
 @pytest.fixture
 async def ec2(
     credentials_manager: TokenCacheManager,

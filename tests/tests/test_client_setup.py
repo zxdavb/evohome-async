@@ -16,8 +16,6 @@ from tests.common import get_loc, get_tcs, get_zon
 from .conftest import FIXTURES_V1, FIXTURES_V2, auth_get
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from _evohome.helpers import Validator
     from evohome_cli.auth import TokenCacheManager
 
@@ -46,47 +44,6 @@ async def test_v2_setup(
 
         assert status["location_id"] == loc.id
         assert zone.status["zone_id"] == zone.id  # no longer raises
-
-
-async def test_v2_update_is_unchanged(
-    credentials_manager: TokenCacheManager,
-) -> None:
-    """Test update() is still setup() plus the status of every location."""
-
-    with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "default")):
-        ec2 = evo2.EvohomeClient(credentials_manager)
-        with pytest.warns(
-            DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
-        ):
-            await ec2.update()
-
-        zone = get_zon(ec2)
-        assert zone is not None  # the default/ fixture has zones
-        assert zone.status["zone_id"] == zone.id  # update() got the status too
-
-        loc = get_loc(ec2)
-        with pytest.warns(DeprecationWarning, match=r"use \.get_status\(\)"):
-            status = await loc.update()
-        assert status == await loc.get_status()
-
-
-async def test_v2_update_without_status(
-    credentials_manager: TokenCacheManager,
-) -> None:
-    """Test update(dont_update_status=True) still gets the config only (as setup())."""
-
-    with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "default")):
-        ec2 = evo2.EvohomeClient(credentials_manager)
-        with pytest.warns(
-            DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
-        ):
-            await ec2.update(dont_update_status=True)
-
-    zone = get_zon(ec2)
-    assert zone is not None  # the default/ fixture has zones
-
-    with pytest.raises(exc.EvohomeError):
-        _ = zone.status
 
 
 async def test_v1_setup(
@@ -120,11 +77,7 @@ async def test_v1_get_status(
     with patch("evohomeasync.auth.Auth.get", get):
         ec1 = evo1.EvohomeClient(credentials_manager)
 
-        result = await ec1.get_status()  # also gets the config, as it is first
-        with pytest.warns(
-            DeprecationWarning, match=r"use \.setup\(\), then \.get_status\(\)"
-        ):
-            assert result == await ec1.update()
+        await ec1.get_status()  # also gets the config, as it is first
 
         calls.clear()
         await ec1.get_status()
@@ -246,112 +199,3 @@ async def test_vx_location_tcs(
         "3164610": None,  # this location has no devices (v1), nor gateway (v2)
         "8380809": {"3744415", "6860918"},
     }
-
-
-@pytest.mark.parametrize(
-    ("evo_cls", "target", "fixtures"),
-    [
-        pytest.param(evo1.EvohomeClient, "evohomeasync", FIXTURES_V1, id="v1"),
-        pytest.param(evo2.EvohomeClient, "evohomeasync2", FIXTURES_V2, id="v2"),
-    ],
-)
-async def test_vx_client_tcs(
-    credentials_manager: TokenCacheManager,
-    evo_cls: type[evo1.EvohomeClient | evo2.EvohomeClient],
-    target: str,
-    fixtures: Path,
-) -> None:
-    """Test the deprecated EvohomeClient.tcs is the TCS of the single location."""
-
-    with patch(f"{target}.auth.Auth.get", auth_get(fixtures / "default")):
-        ec = evo_cls(credentials_manager)
-        await ec.setup()
-
-    with pytest.warns(DeprecationWarning, match=r"use Location\.tcs"):
-        tcs = ec.tcs
-
-    assert tcs is ec.locations[0].tcs is not None
-
-
-@pytest.mark.parametrize(
-    ("evo_cls", "target", "fixture", "match"),
-    [
-        pytest.param(
-            evo1.EvohomeClient,
-            "evohomeasync",
-            FIXTURES_V1 / "system_009",
-            "not a single location",
-            id="v1_multi_location",
-        ),
-        pytest.param(
-            evo2.EvohomeClient,
-            "evohomeasync2",
-            FIXTURES_V2 / "system_009",
-            "not a single location",
-            id="v2_multi_location",
-        ),
-        pytest.param(
-            evo2.EvohomeClient,
-            "evohomeasync2",
-            FIXTURES_V2 / "null_system_1",
-            "has no TCS",
-            id="v2_no_tcs",
-        ),
-    ],
-)
-async def test_vx_client_tcs_raises(
-    credentials_manager: TokenCacheManager,
-    evo_cls: type[evo1.EvohomeClient | evo2.EvohomeClient],
-    target: str,
-    fixture: Path,
-    match: str,
-) -> None:
-    """Test the deprecated EvohomeClient.tcs raises if there is no single TCS."""
-
-    with patch(f"{target}.auth.Auth.get", auth_get(fixture)):
-        ec = evo_cls(credentials_manager)
-        await ec.setup()
-
-    with (
-        pytest.warns(DeprecationWarning, match=r"use Location\.tcs"),
-        pytest.raises(exc.ClientStateError, match=match),
-    ):
-        _ = ec.tcs
-
-
-async def test_v1_location_get_temperatures(
-    credentials_manager: TokenCacheManager,
-) -> None:
-    """Test the deprecated v1 Location.get_temperatures() is that of its TCS."""
-
-    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V1 / "default")):
-        ec1 = evo1.EvohomeClient(credentials_manager)
-        await ec1.setup()
-
-    loc = ec1.locations[0]
-    assert loc.tcs is not None
-
-    with pytest.warns(DeprecationWarning, match=r"use Location\.tcs\.get_temp"):
-        temps = await loc.get_temperatures(dont_update_status=True)
-
-    assert temps == await loc.tcs.get_temperatures(dont_update_status=True)
-    assert temps  # the default fixture has zones
-
-
-async def test_v1_location_get_temperatures_raises(
-    credentials_manager: TokenCacheManager,
-) -> None:
-    """Test the deprecated v1 Location.get_temperatures() raises if it has no TCS."""
-
-    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V1 / "system_009")):
-        ec1 = evo1.EvohomeClient(credentials_manager)
-        await ec1.setup()
-
-    loc = ec1.location_by_id["3164610"]  # this location has no devices
-    assert loc.tcs is None
-
-    with (
-        pytest.warns(DeprecationWarning, match=r"use Location\.tcs\.get_temp"),
-        pytest.raises(exc.ClientStateError, match="has no TCS"),
-    ):
-        await loc.get_temperatures(dont_update_status=True)
