@@ -223,7 +223,7 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
 
         # if not self._access_token:  # not needed as dt.min is sentinel for this
         if self._access_token_expires.isoformat() < tokens[SZ_ACCESS_TOKEN_EXPIRES]:
-            self._import_access_token(tokens)
+            self.import_access_token(tokens)
 
     async def _load_session_id(self, cache: CacheDataT | None = None) -> None:
         """Load the (serialized) session id from the cache."""
@@ -239,8 +239,9 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
             return
 
         # if not self._session_id:  # not needed as dt.min is sentinel for this
-        if self._session_id_expires.isoformat() < session[SZ_SESSION_ID_EXPIRES]:
-            self._import_session_id(session)
+        expires = session.get(SZ_SESSION_ID_EXPIRES)
+        if expires is None or self._session_id_expires.isoformat() < expires:
+            self.import_session_id(session)
 
     async def save_to_cache(self) -> None:
         """Save the user entry to the cache."""
@@ -259,7 +260,7 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
         if self.client_id not in cache:
             cache[self.client_id] = {}
 
-        cache[self.client_id][SZ_ACCESS_TOKEN] = self._export_access_token()
+        cache[self.client_id][SZ_ACCESS_TOKEN] = self.export_access_token()
 
         await self._write_cache_to_file(self._clean_cache(cache))
 
@@ -274,6 +275,6 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
         if self.client_id not in cache:
             cache[self.client_id] = {}
 
-        cache[self.client_id][SZ_SESSION_ID] = self._export_session_id()
+        cache[self.client_id][SZ_SESSION_ID] = self.export_session_id()
 
         await self._write_cache_to_file(self._clean_cache(cache))

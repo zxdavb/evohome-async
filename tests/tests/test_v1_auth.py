@@ -15,6 +15,7 @@ import pytest
 from _evohome.const import HINT_BAD_CREDS
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync import exceptions as exc
+from evohomeasync.auth import SESSION_ID_LIFETIME
 from tests.const import URL_CRED_V1
 
 from .aioresponses import aioresponses
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
 
     from evohome_cli.auth import CacheDataT
+    from evohomeasync.auth import SessionIdEntryT
 
 
 async def test_get_session_id(
@@ -277,3 +279,44 @@ async def test_concurrent_get_session_id_failure(
         fetch.assert_called_once()
 
     assert session_manager.is_session_valid() is False
+
+
+def test_session_id_round_trip(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    cache_path: Path,
+) -> None:
+    """Test an exported session id can be imported by another session manager."""
+
+    expires = dt.now(tz=UTC) + td(minutes=10)
+    session: SessionIdEntryT = {
+        "session_id": "session_id",
+        "session_id_expires": expires.isoformat(),
+    }
+
+    manager = TokenCacheManager(*credentials, client_session, cache_path=cache_path)
+    manager.import_session_id(session)
+
+    assert manager.session_id == "session_id"
+    assert manager.session_id_expires == expires
+    assert manager.is_session_valid() is True
+
+    assert manager.export_session_id() == session
+
+
+@pytest.mark.usefixtures("freezer")
+def test_session_id_import_without_expiry(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    cache_path: Path,
+) -> None:
+    """Test a session id without an expiry is assumed to have just been fetched."""
+
+    session: SessionIdEntryT = {"session_id": "session_id"}
+
+    manager = TokenCacheManager(*credentials, client_session, cache_path=cache_path)
+    manager.import_session_id(session)
+
+    assert manager.session_id == "session_id"
+    assert manager.session_id_expires == dt.now(tz=UTC) + SESSION_ID_LIFETIME
+    assert manager.is_session_valid() is True

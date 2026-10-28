@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
 
     from evohome_cli.auth import CacheDataT
+    from evohomeasync2.auth import EvoAccessTokenEntryT
 
 
 async def test_get_auth_token(
@@ -346,3 +347,28 @@ def test_credential_locks_are_independent(
     assert isinstance(manager._token_lock, asyncio.Lock)
     assert isinstance(manager._session_lock, asyncio.Lock)
     assert manager._token_lock is not manager._session_lock
+
+
+def test_access_token_round_trip(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    cache_path: Path,
+) -> None:
+    """Test an exported access token can be imported by another token manager."""
+
+    expires = dt.now(tz=UTC) + td(minutes=30)
+    tokens: EvoAccessTokenEntryT = {
+        "access_token": "access_token",
+        "access_token_expires": expires.isoformat(),
+        "refresh_token": "refresh_token",
+    }
+
+    manager = TokenCacheManager(*credentials, client_session, cache_path=cache_path)
+    manager.import_access_token(tokens)
+
+    assert manager.access_token == tokens["access_token"]
+    assert manager.access_token_expires == expires
+    assert manager.refresh_token == tokens["refresh_token"]
+    assert manager.is_token_valid() is True
+
+    assert manager.export_access_token() == tokens

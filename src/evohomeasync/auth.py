@@ -6,7 +6,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
-from typing import TYPE_CHECKING, Any, Final, TypedDict
+from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
 
 import probatio as vol
 
@@ -35,6 +35,9 @@ SZ_SESSION_ID: Final = "session_id"
 SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
 SZ_USER_INFO: Final = "user_info"
 
+# the vendor doesn't say how long a session id lasts, so this is assumed
+SESSION_ID_LIFETIME: Final = td(minutes=15)
+
 # POST authentication url (i.e. /WebAPI/api/session)
 URL_CRED: Final = "WebAPI/api/session"
 
@@ -43,8 +46,10 @@ URL_BASE: Final = "WebAPI/api"
 
 
 class SessionIdEntryT(TypedDict):
+    """Dict for storing/restoring a session id to/from a cache."""
+
     session_id: str
-    session_id_expires: str  # dt.isoformat()  # TZ-aware
+    session_id_expires: NotRequired[str]  # dt.isoformat()  # TZ-aware
 
 
 class AbstractSessionManager(CredentialsManagerBase, ABC):
@@ -188,7 +193,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
         try:
             self._session_id: str = session[SZ_SESSION_ID]
-            self._session_id_expires = dt.now(tz=UTC) + td(minutes=15)
+            self._session_id_expires = dt.now(tz=UTC) + SESSION_ID_LIFETIME
             self._user_info = session[SZ_USER_INFO]
 
         except (KeyError, TypeError) as err:
@@ -218,19 +223,35 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         Should ideally confirm the session id is valid before saving.
         """
 
-    def _import_session_id(self, session: SessionIdEntryT) -> None:
-        """Extract the session id from a (serialized) dictionary."""
+    def import_session_id(self, session: SessionIdEntryT, /) -> None:
+        """Restore the session id (and its expiry) from a (serialized) dictionary.
+
+        If the expiry is absent (e.g. a cache written by an older version), assume
+        the session id was fetched just now. The server may reject it regardless.
+        """
 
         self._session_id = session[SZ_SESSION_ID]
-        self._session_id_expires = dt.fromisoformat(session[SZ_SESSION_ID_EXPIRES])
 
-    def _export_session_id(self) -> SessionIdEntryT:
-        """Convert the session id to a (serialized) dictionary."""
+        if (expires := session.get(SZ_SESSION_ID_EXPIRES)) is None:
+            self._session_id_expires = dt.now(tz=UTC) + SESSION_ID_LIFETIME
+        else:
+            self._session_id_expires = dt.fromisoformat(expires)
+
+    def export_session_id(self) -> SessionIdEntryT:
+        """Return the session id (and its expiry) as a (serialized) dictionary."""
 
         return {
             SZ_SESSION_ID: self._session_id,
             SZ_SESSION_ID_EXPIRES: self._session_id_expires.isoformat(),
         }
+
+    def _import_session_id(self, session: SessionIdEntryT) -> None:
+        """Deprecated: use import_session_id()."""
+        self.import_session_id(session)
+
+    def _export_session_id(self) -> SessionIdEntryT:
+        """Deprecated: use export_session_id()."""
+        return self.export_session_id()
 
 
 class Auth(AbstractAuth):
