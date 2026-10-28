@@ -6,7 +6,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
-from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import probatio as vol
 
@@ -49,7 +49,7 @@ class SessionIdEntryT(TypedDict):
     """Dict for storing/restoring a session id to/from a cache."""
 
     session_id: str
-    session_id_expires: NotRequired[str]  # dt.isoformat()  # TZ-aware
+    session_id_expires: str  # dt.isoformat()  # TZ-aware
 
 
 class AbstractSessionManager(CredentialsManagerBase, ABC):
@@ -231,18 +231,10 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         self.import_session_id(session)
 
     def import_session_id(self, session: SessionIdEntryT, /) -> None:
-        """Restore the session id (and its expiry) from a (serialized) dict.
-
-        If the expiry is absent (e.g. a cache written by an older version), assume
-        the session id was fetched just now. The server may reject it regardless.
-        """
+        """Restore the session id (and its expiry) from a (serialized) dict."""
 
         self._session_id = session[SZ_SESSION_ID]
-
-        if (expires := session.get(SZ_SESSION_ID_EXPIRES)) is None:
-            self._session_id_expires = dt.now(tz=UTC) + SESSION_ID_LIFETIME
-        else:
-            self._session_id_expires = dt.fromisoformat(expires)
+        self._session_id_expires = dt.fromisoformat(session[SZ_SESSION_ID_EXPIRES])
 
     def _export_session_id(self) -> SessionIdEntryT:
         """Convert the session id to a (serialized) dictionary.

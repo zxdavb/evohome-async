@@ -239,8 +239,7 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
             return
 
         # if not self._session_id:  # not needed as dt.min is sentinel for this
-        expires = session.get(SZ_SESSION_ID_EXPIRES)
-        if expires is None or self._session_id_expires.isoformat() < expires:
+        if self._session_id_expires.isoformat() < session[SZ_SESSION_ID_EXPIRES]:
             self.import_session_id(session)
 
     async def save_to_cache(self) -> None:
