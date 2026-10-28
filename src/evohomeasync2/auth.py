@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 class EvoAccessTokenEntryT(TypedDict):
-    """Dict for storing/restoring auth tokens to/from a cache."""
+    """Dict for storing/restoring auth tokens to/from a store."""
 
     access_token: str
     access_token_expires: str  # dt.isoformat()
