@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from functools import lru_cache
+from http import HTTPMethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
@@ -23,6 +24,8 @@ from .aioresponses import AioResponses, aioresponses
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Generator
+
+    from aiohttp.typedefs import StrOrURL
 
     from _evohome.helpers import Validator
     from evohome_cli.auth import TokenCacheManager
@@ -51,6 +54,27 @@ def block_aiohttp() -> Generator[AioResponses]:
     """Prevent any actual I/O: will raise ClientConnectionError(Connection refused)."""
     with aioresponses() as m:
         yield m
+
+
+@pytest.fixture(autouse=True)
+def fail_on_unmocked_put() -> Generator[None]:
+    """Fail any test that makes a PUT it hasn't mocked (e.g. one it expects not to).
+
+    A test that expects a PUT mocks it (e.g. by patching AbstractAuth.request(), or
+    via aioresponses), so only an unexpected PUT reaches the ClientSession.
+    """
+
+    request = aiohttp.ClientSession._request
+
+    async def _request(
+        self: aiohttp.ClientSession, method: str, str_or_url: StrOrURL, **kwargs: Any
+    ) -> aiohttp.ClientResponse:
+        if method == HTTPMethod.PUT:  # method may be a str, so not: is
+            pytest.fail(f"Unexpected PUT {str_or_url}: {kwargs.get('json')}")
+        return await request(self, method, str_or_url, **kwargs)
+
+    with patch.object(aiohttp.ClientSession, "_request", _request):
+        yield
 
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")
