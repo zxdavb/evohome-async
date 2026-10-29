@@ -404,7 +404,7 @@ async def test_set_mode_rejects_naive_until(
     mock_put.assert_not_awaited()
 
 
-# Test ControlSystem.set_system_mode() (a duration/period, rather than an until)...
+# Test ControlSystem.set_tcc_mode() (with a duration/period, rather than an until)...
 
 
 @pytest.mark.parametrize(
@@ -454,14 +454,14 @@ async def test_set_mode_rejects_naive_until(
         ),
     ],
 )
-async def test_ctl_set_system_mode_temporary(
+async def test_ctl_set_tcc_mode_temporary(
     tcs: ControlSystem,
     freezer: FrozenDateTimeFactory,
     system_mode: SystemMode,
     kwargs: dict[str, td],
     now_until: tuple[str, dt],
 ) -> None:
-    """Test set_system_mode() ends a duration from now, and a period from midnight."""
+    """Test set_tcc_mode() ends a duration from now, and a period from midnight."""
 
     now, expected = now_until
     freezer.move_to(now)
@@ -471,7 +471,7 @@ async def test_ctl_set_system_mode_temporary(
         new_callable=AsyncMock,
         return_value=PUT_RESPONSE_V2,
     ) as mock_put:
-        await tcs.set_system_mode(system_mode, **kwargs)
+        await tcs.set_tcc_mode(system_mode, **kwargs)
 
     json = mock_put.call_args[1]["json"]
 
@@ -480,10 +480,10 @@ async def test_ctl_set_system_mode_temporary(
     assert json["time_until"] == expected  # the same instant, whatever its TZ
 
 
-async def test_ctl_set_system_mode_permanent(
+async def test_ctl_set_tcc_mode_permanent(
     tcs: ControlSystem,
 ) -> None:
-    """Test set_system_mode() without a duration/period sets the mode indefinitely."""
+    """Test set_tcc_mode() without a duration/period sets the mode indefinitely."""
 
     url = f"temperatureControlSystem/{tcs.id}/mode"
     mode = {"system_mode": SystemMode.AWAY, "permanent": True}
@@ -493,7 +493,7 @@ async def test_ctl_set_system_mode_permanent(
         new_callable=AsyncMock,
         return_value=PUT_RESPONSE_V2,
     ) as mock_put:
-        await tcs.set_system_mode("away")
+        await tcs.set_tcc_mode("away")
 
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
 
@@ -531,12 +531,12 @@ async def test_ctl_set_system_mode_permanent(
         ),
     ],
 )
-async def test_ctl_set_system_mode_rejects(
+async def test_ctl_set_tcc_mode_rejects(
     tcs: ControlSystem,
     system_mode: SystemMode | str,
     kwargs: dict[str, td],
 ) -> None:
-    """Test set_system_mode() rejects an invalid request before any PUT is made."""
+    """Test set_tcc_mode() rejects an invalid request before any PUT is made."""
 
     with (
         patch(
@@ -546,6 +546,31 @@ async def test_ctl_set_system_mode_rejects(
         ) as mock_put,
         pytest.raises(InvalidModeRequestError),
     ):
-        await tcs.set_system_mode(system_mode, **kwargs)
+        await tcs.set_tcc_mode(system_mode, **kwargs)
 
     mock_put.assert_not_awaited()
+
+
+async def test_ctl_set_system_mode_is_deprecated(
+    tcs: ControlSystem,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Test set_system_mode() warns, and still sets the mode (via set_tcc_mode())."""
+
+    freezer.move_to("2025-07-10T12:00:00Z")
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        pytest.warns(DeprecationWarning, match=r"use \.set_tcc_mode\(\)"),
+    ):
+        await tcs.set_system_mode(SystemMode.AUTO_WITH_ECO, duration=td(hours=2))
+
+    json = mock_put.call_args[1]["json"]
+
+    assert json["system_mode"] == SystemMode.AUTO_WITH_ECO
+    assert json["permanent"] is False
+    assert json["time_until"] == dt(2025, 7, 10, 14, 0, tzinfo=UTC)

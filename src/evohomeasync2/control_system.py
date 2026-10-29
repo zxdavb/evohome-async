@@ -6,6 +6,7 @@ import json
 from datetime import UTC, timedelta as td
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
+from warnings import deprecated
 
 from _evohome.helpers import Case, as_aware_dtm, as_local_time, as_timedelta
 
@@ -300,7 +301,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
 
         return await self._put_mode(tcs_mode)
 
-    async def set_system_mode(
+    async def set_tcc_mode(
         self,
         system_mode: SystemMode | str,
         /,
@@ -403,6 +404,21 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, {name} must be at most {maximum}: {length}"
             )
+
+    @deprecated("ControlSystem.set_system_mode() is deprecated: use .set_tcc_mode()")
+    async def set_system_mode(
+        self,
+        system_mode: SystemMode | str,
+        /,
+        *,
+        duration: td | None = None,
+        period: td | None = None,
+    ) -> CommTask:
+        """Set the TCS to a mode, either indefinitely, or for a duration/period.
+
+        Deprecated: use set_tcc_mode(), which takes the same arguments.
+        """
+        return await self.set_tcc_mode(system_mode, duration=duration, period=period)
 
     # most, but not all, TCC-compatible systems support these modes...
 
