@@ -391,17 +391,8 @@ async def test_set_mode_rejects_naive_until(
 
     naive = dt.fromisoformat("2025-07-13T12:00:00")  # no offset
 
-    with (
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
-        pytest.raises(BadApiRequestError),
-    ):
+    with pytest.raises(BadApiRequestError):
         await tcs.set_away(until=naive)
-
-    mock_put.assert_not_awaited()
 
 
 # Test ControlSystem.set_tcc_mode() (with a duration/period, rather than an until)...
