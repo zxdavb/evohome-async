@@ -5,9 +5,8 @@ from __future__ import annotations
 import json
 import logging
 from functools import lru_cache
-from http import HTTPMethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 from unittest.mock import patch
 
 import aiohttp
@@ -19,8 +18,6 @@ from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync import EvohomeClient as EvohomeClientV1
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
 from tests.common import get_dhw, get_tcs, get_zon
-
-from .aioresponses import AioResponses, aioresponses
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Generator
@@ -49,29 +46,19 @@ class ClientStub:
         return self._logger
 
 
-@pytest.fixture  # (autouse=True)
-def block_aiohttp() -> Generator[AioResponses]:
-    """Prevent any actual I/O: will raise ClientConnectionError(Connection refused)."""
-    with aioresponses() as m:
-        yield m
-
-
 @pytest.fixture(autouse=True)
-def fail_on_unmocked_put() -> Generator[None]:
-    """Fail any test that makes a PUT it hasn't mocked (e.g. one it expects not to).
+def fail_on_unmocked_request() -> Generator[None]:
+    """Fail any test that makes a request it hasn't mocked, so none reach the vendor.
 
-    A test that expects a PUT mocks it (e.g. by patching AbstractAuth.request(), or
-    via aioresponses), so only an unexpected PUT reaches the ClientSession.
+    A test that expects a request mocks it (e.g. by patching AbstractAuth.request(),
+    or via aioresponses), so only an unexpected request reaches the ClientSession.
     """
-
-    request = aiohttp.ClientSession._request
 
     async def _request(
         self: aiohttp.ClientSession, method: str, str_or_url: StrOrURL, **kwargs: Any
-    ) -> aiohttp.ClientResponse:
-        if method == HTTPMethod.PUT:  # method may be a str, so not: is
-            pytest.fail(f"Unexpected PUT {str_or_url}: {kwargs.get('json')}")
-        return await request(self, method, str_or_url, **kwargs)
+    ) -> NoReturn:
+        # not the payload, as a POST to the auth server would include the credentials
+        pytest.fail(f"Unexpected {method} {str_or_url}")
 
     with patch.object(aiohttp.ClientSession, "_request", _request):
         yield
