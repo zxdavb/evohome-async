@@ -120,9 +120,6 @@ class _TccModeMixin:
         resolution = as_timedelta(timing_resolution)
         maximum = as_timedelta(max_duration)
 
-        if not resolution or maximum is None:
-            return False
-
         return resolution <= duration <= maximum and not duration % resolution
 
     def _duration_as_until(
@@ -142,8 +139,8 @@ class _TccModeMixin:
             timing_resolution=timing_resolution,
         ):
             raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, duration must be a (positive) multiple of the "
-                f"timing_resolution, and at most the max_duration: {duration}"
+                f"{self}: For {mode} mode, the duration, '{duration}', must be a "
+                f"multiple of '{timing_resolution}', and at most '{max_duration}'"
             )
 
         # in UTC, as local arithmetic is wall-clock (wrong if it spans a DST change)

@@ -358,8 +358,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             until = self._duration_as_until(
                 system_mode,
                 duration,
-                max_duration=mode_entry.get(SZ_MAX_DURATION, ""),
-                timing_resolution=mode_entry.get(SZ_TIMING_RESOLUTION, ""),
+                max_duration=mode_entry[SZ_MAX_DURATION],
+                timing_resolution=mode_entry[SZ_TIMING_RESOLUTION],
             )
 
         elif period is not None:
@@ -370,8 +370,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             until = self._period_as_until(
                 system_mode,
                 period,
-                max_duration=mode_entry.get(SZ_MAX_DURATION, ""),
-                timing_resolution=mode_entry.get(SZ_TIMING_RESOLUTION, ""),
+                max_duration=mode_entry[SZ_MAX_DURATION],
+                timing_resolution=mode_entry[SZ_TIMING_RESOLUTION],
             )
 
         else:  # all known modes can be permanent
@@ -408,8 +408,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             timing_resolution=timing_resolution,
         ):
             raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, period must be a (positive) multiple of the "
-                f"timing_resolution, and at most the max_duration: {period}"
+                f"{self}: For {mode} mode, the period, '{period}', must be a "
+                f"multiple of '{timing_resolution}', and at most '{max_duration}'"
             )
 
         start_of_day = self.location.now().replace(
