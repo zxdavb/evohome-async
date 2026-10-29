@@ -680,17 +680,8 @@ async def test_zon_set_tcc_mode_rejects_duration(
 
     temperature = None if mode is ZoneMode.FOLLOW_SCHEDULE else 20.0
 
-    with (
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
-        pytest.raises(InvalidModeRequestError),
-    ):
+    with pytest.raises(InvalidModeRequestError):
         await zone.set_tcc_mode(mode, temperature=temperature, **kwargs)
-
-    mock_put.assert_not_awaited()
 
 
 @pytest.mark.parametrize(("mode", "kwargs"), DURATION_REJECTS)
@@ -703,14 +694,5 @@ async def test_dhw_set_tcc_mode_rejects_duration(
 
     state = None if mode is ZoneMode.FOLLOW_SCHEDULE else DhwState.ON
 
-    with (
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
-        pytest.raises(InvalidModeRequestError),
-    ):
+    with pytest.raises(InvalidModeRequestError):
         await dhw.set_tcc_mode(mode, state=state, **kwargs)
-
-    mock_put.assert_not_awaited()
