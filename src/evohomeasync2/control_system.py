@@ -175,6 +175,11 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
     def allowed_modes(self) -> tuple[SystemMode, ...]:
         return tuple(d[SZ_SYSTEM_MODE] for d in self.allowed_system_modes)
 
+    @cached_property
+    def _allowed_modes_table(self) -> dict[SystemMode, EvoAllowedSystemModesT]:
+        """Return the allowed_system_modes, keyed by their system_mode."""
+        return {d[SZ_SYSTEM_MODE]: d for d in self.allowed_system_modes}
+
     # Status (state) attrs & methods...
 
     def _update_status(self, status: EvoTcsStatusResponseT) -> None:

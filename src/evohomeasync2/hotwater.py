@@ -66,7 +66,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         self._config: Final = config
 
-        self._allowed_modes = self._build_allowed_modes(
+        self._allowed_modes_table = self._build_allowed_modes_table(
             self.allowed_modes,
             max_duration=self.state_capabilities[SZ_MAX_DURATION],
             timing_resolution=self.state_capabilities[SZ_TIMING_RESOLUTION],
