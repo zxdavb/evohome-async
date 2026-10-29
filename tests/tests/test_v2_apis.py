@@ -6,13 +6,13 @@ from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod
 from pathlib import Path
 from typing import TYPE_CHECKING
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, PropertyMock, patch
 
 import pytest
 from freezegun.api import FakeDatetime
 
 from evohomeasync2 import BadApiRequestError, InvalidModeRequestError
-from evohomeasync2.const import DhwState, SystemMode, ZoneMode
+from evohomeasync2.const import DhwState, SystemMode, TimingMode, ZoneMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
 from .const import PUT_RESPONSE_V2
@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from freezegun.api import FrozenDateTimeFactory
 
     from evohomeasync2 import ControlSystem, HotWater, Zone
+    from evohomeasync2.typedefs import EvoAllowedSystemModesT
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -489,6 +490,35 @@ async def test_ctl_set_tcc_mode_permanent(
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
 
 
+async def test_ctl_set_tcc_mode_not_permanent(
+    tcs: ControlSystem,
+) -> None:
+    """Test set_tcc_mode() rejects a mode that can't be permanent, sans duration/period."""
+
+    # no known system has such a mode, so this one is made up
+    mode_entry: EvoAllowedSystemModesT = {
+        "system_mode": SystemMode.AUTO_WITH_ECO,
+        "can_be_permanent": False,
+        "can_be_temporary": True,
+        "max_duration": "1.00:00:00",
+        "timing_resolution": "01:00:00",
+        "timing_mode": TimingMode.DURATION,
+    }
+
+    with (
+        patch.object(
+            type(tcs),
+            "allowed_system_modes",
+            new_callable=PropertyMock,
+            return_value=(mode_entry,),
+        ),
+        pytest.raises(
+            InvalidModeRequestError, match="duration/period must not be None"
+        ),
+    ):
+        await tcs.set_tcc_mode(SystemMode.AUTO_WITH_ECO)
+
+
 @pytest.mark.parametrize(
     ("system_mode", "kwargs"),
     [
@@ -529,17 +559,8 @@ async def test_ctl_set_tcc_mode_rejects(
 ) -> None:
     """Test set_tcc_mode() rejects an invalid request before any PUT is made."""
 
-    with (
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
-        pytest.raises(InvalidModeRequestError),
-    ):
+    with pytest.raises(InvalidModeRequestError):
         await tcs.set_tcc_mode(system_mode, **kwargs)
-
-    mock_put.assert_not_awaited()
 
 
 async def test_ctl_set_system_mode_is_deprecated(
