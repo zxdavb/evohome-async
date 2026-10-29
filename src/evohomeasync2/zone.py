@@ -868,20 +868,12 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         """
 
         # Issue a warning if we fail some basic sanity checks...
-        if zon_mode[SZ_SETPOINT_MODE] not in self.allowed_modes:
+        if (
+            zon_mode.get(SZ_HEAT_SETPOINT_VALUE) is None
+            and zon_mode[SZ_SETPOINT_MODE] is not ZoneMode.FOLLOW_SCHEDULE
+        ):
             self._logger.warning(
-                f"{self}: Attempting unsupported {SZ_SETPOINT_MODE}: {zon_mode}..."
-            )
-
-        if (temp := zon_mode.get(SZ_HEAT_SETPOINT_VALUE)) is None:
-            if zon_mode[SZ_SETPOINT_MODE] is not ZoneMode.FOLLOW_SCHEDULE:
-                self._logger.warning(
-                    f"{self}: Attempting missing {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
-                )
-
-        elif not self.min_heat_setpoint <= temp <= self.max_heat_setpoint:
-            self._logger.warning(
-                f"{self}: Attempting invalid {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
+                f"{self}: Attempting missing {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
             )
 
         url = f"{self._TCC_TYPE}/{self.id}/heatSetpoint"
