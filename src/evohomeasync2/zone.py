@@ -600,7 +600,7 @@ class _ZoneBase[
 
     SCH_STATUS: Validator[StatusT]
 
-    _allowed_modes: tuple[_AllowedModesT, ...]  # set by the subclass
+    _allowed_modes_table: dict[ZoneMode, _AllowedModesT]  # set by the subclass
 
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id)
@@ -619,22 +619,22 @@ class _ZoneBase[
     # Config attrs...
 
     @staticmethod
-    def _build_allowed_modes(
+    def _build_allowed_modes_table(
         allowed_modes: Iterable[ZoneMode],
         /,
         *,
         max_duration: str,
         timing_resolution: str,
-    ) -> tuple[_AllowedModesT, ...]:
-        """Return a table of the allowed modes, c.f. a TCS's allowed_system_modes.
+    ) -> dict[ZoneMode, _AllowedModesT]:
+        """Return a table of the allowed modes, c.f. a TCS's _allowed_modes_table.
 
         A zone's/DHW's capabilities have a list of its allowed modes, and only one
         max_duration/timing_resolution (which is for its TemporaryOverride mode):
-        "_allowed_modes": [
-            {"mode": "FollowSchedule",    "can_be_permanent": true,  "can_be_temporary": false},
-            {"mode": "PermanentOverride", "can_be_permanent": true,  "can_be_temporary": false},
-            {"mode": "TemporaryOverride", "can_be_permanent": false, "can_be_temporary": true, "timing_mode": "Duration", "max_duration": "1.00:00:00", "timing_resolution": "00:10:00"}
-        ]
+        "_allowed_modes_table": {
+            "FollowSchedule":    {"mode": "FollowSchedule",    "can_be_permanent": true,  "can_be_temporary": false},
+            "PermanentOverride": {"mode": "PermanentOverride", "can_be_permanent": true,  "can_be_temporary": false},
+            "TemporaryOverride": {"mode": "TemporaryOverride", "can_be_permanent": false, "can_be_temporary": true, "timing_mode": "Duration", "max_duration": "1.00:00:00", "timing_resolution": "00:10:00"}
+        }
 
         Any other allowed modes are not included (e.g. VacationHold, which is seen only
         on non-evohome systems, and has its own vacation_hold_capabilities).
@@ -642,31 +642,27 @@ class _ZoneBase[
 
         # TODO: handle ZoneMode.VACATION_HOLD
 
-        table: list[_AllowedModesT] = []
+        table: dict[ZoneMode, _AllowedModesT] = {}
 
         for mode in allowed_modes:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                table.append(
-                    {
-                        SZ_MODE: mode,
-                        SZ_CAN_BE_PERMANENT: True,
-                        SZ_CAN_BE_TEMPORARY: False,
-                    }
-                )
+                table[mode] = {
+                    SZ_MODE: mode,
+                    SZ_CAN_BE_PERMANENT: True,
+                    SZ_CAN_BE_TEMPORARY: False,
+                }
 
             elif mode is ZoneMode.TEMPORARY_OVERRIDE:
-                table.append(
-                    {
-                        SZ_MODE: mode,
-                        SZ_CAN_BE_PERMANENT: False,
-                        SZ_CAN_BE_TEMPORARY: True,
-                        SZ_MAX_DURATION: max_duration,
-                        SZ_TIMING_RESOLUTION: timing_resolution,
-                        SZ_TIMING_MODE: TimingMode.DURATION,
-                    }
-                )
+                table[mode] = {
+                    SZ_MODE: mode,
+                    SZ_CAN_BE_PERMANENT: False,
+                    SZ_CAN_BE_TEMPORARY: True,
+                    SZ_MAX_DURATION: max_duration,
+                    SZ_TIMING_RESOLUTION: timing_resolution,
+                    SZ_TIMING_MODE: TimingMode.DURATION,
+                }
 
-        return tuple(table)
+        return table
 
     # Status (state) attrs & methods...
 
@@ -758,7 +754,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     f"{self}: Fan mode '{fan_mode[SZ_FAN_MODE]}' {_PLEASE_REPORT}"
                 )
 
-        self._allowed_modes = self._build_allowed_modes(
+        self._allowed_modes_table = self._build_allowed_modes_table(
             self.allowed_modes,
             max_duration=self.setpoint_capabilities[SZ_MAX_DURATION],
             timing_resolution=self.setpoint_capabilities[SZ_TIMING_RESOLUTION],
