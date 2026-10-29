@@ -290,7 +290,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         else:
             if mode_entry[SZ_CAN_BE_TEMPORARY] is False:
                 raise exc.InvalidModeRequestError(
-                    f"{self}: For {system_mode}, until, '{until}', must be None"
+                    f"{self}: For {system_mode}, until must be None, not '{until}'"
                 )
 
             tcs_mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
@@ -353,7 +353,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         if duration is not None:
             if mode_entry.get(SZ_TIMING_MODE) is not TimingMode.DURATION:
                 raise exc.InvalidModeRequestError(
-                    f"{self}: For {system_mode}, duration, '{duration}', must be None"
+                    f"{self}: For {system_mode}, duration must be None, not '{duration}'"
                 )
             until = self._duration_as_until(
                 system_mode,
@@ -365,7 +365,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         elif period is not None:
             if mode_entry.get(SZ_TIMING_MODE) is not TimingMode.PERIOD:
                 raise exc.InvalidModeRequestError(
-                    f"{self}: For {system_mode}, period, '{period}', must be None"
+                    f"{self}: For {system_mode}, period must be None, not '{period}'"
                 )
             until = self._period_as_until(
                 system_mode,
@@ -408,8 +408,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             timing_resolution=timing_resolution,
         ):
             raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, period, '{period}', must be a "
-                f"multiple of '{timing_resolution}', and at most '{max_duration}'"
+                f"{self}: For {mode}, period must be a multiple of "
+                f"'{timing_resolution}' and at most '{max_duration}', not '{period}'"
             )
 
         start_of_day = self.location.now().replace(
