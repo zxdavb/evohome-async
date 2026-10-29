@@ -30,6 +30,7 @@ from .const import (
     SZ_HEAT_SETPOINT,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_IS_AVAILABLE,
+    SZ_MAX_DURATION,
     SZ_MAX_HEAT_SETPOINT,
     SZ_MIN_HEAT_SETPOINT,
     SZ_MODEL_TYPE,
@@ -45,6 +46,7 @@ from .const import (
     SZ_TEMPERATURE_STATUS,
     SZ_TIME_OF_DAY,
     SZ_TIME_UNTIL,
+    SZ_TIMING_RESOLUTION,
     SZ_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
@@ -578,7 +580,7 @@ class _ScheduleBase[
 class _ZoneBase[
     StatusT: (EvoDhwStatusResponseT, EvoZonStatusResponseT),
     DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT),
-](_ScheduleBase[StatusT, DayT]):
+](_TccModeMixin, _ScheduleBase[StatusT, DayT]):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     SCH_STATUS: Validator[StatusT]
@@ -626,6 +628,29 @@ class _ZoneBase[
 
         self._update_faults(status[SZ_ACTIVE_FAULTS])
         self._status = status
+
+    def _duration_as_until(
+        self,
+        mode: str,
+        duration: td,
+        /,
+        *,
+        max_duration: str,
+        timing_resolution: str,
+    ) -> dt:
+        """Return when a duration (from now) ends, if it is valid for the mode."""
+
+        if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, duration must be None"
+            )
+
+        return super()._duration_as_until(
+            mode,
+            duration,
+            max_duration=max_duration,
+            timing_resolution=timing_resolution,
+        )
 
     @property
     def temperature_status(self) -> EvoTemperatureStatusT:
@@ -788,6 +813,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
+    # NOTE: no provision for cooling (not supported by this API)
     async def _put_mode(self, zon_mode: EvoSetZoneHeatSetpointT, /) -> CommTask:
         """Set the Zone mode, and return the vendor's comm task.
 
@@ -878,11 +904,41 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         return await self._put_mode(zone_mode)
 
+    async def set_tcc_mode(
+        self,
+        mode: ZoneMode | str,
+        /,
+        *,
+        temperature: float | None = None,
+        duration: td | None = None,
+    ) -> CommTask:
+        """Set the Zone to a (heating) mode, either indefinitely, or for a duration.
+
+        Will accept a ZoneMode or a (snake_case) string for the 'mode'.
+
+        A 'duration' ends that long from now. It must be positive, a multiple of the
+        zone's timing_resolution, and not exceed its max_duration (see
+        setpoint_capabilities). Without one, the mode is set indefinitely.
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
+
+        until = (
+            None
+            if duration is None
+            else self._duration_as_until(
+                mode,
+                duration,
+                max_duration=self.setpoint_capabilities[SZ_MAX_DURATION],
+                timing_resolution=self.setpoint_capabilities[SZ_TIMING_RESOLUTION],
+            )
+        )
+        return await self.set_mode(mode, temperature=temperature, until=until)
+
     async def reset(self) -> CommTask:
         """Cancel any override and allow the Zone to follow its schedule."""
         return await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
 
-    # NOTE: no provision for cooling (not supported by API)
     async def set_temperature(
         self,
         temperature: float,

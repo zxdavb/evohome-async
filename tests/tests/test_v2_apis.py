@@ -18,10 +18,18 @@ from .conftest import FIXTURES_V2 as FIXTURES
 from .const import PUT_RESPONSE_V2
 
 if TYPE_CHECKING:
+    from typing import TypedDict
+
     from freezegun.api import FrozenDateTimeFactory
 
     from evohomeasync2 import ControlSystem, HotWater, Zone
     from evohomeasync2.typedefs import EvoAllowedSystemModesT
+
+    class _SetZoneTimeT(TypedDict, total=False):  # the set time of a set_tcc_mode()
+        duration: td
+
+    class _SetTimeT(_SetZoneTimeT, total=False):  # ...and of the TCS's set_tcc_mode()
+        period: td
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
@@ -450,7 +458,7 @@ async def test_ctl_set_tcc_mode_temporary(
     tcs: ControlSystem,
     freezer: FrozenDateTimeFactory,
     system_mode: SystemMode,
-    kwargs: dict[str, td],
+    kwargs: _SetTimeT,
     now_until: tuple[str, dt],
 ) -> None:
     """Test set_tcc_mode() ends a duration from now, and a period from midnight."""
@@ -555,7 +563,7 @@ async def test_ctl_set_tcc_mode_not_permanent(
 async def test_ctl_set_tcc_mode_rejects(
     tcs: ControlSystem,
     system_mode: SystemMode | str,
-    kwargs: dict[str, td],
+    kwargs: _SetTimeT,
 ) -> None:
     """Test set_tcc_mode() rejects an invalid request before any PUT is made."""
 
@@ -586,3 +594,123 @@ async def test_ctl_set_system_mode_is_deprecated(
     assert json["system_mode"] == SystemMode.AUTO_WITH_ECO
     assert json["permanent"] is False
     assert json["time_until"] == dt(2025, 7, 10, 14, 0, tzinfo=UTC)
+
+
+# Test Zone/HotWater.set_tcc_mode() (with a duration, rather than an until)...
+
+
+async def test_zon_set_tcc_mode_with_duration(
+    zone: Zone,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Test a zone's duration ends that long from now (as a TemporaryOverride)."""
+
+    freezer.move_to("2025-07-10T12:00:00Z")
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
+        await zone.set_tcc_mode(
+            ZoneMode.TEMPORARY_OVERRIDE,
+            temperature=20.5,
+            duration=td(hours=1, minutes=30),
+        )
+
+    mock_put.assert_awaited_once_with(
+        HTTPMethod.PUT,
+        f"temperatureZone/{zone.id}/heatSetpoint",
+        json={
+            "setpoint_mode": ZoneMode.TEMPORARY_OVERRIDE,
+            "heat_setpoint_value": 20.5,
+            "time_until": dt(2025, 7, 10, 13, 30, tzinfo=UTC),
+        },
+    )
+
+
+async def test_dhw_set_tcc_mode_with_duration(
+    dhw: HotWater,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Test a DHW's duration ends that long from now (as a TemporaryOverride)."""
+
+    freezer.move_to("2025-07-10T12:00:00Z")
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
+        await dhw.set_tcc_mode(
+            ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.ON, duration=td(hours=2)
+        )
+
+    mock_put.assert_awaited_once_with(
+        HTTPMethod.PUT,
+        f"domesticHotWater/{dhw.id}/state",
+        json={
+            "mode": ZoneMode.TEMPORARY_OVERRIDE,
+            "state": DhwState.ON,
+            "until_time": dt(2025, 7, 10, 14, 0, tzinfo=UTC),
+        },
+    )
+
+
+# the zone's and the DHW's max_duration is "1.00:00:00", timing_resolution "00:10:00"
+DURATION_REJECTS = [
+    pytest.param(ZoneMode.FOLLOW_SCHEDULE, {"duration": td(hours=1)}, id="follow"),
+    pytest.param(ZoneMode.PERMANENT_OVERRIDE, {"duration": td(hours=1)}, id="perm"),
+    pytest.param(ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(0)}, id="zero"),
+    pytest.param(ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(hours=-1)}, id="neg"),
+    pytest.param(ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(hours=25)}, id="long"),
+    pytest.param(
+        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(minutes=15)}, id="resolution"
+    ),
+]
+
+
+@pytest.mark.parametrize(("mode", "kwargs"), DURATION_REJECTS)
+async def test_zon_set_tcc_mode_rejects_duration(
+    zone: Zone,
+    mode: ZoneMode,
+    kwargs: _SetZoneTimeT,
+) -> None:
+    """Test a zone's set_tcc_mode() rejects an invalid duration before any PUT is made."""
+
+    temperature = None if mode is ZoneMode.FOLLOW_SCHEDULE else 20.0
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        pytest.raises(InvalidModeRequestError),
+    ):
+        await zone.set_tcc_mode(mode, temperature=temperature, **kwargs)
+
+    mock_put.assert_not_awaited()
+
+
+@pytest.mark.parametrize(("mode", "kwargs"), DURATION_REJECTS)
+async def test_dhw_set_tcc_mode_rejects_duration(
+    dhw: HotWater,
+    mode: ZoneMode,
+    kwargs: _SetZoneTimeT,
+) -> None:
+    """Test a DHW's set_tcc_mode() rejects an invalid duration before any PUT is made."""
+
+    state = None if mode is ZoneMode.FOLLOW_SCHEDULE else DhwState.ON
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        pytest.raises(InvalidModeRequestError),
+    ):
+        await dhw.set_tcc_mode(mode, state=state, **kwargs)
+
+    mock_put.assert_not_awaited()

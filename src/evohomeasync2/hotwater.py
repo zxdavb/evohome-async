@@ -16,10 +16,12 @@ from .const import (
     SZ_ALLOWED_STATES,
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
+    SZ_MAX_DURATION,
     SZ_MODE,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_STATE,
     SZ_STATE_STATUS,
+    SZ_TIMING_RESOLUTION,
     SZ_UNTIL,
     SZ_UNTIL_TIME,
     DhwState,
@@ -32,7 +34,7 @@ from .typedefs import EvoDhwScheduleDayOfWeekT, EvoDhwStatusT
 from .zone import _ZoneBase
 
 if TYPE_CHECKING:
-    from datetime import datetime as dt
+    from datetime import datetime as dt, timedelta as td
 
     from _evohome.helpers import Validator
 
@@ -233,6 +235,37 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             dhw_mode[SZ_UNTIL_TIME] = as_aware_dtm(until)
 
         return await self._put_mode(dhw_mode)
+
+    async def set_tcc_mode(
+        self,
+        mode: ZoneMode | str,
+        /,
+        *,
+        state: DhwState | str | None = None,
+        duration: td | None = None,
+    ) -> CommTask:
+        """Set the DHW to a mode, either indefinitely, or for a duration.
+
+        Will accept a ZoneMode/DhwState or a (snake_case) string for 'mode'/'state'.
+
+        A 'duration' ends that long from now. It must be positive, a multiple of the
+        DHW's timing_resolution, and not exceed its max_duration (see
+        state_capabilities). Without one, the mode is set indefinitely.
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
+
+        until = (
+            None
+            if duration is None
+            else self._duration_as_until(
+                mode,
+                duration,
+                max_duration=self.state_capabilities[SZ_MAX_DURATION],
+                timing_resolution=self.state_capabilities[SZ_TIMING_RESOLUTION],
+            )
+        )
+        return await self.set_mode(mode, state=state, until=until)
 
     async def reset(self) -> CommTask:
         """Cancel any override and allow the DHW to follow its schedule."""
