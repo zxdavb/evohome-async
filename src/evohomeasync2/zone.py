@@ -13,6 +13,7 @@ from _evohome.helpers import (
     Case,
     as_aware_dtm,
     as_local_time,
+    as_timedelta,
     convert_dtm_to_local_aware,
 )
 
@@ -95,6 +96,55 @@ _ONE_DAY = td(days=1)
 _PLEASE_REPORT = (
     "is unknown, please report it at https://github.com/zxdavb/evohome-async/issues"
 )
+
+
+class _TccModeMixin:
+    """Provide the base for entities with TCC-native (temporary) modes."""
+
+    location: Location  # used to get now()
+
+    @staticmethod
+    def _is_valid_duration(
+        duration: td,
+        /,
+        *,
+        max_duration: str,
+        timing_resolution: str,
+    ) -> bool:
+        """Return True if a duration (or a period) is allowed by its capabilities.
+
+        That is, if it is a (positive) multiple of the timing_resolution, and does not
+        exceed the max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
+        """
+
+        resolution = as_timedelta(timing_resolution)
+        maximum = as_timedelta(max_duration)
+
+        return resolution <= duration <= maximum and not duration % resolution
+
+    def _duration_as_until(
+        self,
+        mode: str,
+        duration: td,
+        /,
+        *,
+        max_duration: str,
+        timing_resolution: str,
+    ) -> dt:
+        """Return when a duration (from now) ends, if it is valid for the mode."""
+
+        if not self._is_valid_duration(
+            duration,
+            max_duration=max_duration,
+            timing_resolution=timing_resolution,
+        ):
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode} mode, the duration, '{duration}', must be a "
+                f"multiple of '{timing_resolution}', and at most '{max_duration}'"
+            )
+
+        # in UTC, as local arithmetic is wall-clock (wrong if it spans a DST change)
+        return self.location.now().astimezone(UTC) + duration
 
 
 class EntityBase[StatusT]:
