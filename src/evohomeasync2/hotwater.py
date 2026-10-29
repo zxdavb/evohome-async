@@ -16,10 +16,12 @@ from .const import (
     SZ_ALLOWED_STATES,
     SZ_DHW_ID,
     SZ_DHW_STATE_CAPABILITIES_RESPONSE,
+    SZ_MAX_DURATION,
     SZ_MODE,
     SZ_SCHEDULE_CAPABILITIES_RESPONSE,
     SZ_STATE,
     SZ_STATE_STATUS,
+    SZ_TIMING_RESOLUTION,
     SZ_UNTIL,
     SZ_UNTIL_TIME,
     DhwState,
@@ -63,6 +65,12 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         super().__init__(config[SZ_DHW_ID], tcs)
 
         self._config: Final = config
+
+        self._allowed_modes = self._build_allowed_modes(
+            self.allowed_modes,
+            max_duration=self.state_capabilities[SZ_MAX_DURATION],
+            timing_resolution=self.state_capabilities[SZ_TIMING_RESOLUTION],
+        )
 
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoDhwConfigT:
