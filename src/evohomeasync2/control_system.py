@@ -3,18 +3,18 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, timedelta as td
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
 from warnings import deprecated
 
-from _evohome.helpers import Case, as_aware_dtm, as_local_time, as_timedelta
+from _evohome.helpers import Case, as_aware_dtm, as_local_time
 
 from . import exceptions as exc
 from .comm_task import CommTask
 from .const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
+    SZ_CAN_BE_PERMANENT,
     SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
     SZ_DHW,
@@ -41,12 +41,12 @@ from .hotwater import HotWater
 from .schemas.const import TccEntityType
 from .schemas.status import factory_tcs_status
 from .typedefs import EvoTcsStatusT
-from .zone import ActiveFaultsBase, Zone
+from .zone import ActiveFaultsBase, Zone, _TccModeMixin
 
 if TYPE_CHECKING:
     import logging
     from collections.abc import Mapping
-    from datetime import datetime as dt
+    from datetime import datetime as dt, timedelta as td
     from typing import Any
 
     from _evohome.helpers import Validator
@@ -78,7 +78,7 @@ def _sched_id(schedule: Mapping[str, Any]) -> str:
     return dhw_id
 
 
-class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
+class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
     """Instance of a gateway's TCS (temperatureControlSystem)."""
 
     _TCC_TYPE = TccEntityType.TCS
@@ -327,11 +327,6 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if duration is not None and period is not None:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Only one of duration or period may be given"
-            )
-
         try:
             system_mode = SystemMode(system_mode)
         except ValueError as err:
@@ -348,6 +343,11 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                 f"{self}: Unsupported system_mode: {system_mode}"
             )
 
+        if duration is not None and period is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of duration or period may be given"
+            )
+
         until: dt
 
         if duration is not None:
@@ -355,22 +355,30 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
                 raise exc.InvalidModeRequestError(
                     f"{self}: For {system_mode}, duration must be None"
                 )
-            self._check_temporary_length(mode_entry, duration, is_period=False)
-            # in UTC, as local arithmetic is wall-clock (wrong if it spans a DST change)
-            until = self.location.now().astimezone(UTC) + duration
+            until = self._duration_as_until(
+                system_mode,
+                duration,
+                max_duration=mode_entry.get(SZ_MAX_DURATION, ""),
+                timing_resolution=mode_entry.get(SZ_TIMING_RESOLUTION, ""),
+            )
 
         elif period is not None:
             if mode_entry.get(SZ_TIMING_MODE) is not TimingMode.PERIOD:
                 raise exc.InvalidModeRequestError(
                     f"{self}: For {system_mode}, period must be None"
                 )
-            self._check_temporary_length(mode_entry, period, is_period=True)
-            start_of_day = self.location.now().replace(
-                hour=0, minute=0, second=0, microsecond=0
+            until = self._period_as_until(
+                system_mode,
+                period,
+                max_duration=mode_entry.get(SZ_MAX_DURATION, ""),
+                timing_resolution=mode_entry.get(SZ_TIMING_RESOLUTION, ""),
             )
-            until = start_of_day + period
 
         else:  # all known modes can be permanent
+            if not mode_entry[SZ_CAN_BE_PERMANENT]:
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {system_mode}, duration/period must not be None"
+                )
             return await self._put_mode(
                 {SZ_SYSTEM_MODE: system_mode, SZ_PERMANENT: True}
             )
@@ -379,31 +387,35 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             {SZ_SYSTEM_MODE: system_mode, SZ_PERMANENT: False, SZ_TIME_UNTIL: until}
         )
 
-    def _check_temporary_length(
-        self, mode_entry: EvoAllowedSystemModesT, length: td, /, *, is_period: bool
-    ) -> None:
-        """Raise InvalidModeRequestError if a duration/period is out of range."""
+    def _period_as_until(
+        self,
+        mode: str,
+        period: td,
+        /,
+        *,
+        max_duration: str,
+        timing_resolution: str,
+    ) -> dt:
+        """Return when a period (from the start of today) ends, if valid for the mode.
 
-        name = "period" if is_period else "duration"
-        mode = mode_entry[SZ_SYSTEM_MODE]
+        The start of today is in the location's local time, so a period of one day ends
+        at the coming midnight.
+        """
 
-        if length < (minimum := td(days=1) if is_period else td(microseconds=1)):
+        if not self._is_valid_duration(
+            period,
+            max_duration=max_duration,
+            timing_resolution=timing_resolution,
+        ):
             raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {name} must be at least {minimum}: {length}"
+                f"{self}: For {mode}, period must be a (positive) multiple of the "
+                f"timing_resolution, and at most the max_duration: {period}"
             )
 
-        # if timing_resolution/max_duration is absent or unparseable, defer to the vendor
-        resolution = as_timedelta(mode_entry.get(SZ_TIMING_RESOLUTION, ""))
-        if resolution and length % resolution:
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {name} must be a multiple of {resolution}: {length}"
-            )
-
-        maximum = as_timedelta(mode_entry.get(SZ_MAX_DURATION, ""))
-        if maximum is not None and length > maximum:
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {name} must be at most {maximum}: {length}"
-            )
+        start_of_day = self.location.now().replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        return start_of_day + period
 
     @deprecated("ControlSystem.set_system_mode() is deprecated: use .set_tcc_mode()")
     async def set_system_mode(
