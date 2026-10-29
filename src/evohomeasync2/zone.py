@@ -669,7 +669,7 @@ class _ZoneBase[
 
         return table
 
-    def _validate_mode(self, mode: ZoneMode | str, /) -> ZoneMode:
+    def _validate_requested_mode(self, mode: ZoneMode | str, /) -> ZoneMode:
         """Return the mode as a ZoneMode, if it is one of the allowed_modes."""
 
         try:
@@ -924,7 +924,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        mode = self._validate_mode(mode)
+        mode = self._validate_requested_mode(mode)
 
         zone_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: mode}
 

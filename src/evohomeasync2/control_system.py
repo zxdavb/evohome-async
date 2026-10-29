@@ -180,7 +180,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         """Return the allowed_system_modes, keyed by their system_mode."""
         return {d[SZ_SYSTEM_MODE]: d for d in self.allowed_system_modes}
 
-    def _validate_mode(
+    def _validate_requested_mode(
         self, system_mode: SystemMode | str, /
     ) -> tuple[SystemMode, EvoAllowedSystemModesT]:
         """Return the mode as a SystemMode, and its entry in the allowed_system_modes.
@@ -290,7 +290,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        system_mode, mode_entry = self._validate_mode(system_mode)
+        system_mode, mode_entry = self._validate_requested_mode(system_mode)
 
         tcs_mode: EvoSetSystemModeT
 
@@ -345,7 +345,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
                 f"{self}: Only one of duration or period may be given"
             )
 
-        system_mode, mode_entry = self._validate_mode(system_mode)
+        system_mode, mode_entry = self._validate_requested_mode(system_mode)
 
         until: dt
 
