@@ -141,7 +141,7 @@ class _TccModeMixin:
             timing_resolution=timing_resolution,
         ):
             raise exc.InvalidModeRequestError(
-                f"{self}: For {mode} mode, the duration, '{duration}', must be a "
+                f"{self}: For {mode}, the duration, '{duration}', must be a "
                 f"multiple of '{timing_resolution}', and at most '{max_duration}'"
             )
 
