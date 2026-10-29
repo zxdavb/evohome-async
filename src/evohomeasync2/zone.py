@@ -602,6 +602,11 @@ class _ZoneBase[
 
     _allowed_modes_table: dict[ZoneMode, _AllowedModesT]  # set by the subclass
 
+    if TYPE_CHECKING:  # each subclass has its own (cached) property
+
+        @property
+        def allowed_modes(self) -> tuple[ZoneMode, ...]: ...
+
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id)
 
@@ -663,6 +668,19 @@ class _ZoneBase[
                 }
 
         return table
+
+    def _validate_mode(self, mode: ZoneMode | str, /) -> ZoneMode:
+        """Return the mode as a ZoneMode, if it is one of the allowed_modes."""
+
+        try:
+            mode = ZoneMode(mode)
+        except ValueError as err:
+            raise exc.InvalidModeRequestError(f"{self}: Unknown mode: {mode}") from err
+
+        if mode not in self.allowed_modes:
+            raise exc.InvalidModeRequestError(f"{self}: Unsupported mode: {mode}")
+
+        return mode
 
     # Status (state) attrs & methods...
 
@@ -906,13 +924,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        try:
-            mode = ZoneMode(mode)
-        except ValueError as err:
-            raise exc.InvalidModeRequestError(f"{self}: Unknown mode: {mode}") from err
-
-        if mode not in self.allowed_modes:
-            raise exc.InvalidModeRequestError(f"{self}: Unsupported mode: {mode}")
+        mode = self._validate_mode(mode)
 
         zone_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: mode}
 

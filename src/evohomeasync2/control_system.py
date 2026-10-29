@@ -180,6 +180,28 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         """Return the allowed_system_modes, keyed by their system_mode."""
         return {d[SZ_SYSTEM_MODE]: d for d in self.allowed_system_modes}
 
+    def _validate_mode(
+        self, system_mode: SystemMode | str, /
+    ) -> tuple[SystemMode, EvoAllowedSystemModesT]:
+        """Return the mode as a SystemMode, and its entry in the allowed_system_modes.
+
+        The mode must be one of the allowed_modes.
+        """
+
+        try:
+            system_mode = SystemMode(system_mode)
+        except ValueError as err:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Unknown system_mode: {system_mode}"
+            ) from err
+
+        if system_mode not in self.allowed_modes:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Unsupported system_mode: {system_mode}"
+            )
+
+        return system_mode, self._allowed_modes_table[system_mode]
+
     # Status (state) attrs & methods...
 
     def _update_status(self, status: EvoTcsStatusResponseT) -> None:
@@ -268,23 +290,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        try:
-            system_mode = SystemMode(system_mode)
-        except ValueError as err:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Unknown system_mode: {system_mode}"
-            ) from err
-
-        if system_mode not in self.allowed_modes:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Unsupported system_mode: {system_mode}"
-            )
+        system_mode, mode_entry = self._validate_mode(system_mode)
 
         tcs_mode: EvoSetSystemModeT
-
-        mode_entry = next(
-            d for d in self.allowed_system_modes if d[SZ_SYSTEM_MODE] is system_mode
-        )
 
         if until is None:  # all known modes can be permanent
             tcs_mode = {
@@ -337,21 +345,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
                 f"{self}: Only one of duration or period may be given"
             )
 
-        try:
-            system_mode = SystemMode(system_mode)
-        except ValueError as err:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Unknown system_mode: {system_mode}"
-            ) from err
-
-        mode_entry = next(
-            (d for d in self.allowed_system_modes if d[SZ_SYSTEM_MODE] is system_mode),
-            None,
-        )
-        if mode_entry is None:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Unsupported system_mode: {system_mode}"
-            )
+        system_mode, mode_entry = self._validate_mode(system_mode)
 
         until: dt
 
