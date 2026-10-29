@@ -139,7 +139,7 @@ class _TccModeMixin:
             timing_resolution=timing_resolution,
         ):
             raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, the duration, '{duration}', must be a "
+                f"{self}: For {mode}, duration, '{duration}', must be a "
                 f"multiple of '{timing_resolution}', and at most '{max_duration}'"
             )
 
@@ -852,7 +852,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         else:
             if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, temperature must be None"
+                    f"{self}: For {mode}, temperature, '{temperature}', must be None"
                 )
 
             if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
@@ -871,7 +871,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, until must be None"
+                    f"{self}: For {mode}, until, '{until}', must be None"
                 )
 
             zone_mode[SZ_TIME_UNTIL] = as_aware_dtm(until)
