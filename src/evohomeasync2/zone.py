@@ -23,6 +23,8 @@ from .const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_FAN_MODES,
     SZ_ALLOWED_SETPOINT_MODES,
+    SZ_CAN_BE_PERMANENT,
+    SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
     SZ_DHW_STATE,
     SZ_FAN_MODE,
@@ -30,8 +32,10 @@ from .const import (
     SZ_HEAT_SETPOINT,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_IS_AVAILABLE,
+    SZ_MAX_DURATION,
     SZ_MAX_HEAT_SETPOINT,
     SZ_MIN_HEAT_SETPOINT,
+    SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_NAME,
     SZ_SCHEDULE_CAPABILITIES,
@@ -45,12 +49,15 @@ from .const import (
     SZ_TEMPERATURE_STATUS,
     SZ_TIME_OF_DAY,
     SZ_TIME_UNTIL,
+    SZ_TIMING_MODE,
+    SZ_TIMING_RESOLUTION,
     SZ_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
     DayOfWeek,
     FanMode,
     FaultType,
+    TimingMode,
     ZoneMode,
     ZoneModelType,
     ZoneType,
@@ -62,9 +69,9 @@ from .typedefs import EvoZonScheduleDayOfWeekT, EvoZonStatusResponseT, EvoZonSta
 
 if TYPE_CHECKING:
     import logging
-    from collections.abc import Mapping
+    from collections.abc import Iterable, Mapping
     from datetime import tzinfo
-    from typing import TypedDict
+    from typing import NotRequired, TypedDict
 
     from _evohome.helpers import Validator
 
@@ -88,6 +95,16 @@ if TYPE_CHECKING:
 
     class _DailySchedulesT[DayT](TypedDict):
         daily_schedules: list[DayT]
+
+    class _AllowedModesT(TypedDict):  # c.f. EvoAllowedSystemModesT, for zones/DHW
+        """Derived from the zone's/DHW's capabilities (is not in the vendor's JSON)."""
+
+        mode: ZoneMode
+        can_be_permanent: bool
+        can_be_temporary: bool
+        max_duration: NotRequired[str]  # when can_be_temporary is True
+        timing_resolution: NotRequired[str]  # when can_be_temporary is True
+        timing_mode: NotRequired[TimingMode]  # when can_be_temporary is True
 
 
 _ONE_DAY = td(days=1)
@@ -583,6 +600,8 @@ class _ZoneBase[
 
     SCH_STATUS: Validator[StatusT]
 
+    _allowed_modes: tuple[_AllowedModesT, ...]  # set by the subclass
+
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id)
 
@@ -596,6 +615,56 @@ class _ZoneBase[
     @cached_property
     def _logger(self) -> logging.Logger:
         return self.location.client.logger
+
+    # Config attrs...
+
+    @staticmethod
+    def _build_allowed_modes(
+        allowed_modes: Iterable[ZoneMode],
+        /,
+        *,
+        max_duration: str,
+        timing_resolution: str,
+    ) -> tuple[_AllowedModesT, ...]:
+        """Return a table of the allowed modes, c.f. a TCS's allowed_system_modes.
+
+        A zone's/DHW's capabilities have a list of its allowed modes, and only one
+        max_duration/timing_resolution (which is for its TemporaryOverride mode):
+        "_allowed_modes": [
+            {"mode": "FollowSchedule",    "can_be_permanent": true,  "can_be_temporary": false},
+            {"mode": "PermanentOverride", "can_be_permanent": true,  "can_be_temporary": false},
+            {"mode": "TemporaryOverride", "can_be_permanent": false, "can_be_temporary": true, "timing_mode": "Duration", "max_duration": "1.00:00:00", "timing_resolution": "00:10:00"}
+        ]
+
+        Any other allowed modes are not included (e.g. VacationHold, which is seen only
+        on non-evohome systems, and has its own vacation_hold_capabilities).
+        """
+
+        table: list[_AllowedModesT] = []
+
+        for mode in allowed_modes:
+            if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
+                table.append(
+                    {
+                        SZ_MODE: mode,
+                        SZ_CAN_BE_PERMANENT: True,
+                        SZ_CAN_BE_TEMPORARY: False,
+                    }
+                )
+
+            elif mode is ZoneMode.TEMPORARY_OVERRIDE:
+                table.append(
+                    {
+                        SZ_MODE: mode,
+                        SZ_CAN_BE_PERMANENT: False,
+                        SZ_CAN_BE_TEMPORARY: True,
+                        SZ_MAX_DURATION: max_duration,
+                        SZ_TIMING_RESOLUTION: timing_resolution,
+                        SZ_TIMING_MODE: TimingMode.DURATION,
+                    }
+                )
+
+        return tuple(table)
 
     # Status (state) attrs & methods...
 
@@ -686,6 +755,12 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                 self._logger.warning(
                     f"{self}: Fan mode '{fan_mode[SZ_FAN_MODE]}' {_PLEASE_REPORT}"
                 )
+
+        self._allowed_modes = self._build_allowed_modes(
+            self.allowed_modes,
+            max_duration=self.setpoint_capabilities[SZ_MAX_DURATION],
+            timing_resolution=self.setpoint_capabilities[SZ_TIMING_RESOLUTION],
+        )
 
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoZonConfigT:
