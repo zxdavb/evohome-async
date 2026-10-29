@@ -277,7 +277,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         tcs_mode: EvoSetSystemModeT
 
         mode_entry = next(
-            d for d in self.allowed_system_modes if d[SZ_SYSTEM_MODE] == system_mode
+            d for d in self.allowed_system_modes if d[SZ_SYSTEM_MODE] is system_mode
         )
 
         if until is None:  # all known modes can be permanent
@@ -339,7 +339,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             ) from err
 
         mode_entry = next(
-            (d for d in self.allowed_system_modes if d[SZ_SYSTEM_MODE] == system_mode),
+            (d for d in self.allowed_system_modes if d[SZ_SYSTEM_MODE] is system_mode),
             None,
         )
         if mode_entry is None:
@@ -350,7 +350,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
         until: dt
 
         if duration is not None:
-            if mode_entry.get(SZ_TIMING_MODE) != TimingMode.DURATION:
+            if mode_entry.get(SZ_TIMING_MODE) is not TimingMode.DURATION:
                 raise exc.InvalidModeRequestError(
                     f"{self}: For {system_mode}, duration must be None"
                 )
@@ -359,7 +359,7 @@ class ControlSystem(ActiveFaultsBase[EvoTcsStatusT]):
             until = self.location.now().astimezone(UTC) + duration
 
         elif period is not None:
-            if mode_entry.get(SZ_TIMING_MODE) != TimingMode.PERIOD:
+            if mode_entry.get(SZ_TIMING_MODE) is not TimingMode.PERIOD:
                 raise exc.InvalidModeRequestError(
                     f"{self}: For {system_mode}, period must be None"
                 )
