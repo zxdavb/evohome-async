@@ -640,6 +640,8 @@ class _ZoneBase[
         on non-evohome systems, and has its own vacation_hold_capabilities).
         """
 
+        # TODO: handle ZoneMode.VACATION_HOLD
+
         table: list[_AllowedModesT] = []
 
         for mode in allowed_modes:
