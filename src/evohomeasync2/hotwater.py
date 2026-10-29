@@ -66,6 +66,12 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         self._config: Final = config
 
+        self._allowed_modes = self._build_allowed_modes(
+            self.allowed_modes,
+            max_duration=self.state_capabilities[SZ_MAX_DURATION],
+            timing_resolution=self.state_capabilities[SZ_TIMING_RESOLUTION],
+        )
+
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoDhwConfigT:
         """Return the latest config of the entity."""
