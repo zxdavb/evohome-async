@@ -718,6 +718,24 @@ class _ZoneBase[
 
         return mode
 
+    def _tcc_mode_as_until(
+        self, mode: ZoneMode | str, duration: td | None, /
+    ) -> dt | None:
+        """Return when a mode ends (None if indefinitely), if valid for the duration.
+
+        The mode and the duration are checked against _allowed_modes_table, c.f. a
+        TCS's set_tcc_mode().
+        """
+
+        mode = self._validate_requested_mode(mode)
+
+        if (mode_entry := self._allowed_modes_table.get(mode)) is None:  # VacationHold
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, use set_mode() (with an until)"
+            )
+
+        return self._validate_requested_timespan(mode, mode_entry, duration=duration)
+
     # Status (state) attrs & methods...
 
     async def _get_status(self, *, _update: bool = True) -> StatusT:
@@ -747,29 +765,6 @@ class _ZoneBase[
 
         self._update_faults(status[SZ_ACTIVE_FAULTS])
         self._status = status
-
-    def _duration_as_until(
-        self,
-        mode: str,
-        duration: td,
-        /,
-        *,
-        max_duration: str,
-        timing_resolution: str,
-    ) -> dt:
-        """Return when a duration (from now) ends, if it is valid for the mode."""
-
-        if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, duration must be None"
-            )
-
-        return super()._duration_as_until(
-            mode,
-            duration,
-            max_duration=max_duration,
-            timing_resolution=timing_resolution,
-        )
 
     @property
     def temperature_status(self) -> EvoTemperatureStatusT:
@@ -1034,16 +1029,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        until = (
-            None
-            if duration is None
-            else self._duration_as_until(
-                mode,
-                duration,
-                max_duration=self.setpoint_capabilities[SZ_MAX_DURATION],
-                timing_resolution=self.setpoint_capabilities[SZ_TIMING_RESOLUTION],
-            )
-        )
+        until = self._tcc_mode_as_until(mode, duration)
         return await self.set_mode(mode, temperature=temperature, until=until)
 
     async def reset(self) -> CommTask:

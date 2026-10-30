@@ -318,6 +318,20 @@ async def test_zon_set_mode_vacation_hold(
     )
 
 
+async def test_zon_set_tcc_mode_rejects_vacation_hold(
+    zone: Zone,
+) -> None:
+    """Zone.set_tcc_mode(VacationHold) should refer the caller to set_mode()."""
+
+    if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
+        pytest.skip("Zone does not support VacationHold mode")
+
+    with pytest.raises(evo2.InvalidModeRequestError, match=r"use set_mode\(\)"):
+        await zone.set_tcc_mode(
+            ZoneMode.VACATION_HOLD, temperature=15.0, duration=td(days=7)
+        )
+
+
 async def test_zon_set_mode_follow_schedule_rejects_extra_args(
     zone: Zone,
 ) -> None:

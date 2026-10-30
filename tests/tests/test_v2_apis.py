@@ -656,41 +656,65 @@ async def test_dhw_set_tcc_mode_with_duration(
 
 
 # the zone's and the DHW's max_duration is "1.00:00:00", timing_resolution "00:10:00"
+_MUST_BE_NONE = "duration must be None, not '1:00:00'"
+_MULTIPLE_OF = "must be a multiple of"
+
 DURATION_REJECTS = [
-    pytest.param(ZoneMode.FOLLOW_SCHEDULE, {"duration": td(hours=1)}, id="follow"),
-    pytest.param(ZoneMode.PERMANENT_OVERRIDE, {"duration": td(hours=1)}, id="perm"),
-    pytest.param(ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(0)}, id="zero"),
-    pytest.param(ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(hours=-1)}, id="neg"),
-    pytest.param(ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(hours=25)}, id="long"),
     pytest.param(
-        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(minutes=15)}, id="resolution"
+        ZoneMode.FOLLOW_SCHEDULE, {"duration": td(hours=1)}, _MUST_BE_NONE, id="follow"
+    ),
+    pytest.param(
+        ZoneMode.PERMANENT_OVERRIDE, {"duration": td(hours=1)}, _MUST_BE_NONE, id="perm"
+    ),
+    pytest.param(
+        ZoneMode.TEMPORARY_OVERRIDE, {}, "duration must not be None", id="temp"
+    ),
+    pytest.param(
+        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(0)}, _MULTIPLE_OF, id="zero"
+    ),
+    pytest.param(
+        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(hours=-1)}, _MULTIPLE_OF, id="neg"
+    ),
+    pytest.param(
+        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(hours=25)}, _MULTIPLE_OF, id="long"
+    ),
+    pytest.param(
+        ZoneMode.TEMPORARY_OVERRIDE,
+        {"duration": td(minutes=15)},
+        _MULTIPLE_OF,
+        id="resolution",
+    ),
+    pytest.param(  # not allowed here (if it were: "use set_mode()", see edges tests)
+        ZoneMode.VACATION_HOLD, {"duration": td(days=7)}, "Unsupported mode", id="vac"
     ),
 ]
 
 
-@pytest.mark.parametrize(("mode", "kwargs"), DURATION_REJECTS)
+@pytest.mark.parametrize(("mode", "kwargs", "match"), DURATION_REJECTS)
 async def test_zon_set_tcc_mode_rejects_duration(
     zone: Zone,
     mode: ZoneMode,
     kwargs: _SetZoneTimeT,
+    match: str,
 ) -> None:
     """Test a zone's set_tcc_mode() rejects an invalid duration before any PUT is made."""
 
     temperature = None if mode is ZoneMode.FOLLOW_SCHEDULE else 20.0
 
-    with pytest.raises(InvalidModeRequestError):
+    with pytest.raises(InvalidModeRequestError, match=match):
         await zone.set_tcc_mode(mode, temperature=temperature, **kwargs)
 
 
-@pytest.mark.parametrize(("mode", "kwargs"), DURATION_REJECTS)
+@pytest.mark.parametrize(("mode", "kwargs", "match"), DURATION_REJECTS)
 async def test_dhw_set_tcc_mode_rejects_duration(
     dhw: HotWater,
     mode: ZoneMode,
     kwargs: _SetZoneTimeT,
+    match: str,
 ) -> None:
     """Test a DHW's set_tcc_mode() rejects an invalid duration before any PUT is made."""
 
     state = None if mode is ZoneMode.FOLLOW_SCHEDULE else DhwState.ON
 
-    with pytest.raises(InvalidModeRequestError):
+    with pytest.raises(InvalidModeRequestError, match=match):
         await dhw.set_tcc_mode(mode, state=state, **kwargs)

@@ -250,16 +250,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        until = (
-            None
-            if duration is None
-            else self._duration_as_until(
-                mode,
-                duration,
-                max_duration=self.state_capabilities[SZ_MAX_DURATION],
-                timing_resolution=self.state_capabilities[SZ_TIMING_RESOLUTION],
-            )
-        )
+        until = self._tcc_mode_as_until(mode, duration)
         return await self.set_mode(mode, state=state, until=until)
 
     async def reset(self) -> CommTask:
