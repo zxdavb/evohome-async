@@ -57,6 +57,7 @@ from .const import (
     DayOfWeek,
     FanMode,
     FaultType,
+    SystemMode,
     TimingMode,
     ZoneMode,
     ZoneModelType,
@@ -79,6 +80,7 @@ if TYPE_CHECKING:
     from .auth import Auth
     from .typedefs import (
         EvoActiveFaultT,
+        EvoAllowedSystemModesT,
         EvoDhwScheduleDayOfWeekT,
         EvoDhwStatusResponseT,
         EvoSetZoneHeatSetpointT,
@@ -120,48 +122,82 @@ class _TccModeMixin:
 
     location: Location  # used to get now()
 
-    @staticmethod
-    def _is_valid_duration(
-        duration: td,
+    def _validate_requested_timespan(
+        self,
+        mode: SystemMode | ZoneMode,
+        mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
         /,
         *,
-        max_duration: str,
-        timing_resolution: str,
-    ) -> bool:
-        """Return True if a duration (or a period) is allowed by its capabilities.
+        duration: td | None = None,
+        period: td | None = None,
+    ) -> dt | None:
+        """Return when a mode ends (None if indefinitely), if valid for its entry.
 
-        That is, if it is a (positive) multiple of the timing_resolution, and does not
-        exceed the max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
+        The entry is the mode's row in the entity's table of allowed modes. A duration
+        ends that long from now, and a period that long after the start of today (in
+        the location's local time), so a period of one day ends at the coming midnight.
         """
 
-        resolution = as_timedelta(timing_resolution)
-        maximum = as_timedelta(max_duration)
+        def is_valid_length(
+            timespan: td,
+            /,
+            *,
+            max_duration: str,
+            timing_resolution: str,
+        ) -> bool:
+            """Return True if a duration (or a period) is within its limits.
 
-        return resolution <= duration <= maximum and not duration % resolution
+            That is, if it is a (positive) multiple of the timing_resolution, and does not
+            exceed the max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
+            """
 
-    def _duration_as_until(
-        self,
-        mode: str,
-        duration: td,
-        /,
-        *,
-        max_duration: str,
-        timing_resolution: str,
-    ) -> dt:
-        """Return when a duration (from now) ends, if it is valid for the mode."""
+            resolution = as_timedelta(timing_resolution)
+            maximum = as_timedelta(max_duration)
 
-        if not self._is_valid_duration(
-            duration,
+            return resolution <= timespan <= maximum and not timespan % resolution
+
+        if duration is not None and period is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of duration or period may be given"
+            )
+
+        if duration is not None:
+            length, timing_mode = duration, TimingMode.DURATION
+        elif period is not None:
+            length, timing_mode = period, TimingMode.PERIOD
+        elif not mode_entry[SZ_CAN_BE_PERMANENT]:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {mode_entry[SZ_TIMING_MODE]} must not be None"
+            )
+        else:
+            return None
+
+        if mode_entry.get(SZ_TIMING_MODE) is not timing_mode:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
+            )
+
+        max_duration = mode_entry[SZ_MAX_DURATION]
+        timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
+
+        if not is_valid_length(
+            length,
             max_duration=max_duration,
             timing_resolution=timing_resolution,
         ):
             raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, duration must be a multiple of "
-                f"'{timing_resolution}' and at most '{max_duration}', not '{duration}'"
+                f"{self}: For {mode}, {timing_mode} must be a multiple of "
+                f"'{timing_resolution}' and at most '{max_duration}', not '{length}'"
             )
 
-        # in UTC, as local arithmetic is wall-clock (wrong if it spans a DST change)
-        return self.location.now().astimezone(UTC) + duration
+        if timing_mode is TimingMode.PERIOD:
+            start = self.location.now().replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+        else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
+            start = self.location.now().astimezone(UTC)
+
+        return start + length
 
 
 class EntityBase[StatusT]:

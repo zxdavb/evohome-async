@@ -14,13 +14,11 @@ from .comm_task import CommTask
 from .const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
-    SZ_CAN_BE_PERMANENT,
     SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
     SZ_DHW,
     SZ_DHW_ID,
     SZ_IS_PERMANENT,
-    SZ_MAX_DURATION,
     SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_NAME,
@@ -29,13 +27,10 @@ from .const import (
     SZ_SYSTEM_MODE,
     SZ_SYSTEM_MODE_STATUS,
     SZ_TIME_UNTIL,
-    SZ_TIMING_MODE,
-    SZ_TIMING_RESOLUTION,
     SZ_ZONE_ID,
     SZ_ZONES,
     SystemMode,
     TcsModelType,
-    TimingMode,
 )
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
@@ -330,82 +325,13 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if duration is not None and period is not None:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Only one of duration or period may be given"
-            )
-
         system_mode = self._validate_requested_mode(system_mode)
         mode_entry = self._allowed_modes_table[system_mode]
 
-        until: dt
-
-        if duration is not None:
-            if mode_entry.get(SZ_TIMING_MODE) is not TimingMode.DURATION:
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {system_mode}, duration must be None, not '{duration}'"
-                )
-            until = self._duration_as_until(
-                system_mode,
-                duration,
-                max_duration=mode_entry[SZ_MAX_DURATION],
-                timing_resolution=mode_entry[SZ_TIMING_RESOLUTION],
-            )
-
-        elif period is not None:
-            if mode_entry.get(SZ_TIMING_MODE) is not TimingMode.PERIOD:
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {system_mode}, period must be None, not '{period}'"
-                )
-            until = self._period_as_until(
-                system_mode,
-                period,
-                max_duration=mode_entry[SZ_MAX_DURATION],
-                timing_resolution=mode_entry[SZ_TIMING_RESOLUTION],
-            )
-
-        else:  # all known modes can be permanent
-            if not mode_entry[SZ_CAN_BE_PERMANENT]:
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {system_mode}, duration/period must not be None"
-                )
-            return await self._put_mode(
-                {SZ_SYSTEM_MODE: system_mode, SZ_PERMANENT: True}
-            )
-
-        return await self._put_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME
-            {SZ_SYSTEM_MODE: system_mode, SZ_PERMANENT: False, SZ_TIME_UNTIL: until}
+        until = self._validate_requested_timespan(
+            system_mode, mode_entry, duration=duration, period=period
         )
-
-    def _period_as_until(
-        self,
-        mode: str,
-        period: td,
-        /,
-        *,
-        max_duration: str,
-        timing_resolution: str,
-    ) -> dt:
-        """Return when a period (from the start of today) ends, if valid for the mode.
-
-        The start of today is in the location's local time, so a period of one day ends
-        at the coming midnight.
-        """
-
-        if not self._is_valid_duration(
-            period,
-            max_duration=max_duration,
-            timing_resolution=timing_resolution,
-        ):
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, period must be a multiple of "
-                f"'{timing_resolution}' and at most '{max_duration}', not '{period}'"
-            )
-
-        start_of_day = self.location.now().replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        return start_of_day + period
+        return await self.set_mode(system_mode, until=until)
 
     @deprecated("ControlSystem.set_system_mode() is deprecated: use .set_tcc_mode()")
     async def set_system_mode(
