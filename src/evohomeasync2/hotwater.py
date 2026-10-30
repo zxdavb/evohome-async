@@ -157,11 +157,6 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         """Set the DHW mode (state), and return the vendor's comm task."""
 
         # Issue a warning if we fail some basic sanity checks...
-        if dhw_mode[SZ_MODE] not in self.allowed_modes:
-            self._logger.warning(
-                f"{self}: Attempting unsupported {SZ_MODE}: {dhw_mode}..."
-            )
-
         if not (state := dhw_mode.get(SZ_STATE)):
             if dhw_mode[SZ_MODE] is not ZoneMode.FOLLOW_SCHEDULE:
                 self._logger.warning(

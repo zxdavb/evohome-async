@@ -258,12 +258,6 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
     async def _put_mode(self, tcs_mode: EvoSetSystemModeT, /) -> CommTask:
         """Set the TCS mode, and return the vendor's comm task."""
 
-        # Issue a warning if we fail some basic sanity checks...
-        if tcs_mode[SZ_SYSTEM_MODE] not in self.allowed_modes:
-            self._logger.warning(
-                f"{self}: Attempting unsupported {SZ_SYSTEM_MODE}: {tcs_mode}..."
-            )
-
         url = f"{self._TCC_TYPE}/{self.id}/mode"
         response = await self._auth.put(url, json=tcs_mode)
         return CommTask.from_response(self._auth, response)
