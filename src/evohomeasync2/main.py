@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
+from warnings import deprecated
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from aiozoneinfo import async_get_time_zone
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
 
     from _evohome.helpers import Validator
 
+    from .control_system import ControlSystem
     from .typedefs import EvoLocConfigResponseT, EvoUsrAccountResponseT
 
 
@@ -107,6 +109,46 @@ class EvohomeClient:
                 await self._get_config()
             except exc.BadApiResponseError as err:  # e.g. failed validation
                 raise exc.InvalidConfigError(err.message) from err
+
+    @deprecated(
+        "EvohomeClient.update() is deprecated: use .setup(), then Location.get_status()"
+    )
+    async def update(
+        self,
+        /,
+        *,
+        dont_update_status: bool = False,
+        raise_on_stale_config: bool = False,
+        _reset_config: bool = False,  # for use by test suite
+    ) -> list[EvoLocConfigResponseT]:
+        """Retrieve the config of the user's locations, and then their status.
+
+        Kept for compatibility: use `setup()`, and then `Location.get_status()`.
+
+        If `dont_update_status` is true, is the same as `setup()`.
+
+        If `raise_on_stale_config` is true, a location's status that omits any of its
+        known entities raises StaleConfigError, rather than logging a warning (see
+        `Location.get_status()`).
+        """
+
+        is_new_config = _reset_config or self._locations is None
+
+        await self.setup(_reset_config=_reset_config)
+
+        if not dont_update_status:  # don't retrieve/update status of location hierarchy
+            # only warn once per config refresh (i.e. not on every status update)
+            if is_new_config and (num := len(self.locations)) > 1:
+                self._logger.warning(
+                    f"There are {num} locations. Reduce the risk of exceeding API rate "
+                    "limits by individually updating only necessary locations."
+                )
+
+            for loc in self.locations:
+                await loc.get_status(raise_on_stale_config=raise_on_stale_config)
+
+        assert self._user_locs is not None  # mypy
+        return self._user_locs
 
     async def _async_init_tzinfo(self) -> None:
         """Initialize timezone info without blocking the event loop."""
@@ -204,6 +246,11 @@ class EvohomeClient:
         return self._user_info
 
     @property
+    def user_id(self) -> str:
+        """Return the id of the user account (the same id via either API)."""
+        return self.user_account[SZ_USER_ID]
+
+    @property
     def locations(self) -> list[Location]:
         """Return the list of location entities (may be empty)."""
 
@@ -220,3 +267,21 @@ class EvohomeClient:
             raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
 
         return self._location_by_id
+
+    @property
+    @deprecated("EvohomeClient.tcs is deprecated: use Location.tcs")
+    def tcs(self) -> ControlSystem:
+        """Return the TCS of the account's single location, or raise an exception.
+
+        The majority of users will have only one location, with one TCS.
+        """
+
+        if len(locs := self.locations) != 1:
+            raise exc.ClientStateError(
+                "There is not a single location (only) for this account"
+            )
+
+        if (tcs := locs[0].tcs) is None:
+            raise exc.ClientStateError("The location of this account has no TCS")
+
+        return tcs

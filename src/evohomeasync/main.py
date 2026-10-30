@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
+from warnings import deprecated
 
 from _evohome.const import _ERR_NO_CONFIG
 from _evohome.helpers import Case
@@ -20,6 +21,7 @@ if TYPE_CHECKING:
 
     from _evohome.helpers import Validator
 
+    from .entities import ControlSystem
     from .typedefs import EvoTcsInfoDictT, EvoUserAccountInfoDictT
 
 SCH_GET_ACCOUNT_INFO: Final[Validator[EvoUserAccountInfoDictT]] = (
@@ -116,6 +118,32 @@ class EvohomeClient:
         self._warn_if_stale_config(user_locs)
 
         return user_locs
+
+    @deprecated(
+        "EvohomeClient.update() is deprecated: use .setup(), then .get_status()"
+    )
+    async def update(
+        self,
+        /,
+        *,
+        dont_update_status: bool = False,
+        _reset_config: bool = False,  # for use by test suite
+    ) -> list[EvoTcsInfoDictT]:
+        """Retrieve the latest state of the user's locations.
+
+        Kept for compatibility: use `setup()`, and then `get_status()`.
+
+        If `dont_update_status` is true, does nothing if the config has already been
+        retrieved (otherwise, is the same as `get_status()`).
+        """
+
+        if _reset_config:
+            self._clear_config()
+
+        if dont_update_status and self._user_locs is not None:
+            return self._user_locs
+
+        return await self.get_status()
 
     def _clear_config(self) -> None:
         """Clear the user information & the config of their locations."""
@@ -230,6 +258,11 @@ class EvohomeClient:
         return self._user_info
 
     @property
+    def user_id(self) -> str:
+        """Return the id of the user account (the same id via either API)."""
+        return str(self.user_account[SZ_USER_ID])
+
+    @property
     def locations(self) -> list[Location]:
         """Return the list of locations."""
 
@@ -246,3 +279,21 @@ class EvohomeClient:
             raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
 
         return self._location_by_id
+
+    @property
+    @deprecated("EvohomeClient.tcs is deprecated: use Location.tcs")
+    def tcs(self) -> ControlSystem:
+        """Return the TCS of the account's single location, or raise an exception.
+
+        The majority of users will have only one location, with one TCS.
+        """
+
+        if len(locs := self.locations) != 1:
+            raise exc.ClientStateError(
+                "There is not a single location (only) for this account"
+            )
+
+        if (tcs := locs[0].tcs) is None:
+            raise exc.ClientStateError("The location of this account has no TCS")
+
+        return tcs

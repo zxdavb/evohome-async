@@ -286,6 +286,11 @@
     tuple(
       'evohomeasync2',
       30,
+      'There are 4 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
+    ),
+    tuple(
+      'evohomeasync2',
+      30,
       "Gateway(id='2938388'): Active fault: 2023-05-04T18:47:36.772704+02:00 gateway_communication_lost",
     ),
   ])
@@ -296,6 +301,11 @@
 # ---
 # name: test_system_warnings[system_006]
   list([
+    tuple(
+      'evohomeasync2',
+      30,
+      'There are 2 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
+    ),
     tuple(
       'evohomeasync2',
       30,
@@ -320,10 +330,20 @@
 # ---
 # name: test_system_warnings[system_007]
   list([
+    tuple(
+      'evohomeasync2',
+      30,
+      'There are 2 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
+    ),
   ])
 # ---
 # name: test_system_warnings[system_009]
   list([
+    tuple(
+      'evohomeasync2',
+      30,
+      'There are 3 locations. Reduce the risk of exceeding API rate limits by individually updating only necessary locations.',
+    ),
     tuple(
       'evohomeasync2',
       30,

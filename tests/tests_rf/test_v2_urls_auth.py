@@ -94,6 +94,7 @@ async def _test_user_locations(
 ) -> None:
     """Test /location/installationInfo?userId={user_id}"""
 
+    # TODO: can't use .update(); in any case, should use URLs only
     url = "userAccount"
     user_info = await should_work_v2(
         ec2.auth,

@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from evohome_cli.auth import TokenCacheManager
 
 
-_TEST_SESSION_ID = "-- session id --"
+_TEST_SESSION_ID = "-- session ID --"
 #
 
 
@@ -62,7 +62,7 @@ def cache_path(
     return tmp_path_factory.mktemp(__name__) / ".evo-cache.tst"
 
 
-# NOTE: using fixture_folder will break these tests; we don't want ec1.setup() either
+# NOTE: using fixture_folder will break these tests; we don't want ec1.update() either
 @pytest.fixture
 async def ec1(
     credentials_manager: TokenCacheManager,
@@ -110,12 +110,12 @@ async def test_bad1(  # bad credentials (client_id/secret)
     assert ec1._session_manager.is_session_valid() is False
 
 
-async def test_bad2(  # bad session id
+async def test_bad2(  # bad session ID
     credentials: tuple[str, str],
     ec1: EvohomeClient,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test authentication flow with an invalid/expired session id."""
+    """Test authentication flow with an invalid/expired session ID."""
 
     # pre-requisite data (a valid session_id that will be rejected by the server)
     ec1._session_manager._session_id = _TEST_SESSION_ID
@@ -124,7 +124,7 @@ async def test_bad2(  # bad session id
     assert ec1._session_manager.is_session_valid() is True
 
     #
-    # TEST 9: bad session id -> HTTPStatus.UNAUTHORIZED
+    # TEST 9: bad session ID -> HTTPStatus.UNAUTHORIZED
     with aioresponses() as rsp, caplog.at_level(logging.DEBUG):
         rsp.get(
             "https://tccna.resideo.com/WebAPI/api/accountInfo",
@@ -141,7 +141,7 @@ async def test_bad2(  # bad session id
 
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
-        # response 0: Unauthorized (bad session id)
+        # response 0: Unauthorized (bad session ID)
         rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
         # response 1: Connection refused (as no response provided by us)
@@ -199,7 +199,7 @@ async def test_good(  # good credentials
     assert ec1._session_manager.is_session_valid() is False
 
     #
-    # TEST 9: good session id -> HTTPStatus.OK
+    # TEST 9: good session ID -> HTTPStatus.OK
     with aioresponses() as rsp, caplog.at_level(logging.WARNING):  # NOTE: not .DEBUG
         rsp.post(
             URL_CRED_V1,
@@ -249,7 +249,7 @@ async def test_good(  # good credentials
 async def test_rejected_session_id_refreshed_meanwhile(
     ec1: EvohomeClient,
 ) -> None:
-    """Test a 401 doesn't clear a session id that another task has since refreshed."""
+    """Test a 401 doesn't clear a session ID that another task has since refreshed."""
 
     session_manager = ec1._session_manager
 
@@ -257,7 +257,7 @@ async def test_rejected_session_id_refreshed_meanwhile(
     session_manager._session_id = _TEST_SESSION_ID
     session_manager._session_id_expires = dt.now(tz=UTC) + td(minutes=15)
 
-    new_session_id = "-- new session id --"
+    new_session_id = "-- new session ID --"
     rejected = False
 
     def get(url: str, schema: object) -> object:
@@ -265,7 +265,7 @@ async def test_rejected_session_id_refreshed_meanwhile(
         if rejected:
             return {"user_id": 1234567} if url == "accountInfo" else []
 
-        # while this request is in flight, another task refreshes the session id
+        # while this request is in flight, another task refreshes the session ID
         session_manager._session_id = new_session_id
         rejected = True
         raise exc.ApiCallFailedError(

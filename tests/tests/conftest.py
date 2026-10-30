@@ -6,7 +6,7 @@ import json
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 from unittest.mock import patch
 
 import aiohttp
@@ -19,10 +19,10 @@ from evohomeasync import EvohomeClient as EvohomeClientV1
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
 from tests.common import get_loc
 
-from .aioresponses import AioResponses, aioresponses
-
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Generator
+
+    from aiohttp.typedefs import StrOrURL
 
     from _evohome.helpers import Validator
     from evohome_cli.auth import TokenCacheManager
@@ -46,11 +46,22 @@ class ClientStub:
         return self._logger
 
 
-@pytest.fixture  # (autouse=True)
-def block_aiohttp() -> Generator[AioResponses]:
-    """Prevent any actual I/O: will raise ClientConnectionError(Connection refused)."""
-    with aioresponses() as m:
-        yield m
+@pytest.fixture(autouse=True)
+def fail_on_unmocked_request() -> Generator[None]:
+    """Fail any test that makes a request it hasn't mocked, so none reach the vendor.
+
+    A test that expects a request mocks it (e.g. by patching AbstractAuth.request(),
+    or via aioresponses), so only an unexpected request reaches the ClientSession.
+    """
+
+    async def _request(
+        self: aiohttp.ClientSession, method: str, str_or_url: StrOrURL, **kwargs: Any
+    ) -> NoReturn:
+        # not the payload, as a POST to the auth server would include the credentials
+        pytest.fail(f"Unexpected {method} {str_or_url}")
+
+    with patch.object(aiohttp.ClientSession, "_request", _request):
+        yield
 
 
 @pytest.fixture  # @pytest_asyncio.fixture(scope="session", loop_scope="session")

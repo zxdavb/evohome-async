@@ -20,8 +20,9 @@
 # a release branch/tag ("2026.7", "v2026.7.2") or a fork before a large HA change.
 #
 # It also carries check-hass-pins, an independent job asserting that our runtime dependency floors
-# still equal HA's exact pins. That job ignores the target above and always reads HA stable, as the
-# floors are a contract with *released* HA (see .github/scripts/check-hass-pins.py).
+# still equal HA's exact pins, and that our Python settings still agree with the Python HA requires.
+# That job ignores the target above and always reads HA stable, as these are a contract with
+# *released* HA (see .github/scripts/check-hass-pins.py).
 
 name: Test with Home Assistant
 
@@ -32,6 +33,8 @@ on:
     paths: [
       ".github/scripts/check-hass-pins.py",
       ".github/workflows/check-hass-tests.yml",
+      ".github/workflows/check-type.yml",
+      ".python-version",
       "pyproject.toml",
       "src/**.py",
     ]
@@ -41,6 +44,8 @@ on:
     paths: [
       ".github/scripts/check-hass-pins.py",
       ".github/workflows/check-hass-tests.yml",
+      ".github/workflows/check-type.yml",
+      ".python-version",
       "pyproject.toml",
       "src/**.py",
     ]
@@ -81,7 +86,7 @@ permissions:
 
 jobs:
   check-hass-pins:
-    name: Check runtime deps match HA's pins
+    name: Check runtime deps & Python match HA's
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -93,8 +98,8 @@ jobs:
           check-latest: true
 
       # Always compares against HA stable (master) + dev, regardless of the test
-      # target above: the floors are a contract with released HA, not with a branch.
-      - name: Compare [project.dependencies] with HA's package_constraints.txt
+      # target above: these are a contract with released HA, not with a branch.
+      - name: Compare [project.dependencies] & our Python settings with HA's
         run: python3 .github/scripts/check-hass-pins.py
 
   get-python-version:
@@ -131,8 +136,11 @@ jobs:
       - name: Extract Python version from pyproject.toml
         id: get-version
         run: |
-          # Extract requires-python, e.g., ">=3.13.2" -> "3.13.2"
-          python_version=$(grep -oP 'requires-python\s*=\s*"[><=]*\K[0-9]+\.[0-9]+(\.[0-9]+)?' pyproject.toml)
+          # Extract major.minor of requires-python, e.g., ">=3.14.2" -> "3.14"
+          # requires-python is a floor, so the latest patch release of that minor satisfies it;
+          # pinning the exact patch fails on runner images that never got a build of it (e.g.
+          # 3.14.2 does not exist for Ubuntu 26.04 in actions/python-versions)
+          python_version=$(grep -oP 'requires-python\s*=\s*"[><=]*\K[0-9]+\.[0-9]+' pyproject.toml)
           echo "python-version=${python_version}" >> $GITHUB_OUTPUT
           echo "Detected Python version: ${python_version}"
 
@@ -174,7 +182,7 @@ jobs:
           git checkout "$LATEST_TAG"
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v10.3.0
+        uses: astral-sh/setup-uv@v10.3.2
         with:
           cache-dependency-glob: |
             home-assistant-core/requirements*.txt
@@ -206,6 +214,12 @@ jobs:
 
           # Install Home Assistant in editable mode (needed for compiled translations)
           uv pip install -e . --config-settings editable_mode=compat
+
+          # HA's tests import their shared fixtures from this in-repo package;
+          # older HA versions don't have it
+          if [ -d packages/pytest-home-assistant ]; then
+            uv pip install -e packages/pytest-home-assistant --config-settings editable_mode=compat
+          fi
 
       - name: Compile English translations
         working-directory: home-assistant-core
