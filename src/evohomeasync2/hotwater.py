@@ -163,18 +163,18 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         /,
         *,
         state: DhwState | None = None,
-        until: dt | None = None,
+        until_time: dt | None = None,
     ) -> CommTask:
         """Set the DHW mode (state), and return the vendor's comm task.
 
-        The params are not validated.
+        The params are as per the JSON (EvoSetDhwStateT), and are not validated.
         """
 
         dhw_mode: EvoSetDhwStateT = {SZ_MODE: mode}
         if state is not None:
             dhw_mode[SZ_STATE] = state
-        if until is not None:
-            dhw_mode[SZ_UNTIL_TIME] = until
+        if until_time is not None:
+            dhw_mode[SZ_UNTIL_TIME] = until_time
 
         url = f"{self._TCC_TYPE}/{self.id}/state"
         response = await self._auth.put(url, json=dhw_mode)
@@ -233,7 +233,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
             until = as_aware_dtm(until)
 
-        return await self._put_mode(mode, state=state, until=until)
+        return await self._put_mode(mode, state=state, until_time=until)
 
     async def reset(self) -> CommTask:
         """Cancel any override and allow the DHW to follow its schedule."""

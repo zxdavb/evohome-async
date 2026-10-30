@@ -251,19 +251,24 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         return as_local_time(until, self.location.tzinfo)
 
     async def _put_mode(
-        self, system_mode: SystemMode, /, *, until: dt | None = None
+        self,
+        system_mode: SystemMode,
+        /,
+        *,
+        permanent: bool,
+        time_until: dt | None = None,
     ) -> CommTask:
         """Set the TCS mode, and return the vendor's comm task.
 
-        The mode is permanent if there is no until. The params are not validated.
+        The params are as per the JSON (EvoSetSystemModeT), and are not validated.
         """
 
         tcs_mode: EvoSetSystemModeT = {
             SZ_SYSTEM_MODE: system_mode,
-            SZ_PERMANENT: until is None,
+            SZ_PERMANENT: permanent,
         }
-        if until is not None:  # NOTE: TIME_UNTIL, not UNTIL_TIME
-            tcs_mode[SZ_TIME_UNTIL] = until
+        if time_until is not None:
+            tcs_mode[SZ_TIME_UNTIL] = time_until
 
         url = f"{self._TCC_TYPE}/{self.id}/mode"
         response = await self._auth.put(url, json=tcs_mode)
@@ -290,14 +295,16 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         mode_entry = self._allowed_modes_table[system_mode]
 
         if until is None:  # all known modes can be permanent
-            return await self._put_mode(system_mode)
+            return await self._put_mode(system_mode, permanent=True)
 
         if not mode_entry[SZ_CAN_BE_TEMPORARY]:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {system_mode}, until must be None, not '{until}'"
             )
 
-        return await self._put_mode(system_mode, until=as_aware_dtm(until))
+        return await self._put_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME
+            system_mode, permanent=False, time_until=as_aware_dtm(until)
+        )
 
     async def set_tcc_mode(
         self,
