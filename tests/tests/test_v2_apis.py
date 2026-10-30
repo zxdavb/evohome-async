@@ -520,9 +520,7 @@ async def test_ctl_set_tcc_mode_not_permanent(
             new_callable=PropertyMock,
             return_value=(mode_entry,),
         ),
-        pytest.raises(
-            InvalidModeRequestError, match="duration/period must not be None"
-        ),
+        pytest.raises(InvalidModeRequestError, match="duration must not be None"),
     ):
         await tcs.set_tcc_mode(SystemMode.AUTO_WITH_ECO)
 
