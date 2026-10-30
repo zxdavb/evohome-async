@@ -318,16 +318,41 @@ async def test_zon_set_mode_vacation_hold(
     )
 
 
-async def test_zon_set_tcc_mode_rejects_vacation_hold(
+async def test_zon_set_mode_vacation_hold_without_until(
     zone: Zone,
 ) -> None:
-    """Zone.set_tcc_mode(VacationHold) should refer the caller to set_mode()."""
+    """Zone.set_mode(VacationHold) should need no until (and accept a string mode)."""
 
     if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
         pytest.skip("Zone does not support VacationHold mode")
 
-    with pytest.raises(evo2.InvalidModeRequestError, match=r"use set_mode\(\)"):
-        await zone.set_tcc_mode(
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
+        await zone.set_mode("vacation_hold", temperature=15.0)
+
+    mock_put.assert_awaited_once_with(
+        HTTPMethod.PUT,
+        f"temperatureZone/{zone.id}/heatSetpoint",
+        json={
+            "setpoint_mode": ZoneMode.VACATION_HOLD,
+            "heat_setpoint_value": 15.0,
+        },
+    )
+
+
+async def test_zon_set_mode_vacation_hold_rejects_duration(
+    zone: Zone,
+) -> None:
+    """Zone.set_mode(VacationHold) should refer the caller from a duration to an until."""
+
+    if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
+        pytest.skip("Zone does not support VacationHold mode")
+
+    with pytest.raises(evo2.InvalidModeRequestError, match="use until, not duration"):
+        await zone.set_mode(
             ZoneMode.VACATION_HOLD, temperature=15.0, duration=td(days=7)
         )
 
