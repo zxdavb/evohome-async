@@ -636,12 +636,13 @@ class _ZoneBase[
 
     SCH_STATUS: Validator[StatusT]
 
-    _allowed_modes_table: dict[ZoneMode, _AllowedModesT]  # set by the subclass
-
     if TYPE_CHECKING:  # each subclass has its own (cached) property
 
         @property
         def allowed_modes(self) -> tuple[ZoneMode, ...]: ...
+
+        @property
+        def _allowed_modes_table(self) -> dict[ZoneMode, _AllowedModesT]: ...
 
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id)
@@ -826,12 +827,6 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     f"{self}: Fan mode '{fan_mode[SZ_FAN_MODE]}' {_PLEASE_REPORT}"
                 )
 
-        self._allowed_modes_table = self._build_allowed_modes_table(
-            self.allowed_modes,
-            max_duration=self.setpoint_capabilities[SZ_MAX_DURATION],
-            timing_resolution=self.setpoint_capabilities[SZ_TIMING_RESOLUTION],
-        )
-
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoZonConfigT:
         """Return the latest config of the entity."""
@@ -890,6 +885,15 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     @cached_property
     def allowed_modes(self) -> tuple[ZoneMode, ...]:
         return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
+
+    @cached_property
+    def _allowed_modes_table(self) -> dict[ZoneMode, _AllowedModesT]:
+        """Return the allowed modes, keyed by mode (c.f. a TCS's)."""
+        return self._build_allowed_modes_table(
+            self.allowed_modes,
+            max_duration=self.setpoint_capabilities[SZ_MAX_DURATION],
+            timing_resolution=self.setpoint_capabilities[SZ_TIMING_RESOLUTION],
+        )
 
     @property  # convenience attr
     def max_heat_setpoint(self) -> float:

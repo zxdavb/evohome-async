@@ -49,6 +49,7 @@ if TYPE_CHECKING:
         EvoDhwStatusResponseT,
         EvoSetDhwStateT,
     )
+    from .zone import _AllowedModesT
 
 
 class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
@@ -65,12 +66,6 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         super().__init__(config[SZ_DHW_ID], tcs)
 
         self._config: Final = config
-
-        self._allowed_modes_table = self._build_allowed_modes_table(
-            self.allowed_modes,
-            max_duration=self.state_capabilities[SZ_MAX_DURATION],
-            timing_resolution=self.state_capabilities[SZ_TIMING_RESOLUTION],
-        )
 
     @property  # not strictly static, but library largely assumes so
     def config(self) -> EvoDhwConfigT:
@@ -119,6 +114,15 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
     @cached_property
     def allowed_modes(self) -> tuple[ZoneMode, ...]:
         return tuple(self.state_capabilities[SZ_ALLOWED_MODES])
+
+    @cached_property
+    def _allowed_modes_table(self) -> dict[ZoneMode, _AllowedModesT]:
+        """Return the allowed modes, keyed by mode (c.f. a TCS's)."""
+        return self._build_allowed_modes_table(
+            self.allowed_modes,
+            max_duration=self.state_capabilities[SZ_MAX_DURATION],
+            timing_resolution=self.state_capabilities[SZ_TIMING_RESOLUTION],
+        )
 
     @cached_property
     def allowed_states(self) -> tuple[DhwState, ...]:
