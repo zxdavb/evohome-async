@@ -183,10 +183,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
     def _validate_requested_mode(
         self, system_mode: SystemMode | str, /
     ) -> tuple[SystemMode, EvoAllowedSystemModesT]:
-        """Return the mode as a SystemMode, and its entry in the allowed_system_modes.
-
-        The mode must be one of the allowed_modes.
-        """
+        """Return the mode (as a SystemMode) and its entry, if it is allowed."""
 
         try:
             system_mode = SystemMode(system_mode)
