@@ -13,30 +13,24 @@ from __future__ import annotations
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
 
-import pytest
-
 from evohomeasync2.schemas.schedule import TCC_GET_ZON_SCHEDULE
-from tests.common import get_dhw, get_zon
 
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
+    import evohomeasync2 as evo2
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
     from evohomeasync2.schemas.schedule import TccZonDailySchedulesT
 
 
 async def _test_schedule_put(
     ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule"""
 
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
 
-    # TODO: remove .update() and use URLs only
-    await ec2.setup()
-
-    if not (zone := get_zon(ec2)):
-        pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
@@ -121,6 +115,7 @@ async def _test_schedule_put(
 
 async def _test_schedule_tsk(
     ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule
 
@@ -129,11 +124,6 @@ async def _test_schedule_tsk(
 
     schedule: TccZonDailySchedulesT  # {'dailySchedules': [...]}
 
-    # TODO: remove .update() and use URLs only
-    await ec2.setup()
-
-    if not (zone := get_zon(ec2)):
-        pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
@@ -182,29 +172,32 @@ async def _test_schedule_tsk(
 @skipif_auth_failed  # GET, PUT
 async def test_schedule_put(
     ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule
 
     Does not test /commTasks?commTaskId={task_id}
     """
 
-    await _test_schedule_put(ec2)
+    await _test_schedule_put(ec2, zone)
 
 
 @skipif_auth_failed  # GET, PUT
 async def test_schedule_tsk(
     ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test /{x._TCC_TYPE}/{x.id}/schedule
 
     Also tests /commTasks?commTaskId={task_id}
     """
 
-    await _test_schedule_tsk(ec2)
+    await _test_schedule_tsk(ec2, zone)
 
 
 async def _test_schedule_get_schema_zon(
     ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Document the exact key casing in the vendor's GET schedule response.
 
@@ -212,13 +205,8 @@ async def _test_schedule_get_schema_zon(
     what casing GET actually returns (expected: camelCase throughout).
     """
 
-    # TODO: remove .update() and use URLs only
-    await ec2.setup()
-
     # schedule: TccZonDailySchedulesT  # can't use this, as we GET without a schema
 
-    if not (zone := get_zon(ec2)):
-        pytest.skip("No zones found in TCS")
     url = f"{zone._TCC_TYPE}/{zone.id}/schedule"
 
     #
@@ -257,19 +245,14 @@ async def _test_schedule_get_schema_zon(
 
 async def _test_schedule_get_schema_dhw(
     ec2: EvohomeClientV2,
+    dhw: evo2.HotWater,
 ) -> None:
     """Document the exact key casing in the vendor's GET DHW schedule response.
 
     Mirrors _test_schedule_get_schema for DHW — switchpoints use dhwState
     instead of heatSetpoint, but the same camelCase key convention applies.
     """
-    # TODO: remove .update() and use URLs only
-    await ec2.setup()
-
     # schedule: TccDhwDailySchedulesT  # cant use this, as we GET without a schema
-
-    if not (dhw := get_dhw(ec2)):
-        pytest.skip("No DHW found in TCS")
 
     url = f"{dhw._TCC_TYPE}/{dhw.id}/schedule"
 
@@ -310,6 +293,7 @@ async def _test_schedule_get_schema_dhw(
 @skipif_auth_failed  # GET
 async def test_schedule_get_schema_zon(
     ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test GET /{x._TCC_TYPE}/{x.id}/schedule key casing.
 
@@ -317,16 +301,17 @@ async def test_schedule_get_schema_zon(
     though the API is reportedly case-insensitive for PUT request bodies.
     """
 
-    await _test_schedule_get_schema_zon(ec2)
+    await _test_schedule_get_schema_zon(ec2, zone)
 
 
 @skipif_auth_failed  # GET
 async def test_schedule_get_schema_dhw(
     ec2: EvohomeClientV2,
+    dhw: evo2.HotWater,
 ) -> None:
     """Test GET /{dhw._TCC_TYPE}/{dhw.id}/schedule key casing.
 
     DHW mirror of test_schedule_get_schema — skipped if no DHW in the TCS.
     """
 
-    await _test_schedule_get_schema_dhw(ec2)
+    await _test_schedule_get_schema_dhw(ec2, dhw)

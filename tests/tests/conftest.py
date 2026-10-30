@@ -17,7 +17,7 @@ from _evohome import exceptions as exc
 from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync import EvohomeClient as EvohomeClientV1
 from evohomeasync2 import EvohomeClient as EvohomeClientV2
-from tests.common import get_dhw, get_tcs, get_zon
+from tests.common import get_loc
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Generator
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
     from _evohome.helpers import Validator
     from evohome_cli.auth import TokenCacheManager
-    from evohomeasync2 import ControlSystem, HotWater, Zone
+    from evohomeasync2 import ControlSystem, HotWater, Location, Zone
     from evohomeasync2.auth import Auth
 
 
@@ -278,40 +278,53 @@ def auth(
 
 
 @pytest.fixture
-def tcs(
+def loc(
     ec2: EvohomeClientV2,
-) -> ControlSystem:
-    """Return the first TCS of the location under test (see get_tcs()).
+) -> Location:
+    """Return the location under test (see get_loc()), with its config and status.
 
     Fail the test if there is none, as then the test is using the wrong fixture.
     """
     try:
-        return get_tcs(ec2)
+        return get_loc(ec2)
     except IndexError:
+        pytest.fail("The user has no location")
+
+
+@pytest.fixture
+def tcs(
+    loc: Location,
+) -> ControlSystem:
+    """Return the TCS of the location under test.
+
+    Fail the test if there is none, as then the test is using the wrong fixture.
+    """
+    if (tcs := loc.tcs) is None:
         pytest.fail("The location under test has no TCS")
+    return tcs
 
 
 @pytest.fixture
 def zone(
-    ec2: EvohomeClientV2,
+    tcs: ControlSystem,
 ) -> Zone:
-    """Return the first zone of the location under test (see get_zon()).
+    """Return the first zone of the TCS under test.
 
     Fail the test if there is none, as then the test is using the wrong fixture.
     """
-    if (zon := get_zon(ec2)) is None:
-        pytest.fail("The location under test has no zone")
-    return zon
+    if not tcs.zones:
+        pytest.fail("The TCS under test has no zones")
+    return tcs.zones[0]
 
 
 @pytest.fixture
 def dhw(
-    ec2: EvohomeClientV2,
+    tcs: ControlSystem,
 ) -> HotWater:
-    """Return the DHW of the location under test (see get_dhw()).
+    """Return the DHW of the TCS under test.
 
     Fail the test if there is none, as then the test is using the wrong fixture.
     """
-    if (dhw := get_dhw(ec2)) is None:
-        pytest.fail("The location under test has no DHW")
+    if (dhw := tcs.hotwater) is None:
+        pytest.fail("The TCS under test has no DHW")
     return dhw
