@@ -670,7 +670,7 @@ class _ZoneBase[
         return table
 
     def _validate_requested_mode(self, mode: ZoneMode | str, /) -> ZoneMode:
-        """Return the mode (as a ZoneMode), if it is allowed."""
+        """Return the mode (as a ZoneMode), if it is allowed for this entity."""
 
         try:
             mode = ZoneMode(mode)

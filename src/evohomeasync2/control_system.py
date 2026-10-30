@@ -181,7 +181,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         return {d[SZ_SYSTEM_MODE]: d for d in self.allowed_system_modes}
 
     def _validate_requested_mode(self, system_mode: SystemMode | str, /) -> SystemMode:
-        """Return the mode (as a SystemMode), if it is allowed."""
+        """Return the mode (as a SystemMode), if it is allowed for this entity."""
 
         try:
             system_mode = SystemMode(system_mode)
