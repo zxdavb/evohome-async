@@ -250,8 +250,20 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _put_mode(self, tcs_mode: EvoSetSystemModeT, /) -> CommTask:
-        """Set the TCS mode, and return the vendor's comm task."""
+    async def _put_mode(
+        self, system_mode: SystemMode, /, *, until: dt | None = None
+    ) -> CommTask:
+        """Set the TCS mode, and return the vendor's comm task.
+
+        The mode is permanent if there is no until. The params are not validated.
+        """
+
+        tcs_mode: EvoSetSystemModeT = {
+            SZ_SYSTEM_MODE: system_mode,
+            SZ_PERMANENT: until is None,
+        }
+        if until is not None:  # NOTE: TIME_UNTIL, not UNTIL_TIME
+            tcs_mode[SZ_TIME_UNTIL] = until
 
         url = f"{self._TCC_TYPE}/{self.id}/mode"
         response = await self._auth.put(url, json=tcs_mode)
@@ -277,27 +289,15 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         system_mode = self._validate_requested_mode(system_mode)
         mode_entry = self._allowed_modes_table[system_mode]
 
-        tcs_mode: EvoSetSystemModeT
-
         if until is None:  # all known modes can be permanent
-            tcs_mode = {
-                SZ_SYSTEM_MODE: system_mode,
-                SZ_PERMANENT: True,
-            }
+            return await self._put_mode(system_mode)
 
-        elif not mode_entry[SZ_CAN_BE_TEMPORARY]:
+        if not mode_entry[SZ_CAN_BE_TEMPORARY]:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {system_mode}, until must be None, not '{until}'"
             )
 
-        else:
-            tcs_mode = {  # NOTE: TIME_UNTIL, not UNTIL_TIME
-                SZ_SYSTEM_MODE: system_mode,
-                SZ_PERMANENT: False,
-                SZ_TIME_UNTIL: as_aware_dtm(until),
-            }
-
-        return await self._put_mode(tcs_mode)
+        return await self._put_mode(system_mode, until=as_aware_dtm(until))
 
     async def set_tcc_mode(
         self,
