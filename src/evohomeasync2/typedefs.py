@@ -38,7 +38,7 @@ These are not part of the vendor's schema, but useful to the library:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, NotRequired, TypedDict
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
@@ -176,7 +176,7 @@ class _EvoTcsConfigResponseBaseT(TypedDict):
 
 class EvoAllowedSystemModesT(TypedDict):
     system_mode: SystemMode
-    can_be_permanent: Literal[True]  # only ever seen: True
+    can_be_permanent: bool  # only ever seen True in the wild
     can_be_temporary: bool
     max_duration: NotRequired[str]  # when can_be_temporary is True
     timing_resolution: NotRequired[str]  # when can_be_temporary is True

@@ -62,6 +62,8 @@ async def test_config_not_fetched(
     with pytest.raises(exc.NotFetchedError):
         _ = ec2.user_account
     with pytest.raises(exc.NotFetchedError):
+        _ = ec2.user_id
+    with pytest.raises(exc.NotFetchedError):
         _ = ec2.locations
     with pytest.raises(exc.NotFetchedError):
         _ = ec2.location_by_id

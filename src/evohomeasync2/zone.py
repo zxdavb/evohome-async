@@ -13,6 +13,7 @@ from _evohome.helpers import (
     Case,
     as_aware_dtm,
     as_local_time,
+    as_timedelta,
     convert_dtm_to_local_aware,
 )
 
@@ -22,6 +23,8 @@ from .const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_FAN_MODES,
     SZ_ALLOWED_SETPOINT_MODES,
+    SZ_CAN_BE_PERMANENT,
+    SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
     SZ_DHW_STATE,
     SZ_FAN_MODE,
@@ -29,8 +32,10 @@ from .const import (
     SZ_HEAT_SETPOINT,
     SZ_HEAT_SETPOINT_VALUE,
     SZ_IS_AVAILABLE,
+    SZ_MAX_DURATION,
     SZ_MAX_HEAT_SETPOINT,
     SZ_MIN_HEAT_SETPOINT,
+    SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_NAME,
     SZ_SCHEDULE_CAPABILITIES,
@@ -44,12 +49,16 @@ from .const import (
     SZ_TEMPERATURE_STATUS,
     SZ_TIME_OF_DAY,
     SZ_TIME_UNTIL,
+    SZ_TIMING_MODE,
+    SZ_TIMING_RESOLUTION,
     SZ_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
     DayOfWeek,
     FanMode,
     FaultType,
+    SystemMode,
+    TimingMode,
     ZoneMode,
     ZoneModelType,
     ZoneType,
@@ -61,9 +70,9 @@ from .typedefs import EvoZonScheduleDayOfWeekT, EvoZonStatusResponseT, EvoZonSta
 
 if TYPE_CHECKING:
     import logging
-    from collections.abc import Mapping
+    from collections.abc import Iterable, Mapping
     from datetime import tzinfo
-    from typing import TypedDict
+    from typing import NotRequired, TypedDict
 
     from _evohome.helpers import Validator
 
@@ -71,6 +80,7 @@ if TYPE_CHECKING:
     from .auth import Auth
     from .typedefs import (
         EvoActiveFaultT,
+        EvoAllowedSystemModesT,
         EvoDhwScheduleDayOfWeekT,
         EvoDhwStatusResponseT,
         EvoSetZoneHeatSetpointT,
@@ -88,6 +98,16 @@ if TYPE_CHECKING:
     class _DailySchedulesT[DayT](TypedDict):
         daily_schedules: list[DayT]
 
+    class _AllowedModesT(TypedDict):  # c.f. EvoAllowedSystemModesT, for zones/DHW
+        """Derived from the zone's/DHW's capabilities (is not in the vendor's JSON)."""
+
+        mode: ZoneMode
+        can_be_permanent: bool
+        can_be_temporary: bool
+        max_duration: NotRequired[str]  # when can_be_temporary is True
+        timing_resolution: NotRequired[str]  # when can_be_temporary is True
+        timing_mode: NotRequired[TimingMode]  # when can_be_temporary is True
+
 
 _ONE_DAY = td(days=1)
 
@@ -95,6 +115,89 @@ _ONE_DAY = td(days=1)
 _PLEASE_REPORT = (
     "is unknown, please report it at https://github.com/zxdavb/evohome-async/issues"
 )
+
+
+class _TccModeMixin:
+    """Provide the base for entities with TCC-native (temporary) modes."""
+
+    location: Location  # used to get now()
+
+    def _validate_requested_timespan(
+        self,
+        mode: SystemMode | ZoneMode,
+        mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
+        /,
+        *,
+        duration: td | None = None,
+        period: td | None = None,
+    ) -> dt | None:
+        """Return when a mode ends (None if indefinitely), if valid for its entry.
+
+        The entry is the mode's row in the entity's table of allowed modes. A duration
+        ends that long from now, and a period that long after the start of today (in
+        the location's local time), so a period of one day ends at the coming midnight.
+        """
+
+        def is_valid_length(
+            timespan: td,
+            /,
+            *,
+            max_duration: str,
+            timing_resolution: str,
+        ) -> bool:
+            """Return True if a duration (or a period) is within its limits.
+
+            That is, if it is a (positive) multiple of the timing_resolution, and does not
+            exceed the max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
+            """
+
+            resolution = as_timedelta(timing_resolution)
+            maximum = as_timedelta(max_duration)
+
+            return resolution <= timespan <= maximum and not timespan % resolution
+
+        if duration is not None and period is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of duration or period may be given"
+            )
+
+        if duration is not None:
+            length, timing_mode = duration, TimingMode.DURATION
+        elif period is not None:
+            length, timing_mode = period, TimingMode.PERIOD
+        elif not mode_entry[SZ_CAN_BE_PERMANENT]:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {mode_entry[SZ_TIMING_MODE]} must not be None"
+            )
+        else:
+            return None
+
+        if mode_entry.get(SZ_TIMING_MODE) is not timing_mode:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
+            )
+
+        max_duration = mode_entry[SZ_MAX_DURATION]
+        timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
+
+        if not is_valid_length(
+            length,
+            max_duration=max_duration,
+            timing_resolution=timing_resolution,
+        ):
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {timing_mode} must be a multiple of "
+                f"'{timing_resolution}' and at most '{max_duration}', not '{length}'"
+            )
+
+        if timing_mode is TimingMode.PERIOD:
+            start = self.location.now().replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+        else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
+            start = self.location.now().astimezone(UTC)
+
+        return start + length
 
 
 class EntityBase[StatusT]:
@@ -552,10 +655,18 @@ class _ScheduleBase[
 class _ZoneBase[
     StatusT: (EvoDhwStatusResponseT, EvoZonStatusResponseT),
     DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT),
-](_ScheduleBase[StatusT, DayT]):
+](_TccModeMixin, _ScheduleBase[StatusT, DayT]):
     """Provide the base for temperatureZone / domesticHotWater Zones."""
 
     SCH_STATUS: Validator[StatusT]
+
+    if TYPE_CHECKING:  # each subclass has its own (cached) property
+
+        @property
+        def allowed_modes(self) -> tuple[ZoneMode, ...]: ...
+
+        @property
+        def _allowed_modes_table(self) -> dict[ZoneMode, _AllowedModesT]: ...
 
     def __init__(self, entity_id: str, tcs: ControlSystem) -> None:
         super().__init__(entity_id)
@@ -570,6 +681,77 @@ class _ZoneBase[
     @cached_property
     def _logger(self) -> logging.Logger:
         return self.location.client.logger
+
+    # Config attrs...
+
+    @staticmethod
+    def _build_allowed_modes_table(
+        allowed_modes: Iterable[ZoneMode],
+        /,
+        *,
+        max_duration: str,
+        timing_resolution: str,
+    ) -> dict[ZoneMode, _AllowedModesT]:
+        """Return a table of the allowed modes, c.f. a TCS's _allowed_modes_table.
+
+        A zone's/DHW's capabilities have a list of its allowed modes, and only one
+        max_duration/timing_resolution (which is for its TemporaryOverride mode):
+        "_allowed_modes_table": {
+            "FollowSchedule":    {"mode": "FollowSchedule",    "can_be_permanent": true,  "can_be_temporary": false},
+            "PermanentOverride": {"mode": "PermanentOverride", "can_be_permanent": true,  "can_be_temporary": false},
+            "TemporaryOverride": {"mode": "TemporaryOverride", "can_be_permanent": false, "can_be_temporary": true, "timing_mode": "Duration", "max_duration": "1.00:00:00", "timing_resolution": "00:10:00"}
+        }
+
+        Any other allowed modes are not included (e.g. VacationHold, which is seen only
+        on non-evohome systems, and has its own vacation_hold_capabilities).
+        """
+
+        # TODO: handle ZoneMode.VACATION_HOLD
+
+        table: dict[ZoneMode, _AllowedModesT] = {}
+
+        for mode in allowed_modes:
+            if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
+                table[mode] = {
+                    SZ_MODE: mode,
+                    SZ_CAN_BE_PERMANENT: True,
+                    SZ_CAN_BE_TEMPORARY: False,
+                }
+
+            elif mode is ZoneMode.TEMPORARY_OVERRIDE:
+                table[mode] = {
+                    SZ_MODE: mode,
+                    SZ_CAN_BE_PERMANENT: False,
+                    SZ_CAN_BE_TEMPORARY: True,
+                    SZ_MAX_DURATION: max_duration,
+                    SZ_TIMING_RESOLUTION: timing_resolution,
+                    SZ_TIMING_MODE: TimingMode.DURATION,
+                }
+
+        return table
+
+    def _validate_requested_mode(self, mode: ZoneMode | str, /) -> ZoneMode:
+        """Return the mode (as a ZoneMode), if it is allowed for this entity."""
+
+        try:
+            mode = ZoneMode(mode)
+        except ValueError as err:
+            raise exc.InvalidModeRequestError(f"{self}: Unknown mode: {mode}") from err
+
+        if mode not in self.allowed_modes:
+            raise exc.InvalidModeRequestError(f"{self}: Unsupported mode: {mode}")
+
+        return mode
+
+    def _validate_requested_duration(
+        self, mode: ZoneMode, duration: td | None, /
+    ) -> dt | None:
+        """Return when a mode ends (None if indefinitely), if valid for the duration."""
+
+        if (mode_entry := self._allowed_modes_table.get(mode)) is None:  # VacationHold
+            raise exc.InvalidModeRequestError(f"{self}: For {mode}, use set_mode()")
+
+        return self._validate_requested_timespan(mode, mode_entry, duration=duration)
 
     # Status (state) attrs & methods...
 
@@ -720,6 +902,15 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     def allowed_modes(self) -> tuple[ZoneMode, ...]:
         return tuple(self.setpoint_capabilities[SZ_ALLOWED_SETPOINT_MODES])
 
+    @cached_property
+    def _allowed_modes_table(self) -> dict[ZoneMode, _AllowedModesT]:
+        """Return the allowed modes, keyed by mode (c.f. a TCS's)."""
+        return self._build_allowed_modes_table(
+            self.allowed_modes,
+            max_duration=self.setpoint_capabilities[SZ_MAX_DURATION],
+            timing_resolution=self.setpoint_capabilities[SZ_TIMING_RESOLUTION],
+        )
+
     @property  # convenience attr
     def max_heat_setpoint(self) -> float:
         # consider: if not self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]: return None
@@ -729,6 +920,30 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     def min_heat_setpoint(self) -> float:
         # consider: if not self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]: return None
         return self.setpoint_capabilities[SZ_MIN_HEAT_SETPOINT]
+
+    def _validate_requested_temperature(
+        self, mode: ZoneMode, temperature: float | None, /
+    ) -> float | None:
+        """Return the temperature, if it is valid for the mode."""
+
+        if temperature is None:
+            if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {mode}, temperature must not be None"
+                )
+            return None
+
+        if mode is ZoneMode.FOLLOW_SCHEDULE:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, temperature must be None, not '{temperature}'"
+            )
+
+        if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Invalid temperature: {temperature} (out of range)"
+            )
+
+        return temperature
 
     # Status (state) attrs & methods...
 
@@ -762,28 +977,26 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _set_mode(self, zon_mode: EvoSetZoneHeatSetpointT, /) -> CommTask:
+    # NOTE: no provision for cooling (not supported by this API)
+    async def _put_mode(
+        self,
+        setpoint_mode: ZoneMode,
+        /,
+        *,
+        heat_setpoint_value: float | None = None,
+        time_until: dt | None = None,
+    ) -> CommTask:
         """Set the Zone mode, and return the vendor's comm task.
 
-        Heating only; cooling is not exposed by the API.
+        Heating only; cooling is not exposed by the API. The params are as per the
+        JSON (EvoSetZoneHeatSetpointT), and are not validated.
         """
 
-        # Issue a warning if we fail some basic sanity checks...
-        if zon_mode[SZ_SETPOINT_MODE] not in self.allowed_modes:
-            self._logger.warning(
-                f"{self}: Attempting unsupported {SZ_SETPOINT_MODE}: {zon_mode}..."
-            )
-
-        if (temp := zon_mode.get(SZ_HEAT_SETPOINT_VALUE)) is None:
-            if zon_mode[SZ_SETPOINT_MODE] is not ZoneMode.FOLLOW_SCHEDULE:
-                self._logger.warning(
-                    f"{self}: Attempting missing {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
-                )
-
-        elif not self.min_heat_setpoint <= temp <= self.max_heat_setpoint:
-            self._logger.warning(
-                f"{self}: Attempting invalid {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
-            )
+        zon_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: setpoint_mode}
+        if heat_setpoint_value is not None:
+            zon_mode[SZ_HEAT_SETPOINT_VALUE] = heat_setpoint_value
+        if time_until is not None:
+            zon_mode[SZ_TIME_UNTIL] = time_until
 
         url = f"{self._TCC_TYPE}/{self.id}/heatSetpoint"
         response = await self._auth.put(url, json=zon_mode)
@@ -797,7 +1010,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         temperature: float | None = None,
         until: dt | str | None = None,
     ) -> CommTask:
-        """Set the Zone to a (heating) mode, either indefinitely, or for a set time.
+        """Set the Zone to a (heating) mode, either indefinitely, or for a given time.
 
         Will accept a ZoneMode or a (snake_case) string for the 'mode'.
 
@@ -807,37 +1020,11 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        try:
-            mode = ZoneMode(mode)
-        except ValueError as err:
-            raise exc.InvalidModeRequestError(f"{self}: Unknown mode: {mode}") from err
-
-        if mode not in self.allowed_modes:
-            raise exc.InvalidModeRequestError(f"{self}: Unsupported mode: {mode}")
-
-        zone_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: mode}
-
-        if temperature is None:
-            if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, temperature must not be None"
-                )
-
-        else:
-            if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, temperature must be None"
-                )
-
-            if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
-                raise exc.InvalidModeRequestError(
-                    f"{self}: Invalid temperature: {temperature} (out of range)"
-                )
-
-            zone_mode[SZ_HEAT_SETPOINT_VALUE] = temperature
+        mode = self._validate_requested_mode(mode)
+        temperature = self._validate_requested_temperature(mode, temperature)
 
         if until is None:
-            if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
+            if mode is ZoneMode.TEMPORARY_OVERRIDE:
                 raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, until must not be None"
                 )
@@ -845,18 +1032,55 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, until must be None"
+                    f"{self}: For {mode}, until must be None, not '{until}'"
                 )
 
-            zone_mode[SZ_TIME_UNTIL] = as_aware_dtm(until)
+            until = as_aware_dtm(until)
 
-        return await self._set_mode(zone_mode)
+        return await self._put_mode(
+            mode, heat_setpoint_value=temperature, time_until=until
+        )
+
+    async def set_tcc_mode(
+        self,
+        mode: ZoneMode | str,
+        /,
+        *,
+        temperature: float | None = None,
+        duration: td | None = None,
+    ) -> CommTask:
+        """Set the Zone to a (heating) mode, either indefinitely, or for a duration.
+
+        Will accept a ZoneMode or a (snake_case) string for the 'mode'.
+
+        A 'temperature' is required by the override modes, and is not allowed for
+        FollowSchedule. It must be within the zone's min/max_heat_setpoint.
+
+        A 'duration' ends that long from now. It is required by TemporaryOverride, and
+        is not allowed for the other modes. It must be positive, a multiple of the
+        zone's timing_resolution, and not exceed its max_duration.
+
+        Unlike set_mode(), the request is checked strictly against the zone's config
+        (see setpoint_capabilities). VacationHold is not supported: use set_mode().
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
+
+        mode = self._validate_requested_mode(mode)
+        until = self._validate_requested_duration(mode, duration)
+        temperature = self._validate_requested_temperature(mode, temperature)
+
+        # TODO: self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]
+        # TODO: self.setpoint_capabilities[SZ_VALUE_RESOLUTION]
+
+        return await self._put_mode(
+            mode, heat_setpoint_value=temperature, time_until=until
+        )
 
     async def reset(self) -> CommTask:
         """Cancel any override and allow the Zone to follow its schedule."""
         return await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
 
-    # NOTE: no provision for cooling (not supported by API)
     async def set_temperature(
         self,
         temperature: float,
