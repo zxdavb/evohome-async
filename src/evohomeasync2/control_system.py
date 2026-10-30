@@ -180,10 +180,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         """Return the allowed_system_modes, keyed by their system_mode."""
         return {d[SZ_SYSTEM_MODE]: d for d in self.allowed_system_modes}
 
-    def _validate_requested_mode(
-        self, system_mode: SystemMode | str, /
-    ) -> tuple[SystemMode, EvoAllowedSystemModesT]:
-        """Return the mode (as a SystemMode) and its entry, if it is allowed."""
+    def _validate_requested_mode(self, system_mode: SystemMode | str, /) -> SystemMode:
+        """Return the mode (as a SystemMode), if it is allowed."""
 
         try:
             system_mode = SystemMode(system_mode)
@@ -197,7 +195,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
                 f"{self}: Unsupported system_mode: {system_mode}"
             )
 
-        return system_mode, self._allowed_modes_table[system_mode]
+        return system_mode
 
     # Status (state) attrs & methods...
 
@@ -287,7 +285,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        system_mode, mode_entry = self._validate_requested_mode(system_mode)
+        system_mode = self._validate_requested_mode(system_mode)
+        mode_entry = self._allowed_modes_table[system_mode]
 
         tcs_mode: EvoSetSystemModeT
 
@@ -342,7 +341,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
                 f"{self}: Only one of duration or period may be given"
             )
 
-        system_mode, mode_entry = self._validate_requested_mode(system_mode)
+        system_mode = self._validate_requested_mode(system_mode)
+        mode_entry = self._allowed_modes_table[system_mode]
 
         until: dt
 
