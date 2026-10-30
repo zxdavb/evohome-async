@@ -296,7 +296,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
                 SZ_PERMANENT: True,
             }
 
-        elif mode_entry[SZ_CAN_BE_TEMPORARY] is False:
+        elif not mode_entry[SZ_CAN_BE_TEMPORARY]:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {system_mode}, until must be None, not '{until}'"
             )
