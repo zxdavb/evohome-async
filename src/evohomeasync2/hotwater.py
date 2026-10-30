@@ -190,13 +190,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        try:
-            mode = ZoneMode(mode)
-        except ValueError as err:
-            raise exc.InvalidModeRequestError(f"{self}: Unknown mode: {mode}") from err
-
-        if mode not in self.allowed_modes:
-            raise exc.InvalidModeRequestError(f"{self}: Unsupported mode: {mode}")
+        mode = self._validate_requested_mode(mode)
 
         dhw_mode: EvoSetDhwStateT = {SZ_MODE: mode}
 
