@@ -20,8 +20,9 @@
 # a release branch/tag ("2026.7", "v2026.7.2") or a fork before a large HA change.
 #
 # It also carries check-hass-pins, an independent job asserting that our runtime dependency floors
-# still equal HA's exact pins. That job ignores the target above and always reads HA stable, as the
-# floors are a contract with *released* HA (see .github/scripts/check-hass-pins.py).
+# still equal HA's exact pins, and that our Python settings still agree with the Python HA requires.
+# That job ignores the target above and always reads HA stable, as these are a contract with
+# *released* HA (see .github/scripts/check-hass-pins.py).
 
 name: Test with Home Assistant
 
@@ -32,6 +33,8 @@ on:
     paths: [
       ".github/scripts/check-hass-pins.py",
       ".github/workflows/check-hass-tests.yml",
+      ".github/workflows/check-type.yml",
+      ".python-version",
       "pyproject.toml",
       "src/**.py",
     ]
@@ -41,6 +44,8 @@ on:
     paths: [
       ".github/scripts/check-hass-pins.py",
       ".github/workflows/check-hass-tests.yml",
+      ".github/workflows/check-type.yml",
+      ".python-version",
       "pyproject.toml",
       "src/**.py",
     ]
@@ -81,7 +86,7 @@ permissions:
 
 jobs:
   check-hass-pins:
-    name: Check runtime deps match HA's pins
+    name: Check runtime deps & Python match HA's
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -93,8 +98,8 @@ jobs:
           check-latest: true
 
       # Always compares against HA stable (master) + dev, regardless of the test
-      # target above: the floors are a contract with released HA, not with a branch.
-      - name: Compare [project.dependencies] with HA's package_constraints.txt
+      # target above: these are a contract with released HA, not with a branch.
+      - name: Compare [project.dependencies] & our Python settings with HA's
         run: python3 .github/scripts/check-hass-pins.py
 
   get-python-version:
