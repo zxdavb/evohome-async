@@ -27,6 +27,11 @@
       "enabled": false
     },
     {
+      "description": "The development Python (.python-version) matches HA's — managed manually, not by Renovate",
+      "matchManagers": ["pyenv"],
+      "enabled": false
+    },
+    {
       "description": "Python version inputs in workflows are managed dynamically — Renovate must not update them",
       "matchManagers": ["github-actions"],
       "matchDepNames": ["python"],

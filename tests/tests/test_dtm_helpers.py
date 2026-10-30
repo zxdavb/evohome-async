@@ -128,20 +128,33 @@ def test_factory_datetime_vendor_validates_but_keeps_string() -> None:
         pytest.param("99.00:00:00", td(days=99), id="days"),
         pytest.param("01:00:00", td(hours=1), id="hour"),
         pytest.param("365.23:45:00", td(days=365, hours=23, minutes=45), id="mixed"),
-        pytest.param("", None, id="empty"),
-        pytest.param("P1D", None, id="iso_8601"),
-        pytest.param("1.00:00", None, id="no_seconds"),
         pytest.param("999999999.00:00:00", td(days=999999999), id="max_days"),
-        pytest.param("1000000000.00:00:00", None, id="too_many_days"),
-        pytest.param("24:00:00", None, id="hours_out_of_range"),
-        pytest.param("00:60:00", None, id="minutes_out_of_range"),
-        pytest.param("00:00:60", None, id="seconds_out_of_range"),
-        pytest.param("99.99:99:99", None, id="all_out_of_range"),
     ],
 )
 def test_as_timedelta(
     timespan: str,
-    expected: td | None,
+    expected: td,
 ) -> None:
-    """Test as_timedelta() parses a vendor TimeSpan, and returns None if it can't."""
+    """Test as_timedelta() parses a vendor TimeSpan."""
     assert as_timedelta(timespan) == expected
+
+
+@pytest.mark.parametrize(
+    "timespan",
+    [
+        pytest.param("", id="empty"),
+        pytest.param("P1D", id="iso_8601"),
+        pytest.param("1.00:00", id="no_seconds"),
+        pytest.param("1000000000.00:00:00", id="too_many_days"),
+        pytest.param("24:00:00", id="hours_out_of_range"),
+        pytest.param("00:60:00", id="minutes_out_of_range"),
+        pytest.param("00:00:60", id="seconds_out_of_range"),
+        pytest.param("99.99:99:99", id="all_out_of_range"),
+    ],
+)
+def test_as_timedelta_rejects(
+    timespan: str,
+) -> None:
+    """Test as_timedelta() rejects a string that isn't a vendor TimeSpan."""
+    with pytest.raises(BadApiRequestError, match="timespan is invalid"):
+        as_timedelta(timespan)

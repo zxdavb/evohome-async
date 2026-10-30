@@ -193,6 +193,25 @@ async def test_v1_location_tcs(
     assert (await evo1.entities.create_location(ec1, config)).tcs is None
 
 
+async def test_vx_user_id(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test the user id is the same via the v1 and v2 APIs (and is a str).
+
+    The system_009/ fixtures are of the same account, captured at the same time.
+    """
+
+    with patch("evohomeasync.auth.Auth.get", auth_get(FIXTURES_V1 / "system_009")):
+        ec1 = evo1.EvohomeClient(credentials_manager)
+        await ec1.setup()
+
+    with patch("evohomeasync2.auth.Auth.get", auth_get(FIXTURES_V2 / "system_009")):
+        ec2 = evo2.EvohomeClient(credentials_manager)
+        await ec2.setup()
+
+    assert ec1.user_id == ec2.user_id == "2512649"
+
+
 async def test_vx_location_tcs(
     credentials_manager: TokenCacheManager,
 ) -> None:
