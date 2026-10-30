@@ -140,17 +140,22 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
                 )
             return None
 
-        if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
+        if mode is ZoneMode.FOLLOW_SCHEDULE:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, state must be None, not '{state}'"
             )
 
         try:
-            return DhwState(state)
+            state = DhwState(state)
         except ValueError as err:
             raise exc.InvalidModeRequestError(
                 f"{self}: Unknown state: {state}"
             ) from err
+
+        if state not in self.allowed_states:
+            raise exc.InvalidModeRequestError(f"{self}: Unsupported state: {state}")
+
+        return state
 
     # Status (state) attrs & methods...
 
@@ -212,7 +217,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         state: DhwState | str | None = None,
         until: dt | str | None = None,
     ) -> CommTask:
-        """Set the DHW to a mode, either indefinitely, or until a given time.
+        """Set the DHW to a mode, either indefinitely, or for a given time.
 
         Will accept a ZoneMode/DhwState or a (snake_case) string for 'mode'/'state'.
 
@@ -226,7 +231,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         state = self._validate_requested_state(mode, state)
 
         if until is None:
-            if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
+            if mode is ZoneMode.TEMPORARY_OVERRIDE:
                 raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, until must not be None"
                 )
@@ -253,9 +258,15 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         Will accept a ZoneMode/DhwState or a (snake_case) string for 'mode'/'state'.
 
-        A 'duration' ends that long from now. It must be positive, a multiple of the
-        DHW's timing_resolution, and not exceed its max_duration (see
-        state_capabilities). Without one, the mode is set indefinitely.
+        A 'state' is required by the override modes, and is not allowed for
+        FollowSchedule. It must be one of the DHW's allowed_states.
+
+        A 'duration' ends that long from now. It is required by TemporaryOverride, and
+        is not allowed for the other modes. It must be positive, a multiple of the
+        DHW's timing_resolution, and not exceed its max_duration.
+
+        Unlike set_mode(), the request is checked strictly against the DHW's config
+        (see state_capabilities). VacationHold is not supported: use set_mode().
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
