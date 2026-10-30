@@ -12,8 +12,9 @@ import pytest
 
 import evohomeasync as evo1
 import evohomeasync2 as evo2
-from evohomeasync.schemas import TCC_GET_COMM_TASK
+from evohomeasync.schemas import TCC_GET_COMM_TASK, TCC_GET_USR_LOCS
 from evohomeasync2.comm_task import DEFAULT_INTERVAL
+from tests.common import find_loc_v1
 from tests.const import (
     _DBG_DISABLE_STRICT_ASSERTS,
     _DBG_USE_REAL_AIOHTTP,
@@ -28,7 +29,11 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping
 
     from _evohome.helpers import Validator
-    from evohomeasync.schemas import TccCommTaskResponseT, TccDeviceResponseT
+    from evohomeasync.schemas import (
+        TccCommTaskResponseT,
+        TccDeviceResponseT,
+        TccLocationResponseT,
+    )
 
 if _DBG_USE_REAL_AIOHTTP:
     import aiohttp
@@ -204,6 +209,19 @@ async def should_fail_v1(
         pytest.fail(f"Did not return expected response: {rsp.content_type}")
 
     return response
+
+
+async def fetch_loc_v1(
+    ec1: evo1.EvohomeClient,
+) -> TccLocationResponseT:
+    """GET the (vendor-cased) v1 JSON of the location under test (see find_loc_v1())."""
+
+    usr_id: int = ec1.user_account["user_id"]
+
+    url = f"locations?userId={usr_id}&allData=True"
+    locs = await should_work_v1(ec1.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
+
+    return find_loc_v1(locs)
 
 
 def is_zone_v1(
