@@ -157,20 +157,24 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
-    async def _put_mode(self, dhw_mode: EvoSetDhwStateT, /) -> CommTask:
-        """Set the DHW mode (state), and return the vendor's comm task."""
+    async def _put_mode(
+        self,
+        mode: ZoneMode,
+        /,
+        *,
+        state: DhwState | None = None,
+        until_time: dt | None = None,
+    ) -> CommTask:
+        """Set the DHW mode (state), and return the vendor's comm task.
 
-        # Issue a warning if we fail some basic sanity checks...
-        if not (state := dhw_mode.get(SZ_STATE)):
-            if dhw_mode[SZ_MODE] is not ZoneMode.FOLLOW_SCHEDULE:
-                self._logger.warning(
-                    f"{self}: Attempting invalid {SZ_MODE}/{SZ_STATE}: {dhw_mode}..."
-                )
+        The params are as per the JSON (EvoSetDhwStateT), and are not validated.
+        """
 
-        elif state not in self.allowed_states:
-            self._logger.warning(
-                f"{self}: Attempting unsupported {SZ_STATE}: {dhw_mode}..."
-            )
+        dhw_mode: EvoSetDhwStateT = {SZ_MODE: mode}
+        if state is not None:
+            dhw_mode[SZ_STATE] = state
+        if until_time is not None:
+            dhw_mode[SZ_UNTIL_TIME] = until_time
 
         url = f"{self._TCC_TYPE}/{self.id}/state"
         response = await self._auth.put(url, json=dhw_mode)
@@ -196,8 +200,6 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         mode = self._validate_requested_mode(mode)
 
-        dhw_mode: EvoSetDhwStateT = {SZ_MODE: mode}
-
         if state is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
                 raise exc.InvalidModeRequestError(
@@ -217,8 +219,6 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
                     f"{self}: Unknown state: {state}"
                 ) from err
 
-            dhw_mode[SZ_STATE] = state
-
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidModeRequestError(
@@ -231,9 +231,9 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must be None, not '{until}'"
                 )
 
-            dhw_mode[SZ_UNTIL_TIME] = as_aware_dtm(until)
+            until = as_aware_dtm(until)
 
-        return await self._put_mode(dhw_mode)
+        return await self._put_mode(mode, state=state, until_time=until)
 
     async def set_tcc_mode(
         self,

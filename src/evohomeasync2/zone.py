@@ -938,20 +938,25 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         return as_local_time(until, self.location.tzinfo)
 
     # NOTE: no provision for cooling (not supported by this API)
-    async def _put_mode(self, zon_mode: EvoSetZoneHeatSetpointT, /) -> CommTask:
+    async def _put_mode(
+        self,
+        setpoint_mode: ZoneMode,
+        /,
+        *,
+        heat_setpoint_value: float | None = None,
+        time_until: dt | None = None,
+    ) -> CommTask:
         """Set the Zone mode, and return the vendor's comm task.
 
-        Heating only; cooling is not exposed by the API.
+        Heating only; cooling is not exposed by the API. The params are as per the
+        JSON (EvoSetZoneHeatSetpointT), and are not validated.
         """
 
-        # Issue a warning if we fail some basic sanity checks...
-        if (
-            zon_mode.get(SZ_HEAT_SETPOINT_VALUE) is None
-            and zon_mode[SZ_SETPOINT_MODE] is not ZoneMode.FOLLOW_SCHEDULE
-        ):
-            self._logger.warning(
-                f"{self}: Attempting missing {SZ_HEAT_SETPOINT_VALUE}: {zon_mode}..."
-            )
+        zon_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: setpoint_mode}
+        if heat_setpoint_value is not None:
+            zon_mode[SZ_HEAT_SETPOINT_VALUE] = heat_setpoint_value
+        if time_until is not None:
+            zon_mode[SZ_TIME_UNTIL] = time_until
 
         url = f"{self._TCC_TYPE}/{self.id}/heatSetpoint"
         response = await self._auth.put(url, json=zon_mode)
@@ -977,8 +982,6 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         mode = self._validate_requested_mode(mode)
 
-        zone_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: mode}
-
         if temperature is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
                 raise exc.InvalidModeRequestError(
@@ -996,8 +999,6 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     f"{self}: Invalid temperature: {temperature} (out of range)"
                 )
 
-            zone_mode[SZ_HEAT_SETPOINT_VALUE] = temperature
-
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
                 raise exc.InvalidModeRequestError(
@@ -1010,9 +1011,11 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must be None, not '{until}'"
                 )
 
-            zone_mode[SZ_TIME_UNTIL] = as_aware_dtm(until)
+            until = as_aware_dtm(until)
 
-        return await self._put_mode(zone_mode)
+        return await self._put_mode(
+            mode, heat_setpoint_value=temperature, time_until=until
+        )
 
     async def set_tcc_mode(
         self,
