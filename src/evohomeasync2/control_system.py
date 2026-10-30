@@ -172,7 +172,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
     @cached_property
     def _allowed_modes_table(self) -> dict[SystemMode, EvoAllowedSystemModesT]:
-        """Return the allowed_system_modes, keyed by their system_mode."""
+        """Return the allowed_system_modes, keyed by system_mode."""
         return {d[SZ_SYSTEM_MODE]: d for d in self.allowed_system_modes}
 
     def _validate_requested_mode(self, system_mode: SystemMode | str, /) -> SystemMode:
@@ -281,7 +281,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         *,
         until: dt | str | None = None,
     ) -> CommTask:
-        """Set the TCS to a mode, either indefinitely, or for a set time.
+        """Set the TCS to a mode, either indefinitely, or for a given time.
 
         Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
 
@@ -323,11 +323,13 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         local time), so a period of one day ends at the coming midnight.
 
         Which of the two (if either) is allowed depends upon the mode's timing_mode
-        (see allowed_system_modes). Without either, the mode is set indefinitely.
+        (see allowed_system_modes). Without either, the mode is set indefinitely, if
+        it can_be_permanent.
 
         A duration must be positive, and a period at least one day. Either must be a
-        multiple of the mode's timing_resolution, and not exceed its max_duration (the
-        vendor's API accepts such values).
+        multiple of the mode's timing_resolution, and not exceed its max_duration.
+
+        Unlike set_mode(), the request is checked strictly against the TCS's config.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -338,7 +340,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         until = self._validate_requested_timespan(
             system_mode, mode_entry, duration=duration, period=period
         )
-        return await self.set_mode(system_mode, until=until)
+        return await self._put_mode(
+            system_mode, permanent=until is None, time_until=until
+        )
 
     @deprecated("ControlSystem.set_system_mode() is deprecated: use .set_tcc_mode()")
     async def set_system_mode(
