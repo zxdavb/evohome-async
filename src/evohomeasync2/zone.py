@@ -919,9 +919,6 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                 f"{self}: Invalid temperature: {temperature} (out of range)"
             )
 
-        # TODO: self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]:
-        # TODO: self.setpoint_capabilities[SZ_VALUE_RESOLUTION]
-
         return temperature
 
     # Status (state) attrs & methods...
@@ -1048,6 +1045,9 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         mode = self._validate_requested_mode(mode)
         until = self._validate_requested_duration(mode, duration)
         temperature = self._validate_requested_temperature(mode, temperature)
+
+        # TODO: self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]
+        # TODO: self.setpoint_capabilities[SZ_VALUE_RESOLUTION]
 
         return await self._put_mode(
             mode, heat_setpoint_value=temperature, time_until=until

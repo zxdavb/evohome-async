@@ -718,3 +718,139 @@ async def test_dhw_set_tcc_mode_rejects_duration(
 
     with pytest.raises(InvalidModeRequestError, match=match):
         await dhw.set_tcc_mode(mode, state=state, **kwargs)
+
+
+@pytest.mark.parametrize(
+    ("mode", "temperature", "match"),
+    [
+        pytest.param(
+            ZoneMode.FOLLOW_SCHEDULE,
+            20.0,
+            "temperature must be None, not '20.0'",
+            id="follow",
+        ),
+        pytest.param(
+            ZoneMode.PERMANENT_OVERRIDE,
+            None,
+            "temperature must not be None",
+            id="missing",
+        ),
+        pytest.param(
+            ZoneMode.PERMANENT_OVERRIDE, 99.0, "out of range", id="out_of_range"
+        ),
+    ],
+)
+async def test_zon_set_tcc_mode_rejects_temperature(
+    zone: Zone,
+    mode: ZoneMode,
+    temperature: float | None,
+    match: str,
+) -> None:
+    """Test a zone's set_tcc_mode() rejects an invalid temperature before any PUT."""
+
+    with pytest.raises(InvalidModeRequestError, match=match):
+        await zone.set_tcc_mode(mode, temperature=temperature)
+
+
+@pytest.mark.parametrize(
+    ("mode", "state", "match"),
+    [
+        pytest.param(
+            ZoneMode.FOLLOW_SCHEDULE,
+            DhwState.ON,
+            "state must be None, not 'on'",
+            id="follow",
+        ),
+        pytest.param(
+            ZoneMode.PERMANENT_OVERRIDE, None, "state must not be None", id="missing"
+        ),
+        pytest.param(
+            ZoneMode.PERMANENT_OVERRIDE, "invalid", "Unknown state", id="unknown"
+        ),
+    ],
+)
+async def test_dhw_set_tcc_mode_rejects_state(
+    dhw: HotWater,
+    mode: ZoneMode,
+    state: DhwState | str | None,
+    match: str,
+) -> None:
+    """Test a DHW's set_tcc_mode() rejects an invalid state before any PUT is made."""
+
+    with pytest.raises(InvalidModeRequestError, match=match):
+        await dhw.set_tcc_mode(mode, state=state)
+
+
+async def test_dhw_set_tcc_mode_rejects_unsupported_state(
+    dhw: HotWater,
+) -> None:
+    """Test a DHW's set_tcc_mode() rejects a state that is not in its allowed_states."""
+
+    with (
+        patch.object(
+            type(dhw),
+            "allowed_states",
+            new_callable=PropertyMock,
+            return_value=(DhwState.OFF,),
+        ),
+        pytest.raises(InvalidModeRequestError, match="Unsupported state: on"),
+    ):
+        await dhw.set_tcc_mode(ZoneMode.PERMANENT_OVERRIDE, state=DhwState.ON)
+
+
+async def test_dhw_set_mode_rejects_unsupported_state(
+    dhw: HotWater,
+) -> None:
+    """Test a DHW's set_mode() also rejects a state that is not in its allowed_states."""
+
+    with (
+        patch.object(
+            type(dhw),
+            "allowed_states",
+            new_callable=PropertyMock,
+            return_value=(DhwState.OFF,),
+        ),
+        pytest.raises(InvalidModeRequestError, match="Unsupported state: on"),
+    ):
+        await dhw.set_mode(ZoneMode.PERMANENT_OVERRIDE, state=DhwState.ON)
+
+
+async def test_zon_set_tcc_mode_accepts_strings(
+    zone: Zone,
+) -> None:
+    """Test a zone's set_tcc_mode() PUTs a string mode as a ZoneMode, indefinitely."""
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
+        await zone.set_tcc_mode("permanent_override", temperature=20.5)
+
+    mock_put.assert_awaited_once_with(
+        HTTPMethod.PUT,
+        f"temperatureZone/{zone.id}/heatSetpoint",
+        json={
+            "setpoint_mode": ZoneMode.PERMANENT_OVERRIDE,
+            "heat_setpoint_value": 20.5,
+        },
+    )
+
+
+async def test_dhw_set_tcc_mode_accepts_strings(
+    dhw: HotWater,
+) -> None:
+    """Test a DHW's set_tcc_mode() PUTs string mode/state as enums, indefinitely."""
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
+        await dhw.set_tcc_mode("permanent_override", state="on")
+
+    mock_put.assert_awaited_once_with(
+        HTTPMethod.PUT,
+        f"domesticHotWater/{dhw.id}/state",
+        json={"mode": ZoneMode.PERMANENT_OVERRIDE, "state": DhwState.ON},
+    )
