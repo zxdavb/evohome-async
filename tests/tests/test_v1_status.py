@@ -53,7 +53,7 @@ async def test_location_unknown(
         patch("evohomeasync.auth.Auth.get", AsyncMock(return_value=user_locs)),
     ):
         await ec1.get_status()
-        await ec1.get_status()
+        await ec1.get_status()  # the same as update()
 
     msg = (
         f"{ec1}: status has location_id='9999999' not known"
@@ -75,7 +75,7 @@ async def test_location_absent(
         patch("evohomeasync.auth.Auth.get", AsyncMock(return_value=[])),
     ):
         await ec1.get_status()
-        await ec1.get_status()
+        await ec1.get_status()  # the same as update()
 
     msg = (
         f"{ec1}: status has no entry for location_id='{loc.id}'"

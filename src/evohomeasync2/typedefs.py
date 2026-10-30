@@ -38,7 +38,7 @@ These are not part of the vendor's schema, but useful to the library:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, NotRequired, TypedDict
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
@@ -176,7 +176,7 @@ class _EvoTcsConfigResponseBaseT(TypedDict):
 
 class EvoAllowedSystemModesT(TypedDict):
     system_mode: SystemMode
-    can_be_permanent: Literal[True]  # only ever seen: True
+    can_be_permanent: bool  # only ever seen True in the wild
     can_be_temporary: bool
     max_duration: NotRequired[str]  # when can_be_temporary is True
     timing_resolution: NotRequired[str]  # when can_be_temporary is True
@@ -410,6 +410,10 @@ class EvoDhwScheduleDayOfWeekT(TypedDict):
     switchpoints: list[EvoDhwScheduleSwitchpointT]
 
 
+class EvoDayOfWeekDhwT(EvoDhwScheduleDayOfWeekT):
+    """A shim for compatibility with HA, that is to be deprecated."""
+
+
 class EvoDhwScheduleSwitchpointT(TypedDict):
     dhw_state: DhwState
     time_of_day: str
@@ -439,6 +443,30 @@ class EvoZonScheduleSwitchpointT(TypedDict):
     heat_setpoint: float
     fan_mode: NotRequired[FanMode | str]  # non-evohome; may be unknown, so allow str
     time_of_day: str
+
+
+# These are to be deprecated in favour of the above
+class EvoSwitchpointT(TypedDict):
+    time_of_day: str
+    dhw_state: NotRequired[DhwState]  # mutex with heat_setpoint
+    heat_setpoint: NotRequired[float]
+
+
+class EvoDayOfWeekT(TypedDict):
+    day_of_week: DayOfWeek
+    switchpoints: list[EvoSwitchpointT]
+
+
+class EvoDailySchedulesT(TypedDict):
+    daily_schedules: list[EvoDayOfWeekT]
+
+
+class EvoScheduleT(EvoDailySchedulesT):  # for export/import to/from file
+    """Schedule for a zone or DHW, for export/import to/from file."""
+
+    dhw_id: NotRequired[str]  # exactly one of these two IDs will be present
+    zone_id: NotRequired[str]
+    name: NotRequired[str]  # would normally be present, but be OK if not
 
 
 #######################################################################################

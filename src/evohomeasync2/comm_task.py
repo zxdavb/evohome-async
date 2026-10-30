@@ -98,7 +98,7 @@ class CommTask:
                 await task.wait()
         """
 
-        while (state := await self.get_state()) != CommTaskState.SUCCEEDED:
-            if state == CommTaskState.FAILED:
+        while (state := await self.get_state()) is not CommTaskState.SUCCEEDED:
+            if state is CommTaskState.FAILED:
                 raise exc.CommTaskFailedError(f"{self}: the comm task failed")
             await asyncio.sleep(interval)

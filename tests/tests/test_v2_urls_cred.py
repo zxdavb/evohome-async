@@ -92,7 +92,7 @@ def cache_path(
     return tmp_path_factory.mktemp(__name__) / ".evo-cache.tst"
 
 
-# NOTE: using fixture_folder will break these tests; we don't want ec2.setup() either
+# NOTE: using fixture_folder will break these tests; we don't want ec2.update() either
 @pytest.fixture
 async def ec2(
     credentials_manager: TokenCacheManager,
@@ -190,7 +190,7 @@ async def test_bad3(  # bad credentials (refresh token)
 
     assert ec2._token_manager.is_token_valid() is False
 
-    # TEST 9: bad session id -> HTTPStatus.BAD_REQUEST
+    # TEST 9: bad session ID -> HTTPStatus.BAD_REQUEST
     with aioresponses() as rsp, caplog.at_level(logging.DEBUG):
         rsp.post(
             URL_CRED_V2,

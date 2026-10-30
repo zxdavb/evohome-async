@@ -16,6 +16,7 @@ from abc import ABC, abstractmethod
 from datetime import timedelta as td, timezone
 from functools import cached_property
 from typing import TYPE_CHECKING, Final
+from warnings import deprecated
 
 from aiozoneinfo import async_get_time_zone
 
@@ -447,7 +448,7 @@ class ControlSystem(_EntityBase):
     def one_touch_buttons(self) -> tuple[str, ...]:
         return tuple(self.status.get(SZ_ONE_TOUCH_BUTTONS, ()))
 
-    async def _set_mode(self, tcs_mode: TccSetTcsModeT) -> None:
+    async def _put_mode(self, tcs_mode: TccSetTcsModeT) -> None:
         """Set the TCS mode."""
 
         url = f"evoTouchSystems?locationId={self.id}"
@@ -467,7 +468,7 @@ class ControlSystem(_EntityBase):
         if until:  # the vendor treats it as the location's local time
             request[S1_QUICK_ACTION_NEXT_TIME] = as_local_str(until, self.tzinfo)
 
-        await self._set_mode(request)
+        await self._put_mode(request)
 
     async def set_auto(self) -> None:
         """Set the TCS to normal mode."""
@@ -675,6 +676,22 @@ class Location(_EntityBase):
         """
         return next((tcs for gwy in self.gateways for tcs in gwy.systems), None)
 
+    @deprecated(
+        "Location.get_temperatures() is deprecated: use Location.tcs.get_temperatures()"
+    )
+    async def get_temperatures(
+        self,
+        /,
+        *,
+        dont_update_status: bool = False,
+    ) -> dict[str, float | None]:
+        """Return the high-precision temperatures of the location's TCS, or raise."""
+
+        if (tcs := self.tcs) is None:
+            raise exc.ClientStateError(f"{self}: This location has no TCS")
+
+        return await tcs.get_temperatures(dont_update_status=dont_update_status)
+
     # Config attrs...
 
     @property
@@ -695,6 +712,10 @@ class Location(_EntityBase):
         return self._config[SZ_TIME_ZONE]
 
     # Status (state) attrs & methods...
+
+    # async def update(self, *args: Any, **kwargs: Any) -> Any:
+    #     """Get the latest state of the location and update its status attrs."""
+    #     raise NotImplementedError("Use EvohomeClient.update() instead.")
 
     @property
     def weather(self) -> EvoWeatherDictT | None:
