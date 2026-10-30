@@ -338,7 +338,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         until = self._validate_requested_timespan(
             system_mode, mode_entry, duration=duration, period=period
         )
-        return await self.set_mode(system_mode, until=until)
+        return await self._put_mode(
+            system_mode, permanent=until is None, time_until=until
+        )
 
     @deprecated("ControlSystem.set_system_mode() is deprecated: use .set_tcc_mode()")
     async def set_system_mode(

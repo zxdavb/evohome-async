@@ -128,6 +128,30 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
     def allowed_states(self) -> tuple[DhwState, ...]:
         return tuple(self.state_capabilities[SZ_ALLOWED_STATES])
 
+    def _validate_requested_state(
+        self, mode: ZoneMode, state: DhwState | str | None, /
+    ) -> DhwState | None:
+        """Return the state (as a DhwState), if it is valid for the mode."""
+
+        if state is None:
+            if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {mode}, state must not be None"
+                )
+            return None
+
+        if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, state must be None, not '{state}'"
+            )
+
+        try:
+            return DhwState(state)
+        except ValueError as err:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Unknown state: {state}"
+            ) from err
+
     # Status (state) attrs & methods...
 
     @property
@@ -199,25 +223,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         """
 
         mode = self._validate_requested_mode(mode)
-
-        if state is None:
-            if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, state must not be None"
-                )
-
-        else:
-            if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, state must be None, not '{state}'"
-                )
-
-            try:
-                state = DhwState(state)
-            except ValueError as err:
-                raise exc.InvalidModeRequestError(
-                    f"{self}: Unknown state: {state}"
-                ) from err
+        state = self._validate_requested_state(mode, state)
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
@@ -254,8 +260,11 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        until = self._tcc_mode_as_until(mode, duration)
-        return await self.set_mode(mode, state=state, until=until)
+        mode = self._validate_requested_mode(mode)
+        until = self._validate_requested_until(mode, duration)
+        state = self._validate_requested_state(mode, state)
+
+        return await self._put_mode(mode, state=state, until_time=until)
 
     async def reset(self) -> CommTask:
         """Cancel any override and allow the DHW to follow its schedule."""

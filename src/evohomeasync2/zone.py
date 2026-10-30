@@ -719,16 +719,10 @@ class _ZoneBase[
 
         return mode
 
-    def _tcc_mode_as_until(
-        self, mode: ZoneMode | str, duration: td | None, /
+    def _validate_requested_until(
+        self, mode: ZoneMode, duration: td | None, /
     ) -> dt | None:
-        """Return when a mode ends (None if indefinitely), if valid for the duration.
-
-        The mode and the duration are checked against _allowed_modes_table, c.f. a
-        TCS's set_tcc_mode().
-        """
-
-        mode = self._validate_requested_mode(mode)
+        """Return when a mode ends (None if indefinitely), if valid for the duration."""
 
         if (mode_entry := self._allowed_modes_table.get(mode)) is None:  # VacationHold
             raise exc.InvalidModeRequestError(
@@ -905,6 +899,30 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         # consider: if not self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]: return None
         return self.setpoint_capabilities[SZ_MIN_HEAT_SETPOINT]
 
+    def _validate_requested_temperature(
+        self, mode: ZoneMode, temperature: float | None, /
+    ) -> float | None:
+        """Return the temperature, if it is valid for the mode."""
+
+        if temperature is None:
+            if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {mode}, temperature must not be None"
+                )
+
+        else:
+            if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {mode}, temperature must be None, not '{temperature}'"
+                )
+
+            if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
+                raise exc.InvalidModeRequestError(
+                    f"{self}: Invalid temperature: {temperature} (out of range)"
+                )
+
+        return temperature
+
     # Status (state) attrs & methods...
 
     @property
@@ -981,23 +999,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         """
 
         mode = self._validate_requested_mode(mode)
-
-        if temperature is None:
-            if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, temperature must not be None"
-                )
-
-        else:
-            if mode is ZoneMode.FOLLOW_SCHEDULE:  # also ZoneMode.VACATION_HOLD?
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, temperature must be None, not '{temperature}'"
-                )
-
-            if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
-                raise exc.InvalidModeRequestError(
-                    f"{self}: Invalid temperature: {temperature} (out of range)"
-                )
+        temperature = self._validate_requested_temperature(mode, temperature)
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:  # also ZoneMode.VACATION_HOLD?
@@ -1036,8 +1038,13 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        until = self._tcc_mode_as_until(mode, duration)
-        return await self.set_mode(mode, temperature=temperature, until=until)
+        mode = self._validate_requested_mode(mode)
+        until = self._validate_requested_until(mode, duration)
+        temperature = self._validate_requested_temperature(mode, temperature)
+
+        return await self._put_mode(
+            mode, heat_setpoint_value=temperature, time_until=until
+        )
 
     async def reset(self) -> CommTask:
         """Cancel any override and allow the Zone to follow its schedule."""
