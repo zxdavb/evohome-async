@@ -143,14 +143,15 @@ def as_utc_str(dtm: dt) -> str:
     return dtm.astimezone(UTC).strftime(TCC_DTM_STRFTIME)
 
 
-def as_timedelta(timespan: str) -> td | None:
+def as_timedelta(timespan: str) -> td:
     """Return a timedelta from a vendor TimeSpan string (e.g. "99.00:00:00").
 
-    Return None if the string is not in the expected format.
+    Raise BadApiRequestError if the string is not in the expected format.
     """
 
     if not (match := _TCC_TIMESPAN_REGEX.match(timespan)):
-        return None
+        raise BadApiRequestError(f"The timespan is invalid: {timespan!r}")
+
     return td(**{k: int(v or 0) for k, v in match.groupdict().items()})
 
 

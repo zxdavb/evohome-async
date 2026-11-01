@@ -15,7 +15,13 @@ HA no longer pins exactly belongs in UNPINNED instead: with no `==` to satisfy, 
 floor cannot make the library uninstallable under HA, so it is ours to choose. Those
 deps are only watched, in case HA pins them again.
 
-Exits non-zero if a TRACKED floor no longer matches HA stable's pin.
+The Python versions we support are also relative to those of HA stable: the one before
+the one it requires, and the one it requires (see get-python-versions.py). The test
+matrix follows HA by itself, but the settings in PYTHON_* have to be changed by hand, so
+they are checked here. A change may bring new mypy errors, or end support for a Python.
+
+Exits non-zero if a TRACKED floor no longer matches HA stable's pin, or if any of these
+Python settings no longer agrees with the Python that HA stable requires.
 """
 
 import logging
@@ -39,6 +45,10 @@ DEV = "dev"
 
 CONSTRAINTS = "homeassistant/package_constraints.txt"  # flat `name==version` lines
 CONST_PY = "homeassistant/const.py"
+PYPROJECT = "pyproject.toml"
+
+PYTHON_VERSION_FILE = ".python-version"
+PYTHON_TYPE_WORKFLOW = ".github/workflows/check-type.yml"
 
 ROOT = Path(
     __file__
@@ -48,7 +58,7 @@ _LOGGER = logging.getLogger(Path(__file__).stem)
 
 
 class HassPinMismatchError(Exception):
-    """A runtime dependency floor no longer matches Home Assistant's pin."""
+    """A runtime dependency floor or a Python setting no longer matches HA's."""
 
 
 def normalise(name: str) -> str:
@@ -87,6 +97,62 @@ def version_key(version: str) -> tuple[int, ...]:
     return tuple(int(segment) for segment in re.findall(r"\d+", version))
 
 
+def parse_ha_python(text: str) -> tuple[int, int]:
+    """Return the (major, minor) of the requires-python of HA's pyproject.toml."""
+    match = re.search(r'^requires-python\s*=\s*">=(\d+)\.(\d+)', text, re.MULTILINE)
+    if not match:
+        raise HassPinMismatchError("Could not parse requires-python from HA")
+    return int(match[1]), int(match[2])
+
+
+def parse_python_settings() -> dict[str, tuple[str, str | None]]:
+    """Return each Python setting as (the policy's role for it, its current value)."""
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text())
+
+    floor = re.match(r">=(\d+\.\d+)", pyproject["project"]["requires-python"])
+    target = re.fullmatch(r"py(\d)(\d+)", pyproject["tool"]["ruff"]["target-version"])
+    type_check = re.search(
+        r'python-version: \["(\d+\.\d+)"\]',
+        (ROOT / PYTHON_TYPE_WORKFLOW).read_text(),
+    )
+
+    return {
+        "requires-python": ("previous", floor[1] if floor else None),
+        "tool.ruff.target-version": (
+            "previous",
+            f"{target[1]}.{target[2]}" if target else None,
+        ),
+        "tool.mypy.python_version": (
+            "current",
+            pyproject["tool"]["mypy"]["python_version"],
+        ),
+        PYTHON_VERSION_FILE: (
+            "current",
+            (ROOT / PYTHON_VERSION_FILE).read_text().strip(),
+        ),
+        PYTHON_TYPE_WORKFLOW: ("current", type_check[1] if type_check else None),
+    }
+
+
+def check_python(stable: tuple[int, int]) -> list[str]:
+    """Return a mismatch for each Python setting that disagrees with HA stable."""
+    expected = {
+        "current": f"{stable[0]}.{stable[1]}",
+        "previous": f"{stable[0]}.{stable[1] - 1}",
+    }
+
+    mismatches: list[str] = []
+    for name, (role, value) in parse_python_settings().items():
+        if value == expected[role]:
+            _LOGGER.info("%s: %s matches HA's Python (%s)", name, value, role)
+        else:
+            mismatches.append(
+                f"`{name}`: is `{value}`, but should be `{expected[role]}` "
+                f"(HA stable requires Python `{expected['current']}`)"
+            )
+    return mismatches
+
+
 def ha_version() -> str:
     """Return HA stable's version, e.g. '2026.7.4' (best-effort: it is cosmetic)."""
     try:
@@ -109,7 +175,7 @@ def write_summary(lines: list[str]) -> None:
 
 
 def main() -> None:
-    """Compare our floors with HA's pins; raise if they have drifted."""
+    """Compare our floors & Python with HA's; raise if they have drifted."""
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     floors = parse_floors()
@@ -148,19 +214,30 @@ def main() -> None:
         if (pin := stable.get(name))
     )
 
+    stable_python = parse_ha_python(fetch(STABLE, PYPROJECT))
+    dev_python = parse_ha_python(fetch(DEV, PYPROJECT))
+
+    mismatches.extend(check_python(stable_python))
+
+    if dev_python > stable_python:
+        warnings.append(
+            f"HA dev requires Python `{dev_python[0]}.{dev_python[1]}` "
+            f"(stable `{stable_python[0]}.{stable_python[1]}`) — a bump is coming"
+        )
+
     for warning in warnings:
         _LOGGER.warning("%s", warning)
 
     write_summary(
-        [f"### Runtime deps vs Home Assistant {version}", ""]
+        [f"### Runtime deps & Python vs Home Assistant {version}", ""]
         + [f"- ❌ {line}" for line in mismatches]
         + [f"- ⚠️ {line}" for line in warnings]
-        + ([] if mismatches else ["- ✅ all tracked floors match HA stable"])
+        + ([] if mismatches else ["- ✅ all tracked floors & Python match HA stable"])
     )
 
     if mismatches:
         raise HassPinMismatchError(
-            f"Runtime dependency floors have drifted from HA {version}: "
+            f"Runtime deps or Python have drifted from HA {version}: "
             + "; ".join(mismatches)
         )
 

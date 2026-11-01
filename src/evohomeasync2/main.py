@@ -246,6 +246,11 @@ class EvohomeClient:
         return self._user_info
 
     @property
+    def user_id(self) -> str:
+        """Return the id of the user account (the same id via either API)."""
+        return self.user_account[SZ_USER_ID]
+
+    @property
     def locations(self) -> list[Location]:
         """Return the list of location entities (may be empty)."""
 

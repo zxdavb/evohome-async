@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 class EvoAccessTokenEntryT(TypedDict):
-    """Dict for storing/restoring auth tokens to/from a cache."""
+    """Dict for storing/restoring auth tokens to/from a store."""
 
     access_token: str
     access_token_expires: str  # dt.isoformat()
@@ -269,14 +269,28 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """
 
     def _import_access_token(self, tokens: EvoAccessTokenEntryT) -> None:
-        """Extract the token data from a (serialized) dictionary."""
+        """Extract the token data from a (serialized) dictionary.
+
+        Deprecated: use import_access_token().
+        """
+        self.import_access_token(tokens)
+
+    def import_access_token(self, tokens: EvoAccessTokenEntryT, /) -> None:
+        """Restore the access token (its expiry, the refresh token) from a dict."""
 
         self._access_token = tokens[SZ_ACCESS_TOKEN]
         self._access_token_expires = dt.fromisoformat(tokens[SZ_ACCESS_TOKEN_EXPIRES])
         self._refresh_token = tokens[SZ_REFRESH_TOKEN]
 
     def _export_access_token(self) -> EvoAccessTokenEntryT:
-        """Convert the token data to a (serialized) dictionary."""
+        """Convert the token data to a (serialized) dictionary.
+
+        Deprecated: use export_access_token().
+        """
+        return self.export_access_token()
+
+    def export_access_token(self) -> EvoAccessTokenEntryT:
+        """Return the access token (its expiry, the refresh token) as a dict."""
 
         return {
             SZ_ACCESS_TOKEN_EXPIRES: self._access_token_expires.isoformat(),

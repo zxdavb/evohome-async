@@ -96,7 +96,7 @@ This is how to set up a development environment.
 
 ### Prerequisites
 
-- Python 3.14 for local dev (HA stable requires 3.14); Python 3.13 is also tested in CI
+- Python 3.14 for local dev (HA stable requires 3.14); CI also tests the version before HA's, and the next one once it is released
 - [uv](https://docs.astral.sh/uv/)
 
 ### Setup

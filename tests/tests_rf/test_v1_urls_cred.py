@@ -118,16 +118,16 @@ async def test_bad1(  # bad credentials (client_id/secret)
 
 
 @pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
-async def test_bad2(  # bad session id
+async def test_bad2(  # bad session ID
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test authentication flow with an invalid/expired session id."""
+    """Test authentication flow with an invalid/expired session ID."""
 
     # pre-requisite data
-    session_id = "bad session id " + random.choice(string.ascii_letters)  # noqa: S311
+    session_id = "bad session ID " + random.choice(string.ascii_letters)  # noqa: S311
 
     #
-    # TEST 9: bad session id -> HTTPStatus.UNAUTHORIZED
+    # TEST 9: bad session ID -> HTTPStatus.UNAUTHORIZED
     url = f"{URL_BASE_V1}/accountInfo"
     headers = HEADERS_BASE | {"sessionId": session_id}
 
@@ -137,7 +137,7 @@ async def test_bad2(  # bad session id
 
         response: list[TccFailureResponseT] = await rsp.json()
 
-        # the expected response for expired session id
+        # the expected response for expired session ID
         """
             [{
                 "code": "Unauthorized",
@@ -204,11 +204,11 @@ async def test_good(  # good credentials
 
     # #################################################################################
 
-    # Check the session id by accessing a resource...
+    # Check the session ID by accessing a resource...
     session_id = user_auth["sessionId"]
 
     #
-    # TEST 9: good session id -> HTTPStatus.OK
+    # TEST 9: good session ID -> HTTPStatus.OK
     url = f"{URL_BASE_V1}/accountInfo"
     headers = HEADERS_BASE | {"sessionId": session_id}
 

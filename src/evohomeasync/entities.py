@@ -448,7 +448,7 @@ class ControlSystem(_EntityBase):
     def one_touch_buttons(self) -> tuple[str, ...]:
         return tuple(self.status.get(SZ_ONE_TOUCH_BUTTONS, ()))
 
-    async def _set_mode(self, tcs_mode: TccSetTcsModeT) -> None:
+    async def _put_mode(self, tcs_mode: TccSetTcsModeT) -> None:
         """Set the TCS mode."""
 
         url = f"evoTouchSystems?locationId={self.id}"
@@ -468,7 +468,7 @@ class ControlSystem(_EntityBase):
         if until:  # the vendor treats it as the location's local time
             request[S1_QUICK_ACTION_NEXT_TIME] = as_local_str(until, self.tzinfo)
 
-        await self._set_mode(request)
+        await self._put_mode(request)
 
     async def set_auto(self) -> None:
         """Set the TCS to normal mode."""

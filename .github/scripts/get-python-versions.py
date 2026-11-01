@@ -1,15 +1,20 @@
 """Build the Python test matrix for GitHub Actions.
 
-Queries endoflife.date for all non-EOL CPython versions >= the project's
-requires-python floor (read from pyproject.toml). If the API is unavailable
-the script exits with an error. Also adds HA dev's required Python if it is
-a pre-release not yet listed on endoflife.date.
+The Python versions we support are defined relative to those of HA stable (the
+`master` branch, which is the latest release):
+
+  - the version before the one HA requires;
+  - the version HA requires;
+  - the version after the one HA requires, if (and only if) it has been released.
+
+A release is determined via endoflife.date. If it, or HA's pyproject.toml, is
+unavailable then the script exits with an error, as the matrix depends upon both.
 
 Each entry is a cycle (e.g. "3.15"), not its latest patch (e.g. "3.15.0"): a new
 patch is listed by endoflife.date before actions/python-versions publishes a build
-for it, so an exact patch can fail setup-python. With `allow-prereleases: true`,
-setup-python resolves a cycle to its newest build, falling back to a pre-release
-when no GA build is available yet.
+for it, so an exact patch can fail setup-python.
+
+The settings that must agree with this policy are checked by check-hass-pins.py.
 
 Writes a JSON array to $GITHUB_OUTPUT as `matrix=["3.x", ...]`.
 """
@@ -17,49 +22,29 @@ Writes a JSON array to $GITHUB_OUTPUT as `matrix=["3.x", ...]`.
 import json
 import os
 import re
-import urllib.error
 import urllib.request
 from datetime import UTC, datetime as dt
 from pathlib import Path
 
-ROOT = Path(
-    __file__
-).parent.parent.parent  # repo root (.github/scripts/ -> .github/ -> root)
+with urllib.request.urlopen(
+    "https://raw.githubusercontent.com/home-assistant/core/master/pyproject.toml",
+    timeout=10,
+) as r:
+    content = r.read().decode()
 
-# Floor derived from requires-python in pyproject.toml — fail loudly if missing
-_rp = re.search(
-    r'requires-python\s*=\s*">=(\d+)\.(\d+)',
-    (ROOT / "pyproject.toml").read_text(),
-)
+_rp = re.search(r'requires-python\s*=\s*">=(\d+)\.(\d+)', content)
 if not _rp:
-    raise ValueError("Could not parse requires-python from pyproject.toml")
-FLOOR = (int(_rp.group(1)), int(_rp.group(2)))
+    raise ValueError("Could not parse requires-python from HA's pyproject.toml")
+MAJOR, MINOR = int(_rp.group(1)), int(_rp.group(2))
 
-# All non-EOL Python versions >= floor from endoflife.date
 with urllib.request.urlopen("https://endoflife.date/api/python.json", timeout=10) as r:
     cycles = json.loads(r.read())
 today = dt.now(tz=UTC).date().isoformat()
-versions: list[str] = sorted(
-    c["cycle"]
-    for c in cycles
-    if c["eol"] > today and tuple(int(x) for x in c["cycle"].split(".")) >= FLOOR
-)
+released = {c["cycle"] for c in cycles if c["releaseDate"] <= today}
 
-# Also include HA dev's required Python if it's a pre-release not yet on endoflife.date
-try:
-    with urllib.request.urlopen(
-        "https://raw.githubusercontent.com/home-assistant/core/dev/pyproject.toml",
-        timeout=10,
-    ) as r:
-        content = r.read().decode()
-    m = re.search(r'requires-python\s*=\s*">=(\d+\.\d+)', content)
-    if m:
-        ha_minor = m.group(1)
-        if not any(v.startswith(ha_minor + ".") or v == ha_minor for v in versions):
-            versions.append(ha_minor)  # minor-only; allow-prereleases resolves latest
-            versions.sort()
-except (urllib.error.URLError, OSError, ValueError):
-    pass  # best-effort; HA's version is normally covered by endoflife.date
+versions = [f"{MAJOR}.{MINOR - 1}", f"{MAJOR}.{MINOR}"]
+if (upcoming := f"{MAJOR}.{MINOR + 1}") in released:
+    versions.append(upcoming)
 
 with Path(os.environ["GITHUB_OUTPUT"]).open("a") as f:
     f.write(f"matrix={json.dumps(versions)}\n")
