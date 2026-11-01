@@ -8,9 +8,9 @@ Invokes every vendor API (URL) that the client uses, via the client's methods:
   GET       /location/installationInfo?userId={usr_id}&include...=True  ec2.update()
   GET       /location/{loc_id}/status?includeTemperatureControlSystems  loc.update()
   PUT       /temperatureControlSystem/{tcs_id}/mode                     tcs.set_mode()
-  PUT       /temperatureZone/{zon_id}/heatSetpoint                      zon.set_temperature(), reset()
+  PUT       /temperatureZone/{zon_id}/heatSetpoint                      zon.set_temperature(), set_mode(), reset()
   GET, PUT  /temperatureZone/{zon_id}/schedule                          zon.get/set_schedule()
-  PUT       /domesticHotWater/{dhw_id}/state                            dhw.set_off(), reset()
+  PUT       /domesticHotWater/{dhw_id}/state                            dhw.set_off(), set_mode(), reset()
   GET, PUT  /domesticHotWater/{dhw_id}/schedule                         dhw.get/set_schedule()
 
 The client has methods for some other APIs, but does not use them (e.g. the status of a
@@ -27,16 +27,17 @@ For every vendor API, including those with no client method, see test_v2_urls.py
 
 from __future__ import annotations
 
+from datetime import timedelta as td
 from typing import TYPE_CHECKING
 
 import pytest
 
 import evohomeasync2 as evo2
-from evohomeasync2.const import SystemMode
+from evohomeasync2.const import DhwState, SystemMode, ZoneMode
 from evohomeasync2.hotwater import HotWater
 from evohomeasync2.schemas.const import S2_MODE
 from evohomeasync2.zone import Zone
-from tests.common import get_dhw, get_loc, get_tcs, get_zon
+from tests.common import get_loc
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from . import faked_server as faked
@@ -77,7 +78,7 @@ async def _test_usr_apis(
 
 
 async def _test_tcs_apis(
-    ec2: EvohomeClientV2,
+    tcs: evo2.ControlSystem,
 ) -> None:
     """Test ControlSystem methods.
 
@@ -85,14 +86,7 @@ async def _test_tcs_apis(
     Does not include tcs.get_schedules(), tcs.set_schedules().
     """
 
-    # STEP 1: retrieve config and status
-    await ec2.setup()
-    for loc in ec2.locations:
-        await loc.get_status()
-
-    # STEP 2: GET /temperatureControlSystem/{tcs.id}/status
-    tcs = get_tcs(ec2)
-
+    # STEP 1: GET /temperatureControlSystem/{tcs.id}/status
     # tcs_status = await tcs._update()
     # assert evo2.ControlSystem.SCH_STATUS(tcs_status)
 
@@ -101,15 +95,20 @@ async def _test_tcs_apis(
 
     assert mode in SystemMode
 
-    # STEP 3: PUT /temperatureControlSystem/{tcs.id}/mode
+    # STEP 2: PUT /temperatureControlSystem/{tcs.id}/mode
     await wait_for_comm_task_obj(await tcs.set_mode(SystemMode.AWAY))
     await tcs.location.get_status()
+
+    # ...for a duration, and for a period
+    task = await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=td(hours=1))
+    await wait_for_comm_task_obj(task)
+    await wait_for_comm_task_obj(await tcs.set_mode(SystemMode.AWAY, period=td(days=1)))
 
     await wait_for_comm_task_obj(await tcs.set_mode(mode))
 
 
 async def _test_dhw_apis(
-    ec2: EvohomeClientV2,
+    dhw: evo2.HotWater,
 ) -> None:
     """Test Hotwater methods.
 
@@ -117,18 +116,12 @@ async def _test_dhw_apis(
     _DBG_TEST_UNUSED_APIS).
     """
 
-    # STEP 1: retrieve config only
-    await ec2.setup()
-
-    if not (dhw := get_dhw(ec2)):
-        pytest.skip("No DHW found in TCS")
-
-    # STEP 2: GET /domesticHotWater/{dhw.id}/status (not used by the client)
+    # STEP 1: GET /domesticHotWater/{dhw.id}/status (not used by the client)
     if _DBG_TEST_UNUSED_APIS:
         dhw_status = await dhw._get_status()
         assert evo2.HotWater.SCH_STATUS(dhw_status)
 
-    # STEP 3: GET, PUT /domesticHotWater/{dhw.id}/schedule
+    # STEP 2: GET, PUT /domesticHotWater/{dhw.id}/schedule
     schedule = await dhw.get_schedule()
     assert HotWater.SCH_SCHEDULE({"daily_schedules": schedule})
 
@@ -136,26 +129,24 @@ async def _test_dhw_apis(
 
 
 async def _test_dhw_mode(
-    ec2: EvohomeClientV2,
+    dhw: evo2.HotWater,
 ) -> None:
     """Test Hotwater mode methods.
 
-    Includes dhw.set_off() and dhw.reset().
+    Includes dhw.set_off(), dhw.set_mode() with a duration, and dhw.reset().
     """
 
-    # STEP 1: retrieve config only
-    await ec2.setup()
-
-    if not (dhw := get_dhw(ec2)):
-        pytest.skip("No DHW found in TCS")
-
-    # STEP 2: PUT /domesticHotWater/{dhw.id}/state
+    # STEP 1: PUT /domesticHotWater/{dhw.id}/state
     await wait_for_comm_task_obj(await dhw.set_off())  # PermanentOverride
+    task = await dhw.set_mode(
+        ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.OFF, duration=td(hours=1)
+    )
+    await wait_for_comm_task_obj(task)
     await wait_for_comm_task_obj(await dhw.reset())  # FollowSchedule
 
 
 async def _test_zon_apis(
-    ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test Zone methods.
 
@@ -163,27 +154,21 @@ async def _test_zon_apis(
     _DBG_TEST_UNUSED_APIS).
     """
 
-    # STEP 1: retrieve config only
-    await ec2.setup()
-
-    if not (zone := get_zon(ec2)):
-        pytest.skip("No zones found in TCS")
-
-    # STEP 2: GET /temperatureZone/{zon.id}/status (not used by the client)
+    # STEP 1: GET /temperatureZone/{zon.id}/status (not used by the client)
     if _DBG_TEST_UNUSED_APIS:
         zon_status = await zone._get_status()
         assert evo2.Zone.SCH_STATUS(zon_status)
 
-    # STEP 3: GET, PUT /temperatureZone/{zon.id}/schedule
+    # STEP 2: GET, PUT /temperatureZone/{zon.id}/schedule
     if zone.id != faked.GHOST_ZONE_ID:
         schedule = await zone.get_schedule()
         assert Zone.SCH_SCHEDULE({"daily_schedules": schedule})
 
         await wait_for_comm_task_obj(await zone.set_schedule(schedule))
 
-    if zone := zone.tcs.zone_by_id.get(faked.GHOST_ZONE_ID):
+    if ghost := zone.tcs.zone_by_id.get(faked.GHOST_ZONE_ID):
         try:
-            schedule = await zone.get_schedule()
+            schedule = await ghost.get_schedule()
         except evo2.InvalidScheduleError:
             pass
         else:
@@ -191,21 +176,21 @@ async def _test_zon_apis(
 
 
 async def _test_zon_mode(
-    ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test Zone mode methods.
 
-    Includes zon.set_temperature() and zon.reset().
+    Includes zon.set_temperature(), zon.set_mode() with a duration, and zon.reset().
     """
 
-    # STEP 1: retrieve config only
-    await ec2.setup()
-
-    if not (zone := get_zon(ec2)):
-        pytest.skip("No zones found in TCS")
-
-    # STEP 2: PUT /temperatureZone/{zon.id}/heatSetpoint
+    # STEP 1: PUT /temperatureZone/{zon.id}/heatSetpoint
     task = await zone.set_temperature(zone.min_heat_setpoint)  # PermanentOverride
+    await wait_for_comm_task_obj(task)
+    task = await zone.set_mode(
+        ZoneMode.TEMPORARY_OVERRIDE,
+        temperature=zone.min_heat_setpoint,
+        duration=td(hours=1),
+    )
     await wait_for_comm_task_obj(task)
     await wait_for_comm_task_obj(await zone.reset())  # FollowSchedule
 
@@ -230,12 +215,12 @@ async def test_usr_apis(
 
 @skipif_auth_failed
 async def test_tcs(
-    ec2: EvohomeClientV2,
+    tcs: evo2.ControlSystem,
 ) -> None:
     """Test set_mode() for TCS"""
 
     try:
-        await _test_tcs_apis(ec2)
+        await _test_tcs_apis(tcs)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -245,20 +230,20 @@ async def test_tcs(
 
 @skipif_auth_failed
 async def test_dhw_apis(
-    ec2: EvohomeClientV2,
+    dhw: evo2.HotWater,
 ) -> None:
     """Test get_schedule() and get_schedule()."""
-    await _test_dhw_apis(ec2)
+    await _test_dhw_apis(dhw)
 
 
 @skipif_auth_failed
 async def test_dhw_mode(
-    ec2: EvohomeClientV2,
+    dhw: evo2.HotWater,
 ) -> None:
     """Test set_off() and reset() for DHW."""
 
     try:
-        await _test_dhw_mode(ec2)
+        await _test_dhw_mode(dhw)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
@@ -268,20 +253,20 @@ async def test_dhw_mode(
 
 @skipif_auth_failed
 async def test_zon_apis(
-    ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test _update() for DHW/zone."""
-    await _test_zon_apis(ec2)
+    await _test_zon_apis(zone)
 
 
 @skipif_auth_failed
 async def test_zon_mode(
-    ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test set_temperature() and reset() for zone."""
 
     try:
-        await _test_zon_mode(ec2)
+        await _test_zon_mode(zone)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:
