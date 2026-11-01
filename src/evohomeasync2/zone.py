@@ -482,15 +482,6 @@ class _ScheduleBase[
     # Status (state) attrs & methods...
 
     @property
-    def schedule_last_fetched(self) -> dt | None:
-        """Return when the schedule was last fetched (successfully), else None.
-
-        Schedules are weekly, so a consumer can use this to re-fetch them only as often
-        as is needed to pick up any changes made elsewhere (e.g. via the vendor's app).
-        """
-        return self._schedule_last_fetched
-
-    @property
     def schedule(self) -> list[DayT]:
         """Return the schedule (assumes it is current).
 
