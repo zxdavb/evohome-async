@@ -98,7 +98,8 @@ from evohomeasync2.schemas.status import (
     TCC_GET_TCS_STATUS,
     TCC_GET_ZON_STATUS,
 )
-from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX
+from tests.common import find_gwy_config, find_loc_config, find_tcs_config
+from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from .common import skipif_auth_failed, wait_for_comm_task_id
 
@@ -221,10 +222,15 @@ async def test_tcs_urls(
 
     #
     #
-    loc_config = usr_locs[TEST_LOC_IDX]
+    loc_config = find_loc_config(usr_locs)
+    if (gwy_config := find_gwy_config(loc_config)) is None:
+        pytest.skip("No gateway found")
+    if (tcs_config := find_tcs_config(loc_config)) is None:
+        pytest.skip("No TCS found")
+
     loc_id = loc_config["locationInfo"]["locationId"]
-    gwy_id = loc_config["gateways"][0]["gatewayInfo"]["gatewayId"]
-    tcs_id = loc_config["gateways"][0]["temperatureControlSystems"][0]["systemId"]
+    gwy_id = gwy_config["gatewayInfo"]["gatewayId"]
+    tcs_id = tcs_config["systemId"]
 
     #
     # STEP 3: GET /location/{loc_id}/installationInfo (not used by the client)
@@ -238,8 +244,7 @@ async def test_tcs_urls(
     #
     # STEP 5: GET /gateway/{gwy_id}/installationInfo (not used by the client)
     if _DBG_TEST_UNUSED_APIS:
-        gwy_config = await get_gwy_config(auth, gwy_id)
-        assert gwy_config == loc_config["gateways"][0]  # as nested within its location
+        assert await get_gwy_config(auth, gwy_id) == gwy_config  # as nested
 
     #
     # STEP 6: GET /gateway/{gwy_id}/status (not used by the client)
@@ -254,8 +259,7 @@ async def test_tcs_urls(
     #
     # STEP A: GET /temperatureControlSystem/{tcs_id}/installationInfo (not used...)
     if _DBG_TEST_UNUSED_APIS:
-        tcs_config = await get_tcs_config(auth, tcs_id)
-        assert tcs_config == loc_config["gateways"][0]["temperatureControlSystems"][0]
+        assert await get_tcs_config(auth, tcs_id) == tcs_config  # as nested
 
     #
     # STEP B: GET /temperatureControlSystem/{tcs_id}/status (not used by the client)
@@ -511,8 +515,11 @@ async def test_zon_urls(
 
     #
     #
-    loc_config = usr_locs[TEST_LOC_IDX]
-    tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
+    if (tcs_config := find_tcs_config(find_loc_config(usr_locs))) is None:
+        pytest.skip("No TCS found")
+    if not tcs_config["zones"]:
+        pytest.skip("No zone found")
+
     zon_id = tcs_config["zones"][0]["zoneId"]
 
     #
@@ -715,10 +722,7 @@ async def test_dhw_urls(
 
     #
     #
-    loc_config = usr_locs[TEST_LOC_IDX]
-    try:
-        tcs_config = loc_config["gateways"][0]["temperatureControlSystems"][0]
-    except (KeyError, IndexError):
+    if (tcs_config := find_tcs_config(find_loc_config(usr_locs))) is None:
         pytest.skip("No TCS found")
     if "dhw" not in tcs_config:
         pytest.skip("No DHW found")

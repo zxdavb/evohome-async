@@ -86,7 +86,8 @@ import pytest
 from _evohome import exceptions as exc
 from evohomeasync.auth import Auth
 from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS, TCC_TASK_RESPONSE
-from tests.const import _DBG_USE_REAL_AIOHTTP, _DBG_WAIT_FOR_COMM_TASKS, TEST_LOC_IDX
+from tests.common import find_loc_v1
+from tests.const import _DBG_USE_REAL_AIOHTTP, _DBG_WAIT_FOR_COMM_TASKS
 
 from .common import (
     is_alive_v1,
@@ -344,7 +345,7 @@ async def test_loc_urls(
     # GET /locations?userId={usr_id}&allData=True
     usr_locs = await get_locations(auth, usr_info["userID"])
 
-    loc = usr_locs[TEST_LOC_IDX]
+    loc = find_loc_v1(usr_locs)
     if not loc["devices"]:
         pytest.skip("No location with devices found")
 
@@ -472,7 +473,7 @@ async def test_tcs_urls(
     usr_locs = await get_locations(auth, usr_info["userID"])
 
     # an evohome location (not, say, a Round Thermostat)
-    loc = usr_locs[TEST_LOC_IDX]
+    loc = find_loc_v1(usr_locs)
     if not any(is_zone_v1(d) for d in loc["devices"]):
         pytest.skip("No evohome location found")
     loc_id = loc["locationID"]
@@ -583,7 +584,7 @@ async def test_zon_urls(
     zone = next(
         (
             d
-            for d in usr_locs[TEST_LOC_IDX]["devices"]
+            for d in find_loc_v1(usr_locs)["devices"]
             if is_zone_v1(d) and is_alive_v1(d) and status_of_v1(d) == "Scheduled"
         ),
         None,
@@ -643,7 +644,7 @@ async def test_dhw_urls(
     dhw = next(
         (
             d
-            for d in usr_locs[TEST_LOC_IDX]["devices"]
+            for d in find_loc_v1(usr_locs)["devices"]
             if is_dhw_v1(d) and is_alive_v1(d)
         ),
         None,

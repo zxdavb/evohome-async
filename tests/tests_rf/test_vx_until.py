@@ -38,12 +38,12 @@ from typing import TYPE_CHECKING, Any
 import pytest
 
 from _evohome.helpers import TCC_DTM_STRFTIME
-from evohomeasync.schemas import TCC_GET_USR_LOCS
 from evohomeasync2.schemas.status import TCC_GET_ZON_STATUS
 from tests.common import get_tcs
-from tests.const import _DBG_USE_REAL_AIOHTTP, TEST_LOC_IDX
+from tests.const import _DBG_USE_REAL_AIOHTTP
 
 from .common import (
+    fetch_loc_v1,
     is_alive_v1,
     is_zone_v1,
     should_work_v1,
@@ -56,7 +56,7 @@ from .common import (
 
 if TYPE_CHECKING:
     from evohomeasync import EvohomeClient as EvohomeClientV1
-    from evohomeasync.schemas import TccDeviceResponseT, TccLocationResponseT
+    from evohomeasync.schemas import TccDeviceResponseT
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
 
 
@@ -65,26 +65,13 @@ _STATUS_INTERVAL = 3  # seconds, between polls of the status
 _STATUS_TIMEOUT = 120  # seconds, as the gateway can take a while to apply a change
 
 
-async def _get_location(
-    ec1: EvohomeClientV1,
-) -> TccLocationResponseT:
-    """Return the (vendor-cased) location under test, via v1."""
-
-    usr_id: int = ec1.user_account["user_id"]
-
-    url = f"locations?userId={usr_id}&allData=True"
-    locs = await should_work_v1(ec1.auth, HTTPMethod.GET, url, schema=TCC_GET_USR_LOCS)
-
-    return locs[TEST_LOC_IDX]
-
-
 async def _get_zone(
     ec1: EvohomeClientV1,
     zon_id: int,
 ) -> TccDeviceResponseT:
     """Return the (vendor-cased) zone, via v1."""
     return next(
-        d for d in (await _get_location(ec1))["devices"] if d["deviceID"] == zon_id
+        d for d in (await fetch_loc_v1(ec1))["devices"] if d["deviceID"] == zon_id
     )
 
 
@@ -105,7 +92,7 @@ async def _setup(
     await ec1.get_status()  # get user_id
     await ec2.setup()  # needed by should_work_v2()
 
-    loc = await _get_location(ec1)
+    loc = await fetch_loc_v1(ec1)
 
     offset = td(minutes=loc["timeZone"]["currentOffsetMinutes"])
     if not offset:

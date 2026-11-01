@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Final
 
 from _evohome.const import HOSTNAME
@@ -25,13 +26,9 @@ TIMEOUT_COMM_TASK: Final = 60  # seconds
 TIMEOUT_COMM_TASK_V1: Final = 45  # seconds
 
 #
-# the location under test, as an index into the user's list of locations: index the
-# vendor's JSON with it, or use get_loc() (tests_rf/common.py) for a Location object
-TEST_LOC_IDX: Final = 0  # the test account has only one location
-# TODO: select the location by its id, not by an index: it is assumed that the v1
-# and v2 APIs list the same locations, in the same order, but that is unconfirmed
-# (the ids are the same in both, e.g. v1's 2738909 is v2's '2738909'). If not, the v1
-# tests would use a different location to that reset by reset_systems() (via v2).
+# the location under test, by its id (which is the same in v1 and v2, e.g. v1's 2738909
+# is v2's '2738909'): only against the vendor's servers, see get_loc() (tests/common.py)
+TEST_LOC_ID: Final = os.getenv("TEST_LOC_ID") or None
 
 #
 # the fixtures (folders of tests/tests/fixtures_v2) used by test_v2_apis_edges.py, as
