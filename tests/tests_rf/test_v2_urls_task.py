@@ -29,7 +29,6 @@ from evohomeasync2.schemas.const import (
     TccZoneMode,
 )
 from evohomeasync2.schemas.status import TCC_GET_DHW_STATUS, TCC_GET_LOC_STATUS
-from tests.common import get_dhw, get_zon
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from .common import should_fail_v2, should_work_v2, skipif_auth_failed
@@ -44,6 +43,7 @@ if TYPE_CHECKING:
 # NOTE: a long test, but not all systems have DHW
 async def _test_task_id_dhw(
     ec2: EvohomeClientV2,
+    dhw: evo2.HotWater,
 ) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
@@ -52,11 +52,6 @@ async def _test_task_id_dhw(
     The DHW's status URL is not used by the client (its status is included in that of
     its location), so it is used here only if _DBG_TEST_UNUSED_APIS.
     """
-
-    await ec2.setup()
-
-    if not (dhw := get_dhw(ec2)):
-        pytest.skip("No available DHW found")
 
     GET_URL = f"{dhw._TCC_TYPE}/{dhw.id}/status"
     PUT_URL = f"{dhw._TCC_TYPE}/{dhw.id}/state"
@@ -203,16 +198,12 @@ async def _test_task_id_dhw(
 # TODO: a short test
 async def _test_task_id_zone(
     ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test the task_id returned when using the vendor's RESTful APIs.
 
     This test can be used to prove that JSON keys are can be camelCase or PascalCase.
     """
-
-    await ec2.setup()
-
-    if not (zone := get_zon(ec2)):
-        pytest.skip("No available Zone found")
 
     GET_URL = f"{zone._TCC_TYPE}/{zone.id}/status"
     # T_URL = f"{zone._TCC_TYPE}/{zone.id}/mode"
@@ -236,6 +227,7 @@ async def _test_task_id_zone(
 @skipif_auth_failed
 async def test_task_id_dhw(
     ec2: EvohomeClientV2,
+    dhw: evo2.HotWater,
 ) -> None:
     """Test /commTasks?commTaskId={task_id}"""
 
@@ -243,7 +235,7 @@ async def test_task_id_dhw(
         pytest.skip("Test is only valid with a real server")
 
     try:
-        await _test_task_id_dhw(ec2)
+        await _test_task_id_dhw(ec2, dhw)
 
     except evo2.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:
@@ -254,6 +246,7 @@ async def test_task_id_dhw(
 @skipif_auth_failed
 async def _out_test_task_id_zone(
     ec2: EvohomeClientV2,
+    zone: evo2.Zone,
 ) -> None:
     """Test /commTasks?commTaskId={task_id}"""
 
@@ -261,7 +254,7 @@ async def _out_test_task_id_zone(
         pytest.skip("Test is only valid with a real server")
 
     try:
-        await _test_task_id_zone(ec2)
+        await _test_task_id_zone(ec2, zone)
 
     except evo2.AuthenticationFailedError:
         if not _DBG_USE_REAL_AIOHTTP:
