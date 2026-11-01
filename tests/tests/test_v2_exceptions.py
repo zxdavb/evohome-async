@@ -74,7 +74,7 @@ async def test_schedule_not_fetched(
 ) -> None:
     """Test the schedule attrs raise NotFetchedError until get_schedule() is called."""
 
-    assert zone.schedule_last_fetched is None
+    assert zone._schedule_last_fetched is None
 
     with pytest.raises(exc.NotFetchedError):
         _ = zone.schedule
@@ -182,7 +182,7 @@ async def test_get_schedule_failures(
         await zone.get_schedule()
 
     assert type(err.value) is expected
-    assert zone.schedule_last_fetched is None
+    assert zone._schedule_last_fetched is None
 
 
 async def test_empty_schedule(
@@ -198,7 +198,7 @@ async def test_empty_schedule(
     ):
         assert await zone.get_schedule() == []
 
-    assert zone.schedule_last_fetched == dt(2025, 1, 1, tzinfo=UTC)
+    assert zone._schedule_last_fetched == dt(2025, 1, 1, tzinfo=UTC)
     assert zone.schedule == []
     assert zone.this_switchpoint is None
     assert zone.next_switchpoint is None
@@ -219,7 +219,7 @@ async def test_invalid_schedule_not_stored(
 
     schedule = await fetched.get_schedule()
     switchpoints = (fetched.this_switchpoint, fetched.next_switchpoint)
-    last_fetched = fetched.schedule_last_fetched
+    last_fetched = fetched._schedule_last_fetched
     assert last_fetched is not None
 
     with (
@@ -239,9 +239,9 @@ async def test_invalid_schedule_not_stored(
 
     assert fetched.schedule == schedule
     assert (fetched.this_switchpoint, fetched.next_switchpoint) == switchpoints
-    assert fetched.schedule_last_fetched == last_fetched
+    assert fetched._schedule_last_fetched == last_fetched
 
-    assert unfetched.schedule_last_fetched is None
+    assert unfetched._schedule_last_fetched is None
     with pytest.raises(exc.NotFetchedError):
         _ = unfetched.schedule
     with pytest.raises(exc.NotFetchedError):
