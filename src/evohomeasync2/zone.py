@@ -724,6 +724,7 @@ class _ZoneBase[
     ) -> dt | None:
         """Return when a mode ends (None if indefinitely), if valid for the duration."""
 
+        # the special case for VacationHold
         if (mode_entry := self._allowed_modes_table.get(mode)) is None:  # VacationHold
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, use until, not duration"
@@ -980,6 +981,101 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         response = await self._auth.put(url, json=zon_mode)
         return CommTask.from_response(self._auth, response)
 
+    async def _set_mode(
+        self,
+        mode: ZoneMode | str,
+        /,
+        *,
+        temperature: float | None = None,
+        until: dt | str | None = None,
+    ) -> CommTask:
+        """Set the Zone to a (heating) mode, either indefinitely, or for a given time.
+
+        Will accept a ZoneMode or a (snake_case) string for the 'mode'.
+
+        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
+        but it must be TZ-aware (not naive).
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
+
+        mode = self._validate_requested_mode(mode)
+        temperature = self._validate_requested_temperature(mode, temperature)
+
+        if until is None:
+            if mode is ZoneMode.TEMPORARY_OVERRIDE:
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {mode}, until must not be None"
+                )
+
+        else:
+            if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {mode}, until must be None, not '{until}'"
+                )
+
+            until = as_aware_dtm(until)
+
+        return await self._put_mode(
+            mode, heat_setpoint_value=temperature, time_until=until
+        )
+
+    async def _set_tcc_mode(
+        self,
+        mode: ZoneMode | str,
+        /,
+        *,
+        temperature: float | None = None,
+        duration: td | None = None,
+    ) -> CommTask:
+        """Set the Zone to a (heating) mode, either indefinitely, or for a duration.
+
+        Will accept a ZoneMode or a (snake_case) string for the 'mode'.
+
+        A 'temperature' is required by the override modes, and is not allowed for
+        FollowSchedule. It must be within the zone's min/max_heat_setpoint.
+
+        A 'duration' ends that long from now. It is required by TemporaryOverride, and
+        is not allowed for the other modes. It must be positive, a multiple of the
+        zone's timing_resolution, and not exceed its max_duration.
+
+        Unlike set_mode(), the request is checked strictly against the zone's config
+        (see setpoint_capabilities). VacationHold is not supported: use set_mode().
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
+
+        mode = self._validate_requested_mode(mode)
+        until = self._validate_requested_duration(mode, duration)
+        temperature = self._validate_requested_temperature(mode, temperature)
+
+        # TODO: self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]
+        # TODO: self.setpoint_capabilities[SZ_VALUE_RESOLUTION]
+
+        return await self._put_mode(
+            mode, heat_setpoint_value=temperature, time_until=until
+        )
+
+    async def reset(self) -> CommTask:
+        """Cancel any override and allow the Zone to follow its schedule."""
+        return await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
+
+    async def set_temperature(
+        self,
+        temperature: float,
+        /,
+        *,
+        until: dt | str | None = None,
+    ) -> CommTask:
+        """Set the temperature of the zone (no provision for cooling)."""
+
+        mode = (
+            ZoneMode.PERMANENT_OVERRIDE
+            if until is None
+            else ZoneMode.TEMPORARY_OVERRIDE
+        )
+        return await self.set_mode(mode, temperature=temperature, until=until)
+
     @overload
     async def set_mode(
         self,
@@ -990,6 +1086,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         until: dt | str | None = None,
         duration: None = None,
     ) -> CommTask: ...
+
     @overload
     async def set_mode(
         self,
@@ -1000,6 +1097,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         until: None = None,
         duration: td | None = None,
     ) -> CommTask: ...
+
     async def set_mode(
         self,
         mode: ZoneMode | str,
@@ -1030,83 +1128,14 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        mode = self._validate_requested_mode(mode)
+        if duration is None:
+            return await self._set_mode(mode, temperature=temperature, until=until)
 
-        if until is not None and duration is not None:
+        if until is not None:
             raise exc.InvalidModeRequestError(
                 f"{self}: Only one of until or duration may be given"
             )
 
-        if until is not None or (duration is None and mode is ZoneMode.VACATION_HOLD):
-            return await self._set_mode(mode, temperature=temperature, until=until)
-
         return await self._set_tcc_mode(
             mode, temperature=temperature, duration=duration
         )
-
-    async def _set_mode(
-        self,
-        mode: ZoneMode,
-        /,
-        *,
-        temperature: float | None = None,
-        until: dt | str | None = None,
-    ) -> CommTask:
-        """Set the Zone to a mode, until a given time (VacationHold need not have one)."""
-
-        temperature = self._validate_requested_temperature(mode, temperature)
-
-        if until is not None:
-            if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, until must be None, not '{until}'"
-                )
-
-            until = as_aware_dtm(until)
-
-        return await self._put_mode(
-            mode, heat_setpoint_value=temperature, time_until=until
-        )
-
-    async def _set_tcc_mode(
-        self,
-        mode: ZoneMode,
-        /,
-        *,
-        temperature: float | None = None,
-        duration: td | None = None,
-    ) -> CommTask:
-        """Set the Zone to a mode, either indefinitely, or for a duration.
-
-        The request is checked strictly against the zone's config.
-        """
-
-        until = self._validate_requested_duration(mode, duration)
-        temperature = self._validate_requested_temperature(mode, temperature)
-
-        # TODO: self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]
-        # TODO: self.setpoint_capabilities[SZ_VALUE_RESOLUTION]
-
-        return await self._put_mode(
-            mode, heat_setpoint_value=temperature, time_until=until
-        )
-
-    async def reset(self) -> CommTask:
-        """Cancel any override and allow the Zone to follow its schedule."""
-        return await self.set_mode(ZoneMode.FOLLOW_SCHEDULE)
-
-    async def set_temperature(
-        self,
-        temperature: float,
-        /,
-        *,
-        until: dt | str | None = None,
-    ) -> CommTask:
-        """Set the temperature of the zone (no provision for cooling)."""
-
-        mode = (
-            ZoneMode.PERMANENT_OVERRIDE
-            if until is None
-            else ZoneMode.TEMPORARY_OVERRIDE
-        )
-        return await self.set_mode(mode, temperature=temperature, until=until)

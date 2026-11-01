@@ -495,31 +495,58 @@ async def test_ctl_set_mode_permanent(
     mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
 
 
+# no known system has such a mode, so this one is made up
+_NOT_PERMANENT_MODE: EvoAllowedSystemModesT = {
+    "system_mode": SystemMode.AUTO_WITH_ECO,
+    "can_be_permanent": False,
+    "can_be_temporary": True,
+    "max_duration": "1.00:00:00",
+    "timing_resolution": "01:00:00",
+    "timing_mode": TimingMode.DURATION,
+}
+
+
 async def test_ctl_set_mode_not_permanent(
     tcs: ControlSystem,
 ) -> None:
-    """Test set_mode() rejects a mode that can't be permanent, sans duration/period."""
-
-    # no known system has such a mode, so this one is made up
-    mode_entry: EvoAllowedSystemModesT = {
-        "system_mode": SystemMode.AUTO_WITH_ECO,
-        "can_be_permanent": False,
-        "can_be_temporary": True,
-        "max_duration": "1.00:00:00",
-        "timing_resolution": "01:00:00",
-        "timing_mode": TimingMode.DURATION,
-    }
+    """Test set_mode() ignores can_be_permanent, sans duration/period (as it always has)."""
 
     with (
         patch.object(
             type(tcs),
             "allowed_system_modes",
             new_callable=PropertyMock,
-            return_value=(mode_entry,),
+            return_value=(_NOT_PERMANENT_MODE,),
         ),
-        pytest.raises(InvalidModeRequestError, match="duration must not be None"),
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
     ):
         await tcs.set_mode(SystemMode.AUTO_WITH_ECO)
+
+    assert mock_put.call_args[1] == {
+        "json": {"system_mode": SystemMode.AUTO_WITH_ECO, "permanent": True}
+    }
+
+
+async def test_ctl_set_system_mode_not_permanent(
+    tcs: ControlSystem,
+) -> None:
+    """Test set_system_mode() rejects a mode that can't be permanent, sans duration/period."""
+
+    with (
+        patch.object(
+            type(tcs),
+            "allowed_system_modes",
+            new_callable=PropertyMock,
+            return_value=(_NOT_PERMANENT_MODE,),
+        ),
+        pytest.warns(DeprecationWarning, match=r"use \.set_mode\(\)"),
+        pytest.raises(InvalidModeRequestError, match="duration must not be None"),
+    ):
+        await tcs.set_system_mode(SystemMode.AUTO_WITH_ECO)
 
 
 @pytest.mark.parametrize(
@@ -708,9 +735,7 @@ DURATION_REJECTS = [
     pytest.param(
         ZoneMode.PERMANENT_OVERRIDE, {"duration": td(hours=1)}, _MUST_BE_NONE, id="perm"
     ),
-    pytest.param(
-        ZoneMode.TEMPORARY_OVERRIDE, {}, "duration must not be None", id="temp"
-    ),
+    pytest.param(ZoneMode.TEMPORARY_OVERRIDE, {}, "until must not be None", id="temp"),
     pytest.param(
         ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(0)}, _MULTIPLE_OF, id="zero"
     ),

@@ -274,87 +274,30 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         response = await self._auth.put(url, json=tcs_mode)
         return CommTask.from_response(self._auth, response)
 
-    @overload
-    async def set_mode(
+    async def _set_mode(
         self,
         system_mode: SystemMode | str,
         /,
         *,
         until: dt | str | None = None,
-        duration: None = None,
-        period: None = None,
-    ) -> CommTask: ...
-    @overload
-    async def set_mode(
-        self,
-        system_mode: SystemMode | str,
-        /,
-        *,
-        until: None = None,
-        duration: td | None = None,
-        period: None = None,
-    ) -> CommTask: ...
-    @overload
-    async def set_mode(
-        self,
-        system_mode: SystemMode | str,
-        /,
-        *,
-        until: None = None,
-        duration: None = None,
-        period: td | None = None,
-    ) -> CommTask: ...
-    async def set_mode(
-        self,
-        system_mode: SystemMode | str,
-        /,
-        *,
-        until: dt | str | None = None,
-        duration: td | None = None,
-        period: td | None = None,
     ) -> CommTask:
-        """Set the TCS to a mode, indefinitely, for a duration/period, or until a time.
+        """Set the TCS to a mode, either indefinitely, or for a given time.
 
         Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
 
-        A 'duration' (usu. of hours) ends that long from now. A 'period' (usu. of
-        days) ends at that long after the start of the current day (in the location's
-        local time), so a period of one day ends at the coming midnight.
-
-        Which of the two (if either) is allowed depends upon the mode's timing_mode
-        (see allowed_system_modes). Without any of the three, the mode is set
-        indefinitely, if it can_be_permanent.
-
-        A duration must be positive, and a period at least one day. Either must be a
-        multiple of the mode's timing_resolution, and not exceed its max_duration. An
-        until is not checked against these. Only one of the three may be given.
-
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
         system_mode = self._validate_requested_mode(system_mode)
+        mode_entry = self._allowed_modes_table[system_mode]
 
-        if until is None:
-            return await self._set_tcc_mode(
-                system_mode, duration=duration, period=period
-            )
+        if until is None:  # all known modes can be permanent
+            return await self._put_mode(system_mode, permanent=True)
 
-        if duration is not None or period is not None:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Only one of until, duration or period may be given"
-            )
-
-        return await self._set_mode(system_mode, until=until)
-
-    async def _set_mode(
-        self, system_mode: SystemMode, /, *, until: dt | str
-    ) -> CommTask:
-        """Set the TCS to a mode, until a given time."""
-
-        if not self._allowed_modes_table[system_mode][SZ_CAN_BE_TEMPORARY]:
+        if not mode_entry[SZ_CAN_BE_TEMPORARY]:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {system_mode}, until must be None, not '{until}'"
             )
@@ -365,7 +308,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
     async def _set_tcc_mode(
         self,
-        system_mode: SystemMode,
+        system_mode: SystemMode | str,
         /,
         *,
         duration: td | None = None,
@@ -373,14 +316,29 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
     ) -> CommTask:
         """Set the TCS to a mode, either indefinitely, or for a duration/period.
 
-        The request is checked strictly against the TCS's config.
+        Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
+
+        A 'duration' (usu. of hours) ends that long from now. A 'period' (usu. of
+        days) ends at that long after the start of the current day (in the location's
+        local time), so a period of one day ends at the coming midnight.
+
+        Which of the two (if either) is allowed depends upon the mode's timing_mode
+        (see allowed_system_modes). Without either, the mode is set indefinitely, if
+        it can_be_permanent.
+
+        A duration must be positive, and a period at least one day. Either must be a
+        multiple of the mode's timing_resolution, and not exceed its max_duration.
+
+        Unlike set_mode(), the request is checked strictly against the TCS's config.
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
+        system_mode = self._validate_requested_mode(system_mode)
+        mode_entry = self._allowed_modes_table[system_mode]
+
         until = self._validate_requested_timespan(
-            system_mode,
-            self._allowed_modes_table[system_mode],
-            duration=duration,
-            period=period,
+            system_mode, mode_entry, duration=duration, period=period
         )
         return await self._put_mode(
             system_mode, permanent=until is None, time_until=until
@@ -399,11 +357,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
         Deprecated: use set_mode(), which also takes these arguments.
         """
-        return await self._set_tcc_mode(
-            self._validate_requested_mode(system_mode),
-            duration=duration,
-            period=period,
-        )
+        return await self._set_tcc_mode(system_mode, duration=duration, period=period)
 
     # most, but not all, TCC-compatible systems support these modes...
 
@@ -613,3 +567,77 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             self._logger.debug("Some schedules not restored (DHW?)")
 
         return success
+
+    @overload
+    async def set_mode(
+        self,
+        system_mode: SystemMode | str,
+        /,
+        *,
+        until: dt | str | None = None,
+        duration: None = None,
+        period: None = None,
+    ) -> CommTask: ...
+
+    @overload
+    async def set_mode(
+        self,
+        system_mode: SystemMode | str,
+        /,
+        *,
+        until: None = None,
+        duration: td | None = None,
+        period: None = None,
+    ) -> CommTask: ...
+
+    @overload
+    async def set_mode(
+        self,
+        system_mode: SystemMode | str,
+        /,
+        *,
+        until: None = None,
+        duration: None = None,
+        period: td | None = None,
+    ) -> CommTask: ...
+
+    async def set_mode(
+        self,
+        system_mode: SystemMode | str,
+        /,
+        *,
+        until: dt | str | None = None,
+        duration: td | None = None,
+        period: td | None = None,
+    ) -> CommTask:
+        """Set the TCS to a mode, indefinitely, for a duration/period, or until a time.
+
+        Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
+
+        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
+        but it must be TZ-aware (not naive).
+
+        A 'duration' (usu. of hours) ends that long from now. A 'period' (usu. of
+        days) ends at that long after the start of the current day (in the location's
+        local time), so a period of one day ends at the coming midnight.
+
+        Which of the two (if either) is allowed depends upon the mode's timing_mode
+        (see allowed_system_modes). Without any of the three, the mode is set
+        indefinitely, if it can_be_permanent.
+
+        A duration must be positive, and a period at least one day. Either must be a
+        multiple of the mode's timing_resolution, and not exceed its max_duration. An
+        until is not checked against these. Only one of the three may be given.
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
+
+        if duration is None and period is None:
+            return await self._set_mode(system_mode, until=until)
+
+        if until is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of until, duration or period may be given"
+            )
+
+        return await self._set_tcc_mode(system_mode, duration=duration, period=period)
