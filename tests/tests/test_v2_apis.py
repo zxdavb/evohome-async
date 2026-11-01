@@ -549,6 +549,114 @@ async def test_ctl_set_system_mode_not_permanent(
         await tcs.set_system_mode(SystemMode.AUTO_WITH_ECO)
 
 
+# no known system has such modes, so these are made up
+_ZERO_RESOLUTION_MODE: EvoAllowedSystemModesT = {
+    "system_mode": SystemMode.AUTO_WITH_ECO,
+    "can_be_permanent": True,
+    "can_be_temporary": True,
+    "max_duration": "1.00:00:00",
+    "timing_resolution": "00:00:00",
+    "timing_mode": TimingMode.DURATION,
+}
+_SUB_DAY_PERIOD_MODE: EvoAllowedSystemModesT = {
+    "system_mode": SystemMode.AWAY,
+    "can_be_permanent": True,
+    "can_be_temporary": True,
+    "max_duration": "2.00:00:00",
+    "timing_resolution": "12:00:00",
+    "timing_mode": TimingMode.PERIOD,
+}
+
+
+async def test_ctl_set_mode_zero_resolution(
+    tcs: ControlSystem,
+) -> None:
+    """Test a zero timing_resolution leaves the multiple check to the vendor."""
+
+    with (
+        patch.object(
+            type(tcs),
+            "allowed_system_modes",
+            new_callable=PropertyMock,
+            return_value=(_ZERO_RESOLUTION_MODE,),
+        ),
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+    ):
+        await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=td(minutes=90))
+
+    mock_put.assert_awaited_once()
+
+
+@pytest.mark.parametrize(
+    "duration",
+    [
+        pytest.param(td(0), id="zero"),
+        pytest.param(td(hours=-1), id="negative"),
+        pytest.param(td(hours=25), id="too_long"),
+    ],
+)
+async def test_ctl_set_mode_zero_resolution_rejects(
+    tcs: ControlSystem,
+    duration: td,
+) -> None:
+    """Test a zero timing_resolution leaves the other limits in place."""
+
+    with (
+        patch.object(
+            type(tcs),
+            "allowed_system_modes",
+            new_callable=PropertyMock,
+            return_value=(_ZERO_RESOLUTION_MODE,),
+        ),
+        pytest.raises(InvalidModeRequestError, match="must be a multiple of"),
+    ):
+        await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=duration)
+
+
+async def test_ctl_set_mode_period_at_least_one_day(
+    tcs: ControlSystem,
+) -> None:
+    """Test a period under a day is rejected, even if it is a valid multiple."""
+
+    with (
+        patch.object(
+            type(tcs),
+            "allowed_system_modes",
+            new_callable=PropertyMock,
+            return_value=(_SUB_DAY_PERIOD_MODE,),
+        ),
+        pytest.raises(InvalidModeRequestError, match="at least one day"),
+    ):
+        await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
+
+
+async def test_ctl_set_mode_period_of_one_day(
+    tcs: ControlSystem,
+) -> None:
+    """Test a period of a day is accepted, if it is a multiple of a shorter resolution."""
+
+    with (
+        patch.object(
+            type(tcs),
+            "allowed_system_modes",
+            new_callable=PropertyMock,
+            return_value=(_SUB_DAY_PERIOD_MODE,),
+        ),
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+    ):
+        await tcs.set_mode(SystemMode.AWAY, period=td(days=1))
+
+    mock_put.assert_awaited_once()
+
+
 @pytest.mark.parametrize(
     ("system_mode", "kwargs"),
     [

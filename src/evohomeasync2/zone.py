@@ -149,12 +149,15 @@ class _TccModeMixin:
 
             That is, if it is a (positive) multiple of the timing_resolution, and does not
             exceed the max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
+            A zero timing_resolution has no multiples, so that check is left to the vendor.
             """
 
             resolution = as_timedelta(timing_resolution)
             maximum = as_timedelta(max_duration)
 
-            return resolution <= timespan <= maximum and not timespan % resolution
+            return td(0) < timespan <= maximum and (
+                not resolution or not timespan % resolution
+            )
 
         if duration is not None and period is not None:
             raise exc.InvalidModeRequestError(
@@ -175,6 +178,12 @@ class _TccModeMixin:
         if mode_entry.get(SZ_TIMING_MODE) is not timing_mode:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
+            )
+
+        if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {timing_mode} must be at least one day, "
+                f"not '{length}'"
             )
 
         max_duration = mode_entry[SZ_MAX_DURATION]
