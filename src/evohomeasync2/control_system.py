@@ -250,6 +250,80 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             return None
         return as_local_time(until, self.location.tzinfo)
 
+    @overload
+    async def set_mode(
+        self,
+        system_mode: SystemMode | str,
+        /,
+        *,
+        until: dt | str | None = None,
+        duration: None = None,
+        period: None = None,
+    ) -> CommTask: ...
+
+    @overload
+    async def set_mode(
+        self,
+        system_mode: SystemMode | str,
+        /,
+        *,
+        until: None = None,
+        duration: td | None = None,
+        period: None = None,
+    ) -> CommTask: ...
+
+    @overload
+    async def set_mode(
+        self,
+        system_mode: SystemMode | str,
+        /,
+        *,
+        until: None = None,
+        duration: None = None,
+        period: td | None = None,
+    ) -> CommTask: ...
+
+    async def set_mode(
+        self,
+        system_mode: SystemMode | str,
+        /,
+        *,
+        until: dt | str | None = None,
+        duration: td | None = None,
+        period: td | None = None,
+    ) -> CommTask:
+        """Set the TCS to a mode, indefinitely, for a duration/period, or until a time.
+
+        Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
+
+        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
+        but it must be TZ-aware (not naive).
+
+        A 'duration' (usu. of hours) ends that long from now. A 'period' (usu. of
+        days) ends at that long after the start of the current day (in the location's
+        local time), so a period of one day ends at the coming midnight.
+
+        Which of the two (if either) is allowed depends upon the mode's timing_mode
+        (see allowed_system_modes). Without any of the three, the mode is set
+        indefinitely.
+
+        A duration must be positive, and a period at least one day. Either must be a
+        multiple of the mode's timing_resolution, and not exceed its max_duration. An
+        until is not checked against these. Only one of the three may be given.
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
+
+        if duration is None and period is None:
+            return await self._set_mode(system_mode, until=until)
+
+        if until is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of until, duration or period may be given"
+            )
+
+        return await self._set_tcc_mode(system_mode, duration=duration, period=period)
+
     async def _put_mode(
         self,
         system_mode: SystemMode,
@@ -274,7 +348,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         response = await self._auth.put(url, json=tcs_mode)
         return CommTask.from_response(self._auth, response)
 
-    async def set_mode(
+    async def _set_mode(
         self,
         system_mode: SystemMode | str,
         /,
@@ -306,7 +380,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             system_mode, permanent=False, time_until=as_aware_dtm(until)
         )
 
-    async def set_tcc_mode(
+    async def _set_tcc_mode(
         self,
         system_mode: SystemMode | str,
         /,
@@ -329,7 +403,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         A duration must be positive, and a period at least one day. Either must be a
         multiple of the mode's timing_resolution, and not exceed its max_duration.
 
-        Unlike set_mode(), the request is checked strictly against the TCS's config.
+        Unlike _set_mode(), the request is checked strictly against the TCS's config.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -344,7 +418,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             system_mode, permanent=until is None, time_until=until
         )
 
-    @deprecated("ControlSystem.set_system_mode() is deprecated: use .set_tcc_mode()")
+    @deprecated("ControlSystem.set_system_mode() is deprecated: use .set_mode()")
     async def set_system_mode(
         self,
         system_mode: SystemMode | str,
@@ -355,9 +429,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
     ) -> CommTask:
         """Set the TCS to a mode, either indefinitely, or for a duration/period.
 
-        Deprecated: use set_tcc_mode(), which takes the same arguments.
+        Deprecated: use set_mode(), which also takes these arguments.
         """
-        return await self.set_tcc_mode(system_mode, duration=duration, period=period)
+        return await self._set_tcc_mode(system_mode, duration=duration, period=period)
 
     # most, but not all, TCC-compatible systems support these modes...
 
