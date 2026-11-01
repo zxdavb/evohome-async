@@ -957,6 +957,71 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         return as_local_time(until, self.location.tzinfo)
 
     # NOTE: no provision for cooling (not supported by this API)
+
+    @overload
+    async def set_mode(
+        self,
+        mode: ZoneMode | str,
+        /,
+        *,
+        temperature: float | None = None,
+        until: dt | str | None = None,
+        duration: None = None,
+    ) -> CommTask: ...
+
+    @overload
+    async def set_mode(
+        self,
+        mode: ZoneMode | str,
+        /,
+        *,
+        temperature: float | None = None,
+        until: None = None,
+        duration: td | None = None,
+    ) -> CommTask: ...
+
+    async def set_mode(
+        self,
+        mode: ZoneMode | str,
+        /,
+        *,
+        temperature: float | None = None,
+        until: dt | str | None = None,
+        duration: td | None = None,
+    ) -> CommTask:
+        """Set the Zone to a (heating) mode, indefinitely, for a duration, or until a time.
+
+        Will accept a ZoneMode or a (snake_case) string for the 'mode'.
+
+        A 'temperature' is required by the override modes, and is not allowed for
+        FollowSchedule. It must be within the zone's min/max_heat_setpoint.
+
+        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
+        but it must be TZ-aware (not naive).
+
+        A 'duration' ends that long from now. It must be positive, a multiple of the
+        zone's timing_resolution, and not exceed its max_duration (see
+        setpoint_capabilities). An until is not checked against these.
+
+        TemporaryOverride requires an until or a duration (only one of them may be
+        given), and the other modes allow neither (except that VacationHold allows an
+        until).
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
+
+        if duration is None:
+            return await self._set_mode(mode, temperature=temperature, until=until)
+
+        if until is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of until or duration may be given"
+            )
+
+        return await self._set_tcc_mode(
+            mode, temperature=temperature, duration=duration
+        )
+
     async def _put_mode(
         self,
         setpoint_mode: ZoneMode,
@@ -1075,67 +1140,3 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             else ZoneMode.TEMPORARY_OVERRIDE
         )
         return await self.set_mode(mode, temperature=temperature, until=until)
-
-    @overload
-    async def set_mode(
-        self,
-        mode: ZoneMode | str,
-        /,
-        *,
-        temperature: float | None = None,
-        until: dt | str | None = None,
-        duration: None = None,
-    ) -> CommTask: ...
-
-    @overload
-    async def set_mode(
-        self,
-        mode: ZoneMode | str,
-        /,
-        *,
-        temperature: float | None = None,
-        until: None = None,
-        duration: td | None = None,
-    ) -> CommTask: ...
-
-    async def set_mode(
-        self,
-        mode: ZoneMode | str,
-        /,
-        *,
-        temperature: float | None = None,
-        until: dt | str | None = None,
-        duration: td | None = None,
-    ) -> CommTask:
-        """Set the Zone to a (heating) mode, indefinitely, for a duration, or until a time.
-
-        Will accept a ZoneMode or a (snake_case) string for the 'mode'.
-
-        A 'temperature' is required by the override modes, and is not allowed for
-        FollowSchedule. It must be within the zone's min/max_heat_setpoint.
-
-        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
-        but it must be TZ-aware (not naive).
-
-        A 'duration' ends that long from now. It must be positive, a multiple of the
-        zone's timing_resolution, and not exceed its max_duration (see
-        setpoint_capabilities). An until is not checked against these.
-
-        TemporaryOverride requires an until or a duration (only one of them may be
-        given), and the other modes allow neither (except that VacationHold allows an
-        until).
-
-        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
-        """
-
-        if duration is None:
-            return await self._set_mode(mode, temperature=temperature, until=until)
-
-        if until is not None:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Only one of until or duration may be given"
-            )
-
-        return await self._set_tcc_mode(
-            mode, temperature=temperature, duration=duration
-        )
