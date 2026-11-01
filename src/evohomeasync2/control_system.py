@@ -329,7 +329,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         A duration must be positive, and a period at least one day. Either must be a
         multiple of the mode's timing_resolution, and not exceed its max_duration.
 
-        Unlike set_mode(), the request is checked strictly against the TCS's config.
+        Unlike _set_mode(), the request is checked strictly against the TCS's config.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -623,7 +623,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
         Which of the two (if either) is allowed depends upon the mode's timing_mode
         (see allowed_system_modes). Without any of the three, the mode is set
-        indefinitely, if it can_be_permanent.
+        indefinitely.
 
         A duration must be positive, and a period at least one day. Either must be a
         multiple of the mode's timing_resolution, and not exceed its max_duration. An

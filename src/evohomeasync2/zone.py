@@ -1039,8 +1039,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         is not allowed for the other modes. It must be positive, a multiple of the
         zone's timing_resolution, and not exceed its max_duration.
 
-        Unlike set_mode(), the request is checked strictly against the zone's config
-        (see setpoint_capabilities). VacationHold is not supported: use set_mode().
+        Unlike _set_mode(), the request is checked strictly against the zone's config
+        (see setpoint_capabilities). VacationHold is not supported: use _set_mode().
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
