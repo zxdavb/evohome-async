@@ -593,6 +593,27 @@ async def test_ctl_set_mode_rejects(
         await tcs.set_mode(system_mode, **kwargs)
 
 
+async def test_ctl_set_system_mode_permanent(
+    tcs: ControlSystem,
+) -> None:
+    """Test set_system_mode() without a duration/period sets the mode indefinitely."""
+
+    url = f"temperatureControlSystem/{tcs.id}/mode"
+    mode = {"system_mode": SystemMode.AWAY, "permanent": True}
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        pytest.warns(DeprecationWarning, match=r"use \.set_mode\(\)"),
+    ):
+        await tcs.set_system_mode("away")
+
+    mock_put.assert_awaited_once_with(HTTPMethod.PUT, url, json=mode)
+
+
 async def test_ctl_set_system_mode_is_deprecated(
     tcs: ControlSystem,
     freezer: FrozenDateTimeFactory,
@@ -820,6 +841,26 @@ async def test_zon_set_mode_rejects_temperature(
 
 
 @pytest.mark.parametrize(
+    ("temperature", "match"),
+    [
+        pytest.param(None, "temperature must not be None", id="missing"),
+        pytest.param(99.0, "out of range", id="out_of_range"),
+    ],
+)
+async def test_zon_set_mode_rejects_temperature_with_duration(
+    zone: Zone,
+    temperature: float | None,
+    match: str,
+) -> None:
+    """Test a zone's set_mode() rejects an invalid temperature that has a duration."""
+
+    with pytest.raises(InvalidModeRequestError, match=match):
+        await zone.set_mode(
+            ZoneMode.TEMPORARY_OVERRIDE, temperature=temperature, duration=td(hours=1)
+        )
+
+
+@pytest.mark.parametrize(
     ("mode", "state", "match"),
     [
         pytest.param(
@@ -846,6 +887,35 @@ async def test_dhw_set_mode_rejects_state(
 
     with pytest.raises(InvalidModeRequestError, match=match):
         await dhw.set_mode(mode, state=state)
+
+
+@pytest.mark.parametrize(
+    ("state", "match"),
+    [
+        pytest.param(None, "state must not be None", id="missing"),
+        pytest.param("invalid", "Unknown state", id="unknown"),
+        pytest.param(DhwState.ON, "Unsupported state: on", id="unsupported"),
+    ],
+)
+async def test_dhw_set_mode_rejects_state_with_duration(
+    dhw: HotWater,
+    state: DhwState | str | None,
+    match: str,
+) -> None:
+    """Test a DHW's set_mode() rejects an invalid state that has a duration."""
+
+    with (
+        patch.object(
+            type(dhw),
+            "allowed_states",
+            new_callable=PropertyMock,
+            return_value=(DhwState.OFF,),
+        ),
+        pytest.raises(InvalidModeRequestError, match=match),
+    ):
+        await dhw.set_mode(
+            ZoneMode.TEMPORARY_OVERRIDE, state=state, duration=td(hours=1)
+        )
 
 
 async def test_dhw_set_mode_rejects_unsupported_state(

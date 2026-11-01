@@ -8,9 +8,9 @@ Invokes every vendor API (URL) that the client uses, via the client's methods:
   GET       /location/installationInfo?userId={usr_id}&include...=True  ec2.update()
   GET       /location/{loc_id}/status?includeTemperatureControlSystems  loc.update()
   PUT       /temperatureControlSystem/{tcs_id}/mode                     tcs.set_mode()
-  PUT       /temperatureZone/{zon_id}/heatSetpoint                      zon.set_temperature(), reset()
+  PUT       /temperatureZone/{zon_id}/heatSetpoint                      zon.set_temperature(), set_mode(), reset()
   GET, PUT  /temperatureZone/{zon_id}/schedule                          zon.get/set_schedule()
-  PUT       /domesticHotWater/{dhw_id}/state                            dhw.set_off(), reset()
+  PUT       /domesticHotWater/{dhw_id}/state                            dhw.set_off(), set_mode(), reset()
   GET, PUT  /domesticHotWater/{dhw_id}/schedule                         dhw.get/set_schedule()
 
 The client has methods for some other APIs, but does not use them (e.g. the status of a
@@ -27,12 +27,13 @@ For every vendor API, including those with no client method, see test_v2_urls.py
 
 from __future__ import annotations
 
+from datetime import timedelta as td
 from typing import TYPE_CHECKING
 
 import pytest
 
 import evohomeasync2 as evo2
-from evohomeasync2.const import SystemMode
+from evohomeasync2.const import DhwState, SystemMode, ZoneMode
 from evohomeasync2.hotwater import HotWater
 from evohomeasync2.schemas.const import S2_MODE
 from evohomeasync2.zone import Zone
@@ -105,6 +106,11 @@ async def _test_tcs_apis(
     await wait_for_comm_task_obj(await tcs.set_mode(SystemMode.AWAY))
     await tcs.location.get_status()
 
+    # ...for a duration, and for a period
+    task = await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=td(hours=1))
+    await wait_for_comm_task_obj(task)
+    await wait_for_comm_task_obj(await tcs.set_mode(SystemMode.AWAY, period=td(days=1)))
+
     await wait_for_comm_task_obj(await tcs.set_mode(mode))
 
 
@@ -140,7 +146,7 @@ async def _test_dhw_mode(
 ) -> None:
     """Test Hotwater mode methods.
 
-    Includes dhw.set_off() and dhw.reset().
+    Includes dhw.set_off(), dhw.set_mode() with a duration, and dhw.reset().
     """
 
     # STEP 1: retrieve config only
@@ -151,6 +157,10 @@ async def _test_dhw_mode(
 
     # STEP 2: PUT /domesticHotWater/{dhw.id}/state
     await wait_for_comm_task_obj(await dhw.set_off())  # PermanentOverride
+    task = await dhw.set_mode(
+        ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.OFF, duration=td(hours=1)
+    )
+    await wait_for_comm_task_obj(task)
     await wait_for_comm_task_obj(await dhw.reset())  # FollowSchedule
 
 
@@ -195,7 +205,7 @@ async def _test_zon_mode(
 ) -> None:
     """Test Zone mode methods.
 
-    Includes zon.set_temperature() and zon.reset().
+    Includes zon.set_temperature(), zon.set_mode() with a duration, and zon.reset().
     """
 
     # STEP 1: retrieve config only
@@ -206,6 +216,12 @@ async def _test_zon_mode(
 
     # STEP 2: PUT /temperatureZone/{zon.id}/heatSetpoint
     task = await zone.set_temperature(zone.min_heat_setpoint)  # PermanentOverride
+    await wait_for_comm_task_obj(task)
+    task = await zone.set_mode(
+        ZoneMode.TEMPORARY_OVERRIDE,
+        temperature=zone.min_heat_setpoint,
+        duration=td(hours=1),
+    )
     await wait_for_comm_task_obj(task)
     await wait_for_comm_task_obj(await zone.reset())  # FollowSchedule
 
