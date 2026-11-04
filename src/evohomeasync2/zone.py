@@ -126,16 +126,16 @@ class _TccModeMixin:
         self,
         mode: SystemMode | ZoneMode,
         mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
+        timing_mode: TimingMode,
+        length: td | None,
         /,
-        *,
-        duration: td | None = None,
-        period: td | None = None,
     ) -> dt | None:
         """Return when a mode ends (None if indefinitely), if valid for its entry.
 
-        The entry is the mode's row in the entity's table of allowed modes. A duration
-        ends that long from now, and a period that long after the start of today (in
-        the location's local time), so a period of one day ends at the coming midnight.
+        The entry is the mode's row in the entity's table of allowed modes. The length
+        is of the timing_mode requested: a duration ends that long from now, and a
+        period that long after the start of today (in the location's local time), so a
+        period of one day ends at the coming midnight.
 
         The vendor accepts a duration/period that is not a multiple of the entry's
         timing_resolution, or that exceeds its max_duration, and the controller honours
@@ -165,15 +165,11 @@ class _TccModeMixin:
                 not resolution or not timespan % resolution
             )
 
-        if duration is not None:
-            length, timing_mode = duration, TimingMode.DURATION
-        elif period is not None:
-            length, timing_mode = period, TimingMode.PERIOD
-        elif not mode_entry[SZ_CAN_BE_PERMANENT]:
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {mode_entry[SZ_TIMING_MODE]} must not be None"
-            )
-        else:
+        if length is None:
+            if not mode_entry[SZ_CAN_BE_PERMANENT]:
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {mode}, {mode_entry[SZ_TIMING_MODE]} must not be None"
+                )
             return None
 
         if mode_entry.get(SZ_TIMING_MODE) is not timing_mode:
@@ -741,7 +737,9 @@ class _ZoneBase[
                 f"{self}: For {mode}, use until, not duration"
             )
 
-        return self._validate_requested_timespan(mode, mode_entry, duration=duration)
+        return self._validate_requested_timespan(
+            mode, mode_entry, TimingMode.DURATION, duration
+        )
 
     # Status (state) attrs & methods...
 
