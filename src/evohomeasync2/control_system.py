@@ -418,6 +418,11 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
+        if duration is not None and period is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of duration or period may be given"
+            )
+
         system_mode = self._validate_requested_mode(system_mode)
         mode_entry = self._allowed_modes_table[system_mode]
 

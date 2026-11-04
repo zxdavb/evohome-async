@@ -111,27 +111,6 @@ if TYPE_CHECKING:
 
 _ONE_DAY = td(days=1)
 
-
-def _is_valid_length(
-    timespan: td,
-    /,
-    *,
-    max_duration: str,
-    timing_resolution: str,
-) -> bool:
-    """Return True if a duration (or a period) is within its limits.
-
-    That is, if it is a (positive) multiple of the timing_resolution, and does not
-    exceed the max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
-    A zero timing_resolution has no multiples, so that check is left to the vendor.
-    """
-
-    resolution = as_timedelta(timing_resolution)
-    maximum = as_timedelta(max_duration)
-
-    return td(0) < timespan <= maximum and (not resolution or not timespan % resolution)
-
-
 # for values that the schema passes through, as the vendor's enums are incomplete
 _PLEASE_REPORT = (
     "is unknown, please report it at https://github.com/zxdavb/evohome-async/issues"
@@ -182,9 +161,25 @@ class _TccModeMixin:
         invalid request is rejected.
         """
 
-        if duration is not None and period is not None:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Only one of duration or period may be given"
+        def is_valid_length(
+            timespan: td,
+            /,
+            *,
+            max_duration: str,
+            timing_resolution: str,
+        ) -> bool:
+            """Return True if a duration (or a period) is within its limits.
+
+            That is, if it is a (positive) multiple of the timing_resolution, and does not
+            exceed the max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
+            A zero timing_resolution has no multiples, so that check is left to the vendor.
+            """
+
+            resolution = as_timedelta(timing_resolution)
+            maximum = as_timedelta(max_duration)
+
+            return td(0) < timespan <= maximum and (
+                not resolution or not timespan % resolution
             )
 
         if duration is not None:
@@ -228,7 +223,7 @@ class _TccModeMixin:
         max_duration = mode_entry[SZ_MAX_DURATION]
         timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
 
-        if not _is_valid_length(
+        if not is_valid_length(
             length,
             max_duration=max_duration,
             timing_resolution=timing_resolution,
