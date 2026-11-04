@@ -703,9 +703,6 @@ _OUTSIDE_LIMITS = "should be a multiple of"  # ... and at most the max_duration
 @pytest.mark.parametrize(
     ("system_mode", "kwargs"),
     [
-        pytest.param(  # timing_resolution is "1.00:00:00"
-            SystemMode.AWAY, {"period": td(hours=12)}, id="period_too_short"
-        ),
         pytest.param(  # max_duration is "1.00:00:00"
             SystemMode.AUTO_WITH_ECO, {"duration": td(hours=25)}, id="dur_too_long"
         ),
@@ -720,15 +717,44 @@ _OUTSIDE_LIMITS = "should be a multiple of"  # ... and at most the max_duration
         ),
     ],
 )
-async def test_ctl_set_mode_warns(
+async def test_ctl_set_mode_logs_outside_limits(
     tcs: ControlSystem,
-    *,
-    freezer: FrozenDateTimeFactory,
     caplog: pytest.LogCaptureFixture,
     system_mode: SystemMode,
     kwargs: dict[str, Any],  # some of these are rejected by the overloads
 ) -> None:
-    """Test set_mode() warns of a request that breaks a limit, but still sends it."""
+    """Test set_mode() logs (as debug) a request outside its limits, but sends it.
+
+    The vendor accepts such a request, and the controller honours it.
+    """
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        caplog.at_level(logging.DEBUG),
+    ):
+        await tcs.set_mode(system_mode, **kwargs)
+
+    mock_put.assert_awaited_once()
+    assert any(
+        r.levelno == logging.DEBUG and _OUTSIDE_LIMITS in r.getMessage()
+        for r in caplog.records
+    )
+    assert not any(r.levelno >= logging.WARNING for r in caplog.records)
+
+
+async def test_ctl_set_mode_warns_period_too_short(
+    tcs: ControlSystem,
+    freezer: FrozenDateTimeFactory,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test set_mode() warns of a period under a day (every time), but sends it.
+
+    The controller extends such an Away to the coming midnight.
+    """
 
     freezer.move_to("2025-07-10T06:00:00Z")  # so a period of 12h ends in the future
 
@@ -740,47 +766,11 @@ async def test_ctl_set_mode_warns(
         ) as mock_put,
         caplog.at_level(logging.WARNING),
     ):
-        await tcs.set_mode(system_mode, **kwargs)
+        await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
+        await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
 
-    mock_put.assert_awaited_once()
-    assert _OUTSIDE_LIMITS in caplog.text
-
-
-async def test_ctl_set_mode_warns_once(
-    tcs: ControlSystem,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test set_mode() warns of a broken limit only once per mode."""
-
-    eco, away = SystemMode.AUTO_WITH_ECO, SystemMode.AWAY
-
-    requests: list[tuple[SystemMode, dict[str, Any]]] = [
-        (eco, {"duration": td(hours=25)}),
-        (eco, {"duration": td(hours=26)}),  # the same mode and limit
-        (eco, {"duration": td(minutes=90)}),  # the same mode, another limit
-        (away, {"period": td(days=100)}),  # another mode
-    ]
-    warnings = [eco, away]
-
-    with (
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
-        caplog.at_level(logging.WARNING),
-    ):
-        for system_mode, kwargs in requests:
-            await tcs.set_mode(system_mode, **kwargs)
-
-    messages = [r.getMessage() for r in caplog.records]
-
-    assert mock_put.await_count == len(requests)
-    assert len(messages) == len(warnings)
-    assert all(
-        f"For {mode}, " in msg and _OUTSIDE_LIMITS in msg
-        for mode, msg in zip(warnings, messages, strict=True)
-    )
+    assert mock_put.await_count == len(caplog.records)
+    assert all("should be at least one day" in r.getMessage() for r in caplog.records)
 
 
 async def test_ctl_set_system_mode_permanent(
@@ -991,19 +981,19 @@ async def test_dhw_set_mode_rejects_duration(
         await dhw.set_mode(mode, state=state, **kwargs)
 
 
-DURATION_WARNS = [
+DURATION_LOGS = [
     pytest.param(td(hours=25), id="long"),
     pytest.param(td(minutes=15), id="resolution"),
 ]
 
 
-@pytest.mark.parametrize("duration", DURATION_WARNS)
-async def test_zon_set_mode_warns_duration(
+@pytest.mark.parametrize("duration", DURATION_LOGS)
+async def test_zon_set_mode_logs_duration(
     zone: Zone,
     caplog: pytest.LogCaptureFixture,
     duration: td,
 ) -> None:
-    """Test a zone's set_mode() warns of a duration that breaks a limit, but sends it."""
+    """Test a zone's set_mode() logs (as debug) a duration outside its limits."""
 
     with (
         patch(
@@ -1011,7 +1001,7 @@ async def test_zon_set_mode_warns_duration(
             new_callable=AsyncMock,
             return_value=PUT_RESPONSE_V2,
         ) as mock_put,
-        caplog.at_level(logging.WARNING),
+        caplog.at_level(logging.DEBUG),
     ):
         await zone.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, duration=duration
@@ -1021,13 +1011,13 @@ async def test_zon_set_mode_warns_duration(
     assert _OUTSIDE_LIMITS in caplog.text
 
 
-@pytest.mark.parametrize("duration", DURATION_WARNS)
-async def test_dhw_set_mode_warns_duration(
+@pytest.mark.parametrize("duration", DURATION_LOGS)
+async def test_dhw_set_mode_logs_duration(
     dhw: HotWater,
     caplog: pytest.LogCaptureFixture,
     duration: td,
 ) -> None:
-    """Test a DHW's set_mode() warns of a duration that breaks a limit, but sends it."""
+    """Test a DHW's set_mode() logs (as debug) a duration outside its limits."""
 
     with (
         patch(
@@ -1035,7 +1025,7 @@ async def test_dhw_set_mode_warns_duration(
             new_callable=AsyncMock,
             return_value=PUT_RESPONSE_V2,
         ) as mock_put,
-        caplog.at_level(logging.WARNING),
+        caplog.at_level(logging.DEBUG),
     ):
         await dhw.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.ON, duration=duration
@@ -1095,8 +1085,8 @@ async def test_zon_set_mode_rejects_temperature_with_duration(
 
 # the zone's min/max_heat_setpoint are 5.0/35.0
 TEMPERATURE_WARNS = [
-    pytest.param(4.5, "temperature should be at least 5.0, not 4.5", id="too_low"),
-    pytest.param(35.5, "temperature should be at most 35.0, not 35.5", id="too_high"),
+    pytest.param(4.5, "should be from 5.0 to 35.0, not 4.5", id="too_low"),
+    pytest.param(35.5, "should be from 5.0 to 35.0, not 35.5", id="too_high"),
 ]
 
 

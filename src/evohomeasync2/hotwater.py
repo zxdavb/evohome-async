@@ -229,8 +229,8 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         A 'duration' ends that long from now. It must be positive, and should be a
         multiple of the DHW's timing_resolution, and not exceed its max_duration (see
-        state_capabilities). If not, a warning is logged (once), and the request is
-        sent anyway. An until is not checked against these.
+        state_capabilities). If not, the request is sent anyway (the controller
+        honours it). An until is not checked against these.
 
         TemporaryOverride requires an until or a duration (only one of them may be
         given), and the other modes allow neither (except that VacationHold allows an
@@ -329,8 +329,8 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         multiple of the DHW's timing_resolution, and not exceed its max_duration.
 
         Unlike _set_mode(), the request is checked against the DHW's config (see
-        state_capabilities): if it only breaks a 'should', a warning is logged (once),
-        and the request is sent anyway.
+        state_capabilities): if it only breaks a 'should', it is sent anyway (with a
+        warning, if the controller will not do as asked).
 
         VacationHold is not supported: use _set_mode().
 

@@ -122,22 +122,6 @@ class _TccModeMixin:
 
     location: Location  # used to get now(), and the logger
 
-    @cached_property
-    def _warned_limits(self) -> set[tuple[SystemMode | ZoneMode, str]]:
-        """Return the (mode, limit) pairs that have been warned of (so only once)."""
-        return set()
-
-    def _warn_once(self, mode: SystemMode | ZoneMode, limit: str, msg: str, /) -> None:
-        """Log that a request breaks one of its mode's limits, if not already logged."""
-
-        if (mode, limit) in self._warned_limits:
-            return
-        self._warned_limits.add((mode, limit))
-
-        self.location.client.logger.warning(
-            f"{self}: For {mode}, {msg} (the request is sent anyway)"
-        )
-
     def _validate_requested_timespan(
         self,
         mode: SystemMode | ZoneMode,
@@ -153,9 +137,11 @@ class _TccModeMixin:
         ends that long from now, and a period that long after the start of today (in
         the location's local time), so a period of one day ends at the coming midnight.
 
-        A duration/period that is not a multiple of the entry's timing_resolution, or
-        exceeds its max_duration, is logged as a warning (once per mode), but is sent
-        anyway, as the vendor accepts it. Any other invalid request is rejected.
+        The vendor accepts a duration/period that is not a multiple of the entry's
+        timing_resolution, or that exceeds its max_duration, and the controller honours
+        it, so it is only logged (as debug). A period of less than one day is logged as
+        a warning, as the controller extends it to the coming midnight. Any other
+        invalid request is rejected.
         """
 
         if duration is not None and period is not None:
@@ -193,16 +179,23 @@ class _TccModeMixin:
                 f"not '{length}' (it would end at {until})"
             )
 
+        logger = self.location.client.logger
+
+        if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
+            logger.warning(
+                f"{self}: For {mode}, {timing_mode} should be at least one day, not "
+                f"'{length}' (the controller will extend it to the coming midnight)"
+            )
+
         max_duration = mode_entry[SZ_MAX_DURATION]
         timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
         resolution = as_timedelta(timing_resolution)  # a zero one has no multiples
 
         if length > as_timedelta(max_duration) or (resolution and length % resolution):
-            self._warn_once(
-                mode,
-                SZ_TIMING_MODE,
-                f"{timing_mode} should be a multiple of '{timing_resolution}', "
-                f"and at most '{max_duration}', not '{length}'",
+            logger.debug(
+                f"{self}: For {mode}, {timing_mode} should be a multiple of "
+                f"'{timing_resolution}', and at most '{max_duration}', not '{length}' "
+                "(the request is sent anyway)"
             )
 
         return until
@@ -917,17 +910,11 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             )
 
         # the vendor accepts (and stores) such a temperature, but the controller clamps it
-        if temperature < (minimum := self.min_heat_setpoint):
-            self._warn_once(
-                mode,
-                SZ_MIN_HEAT_SETPOINT,
-                f"temperature should be at least {minimum}, not {temperature}",
-            )
-        elif temperature > (maximum := self.max_heat_setpoint):
-            self._warn_once(
-                mode,
-                SZ_MAX_HEAT_SETPOINT,
-                f"temperature should be at most {maximum}, not {temperature}",
+        if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
+            self._logger.warning(
+                f"{self}: For {mode}, temperature should be from {self.min_heat_setpoint} "
+                f"to {self.max_heat_setpoint}, not {temperature} (the controller will "
+                "clamp it)"
             )
 
         return temperature
@@ -1009,8 +996,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         A 'duration' ends that long from now. It must be positive, and should be a
         multiple of the zone's timing_resolution, and not exceed its max_duration (see
-        setpoint_capabilities). If not, a warning is logged (once), and the request is
-        sent anyway. An until is not checked against these.
+        setpoint_capabilities). If not, the request is sent anyway (the controller
+        honours it). An until is not checked against these.
 
         TemporaryOverride requires an until or a duration (only one of them may be
         given), and the other modes allow neither (except that VacationHold allows an
@@ -1114,8 +1101,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         multiple of the zone's timing_resolution, and not exceed its max_duration.
 
         Unlike _set_mode(), the request is checked against the zone's config (see
-        setpoint_capabilities): if it only breaks a 'should', a warning is logged (once),
-        and the request is sent anyway.
+        setpoint_capabilities): if it only breaks a 'should', it is sent anyway (with a
+        warning, if the controller will not do as asked).
 
         VacationHold is not supported: use _set_mode().
 
