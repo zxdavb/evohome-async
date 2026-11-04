@@ -599,11 +599,12 @@ async def test_ctl_set_mode_zero_resolution(
         pytest.param(td(hours=-1), id="negative"),
     ],
 )
-async def test_ctl_set_mode_zero_resolution_rejects(
+async def test_ctl_set_mode_zero_resolution_warns(
     tcs: ControlSystem,
+    caplog: pytest.LogCaptureFixture,
     duration: td,
 ) -> None:
-    """Test a zero timing_resolution still requires a duration to be positive."""
+    """Test a zero timing_resolution still warns if a duration is not positive."""
 
     with (
         patch.object(
@@ -612,15 +613,24 @@ async def test_ctl_set_mode_zero_resolution_rejects(
             new_callable=PropertyMock,
             return_value=(_ZERO_RESOLUTION_MODE,),
         ),
-        pytest.raises(InvalidModeRequestError, match="must be positive"),
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        caplog.at_level(logging.WARNING),
     ):
         await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=duration)
+
+    mock_put.assert_awaited_once()
+    assert "should be positive" in caplog.text
 
 
 async def test_ctl_set_mode_period_at_least_one_day(
     tcs: ControlSystem,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test a period under a day is rejected, even if it is a valid multiple."""
+    """Test a period under a day is warned of, even if it is a valid multiple."""
 
     with (
         patch.object(
@@ -629,9 +639,18 @@ async def test_ctl_set_mode_period_at_least_one_day(
             new_callable=PropertyMock,
             return_value=(_SUB_DAY_PERIOD_MODE,),
         ),
-        pytest.raises(InvalidModeRequestError, match="at least one day"),
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        caplog.at_level(logging.WARNING),
     ):
         await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
+
+    mock_put.assert_awaited_once()
+    assert "should be at least one day" in caplog.text
+    assert "should be a multiple of" not in caplog.text
 
 
 async def test_ctl_set_mode_period_of_one_day(
@@ -670,12 +689,6 @@ async def test_ctl_set_mode_period_of_one_day(
         pytest.param(SystemMode.AUTO, {"duration": td(hours=1)}, id="not_temporary"),
         pytest.param(SystemMode.AWAY, {"duration": td(hours=1)}, id="period_only"),
         pytest.param(SystemMode.AUTO_WITH_ECO, {"period": td(days=1)}, id="dur_only"),
-        pytest.param(SystemMode.AUTO_WITH_ECO, {"duration": td(0)}, id="dur_zero"),
-        pytest.param(
-            SystemMode.AUTO_WITH_ECO, {"duration": td(hours=-1)}, id="dur_negative"
-        ),
-        pytest.param(SystemMode.AWAY, {"period": td(0)}, id="period_zero"),
-        pytest.param(SystemMode.AWAY, {"period": td(hours=12)}, id="period_too_short"),
     ],
 )
 async def test_ctl_set_mode_rejects(
@@ -691,11 +704,31 @@ async def test_ctl_set_mode_rejects(
 
 _AT_MOST = "should be at most"
 _A_MULTIPLE_OF = "should be a multiple of"
+_AT_LEAST_A_DAY = "should be at least one day"
+_POSITIVE = "should be positive"
 
 
 @pytest.mark.parametrize(
     ("system_mode", "kwargs", "match"),
     [
+        pytest.param(
+            SystemMode.AUTO_WITH_ECO, {"duration": td(0)}, _POSITIVE, id="dur_zero"
+        ),
+        pytest.param(
+            SystemMode.AUTO_WITH_ECO,
+            {"duration": td(hours=-1)},
+            _POSITIVE,
+            id="dur_negative",
+        ),
+        pytest.param(
+            SystemMode.AWAY, {"period": td(0)}, _AT_LEAST_A_DAY, id="period_zero"
+        ),
+        pytest.param(
+            SystemMode.AWAY,
+            {"period": td(hours=12)},
+            _AT_LEAST_A_DAY,
+            id="period_too_short",
+        ),
         pytest.param(  # max_duration is "1.00:00:00"
             SystemMode.AUTO_WITH_ECO,
             {"duration": td(hours=25)},
@@ -933,7 +966,6 @@ async def test_dhw_set_mode_with_duration(
 
 # the zone's and the DHW's max_duration is "1.00:00:00", timing_resolution "00:10:00"
 _MUST_BE_NONE = "duration must be None, not '1:00:00'"
-_POSITIVE = "must be positive"
 
 DURATION_REJECTS = [
     pytest.param(
@@ -943,12 +975,6 @@ DURATION_REJECTS = [
         ZoneMode.PERMANENT_OVERRIDE, {"duration": td(hours=1)}, _MUST_BE_NONE, id="perm"
     ),
     pytest.param(ZoneMode.TEMPORARY_OVERRIDE, {}, "until must not be None", id="temp"),
-    pytest.param(
-        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(0)}, _POSITIVE, id="zero"
-    ),
-    pytest.param(
-        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(hours=-1)}, _POSITIVE, id="neg"
-    ),
     pytest.param(  # not allowed here (if it were: "use until", see edges tests)
         ZoneMode.VACATION_HOLD, {"duration": td(days=7)}, "Unsupported mode", id="vac"
     ),
@@ -986,6 +1012,8 @@ async def test_dhw_set_mode_rejects_duration(
 
 
 DURATION_WARNS = [
+    pytest.param(td(0), _POSITIVE, id="zero"),
+    pytest.param(td(hours=-1), _POSITIVE, id="neg"),
     pytest.param(td(hours=25), _AT_MOST, id="long"),
     pytest.param(td(minutes=15), _A_MULTIPLE_OF, id="resolution"),
 ]
@@ -1056,9 +1084,6 @@ async def test_dhw_set_mode_warns_duration(
             "temperature must not be None",
             id="missing",
         ),
-        pytest.param(
-            ZoneMode.PERMANENT_OVERRIDE, 99.0, "out of range", id="out_of_range"
-        ),
     ],
 )
 async def test_zon_set_mode_rejects_temperature(
@@ -1077,7 +1102,6 @@ async def test_zon_set_mode_rejects_temperature(
     ("temperature", "match"),
     [
         pytest.param(None, "temperature must not be None", id="missing"),
-        pytest.param(99.0, "out of range", id="out_of_range"),
     ],
 )
 async def test_zon_set_mode_rejects_temperature_with_duration(
@@ -1091,6 +1115,50 @@ async def test_zon_set_mode_rejects_temperature_with_duration(
         await zone.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, temperature=temperature, duration=td(hours=1)
         )
+
+
+# the zone's min/max_heat_setpoint are 5.0/35.0
+TEMPERATURE_WARNS = [
+    pytest.param(4.5, "temperature should be at least 5.0, not 4.5", id="too_low"),
+    pytest.param(35.5, "temperature should be at most 35.0, not 35.5", id="too_high"),
+]
+
+
+@pytest.mark.parametrize(("temperature", "match"), TEMPERATURE_WARNS)
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        pytest.param({}, id="permanent"),
+        pytest.param({"until": dt(2025, 7, 11, tzinfo=UTC)}, id="until"),
+        pytest.param({"duration": td(hours=1)}, id="duration"),
+    ],
+)
+async def test_zon_set_mode_warns_temperature(
+    zone: Zone,
+    caplog: pytest.LogCaptureFixture,
+    kwargs: dict[str, Any],  # some of these are rejected by the overloads
+    temperature: float,
+    match: str,
+) -> None:
+    """Test a zone's set_mode() warns of an out-of-range temperature, but sends it.
+
+    The vendor accepts (and stores) such a temperature, but the controller clamps it.
+    """
+
+    mode = ZoneMode.PERMANENT_OVERRIDE if not kwargs else ZoneMode.TEMPORARY_OVERRIDE
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        caplog.at_level(logging.WARNING),
+    ):
+        await zone.set_mode(mode, temperature=temperature, **kwargs)
+
+    assert mock_put.call_args[1]["json"]["heat_setpoint_value"] == temperature
+    assert match in caplog.text
 
 
 @pytest.mark.parametrize(

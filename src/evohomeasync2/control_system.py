@@ -307,7 +307,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         (see allowed_system_modes). Without any of the three, the mode is set
         indefinitely.
 
-        A duration must be positive, and a period at least one day. Either should be a
+        A duration should be positive, and a period at least one day. Either should be a
         multiple of the mode's timing_resolution, and not exceed its max_duration.
         If not, a warning is logged (once), and the request is sent anyway. An until is
         not checked against these. Only one of the three may be given.
@@ -401,7 +401,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         (see allowed_system_modes). Without either, the mode is set indefinitely, if
         it can_be_permanent.
 
-        A duration must be positive, and a period at least one day. Either should be a
+        A duration should be positive, and a period at least one day. Either should be a
         multiple of the mode's timing_resolution, and not exceed its max_duration.
 
         Unlike _set_mode(), the request is checked against the TCS's config: if it only

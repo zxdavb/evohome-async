@@ -111,6 +111,9 @@ if TYPE_CHECKING:
 
 _ONE_DAY = td(days=1)
 
+# a limit that is warned of (once), but is not one of the vendor's config keys
+_MIN_LENGTH: Final = "min_length"  # a duration must be positive, a period >= 1 day
+
 # for values that the schema passes through, as the vendor's enums are incomplete
 _PLEASE_REPORT = (
     "is unknown, please report it at https://github.com/zxdavb/evohome-async/issues"
@@ -146,11 +149,25 @@ class _TccModeMixin:
         length: td,
         /,
     ) -> None:
-        """Warn (once) if a (positive) duration or period is not within its limits.
+        """Warn (once) if a duration or period is not within its limits.
 
-        That is, if it is not a multiple of the timing_resolution, or if it exceeds the
-        max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
+        That is, if a duration is not positive, or a period is less than one day, if it
+        exceeds the max_duration, or if it is not a multiple of the timing_resolution
+        (both are vendor TimeSpan strings, e.g. "1.00:00:00").
         """
+
+        if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
+            self._warn_once(
+                mode,
+                _MIN_LENGTH,
+                f"{timing_mode} should be at least one day, not '{length}'",
+            )
+        elif length <= td(0):
+            self._warn_once(
+                mode,
+                _MIN_LENGTH,
+                f"{timing_mode} should be positive, not '{length}'",
+            )
 
         max_duration = mode_entry[SZ_MAX_DURATION]
         timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
@@ -186,10 +203,10 @@ class _TccModeMixin:
         ends that long from now, and a period that long after the start of today (in
         the location's local time), so a period of one day ends at the coming midnight.
 
-        A duration/period that breaks one of the entry's limits (max_duration,
-        timing_resolution) is logged as a warning (once per mode and limit), but is
-        allowed, as the vendor's server is the authority. Any other invalid request is
-        rejected.
+        A duration/period that breaks one of its limits (a minimum length, the entry's
+        max_duration or timing_resolution) is logged as a warning (once per mode and
+        limit), but is allowed, as the vendor's server is the authority (and does
+        accept them). Any other invalid request is rejected.
         """
 
         if duration is not None and period is not None:
@@ -211,17 +228,6 @@ class _TccModeMixin:
         if mode_entry.get(SZ_TIMING_MODE) is not timing_mode:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
-            )
-
-        if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {timing_mode} must be at least one day, "
-                f"not '{length}'"
-            )
-
-        if length <= td(0):
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {timing_mode} must be positive, not '{length}'"
             )
 
         self._check_requested_length(mode, mode_entry, timing_mode, length)
@@ -944,9 +950,18 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                 f"{self}: For {mode}, temperature must be None, not '{temperature}'"
             )
 
-        if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Invalid temperature: {temperature} (out of range)"
+        # the vendor accepts (and stores) such a temperature, but the controller clamps it
+        if temperature < (minimum := self.min_heat_setpoint):
+            self._warn_once(
+                mode,
+                SZ_MIN_HEAT_SETPOINT,
+                f"temperature should be at least {minimum}, not {temperature}",
+            )
+        elif temperature > (maximum := self.max_heat_setpoint):
+            self._warn_once(
+                mode,
+                SZ_MAX_HEAT_SETPOINT,
+                f"temperature should be at most {maximum}, not {temperature}",
             )
 
         return temperature
@@ -1021,12 +1036,12 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Will accept a ZoneMode or a (snake_case) string for the 'mode'.
 
         A 'temperature' is required by the override modes, and is not allowed for
-        FollowSchedule. It must be within the zone's min/max_heat_setpoint.
+        FollowSchedule. It should be within the zone's min/max_heat_setpoint.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
 
-        A 'duration' ends that long from now. It must be positive, and should be a
+        A 'duration' ends that long from now. It should be positive, and be a
         multiple of the zone's timing_resolution, and not exceed its max_duration (see
         setpoint_capabilities). If not, a warning is logged (once), and the request is
         sent anyway. An until is not checked against these.
@@ -1126,10 +1141,10 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Will accept a ZoneMode or a (snake_case) string for the 'mode'.
 
         A 'temperature' is required by the override modes, and is not allowed for
-        FollowSchedule. It must be within the zone's min/max_heat_setpoint.
+        FollowSchedule. It should be within the zone's min/max_heat_setpoint.
 
         A 'duration' ends that long from now. It is required by TemporaryOverride, and
-        is not allowed for the other modes. It must be positive, and should be a
+        is not allowed for the other modes. It should be positive, and be a
         multiple of the zone's timing_resolution, and not exceed its max_duration.
 
         Unlike _set_mode(), the request is checked against the zone's config (see
