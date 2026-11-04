@@ -880,7 +880,7 @@ DURATION_REJECTS = [
         _MULTIPLE_OF,
         id="resolution",
     ),
-    pytest.param(  # not allowed here (if it were: "use until", see edges tests)
+    pytest.param(  # not allowed here (if it were, a duration is rejected: see edges tests)
         ZoneMode.VACATION_HOLD, {"duration": td(days=7)}, "Unsupported mode", id="vac"
     ),
 ]

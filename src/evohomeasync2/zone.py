@@ -104,9 +104,9 @@ if TYPE_CHECKING:
         mode: ZoneMode
         can_be_permanent: bool
         can_be_temporary: bool
-        max_duration: NotRequired[str]  # when can_be_temporary is True
-        timing_resolution: NotRequired[str]  # when can_be_temporary is True
-        timing_mode: NotRequired[TimingMode]  # when can_be_temporary is True
+        max_duration: NotRequired[str]  # when it has a timing_mode
+        timing_resolution: NotRequired[str]  # when it has a timing_mode
+        timing_mode: NotRequired[TimingMode]  # TemporaryOverride only
 
 
 _ONE_DAY = td(days=1)
@@ -676,13 +676,13 @@ class _ZoneBase[
             "FollowSchedule":    {"mode": "FollowSchedule",    "can_be_permanent": true,  "can_be_temporary": false},
             "PermanentOverride": {"mode": "PermanentOverride", "can_be_permanent": true,  "can_be_temporary": false},
             "TemporaryOverride": {"mode": "TemporaryOverride", "can_be_permanent": false, "can_be_temporary": true, "timing_mode": "Duration", "max_duration": "1.00:00:00", "timing_resolution": "00:10:00"}
+            "VacationHold":      {"mode": "VacationHold",      "can_be_permanent": true,  "can_be_temporary": true}
         }
 
-        Any other allowed modes are not included (e.g. VacationHold, which is seen only
-        on non-evohome systems, and has its own vacation_hold_capabilities).
+        VacationHold is seen only on non-evohome systems. It takes an until (or none),
+        but not a duration, so it has no timing_mode (its own min/max_duration are in
+        vacation_hold_capabilities, and are not used here).
         """
-
-        # TODO: handle ZoneMode.VACATION_HOLD
 
         table: dict[ZoneMode, _AllowedModesT] = {}
 
@@ -702,6 +702,13 @@ class _ZoneBase[
                     SZ_MAX_DURATION: max_duration,
                     SZ_TIMING_RESOLUTION: timing_resolution,
                     SZ_TIMING_MODE: TimingMode.DURATION,
+                }
+
+            elif mode is ZoneMode.VACATION_HOLD:
+                table[mode] = {
+                    SZ_MODE: mode,
+                    SZ_CAN_BE_PERMANENT: True,
+                    SZ_CAN_BE_TEMPORARY: True,
                 }
 
         return table
@@ -724,12 +731,7 @@ class _ZoneBase[
     ) -> dt | None:
         """Return when a mode ends (None if indefinitely), if valid for the duration."""
 
-        # the special case for VacationHold
-        if (mode_entry := self._allowed_modes_table.get(mode)) is None:  # VacationHold
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, use until, not duration"
-            )
-
+        mode_entry = self._allowed_modes_table[mode]
         return self._validate_requested_timespan(mode, mode_entry, duration=duration)
 
     # Status (state) attrs & methods...
