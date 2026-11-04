@@ -534,9 +534,8 @@ async def test_ctl_set_mode_not_permanent(
 
 async def test_ctl_set_system_mode_not_permanent(
     tcs: ControlSystem,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test set_system_mode() warns if a mode can't be permanent, sans duration/period."""
+    """Test set_system_mode() rejects a mode that can't be permanent, sans duration/period."""
 
     with (
         patch.object(
@@ -545,20 +544,10 @@ async def test_ctl_set_system_mode_not_permanent(
             new_callable=PropertyMock,
             return_value=(_NOT_PERMANENT_MODE,),
         ),
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
         pytest.warns(DeprecationWarning, match=r"use \.set_mode\(\)"),
-        caplog.at_level(logging.WARNING),
+        pytest.raises(InvalidModeRequestError, match="duration must not be None"),
     ):
         await tcs.set_system_mode(SystemMode.AUTO_WITH_ECO)
-
-    assert mock_put.call_args[1] == {
-        "json": {"system_mode": SystemMode.AUTO_WITH_ECO, "permanent": True}
-    }
-    assert "duration should not be None" in caplog.text
 
 
 # no known system has such modes, so these are made up
@@ -679,6 +668,8 @@ async def test_ctl_set_mode_period_of_one_day(
             id="duration_and_period",
         ),
         pytest.param(SystemMode.AUTO, {"duration": td(hours=1)}, id="not_temporary"),
+        pytest.param(SystemMode.AWAY, {"duration": td(hours=1)}, id="period_only"),
+        pytest.param(SystemMode.AUTO_WITH_ECO, {"period": td(days=1)}, id="dur_only"),
         pytest.param(SystemMode.AUTO_WITH_ECO, {"duration": td(0)}, id="dur_zero"),
         pytest.param(
             SystemMode.AUTO_WITH_ECO, {"duration": td(hours=-1)}, id="dur_negative"
@@ -705,18 +696,6 @@ _A_MULTIPLE_OF = "should be a multiple of"
 @pytest.mark.parametrize(
     ("system_mode", "kwargs", "match"),
     [
-        pytest.param(
-            SystemMode.AWAY,
-            {"duration": td(hours=1)},
-            "duration should be None",
-            id="period_only",
-        ),
-        pytest.param(
-            SystemMode.AUTO_WITH_ECO,
-            {"period": td(days=1)},
-            "period should be None",
-            id="dur_only",
-        ),
         pytest.param(  # max_duration is "1.00:00:00"
             SystemMode.AUTO_WITH_ECO,
             {"duration": td(hours=25)},
@@ -747,7 +726,7 @@ async def test_ctl_set_mode_warns(
     kwargs: dict[str, Any],  # some of these are rejected by the overloads
     match: str,
 ) -> None:
-    """Test set_mode() warns of a request that breaks a rule, but still sends it."""
+    """Test set_mode() warns of a request that breaks a limit, but still sends it."""
 
     with (
         patch(
@@ -767,15 +746,15 @@ async def test_ctl_set_mode_warns_once(
     tcs: ControlSystem,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test set_mode() warns of a broken rule only once per mode and rule."""
+    """Test set_mode() warns of a broken limit only once per mode and limit."""
 
     eco, away = SystemMode.AUTO_WITH_ECO, SystemMode.AWAY
 
     requests: list[tuple[SystemMode, dict[str, Any]]] = [
         (eco, {"duration": td(hours=25)}),
-        (eco, {"duration": td(hours=26)}),  # the same mode and rule
+        (eco, {"duration": td(hours=26)}),  # the same mode and limit
         (away, {"period": td(days=100)}),  # another mode
-        (eco, {"duration": td(minutes=90)}),  # another rule
+        (eco, {"duration": td(minutes=90)}),  # another limit
     ]
     warnings = [(eco, _AT_MOST), (away, _AT_MOST), (eco, _A_MULTIPLE_OF)]
 
@@ -1019,7 +998,7 @@ async def test_zon_set_mode_warns_duration(
     duration: td,
     match: str,
 ) -> None:
-    """Test a zone's set_mode() warns of a duration that breaks a rule, but sends it."""
+    """Test a zone's set_mode() warns of a duration that breaks a limit, but sends it."""
 
     with (
         patch(
@@ -1044,7 +1023,7 @@ async def test_dhw_set_mode_warns_duration(
     duration: td,
     match: str,
 ) -> None:
-    """Test a DHW's set_mode() warns of a duration that breaks a rule, but sends it."""
+    """Test a DHW's set_mode() warns of a duration that breaks a limit, but sends it."""
 
     with (
         patch(

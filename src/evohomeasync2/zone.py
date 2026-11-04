@@ -123,16 +123,16 @@ class _TccModeMixin:
     location: Location  # used to get now(), and the logger
 
     @cached_property
-    def _warned_rules(self) -> set[tuple[SystemMode | ZoneMode, str]]:
-        """Return the (mode, rule) pairs that have been warned of (so only once)."""
+    def _warned_limits(self) -> set[tuple[SystemMode | ZoneMode, str]]:
+        """Return the (mode, limit) pairs that have been warned of (so only once)."""
         return set()
 
-    def _warn_once(self, mode: SystemMode | ZoneMode, rule: str, msg: str, /) -> None:
-        """Log that a request breaks one of its mode's rules, if not already logged."""
+    def _warn_once(self, mode: SystemMode | ZoneMode, limit: str, msg: str, /) -> None:
+        """Log that a request breaks one of its mode's limits, if not already logged."""
 
-        if (mode, rule) in self._warned_rules:
+        if (mode, limit) in self._warned_limits:
             return
-        self._warned_rules.add((mode, rule))
+        self._warned_limits.add((mode, limit))
 
         self.location.client.logger.warning(
             f"{self}: For {mode}, {msg} (the request is sent anyway)"
@@ -186,10 +186,10 @@ class _TccModeMixin:
         ends that long from now, and a period that long after the start of today (in
         the location's local time), so a period of one day ends at the coming midnight.
 
-        A request that breaks one of the entry's rules (can_be_permanent, timing_mode,
-        max_duration, timing_resolution) is logged as a warning (once per mode and
-        rule), but is allowed, as the vendor's server is the authority. A request that
-        cannot be made sense of is rejected.
+        A duration/period that breaks one of the entry's limits (max_duration,
+        timing_resolution) is logged as a warning (once per mode and limit), but is
+        allowed, as the vendor's server is the authority. Any other invalid request is
+        rejected.
         """
 
         if duration is not None and period is not None:
@@ -201,25 +201,16 @@ class _TccModeMixin:
             length, timing_mode = duration, TimingMode.DURATION
         elif period is not None:
             length, timing_mode = period, TimingMode.PERIOD
+        elif not mode_entry[SZ_CAN_BE_PERMANENT]:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {mode_entry[SZ_TIMING_MODE]} must not be None"
+            )
         else:
-            if not mode_entry[SZ_CAN_BE_PERMANENT]:
-                self._warn_once(
-                    mode,
-                    SZ_CAN_BE_PERMANENT,
-                    f"{mode_entry.get(SZ_TIMING_MODE)} should not be None",
-                )
             return None
 
-        if not mode_entry[SZ_CAN_BE_TEMPORARY]:
+        if mode_entry.get(SZ_TIMING_MODE) is not timing_mode:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
-            )
-
-        if (expected := mode_entry.get(SZ_TIMING_MODE)) is not timing_mode:
-            self._warn_once(
-                mode,
-                SZ_TIMING_MODE,
-                f"{timing_mode} should be None, not '{length}' (expected {expected})",
             )
 
         if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
@@ -1137,8 +1128,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         A 'temperature' is required by the override modes, and is not allowed for
         FollowSchedule. It must be within the zone's min/max_heat_setpoint.
 
-        A 'duration' ends that long from now. It should be given for TemporaryOverride,
-        and must not be for the other modes. It must be positive, and should be a
+        A 'duration' ends that long from now. It is required by TemporaryOverride, and
+        is not allowed for the other modes. It must be positive, and should be a
         multiple of the zone's timing_resolution, and not exceed its max_duration.
 
         Unlike _set_mode(), the request is checked against the zone's config (see

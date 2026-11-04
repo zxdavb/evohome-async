@@ -303,7 +303,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         days) ends at that long after the start of the current day (in the location's
         local time), so a period of one day ends at the coming midnight.
 
-        Which of the two (if either) should be used depends upon the mode's timing_mode
+        Which of the two (if either) is allowed depends upon the mode's timing_mode
         (see allowed_system_modes). Without any of the three, the mode is set
         indefinitely.
 
@@ -397,9 +397,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         days) ends at that long after the start of the current day (in the location's
         local time), so a period of one day ends at the coming midnight.
 
-        Which of the two (if either) should be used depends upon the mode's timing_mode
-        (see allowed_system_modes). Without either, the mode is set indefinitely (it
-        should be able to be permanent).
+        Which of the two (if either) is allowed depends upon the mode's timing_mode
+        (see allowed_system_modes). Without either, the mode is set indefinitely, if
+        it can_be_permanent.
 
         A duration must be positive, and a period at least one day. Either should be a
         multiple of the mode's timing_resolution, and not exceed its max_duration.

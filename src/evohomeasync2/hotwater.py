@@ -324,8 +324,8 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         A 'state' is required by the override modes, and is not allowed for
         FollowSchedule. It must be one of the DHW's allowed_states.
 
-        A 'duration' ends that long from now. It should be given for TemporaryOverride,
-        and must not be for the other modes. It must be positive, and should be a
+        A 'duration' ends that long from now. It is required by TemporaryOverride, and
+        is not allowed for the other modes. It must be positive, and should be a
         multiple of the DHW's timing_resolution, and not exceed its max_duration.
 
         Unlike _set_mode(), the request is checked against the DHW's config (see
