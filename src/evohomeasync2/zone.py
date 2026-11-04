@@ -166,7 +166,7 @@ class _TccModeMixin:
                 )
             return None
 
-        if mode_entry.get(SZ_TIMING_MODE) is not timing_mode:
+        if timing_mode is not mode_entry.get(SZ_TIMING_MODE):
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
             )
