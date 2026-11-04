@@ -615,39 +615,6 @@ async def test_ctl_set_mode_zero_resolution_rejects(
         await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=duration)
 
 
-async def test_ctl_set_mode_period_at_least_one_day(
-    tcs: ControlSystem,
-    freezer: FrozenDateTimeFactory,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test a period under a day is warned of, even if it is a valid multiple.
-
-    The controller runs such an Away until the coming midnight.
-    """
-
-    freezer.move_to("2025-07-10T06:00:00Z")  # the period ends at 11:00 UTC (12:00 BST)
-
-    with (
-        patch.object(
-            type(tcs),
-            "allowed_system_modes",
-            new_callable=PropertyMock,
-            return_value=(_SUB_DAY_PERIOD_MODE,),
-        ),
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
-        caplog.at_level(logging.WARNING),
-    ):
-        await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
-
-    mock_put.assert_awaited_once()
-    assert "should be at least one day" in caplog.text
-    assert "should be a multiple of" not in caplog.text
-
-
 async def test_ctl_set_mode_period_ended_earlier_today(
     tcs: ControlSystem,
     freezer: FrozenDateTimeFactory,
@@ -723,40 +690,26 @@ async def test_ctl_set_mode_rejects(
         await tcs.set_mode(system_mode, **kwargs)
 
 
-_AT_MOST = "should be at most"
-_A_MULTIPLE_OF = "should be a multiple of"
-_AT_LEAST_A_DAY = "should be at least one day"
+_OUTSIDE_LIMITS = "should be a multiple of"  # ... and at most the max_duration
 
 
 @pytest.mark.parametrize(
-    ("system_mode", "kwargs", "match"),
+    ("system_mode", "kwargs"),
     [
-        pytest.param(
-            SystemMode.AWAY,
-            {"period": td(hours=12)},
-            _AT_LEAST_A_DAY,
-            id="period_too_short",
+        pytest.param(  # timing_resolution is "1.00:00:00"
+            SystemMode.AWAY, {"period": td(hours=12)}, id="period_too_short"
         ),
         pytest.param(  # max_duration is "1.00:00:00"
-            SystemMode.AUTO_WITH_ECO,
-            {"duration": td(hours=25)},
-            _AT_MOST,
-            id="dur_too_long",
+            SystemMode.AUTO_WITH_ECO, {"duration": td(hours=25)}, id="dur_too_long"
         ),
         pytest.param(  # max_duration is "99.00:00:00"
-            SystemMode.AWAY, {"period": td(days=100)}, _AT_MOST, id="period_too_long"
+            SystemMode.AWAY, {"period": td(days=100)}, id="period_too_long"
         ),
         pytest.param(  # timing_resolution is "01:00:00"
-            SystemMode.AUTO_WITH_ECO,
-            {"duration": td(minutes=90)},
-            _A_MULTIPLE_OF,
-            id="dur_resolution",
+            SystemMode.AUTO_WITH_ECO, {"duration": td(minutes=90)}, id="dur_resolution"
         ),
         pytest.param(  # timing_resolution is "1.00:00:00"
-            SystemMode.AWAY,
-            {"period": td(days=1, hours=6)},
-            _A_MULTIPLE_OF,
-            id="period_resolution",
+            SystemMode.AWAY, {"period": td(days=1, hours=6)}, id="period_resolution"
         ),
     ],
 )
@@ -767,7 +720,6 @@ async def test_ctl_set_mode_warns(
     caplog: pytest.LogCaptureFixture,
     system_mode: SystemMode,
     kwargs: dict[str, Any],  # some of these are rejected by the overloads
-    match: str,
 ) -> None:
     """Test set_mode() warns of a request that breaks a limit, but still sends it."""
 
@@ -784,24 +736,24 @@ async def test_ctl_set_mode_warns(
         await tcs.set_mode(system_mode, **kwargs)
 
     mock_put.assert_awaited_once()
-    assert match in caplog.text
+    assert _OUTSIDE_LIMITS in caplog.text
 
 
 async def test_ctl_set_mode_warns_once(
     tcs: ControlSystem,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test set_mode() warns of a broken limit only once per mode and limit."""
+    """Test set_mode() warns of a broken limit only once per mode."""
 
     eco, away = SystemMode.AUTO_WITH_ECO, SystemMode.AWAY
 
     requests: list[tuple[SystemMode, dict[str, Any]]] = [
         (eco, {"duration": td(hours=25)}),
         (eco, {"duration": td(hours=26)}),  # the same mode and limit
+        (eco, {"duration": td(minutes=90)}),  # the same mode, another limit
         (away, {"period": td(days=100)}),  # another mode
-        (eco, {"duration": td(minutes=90)}),  # another limit
     ]
-    warnings = [(eco, _AT_MOST), (away, _AT_MOST), (eco, _A_MULTIPLE_OF)]
+    warnings = [eco, away]
 
     with (
         patch(
@@ -819,8 +771,8 @@ async def test_ctl_set_mode_warns_once(
     assert mock_put.await_count == len(requests)
     assert len(messages) == len(warnings)
     assert all(
-        f"For {mode}, " in msg and match in msg
-        for (mode, match), msg in zip(warnings, messages, strict=True)
+        f"For {mode}, " in msg and _OUTSIDE_LIMITS in msg
+        for mode, msg in zip(warnings, messages, strict=True)
     )
 
 
@@ -1035,17 +987,16 @@ async def test_dhw_set_mode_rejects_duration(
 
 
 DURATION_WARNS = [
-    pytest.param(td(hours=25), _AT_MOST, id="long"),
-    pytest.param(td(minutes=15), _A_MULTIPLE_OF, id="resolution"),
+    pytest.param(td(hours=25), id="long"),
+    pytest.param(td(minutes=15), id="resolution"),
 ]
 
 
-@pytest.mark.parametrize(("duration", "match"), DURATION_WARNS)
+@pytest.mark.parametrize("duration", DURATION_WARNS)
 async def test_zon_set_mode_warns_duration(
     zone: Zone,
     caplog: pytest.LogCaptureFixture,
     duration: td,
-    match: str,
 ) -> None:
     """Test a zone's set_mode() warns of a duration that breaks a limit, but sends it."""
 
@@ -1062,15 +1013,14 @@ async def test_zon_set_mode_warns_duration(
         )
 
     mock_put.assert_awaited_once()
-    assert match in caplog.text
+    assert _OUTSIDE_LIMITS in caplog.text
 
 
-@pytest.mark.parametrize(("duration", "match"), DURATION_WARNS)
+@pytest.mark.parametrize("duration", DURATION_WARNS)
 async def test_dhw_set_mode_warns_duration(
     dhw: HotWater,
     caplog: pytest.LogCaptureFixture,
     duration: td,
-    match: str,
 ) -> None:
     """Test a DHW's set_mode() warns of a duration that breaks a limit, but sends it."""
 
@@ -1087,7 +1037,7 @@ async def test_dhw_set_mode_warns_duration(
         )
 
     mock_put.assert_awaited_once()
-    assert match in caplog.text
+    assert _OUTSIDE_LIMITS in caplog.text
 
 
 # the vendor accepts an until that has passed, but the controller ignores it

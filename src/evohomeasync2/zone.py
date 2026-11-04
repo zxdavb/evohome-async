@@ -111,8 +111,7 @@ if TYPE_CHECKING:
 
 _ONE_DAY = td(days=1)
 
-# limits that are warned of (once), but are not among the vendor's config keys
-_MIN_LENGTH: Final = "min_length"  # a period should be at least one day
+# a limit that is warned of (once), but is not one of the vendor's config keys
 _MIN_UNTIL: Final = "min_until"  # an until should be in the future
 
 # for values that the schema passes through, as the vendor's enums are incomplete
@@ -158,48 +157,6 @@ class _TccModeMixin:
             )
         return until
 
-    def _check_requested_length(
-        self,
-        mode: SystemMode | ZoneMode,
-        mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
-        timing_mode: TimingMode,
-        length: td,
-        /,
-    ) -> None:
-        """Warn (once) if a duration or period (ending in the future) breaks its limits.
-
-        That is, if a period is less than one day, if it exceeds the max_duration, or if
-        it is not a multiple of the timing_resolution (both are vendor TimeSpan strings,
-        e.g. "1.00:00:00").
-        """
-
-        # the controller runs an Away that ends before the coming midnight until then
-        if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
-            self._warn_once(
-                mode,
-                _MIN_LENGTH,
-                f"{timing_mode} should be at least one day, not '{length}'",
-            )
-
-        max_duration = mode_entry[SZ_MAX_DURATION]
-        timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
-
-        if length > as_timedelta(max_duration):
-            self._warn_once(
-                mode,
-                SZ_MAX_DURATION,
-                f"{timing_mode} should be at most '{max_duration}', not '{length}'",
-            )
-
-        # a zero timing_resolution has no multiples, so that check is left to the vendor
-        if (resolution := as_timedelta(timing_resolution)) and length % resolution:
-            self._warn_once(
-                mode,
-                SZ_TIMING_RESOLUTION,
-                f"{timing_mode} should be a multiple of '{timing_resolution}', "
-                f"not '{length}'",
-            )
-
     def _validate_requested_timespan(
         self,
         mode: SystemMode | ZoneMode,
@@ -215,12 +172,9 @@ class _TccModeMixin:
         ends that long from now, and a period that long after the start of today (in
         the location's local time), so a period of one day ends at the coming midnight.
 
-        A duration/period that breaks one of its limits (a period of less than a day,
-        the entry's max_duration or timing_resolution) is logged as a warning (once per
-        mode and limit), but is allowed, as the vendor's server is the authority (and
-        does accept them). Any other invalid request is rejected, including one that
-        does not end in the future (which the vendor accepts, but the controller
-        ignores).
+        A duration/period that is not a multiple of the entry's timing_resolution, or
+        exceeds its max_duration, is logged as a warning (once per mode), but is sent
+        anyway, as the vendor accepts it. Any other invalid request is rejected.
         """
 
         if duration is not None and period is not None:
@@ -258,7 +212,17 @@ class _TccModeMixin:
                 f"not '{length}' (it would end at {until})"
             )
 
-        self._check_requested_length(mode, mode_entry, timing_mode, length)
+        max_duration = mode_entry[SZ_MAX_DURATION]
+        timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
+        resolution = as_timedelta(timing_resolution)  # a zero one has no multiples
+
+        if length > as_timedelta(max_duration) or (resolution and length % resolution):
+            self._warn_once(
+                mode,
+                SZ_TIMING_MODE,
+                f"{timing_mode} should be a multiple of '{timing_resolution}', "
+                f"and at most '{max_duration}', not '{length}'",
+            )
 
         return until
 
