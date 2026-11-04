@@ -308,10 +308,11 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         indefinitely, if it can_be_permanent.
 
         A duration must be positive, and a period must end in the future. Either should
-        be a multiple of the mode's timing_resolution, and not exceed its max_duration:
-        if not, a warning is logged (once), and the request is sent anyway. An until is
-        not checked against these, but should be in the future. Only one of the three
-        may be given.
+        be a multiple of the mode's timing_resolution, and not exceed its max_duration,
+        but the request is sent anyway (the controller honours it). A period of less
+        than one day is sent with a warning, as the controller extends it to midnight.
+        An until is not checked against these, but should be in the future. Only one of
+        the three may be given.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -362,7 +363,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive). It should be in the future: if not, a
-        warning is logged (once), and the request is sent anyway.
+        warning is logged, and the request is sent anyway.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -408,7 +409,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         be a multiple of the mode's timing_resolution, and not exceed its max_duration.
 
         Unlike _set_mode(), the request is checked against the TCS's config: if it only
-        breaks a 'should', a warning is logged (once), and the request is sent anyway.
+        breaks a 'should', it is sent anyway (with a warning, if the controller will not
+        do as asked).
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """

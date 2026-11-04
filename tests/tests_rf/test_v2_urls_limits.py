@@ -1,8 +1,9 @@
 """Test how the vendor's v2 URLs treat requests that are outside an entity's config.
 
 This is used to document the RESTful API that is provided by the vendor: in particular,
-that it accepts requests that break the limits in an entity's config, for which the
-client only logs a warning (see _TccModeMixin in zone.py), rather than raising.
+that it accepts requests that break the limits in an entity's config, which the
+client logs (as debug, or as a warning if the controller will not do as asked), rather
+than rejects (see _TccModeMixin in zone.py).
 
 Testing is at HTTP request layer (e.g. GET/PUT). Only against the vendor's server, and
 every PUT here waits for its comm task (whether or not _DBG_WAIT_FOR_COMM_TASKS), as the
