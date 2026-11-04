@@ -682,10 +682,10 @@ class _ZoneBase[
             "VacationHold":      {"mode": "VacationHold",      "can_be_permanent": true,  "can_be_temporary": true, "max_duration": "365.23:45:00", "timing_resolution": "00:15:00"}
         }
 
-        VacationHold is seen only on non-evohome systems. Its max_duration and
-        timing_resolution are from the zone's vacation_hold_capabilities (if it has
-        them). It takes an until (or none), but not a duration, so it has no timing_mode
-        (and its limits are not checked).
+        VacationHold is seen only on non-evohome systems. It can be temporary only if the
+        zone's vacation_hold_capabilities have a max_duration and timing_resolution
+        (which are then in its entry). It takes an until, but not a duration, so it has
+        no timing_mode (and its limits are not checked).
         """
 
         table: dict[ZoneMode, _AllowedModesT] = {}
@@ -712,11 +712,12 @@ class _ZoneBase[
                 table[mode] = {
                     SZ_MODE: mode,
                     SZ_CAN_BE_PERMANENT: True,
-                    SZ_CAN_BE_TEMPORARY: True,
+                    SZ_CAN_BE_TEMPORARY: False,
                 }
                 # these are all or none (with min_duration, which is not used)
                 # TODO: add min_duration (or min_period) to the table, in future
                 if vacation_hold and SZ_MAX_DURATION in vacation_hold:
+                    table[mode][SZ_CAN_BE_TEMPORARY] = True
                     table[mode][SZ_MAX_DURATION] = vacation_hold[SZ_MAX_DURATION]
                     table[mode][SZ_TIMING_RESOLUTION] = vacation_hold[
                         SZ_TIMING_RESOLUTION

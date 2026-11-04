@@ -348,7 +348,8 @@ async def test_zon_allowed_modes_table_vacation_hold(
 ) -> None:
     """A zone's table of allowed modes should include VacationHold, if it is allowed.
 
-    Its entry should have only the keys of the other modes' entries.
+    Its entry should have only the keys of the other modes' entries, and it can be
+    temporary only if it has the limits (from the zone's vacation_hold_capabilities).
     """
 
     if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
@@ -358,7 +359,7 @@ async def test_zon_allowed_modes_table_vacation_hold(
     keys = {k for e in zone._allowed_modes_table.values() for k in e if e is not entry}
 
     assert entry["can_be_permanent"]
-    assert entry["can_be_temporary"]
+    assert entry["can_be_temporary"] is ("timing_resolution" in entry)
     assert "timing_mode" not in entry
     assert set(entry) <= keys
 
@@ -391,6 +392,30 @@ async def test_zon_allowed_modes_table_vacation_hold_limits(
             "can_be_temporary": True,
             "max_duration": "365.23:45:00",
             "timing_resolution": "00:15:00",
+        }
+    }
+
+
+async def test_zon_allowed_modes_table_vacation_hold_no_limits(
+    zone: Zone,
+) -> None:
+    """VacationHold's entry should not be temporary, if it has no limits.
+
+    The capabilities are as per most fixtures that have VacationHold.
+    """
+
+    table = zone._build_allowed_modes_table(
+        (ZoneMode.VACATION_HOLD,),
+        max_duration="1.00:00:00",
+        timing_resolution="00:10:00",  # these two are for TemporaryOverride
+        vacation_hold={"is_changeable": False, "is_cancelable": True},
+    )
+
+    assert table == {
+        ZoneMode.VACATION_HOLD: {
+            "mode": ZoneMode.VACATION_HOLD,
+            "can_be_permanent": True,
+            "can_be_temporary": False,
         }
     }
 
