@@ -52,6 +52,7 @@ from .const import (
     SZ_TIMING_MODE,
     SZ_TIMING_RESOLUTION,
     SZ_UNTIL,
+    SZ_VACATION_HOLD_CAPABILITIES,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
     DayOfWeek,
@@ -85,6 +86,7 @@ if TYPE_CHECKING:
         EvoDhwStatusResponseT,
         EvoSetZoneHeatSetpointT,
         EvoTemperatureStatusT,
+        EvoVacationHoldCapabilitiesT,
         EvoZonConfigResponseT,
         EvoZonConfigT,
         EvoZonScheduleCapabilitiesT,
@@ -104,9 +106,13 @@ if TYPE_CHECKING:
         mode: ZoneMode
         can_be_permanent: bool
         can_be_temporary: bool
-        max_duration: NotRequired[str]  # when it has a timing_mode
-        timing_resolution: NotRequired[str]  # when it has a timing_mode
+        max_duration: NotRequired[str]  # TemporaryOverride, VacationHold (if any)
+        timing_resolution: NotRequired[str]  # TemporaryOverride, VacationHold (if any)
         timing_mode: NotRequired[TimingMode]  # TemporaryOverride only
+        # VacationHold only, from the zone's vacation_hold_capabilities (if any)...
+        is_changeable: NotRequired[bool]
+        is_cancelable: NotRequired[bool]
+        min_duration: NotRequired[str]  # all or none of min/max_duration, resolution
 
 
 _ONE_DAY = td(days=1)
@@ -667,6 +673,7 @@ class _ZoneBase[
         *,
         max_duration: str,
         timing_resolution: str,
+        vacation_hold: EvoVacationHoldCapabilitiesT | None = None,
     ) -> dict[ZoneMode, _AllowedModesT]:
         """Return a table of the allowed modes, c.f. a TCS's _allowed_modes_table.
 
@@ -676,12 +683,12 @@ class _ZoneBase[
             "FollowSchedule":    {"mode": "FollowSchedule",    "can_be_permanent": true,  "can_be_temporary": false},
             "PermanentOverride": {"mode": "PermanentOverride", "can_be_permanent": true,  "can_be_temporary": false},
             "TemporaryOverride": {"mode": "TemporaryOverride", "can_be_permanent": false, "can_be_temporary": true, "timing_mode": "Duration", "max_duration": "1.00:00:00", "timing_resolution": "00:10:00"}
-            "VacationHold":      {"mode": "VacationHold",      "can_be_permanent": true,  "can_be_temporary": true}
+            "VacationHold":      {"mode": "VacationHold",      "can_be_permanent": true,  "can_be_temporary": true, "is_changeable": true, "is_cancelable": true, "min_duration": "1.00:00:00", "max_duration": "365.23:45:00", "timing_resolution": "00:15:00"}
         }
 
-        VacationHold is seen only on non-evohome systems. It takes an until (or none),
-        but not a duration, so it has no timing_mode (its own min/max_duration are in
-        vacation_hold_capabilities, and are not used here).
+        VacationHold is seen only on non-evohome systems, and its entry includes the
+        zone's vacation_hold_capabilities (if any). It takes an until (or none), but not
+        a duration, so it has no timing_mode (and its limits are not checked).
         """
 
         table: dict[ZoneMode, _AllowedModesT] = {}
@@ -705,11 +712,14 @@ class _ZoneBase[
                 }
 
             elif mode is ZoneMode.VACATION_HOLD:
-                table[mode] = {
+                entry: _AllowedModesT = {
                     SZ_MODE: mode,
                     SZ_CAN_BE_PERMANENT: True,
                     SZ_CAN_BE_TEMPORARY: True,
                 }
+                table[mode] = (
+                    entry if vacation_hold is None else {**entry, **vacation_hold}
+                )
 
         return table
 
@@ -890,6 +900,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             self.allowed_modes,
             max_duration=self.setpoint_capabilities[SZ_MAX_DURATION],
             timing_resolution=self.setpoint_capabilities[SZ_TIMING_RESOLUTION],
+            vacation_hold=self.setpoint_capabilities.get(SZ_VACATION_HOLD_CAPABILITIES),
         )
 
     @property  # convenience attr

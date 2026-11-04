@@ -346,7 +346,10 @@ async def test_zon_set_mode_vacation_hold_without_until(
 async def test_zon_allowed_modes_table_vacation_hold(
     zone: Zone,
 ) -> None:
-    """A zone's table of allowed modes should include VacationHold, if it is allowed."""
+    """A zone's table of allowed modes should include VacationHold, if it is allowed.
+
+    Its entry should include the zone's vacation_hold_capabilities (if any).
+    """
 
     if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
         pytest.skip("Zone does not support VacationHold mode")
@@ -355,6 +358,7 @@ async def test_zon_allowed_modes_table_vacation_hold(
         "mode": ZoneMode.VACATION_HOLD,
         "can_be_permanent": True,
         "can_be_temporary": True,
+        **zone.setpoint_capabilities.get("vacation_hold_capabilities", {}),
     }
 
 
