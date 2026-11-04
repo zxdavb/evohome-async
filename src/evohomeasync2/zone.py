@@ -217,7 +217,7 @@ class _TccModeMixin:
             length, timing_mode = period, TimingMode.PERIOD
         elif not mode_entry[SZ_CAN_BE_PERMANENT]:
             raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {mode_entry[SZ_TIMING_MODE]} must not be None"
+                f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be given"
             )
         else:
             return None
@@ -761,8 +761,10 @@ class _ZoneBase[
     ) -> dt | None:
         """Return when a mode ends (None if indefinitely), if valid for the duration."""
 
-        # the special case for VacationHold
+        # the special case for VacationHold, which can be set indefinitely
         if (mode_entry := self._allowed_modes_table.get(mode)) is None:  # VacationHold
+            if duration is None:
+                return None
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, use until, not duration"
             )
@@ -1057,13 +1059,12 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if duration is None:
-            return await self._set_mode(mode, temperature=temperature, until=until)
-
         if until is not None:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Only one of until or duration may be given"
-            )
+            if duration is not None:
+                raise exc.InvalidModeRequestError(
+                    f"{self}: Only one of until or duration may be given"
+                )
+            return await self._set_mode(mode, temperature=temperature, until=until)
 
         return await self._set_tcc_mode(
             mode, temperature=temperature, duration=duration
@@ -1155,7 +1156,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         setpoint_capabilities): if it only breaks a 'should', a warning is logged (once),
         and the request is sent anyway.
 
-        VacationHold is not supported: use _set_mode().
+        VacationHold can only be set indefinitely: for an until, use _set_mode().
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
