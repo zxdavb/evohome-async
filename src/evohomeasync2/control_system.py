@@ -31,6 +31,7 @@ from .const import (
     SZ_ZONES,
     SystemMode,
     TcsModelType,
+    TimingMode,
 )
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
@@ -426,8 +427,13 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         system_mode = self._validate_requested_mode(system_mode)
         mode_entry = self._allowed_modes_table[system_mode]
 
+        if period is None:
+            timing_mode, length = TimingMode.DURATION, duration
+        else:
+            timing_mode, length = TimingMode.PERIOD, period
+
         until = self._validate_requested_timespan(
-            system_mode, mode_entry, duration=duration, period=period
+            system_mode, mode_entry, timing_mode, length
         )
         return await self._put_mode(
             system_mode, permanent=until is None, time_until=until
