@@ -12,6 +12,9 @@ status that follows is then asserted. The vendor:
   not a multiple of its timingResolution (even one less than it), and then reports it
   truncated to the minute (its seconds are dropped)
 
+- accepts an until that is now, or in the past, and then reports the mode as if it
+  were in effect (with that until)
+
 - accepts an until of a TCS that is not of the mode's timingMode (e.g. an Away that ends
   at other than midnight): it receives only an absolute until, so can't tell a duration
   from a period
@@ -33,6 +36,8 @@ The controller itself was observed (by hand, 2026-11-04, an evohome system) to:
   is not in use), but use one of 0.1 resolution as is (20.1, although that of 0.5)
 - honour an until of a zone/DHW that is beyond its maxDuration, or off its resolution
 - end an AutoWithEco at its until, to the minute (it showed +72h as 'Eco (3d)')
+- ignore an until of a TCS/zone/DHW that is in the past (hence, the client rejects a
+  duration/period that would not end in the future)
 - run an Away that would end before the coming midnight until then (the vendor reports
   Away, with the until that was sent, until midnight), but honour a later until (and
   show more than 99 days as '99d': whether that is only a display limit is unknown)
@@ -155,6 +160,11 @@ def _error_codes(response: object) -> list[str]:
             lambda: _now() + td(hours=3),
             id="away_not_at_midnight",
         ),
+        pytest.param(  # the controller ignores it
+            TccSystemMode.AUTO_WITH_ECO,
+            lambda: _now() - td(hours=1),
+            id="eco_in_the_past",
+        ),
     ],
 )
 async def test_tcs_until_outside_config(
@@ -219,6 +229,9 @@ async def test_tcs_until_outside_config(
         ),
         pytest.param(  # valueResolution is 0.5 (the controller uses it as is)
             20.1, lambda: _now() + td(minutes=32), id="off_value_resolution"
+        ),
+        pytest.param(  # the controller ignores it
+            19.0, lambda: _now() - td(hours=1), id="in_the_past"
         ),
     ],
 )
@@ -354,6 +367,9 @@ async def test_zon_vacation_hold_task_fails(
         ),
         pytest.param(  # timingResolution is 00:10:00
             lambda: _now() + td(minutes=15), id="off_resolution"
+        ),
+        pytest.param(  # the controller ignores it
+            lambda: _now() - td(hours=1), id="in_the_past"
         ),
     ],
 )

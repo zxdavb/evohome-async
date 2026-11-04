@@ -112,7 +112,7 @@ if TYPE_CHECKING:
 _ONE_DAY = td(days=1)
 
 # a limit that is warned of (once), but is not one of the vendor's config keys
-_MIN_LENGTH: Final = "min_length"  # a duration must be positive, a period >= 1 day
+_MIN_LENGTH: Final = "min_length"  # a period should be at least one day
 
 # for values that the schema passes through, as the vendor's enums are incomplete
 _PLEASE_REPORT = (
@@ -149,24 +149,19 @@ class _TccModeMixin:
         length: td,
         /,
     ) -> None:
-        """Warn (once) if a duration or period is not within its limits.
+        """Warn (once) if a duration or period (ending in the future) breaks its limits.
 
-        That is, if a duration is not positive, or a period is less than one day, if it
-        exceeds the max_duration, or if it is not a multiple of the timing_resolution
-        (both are vendor TimeSpan strings, e.g. "1.00:00:00").
+        That is, if a period is less than one day, if it exceeds the max_duration, or if
+        it is not a multiple of the timing_resolution (both are vendor TimeSpan strings,
+        e.g. "1.00:00:00").
         """
 
+        # the controller runs an Away that ends before the coming midnight until then
         if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
             self._warn_once(
                 mode,
                 _MIN_LENGTH,
                 f"{timing_mode} should be at least one day, not '{length}'",
-            )
-        elif length <= td(0):
-            self._warn_once(
-                mode,
-                _MIN_LENGTH,
-                f"{timing_mode} should be positive, not '{length}'",
             )
 
         max_duration = mode_entry[SZ_MAX_DURATION]
@@ -203,10 +198,12 @@ class _TccModeMixin:
         ends that long from now, and a period that long after the start of today (in
         the location's local time), so a period of one day ends at the coming midnight.
 
-        A duration/period that breaks one of its limits (a minimum length, the entry's
-        max_duration or timing_resolution) is logged as a warning (once per mode and
-        limit), but is allowed, as the vendor's server is the authority (and does
-        accept them). Any other invalid request is rejected.
+        A duration/period that breaks one of its limits (a period of less than a day,
+        the entry's max_duration or timing_resolution) is logged as a warning (once per
+        mode and limit), but is allowed, as the vendor's server is the authority (and
+        does accept them). Any other invalid request is rejected, including one that
+        does not end in the future (which the vendor accepts, but the controller
+        ignores).
         """
 
         if duration is not None and period is not None:
@@ -230,16 +227,23 @@ class _TccModeMixin:
                 f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
             )
 
-        self._check_requested_length(mode, mode_entry, timing_mode, length)
+        now = self.location.now()
 
         if timing_mode is TimingMode.PERIOD:
-            start = self.location.now().replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
-            start = self.location.now().astimezone(UTC)
+            start = now.astimezone(UTC)
 
-        return start + length
+        # the vendor accepts an until in the past, but the controller ignores it
+        if (until := start + length) <= now:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {timing_mode} must end in the future, "
+                f"not '{length}' (it would end at {until})"
+            )
+
+        self._check_requested_length(mode, mode_entry, timing_mode, length)
+
+        return until
 
 
 class EntityBase[StatusT]:
@@ -1041,7 +1045,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
 
-        A 'duration' ends that long from now. It should be positive, and be a
+        A 'duration' ends that long from now. It must be positive, and should be a
         multiple of the zone's timing_resolution, and not exceed its max_duration (see
         setpoint_capabilities). If not, a warning is logged (once), and the request is
         sent anyway. An until is not checked against these.
@@ -1144,7 +1148,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         FollowSchedule. It should be within the zone's min/max_heat_setpoint.
 
         A 'duration' ends that long from now. It is required by TemporaryOverride, and
-        is not allowed for the other modes. It should be positive, and be a
+        is not allowed for the other modes. It must be positive, and should be a
         multiple of the zone's timing_resolution, and not exceed its max_duration.
 
         Unlike _set_mode(), the request is checked against the zone's config (see

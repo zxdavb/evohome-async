@@ -43,6 +43,11 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     )
 
 
+# a timespan that would end now, or in the past, is accepted by the vendor (as an until)
+# but ignored by the controller, so it is rejected
+_IN_THE_FUTURE = "must end in the future"
+
+
 # Test the ControlSystem APIs (incomplete)...
 # NOTE: not all systems support all modes, below we only test evohome modes
 
@@ -599,12 +604,11 @@ async def test_ctl_set_mode_zero_resolution(
         pytest.param(td(hours=-1), id="negative"),
     ],
 )
-async def test_ctl_set_mode_zero_resolution_warns(
+async def test_ctl_set_mode_zero_resolution_rejects(
     tcs: ControlSystem,
-    caplog: pytest.LogCaptureFixture,
     duration: td,
 ) -> None:
-    """Test a zero timing_resolution still warns if a duration is not positive."""
+    """Test a zero timing_resolution still requires a duration to be positive."""
 
     with (
         patch.object(
@@ -613,24 +617,22 @@ async def test_ctl_set_mode_zero_resolution_warns(
             new_callable=PropertyMock,
             return_value=(_ZERO_RESOLUTION_MODE,),
         ),
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
-        caplog.at_level(logging.WARNING),
+        pytest.raises(InvalidModeRequestError, match=_IN_THE_FUTURE),
     ):
         await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=duration)
-
-    mock_put.assert_awaited_once()
-    assert "should be positive" in caplog.text
 
 
 async def test_ctl_set_mode_period_at_least_one_day(
     tcs: ControlSystem,
+    freezer: FrozenDateTimeFactory,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test a period under a day is warned of, even if it is a valid multiple."""
+    """Test a period under a day is warned of, even if it is a valid multiple.
+
+    The controller runs such an Away until the coming midnight.
+    """
+
+    freezer.move_to("2025-07-10T06:00:00Z")  # the period ends at 11:00 UTC (12:00 BST)
 
     with (
         patch.object(
@@ -651,6 +653,26 @@ async def test_ctl_set_mode_period_at_least_one_day(
     mock_put.assert_awaited_once()
     assert "should be at least one day" in caplog.text
     assert "should be a multiple of" not in caplog.text
+
+
+async def test_ctl_set_mode_period_ended_earlier_today(
+    tcs: ControlSystem,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Test a period under a day is rejected, if it would have ended earlier today."""
+
+    freezer.move_to("2025-07-10T15:00:00Z")  # the period ended at 11:00 UTC (12:00 BST)
+
+    with (
+        patch.object(
+            type(tcs),
+            "allowed_system_modes",
+            new_callable=PropertyMock,
+            return_value=(_SUB_DAY_PERIOD_MODE,),
+        ),
+        pytest.raises(InvalidModeRequestError, match=_IN_THE_FUTURE),
+    ):
+        await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
 
 
 async def test_ctl_set_mode_period_of_one_day(
@@ -689,6 +711,12 @@ async def test_ctl_set_mode_period_of_one_day(
         pytest.param(SystemMode.AUTO, {"duration": td(hours=1)}, id="not_temporary"),
         pytest.param(SystemMode.AWAY, {"duration": td(hours=1)}, id="period_only"),
         pytest.param(SystemMode.AUTO_WITH_ECO, {"period": td(days=1)}, id="dur_only"),
+        pytest.param(SystemMode.AUTO_WITH_ECO, {"duration": td(0)}, id="dur_zero"),
+        pytest.param(
+            SystemMode.AUTO_WITH_ECO, {"duration": td(hours=-1)}, id="dur_negative"
+        ),
+        pytest.param(SystemMode.AWAY, {"period": td(0)}, id="period_zero"),
+        pytest.param(SystemMode.AWAY, {"period": td(days=-1)}, id="period_negative"),
     ],
 )
 async def test_ctl_set_mode_rejects(
@@ -705,24 +733,11 @@ async def test_ctl_set_mode_rejects(
 _AT_MOST = "should be at most"
 _A_MULTIPLE_OF = "should be a multiple of"
 _AT_LEAST_A_DAY = "should be at least one day"
-_POSITIVE = "should be positive"
 
 
 @pytest.mark.parametrize(
     ("system_mode", "kwargs", "match"),
     [
-        pytest.param(
-            SystemMode.AUTO_WITH_ECO, {"duration": td(0)}, _POSITIVE, id="dur_zero"
-        ),
-        pytest.param(
-            SystemMode.AUTO_WITH_ECO,
-            {"duration": td(hours=-1)},
-            _POSITIVE,
-            id="dur_negative",
-        ),
-        pytest.param(
-            SystemMode.AWAY, {"period": td(0)}, _AT_LEAST_A_DAY, id="period_zero"
-        ),
         pytest.param(
             SystemMode.AWAY,
             {"period": td(hours=12)},
@@ -754,12 +769,16 @@ _POSITIVE = "should be positive"
 )
 async def test_ctl_set_mode_warns(
     tcs: ControlSystem,
+    *,
+    freezer: FrozenDateTimeFactory,
     caplog: pytest.LogCaptureFixture,
     system_mode: SystemMode,
     kwargs: dict[str, Any],  # some of these are rejected by the overloads
     match: str,
 ) -> None:
     """Test set_mode() warns of a request that breaks a limit, but still sends it."""
+
+    freezer.move_to("2025-07-10T06:00:00Z")  # so a period of 12h ends in the future
 
     with (
         patch(
@@ -975,6 +994,15 @@ DURATION_REJECTS = [
         ZoneMode.PERMANENT_OVERRIDE, {"duration": td(hours=1)}, _MUST_BE_NONE, id="perm"
     ),
     pytest.param(ZoneMode.TEMPORARY_OVERRIDE, {}, "until must not be None", id="temp"),
+    pytest.param(
+        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(0)}, _IN_THE_FUTURE, id="zero"
+    ),
+    pytest.param(
+        ZoneMode.TEMPORARY_OVERRIDE,
+        {"duration": td(hours=-1)},
+        _IN_THE_FUTURE,
+        id="neg",
+    ),
     pytest.param(  # not allowed here (if it were: "use until", see edges tests)
         ZoneMode.VACATION_HOLD, {"duration": td(days=7)}, "Unsupported mode", id="vac"
     ),
@@ -1012,8 +1040,6 @@ async def test_dhw_set_mode_rejects_duration(
 
 
 DURATION_WARNS = [
-    pytest.param(td(0), _POSITIVE, id="zero"),
-    pytest.param(td(hours=-1), _POSITIVE, id="neg"),
     pytest.param(td(hours=25), _AT_MOST, id="long"),
     pytest.param(td(minutes=15), _A_MULTIPLE_OF, id="resolution"),
 ]
