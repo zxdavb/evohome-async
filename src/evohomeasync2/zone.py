@@ -715,6 +715,7 @@ class _ZoneBase[
                     SZ_CAN_BE_TEMPORARY: True,
                 }
                 # these are all or none (with min_duration, which is not used)
+                # TODO: add min_duration (or min_period) to the table, in future
                 if vacation_hold and SZ_MAX_DURATION in vacation_hold:
                     table[mode][SZ_MAX_DURATION] = vacation_hold[SZ_MAX_DURATION]
                     table[mode][SZ_TIMING_RESOLUTION] = vacation_hold[
