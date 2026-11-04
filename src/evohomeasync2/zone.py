@@ -111,8 +111,9 @@ if TYPE_CHECKING:
 
 _ONE_DAY = td(days=1)
 
-# a limit that is warned of (once), but is not one of the vendor's config keys
+# limits that are warned of (once), but are not among the vendor's config keys
 _MIN_LENGTH: Final = "min_length"  # a period should be at least one day
+_MIN_UNTIL: Final = "min_until"  # an until should be in the future
 
 # for values that the schema passes through, as the vendor's enums are incomplete
 _PLEASE_REPORT = (
@@ -140,6 +141,22 @@ class _TccModeMixin:
         self.location.client.logger.warning(
             f"{self}: For {mode}, {msg} (the request is sent anyway)"
         )
+
+    def _check_requested_until(
+        self, mode: SystemMode | ZoneMode, until: dt | str, /
+    ) -> dt:
+        """Return the until (as an aware datetime), warning (once) if it has passed.
+
+        The vendor accepts such an until (and reports the mode as in effect), but the
+        controller ignores it. Unlike a duration/period, it is not rejected, as it may
+        have passed only since the caller worked it out (e.g. from a schedule).
+        """
+
+        if (until := as_aware_dtm(until)) <= self.location.now():
+            self._warn_once(
+                mode, _MIN_UNTIL, f"until should be in the future, not '{until}'"
+            )
+        return until
 
     def _check_requested_length(
         self,
@@ -1050,7 +1067,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         A 'duration' ends that long from now. It must be positive, and should be a
         multiple of the zone's timing_resolution, and not exceed its max_duration (see
         setpoint_capabilities). If not, a warning is logged (once), and the request is
-        sent anyway. An until is not checked against these.
+        sent anyway. An until is not checked against these, but should be in the
+        future.
 
         TemporaryOverride requires an until or a duration (only one of them may be
         given), and the other modes allow neither (except that VacationHold allows an
@@ -1107,7 +1125,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Will accept a ZoneMode or a (snake_case) string for the 'mode'.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
-        but it must be TZ-aware (not naive).
+        but it must be TZ-aware (not naive). It should be in the future: if not, a
+        warning is logged (once), and the request is sent anyway.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -1127,7 +1146,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must be None, not '{until}'"
                 )
 
-            until = as_aware_dtm(until)
+            until = self._check_requested_until(mode, until)
 
         return await self._put_mode(
             mode, heat_setpoint_value=temperature, time_until=until

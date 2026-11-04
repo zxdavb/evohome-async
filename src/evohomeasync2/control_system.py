@@ -7,7 +7,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
 from warnings import deprecated
 
-from _evohome.helpers import Case, as_aware_dtm, as_local_time
+from _evohome.helpers import Case, as_local_time
 
 from . import exceptions as exc
 from .comm_task import CommTask
@@ -310,8 +310,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         A duration must be positive, and a period must end in the future (it should be
         at least one day). Either should be a multiple of the mode's timing_resolution,
         and not exceed its max_duration. If not, a warning is logged (once), and the
-        request is sent anyway. An until is not checked against these. Only one of the
-        three may be given.
+        request is sent anyway. An until is not checked against these, but should be
+        in the future. Only one of the three may be given.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -361,7 +361,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
-        but it must be TZ-aware (not naive).
+        but it must be TZ-aware (not naive). It should be in the future: if not, a
+        warning is logged (once), and the request is sent anyway.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -378,7 +379,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             )
 
         return await self._put_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME
-            system_mode, permanent=False, time_until=as_aware_dtm(until)
+            system_mode,
+            permanent=False,
+            time_until=self._check_requested_until(system_mode, until),
         )
 
     async def _set_tcc_mode(
