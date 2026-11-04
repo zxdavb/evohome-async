@@ -420,6 +420,23 @@ async def test_zon_allowed_modes_table_vacation_hold_no_limits(
     }
 
 
+async def test_zon_allowed_modes_table_vacation_hold_no_capabilities(
+    zone: Zone,
+) -> None:
+    """VacationHold's entry should not be temporary, if there are no capabilities.
+
+    A DHW has no vacation_hold_capabilities (nor need a zone).
+    """
+
+    table = zone._build_allowed_modes_table(
+        (ZoneMode.VACATION_HOLD,),
+        max_duration="1.00:00:00",
+        timing_resolution="00:10:00",  # these two are for TemporaryOverride
+    )
+
+    assert table[ZoneMode.VACATION_HOLD]["can_be_temporary"] is False
+
+
 async def test_zon_set_mode_vacation_hold_rejects_duration(
     zone: Zone,
 ) -> None:

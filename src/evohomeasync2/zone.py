@@ -691,6 +691,7 @@ class _ZoneBase[
         table: dict[ZoneMode, _AllowedModesT] = {}
 
         for mode in allowed_modes:
+            # TODO: add min_duration (or min_period, for system_mode)
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 table[mode] = {
                     SZ_MODE: mode,
@@ -714,14 +715,13 @@ class _ZoneBase[
                     SZ_CAN_BE_PERMANENT: True,
                     SZ_CAN_BE_TEMPORARY: False,
                 }
-                # these are all or none (with min_duration, which is not used)
-                # TODO: add min_duration (or min_period) to the table, in future
-                if vacation_hold and SZ_MAX_DURATION in vacation_hold:
-                    table[mode][SZ_CAN_BE_TEMPORARY] = True
-                    table[mode][SZ_MAX_DURATION] = vacation_hold[SZ_MAX_DURATION]
-                    table[mode][SZ_TIMING_RESOLUTION] = vacation_hold[
-                        SZ_TIMING_RESOLUTION
-                    ]
+                # its limits are all or none (with a min_duration)
+                if vacation_hold is not None and SZ_MAX_DURATION in vacation_hold:
+                    table[mode] |= {
+                        SZ_CAN_BE_TEMPORARY: True,
+                        SZ_MAX_DURATION: vacation_hold[SZ_MAX_DURATION],
+                        SZ_TIMING_RESOLUTION: vacation_hold[SZ_TIMING_RESOLUTION],
+                    }
 
         return table
 
