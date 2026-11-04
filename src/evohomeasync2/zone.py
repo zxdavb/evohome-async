@@ -120,7 +120,56 @@ _PLEASE_REPORT = (
 class _TccModeMixin:
     """Provide the base for entities with TCC-native (temporary) modes."""
 
-    location: Location  # used to get now()
+    location: Location  # used to get now(), and the logger
+
+    @cached_property
+    def _warned_rules(self) -> set[tuple[SystemMode | ZoneMode, str]]:
+        """Return the (mode, rule) pairs that have been warned of (so only once)."""
+        return set()
+
+    def _warn_once(self, mode: SystemMode | ZoneMode, rule: str, msg: str, /) -> None:
+        """Log that a request breaks one of its mode's rules, if not already logged."""
+
+        if (mode, rule) in self._warned_rules:
+            return
+        self._warned_rules.add((mode, rule))
+
+        self.location.client.logger.warning(
+            f"{self}: For {mode}, {msg} (the request is sent anyway)"
+        )
+
+    def _check_requested_length(
+        self,
+        mode: SystemMode | ZoneMode,
+        mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
+        timing_mode: TimingMode,
+        length: td,
+        /,
+    ) -> None:
+        """Warn (once) if a (positive) duration or period is not within its limits.
+
+        That is, if it is not a multiple of the timing_resolution, or if it exceeds the
+        max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
+        """
+
+        max_duration = mode_entry[SZ_MAX_DURATION]
+        timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
+
+        if length > as_timedelta(max_duration):
+            self._warn_once(
+                mode,
+                SZ_MAX_DURATION,
+                f"{timing_mode} should be at most '{max_duration}', not '{length}'",
+            )
+
+        # a zero timing_resolution has no multiples, so that check is left to the vendor
+        if (resolution := as_timedelta(timing_resolution)) and length % resolution:
+            self._warn_once(
+                mode,
+                SZ_TIMING_RESOLUTION,
+                f"{timing_mode} should be a multiple of '{timing_resolution}', "
+                f"not '{length}'",
+            )
 
     def _validate_requested_timespan(
         self,
@@ -136,28 +185,12 @@ class _TccModeMixin:
         The entry is the mode's row in the entity's table of allowed modes. A duration
         ends that long from now, and a period that long after the start of today (in
         the location's local time), so a period of one day ends at the coming midnight.
+
+        A request that breaks one of the entry's rules (can_be_permanent, timing_mode,
+        max_duration, timing_resolution) is logged as a warning (once per mode and
+        rule), but is allowed, as the vendor's server is the authority. A request that
+        cannot be made sense of is rejected.
         """
-
-        def is_valid_length(
-            timespan: td,
-            /,
-            *,
-            max_duration: str,
-            timing_resolution: str,
-        ) -> bool:
-            """Return True if a duration (or a period) is within its limits.
-
-            That is, if it is a (positive) multiple of the timing_resolution, and does not
-            exceed the max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
-            A zero timing_resolution has no multiples, so that check is left to the vendor.
-            """
-
-            resolution = as_timedelta(timing_resolution)
-            maximum = as_timedelta(max_duration)
-
-            return td(0) < timespan <= maximum and (
-                not resolution or not timespan % resolution
-            )
 
         if duration is not None and period is not None:
             raise exc.InvalidModeRequestError(
@@ -168,16 +201,25 @@ class _TccModeMixin:
             length, timing_mode = duration, TimingMode.DURATION
         elif period is not None:
             length, timing_mode = period, TimingMode.PERIOD
-        elif not mode_entry[SZ_CAN_BE_PERMANENT]:
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {mode_entry[SZ_TIMING_MODE]} must not be None"
-            )
         else:
+            if not mode_entry[SZ_CAN_BE_PERMANENT]:
+                self._warn_once(
+                    mode,
+                    SZ_CAN_BE_PERMANENT,
+                    f"{mode_entry.get(SZ_TIMING_MODE)} should not be None",
+                )
             return None
 
-        if mode_entry.get(SZ_TIMING_MODE) is not timing_mode:
+        if not mode_entry[SZ_CAN_BE_TEMPORARY]:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
+            )
+
+        if (expected := mode_entry.get(SZ_TIMING_MODE)) is not timing_mode:
+            self._warn_once(
+                mode,
+                SZ_TIMING_MODE,
+                f"{timing_mode} should be None, not '{length}' (expected {expected})",
             )
 
         if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
@@ -186,18 +228,12 @@ class _TccModeMixin:
                 f"not '{length}'"
             )
 
-        max_duration = mode_entry[SZ_MAX_DURATION]
-        timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
-
-        if not is_valid_length(
-            length,
-            max_duration=max_duration,
-            timing_resolution=timing_resolution,
-        ):
+        if length <= td(0):
             raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {timing_mode} must be a multiple of "
-                f"'{timing_resolution}' and at most '{max_duration}', not '{length}'"
+                f"{self}: For {mode}, {timing_mode} must be positive, not '{length}'"
             )
+
+        self._check_requested_length(mode, mode_entry, timing_mode, length)
 
         if timing_mode is TimingMode.PERIOD:
             start = self.location.now().replace(
@@ -999,9 +1035,10 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
 
-        A 'duration' ends that long from now. It must be positive, a multiple of the
-        zone's timing_resolution, and not exceed its max_duration (see
-        setpoint_capabilities). An until is not checked against these.
+        A 'duration' ends that long from now. It must be positive, and should be a
+        multiple of the zone's timing_resolution, and not exceed its max_duration (see
+        setpoint_capabilities). If not, a warning is logged (once), and the request is
+        sent anyway. An until is not checked against these.
 
         TemporaryOverride requires an until or a duration (only one of them may be
         given), and the other modes allow neither (except that VacationHold allows an
@@ -1100,12 +1137,15 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         A 'temperature' is required by the override modes, and is not allowed for
         FollowSchedule. It must be within the zone's min/max_heat_setpoint.
 
-        A 'duration' ends that long from now. It is required by TemporaryOverride, and
-        is not allowed for the other modes. It must be positive, a multiple of the
-        zone's timing_resolution, and not exceed its max_duration.
+        A 'duration' ends that long from now. It should be given for TemporaryOverride,
+        and must not be for the other modes. It must be positive, and should be a
+        multiple of the zone's timing_resolution, and not exceed its max_duration.
 
-        Unlike _set_mode(), the request is checked strictly against the zone's config
-        (see setpoint_capabilities). VacationHold is not supported: use _set_mode().
+        Unlike _set_mode(), the request is checked against the zone's config (see
+        setpoint_capabilities): if it only breaks a 'should', a warning is logged (once),
+        and the request is sent anyway.
+
+        VacationHold is not supported: use _set_mode().
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """

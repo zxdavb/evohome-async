@@ -227,9 +227,10 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
 
-        A 'duration' ends that long from now. It must be positive, a multiple of the
-        DHW's timing_resolution, and not exceed its max_duration (see
-        state_capabilities). An until is not checked against these.
+        A 'duration' ends that long from now. It must be positive, and should be a
+        multiple of the DHW's timing_resolution, and not exceed its max_duration (see
+        state_capabilities). If not, a warning is logged (once), and the request is
+        sent anyway. An until is not checked against these.
 
         TemporaryOverride requires an until or a duration (only one of them may be
         given), and the other modes allow neither (except that VacationHold allows an
@@ -323,12 +324,15 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         A 'state' is required by the override modes, and is not allowed for
         FollowSchedule. It must be one of the DHW's allowed_states.
 
-        A 'duration' ends that long from now. It is required by TemporaryOverride, and
-        is not allowed for the other modes. It must be positive, a multiple of the
-        DHW's timing_resolution, and not exceed its max_duration.
+        A 'duration' ends that long from now. It should be given for TemporaryOverride,
+        and must not be for the other modes. It must be positive, and should be a
+        multiple of the DHW's timing_resolution, and not exceed its max_duration.
 
-        Unlike _set_mode(), the request is checked strictly against the DHW's config
-        (see state_capabilities). VacationHold is not supported: use _set_mode().
+        Unlike _set_mode(), the request is checked against the DHW's config (see
+        state_capabilities): if it only breaks a 'should', a warning is logged (once),
+        and the request is sent anyway.
+
+        VacationHold is not supported: use _set_mode().
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
