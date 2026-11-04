@@ -317,14 +317,17 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if until is not None:
-            if duration is not None or period is not None:
-                raise exc.InvalidModeRequestError(
-                    f"{self}: Only one of until, duration or period may be given"
-                )
-            return await self._set_mode(system_mode, until=until)
+        if until is None:
+            return await self._set_tcc_mode(
+                system_mode, duration=duration, period=period
+            )
 
-        return await self._set_tcc_mode(system_mode, duration=duration, period=period)
+        if duration is not None or period is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of until, duration or period may be given"
+            )
+
+        return await self._set_mode(system_mode, until=until)
 
     async def _put_mode(
         self,

@@ -240,14 +240,15 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if until is not None:
-            if duration is not None:
-                raise exc.InvalidModeRequestError(
-                    f"{self}: Only one of until or duration may be given"
-                )
-            return await self._set_mode(mode, state=state, until=until)
+        if until is None:
+            return await self._set_tcc_mode(mode, state=state, duration=duration)
 
-        return await self._set_tcc_mode(mode, state=state, duration=duration)
+        if duration is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of until or duration may be given"
+            )
+
+        return await self._set_mode(mode, state=state, until=until)
 
     async def _put_mode(
         self,

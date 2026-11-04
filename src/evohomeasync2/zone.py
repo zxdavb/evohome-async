@@ -1026,16 +1026,17 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if until is not None:
-            if duration is not None:
-                raise exc.InvalidModeRequestError(
-                    f"{self}: Only one of until or duration may be given"
-                )
-            return await self._set_mode(mode, temperature=temperature, until=until)
+        if until is None:
+            return await self._set_tcc_mode(
+                mode, temperature=temperature, duration=duration
+            )
 
-        return await self._set_tcc_mode(
-            mode, temperature=temperature, duration=duration
-        )
+        if duration is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of until or duration may be given"
+            )
+
+        return await self._set_mode(mode, temperature=temperature, until=until)
 
     async def _put_mode(
         self,
