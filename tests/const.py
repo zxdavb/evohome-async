@@ -16,6 +16,11 @@ _DBG_USE_REAL_AIOHTTP = False  # use 'real' aiohttp to reach vendor's servers
 _DBG_WAIT_FOR_COMM_TASKS = False  # poll each comm task until it succeeds
 
 #
+# used to construct the default token cache
+TEST_USERNAME: Final = "username@email.com"
+TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
+
+#
 # the longest that a request may take to return (a GET, PUT, etc.)
 TIMEOUT_REAL_AIOHTTP: Final = 5  # seconds
 # the longest that a PUT's comm task may take to succeed (only if waited for), else skip
@@ -41,11 +46,6 @@ EDGE_FIXTURES: Final = ("default", "hass_118169")
 EDGE_FIXTURES_WITH_DHW: Final = ("default",)
 
 #
-#
-# used to construct the default token cache
-TEST_USERNAME: Final = "username@email.com"
-TEST_PASSWORD: Final = "P@ssw0rd!!"  # noqa: S105
-
 # vendors API URLs - the older API
 URL_CRED_V1 = f"https://{HOSTNAME}/WebAPI/api/session"
 URL_BASE_V1 = f"https://{HOSTNAME}/WebAPI/api"
