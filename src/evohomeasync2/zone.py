@@ -109,10 +109,6 @@ if TYPE_CHECKING:
         max_duration: NotRequired[str]  # TemporaryOverride, VacationHold (if any)
         timing_resolution: NotRequired[str]  # TemporaryOverride, VacationHold (if any)
         timing_mode: NotRequired[TimingMode]  # TemporaryOverride only
-        # VacationHold only, from the zone's vacation_hold_capabilities (if any)...
-        is_changeable: NotRequired[bool]
-        is_cancelable: NotRequired[bool]
-        min_duration: NotRequired[str]  # all or none of min/max_duration, resolution
 
 
 _ONE_DAY = td(days=1)
@@ -683,12 +679,13 @@ class _ZoneBase[
             "FollowSchedule":    {"mode": "FollowSchedule",    "can_be_permanent": true,  "can_be_temporary": false},
             "PermanentOverride": {"mode": "PermanentOverride", "can_be_permanent": true,  "can_be_temporary": false},
             "TemporaryOverride": {"mode": "TemporaryOverride", "can_be_permanent": false, "can_be_temporary": true, "timing_mode": "Duration", "max_duration": "1.00:00:00", "timing_resolution": "00:10:00"}
-            "VacationHold":      {"mode": "VacationHold",      "can_be_permanent": true,  "can_be_temporary": true, "is_changeable": true, "is_cancelable": true, "min_duration": "1.00:00:00", "max_duration": "365.23:45:00", "timing_resolution": "00:15:00"}
+            "VacationHold":      {"mode": "VacationHold",      "can_be_permanent": true,  "can_be_temporary": true, "max_duration": "365.23:45:00", "timing_resolution": "00:15:00"}
         }
 
-        VacationHold is seen only on non-evohome systems, and its entry includes the
-        zone's vacation_hold_capabilities (if any). It takes an until (or none), but not
-        a duration, so it has no timing_mode (and its limits are not checked).
+        VacationHold is seen only on non-evohome systems. Its max_duration and
+        timing_resolution are from the zone's vacation_hold_capabilities (if it has
+        them). It takes an until (or none), but not a duration, so it has no timing_mode
+        (and its limits are not checked).
         """
 
         table: dict[ZoneMode, _AllowedModesT] = {}
@@ -712,14 +709,17 @@ class _ZoneBase[
                 }
 
             elif mode is ZoneMode.VACATION_HOLD:
-                entry: _AllowedModesT = {
+                table[mode] = {
                     SZ_MODE: mode,
                     SZ_CAN_BE_PERMANENT: True,
                     SZ_CAN_BE_TEMPORARY: True,
                 }
-                table[mode] = (
-                    entry if vacation_hold is None else {**entry, **vacation_hold}
-                )
+                # these are all or none (with min_duration, which is not used)
+                if vacation_hold and SZ_MAX_DURATION in vacation_hold:
+                    table[mode][SZ_MAX_DURATION] = vacation_hold[SZ_MAX_DURATION]
+                    table[mode][SZ_TIMING_RESOLUTION] = vacation_hold[
+                        SZ_TIMING_RESOLUTION
+                    ]
 
         return table
 
