@@ -111,6 +111,27 @@ if TYPE_CHECKING:
 
 _ONE_DAY = td(days=1)
 
+
+def _is_valid_length(
+    timespan: td,
+    /,
+    *,
+    max_duration: str,
+    timing_resolution: str,
+) -> bool:
+    """Return True if a duration (or a period) is within its limits.
+
+    That is, if it is a (positive) multiple of the timing_resolution, and does not
+    exceed the max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
+    A zero timing_resolution has no multiples, so that check is left to the vendor.
+    """
+
+    resolution = as_timedelta(timing_resolution)
+    maximum = as_timedelta(max_duration)
+
+    return td(0) < timespan <= maximum and (not resolution or not timespan % resolution)
+
+
 # for values that the schema passes through, as the vendor's enums are incomplete
 _PLEASE_REPORT = (
     "is unknown, please report it at https://github.com/zxdavb/evohome-async/issues"
@@ -206,9 +227,12 @@ class _TccModeMixin:
 
         max_duration = mode_entry[SZ_MAX_DURATION]
         timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
-        resolution = as_timedelta(timing_resolution)  # a zero one has no multiples
 
-        if length > as_timedelta(max_duration) or (resolution and length % resolution):
+        if not _is_valid_length(
+            length,
+            max_duration=max_duration,
+            timing_resolution=timing_resolution,
+        ):
             logger.debug(
                 f"{self}: For {mode}, {timing_mode} should be a multiple of "
                 f"'{timing_resolution}', and at most '{max_duration}', not '{length}' "
