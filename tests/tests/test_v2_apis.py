@@ -1050,9 +1050,6 @@ async def test_dhw_set_mode_logs_duration(
             "temperature must not be None",
             id="missing",
         ),
-        pytest.param(
-            ZoneMode.PERMANENT_OVERRIDE, 99.0, "out of range", id="out_of_range"
-        ),
     ],
 )
 async def test_zon_set_mode_rejects_temperature(
@@ -1071,7 +1068,6 @@ async def test_zon_set_mode_rejects_temperature(
     ("temperature", "match"),
     [
         pytest.param(None, "temperature must not be None", id="missing"),
-        pytest.param(99.0, "out of range", id="out_of_range"),
     ],
 )
 async def test_zon_set_mode_rejects_temperature_with_duration(
@@ -1085,6 +1081,50 @@ async def test_zon_set_mode_rejects_temperature_with_duration(
         await zone.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, temperature=temperature, duration=td(hours=1)
         )
+
+
+# the zone's min/max_heat_setpoint are 5.0/35.0
+TEMPERATURE_WARNS = [
+    pytest.param(4.5, "should be from 5.0 to 35.0, not 4.5", id="too_low"),
+    pytest.param(35.5, "should be from 5.0 to 35.0, not 35.5", id="too_high"),
+]
+
+
+@pytest.mark.parametrize(("temperature", "match"), TEMPERATURE_WARNS)
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        pytest.param({}, id="permanent"),
+        pytest.param({"until": dt(2025, 7, 11, tzinfo=UTC)}, id="until"),
+        pytest.param({"duration": td(hours=1)}, id="duration"),
+    ],
+)
+async def test_zon_set_mode_warns_temperature(
+    zone: Zone,
+    caplog: pytest.LogCaptureFixture,
+    kwargs: dict[str, Any],  # some of these are rejected by the overloads
+    temperature: float,
+    match: str,
+) -> None:
+    """Test a zone's set_mode() warns of an out-of-range temperature, but sends it.
+
+    The vendor accepts (and stores) such a temperature, but the controller clamps it.
+    """
+
+    mode = ZoneMode.PERMANENT_OVERRIDE if not kwargs else ZoneMode.TEMPORARY_OVERRIDE
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        caplog.at_level(logging.WARNING),
+    ):
+        await zone.set_mode(mode, temperature=temperature, **kwargs)
+
+    assert mock_put.call_args[1]["json"]["heat_setpoint_value"] == temperature
+    assert match in caplog.text
 
 
 @pytest.mark.parametrize(
