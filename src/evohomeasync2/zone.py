@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from datetime import UTC, datetime as dt, time as tm, timedelta as td
 from functools import cached_property
 from http import HTTPStatus
@@ -133,7 +134,10 @@ class _TccModeMixin:
         but the controller ignores it, so it is rejected (as for a duration/period).
         """
 
-        if (until := as_aware_dtm(until)) <= self.location.now():
+        # compare instants: with a shared tzinfo, Python compares by wall clock, which
+        # is wrong in the hour repeated when DST ends (it ignores fold)
+        until = as_aware_dtm(until)
+        if until.astimezone(UTC) <= self.location.now().astimezone(UTC):
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, until must be in the future, not '{until}'"
             )
@@ -201,8 +205,9 @@ class _TccModeMixin:
         else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
             start = now.astimezone(UTC)
 
-        # the vendor accepts an until in the past, but the controller ignores it
-        if (until := start + length) <= now:
+        # the vendor accepts an until in the past, but the controller ignores it (the
+        # instants are compared, as a period's until is in local time: see above)
+        if (until := start + length).astimezone(UTC) <= now.astimezone(UTC):
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, {timing_mode} must end in the future, "
                 f"not '{length}' (it would end at {until})"
@@ -953,6 +958,13 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         if mode is ZoneMode.FOLLOW_SCHEDULE:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, temperature must be None, not '{temperature}'"
+            )
+
+        # NaN/infinity is not a valid JSON number (nor can the controller clamp it)
+        if not math.isfinite(temperature):
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, temperature must be a finite number, "
+                f"not '{temperature}'"
             )
 
         # the vendor accepts (and stores) such a temperature, but the controller clamps it
