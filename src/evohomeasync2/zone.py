@@ -124,6 +124,21 @@ class _TccModeMixin:
 
     location: Location  # used to get now(), and the logger
 
+    def _validate_requested_until(
+        self, mode: SystemMode | ZoneMode, until: dt | str, /
+    ) -> dt:
+        """Return the until (as an aware datetime), if it is in the future.
+
+        The vendor accepts an until that has passed (and reports the mode as in effect),
+        but the controller ignores it, so it is rejected (as for a duration/period).
+        """
+
+        if (until := as_aware_dtm(until)) <= self.location.now():
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, until must be in the future, not '{until}'"
+            )
+        return until
+
     def _validate_requested_timespan(
         self,
         mode: SystemMode | ZoneMode,
@@ -1029,7 +1044,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         A 'duration' ends that long from now. It must be positive, and should be a
         multiple of the zone's timing_resolution, and not exceed its max_duration (see
         setpoint_capabilities). If not, the request is sent anyway (the controller
-        honours it). An until is not checked against these.
+        honours it). An until is not checked against these, but must be in the
+        future.
 
         TemporaryOverride requires an until or a duration (only one of them may be
         given), and the other modes allow neither (except that VacationHold allows an
@@ -1087,7 +1103,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Will accept a ZoneMode or a (snake_case) string for the 'mode'.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
-        but it must be TZ-aware (not naive).
+        but it must be TZ-aware (not naive), and in the future.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -1107,7 +1123,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must be None, not '{until}'"
                 )
 
-            until = as_aware_dtm(until)
+            until = self._validate_requested_until(mode, until)
 
         return await self._put_mode(
             mode, heat_setpoint_value=temperature, time_until=until

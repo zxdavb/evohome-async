@@ -19,11 +19,12 @@ from .conftest import FIXTURES_V2 as FIXTURES
 from .const import PUT_RESPONSE_V2
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable
     from typing import Any, TypedDict
 
     from freezegun.api import FrozenDateTimeFactory
 
-    from evohomeasync2 import ControlSystem, HotWater, Zone
+    from evohomeasync2 import CommTask, ControlSystem, HotWater, Zone
     from evohomeasync2.typedefs import EvoAllowedSystemModesT
 
     class _SetZoneTimeT(TypedDict, total=False):  # the set time of a set_mode()
@@ -375,8 +376,11 @@ async def test_ctl_set_mode_accepts_str_mode(
 
 async def test_dhw_set_state_accepts_str_inputs(
     dhw: HotWater,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """A string state and an ISO-string until are accepted and normalised."""
+
+    freezer.move_to("2025-07-10T12:00:00Z")
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -1029,6 +1033,74 @@ async def test_dhw_set_mode_logs_duration(
     assert _OUTSIDE_LIMITS in caplog.text
 
 
+# the vendor accepts an until that has passed, but the controller ignores it
+_IN_THE_PAST = [
+    pytest.param(td(0), id="now"),
+    pytest.param(td(hours=-1), id="past"),
+]
+_UNTIL_IN_THE_FUTURE = "until must be in the future"
+
+
+async def _rejects_until(set_mode: Awaitable[CommTask], /) -> None:
+    """Await a set_mode() (with an until), and check it is rejected before any PUT."""
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        pytest.raises(InvalidModeRequestError, match=_UNTIL_IN_THE_FUTURE),
+    ):
+        await set_mode
+
+    mock_put.assert_not_awaited()
+
+
+@pytest.mark.parametrize("delta", _IN_THE_PAST)
+async def test_ctl_set_mode_rejects_until(tcs: ControlSystem, delta: td) -> None:
+    """Test set_mode() rejects an until that has passed."""
+
+    until = dt.now(tz=UTC) + delta
+    await _rejects_until(tcs.set_mode(SystemMode.AUTO_WITH_ECO, until=until))
+
+
+@pytest.mark.parametrize("delta", _IN_THE_PAST)
+async def test_zon_set_mode_rejects_until(zone: Zone, delta: td) -> None:
+    """Test a zone's set_mode() rejects an until that has passed."""
+
+    until = dt.now(tz=UTC) + delta
+    await _rejects_until(
+        zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, until=until)
+    )
+
+
+@pytest.mark.parametrize("delta", _IN_THE_PAST)
+async def test_dhw_set_mode_rejects_until(dhw: HotWater, delta: td) -> None:
+    """Test a DHW's set_mode() rejects an until that has passed."""
+
+    until = dt.now(tz=UTC) + delta
+    await _rejects_until(
+        dhw.set_mode(ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.ON, until=until)
+    )
+
+
+async def test_zon_set_mode_until_in_the_future(zone: Zone) -> None:
+    """Test a zone's set_mode() sends an until that is in the future."""
+
+    until = dt.now(tz=UTC) + td(hours=1)
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
+        await zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, until=until)
+
+    mock_put.assert_awaited_once()
+    assert mock_put.call_args[1]["json"]["time_until"] == until
+
+
 @pytest.mark.parametrize(
     ("mode", "temperature", "match"),
     [
@@ -1084,6 +1156,7 @@ TEMPERATURE_WARNS = [
 ]
 
 
+@pytest.mark.freeze_time("2025-07-10T12:00:00Z")  # so the until is in the future
 @pytest.mark.parametrize(("temperature", "match"), TEMPERATURE_WARNS)
 @pytest.mark.parametrize(
     "kwargs",
