@@ -139,6 +139,10 @@ class _TccModeMixin:
         period that long after the start of today (in the location's local time), so a
         period of one day ends at the coming midnight. A length that would end now, or in
         the past, is rejected.
+
+        The vendor accepts a duration/period that is not a multiple of the entry's
+        timing_resolution, or that exceeds its max_duration, and the controller honours
+        it, so it is only logged (as debug).
         """
 
         def is_valid_length(
@@ -202,9 +206,9 @@ class _TccModeMixin:
             max_duration=max_duration,
             timing_resolution=timing_resolution,
         ):
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {timing_mode} must be a multiple of "
-                f"'{timing_resolution}' and at most '{max_duration}', not '{length}'"
+            self.location.client.logger.debug(
+                f"{self}: For {mode}, {timing_mode} should be a multiple of "
+                f"'{timing_resolution}', and at most '{max_duration}', not '{length}'"
             )
 
         return until
@@ -1015,9 +1019,10 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
 
-        A 'duration' ends that long from now. It must be positive, a multiple of the
-        zone's timing_resolution, and not exceed its max_duration (see
-        setpoint_capabilities). An until is not checked against these.
+        A 'duration' ends that long from now. It must be positive, and should be a
+        multiple of the zone's timing_resolution, and not exceed its max_duration (see
+        setpoint_capabilities). If not, the request is sent anyway (the controller
+        honours it). An until is not checked against these.
 
         TemporaryOverride requires an until or a duration (only one of them may be
         given), and the other modes allow neither (except that VacationHold allows an
@@ -1117,11 +1122,12 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         FollowSchedule. It must be within the zone's min/max_heat_setpoint.
 
         A 'duration' ends that long from now. It is required by TemporaryOverride, and
-        is not allowed for the other modes. It must be positive, a multiple of the
-        zone's timing_resolution, and not exceed its max_duration.
+        is not allowed for the other modes. It must be positive, and should be a
+        multiple of the zone's timing_resolution, and not exceed its max_duration.
 
-        Unlike _set_mode(), the request is checked strictly against the zone's config
-        (see setpoint_capabilities). VacationHold is not supported: use _set_mode().
+        Unlike _set_mode(), the request is checked against the zone's config (see
+        setpoint_capabilities): if it only breaks a 'should', it is sent anyway.
+        VacationHold is not supported: use _set_mode().
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
