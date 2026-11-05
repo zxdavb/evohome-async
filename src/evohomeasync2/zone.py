@@ -128,16 +128,16 @@ class _TccModeMixin:
         self,
         mode: SystemMode | ZoneMode,
         mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
+        timing_mode: TimingMode,
+        length: td | None,
         /,
-        *,
-        duration: td | None = None,
-        period: td | None = None,
     ) -> dt | None:
         """Return when a mode ends (None if indefinitely), if valid for its entry.
 
-        The entry is the mode's row in the entity's table of allowed modes. A duration
-        ends that long from now, and a period that long after the start of today (in
-        the location's local time), so a period of one day ends at the coming midnight.
+        The entry is the mode's row in the entity's table of allowed modes. The length
+        is of the timing_mode requested: a duration ends that long from now, and a
+        period that long after the start of today (in the location's local time), so a
+        period of one day ends at the coming midnight.
         """
 
         def is_valid_length(
@@ -161,23 +161,14 @@ class _TccModeMixin:
                 not resolution or not timespan % resolution
             )
 
-        if duration is not None and period is not None:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Only one of duration or period may be given"
-            )
-
-        if duration is not None:
-            length, timing_mode = duration, TimingMode.DURATION
-        elif period is not None:
-            length, timing_mode = period, TimingMode.PERIOD
-        elif not mode_entry[SZ_CAN_BE_PERMANENT]:
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {mode_entry[SZ_TIMING_MODE]} must not be None"
-            )
-        else:
+        if length is None:
+            if not mode_entry[SZ_CAN_BE_PERMANENT]:
+                raise exc.InvalidModeRequestError(
+                    f"{self}: For {mode}, {mode_entry[SZ_TIMING_MODE]} must not be None"
+                )
             return None
 
-        if mode_entry.get(SZ_TIMING_MODE) is not timing_mode:
+        if timing_mode is not mode_entry.get(SZ_TIMING_MODE):
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
             )
@@ -744,7 +735,9 @@ class _ZoneBase[
         """Return when a mode ends (None if indefinitely), if valid for the duration."""
 
         mode_entry = self._allowed_modes_table[mode]
-        return self._validate_requested_timespan(mode, mode_entry, duration=duration)
+        return self._validate_requested_timespan(
+            mode, mode_entry, TimingMode.DURATION, duration
+        )
 
     # Status (state) attrs & methods...
 
