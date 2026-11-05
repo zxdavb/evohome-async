@@ -137,7 +137,8 @@ class _TccModeMixin:
         The entry is the mode's row in the entity's table of allowed modes. The length
         is of the timing_mode requested: a duration ends that long from now, and a
         period that long after the start of today (in the location's local time), so a
-        period of one day ends at the coming midnight.
+        period of one day ends at the coming midnight. A length that would end now, or in
+        the past, is rejected.
         """
 
         def is_valid_length(
@@ -173,6 +174,20 @@ class _TccModeMixin:
                 f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
             )
 
+        now = self.location.now()
+
+        if timing_mode is TimingMode.PERIOD:
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
+            start = now.astimezone(UTC)
+
+        # the vendor accepts an until in the past, but the controller ignores it
+        if (until := start + length) <= now:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {timing_mode} must end in the future, "
+                f"not '{length}' (it would end at {until})"
+            )
+
         if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, {timing_mode} must be at least one day, "
@@ -192,14 +207,7 @@ class _TccModeMixin:
                 f"'{timing_resolution}' and at most '{max_duration}', not '{length}'"
             )
 
-        if timing_mode is TimingMode.PERIOD:
-            start = self.location.now().replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
-        else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
-            start = self.location.now().astimezone(UTC)
-
-        return start + length
+        return until
 
 
 class EntityBase[StatusT]:
