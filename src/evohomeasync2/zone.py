@@ -940,9 +940,12 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                 f"{self}: For {mode}, temperature must be None, not '{temperature}'"
             )
 
+        # the vendor accepts (and stores) such a temperature, but the controller clamps it
         if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Invalid temperature: {temperature} (out of range)"
+            self._logger.warning(
+                f"{self}: For {mode}, temperature should be from {self.min_heat_setpoint} "
+                f"to {self.max_heat_setpoint}, not {temperature} (the controller will "
+                "clamp it)"
             )
 
         return temperature
@@ -1017,7 +1020,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Will accept a ZoneMode or a (snake_case) string for the 'mode'.
 
         A 'temperature' is required by the override modes, and is not allowed for
-        FollowSchedule. It must be within the zone's min/max_heat_setpoint.
+        FollowSchedule. It should be within the zone's min/max_heat_setpoint: if not,
+        the request is sent anyway, with a warning (the controller will clamp it).
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
@@ -1122,15 +1126,16 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Will accept a ZoneMode or a (snake_case) string for the 'mode'.
 
         A 'temperature' is required by the override modes, and is not allowed for
-        FollowSchedule. It must be within the zone's min/max_heat_setpoint.
+        FollowSchedule. It should be within the zone's min/max_heat_setpoint.
 
         A 'duration' ends that long from now. It is required by TemporaryOverride, and
         is not allowed for the other modes. It must be positive, and should be a
         multiple of the zone's timing_resolution, and not exceed its max_duration.
 
         Unlike _set_mode(), the request is checked against the zone's config (see
-        setpoint_capabilities): if it only breaks a 'should', it is sent anyway.
-        VacationHold is not supported: use _set_mode().
+        setpoint_capabilities): if it only breaks a 'should', it is sent anyway (with a
+        warning, if the controller will not do as asked). VacationHold is not
+        supported: use _set_mode().
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """

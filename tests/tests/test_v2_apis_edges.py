@@ -494,13 +494,6 @@ async def test_zon_set_mode_temporary_override_rejects_bad_args(
     with pytest.raises(evo2.InvalidModeRequestError):
         await zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0)
 
-    with pytest.raises(evo2.InvalidModeRequestError):
-        await zone.set_mode(
-            ZoneMode.TEMPORARY_OVERRIDE,
-            temperature=zone.max_heat_setpoint + 1.0,
-            until=dt.now(tz=UTC) + td(hours=1),
-        )
-
 
 # HotWater set_mode tests...
 
