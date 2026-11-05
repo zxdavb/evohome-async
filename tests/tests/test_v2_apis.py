@@ -515,7 +515,7 @@ _NOT_PERMANENT_MODE: EvoAllowedSystemModesT = {
 async def test_ctl_set_mode_not_permanent(
     tcs: ControlSystem,
 ) -> None:
-    """Test set_mode() ignores can_be_permanent, sans duration/period (as it always has)."""
+    """Test set_mode() rejects a mode that can't be permanent, sans until/duration/period."""
 
     with (
         patch.object(
@@ -524,17 +524,9 @@ async def test_ctl_set_mode_not_permanent(
             new_callable=PropertyMock,
             return_value=(_NOT_PERMANENT_MODE,),
         ),
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
+        pytest.raises(InvalidModeRequestError, match="until or duration must be given"),
     ):
         await tcs.set_mode(SystemMode.AUTO_WITH_ECO)
-
-    assert mock_put.call_args[1] == {
-        "json": {"system_mode": SystemMode.AUTO_WITH_ECO, "permanent": True}
-    }
 
 
 async def test_ctl_set_system_mode_not_permanent(
@@ -550,7 +542,7 @@ async def test_ctl_set_system_mode_not_permanent(
             return_value=(_NOT_PERMANENT_MODE,),
         ),
         pytest.warns(DeprecationWarning, match=r"use \.set_mode\(\)"),
-        pytest.raises(InvalidModeRequestError, match="duration must not be None"),
+        pytest.raises(InvalidModeRequestError, match="until or duration must be given"),
     ):
         await tcs.set_system_mode(SystemMode.AUTO_WITH_ECO)
 
@@ -845,7 +837,7 @@ async def test_ctl_set_mode_does_not_limit_until(
     tcs: ControlSystem,
     freezer: FrozenDateTimeFactory,
 ) -> None:
-    """Test set_mode() limits a duration by the max_duration, but not an until."""
+    """Test set_mode() does not check an until against the max_duration."""
 
     freezer.move_to("2025-07-10T12:00:00Z")
 
@@ -935,7 +927,9 @@ DURATION_REJECTS = [
     pytest.param(
         ZoneMode.PERMANENT_OVERRIDE, {"duration": td(hours=1)}, _MUST_BE_NONE, id="perm"
     ),
-    pytest.param(ZoneMode.TEMPORARY_OVERRIDE, {}, "until must not be None", id="temp"),
+    pytest.param(
+        ZoneMode.TEMPORARY_OVERRIDE, {}, "until or duration must be given", id="temp"
+    ),
     pytest.param(
         ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(0)}, _IN_THE_FUTURE, id="zero"
     ),
