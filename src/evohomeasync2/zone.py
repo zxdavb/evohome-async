@@ -170,8 +170,7 @@ class _TccModeMixin:
         if length is None:
             if not mode_entry[SZ_CAN_BE_PERMANENT]:
                 raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be "
-                    "given"
+                    f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be given"
                 )
             return None
 
