@@ -215,11 +215,14 @@ jobs:
           # Install Home Assistant in editable mode (needed for compiled translations)
           uv pip install -e . --config-settings editable_mode=compat
 
-          # HA's tests import their shared fixtures from this in-repo package;
-          # older HA versions don't have it
-          if [ -d packages/pytest-home-assistant ]; then
-            uv pip install -e packages/pytest-home-assistant --config-settings editable_mode=compat
-          fi
+          # HA's tests import their shared fixtures from this in-repo package; it
+          # was renamed (pytest-home-assistant -> pytest-homeassistant), and older
+          # HA versions don't have it
+          for pkg in packages/pytest-homeassistant packages/pytest-home-assistant; do
+            if [ -d "$pkg" ]; then
+              uv pip install -e "$pkg" --config-settings editable_mode=compat
+            fi
+          done
 
       - name: Compile English translations
         working-directory: home-assistant-core
