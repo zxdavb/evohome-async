@@ -142,7 +142,8 @@ class _TccModeMixin:
 
         The vendor accepts a duration/period that is not a multiple of the entry's
         timing_resolution, or that exceeds its max_duration, and the controller honours
-        it, so it is only logged (as debug).
+        it, so it is only logged (as debug). A period of less than one day is logged as
+        a warning, as the controller extends it to the coming midnight.
         """
 
         def is_valid_length(
@@ -192,10 +193,12 @@ class _TccModeMixin:
                 f"not '{length}' (it would end at {until})"
             )
 
+        logger = self.location.client.logger
+
         if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {timing_mode} must be at least one day, "
-                f"not '{length}'"
+            logger.warning(
+                f"{self}: For {mode}, {timing_mode} should be at least one day, not "
+                f"'{length}' (the controller will extend it to the coming midnight)"
             )
 
         max_duration = mode_entry[SZ_MAX_DURATION]
@@ -206,7 +209,7 @@ class _TccModeMixin:
             max_duration=max_duration,
             timing_resolution=timing_resolution,
         ):
-            self.location.client.logger.debug(
+            logger.debug(
                 f"{self}: For {mode}, {timing_mode} should be a multiple of "
                 f"'{timing_resolution}', and at most '{max_duration}', not '{length}'"
             )

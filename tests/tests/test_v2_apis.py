@@ -622,26 +622,6 @@ async def test_ctl_set_mode_zero_resolution_rejects(
         await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=duration)
 
 
-async def test_ctl_set_mode_period_at_least_one_day(
-    tcs: ControlSystem,
-    freezer: FrozenDateTimeFactory,
-) -> None:
-    """Test a period under a day is rejected, even if it is a valid multiple."""
-
-    freezer.move_to("2025-07-10T06:00:00Z")  # the period ends at 11:00 UTC (12:00 BST)
-
-    with (
-        patch.object(
-            type(tcs),
-            "allowed_system_modes",
-            new_callable=PropertyMock,
-            return_value=(_SUB_DAY_PERIOD_MODE,),
-        ),
-        pytest.raises(InvalidModeRequestError, match="at least one day"),
-    ):
-        await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
-
-
 async def test_ctl_set_mode_period_ended_earlier_today(
     tcs: ControlSystem,
     freezer: FrozenDateTimeFactory,
@@ -704,7 +684,6 @@ async def test_ctl_set_mode_period_of_one_day(
         ),
         pytest.param(SystemMode.AWAY, {"period": td(0)}, id="period_zero"),
         pytest.param(SystemMode.AWAY, {"period": td(days=-1)}, id="period_negative"),
-        pytest.param(SystemMode.AWAY, {"period": td(hours=12)}, id="period_too_short"),
     ],
 )
 async def test_ctl_set_mode_rejects(
@@ -765,6 +744,33 @@ async def test_ctl_set_mode_logs_outside_limits(
         for r in caplog.records
     )
     assert not any(r.levelno >= logging.WARNING for r in caplog.records)
+
+
+async def test_ctl_set_mode_warns_period_too_short(
+    tcs: ControlSystem,
+    freezer: FrozenDateTimeFactory,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test set_mode() warns of a period under a day (every time), but sends it.
+
+    The controller extends such an Away to the coming midnight.
+    """
+
+    freezer.move_to("2025-07-10T06:00:00Z")  # so a period of 12h ends in the future
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        caplog.at_level(logging.WARNING),
+    ):
+        await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
+        await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
+
+    assert mock_put.await_count == len(caplog.records)
+    assert all("should be at least one day" in r.getMessage() for r in caplog.records)
 
 
 async def test_ctl_set_system_mode_permanent(
