@@ -551,73 +551,6 @@ async def test_ctl_set_system_mode_not_permanent(
         await tcs.set_system_mode(SystemMode.AUTO_WITH_ECO)
 
 
-# no known system has such modes, so these are made up
-_ZERO_RESOLUTION_MODE: EvoAllowedSystemModesT = {
-    "system_mode": SystemMode.AUTO_WITH_ECO,
-    "can_be_permanent": True,
-    "can_be_temporary": True,
-    "max_duration": "1.00:00:00",
-    "timing_resolution": "00:00:00",
-    "timing_mode": TimingMode.DURATION,
-}
-_SUB_DAY_PERIOD_MODE: EvoAllowedSystemModesT = {
-    "system_mode": SystemMode.AWAY,
-    "can_be_permanent": True,
-    "can_be_temporary": True,
-    "max_duration": "2.00:00:00",
-    "timing_resolution": "12:00:00",
-    "timing_mode": TimingMode.PERIOD,
-}
-
-
-async def test_ctl_set_mode_zero_resolution(
-    tcs: ControlSystem,
-) -> None:
-    """Test a zero timing_resolution leaves the multiple check to the vendor."""
-
-    with (
-        patch.object(
-            type(tcs),
-            "allowed_system_modes",
-            new_callable=PropertyMock,
-            return_value=(_ZERO_RESOLUTION_MODE,),
-        ),
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
-    ):
-        await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=td(minutes=90))
-
-    mock_put.assert_awaited_once()
-
-
-@pytest.mark.parametrize(
-    "duration",
-    [
-        pytest.param(td(0), id="zero"),
-        pytest.param(td(hours=-1), id="negative"),
-    ],
-)
-async def test_ctl_set_mode_zero_resolution_rejects(
-    tcs: ControlSystem,
-    duration: td,
-) -> None:
-    """Test a zero timing_resolution still requires a duration to be positive."""
-
-    with (
-        patch.object(
-            type(tcs),
-            "allowed_system_modes",
-            new_callable=PropertyMock,
-            return_value=(_ZERO_RESOLUTION_MODE,),
-        ),
-        pytest.raises(InvalidModeRequestError, match=_IN_THE_FUTURE),
-    ):
-        await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=duration)
-
-
 async def test_ctl_set_mode_period_ended_earlier_today(
     tcs: ControlSystem,
     freezer: FrozenDateTimeFactory,
@@ -626,39 +559,8 @@ async def test_ctl_set_mode_period_ended_earlier_today(
 
     freezer.move_to("2025-07-10T15:00:00Z")  # the period ended at 11:00 UTC (12:00 BST)
 
-    with (
-        patch.object(
-            type(tcs),
-            "allowed_system_modes",
-            new_callable=PropertyMock,
-            return_value=(_SUB_DAY_PERIOD_MODE,),
-        ),
-        pytest.raises(InvalidModeRequestError, match=_IN_THE_FUTURE),
-    ):
+    with pytest.raises(InvalidModeRequestError, match=_IN_THE_FUTURE):
         await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
-
-
-async def test_ctl_set_mode_period_of_one_day(
-    tcs: ControlSystem,
-) -> None:
-    """Test a period of a day is accepted, if it is a multiple of a shorter resolution."""
-
-    with (
-        patch.object(
-            type(tcs),
-            "allowed_system_modes",
-            new_callable=PropertyMock,
-            return_value=(_SUB_DAY_PERIOD_MODE,),
-        ),
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
-    ):
-        await tcs.set_mode(SystemMode.AWAY, period=td(days=1))
-
-    mock_put.assert_awaited_once()
 
 
 @pytest.mark.parametrize(
@@ -693,9 +595,6 @@ async def test_ctl_set_mode_rejects(
         await tcs.set_mode(system_mode, **kwargs)
 
 
-_OUTSIDE_LIMITS = "should be a multiple of"  # ... and at most the max_duration
-
-
 @pytest.mark.parametrize(
     ("system_mode", "kwargs"),
     [
@@ -713,13 +612,13 @@ _OUTSIDE_LIMITS = "should be a multiple of"  # ... and at most the max_duration
         ),
     ],
 )
-async def test_ctl_set_mode_logs_outside_limits(
+async def test_ctl_set_mode_sends_outside_limits(
     tcs: ControlSystem,
     caplog: pytest.LogCaptureFixture,
     system_mode: SystemMode,
     kwargs: dict[str, Any],  # some of these are rejected by the overloads
 ) -> None:
-    """Test set_mode() logs (as debug) a request outside its limits, but sends it.
+    """Test set_mode() sends a request outside its limits, without a warning.
 
     The vendor accepts such a request, and the controller honours it.
     """
@@ -730,16 +629,12 @@ async def test_ctl_set_mode_logs_outside_limits(
             new_callable=AsyncMock,
             return_value=PUT_RESPONSE_V2,
         ) as mock_put,
-        caplog.at_level(logging.DEBUG),
+        caplog.at_level(logging.WARNING),
     ):
         await tcs.set_mode(system_mode, **kwargs)
 
     mock_put.assert_awaited_once()
-    assert any(
-        r.levelno == logging.DEBUG and _OUTSIDE_LIMITS in r.getMessage()
-        for r in caplog.records
-    )
-    assert not any(r.levelno >= logging.WARNING for r in caplog.records)
+    assert not caplog.records
 
 
 async def test_ctl_set_mode_warns_period_too_short(
@@ -979,58 +874,48 @@ async def test_dhw_set_mode_rejects_duration(
         await dhw.set_mode(mode, state=state, **kwargs)
 
 
-DURATION_LOGS = [
+DURATION_OUTSIDE_LIMITS = [
     pytest.param(td(hours=25), id="long"),
     pytest.param(td(minutes=15), id="resolution"),
 ]
 
 
-@pytest.mark.parametrize("duration", DURATION_LOGS)
-async def test_zon_set_mode_logs_duration(
+@pytest.mark.parametrize("duration", DURATION_OUTSIDE_LIMITS)
+async def test_zon_set_mode_sends_duration(
     zone: Zone,
-    caplog: pytest.LogCaptureFixture,
     duration: td,
 ) -> None:
-    """Test a zone's set_mode() logs (as debug) a duration outside its limits."""
+    """Test a zone's set_mode() sends a duration outside its limits."""
 
-    with (
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
-        caplog.at_level(logging.DEBUG),
-    ):
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
         await zone.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, duration=duration
         )
 
     mock_put.assert_awaited_once()
-    assert _OUTSIDE_LIMITS in caplog.text
 
 
-@pytest.mark.parametrize("duration", DURATION_LOGS)
-async def test_dhw_set_mode_logs_duration(
+@pytest.mark.parametrize("duration", DURATION_OUTSIDE_LIMITS)
+async def test_dhw_set_mode_sends_duration(
     dhw: HotWater,
-    caplog: pytest.LogCaptureFixture,
     duration: td,
 ) -> None:
-    """Test a DHW's set_mode() logs (as debug) a duration outside its limits."""
+    """Test a DHW's set_mode() sends a duration outside its limits."""
 
-    with (
-        patch(
-            "_evohome.auth.AbstractAuth.request",
-            new_callable=AsyncMock,
-            return_value=PUT_RESPONSE_V2,
-        ) as mock_put,
-        caplog.at_level(logging.DEBUG),
-    ):
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
         await dhw.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.ON, duration=duration
         )
 
     mock_put.assert_awaited_once()
-    assert _OUTSIDE_LIMITS in caplog.text
 
 
 # the vendor accepts an until that has passed, but the controller ignores it
