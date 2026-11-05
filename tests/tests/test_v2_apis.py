@@ -19,11 +19,12 @@ from .conftest import FIXTURES_V2 as FIXTURES
 from .const import PUT_RESPONSE_V2
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable
     from typing import Any, TypedDict
 
     from freezegun.api import FrozenDateTimeFactory
 
-    from evohomeasync2 import ControlSystem, HotWater, Zone
+    from evohomeasync2 import CommTask, ControlSystem, HotWater, Zone
     from evohomeasync2.typedefs import EvoAllowedSystemModesT
 
     class _SetZoneTimeT(TypedDict, total=False):  # the set time of a set_mode()
@@ -1027,6 +1028,93 @@ async def test_dhw_set_mode_logs_duration(
 
     mock_put.assert_awaited_once()
     assert _OUTSIDE_LIMITS in caplog.text
+
+
+# the vendor accepts an until that has passed, but the controller ignores it
+_IN_THE_PAST = [
+    pytest.param(td(0), id="now"),
+    pytest.param(td(hours=-1), id="past"),
+]
+_SHOULD_BE_FUTURE = "until should be in the future"
+
+
+async def _put_until(
+    caplog: pytest.LogCaptureFixture, set_mode: Awaitable[CommTask], /
+) -> dict[str, Any]:
+    """Await a set_mode() (with an until), and return the JSON of its PUT."""
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        caplog.at_level(logging.WARNING),
+    ):
+        await set_mode
+
+    mock_put.assert_awaited_once()
+    json: dict[str, Any] = mock_put.call_args[1]["json"]
+    return json
+
+
+@pytest.mark.parametrize("delta", _IN_THE_PAST)
+async def test_ctl_set_mode_warns_until(
+    tcs: ControlSystem, caplog: pytest.LogCaptureFixture, delta: td
+) -> None:
+    """Test set_mode() warns of an until that has passed, but still sends it."""
+
+    until = dt.now(tz=UTC) + delta
+    json = await _put_until(caplog, tcs.set_mode(SystemMode.AUTO_WITH_ECO, until=until))
+
+    assert json["time_until"] == until
+    assert _SHOULD_BE_FUTURE in caplog.text
+
+
+@pytest.mark.parametrize("delta", _IN_THE_PAST)
+async def test_zon_set_mode_warns_until(
+    zone: Zone, caplog: pytest.LogCaptureFixture, delta: td
+) -> None:
+    """Test a zone's set_mode() warns of an until that has passed, but sends it."""
+
+    until = dt.now(tz=UTC) + delta
+    json = await _put_until(
+        caplog,
+        zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, until=until),
+    )
+
+    assert json["time_until"] == until
+    assert _SHOULD_BE_FUTURE in caplog.text
+
+
+@pytest.mark.parametrize("delta", _IN_THE_PAST)
+async def test_dhw_set_mode_warns_until(
+    dhw: HotWater, caplog: pytest.LogCaptureFixture, delta: td
+) -> None:
+    """Test a DHW's set_mode() warns of an until that has passed, but sends it."""
+
+    until = dt.now(tz=UTC) + delta
+    json = await _put_until(
+        caplog,
+        dhw.set_mode(ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.ON, until=until),
+    )
+
+    assert json["until_time"] == until
+    assert _SHOULD_BE_FUTURE in caplog.text
+
+
+async def test_zon_set_mode_until_in_the_future(
+    zone: Zone, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test a zone's set_mode() does not warn of an until that is in the future."""
+
+    until = dt.now(tz=UTC) + td(hours=1)
+    await _put_until(
+        caplog,
+        zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, until=until),
+    )
+
+    assert _SHOULD_BE_FUTURE not in caplog.text
 
 
 @pytest.mark.parametrize(
