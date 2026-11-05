@@ -52,6 +52,7 @@ from .const import (
     SZ_TIMING_MODE,
     SZ_TIMING_RESOLUTION,
     SZ_UNTIL,
+    SZ_VACATION_HOLD_CAPABILITIES,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
     DayOfWeek,
@@ -85,6 +86,7 @@ if TYPE_CHECKING:
         EvoDhwStatusResponseT,
         EvoSetZoneHeatSetpointT,
         EvoTemperatureStatusT,
+        EvoVacationHoldCapabilitiesT,
         EvoZonConfigResponseT,
         EvoZonConfigT,
         EvoZonScheduleCapabilitiesT,
@@ -104,9 +106,9 @@ if TYPE_CHECKING:
         mode: ZoneMode
         can_be_permanent: bool
         can_be_temporary: bool
-        max_duration: NotRequired[str]  # when can_be_temporary is True
-        timing_resolution: NotRequired[str]  # when can_be_temporary is True
-        timing_mode: NotRequired[TimingMode]  # when can_be_temporary is True
+        max_duration: NotRequired[str]  # TemporaryOverride, VacationHold (if any)
+        timing_resolution: NotRequired[str]  # TemporaryOverride, VacationHold (if any)
+        timing_mode: NotRequired[TimingMode]  # TemporaryOverride only
 
 
 _ONE_DAY = td(days=1)
@@ -658,6 +660,7 @@ class _ZoneBase[
         *,
         max_duration: str,
         timing_resolution: str,
+        vacation_hold: EvoVacationHoldCapabilitiesT | None = None,
     ) -> dict[ZoneMode, _AllowedModesT]:
         """Return a table of the allowed modes, c.f. a TCS's _allowed_modes_table.
 
@@ -667,17 +670,19 @@ class _ZoneBase[
             "FollowSchedule":    {"mode": "FollowSchedule",    "can_be_permanent": true,  "can_be_temporary": false},
             "PermanentOverride": {"mode": "PermanentOverride", "can_be_permanent": true,  "can_be_temporary": false},
             "TemporaryOverride": {"mode": "TemporaryOverride", "can_be_permanent": false, "can_be_temporary": true, "timing_mode": "Duration", "max_duration": "1.00:00:00", "timing_resolution": "00:10:00"}
+            "VacationHold":      {"mode": "VacationHold",      "can_be_permanent": true,  "can_be_temporary": true, "max_duration": "365.23:45:00", "timing_resolution": "00:15:00"}
         }
 
-        Any other allowed modes are not included (e.g. VacationHold, which is seen only
-        on non-evohome systems, and has its own vacation_hold_capabilities).
+        VacationHold is seen only on non-evohome systems. It can be temporary only if the
+        zone's vacation_hold_capabilities have a max_duration and timing_resolution
+        (which are then in its entry). It takes an until, but not a duration, so it has
+        no timing_mode (and its limits are not checked).
         """
-
-        # TODO: handle ZoneMode.VACATION_HOLD
 
         table: dict[ZoneMode, _AllowedModesT] = {}
 
         for mode in allowed_modes:
+            # TODO: add min_duration (or min_period, for system_mode)
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 table[mode] = {
                     SZ_MODE: mode,
@@ -694,6 +699,20 @@ class _ZoneBase[
                     SZ_TIMING_RESOLUTION: timing_resolution,
                     SZ_TIMING_MODE: TimingMode.DURATION,
                 }
+
+            elif mode is ZoneMode.VACATION_HOLD:
+                table[mode] = {
+                    SZ_MODE: mode,
+                    SZ_CAN_BE_PERMANENT: True,
+                    SZ_CAN_BE_TEMPORARY: False,
+                }
+                # its limits are all or none (with a min_duration)
+                if vacation_hold is not None and SZ_MAX_DURATION in vacation_hold:
+                    table[mode] |= {
+                        SZ_CAN_BE_TEMPORARY: True,
+                        SZ_MAX_DURATION: vacation_hold[SZ_MAX_DURATION],
+                        SZ_TIMING_RESOLUTION: vacation_hold[SZ_TIMING_RESOLUTION],
+                    }
 
         return table
 
@@ -715,12 +734,7 @@ class _ZoneBase[
     ) -> dt | None:
         """Return when a mode ends (None if indefinitely), if valid for the duration."""
 
-        # the special case for VacationHold
-        if (mode_entry := self._allowed_modes_table.get(mode)) is None:  # VacationHold
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, use until, not duration"
-            )
-
+        mode_entry = self._allowed_modes_table[mode]
         return self._validate_requested_timespan(
             mode, mode_entry, TimingMode.DURATION, duration
         )
@@ -881,6 +895,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             self.allowed_modes,
             max_duration=self.setpoint_capabilities[SZ_MAX_DURATION],
             timing_resolution=self.setpoint_capabilities[SZ_TIMING_RESOLUTION],
+            vacation_hold=self.setpoint_capabilities.get(SZ_VACATION_HOLD_CAPABILITIES),
         )
 
     @property  # convenience attr
