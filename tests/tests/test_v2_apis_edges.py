@@ -343,15 +343,109 @@ async def test_zon_set_mode_vacation_hold_without_until(
     )
 
 
-async def test_zon_set_mode_vacation_hold_rejects_duration(
+async def test_zon_allowed_modes_table_vacation_hold(
     zone: Zone,
 ) -> None:
-    """Zone.set_mode(VacationHold) should refer the caller from a duration to an until."""
+    """A zone's table of allowed modes should include VacationHold, if it is allowed.
+
+    Its entry should have only the keys of the other modes' entries, and it can be
+    temporary only if it has the limits (from the zone's vacation_hold_capabilities).
+    """
 
     if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
         pytest.skip("Zone does not support VacationHold mode")
 
-    with pytest.raises(evo2.InvalidModeRequestError, match="use until, not duration"):
+    entry = zone._allowed_modes_table[ZoneMode.VACATION_HOLD]
+    keys = {k for e in zone._allowed_modes_table.values() for k in e if e is not entry}
+
+    assert entry["can_be_permanent"]
+    assert entry["can_be_temporary"] is ("timing_resolution" in entry)
+    assert "timing_mode" not in entry
+    assert set(entry) <= keys
+
+
+async def test_zon_allowed_modes_table_vacation_hold_limits(
+    zone: Zone,
+) -> None:
+    """VacationHold's entry should have the max_duration/timing_resolution, if any.
+
+    The capabilities are as per hass_032585, the only fixture that has them.
+    """
+
+    table = zone._build_allowed_modes_table(
+        (ZoneMode.VACATION_HOLD,),
+        max_duration="1.00:00:00",
+        timing_resolution="00:10:00",  # these two are for TemporaryOverride
+        vacation_hold={
+            "is_changeable": True,
+            "is_cancelable": True,
+            "min_duration": "1.00:00:00",
+            "max_duration": "365.23:45:00",
+            "timing_resolution": "00:15:00",
+        },
+    )
+
+    assert table == {
+        ZoneMode.VACATION_HOLD: {
+            "mode": ZoneMode.VACATION_HOLD,
+            "can_be_permanent": True,
+            "can_be_temporary": True,
+            "max_duration": "365.23:45:00",
+            "timing_resolution": "00:15:00",
+        }
+    }
+
+
+async def test_zon_allowed_modes_table_vacation_hold_no_limits(
+    zone: Zone,
+) -> None:
+    """VacationHold's entry should not be temporary, if it has no limits.
+
+    The capabilities are as per most fixtures that have VacationHold.
+    """
+
+    table = zone._build_allowed_modes_table(
+        (ZoneMode.VACATION_HOLD,),
+        max_duration="1.00:00:00",
+        timing_resolution="00:10:00",  # these two are for TemporaryOverride
+        vacation_hold={"is_changeable": False, "is_cancelable": True},
+    )
+
+    assert table == {
+        ZoneMode.VACATION_HOLD: {
+            "mode": ZoneMode.VACATION_HOLD,
+            "can_be_permanent": True,
+            "can_be_temporary": False,
+        }
+    }
+
+
+async def test_zon_allowed_modes_table_vacation_hold_no_capabilities(
+    zone: Zone,
+) -> None:
+    """VacationHold's entry should not be temporary, if there are no capabilities.
+
+    A DHW has no vacation_hold_capabilities (nor need a zone).
+    """
+
+    table = zone._build_allowed_modes_table(
+        (ZoneMode.VACATION_HOLD,),
+        max_duration="1.00:00:00",
+        timing_resolution="00:10:00",  # these two are for TemporaryOverride
+    )
+
+    assert table[ZoneMode.VACATION_HOLD]["can_be_temporary"] is False
+
+
+async def test_zon_set_mode_vacation_hold_rejects_duration(
+    zone: Zone,
+) -> None:
+    """Zone.set_mode(VacationHold) should reject a duration (it takes only an until)."""
+
+    if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
+        pytest.skip("Zone does not support VacationHold mode")
+
+    with pytest.raises(evo2.InvalidModeRequestError, match="duration must be None"):
         await zone.set_mode(
             ZoneMode.VACATION_HOLD, temperature=15.0, duration=td(days=7)
         )
