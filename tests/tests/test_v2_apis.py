@@ -42,6 +42,11 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     )
 
 
+# a timespan that would end now, or in the past, is accepted by the vendor (as an until)
+# but ignored by the controller, so it is rejected
+_IN_THE_FUTURE = "must end in the future"
+
+
 # Test the ControlSystem APIs (incomplete)...
 # NOTE: not all systems support all modes, below we only test evohome modes
 
@@ -592,16 +597,17 @@ async def test_ctl_set_mode_zero_resolution(
 
 
 @pytest.mark.parametrize(
-    "duration",
+    ("duration", "match"),
     [
-        pytest.param(td(0), id="zero"),
-        pytest.param(td(hours=-1), id="negative"),
-        pytest.param(td(hours=25), id="too_long"),
+        pytest.param(td(0), _IN_THE_FUTURE, id="zero"),
+        pytest.param(td(hours=-1), _IN_THE_FUTURE, id="negative"),
+        pytest.param(td(hours=25), "must be a multiple of", id="too_long"),
     ],
 )
 async def test_ctl_set_mode_zero_resolution_rejects(
     tcs: ControlSystem,
     duration: td,
+    match: str,
 ) -> None:
     """Test a zero timing_resolution leaves the other limits in place."""
 
@@ -612,15 +618,18 @@ async def test_ctl_set_mode_zero_resolution_rejects(
             new_callable=PropertyMock,
             return_value=(_ZERO_RESOLUTION_MODE,),
         ),
-        pytest.raises(InvalidModeRequestError, match="must be a multiple of"),
+        pytest.raises(InvalidModeRequestError, match=match),
     ):
         await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=duration)
 
 
 async def test_ctl_set_mode_period_at_least_one_day(
     tcs: ControlSystem,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test a period under a day is rejected, even if it is a valid multiple."""
+
+    freezer.move_to("2025-07-10T06:00:00Z")  # the period ends at 11:00 UTC (12:00 BST)
 
     with (
         patch.object(
@@ -630,6 +639,26 @@ async def test_ctl_set_mode_period_at_least_one_day(
             return_value=(_SUB_DAY_PERIOD_MODE,),
         ),
         pytest.raises(InvalidModeRequestError, match="at least one day"),
+    ):
+        await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
+
+
+async def test_ctl_set_mode_period_ended_earlier_today(
+    tcs: ControlSystem,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Test a period under a day is rejected, if it would have ended earlier today."""
+
+    freezer.move_to("2025-07-10T15:00:00Z")  # the period ended at 11:00 UTC (12:00 BST)
+
+    with (
+        patch.object(
+            type(tcs),
+            "allowed_system_modes",
+            new_callable=PropertyMock,
+            return_value=(_SUB_DAY_PERIOD_MODE,),
+        ),
+        pytest.raises(InvalidModeRequestError, match=_IN_THE_FUTURE),
     ):
         await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
 
@@ -866,10 +895,13 @@ DURATION_REJECTS = [
     ),
     pytest.param(ZoneMode.TEMPORARY_OVERRIDE, {}, "until must not be None", id="temp"),
     pytest.param(
-        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(0)}, _MULTIPLE_OF, id="zero"
+        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(0)}, _IN_THE_FUTURE, id="zero"
     ),
     pytest.param(
-        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(hours=-1)}, _MULTIPLE_OF, id="neg"
+        ZoneMode.TEMPORARY_OVERRIDE,
+        {"duration": td(hours=-1)},
+        _IN_THE_FUTURE,
+        id="neg",
     ),
     pytest.param(
         ZoneMode.TEMPORARY_OVERRIDE, {"duration": td(hours=25)}, _MULTIPLE_OF, id="long"
