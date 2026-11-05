@@ -306,7 +306,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
         Which of the two (if either) is allowed depends upon the mode's timing_mode
         (see allowed_system_modes). Without any of the three, the mode is set
-        indefinitely.
+        indefinitely, if it can_be_permanent.
 
         A duration must be positive, and a period must end in the future. Either should
         be a multiple of the mode's timing_resolution, and not exceed its max_duration,
@@ -317,15 +317,17 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if duration is None and period is None:
-            return await self._set_mode(system_mode, until=until)
+        if until is None:
+            return await self._set_tcc_mode(
+                system_mode, duration=duration, period=period
+            )
 
-        if until is not None:
+        if duration is not None or period is not None:
             raise exc.InvalidModeRequestError(
                 f"{self}: Only one of until, duration or period may be given"
             )
 
-        return await self._set_tcc_mode(system_mode, duration=duration, period=period)
+        return await self._set_mode(system_mode, until=until)
 
     async def _put_mode(
         self,

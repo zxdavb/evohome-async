@@ -239,15 +239,15 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if duration is None:
-            return await self._set_mode(mode, state=state, until=until)
+        if until is None:
+            return await self._set_tcc_mode(mode, state=state, duration=duration)
 
-        if until is not None:
+        if duration is not None:
             raise exc.InvalidModeRequestError(
                 f"{self}: Only one of until or duration may be given"
             )
 
-        return await self._set_tcc_mode(mode, state=state, duration=duration)
+        return await self._set_mode(mode, state=state, until=until)
 
     async def _put_mode(
         self,
@@ -330,7 +330,8 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         Unlike _set_mode(), the request is checked against the DHW's config (see
         state_capabilities): if it only breaks a 'should', it is sent anyway.
-        VacationHold is not supported: use _set_mode().
+
+        VacationHold can only be set indefinitely: for an until, use _set_mode().
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
