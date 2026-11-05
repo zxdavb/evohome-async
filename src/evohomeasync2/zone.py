@@ -13,7 +13,6 @@ from _evohome.helpers import (
     Case,
     as_aware_dtm,
     as_local_time,
-    as_timedelta,
     convert_dtm_to_local_aware,
 )
 
@@ -155,32 +154,11 @@ class _TccModeMixin:
         period of one day ends at the coming midnight. A length that would end now, or in
         the past, is rejected.
 
-        The vendor accepts a duration/period that is not a multiple of the entry's
-        timing_resolution, or that exceeds its max_duration, and the controller honours
-        it, so it is only logged (as debug). A period of less than one day is logged as
-        a warning, as the controller extends it to the coming midnight.
+        The entry's max_duration and timing_resolution are not checked: the vendor
+        accepts a duration/period outside them, and the controller honours it. A period
+        of less than one day is logged as a warning, as the controller extends it to
+        the coming midnight.
         """
-
-        def is_valid_length(
-            timespan: td,
-            /,
-            *,
-            max_duration: str,
-            timing_resolution: str,
-        ) -> bool:
-            """Return True if a duration (or a period) is within its limits.
-
-            That is, if it is a (positive) multiple of the timing_resolution, and does not
-            exceed the max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
-            A zero timing_resolution has no multiples, so that check is left to the vendor.
-            """
-
-            resolution = as_timedelta(timing_resolution)
-            maximum = as_timedelta(max_duration)
-
-            return td(0) < timespan <= maximum and (
-                not resolution or not timespan % resolution
-            )
 
         if length is None:
             if not mode_entry[SZ_CAN_BE_PERMANENT]:
@@ -208,25 +186,10 @@ class _TccModeMixin:
                 f"not '{length}' (it would end at {until})"
             )
 
-        logger = self.location.client.logger
-
         if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
-            logger.warning(
+            self.location.client.logger.warning(
                 f"{self}: For {mode}, {timing_mode} should be at least one day, not "
                 f"'{length}' (the controller will extend it to the coming midnight)"
-            )
-
-        max_duration = mode_entry[SZ_MAX_DURATION]
-        timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
-
-        if not is_valid_length(
-            length,
-            max_duration=max_duration,
-            timing_resolution=timing_resolution,
-        ):
-            logger.debug(
-                f"{self}: For {mode}, {timing_mode} should be a multiple of "
-                f"'{timing_resolution}', and at most '{max_duration}', not '{length}'"
             )
 
         return until
@@ -1041,11 +1004,10 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
 
-        A 'duration' ends that long from now. It must be positive, and should be a
-        multiple of the zone's timing_resolution, and not exceed its max_duration (see
-        setpoint_capabilities). If not, the request is sent anyway (the controller
-        honours it). An until is not checked against these, but must be in the
-        future.
+        A 'duration' ends that long from now, and must be positive. It is not checked
+        against the zone's max_duration or timing_resolution (see
+        setpoint_capabilities), as the controller honours it regardless. An until must
+        be in the future.
 
         TemporaryOverride requires an until or a duration (only one of them may be
         given), and the other modes allow neither (except that VacationHold allows an
@@ -1145,8 +1107,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         FollowSchedule. It should be within the zone's min/max_heat_setpoint.
 
         A 'duration' ends that long from now. It is required by TemporaryOverride, and
-        is not allowed for the other modes. It must be positive, and should be a
-        multiple of the zone's timing_resolution, and not exceed its max_duration.
+        is not allowed for the other modes. It must be positive (but is not checked
+        against the zone's max_duration or timing_resolution).
 
         Unlike _set_mode(), the request is checked against the zone's config (see
         setpoint_capabilities): if it only breaks a 'should', it is sent anyway (with a

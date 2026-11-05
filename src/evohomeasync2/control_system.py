@@ -308,12 +308,11 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         (see allowed_system_modes). Without any of the three, the mode is set
         indefinitely, if it can_be_permanent.
 
-        A duration must be positive, and a period must end in the future. Either should
-        be a multiple of the mode's timing_resolution, and not exceed its max_duration,
-        but the request is sent anyway (the controller honours it). A period of less
-        than one day is sent with a warning, as the controller extends it to midnight.
-        An until is not checked against these, but must be in the future. Only one of
-        the three may be given.
+        A duration must be positive, and a period must end in the future. Neither is
+        checked against the mode's max_duration or timing_resolution, as the controller
+        honours them regardless. A period of less than one day is sent with a warning,
+        as the controller extends it to midnight. An until must be in the future. Only
+        one of the three may be given.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -408,8 +407,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         (see allowed_system_modes). Without either, the mode is set indefinitely, if
         it can_be_permanent.
 
-        A duration must be positive, and a period must end in the future. Either should
-        be a multiple of the mode's timing_resolution, and not exceed its max_duration.
+        A duration must be positive, and a period must end in the future (neither is
+        checked against the mode's max_duration or timing_resolution).
 
         Unlike _set_mode(), the request is checked against the TCS's config: if it only
         breaks a 'should', it is sent anyway (with a warning, if the controller will not
