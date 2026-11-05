@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod
 from pathlib import Path
@@ -20,11 +21,12 @@ from .const import PUT_RESPONSE_V2
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
+    from contextlib import AbstractContextManager
     from typing import Any, TypedDict
 
     from freezegun.api import FrozenDateTimeFactory
 
-    from evohomeasync2 import CommTask, ControlSystem, HotWater, Zone
+    from evohomeasync2 import CommTask, ControlSystem, HotWater, Location, Zone
     from evohomeasync2.typedefs import EvoAllowedSystemModesT
 
     class _SetZoneTimeT(TypedDict, total=False):  # the set time of a set_mode()
@@ -638,6 +640,33 @@ async def test_ctl_set_mode_period_ended_earlier_today(
         await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
 
 
+# In Europe/London, the hour from 01:00 is repeated on 2026-10-25: first as BST
+# (+01:00), then as GMT (+00:00, i.e. fold=1). These tests patch location.now(), as
+# freezegun drops the fold (a frozen 01:15 UTC becomes 01:15 BST, i.e. 00:15 UTC).
+
+
+def _now_in_dst_fold(
+    location: Location, utc_now: dt, /
+) -> AbstractContextManager[object]:
+    """Patch location.now() to return utc_now in the location's TZ (keeping its fold)."""
+    return patch.object(
+        location, "now", return_value=utc_now.astimezone(location.tzinfo)
+    )
+
+
+async def test_ctl_set_mode_period_ended_in_dst_fold(tcs: ControlSystem) -> None:
+    """Test a period that has ended is rejected, in the hour repeated when DST ends.
+
+    At 01:15 GMT, a period of 90 mins ends at 01:30 BST (00:30 UTC), so has ended.
+    """
+
+    with (
+        _now_in_dst_fold(tcs.location, dt(2026, 10, 25, 1, 15, tzinfo=UTC)),
+        pytest.raises(InvalidModeRequestError, match=_IN_THE_FUTURE),
+    ):
+        await tcs.set_mode(SystemMode.AWAY, period=td(minutes=90))
+
+
 async def test_ctl_set_mode_period_of_one_day(
     tcs: ControlSystem,
 ) -> None:
@@ -1102,6 +1131,53 @@ async def test_zon_set_mode_until_in_the_future(zone: Zone) -> None:
 
 
 @pytest.mark.parametrize(
+    ("utc_now", "local_until", "puts"),
+    [  # each until is local time, as (hour, minute, fold): fold 0 is BST, 1 is GMT
+        pytest.param(  # now 01:15 GMT, until 01:45 BST (00:45 UTC): it has passed
+            dt(2026, 10, 25, 1, 15, tzinfo=UTC), (1, 45, 0), 0, id="passed"
+        ),
+        pytest.param(  # now 01:45 BST, until 01:15 GMT (01:15 UTC): it is ahead
+            dt(2026, 10, 25, 0, 45, tzinfo=UTC), (1, 15, 1), 1, id="ahead"
+        ),
+    ],
+)
+async def test_zon_set_mode_until_in_dst_fold(
+    zone: Zone,
+    utc_now: dt,
+    local_until: tuple[int, int, int],
+    puts: int,
+) -> None:
+    """Test an until is compared as an instant, in the hour repeated when DST ends.
+
+    The until has the location's own tzinfo, so would otherwise be compared to now by
+    wall clock: the one that has passed would be sent, and the one ahead rejected.
+    """
+
+    hour, minute, fold = local_until
+    until = dt(2026, 10, 25, hour, minute, fold=fold, tzinfo=zone.location.tzinfo)
+
+    with (
+        _now_in_dst_fold(zone.location, utc_now),
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+    ):
+        if not puts:
+            with pytest.raises(InvalidModeRequestError, match=_UNTIL_IN_THE_FUTURE):
+                await zone.set_mode(
+                    ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, until=until
+                )
+        else:
+            await zone.set_mode(
+                ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, until=until
+            )
+
+    assert mock_put.await_count == puts
+
+
+@pytest.mark.parametrize(
     ("mode", "temperature", "match"),
     [
         pytest.param(
@@ -1147,6 +1223,36 @@ async def test_zon_set_mode_rejects_temperature_with_duration(
         await zone.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, temperature=temperature, duration=td(hours=1)
         )
+
+
+@pytest.mark.parametrize(
+    "temperature",
+    [
+        pytest.param(math.nan, id="nan"),
+        pytest.param(math.inf, id="inf"),
+        pytest.param(-math.inf, id="-inf"),
+    ],
+)
+async def test_zon_set_mode_rejects_non_finite_temperature(
+    zone: Zone,
+    temperature: float,
+) -> None:
+    """Test a zone's set_mode() rejects a NaN/infinite temperature before any PUT.
+
+    It is not a valid JSON number, nor one that the controller can clamp.
+    """
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        pytest.raises(InvalidModeRequestError, match="must be a finite number"),
+    ):
+        await zone.set_mode(ZoneMode.PERMANENT_OVERRIDE, temperature=temperature)
+
+    mock_put.assert_not_awaited()
 
 
 # the zone's min/max_heat_setpoint are 5.0/35.0
