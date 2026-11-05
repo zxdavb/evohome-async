@@ -208,8 +208,7 @@ class _TccModeMixin:
         ):
             self.location.client.logger.debug(
                 f"{self}: For {mode}, {timing_mode} should be a multiple of "
-                f"'{timing_resolution}', and at most '{max_duration}', not '{length}' "
-                "(the request is sent anyway)"
+                f"'{timing_resolution}', and at most '{max_duration}', not '{length}'"
             )
 
         return until
