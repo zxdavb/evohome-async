@@ -376,8 +376,11 @@ async def test_ctl_set_mode_accepts_str_mode(
 
 async def test_dhw_set_state_accepts_str_inputs(
     dhw: HotWater,
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """A string state and an ISO-string until are accepted and normalised."""
+
+    freezer.move_to("2025-07-10T12:00:00Z")
 
     with patch(
         "_evohome.auth.AbstractAuth.request",
@@ -1035,13 +1038,11 @@ _IN_THE_PAST = [
     pytest.param(td(0), id="now"),
     pytest.param(td(hours=-1), id="past"),
 ]
-_SHOULD_BE_FUTURE = "until should be in the future"
+_UNTIL_IN_THE_FUTURE = "until must be in the future"
 
 
-async def _put_until(
-    caplog: pytest.LogCaptureFixture, set_mode: Awaitable[CommTask], /
-) -> dict[str, Any]:
-    """Await a set_mode() (with an until), and return the JSON of its PUT."""
+async def _rejects_until(set_mode: Awaitable[CommTask], /) -> None:
+    """Await a set_mode() (with an until), and check it is rejected before any PUT."""
 
     with (
         patch(
@@ -1049,72 +1050,55 @@ async def _put_until(
             new_callable=AsyncMock,
             return_value=PUT_RESPONSE_V2,
         ) as mock_put,
-        caplog.at_level(logging.WARNING),
+        pytest.raises(InvalidModeRequestError, match=_UNTIL_IN_THE_FUTURE),
     ):
         await set_mode
 
-    mock_put.assert_awaited_once()
-    json: dict[str, Any] = mock_put.call_args[1]["json"]
-    return json
+    mock_put.assert_not_awaited()
 
 
 @pytest.mark.parametrize("delta", _IN_THE_PAST)
-async def test_ctl_set_mode_warns_until(
-    tcs: ControlSystem, caplog: pytest.LogCaptureFixture, delta: td
-) -> None:
-    """Test set_mode() warns of an until that has passed, but still sends it."""
+async def test_ctl_set_mode_rejects_until(tcs: ControlSystem, delta: td) -> None:
+    """Test set_mode() rejects an until that has passed."""
 
     until = dt.now(tz=UTC) + delta
-    json = await _put_until(caplog, tcs.set_mode(SystemMode.AUTO_WITH_ECO, until=until))
-
-    assert json["time_until"] == until
-    assert _SHOULD_BE_FUTURE in caplog.text
+    await _rejects_until(tcs.set_mode(SystemMode.AUTO_WITH_ECO, until=until))
 
 
 @pytest.mark.parametrize("delta", _IN_THE_PAST)
-async def test_zon_set_mode_warns_until(
-    zone: Zone, caplog: pytest.LogCaptureFixture, delta: td
-) -> None:
-    """Test a zone's set_mode() warns of an until that has passed, but sends it."""
+async def test_zon_set_mode_rejects_until(zone: Zone, delta: td) -> None:
+    """Test a zone's set_mode() rejects an until that has passed."""
 
     until = dt.now(tz=UTC) + delta
-    json = await _put_until(
-        caplog,
-        zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, until=until),
+    await _rejects_until(
+        zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, until=until)
     )
 
-    assert json["time_until"] == until
-    assert _SHOULD_BE_FUTURE in caplog.text
-
 
 @pytest.mark.parametrize("delta", _IN_THE_PAST)
-async def test_dhw_set_mode_warns_until(
-    dhw: HotWater, caplog: pytest.LogCaptureFixture, delta: td
-) -> None:
-    """Test a DHW's set_mode() warns of an until that has passed, but sends it."""
+async def test_dhw_set_mode_rejects_until(dhw: HotWater, delta: td) -> None:
+    """Test a DHW's set_mode() rejects an until that has passed."""
 
     until = dt.now(tz=UTC) + delta
-    json = await _put_until(
-        caplog,
-        dhw.set_mode(ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.ON, until=until),
+    await _rejects_until(
+        dhw.set_mode(ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.ON, until=until)
     )
 
-    assert json["until_time"] == until
-    assert _SHOULD_BE_FUTURE in caplog.text
 
-
-async def test_zon_set_mode_until_in_the_future(
-    zone: Zone, caplog: pytest.LogCaptureFixture
-) -> None:
-    """Test a zone's set_mode() does not warn of an until that is in the future."""
+async def test_zon_set_mode_until_in_the_future(zone: Zone) -> None:
+    """Test a zone's set_mode() sends an until that is in the future."""
 
     until = dt.now(tz=UTC) + td(hours=1)
-    await _put_until(
-        caplog,
-        zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, until=until),
-    )
 
-    assert _SHOULD_BE_FUTURE not in caplog.text
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2,
+    ) as mock_put:
+        await zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, until=until)
+
+    mock_put.assert_awaited_once()
+    assert mock_put.call_args[1]["json"]["time_until"] == until
 
 
 @pytest.mark.parametrize(
@@ -1172,6 +1156,7 @@ TEMPERATURE_WARNS = [
 ]
 
 
+@pytest.mark.freeze_time("2025-07-10T12:00:00Z")  # so the until is in the future
 @pytest.mark.parametrize(("temperature", "match"), TEMPERATURE_WARNS)
 @pytest.mark.parametrize(
     "kwargs",

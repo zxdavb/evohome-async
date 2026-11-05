@@ -312,7 +312,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         be a multiple of the mode's timing_resolution, and not exceed its max_duration,
         but the request is sent anyway (the controller honours it). A period of less
         than one day is sent with a warning, as the controller extends it to midnight.
-        An until is not checked against these, but should be in the future. Only one of
+        An until is not checked against these, but must be in the future. Only one of
         the three may be given.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
@@ -366,8 +366,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
-        but it must be TZ-aware (not naive). It should be in the future: if not, a
-        warning is logged, and the request is sent anyway.
+        but it must be TZ-aware (not naive), and in the future.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -386,7 +385,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         return await self._put_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME
             system_mode,
             permanent=False,
-            time_until=self._check_requested_until(system_mode, until),
+            time_until=self._validate_requested_until(system_mode, until),
         )
 
     async def _set_tcc_mode(
