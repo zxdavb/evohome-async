@@ -205,9 +205,17 @@ class _TccModeMixin:
         else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
             start = now.astimezone(UTC)
 
+        try:  # a huge length (e.g. td.max) overflows a datetime
+            until = start + length
+            has_ended = until.astimezone(UTC) <= now.astimezone(UTC)
+        except OverflowError as err:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, {timing_mode} is out of range: '{length}'"
+            ) from err
+
         # the vendor accepts an until in the past, but the controller ignores it (the
         # instants are compared, as a period's until is in local time: see above)
-        if (until := start + length).astimezone(UTC) <= now.astimezone(UTC):
+        if has_ended:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, {timing_mode} must end in the future, "
                 f"not '{length}' (it would end at {until})"
