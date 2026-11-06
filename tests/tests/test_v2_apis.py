@@ -722,6 +722,38 @@ async def test_ctl_set_mode_rejects(
         await tcs.set_mode(system_mode, **kwargs)
 
 
+_OUT_OF_RANGE = "is out of range"  # a datetime would overflow
+
+
+@pytest.mark.parametrize(
+    ("system_mode", "kwargs"),
+    [
+        pytest.param(SystemMode.AUTO_WITH_ECO, {"duration": td.max}, id="dur_max"),
+        pytest.param(SystemMode.AUTO_WITH_ECO, {"duration": td.min}, id="dur_min"),
+        pytest.param(SystemMode.AWAY, {"period": td.max}, id="period_max"),
+        pytest.param(SystemMode.AWAY, {"period": td.min}, id="period_min"),
+    ],
+)
+async def test_ctl_set_mode_rejects_out_of_range(
+    tcs: ControlSystem,
+    system_mode: SystemMode,
+    kwargs: dict[str, Any],  # some of these are rejected by the overloads
+) -> None:
+    """Test set_mode() rejects a huge duration/period, rather than overflow."""
+
+    with (
+        patch(
+            "_evohome.auth.AbstractAuth.request",
+            new_callable=AsyncMock,
+            return_value=PUT_RESPONSE_V2,
+        ) as mock_put,
+        pytest.raises(InvalidModeRequestError, match=_OUT_OF_RANGE),
+    ):
+        await tcs.set_mode(system_mode, **kwargs)
+
+    mock_put.assert_not_awaited()
+
+
 _OUTSIDE_LIMITS = "should be a multiple of"  # ... and at most the max_duration
 
 
@@ -973,6 +1005,12 @@ DURATION_REJECTS = [
         {"duration": td(hours=-1)},
         _IN_THE_FUTURE,
         id="neg",
+    ),
+    pytest.param(
+        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td.max}, _OUT_OF_RANGE, id="max"
+    ),
+    pytest.param(
+        ZoneMode.TEMPORARY_OVERRIDE, {"duration": td.min}, _OUT_OF_RANGE, id="min"
     ),
     pytest.param(  # not allowed here (if it were, a duration is rejected: see edges tests)
         ZoneMode.VACATION_HOLD, {"duration": td(days=7)}, "Unsupported mode", id="vac"
