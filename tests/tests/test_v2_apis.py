@@ -823,10 +823,12 @@ async def test_ctl_set_mode_warns_period_too_short(
         ) as mock_put,
         caplog.at_level(logging.WARNING),
     ):
-        await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
-        await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
+        for _ in range(calls := 2):
+            await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
 
-    assert mock_put.await_count == len(caplog.records)
+    # each call is sent, and warns (i.e. not only the first)
+    assert mock_put.await_count == calls
+    assert len(caplog.records) == calls
     assert all("should be at least one day" in r.getMessage() for r in caplog.records)
 
 
