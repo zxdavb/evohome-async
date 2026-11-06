@@ -7,7 +7,7 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
 
-from _evohome.helpers import Case, as_aware_dtm, as_local_time
+from _evohome.helpers import Case, as_local_time
 
 from . import exceptions as exc
 from .comm_task import CommTask
@@ -227,9 +227,11 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive).
 
-        A 'duration' ends that long from now. It must be positive, a multiple of the
-        DHW's timing_resolution, and not exceed its max_duration (see
-        state_capabilities). An until is not checked against these.
+        A 'duration' ends that long from now. It must be positive, and should be a
+        multiple of the DHW's timing_resolution, and not exceed its max_duration (see
+        state_capabilities). If not, the request is sent anyway (the controller
+        honours it). An until is not checked against these, but must be in the
+        future.
 
         TemporaryOverride requires an until or a duration (only one of them may be
         given), and the other modes allow neither (except that VacationHold allows an
@@ -238,15 +240,15 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if duration is None:
-            return await self._set_mode(mode, state=state, until=until)
+        if until is None:
+            return await self._set_tcc_mode(mode, state=state, duration=duration)
 
-        if until is not None:
+        if duration is not None:
             raise exc.InvalidModeRequestError(
                 f"{self}: Only one of until or duration may be given"
             )
 
-        return await self._set_tcc_mode(mode, state=state, duration=duration)
+        return await self._set_mode(mode, state=state, until=until)
 
     async def _put_mode(
         self,
@@ -284,7 +286,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Will accept a ZoneMode/DhwState or a (snake_case) string for 'mode'/'state'.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
-        but it must be TZ-aware (not naive).
+        but it must be TZ-aware (not naive), and in the future.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -304,7 +306,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must be None, not '{until}'"
                 )
 
-            until = as_aware_dtm(until)
+            until = self._validate_requested_until(mode, until)
 
         return await self._put_mode(mode, state=state, until_time=until)
 
@@ -324,11 +326,13 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         FollowSchedule. It must be one of the DHW's allowed_states.
 
         A 'duration' ends that long from now. It is required by TemporaryOverride, and
-        is not allowed for the other modes. It must be positive, a multiple of the
-        DHW's timing_resolution, and not exceed its max_duration.
+        is not allowed for the other modes. It must be positive, and should be a
+        multiple of the DHW's timing_resolution, and not exceed its max_duration.
 
-        Unlike _set_mode(), the request is checked strictly against the DHW's config
-        (see state_capabilities). VacationHold is not supported: use _set_mode().
+        Unlike _set_mode(), the request is checked against the DHW's config (see
+        state_capabilities): if it only breaks a 'should', it is sent anyway.
+
+        VacationHold can only be set indefinitely: for an until, use _set_mode().
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """

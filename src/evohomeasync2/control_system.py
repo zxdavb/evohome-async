@@ -7,7 +7,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
 from warnings import deprecated
 
-from _evohome.helpers import Case, as_aware_dtm, as_local_time
+from _evohome.helpers import Case, as_local_time
 
 from . import exceptions as exc
 from .comm_task import CommTask
@@ -31,6 +31,7 @@ from .const import (
     SZ_ZONES,
     SystemMode,
     TcsModelType,
+    TimingMode,
 )
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
@@ -305,24 +306,29 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
         Which of the two (if either) is allowed depends upon the mode's timing_mode
         (see allowed_system_modes). Without any of the three, the mode is set
-        indefinitely.
+        indefinitely, if it can_be_permanent.
 
-        A duration must be positive, and a period at least one day. Either must be a
-        multiple of the mode's timing_resolution, and not exceed its max_duration. An
-        until is not checked against these. Only one of the three may be given.
+        A duration must be positive, and a period must end in the future. Either should
+        be a multiple of the mode's timing_resolution, and not exceed its max_duration,
+        but the request is sent anyway (the controller honours it). A period of less
+        than one day is sent with a warning, as the controller extends it to midnight.
+        An until is not checked against these, but must be in the future. Only one of
+        the three may be given.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if duration is None and period is None:
-            return await self._set_mode(system_mode, until=until)
+        if until is None:
+            return await self._set_tcc_mode(
+                system_mode, duration=duration, period=period
+            )
 
-        if until is not None:
+        if duration is not None or period is not None:
             raise exc.InvalidModeRequestError(
                 f"{self}: Only one of until, duration or period may be given"
             )
 
-        return await self._set_tcc_mode(system_mode, duration=duration, period=period)
+        return await self._set_mode(system_mode, until=until)
 
     async def _put_mode(
         self,
@@ -360,7 +366,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
-        but it must be TZ-aware (not naive).
+        but it must be TZ-aware (not naive), and in the future.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
@@ -377,7 +383,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             )
 
         return await self._put_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME
-            system_mode, permanent=False, time_until=as_aware_dtm(until)
+            system_mode,
+            permanent=False,
+            time_until=self._validate_requested_until(system_mode, until),
         )
 
     async def _set_tcc_mode(
@@ -400,19 +408,31 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         (see allowed_system_modes). Without either, the mode is set indefinitely, if
         it can_be_permanent.
 
-        A duration must be positive, and a period at least one day. Either must be a
-        multiple of the mode's timing_resolution, and not exceed its max_duration.
+        A duration must be positive, and a period must end in the future. Either should
+        be a multiple of the mode's timing_resolution, and not exceed its max_duration.
 
-        Unlike _set_mode(), the request is checked strictly against the TCS's config.
+        Unlike _set_mode(), the request is checked against the TCS's config: if it only
+        breaks a 'should', it is sent anyway (with a warning, if the controller will not
+        do as asked).
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
+        if duration is not None and period is not None:
+            raise exc.InvalidModeRequestError(
+                f"{self}: Only one of duration or period may be given"
+            )
+
         system_mode = self._validate_requested_mode(system_mode)
         mode_entry = self._allowed_modes_table[system_mode]
 
+        if period is None:
+            timing_mode, length = TimingMode.DURATION, duration
+        else:
+            timing_mode, length = TimingMode.PERIOD, period
+
         until = self._validate_requested_timespan(
-            system_mode, mode_entry, duration=duration, period=period
+            system_mode, mode_entry, timing_mode, length
         )
         return await self._put_mode(
             system_mode, permanent=until is None, time_until=until
