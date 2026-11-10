@@ -16,6 +16,7 @@ from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
+from .const import SZ_LATEST_EULA_ACCEPTED
 from .schemas import S1_SESSION_ID, TCC_POST_USR_SESSION
 
 if TYPE_CHECKING:
@@ -202,7 +203,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
         if (
             not self._eula_warned
-            and self._user_info.get("latest_eula_accepted") is False
+            and self._user_info.get(SZ_LATEST_EULA_ACCEPTED) is False
         ):
             self._eula_warned = True
             self._logger.info("The latest EULA has not been accepted by the user")
