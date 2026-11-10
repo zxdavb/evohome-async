@@ -19,6 +19,7 @@ from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
 from .const import URL_BASE, URL_CRED
+from .schemas.account import TCC_POST_OAUTH_TOKEN
 from .schemas.const import (
     OAUTH_ACCESS_TOKEN,
     OAUTH_EXPIRES_IN,
@@ -66,15 +67,8 @@ class EvoAccessTokenEntryT(TypedDict):
     refresh_token: str
 
 
-SCH_OAUTH_TOKEN: Final = vol.Schema(
-    {
-        vol.Required(OAUTH_ACCESS_TOKEN): vol.All(str, redact),
-        vol.Required(OAUTH_EXPIRES_IN): int,  # 1800 seconds
-        vol.Required(OAUTH_REFRESH_TOKEN): vol.All(str, redact),
-        vol.Required(OAUTH_TOKEN_TYPE): str,
-        vol.Optional(OAUTH_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
-    }
-)
+# TODO: deprecate, then remove in v4: use schemas.account.TCC_POST_OAUTH_TOKEN
+SCH_OAUTH_TOKEN: Final = TCC_POST_OAUTH_TOKEN  # not used internally
 
 CREDS_REFRESH_TOKEN: Final = {
     OAUTH_GRANT_TYPE: "refresh_token",
@@ -238,7 +232,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
         try:  # the dict _should_ be the expected schema...
             self._logger.debug(
-                f"POST {url}: {SCH_OAUTH_TOKEN(response)}"  # secrets are redacted via validator
+                f"POST {url}: {TCC_POST_OAUTH_TOKEN(response)}"  # secrets are redacted via validator
             )
 
         except vol.Invalid as err:
