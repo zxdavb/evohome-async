@@ -196,10 +196,17 @@ class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/D
 
     Which keys are present depends upon the reason (e.g. CONFLICTING_ARGS has none),
     so a message for a reason may only use the placeholders that its reason supplies.
+
+    This library always supplies a reason, but it is optional (so the reason may be
+    None), so that it can still be raised with only a message (e.g. by a test double).
     """
 
     def __init__(
-        self, message: str, /, *, reason: ModeRequestErrorReason, **details: str
+        self,
+        message: str,
+        *,
+        reason: ModeRequestErrorReason | None = None,
+        **details: str,
     ) -> None:
         super().__init__(message)
         self.reason = reason

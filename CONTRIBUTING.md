@@ -125,10 +125,11 @@ the HA integration), for `ApiCallFailedError` and `InvalidModeRequestError`. Acc
 either emits a `DeprecationWarning` (they are served by a module `__getattr__()`, from
 `deprecated_getattr()` in `_evohome/exceptions.py`).
 
-Each `InvalidModeRequestError` has a `reason` (a `ModeRequestErrorReason`) and its
-`details` (only the structured values that its message may use as placeholders: `mode`,
-`timing_mode`, `state`, `max_duration`), so that callers (e.g. HA) need not parse its
-message. The reasons' values are public API: renaming or removing one is a breaking
+Each `InvalidModeRequestError` that the library raises has a `reason` (a
+`ModeRequestErrorReason`) and its `details` (only the structured values that its message
+may use as placeholders: `mode`, `timing_mode`, `state`, `max_duration`), so that
+callers (e.g. HA) need not parse its message. The `reason` is optional only so that the
+error can still be raised with a bare message (e.g. by HA's tests). The reasons' values are public API: renaming or removing one is a breaking
 change, but adding one is not. Add any new raise site to
 `tests/tests/test_v2_mode_request_reasons.py`.
 

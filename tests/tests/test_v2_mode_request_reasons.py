@@ -275,3 +275,13 @@ def test_mode_request_error_reasons_are_all_raised() -> None:
 
     raised = {case.values[1] for case in CASES}
     assert raised == set(Reason)
+
+
+def test_mode_request_error_without_a_reason() -> None:
+    """Test the error can still be raised with only a message (as before reasons)."""
+
+    err = InvalidModeRequestError("Unsupported mode: xxx")  # e.g. as HA's tests do
+
+    assert err.message == "Unsupported mode: xxx"
+    assert err.reason is None
+    assert err.details == {}
