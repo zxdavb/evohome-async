@@ -175,6 +175,7 @@ class RequestErrorReason(StrEnum):
     TIMESPAN_NOT_ALLOWED = "set_timespan_not_allowed"  # the mode can only be permanent
     TIMESPAN_CONFLICTING = "set_timespan_conflicting"  # e.g. an until and a duration
     TIMESPAN_UNSUPPORTED = "set_timespan_unsupported"  # e.g. a duration, not a period
+    TIMESPAN_INVALID = "set_timespan_invalid"  # e.g. a naive until, or not a datetime
     TIMESPAN_OUT_OF_RANGE = "set_timespan_out_of_range"  # too large for a datetime
     TIMESPAN_NOT_IN_FUTURE = "set_timespan_not_in_future"  # it would have ended already
     TEMPERATURE_REQUIRED = "set_temperature_required"
