@@ -16,13 +16,26 @@ from typing import Final
 
 from _evohome.helpers import TCC_DTM_STRFTIME as TCC_DTM_STRFTIME  # noqa: PLC0414
 
-# OAuth API strings — JSON key names use snake_case
+# OAuth API strings (POST /Auth/OAuth/Token: a form-encoded request, a JSON response)
+# - key names use snake_case (as per OAuth2), except the vendor's Username/Password
 
-SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
-SZ_EXPIRES_IN: Final = "expires_in"
-SZ_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
-SZ_SCOPE: Final = "scope"
-SZ_TOKEN_TYPE: Final = "token_type"  # noqa: S105
+OAUTH_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
+OAUTH_EXPIRES_IN: Final = "expires_in"
+OAUTH_GRANT_TYPE: Final = "grant_type"
+OAUTH_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
+OAUTH_SCOPE: Final = "scope"
+OAUTH_TOKEN_TYPE: Final = "token_type"  # noqa: S105
+
+# NOTE: these two keys are case-sensitive (i.e. not 'password' and 'username')
+OAUTH_PASSWORD: Final = "Password"  # noqa: S105
+OAUTH_USERNAME: Final = "Username"
+
+# TODO: deprecate, then remove in v4: use the OAUTH_* equivalents
+SZ_ACCESS_TOKEN: Final = OAUTH_ACCESS_TOKEN
+SZ_EXPIRES_IN: Final = OAUTH_EXPIRES_IN
+SZ_REFRESH_TOKEN: Final = OAUTH_REFRESH_TOKEN
+SZ_SCOPE: Final = OAUTH_SCOPE
+SZ_TOKEN_TYPE: Final = OAUTH_TOKEN_TYPE
 
 
 # Vendor API strings — JSON key names use camelCase

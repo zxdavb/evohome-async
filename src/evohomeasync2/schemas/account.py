@@ -18,6 +18,11 @@ import probatio as vol
 from _evohome.helpers import Case, camel_to_snake, noop, redact
 
 from .const import (
+    OAUTH_ACCESS_TOKEN,
+    OAUTH_EXPIRES_IN,
+    OAUTH_REFRESH_TOKEN,
+    OAUTH_SCOPE,
+    OAUTH_TOKEN_TYPE,
     REGEX_TASK_ID,
     S2_CITY,
     S2_CODE,
@@ -34,11 +39,6 @@ from .const import (
     S2_STREET_ADDRESS,
     S2_USER_ID,
     S2_USERNAME,
-    SZ_ACCESS_TOKEN,
-    SZ_EXPIRES_IN,
-    SZ_REFRESH_TOKEN,
-    SZ_SCOPE,
-    SZ_TOKEN_TYPE,
     TccCommTaskState,
 )
 from .helpers import factory_enum_or_str
@@ -74,11 +74,11 @@ def factory_post_oauth_token(_: Case = Case.VENDOR) -> Validator[TccOAuthTokenRe
 
     return vol.Schema(
         {
-            vol.Required(SZ_ACCESS_TOKEN): vol.All(str, redact),
-            vol.Required(SZ_EXPIRES_IN): vol.Range(min=1770, max=1800),  # usu. 179x
-            vol.Required(SZ_REFRESH_TOKEN): vol.All(str, redact),
-            vol.Optional(SZ_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
-            vol.Required(SZ_TOKEN_TYPE): str,
+            vol.Required(OAUTH_ACCESS_TOKEN): vol.All(str, redact),
+            vol.Required(OAUTH_EXPIRES_IN): vol.Range(min=1770, max=1800),  # usu. 179x
+            vol.Required(OAUTH_REFRESH_TOKEN): vol.All(str, redact),
+            vol.Optional(OAUTH_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
+            vol.Required(OAUTH_TOKEN_TYPE): str,
         }
     )
 

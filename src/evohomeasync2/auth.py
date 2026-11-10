@@ -19,6 +19,16 @@ from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
 from .const import URL_BASE, URL_CRED
+from .schemas.const import (
+    OAUTH_ACCESS_TOKEN,
+    OAUTH_EXPIRES_IN,
+    OAUTH_GRANT_TYPE,
+    OAUTH_PASSWORD,
+    OAUTH_REFRESH_TOKEN,
+    OAUTH_SCOPE,
+    OAUTH_TOKEN_TYPE,
+    OAUTH_USERNAME,
+)
 
 if TYPE_CHECKING:
     import aiohttp
@@ -42,42 +52,40 @@ _APPLICATION_ID: Final = base64.b64encode(
 ).decode("utf-8")  # fmt: off
 
 
+# the keys of the (serialized) token cache, EvoAccessTokenEntryT (not the vendor's)
 SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
 SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"  # noqa: S105
-SZ_EXPIRES_IN: Final = "expires_in"
-SZ_GRANT_TYPE: Final = "grant_type"
 SZ_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
-SZ_SCOPE: Final = "scope"
-SZ_TOKEN_TYPE: Final = "token_type"  # noqa: S105
 
-# NOTE: these two keys are case-sensitive (i.e. not 'username' and 'password')
-S2_PASSWORD: Final = "Password"  # noqa: S105
-S2_USERNAME: Final = "Username"
+# TODO: deprecate, then remove in v4: use the OAUTH_* equivalents
+SZ_EXPIRES_IN: Final = OAUTH_EXPIRES_IN
+SZ_SCOPE: Final = OAUTH_SCOPE
+SZ_TOKEN_TYPE: Final = OAUTH_TOKEN_TYPE
 
 _SCOPE: Final = "EMEA-V1-Basic EMEA-V1-Anonymous"
 
 
 SCH_OAUTH_TOKEN: Final = vol.Schema(
     {
-        vol.Required(SZ_ACCESS_TOKEN): vol.All(str, redact),
-        vol.Required(SZ_EXPIRES_IN): int,  # 1800 seconds
-        vol.Required(SZ_REFRESH_TOKEN): vol.All(str, redact),
-        vol.Required(SZ_TOKEN_TYPE): str,
-        vol.Optional(SZ_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
+        vol.Required(OAUTH_ACCESS_TOKEN): vol.All(str, redact),
+        vol.Required(OAUTH_EXPIRES_IN): int,  # 1800 seconds
+        vol.Required(OAUTH_REFRESH_TOKEN): vol.All(str, redact),
+        vol.Required(OAUTH_TOKEN_TYPE): str,
+        vol.Optional(OAUTH_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
     }
 )
 
 CREDS_REFRESH_TOKEN: Final = {
-    SZ_GRANT_TYPE: "refresh_token",
-    SZ_SCOPE: _SCOPE,
-    SZ_REFRESH_TOKEN: "",
+    OAUTH_GRANT_TYPE: "refresh_token",
+    OAUTH_SCOPE: _SCOPE,
+    OAUTH_REFRESH_TOKEN: "",
 }
 
 CREDS_USER_PASSWORD: Final = {
-    SZ_GRANT_TYPE: "password",
-    SZ_SCOPE: _SCOPE,  # EMEA-V1-Get-Current-User-Account
-    S2_USERNAME: "",
-    S2_PASSWORD: "",
+    OAUTH_GRANT_TYPE: "password",
+    OAUTH_SCOPE: _SCOPE,  # EMEA-V1-Get-Current-User-Account
+    OAUTH_USERNAME: "",
+    OAUTH_PASSWORD: "",
 }
 
 
@@ -176,7 +184,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         if self._refresh_token:
             self._logger.debug(" - authenticating with the refresh_token")
 
-            credentials = {SZ_REFRESH_TOKEN: self._refresh_token}
+            credentials = {OAUTH_REFRESH_TOKEN: self._refresh_token}
 
             try:
                 await self._fetch_access_token(CREDS_REFRESH_TOKEN | credentials)
@@ -192,8 +200,8 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
             self._logger.debug(" - authenticating with client_id/secret")
 
             credentials = {
-                S2_USERNAME: self._client_id,
-                S2_PASSWORD: self._secret,
+                OAUTH_USERNAME: self._client_id,
+                OAUTH_PASSWORD: self._secret,
             }
 
             try:  # check here if the user credentials are invalid...
@@ -238,11 +246,11 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         tokens: EvoAuthTokensResponseT = convert_keys_to_snake_case(response)
 
         try:
-            self._access_token = tokens[SZ_ACCESS_TOKEN]
+            self._access_token = tokens[OAUTH_ACCESS_TOKEN]
             self._access_token_expires = dt.now(tz=UTC) + td(
-                seconds=tokens[SZ_EXPIRES_IN]
+                seconds=tokens[OAUTH_EXPIRES_IN]
             )
-            self._refresh_token = tokens[SZ_REFRESH_TOKEN]
+            self._refresh_token = tokens[OAUTH_REFRESH_TOKEN]
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
