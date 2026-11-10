@@ -5,6 +5,19 @@ Vendor strings are camelCase (JSON keys), PascalCase (StrEnums).
 
 from typing import Final
 
+# POST authentication url (i.e. /WebAPI/api/session)
+URL_CRED: Final = "WebAPI/api/session"
+
+# GET/PUT resource url (i.e. /WebAPI/api/...)
+URL_BASE: Final = "WebAPI/api"
+
+# GET/PUT resource urls, relative to URL_BASE
+URL_ACCOUNT_INFO: Final = "accountInfo"
+URL_DHW_MODE: Final = "devices/{device_id}/thermostat/changeableValues"
+URL_LOCATIONS: Final = "locations?userId={user_id}&allData=True"
+URL_TCS_MODE: Final = "evoTouchSystems?locationId={location_id}"
+URL_ZON_MODE: Final = "devices/{device_id}/thermostat/changeableValues/heatSetpoint"
+
 SZ_ALLOWED_MODES: Final = "allowed_modes"
 SZ_COUNTRY: Final = "country"
 SZ_CURRENT_OFFSET_MINUTES: Final = "current_offset_minutes"

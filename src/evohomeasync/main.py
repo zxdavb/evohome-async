@@ -12,7 +12,7 @@ from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
-from .const import SZ_LOCATION_ID, SZ_USER_ID
+from .const import SZ_LOCATION_ID, SZ_USER_ID, URL_ACCOUNT_INFO, URL_LOCATIONS
 from .entities import Location, create_location
 from .schemas import factory_location_response_list, factory_user_account_info_response
 
@@ -30,9 +30,6 @@ SCH_GET_ACCOUNT_INFO: Final[Validator[EvoUserAccountInfoDictT]] = (
 SCH_GET_ACCOUNT_LOCS: Final[Validator[list[EvoTcsInfoDictT]]] = (
     factory_location_response_list(Case.PYTHONIC)
 )
-
-URL_ACCOUNT_INFO: Final = "accountInfo"
-URL_LOCATIONS: Final = "locations?userId={user_id}&allData=True"
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync"
 

@@ -18,6 +18,7 @@ from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
+from .const import URL_BASE, URL_CRED
 
 if TYPE_CHECKING:
     import aiohttp
@@ -71,13 +72,6 @@ CREDS_USER_PASSWORD: Final = {
     "Username": "",
     "Password": "",
 }
-
-
-# POST authentication url (i.e. /Auth/OAuth/Token)
-URL_CRED: Final = "Auth/OAuth/Token"
-
-# GET/PUT resource url (e.g. /WebAPI/emea/api/v1/...)
-URL_BASE: Final = "WebAPI/emea/api/v1"
 
 
 class AbstractTokenManager(CredentialsManagerBase, ABC):

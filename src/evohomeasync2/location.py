@@ -34,6 +34,8 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
     SZ_ZONE_ID,
     SZ_ZONES,
+    URL_LOC_CONFIG,
+    URL_LOC_STATUS,
     URL_USR_ACCOUNT,
 )
 from .gateway import Gateway
@@ -58,11 +60,6 @@ if TYPE_CHECKING:
         EvoUsrAccountResponseT,
     )
 
-
-URL_LOC_CONFIG: Final = (
-    "location/{loc_id}/installationInfo?includeTemperatureControlSystems=True"
-)
-URL_LOC_STATUS: Final = "{type}/{id}/status?includeTemperatureControlSystems=True"
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
 

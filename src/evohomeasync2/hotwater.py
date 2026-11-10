@@ -24,6 +24,7 @@ from .const import (
     SZ_TIMING_RESOLUTION,
     SZ_UNTIL,
     SZ_UNTIL_TIME,
+    URL_DHW_STATE,
     DhwState,
     ZoneMode,
 )
@@ -50,9 +51,6 @@ if TYPE_CHECKING:
         EvoSetDhwStateT,
     )
     from .zone import _AllowedModesT
-
-
-URL_DHW_STATE: Final = "{type}/{id}/state"
 
 
 class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):

@@ -56,6 +56,9 @@ from .const import (
     SZ_VACATION_HOLD_CAPABILITIES,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
+    URL_HEAT_SETPOINT,
+    URL_SCHEDULE,
+    URL_STATUS,
     DayOfWeek,
     FanMode,
     FaultType,
@@ -113,10 +116,6 @@ if TYPE_CHECKING:
 
 
 _ONE_DAY = td(days=1)
-
-URL_HEAT_SETPOINT: Final = "{type}/{id}/heatSetpoint"
-URL_SCHEDULE: Final = "{type}/{id}/schedule"
-URL_STATUS: Final = "{type}/{id}/status"
 
 # for values that the schema passes through, as the vendor's enums are incomplete
 _PLEASE_REPORT = (

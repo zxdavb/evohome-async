@@ -16,7 +16,7 @@ from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
-from .const import SZ_LATEST_EULA_ACCEPTED
+from .const import SZ_LATEST_EULA_ACCEPTED, URL_BASE, URL_CRED
 from .schemas import S1_SESSION_ID, TCC_POST_USR_SESSION
 
 if TYPE_CHECKING:
@@ -38,12 +38,6 @@ SZ_USER_INFO: Final = "user_info"
 
 # this is not documented, but testing indicates is 15 minutes
 SESSION_ID_LIFETIME: Final = td(minutes=15)
-
-# POST authentication url (i.e. /WebAPI/api/session)
-URL_CRED: Final = "WebAPI/api/session"
-
-# GET/PUT resource url (i.e. /WebAPI/api/...)
-URL_BASE: Final = "WebAPI/api"
 
 
 class SessionIdEntryT(TypedDict):

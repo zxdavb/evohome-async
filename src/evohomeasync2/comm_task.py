@@ -10,7 +10,7 @@ import probatio as vol
 from _evohome.helpers import Case
 
 from . import exceptions as exc
-from .const import SZ_COMMTASK_ID, SZ_ID, SZ_STATE, CommTaskState
+from .const import SZ_COMMTASK_ID, SZ_ID, SZ_STATE, URL_COMM_TASK, CommTaskState
 from .schemas.account import factory_comm_task_response, factory_task_response
 
 if TYPE_CHECKING:
@@ -20,8 +20,6 @@ if TYPE_CHECKING:
     from .schemas.account import TccTaskResponseT
     from .typedefs import EvoCommTaskResponseT
 
-
-URL_COMM_TASK: Final = "commTasks?commTaskId={comm_task_id}"
 
 # the period between each GET of the task's state, when waiting for it to succeed
 DEFAULT_INTERVAL: Final = 0.5  # seconds

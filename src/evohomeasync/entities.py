@@ -51,6 +51,9 @@ from .const import (
     SZ_THERMOSTAT_MODEL_TYPE,
     SZ_TIME_ZONE,
     SZ_WEATHER,
+    URL_DHW_MODE,
+    URL_TCS_MODE,
+    URL_ZON_MODE,
 )
 from .schemas import (
     S1_MODE,
@@ -93,10 +96,6 @@ _TEMP_IS_NA: Final = 128
 
 # e.g. EMEA_ZONE, but any such prefixed type is a zone (c.f. TccThermostatModelType)
 _ZONE_MODEL_TYPE_PREFIX: Final = "EMEA_"
-
-URL_DHW_MODE: Final = "devices/{device_id}/thermostat/changeableValues"
-URL_TCS_MODE: Final = "evoTouchSystems?locationId={location_id}"
-URL_ZON_MODE: Final = "devices/{device_id}/thermostat/changeableValues/heatSetpoint"
 
 
 class _EntityBase(ABC):

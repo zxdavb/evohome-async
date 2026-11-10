@@ -15,7 +15,7 @@ from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
-from .const import SZ_USER_ID, URL_USR_ACCOUNT
+from .const import SZ_USER_ID, URL_USR_ACCOUNT, URL_USR_LOCATIONS
 from .location import Location, create_location
 from .schemas.account import factory_usr_account
 from .schemas.config import factory_usr_locations
@@ -34,10 +34,6 @@ SCH_USR_ACCOUNT: Final[Validator[EvoUsrAccountResponseT]] = factory_usr_account(
 )
 SCH_USR_LOCATIONS: Final[Validator[list[EvoLocConfigResponseT]]] = (
     factory_usr_locations(Case.PYTHONIC)
-)
-
-URL_USR_LOCATIONS: Final = (
-    "location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True"
 )
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync2"

@@ -29,6 +29,7 @@ from .const import (
     SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONES,
+    URL_TCS_MODE,
     SystemMode,
     TcsModelType,
     TimingMode,
@@ -61,9 +62,6 @@ if TYPE_CHECKING:
         EvoTcsStatusResponseT,
         EvoZonScheduleDayOfWeekT,
     )
-
-
-URL_TCS_MODE: Final = "{type}/{id}/mode"
 
 
 def _sched_id(schedule: Mapping[str, Any]) -> str:
