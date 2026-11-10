@@ -137,7 +137,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         if state is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidModeRequestError(
+                raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, state must not be None",
                     reason=RequestErrorReason.STATE_REQUIRED,
                     mode=mode,
@@ -145,7 +145,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             return None
 
         if mode is ZoneMode.FOLLOW_SCHEDULE:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, state must be None, not '{state}'",
                 reason=RequestErrorReason.STATE_NOT_ALLOWED,
                 mode=mode,
@@ -154,14 +154,14 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         try:
             state = DhwState(state)
         except ValueError as err:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Unknown state: {state}",
                 reason=RequestErrorReason.STATE_UNKNOWN,
                 state=str(state),
             ) from err
 
         if state not in self.allowed_states:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Unsupported state: {state}",
                 reason=RequestErrorReason.STATE_UNSUPPORTED,
                 state=state,
@@ -256,7 +256,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             return await self._set_tcc_mode(mode, state=state, duration=duration)
 
         if duration is not None:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Only one of until or duration may be given",
                 reason=RequestErrorReason.TIMESPAN_CONFLICTING,
             )
@@ -311,7 +311,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:
-                raise exc.InvalidModeRequestError(
+                raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, until must not be None",
                     reason=RequestErrorReason.TIMESPAN_REQUIRED,
                     mode=mode,
@@ -319,7 +319,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidModeRequestError(
+                raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, until must be None, not '{until}'",
                     reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
                     mode=mode,

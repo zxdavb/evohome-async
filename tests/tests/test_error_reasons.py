@@ -20,13 +20,13 @@ from _evohome.exceptions import RequestErrorReason, ResponseErrorReason
 _SRC = Path(_evohome.__file__).parent.parent  # incl. evohomeasync, evohomeasync2
 
 _BASES = (exc.BadApiRequestError, exc.BadApiResponseError)
-_CLASSES = sorted(
-    (c for c in vars(exc).values() if isinstance(c, type) and issubclass(c, _BASES)),
-    key=lambda c: c.__name__,
-)
+_BY_NAME = {  # incl. the aliases of their previous names (e.g. InvalidConfigError)
+    n: c for n, c in vars(exc).items() if isinstance(c, type) and issubclass(c, _BASES)
+}
+_CLASSES = sorted(set(_BY_NAME.values()), key=lambda c: c.__name__)
 
-# the names of the classes, and of their deprecated aliases (served by __getattr__)
-_NAMES = {c.__name__ for c in _CLASSES} | {"InvalidSystemModeError"}
+# the names of the classes (and of their aliases, incl. those served by __getattr__)
+_NAMES = set(_BY_NAME) | {"InvalidSystemModeError"}
 
 _ENUMS = (RequestErrorReason, ResponseErrorReason)
 

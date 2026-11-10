@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, PropertyMock, patch
 import pytest
 from freezegun.api import FakeDatetime
 
-from evohomeasync2 import BadApiRequestError, InvalidModeRequestError
+from evohomeasync2 import BadApiRequestError, InvalidSetModeError
 from evohomeasync2.const import DhwState, SystemMode, TimingMode, ZoneMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -530,7 +530,7 @@ async def test_ctl_set_mode_not_permanent(
             new_callable=PropertyMock,
             return_value=(_NOT_PERMANENT_MODE,),
         ),
-        pytest.raises(InvalidModeRequestError, match="until or duration must be given"),
+        pytest.raises(InvalidSetModeError, match="until or duration must be given"),
     ):
         await tcs.set_mode(SystemMode.AUTO_WITH_ECO)
 
@@ -548,7 +548,7 @@ async def test_ctl_set_system_mode_not_permanent(
             return_value=(_NOT_PERMANENT_MODE,),
         ),
         pytest.warns(DeprecationWarning, match=r"use \.set_mode\(\)"),
-        pytest.raises(InvalidModeRequestError, match="until or duration must be given"),
+        pytest.raises(InvalidSetModeError, match="until or duration must be given"),
     ):
         await tcs.set_system_mode(SystemMode.AUTO_WITH_ECO)
 
@@ -615,7 +615,7 @@ async def test_ctl_set_mode_zero_resolution_rejects(
             new_callable=PropertyMock,
             return_value=(_ZERO_RESOLUTION_MODE,),
         ),
-        pytest.raises(InvalidModeRequestError, match=_IN_THE_FUTURE),
+        pytest.raises(InvalidSetModeError, match=_IN_THE_FUTURE),
     ):
         await tcs.set_mode(SystemMode.AUTO_WITH_ECO, duration=duration)
 
@@ -635,7 +635,7 @@ async def test_ctl_set_mode_period_ended_earlier_today(
             new_callable=PropertyMock,
             return_value=(_SUB_DAY_PERIOD_MODE,),
         ),
-        pytest.raises(InvalidModeRequestError, match=_IN_THE_FUTURE),
+        pytest.raises(InvalidSetModeError, match=_IN_THE_FUTURE),
     ):
         await tcs.set_mode(SystemMode.AWAY, period=td(hours=12))
 
@@ -662,7 +662,7 @@ async def test_ctl_set_mode_period_ended_in_dst_fold(tcs: ControlSystem) -> None
 
     with (
         _now_in_dst_fold(tcs.location, dt(2026, 10, 25, 1, 15, tzinfo=UTC)),
-        pytest.raises(InvalidModeRequestError, match=_IN_THE_FUTURE),
+        pytest.raises(InvalidSetModeError, match=_IN_THE_FUTURE),
     ):
         await tcs.set_mode(SystemMode.AWAY, period=td(minutes=90))
 
@@ -718,7 +718,7 @@ async def test_ctl_set_mode_rejects(
 ) -> None:
     """Test set_mode() rejects an invalid request before any PUT is made."""
 
-    with pytest.raises(InvalidModeRequestError):
+    with pytest.raises(InvalidSetModeError):
         await tcs.set_mode(system_mode, **kwargs)
 
 
@@ -747,7 +747,7 @@ async def test_ctl_set_mode_rejects_out_of_range(
             new_callable=AsyncMock,
             return_value=PUT_RESPONSE_V2,
         ) as mock_put,
-        pytest.raises(InvalidModeRequestError, match=_OUT_OF_RANGE),
+        pytest.raises(InvalidSetModeError, match=_OUT_OF_RANGE),
     ):
         await tcs.set_mode(system_mode, **kwargs)
 
@@ -896,7 +896,7 @@ async def test_ctl_set_mode_rejects_until_and_timespan(
 ) -> None:
     """Test set_mode() rejects an until with a duration/period, before any PUT is made."""
 
-    with pytest.raises(InvalidModeRequestError, match="Only one of until"):
+    with pytest.raises(InvalidSetModeError, match="Only one of until"):
         await tcs.set_mode(SystemMode.AWAY, **kwargs)
 
 
@@ -1029,7 +1029,7 @@ async def test_zon_set_mode_rejects_duration(
 
     temperature = None if mode is ZoneMode.FOLLOW_SCHEDULE else 20.0
 
-    with pytest.raises(InvalidModeRequestError, match=match):
+    with pytest.raises(InvalidSetModeError, match=match):
         await zone.set_mode(mode, temperature=temperature, **kwargs)
 
 
@@ -1044,7 +1044,7 @@ async def test_dhw_set_mode_rejects_duration(
 
     state = None if mode is ZoneMode.FOLLOW_SCHEDULE else DhwState.ON
 
-    with pytest.raises(InvalidModeRequestError, match=match):
+    with pytest.raises(InvalidSetModeError, match=match):
         await dhw.set_mode(mode, state=state, **kwargs)
 
 
@@ -1119,7 +1119,7 @@ async def _rejects_until(set_mode: Awaitable[CommTask], /) -> None:
             new_callable=AsyncMock,
             return_value=PUT_RESPONSE_V2,
         ) as mock_put,
-        pytest.raises(InvalidModeRequestError, match=_UNTIL_IN_THE_FUTURE),
+        pytest.raises(InvalidSetModeError, match=_UNTIL_IN_THE_FUTURE),
     ):
         await set_mode
 
@@ -1205,7 +1205,7 @@ async def test_zon_set_mode_until_in_dst_fold(
         ) as mock_put,
     ):
         if not puts:
-            with pytest.raises(InvalidModeRequestError, match=_UNTIL_IN_THE_FUTURE):
+            with pytest.raises(InvalidSetModeError, match=_UNTIL_IN_THE_FUTURE):
                 await zone.set_mode(
                     ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, until=until
                 )
@@ -1242,7 +1242,7 @@ async def test_zon_set_mode_rejects_temperature(
 ) -> None:
     """Test a zone's set_mode() rejects an invalid temperature before any PUT."""
 
-    with pytest.raises(InvalidModeRequestError, match=match):
+    with pytest.raises(InvalidSetModeError, match=match):
         await zone.set_mode(mode, temperature=temperature)
 
 
@@ -1259,7 +1259,7 @@ async def test_zon_set_mode_rejects_temperature_with_duration(
 ) -> None:
     """Test a zone's set_mode() rejects an invalid temperature that has a duration."""
 
-    with pytest.raises(InvalidModeRequestError, match=match):
+    with pytest.raises(InvalidSetModeError, match=match):
         await zone.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, temperature=temperature, duration=td(hours=1)
         )
@@ -1288,7 +1288,7 @@ async def test_zon_set_mode_rejects_non_finite_temperature(
             new_callable=AsyncMock,
             return_value=PUT_RESPONSE_V2,
         ) as mock_put,
-        pytest.raises(InvalidModeRequestError, match="must be a finite number"),
+        pytest.raises(InvalidSetModeError, match="must be a finite number"),
     ):
         await zone.set_mode(ZoneMode.PERMANENT_OVERRIDE, temperature=temperature)
 
@@ -1365,7 +1365,7 @@ async def test_dhw_set_mode_rejects_state(
 ) -> None:
     """Test a DHW's set_mode() rejects an invalid state before any PUT is made."""
 
-    with pytest.raises(InvalidModeRequestError, match=match):
+    with pytest.raises(InvalidSetModeError, match=match):
         await dhw.set_mode(mode, state=state)
 
 
@@ -1391,7 +1391,7 @@ async def test_dhw_set_mode_rejects_state_with_duration(
             new_callable=PropertyMock,
             return_value=(DhwState.OFF,),
         ),
-        pytest.raises(InvalidModeRequestError, match=match),
+        pytest.raises(InvalidSetModeError, match=match),
     ):
         await dhw.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, state=state, duration=td(hours=1)
@@ -1410,7 +1410,7 @@ async def test_dhw_set_mode_rejects_unsupported_state(
             new_callable=PropertyMock,
             return_value=(DhwState.OFF,),
         ),
-        pytest.raises(InvalidModeRequestError, match="Unsupported state: on"),
+        pytest.raises(InvalidSetModeError, match="Unsupported state: on"),
     ):
         await dhw.set_mode(ZoneMode.PERMANENT_OVERRIDE, state=DhwState.ON)
 
@@ -1463,7 +1463,7 @@ async def test_zon_set_mode_rejects_until_and_duration(
 
     kwargs: dict[str, Any] = {"until": dt.now(tz=UTC), "duration": td(hours=1)}
 
-    with pytest.raises(InvalidModeRequestError, match="Only one of until or duration"):
+    with pytest.raises(InvalidSetModeError, match="Only one of until or duration"):
         await zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0, **kwargs)
 
 
@@ -1474,5 +1474,5 @@ async def test_dhw_set_mode_rejects_until_and_duration(
 
     kwargs: dict[str, Any] = {"until": dt.now(tz=UTC), "duration": td(hours=1)}
 
-    with pytest.raises(InvalidModeRequestError, match="Only one of until or duration"):
+    with pytest.raises(InvalidSetModeError, match="Only one of until or duration"):
         await dhw.set_mode(ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.ON, **kwargs)

@@ -13,14 +13,14 @@ They are grouped by what the caller can do about them:
   │   └── CommTaskFailedError             # a PUT was accepted, but its task failed
   │
   ├── BadApiRequestError                  # the arguments are unusable (no API call)
-  │   ├── InvalidModeRequestError
-  │   └── InvalidScheduleRequestError
+  │   ├── InvalidSetModeError
+  │   └── InvalidSetScheduleError
   │
   ├── BadApiResponseError                 # the reply is not as expected: report it
-  │   ├── InvalidConfigError
+  │   ├── InvalidGetConfigError
   │   │   └── GhostZoneError              # a corrupt zone (delete it?)
-  │   ├── InvalidStatusError
-  │   └── InvalidScheduleError
+  │   ├── InvalidGetStatusError
+  │   └── InvalidGetScheduleError
   │
   └── ClientStateError                    # the client lacks the data: fetch it first
       ├── NotFetchedError                 # - config, status or schedule data absent
@@ -172,23 +172,28 @@ class BadApiResponseError(EvohomeError):  # a base exception
         self.details: dict[str, str] = details
 
 
-class InvalidConfigError(BadApiResponseError):  # config/account JSON is invalid
+class InvalidGetConfigError(BadApiResponseError):  # config/account JSON is invalid
     """The account/config JSON is not as expected (e.g. an unknown TCS model type)."""
 
 
-class GhostZoneError(InvalidConfigError):  # the zone will be ignored
-    """The config JSON of a zone has no model type or zone type (is it a ghost zone?)."""
+# TODO: deprecate in v4.0, in favour of the reason of an InvalidGetConfigError
+class GhostZoneError(InvalidGetConfigError):  # the zone will be ignored
+    """The config JSON of a zone has no model type or zone type (is it a ghost zone?).
+
+    Its reason is MODEL_TYPE_UNKNOWN or ZONE_TYPE_UNKNOWN: check the reason of an
+    InvalidGetConfigError instead, as this subclass is to be deprecated.
+    """
 
 
-class InvalidStatusError(BadApiResponseError):  # status JSON is invalid
+class InvalidGetStatusError(BadApiResponseError):  # status JSON is invalid
     """The status JSON is not as expected (e.g. an unknown fault type)."""
 
 
-class InvalidScheduleError(BadApiResponseError):  # schedule JSON is invalid/missing
+class InvalidGetScheduleError(BadApiResponseError):  # schedule JSON is invalid/missing
     """The schedule JSON is not as expected, or there is no schedule.
 
     This is a schedule from the vendor (e.g. via get_schedule()): see
-    InvalidScheduleRequestError for a schedule supplied by the caller.
+    InvalidSetScheduleError for a schedule supplied by the caller.
     """
 
 
@@ -204,7 +209,7 @@ class RequestErrorReason(StrEnum):
     adding one is not. They are named param_problem (e.g. mode_unknown).
     """
 
-    # the mode of a TCS/zone/DHW (see InvalidModeRequestError)
+    # the mode of a TCS/zone/DHW (see InvalidSetModeError)
     MODE_UNKNOWN = "mode_unknown"  # the mode is not a valid enum value
     MODE_UNSUPPORTED = "mode_unsupported"  # the mode is not among the allowed modes
     TIMESPAN_REQUIRED = "timespan_required"  # the mode cannot be permanent
@@ -251,7 +256,7 @@ class BadApiRequestError(EvohomeError):  # a base exception
         self.details: dict[str, str] = details
 
 
-class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
+class InvalidSetModeError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
     """The requested mode is not supported by this TCS/zone/DHW zone.
 
     Its `details` may have these keys, for use as a message's placeholders:
@@ -265,11 +270,11 @@ class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/D
     """
 
 
-class InvalidScheduleRequestError(BadApiRequestError):  # failed to set a schedule
+class InvalidSetScheduleError(BadApiRequestError):  # failed to set a schedule
     """The supplied schedule JSON is not supported / is invalid.
 
     This is a schedule supplied by the caller (e.g. via set_schedule()): see
-    InvalidScheduleError for a schedule from the vendor.
+    InvalidGetScheduleError for a schedule from the vendor.
     """
 
 
@@ -301,14 +306,24 @@ class StaleConfigError(ClientStateError):
 # Backward-compatibility aliases (deprecated names, e.g. as used by the HA integration):
 # each is its replacement, but is served by a module __getattr__() that warns when it is
 # accessed (e.g. imported, or evaluated in an except clause)
+# The previous names of these errors, before they were named after the method (set_*,
+# get_*) that raises them; they are still used, e.g. by HA, so do not (yet) warn
+# TODO: deprecate in v4.0 (i.e. move them into _DEPRECATED_ALIASES, below)
+InvalidConfigError = InvalidGetConfigError
+InvalidModeRequestError = InvalidSetModeError
+InvalidScheduleError = InvalidGetScheduleError
+InvalidScheduleRequestError = InvalidSetScheduleError
+InvalidStatusError = InvalidGetStatusError
+
+
 _DEPRECATED_ALIASES: Final[dict[str, type[EvohomeError]]] = {
     "ApiRequestFailedError": ApiCallFailedError,  # renamed to ApiCallFailedError
-    "InvalidSystemModeError": InvalidModeRequestError,  # merged into it
+    "InvalidSystemModeError": InvalidSetModeError,  # merged into it
 }
 
 if TYPE_CHECKING:  # at runtime, they are served by __getattr__(), below
     ApiRequestFailedError = ApiCallFailedError
-    InvalidSystemModeError = InvalidModeRequestError
+    InvalidSystemModeError = InvalidSetModeError
 
 
 def deprecated_getattr(

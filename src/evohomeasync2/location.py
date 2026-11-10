@@ -224,7 +224,7 @@ class Location(EntityBase[EvoLocStatusT]):
                 schema=self.SCH_CONFIG,
             )
         except exc.BadApiResponseError as err:  # the config failed validation
-            raise exc.InvalidConfigError(
+            raise exc.InvalidGetConfigError(
                 err.message, reason=ResponseErrorReason.CONFIG_INVALID
             ) from err
 
@@ -325,7 +325,7 @@ class Location(EntityBase[EvoLocStatusT]):
             )
 
         except exc.BadApiResponseError as err:  # the status failed validation
-            raise exc.InvalidStatusError(
+            raise exc.InvalidGetStatusError(
                 err.message, reason=ResponseErrorReason.STATUS_INVALID
             ) from err
 

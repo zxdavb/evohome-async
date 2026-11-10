@@ -113,14 +113,14 @@ async def test_status_not_fetched(
 async def test_invalid_config(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test update() raises InvalidConfigError if the config fails validation."""
+    """Test update() raises InvalidGetConfigError if the config fails validation."""
 
     ec2 = EvohomeClient(credentials_manager)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
-        pytest.raises(exc.InvalidConfigError) as err,
+        pytest.raises(exc.InvalidGetConfigError) as err,
     ):
         await ec2.setup()
 
@@ -131,14 +131,14 @@ async def test_invalid_config(
 async def test_invalid_status(
     ec2: EvohomeClient,
 ) -> None:
-    """Test update() raises InvalidStatusError if the status fails validation."""
+    """Test update() raises InvalidGetStatusError if the status fails validation."""
 
     loc = get_loc(ec2)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
-        pytest.raises(exc.InvalidStatusError) as err,
+        pytest.raises(exc.InvalidGetStatusError) as err,
     ):
         await loc.get_status()
 
@@ -150,10 +150,10 @@ async def test_invalid_status(
     ("error", "expected"),
     [
         # the schedule failed validation, or there is no schedule
-        (exc.BadApiResponseError(_ERR_MSG), exc.InvalidScheduleError),
+        (exc.BadApiResponseError(_ERR_MSG), exc.InvalidGetScheduleError),
         (
             exc.ApiCallFailedError(_ERR_MSG, status=HTTPStatus.BAD_REQUEST),
-            exc.InvalidScheduleError,
+            exc.InvalidGetScheduleError,
         ),
         # all other failures are not about the schedule, and so are left as they are
         (
@@ -173,7 +173,7 @@ async def test_get_schedule_failures(
     error: exc.EvohomeError,
     expected: type[exc.EvohomeError],
 ) -> None:
-    """Test get_schedule() raises InvalidScheduleError only for a bad schedule."""
+    """Test get_schedule() raises InvalidGetScheduleError only for a bad schedule."""
 
     with (
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
@@ -230,11 +230,11 @@ async def test_invalid_schedule_not_stored(
         patch.object(
             Zone,
             "_find_switchpoints",
-            side_effect=exc.InvalidScheduleError("No switchpoints for next day"),
+            side_effect=exc.InvalidGetScheduleError("No switchpoints for next day"),
         ),
     ):
         for zone in (fetched, unfetched):
-            with pytest.raises(exc.InvalidScheduleError):
+            with pytest.raises(exc.InvalidGetScheduleError):
                 await zone.get_schedule()
 
     assert fetched.schedule == schedule
@@ -313,18 +313,18 @@ async def test_ghost_zone_other_errors(
     ec2: EvohomeClient,
     tcs: ControlSystem,
 ) -> None:
-    """Test a TCS skips only a GhostZoneError: any other InvalidConfigError is raised."""
+    """Test a TCS skips only a GhostZoneError: any other InvalidGetConfigError is raised."""
 
     assert ec2._user_locs is not None  # mypy
 
     config = ec2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][
         SZ_TEMPERATURE_CONTROL_SYSTEMS
     ][0]
-    error = exc.InvalidConfigError("Not a ghost zone")
+    error = exc.InvalidGetConfigError("Not a ghost zone")
 
     with (
         patch("evohomeasync2.control_system.Zone", side_effect=error),
-        pytest.raises(exc.InvalidConfigError) as err,
+        pytest.raises(exc.InvalidGetConfigError) as err,
     ):
         ControlSystem(tcs.gateway, config)
 

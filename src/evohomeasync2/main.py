@@ -109,7 +109,7 @@ class EvohomeClient:
             try:
                 await self._get_config()
             except exc.BadApiResponseError as err:  # e.g. failed validation
-                raise exc.InvalidConfigError(
+                raise exc.InvalidGetConfigError(
                     err.message, reason=ResponseErrorReason.CONFIG_INVALID
                 ) from err
 

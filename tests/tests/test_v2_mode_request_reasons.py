@@ -1,4 +1,4 @@
-"""Test the reason (and details) of each InvalidModeRequestError, by its raise site.
+"""Test the reason (and details) of each InvalidSetModeError, by its raise site.
 
 The reasons are public API (e.g. HA maps each one to its own translated message), so
 each raise site is tested, as is that each reason is raised by at least one site.
@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, PropertyMock, patch
 
 import pytest
 
-from evohomeasync2 import InvalidModeRequestError, RequestErrorReason as Reason
+from evohomeasync2 import InvalidSetModeError, RequestErrorReason as Reason
 from evohomeasync2.const import DhwState, SystemMode, ZoneMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -273,7 +273,7 @@ async def test_mode_request_error_reason(
     with (
         allowed_states,
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock,
-        pytest.raises(InvalidModeRequestError) as exc_info,
+        pytest.raises(InvalidSetModeError) as exc_info,
     ):
         await getattr(entity, call.method)(call.mode, **call.kwargs)
 

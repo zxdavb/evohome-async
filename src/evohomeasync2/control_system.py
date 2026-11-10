@@ -34,7 +34,7 @@ from .const import (
     TcsModelType,
     TimingMode,
 )
-from .exceptions import RequestErrorReason
+from .exceptions import RequestErrorReason, ResponseErrorReason
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
 from .schemas.status import factory_tcs_status
@@ -63,6 +63,13 @@ if TYPE_CHECKING:
         EvoTcsStatusResponseT,
         EvoZonScheduleDayOfWeekT,
     )
+
+
+# a zone with either of these is a ghost zone, and is ignored (with a warning)
+_GHOST_ZONE_REASONS: Final = (
+    ResponseErrorReason.MODEL_TYPE_UNKNOWN,
+    ResponseErrorReason.ZONE_TYPE_UNKNOWN,
+)
 
 
 def _sched_id(schedule: Mapping[str, Any]) -> str:
@@ -110,7 +117,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         for zon_entry in config[SZ_ZONES]:
             try:
                 zone = Zone(self, zon_entry)
-            except exc.GhostZoneError as err:
+            except exc.InvalidGetConfigError as err:
+                if err.reason not in _GHOST_ZONE_REASONS:
+                    raise
                 self._logger.warning(
                     f"{self}: zone_id='{zon_entry[SZ_ZONE_ID]}' ignored: {err}"
                 )
@@ -184,14 +193,14 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         try:
             system_mode = SystemMode(system_mode)
         except ValueError as err:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Unknown system_mode: {system_mode}",
                 reason=RequestErrorReason.MODE_UNKNOWN,
                 mode=str(system_mode),
             ) from err
 
         if system_mode not in self.allowed_modes:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Unsupported system_mode: {system_mode}",
                 reason=RequestErrorReason.MODE_UNSUPPORTED,
                 mode=system_mode,
@@ -330,7 +339,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             )
 
         if duration is not None or period is not None:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Only one of until, duration or period may be given",
                 reason=RequestErrorReason.TIMESPAN_CONFLICTING,
             )
@@ -387,7 +396,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             return await self._put_mode(system_mode, permanent=True)
 
         if not mode_entry[SZ_CAN_BE_TEMPORARY]:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: For {system_mode}, until must be None, not '{until}'",
                 reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
                 mode=system_mode,
@@ -430,7 +439,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         """
 
         if duration is not None and period is not None:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Only one of duration or period may be given",
                 reason=RequestErrorReason.TIMESPAN_CONFLICTING,
             )
@@ -571,7 +580,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         ) -> list[EvoDhwScheduleDayOfWeekT] | list[EvoZonScheduleDayOfWeekT]:
             try:
                 return await child.get_schedule()
-            except exc.InvalidScheduleError:
+            except exc.InvalidGetScheduleError:
                 self._logger.warning(
                     f"Ignoring {child.id} ({child.name}): missing/invalid schedule"
                 )

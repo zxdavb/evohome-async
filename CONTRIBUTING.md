@@ -106,14 +106,14 @@ EvohomeError
 │   └── CommTaskFailedError           # A PUT was accepted, but its comm task failed
 │
 ├── BadApiRequestError                # The arguments are unusable (no API call attempted)
-│   ├── InvalidModeRequestError
-│   └── InvalidScheduleRequestError
+│   ├── InvalidSetModeError
+│   └── InvalidSetScheduleError
 │
 ├── BadApiResponseError               # The reply is not as expected: report it
-│   ├── InvalidConfigError
+│   ├── InvalidGetConfigError
 │   │   └── GhostZoneError            # a corrupt zone (delete it?)
-│   ├── InvalidStatusError
-│   └── InvalidScheduleError
+│   ├── InvalidGetStatusError
+│   └── InvalidGetScheduleError
 │
 └── ClientStateError                  # The client lacks the data: fetch it first
     ├── NotFetchedError               # - config, status or schedule data absent
@@ -121,22 +121,29 @@ EvohomeError
 ```
 
 `ApiRequestFailedError` and `InvalidSystemModeError` are deprecated aliases (used by
-the HA integration), for `ApiCallFailedError` and `InvalidModeRequestError`. Accessing
+the HA integration), for `ApiCallFailedError` and `InvalidSetModeError`. Accessing
 either emits a `DeprecationWarning` (they are served by a module `__getattr__()`, from
 `deprecated_getattr()` in `_evohome/exceptions.py`).
+
+The request/response subclasses are named after the method that raises them (`set_*`,
+`get_*`). Their previous names (`InvalidConfigError`, `InvalidModeRequestError`,
+`InvalidScheduleError`, `InvalidScheduleRequestError`, `InvalidStatusError`) are still
+aliases, which do not (yet) warn, as they are used by the HA integration: they are to be
+deprecated in v4.0. Do not use them in this library. `GhostZoneError` is also to be
+deprecated, in favour of the reason of an `InvalidGetConfigError`.
 
 Each `BadApiRequestError` and `BadApiResponseError` (and each of their subclasses) that
 the library raises has a `reason` (a `RequestErrorReason` or a `ResponseErrorReason`),
 so that callers (e.g. HA) need not parse its message. Reasons are named `param_problem`
 (e.g. `mode_unknown`, `schedule_missing`). Each also has `details`: only the structured
-values that its message may use as placeholders (e.g. for an `InvalidModeRequestError`:
+values that its message may use as placeholders (e.g. for an `InvalidSetModeError`:
 `mode`, `timing_mode`, `state`, `max_duration`). The `reason` is optional only so that
 the error can still be raised with a bare message (e.g. by HA's tests).
 
 The reasons' values are public API: renaming or removing one is a breaking change, but
 adding one is not. `tests/tests/test_error_reasons.py` checks that every raise site
 supplies a reason, and that every reason is used. Add any new raise site of an
-`InvalidModeRequestError` to `tests/tests/test_v2_mode_request_reasons.py`.
+`InvalidSetModeError` to `tests/tests/test_v2_mode_request_reasons.py`.
 
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library
   code - instead, raise exceptions based upon `EvohomeError`.

@@ -16,8 +16,12 @@ from _evohome.exceptions import (
     ClientStateError,
     EvohomeError,
     InvalidConfigError,
+    InvalidGetConfigError,
+    InvalidGetScheduleError,
+    InvalidGetStatusError,
     InvalidScheduleError,
     InvalidScheduleRequestError,
+    InvalidSetScheduleError,
     InvalidStatusError,
     NotFetchedError,
     RequestErrorReason,
@@ -40,10 +44,14 @@ __all__ = [
     "BadUserCredentialsError",
     "ClientStateError",
     "EvohomeError",
-    "InvalidConfigError",
-    "InvalidScheduleError",
-    "InvalidScheduleRequestError",
-    "InvalidStatusError",
+    "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)
+    "InvalidGetConfigError",
+    "InvalidGetScheduleError",
+    "InvalidGetStatusError",
+    "InvalidScheduleError",  # TODO: deprecate in v4.0 (an alias of InvalidGetScheduleError)
+    "InvalidScheduleRequestError",  # TODO: deprecate in v4.0 (an alias of InvalidSetScheduleError)
+    "InvalidSetScheduleError",
+    "InvalidStatusError",  # TODO: deprecate in v4.0 (an alias of InvalidGetStatusError)
     "NotFetchedError",
     "RequestErrorReason",
     "ResponseErrorReason",
