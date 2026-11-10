@@ -196,7 +196,8 @@ class EvohomeClient:
 
             try:
                 self._user_info = await self.auth.get(
-                    URL_ACCOUNT_INFO, schema=SCH_GET_ACCOUNT_INFO
+                    URL_ACCOUNT_INFO,
+                    schema=SCH_GET_ACCOUNT_INFO,
                 )
 
             except exc.AuthenticationFailedError:  # unable to get a session_id
@@ -218,7 +219,8 @@ class EvohomeClient:
                     self._session_manager.clear_session_id()
 
                 self._user_info = await self.auth.get(
-                    URL_ACCOUNT_INFO, schema=SCH_GET_ACCOUNT_INFO
+                    URL_ACCOUNT_INFO,
+                    schema=SCH_GET_ACCOUNT_INFO,
                 )
 
             assert self._user_info is not None  # mypy
@@ -232,7 +234,8 @@ class EvohomeClient:
                 ) from err
 
             self._user_locs = await self.auth.get(
-                URL_LOCATIONS.format(user_id=user_id), schema=SCH_GET_ACCOUNT_LOCS
+                URL_LOCATIONS.format(user_id=user_id),
+                schema=SCH_GET_ACCOUNT_LOCS,
             )
 
             assert self._user_locs is not None  # mypy

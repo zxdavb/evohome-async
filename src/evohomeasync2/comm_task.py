@@ -80,7 +80,10 @@ class CommTask:
         """
 
         url = URL_COMM_TASK.format(comm_task_id=self._id)
-        task = await self._auth.get(url, schema=SCH_COMM_TASK)
+        task = await self._auth.get(
+            url,
+            schema=SCH_COMM_TASK,
+        )
 
         if task[SZ_COMMTASK_ID] != self._id:
             raise exc.BadApiResponseError(f"{self}: GET {url}: wrong comm task: {task}")
