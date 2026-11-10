@@ -221,6 +221,22 @@ class TccFanMode(StrEnum):  # non-evohome
 
 
 @verify(EnumCheck.UNIQUE)
+class TccFailureCode(StrEnum):  # the code of a failed GET/PUT; NOTE: is incomplete
+    COMM_TASK_NOT_FOUND = "CommTaskNotFound"
+    DAY_OF_WEEK_MISSING = "DayOfWeekMissing"
+    DHW_STATE_NOT_SET = "DHWStateNotSet"
+    DHW_UNTIL_TIME_NOT_SET = "DHWUntilTimeNotSet"
+    HEAT_SETPOINT_CHANGE_TARGET_TEMPERATURE_NOT_SET = "HeatSetpointChangeTargetTemperatureNotSet"
+    HEAT_SETPOINT_CHANGE_TIME_UNTIL_NOT_SET = "HeatSetpointChangeTimeUntilNotSet"
+    INVALID_INPUT = "InvalidInput"
+    PARAMETER_IS_MISSING = "ParameterIsMissing"
+    SCHEDULE_NOT_FOUND = "ScheduleNotFound"  # NOTE: only seen via the faked server
+    SYSTEM_MODE_CHANGE_TIME_UNTIL_NOT_SET = "SystemModeChangeTimeUntilNotSet"
+    TOO_MANY_REQUESTS = "TooManyRequests"
+    UNAUTHORIZED = "Unauthorized"
+
+
+@verify(EnumCheck.UNIQUE)
 class TccFaultType(StrEnum):  # NOTE: This list is incomplete
     SYS_B_CL = "BoilerCommunicationLost"
     SYS_B_IF = "BoilerInternalFault"  # only via an Opentherm bridge?
@@ -247,6 +263,12 @@ class TccFaultType(StrEnum):  # NOTE: This list is incomplete
 class TccLocationType(StrEnum):
     COMMERCIAL = "Commercial"
     RESIDENTIAL = "Residential"
+
+
+@verify(EnumCheck.UNIQUE)
+class TccOAuthError(StrEnum):  # the error of a failed POST (snake_case, as per OAuth2)
+    ATTEMPT_LIMIT_EXCEEDED = "attempt_limit_exceeded"
+    INVALID_GRANT = "invalid_grant"  # e.g. bad credentials, or an expired refresh_token
 
 
 @verify(EnumCheck.UNIQUE)

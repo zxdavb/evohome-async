@@ -29,6 +29,7 @@ from .schemas.const import (
     OAUTH_SCOPE,
     OAUTH_TOKEN_TYPE,
     OAUTH_USERNAME,
+    TccOAuthError,
 )
 
 if TYPE_CHECKING:
@@ -203,7 +204,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
                 await self._fetch_access_token(CREDS_USER_PASSWORD | credentials)
 
             except exc.AuthenticationFailedError as err:
-                if "invalid_grant" not in err.message:
+                if TccOAuthError.INVALID_GRANT not in err.message:
                     raise
                 self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
                 # status will be: HTTPStatus.BAD_REQUEST, 400

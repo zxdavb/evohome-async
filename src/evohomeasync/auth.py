@@ -23,6 +23,7 @@ from .schemas import (
     S1_SESSION_ID,
     S1_USERNAME,
     TCC_POST_USR_SESSION,
+    TccFailureCode,
 )
 
 if TYPE_CHECKING:
@@ -153,7 +154,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
             await self._fetch_session_id(credentials)
 
         except exc.AuthenticationFailedError as err:
-            if "EmailOrPasswordIncorrect" not in err.message:
+            if TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT not in err.message:
                 raise
             self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
             raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err

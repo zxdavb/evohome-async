@@ -230,6 +230,18 @@ class TccEquipmentOutputStatus(StrEnum):  # thermostat.equipmentOutputStatus
 
 
 @verify(EnumCheck.UNIQUE)
+class TccFailureCode(StrEnum):  # the code of a failed request; NOTE: is incomplete
+    DEVICE_IS_LOST = "DeviceIsLost"
+    EMAIL_OR_PASSWORD_INCORRECT = "EmailOrPasswordIncorrect"  # noqa: S105
+    FORBIDDEN_PARAMETER = "ForbiddenParameter"
+    INVALID_INPUT = "InvalidInput"
+    PARAMETER_IS_MISSING = "ParameterIsMissing"
+    SCHEDULE_NOT_SUPPORTED = "ScheduleNotSupported"
+    TOO_MANY_REQUESTS = "TooManyRequests"
+    UNAUTHORIZED = "Unauthorized"
+
+
+@verify(EnumCheck.UNIQUE)
 class TccLocationType(StrEnum):  # location.type
     COMMERCIAL = "Commercial"
     RESIDENTIAL = "Residential"
@@ -704,7 +716,7 @@ type _TccResponse = Mapping[str, object]
 class TccFailureResponseT(TypedDict):
     """Typed dict for code/message responses from the vendor servers."""
 
-    code: str
+    code: str  # a TccFailureCode, e.g. "InvalidInput" (but that enum is incomplete)
     message: str
 
 

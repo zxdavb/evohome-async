@@ -87,7 +87,7 @@ def factory_post_oauth_token(_: Case = Case.VENDOR) -> Validator[TccOAuthTokenRe
 class TccOAuthErrorResponseT(TypedDict):
     """Typed dict for responses from the vendor servers for failed authentication."""
 
-    error: str  # e.g. "attempt_limit_exceeded" or "invalid_grant"
+    error: str  # a TccOAuthError, e.g. "attempt_limit_exceeded" or "invalid_grant"
 
 
 def factory_oauth_error_response(case: Case = Case.VENDOR) -> Validator[TccOAuthErrorResponseT]:
@@ -112,7 +112,7 @@ def factory_oauth_error_response(case: Case = Case.VENDOR) -> Validator[TccOAuth
 class TccFailureResponseT(TypedDict):
     """Typed dict for responses from the vendor servers for failed GETs / PUTs."""
 
-    code: str
+    code: str  # a TccFailureCode, e.g. "InvalidInput" (but that enum is incomplete)
     message: str
 
 
