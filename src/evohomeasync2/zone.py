@@ -149,37 +149,7 @@ class _TccModeMixin:
             )
         return until
 
-    def _validate_requested_timing_mode(
-        self,
-        mode: SystemMode | ZoneMode,
-        mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
-        timing_mode: TimingMode,
-        length: td,
-        /,
-    ) -> None:
-        """Raise if the timing_mode is not the one that the mode's entry expects.
-
-        An entry without a timing_mode takes no duration/period at all (it can only be
-        permanent, or it takes only an until).
-        """
-
-        if timing_mode is (expected := mode_entry.get(SZ_TIMING_MODE)):
-            return
-
-        message = f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
-
-        if expected is None:
-            raise exc.InvalidSetModeError(
-                message, reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED, mode=mode
-            )
-        raise exc.InvalidSetModeError(
-            message,
-            reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
-            mode=mode,
-            timing_mode=expected,
-        )
-
-    def _validate_requested_timespan(
+    def _validate_requested_timespan(  # noqa: C901
         self,
         mode: SystemMode | ZoneMode,
         mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
@@ -222,6 +192,37 @@ class _TccModeMixin:
                 not resolution or not timespan % resolution
             )
 
+        def is_valid_timing_mode(
+            mode: SystemMode | ZoneMode,
+            mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
+            timing_mode: TimingMode,
+            length: td,
+            /,
+        ) -> None:
+            """Raise if the timing_mode is not the one that the mode's entry expects.
+
+            An entry without a timing_mode takes no duration/period at all (it can only be
+            permanent, or it takes only an until).
+            """
+
+            if timing_mode is (expected := mode_entry.get(SZ_TIMING_MODE)):
+                return
+
+            message = f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
+
+            if expected is None:
+                raise exc.InvalidSetModeError(
+                    message,
+                    reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
+                    mode=mode,
+                )
+            raise exc.InvalidSetModeError(
+                message,
+                reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
+                mode=mode,
+                timing_mode=expected,
+            )
+
         if length is None:
             if not mode_entry[SZ_CAN_BE_PERMANENT]:
                 raise exc.InvalidSetModeError(
@@ -232,7 +233,7 @@ class _TccModeMixin:
                 )
             return None
 
-        self._validate_requested_timing_mode(mode, mode_entry, timing_mode, length)
+        is_valid_timing_mode(mode, mode_entry, timing_mode, length)
 
         now = self.location.now()
 
