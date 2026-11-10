@@ -367,7 +367,10 @@ class Location(EntityBase[EvoLocStatusT]):
         """
 
         try:
-            await self._auth.get(URL_USR_ACCOUNT, schema=_SCH_USR_ACCOUNT)
+            await self._auth.get(
+                URL_USR_ACCOUNT,
+                schema=_SCH_USR_ACCOUNT,
+            )
 
         except exc.AuthenticationFailedError:  # unable to get an access_token
             raise

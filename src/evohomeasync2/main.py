@@ -167,8 +167,6 @@ class EvohomeClient:
     async def _get_user_account(self) -> EvoUsrAccountResponseT:
         """Get the user's account, re-authenticating if the access_token is rejected."""
 
-        url = URL_USR_ACCOUNT
-
         # if valid, auth.get() sends this token (without yielding), else it fetches another
         access_token = (
             self._token_manager.access_token
@@ -177,7 +175,10 @@ class EvohomeClient:
         )
 
         try:
-            return await self.auth.get(url, schema=SCH_USR_ACCOUNT)
+            return await self.auth.get(
+                URL_USR_ACCOUNT,
+                schema=SCH_USR_ACCOUNT,
+            )
 
         except exc.AuthenticationFailedError:  # unable to get an access_token
             raise
@@ -196,7 +197,11 @@ class EvohomeClient:
             # another task may have since refreshed it, so don't clear the new one
             if access_token is None or self._token_manager.access_token == access_token:
                 self._token_manager.clear_access_token()
-            return await self.auth.get(url, schema=SCH_USR_ACCOUNT)
+
+            return await self.auth.get(
+                URL_USR_ACCOUNT,
+                schema=SCH_USR_ACCOUNT,
+            )
 
     async def _get_config(self) -> list[EvoLocConfigResponseT]:
         """Ensures the config of the user and their locations.
