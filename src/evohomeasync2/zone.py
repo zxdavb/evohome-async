@@ -655,13 +655,8 @@ class _ScheduleBase[
 
         schedule = response[SZ_DAILY_SCHEDULES]  # is [] if there is no schedule
 
-        try:  # check the switchpoints can be found, before storing the schedule
-            if schedule:
-                self._find_switchpoints(schedule, dt.now(tz=UTC))
-        except exc.InvalidGetScheduleError as err:
-            raise exc.InvalidGetScheduleError(
-                f"{self}: Schedule is invalid: {err}", reason=err.reason
-            ) from err
+        if schedule:  # check the switchpoints can be found, before storing it
+            self._find_switchpoints(schedule, dt.now(tz=UTC))
 
         self._schedule = schedule
         self._schedule_last_fetched = dt.now(tz=UTC)
@@ -681,7 +676,13 @@ class _ScheduleBase[
             "next_sp_temp": 18.6,
         }
         """
-        return _find_switchpoint_dtms(schedule, dtm, self.location.tzinfo)
+
+        try:
+            return _find_switchpoint_dtms(schedule, dtm, self.location.tzinfo)
+        except exc.InvalidGetScheduleError as err:  # its message has no entity
+            raise exc.InvalidGetScheduleError(
+                f"{self}: Schedule is invalid: {err}", reason=err.reason
+            ) from err
 
     async def set_schedule(
         self,
