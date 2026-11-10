@@ -9,7 +9,7 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Final, overload
 
 from .const import _DBG_DONT_REDACT_SECRETS, REGEX_EMAIL_ADDRESS
-from .exceptions import BadApiRequestError
+from .exceptions import BadApiRequestError, BadApiResponseError
 
 if TYPE_CHECKING:
     from datetime import tzinfo
@@ -146,11 +146,12 @@ def as_utc_str(dtm: dt) -> str:
 def as_timedelta(timespan: str) -> td:
     """Return a timedelta from a vendor TimeSpan string (e.g. "99.00:00:00").
 
-    Raise BadApiRequestError if the string is not in the expected format.
+    Raise BadApiResponseError if the string is not in the expected format (the string
+    is the vendor's, e.g. a maxDuration, so it is a bad response, not a bad request).
     """
 
     if not (match := _TCC_TIMESPAN_REGEX.match(timespan)):
-        raise BadApiRequestError(f"The timespan is invalid: {timespan!r}")
+        raise BadApiResponseError(f"The timespan is invalid: {timespan!r}")
 
     return td(**{k: int(v or 0) for k, v in match.groupdict().items()})
 
