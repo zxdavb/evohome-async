@@ -38,18 +38,18 @@ if TYPE_CHECKING:
     from .typedefs import EvoAuthTokensResponseT
 
 
-class EvoAccessTokenEntryT(TypedDict):
-    """Dict for storing/restoring auth tokens to/from a store."""
-
-    access_token: str
-    access_token_expires: str  # dt.isoformat()
-    refresh_token: str
-
-
 _APPLICATION_ID: Final = base64.b64encode(
     b"4a231089-d2b6-41bd-a5eb-16a0a422b999:"
     b"1a15cdb8-42de-407b-add0-059f92c530cb"
 ).decode("utf-8")  # fmt: off
+
+_SCOPE: Final = "EMEA-V1-Basic EMEA-V1-Anonymous"
+
+
+# TODO: deprecate, then remove in v4: use the OAUTH_* equivalents
+SZ_EXPIRES_IN: Final = OAUTH_EXPIRES_IN
+SZ_SCOPE: Final = OAUTH_SCOPE
+SZ_TOKEN_TYPE: Final = OAUTH_TOKEN_TYPE
 
 
 # the keys of the (serialized) token cache, EvoAccessTokenEntryT (not the vendor's)
@@ -57,12 +57,13 @@ SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
 SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"  # noqa: S105
 SZ_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
 
-# TODO: deprecate, then remove in v4: use the OAUTH_* equivalents
-SZ_EXPIRES_IN: Final = OAUTH_EXPIRES_IN
-SZ_SCOPE: Final = OAUTH_SCOPE
-SZ_TOKEN_TYPE: Final = OAUTH_TOKEN_TYPE
 
-_SCOPE: Final = "EMEA-V1-Basic EMEA-V1-Anonymous"
+class EvoAccessTokenEntryT(TypedDict):
+    """Dict for storing/restoring auth tokens to/from a store."""
+
+    access_token: str
+    access_token_expires: str  # dt.isoformat()
+    refresh_token: str
 
 
 SCH_OAUTH_TOKEN: Final = vol.Schema(
