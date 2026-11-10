@@ -50,8 +50,10 @@ class CommTask:
         self._id: Final = task_id
 
     @classmethod
-    def from_response(cls, auth: AbstractAuth, response: object) -> CommTask:
-        """Create the comm task from the vendor's response to a PUT.
+    def from_response(
+        cls, auth: AbstractAuth, response: object, *, url: str | None = None
+    ) -> CommTask:
+        """Create the comm task from the vendor's response to a PUT (of the url).
 
         The response is e.g. {"id": "1668279943"}.
         """
@@ -59,8 +61,9 @@ class CommTask:
         try:
             task = _SCH_TASK(response)
         except vol.Invalid as err:
+            put = f"PUT {url}" if url else "PUT"
             raise exc.BadApiResponseError(
-                f"PUT response is not a comm task: {response}: {err}",
+                f"{put}: response is not a comm task: {response}: {err}",
                 reason=ResponseErrorReason.COMM_TASK_INVALID,
             ) from err
 
@@ -89,7 +92,7 @@ class CommTask:
 
         if task[SZ_COMMTASK_ID] != self._id:
             raise exc.BadApiResponseError(
-                f"{self}: GET {url}: wrong comm task: {task}",
+                f"GET {url}: wrong comm task: {task}",  # the url has the task's id
                 reason=ResponseErrorReason.COMM_TASK_MISMATCHED,
             )
 
