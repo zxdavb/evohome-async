@@ -28,6 +28,6 @@ Synthesised fixture — minimal single-zone system (Belgium).
   locationOwner; replaced with synthesised values per PII policy.
 - The zone schedule has a `heatSetpoint` of 4.0 (Monday, 08:00), below the schema's
   minimum of 4.5, so it fails validation: `Zone.get_schedule()` raises
-  `InvalidScheduleError` (not `BadApiResponseError`), and `ControlSystem.get_schedules()`
+  `InvalidGetScheduleError` (not `BadApiResponseError`), and `ControlSystem.get_schedules()`
   returns an empty schedule for the zone. The value is valid per `TccZonSwitchpointT`
   (a float), so the fixture still passes `test_schemas.py`.

@@ -25,8 +25,12 @@ from .exceptions import (
     ClientStateError,
     EvohomeError,
     InvalidConfigError,
+    InvalidGetConfigError,
+    InvalidGetScheduleError,
+    InvalidGetStatusError,
     InvalidScheduleError,
     InvalidScheduleRequestError,
+    InvalidSetScheduleError,
     InvalidStatusError,
     NotFetchedError,
 )
@@ -94,10 +98,14 @@ __all__ = [  # noqa: RUF022
     "BadUserCredentialsError",
     "ClientStateError",
     "EvohomeError",
-    "InvalidConfigError",
-    "InvalidScheduleError",
-    "InvalidScheduleRequestError",
-    "InvalidStatusError",
+    "InvalidGetConfigError",
+    "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)
+    "InvalidGetScheduleError",
+    "InvalidScheduleError",  # TODO: deprecate in v4.0 (an alias of InvalidGetScheduleError)
+    "InvalidSetScheduleError",
+    "InvalidScheduleRequestError",  # TODO: deprecate in v4.0 (an alias of InvalidSetScheduleError)
+    "InvalidGetStatusError",
+    "InvalidStatusError",  # TODO: deprecate in v4.0 (an alias of InvalidGetStatusError)
     "NotFetchedError",
 ]
 

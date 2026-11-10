@@ -223,7 +223,7 @@ class Location(EntityBase[EvoLocStatusT]):
                 schema=self.SCH_CONFIG,
             )
         except exc.BadApiResponseError as err:  # the config failed validation
-            raise exc.InvalidConfigError(err.message) from err
+            raise exc.InvalidGetConfigError(err.message) from err
 
         # update only the TZ/DST attrs: the rest of the config is assumed static
         # self._config is also the client's _user_locs entry, so it is updated too
@@ -322,7 +322,7 @@ class Location(EntityBase[EvoLocStatusT]):
             )
 
         except exc.BadApiResponseError as err:  # the status failed validation
-            raise exc.InvalidStatusError(err.message) from err
+            raise exc.InvalidGetStatusError(err.message) from err
 
         except exc.AuthenticationFailedError:  # unable to get an access_token
             raise

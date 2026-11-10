@@ -170,7 +170,7 @@ async def test_ctl_set_mode_rejects_unsupported_mode(
     else:
         pytest.skip("TCS supports all system modes!")
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await tcs.set_mode(system_mode)
 
 
@@ -193,7 +193,7 @@ async def test_ctl_set_mode_rejects_until_for_non_temporary_mode(
 
     freezer.move_to("2025-07-10T12:00:00Z")
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await tcs.set_mode(non_temporary, until=dt.now(tz=UTC) + td(days=1))
 
 
@@ -281,7 +281,7 @@ async def test_zon_set_mode_rejects_vacation_hold(
     if ZoneMode.VACATION_HOLD in zone.allowed_modes:
         pytest.skip("Zone supports VacationHold mode")
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await zone.set_mode(ZoneMode.VACATION_HOLD, temperature=20.0)
 
 
@@ -445,7 +445,7 @@ async def test_zon_set_mode_vacation_hold_rejects_duration(
     if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
         pytest.skip("Zone does not support VacationHold mode")
 
-    with pytest.raises(evo2.InvalidModeRequestError, match="duration must be None"):
+    with pytest.raises(evo2.InvalidSetModeError, match="duration must be None"):
         await zone.set_mode(
             ZoneMode.VACATION_HOLD, temperature=15.0, duration=td(days=7)
         )
@@ -456,10 +456,10 @@ async def test_zon_set_mode_follow_schedule_rejects_extra_args(
 ) -> None:
     """Zone.set_mode(FollowSchedule) should reject temperature or until arguments."""
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await zone.set_mode(ZoneMode.FOLLOW_SCHEDULE, temperature=20.0)
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await zone.set_mode(
             ZoneMode.FOLLOW_SCHEDULE, until=dt.now(tz=UTC) + td(hours=1)
         )
@@ -470,10 +470,10 @@ async def test_zon_set_mode_permanent_override_rejects_bad_args(
 ) -> None:
     """Zone.set_mode(PermanentOverride) should reject missing temperature or extra until."""
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await zone.set_mode(ZoneMode.PERMANENT_OVERRIDE)
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await zone.set_mode(
             ZoneMode.PERMANENT_OVERRIDE,
             temperature=20.0,
@@ -486,12 +486,12 @@ async def test_zon_set_mode_temporary_override_rejects_bad_args(
 ) -> None:
     """Zone.set_mode(TemporaryOverride) should reject missing temperature or until."""
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await zone.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, until=dt.now(tz=UTC) + td(hours=1)
         )
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await zone.set_mode(ZoneMode.TEMPORARY_OVERRIDE, temperature=20.0)
 
 
@@ -582,7 +582,7 @@ async def test_dhw_set_mode_rejects_unsupported_mode(
     else:
         pytest.skip("DHW supports all zone modes!")
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await dhw.set_mode(mode)
 
 
@@ -591,10 +591,10 @@ async def test_dhw_set_mode_follow_schedule_rejects_extra_args(
 ) -> None:
     """HotWater.set_mode(FollowSchedule) should reject state or until arguments."""
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await dhw.set_mode(ZoneMode.FOLLOW_SCHEDULE, state=DhwState.ON)
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await dhw.set_mode(ZoneMode.FOLLOW_SCHEDULE, until=dt.now(tz=UTC) + td(hours=1))
 
 
@@ -603,10 +603,10 @@ async def test_dhw_set_mode_permanent_override_rejects_bad_args(
 ) -> None:
     """HotWater.set_mode(PermanentOverride) should reject missing state or extra until."""
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await dhw.set_mode(ZoneMode.PERMANENT_OVERRIDE)
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await dhw.set_mode(
             ZoneMode.PERMANENT_OVERRIDE,
             state=DhwState.ON,
@@ -619,10 +619,10 @@ async def test_dhw_set_mode_temporary_override_rejects_bad_args(
 ) -> None:
     """HotWater.set_mode(TemporaryOverride) should reject missing state or until."""
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await dhw.set_mode(
             ZoneMode.TEMPORARY_OVERRIDE, until=dt.now(tz=UTC) + td(hours=1)
         )
 
-    with pytest.raises(evo2.InvalidModeRequestError):
+    with pytest.raises(evo2.InvalidSetModeError):
         await dhw.set_mode(ZoneMode.TEMPORARY_OVERRIDE, state=DhwState.OFF)

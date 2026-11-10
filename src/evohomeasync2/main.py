@@ -108,7 +108,7 @@ class EvohomeClient:
             try:
                 await self._get_config()
             except exc.BadApiResponseError as err:  # e.g. failed validation
-                raise exc.InvalidConfigError(err.message) from err
+                raise exc.InvalidGetConfigError(err.message) from err
 
     @deprecated(
         "EvohomeClient.update() is deprecated: use .setup(), then Location.get_status()"

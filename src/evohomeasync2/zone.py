@@ -141,7 +141,7 @@ class _TccModeMixin:
         # is wrong in the hour repeated when DST ends (it ignores fold)
         until = as_aware_dtm(until)
         if until.astimezone(UTC) <= self.location.now().astimezone(UTC):
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, until must be in the future, not '{until}'"
             )
         return until
@@ -191,13 +191,13 @@ class _TccModeMixin:
 
         if length is None:
             if not mode_entry[SZ_CAN_BE_PERMANENT]:
-                raise exc.InvalidModeRequestError(
+                raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be given"
                 )
             return None
 
         if timing_mode is not mode_entry.get(SZ_TIMING_MODE):
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
             )
 
@@ -212,14 +212,14 @@ class _TccModeMixin:
             until = start + length
             has_ended = until.astimezone(UTC) <= now.astimezone(UTC)
         except OverflowError as err:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, {timing_mode} is out of range: '{length}'"
             ) from err
 
         # the vendor accepts an until in the past, but the controller ignores it (the
         # instants are compared, as a period's until is in local time: see above)
         if has_ended:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, {timing_mode} must end in the future, "
                 f"not '{length}' (it would end at {until})"
             )
@@ -405,7 +405,7 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
     """Find this/next switchpoints for a given day of week and time of day."""
 
     if not schedule:
-        raise exc.InvalidScheduleError("No schedule (daily schedules are empty)")
+        raise exc.InvalidGetScheduleError("No schedule (daily schedules are empty)")
 
     # assumes 1+ switchpoint per day, which could be this_sp or next_sp only
 
@@ -429,7 +429,9 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
         if sp[SZ_TIME_OF_DAY] > time_of_day:
             if this_sp is None:
                 if not (prev_day := schedule[(day_idx + 6) % 7][SZ_SWITCHPOINTS]):
-                    raise exc.InvalidScheduleError("No switchpoints for previous day")
+                    raise exc.InvalidGetScheduleError(
+                        "No switchpoints for previous day"
+                    )
                 this_sp = prev_day[-1]
                 this_offset = -1
 
@@ -441,7 +443,7 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
 
         if next_sp is None:
             if not (next_day := schedule[(day_idx + 1) % 7][SZ_SWITCHPOINTS]):
-                raise exc.InvalidScheduleError("No switchpoints for next day")
+                raise exc.InvalidGetScheduleError("No switchpoints for next day")
             next_sp = next_day[0]
             next_offset = +1
 
@@ -558,7 +560,7 @@ class _ScheduleBase[
         """Return the this/next switchpoints, or None if there is no schedule.
 
         Raise NotFetchedError if the schedule has not been fetched, and
-        InvalidScheduleError if the switchpoints can't be found in the schedule.
+        InvalidGetScheduleError if the switchpoints can't be found in the schedule.
         """
 
         if not (schedule := self.schedule):
@@ -580,7 +582,7 @@ class _ScheduleBase[
             )
 
         except exc.BadApiResponseError as err:  # the schedule failed validation
-            raise exc.InvalidScheduleError(
+            raise exc.InvalidGetScheduleError(
                 f"{self}: Schedule is invalid: {err}"
             ) from err
 
@@ -589,7 +591,7 @@ class _ScheduleBase[
 
         except exc.ApiCallFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
-                raise exc.InvalidScheduleError(
+                raise exc.InvalidGetScheduleError(
                     f"{self}: No Schedule, or is invalid"
                 ) from err
             raise
@@ -599,8 +601,8 @@ class _ScheduleBase[
         try:  # check the switchpoints can be found, before storing the schedule
             if schedule:
                 self._find_switchpoints(schedule, dt.now(tz=UTC))
-        except exc.InvalidScheduleError as err:
-            raise exc.InvalidScheduleError(
+        except exc.InvalidGetScheduleError as err:
+            raise exc.InvalidGetScheduleError(
                 f"{self}: Schedule is invalid: {err}"
             ) from err
 
@@ -639,7 +641,7 @@ class _ScheduleBase[
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
-                raise exc.InvalidScheduleRequestError(
+                raise exc.InvalidSetScheduleError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
@@ -647,14 +649,14 @@ class _ScheduleBase[
             try:
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as err:
-                raise exc.InvalidScheduleRequestError(
+                raise exc.InvalidSetScheduleError(
                     f"{self}: Invalid schedule: {err}"
                 ) from err
 
             assert isinstance(schedule, list)  # mypy
 
         else:
-            raise exc.InvalidScheduleRequestError(
+            raise exc.InvalidSetScheduleError(
                 f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable"
             )
 
@@ -771,10 +773,10 @@ class _ZoneBase[
         try:
             mode = ZoneMode(mode)
         except ValueError as err:
-            raise exc.InvalidModeRequestError(f"{self}: Unknown mode: {mode}") from err
+            raise exc.InvalidSetModeError(f"{self}: Unknown mode: {mode}") from err
 
         if mode not in self.allowed_modes:
-            raise exc.InvalidModeRequestError(f"{self}: Unsupported mode: {mode}")
+            raise exc.InvalidSetModeError(f"{self}: Unsupported mode: {mode}")
 
         return mode
 
@@ -964,19 +966,19 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         if temperature is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidModeRequestError(
+                raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, temperature must not be None"
                 )
             return None
 
         if mode is ZoneMode.FOLLOW_SCHEDULE:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, temperature must be None, not '{temperature}'"
             )
 
         # NaN/infinity is not a valid JSON number (nor can the controller clamp it)
         if not math.isfinite(temperature):
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, temperature must be a finite number, "
                 f"not '{temperature}'"
             )
@@ -1086,7 +1088,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             )
 
         if duration is not None:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Only one of until or duration may be given"
             )
 
@@ -1141,13 +1143,13 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:
-                raise exc.InvalidModeRequestError(
+                raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, until must not be None"
                 )
 
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidModeRequestError(
+                raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, until must be None, not '{until}'"
                 )
 
