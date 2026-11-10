@@ -266,7 +266,8 @@ class TccLocationType(StrEnum):
 
 
 @verify(EnumCheck.UNIQUE)
-class TccOAuthError(StrEnum):  # the error of a failed POST (snake_case, as per OAuth2)
+class TccOAuthError(StrEnum):  # the error of a failed POST; NOTE: is incomplete
+    # snake_case values, as per OAuth2 (unlike the vendor's PascalCase enums)
     ATTEMPT_LIMIT_EXCEEDED = "attempt_limit_exceeded"
     INVALID_GRANT = "invalid_grant"  # e.g. bad credentials, or an expired refresh_token
 
