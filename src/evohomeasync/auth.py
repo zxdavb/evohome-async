@@ -17,7 +17,13 @@ from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
 from .const import SZ_LATEST_EULA_ACCEPTED, URL_BASE, URL_CRED
-from .schemas import S1_SESSION_ID, S1_USERNAME, TCC_POST_USR_SESSION
+from .schemas import (
+    S1_APPLICATION_ID,
+    S1_PASSWORD,
+    S1_SESSION_ID,
+    S1_USERNAME,
+    TCC_POST_USR_SESSION,
+)
 
 if TYPE_CHECKING:
     import aiohttp
@@ -31,9 +37,6 @@ if TYPE_CHECKING:
 #  - https://mytotalconnectcomfort.com/WebApi/Help/LogIn
 _APPLICATION_ID: Final = "91db1612-73fd-4500-91b2-e63b069b185c"
 #
-
-S1_APPLICATION_ID: Final = "applicationId"
-S1_PASSWORD: Final = "password"  # noqa: S105
 
 SZ_SESSION_ID: Final = "session_id"
 SZ_SESSION_ID_EXPIRES: Final = "session_id_expires"
