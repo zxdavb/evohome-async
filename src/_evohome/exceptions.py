@@ -30,6 +30,7 @@ They are grouped by what the caller can do about them:
 from __future__ import annotations
 
 import warnings
+from enum import StrEnum
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 
@@ -157,8 +158,52 @@ class BadApiRequestError(EvohomeError):  # a base exception
     """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode)."""
 
 
+class ModeRequestErrorReason(StrEnum):
+    """Why a request to set the mode of a TCS/zone/DHW was rejected.
+
+    The values are public API, so that callers can map each one to their own (e.g.
+    translated) message: renaming or removing a member is a breaking change, but
+    adding one is not.
+    """
+
+    UNKNOWN_MODE = "unknown_mode"  # the mode is not a valid enum value
+    UNSUPPORTED_MODE = "unsupported_mode"  # the mode is not among the allowed modes
+    CONFLICTING_ARGS = "conflicting_args"  # e.g. both an until and a duration
+    TIMESPAN_REQUIRED = "timespan_required"  # the mode cannot be permanent
+    CANT_BE_TEMPORARY = "cant_be_temporary"  # the mode can only be permanent
+    WRONG_TIMING_MODE = "wrong_timing_mode"  # e.g. a duration, for a period mode
+    TIMESPAN_OUT_OF_RANGE = "timespan_out_of_range"  # too large for a datetime
+    NOT_IN_FUTURE = "not_in_future"  # the until/duration/period would have ended
+    TEMPERATURE_REQUIRED = "temperature_required"
+    TEMPERATURE_NOT_ALLOWED = "temperature_not_allowed"
+    TEMPERATURE_INVALID = "temperature_invalid"  # e.g. NaN, or infinity
+    STATE_REQUIRED = "state_required"
+    STATE_NOT_ALLOWED = "state_not_allowed"
+    UNKNOWN_STATE = "unknown_state"  # the state is not a valid enum value
+    UNSUPPORTED_STATE = "unsupported_state"  # the state is not among allowed states
+
+
 class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
-    """The requested mode is not supported by this TCS/zone/DHW zone."""
+    """The requested mode is not supported by this TCS/zone/DHW zone.
+
+    The `reason` attr says why (see ModeRequestErrorReason), so that callers need not
+    parse the message. The `details` attr holds only the structured values that apply
+    to the reason, for use as the placeholders of a (translated) message:
+      mode:         the mode (a snake_case enum value, or the raw input if unknown)
+      timing_mode:  the timing mode that the mode's entry expects
+      state:        the DHW state (a snake_case enum value, or the raw input if unknown)
+      max_duration: the mode's max_duration (reserved: no reason supplies it, yet)
+
+    Which keys are present depends upon the reason (e.g. CONFLICTING_ARGS has none),
+    so a message for a reason may only use the placeholders that its reason supplies.
+    """
+
+    def __init__(
+        self, message: str, /, *, reason: ModeRequestErrorReason, **details: str
+    ) -> None:
+        super().__init__(message)
+        self.reason = reason
+        self.details: dict[str, str] = details
 
 
 class InvalidScheduleRequestError(BadApiRequestError):  # failed to set a schedule

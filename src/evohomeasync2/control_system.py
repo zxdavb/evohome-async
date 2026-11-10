@@ -33,6 +33,7 @@ from .const import (
     TcsModelType,
     TimingMode,
 )
+from .exceptions import ModeRequestErrorReason
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
 from .schemas.status import factory_tcs_status
@@ -183,12 +184,16 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             system_mode = SystemMode(system_mode)
         except ValueError as err:
             raise exc.InvalidModeRequestError(
-                f"{self}: Unknown system_mode: {system_mode}"
+                f"{self}: Unknown system_mode: {system_mode}",
+                reason=ModeRequestErrorReason.UNKNOWN_MODE,
+                mode=str(system_mode),
             ) from err
 
         if system_mode not in self.allowed_modes:
             raise exc.InvalidModeRequestError(
-                f"{self}: Unsupported system_mode: {system_mode}"
+                f"{self}: Unsupported system_mode: {system_mode}",
+                reason=ModeRequestErrorReason.UNSUPPORTED_MODE,
+                mode=system_mode,
             )
 
         return system_mode
@@ -325,7 +330,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
         if duration is not None or period is not None:
             raise exc.InvalidModeRequestError(
-                f"{self}: Only one of until, duration or period may be given"
+                f"{self}: Only one of until, duration or period may be given",
+                reason=ModeRequestErrorReason.CONFLICTING_ARGS,
             )
 
         return await self._set_mode(system_mode, until=until)
@@ -379,7 +385,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
         if not mode_entry[SZ_CAN_BE_TEMPORARY]:
             raise exc.InvalidModeRequestError(
-                f"{self}: For {system_mode}, until must be None, not '{until}'"
+                f"{self}: For {system_mode}, until must be None, not '{until}'",
+                reason=ModeRequestErrorReason.CANT_BE_TEMPORARY,
+                mode=system_mode,
             )
 
         return await self._put_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME
@@ -420,7 +428,8 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
         if duration is not None and period is not None:
             raise exc.InvalidModeRequestError(
-                f"{self}: Only one of duration or period may be given"
+                f"{self}: Only one of duration or period may be given",
+                reason=ModeRequestErrorReason.CONFLICTING_ARGS,
             )
 
         system_mode = self._validate_requested_mode(system_mode)
