@@ -690,7 +690,8 @@ class _ScheduleBase[
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
                 raise exc.InvalidSetScheduleError(
-                    f"{self}: Invalid schedule: {err}"
+                    f"{self}: Invalid schedule: {err}",
+                    reason=RequestErrorReason.SCHEDULE_INVALID,
                 ) from err
 
         elif isinstance(schedule, str):
@@ -698,14 +699,16 @@ class _ScheduleBase[
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as err:
                 raise exc.InvalidSetScheduleError(
-                    f"{self}: Invalid schedule: {err}"
+                    f"{self}: Invalid schedule: {err}",
+                    reason=RequestErrorReason.SCHEDULE_INVALID,
                 ) from err
 
             assert isinstance(schedule, list)  # mypy
 
         else:
             raise exc.InvalidSetScheduleError(
-                f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable"
+                f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable",
+                reason=RequestErrorReason.SCHEDULE_INVALID,
             )
 
         schedule_ = {SZ_DAILY_SCHEDULES: schedule}

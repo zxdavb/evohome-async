@@ -33,6 +33,7 @@ from .exceptions import (
     InvalidSetScheduleError,
     InvalidStatusError,
     NotFetchedError,
+    RequestErrorReason,
 )
 from .main import EvohomeClient
 from .schemas import (  # noqa: F401
@@ -107,6 +108,7 @@ __all__ = [  # noqa: RUF022
     "InvalidGetStatusError",
     "InvalidStatusError",  # TODO: deprecate in v4.0 (an alias of InvalidGetStatusError)
     "NotFetchedError",
+    "RequestErrorReason",
 ]
 
 # hidden from type checkers, which would otherwise accept any name in this module

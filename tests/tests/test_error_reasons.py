@@ -20,7 +20,7 @@ from _evohome.exceptions import RequestErrorReason
 _SRC = Path(_evohome.__file__).parent.parent  # incl. evohomeasync, evohomeasync2
 
 # the errors that the library must raise with a reason
-_REASONED = (exc.InvalidSetModeError,)
+_REASONED = (exc.BadApiRequestError,)
 
 _BY_NAME = {  # incl. the aliases of their previous names (e.g. InvalidModeRequestError)
     n: c

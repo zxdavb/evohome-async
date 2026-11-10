@@ -131,11 +131,12 @@ The request/response subclasses are named after the method that raises them (`se
 aliases, which do not (yet) warn, as they are used by the HA integration: they are to be
 deprecated in v4.0. Do not use them in this library.
 
-Each `InvalidSetModeError` that the library raises has a `reason` (a
-`RequestErrorReason`), so that callers (e.g. HA) need not parse its message. Reasons are
-named `PARAM_PROBLEM` (e.g. `MODE_UNKNOWN`), and their values are prefixed `set_`, as is
-the error's name (e.g. `set_mode_unknown`). Each also has `details`: only the structured
-values that its message may use as placeholders (`mode`, `timing_mode`, `state`,
+Each `BadApiRequestError` (and each of its subclasses, e.g. `InvalidSetModeError`) that
+the library raises has a `reason` (a `RequestErrorReason`), so that callers (e.g. HA)
+need not parse its message. Reasons are named `PARAM_PROBLEM` (e.g. `MODE_UNKNOWN`), and
+their values are prefixed `set_`, as are the errors' names (e.g. `set_mode_unknown`).
+Each also has `details`: only the structured values that its message may use as
+placeholders (e.g. for an `InvalidSetModeError`: `mode`, `timing_mode`, `state`,
 `max_duration`). The `reason` is optional only so that the error can still be raised
 with a bare message (e.g. by HA's tests).
 

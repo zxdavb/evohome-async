@@ -13,7 +13,12 @@ from unittest.mock import AsyncMock, PropertyMock, patch
 import pytest
 from freezegun.api import FakeDatetime
 
-from evohomeasync2 import BadApiRequestError, InvalidSetModeError
+from evohomeasync2 import (
+    BadApiRequestError,
+    InvalidSetModeError,
+    InvalidSetScheduleError,
+    RequestErrorReason,
+)
 from evohomeasync2.const import DhwState, SystemMode, TimingMode, ZoneMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -411,6 +416,27 @@ async def test_set_mode_rejects_naive_until(
 
     with pytest.raises(BadApiRequestError):
         await tcs.set_away(until=naive)
+
+
+@pytest.mark.parametrize(
+    "schedule",
+    [[{"date": dt(2026, 1, 1, tzinfo=UTC)}], "[not json", 42],
+    ids=["not_serializable", "not_json", "not_a_list_or_str"],
+)
+async def test_set_schedule_rejects_invalid(
+    zone: Zone,
+    schedule: Any,
+) -> None:
+    """An invalid schedule is rejected (with its reason) before any request is made."""
+
+    with (
+        patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock,
+        pytest.raises(InvalidSetScheduleError) as exc_info,
+    ):
+        await zone.set_schedule(schedule)
+
+    mock.assert_not_awaited()
+    assert exc_info.value.reason is RequestErrorReason.SCHEDULE_INVALID
 
 
 # Test ControlSystem.set_mode() (with a duration/period, rather than an until)...

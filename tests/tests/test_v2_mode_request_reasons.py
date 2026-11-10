@@ -286,5 +286,12 @@ async def test_mode_request_error_reason(
 def test_mode_request_error_reasons_are_all_raised() -> None:
     """Test every reason of a mode request is raised by at least one site (above)."""
 
+    others = {
+        Reason.DATETIME_INVALID,
+        Reason.SCHEDULE_INVALID,
+        Reason.TIMEZONE_REQUIRED,
+        Reason.ZONE_UNKNOWN,
+    }
+
     raised = {case.values[1] for case in CASES}
-    assert raised == set(Reason)
+    assert raised == set(Reason) - others

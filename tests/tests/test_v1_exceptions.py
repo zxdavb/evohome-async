@@ -94,5 +94,7 @@ async def test_unknown_zone(
 
     tcs = get_tcs(ec1)
 
-    with pytest.raises(exc.BadApiRequestError):
+    with pytest.raises(exc.BadApiRequestError) as exc_info:
         tcs._get_zone("no such zone")
+
+    assert exc_info.value.reason is exc.RequestErrorReason.ZONE_UNKNOWN

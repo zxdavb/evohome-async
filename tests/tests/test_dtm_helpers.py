@@ -8,7 +8,7 @@ import probatio as vol
 import pytest
 
 from _evohome.helpers import Case, as_aware_dtm, as_timedelta, convert_dtms_to_utc_str
-from evohomeasync2 import BadApiRequestError, BadApiResponseError
+from evohomeasync2 import BadApiRequestError, BadApiResponseError, RequestErrorReason
 from evohomeasync2.schemas.helpers import factory_datetime
 
 # a fixed +01:00 offset (e.g. London in summer); avoids a tzdata dependency
@@ -39,8 +39,10 @@ def test_convert_dtms_to_utc_str_rejects_naive() -> None:
 
     naive = dt.fromisoformat("2024-07-10T22:10:00")  # no offset
 
-    with pytest.raises(BadApiRequestError):
+    with pytest.raises(BadApiRequestError) as exc_info:
         convert_dtms_to_utc_str({"time_until": naive})
+
+    assert exc_info.value.reason is RequestErrorReason.TIMEZONE_REQUIRED
 
 
 def test_convert_dtms_to_utc_str_leaves_plain_strings_alone() -> None:
@@ -67,18 +69,24 @@ def test_as_aware_dtm_parses_aware_iso_string() -> None:
 def test_as_aware_dtm_rejects_naive_dt() -> None:
     naive = dt.fromisoformat("2024-07-10T22:10:00")  # no offset
 
-    with pytest.raises(BadApiRequestError):
+    with pytest.raises(BadApiRequestError) as exc_info:
         as_aware_dtm(naive)
+
+    assert exc_info.value.reason is RequestErrorReason.TIMEZONE_REQUIRED
 
 
 def test_as_aware_dtm_rejects_naive_string() -> None:
-    with pytest.raises(BadApiRequestError):
+    with pytest.raises(BadApiRequestError) as exc_info:
         as_aware_dtm("2024-07-10T22:10:00")
+
+    assert exc_info.value.reason is RequestErrorReason.TIMEZONE_REQUIRED
 
 
 def test_as_aware_dtm_rejects_unparsable_string() -> None:
-    with pytest.raises(BadApiRequestError):
+    with pytest.raises(BadApiRequestError) as exc_info:
         as_aware_dtm("not-a-datetime")
+
+    assert exc_info.value.reason is RequestErrorReason.DATETIME_INVALID
 
 
 # --- inbound: factory_datetime() coercer (schema validator) -------------------------

@@ -24,6 +24,7 @@ from _evohome.exceptions import (
     InvalidSetScheduleError,
     InvalidStatusError,
     NotFetchedError,
+    RequestErrorReason,
     deprecated_getattr,
 )
 
@@ -51,6 +52,7 @@ __all__ = [
     "InvalidSetScheduleError",
     "InvalidStatusError",  # TODO: deprecate in v4.0 (an alias of InvalidGetStatusError)
     "NotFetchedError",
+    "RequestErrorReason",
 ]
 
 # hidden from type checkers, which would otherwise accept any name in this module
