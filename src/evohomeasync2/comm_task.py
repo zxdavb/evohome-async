@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from .typedefs import EvoCommTaskResponseT
 
 
+URL_COMM_TASK: Final = "commTasks?commTaskId={comm_task_id}"
+
 # the period between each GET of the task's state, when waiting for it to succeed
 DEFAULT_INTERVAL: Final = 0.5  # seconds
 
@@ -79,7 +81,7 @@ class CommTask:
         Will return a str only if the vendor's state is not a known CommTaskState.
         """
 
-        url = f"commTasks?commTaskId={self._id}"
+        url = URL_COMM_TASK.format(comm_task_id=self._id)
         task = await self._auth.get(url, schema=SCH_COMM_TASK)
 
         if task[SZ_COMMTASK_ID] != self._id:

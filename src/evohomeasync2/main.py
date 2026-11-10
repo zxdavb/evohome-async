@@ -15,7 +15,7 @@ from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
-from .const import SZ_USER_ID
+from .const import SZ_USER_ID, URL_USR_ACCOUNT
 from .location import Location, create_location
 from .schemas.account import factory_usr_account
 from .schemas.config import factory_usr_locations
@@ -34,6 +34,10 @@ SCH_USR_ACCOUNT: Final[Validator[EvoUsrAccountResponseT]] = factory_usr_account(
 )
 SCH_USR_LOCATIONS: Final[Validator[list[EvoLocConfigResponseT]]] = (
     factory_usr_locations(Case.PYTHONIC)
+)
+
+URL_USR_LOCATIONS: Final = (
+    "location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True"
 )
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync2"
@@ -167,7 +171,7 @@ class EvohomeClient:
     async def _get_user_account(self) -> EvoUsrAccountResponseT:
         """Get the user's account, re-authenticating if the access_token is rejected."""
 
-        url = "userAccount"
+        url = URL_USR_ACCOUNT
 
         # if valid, auth.get() sends this token (without yielding), else it fetches another
         access_token = (
@@ -219,7 +223,7 @@ class EvohomeClient:
                 ) from err
 
             self._user_locs = await self.auth.get(
-                f"location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True",
+                URL_USR_LOCATIONS.format(user_id=user_id),
                 schema=SCH_USR_LOCATIONS,
             )
 

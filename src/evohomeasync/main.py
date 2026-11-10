@@ -31,6 +31,9 @@ SCH_GET_ACCOUNT_LOCS: Final[Validator[list[EvoTcsInfoDictT]]] = (
     factory_location_response_list(Case.PYTHONIC)
 )
 
+URL_ACCOUNT_INFO: Final = "accountInfo"
+URL_LOCATIONS: Final = "locations?userId={user_id}&allData=True"
+
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])  # "evohomeasync"
 
 
@@ -187,7 +190,7 @@ class EvohomeClient:
         """
 
         if self._user_info is None:  # will handle session_id rejection
-            url = "accountInfo"
+            url = URL_ACCOUNT_INFO
 
             # if valid, auth.get() sends this id (without yielding), else it fetches another
             session_id = (
@@ -229,7 +232,7 @@ class EvohomeClient:
                 ) from err
 
             self._user_locs = await self.auth.get(
-                f"locations?userId={user_id}&allData=True", schema=SCH_GET_ACCOUNT_LOCS
+                URL_LOCATIONS.format(user_id=user_id), schema=SCH_GET_ACCOUNT_LOCS
             )
 
             assert self._user_locs is not None  # mypy

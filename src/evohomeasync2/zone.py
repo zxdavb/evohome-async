@@ -114,6 +114,10 @@ if TYPE_CHECKING:
 
 _ONE_DAY = td(days=1)
 
+URL_HEAT_SETPOINT: Final = "{type}/{id}/heatSetpoint"
+URL_SCHEDULE: Final = "{type}/{id}/schedule"
+URL_STATUS: Final = "{type}/{id}/status"
+
 # for values that the schema passes through, as the vendor's enums are incomplete
 _PLEASE_REPORT = (
     "is unknown, please report it at https://github.com/zxdavb/evohome-async/issues"
@@ -572,7 +576,7 @@ class _ScheduleBase[
 
         try:
             response: _DailySchedulesT[DayT] = await self._auth.get(
-                f"{self._TCC_TYPE}/{self.id}/schedule",
+                URL_SCHEDULE.format(type=self._TCC_TYPE, id=self.id),
                 schema=self.SCH_SCHEDULE,
             )
 
@@ -657,7 +661,7 @@ class _ScheduleBase[
 
         schedule_ = {SZ_DAILY_SCHEDULES: schedule}
 
-        url = f"{self._TCC_TYPE}/{self.id}/schedule"
+        url = URL_SCHEDULE.format(type=self._TCC_TYPE, id=self.id)
         response = await self._auth.put(url, json=schedule_, schema=self.SCH_SCHEDULE)
 
         self._schedule = schedule  # NOTE: the comm task may yet fail
@@ -796,7 +800,7 @@ class _ZoneBase[
         )
 
         status: StatusT = await self._auth.get(
-            f"{self._TCC_TYPE}/{self.id}/status",
+            URL_STATUS.format(type=self._TCC_TYPE, id=self.id),
             schema=self.SCH_STATUS,
         )
 
@@ -1106,7 +1110,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         if time_until is not None:
             zon_mode[SZ_TIME_UNTIL] = time_until
 
-        url = f"{self._TCC_TYPE}/{self.id}/heatSetpoint"
+        url = URL_HEAT_SETPOINT.format(type=self._TCC_TYPE, id=self.id)
         response = await self._auth.put(url, json=zon_mode)
         return CommTask.from_response(self._auth, response)
 

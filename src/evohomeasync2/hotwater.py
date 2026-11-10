@@ -52,6 +52,9 @@ if TYPE_CHECKING:
     from .zone import _AllowedModesT
 
 
+URL_DHW_STATE: Final = "{type}/{id}/state"
+
+
 class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
     """Instance of a TCS's DHW zone (domesticHotWater)."""
 
@@ -269,7 +272,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         if until_time is not None:
             dhw_mode[SZ_UNTIL_TIME] = until_time
 
-        url = f"{self._TCC_TYPE}/{self.id}/state"
+        url = URL_DHW_STATE.format(type=self._TCC_TYPE, id=self.id)
         response = await self._auth.put(url, json=dhw_mode)
         return CommTask.from_response(self._auth, response)
 

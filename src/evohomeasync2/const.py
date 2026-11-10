@@ -27,6 +27,9 @@ from .schemas.const import (
 
 # HDR_STRFTIME: Final = "%Y-%m-%d %H:%M:%S"  # used by HTTP headers
 
+# the userAccount URL is open to all authenticated users (so can check a token)
+URL_USR_ACCOUNT: Final = "userAccount"
+
 # snake_case equivalents of every S2_* key in schemas/const.py.
 # All are string literals; test_const.py asserts they equal camel_to_snake(S2_*).
 

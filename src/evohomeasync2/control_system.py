@@ -63,6 +63,9 @@ if TYPE_CHECKING:
     )
 
 
+URL_TCS_MODE: Final = "{type}/{id}/mode"
+
+
 def _sched_id(schedule: Mapping[str, Any]) -> str:
     """Return the zone_id or dhw_id from a schedule."""
 
@@ -350,7 +353,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         if time_until is not None:
             tcs_mode[SZ_TIME_UNTIL] = time_until
 
-        url = f"{self._TCC_TYPE}/{self.id}/mode"
+        url = URL_TCS_MODE.format(type=self._TCC_TYPE, id=self.id)
         response = await self._auth.put(url, json=tcs_mode)
         return CommTask.from_response(self._auth, response)
 

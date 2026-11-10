@@ -94,6 +94,10 @@ _TEMP_IS_NA: Final = 128
 # e.g. EMEA_ZONE, but any such prefixed type is a zone (c.f. TccThermostatModelType)
 _ZONE_MODEL_TYPE_PREFIX: Final = "EMEA_"
 
+URL_DHW_MODE: Final = "devices/{device_id}/thermostat/changeableValues"
+URL_TCS_MODE: Final = "evoTouchSystems?locationId={location_id}"
+URL_ZON_MODE: Final = "devices/{device_id}/thermostat/changeableValues/heatSetpoint"
+
 
 class _EntityBase(ABC):
     """Base class for all entities."""
@@ -230,7 +234,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         if next_time:  # the vendor treats it as the location's local time
             dhw_mode |= {S1_NEXT_TIME: as_local_str(next_time, self.location.tzinfo)}
 
-        url = f"devices/{self.id}/thermostat/changeableValues"
+        url = URL_DHW_MODE.format(device_id=self.id)
         _ = await self._auth.put(url, json=dhw_mode)
 
     async def set_dhw_on(self, until: dt | None = None) -> None:
@@ -336,7 +340,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
         if next_time is not None:  # the vendor treats it as the location's local time
             zon_mode[S1_NEXT_TIME] = as_local_str(next_time, self.location.tzinfo)
 
-        url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
+        url = URL_ZON_MODE.format(device_id=self.id)
         _ = await self._auth.put(url, json=zon_mode)
 
     async def set_temperature(
@@ -451,7 +455,7 @@ class ControlSystem(_EntityBase):
     async def _put_mode(self, tcs_mode: TccSetTcsModeT) -> None:
         """Set the TCS mode."""
 
-        url = f"evoTouchSystems?locationId={self.id}"
+        url = URL_TCS_MODE.format(location_id=self.id)
         _ = await self._auth.put(url, json=tcs_mode)
 
     async def reset(self) -> None:
