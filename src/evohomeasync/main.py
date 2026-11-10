@@ -318,7 +318,7 @@ class EvohomeClient:
         if (tcs := locs[0].tcs) is None:
             raise exc.ClientStateError(
                 "The location of this account has no TCS",
-                reason=ClientStateErrorReason.TCS_ABSENT,
+                reason=ClientStateErrorReason.LOCATION_NO_TCS,
             )
 
         return tcs

@@ -293,7 +293,7 @@ class ClientStateErrorReason(StrEnum):
     The values are public API, so that callers can map each one to their own (e.g.
     translated) message: renaming or removing a member is a breaking change, but
     adding one is not. They are named PARAM_PROBLEM, and their values are prefixed
-    client_, so that they are unique (e.g. TCS_ABSENT = client_tcs_absent).
+    client_, so that they are unique (e.g. LOCATION_NO_TCS = client_location_no_tcs).
     """
 
     CONFIG_NOT_FETCHED = "client_config_not_fetched"  # call setup()
@@ -302,7 +302,7 @@ class ClientStateErrorReason(StrEnum):
     CONFIG_STALE = "client_config_stale"  # e.g. the status lacks a zone of the config
     LOCATION_INACCESSIBLE = "client_location_inaccessible"  # e.g. deleted, or unshared
     LOCATION_NOT_SINGLE = "client_location_not_single"  # the account has 0, or 2+
-    TCS_ABSENT = "client_tcs_absent"  # the location has no TCS (it has 0-1)
+    LOCATION_NO_TCS = "client_location_no_tcs"  # a location has 0 or 1 TCS
 
 
 class ClientStateError(EvohomeError):  # a base exception

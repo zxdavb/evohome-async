@@ -703,7 +703,7 @@ class Location(_EntityBase):
         if (tcs := self.tcs) is None:
             raise exc.ClientStateError(
                 f"{self}: This location has no TCS",
-                reason=ClientStateErrorReason.TCS_ABSENT,
+                reason=ClientStateErrorReason.LOCATION_NO_TCS,
             )
 
         return await tcs.get_temperatures(dont_update_status=dont_update_status)
