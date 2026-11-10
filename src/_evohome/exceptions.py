@@ -30,6 +30,7 @@ They are grouped by what the caller can do about them:
 from __future__ import annotations
 
 import warnings
+from enum import EnumCheck, StrEnum, verify
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 
@@ -157,12 +158,70 @@ class InvalidGetScheduleError(BadApiResponseError):  # schedule JSON is invalid/
 #    mode); these are detected before making any API request, so nothing was sent
 
 
+@verify(EnumCheck.UNIQUE)
+class RequestErrorReason(StrEnum):
+    """Why a request was rejected, before any API call (see BadApiRequestError).
+
+    The values are public API, so that callers can map each one to their own (e.g.
+    translated) message: renaming or removing a member is a breaking change, but
+    adding one is not. They are named PARAM_PROBLEM, and their values are prefixed
+    set_, so that they are unique (e.g. MODE_UNKNOWN = set_mode_unknown).
+    """
+
+    # the mode of a TCS/zone/DHW (see InvalidSetModeError)
+    MODE_UNKNOWN = "set_mode_unknown"  # the mode is not a valid enum value
+    MODE_UNSUPPORTED = "set_mode_unsupported"  # the mode is not among the allowed modes
+    TIMESPAN_REQUIRED = "set_timespan_required"  # the mode cannot be permanent
+    TIMESPAN_NOT_ALLOWED = "set_timespan_not_allowed"  # the mode can only be permanent
+    TIMESPAN_CONFLICTING = "set_timespan_conflicting"  # e.g. an until and a duration
+    TIMESPAN_UNSUPPORTED = "set_timespan_unsupported"  # e.g. a duration, not a period
+    TIMESPAN_OUT_OF_RANGE = "set_timespan_out_of_range"  # too large for a datetime
+    TIMESPAN_NOT_IN_FUTURE = "set_timespan_not_in_future"  # it would have ended already
+    TEMPERATURE_REQUIRED = "set_temperature_required"
+    TEMPERATURE_NOT_ALLOWED = "set_temperature_not_allowed"
+    TEMPERATURE_INVALID = "set_temperature_invalid"  # e.g. NaN, or infinity
+    STATE_REQUIRED = "set_state_required"
+    STATE_NOT_ALLOWED = "set_state_not_allowed"
+    STATE_UNKNOWN = "set_state_unknown"  # the state is not a valid enum value
+    STATE_UNSUPPORTED = "set_state_unsupported"  # the state is not among allowed states
+
+
 class BadApiRequestError(EvohomeError):  # a base exception
-    """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode)."""
+    """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode).
+
+    The `reason` attr says why (see RequestErrorReason), so that callers need not parse
+    the message. The `details` attr holds only the structured values that apply to the
+    reason, for use as the placeholders of a (translated) message (see the subclasses).
+
+    This library supplies a reason when it raises an InvalidSetModeError, but a reason
+    is optional (so it may be None), so that the error can still be raised with only a
+    message (e.g. by a test double).
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        reason: RequestErrorReason | None = None,
+        **details: str,
+    ) -> None:
+        super().__init__(message)
+        self.reason = reason
+        self.details: dict[str, str] = details
 
 
 class InvalidSetModeError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
-    """The requested mode is not supported by this TCS/zone/DHW zone."""
+    """The requested mode is not supported by this TCS/zone/DHW zone.
+
+    Its `details` may have these keys, for use as a message's placeholders:
+      mode:         the mode (a snake_case enum value, or the raw input if unknown)
+      timing_mode:  the timing mode that the mode's entry expects
+      state:        the DHW state (a snake_case enum value, or the raw input if unknown)
+      max_duration: the mode's max_duration (reserved: no reason supplies it, yet)
+
+    Which keys are present depends upon the reason (e.g. TIMESPAN_CONFLICTING has none),
+    so a message for a reason may only use the placeholders that its reason supplies.
+    """
 
 
 class InvalidSetScheduleError(BadApiRequestError):  # failed to set a schedule

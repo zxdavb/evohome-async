@@ -131,6 +131,20 @@ The request/response subclasses are named after the method that raises them (`se
 aliases, which do not (yet) warn, as they are used by the HA integration: they are to be
 deprecated in v4.0. Do not use them in this library.
 
+Each `InvalidSetModeError` that the library raises has a `reason` (a
+`RequestErrorReason`), so that callers (e.g. HA) need not parse its message. Reasons are
+named `PARAM_PROBLEM` (e.g. `MODE_UNKNOWN`), and their values are prefixed `set_`, as is
+the error's name (e.g. `set_mode_unknown`). Each also has `details`: only the structured
+values that its message may use as placeholders (`mode`, `timing_mode`, `state`,
+`max_duration`). The `reason` is optional only so that the error can still be raised
+with a bare message (e.g. by HA's tests).
+
+The reasons' values are public API: renaming or removing one is a breaking change, but
+adding one is not. `tests/tests/test_error_reasons.py` checks that every raise site
+supplies a reason, that every reason is used, and that every value is prefixed. Add any
+new raise site of an `InvalidSetModeError` to
+`tests/tests/test_v2_mode_request_reasons.py`.
+
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library
   code - instead, raise exceptions based upon `EvohomeError`.
 - An `AuthenticationFailedError` is an `ApiCallFailedError`, and has a `status` too. A
