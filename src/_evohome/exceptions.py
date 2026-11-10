@@ -185,7 +185,11 @@ class InvalidStatusError(BadApiResponseError):  # status JSON is invalid
 
 
 class InvalidScheduleError(BadApiResponseError):  # schedule JSON is invalid/missing
-    """The schedule JSON is not as expected, or there is no schedule."""
+    """The schedule JSON is not as expected, or there is no schedule.
+
+    This is a schedule from the vendor (e.g. via get_schedule()): see
+    InvalidScheduleRequestError for a schedule supplied by the caller.
+    """
 
 
 # 3. Request failures: the supplied arguments are unusable (e.g. an unsupported zone
@@ -262,7 +266,11 @@ class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/D
 
 
 class InvalidScheduleRequestError(BadApiRequestError):  # failed to set a schedule
-    """The supplied schedule JSON is not supported / is invalid."""
+    """The supplied schedule JSON is not supported / is invalid.
+
+    This is a schedule supplied by the caller (e.g. via set_schedule()): see
+    InvalidScheduleError for a schedule from the vendor.
+    """
 
 
 # 4. State failures: the client does not hold the data needed to answer (after/without
