@@ -137,21 +137,21 @@ class ResponseErrorReason(StrEnum):
     The values are public API, so that callers can map each one to their own (e.g.
     translated) message: renaming or removing a member is a breaking change, but
     adding one is not. They are named PARAM_PROBLEM, and their values are prefixed
-    vendor_, so that they are unique (e.g. CONFIG_INVALID = vendor_config_invalid).
+    get_, so that they are unique (e.g. CONFIG_INVALID = get_config_invalid).
     """
 
-    RESPONSE_INVALID = "vendor_response_invalid"  # it failed validation (a GET)
-    ACCOUNT_INVALID = "vendor_account_invalid"  # e.g. it has no user_id
-    CONFIG_INVALID = "vendor_config_invalid"  # it failed validation
-    MODEL_TYPE_UNKNOWN = "vendor_model_type_unknown"  # of a zone (a ghost zone?)
-    ZONE_TYPE_UNKNOWN = "vendor_zone_type_unknown"  # of a zone (a ghost zone?)
-    STATUS_INVALID = "vendor_status_invalid"  # it failed validation
-    SCHEDULE_INVALID = "vendor_schedule_invalid"  # it failed validation
-    SCHEDULE_MISSING = "vendor_schedule_missing"  # e.g. it is empty
-    SWITCHPOINTS_MISSING = "vendor_switchpoints_missing"  # e.g. for a day
-    COMM_TASK_INVALID = "vendor_comm_task_invalid"  # a PUT's response
-    COMM_TASK_MISMATCHED = "vendor_comm_task_mismatched"  # a GET's response
-    TIMESPAN_INVALID = "vendor_timespan_invalid"  # e.g. of a max_duration
+    RESPONSE_INVALID = "get_response_invalid"  # it failed validation (a GET)
+    ACCOUNT_INVALID = "get_account_invalid"  # e.g. it has no user_id
+    CONFIG_INVALID = "get_config_invalid"  # it failed validation
+    MODEL_TYPE_UNKNOWN = "get_model_type_unknown"  # of a zone (a ghost zone?)
+    ZONE_TYPE_UNKNOWN = "get_zone_type_unknown"  # of a zone (a ghost zone?)
+    STATUS_INVALID = "get_status_invalid"  # it failed validation
+    SCHEDULE_INVALID = "get_schedule_invalid"  # it failed validation
+    SCHEDULE_MISSING = "get_schedule_missing"  # e.g. it is empty
+    SWITCHPOINTS_MISSING = "get_switchpoints_missing"  # e.g. for a day
+    COMM_TASK_INVALID = "get_comm_task_invalid"  # a PUT's response
+    COMM_TASK_MISMATCHED = "get_comm_task_mismatched"  # a GET's response
+    TIMESPAN_INVALID = "get_timespan_invalid"  # e.g. of a max_duration
 
 
 class BadApiResponseError(EvohomeError):  # a base exception
@@ -209,31 +209,32 @@ class RequestErrorReason(StrEnum):
 
     The values are public API, so that callers can map each one to their own (e.g.
     translated) message: renaming or removing a member is a breaking change, but
-    adding one is not. They are named param_problem (e.g. mode_unknown).
+    adding one is not. They are named PARAM_PROBLEM, and their values are prefixed
+    set_, so that they are unique (e.g. MODE_UNKNOWN = set_mode_unknown).
     """
 
     # the mode of a TCS/zone/DHW (see InvalidSetModeError)
-    MODE_UNKNOWN = "mode_unknown"  # the mode is not a valid enum value
-    MODE_UNSUPPORTED = "mode_unsupported"  # the mode is not among the allowed modes
-    TIMESPAN_REQUIRED = "timespan_required"  # the mode cannot be permanent
-    TIMESPAN_NOT_ALLOWED = "timespan_not_allowed"  # the mode can only be permanent
-    TIMESPAN_CONFLICTING = "timespan_conflicting"  # e.g. both an until and a duration
-    TIMESPAN_UNSUPPORTED = "timespan_unsupported"  # e.g. a duration, for a period mode
-    TIMESPAN_INVALID = "timespan_invalid"  # e.g. a naive until, or not a datetime
-    TIMESPAN_OUT_OF_RANGE = "timespan_out_of_range"  # too large for a datetime
-    TIMESPAN_NOT_IN_FUTURE = "timespan_not_in_future"  # it would have ended already
-    TEMPERATURE_REQUIRED = "temperature_required"
-    TEMPERATURE_NOT_ALLOWED = "temperature_not_allowed"
-    TEMPERATURE_INVALID = "temperature_invalid"  # e.g. NaN, or infinity
-    STATE_REQUIRED = "state_required"
-    STATE_NOT_ALLOWED = "state_not_allowed"
-    STATE_UNKNOWN = "state_unknown"  # the state is not a valid enum value
-    STATE_UNSUPPORTED = "state_unsupported"  # the state is not among allowed states
+    MODE_UNKNOWN = "set_mode_unknown"  # the mode is not a valid enum value
+    MODE_UNSUPPORTED = "set_mode_unsupported"  # the mode is not among the allowed modes
+    TIMESPAN_REQUIRED = "set_timespan_required"  # the mode cannot be permanent
+    TIMESPAN_NOT_ALLOWED = "set_timespan_not_allowed"  # the mode can only be permanent
+    TIMESPAN_CONFLICTING = "set_timespan_conflicting"  # e.g. an until and a duration
+    TIMESPAN_UNSUPPORTED = "set_timespan_unsupported"  # e.g. a duration, not a period
+    TIMESPAN_INVALID = "set_timespan_invalid"  # e.g. a naive until, or not a datetime
+    TIMESPAN_OUT_OF_RANGE = "set_timespan_out_of_range"  # too large for a datetime
+    TIMESPAN_NOT_IN_FUTURE = "set_timespan_not_in_future"  # it would have ended already
+    TEMPERATURE_REQUIRED = "set_temperature_required"
+    TEMPERATURE_NOT_ALLOWED = "set_temperature_not_allowed"
+    TEMPERATURE_INVALID = "set_temperature_invalid"  # e.g. NaN, or infinity
+    STATE_REQUIRED = "set_state_required"
+    STATE_NOT_ALLOWED = "set_state_not_allowed"
+    STATE_UNKNOWN = "set_state_unknown"  # the state is not a valid enum value
+    STATE_UNSUPPORTED = "set_state_unsupported"  # the state is not among allowed states
 
     # other requests
-    DATETIME_INVALID = "datetime_invalid"  # e.g. a naive datetime, or not a datetime
-    SCHEDULE_INVALID = "schedule_invalid"  # e.g. not JSON (or not serializable)
-    ZONE_UNKNOWN = "zone_unknown"  # e.g. no zone with that id/idx/name
+    DATETIME_INVALID = "set_datetime_invalid"  # e.g. naive, or not a datetime
+    SCHEDULE_INVALID = "set_schedule_invalid"  # e.g. not JSON (or not serializable)
+    ZONE_UNKNOWN = "set_zone_unknown"  # e.g. no zone with that id/idx/name
 
 
 class BadApiRequestError(EvohomeError):  # a base exception

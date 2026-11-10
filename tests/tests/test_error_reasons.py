@@ -96,11 +96,15 @@ def test_reasons_are_unique() -> None:
     assert not duplicates, f"reasons that are not unique: {duplicates}"
 
 
-def test_response_reasons_are_prefixed() -> None:
-    """Test every reason of a response is prefixed vendor_ (and no request's is)."""
+def test_reasons_are_prefixed() -> None:
+    """Test every reason's value is its name, prefixed get_ (response) or set_ (request).
 
-    assert all(r.value.startswith("vendor_") for r in ResponseErrorReason)
-    assert not any(r.value.startswith("vendor_") for r in RequestErrorReason)
+    As are the errors' names (InvalidGet*Error, InvalidSet*Error); the prefixes also keep
+    the values of the two enums apart (see above).
+    """
+
+    assert all(r.value == f"get_{r.name.lower()}" for r in ResponseErrorReason)
+    assert all(r.value == f"set_{r.name.lower()}" for r in RequestErrorReason)
 
 
 @pytest.mark.parametrize("cls", _CLASSES, ids=lambda c: c.__name__)
