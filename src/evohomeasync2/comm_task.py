@@ -78,21 +78,25 @@ class CommTask:
         """Return the id of the comm task."""
         return self._id
 
+    @property
+    def _url(self) -> str:
+        """Return the URL of the comm task (its state)."""
+        return URL_COMM_TASK.format(comm_task_id=self._id)
+
     async def get_state(self) -> CommTaskState | str:
         """Return the current state of the comm task (a single GET).
 
         Will return a str only if the vendor's state is not a known CommTaskState.
         """
 
-        url = URL_COMM_TASK.format(comm_task_id=self._id)
         task = await self._auth.get(
-            url,
+            self._url,
             schema=SCH_COMM_TASK,
         )
 
         if task[SZ_COMMTASK_ID] != self._id:
             raise exc.BadApiResponseError(
-                f"GET {url}: wrong comm task: {task}",  # the url has the task's id
+                f"GET {self._url}: response is of another comm task: {task}",
                 reason=ResponseErrorReason.COMM_TASK_MISMATCHED,
             )
 
@@ -111,5 +115,7 @@ class CommTask:
 
         while (state := await self.get_state()) is not CommTaskState.SUCCEEDED:
             if state is CommTaskState.FAILED:
-                raise exc.CommTaskFailedError(f"{self}: the comm task failed")
+                raise exc.CommTaskFailedError(
+                    f"GET {self._url}: response is of a failed comm task"
+                )
             await asyncio.sleep(interval)
