@@ -153,7 +153,7 @@ class _TccModeMixin:
         if until.astimezone(UTC) <= self.location.now().astimezone(UTC):
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, until must be in the future, not '{until}'",
-                reason=ModeRequestErrorReason.NOT_IN_FUTURE,
+                reason=ModeRequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
                 mode=mode,
             )
         return until
@@ -179,11 +179,11 @@ class _TccModeMixin:
 
         if expected is None:
             raise exc.InvalidModeRequestError(
-                message, reason=ModeRequestErrorReason.CANT_BE_TEMPORARY, mode=mode
+                message, reason=ModeRequestErrorReason.TIMESPAN_NOT_ALLOWED, mode=mode
             )
         raise exc.InvalidModeRequestError(
             message,
-            reason=ModeRequestErrorReason.WRONG_TIMING_MODE,
+            reason=ModeRequestErrorReason.TIMESPAN_UNSUPPORTED,
             mode=mode,
             timing_mode=expected,
         )
@@ -267,7 +267,7 @@ class _TccModeMixin:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, {timing_mode} must end in the future, "
                 f"not '{length}' (it would end at {until})",
-                reason=ModeRequestErrorReason.NOT_IN_FUTURE,
+                reason=ModeRequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
                 mode=mode,
             )
 
@@ -820,14 +820,14 @@ class _ZoneBase[
         except ValueError as err:
             raise exc.InvalidModeRequestError(
                 f"{self}: Unknown mode: {mode}",
-                reason=ModeRequestErrorReason.UNKNOWN_MODE,
+                reason=ModeRequestErrorReason.MODE_UNKNOWN,
                 mode=str(mode),
             ) from err
 
         if mode not in self.allowed_modes:
             raise exc.InvalidModeRequestError(
                 f"{self}: Unsupported mode: {mode}",
-                reason=ModeRequestErrorReason.UNSUPPORTED_MODE,
+                reason=ModeRequestErrorReason.MODE_UNSUPPORTED,
                 mode=mode,
             )
 
@@ -1149,7 +1149,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         if duration is not None:
             raise exc.InvalidModeRequestError(
                 f"{self}: Only one of until or duration may be given",
-                reason=ModeRequestErrorReason.CONFLICTING_ARGS,
+                reason=ModeRequestErrorReason.TIMESPAN_CONFLICTING,
             )
 
         return await self._set_mode(mode, temperature=temperature, until=until)
@@ -1213,7 +1213,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, until must be None, not '{until}'",
-                    reason=ModeRequestErrorReason.CANT_BE_TEMPORARY,
+                    reason=ModeRequestErrorReason.TIMESPAN_NOT_ALLOWED,
                     mode=mode,
                 )
 

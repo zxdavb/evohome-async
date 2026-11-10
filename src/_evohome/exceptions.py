@@ -166,22 +166,22 @@ class ModeRequestErrorReason(StrEnum):
     adding one is not.
     """
 
-    UNKNOWN_MODE = "unknown_mode"  # the mode is not a valid enum value
-    UNSUPPORTED_MODE = "unsupported_mode"  # the mode is not among the allowed modes
-    CONFLICTING_ARGS = "conflicting_args"  # e.g. both an until and a duration
+    MODE_UNKNOWN = "mode_unknown"  # the mode is not a valid enum value
+    MODE_UNSUPPORTED = "mode_unsupported"  # the mode is not among the allowed modes
     TIMESPAN_REQUIRED = "timespan_required"  # the mode cannot be permanent
-    CANT_BE_TEMPORARY = "cant_be_temporary"  # the mode can only be permanent
-    WRONG_TIMING_MODE = "wrong_timing_mode"  # e.g. a duration, for a period mode
+    TIMESPAN_NOT_ALLOWED = "timespan_not_allowed"  # the mode can only be permanent
+    TIMESPAN_CONFLICTING = "timespan_conflicting"  # e.g. both an until and a duration
+    TIMESPAN_UNSUPPORTED = "timespan_unsupported"  # e.g. a duration, for a period mode
     TIMESPAN_INVALID = "timespan_invalid"  # e.g. a naive until, or not a datetime
     TIMESPAN_OUT_OF_RANGE = "timespan_out_of_range"  # too large for a datetime
-    NOT_IN_FUTURE = "not_in_future"  # the until/duration/period would have ended
+    TIMESPAN_NOT_IN_FUTURE = "timespan_not_in_future"  # it would have ended already
     TEMPERATURE_REQUIRED = "temperature_required"
     TEMPERATURE_NOT_ALLOWED = "temperature_not_allowed"
     TEMPERATURE_INVALID = "temperature_invalid"  # e.g. NaN, or infinity
     STATE_REQUIRED = "state_required"
     STATE_NOT_ALLOWED = "state_not_allowed"
-    UNKNOWN_STATE = "unknown_state"  # the state is not a valid enum value
-    UNSUPPORTED_STATE = "unsupported_state"  # the state is not among allowed states
+    STATE_UNKNOWN = "state_unknown"  # the state is not a valid enum value
+    STATE_UNSUPPORTED = "state_unsupported"  # the state is not among allowed states
 
 
 class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
@@ -195,7 +195,7 @@ class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/D
       state:        the DHW state (a snake_case enum value, or the raw input if unknown)
       max_duration: the mode's max_duration (reserved: no reason supplies it, yet)
 
-    Which keys are present depends upon the reason (e.g. CONFLICTING_ARGS has none),
+    Which keys are present depends upon the reason (e.g. TIMESPAN_CONFLICTING has none),
     so a message for a reason may only use the placeholders that its reason supplies.
 
     This library always supplies a reason, but it is optional (so the reason may be

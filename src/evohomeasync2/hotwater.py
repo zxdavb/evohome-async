@@ -156,14 +156,14 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         except ValueError as err:
             raise exc.InvalidModeRequestError(
                 f"{self}: Unknown state: {state}",
-                reason=ModeRequestErrorReason.UNKNOWN_STATE,
+                reason=ModeRequestErrorReason.STATE_UNKNOWN,
                 state=str(state),
             ) from err
 
         if state not in self.allowed_states:
             raise exc.InvalidModeRequestError(
                 f"{self}: Unsupported state: {state}",
-                reason=ModeRequestErrorReason.UNSUPPORTED_STATE,
+                reason=ModeRequestErrorReason.STATE_UNSUPPORTED,
                 state=state,
             )
 
@@ -258,7 +258,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         if duration is not None:
             raise exc.InvalidModeRequestError(
                 f"{self}: Only one of until or duration may be given",
-                reason=ModeRequestErrorReason.CONFLICTING_ARGS,
+                reason=ModeRequestErrorReason.TIMESPAN_CONFLICTING,
             )
 
         return await self._set_mode(mode, state=state, until=until)
@@ -321,7 +321,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 raise exc.InvalidModeRequestError(
                     f"{self}: For {mode}, until must be None, not '{until}'",
-                    reason=ModeRequestErrorReason.CANT_BE_TEMPORARY,
+                    reason=ModeRequestErrorReason.TIMESPAN_NOT_ALLOWED,
                     mode=mode,
                 )
 
