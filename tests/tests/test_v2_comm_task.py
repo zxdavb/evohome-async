@@ -11,7 +11,12 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from _evohome.auth import AbstractAuth
-from evohomeasync2 import BadApiResponseError, CommTask, CommTaskFailedError
+from evohomeasync2 import (
+    BadApiResponseError,
+    CommTask,
+    CommTaskFailedError,
+    ResponseErrorReason,
+)
 from evohomeasync2.const import CommTaskState
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -116,9 +121,14 @@ async def test_put_with_bad_response(
             new_callable=AsyncMock,
             return_value={"id": "not_a_task_id"},
         ),
-        pytest.raises(BadApiResponseError),
+        pytest.raises(BadApiResponseError) as exc_info,
     ):
         await zone.reset()
+
+    assert exc_info.value.message.startswith(
+        f"PUT temperatureZone/{zone.id}/heatSetpoint: response is not a comm task: "
+    )
+    assert exc_info.value.reason is ResponseErrorReason.COMM_TASK_INVALID
 
 
 async def test_get_state(
@@ -179,9 +189,14 @@ async def test_get_state_wrong_task(
         patch_request(
             return_value=_task("Running", task_id="9876543210"),
         ),
-        pytest.raises(BadApiResponseError),
+        pytest.raises(BadApiResponseError) as exc_info,
     ):
         await task.get_state()
+
+    assert exc_info.value.message.startswith(
+        f"GET commTasks?commTaskId={TASK_ID}: wrong comm task: "
+    )
+    assert exc_info.value.reason is ResponseErrorReason.COMM_TASK_MISMATCHED
 
 
 async def test_wait_succeeds(
