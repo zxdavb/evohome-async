@@ -136,11 +136,20 @@ class _TccModeMixin:
 
         The vendor accepts an until that has passed (and reports the mode as in effect),
         but the controller ignores it, so it is rejected (as for a duration/period).
+        A naive until (or a string that is not an ISO 8601 datetime) is rejected.
         """
+
+        try:
+            until = as_aware_dtm(until)
+        except exc.BadApiRequestError as err:
+            raise exc.InvalidModeRequestError(
+                f"{self}: For {mode}, until must be a TZ-aware datetime, not '{until}'",
+                reason=ModeRequestErrorReason.TIMESPAN_INVALID,
+                mode=mode,
+            ) from err
 
         # compare instants: with a shared tzinfo, Python compares by wall clock, which
         # is wrong in the hour repeated when DST ends (it ignores fold)
-        until = as_aware_dtm(until)
         if until.astimezone(UTC) <= self.location.now().astimezone(UTC):
             raise exc.InvalidModeRequestError(
                 f"{self}: For {mode}, until must be in the future, not '{until}'",

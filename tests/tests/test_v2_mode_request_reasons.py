@@ -37,6 +37,7 @@ class _Call(NamedTuple):
 
 _PAST = dt(2020, 1, 1, tzinfo=UTC)
 _FUTURE = dt.now(tz=UTC) + td(days=1)  # the tests take far less than a day
+_NAIVE = dt.fromisoformat("2030-01-01T00:00:00")  # no offset
 
 _AUTO = SystemMode.AUTO
 _ECO = SystemMode.AUTO_WITH_ECO
@@ -153,6 +154,18 @@ CASES = [
         Reason.WRONG_TIMING_MODE,
         {"mode": "away", "timing_mode": "period"},
         id="tcs-wrong_timing_mode",
+    ),
+    pytest.param(
+        _Call("tcs", _AWAY, {"until": _NAIVE}),
+        Reason.TIMESPAN_INVALID,
+        {"mode": "away"},
+        id="tcs-timespan_invalid-naive",
+    ),
+    pytest.param(
+        _Call("zone", _TEMP, {"temperature": 20.0, "until": "not-a-datetime"}),
+        Reason.TIMESPAN_INVALID,
+        {"mode": "temporary_override"},
+        id="zon-timespan_invalid-string",
     ),
     pytest.param(
         _Call("tcs", _AWAY, {"period": td.max}),

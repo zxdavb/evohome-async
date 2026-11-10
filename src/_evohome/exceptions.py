@@ -172,6 +172,7 @@ class ModeRequestErrorReason(StrEnum):
     TIMESPAN_REQUIRED = "timespan_required"  # the mode cannot be permanent
     CANT_BE_TEMPORARY = "cant_be_temporary"  # the mode can only be permanent
     WRONG_TIMING_MODE = "wrong_timing_mode"  # e.g. a duration, for a period mode
+    TIMESPAN_INVALID = "timespan_invalid"  # e.g. a naive until, or not a datetime
     TIMESPAN_OUT_OF_RANGE = "timespan_out_of_range"  # too large for a datetime
     NOT_IN_FUTURE = "not_in_future"  # the until/duration/period would have ended
     TEMPERATURE_REQUIRED = "temperature_required"
