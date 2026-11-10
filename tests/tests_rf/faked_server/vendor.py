@@ -5,7 +5,7 @@ from __future__ import annotations
 import functools
 import re
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, Final, TypeVar
 
 import probatio as vol
 
@@ -58,6 +58,18 @@ def _zon_id(url: _urlT) -> str:
 S = TypeVar("S", bound="FakedServerBase")
 
 
+def _failure(code: sch.TccFailureCode, message: str) -> list[dict[str, str]]:
+    """Return the vendor's response to a failed GET/PUT (a list of code/message)."""
+    return [{sch.S2_CODE: code, sch.S2_MESSAGE: message}]
+
+
+# the vendor's response to any request for an id that is not the user's (whether or not
+# it exists, e.g. a deleted zone): it is the same for every URL, GET or PUT
+_UNAUTHORIZED: Final = _failure(
+    sch.TccFailureCode.UNAUTHORIZED, "You are not allowed to perform this action."
+)
+
+
 def validate_id_of_url(
     id_fnc: Callable[[_urlT], str],
 ) -> Callable[[Callable[[S], _bodyT | None]], Callable[[S], _bodyT]]:
@@ -87,7 +99,7 @@ def validate_id_of_url(
                 return result
 
             svr.status = HTTPStatus.UNAUTHORIZED
-            return [{"message": "Unauthorized"}]
+            return _UNAUTHORIZED
 
         return wrapper
 
@@ -190,6 +202,54 @@ class FakedServerV2(FakedServerBase):
         )
         self._user_config = self._user_config_from_full_config(self._full_config)  # type: ignore[arg-type]
 
+    def _ids(self) -> dict[str, set[str]]:
+        """Return the ids of the user's entities, by their id key (from the status)."""
+
+        keys = (
+            sch.S2_LOCATION_ID,
+            sch.S2_GATEWAY_ID,
+            sch.S2_SYSTEM_ID,
+            sch.S2_ZONE_ID,
+            sch.S2_DHW_ID,
+        )
+        ids: dict[str, set[str]] = {key: set() for key in keys}
+
+        def walk(node: object) -> None:
+            if isinstance(node, dict):
+                for key, value in node.items():
+                    if key in ids and isinstance(value, str):
+                        ids[key].add(value)
+                    else:
+                        walk(value)
+            elif isinstance(node, list):
+                for item in node:
+                    walk(item)
+
+        walk(self._locn_status)
+        return ids
+
+    def _is_users_id(self, id_: str) -> bool:
+        """Return True if the id is of any of the user's entities."""
+        return any(id_ in ids for ids in self._ids().values())
+
+    def _schedule_error(
+        self, id_: str, valid_ids: set[str], failure: list[dict[str, str]]
+    ) -> _bodyT | None:
+        """Return the vendor's error (if any) for the id of a schedule's URL.
+
+        An id that is not the user's is a 401 (a GET or PUT); a GET with an id that is
+        the user's, but not a valid one (e.g. of another type), is a 400 (the failure).
+        """
+
+        if not self._is_users_id(id_):
+            self.status = HTTPStatus.UNAUTHORIZED
+            return _UNAUTHORIZED
+
+        if self._method == HTTPMethod.GET and id_ not in valid_ids:
+            self.status = HTTPStatus.BAD_REQUEST
+            return failure
+        return None
+
     def oauth_token(self) -> _bodyT | None:
         if self._method != HTTPMethod.POST:
             self.status = HTTPStatus.METHOD_NOT_ALLOWED
@@ -243,10 +303,15 @@ class FakedServerV2(FakedServerBase):
     def zon_schedule(self) -> _bodyT | None:
         zon_id = _zon_id(self._url)  # type: ignore[arg-type]
 
+        not_found = _failure(
+            sch.TccFailureCode.SCHEDULE_NOT_FOUND, "Schedule not found."
+        )
+        # a ghost zone is a zone, but has no schedule (so is as if not a zone's id)
+        valid_ids = self._ids()[sch.S2_ZONE_ID] - {GHOST_ZONE_ID}
+        if err := self._schedule_error(zon_id, valid_ids, not_found):
+            return err  # e.g. a TCS's id (or an id that is not the user's)
+
         if self._method == HTTPMethod.GET:
-            if zon_id == GHOST_ZONE_ID:
-                self.status = HTTPStatus.BAD_REQUEST
-                return [{"code": "ScheduleNotFound", "message": "Schedule not found."}]
             return self._schedules.get(zon_id, self._zon_schedule)
 
         if self._method != HTTPMethod.PUT:
@@ -278,10 +343,23 @@ class FakedServerV2(FakedServerBase):
                 for zone in tcs[sch.S2_ZONES]:
                     if zone[sch.S2_ZONE_ID] == zon_id:
                         return zone  # type: ignore[no-any-return]
+
+        if self._is_users_id(zon_id):  # e.g. a TCS's id
+            self.status = HTTPStatus.BAD_REQUEST
+            return _failure(
+                sch.TccFailureCode.TEMPERATURE_ZONE_NOT_FOUND,
+                f"Temperature Zone {zon_id} not found.",
+            )
         return None
 
     def dhw_schedule(self) -> _bodyT | None:
         dhw_id = _dhw_id(self._url)  # type: ignore[arg-type]
+
+        not_found = _failure(
+            sch.TccFailureCode.DHW_NOT_FOUND, f"Domestic Hot Water {dhw_id} not found."
+        )
+        if err := self._schedule_error(dhw_id, self._ids()[sch.S2_DHW_ID], not_found):
+            return err  # e.g. a zone's id (or an id that is not the user's)
 
         if self._method == HTTPMethod.GET:
             return self._schedules.get(dhw_id, self._dhw_schedule)
@@ -311,6 +389,13 @@ class FakedServerV2(FakedServerBase):
             for tcs in gwy[sch.S2_TEMPERATURE_CONTROL_SYSTEMS]:  # type: ignore[index]
                 if (dhw := tcs.get(sch.S2_DHW)) and dhw[sch.S2_DHW_ID] == dhw_id:
                     return dhw  # type: ignore[no-any-return]
+
+        if self._is_users_id(dhw_id):  # e.g. a zone's id
+            self.status = HTTPStatus.BAD_REQUEST
+            return _failure(
+                sch.TccFailureCode.DHW_NOT_FOUND,
+                f"Domestic Hot Water {dhw_id} not found.",
+            )
         return None
 
     def dhw_mode(self) -> _bodyT | None:
