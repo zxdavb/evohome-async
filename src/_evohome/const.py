@@ -41,7 +41,6 @@ class ContentType(StrEnum):
 HEADERS_BASE = {
     hdrs.ACCEPT: ContentType.JSON,
     hdrs.CONNECTION: "Keep-Alive",  # TODO: remove: HTTP/1.1 keeps alive by default
-    # hdrs.CONTENT_TYPE: ContentType.JSON,
 }
 HEADERS_CRED = HEADERS_BASE | {
     hdrs.CACHE_CONTROL: "no-cache, no-store",
