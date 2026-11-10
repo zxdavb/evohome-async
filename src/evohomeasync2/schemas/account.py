@@ -45,7 +45,7 @@ from .helpers import factory_enum_or_str
 
 if TYPE_CHECKING:
     from _evohome.helpers import Validator
-    from evohomeasync2.schemas.const import TccFailureCode
+    from evohomeasync2.schemas.const import TccFailureCode, TccOAuthError
     from evohomeasync2.typedefs import EvoCommTaskResponseT, EvoUsrAccountResponseT
 
 
@@ -88,7 +88,7 @@ def factory_post_oauth_token(_: Case = Case.VENDOR) -> Validator[TccOAuthTokenRe
 class TccOAuthErrorResponseT(TypedDict):
     """Typed dict for responses from the vendor servers for failed authentication."""
 
-    error: str  # a TccOAuthError, e.g. "attempt_limit_exceeded" or "invalid_grant"
+    error: TccOAuthError | str  # e.g. "invalid_grant"; enum is incomplete, so allow str
 
 
 def factory_oauth_error_response(case: Case = Case.VENDOR) -> Validator[TccOAuthErrorResponseT]:
