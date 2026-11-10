@@ -136,25 +136,23 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         if state is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidModeRequestError(
+                raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, state must not be None"
                 )
             return None
 
         if mode is ZoneMode.FOLLOW_SCHEDULE:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, state must be None, not '{state}'"
             )
 
         try:
             state = DhwState(state)
         except ValueError as err:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Unknown state: {state}"
-            ) from err
+            raise exc.InvalidSetModeError(f"{self}: Unknown state: {state}") from err
 
         if state not in self.allowed_states:
-            raise exc.InvalidModeRequestError(f"{self}: Unsupported state: {state}")
+            raise exc.InvalidSetModeError(f"{self}: Unsupported state: {state}")
 
         return state
 
@@ -245,7 +243,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             return await self._set_tcc_mode(mode, state=state, duration=duration)
 
         if duration is not None:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Only one of until or duration may be given"
             )
 
@@ -299,13 +297,13 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:
-                raise exc.InvalidModeRequestError(
+                raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, until must not be None"
                 )
 
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidModeRequestError(
+                raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, until must be None, not '{until}'"
                 )
 

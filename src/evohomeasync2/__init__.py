@@ -42,9 +42,14 @@ from .exceptions import (
     EvohomeError,
     GhostZoneError,
     InvalidConfigError,
+    InvalidGetConfigError,
+    InvalidGetScheduleError,
+    InvalidGetStatusError,
     InvalidModeRequestError,
     InvalidScheduleError,
     InvalidScheduleRequestError,
+    InvalidSetModeError,
+    InvalidSetScheduleError,
     InvalidStatusError,
     NotFetchedError,
     StaleConfigError,
@@ -95,12 +100,17 @@ __all__ = [  # noqa: RUF022
     "CommTaskFailedError",
     "EvohomeError",
     "GhostZoneError",
-    "InvalidConfigError",
-    "InvalidModeRequestError",
-    "InvalidScheduleError",
-    "InvalidScheduleRequestError",
-    "InvalidStatusError",
-    "InvalidSystemModeError",  # deprecated alias for InvalidModeRequestError
+    "InvalidGetConfigError",
+    "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)
+    "InvalidSetModeError",
+    "InvalidModeRequestError",  # TODO: deprecate in v4.0 (an alias of InvalidSetModeError)
+    "InvalidGetScheduleError",
+    "InvalidScheduleError",  # TODO: deprecate in v4.0 (an alias of InvalidGetScheduleError)
+    "InvalidSetScheduleError",
+    "InvalidScheduleRequestError",  # TODO: deprecate in v4.0 (an alias of InvalidSetScheduleError)
+    "InvalidGetStatusError",
+    "InvalidStatusError",  # TODO: deprecate in v4.0 (an alias of InvalidGetStatusError)
+    "InvalidSystemModeError",  # deprecated alias for InvalidSetModeError
     "NotFetchedError",
     "StaleConfigError",
 ]

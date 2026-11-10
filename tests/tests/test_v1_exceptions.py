@@ -55,14 +55,14 @@ async def test_config_not_fetched(
 async def test_invalid_config(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test update() raises InvalidConfigError if the config fails validation."""
+    """Test update() raises InvalidGetConfigError if the config fails validation."""
 
     ec1 = EvohomeClient(credentials_manager)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=error)),
-        pytest.raises(exc.InvalidConfigError) as err,
+        pytest.raises(exc.InvalidGetConfigError) as err,
     ):
         await ec1.get_status()
 
@@ -73,13 +73,13 @@ async def test_invalid_config(
 async def test_invalid_status(
     ec1: EvohomeClient,
 ) -> None:
-    """Test update() raises InvalidStatusError if the status fails validation."""
+    """Test update() raises InvalidGetStatusError if the status fails validation."""
 
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=error)),
-        pytest.raises(exc.InvalidStatusError) as err,
+        pytest.raises(exc.InvalidGetStatusError) as err,
     ):
         await ec1.get_status()  # the entities exist, so this is a status update
 
