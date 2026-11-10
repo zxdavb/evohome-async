@@ -68,6 +68,7 @@ from .const import (
     ZoneModelType,
     ZoneType,
 )
+from .exceptions import RequestErrorReason
 from .schemas.const import TccEntityType
 from .schemas.schedule import factory_zon_schedule
 from .schemas.status import factory_zon_status
@@ -142,9 +143,41 @@ class _TccModeMixin:
         until = as_aware_dtm(until)
         if until.astimezone(UTC) <= self.location.now().astimezone(UTC):
             raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, until must be in the future, not '{until}'"
+                f"{self}: For {mode}, until must be in the future, not '{until}'",
+                reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
+                mode=mode,
             )
         return until
+
+    def _validate_requested_timing_mode(
+        self,
+        mode: SystemMode | ZoneMode,
+        mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
+        timing_mode: TimingMode,
+        length: td,
+        /,
+    ) -> None:
+        """Raise if the timing_mode is not the one that the mode's entry expects.
+
+        An entry without a timing_mode takes no duration/period at all (it can only be
+        permanent, or it takes only an until).
+        """
+
+        if timing_mode is (expected := mode_entry.get(SZ_TIMING_MODE)):
+            return
+
+        message = f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
+
+        if expected is None:
+            raise exc.InvalidSetModeError(
+                message, reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED, mode=mode
+            )
+        raise exc.InvalidSetModeError(
+            message,
+            reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
+            mode=mode,
+            timing_mode=expected,
+        )
 
     def _validate_requested_timespan(
         self,
@@ -192,14 +225,14 @@ class _TccModeMixin:
         if length is None:
             if not mode_entry[SZ_CAN_BE_PERMANENT]:
                 raise exc.InvalidSetModeError(
-                    f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be given"
+                    f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be given",
+                    reason=RequestErrorReason.TIMESPAN_REQUIRED,
+                    mode=mode,
+                    timing_mode=mode_entry[SZ_TIMING_MODE],
                 )
             return None
 
-        if timing_mode is not mode_entry.get(SZ_TIMING_MODE):
-            raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
-            )
+        self._validate_requested_timing_mode(mode, mode_entry, timing_mode, length)
 
         now = self.location.now()
 
@@ -213,7 +246,10 @@ class _TccModeMixin:
             has_ended = until.astimezone(UTC) <= now.astimezone(UTC)
         except OverflowError as err:
             raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, {timing_mode} is out of range: '{length}'"
+                f"{self}: For {mode}, {timing_mode} is out of range: '{length}'",
+                reason=RequestErrorReason.TIMESPAN_OUT_OF_RANGE,
+                mode=mode,
+                timing_mode=timing_mode,
             ) from err
 
         # the vendor accepts an until in the past, but the controller ignores it (the
@@ -221,7 +257,9 @@ class _TccModeMixin:
         if has_ended:
             raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, {timing_mode} must end in the future, "
-                f"not '{length}' (it would end at {until})"
+                f"not '{length}' (it would end at {until})",
+                reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
+                mode=mode,
             )
 
         logger = self.location.client.logger
@@ -773,10 +811,18 @@ class _ZoneBase[
         try:
             mode = ZoneMode(mode)
         except ValueError as err:
-            raise exc.InvalidSetModeError(f"{self}: Unknown mode: {mode}") from err
+            raise exc.InvalidSetModeError(
+                f"{self}: Unknown mode: {mode}",
+                reason=RequestErrorReason.MODE_UNKNOWN,
+                mode=str(mode),
+            ) from err
 
         if mode not in self.allowed_modes:
-            raise exc.InvalidSetModeError(f"{self}: Unsupported mode: {mode}")
+            raise exc.InvalidSetModeError(
+                f"{self}: Unsupported mode: {mode}",
+                reason=RequestErrorReason.MODE_UNSUPPORTED,
+                mode=mode,
+            )
 
         return mode
 
@@ -967,20 +1013,26 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         if temperature is None:
             if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
                 raise exc.InvalidSetModeError(
-                    f"{self}: For {mode}, temperature must not be None"
+                    f"{self}: For {mode}, temperature must not be None",
+                    reason=RequestErrorReason.TEMPERATURE_REQUIRED,
+                    mode=mode,
                 )
             return None
 
         if mode is ZoneMode.FOLLOW_SCHEDULE:
             raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, temperature must be None, not '{temperature}'"
+                f"{self}: For {mode}, temperature must be None, not '{temperature}'",
+                reason=RequestErrorReason.TEMPERATURE_NOT_ALLOWED,
+                mode=mode,
             )
 
         # NaN/infinity is not a valid JSON number (nor can the controller clamp it)
         if not math.isfinite(temperature):
             raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, temperature must be a finite number, "
-                f"not '{temperature}'"
+                f"not '{temperature}'",
+                reason=RequestErrorReason.TEMPERATURE_INVALID,
+                mode=mode,
             )
 
         # the vendor accepts (and stores) such a temperature, but the controller clamps it
@@ -1089,7 +1141,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         if duration is not None:
             raise exc.InvalidSetModeError(
-                f"{self}: Only one of until or duration may be given"
+                f"{self}: Only one of until or duration may be given",
+                reason=RequestErrorReason.TIMESPAN_CONFLICTING,
             )
 
         return await self._set_mode(mode, temperature=temperature, until=until)
@@ -1144,13 +1197,17 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:
                 raise exc.InvalidSetModeError(
-                    f"{self}: For {mode}, until must not be None"
+                    f"{self}: For {mode}, until must not be None",
+                    reason=RequestErrorReason.TIMESPAN_REQUIRED,
+                    mode=mode,
                 )
 
         else:
             if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
                 raise exc.InvalidSetModeError(
-                    f"{self}: For {mode}, until must be None, not '{until}'"
+                    f"{self}: For {mode}, until must be None, not '{until}'",
+                    reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
+                    mode=mode,
                 )
 
             until = self._validate_requested_until(mode, until)
