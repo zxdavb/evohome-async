@@ -638,7 +638,7 @@ class _ScheduleBase[
         except exc.BadApiResponseError as err:  # the schedule failed validation
             raise exc.InvalidGetScheduleError(
                 f"{self}: Schedule is invalid: {err}",
-                reason=ResponseErrorReason.SCHEDULE_INVALID,
+                reason=ResponseErrorReason.VENDOR_SCHEDULE_INVALID,
             ) from err
 
         except exc.AuthenticationFailedError:  # e.g. bad credentials are a 400 too

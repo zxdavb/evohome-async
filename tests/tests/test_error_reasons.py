@@ -83,6 +83,19 @@ def test_reasons_are_all_used(
     assert used == set(enum.__members__)
 
 
+def test_reasons_are_unique() -> None:
+    """Test every reason's value is unique, across both enums (not just within each).
+
+    A caller may map a reason's value to a message (e.g. as a translation key), and a
+    StrEnum member equals its value, so a value in both enums would be ambiguous.
+    """
+
+    values = [r.value for e in _ENUMS for r in e.__members__.values()]  # incl. aliases
+    duplicates = sorted({v for v in values if values.count(v) > 1})
+
+    assert not duplicates, f"reasons that are not unique: {duplicates}"
+
+
 @pytest.mark.parametrize("cls", _CLASSES, ids=lambda c: c.__name__)
 def test_error_without_a_reason(
     cls: type[exc.BadApiRequestError | exc.BadApiResponseError],

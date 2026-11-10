@@ -172,4 +172,4 @@ def test_as_timedelta_rejects(
     with pytest.raises(BadApiResponseError, match="timespan is invalid") as exc_info:
         as_timedelta(timespan)
 
-    assert exc_info.value.reason is ResponseErrorReason.TIMESPAN_INVALID
+    assert exc_info.value.reason is ResponseErrorReason.VENDOR_TIMESPAN_INVALID

@@ -30,7 +30,7 @@ They are grouped by what the caller can do about them:
 from __future__ import annotations
 
 import warnings
-from enum import StrEnum
+from enum import EnumCheck, StrEnum, verify
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 
@@ -130,6 +130,7 @@ class CommTaskFailedError(ApiCallFailedError):
 #    b) internally inconsistent (e.g. a zone without a model type)
 
 
+@verify(EnumCheck.UNIQUE)
 class ResponseErrorReason(StrEnum):
     """Why a response was not as expected (see BadApiResponseError).
 
@@ -144,12 +145,12 @@ class ResponseErrorReason(StrEnum):
     MODEL_TYPE_UNKNOWN = "model_type_unknown"  # a zone has no model type (a ghost?)
     ZONE_TYPE_UNKNOWN = "zone_type_unknown"  # a zone has no zone type (a ghost?)
     STATUS_INVALID = "status_invalid"  # the status failed validation
-    SCHEDULE_INVALID = "schedule_invalid"  # the schedule failed validation
+    VENDOR_SCHEDULE_INVALID = "vendor_schedule_invalid"  # it failed validation
     SCHEDULE_MISSING = "schedule_missing"  # there is no schedule (e.g. it is empty)
     SWITCHPOINTS_MISSING = "switchpoints_missing"  # e.g. a day without switchpoints
     COMM_TASK_INVALID = "comm_task_invalid"  # a PUT's response is not a comm task
     COMM_TASK_MISMATCHED = "comm_task_mismatched"  # a GET returned another comm task
-    TIMESPAN_INVALID = "timespan_invalid"  # e.g. a max_duration is not a TimeSpan
+    VENDOR_TIMESPAN_INVALID = "vendor_timespan_invalid"  # e.g. of a max_duration
 
 
 class BadApiResponseError(EvohomeError):  # a base exception
@@ -201,6 +202,7 @@ class InvalidGetScheduleError(BadApiResponseError):  # schedule JSON is invalid/
 #    mode); these are detected before making any API request, so nothing was sent
 
 
+@verify(EnumCheck.UNIQUE)
 class RequestErrorReason(StrEnum):
     """Why a request was rejected, before any API call (see BadApiRequestError).
 
