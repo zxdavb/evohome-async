@@ -30,6 +30,7 @@ class ContentType(StrEnum):
     """The media types of a request/response (the stdlib has no such constants)."""
 
     JSON = "application/json"
+    TEXT_HTML = "text/html"
     TEXT_PLAIN = "text/plain"
 
 
