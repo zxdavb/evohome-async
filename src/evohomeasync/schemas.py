@@ -716,7 +716,7 @@ type _TccResponse = Mapping[str, object]
 class TccFailureResponseT(TypedDict):
     """Typed dict for code/message responses from the vendor servers."""
 
-    code: str  # a TccFailureCode, e.g. "InvalidInput" (but that enum is incomplete)
+    code: TccFailureCode | str  # e.g. "InvalidInput"; enum is incomplete, so allow str
     message: str
 
 

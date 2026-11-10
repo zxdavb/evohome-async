@@ -45,6 +45,7 @@ from .helpers import factory_enum_or_str
 
 if TYPE_CHECKING:
     from _evohome.helpers import Validator
+    from evohomeasync2.schemas.const import TccFailureCode
     from evohomeasync2.typedefs import EvoCommTaskResponseT, EvoUsrAccountResponseT
 
 
@@ -112,7 +113,7 @@ def factory_oauth_error_response(case: Case = Case.VENDOR) -> Validator[TccOAuth
 class TccFailureResponseT(TypedDict):
     """Typed dict for responses from the vendor servers for failed GETs / PUTs."""
 
-    code: str  # a TccFailureCode, e.g. "InvalidInput" (but that enum is incomplete)
+    code: TccFailureCode | str  # e.g. "InvalidInput"; enum is incomplete, so allow str
     message: str
 
 
