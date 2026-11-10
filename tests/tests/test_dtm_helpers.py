@@ -42,7 +42,7 @@ def test_convert_dtms_to_utc_str_rejects_naive() -> None:
     with pytest.raises(BadApiRequestError) as exc_info:
         convert_dtms_to_utc_str({"time_until": naive})
 
-    assert exc_info.value.reason is RequestErrorReason.DATETIME_INVALID
+    assert exc_info.value.reason is RequestErrorReason.TIMEZONE_REQUIRED
 
 
 def test_convert_dtms_to_utc_str_leaves_plain_strings_alone() -> None:
@@ -72,14 +72,14 @@ def test_as_aware_dtm_rejects_naive_dt() -> None:
     with pytest.raises(BadApiRequestError) as exc_info:
         as_aware_dtm(naive)
 
-    assert exc_info.value.reason is RequestErrorReason.DATETIME_INVALID
+    assert exc_info.value.reason is RequestErrorReason.TIMEZONE_REQUIRED
 
 
 def test_as_aware_dtm_rejects_naive_string() -> None:
     with pytest.raises(BadApiRequestError) as exc_info:
         as_aware_dtm("2024-07-10T22:10:00")
 
-    assert exc_info.value.reason is RequestErrorReason.DATETIME_INVALID
+    assert exc_info.value.reason is RequestErrorReason.TIMEZONE_REQUIRED
 
 
 def test_as_aware_dtm_rejects_unparsable_string() -> None:

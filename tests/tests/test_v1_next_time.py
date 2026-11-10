@@ -167,7 +167,7 @@ async def test_naive_next_time(
     with pytest.raises(BadApiRequestError) as exc_info:
         await zone.set_temperature(19.5, until=naive)
 
-    assert exc_info.value.reason is RequestErrorReason.DATETIME_INVALID
+    assert exc_info.value.reason is RequestErrorReason.TIMEZONE_REQUIRED
 
     mock_put.assert_not_awaited()
 

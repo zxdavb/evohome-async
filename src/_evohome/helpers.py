@@ -140,7 +140,7 @@ def as_utc_str(dtm: dt) -> str:
     if dtm.tzinfo is None:  # else astimezone() would assume the local TZ
         raise BadApiRequestError(
             f"Datetime must be TZ-aware (not naive): {dtm!r}",
-            reason=RequestErrorReason.DATETIME_INVALID,
+            reason=RequestErrorReason.TIMEZONE_REQUIRED,
         )
 
     return dtm.astimezone(UTC).strftime(TCC_DTM_STRFTIME)
@@ -171,7 +171,7 @@ def as_local_str(dtm: dt, tzinfo: tzinfo) -> str:
     if dtm.tzinfo is None:  # else astimezone() would assume the local TZ
         raise BadApiRequestError(
             f"Datetime must be TZ-aware (not naive): {dtm!r}",
-            reason=RequestErrorReason.DATETIME_INVALID,
+            reason=RequestErrorReason.TIMEZONE_REQUIRED,
         )
 
     return dtm.astimezone(tzinfo).strftime(TCC_DTM_LOCAL_STRFTIME)
@@ -209,7 +209,7 @@ def as_aware_dtm(dtm: dt | str) -> dt:
     if dtm.tzinfo is None:
         raise BadApiRequestError(
             f"Datetime must be TZ-aware (not naive): {dtm!r}",
-            reason=RequestErrorReason.DATETIME_INVALID,
+            reason=RequestErrorReason.TIMEZONE_REQUIRED,
         )
 
     return dtm

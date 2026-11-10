@@ -187,8 +187,9 @@ class RequestErrorReason(StrEnum):
     STATE_UNSUPPORTED = "set_state_unsupported"  # the state is not among allowed states
 
     # other requests
-    DATETIME_INVALID = "set_datetime_invalid"  # e.g. naive, or not a datetime
+    DATETIME_INVALID = "set_datetime_invalid"  # e.g. a string that is not a datetime
     SCHEDULE_INVALID = "set_schedule_invalid"  # e.g. not JSON (or not serializable)
+    TIMEZONE_REQUIRED = "set_timezone_required"  # a datetime is naive (has no tzinfo)
     ZONE_UNKNOWN = "set_zone_unknown"  # e.g. no zone with that id/idx/name
 
 
