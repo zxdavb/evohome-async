@@ -15,7 +15,7 @@ from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
-from .const import SZ_USER_ID
+from .const import SZ_USER_ID, URL_USR_ACCOUNT, URL_USR_LOCATIONS
 from .location import Location, create_location
 from .schemas.account import factory_usr_account
 from .schemas.config import factory_usr_locations
@@ -167,8 +167,6 @@ class EvohomeClient:
     async def _get_user_account(self) -> EvoUsrAccountResponseT:
         """Get the user's account, re-authenticating if the access_token is rejected."""
 
-        url = "userAccount"
-
         # if valid, auth.get() sends this token (without yielding), else it fetches another
         access_token = (
             self._token_manager.access_token
@@ -177,7 +175,10 @@ class EvohomeClient:
         )
 
         try:
-            return await self.auth.get(url, schema=SCH_USR_ACCOUNT)
+            return await self.auth.get(
+                URL_USR_ACCOUNT,
+                schema=SCH_USR_ACCOUNT,
+            )
 
         except exc.AuthenticationFailedError:  # unable to get an access_token
             raise
@@ -196,7 +197,11 @@ class EvohomeClient:
             # another task may have since refreshed it, so don't clear the new one
             if access_token is None or self._token_manager.access_token == access_token:
                 self._token_manager.clear_access_token()
-            return await self.auth.get(url, schema=SCH_USR_ACCOUNT)
+
+            return await self.auth.get(
+                URL_USR_ACCOUNT,
+                schema=SCH_USR_ACCOUNT,
+            )
 
     async def _get_config(self) -> list[EvoLocConfigResponseT]:
         """Ensures the config of the user and their locations.
@@ -219,7 +224,7 @@ class EvohomeClient:
                 ) from err
 
             self._user_locs = await self.auth.get(
-                f"location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True",
+                URL_USR_LOCATIONS.format(user_id=user_id),
                 schema=SCH_USR_LOCATIONS,
             )
 

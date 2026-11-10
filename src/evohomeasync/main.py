@@ -12,7 +12,7 @@ from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
-from .const import SZ_LOCATION_ID, SZ_USER_ID
+from .const import SZ_LOCATION_ID, SZ_USER_ID, URL_ACCOUNT_INFO, URL_LOCATIONS
 from .entities import Location, create_location
 from .schemas import factory_location_response_list, factory_user_account_info_response
 
@@ -187,8 +187,6 @@ class EvohomeClient:
         """
 
         if self._user_info is None:  # will handle session_id rejection
-            url = "accountInfo"
-
             # if valid, auth.get() sends this id (without yielding), else it fetches another
             session_id = (
                 self._session_manager.session_id
@@ -197,7 +195,10 @@ class EvohomeClient:
             )
 
             try:
-                self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
+                self._user_info = await self.auth.get(
+                    URL_ACCOUNT_INFO,
+                    schema=SCH_GET_ACCOUNT_INFO,
+                )
 
             except exc.AuthenticationFailedError:  # unable to get a session_id
                 raise
@@ -216,7 +217,11 @@ class EvohomeClient:
                 # another task may have since refreshed it, so don't clear the new one
                 if session_id is None or self._session_manager.session_id == session_id:
                     self._session_manager.clear_session_id()
-                self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
+
+                self._user_info = await self.auth.get(
+                    URL_ACCOUNT_INFO,
+                    schema=SCH_GET_ACCOUNT_INFO,
+                )
 
             assert self._user_info is not None  # mypy
 
@@ -229,7 +234,8 @@ class EvohomeClient:
                 ) from err
 
             self._user_locs = await self.auth.get(
-                f"locations?userId={user_id}&allData=True", schema=SCH_GET_ACCOUNT_LOCS
+                URL_LOCATIONS.format(user_id=user_id),
+                schema=SCH_GET_ACCOUNT_LOCS,
             )
 
             assert self._user_locs is not None  # mypy

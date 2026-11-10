@@ -16,7 +16,15 @@ from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
-from .schemas import S1_SESSION_ID, TCC_POST_USR_SESSION
+from .const import SZ_LATEST_EULA_ACCEPTED, URL_BASE, URL_CRED
+from .schemas import (
+    S1_APPLICATION_ID,
+    S1_PASSWORD,
+    S1_SESSION_ID,
+    S1_USERNAME,
+    TCC_POST_USR_SESSION,
+    TccFailureCode,
+)
 
 if TYPE_CHECKING:
     import aiohttp
@@ -37,12 +45,6 @@ SZ_USER_INFO: Final = "user_info"
 
 # this is not documented, but testing indicates is 15 minutes
 SESSION_ID_LIFETIME: Final = td(minutes=15)
-
-# POST authentication url (i.e. /WebAPI/api/session)
-URL_CRED: Final = "WebAPI/api/session"
-
-# GET/PUT resource url (i.e. /WebAPI/api/...)
-URL_BASE: Final = "WebAPI/api"
 
 
 class SessionIdEntryT(TypedDict):
@@ -143,16 +145,16 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         self._logger.debug(" - authenticating with client_id/secret")
 
         credentials = {
-            "applicationId": _APPLICATION_ID,
-            "username": self._client_id,
-            "password": self._secret,
+            S1_APPLICATION_ID: _APPLICATION_ID,
+            S1_USERNAME: self._client_id,
+            S1_PASSWORD: self._secret,
         }
 
         try:  # check here if the user credentials are invalid...
             await self._fetch_session_id(credentials)
 
         except exc.AuthenticationFailedError as err:
-            if "EmailOrPasswordIncorrect" not in err.message:
+            if TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT not in err.message:
                 raise
             self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
             raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
@@ -202,7 +204,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
         if (
             not self._eula_warned
-            and self._user_info.get("latest_eula_accepted") is False
+            and self._user_info.get(SZ_LATEST_EULA_ACCEPTED) is False
         ):
             self._eula_warned = True
             self._logger.info("The latest EULA has not been accepted by the user")

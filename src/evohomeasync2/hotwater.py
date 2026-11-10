@@ -24,6 +24,7 @@ from .const import (
     SZ_TIMING_RESOLUTION,
     SZ_UNTIL,
     SZ_UNTIL_TIME,
+    URL_DHW_STATE,
     DhwState,
     ZoneMode,
 )
@@ -281,8 +282,10 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         if until_time is not None:
             dhw_mode[SZ_UNTIL_TIME] = until_time
 
-        url = f"{self._TCC_TYPE}/{self.id}/state"
-        response = await self._auth.put(url, json=dhw_mode)
+        response = await self._auth.put(
+            URL_DHW_STATE.format(type=self._TCC_TYPE, id=self.id),
+            json=dhw_mode,
+        )
         return CommTask.from_response(self._auth, response)
 
     async def _set_mode(

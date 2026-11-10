@@ -82,6 +82,7 @@ _TaskIdT = NewType("_TaskIdT", int)  # an int, unlike the v2 API (where it is a 
 S1_ACTIVITY_ID: Final = "activityId"
 S1_ALERT_SETTINGS: Final = "alertSettings"
 S1_ALLOWED_MODES: Final = "allowedModes"
+S1_APPLICATION_ID: Final = "applicationId"
 
 S1_CAN_SEARCH_FOR_CONTRACTORS: Final = "canSearchForContractors"
 S1_CHANGEABLE_VALUES: Final = "changeableValues"
@@ -157,6 +158,7 @@ S1_OUTDOOR_TEMPERATURE_AVAILABLE: Final = "outdoorTemperatureAvailable"
 S1_OUTDOOR_TEMPERATURE_STATUS: Final = "outdoorTemperatureStatus"
 S1_OUTDOOT_HUMIDITY_AVAILABLE: Final = "outdootHumidityAvailable"  # NOTE: not a typo
 
+S1_PASSWORD: Final = "password"  # noqa: S105
 S1_PCB_NUMBER: Final = "pcbNumber"
 
 S1_QUICK_ACTION: Final = "quickAction"
@@ -225,6 +227,18 @@ class TccEquipmentOutputStatus(StrEnum):  # thermostat.equipmentOutputStatus
     COOLING = "Cooling"
     HEATING = "Heating"
     OFF = "Off"
+
+
+@verify(EnumCheck.UNIQUE)
+class TccFailureCode(StrEnum):  # the code of a failed request; NOTE: is incomplete
+    DEVICE_IS_LOST = "DeviceIsLost"
+    EMAIL_OR_PASSWORD_INCORRECT = "EmailOrPasswordIncorrect"  # noqa: S105
+    FORBIDDEN_PARAMETER = "ForbiddenParameter"
+    INVALID_INPUT = "InvalidInput"
+    PARAMETER_IS_MISSING = "ParameterIsMissing"
+    SCHEDULE_NOT_SUPPORTED = "ScheduleNotSupported"
+    TOO_MANY_REQUESTS = "TooManyRequests"
+    UNAUTHORIZED = "Unauthorized"
 
 
 @verify(EnumCheck.UNIQUE)
@@ -702,7 +716,7 @@ type _TccResponse = Mapping[str, object]
 class TccFailureResponseT(TypedDict):
     """Typed dict for code/message responses from the vendor servers."""
 
-    code: str
+    code: TccFailureCode | str  # e.g. "InvalidInput"; enum is incomplete, so allow str
     message: str
 
 

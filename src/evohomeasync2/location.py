@@ -34,6 +34,9 @@ from .const import (
     SZ_USE_DAYLIGHT_SAVE_SWITCHING,
     SZ_ZONE_ID,
     SZ_ZONES,
+    URL_LOC_CONFIG,
+    URL_LOC_STATUS,
+    URL_USR_ACCOUNT,
 )
 from .gateway import Gateway
 from .schemas.account import factory_usr_account
@@ -216,7 +219,7 @@ class Location(EntityBase[EvoLocStatusT]):
 
         try:
             config: EvoLocConfigResponseT = await self._auth.get(
-                f"location/{self._id}/installationInfo?includeTemperatureControlSystems=True",
+                URL_LOC_CONFIG.format(loc_id=self._id),
                 schema=self.SCH_CONFIG,
             )
         except exc.BadApiResponseError as err:  # the config failed validation
@@ -314,7 +317,7 @@ class Location(EntityBase[EvoLocStatusT]):
 
         try:
             status: EvoLocStatusResponseT = await self._auth.get(
-                f"{self._TCC_TYPE}/{self.id}/status?includeTemperatureControlSystems=True",
+                URL_LOC_STATUS.format(type=self._TCC_TYPE, id=self.id),
                 schema=self.SCH_STATUS,
             )
 
@@ -364,7 +367,10 @@ class Location(EntityBase[EvoLocStatusT]):
         """
 
         try:
-            await self._auth.get("userAccount", schema=_SCH_USR_ACCOUNT)
+            await self._auth.get(
+                URL_USR_ACCOUNT,
+                schema=_SCH_USR_ACCOUNT,
+            )
 
         except exc.AuthenticationFailedError:  # unable to get an access_token
             raise

@@ -15,7 +15,7 @@ import probatio as vol
 from aiohttp import hdrs
 
 from . import exceptions as exc
-from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
+from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME, ContentType
 from .helpers import (
     convert_dtms_to_utc_str,
     convert_keys_to_camel_case,
@@ -40,9 +40,9 @@ async def _payload(rsp: aiohttp.ClientResponse | None) -> str:
         return "<no response>"
 
     try:
-        if rsp.content_type == "application/json":
+        if rsp.content_type == ContentType.JSON:
             return json.dumps(await rsp.json())
-        if rsp.content_type == "text/plain":
+        if rsp.content_type == ContentType.TEXT_PLAIN:
             return await rsp.text()
         return await rsp.text()  # text/html?
 
@@ -229,7 +229,7 @@ class AbstractAuth(ABC):
             rsp.raise_for_status()
 
             # can't assert content_length != 0 with aioresponses, so skip that check
-            if rsp.content_type != "application/json":  # usu. "text/plain", "text/html"
+            if rsp.content_type != ContentType.JSON:  # usu. "text/plain", "text/html"
                 raise exc.ApiCallFailedError(
                     f"{method} {url}: response is not JSON: {await _payload(rsp)}"
                 )
