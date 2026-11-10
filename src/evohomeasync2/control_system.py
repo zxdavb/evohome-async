@@ -183,12 +183,12 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         try:
             system_mode = SystemMode(system_mode)
         except ValueError as err:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Unknown system_mode: {system_mode}"
             ) from err
 
         if system_mode not in self.allowed_modes:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Unsupported system_mode: {system_mode}"
             )
 
@@ -325,7 +325,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             )
 
         if duration is not None or period is not None:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Only one of until, duration or period may be given"
             )
 
@@ -381,7 +381,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             return await self._put_mode(system_mode, permanent=True)
 
         if not mode_entry[SZ_CAN_BE_TEMPORARY]:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: For {system_mode}, until must be None, not '{until}'"
             )
 
@@ -422,7 +422,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         """
 
         if duration is not None and period is not None:
-            raise exc.InvalidModeRequestError(
+            raise exc.InvalidSetModeError(
                 f"{self}: Only one of duration or period may be given"
             )
 
@@ -562,7 +562,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         ) -> list[EvoDhwScheduleDayOfWeekT] | list[EvoZonScheduleDayOfWeekT]:
             try:
                 return await child.get_schedule()
-            except exc.InvalidScheduleError:
+            except exc.InvalidGetScheduleError:
                 self._logger.warning(
                     f"Ignoring {child.id} ({child.name}): missing/invalid schedule"
                 )

@@ -165,9 +165,9 @@ def test_find_switchpoints_invalid_day() -> None:
 
 
 def test_find_switchpoints_empty_schedule() -> None:
-    """Test _find_switchpoints raises InvalidScheduleError on empty schedule."""
+    """Test _find_switchpoints raises InvalidGetScheduleError on empty schedule."""
 
-    with pytest.raises(exc.InvalidScheduleError, match="daily schedules are empty"):
+    with pytest.raises(exc.InvalidGetScheduleError, match="daily schedules are empty"):
         _find_switchpoints([], DayOfWeek.MONDAY, "08:00:00")
 
 

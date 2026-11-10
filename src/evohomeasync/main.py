@@ -104,8 +104,8 @@ class EvohomeClient:
             user_locs = await self._get_config()
         except exc.BadApiResponseError as err:  # e.g. failed validation
             if self._locations is None:  # the entities are yet to be instantiated
-                raise exc.InvalidConfigError(err.message) from err
-            raise exc.InvalidStatusError(err.message) from err
+                raise exc.InvalidGetConfigError(err.message) from err
+            raise exc.InvalidGetStatusError(err.message) from err
 
         assert self._location_by_id is not None  # mypy
 
