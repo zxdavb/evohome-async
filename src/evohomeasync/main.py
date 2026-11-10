@@ -106,10 +106,10 @@ class EvohomeClient:
         except exc.BadApiResponseError as err:  # e.g. failed validation
             if self._locations is None:  # the entities are yet to be instantiated
                 raise exc.InvalidGetConfigError(
-                    err.message, reason=ResponseErrorReason.VENDOR_CONFIG_INVALID
+                    err.message, reason=ResponseErrorReason.CONFIG_INVALID
                 ) from err
             raise exc.InvalidGetStatusError(
-                err.message, reason=ResponseErrorReason.VENDOR_STATUS_INVALID
+                err.message, reason=ResponseErrorReason.STATUS_INVALID
             ) from err
 
         assert self._location_by_id is not None  # mypy
@@ -236,7 +236,7 @@ class EvohomeClient:
             except (KeyError, TypeError) as err:
                 raise exc.BadApiResponseError(
                     f"No user_id in user_info dict. Received: {self._user_info}",
-                    reason=ResponseErrorReason.VENDOR_ACCOUNT_INVALID,
+                    reason=ResponseErrorReason.ACCOUNT_INVALID,
                 ) from err
 
             self._user_locs = await self.auth.get(

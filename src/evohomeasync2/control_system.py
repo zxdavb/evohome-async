@@ -67,8 +67,8 @@ if TYPE_CHECKING:
 
 # a zone with either of these is a ghost zone, and is ignored (with a warning)
 _GHOST_ZONE_REASONS: Final = (
-    ResponseErrorReason.VENDOR_MODEL_TYPE_UNKNOWN,
-    ResponseErrorReason.VENDOR_ZONE_TYPE_UNKNOWN,
+    ResponseErrorReason.MODEL_TYPE_UNKNOWN,
+    ResponseErrorReason.ZONE_TYPE_UNKNOWN,
 )
 
 

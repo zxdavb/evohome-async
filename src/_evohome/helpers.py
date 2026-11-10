@@ -161,7 +161,7 @@ def as_timedelta(timespan: str) -> td:
     if not (match := _TCC_TIMESPAN_REGEX.match(timespan)):
         raise BadApiResponseError(
             f"The timespan is invalid: {timespan!r}",
-            reason=ResponseErrorReason.VENDOR_TIMESPAN_INVALID,
+            reason=ResponseErrorReason.TIMESPAN_INVALID,
         )
 
     return td(**{k: int(v or 0) for k, v in match.groupdict().items()})
