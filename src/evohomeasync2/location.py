@@ -38,7 +38,7 @@ from .const import (
     URL_LOC_STATUS,
     URL_USR_ACCOUNT,
 )
-from .exceptions import ResponseErrorReason
+from .exceptions import ClientStateErrorReason, ResponseErrorReason
 from .gateway import Gateway
 from .schemas.account import factory_usr_account
 from .schemas.config import factory_loc_config
@@ -339,7 +339,8 @@ class Location(EntityBase[EvoLocStatusT]):
             ):
                 raise
             raise exc.StaleConfigError(
-                f"{self}: is no longer accessible (has it been deleted, or unshared?)"
+                f"{self}: is no longer accessible (has it been deleted, or unshared?)",
+                reason=ClientStateErrorReason.LOCATION_INACCESSIBLE,
             ) from err
 
         status = convert_dtm_to_local_aware(status, self.tzinfo)
@@ -450,5 +451,6 @@ class Location(EntityBase[EvoLocStatusT]):
         if missing := self._missing_from_status(status):
             raise exc.StaleConfigError(
                 f"{self}: status has no entry for {', '.join(missing)}"
-                ", (has the location configuration changed?)"
+                ", (has the location configuration changed?)",
+                reason=ClientStateErrorReason.CONFIG_STALE,
             )

@@ -42,14 +42,18 @@ async def test_config_not_fetched(
 
     ec1 = EvohomeClient(credentials_manager)
 
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec1.user_account
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec1.user_id
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec1.locations
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec1.location_by_id
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
 
 
 async def test_invalid_config(

@@ -1,4 +1,4 @@
-"""Test that each BadApiRequestError/BadApiResponseError raised has a reason.
+"""Test that each BadApiRequestError/BadApiResponseError/ClientStateError has a reason.
 
 The reasons are public API (e.g. HA may map each one to its own translated message).
 They are optional, so that the errors can still be raised with only a message, so mypy
@@ -15,11 +15,15 @@ import pytest
 
 import _evohome
 from _evohome import exceptions as exc
-from _evohome.exceptions import RequestErrorReason, ResponseErrorReason
+from _evohome.exceptions import (
+    ClientStateErrorReason,
+    RequestErrorReason,
+    ResponseErrorReason,
+)
 
 _SRC = Path(_evohome.__file__).parent.parent  # incl. evohomeasync, evohomeasync2
 
-_BASES = (exc.BadApiRequestError, exc.BadApiResponseError)
+_BASES = (exc.BadApiRequestError, exc.BadApiResponseError, exc.ClientStateError)
 _BY_NAME = {  # incl. the aliases of their previous names (e.g. InvalidConfigError)
     n: c for n, c in vars(exc).items() if isinstance(c, type) and issubclass(c, _BASES)
 }
@@ -28,7 +32,7 @@ _CLASSES = sorted(set(_BY_NAME.values()), key=lambda c: c.__name__)
 # the names of the classes (and of their aliases, incl. those served by __getattr__)
 _NAMES = set(_BY_NAME) | {"InvalidSystemModeError"}
 
-_ENUMS = (RequestErrorReason, ResponseErrorReason)
+_ENUMS = (RequestErrorReason, ResponseErrorReason, ClientStateErrorReason)
 
 
 @cache
@@ -65,7 +69,7 @@ def test_raise_sites_have_a_reason() -> None:
 
 @pytest.mark.parametrize("enum", _ENUMS, ids=lambda e: e.__name__)
 def test_reasons_are_all_used(
-    enum: type[RequestErrorReason | ResponseErrorReason],
+    enum: type[RequestErrorReason | ResponseErrorReason | ClientStateErrorReason],
 ) -> None:
     """Test every reason is used by the library (i.e. none is unreachable)."""
 
@@ -97,19 +101,21 @@ def test_reasons_are_unique() -> None:
 
 
 def test_reasons_are_prefixed() -> None:
-    """Test every reason's value is its name, prefixed get_ (response) or set_ (request).
+    """Test every reason's value is its name, prefixed as per its enum.
 
-    As are the errors' names (InvalidGet*Error, InvalidSet*Error); the prefixes also keep
-    the values of the two enums apart (see above).
+    That is: get_ (a response) or set_ (a request), as are the errors' names (e.g.
+    InvalidGet*Error, InvalidSet*Error), or client_ (the client's state). The prefixes
+    also keep the values of the enums apart (see above).
     """
 
     assert all(r.value == f"get_{r.name.lower()}" for r in ResponseErrorReason)
     assert all(r.value == f"set_{r.name.lower()}" for r in RequestErrorReason)
+    assert all(r.value == f"client_{r.name.lower()}" for r in ClientStateErrorReason)
 
 
 @pytest.mark.parametrize("cls", _CLASSES, ids=lambda c: c.__name__)
 def test_error_without_a_reason(
-    cls: type[exc.BadApiRequestError | exc.BadApiResponseError],
+    cls: type[exc.BadApiRequestError | exc.BadApiResponseError | exc.ClientStateError],
 ) -> None:
     """Test each error can still be raised with only a message (as before reasons)."""
 

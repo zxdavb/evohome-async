@@ -16,7 +16,7 @@ from _evohome.helpers import Case
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import SZ_USER_ID, URL_USR_ACCOUNT, URL_USR_LOCATIONS
-from .exceptions import ResponseErrorReason
+from .exceptions import ClientStateErrorReason, ResponseErrorReason
 from .location import Location, create_location
 from .schemas.account import factory_usr_account
 from .schemas.config import factory_usr_locations
@@ -83,7 +83,10 @@ class EvohomeClient:
         """Return a tzinfo-compliant object for the client's local time."""
 
         if not self._tzinfo_initialized:
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Timezone information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Timezone information"),
+                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
+            )
 
         return self._tzinfo
 
@@ -250,7 +253,10 @@ class EvohomeClient:
         """Return the (config) information of the user account."""
 
         if self._user_info is None:  # None: never fetched, []: fetched but empty
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Account information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Account information"),
+                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
+            )
 
         return self._user_info
 
@@ -264,7 +270,10 @@ class EvohomeClient:
         """Return the list of location entities (may be empty)."""
 
         if self._locations is None:  # None: never fetched, []: fetched but empty
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Installation information"),
+                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
+            )
 
         return self._locations
 
@@ -273,7 +282,10 @@ class EvohomeClient:
         """Return the location entities by id (may be empty)."""
 
         if self._location_by_id is None:  # None: never fetched, []: fetched but empty
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Installation information"),
+                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
+            )
 
         return self._location_by_id
 
@@ -287,10 +299,14 @@ class EvohomeClient:
 
         if len(locs := self.locations) != 1:
             raise exc.ClientStateError(
-                "There is not a single location (only) for this account"
+                "There is not a single location (only) for this account",
+                reason=ClientStateErrorReason.LOCATION_NOT_SINGLE,
             )
 
         if (tcs := locs[0].tcs) is None:
-            raise exc.ClientStateError("The location of this account has no TCS")
+            raise exc.ClientStateError(
+                "The location of this account has no TCS",
+                reason=ClientStateErrorReason.TCS_ABSENT,
+            )
 
         return tcs

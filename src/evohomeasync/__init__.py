@@ -23,6 +23,7 @@ from .exceptions import (
     BadApiResponseError,
     BadUserCredentialsError,
     ClientStateError,
+    ClientStateErrorReason,
     EvohomeError,
     InvalidConfigError,
     InvalidGetConfigError,
@@ -99,6 +100,7 @@ __all__ = [  # noqa: RUF022
     "BadApiResponseError",
     "BadUserCredentialsError",
     "ClientStateError",
+    "ClientStateErrorReason",
     "EvohomeError",
     "InvalidGetConfigError",
     "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)

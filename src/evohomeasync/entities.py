@@ -55,7 +55,7 @@ from .const import (
     URL_TCS_MODE,
     URL_ZON_MODE,
 )
-from .exceptions import RequestErrorReason
+from .exceptions import ClientStateErrorReason, RequestErrorReason
 from .schemas import (
     S1_MODE,
     S1_NEXT_TIME,
@@ -701,7 +701,10 @@ class Location(_EntityBase):
         """Return the high-precision temperatures of the location's TCS, or raise."""
 
         if (tcs := self.tcs) is None:
-            raise exc.ClientStateError(f"{self}: This location has no TCS")
+            raise exc.ClientStateError(
+                f"{self}: This location has no TCS",
+                reason=ClientStateErrorReason.TCS_ABSENT,
+            )
 
         return await tcs.get_temperatures(dont_update_status=dont_update_status)
 

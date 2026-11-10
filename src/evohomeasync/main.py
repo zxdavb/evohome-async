@@ -14,7 +14,7 @@ from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
 from .const import SZ_LOCATION_ID, SZ_USER_ID, URL_ACCOUNT_INFO, URL_LOCATIONS
 from .entities import Location, create_location
-from .exceptions import ResponseErrorReason
+from .exceptions import ClientStateErrorReason, ResponseErrorReason
 from .schemas import factory_location_response_list, factory_user_account_info_response
 
 if TYPE_CHECKING:
@@ -265,7 +265,10 @@ class EvohomeClient:
         """Return the information of the user account."""
 
         if self._user_info is None:
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Account information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Account information"),
+                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
+            )
 
         return self._user_info
 
@@ -279,7 +282,10 @@ class EvohomeClient:
         """Return the list of locations."""
 
         if self._locations is None:  # None: never fetched, []: fetched but empty
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Installation information"),
+                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
+            )
 
         return self._locations
 
@@ -288,7 +294,10 @@ class EvohomeClient:
         """Return the list of locations."""
 
         if self._location_by_id is None:  # None: never fetched, {}: fetched but empty
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Installation information"),
+                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
+            )
 
         return self._location_by_id
 
@@ -302,10 +311,14 @@ class EvohomeClient:
 
         if len(locs := self.locations) != 1:
             raise exc.ClientStateError(
-                "There is not a single location (only) for this account"
+                "There is not a single location (only) for this account",
+                reason=ClientStateErrorReason.LOCATION_NOT_SINGLE,
             )
 
         if (tcs := locs[0].tcs) is None:
-            raise exc.ClientStateError("The location of this account has no TCS")
+            raise exc.ClientStateError(
+                "The location of this account has no TCS",
+                reason=ClientStateErrorReason.TCS_ABSENT,
+            )
 
         return tcs
