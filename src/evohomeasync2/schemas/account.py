@@ -75,7 +75,7 @@ def factory_post_oauth_token(_: Case = Case.VENDOR) -> Validator[TccOAuthTokenRe
     return vol.Schema(
         {
             vol.Required(OAUTH_ACCESS_TOKEN): vol.All(str, redact),
-            vol.Required(OAUTH_EXPIRES_IN): vol.Range(min=1770, max=1800),  # usu. 179x
+            vol.Required(OAUTH_EXPIRES_IN): int,  # seconds, usu. 1800 (or just under)
             vol.Required(OAUTH_REFRESH_TOKEN): vol.All(str, redact),
             vol.Optional(OAUTH_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
             vol.Required(OAUTH_TOKEN_TYPE): str,

@@ -227,7 +227,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         response: TccOAuthTokenResponseT = await self._post_access_token_request(
             url,
             headers=HEADERS_CRED | {"Authorization": "Basic " + _APPLICATION_ID},
-            data=credentials,  # NOTE: is snake_case
+            data=credentials,  # NOTE: is form-encoded, so its keys are as-is
         )
 
         try:  # the dict _should_ be the expected schema...

@@ -30,10 +30,10 @@ OAUTH_TOKEN_TYPE: Final = "token_type"  # noqa: S105
 OAUTH_PASSWORD: Final = "Password"  # noqa: S105
 OAUTH_USERNAME: Final = "Username"
 
-# TODO: deprecate, remove in v4: using the OAUTH_* equivalents (not used internally)
-SZ_ACCESS_TOKEN: Final = OAUTH_ACCESS_TOKEN  # use auth.SZ_ACCESS_TOKEN instead
+# TODO: deprecate, then remove in v4: use the OAUTH_* equivalents (not used internally)
+SZ_ACCESS_TOKEN: Final = OAUTH_ACCESS_TOKEN
 SZ_EXPIRES_IN: Final = OAUTH_EXPIRES_IN
-SZ_REFRESH_TOKEN: Final = OAUTH_REFRESH_TOKEN  # use auth.SZ_REFRESH_TOKEN instead
+SZ_REFRESH_TOKEN: Final = OAUTH_REFRESH_TOKEN
 SZ_SCOPE: Final = OAUTH_SCOPE
 SZ_TOKEN_TYPE: Final = OAUTH_TOKEN_TYPE
 

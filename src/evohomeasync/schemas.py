@@ -158,9 +158,8 @@ S1_OUTDOOR_TEMPERATURE_AVAILABLE: Final = "outdoorTemperatureAvailable"
 S1_OUTDOOR_TEMPERATURE_STATUS: Final = "outdoorTemperatureStatus"
 S1_OUTDOOT_HUMIDITY_AVAILABLE: Final = "outdootHumidityAvailable"  # NOTE: not a typo
 
-S1_PCB_NUMBER: Final = "pcbNumber"
 S1_PASSWORD: Final = "password"  # noqa: S105
-
+S1_PCB_NUMBER: Final = "pcbNumber"
 
 S1_QUICK_ACTION: Final = "quickAction"
 S1_QUICK_ACTION_NEXT_TIME: Final = "quickActionNextTime"
