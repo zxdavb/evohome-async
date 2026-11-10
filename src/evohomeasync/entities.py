@@ -233,7 +233,10 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         if next_time:  # the vendor treats it as the location's local time
             dhw_mode |= {S1_NEXT_TIME: as_local_str(next_time, self.location.tzinfo)}
 
-        _ = await self._auth.put(URL_DHW_MODE.format(device_id=self.id), json=dhw_mode)
+        _ = await self._auth.put(
+            URL_DHW_MODE.format(device_id=self.id),
+            json=dhw_mode,
+        )
 
     async def set_dhw_on(self, until: dt | None = None) -> None:
         """Set DHW to On, either indefinitely, or until a specified time.
@@ -338,7 +341,10 @@ class Zone(_DeviceBase):  # Zone version of a Device
         if next_time is not None:  # the vendor treats it as the location's local time
             zon_mode[S1_NEXT_TIME] = as_local_str(next_time, self.location.tzinfo)
 
-        _ = await self._auth.put(URL_ZON_MODE.format(device_id=self.id), json=zon_mode)
+        _ = await self._auth.put(
+            URL_ZON_MODE.format(device_id=self.id),
+            json=zon_mode,
+        )
 
     async def set_temperature(
         self, temperature: float, until: dt | None = None
@@ -453,7 +459,8 @@ class ControlSystem(_EntityBase):
         """Set the TCS mode."""
 
         _ = await self._auth.put(
-            URL_TCS_MODE.format(location_id=self.id), json=tcs_mode
+            URL_TCS_MODE.format(location_id=self.id),
+            json=tcs_mode,
         )
 
     async def reset(self) -> None:
