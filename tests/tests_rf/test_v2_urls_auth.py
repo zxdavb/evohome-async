@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from datetime import timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 import pytest
 
@@ -32,20 +32,26 @@ from evohomeasync2.schemas.config import TCC_GET_USR_LOCATIONS
 from evohomeasync2.schemas.const import (
     TCC_DTM_STRFTIME,
     TccDhwState,
+    TccEntityType,
+    TccFailureCode,
     TccSystemMode,
     TccZoneMode,
 )
+from evohomeasync2.schemas.schedule import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE
 from evohomeasync2.schemas.status import (
     TCC_GET_DHW_STATUS,
     TCC_GET_LOC_STATUS,
     TCC_GET_TCS_STATUS,
     TCC_GET_ZON_STATUS,
 )
+from tests.common import get_dhw
 from tests.const import _DBG_TEST_UNUSED_APIS, _DBG_USE_REAL_AIOHTTP
 
 from .common import error_codes, should_fail_v2, should_work_v2, skipif_auth_failed
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     import evohomeasync2 as evo2
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
     from evohomeasync2.schemas.state import TccSetTcsModeT
@@ -579,6 +585,125 @@ async def _test_dhw_status(
     # '<!DOCTYPE html PUBLIC ...
 
 
+# ids that are not the user's: probably another user's, and probably no one's (e.g. that
+# of a deleted zone); the vendor does not say which (either is a 401, see below)
+_IDS_NOT_THE_USERS: Final = ("1234567", "999999999")
+
+
+async def _test_ids_not_the_users(
+    ec2: EvohomeClientV2,
+    tcs: evo2.ControlSystem,
+    zone: evo2.Zone,
+) -> None:
+    """Test the URLs of the entities, with an id that is not the user's.
+
+    The vendor does not say whether such an id exists (e.g. that of a deleted zone, or
+    of another user's zone): either is a 401 (Unauthorized), for every URL, GET or PUT.
+
+    An id that is the user's, but of another type of entity, is a 400 (e.g. DHWNotFound).
+    """
+
+    loc, tcs_, zon, dhw = (
+        TccEntityType.LOC,
+        TccEntityType.TCS,
+        TccEntityType.ZON,
+        TccEntityType.DHW,
+    )
+    unauthorized = [TccFailureCode.UNAUTHORIZED]
+
+    #
+    # STEP 1: GET, with an id that is not the user's (of each type of entity)
+    for id_ in _IDS_NOT_THE_USERS:
+        for url in (
+            f"{loc}/{id_}/status?includeTemperatureControlSystems=True",
+            f"{tcs_}/{id_}/status",
+            f"{zon}/{id_}/status",
+            f"{zon}/{id_}/schedule",
+            f"{dhw}/{id_}/status",
+            f"{dhw}/{id_}/schedule",
+        ):
+            rsp = await should_fail_v2(
+                ec2.auth, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED
+            )
+            assert error_codes(rsp) == unauthorized, rsp
+    # [{
+    #     'code': 'Unauthorized',
+    #     'message': 'You are not allowed to perform this action.'
+    # }]
+
+    #
+    # STEP 2: GET, with an id that is the user's, but of another type of entity
+    for url, code in (
+        (f"{dhw}/{zone.id}/status", TccFailureCode.DHW_NOT_FOUND),
+        (f"{dhw}/{zone.id}/schedule", TccFailureCode.DHW_NOT_FOUND),
+        (f"{zon}/{tcs.id}/status", TccFailureCode.TEMPERATURE_ZONE_NOT_FOUND),
+        (f"{zon}/{tcs.id}/schedule", TccFailureCode.SCHEDULE_NOT_FOUND),
+    ):
+        rsp = await should_fail_v2(
+            ec2.auth, HTTPMethod.GET, url, status=HTTPStatus.BAD_REQUEST
+        )
+        assert error_codes(rsp) == [code], rsp
+    # [{'code': 'DHWNotFound', 'message': 'Domestic Hot Water 3744415 not found.'}]
+    # [{'code': 'TemperatureZoneNotFound', 'message': 'Temperature Zone ... not found.'}]
+    # [{'code': 'ScheduleNotFound', 'message': 'Schedule not found.'}]
+
+    #
+    # STEP 3: PUT a (valid) schedule, with an id that is not the user's
+    schedules: dict[TccEntityType, Mapping[str, object]] = {
+        zon: await should_work_v2(
+            ec2.auth,
+            HTTPMethod.GET,
+            f"{zon}/{zone.id}/schedule",
+            schema=TCC_GET_ZON_SCHEDULE,
+        )
+    }
+    if dhw_ := get_dhw(ec2):
+        schedules[dhw] = await should_work_v2(
+            ec2.auth,
+            HTTPMethod.GET,
+            f"{dhw}/{dhw_.id}/schedule",
+            schema=TCC_GET_DHW_SCHEDULE,
+        )
+
+    for id_ in _IDS_NOT_THE_USERS:
+        for type_, schedule in schedules.items():
+            rsp = await should_fail_v2(
+                ec2.auth,
+                HTTPMethod.PUT,
+                f"{type_}/{id_}/schedule",
+                json=schedule,
+                status=HTTPStatus.UNAUTHORIZED,
+            )
+            assert error_codes(rsp) == unauthorized, rsp
+
+    #
+    # STEP 4: PUT a (harmless) mode/state, with an id that is not the user's
+    for id_ in _IDS_NOT_THE_USERS:
+        for url, body in (
+            (f"{tcs_}/{id_}/mode", {"systemMode": "Auto", "permanent": True}),
+            (
+                f"{zon}/{id_}/heatSetpoint",
+                {"setpointMode": "FollowSchedule", "HeatSetpointValue": 0.0},
+            ),
+            (f"{dhw}/{id_}/state", {"mode": "FollowSchedule"}),
+        ):
+            rsp = await should_fail_v2(
+                ec2.auth,
+                HTTPMethod.PUT,
+                url,
+                json=body,
+                status=HTTPStatus.UNAUTHORIZED,
+            )
+            assert error_codes(rsp) == unauthorized, rsp
+
+        # GET (not implemented by the faked server)
+        url = f"{loc}/{id_}/installationInfo?includeTemperatureControlSystems=True"
+        rsp = await should_fail_v2(
+            ec2.auth, HTTPMethod.GET, url, status=HTTPStatus.UNAUTHORIZED
+        )
+        assert error_codes(rsp) == unauthorized, rsp
+
+
 #######################################################################################
 
 
@@ -660,6 +785,26 @@ async def test_dhw_status(
 
     try:
         await _test_dhw_status(ec2, dhw)
+
+    except NotImplementedError:  # TODO: implement
+        if _DBG_USE_REAL_AIOHTTP:
+            raise
+        pytest.skip("Mocked server API not implemented")
+
+
+@skipif_auth_failed  # GET, PUT
+async def test_ids_not_the_users(
+    ec2: EvohomeClientV2,
+    tcs: evo2.ControlSystem,
+    zone: evo2.Zone,
+) -> None:
+    """Test the URLs of the entities, with an id that is not the user's.
+
+    For example, that of a zone that has been deleted since the config was fetched.
+    """
+
+    try:
+        await _test_ids_not_the_users(ec2, tcs, zone)
 
     except NotImplementedError:  # TODO: implement
         if _DBG_USE_REAL_AIOHTTP:

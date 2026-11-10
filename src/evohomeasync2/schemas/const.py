@@ -224,16 +224,18 @@ class TccFanMode(StrEnum):  # non-evohome
 class TccFailureCode(StrEnum):  # the code of a failed GET/PUT; NOTE: is incomplete
     COMM_TASK_NOT_FOUND = "CommTaskNotFound"
     DAY_OF_WEEK_MISSING = "DayOfWeekMissing"
+    DHW_NOT_FOUND = "DHWNotFound"  # e.g. a zone's id, as a DHW's
     DHW_STATE_NOT_SET = "DHWStateNotSet"
     DHW_UNTIL_TIME_NOT_SET = "DHWUntilTimeNotSet"
     HEAT_SETPOINT_CHANGE_TARGET_TEMPERATURE_NOT_SET = "HeatSetpointChangeTargetTemperatureNotSet"
     HEAT_SETPOINT_CHANGE_TIME_UNTIL_NOT_SET = "HeatSetpointChangeTimeUntilNotSet"
     INVALID_INPUT = "InvalidInput"
     PARAMETER_IS_MISSING = "ParameterIsMissing"
-    SCHEDULE_NOT_FOUND = "ScheduleNotFound"  # NOTE: only seen via the faked server
+    SCHEDULE_NOT_FOUND = "ScheduleNotFound"  # e.g. a TCS's id, as a zone's
     SYSTEM_MODE_CHANGE_TIME_UNTIL_NOT_SET = "SystemModeChangeTimeUntilNotSet"
+    TEMPERATURE_ZONE_NOT_FOUND = "TemperatureZoneNotFound"  # e.g. a TCS's id
     TOO_MANY_REQUESTS = "TooManyRequests"
-    UNAUTHORIZED = "Unauthorized"
+    UNAUTHORIZED = "Unauthorized"  # e.g. an id not the user's (if any)
 
 
 @verify(EnumCheck.UNIQUE)
