@@ -186,6 +186,11 @@ class RequestErrorReason(StrEnum):
     STATE_UNKNOWN = "set_state_unknown"  # the state is not a valid enum value
     STATE_UNSUPPORTED = "set_state_unsupported"  # the state is not among allowed states
 
+    # other requests
+    DATETIME_INVALID = "set_datetime_invalid"  # e.g. naive, or not a datetime
+    SCHEDULE_INVALID = "set_schedule_invalid"  # e.g. not JSON (or not serializable)
+    ZONE_UNKNOWN = "set_zone_unknown"  # e.g. no zone with that id/idx/name
+
 
 class BadApiRequestError(EvohomeError):  # a base exception
     """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode).
@@ -194,9 +199,8 @@ class BadApiRequestError(EvohomeError):  # a base exception
     the message. The `details` attr holds only the structured values that apply to the
     reason, for use as the placeholders of a (translated) message (see the subclasses).
 
-    This library supplies a reason when it raises an InvalidSetModeError, but a reason
-    is optional (so it may be None), so that the error can still be raised with only a
-    message (e.g. by a test double).
+    This library always supplies a reason, but it is optional (so the reason may be
+    None), so that it can still be raised with only a message (e.g. by a test double).
     """
 
     def __init__(

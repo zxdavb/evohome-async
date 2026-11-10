@@ -55,6 +55,7 @@ from .const import (
     URL_TCS_MODE,
     URL_ZON_MODE,
 )
+from .exceptions import RequestErrorReason
 from .schemas import (
     S1_MODE,
     S1_NEXT_TIME,
@@ -518,7 +519,10 @@ class ControlSystem(_EntityBase):
             dev = self.zone_by_name.get(zon_id)
 
         if dev is None:
-            raise exc.BadApiRequestError(f"no zone {zon_id} in {self}")
+            raise exc.BadApiRequestError(
+                f"no zone {zon_id} in {self}",
+                reason=RequestErrorReason.ZONE_UNKNOWN,
+            )
 
         return dev
 

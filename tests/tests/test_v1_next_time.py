@@ -20,7 +20,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from _evohome.exceptions import BadApiRequestError
+from _evohome.exceptions import BadApiRequestError, RequestErrorReason
 from evohomeasync.entities import create_location
 from evohomeasync.schemas import TccSystemMode
 from tests.common import get_loc, get_tcs
@@ -164,8 +164,10 @@ async def test_naive_next_time(
 
     naive = dt(2026, 7, 1, 12, 0, tzinfo=UTC).replace(tzinfo=None)
 
-    with pytest.raises(BadApiRequestError):
+    with pytest.raises(BadApiRequestError) as exc_info:
         await zone.set_temperature(19.5, until=naive)
+
+    assert exc_info.value.reason is RequestErrorReason.DATETIME_INVALID
 
     mock_put.assert_not_awaited()
 
