@@ -45,9 +45,16 @@ _APPLICATION_ID: Final = base64.b64encode(
 SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
 SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"  # noqa: S105
 SZ_EXPIRES_IN: Final = "expires_in"
+SZ_GRANT_TYPE: Final = "grant_type"
 SZ_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
 SZ_SCOPE: Final = "scope"
 SZ_TOKEN_TYPE: Final = "token_type"  # noqa: S105
+
+# NOTE: these two keys are case-sensitive (i.e. not 'username' and 'password')
+S2_PASSWORD: Final = "Password"  # noqa: S105
+S2_USERNAME: Final = "Username"
+
+_SCOPE: Final = "EMEA-V1-Basic EMEA-V1-Anonymous"
 
 
 SCH_OAUTH_TOKEN: Final = vol.Schema(
@@ -61,16 +68,16 @@ SCH_OAUTH_TOKEN: Final = vol.Schema(
 )
 
 CREDS_REFRESH_TOKEN: Final = {
-    "grant_type": "refresh_token",
-    "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
-    "refresh_token": "",
+    SZ_GRANT_TYPE: "refresh_token",
+    SZ_SCOPE: _SCOPE,
+    SZ_REFRESH_TOKEN: "",
 }
 
 CREDS_USER_PASSWORD: Final = {
-    "grant_type": "password",
-    "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # EMEA-V1-Get-Current-User-Account",
-    "Username": "",
-    "Password": "",
+    SZ_GRANT_TYPE: "password",
+    SZ_SCOPE: _SCOPE,  # EMEA-V1-Get-Current-User-Account
+    S2_USERNAME: "",
+    S2_PASSWORD: "",
 }
 
 
@@ -185,9 +192,8 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
             self._logger.debug(" - authenticating with client_id/secret")
 
             credentials = {
-                # NOTE: the keys are case-sensitive: 'Username' and 'Password'
-                "Username": self._client_id,
-                "Password": self._secret,
+                S2_USERNAME: self._client_id,
+                S2_PASSWORD: self._secret,
             }
 
             try:  # check here if the user credentials are invalid...
