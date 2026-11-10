@@ -38,6 +38,7 @@ from .const import (
     URL_LOC_STATUS,
     URL_USR_ACCOUNT,
 )
+from .exceptions import ResponseErrorReason
 from .gateway import Gateway
 from .schemas.account import factory_usr_account
 from .schemas.config import factory_loc_config
@@ -223,7 +224,9 @@ class Location(EntityBase[EvoLocStatusT]):
                 schema=self.SCH_CONFIG,
             )
         except exc.BadApiResponseError as err:  # the config failed validation
-            raise exc.InvalidConfigError(err.message) from err
+            raise exc.InvalidConfigError(
+                err.message, reason=ResponseErrorReason.CONFIG_INVALID
+            ) from err
 
         # update only the TZ/DST attrs: the rest of the config is assumed static
         # self._config is also the client's _user_locs entry, so it is updated too
@@ -322,7 +325,9 @@ class Location(EntityBase[EvoLocStatusT]):
             )
 
         except exc.BadApiResponseError as err:  # the status failed validation
-            raise exc.InvalidStatusError(err.message) from err
+            raise exc.InvalidStatusError(
+                err.message, reason=ResponseErrorReason.STATUS_INVALID
+            ) from err
 
         except exc.AuthenticationFailedError:  # unable to get an access_token
             raise

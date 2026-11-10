@@ -20,6 +20,8 @@ from _evohome.exceptions import (
     InvalidScheduleRequestError,
     InvalidStatusError,
     NotFetchedError,
+    RequestErrorReason,
+    ResponseErrorReason,
     deprecated_getattr,
 )
 
@@ -43,6 +45,8 @@ __all__ = [
     "InvalidScheduleRequestError",
     "InvalidStatusError",
     "NotFetchedError",
+    "RequestErrorReason",
+    "ResponseErrorReason",
 ]
 
 # hidden from type checkers, which would otherwise accept any name in this module

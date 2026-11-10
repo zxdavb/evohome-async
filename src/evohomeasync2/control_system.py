@@ -34,7 +34,7 @@ from .const import (
     TcsModelType,
     TimingMode,
 )
-from .exceptions import ModeRequestErrorReason
+from .exceptions import RequestErrorReason
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
 from .schemas.status import factory_tcs_status
@@ -186,14 +186,14 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         except ValueError as err:
             raise exc.InvalidModeRequestError(
                 f"{self}: Unknown system_mode: {system_mode}",
-                reason=ModeRequestErrorReason.MODE_UNKNOWN,
+                reason=RequestErrorReason.MODE_UNKNOWN,
                 mode=str(system_mode),
             ) from err
 
         if system_mode not in self.allowed_modes:
             raise exc.InvalidModeRequestError(
                 f"{self}: Unsupported system_mode: {system_mode}",
-                reason=ModeRequestErrorReason.MODE_UNSUPPORTED,
+                reason=RequestErrorReason.MODE_UNSUPPORTED,
                 mode=system_mode,
             )
 
@@ -332,7 +332,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         if duration is not None or period is not None:
             raise exc.InvalidModeRequestError(
                 f"{self}: Only one of until, duration or period may be given",
-                reason=ModeRequestErrorReason.TIMESPAN_CONFLICTING,
+                reason=RequestErrorReason.TIMESPAN_CONFLICTING,
             )
 
         return await self._set_mode(system_mode, until=until)
@@ -389,7 +389,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         if not mode_entry[SZ_CAN_BE_TEMPORARY]:
             raise exc.InvalidModeRequestError(
                 f"{self}: For {system_mode}, until must be None, not '{until}'",
-                reason=ModeRequestErrorReason.TIMESPAN_NOT_ALLOWED,
+                reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
                 mode=system_mode,
             )
 
@@ -432,7 +432,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         if duration is not None and period is not None:
             raise exc.InvalidModeRequestError(
                 f"{self}: Only one of duration or period may be given",
-                reason=ModeRequestErrorReason.TIMESPAN_CONFLICTING,
+                reason=RequestErrorReason.TIMESPAN_CONFLICTING,
             )
 
         system_mode = self._validate_requested_mode(system_mode)

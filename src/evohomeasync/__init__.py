@@ -29,6 +29,8 @@ from .exceptions import (
     InvalidScheduleRequestError,
     InvalidStatusError,
     NotFetchedError,
+    RequestErrorReason,
+    ResponseErrorReason,
 )
 from .main import EvohomeClient
 from .schemas import (  # noqa: F401
@@ -99,6 +101,8 @@ __all__ = [  # noqa: RUF022
     "InvalidScheduleRequestError",
     "InvalidStatusError",
     "NotFetchedError",
+    "RequestErrorReason",
+    "ResponseErrorReason",
 ]
 
 # hidden from type checkers, which would otherwise accept any name in this module

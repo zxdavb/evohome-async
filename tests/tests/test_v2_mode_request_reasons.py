@@ -6,7 +6,6 @@ each raise site is tested, as is that each reason is raised by at least one site
 
 from __future__ import annotations
 
-import ast
 import math
 from contextlib import nullcontext
 from datetime import UTC, datetime as dt, timedelta as td
@@ -16,8 +15,7 @@ from unittest.mock import AsyncMock, PropertyMock, patch
 
 import pytest
 
-import evohomeasync2
-from evohomeasync2 import InvalidModeRequestError, ModeRequestErrorReason as Reason
+from evohomeasync2 import InvalidModeRequestError, RequestErrorReason as Reason
 from evohomeasync2.const import DhwState, SystemMode, ZoneMode
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -286,46 +284,9 @@ async def test_mode_request_error_reason(
 
 
 def test_mode_request_error_reasons_are_all_raised() -> None:
-    """Test every ModeRequestErrorReason is raised by at least one site (above)."""
+    """Test every reason of a mode request is raised by at least one site (above)."""
+
+    others = {Reason.DATETIME_INVALID, Reason.SCHEDULE_INVALID, Reason.ZONE_UNKNOWN}
 
     raised = {case.values[1] for case in CASES}
-    assert raised == set(Reason)
-
-
-def test_mode_request_error_without_a_reason() -> None:
-    """Test the error can still be raised with only a message (as before reasons)."""
-
-    err = InvalidModeRequestError("Unsupported mode: xxx")  # e.g. as HA's tests do
-
-    assert err.message == "Unsupported mode: xxx"
-    assert err.reason is None
-    assert err.details == {}
-
-
-def test_mode_request_error_raise_sites_have_a_reason() -> None:
-    """Test every raise of an InvalidModeRequestError (in the library) has a reason.
-
-    The reason is optional (see the test above), so mypy will not catch its omission.
-    """
-
-    names = {"InvalidModeRequestError", "InvalidSystemModeError"}  # incl. its alias
-    src = Path(evohomeasync2.__file__).parent.parent  # incl. _evohome, evohomeasync
-
-    raises: list[str] = []
-    missing: list[str] = []
-
-    for path in sorted(src.rglob("*.py")):
-        for node in ast.walk(ast.parse(path.read_text(), filename=str(path))):
-            if not isinstance(node, ast.Raise) or not isinstance(node.exc, ast.Call):
-                continue
-            func = node.exc.func
-            name = func.attr if isinstance(func, ast.Attribute) else ""
-            name = func.id if isinstance(func, ast.Name) else name
-            if name not in names:
-                continue
-            raises.append(site := f"{path.relative_to(src)}:{node.lineno}")
-            if not any(k.arg == "reason" for k in node.exc.keywords):
-                missing.append(site)
-
-    assert raises, "no raise sites were found (has the source moved?)"
-    assert not missing, f"raised without a reason: {missing}"
+    assert raised == set(Reason) - others

@@ -46,8 +46,9 @@ from .exceptions import (
     InvalidScheduleError,
     InvalidScheduleRequestError,
     InvalidStatusError,
-    ModeRequestErrorReason,
     NotFetchedError,
+    RequestErrorReason,
+    ResponseErrorReason,
     StaleConfigError,
 )
 from .gateway import Gateway
@@ -102,8 +103,9 @@ __all__ = [  # noqa: RUF022
     "InvalidScheduleRequestError",
     "InvalidStatusError",
     "InvalidSystemModeError",  # deprecated alias for InvalidModeRequestError
-    "ModeRequestErrorReason",
     "NotFetchedError",
+    "RequestErrorReason",
+    "ResponseErrorReason",
     "StaleConfigError",
 ]
 

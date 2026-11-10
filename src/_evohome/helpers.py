@@ -9,7 +9,12 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Final, overload
 
 from .const import _DBG_DONT_REDACT_SECRETS, REGEX_EMAIL_ADDRESS
-from .exceptions import BadApiRequestError, BadApiResponseError
+from .exceptions import (
+    BadApiRequestError,
+    BadApiResponseError,
+    RequestErrorReason,
+    ResponseErrorReason,
+)
 
 if TYPE_CHECKING:
     from datetime import tzinfo
@@ -138,7 +143,10 @@ def as_utc_str(dtm: dt) -> str:
     """
 
     if dtm.tzinfo is None:  # else astimezone() would assume the local TZ
-        raise BadApiRequestError(f"Datetime must be TZ-aware (not naive): {dtm!r}")
+        raise BadApiRequestError(
+            f"Datetime must be TZ-aware (not naive): {dtm!r}",
+            reason=RequestErrorReason.DATETIME_INVALID,
+        )
 
     return dtm.astimezone(UTC).strftime(TCC_DTM_STRFTIME)
 
@@ -151,7 +159,10 @@ def as_timedelta(timespan: str) -> td:
     """
 
     if not (match := _TCC_TIMESPAN_REGEX.match(timespan)):
-        raise BadApiResponseError(f"The timespan is invalid: {timespan!r}")
+        raise BadApiResponseError(
+            f"The timespan is invalid: {timespan!r}",
+            reason=ResponseErrorReason.TIMESPAN_INVALID,
+        )
 
     return td(**{k: int(v or 0) for k, v in match.groupdict().items()})
 
@@ -166,7 +177,10 @@ def as_local_str(dtm: dt, tzinfo: tzinfo) -> str:
     """
 
     if dtm.tzinfo is None:  # else astimezone() would assume the local TZ
-        raise BadApiRequestError(f"Datetime must be TZ-aware (not naive): {dtm!r}")
+        raise BadApiRequestError(
+            f"Datetime must be TZ-aware (not naive): {dtm!r}",
+            reason=RequestErrorReason.DATETIME_INVALID,
+        )
 
     return dtm.astimezone(tzinfo).strftime(TCC_DTM_LOCAL_STRFTIME)
 
@@ -195,10 +209,16 @@ def as_aware_dtm(dtm: dt | str) -> dt:
         try:
             dtm = dt.fromisoformat(dtm)
         except ValueError as err:
-            raise BadApiRequestError(f"Invalid datetime string: {dtm!r}") from err
+            raise BadApiRequestError(
+                f"Invalid datetime string: {dtm!r}",
+                reason=RequestErrorReason.DATETIME_INVALID,
+            ) from err
 
     if dtm.tzinfo is None:
-        raise BadApiRequestError(f"Datetime must be TZ-aware (not naive): {dtm!r}")
+        raise BadApiRequestError(
+            f"Datetime must be TZ-aware (not naive): {dtm!r}",
+            reason=RequestErrorReason.DATETIME_INVALID,
+        )
 
     return dtm
 

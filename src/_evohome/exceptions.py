@@ -130,8 +130,46 @@ class CommTaskFailedError(ApiCallFailedError):
 #    b) internally inconsistent (e.g. a zone without a model type)
 
 
+class ResponseErrorReason(StrEnum):
+    """Why a response was not as expected (see BadApiResponseError).
+
+    The values are public API, so that callers can map each one to their own (e.g.
+    translated) message: renaming or removing a member is a breaking change, but
+    adding one is not. They are named param_problem (e.g. config_invalid).
+    """
+
+    RESPONSE_INVALID = "response_invalid"  # it failed validation (after a GET)
+    ACCOUNT_INVALID = "account_invalid"  # e.g. the user account has no user_id
+    CONFIG_INVALID = "config_invalid"  # the config failed validation
+    MODEL_TYPE_UNKNOWN = "model_type_unknown"  # a zone has no model type (a ghost?)
+    ZONE_TYPE_UNKNOWN = "zone_type_unknown"  # a zone has no zone type (a ghost?)
+    STATUS_INVALID = "status_invalid"  # the status failed validation
+    SCHEDULE_INVALID = "schedule_invalid"  # the schedule failed validation
+    SCHEDULE_MISSING = "schedule_missing"  # there is no schedule (e.g. it is empty)
+    SWITCHPOINTS_MISSING = "switchpoints_missing"  # e.g. a day without switchpoints
+    COMM_TASK_INVALID = "comm_task_invalid"  # a PUT's response is not a comm task
+    COMM_TASK_MISMATCHED = "comm_task_mismatched"  # a GET returned another comm task
+    TIMESPAN_INVALID = "timespan_invalid"  # e.g. a max_duration is not a TimeSpan
+
+
 class BadApiResponseError(EvohomeError):  # a base exception
-    """The received JSON is not as expected (e.g. missing a required key)."""
+    """The received JSON is not as expected (e.g. missing a required key).
+
+    The `reason` attr says why (see ResponseErrorReason), so that callers need not
+    parse the message. This library always supplies a reason, but it is optional (so
+    the reason may be None), so that it can still be raised with only a message.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        reason: ResponseErrorReason | None = None,
+        **details: str,
+    ) -> None:
+        super().__init__(message)
+        self.reason = reason
+        self.details: dict[str, str] = details
 
 
 class InvalidConfigError(BadApiResponseError):  # config/account JSON is invalid
@@ -154,18 +192,15 @@ class InvalidScheduleError(BadApiResponseError):  # schedule JSON is invalid/mis
 #    mode); these are detected before making any API request, so nothing was sent
 
 
-class BadApiRequestError(EvohomeError):  # a base exception
-    """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode)."""
-
-
-class ModeRequestErrorReason(StrEnum):
-    """Why a request to set the mode of a TCS/zone/DHW was rejected.
+class RequestErrorReason(StrEnum):
+    """Why a request was rejected, before any API call (see BadApiRequestError).
 
     The values are public API, so that callers can map each one to their own (e.g.
     translated) message: renaming or removing a member is a breaking change, but
-    adding one is not.
+    adding one is not. They are named param_problem (e.g. mode_unknown).
     """
 
+    # the mode of a TCS/zone/DHW (see InvalidModeRequestError)
     MODE_UNKNOWN = "mode_unknown"  # the mode is not a valid enum value
     MODE_UNSUPPORTED = "mode_unsupported"  # the mode is not among the allowed modes
     TIMESPAN_REQUIRED = "timespan_required"  # the mode cannot be permanent
@@ -183,20 +218,18 @@ class ModeRequestErrorReason(StrEnum):
     STATE_UNKNOWN = "state_unknown"  # the state is not a valid enum value
     STATE_UNSUPPORTED = "state_unsupported"  # the state is not among allowed states
 
+    # other requests
+    DATETIME_INVALID = "datetime_invalid"  # e.g. a naive datetime, or not a datetime
+    SCHEDULE_INVALID = "schedule_invalid"  # e.g. not JSON (or not serializable)
+    ZONE_UNKNOWN = "zone_unknown"  # e.g. no zone with that id/idx/name
 
-class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
-    """The requested mode is not supported by this TCS/zone/DHW zone.
 
-    The `reason` attr says why (see ModeRequestErrorReason), so that callers need not
-    parse the message. The `details` attr holds only the structured values that apply
-    to the reason, for use as the placeholders of a (translated) message:
-      mode:         the mode (a snake_case enum value, or the raw input if unknown)
-      timing_mode:  the timing mode that the mode's entry expects
-      state:        the DHW state (a snake_case enum value, or the raw input if unknown)
-      max_duration: the mode's max_duration (reserved: no reason supplies it, yet)
+class BadApiRequestError(EvohomeError):  # a base exception
+    """The supplied parameter(s) are not as expected (e.g. unknown/unsupported mode).
 
-    Which keys are present depends upon the reason (e.g. TIMESPAN_CONFLICTING has none),
-    so a message for a reason may only use the placeholders that its reason supplies.
+    The `reason` attr says why (see RequestErrorReason), so that callers need not parse
+    the message. The `details` attr holds only the structured values that apply to the
+    reason, for use as the placeholders of a (translated) message (see the subclasses).
 
     This library always supplies a reason, but it is optional (so the reason may be
     None), so that it can still be raised with only a message (e.g. by a test double).
@@ -206,12 +239,26 @@ class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/D
         self,
         message: str,
         *,
-        reason: ModeRequestErrorReason | None = None,
+        reason: RequestErrorReason | None = None,
         **details: str,
     ) -> None:
         super().__init__(message)
         self.reason = reason
         self.details: dict[str, str] = details
+
+
+class InvalidModeRequestError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
+    """The requested mode is not supported by this TCS/zone/DHW zone.
+
+    Its `details` may have these keys, for use as a message's placeholders:
+      mode:         the mode (a snake_case enum value, or the raw input if unknown)
+      timing_mode:  the timing mode that the mode's entry expects
+      state:        the DHW state (a snake_case enum value, or the raw input if unknown)
+      max_duration: the mode's max_duration (reserved: no reason supplies it, yet)
+
+    Which keys are present depends upon the reason (e.g. TIMESPAN_CONFLICTING has none),
+    so a message for a reason may only use the placeholders that its reason supplies.
+    """
 
 
 class InvalidScheduleRequestError(BadApiRequestError):  # failed to set a schedule
