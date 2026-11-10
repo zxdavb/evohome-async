@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from enum import StrEnum
 from http import HTTPStatus
 from typing import Final
 
@@ -25,9 +26,12 @@ REGEX_EMAIL_ADDRESS = re.compile(
 )
 
 
-# the media types of a request/response (there are no such constants in the stdlib)
-CONTENT_TYPE_JSON: Final = "application/json"
-CONTENT_TYPE_TEXT_PLAIN: Final = "text/plain"
+class ContentType(StrEnum):
+    """The media types of a request/response (the stdlib has no such constants)."""
+
+    JSON = "application/json"
+    TEXT_PLAIN = "text/plain"
+
 
 # No need to indicate "Content-Type" as default is "charset=utf-8", with:
 # - POST: "Content-Type": "application/json"                  (default)
@@ -35,9 +39,9 @@ CONTENT_TYPE_TEXT_PLAIN: Final = "text/plain"
 # - PUTs: "Content-Type": "application/json"                  (as used here)
 
 HEADERS_BASE = {
-    hdrs.ACCEPT: CONTENT_TYPE_JSON,
+    hdrs.ACCEPT: ContentType.JSON,
     hdrs.CONNECTION: "Keep-Alive",
-    # hdrs.CONTENT_TYPE: CONTENT_TYPE_JSON,
+    # hdrs.CONTENT_TYPE: ContentType.JSON,
 }
 HEADERS_CRED = HEADERS_BASE | {
     hdrs.CACHE_CONTROL: "no-cache, no-store",
