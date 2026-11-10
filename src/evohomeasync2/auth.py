@@ -11,6 +11,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import probatio as vol
+from aiohttp import hdrs
 
 from _evohome.auth import AbstractAuth
 from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
@@ -227,7 +228,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
         response: TccOAuthTokenResponseT = await self._post_access_token_request(
             url,
-            headers=HEADERS_CRED | {"Authorization": "Basic " + _APPLICATION_ID},
+            headers=HEADERS_CRED | {hdrs.AUTHORIZATION: "Basic " + _APPLICATION_ID},
             data=credentials,  # NOTE: is form-encoded, so its keys are as-is
         )
 
@@ -329,5 +330,5 @@ class Auth(AbstractAuth):
 
         headers = HEADERS_BASE | (headers or {})
         return headers | {
-            "Authorization": "bearer " + await self._access_token(),
+            hdrs.AUTHORIZATION: "bearer " + await self._access_token(),
         }

@@ -10,7 +10,7 @@ import aiohttp
 
 from . import exceptions as exc
 from .auth import _payload, _retry_after
-from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
+from .const import CONTENT_TYPE_JSON, ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME
 
 if TYPE_CHECKING:
     import logging
@@ -75,7 +75,7 @@ class CredentialsManagerBase:
             rsp.raise_for_status()
 
             # can't assert content_length != 0 with aioresponses, so skip that check
-            if rsp.content_type != "application/json":  # usu. "text/plain", "text/html"
+            if rsp.content_type != CONTENT_TYPE_JSON:  # usu. "text/plain", "text/html"
                 raise exc.AuthenticationFailedError(
                     f"Authenticator response is not JSON: {await _payload(rsp)}"
                 )

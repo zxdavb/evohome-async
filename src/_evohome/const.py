@@ -6,6 +6,8 @@ import re
 from http import HTTPStatus
 from typing import Final
 
+from aiohttp import hdrs
+
 # all _DBG_* flags are only for dev/test and should be False for published code
 _DBG_DONT_REDACT_SECRETS = False  # default is to redact sensitive JSON in debug output
 
@@ -23,19 +25,23 @@ REGEX_EMAIL_ADDRESS = re.compile(
 )
 
 
+# the media types of a request/response (there are no such constants in the stdlib)
+CONTENT_TYPE_JSON: Final = "application/json"
+CONTENT_TYPE_TEXT_PLAIN: Final = "text/plain"
+
 # No need to indicate "Content-Type" as default is "charset=utf-8", with:
 # - POST: "Content-Type": "application/json"                  (default)
 # - GETs: "Content-Type": "application/x-www-form-urlencoded" (not required)
 # - PUTs: "Content-Type": "application/json"                  (as used here)
 
 HEADERS_BASE = {
-    "Accept": "application/json",
-    "Connection": "Keep-Alive",
-    # "Content-Type": "application/json",
+    hdrs.ACCEPT: CONTENT_TYPE_JSON,
+    hdrs.CONNECTION: "Keep-Alive",
+    # hdrs.CONTENT_TYPE: CONTENT_TYPE_JSON,
 }
 HEADERS_CRED = HEADERS_BASE | {
-    "Cache-Control": "no-cache, no-store",
-    "Pragma": "no-cache",
+    hdrs.CACHE_CONTROL: "no-cache, no-store",
+    hdrs.PRAGMA: "no-cache",
 }
 
 HINT_CHECK_NETWORK = (
