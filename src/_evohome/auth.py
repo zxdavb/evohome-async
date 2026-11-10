@@ -16,6 +16,7 @@ from aiohttp import hdrs
 
 from . import exceptions as exc
 from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME, ContentType
+from .exceptions import ResponseErrorReason
 from .helpers import (
     convert_dtms_to_utc_str,
     convert_keys_to_camel_case,
@@ -138,7 +139,8 @@ class AbstractAuth(ABC):
             return schema(response)
         except vol.Invalid as err:
             raise exc.BadApiResponseError(
-                f"GET {url}: response failed validation: {err}"
+                f"GET {url}: response failed validation: {err}",
+                reason=ResponseErrorReason.RESPONSE_INVALID,
             ) from err
 
     async def put(

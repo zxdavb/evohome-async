@@ -15,12 +15,14 @@ import pytest
 
 import _evohome
 from _evohome import exceptions as exc
-from _evohome.exceptions import RequestErrorReason
+from _evohome.exceptions import RequestErrorReason, ResponseErrorReason
 
 _SRC = Path(_evohome.__file__).parent.parent  # incl. evohomeasync, evohomeasync2
 
 # the errors that the library must raise with a reason
-_REASONED = (exc.BadApiRequestError,)
+_REASONED = (exc.BadApiRequestError, exc.BadApiResponseError)
+
+_ENUMS = (RequestErrorReason, ResponseErrorReason)
 
 _BY_NAME = {  # incl. the aliases of their previous names (e.g. InvalidModeRequestError)
     n: c
@@ -31,15 +33,8 @@ _BY_NAME = {  # incl. the aliases of their previous names (e.g. InvalidModeReque
 # the names of the classes (and of their aliases, incl. those served by __getattr__)
 _NAMES = set(_BY_NAME) | {"InvalidSystemModeError"}
 
-# the errors that have a reason (attr), whether or not the library raises them with one
-_CLASSES = sorted(
-    (
-        c
-        for c in vars(exc).values()
-        if isinstance(c, type) and issubclass(c, exc.BadApiRequestError)
-    ),
-    key=lambda c: c.__name__,
-)
+# the errors that have a reason (attr)
+_CLASSES = sorted(set(_BY_NAME.values()), key=lambda c: c.__name__)
 
 
 @cache
@@ -74,7 +69,10 @@ def test_raise_sites_have_a_reason() -> None:
     assert not missing, f"raised without a reason: {missing}"
 
 
-def test_reasons_are_all_used() -> None:
+@pytest.mark.parametrize("enum", _ENUMS, ids=lambda e: e.__name__)
+def test_reasons_are_all_used(
+    enum: type[RequestErrorReason | ResponseErrorReason],
+) -> None:
     """Test every reason is used by the library (i.e. none is unreachable)."""
 
     used: set[str] = set()
@@ -84,24 +82,42 @@ def test_reasons_are_all_used() -> None:
             if (
                 isinstance(node, ast.Attribute)
                 and isinstance(node.value, ast.Name)
-                and node.value.id == RequestErrorReason.__name__
+                and node.value.id == enum.__name__
             ):
                 used.add(node.attr)
 
-    assert used == set(RequestErrorReason.__members__)
+    assert used == set(enum.__members__)
+
+
+def test_reasons_are_unique() -> None:
+    """Test every reason's value is unique, across both enums (not just within each).
+
+    A caller may map a reason's value to a message (e.g. as a translation key), and a
+    StrEnum member equals its value, so a value in both enums would be ambiguous.
+    """
+
+    values = [r.value for e in _ENUMS for r in e.__members__.values()]  # incl. aliases
+    duplicates = sorted({v for v in values if values.count(v) > 1})
+
+    assert not duplicates, f"reasons that are not unique: {duplicates}"
 
 
 def test_reasons_are_prefixed() -> None:
-    """Test every reason's value is its name, prefixed set_ (as are the errors' names).
+    """Test every reason's value is its name, prefixed as per its enum.
 
-    For example, InvalidSetModeError, and MODE_UNKNOWN = "set_mode_unknown".
+    That is: set_ (a request) or get_ (a response), as are the errors' names (e.g.
+    InvalidSetModeError, InvalidGetConfigError). The prefixes also keep the values of
+    the enums apart (see above).
     """
 
     assert all(r.value == f"set_{r.name.lower()}" for r in RequestErrorReason)
+    assert all(r.value == f"get_{r.name.lower()}" for r in ResponseErrorReason)
 
 
 @pytest.mark.parametrize("cls", _CLASSES, ids=lambda c: c.__name__)
-def test_error_without_a_reason(cls: type[exc.BadApiRequestError]) -> None:
+def test_error_without_a_reason(
+    cls: type[exc.BadApiRequestError | exc.BadApiResponseError],
+) -> None:
     """Test each error can still be raised with only a message (as before reasons)."""
 
     err = cls("a message")  # e.g. as HA's tests do

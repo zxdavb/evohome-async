@@ -283,8 +283,10 @@ async def test_ghost_zone(
     config = zone._config.copy()
     config[SZ_MODEL_TYPE] = ZoneModelType.UNKNOWN
 
-    with pytest.raises(exc.GhostZoneError):
+    with pytest.raises(exc.GhostZoneError) as exc_info:
         Zone(zone.tcs, config)
+
+    assert exc_info.value.reason is exc.ResponseErrorReason.MODEL_TYPE_UNKNOWN
 
 
 async def test_ghost_zone_skipped(

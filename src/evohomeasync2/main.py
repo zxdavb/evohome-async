@@ -16,6 +16,7 @@ from _evohome.helpers import Case
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
 from .const import SZ_USER_ID, URL_USR_ACCOUNT, URL_USR_LOCATIONS
+from .exceptions import ResponseErrorReason
 from .location import Location, create_location
 from .schemas.account import factory_usr_account
 from .schemas.config import factory_usr_locations
@@ -108,7 +109,9 @@ class EvohomeClient:
             try:
                 await self._get_config()
             except exc.BadApiResponseError as err:  # e.g. failed validation
-                raise exc.InvalidGetConfigError(err.message) from err
+                raise exc.InvalidGetConfigError(
+                    err.message, reason=ResponseErrorReason.CONFIG_INVALID
+                ) from err
 
     @deprecated(
         "EvohomeClient.update() is deprecated: use .setup(), then Location.get_status()"
@@ -220,7 +223,8 @@ class EvohomeClient:
                 user_id = self._user_info[SZ_USER_ID]
             except (KeyError, TypeError) as err:
                 raise exc.BadApiResponseError(
-                    f"No user_id in user_info dict. Received: {self._user_info}"
+                    f"No user_id in user_info dict. Received: {self._user_info}",
+                    reason=ResponseErrorReason.ACCOUNT_INVALID,
                 ) from err
 
             self._user_locs = await self.auth.get(

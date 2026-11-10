@@ -34,7 +34,7 @@ from .const import (
     TcsModelType,
     TimingMode,
 )
-from .exceptions import RequestErrorReason
+from .exceptions import RequestErrorReason, ResponseErrorReason
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
 from .schemas.status import factory_tcs_status
@@ -63,6 +63,13 @@ if TYPE_CHECKING:
         EvoTcsStatusResponseT,
         EvoZonScheduleDayOfWeekT,
     )
+
+
+# a zone with either of these is a ghost zone, and is ignored (with a warning)
+_GHOST_ZONE_REASONS: Final = (
+    ResponseErrorReason.MODEL_TYPE_UNKNOWN,
+    ResponseErrorReason.ZONE_TYPE_UNKNOWN,
+)
 
 
 def _sched_id(schedule: Mapping[str, Any]) -> str:
@@ -110,7 +117,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         for zon_entry in config[SZ_ZONES]:
             try:
                 zone = Zone(self, zon_entry)
-            except exc.GhostZoneError as err:
+            except exc.InvalidGetConfigError as err:
+                if err.reason not in _GHOST_ZONE_REASONS:
+                    raise
                 self._logger.warning(
                     f"{self}: zone_id='{zon_entry[SZ_ZONE_ID]}' ignored: {err}"
                 )
