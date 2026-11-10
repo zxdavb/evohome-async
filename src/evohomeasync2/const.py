@@ -27,6 +27,28 @@ from .schemas.const import (
 
 # HDR_STRFTIME: Final = "%Y-%m-%d %H:%M:%S"  # used by HTTP headers
 
+# POST authentication url (i.e. /Auth/OAuth/Token)
+URL_CRED: Final = "Auth/OAuth/Token"
+
+# GET/PUT resource url (e.g. /WebAPI/emea/api/v1/...)
+URL_BASE: Final = "WebAPI/emea/api/v1"
+
+# GET/PUT resource urls, relative to URL_BASE
+URL_COMM_TASK: Final = "commTasks?commTaskId={comm_task_id}"
+URL_DHW_STATE: Final = "{type}/{id}/state"
+URL_HEAT_SETPOINT: Final = "{type}/{id}/heatSetpoint"
+URL_LOC_CONFIG: Final = (
+    "location/{loc_id}/installationInfo?includeTemperatureControlSystems=True"
+)
+URL_LOC_STATUS: Final = "{type}/{id}/status?includeTemperatureControlSystems=True"
+URL_SCHEDULE: Final = "{type}/{id}/schedule"
+URL_STATUS: Final = "{type}/{id}/status"
+URL_TCS_MODE: Final = "{type}/{id}/mode"
+URL_USR_ACCOUNT: Final = "userAccount"  # open to all authenticated users
+URL_USR_LOCATIONS: Final = (
+    "location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True"
+)
+
 # snake_case equivalents of every S2_* key in schemas/const.py.
 # All are string literals; test_const.py asserts they equal camel_to_snake(S2_*).
 

@@ -10,7 +10,7 @@ import probatio as vol
 from _evohome.helpers import Case
 
 from . import exceptions as exc
-from .const import SZ_COMMTASK_ID, SZ_ID, SZ_STATE, CommTaskState
+from .const import SZ_COMMTASK_ID, SZ_ID, SZ_STATE, URL_COMM_TASK, CommTaskState
 from .schemas.account import factory_comm_task_response, factory_task_response
 
 if TYPE_CHECKING:
@@ -79,8 +79,11 @@ class CommTask:
         Will return a str only if the vendor's state is not a known CommTaskState.
         """
 
-        url = f"commTasks?commTaskId={self._id}"
-        task = await self._auth.get(url, schema=SCH_COMM_TASK)
+        url = URL_COMM_TASK.format(comm_task_id=self._id)
+        task = await self._auth.get(
+            url,
+            schema=SCH_COMM_TASK,
+        )
 
         if task[SZ_COMMTASK_ID] != self._id:
             raise exc.BadApiResponseError(f"{self}: GET {url}: wrong comm task: {task}")

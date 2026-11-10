@@ -29,6 +29,7 @@ from .const import (
     SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONES,
+    URL_TCS_MODE,
     SystemMode,
     TcsModelType,
     TimingMode,
@@ -350,8 +351,10 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         if time_until is not None:
             tcs_mode[SZ_TIME_UNTIL] = time_until
 
-        url = f"{self._TCC_TYPE}/{self.id}/mode"
-        response = await self._auth.put(url, json=tcs_mode)
+        response = await self._auth.put(
+            URL_TCS_MODE.format(type=self._TCC_TYPE, id=self.id),
+            json=tcs_mode,
+        )
         return CommTask.from_response(self._auth, response)
 
     async def _set_mode(
