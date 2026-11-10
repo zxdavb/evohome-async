@@ -140,7 +140,7 @@ class AbstractAuth(ABC):
         except vol.Invalid as err:
             raise exc.BadApiResponseError(
                 f"GET {url}: response failed validation: {err}",
-                reason=ResponseErrorReason.RESPONSE_INVALID,
+                reason=ResponseErrorReason.VENDOR_RESPONSE_INVALID,
             ) from err
 
     async def put(

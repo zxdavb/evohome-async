@@ -135,14 +135,16 @@ deprecated, in favour of the reason of an `InvalidGetConfigError`.
 Each `BadApiRequestError` and `BadApiResponseError` (and each of their subclasses) that
 the library raises has a `reason` (a `RequestErrorReason` or a `ResponseErrorReason`),
 so that callers (e.g. HA) need not parse its message. Reasons are named `param_problem`
-(e.g. `mode_unknown`, `schedule_missing`). Each also has `details`: only the structured
-values that its message may use as placeholders (e.g. for an `InvalidSetModeError`:
-`mode`, `timing_mode`, `state`, `max_duration`). The `reason` is optional only so that
-the error can still be raised with a bare message (e.g. by HA's tests).
+(e.g. `mode_unknown`), and those of a response are also prefixed `vendor_` (e.g.
+`vendor_schedule_missing`), so that every value is unique. Each also has `details`: only
+the structured values that its message may use as placeholders (e.g. for an
+`InvalidSetModeError`: `mode`, `timing_mode`, `state`, `max_duration`). The `reason` is
+optional only so that the error can still be raised with a bare message (e.g. by HA's
+tests).
 
 The reasons' values are public API: renaming or removing one is a breaking change, but
 adding one is not. `tests/tests/test_error_reasons.py` checks that every raise site
-supplies a reason, and that every reason is used. Add any new raise site of an
+supplies a reason, that every reason is used, and that every value is unique. Add any new raise site of an
 `InvalidSetModeError` to `tests/tests/test_v2_mode_request_reasons.py`.
 
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library

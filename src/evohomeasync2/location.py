@@ -225,7 +225,7 @@ class Location(EntityBase[EvoLocStatusT]):
             )
         except exc.BadApiResponseError as err:  # the config failed validation
             raise exc.InvalidGetConfigError(
-                err.message, reason=ResponseErrorReason.CONFIG_INVALID
+                err.message, reason=ResponseErrorReason.VENDOR_CONFIG_INVALID
             ) from err
 
         # update only the TZ/DST attrs: the rest of the config is assumed static
@@ -326,7 +326,7 @@ class Location(EntityBase[EvoLocStatusT]):
 
         except exc.BadApiResponseError as err:  # the status failed validation
             raise exc.InvalidGetStatusError(
-                err.message, reason=ResponseErrorReason.STATUS_INVALID
+                err.message, reason=ResponseErrorReason.VENDOR_STATUS_INVALID
             ) from err
 
         except exc.AuthenticationFailedError:  # unable to get an access_token

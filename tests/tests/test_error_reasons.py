@@ -96,6 +96,13 @@ def test_reasons_are_unique() -> None:
     assert not duplicates, f"reasons that are not unique: {duplicates}"
 
 
+def test_response_reasons_are_prefixed() -> None:
+    """Test every reason of a response is prefixed vendor_ (and no request's is)."""
+
+    assert all(r.value.startswith("vendor_") for r in ResponseErrorReason)
+    assert not any(r.value.startswith("vendor_") for r in RequestErrorReason)
+
+
 @pytest.mark.parametrize("cls", _CLASSES, ids=lambda c: c.__name__)
 def test_error_without_a_reason(
     cls: type[exc.BadApiRequestError | exc.BadApiResponseError],

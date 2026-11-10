@@ -61,7 +61,7 @@ class CommTask:
         except vol.Invalid as err:
             raise exc.BadApiResponseError(
                 f"PUT response is not a comm task: {response}: {err}",
-                reason=ResponseErrorReason.COMM_TASK_INVALID,
+                reason=ResponseErrorReason.VENDOR_COMM_TASK_INVALID,
             ) from err
 
         return cls(auth, task[SZ_ID])
@@ -90,7 +90,7 @@ class CommTask:
         if task[SZ_COMMTASK_ID] != self._id:
             raise exc.BadApiResponseError(
                 f"{self}: GET {url}: wrong comm task: {task}",
-                reason=ResponseErrorReason.COMM_TASK_MISMATCHED,
+                reason=ResponseErrorReason.VENDOR_COMM_TASK_MISMATCHED,
             )
 
         return task[SZ_STATE]

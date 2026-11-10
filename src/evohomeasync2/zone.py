@@ -454,7 +454,7 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
     if not schedule:
         raise exc.InvalidGetScheduleError(
             "No schedule (daily schedules are empty)",
-            reason=ResponseErrorReason.SCHEDULE_MISSING,
+            reason=ResponseErrorReason.VENDOR_SCHEDULE_MISSING,
         )
 
     # assumes 1+ switchpoint per day, which could be this_sp or next_sp only
@@ -481,7 +481,7 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
                 if not (prev_day := schedule[(day_idx + 6) % 7][SZ_SWITCHPOINTS]):
                     raise exc.InvalidGetScheduleError(
                         "No switchpoints for previous day",
-                        reason=ResponseErrorReason.SWITCHPOINTS_MISSING,
+                        reason=ResponseErrorReason.VENDOR_SWITCHPOINTS_MISSING,
                     )
                 this_sp = prev_day[-1]
                 this_offset = -1
@@ -496,7 +496,7 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
             if not (next_day := schedule[(day_idx + 1) % 7][SZ_SWITCHPOINTS]):
                 raise exc.InvalidGetScheduleError(
                     "No switchpoints for next day",
-                    reason=ResponseErrorReason.SWITCHPOINTS_MISSING,
+                    reason=ResponseErrorReason.VENDOR_SWITCHPOINTS_MISSING,
                 )
             next_sp = next_day[0]
             next_offset = +1
@@ -648,7 +648,7 @@ class _ScheduleBase[
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
                 raise exc.InvalidGetScheduleError(
                     f"{self}: No Schedule, or is invalid",
-                    reason=ResponseErrorReason.SCHEDULE_MISSING,
+                    reason=ResponseErrorReason.VENDOR_SCHEDULE_MISSING,
                 ) from err
             raise
 
@@ -925,12 +925,12 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         if not self.model or self.model is ZoneModelType.UNKNOWN:
             raise exc.GhostZoneError(
                 f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)",
-                reason=ResponseErrorReason.MODEL_TYPE_UNKNOWN,
+                reason=ResponseErrorReason.VENDOR_MODEL_TYPE_UNKNOWN,
             )
         if not self.type or self.type is ZoneType.UNKNOWN:
             raise exc.GhostZoneError(
                 f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)",
-                reason=ResponseErrorReason.ZONE_TYPE_UNKNOWN,
+                reason=ResponseErrorReason.VENDOR_ZONE_TYPE_UNKNOWN,
             )
 
         if self.model not in ZoneModelType:

@@ -110,7 +110,7 @@ class EvohomeClient:
                 await self._get_config()
             except exc.BadApiResponseError as err:  # e.g. failed validation
                 raise exc.InvalidGetConfigError(
-                    err.message, reason=ResponseErrorReason.CONFIG_INVALID
+                    err.message, reason=ResponseErrorReason.VENDOR_CONFIG_INVALID
                 ) from err
 
     @deprecated(
@@ -224,7 +224,7 @@ class EvohomeClient:
             except (KeyError, TypeError) as err:
                 raise exc.BadApiResponseError(
                     f"No user_id in user_info dict. Received: {self._user_info}",
-                    reason=ResponseErrorReason.ACCOUNT_INVALID,
+                    reason=ResponseErrorReason.VENDOR_ACCOUNT_INVALID,
                 ) from err
 
             self._user_locs = await self.auth.get(

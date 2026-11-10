@@ -136,20 +136,20 @@ class ResponseErrorReason(StrEnum):
 
     The values are public API, so that callers can map each one to their own (e.g.
     translated) message: renaming or removing a member is a breaking change, but
-    adding one is not. They are named param_problem (e.g. config_invalid).
+    adding one is not. They are named vendor_param_problem (e.g. vendor_config_invalid).
     """
 
-    RESPONSE_INVALID = "response_invalid"  # it failed validation (after a GET)
-    ACCOUNT_INVALID = "account_invalid"  # e.g. the user account has no user_id
-    CONFIG_INVALID = "config_invalid"  # the config failed validation
-    MODEL_TYPE_UNKNOWN = "model_type_unknown"  # a zone has no model type (a ghost?)
-    ZONE_TYPE_UNKNOWN = "zone_type_unknown"  # a zone has no zone type (a ghost?)
-    STATUS_INVALID = "status_invalid"  # the status failed validation
+    VENDOR_RESPONSE_INVALID = "vendor_response_invalid"  # failed validation (a GET)
+    VENDOR_ACCOUNT_INVALID = "vendor_account_invalid"  # e.g. it has no user_id
+    VENDOR_CONFIG_INVALID = "vendor_config_invalid"  # it failed validation
+    VENDOR_MODEL_TYPE_UNKNOWN = "vendor_model_type_unknown"  # of a zone (a ghost?)
+    VENDOR_ZONE_TYPE_UNKNOWN = "vendor_zone_type_unknown"  # of a zone (a ghost?)
+    VENDOR_STATUS_INVALID = "vendor_status_invalid"  # it failed validation
     VENDOR_SCHEDULE_INVALID = "vendor_schedule_invalid"  # it failed validation
-    SCHEDULE_MISSING = "schedule_missing"  # there is no schedule (e.g. it is empty)
-    SWITCHPOINTS_MISSING = "switchpoints_missing"  # e.g. a day without switchpoints
-    COMM_TASK_INVALID = "comm_task_invalid"  # a PUT's response is not a comm task
-    COMM_TASK_MISMATCHED = "comm_task_mismatched"  # a GET returned another comm task
+    VENDOR_SCHEDULE_MISSING = "vendor_schedule_missing"  # e.g. it is empty
+    VENDOR_SWITCHPOINTS_MISSING = "vendor_switchpoints_missing"  # e.g. for a day
+    VENDOR_COMM_TASK_INVALID = "vendor_comm_task_invalid"  # a PUT's response
+    VENDOR_COMM_TASK_MISMATCHED = "vendor_comm_task_mismatched"  # a GET's response
     VENDOR_TIMESPAN_INVALID = "vendor_timespan_invalid"  # e.g. of a max_duration
 
 
@@ -181,8 +181,8 @@ class InvalidGetConfigError(BadApiResponseError):  # config/account JSON is inva
 class GhostZoneError(InvalidGetConfigError):  # the zone will be ignored
     """The config JSON of a zone has no model type or zone type (is it a ghost zone?).
 
-    Its reason is MODEL_TYPE_UNKNOWN or ZONE_TYPE_UNKNOWN: check the reason of an
-    InvalidGetConfigError instead, as this subclass is to be deprecated.
+    Its reason is VENDOR_MODEL_TYPE_UNKNOWN or VENDOR_ZONE_TYPE_UNKNOWN: check the
+    reason of an InvalidGetConfigError instead, as this subclass is to be deprecated.
     """
 
 
