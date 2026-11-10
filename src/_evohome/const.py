@@ -33,10 +33,10 @@ class ContentType(StrEnum):
     TEXT_PLAIN = "text/plain"
 
 
-# No need to indicate "Content-Type" as default is "charset=utf-8", with:
-# - POST: "Content-Type": "application/json"                  (default)
-# - GETs: "Content-Type": "application/x-www-form-urlencoded" (not required)
-# - PUTs: "Content-Type": "application/json"                  (as used here)
+# No need for a Content-Type header, as aiohttp sets it from the body:
+# - POSTs: data=  -> application/x-www-form-urlencoded (the auth requests)
+# - PUTs:  json=  -> application/json
+# - GETs:  (no body)
 
 HEADERS_BASE = {
     hdrs.ACCEPT: ContentType.JSON,
