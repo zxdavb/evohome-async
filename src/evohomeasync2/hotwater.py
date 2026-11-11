@@ -315,7 +315,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must not be None",
                     reason=RequestErrorReason.TIMESPAN_REQUIRED,
                     mode=mode,
-                    timing_mode=SZ_UNTIL,  # i.e. the kind of timespan required
+                    required_timing_mode=SZ_UNTIL,
                 )
 
         else:
@@ -324,7 +324,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must be None, not '{until}'",
                     reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
                     mode=mode,
-                    timespan=SZ_UNTIL,
+                    timing_mode=SZ_UNTIL,
                 )
 
             until = self._validate_requested_until(mode, until)

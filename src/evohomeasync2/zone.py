@@ -163,15 +163,15 @@ class _TccModeMixin:
         mode: SystemMode | ZoneMode,
         mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
         timing_mode: TimingMode,
-        length: td | None,
+        timespan: td | None,
         /,
     ) -> dt | None:
         """Return when a mode ends (None if indefinitely), if valid for its entry.
 
-        The entry is the mode's row in the entity's table of allowed modes. The length
+        The entry is the mode's row in the entity's table of allowed modes. The timespan
         is of the timing_mode requested: a duration ends that long from now, and a
         period that long after the start of today (in the location's local time), so a
-        period of one day ends at the coming midnight. A length that would end now, or in
+        period of one day ends at the coming midnight. A timespan that would end now, or in
         the past, is rejected.
 
         The vendor accepts a duration/period that is not a multiple of the entry's
@@ -180,35 +180,35 @@ class _TccModeMixin:
         a warning, as the controller extends it to the coming midnight.
         """
 
-        def raise_timespan_required() -> NoReturn:
+        def raise_timespan_required(required_timing_mode: TimingMode) -> NoReturn:
             raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be given",
+                f"{self}: For {mode}, until or {required_timing_mode} must be given",
                 reason=RequestErrorReason.TIMESPAN_REQUIRED,
                 mode=mode,
-                timing_mode=mode_entry[SZ_TIMING_MODE],
+                required_timing_mode=required_timing_mode,
             )
 
         def raise_timespan_not_allowed() -> NoReturn:
             raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, {timing_mode} must be None, not '{length}'",
+                f"{self}: For {mode}, {timing_mode} must be None, not '{timespan}'",
                 reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
                 mode=mode,
-                timespan=timing_mode,
+                timing_mode=timing_mode,
             )
 
         def raise_timespan_unsupported(expected: TimingMode) -> NoReturn:
             raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, {timing_mode} must be None (use {expected}), "
-                f"not '{length}'",
+                f"not '{timespan}'",
                 reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
                 mode=mode,
-                timing_mode=expected,
-                timespan=timing_mode,
+                timing_mode=timing_mode,
+                required_timing_mode=expected,
             )
 
         def raise_timespan_out_of_range(err: OverflowError) -> NoReturn:
             raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, {timing_mode} is out of range: '{length}'",
+                f"{self}: For {mode}, {timing_mode} is out of range: '{timespan}'",
                 reason=RequestErrorReason.TIMESPAN_OUT_OF_RANGE,
                 mode=mode,
                 timing_mode=timing_mode,
@@ -217,7 +217,7 @@ class _TccModeMixin:
         def raise_timespan_not_in_future(until: dt) -> NoReturn:
             raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, {timing_mode} must end in the future, "
-                f"not '{length}' (it would end at {until})",
+                f"not '{timespan}' (it would end at {until})",
                 reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
                 mode=mode,
             )
@@ -231,14 +231,14 @@ class _TccModeMixin:
             timing_resolution has no multiples, so that check is left to the vendor.
             """
 
-            assert length is not None  # mypy (it is checked before this is called)
+            assert timespan is not None  # mypy (it is checked before this is called)
 
             logger = self.location.client.logger
 
-            if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
+            if timing_mode is TimingMode.PERIOD and timespan < _ONE_DAY:
                 logger.warning(
                     f"{self}: For {mode}, {timing_mode} should be at least one day, not "
-                    f"'{length}' (the controller will extend it to the coming midnight)"
+                    f"'{timespan}' (the controller will extend it to the coming midnight)"
                 )
 
             # vendor TimeSpans, e.g. "1.00:00:00"
@@ -249,17 +249,17 @@ class _TccModeMixin:
             resolution = as_timedelta(timing_resolution)
 
             if not (
-                td(0) < length <= maximum
-                and (not resolution or not length % resolution)
+                td(0) < timespan <= maximum
+                and (not resolution or not timespan % resolution)
             ):
                 logger.debug(
                     f"{self}: For {mode}, {timing_mode} should be a multiple of "
-                    f"'{timing_resolution}', and at most '{max_duration}', not '{length}'"
+                    f"'{timing_resolution}', and at most '{max_duration}', not '{timespan}'"
                 )
 
-        if length is None:
+        if timespan is None:
             if not mode_entry[SZ_CAN_BE_PERMANENT]:
-                raise_timespan_required()
+                raise_timespan_required(mode_entry[SZ_TIMING_MODE])
             return None
 
         # an entry without a timing_mode takes no duration/period at all (it can only be
@@ -276,8 +276,8 @@ class _TccModeMixin:
         else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
             start = now.astimezone(UTC)
 
-        try:  # a huge length (e.g. td.max) overflows a datetime
-            until = start + length
+        try:  # a huge timespan (e.g. td.max) overflows a datetime
+            until = start + timespan
             has_ended = until.astimezone(UTC) <= now.astimezone(UTC)
         except OverflowError as err:
             raise_timespan_out_of_range(err)
@@ -1224,7 +1224,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must not be None",
                     reason=RequestErrorReason.TIMESPAN_REQUIRED,
                     mode=mode,
-                    timing_mode=SZ_UNTIL,  # i.e. the kind of timespan required
+                    required_timing_mode=SZ_UNTIL,
                 )
 
         else:
@@ -1233,7 +1233,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must be None, not '{until}'",
                     reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
                     mode=mode,
-                    timespan=SZ_UNTIL,
+                    timing_mode=SZ_UNTIL,
                 )
 
             until = self._validate_requested_until(mode, until)
