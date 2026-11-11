@@ -57,16 +57,21 @@ async def test_config_not_fetched(
 
     ec2 = EvohomeClient(credentials_manager)
 
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec2.tzinfo
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec2.user_account
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec2.user_id
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec2.locations
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec2.location_by_id
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
 
 
 async def test_schedule_not_fetched(
@@ -76,12 +81,15 @@ async def test_schedule_not_fetched(
 
     assert zone._schedule_last_fetched is None
 
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = zone.schedule
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = zone.this_switchpoint
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = zone.next_switchpoint
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
 
 
 async def test_status_not_fetched(
@@ -99,15 +107,18 @@ async def test_status_not_fetched(
     # status (so nothing would raise), whereas this client has fetched only the config
     tcs = get_tcs(ec2)
 
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = tcs.status
+    assert exc_info.value.reason is exc.ClientStateErrorReason.STATUS_NOT_FETCHED
     zone = get_zon(ec2)
     assert zone is not None  # the default/ fixture has zones
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = zone.status
+    assert exc_info.value.reason is exc.ClientStateErrorReason.STATUS_NOT_FETCHED
     if dhw := get_dhw(ec2):  # not the dhw fixture (see above)
-        with pytest.raises(exc.NotFetchedError):
+        with pytest.raises(exc.NotFetchedError) as exc_info:
             _ = dhw.status
+        assert exc_info.value.reason is exc.ClientStateErrorReason.STATUS_NOT_FETCHED
 
 
 async def test_invalid_config(
@@ -242,12 +253,15 @@ async def test_invalid_schedule_not_stored(
     assert fetched._schedule_last_fetched == last_fetched
 
     assert unfetched._schedule_last_fetched is None
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = unfetched.schedule
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = unfetched.this_switchpoint
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = unfetched.next_switchpoint
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
 
 
 async def test_set_schedule_before_get(
