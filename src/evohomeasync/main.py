@@ -74,26 +74,22 @@ class EvohomeClient:
     def logger(self) -> logging.Logger:
         return self._logger
 
-    async def setup(self, *, _reset_config: bool = False) -> None:
+    async def setup(self) -> None:
         """Retrieve the user information & the configuration of all their locations.
 
         This is usually called only once, before using the client. In v1, the config
         and status of a location are one GET, so this also retrieves their status. If
-        they have already been retrieved, there are no API calls (unless `_reset_config`
-        is true, for use by the test suite).
+        they have already been retrieved, there are no API calls.
         """
-
-        if _reset_config:  # TODO: remove in v4.0 (use _clear_config())
-            self._clear_config()
 
         if self._locations is None:
             await self.get_status()
 
-    async def get_status(self, *, _reset_config: bool = False) -> list[EvoTcsInfoDictT]:
+    async def get_status(self) -> list[EvoTcsInfoDictT]:
         """Retrieve the latest state of the user's locations.
 
-        If required (or when `_reset_config` is true, for use by the test suite), first
-        retrieves the user information and the config of their locations.
+        If required, first retrieves the user information and the config of their
+        locations.
 
         There is one API call for the user info (only if required), and a second for
         the config/status of all the user's locations (in v1, these are one GET).
@@ -101,9 +97,6 @@ class EvohomeClient:
         Logs a warning if the locations are not those of the config (the status of the
         known locations is updated).
         """
-
-        if _reset_config:  # TODO: remove in v4.0 (use _clear_config())
-            self._clear_config()
 
         if self._locations is None:  # this GET is (also) of the config
             user_locs = await self._get_config()
@@ -138,7 +131,6 @@ class EvohomeClient:
         /,
         *,
         dont_update_status: bool = False,
-        _reset_config: bool = False,  # for use by test suite
     ) -> list[EvoTcsInfoDictT]:
         """Retrieve the latest state of the user's locations.
 
@@ -147,9 +139,6 @@ class EvohomeClient:
         If `dont_update_status` is true, does nothing if the config has already been
         retrieved (otherwise, is the same as `get_status()`).
         """
-
-        if _reset_config:  # TODO: remove in v4.0 (use _clear_config())
-            self._clear_config()
 
         if dont_update_status and self._user_locs is not None:
             return self._user_locs

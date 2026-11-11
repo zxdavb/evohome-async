@@ -90,19 +90,15 @@ class EvohomeClient:
 
         return self._tzinfo
 
-    async def setup(self, *, _reset_config: bool = False) -> None:
+    async def setup(self) -> None:
         """Retrieve the user information & the configuration of all their locations.
 
         This is usually called only once, before using the client. It does not
         retrieve the status of any location: use `Location.get_status()` for that.
 
         There is one API call for the user info, and a second for the config of all the
-        user's locations. If they have already been retrieved, there are none (unless
-        `_reset_config` is true, for use by the test suite).
+        user's locations. If they have already been retrieved, there are none.
         """
-
-        if _reset_config:  # TODO: remove in v4.0 (use _clear_config())
-            self._clear_config()
 
         if self._locations is None:
             await self._get_config()
@@ -125,7 +121,6 @@ class EvohomeClient:
         *,
         dont_update_status: bool = False,
         raise_on_stale_config: bool = False,
-        _reset_config: bool = False,  # for use by test suite
     ) -> list[EvoLocConfigResponseT]:
         """Retrieve the config of the user's locations, and then their status.
 
@@ -138,9 +133,9 @@ class EvohomeClient:
         `Location.get_status()`).
         """
 
-        is_new_config = _reset_config or self._locations is None
+        is_new_config = self._locations is None
 
-        await self.setup(_reset_config=_reset_config)
+        await self.setup()
 
         if not dont_update_status:  # don't retrieve/update status of location hierarchy
             # only warn once per config refresh (i.e. not on every status update)
