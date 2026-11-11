@@ -32,7 +32,7 @@ from __future__ import annotations
 import warnings
 from enum import EnumCheck, StrEnum, verify
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, ClassVar, Final
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Collection
@@ -158,9 +158,12 @@ class BadApiResponseError(EvohomeError):  # a base exception
     """The received JSON is not as expected (e.g. missing a required key).
 
     The `reason` attr says why (see ResponseErrorReason), so that callers need not
-    parse the message. This library always supplies a reason, but it is optional (so
-    the reason may be None), so that it can still be raised with only a message.
+    parse the message. This library always supplies a reason, but it is optional, so
+    that the error can still be raised with only a message: then its reason is the
+    class's default (if it has one, e.g. InvalidGetStatusError), else None.
     """
+
+    _default_reason: ClassVar[ResponseErrorReason | None] = None
 
     def __init__(
         self,
@@ -170,12 +173,16 @@ class BadApiResponseError(EvohomeError):  # a base exception
         **details: str,
     ) -> None:
         super().__init__(message)
-        self.reason = reason
+        self.reason = reason if reason is not None else self._default_reason
         self.details: dict[str, str] = details
 
 
 class InvalidGetConfigError(BadApiResponseError):  # config/account JSON is invalid
     """The account/config JSON is not as expected (e.g. an unknown TCS model type)."""
+
+    _default_reason: ClassVar[ResponseErrorReason | None] = (
+        ResponseErrorReason.CONFIG_INVALID
+    )
 
 
 # TODO: deprecate in v4.0, in favour of the reason of an InvalidGetConfigError
@@ -186,9 +193,16 @@ class GhostZoneError(InvalidGetConfigError):  # the zone will be ignored
     InvalidGetConfigError instead, as this subclass is to be deprecated.
     """
 
+    # it has two reasons (and not that of InvalidGetConfigError)
+    _default_reason: ClassVar[ResponseErrorReason | None] = None
+
 
 class InvalidGetStatusError(BadApiResponseError):  # status JSON is invalid
     """The status JSON is not as expected (e.g. an unknown fault type)."""
+
+    _default_reason: ClassVar[ResponseErrorReason | None] = (
+        ResponseErrorReason.STATUS_INVALID
+    )
 
 
 class InvalidGetScheduleError(BadApiResponseError):  # schedule JSON is invalid/missing
@@ -245,9 +259,12 @@ class BadApiRequestError(EvohomeError):  # a base exception
     the message. The `details` attr holds only the structured values that apply to the
     reason, for use as the placeholders of a (translated) message (see the subclasses).
 
-    This library always supplies a reason, but it is optional (so the reason may be
-    None), so that it can still be raised with only a message (e.g. by a test double).
+    This library always supplies a reason, but it is optional, so that the error can
+    still be raised with only a message (e.g. by a test double): then its reason is the
+    class's default (if it has one, e.g. InvalidSetScheduleError), else None.
     """
+
+    _default_reason: ClassVar[RequestErrorReason | None] = None
 
     def __init__(
         self,
@@ -257,7 +274,7 @@ class BadApiRequestError(EvohomeError):  # a base exception
         **details: str,
     ) -> None:
         super().__init__(message)
-        self.reason = reason
+        self.reason = reason if reason is not None else self._default_reason
         self.details: dict[str, str] = details
 
 
@@ -281,6 +298,10 @@ class InvalidSetScheduleError(BadApiRequestError):  # failed to set a schedule
     This is a schedule supplied by the caller (e.g. via set_schedule()): see
     InvalidGetScheduleError for a schedule from the vendor.
     """
+
+    _default_reason: ClassVar[RequestErrorReason | None] = (
+        RequestErrorReason.SCHEDULE_INVALID
+    )
 
 
 # 4. State failures: the client does not hold the data needed to answer (after/without
@@ -313,9 +334,12 @@ class ClientStateError(EvohomeError):  # a base exception
     """The client's config/status data cannot provide what was asked for.
 
     The `reason` attr says why (see ClientStateErrorReason), so that callers need not
-    parse the message. This library always supplies a reason, but it is optional (so
-    the reason may be None), so that it can still be raised with only a message.
+    parse the message. This library always supplies a reason, but it is optional, so
+    that the error can still be raised with only a message: then its reason is the
+    class's default (if it has one), else None.
     """
+
+    _default_reason: ClassVar[ClientStateErrorReason | None] = None
 
     def __init__(
         self,
@@ -325,7 +349,7 @@ class ClientStateError(EvohomeError):  # a base exception
         **details: str,
     ) -> None:
         super().__init__(message)
-        self.reason = reason
+        self.reason = reason if reason is not None else self._default_reason
         self.details: dict[str, str] = details
 
 
