@@ -87,7 +87,7 @@ async def test_put_returns_comm_task(
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
     # the task knows its PUT (so its errors can say which request has failed)
-    assert repr(task) == (
+    assert str(task) == (
         f"CommTask(id='{TASK_ID}', put='temperatureZone/{zone.id}/heatSetpoint')"
     )
 
