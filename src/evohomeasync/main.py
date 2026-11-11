@@ -39,7 +39,7 @@ class EvohomeClient:
     """Provide a client to access the Resideo TCC API."""
 
     _user_info: EvoUserAccountInfoDictT | None = None
-    _user_locs: list[EvoTcsInfoDictT] | None = None  # all locations of the user
+    _user_locs: list[EvoTcsInfoDictT] | None = None  # latest config/status of all locs
 
     def __init__(
         self,
@@ -78,30 +78,45 @@ class EvohomeClient:
         """Retrieve the user information & the configuration of all their locations.
 
         This is usually called only once, before using the client. In v1, the config
-        and status of a location are one GET, so this also retrieves their status.
+        and status of a location are one GET, so this also retrieves their status. If
+        they have already been retrieved, there are no API calls (unless `_reset_config`
+        is true, for use by the test suite).
         """
 
-        await self.get_status(_reset_config=_reset_config)
+        if _reset_config:  # TODO: remove in v4.0 (use _clear_config())
+            self._clear_config()
+
+        if self._locations is None:
+            await self.get_status()
 
     async def get_status(self, *, _reset_config: bool = False) -> list[EvoTcsInfoDictT]:
         """Retrieve the latest state of the user's locations.
 
         If required (or when `_reset_config` is true, for use by the test suite), first
-        retrieves the user information.
+        retrieves the user information and the config of their locations.
 
-        There is one API call for the user info, and a second for the config/status of
-        all the user's locations (in v1, these are one GET).
+        There is one API call for the user info (only if required), and a second for
+        the config/status of all the user's locations (in v1, these are one GET).
 
         Logs a warning if the locations are not those of the config (the status of the
         known locations is updated).
         """
 
-        if _reset_config:
+        if _reset_config:  # TODO: remove in v4.0 (use _clear_config())
             self._clear_config()
 
-        self._user_locs = None  # the locations (config & status) are always re-fetched
+        if self._locations is None:  # this GET is (also) of the config
+            user_locs = await self._get_config()
 
-        user_locs = await self._get_config()
+        else:
+            try:
+                user_locs = await self._get_user_locs()
+            except exc.BadApiResponseError as err:  # e.g. failed validation
+                raise exc.InvalidGetStatusError(
+                    err.message, reason=ResponseErrorReason.STATUS_INVALID
+                ) from err
+
+            self._user_locs = user_locs
 
         assert self._location_by_id is not None  # mypy
 
@@ -133,7 +148,7 @@ class EvohomeClient:
         retrieved (otherwise, is the same as `get_status()`).
         """
 
-        if _reset_config:
+        if _reset_config:  # TODO: remove in v4.0 (use _clear_config())
             self._clear_config()
 
         if dont_update_status and self._user_locs is not None:
@@ -216,13 +231,13 @@ class EvohomeClient:
             )
 
     async def _get_config(self) -> list[EvoTcsInfoDictT]:
-        """Ensures the config of the user and their locations.
+        """Retrieve the user information (if required) & the config of their locations.
 
-        If required, first retrieves the user information & installation configuration.
+        In v1, the config and status of the locations are one GET, so this also
+        retrieves their status. A response that is not as expected is an
+        InvalidGetConfigError.
 
-        In v1, the config and status of the locations are one GET, so a response that is
-        not as expected is an InvalidGetConfigError until the locations have been
-        instantiated, and an InvalidGetStatusError thereafter.
+        The state is set only once all is retrieved, so a failure leaves none.
         """
 
         if self._user_info is None:  # will handle session_id rejection
@@ -233,38 +248,28 @@ class EvohomeClient:
                     err.message, reason=ResponseErrorReason.ACCOUNT_INVALID
                 ) from err
 
-        if self._user_locs is None:
-            user_id = self._user_info[SZ_USER_ID]  # its schema requires a user_id
+        try:
+            user_locs = await self._get_user_locs()
+        except exc.BadApiResponseError as err:  # e.g. failed validation
+            raise exc.InvalidGetConfigError(
+                err.message, reason=ResponseErrorReason.CONFIG_INVALID
+            ) from err
 
-            try:
-                self._user_locs = await self.auth.get(
-                    URL_LOCATIONS.format(user_id=user_id),
-                    schema=SCH_GET_ACCOUNT_LOCS,
-                )
-            except exc.BadApiResponseError as err:  # e.g. failed validation
-                if self._locations is None:  # this GET is (also) the config
-                    raise exc.InvalidGetConfigError(
-                        err.message, reason=ResponseErrorReason.CONFIG_INVALID
-                    ) from err
-                raise exc.InvalidGetStatusError(
-                    err.message, reason=ResponseErrorReason.STATUS_INVALID
-                ) from err
+        locations = [await create_location(self, entry) for entry in user_locs]
 
-            assert self._user_locs is not None  # mypy
+        self._user_locs = user_locs
+        self._locations = locations
+        self._location_by_id = {loc.id: loc for loc in locations}
 
-        if self._locations is None:
-            self._locations = []
-            self._location_by_id = {}
+        return user_locs
 
-            for loc_entry in self._user_locs:  # each entry is both config & status
-                loc = await create_location(self, loc_entry)
-                self._locations.append(loc)
-                self._location_by_id[loc.id] = loc
+    async def _get_user_locs(self) -> list[EvoTcsInfoDictT]:
+        """GET the config/status of all the user's locations (in v1, they are one)."""
 
-            #
-            #
-
-        return self._user_locs
+        return await self.auth.get(
+            URL_LOCATIONS.format(user_id=self.user_id),
+            schema=SCH_GET_ACCOUNT_LOCS,
+        )
 
     @property
     def user_account(self) -> EvoUserAccountInfoDictT:

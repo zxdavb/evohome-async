@@ -133,6 +133,73 @@ async def test_v1_get_status(
     assert calls[0].startswith("locations?userId=")
 
 
+async def test_v1_setup_once(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test setup() makes no API calls once the config is retrieved (as for v2)."""
+
+    mock_get = auth_get(FIXTURES_V1 / "default")
+    calls: list[str] = []
+
+    async def get(self: object, url: str, /, schema: Validator[Any]) -> object:
+        calls.append(url)
+        return await mock_get(self, url, schema)
+
+    with patch("evohomeasync.auth.Auth.get", get):
+        ec1 = evo1.EvohomeClient(credentials_manager)
+
+        await ec1.setup()  # the user info, and then the config/status of locations
+        assert calls[0] == "accountInfo"
+        assert calls[1].startswith("locations?userId=")
+
+        calls.clear()
+        await ec1.setup()
+
+    assert calls == []
+
+
+@pytest.mark.parametrize(
+    ("pkg", "client", "fixtures"),
+    [
+        pytest.param("evohomeasync", evo1.EvohomeClient, FIXTURES_V1, id="v1"),
+        pytest.param("evohomeasync2", evo2.EvohomeClient, FIXTURES_V2, id="v2"),
+    ],
+)
+async def test_vx_setup_fails_cleanly(
+    credentials_manager: TokenCacheManager,
+    pkg: str,
+    client: type[evo1.EvohomeClient | evo2.EvohomeClient],
+    fixtures: Path,
+) -> None:
+    """Test a failure while creating the locations leaves no (partial) config.
+
+    So that the next call retries it (rather than treating it as done).
+    """
+
+    error = exc.EvohomeError("unable to create the location")
+
+    with patch(f"{pkg}.auth.Auth.get", auth_get(fixtures / "default")):
+        ec = client(credentials_manager)
+
+        with (
+            patch(f"{pkg}.main.create_location", side_effect=error),
+            pytest.raises(exc.EvohomeError) as err,
+        ):
+            await ec.setup()
+
+        assert err.value is error
+
+        with pytest.raises(exc.NotFetchedError):
+            _ = ec.locations
+        with pytest.raises(exc.NotFetchedError):
+            _ = ec.location_by_id
+
+        await ec.setup()  # retries the config, rather than treating it as done
+
+    assert ec.locations
+    assert list(ec.location_by_id.values()) == ec.locations
+
+
 async def test_v2_location_tcs(
     credentials_manager: TokenCacheManager,
 ) -> None:
