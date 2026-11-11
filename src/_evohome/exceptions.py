@@ -142,7 +142,7 @@ class ResponseErrorReason(StrEnum):
 
     RESPONSE_INVALID = "get_response_invalid"  # it failed validation (a GET)
 
-    ACCOUNT_INVALID = "get_account_invalid"  # e.g. it has no user_id
+    ACCOUNT_INVALID = "get_account_invalid"  # it failed validation (e.g. no user_id)
     COMM_TASK_INVALID = "get_comm_task_invalid"  # a PUT's response
     COMM_TASK_MISMATCHED = "get_comm_task_mismatched"  # a GET's response
     CONFIG_INVALID = "get_config_invalid"  # it failed validation

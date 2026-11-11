@@ -220,17 +220,11 @@ class EvohomeClient:
                 self._user_info = await self._get_user_account()
             except exc.BadApiResponseError as err:  # e.g. failed validation
                 raise exc.InvalidGetConfigError(
-                    err.message, reason=ResponseErrorReason.CONFIG_INVALID
+                    err.message, reason=ResponseErrorReason.ACCOUNT_INVALID
                 ) from err
 
         if self._user_locs is None:
-            try:
-                user_id = self._user_info[SZ_USER_ID]
-            except (KeyError, TypeError) as err:
-                raise exc.InvalidGetConfigError(
-                    f"No user_id in user_info dict. Received: {self._user_info}",
-                    reason=ResponseErrorReason.ACCOUNT_INVALID,
-                ) from err
+            user_id = self._user_info[SZ_USER_ID]  # its schema requires a user_id
 
             try:
                 self._user_locs = await self.auth.get(
