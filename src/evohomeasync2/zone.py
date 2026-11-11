@@ -196,14 +196,14 @@ class _TccModeMixin:
                 timing_mode=timing_mode,
             )
 
-        def raise_timespan_unsupported(expected: TimingMode) -> NoReturn:
+        def raise_timespan_unsupported(required_timing_mode: TimingMode) -> NoReturn:
             raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, {timing_mode} must be None (use {expected}), "
+                f"{self}: For {mode}, {timing_mode} must be None (use {required_timing_mode}), "
                 f"not '{timespan}'",
                 reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
                 mode=mode,
                 timing_mode=timing_mode,
-                required_timing_mode=expected,
+                required_timing_mode=required_timing_mode,
             )
 
         def raise_timespan_out_of_range(err: OverflowError) -> NoReturn:
@@ -264,10 +264,10 @@ class _TccModeMixin:
 
         # an entry without a timing_mode takes no duration/period at all (it can only be
         # permanent, or it takes only an until)
-        if timing_mode is not (expected := mode_entry.get(SZ_TIMING_MODE)):
-            if expected is None:
+        if timing_mode is not (required_timing_mode := mode_entry.get(SZ_TIMING_MODE)):
+            if required_timing_mode is None:
                 raise_timespan_not_allowed()
-            raise_timespan_unsupported(expected)
+            raise_timespan_unsupported(required_timing_mode)
 
         now = self.location.now()
 
