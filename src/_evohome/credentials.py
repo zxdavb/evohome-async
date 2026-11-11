@@ -80,6 +80,7 @@ class CredentialsManagerBase:
                 raise exc.AuthenticationFailedError(
                     f"Authenticator response is not JSON: {await _payload(rsp)}",
                     reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
+                    response=rsp,
                 )
 
             raw = await rsp.json()
@@ -87,6 +88,7 @@ class CredentialsManagerBase:
                 raise exc.AuthenticationFailedError(
                     "Authenticator response is null",
                     reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
+                    response=rsp,
                 )
             response: dict[str, Any] = raw
 
@@ -94,6 +96,7 @@ class CredentialsManagerBase:
             raise exc.AuthenticationFailedError(
                 f"Authenticator response is not valid JSON: {await _payload(rsp)}",
                 reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
+                response=rsp,
             ) from err
 
         except aiohttp.ClientResponseError as err:
@@ -108,6 +111,7 @@ class CredentialsManagerBase:
                     f"Authenticator response is invalid: {msg}",
                     err.status,
                     retry_after=_retry_after(rsp),
+                    response=rsp,
                     **details,
                 ) from err
 
@@ -115,6 +119,7 @@ class CredentialsManagerBase:
                 f"Authenticator response is invalid: {msg}",
                 status=err.status,
                 reason=_reason(err.status),
+                response=rsp,
                 **details,
             ) from err
 
@@ -124,6 +129,7 @@ class CredentialsManagerBase:
             raise exc.AuthenticationFailedError(
                 f"Authenticator response is invalid: {err}",
                 reason=ApiCallErrorReason.CONNECTION_FAILED,
+                response=rsp,  # usu. None
             ) from err
 
         else:

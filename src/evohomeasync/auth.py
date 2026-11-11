@@ -161,6 +161,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
             raise exc.BadUserCredentialsError(
                 f"{err}",
                 status=err.status,
+                response=err.response,
                 **_details_of(err.details),  # e.g. the vendor's error code
             ) from err
 

@@ -37,6 +37,8 @@ from typing import TYPE_CHECKING, ClassVar, Final
 if TYPE_CHECKING:
     from collections.abc import Callable, Collection
 
+    import aiohttp
+
 
 class _EvohomeBaseError(Exception):
     """The base class for all exceptions."""
@@ -138,6 +140,10 @@ class ApiCallFailedError(EvohomeError):  # a base exception
 
     If the vendor's response has an error code, then `details["code"]` is that code
     (e.g. "DeviceIsLost", "CommTaskNotFound", "invalid_grant").
+
+    If there was a response, then the `response` attr is it (else None), e.g. for its
+    headers. Its body has been read (so its json() or text() can still be awaited),
+    but its connection has been released.
     """
 
     _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.CALL_FAILED
@@ -150,10 +156,12 @@ class ApiCallFailedError(EvohomeError):  # a base exception
         status: int | None = None,
         *,
         reason: ApiCallErrorReason | None = None,
+        response: aiohttp.ClientResponse | None = None,
         **details: str,
     ) -> None:
         super().__init__(message, reason=reason, **details)
         self.status = status  # useful, available if via aiohttp.ClientResponseError
+        self.response = response  # its body has been read, and connection released
 
 
 class ApiRateLimitExceededError(ApiCallFailedError):
@@ -172,9 +180,10 @@ class ApiRateLimitExceededError(ApiCallFailedError):
         *,
         retry_after: float | None = None,
         reason: ApiCallErrorReason | None = None,
+        response: aiohttp.ClientResponse | None = None,
         **details: str,
     ) -> None:
-        super().__init__(message, status, reason=reason, **details)
+        super().__init__(message, status, reason=reason, response=response, **details)
         self.retry_after = retry_after
 
 
