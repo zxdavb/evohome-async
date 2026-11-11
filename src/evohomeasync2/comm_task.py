@@ -15,7 +15,7 @@ from .exceptions import ResponseErrorReason
 from .schemas.account import factory_comm_task_response, factory_task_response
 
 if TYPE_CHECKING:
-    from _evohome.auth import AbstractAuth
+    from _evohome.auth import AbstractAuth, _TccResponse
     from _evohome.helpers import Validator
 
     from .schemas.account import TccTaskResponseT
@@ -51,7 +51,7 @@ class CommTask:
 
     @classmethod
     def from_response(
-        cls, auth: AbstractAuth, response: object, *, url: str | None = None
+        cls, auth: AbstractAuth, response: _TccResponse, *, url: str | None = None
     ) -> CommTask:
         """Create the comm task from the vendor's response to a PUT (of the url).
 
