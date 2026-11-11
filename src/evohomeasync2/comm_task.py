@@ -10,11 +10,14 @@ import probatio as vol
 from _evohome.helpers import Case
 
 from . import exceptions as exc
-from .const import SZ_COMMTASK_ID, SZ_ID, SZ_STATE, URL_COMM_TASK, CommTaskState
-from .exceptions import ResponseErrorReason
+from .const import SZ_ID, SZ_STATE, URL_COMM_TASK, CommTaskState
 from .schemas.account import factory_comm_task_response, factory_task_response
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from aiohttp.typedefs import StrOrURL
+
     from _evohome.auth import AbstractAuth
     from _evohome.helpers import Validator
 
@@ -43,32 +46,50 @@ class CommTask:
     Nothing is polled unless `get_state()` or `wait()` is awaited.
     """
 
-    def __init__(self, auth: AbstractAuth, task_id: str) -> None:
-        """Initialise the comm task (it must already exist)."""
+    def __init__(
+        self, auth: AbstractAuth, task_id: str, *, put_url: str | None = None
+    ) -> None:
+        """Initialise the comm task (it must already exist).
+
+        The put_url is that of the PUT that created the task (if known), so that the
+        task's errors can say which request has failed.
+        """
 
         self._auth: Final = auth
         self._id: Final = task_id
+        self._put_url: Final = put_url
 
     @classmethod
-    def from_response(cls, auth: AbstractAuth, response: object) -> CommTask:
-        """Create the comm task from the vendor's response to a PUT.
+    async def from_put(
+        cls,
+        auth: AbstractAuth,
+        url: StrOrURL,
+        /,
+        json: Mapping[str, object],
+        *,
+        schema: Validator[Mapping[str, object]] | None = None,
+    ) -> CommTask:
+        """Make the PUT (as for `AbstractAuth.put()`), and return its comm task.
 
-        The response is e.g. {"id": "1668279943"}.
+        The vendor's response is e.g. {"id": "1668279943"}.
         """
 
+        response = await auth.put(url, json, schema=schema)
+
         try:
-            task = _SCH_TASK(response)
+            comm_task = _SCH_TASK(response)
         except vol.Invalid as err:
-            raise exc.BadApiResponseError(
-                f"PUT response is not a comm task: {response}: {err}",
-                reason=ResponseErrorReason.COMM_TASK_INVALID,
+            raise exc.CommTaskFailedError(  # the PUT may yet take effect, or not
+                f"PUT {url}: response is not a comm task: {response}: {err}"
             ) from err
 
-        return cls(auth, task[SZ_ID])
+        return cls(auth, comm_task[SZ_ID], put_url=str(url))
 
-    def __repr__(self) -> str:
-        """Return an unambiguous string representation of the comm task."""
-        return f"{self.__class__.__name__}(id='{self._id}')"
+    def __str__(self) -> str:
+        """Return a string representation of the comm task (e.g. for messages)."""
+
+        put = f", put='{self._put_url}'" if self._put_url else ""
+        return f"{self.__class__.__name__}(id='{self._id}'{put})"
 
     @property
     def id(self) -> str:
@@ -81,19 +102,12 @@ class CommTask:
         Will return a str only if the vendor's state is not a known CommTaskState.
         """
 
-        url = URL_COMM_TASK.format(comm_task_id=self._id)
-        task = await self._auth.get(
-            url,
+        comm_task = await self._auth.get(
+            URL_COMM_TASK.format(comm_task_id=self._id),
             schema=SCH_COMM_TASK,
         )
 
-        if task[SZ_COMMTASK_ID] != self._id:
-            raise exc.BadApiResponseError(
-                f"{self}: GET {url}: wrong comm task: {task}",
-                reason=ResponseErrorReason.COMM_TASK_MISMATCHED,
-            )
-
-        return task[SZ_STATE]
+        return comm_task[SZ_STATE]
 
     async def wait(self, *, interval: float = DEFAULT_INTERVAL) -> None:
         """Wait for the comm task to succeed, polling its state every `interval` secs.
@@ -108,5 +122,5 @@ class CommTask:
 
         while (state := await self.get_state()) is not CommTaskState.SUCCEEDED:
             if state is CommTaskState.FAILED:
-                raise exc.CommTaskFailedError(f"{self}: the comm task failed")
+                raise exc.CommTaskFailedError(f"{self}: has failed")
             await asyncio.sleep(interval)

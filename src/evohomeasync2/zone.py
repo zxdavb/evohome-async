@@ -729,14 +729,15 @@ class _ScheduleBase[
 
         schedule_ = {SZ_DAILY_SCHEDULES: schedule}
 
-        response = await self._auth.put(
+        comm_task = await CommTask.from_put(
+            self._auth,
             URL_SCHEDULE.format(type=self._TCC_TYPE, id=self.id),
             json=schedule_,
             schema=self.SCH_SCHEDULE,
         )
 
         self._schedule = schedule  # NOTE: the comm task may yet fail
-        return CommTask.from_response(self._auth, response)
+        return comm_task
 
 
 class _ZoneBase[
@@ -1198,11 +1199,11 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         if time_until is not None:
             zon_mode[SZ_TIME_UNTIL] = time_until
 
-        response = await self._auth.put(
+        return await CommTask.from_put(
+            self._auth,
             URL_HEAT_SETPOINT.format(type=self._TCC_TYPE, id=self.id),
             json=zon_mode,
         )
-        return CommTask.from_response(self._auth, response)
 
     async def _set_mode(
         self,
