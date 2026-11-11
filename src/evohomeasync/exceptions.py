@@ -15,6 +15,7 @@ from _evohome.exceptions import (
     BadUserCredentialsError,
     ClientStateError,
     ClientStateErrorReason,
+    CommTaskFailedError,
     EvohomeError,
     InvalidConfigError,
     InvalidGetConfigError,
@@ -45,6 +46,7 @@ __all__ = [
     "BadUserCredentialsError",
     "ClientStateError",
     "ClientStateErrorReason",
+    "CommTaskFailedError",
     "EvohomeError",
     "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)
     "InvalidGetConfigError",

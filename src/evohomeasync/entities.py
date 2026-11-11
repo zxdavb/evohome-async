@@ -25,6 +25,7 @@ from _evohome.time_zone import iana_tz_from_windows_tz
 
 from . import exceptions as exc
 from .auth import Auth
+from .comm_task import CommTask
 from .const import (
     SZ_ALLOWED_MODES,
     SZ_COUNTRY,
@@ -220,7 +221,7 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         status: TccSetpointStatus,  # Scheduled | Hold
         mode: TccDhwMode | None = None,
         next_time: dt | None = None,  # sent as local time: "%Y-%m-%dT%H:%M:%S"
-    ) -> None:
+    ) -> CommTask:
         """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
 
         dhw_mode: TccSetDhwModeT = {
@@ -234,37 +235,45 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         if next_time:  # the vendor treats it as the location's local time
             dhw_mode |= {S1_NEXT_TIME: as_local_str(next_time, self.location.tzinfo)}
 
-        _ = await self._auth.put(
+        return await CommTask.from_put(
+            self._auth,
             URL_DHW_MODE.format(device_id=self.id),
             json=dhw_mode,
         )
 
-    async def set_dhw_on(self, until: dt | None = None) -> None:
+    async def set_dhw_on(self, until: dt | None = None) -> CommTask:
         """Set DHW to On, either indefinitely, or until a specified time.
 
         When On, the DHW controller will work to keep its target temperature at/above
         its target temperature.  After the specified time, it will revert to its
         scheduled behaviour.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
         """
 
-        await self._set_dhw(
+        return await self._set_dhw(
             status=TccSetpointStatus.HOLD, mode=TccDhwMode.DHW_ON, next_time=until
         )
 
-    async def set_dhw_off(self, until: dt | None = None) -> None:
+    async def set_dhw_off(self, until: dt | None = None) -> CommTask:
         """Set DHW to Off, either indefinitely, or until a specified time.
 
         When Off, the DHW controller will ignore its target temperature. After the
         specified time, it will revert to its scheduled behaviour.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
         """
 
-        await self._set_dhw(
+        return await self._set_dhw(
             status=TccSetpointStatus.HOLD, mode=TccDhwMode.DHW_OFF, next_time=until
         )
 
-    async def set_dhw_auto(self) -> None:
-        """Allow DHW to switch between On and Off, according to its schedule."""
-        await self._set_dhw(status=TccSetpointStatus.SCHEDULED)
+    async def set_dhw_auto(self) -> CommTask:
+        """Allow DHW to switch between On and Off, according to its schedule.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
+        """
+        return await self._set_dhw(status=TccSetpointStatus.SCHEDULED)
 
 
 class Zone(_DeviceBase):  # Zone version of a Device
@@ -332,7 +341,7 @@ class Zone(_DeviceBase):  # Zone version of a Device
         status: TccSetpointStatus,  # Scheduled | Temporary | Hold
         value: float | None = None,
         next_time: dt | None = None,  # sent as local time: "%Y-%m-%dT%H:%M:%S"
-    ) -> None:
+    ) -> CommTask:
         """Set zone setpoint, either indefinitely, or until a set time."""
 
         zon_mode: TccSetZonModeT = {S1_STATUS: status}
@@ -342,26 +351,32 @@ class Zone(_DeviceBase):  # Zone version of a Device
         if next_time is not None:  # the vendor treats it as the location's local time
             zon_mode[S1_NEXT_TIME] = as_local_str(next_time, self.location.tzinfo)
 
-        _ = await self._auth.put(
+        return await CommTask.from_put(
+            self._auth,
             URL_ZON_MODE.format(device_id=self.id),
             json=zon_mode,
         )
 
     async def set_temperature(
         self, temperature: float, until: dt | None = None
-    ) -> None:
-        """Override the setpoint of a zone, for a period of time, or indefinitely."""
+    ) -> CommTask:
+        """Override the setpoint of a zone, for a period of time, or indefinitely.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
+        """
 
         if until:
-            await self._set_heat_setpoint(
+            return await self._set_heat_setpoint(
                 TccSetpointStatus.TEMPORARY, value=temperature, next_time=until
             )
-        else:
-            await self._set_heat_setpoint(TccSetpointStatus.HOLD, value=temperature)
+        return await self._set_heat_setpoint(TccSetpointStatus.HOLD, value=temperature)
 
-    async def set_zone_auto(self) -> None:
-        """Set a zone to follow its schedule."""
-        await self._set_heat_setpoint(status=TccSetpointStatus.SCHEDULED)
+    async def set_zone_auto(self) -> CommTask:
+        """Set a zone to follow its schedule.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
+        """
+        return await self._set_heat_setpoint(status=TccSetpointStatus.SCHEDULED)
 
 
 class ControlSystem(_EntityBase):
@@ -456,10 +471,11 @@ class ControlSystem(_EntityBase):
     def one_touch_buttons(self) -> tuple[str, ...]:
         return tuple(self.status.get(SZ_ONE_TOUCH_BUTTONS, ()))
 
-    async def _put_mode(self, tcs_mode: TccSetTcsModeT) -> None:
+    async def _put_mode(self, tcs_mode: TccSetTcsModeT) -> CommTask:
         """Set the TCS mode."""
 
-        _ = await self._auth.put(
+        return await CommTask.from_put(
+            self._auth,
             URL_TCS_MODE.format(location_id=self.id),
             json=tcs_mode,
         )
@@ -471,38 +487,41 @@ class ControlSystem(_EntityBase):
 
     async def set_mode(
         self, mode: TccSystemMode, /, *, until: dt | None = None
-    ) -> None:
-        """Set the TCS to a mode, either indefinitely, or for a set time."""
+    ) -> CommTask:
+        """Set the TCS to a mode, either indefinitely, or for a set time.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
+        """
 
         request: TccSetTcsModeT = {S1_QUICK_ACTION: mode}
         if until:  # the vendor treats it as the location's local time
             request[S1_QUICK_ACTION_NEXT_TIME] = as_local_str(until, self.tzinfo)
 
-        await self._put_mode(request)
+        return await self._put_mode(request)
 
-    async def set_auto(self) -> None:
+    async def set_auto(self) -> CommTask:
         """Set the TCS to normal mode."""
-        await self.set_mode(TccSystemMode.AUTO)
+        return await self.set_mode(TccSystemMode.AUTO)
 
-    async def set_away(self, /, *, until: dt | None = None) -> None:
+    async def set_away(self, /, *, until: dt | None = None) -> CommTask:
         """Set the TCS to away mode."""
-        await self.set_mode(TccSystemMode.AWAY, until=until)
+        return await self.set_mode(TccSystemMode.AWAY, until=until)
 
-    async def set_custom(self, /, *, until: dt | None = None) -> None:
+    async def set_custom(self, /, *, until: dt | None = None) -> CommTask:
         """Set the TCS to custom mode."""
-        await self.set_mode(TccSystemMode.CUSTOM, until=until)
+        return await self.set_mode(TccSystemMode.CUSTOM, until=until)
 
-    async def set_dayoff(self, /, *, until: dt | None = None) -> None:
+    async def set_dayoff(self, /, *, until: dt | None = None) -> CommTask:
         """Set the TCS to dayoff mode."""
-        await self.set_mode(TccSystemMode.DAY_OFF, until=until)
+        return await self.set_mode(TccSystemMode.DAY_OFF, until=until)
 
-    async def set_eco(self, /, *, until: dt | None = None) -> None:
+    async def set_eco(self, /, *, until: dt | None = None) -> CommTask:
         """Set the TCS to economy mode."""
-        await self.set_mode(TccSystemMode.AUTO_WITH_ECO, until=until)
+        return await self.set_mode(TccSystemMode.AUTO_WITH_ECO, until=until)
 
-    async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
+    async def set_heatingoff(self, /, *, until: dt | None = None) -> CommTask:
         """Set the system to heating off mode."""
-        await self.set_mode(TccSystemMode.HEATING_OFF, until=until)
+        return await self.set_mode(TccSystemMode.HEATING_OFF, until=until)
 
     def _get_zone(self, zon_id: int | str) -> Zone:
         """Return the TCS's zone by its id, idx or name."""
