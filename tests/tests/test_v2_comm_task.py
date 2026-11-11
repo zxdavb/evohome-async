@@ -11,12 +11,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from _evohome.auth import AbstractAuth
-from evohomeasync2 import (
-    BadApiResponseError,
-    CommTask,
-    CommTaskFailedError,
-    ResponseErrorReason,
-)
+from evohomeasync2 import BadApiResponseError, CommTask, CommTaskFailedError
 from evohomeasync2.const import CommTaskState
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -185,25 +180,21 @@ async def test_get_state_unknown(
         assert await task.get_state() == "postponed"
 
 
-async def test_get_state_wrong_task(
+async def test_get_state_other_spelling(
     auth: Auth,
 ) -> None:
-    """Check get_state() raises BadApiResponseError if the vendor returns another task."""
+    """Check get_state() accepts the vendor's normalised id (it is the same task).
 
-    task = CommTask(auth, TASK_ID)
+    The vendor's response has the task's id, normalised: e.g. for a zero-padded id,
+    the id without its zeros. It never has the id of another task.
+    """
 
-    with (
-        patch_request(
-            return_value=_task("Running", task_id="9876543210"),
-        ),
-        pytest.raises(BadApiResponseError) as exc_info,
+    task = CommTask(auth, f"0{TASK_ID}")
+
+    with patch_request(
+        return_value=_task("Running", task_id=TASK_ID),
     ):
-        await task.get_state()
-
-    assert exc_info.value.message.startswith(
-        f"CommTask(id='{TASK_ID}'): its state is of another comm task: "
-    )
-    assert exc_info.value.reason is ResponseErrorReason.COMM_TASK_MISMATCHED
+        assert await task.get_state() == CommTaskState.RUNNING
 
 
 async def test_wait_succeeds(

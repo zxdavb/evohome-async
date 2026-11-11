@@ -10,8 +10,7 @@ import probatio as vol
 from _evohome.helpers import Case
 
 from . import exceptions as exc
-from .const import SZ_COMMTASK_ID, SZ_ID, SZ_STATE, URL_COMM_TASK, CommTaskState
-from .exceptions import ResponseErrorReason
+from .const import SZ_ID, SZ_STATE, URL_COMM_TASK, CommTaskState
 from .schemas.account import factory_comm_task_response, factory_task_response
 
 if TYPE_CHECKING:
@@ -107,12 +106,6 @@ class CommTask:
             URL_COMM_TASK.format(comm_task_id=self._id),
             schema=SCH_COMM_TASK,
         )
-
-        if task[SZ_COMMTASK_ID] != self._id:
-            raise exc.BadApiResponseError(
-                f"{self}: its state is of another comm task: {task}",
-                reason=ResponseErrorReason.COMM_TASK_MISMATCHED,
-            )
 
         return task[SZ_STATE]
 
