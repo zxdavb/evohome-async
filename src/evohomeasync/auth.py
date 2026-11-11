@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import probatio as vol
 
-from _evohome.auth import AbstractAuth
+from _evohome.auth import AbstractAuth, _details_of
 from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
 from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
@@ -161,8 +161,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
             raise exc.BadUserCredentialsError(
                 f"{err}",
                 status=err.status,
-                reason=ApiCallErrorReason.CREDENTIALS_INVALID,
-                **err.details,  # e.g. the vendor's error code
+                **_details_of(err.details),  # e.g. the vendor's error code
             ) from err
 
         self._was_authenticated = True

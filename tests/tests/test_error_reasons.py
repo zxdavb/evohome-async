@@ -1,8 +1,12 @@
-"""Test that each error raised (that is to have one) has a reason.
+"""Test that each error raised has the right reason.
 
 The reasons are public API (e.g. HA may map each one to its own translated message).
 They are optional, so that the errors can still be raised with only a message, so mypy
 will not catch the omission of one: these tests do.
+
+An ApiCallFailedError (or a subclass) is raised with a reason only if it is not the
+class's default (e.g. not RATE_LIMITED, for an ApiRateLimitExceededError); every other
+error is always raised with a reason, even where it is the default.
 """
 
 from __future__ import annotations
@@ -49,6 +53,11 @@ _BY_NAME = {  # incl. the aliases of their previous names (e.g. InvalidModeReque
 # the names of the classes (and of their aliases, incl. those served by __getattr__)
 _NAMES = set(_BY_NAME) | {"ApiRequestFailedError", "InvalidSystemModeError"}
 
+# the errors that are raised with a reason only if it is not their default
+_API_CALL_NAMES = {
+    n for n, c in _BY_NAME.items() if issubclass(c, exc.ApiCallFailedError)
+} | {"ApiRequestFailedError"}
+
 # the errors that have a reason (attr)
 _CLASSES = sorted(set(_BY_NAME.values()), key=lambda c: c.__name__)
 
@@ -62,8 +71,22 @@ def _modules() -> tuple[tuple[str, ast.Module], ...]:
     )
 
 
+def _name(call: ast.Call) -> str:
+    """Return the name of what is called (e.g. "InvalidSetModeError")."""
+
+    func = call.func
+    if isinstance(func, ast.Attribute):  # e.g. exc.InvalidSetModeError(...)
+        return func.attr
+    return func.id if isinstance(func, ast.Name) else ""
+
+
+def _reason(call: ast.Call) -> ast.expr | None:
+    """Return the reason that is passed (if any)."""
+    return next((k.value for k in call.keywords if k.arg == "reason"), None)
+
+
 def test_raise_sites_have_a_reason() -> None:
-    """Test every raise of an error that is to have a reason has one."""
+    """Test every raise of an error has a reason (other than an ApiCallFailedError)."""
 
     raises: list[str] = []
     missing: list[str] = []
@@ -72,17 +95,43 @@ def test_raise_sites_have_a_reason() -> None:
         for node in ast.walk(module):
             if not isinstance(node, ast.Raise) or not isinstance(node.exc, ast.Call):
                 continue
-            func = node.exc.func
-            name = func.attr if isinstance(func, ast.Attribute) else ""
-            name = func.id if isinstance(func, ast.Name) else name
-            if name not in _NAMES:
+            if (name := _name(node.exc)) not in _NAMES or name in _API_CALL_NAMES:
                 continue
             raises.append(site := f"{path}:{node.lineno}")
-            if not any(k.arg == "reason" for k in node.exc.keywords):
+            if _reason(node.exc) is None:
                 missing.append(site)
 
     assert raises, "no raise sites were found (has the source moved?)"
     assert not missing, f"raised without a reason: {missing}"
+
+
+def test_api_call_errors_omit_their_default() -> None:
+    """Test no ApiCallFailedError is created with its class's default reason.
+
+    Every call is checked (not only raises), as some are created to be raised later.
+    """
+
+    calls: list[str] = []
+    defaults: list[str] = []
+
+    for path, module in _modules():
+        for node in ast.walk(module):
+            if not isinstance(node, ast.Call) or _name(node) not in _API_CALL_NAMES:
+                continue
+            calls.append(site := f"{path}:{node.lineno}")
+
+            reason = _reason(node)
+            if (  # e.g. reason=ApiCallErrorReason.RATE_LIMITED
+                isinstance(reason, ast.Attribute)
+                and isinstance(reason.value, ast.Name)
+                and reason.value.id == ApiCallErrorReason.__name__
+            ):
+                cls = _BY_NAME.get(_name(node), exc.ApiCallFailedError)
+                if ApiCallErrorReason[reason.attr] is cls._default_reason:
+                    defaults.append(site)
+
+    assert calls, "no calls were found (has the source moved?)"
+    assert not defaults, f"created with its default reason: {defaults}"
 
 
 @pytest.mark.parametrize("enum", _ENUMS, ids=lambda e: e.__name__)

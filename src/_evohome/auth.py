@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt
 from email.utils import parsedate_to_datetime
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import aiohttp
 import probatio as vol
@@ -31,6 +31,16 @@ type _TccResponse = dict[str, Any] | list[dict[str, Any]]
 # or {"error": "invalid_grant", ...} (an OAuth token request)
 _SZ_CODE: Final = "code"
 _SZ_ERROR: Final = "error"
+
+
+class _ApiCallDetails(TypedDict, total=False):
+    """The details of an ApiCallFailedError (as a TypedDict, so it is precisely typed).
+
+    So that `**details` cannot be mistaken (e.g. by mypy) for another keyword argument
+    of the exception, such as `reason`.
+    """
+
+    code: str  # the vendor's error code (if any), e.g. "DeviceIsLost"
 
 
 if TYPE_CHECKING:
@@ -58,7 +68,12 @@ async def _payload(rsp: aiohttp.ClientResponse | None) -> str:
         return "<no response>"
 
 
-async def _details(rsp: aiohttp.ClientResponse | None) -> dict[str, str]:
+def _details_of(details: Mapping[str, str]) -> _ApiCallDetails:
+    """Return the details of an ApiCallFailedError (e.g. to pass on to another one)."""
+    return {_SZ_CODE: details[_SZ_CODE]} if _SZ_CODE in details else {}
+
+
+async def _details(rsp: aiohttp.ClientResponse | None) -> _ApiCallDetails:
     """Return the details of an error response: its vendor's error code (if any).
 
     The response's body must have already been read (so there is no further I/O).
@@ -79,7 +94,7 @@ async def _details(rsp: aiohttp.ClientResponse | None) -> dict[str, str]:
     else:
         code = None
 
-    return {_SZ_CODE: code} if isinstance(code, str) else {}
+    return {_SZ_CODE: code} if isinstance(code, str) else {}  # i.e. _ApiCallDetails
 
 
 def _reason(status: int) -> ApiCallErrorReason:
@@ -119,7 +134,7 @@ def _api_call_failed(
     message: str,
     status: int,
     r: aiohttp.ClientResponse | None,
-    **details: str,
+    details: _ApiCallDetails,
 ) -> exc.ApiCallFailedError:
     """Return the exception for a response that has an HTTP error status.
 
@@ -130,14 +145,12 @@ def _api_call_failed(
 
     reason = _reason(status)
 
-    if reason is ApiCallErrorReason.RATE_LIMITED:  # 429
+    if reason is ApiCallErrorReason.RATE_LIMITED:  # 429 (the class's default reason)
         return exc.ApiRateLimitExceededError(
-            message, status, retry_after=_retry_after(r), reason=reason, **details
+            message, status, retry_after=_retry_after(r), **details
         )
-    if reason is ApiCallErrorReason.REQUEST_REJECTED:  # a 4xx, other than 401/429
-        return exc.ApiCallRejectedError(
-            message, status=status, reason=reason, **details
-        )
+    if reason is ApiCallErrorReason.REQUEST_REJECTED:  # (the class's default reason)
+        return exc.ApiCallRejectedError(message, status=status, **details)
     return exc.ApiCallFailedError(message, status=status, reason=reason, **details)
 
 
@@ -319,7 +332,7 @@ class AbstractAuth(ABC):
                 msg += f", response={await _payload(rsp)}"
 
             raise _api_call_failed(
-                f"{method} {url}: {msg}", err.status, rsp, **await _details(rsp)
+                f"{method} {url}: {msg}", err.status, rsp, await _details(rsp)
             ) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError

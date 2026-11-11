@@ -111,8 +111,5 @@ class AbstractCommTask(ABC):
 
         while (state := await self.get_state()) is not self._STATE_SUCCEEDED:
             if state is self._STATE_FAILED:
-                raise exc.CommTaskFailedError(
-                    f"{self}: has failed",
-                    reason=ApiCallErrorReason.COMM_TASK_FAILED,
-                )
+                raise exc.CommTaskFailedError(f"{self}: has failed")
             await asyncio.sleep(interval)

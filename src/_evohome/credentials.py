@@ -108,7 +108,6 @@ class CredentialsManagerBase:
                     f"Authenticator response is invalid: {msg}",
                     err.status,
                     retry_after=_retry_after(rsp),
-                    reason=ApiCallErrorReason.RATE_LIMITED,
                     **details,
                 ) from err
 
