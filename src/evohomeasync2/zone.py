@@ -129,6 +129,13 @@ class _TccModeMixin:
 
     location: Location  # used to get now(), and the logger
 
+    if TYPE_CHECKING:  # each entity has its own (cached) property, keyed by its modes
+
+        @property
+        def _allowed_modes_table(
+            self,
+        ) -> Mapping[Any, EvoAllowedSystemModesT | _AllowedModesT]: ...
+
     def _validate_requested_until(
         self, mode: SystemMode | ZoneMode, until: dt | str, /
     ) -> dt:
@@ -139,29 +146,35 @@ class _TccModeMixin:
         A naive until (or a string that is not an ISO 8601 datetime) is rejected.
         """
 
-        try:
-            until = as_aware_dtm(until)
-        except exc.BadApiRequestError as err:
+        def raise_timespan_invalid(err: exc.BadApiRequestError) -> NoReturn:
             raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, until must be a TZ-aware datetime, not '{until}'",
                 reason=RequestErrorReason.TIMESPAN_INVALID,
                 mode=mode,
             ) from err
 
-        # compare instants: with a shared tzinfo, Python compares by wall clock, which
-        # is wrong in the hour repeated when DST ends (it ignores fold)
-        if until.astimezone(UTC) <= self.location.now().astimezone(UTC):
+        def raise_timespan_not_in_future(dtm: dt) -> NoReturn:
             raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, until must be in the future, not '{until}'",
+                f"{self}: For {mode}, until must be in the future, not '{dtm}'",
                 reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
                 mode=mode,
             )
-        return until
+
+        try:
+            dtm = as_aware_dtm(until)
+        except exc.BadApiRequestError as err:
+            raise_timespan_invalid(err)
+
+        # compare instants: with a shared tzinfo, Python compares by wall clock, which
+        # is wrong in the hour repeated when DST ends (it ignores fold)
+        if dtm.astimezone(UTC) <= self.location.now().astimezone(UTC):
+            raise_timespan_not_in_future(dtm)
+
+        return dtm
 
     def _validate_requested_timespan(  # noqa: C901
         self,
         mode: SystemMode | ZoneMode,
-        mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
         timing_mode: TimingMode,
         timespan: td | None,
         /,
@@ -198,8 +211,8 @@ class _TccModeMixin:
 
         def raise_timespan_unsupported(required_timing_mode: TimingMode) -> NoReturn:
             raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, {timing_mode} must be None (use {required_timing_mode}), "
-                f"not '{timespan}'",
+                f"{self}: For {mode}, {timing_mode} must be None"
+                f" (use {required_timing_mode}), not '{timespan}'",
                 reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
                 mode=mode,
                 timing_mode=timing_mode,
@@ -222,7 +235,9 @@ class _TccModeMixin:
                 mode=mode,
             )
 
-        def log_if_out_of_spec() -> None:
+        def log_if_out_of_spec(
+            mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
+        ) -> None:
             """Log (but do not raise) if a duration/period is not as its entry expects.
 
             That is, if a period is less than one day (as a warning, as the controller will
@@ -257,6 +272,8 @@ class _TccModeMixin:
                     f"'{timing_resolution}', and at most '{max_duration}', not '{timespan}'"
                 )
 
+        mode_entry = self._allowed_modes_table[mode]
+
         if timespan is None:
             if not mode_entry[SZ_CAN_BE_PERMANENT]:
                 raise_timespan_required(mode_entry[SZ_TIMING_MODE])
@@ -287,7 +304,7 @@ class _TccModeMixin:
         if has_ended:
             raise_timespan_not_in_future(until)
 
-        log_if_out_of_spec()
+        log_if_out_of_spec(mode_entry)
 
         return until
 
@@ -853,10 +870,7 @@ class _ZoneBase[
     ) -> dt | None:
         """Return when a mode ends (None if indefinitely), if valid for the duration."""
 
-        mode_entry = self._allowed_modes_table[mode]
-        return self._validate_requested_timespan(
-            mode, mode_entry, TimingMode.DURATION, duration
-        )
+        return self._validate_requested_timespan(mode, TimingMode.DURATION, duration)
 
     # Status (state) attrs & methods...
 

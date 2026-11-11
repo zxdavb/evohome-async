@@ -447,16 +447,13 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             )
 
         system_mode = self._validate_requested_mode(system_mode)
-        mode_entry = self._allowed_modes_table[system_mode]
 
         if period is None:
             timing_mode, timespan = TimingMode.DURATION, duration
         else:
             timing_mode, timespan = TimingMode.PERIOD, period
 
-        until = self._validate_requested_timespan(
-            system_mode, mode_entry, timing_mode, timespan
-        )
+        until = self._validate_requested_timespan(system_mode, timing_mode, timespan)
         return await self._put_mode(
             system_mode, permanent=until is None, time_until=until
         )
