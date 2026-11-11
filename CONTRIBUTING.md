@@ -142,6 +142,9 @@ or `cfg_` (e.g. `api_rate_limited`, `set_mode_unknown`, `get_schedule_missing`,
 `cfg_location_no_tcs`): so every value is unique.
 An `ApiCallErrorReason` is the cause, and the class is its context: e.g. an
 `AuthenticationFailedError` may be `CONNECTION_FAILED`, as may any other call.
+`reason` and `details` are declared on `EvohomeError`, so a caller that catches only it
+can still use them; a bare `EvohomeError` (never raised by the library) has the reason
+`EvohomeErrorReason.ERROR_UNSPECIFIED` (`evo_error_unspecified`).
 Each also has `details`: only the structured values that its message may use as
 placeholders (e.g. for an `InvalidSetModeError`: `mode`, `timing_mode`, `state`,
 `max_duration`), or, for an `ApiCallFailedError`, the vendor's error code (`code`, e.g.

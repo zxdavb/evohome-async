@@ -46,8 +46,51 @@ class _EvohomeBaseError(Exception):
         self.message = message
 
 
+@verify(EnumCheck.UNIQUE)
+class EvohomeErrorReason(StrEnum):
+    """The reason of an EvohomeError that is none of the below (see EvohomeError).
+
+    This library never raises a bare EvohomeError (each error it raises has a reason
+    of its own kind, below), so this is only the default of one raised by others.
+    """
+
+    ERROR_UNSPECIFIED = "evo_error_unspecified"  # a catch-all
+
+
+# the reason of any EvohomeError (each kind of error has its own enum, below)
+type ErrorReason = (
+    EvohomeErrorReason
+    | ApiCallErrorReason
+    | RequestErrorReason
+    | ResponseErrorReason
+    | ClientStateErrorReason
+)
+
+
 class EvohomeError(_EvohomeBaseError):
-    """The base class for all exceptions."""
+    """The base class for all exceptions.
+
+    Every EvohomeError has a `reason` (so a caller that catches only this class can
+    still map each error to its own, e.g. translated, message), and `details`. Each of
+    the subclasses below has its own kind of reason, and its own default (used if it is
+    raised with only a message), so `reason` is never None.
+    """
+
+    _default_reason: ClassVar[ErrorReason] = EvohomeErrorReason.ERROR_UNSPECIFIED
+
+    reason: ErrorReason
+    details: dict[str, str]
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        reason: ErrorReason | None = None,
+        **details: str,
+    ) -> None:
+        super().__init__(message)
+        self.reason = reason or self._default_reason  # never None
+        self.details = details
 
 
 # 1. Call failures: there was no usable reply (e.g. no connection, rate limit exceeded,
@@ -99,6 +142,8 @@ class ApiCallFailedError(EvohomeError):  # a base exception
 
     _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.CALL_FAILED
 
+    reason: ApiCallErrorReason
+
     def __init__(
         self,
         message: str,
@@ -107,10 +152,8 @@ class ApiCallFailedError(EvohomeError):  # a base exception
         reason: ApiCallErrorReason | None = None,
         **details: str,
     ) -> None:
-        super().__init__(message)
+        super().__init__(message, reason=reason, **details)
         self.status = status  # useful, available if via aiohttp.ClientResponseError
-        self.reason = reason or self._default_reason  # never None
-        self.details: dict[str, str] = details
 
 
 class ApiRateLimitExceededError(ApiCallFailedError):
@@ -234,6 +277,8 @@ class BadApiResponseError(EvohomeError):  # a base exception
         ResponseErrorReason.RESPONSE_INVALID
     )
 
+    reason: ResponseErrorReason
+
     def __init__(
         self,
         message: str,
@@ -241,9 +286,7 @@ class BadApiResponseError(EvohomeError):  # a base exception
         reason: ResponseErrorReason | None = None,
         **details: str,
     ) -> None:
-        super().__init__(message)
-        self.reason = reason or self._default_reason  # never None
-        self.details: dict[str, str] = details
+        super().__init__(message, reason=reason, **details)
 
 
 class InvalidGetConfigError(BadApiResponseError):  # config/account JSON is invalid
@@ -337,6 +380,8 @@ class BadApiRequestError(EvohomeError):  # a base exception
 
     _default_reason: ClassVar[RequestErrorReason] = RequestErrorReason.REQUEST_INVALID
 
+    reason: RequestErrorReason
+
     def __init__(
         self,
         message: str,
@@ -344,9 +389,7 @@ class BadApiRequestError(EvohomeError):  # a base exception
         reason: RequestErrorReason | None = None,
         **details: str,
     ) -> None:
-        super().__init__(message)
-        self.reason = reason or self._default_reason  # never None
-        self.details: dict[str, str] = details
+        super().__init__(message, reason=reason, **details)
 
 
 class InvalidSetModeError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
@@ -416,6 +459,8 @@ class ClientStateError(EvohomeError):  # a base exception
         ClientStateErrorReason.CONFIG_INVALID
     )
 
+    reason: ClientStateErrorReason
+
     def __init__(
         self,
         message: str,
@@ -423,9 +468,7 @@ class ClientStateError(EvohomeError):  # a base exception
         reason: ClientStateErrorReason | None = None,
         **details: str,
     ) -> None:
-        super().__init__(message)
-        self.reason = reason or self._default_reason  # never None
-        self.details: dict[str, str] = details
+        super().__init__(message, reason=reason, **details)
 
 
 class NotFetchedError(ClientStateError):

@@ -19,6 +19,7 @@ from _evohome import exceptions as exc
 from _evohome.exceptions import (
     ApiCallErrorReason,
     ClientStateErrorReason,
+    EvohomeErrorReason,
     RequestErrorReason,
     ResponseErrorReason,
 )
@@ -29,14 +30,10 @@ if TYPE_CHECKING:
 _SRC = Path(_evohome.__file__).parent.parent  # incl. evohomeasync, evohomeasync2
 
 # the errors that the library must raise with a reason
-_REASONED = (
-    exc.ApiCallFailedError,
-    exc.BadApiRequestError,
-    exc.BadApiResponseError,
-    exc.ClientStateError,
-)
+_REASONED = (exc.EvohomeError,)  # i.e. every error
 
 _ENUMS = (
+    EvohomeErrorReason,
     ApiCallErrorReason,
     RequestErrorReason,
     ResponseErrorReason,
@@ -91,7 +88,8 @@ def test_raise_sites_have_a_reason() -> None:
 @pytest.mark.parametrize("enum", _ENUMS, ids=lambda e: e.__name__)
 def test_reasons_are_all_used(
     enum: type[
-        ApiCallErrorReason
+        EvohomeErrorReason
+        | ApiCallErrorReason
         | RequestErrorReason
         | ResponseErrorReason
         | ClientStateErrorReason
@@ -130,19 +128,21 @@ def test_reasons_are_prefixed() -> None:
     """Test every reason's value is its name, prefixed as per its enum.
 
     That is: set_ (a request) or get_ (a response), as are the errors' names (e.g.
-    InvalidSetModeError, InvalidGetConfigError), cfg_ (the config/status data), or api_
-    (the call itself, e.g. a 429 or no connection). The
-    prefixes also keep the values of the enums apart (see above).
+    InvalidSetModeError, InvalidGetConfigError), cfg_ (the config/status data), api_
+    (the call itself, e.g. a 429 or no connection), or evo_ (only the default of a bare
+    EvohomeError). The prefixes also keep the values of the enums apart (see above).
     """
 
     assert all(r.value == f"set_{r.name.lower()}" for r in RequestErrorReason)
     assert all(r.value == f"get_{r.name.lower()}" for r in ResponseErrorReason)
     assert all(r.value == f"cfg_{r.name.lower()}" for r in ClientStateErrorReason)
     assert all(r.value == f"api_{r.name.lower()}" for r in ApiCallErrorReason)
+    assert all(r.value == f"evo_{r.name.lower()}" for r in EvohomeErrorReason)
 
 
 # the default reason of each error (used if it is raised with only a message)
 _DEFAULT_REASONS: dict[type[exc.EvohomeError], StrEnum] = {
+    exc.EvohomeError: EvohomeErrorReason.ERROR_UNSPECIFIED,
     exc.ApiCallFailedError: ApiCallErrorReason.CALL_FAILED,
     exc.ApiCallRejectedError: ApiCallErrorReason.REQUEST_REJECTED,
     exc.ApiRateLimitExceededError: ApiCallErrorReason.RATE_LIMITED,
@@ -171,12 +171,7 @@ def test_every_error_has_a_default_reason() -> None:
 
 @pytest.mark.parametrize("cls", _CLASSES, ids=lambda c: c.__name__)
 def test_error_without_a_reason(
-    cls: type[
-        exc.ApiCallFailedError
-        | exc.BadApiRequestError
-        | exc.BadApiResponseError
-        | exc.ClientStateError
-    ],
+    cls: type[exc.EvohomeError],
 ) -> None:
     """Test each error can still be raised with only a message (as before reasons).
 
@@ -198,3 +193,19 @@ def test_error_with_a_reason() -> None:
     )
 
     assert err.reason is ResponseErrorReason.ACCOUNT_INVALID
+
+
+def test_error_caught_as_evohome_error() -> None:
+    """Test the reason of an error caught only as an EvohomeError (e.g. as HA does).
+
+    The caller need not know which kind of error it is to use its reason (e.g. as a
+    translation key).
+    """
+
+    with pytest.raises(exc.EvohomeError) as err:  # i.e. caught as an EvohomeError
+        raise exc.InvalidSetModeError(
+            "a message", reason=RequestErrorReason.MODE_UNKNOWN, mode="Auto"
+        )
+
+    assert err.value.reason is RequestErrorReason.MODE_UNKNOWN
+    assert err.value.details == {"mode": "Auto"}
