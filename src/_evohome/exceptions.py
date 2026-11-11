@@ -353,8 +353,9 @@ class RequestErrorReason(StrEnum):
     MODE_INVALID = "set_mode_invalid"  # a generic catch-all for invalid modes
     MODE_UNKNOWN = "set_mode_unknown"  # the mode is not a valid enum value
     MODE_UNSUPPORTED = "set_mode_unsupported"  # the mode is not among the allowed modes
+    # NOTE: its timing_mode is the kind required: until, duration or period
     TIMESPAN_REQUIRED = "set_timespan_required"  # the mode cannot be permanent
-    TIMESPAN_NOT_ALLOWED = "set_timespan_not_allowed"  # the mode can only be permanent
+    TIMESPAN_NOT_ALLOWED = "set_timespan_not_allowed"  # e.g. the mode is permanent
     TIMESPAN_CONFLICTING = "set_timespan_conflicting"  # e.g. an until and a duration
     TIMESPAN_UNSUPPORTED = "set_timespan_unsupported"  # e.g. a duration, not a period
     TIMESPAN_INVALID = "set_timespan_invalid"  # e.g. a naive until, or not a datetime

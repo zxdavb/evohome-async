@@ -27,6 +27,7 @@ from .const import (
     SZ_SYSTEM_MODE,
     SZ_SYSTEM_MODE_STATUS,
     SZ_TIME_UNTIL,
+    SZ_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONES,
     URL_TCS_MODE,
@@ -400,6 +401,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
                 f"{self}: For {system_mode}, until must be None, not '{until}'",
                 reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
                 mode=system_mode,
+                timespan=SZ_UNTIL,
             )
 
         return await self._put_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME

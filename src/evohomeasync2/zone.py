@@ -217,19 +217,20 @@ class _TccModeMixin:
             if timing_mode is (expected := mode_entry.get(SZ_TIMING_MODE)):
                 return
 
-            message = f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
-
             if expected is None:
                 raise exc.InvalidSetModeError(
-                    message,
+                    f"{self}: For {mode}, {timing_mode} must be None, not '{length}'",
                     reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
                     mode=mode,
+                    timespan=timing_mode,
                 )
             raise exc.InvalidSetModeError(
-                message,
+                f"{self}: For {mode}, {timing_mode} must be None (use {expected}), "
+                f"not '{length}'",
                 reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
                 mode=mode,
                 timing_mode=expected,
+                timespan=timing_mode,
             )
 
         if length is None:
@@ -1228,6 +1229,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must not be None",
                     reason=RequestErrorReason.TIMESPAN_REQUIRED,
                     mode=mode,
+                    timing_mode=SZ_UNTIL,  # i.e. the kind of timespan required
                 )
 
         else:
@@ -1236,6 +1238,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must be None, not '{until}'",
                     reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
                     mode=mode,
+                    timespan=SZ_UNTIL,
                 )
 
             until = self._validate_requested_until(mode, until)
