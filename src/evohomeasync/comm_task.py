@@ -97,11 +97,6 @@ class CommTask:
         """Return the id of the comm task."""
         return self._id
 
-    @property
-    def _state_url(self) -> str:
-        """Return the URL of the comm task's state (not that of its PUT)."""
-        return URL_COMM_TASK.format(comm_task_id=self._id)
-
     async def get_state(self) -> TccCommTaskState:
         """Return the current state of the comm task (a single GET).
 
@@ -109,7 +104,7 @@ class CommTask:
         """
 
         task = await self._auth.get(
-            self._state_url,
+            URL_COMM_TASK.format(comm_task_id=self._id),
             schema=SCH_COMM_TASK,
         )
 
