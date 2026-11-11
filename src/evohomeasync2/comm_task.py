@@ -77,13 +77,13 @@ class CommTask:
         response = await auth.put(url, json, schema=schema)
 
         try:
-            task = _SCH_TASK(response)
+            comm_task = _SCH_TASK(response)
         except vol.Invalid as err:
             raise exc.CommTaskFailedError(  # the PUT may yet take effect, or not
                 f"PUT {url}: response is not a comm task: {response}: {err}"
             ) from err
 
-        return cls(auth, task[SZ_ID], put_url=str(url))
+        return cls(auth, comm_task[SZ_ID], put_url=str(url))
 
     def __str__(self) -> str:
         """Return a string representation of the comm task (e.g. for messages)."""
@@ -102,12 +102,12 @@ class CommTask:
         Will return a str only if the vendor's state is not a known CommTaskState.
         """
 
-        task = await self._auth.get(
+        comm_task = await self._auth.get(
             URL_COMM_TASK.format(comm_task_id=self._id),
             schema=SCH_COMM_TASK,
         )
 
-        return task[SZ_STATE]
+        return comm_task[SZ_STATE]
 
     async def wait(self, *, interval: float = DEFAULT_INTERVAL) -> None:
         """Wait for the comm task to succeed, polling its state every `interval` secs.

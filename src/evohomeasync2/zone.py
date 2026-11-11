@@ -729,7 +729,7 @@ class _ScheduleBase[
 
         schedule_ = {SZ_DAILY_SCHEDULES: schedule}
 
-        task = await CommTask.from_put(
+        comm_task = await CommTask.from_put(
             self._auth,
             URL_SCHEDULE.format(type=self._TCC_TYPE, id=self.id),
             json=schedule_,
@@ -737,7 +737,7 @@ class _ScheduleBase[
         )
 
         self._schedule = schedule  # NOTE: the comm task may yet fail
-        return task
+        return comm_task
 
 
 class _ZoneBase[
