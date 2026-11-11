@@ -117,10 +117,11 @@ class ApiCallRejectedError(ApiCallFailedError):
 
 
 class CommTaskFailedError(ApiCallFailedError):
-    """The comm task of a PUT failed (its state is "Failed").
+    """The comm task of a PUT failed, or there is no comm task to follow.
 
-    The PUT was accepted by the vendor, but the change did not reach the system (e.g.
-    the gateway is offline).
+    The PUT was accepted by the vendor, but either its task failed (its state is
+    "Failed"), so the change did not reach the system (e.g. the gateway is offline),
+    or the response was not a comm task, so whether it will is unknown.
     """
 
 
@@ -143,7 +144,6 @@ class ResponseErrorReason(StrEnum):
     RESPONSE_INVALID = "get_response_invalid"  # it failed validation (a GET)
 
     ACCOUNT_INVALID = "get_account_invalid"  # it failed validation (e.g. no user_id)
-    COMM_TASK_INVALID = "get_comm_task_invalid"  # a PUT's response
     COMM_TASK_MISMATCHED = "get_comm_task_mismatched"  # a GET's response
     CONFIG_INVALID = "get_config_invalid"  # it failed validation
     SCHEDULE_INVALID = "get_schedule_invalid"  # it failed validation

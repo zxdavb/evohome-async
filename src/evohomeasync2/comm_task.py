@@ -80,9 +80,8 @@ class CommTask:
         try:
             task = _SCH_TASK(response)
         except vol.Invalid as err:
-            raise exc.BadApiResponseError(
-                f"PUT {url}: response is not a comm task: {response}: {err}",
-                reason=ResponseErrorReason.COMM_TASK_INVALID,
+            raise exc.CommTaskFailedError(  # the PUT may yet take effect, or not
+                f"PUT {url}: response is not a comm task: {response}: {err}"
             ) from err
 
         return cls(auth, task[SZ_ID], put_url=str(url))

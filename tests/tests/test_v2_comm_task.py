@@ -118,7 +118,10 @@ async def test_set_schedule_returns_comm_task(
 async def test_put_with_bad_response(
     zone: Zone,
 ) -> None:
-    """Check a PUT whose response is not a comm task raises BadApiResponseError."""
+    """Check a PUT whose response is not a comm task raises CommTaskFailedError.
+
+    The PUT was accepted, but whether it takes effect cannot be followed.
+    """
 
     with (
         patch(
@@ -126,14 +129,13 @@ async def test_put_with_bad_response(
             new_callable=AsyncMock,
             return_value={"id": "not_a_task_id"},
         ),
-        pytest.raises(BadApiResponseError) as exc_info,
+        pytest.raises(CommTaskFailedError) as exc_info,
     ):
         await zone.reset()
 
     assert exc_info.value.message.startswith(
         f"PUT temperatureZone/{zone.id}/heatSetpoint: response is not a comm task: "
     )
-    assert exc_info.value.reason is ResponseErrorReason.COMM_TASK_INVALID
 
 
 async def test_get_state(
