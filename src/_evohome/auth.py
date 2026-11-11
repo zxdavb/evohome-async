@@ -147,11 +147,13 @@ def _api_call_failed(
 
     if reason is ApiCallErrorReason.RATE_LIMITED:  # 429 (the class's default reason)
         return exc.ApiRateLimitExceededError(
-            message, status, retry_after=_retry_after(r), **details
+            message, status, retry_after=_retry_after(r), response=r, **details
         )
     if reason is ApiCallErrorReason.REQUEST_REJECTED:  # (the class's default reason)
-        return exc.ApiCallRejectedError(message, status=status, **details)
-    return exc.ApiCallFailedError(message, status=status, reason=reason, **details)
+        return exc.ApiCallRejectedError(message, status=status, response=r, **details)
+    return exc.ApiCallFailedError(
+        message, status=status, reason=reason, response=r, **details
+    )
 
 
 class AbstractAuth(ABC):
@@ -301,6 +303,7 @@ class AbstractAuth(ABC):
                 raise exc.ApiCallFailedError(
                     f"{method} {url}: response is not JSON: {await _payload(rsp)}",
                     reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
+                    response=rsp,
                 )
 
             raw = await rsp.json()
@@ -308,6 +311,7 @@ class AbstractAuth(ABC):
                 raise exc.ApiCallFailedError(
                     f"{method} {url}: response is null",
                     reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
+                    response=rsp,
                 )
             response: _TccResponse = raw
 
@@ -315,6 +319,7 @@ class AbstractAuth(ABC):
             raise exc.ApiCallFailedError(
                 f"{method} {url}: response is not valid JSON: {await _payload(rsp)}",
                 reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
+                response=rsp,
             ) from err
 
         # An invalid access_token / session_id will cause a 401 and we'd need to
@@ -340,6 +345,7 @@ class AbstractAuth(ABC):
             raise exc.ApiCallFailedError(
                 f"{method} {url}: {err}",
                 reason=ApiCallErrorReason.CONNECTION_FAILED,
+                response=rsp,  # usu. None
             ) from err
 
         else:

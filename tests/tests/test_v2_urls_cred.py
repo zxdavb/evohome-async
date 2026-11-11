@@ -131,6 +131,8 @@ async def test_bad1(  # bad credentials (client_id/secret)
         assert err.value.status == HTTPStatus.BAD_REQUEST
         assert err.value.reason is exc.ApiCallErrorReason.CREDENTIALS_INVALID
         assert err.value.details == {"code": "invalid_grant"}  # the vendor's code
+        assert err.value.response is not None  # of the error it wraps
+        assert err.value.response.status == HTTPStatus.BAD_REQUEST
         assert caplog.record_tuples == [LOG_01, LOG_04, LOG_90]
         assert len(rsp.requests) == 1
 
@@ -384,6 +386,10 @@ async def test_rejected(  # the vendor rejects a request (a 4xx, but not a 401/4
         assert err.value.status == status
         assert err.value.reason is reason
         assert err.value.details == {"code": "SystemModeChangeTimeUntilNotSet"}
+
+        assert (response := err.value.response) is not None  # the vendor's response
+        assert response.status == status
+        assert await response.json() == payload  # its body has been read
         assert len(rsp.requests) == 1
 
     ec2._token_manager.clear_access_token()  # is cached; don't leak to next test
@@ -472,6 +478,7 @@ async def test_good(  # good credentials
 
         assert err.value.status is None  # Connection refused
         assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
+        assert err.value.response is None  # there was no response
         assert caplog.record_tuples == [LOG_29]
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
