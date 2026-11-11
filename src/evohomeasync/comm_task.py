@@ -86,8 +86,8 @@ class CommTask:
 
         return cls(auth, str(task[SZ_ID]), put_url=str(url))
 
-    def __repr__(self) -> str:
-        """Return an unambiguous string representation of the comm task."""
+    def __str__(self) -> str:
+        """Return a string representation of the comm task (e.g. for messages)."""
 
         put = f", put='{self._put_url}'" if self._put_url else ""
         return f"{self.__class__.__name__}(id='{self._id}'{put})"
