@@ -15,7 +15,6 @@ from evohomeasync import (
     BadApiResponseError,
     CommTask,
     CommTaskFailedError,
-    ResponseErrorReason,
     TccCommTaskState,
     TccSystemMode,
 )
@@ -129,7 +128,10 @@ async def test_put_returns_comm_task(
 async def test_put_with_bad_response(
     ec1: EvohomeClientV1,
 ) -> None:
-    """Check a PUT whose response is not a comm task raises BadApiResponseError."""
+    """Check a PUT whose response is not a comm task raises CommTaskFailedError.
+
+    The PUT was accepted, but whether it takes effect cannot be followed.
+    """
 
     zone = get_tcs(ec1).zones[0]
     url = f"devices/{zone.id}/thermostat/changeableValues/heatSetpoint"
@@ -140,14 +142,13 @@ async def test_put_with_bad_response(
             new_callable=AsyncMock,
             return_value={"id": "not_a_task_id"},  # the id is not an int
         ),
-        pytest.raises(BadApiResponseError) as exc_info,
+        pytest.raises(CommTaskFailedError) as exc_info,
     ):
         await zone.set_zone_auto()
 
     assert exc_info.value.message.startswith(
         f"PUT {url}: response is not a comm task: "
     )
-    assert exc_info.value.reason is ResponseErrorReason.COMM_TASK_INVALID
 
 
 async def test_get_state(

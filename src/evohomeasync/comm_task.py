@@ -11,7 +11,6 @@ from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .const import SZ_ID, SZ_STATE, URL_COMM_TASK
-from .exceptions import ResponseErrorReason
 from .schemas import TccCommTaskState, factory_comm_task_response, factory_task_response
 
 if TYPE_CHECKING:
@@ -79,9 +78,8 @@ class CommTask:
         try:
             task = _SCH_TASK(response)
         except vol.Invalid as err:
-            raise exc.BadApiResponseError(
-                f"PUT {url}: response is not a comm task: {response}: {err}",
-                reason=ResponseErrorReason.COMM_TASK_INVALID,
+            raise exc.CommTaskFailedError(  # the PUT may yet take effect, or not
+                f"PUT {url}: response is not a comm task: {response}: {err}"
             ) from err
 
         return cls(auth, str(task[SZ_ID]), put_url=str(url))
