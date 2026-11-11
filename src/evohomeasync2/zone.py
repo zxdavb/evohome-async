@@ -1227,8 +1227,9 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             if mode is ZoneMode.TEMPORARY_OVERRIDE:
                 raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, until must not be None",
-                    reason=RequestErrorReason.UNTIL_REQUIRED,
+                    reason=RequestErrorReason.TIMESPAN_REQUIRED,
                     mode=mode,
+                    timing_mode=SZ_UNTIL,  # i.e. the kind of timespan required
                 )
 
         else:

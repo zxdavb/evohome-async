@@ -113,15 +113,15 @@ CASES = [
     ),
     pytest.param(  # set_mode() without an until calls _set_tcc_mode(), not this
         _Call("zone", _TEMP, {"temperature": 20.0}, method="_set_mode"),
-        Reason.UNTIL_REQUIRED,
-        {"mode": "temporary_override"},
-        id="zon-until_required",
+        Reason.TIMESPAN_REQUIRED,
+        {"mode": "temporary_override", "timing_mode": "until"},
+        id="zon-timespan_required-until",
     ),
     pytest.param(  # set_mode() without an until calls _set_tcc_mode(), not this
         _Call("dhw", _TEMP, {"state": _ON}, method="_set_mode"),
-        Reason.UNTIL_REQUIRED,
-        {"mode": "temporary_override"},
-        id="dhw-until_required",
+        Reason.TIMESPAN_REQUIRED,
+        {"mode": "temporary_override", "timing_mode": "until"},
+        id="dhw-timespan_required-until",
     ),
     pytest.param(
         _Call("tcs", _AUTO, {"until": _FUTURE}),
