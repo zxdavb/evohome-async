@@ -156,9 +156,13 @@ a `reason` only if it is not the class's default (e.g. not `RATE_LIMITED`, for a
 `ApiRateLimitExceededError`, nor `STATUS_INVALID`, for an `InvalidGetStatusError`).
 
 The reasons' values are public API: renaming or removing one is a breaking change, but
-adding one is not. `tests/tests/test_error_reasons.py` checks that no error is created
-with its class's default reason, that every reason is used, and that every value is
-unique (and prefixed). Add any new raise site of an `InvalidSetModeError` to
+adding one is not. So are each reason's `details` keys: a reason has the same keys
+wherever it is raised (e.g. `TIMESPAN_NOT_ALLOWED` always has `mode` and `timespan`), so
+that a caller can use them (e.g. as the placeholders of a translated message); a reason
+whose keys would differ is two reasons. The one exception is the vendor's `code`, which
+an `ApiCallFailedError` has only if the vendor's response had one. `tests/tests/test_error_reasons.py` checks that
+no error is created with its class's default reason, that each reason's `details` keys
+are fixed, that every reason is used, and that every value is unique (and prefixed). Add any new raise site of an `InvalidSetModeError` to
 `tests/tests/test_v2_mode_request_reasons.py`.
 
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library
