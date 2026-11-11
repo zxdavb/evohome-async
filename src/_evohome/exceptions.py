@@ -354,11 +354,13 @@ class RequestErrorReason(StrEnum):
     MODE_UNKNOWN = "set_mode_unknown"  # the mode is not a valid enum value
     MODE_UNSUPPORTED = "set_mode_unsupported"  # the mode is not among the allowed modes
     TIMESPAN_REQUIRED = "set_timespan_required"  # the mode cannot be permanent
-    TIMESPAN_NOT_ALLOWED = "set_timespan_not_allowed"  # none, or not of that kind
+    TIMESPAN_NOT_ALLOWED = "set_timespan_not_allowed"  # e.g. the mode is permanent
     TIMESPAN_CONFLICTING = "set_timespan_conflicting"  # e.g. an until and a duration
+    TIMESPAN_UNSUPPORTED = "set_timespan_unsupported"  # e.g. a duration, not a period
     TIMESPAN_INVALID = "set_timespan_invalid"  # e.g. a naive until, or not a datetime
     TIMESPAN_OUT_OF_RANGE = "set_timespan_out_of_range"  # too large for a datetime
     TIMESPAN_NOT_IN_FUTURE = "set_timespan_not_in_future"  # it would have ended already
+    UNTIL_REQUIRED = "set_until_required"  # the mode cannot be permanent (_set_mode)
     TEMPERATURE_REQUIRED = "set_temperature_required"
     TEMPERATURE_NOT_ALLOWED = "set_temperature_not_allowed"
     TEMPERATURE_INVALID = "set_temperature_invalid"  # e.g. NaN, or infinity

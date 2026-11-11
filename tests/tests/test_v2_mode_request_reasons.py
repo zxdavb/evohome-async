@@ -113,45 +113,45 @@ CASES = [
     ),
     pytest.param(  # set_mode() without an until calls _set_tcc_mode(), not this
         _Call("zone", _TEMP, {"temperature": 20.0}, method="_set_mode"),
-        Reason.TIMESPAN_REQUIRED,
+        Reason.UNTIL_REQUIRED,
         {"mode": "temporary_override"},
-        id="zon-timespan_required-until",
+        id="zon-until_required",
     ),
     pytest.param(  # set_mode() without an until calls _set_tcc_mode(), not this
         _Call("dhw", _TEMP, {"state": _ON}, method="_set_mode"),
-        Reason.TIMESPAN_REQUIRED,
+        Reason.UNTIL_REQUIRED,
         {"mode": "temporary_override"},
-        id="dhw-timespan_required-until",
+        id="dhw-until_required",
     ),
     pytest.param(
         _Call("tcs", _AUTO, {"until": _FUTURE}),
         Reason.TIMESPAN_NOT_ALLOWED,
-        {"mode": "auto"},
+        {"mode": "auto", "timespan": "until"},
         id="tcs-timespan_not_allowed-until",
     ),
     pytest.param(
         _Call("tcs", _AUTO, {"duration": td(hours=1)}),
         Reason.TIMESPAN_NOT_ALLOWED,
-        {"mode": "auto"},
+        {"mode": "auto", "timespan": "duration"},
         id="tcs-timespan_not_allowed-duration",
     ),
     pytest.param(
         _Call("zone", _FOLLOW, {"until": _FUTURE}),
         Reason.TIMESPAN_NOT_ALLOWED,
-        {"mode": "follow_schedule"},
+        {"mode": "follow_schedule", "timespan": "until"},
         id="zon-timespan_not_allowed-until",
     ),
     pytest.param(
         _Call("dhw", _PERM, {"state": _ON, "until": _FUTURE}),
         Reason.TIMESPAN_NOT_ALLOWED,
-        {"mode": "permanent_override"},
+        {"mode": "permanent_override", "timespan": "until"},
         id="dhw-timespan_not_allowed-until",
     ),
     pytest.param(
         _Call("tcs", _AWAY, {"duration": td(days=1)}),
-        Reason.TIMESPAN_NOT_ALLOWED,  # (use a period)
-        {"mode": "away", "timing_mode": "period"},
-        id="tcs-timespan_not_allowed-period",
+        Reason.TIMESPAN_UNSUPPORTED,  # (use a period)
+        {"mode": "away", "timing_mode": "period", "timespan": "duration"},
+        id="tcs-timespan_unsupported",
     ),
     pytest.param(
         _Call("tcs", _AWAY, {"until": _NAIVE}),

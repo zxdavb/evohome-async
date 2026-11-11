@@ -211,21 +211,26 @@ class _TccModeMixin:
             """Raise if the timing_mode is not the one that the mode's entry expects.
 
             An entry without a timing_mode takes no duration/period at all (it can only be
-            permanent, or it takes only an until). Else, the details of the error include
-            the timing_mode that the entry expects.
+            permanent, or it takes only an until).
             """
 
             if timing_mode is (expected := mode_entry.get(SZ_TIMING_MODE)):
                 return
 
-            hint = "" if expected is None else f" (use {expected})"
-            details = {} if expected is None else {SZ_TIMING_MODE: str(expected)}
-
+            if expected is None:
+                raise exc.InvalidSetModeError(
+                    f"{self}: For {mode}, {timing_mode} must be None, not '{length}'",
+                    reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
+                    mode=mode,
+                    timespan=timing_mode,
+                )
             raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, {timing_mode} must be None{hint}, not '{length}'",
-                reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
+                f"{self}: For {mode}, {timing_mode} must be None (use {expected}), "
+                f"not '{length}'",
+                reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
                 mode=mode,
-                **details,
+                timing_mode=expected,
+                timespan=timing_mode,
             )
 
         if length is None:
@@ -1222,7 +1227,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             if mode is ZoneMode.TEMPORARY_OVERRIDE:
                 raise exc.InvalidSetModeError(
                     f"{self}: For {mode}, until must not be None",
-                    reason=RequestErrorReason.TIMESPAN_REQUIRED,
+                    reason=RequestErrorReason.UNTIL_REQUIRED,
                     mode=mode,
                 )
 
@@ -1232,6 +1237,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     f"{self}: For {mode}, until must be None, not '{until}'",
                     reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
                     mode=mode,
+                    timespan=SZ_UNTIL,
                 )
 
             until = self._validate_requested_until(mode, until)

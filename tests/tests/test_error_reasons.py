@@ -113,6 +113,66 @@ def test_errors_omit_their_default() -> None:
     assert not defaults, f"created with its default reason: {defaults}"
 
 
+# the keyword arguments of an error that are not its details
+_NOT_DETAILS = {"message", "reason", "response", "retry_after", "status"}
+
+
+def test_reasons_have_fixed_details() -> None:
+    """Test each reason has the same details (keys) wherever its error is created.
+
+    So that a caller can rely upon them (e.g. as the placeholders of a translated
+    message). A reason that is computed (e.g. from an HTTP status) is not checked, and
+    only an ApiCallFailedError may unpack its details (the vendor's code, if any).
+    """
+
+    enums = {e.__name__: e for e in _ENUMS}
+
+    keys: dict[StrEnum, dict[frozenset[str], list[str]]] = {}
+    unpacked: list[str] = []
+
+    for path, module in _modules():
+        for node in ast.walk(module):
+            if not isinstance(node, ast.Call):
+                continue
+            if (cls := _BY_NAME.get(_name(node))) is None:
+                continue
+            site = f"{path}:{node.lineno}"
+
+            reason = _reason(node)
+            if reason is None:  # the class's default
+                member: StrEnum = cls._default_reason
+            elif (
+                isinstance(reason, ast.Attribute)
+                and isinstance(reason.value, ast.Name)
+                and (enum := enums.get(reason.value.id)) is not None
+            ):
+                member = enum[reason.attr]
+            else:  # it is computed (e.g. from an HTTP status)
+                continue
+
+            if any(k.arg is None for k in node.keywords) and not issubclass(
+                cls, exc.ApiCallFailedError
+            ):
+                unpacked.append(site)
+
+            names = frozenset(
+                k.arg
+                for k in node.keywords
+                if k.arg is not None and k.arg not in _NOT_DETAILS
+            )
+            keys.setdefault(member, {}).setdefault(names, []).append(site)
+
+    assert keys, "no calls were found (has the source moved?)"
+    assert not unpacked, f"details unpacked (so not fixed): {unpacked}"
+
+    differ = {
+        repr(m): {tuple(sorted(n)): sites for n, sites in by_names.items()}
+        for m, by_names in keys.items()
+        if len(by_names) > 1
+    }
+    assert not differ, f"reasons with differing details: {differ}"
+
+
 @pytest.mark.parametrize("enum", _ENUMS, ids=lambda e: e.__name__)
 def test_reasons_are_all_used(
     enum: type[
