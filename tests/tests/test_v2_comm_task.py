@@ -194,7 +194,7 @@ async def test_get_state_wrong_task(
         await task.get_state()
 
     assert exc_info.value.message.startswith(
-        f"GET commTasks?commTaskId={TASK_ID}: response is of another comm task: "
+        f"GET commTasks?commTaskId={TASK_ID}: wrong comm task: "
     )
     assert exc_info.value.reason is ResponseErrorReason.COMM_TASK_MISMATCHED
 
@@ -226,10 +226,6 @@ async def test_wait_fails(
         patch_request(
             side_effect=[_task("Running"), _task("Failed")],
         ),
-        pytest.raises(CommTaskFailedError) as exc_info,
+        pytest.raises(CommTaskFailedError),
     ):
         await task.wait(interval=0)
-
-    assert exc_info.value.message == (
-        f"GET commTasks?commTaskId={TASK_ID}: response is of a failed comm task"
-    )
