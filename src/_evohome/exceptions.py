@@ -130,16 +130,61 @@ class CommTaskFailedError(ApiCallFailedError):
 #    b) internally inconsistent (e.g. a zone without a model type)
 
 
+@verify(EnumCheck.UNIQUE)
+class ResponseErrorReason(StrEnum):
+    """Why a response was not as expected (see BadApiResponseError).
+
+    The values are public API, so that callers can map each one to their own (e.g.
+    translated) message: renaming or removing a member is a breaking change, but
+    adding one is not. They are named PARAM_PROBLEM, and their values are prefixed
+    get_, so that they are unique (e.g. CONFIG_INVALID = get_config_invalid).
+    """
+
+    RESPONSE_INVALID = "get_response_invalid"  # it failed validation (a GET)
+    ACCOUNT_INVALID = "get_account_invalid"  # e.g. it has no user_id
+    CONFIG_INVALID = "get_config_invalid"  # it failed validation
+    MODEL_TYPE_UNKNOWN = "get_model_type_unknown"  # of a zone (a ghost zone?)
+    ZONE_TYPE_UNKNOWN = "get_zone_type_unknown"  # of a zone (a ghost zone?)
+    STATUS_INVALID = "get_status_invalid"  # it failed validation
+    SCHEDULE_INVALID = "get_schedule_invalid"  # it failed validation
+    SCHEDULE_MISSING = "get_schedule_missing"  # e.g. it is empty
+    SWITCHPOINTS_MISSING = "get_switchpoints_missing"  # e.g. for a day
+    COMM_TASK_INVALID = "get_comm_task_invalid"  # a PUT's response
+    COMM_TASK_MISMATCHED = "get_comm_task_mismatched"  # a GET's response
+    TIMESPAN_INVALID = "get_timespan_invalid"  # e.g. of a max_duration
+
+
 class BadApiResponseError(EvohomeError):  # a base exception
-    """The received JSON is not as expected (e.g. missing a required key)."""
+    """The received JSON is not as expected (e.g. missing a required key).
+
+    The `reason` attr says why (see ResponseErrorReason), so that callers need not
+    parse the message. This library always supplies a reason, but it is optional (so
+    the reason may be None), so that it can still be raised with only a message.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        reason: ResponseErrorReason | None = None,
+        **details: str,
+    ) -> None:
+        super().__init__(message)
+        self.reason = reason
+        self.details: dict[str, str] = details
 
 
 class InvalidGetConfigError(BadApiResponseError):  # config/account JSON is invalid
     """The account/config JSON is not as expected (e.g. an unknown TCS model type)."""
 
 
+# TODO: deprecate in v4.0, in favour of the reason of an InvalidGetConfigError
 class GhostZoneError(InvalidGetConfigError):  # the zone will be ignored
-    """The config JSON of a zone has no model type or zone type (is it a ghost zone?)."""
+    """The config JSON of a zone has no model type or zone type (is it a ghost zone?).
+
+    Its reason is MODEL_TYPE_UNKNOWN or ZONE_TYPE_UNKNOWN: check the reason of an
+    InvalidGetConfigError instead, as this subclass is to be deprecated.
+    """
 
 
 class InvalidGetStatusError(BadApiResponseError):  # status JSON is invalid

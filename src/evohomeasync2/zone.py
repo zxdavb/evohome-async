@@ -68,7 +68,7 @@ from .const import (
     ZoneModelType,
     ZoneType,
 )
-from .exceptions import RequestErrorReason
+from .exceptions import RequestErrorReason, ResponseErrorReason
 from .schemas.const import TccEntityType
 from .schemas.schedule import factory_zon_schedule
 from .schemas.status import factory_zon_status
@@ -453,7 +453,10 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
     """Find this/next switchpoints for a given day of week and time of day."""
 
     if not schedule:
-        raise exc.InvalidGetScheduleError("No schedule (daily schedules are empty)")
+        raise exc.InvalidGetScheduleError(
+            "No schedule (daily schedules are empty)",
+            reason=ResponseErrorReason.SCHEDULE_MISSING,
+        )
 
     # assumes 1+ switchpoint per day, which could be this_sp or next_sp only
 
@@ -478,7 +481,8 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
             if this_sp is None:
                 if not (prev_day := schedule[(day_idx + 6) % 7][SZ_SWITCHPOINTS]):
                     raise exc.InvalidGetScheduleError(
-                        "No switchpoints for previous day"
+                        "No switchpoints for previous day",
+                        reason=ResponseErrorReason.SWITCHPOINTS_MISSING,
                     )
                 this_sp = prev_day[-1]
                 this_offset = -1
@@ -491,7 +495,10 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
 
         if next_sp is None:
             if not (next_day := schedule[(day_idx + 1) % 7][SZ_SWITCHPOINTS]):
-                raise exc.InvalidGetScheduleError("No switchpoints for next day")
+                raise exc.InvalidGetScheduleError(
+                    "No switchpoints for next day",
+                    reason=ResponseErrorReason.SWITCHPOINTS_MISSING,
+                )
             next_sp = next_day[0]
             next_offset = +1
 
@@ -631,7 +638,8 @@ class _ScheduleBase[
 
         except exc.BadApiResponseError as err:  # the schedule failed validation
             raise exc.InvalidGetScheduleError(
-                f"{self}: Schedule is invalid: {err}"
+                f"{self}: Schedule is invalid: {err}",
+                reason=ResponseErrorReason.SCHEDULE_INVALID,
             ) from err
 
         except exc.AuthenticationFailedError:  # e.g. bad credentials are a 400 too
@@ -640,19 +648,15 @@ class _ScheduleBase[
         except exc.ApiCallFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
                 raise exc.InvalidGetScheduleError(
-                    f"{self}: No Schedule, or is invalid"
+                    f"{self}: No Schedule, or is invalid",
+                    reason=ResponseErrorReason.SCHEDULE_MISSING,
                 ) from err
             raise
 
         schedule = response[SZ_DAILY_SCHEDULES]  # is [] if there is no schedule
 
-        try:  # check the switchpoints can be found, before storing the schedule
-            if schedule:
-                self._find_switchpoints(schedule, dt.now(tz=UTC))
-        except exc.InvalidGetScheduleError as err:
-            raise exc.InvalidGetScheduleError(
-                f"{self}: Schedule is invalid: {err}"
-            ) from err
+        if schedule:  # check the switchpoints can be found, before storing it
+            self._find_switchpoints(schedule, dt.now(tz=UTC))
 
         self._schedule = schedule
         self._schedule_last_fetched = dt.now(tz=UTC)
@@ -672,7 +676,13 @@ class _ScheduleBase[
             "next_sp_temp": 18.6,
         }
         """
-        return _find_switchpoint_dtms(schedule, dtm, self.location.tzinfo)
+
+        try:
+            return _find_switchpoint_dtms(schedule, dtm, self.location.tzinfo)
+        except exc.InvalidGetScheduleError as err:  # its message has no entity
+            raise exc.InvalidGetScheduleError(
+                f"{self}: Schedule is invalid: {err}", reason=err.reason
+            ) from err
 
     async def set_schedule(
         self,
@@ -916,11 +926,13 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         if not self.model or self.model is ZoneModelType.UNKNOWN:
             raise exc.GhostZoneError(
-                f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)"
+                f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)",
+                reason=ResponseErrorReason.MODEL_TYPE_UNKNOWN,
             )
         if not self.type or self.type is ZoneType.UNKNOWN:
             raise exc.GhostZoneError(
-                f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)"
+                f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)",
+                reason=ResponseErrorReason.ZONE_TYPE_UNKNOWN,
             )
 
         if self.model not in ZoneModelType:

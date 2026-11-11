@@ -29,6 +29,7 @@ from _evohome.exceptions import (
     InvalidStatusError,
     NotFetchedError,
     RequestErrorReason,
+    ResponseErrorReason,
     StaleConfigError,
     deprecated_getattr,
 )
@@ -63,6 +64,7 @@ __all__ = [
     "InvalidSystemModeError",  # deprecated alias for InvalidSetModeError
     "NotFetchedError",
     "RequestErrorReason",
+    "ResponseErrorReason",
     "StaleConfigError",
 ]
 

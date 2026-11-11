@@ -8,7 +8,12 @@ import probatio as vol
 import pytest
 
 from _evohome.helpers import Case, as_aware_dtm, as_timedelta, convert_dtms_to_utc_str
-from evohomeasync2 import BadApiRequestError, BadApiResponseError, RequestErrorReason
+from evohomeasync2 import (
+    BadApiRequestError,
+    BadApiResponseError,
+    RequestErrorReason,
+    ResponseErrorReason,
+)
 from evohomeasync2.schemas.helpers import factory_datetime
 
 # a fixed +01:00 offset (e.g. London in summer); avoids a tzdata dependency
@@ -164,5 +169,7 @@ def test_as_timedelta_rejects(
     timespan: str,
 ) -> None:
     """Test as_timedelta() rejects a string that isn't a vendor TimeSpan."""
-    with pytest.raises(BadApiResponseError, match="timespan is invalid"):
+    with pytest.raises(BadApiResponseError, match="timespan is invalid") as exc_info:
         as_timedelta(timespan)
+
+    assert exc_info.value.reason is ResponseErrorReason.TIMESPAN_INVALID

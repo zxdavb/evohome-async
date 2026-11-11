@@ -275,6 +275,22 @@ async def test_set_schedule_before_get(
     assert zone.this_switchpoint[0] < zone.next_switchpoint[0]
 
 
+async def test_switchpoints_error_names_the_entity(
+    zone: Zone,
+) -> None:
+    """Test an invalid schedule's error names its zone, whichever the path to it.
+
+    The switchpoints are found by a module-level function (so its messages have no
+    entity), via get_schedule() or the this/next_switchpoint properties.
+    """
+
+    with pytest.raises(exc.InvalidGetScheduleError) as exc_info:
+        zone._find_switchpoints([], dt.now(tz=UTC))  # no daily schedules
+
+    assert exc_info.value.message.startswith(f"{zone}: Schedule is invalid: ")
+    assert exc_info.value.reason is exc.ResponseErrorReason.SCHEDULE_MISSING
+
+
 async def test_ghost_zone(
     zone: Zone,
 ) -> None:
@@ -283,8 +299,10 @@ async def test_ghost_zone(
     config = zone._config.copy()
     config[SZ_MODEL_TYPE] = ZoneModelType.UNKNOWN
 
-    with pytest.raises(exc.GhostZoneError):
+    with pytest.raises(exc.GhostZoneError) as exc_info:
         Zone(zone.tcs, config)
+
+    assert exc_info.value.reason is exc.ResponseErrorReason.MODEL_TYPE_UNKNOWN
 
 
 async def test_ghost_zone_skipped(

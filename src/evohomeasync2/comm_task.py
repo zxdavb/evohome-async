@@ -11,6 +11,7 @@ from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .const import SZ_COMMTASK_ID, SZ_ID, SZ_STATE, URL_COMM_TASK, CommTaskState
+from .exceptions import ResponseErrorReason
 from .schemas.account import factory_comm_task_response, factory_task_response
 
 if TYPE_CHECKING:
@@ -59,7 +60,8 @@ class CommTask:
             task = _SCH_TASK(response)
         except vol.Invalid as err:
             raise exc.BadApiResponseError(
-                f"PUT response is not a comm task: {response}: {err}"
+                f"PUT response is not a comm task: {response}: {err}",
+                reason=ResponseErrorReason.COMM_TASK_INVALID,
             ) from err
 
         return cls(auth, task[SZ_ID])
@@ -86,7 +88,10 @@ class CommTask:
         )
 
         if task[SZ_COMMTASK_ID] != self._id:
-            raise exc.BadApiResponseError(f"{self}: GET {url}: wrong comm task: {task}")
+            raise exc.BadApiResponseError(
+                f"{self}: GET {url}: wrong comm task: {task}",
+                reason=ResponseErrorReason.COMM_TASK_MISMATCHED,
+            )
 
         return task[SZ_STATE]
 

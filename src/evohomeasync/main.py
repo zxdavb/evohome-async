@@ -14,6 +14,7 @@ from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
 from .const import SZ_LOCATION_ID, SZ_USER_ID, URL_ACCOUNT_INFO, URL_LOCATIONS
 from .entities import Location, create_location
+from .exceptions import ResponseErrorReason
 from .schemas import factory_location_response_list, factory_user_account_info_response
 
 if TYPE_CHECKING:
@@ -104,8 +105,12 @@ class EvohomeClient:
             user_locs = await self._get_config()
         except exc.BadApiResponseError as err:  # e.g. failed validation
             if self._locations is None:  # the entities are yet to be instantiated
-                raise exc.InvalidGetConfigError(err.message) from err
-            raise exc.InvalidGetStatusError(err.message) from err
+                raise exc.InvalidGetConfigError(
+                    err.message, reason=ResponseErrorReason.CONFIG_INVALID
+                ) from err
+            raise exc.InvalidGetStatusError(
+                err.message, reason=ResponseErrorReason.STATUS_INVALID
+            ) from err
 
         assert self._location_by_id is not None  # mypy
 
@@ -230,7 +235,8 @@ class EvohomeClient:
                 user_id = self._user_info[SZ_USER_ID]
             except (KeyError, TypeError) as err:
                 raise exc.BadApiResponseError(
-                    f"No user_id in user_info dict. Received: {self._user_info}"
+                    f"No user_id in user_info dict. Received: {self._user_info}",
+                    reason=ResponseErrorReason.ACCOUNT_INVALID,
                 ) from err
 
             self._user_locs = await self.auth.get(

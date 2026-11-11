@@ -53,6 +53,7 @@ from .exceptions import (
     InvalidStatusError,
     NotFetchedError,
     RequestErrorReason,
+    ResponseErrorReason,
     StaleConfigError,
 )
 from .gateway import Gateway
@@ -114,6 +115,7 @@ __all__ = [  # noqa: RUF022
     "InvalidSystemModeError",  # deprecated alias for InvalidSetModeError
     "NotFetchedError",
     "RequestErrorReason",
+    "ResponseErrorReason",
     "StaleConfigError",
 ]
 
