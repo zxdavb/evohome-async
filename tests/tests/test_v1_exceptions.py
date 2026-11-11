@@ -72,6 +72,23 @@ async def test_invalid_config(
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
+    assert err.value.reason is exc.ResponseErrorReason.CONFIG_INVALID
+
+
+async def test_invalid_account(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test get_status() raises InvalidGetConfigError if the account has no user_id."""
+
+    ec1 = EvohomeClient(credentials_manager)
+
+    with (
+        patch("evohomeasync.auth.Auth.get", AsyncMock(return_value={})),
+        pytest.raises(exc.InvalidGetConfigError) as err,
+    ):
+        await ec1.get_status()
+
+    assert err.value.reason is exc.ResponseErrorReason.ACCOUNT_INVALID
 
 
 async def test_invalid_status(
@@ -89,6 +106,7 @@ async def test_invalid_status(
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
+    assert err.value.reason is exc.ResponseErrorReason.STATUS_INVALID
 
 
 async def test_unknown_zone(
