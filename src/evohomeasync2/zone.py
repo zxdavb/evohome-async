@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 from datetime import UTC, datetime as dt, time as tm, timedelta as td
 from functools import cached_property
@@ -75,7 +76,6 @@ from .schemas.status import factory_zon_status
 from .typedefs import EvoZonScheduleDayOfWeekT, EvoZonStatusResponseT, EvoZonStatusT
 
 if TYPE_CHECKING:
-    import logging
     from collections.abc import Iterable, Mapping
     from datetime import tzinfo
     from typing import NotRequired, TypedDict
@@ -235,42 +235,17 @@ class _TccModeMixin:
                 mode=mode,
             )
 
-        def log_if_out_of_spec(
-            mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
-        ) -> None:
-            """Log (but do not raise) if a duration/period is not as its entry expects.
+        def log_timespan_too_short() -> None:
+            self.location.client.logger.warning(
+                f"{self}: For {mode}, {timing_mode} should be at least one day, not "
+                f"'{timespan}' (the controller will extend it to the coming midnight)"
+            )
 
-            That is, if a period is less than one day (as a warning, as the controller will
-            extend it), or if it is not a (positive) multiple of the timing_resolution, or it
-            exceeds the max_duration (as debug, as the controller honours it). A zero
-            timing_resolution has no multiples, so that check is left to the vendor.
-            """
-
-            assert timespan is not None  # mypy (it is checked before this is called)
-
-            logger = self.location.client.logger
-
-            if timing_mode is TimingMode.PERIOD and timespan < _ONE_DAY:
-                logger.warning(
-                    f"{self}: For {mode}, {timing_mode} should be at least one day, not "
-                    f"'{timespan}' (the controller will extend it to the coming midnight)"
-                )
-
-            # vendor TimeSpans, e.g. "1.00:00:00"
-            max_duration = mode_entry[SZ_MAX_DURATION]
-            timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
-
-            maximum = as_timedelta(max_duration)
-            resolution = as_timedelta(timing_resolution)
-
-            if not (
-                td(0) < timespan <= maximum
-                and (not resolution or not timespan % resolution)
-            ):
-                logger.debug(
-                    f"{self}: For {mode}, {timing_mode} should be a multiple of "
-                    f"'{timing_resolution}', and at most '{max_duration}', not '{timespan}'"
-                )
+        def log_timespan_out_of_spec(max_duration: str, timing_resolution: str) -> None:
+            self.location.client.logger.debug(
+                f"{self}: For {mode}, {timing_mode} should be a multiple of "
+                f"'{timing_resolution}', and at most '{max_duration}', not '{timespan}'"
+            )
 
         mode_entry = self._allowed_modes_table[mode]
 
@@ -304,7 +279,30 @@ class _TccModeMixin:
         if has_ended:
             raise_timespan_not_in_future(until)
 
-        log_if_out_of_spec(mode_entry)
+        # the controller extends a period of less than one day to the coming midnight
+        if (
+            self.location.client.logger.isEnabledFor(logging.WARNING)
+            and timing_mode is TimingMode.PERIOD
+            and timespan < _ONE_DAY
+        ):
+            log_timespan_too_short()
+
+        # the vendor accepts a timespan that is not a (positive) multiple of the entry's
+        # timing_resolution, or that exceeds its max_duration, and the controller honours
+        # it (a zero timing_resolution has no multiples, so that check is left to it)
+        if self.location.client.logger.isEnabledFor(logging.DEBUG):
+            # both are vendor TimeSpans, e.g. "1.00:00:00"
+            max_duration = mode_entry[SZ_MAX_DURATION]
+            timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
+
+            maximum = as_timedelta(max_duration)
+            resolution = as_timedelta(timing_resolution)
+
+            if not (
+                td(0) < timespan <= maximum
+                and (not resolution or not timespan % resolution)
+            ):
+                log_timespan_out_of_spec(max_duration, timing_resolution)
 
         return until
 
