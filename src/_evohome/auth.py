@@ -111,10 +111,10 @@ def _reason(status: int) -> ApiCallErrorReason:
     return ApiCallErrorReason.CALL_FAILED
 
 
-def _retry_after(r: aiohttp.ClientResponse | None) -> float | None:
+def _retry_after(rsp: aiohttp.ClientResponse | None) -> float | None:
     """Return the period of a response's Retry-After header, in seconds (if any)."""
 
-    if r is None or (value := r.headers.get(hdrs.RETRY_AFTER)) is None:
+    if rsp is None or (value := rsp.headers.get(hdrs.RETRY_AFTER)) is None:
         return None
 
     if value.strip().isdecimal():  # is delay-seconds
@@ -133,7 +133,7 @@ def _retry_after(r: aiohttp.ClientResponse | None) -> float | None:
 def _api_call_failed(
     message: str,
     status: int,
-    r: aiohttp.ClientResponse | None,
+    rsp: aiohttp.ClientResponse | None,
     details: _ApiCallDetails,
 ) -> exc.ApiCallFailedError:
     """Return the exception for a response that has an HTTP error status.
@@ -147,12 +147,12 @@ def _api_call_failed(
 
     if reason is ApiCallErrorReason.RATE_LIMITED:  # 429 (the class's default reason)
         return exc.ApiRateLimitExceededError(
-            message, status, retry_after=_retry_after(r), response=r, **details
+            message, status, retry_after=_retry_after(rsp), response=rsp, **details
         )
     if reason is ApiCallErrorReason.REQUEST_REJECTED:  # (the class's default reason)
-        return exc.ApiCallRejectedError(message, status=status, response=r, **details)
+        return exc.ApiCallRejectedError(message, status=status, response=rsp, **details)
     return exc.ApiCallFailedError(
-        message, status=status, reason=reason, response=r, **details
+        message, status=status, reason=reason, response=rsp, **details
     )
 
 
