@@ -288,6 +288,8 @@ def test_mode_request_error_reasons_are_all_raised() -> None:
 
     others = {
         Reason.DATETIME_INVALID,
+        Reason.MODE_INVALID,  # a catch-all (the default of InvalidSetModeError)
+        Reason.REQUEST_INVALID,  # a catch-all (the default of BadApiRequestError)
         Reason.SCHEDULE_INVALID,
         Reason.TIMEZONE_REQUIRED,
         Reason.ZONE_UNKNOWN,

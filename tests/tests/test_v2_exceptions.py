@@ -334,7 +334,7 @@ async def test_ghost_zone(
     with pytest.raises(exc.GhostZoneError) as exc_info:
         Zone(zone.tcs, config)
 
-    assert exc_info.value.reason is exc.ResponseErrorReason.MODEL_TYPE_UNKNOWN
+    assert exc_info.value.reason is exc.ResponseErrorReason.ZONE_MODEL_UNKNOWN
 
 
 async def test_ghost_zone_skipped(
