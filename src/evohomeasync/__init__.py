@@ -15,6 +15,7 @@ from .auth import AbstractSessionManager
 from .comm_task import CommTask
 from .entities import ControlSystem, Gateway, HotWater, Location, Zone
 from .exceptions import (
+    ApiCallErrorReason,
     ApiCallFailedError,
     ApiCallRejectedError,
     ApiRateLimitExceededError,
@@ -94,6 +95,7 @@ __all__ = [  # noqa: RUF022
     "TccThermostatMode",
     "TccThermostatModelType",
     #
+    "ApiCallErrorReason",
     "ApiCallFailedError",
     "ApiCallRejectedError",
     "ApiRateLimitExceededError",

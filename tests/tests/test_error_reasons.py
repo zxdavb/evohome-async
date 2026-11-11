@@ -17,6 +17,7 @@ import pytest
 import _evohome
 from _evohome import exceptions as exc
 from _evohome.exceptions import (
+    ApiCallErrorReason,
     ClientStateErrorReason,
     RequestErrorReason,
     ResponseErrorReason,
@@ -28,9 +29,19 @@ if TYPE_CHECKING:
 _SRC = Path(_evohome.__file__).parent.parent  # incl. evohomeasync, evohomeasync2
 
 # the errors that the library must raise with a reason
-_REASONED = (exc.BadApiRequestError, exc.BadApiResponseError, exc.ClientStateError)
+_REASONED = (
+    exc.ApiCallFailedError,
+    exc.BadApiRequestError,
+    exc.BadApiResponseError,
+    exc.ClientStateError,
+)
 
-_ENUMS = (RequestErrorReason, ResponseErrorReason, ClientStateErrorReason)
+_ENUMS = (
+    ApiCallErrorReason,
+    RequestErrorReason,
+    ResponseErrorReason,
+    ClientStateErrorReason,
+)
 
 _BY_NAME = {  # incl. the aliases of their previous names (e.g. InvalidModeRequestError)
     n: c
@@ -39,7 +50,7 @@ _BY_NAME = {  # incl. the aliases of their previous names (e.g. InvalidModeReque
 }
 
 # the names of the classes (and of their aliases, incl. those served by __getattr__)
-_NAMES = set(_BY_NAME) | {"InvalidSystemModeError"}
+_NAMES = set(_BY_NAME) | {"ApiRequestFailedError", "InvalidSystemModeError"}
 
 # the errors that have a reason (attr)
 _CLASSES = sorted(set(_BY_NAME.values()), key=lambda c: c.__name__)
@@ -79,7 +90,12 @@ def test_raise_sites_have_a_reason() -> None:
 
 @pytest.mark.parametrize("enum", _ENUMS, ids=lambda e: e.__name__)
 def test_reasons_are_all_used(
-    enum: type[RequestErrorReason | ResponseErrorReason | ClientStateErrorReason],
+    enum: type[
+        ApiCallErrorReason
+        | RequestErrorReason
+        | ResponseErrorReason
+        | ClientStateErrorReason
+    ],
 ) -> None:
     """Test every reason is used by the library (i.e. none is unreachable)."""
 
@@ -114,17 +130,26 @@ def test_reasons_are_prefixed() -> None:
     """Test every reason's value is its name, prefixed as per its enum.
 
     That is: set_ (a request) or get_ (a response), as are the errors' names (e.g.
-    InvalidSetModeError, InvalidGetConfigError), or cfg_ (the config/status data). The
+    InvalidSetModeError, InvalidGetConfigError), cfg_ (the config/status data), or api_
+    (the call itself, e.g. a 429 or no connection). The
     prefixes also keep the values of the enums apart (see above).
     """
 
     assert all(r.value == f"set_{r.name.lower()}" for r in RequestErrorReason)
     assert all(r.value == f"get_{r.name.lower()}" for r in ResponseErrorReason)
     assert all(r.value == f"cfg_{r.name.lower()}" for r in ClientStateErrorReason)
+    assert all(r.value == f"api_{r.name.lower()}" for r in ApiCallErrorReason)
 
 
 # the default reason of each error (used if it is raised with only a message)
 _DEFAULT_REASONS: dict[type[exc.EvohomeError], StrEnum] = {
+    exc.ApiCallFailedError: ApiCallErrorReason.CALL_FAILED,
+    exc.ApiCallRejectedError: ApiCallErrorReason.REQUEST_REJECTED,
+    exc.ApiRateLimitExceededError: ApiCallErrorReason.RATE_LIMITED,
+    exc.AuthRateLimitExceededError: ApiCallErrorReason.RATE_LIMITED,
+    exc.AuthenticationFailedError: ApiCallErrorReason.AUTHENTICATION_FAILED,
+    exc.BadUserCredentialsError: ApiCallErrorReason.CREDENTIALS_INVALID,
+    exc.CommTaskFailedError: ApiCallErrorReason.COMM_TASK_FAILED,
     exc.BadApiRequestError: RequestErrorReason.REQUEST_INVALID,
     exc.InvalidSetModeError: RequestErrorReason.MODE_INVALID,
     exc.InvalidSetScheduleError: RequestErrorReason.SCHEDULE_INVALID,
@@ -146,7 +171,12 @@ def test_every_error_has_a_default_reason() -> None:
 
 @pytest.mark.parametrize("cls", _CLASSES, ids=lambda c: c.__name__)
 def test_error_without_a_reason(
-    cls: type[exc.BadApiRequestError | exc.BadApiResponseError | exc.ClientStateError],
+    cls: type[
+        exc.ApiCallFailedError
+        | exc.BadApiRequestError
+        | exc.BadApiResponseError
+        | exc.ClientStateError
+    ],
 ) -> None:
     """Test each error can still be raised with only a message (as before reasons).
 

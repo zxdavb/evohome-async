@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, ClassVar, Final, Self
 import probatio as vol
 
 from . import exceptions as exc
+from .exceptions import ApiCallErrorReason
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -76,7 +77,8 @@ class AbstractCommTask(ABC):
             comm_task = cls._SCH_TASK(response)
         except vol.Invalid as err:
             raise exc.CommTaskFailedError(  # the PUT may yet take effect, or not
-                f"PUT {url}: response is not a comm task: {response}: {err}"
+                f"PUT {url}: response is not a comm task: {response}: {err}",
+                reason=ApiCallErrorReason.COMM_TASK_INVALID,
             ) from err
 
         return cls(auth, str(comm_task[SZ_ID]), put_url=str(url))  # v1's id is an int
@@ -109,5 +111,8 @@ class AbstractCommTask(ABC):
 
         while (state := await self.get_state()) is not self._STATE_SUCCEEDED:
             if state is self._STATE_FAILED:
-                raise exc.CommTaskFailedError(f"{self}: has failed")
+                raise exc.CommTaskFailedError(
+                    f"{self}: has failed",
+                    reason=ApiCallErrorReason.COMM_TASK_FAILED,
+                )
             await asyncio.sleep(interval)

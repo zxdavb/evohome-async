@@ -132,16 +132,20 @@ aliases, which do not (yet) warn, as they are used by the HA integration: they a
 deprecated in v4.0. Do not use them in this library. `GhostZoneError` is also to be
 deprecated, in favour of the reason of an `InvalidGetConfigError`.
 
-Each `BadApiRequestError`, `BadApiResponseError` and `ClientStateError` (and each of
-their subclasses) that the library raises has a `reason` (a `RequestErrorReason`,
-`ResponseErrorReason` or `ClientStateErrorReason`), so that callers (e.g. HA) need not
-parse its message. Reasons are named `PARAM_PROBLEM` (e.g. `MODE_UNKNOWN`), and their
-values are prefixed `set_` (a request) or `get_` (a response), as are the errors' names,
-or `cfg_` (e.g. `set_mode_unknown`, `get_schedule_missing`, `cfg_location_no_tcs`):
-so every value is unique.
+Every error that the library raises (each `ApiCallFailedError`, `BadApiRequestError`,
+`BadApiResponseError` and `ClientStateError`, and each of their subclasses) has a
+`reason` (an `ApiCallErrorReason`, `RequestErrorReason`, `ResponseErrorReason` or
+`ClientStateErrorReason`), so that callers (e.g. HA) need not parse its message. Reasons
+are named `PARAM_PROBLEM` (e.g. `MODE_UNKNOWN`), and their values are prefixed `api_`
+(the call itself), `set_` (a request) or `get_` (a response), as are the errors' names,
+or `cfg_` (e.g. `api_rate_limited`, `set_mode_unknown`, `get_schedule_missing`,
+`cfg_location_no_tcs`): so every value is unique.
+An `ApiCallErrorReason` is the cause, and the class is its context: e.g. an
+`AuthenticationFailedError` may be `CONNECTION_FAILED`, as may any other call.
 Each also has `details`: only the structured values that its message may use as
 placeholders (e.g. for an `InvalidSetModeError`: `mode`, `timing_mode`, `state`,
-`max_duration`). The `reason` is optional only so that the error can still be raised
+`max_duration`), or, for an `ApiCallFailedError`, the vendor's error code (`code`, e.g.
+`DeviceIsLost`), if its response has one. The `reason` is optional only so that the error can still be raised
 with a bare message (e.g. by HA's tests): it is then the class's default (e.g.
 `STATUS_INVALID` for an `InvalidGetStatusError`, or a catch-all such as `MODE_INVALID`
 for an `InvalidSetModeError`), so is never `None`. The library itself always supplies

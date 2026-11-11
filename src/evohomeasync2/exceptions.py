@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from _evohome.exceptions import (
+    ApiCallErrorReason,
     ApiCallFailedError,
     ApiCallRejectedError,
     ApiRateLimitExceededError,
@@ -39,6 +40,7 @@ if TYPE_CHECKING:  # at runtime, they are served by __getattr__() (and warn)
     from _evohome.exceptions import ApiRequestFailedError, InvalidSystemModeError
 
 __all__ = [
+    "ApiCallErrorReason",
     "ApiCallFailedError",
     "ApiCallRejectedError",
     "ApiRateLimitExceededError",

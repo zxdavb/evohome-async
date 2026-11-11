@@ -29,6 +29,7 @@ from .const import (
 )
 from .control_system import ControlSystem
 from .exceptions import (
+    ApiCallErrorReason,
     ApiCallFailedError,
     ApiCallRejectedError,
     ApiRateLimitExceededError,
@@ -90,6 +91,7 @@ __all__ = [  # noqa: RUF022
     "ZoneModelType",
     "ZoneType",
     #
+    "ApiCallErrorReason",
     "ApiCallFailedError",
     "ApiCallRejectedError",
     "ApiRateLimitExceededError",

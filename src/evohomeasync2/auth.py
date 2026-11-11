@@ -20,6 +20,7 @@ from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
 from .const import URL_BASE, URL_CRED
+from .exceptions import ApiCallErrorReason
 from .schemas.account import TCC_POST_OAUTH_TOKEN
 from .schemas.const import (
     OAUTH_ACCESS_TOKEN,
@@ -209,7 +210,12 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
                     raise
                 self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
                 # status will be: HTTPStatus.BAD_REQUEST, 400
-                raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
+                raise exc.BadUserCredentialsError(
+                    f"{err}",
+                    status=err.status,
+                    reason=ApiCallErrorReason.CREDENTIALS_INVALID,
+                    **err.details,  # e.g. the vendor's error code
+                ) from err
 
             self._was_authenticated = True
 
@@ -251,7 +257,8 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {response}: {err.__class__.__name__}: {err}"
+                f"Authenticator response is invalid: {response}: {err.__class__.__name__}: {err}",
+                reason=ApiCallErrorReason.AUTH_RESPONSE_INVALID,
             ) from err
 
         self._was_authenticated = True  # i.e. the credentials are valid

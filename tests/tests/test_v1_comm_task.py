@@ -12,6 +12,7 @@ import pytest
 
 from _evohome.auth import AbstractAuth
 from evohomeasync import (
+    ApiCallErrorReason,
     BadApiResponseError,
     CommTask,
     CommTaskFailedError,
@@ -149,6 +150,7 @@ async def test_put_with_bad_response(
     assert exc_info.value.message.startswith(
         f"PUT {url}: response is not a comm task: "
     )
+    assert exc_info.value.reason is ApiCallErrorReason.COMM_TASK_INVALID
 
 
 async def test_get_state(
@@ -217,3 +219,4 @@ async def test_wait_fails(
     assert exc_info.value.message == (
         f"CommTask(id='{TASK_ID}', put='{put_url}'): has failed"
     )
+    assert exc_info.value.reason is ApiCallErrorReason.COMM_TASK_FAILED
