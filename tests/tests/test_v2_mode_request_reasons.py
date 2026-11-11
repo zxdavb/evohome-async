@@ -149,9 +149,9 @@ CASES = [
     ),
     pytest.param(
         _Call("tcs", _AWAY, {"duration": td(days=1)}),
-        Reason.TIMESPAN_UNSUPPORTED,
+        Reason.TIMESPAN_NOT_ALLOWED,  # (use a period)
         {"mode": "away", "timing_mode": "period"},
-        id="tcs-timespan_unsupported",
+        id="tcs-timespan_not_allowed-period",
     ),
     pytest.param(
         _Call("tcs", _AWAY, {"until": _NAIVE}),

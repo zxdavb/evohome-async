@@ -211,25 +211,21 @@ class _TccModeMixin:
             """Raise if the timing_mode is not the one that the mode's entry expects.
 
             An entry without a timing_mode takes no duration/period at all (it can only be
-            permanent, or it takes only an until).
+            permanent, or it takes only an until). Else, the details of the error include
+            the timing_mode that the entry expects.
             """
 
             if timing_mode is (expected := mode_entry.get(SZ_TIMING_MODE)):
                 return
 
-            message = f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
+            hint = "" if expected is None else f" (use {expected})"
+            details = {} if expected is None else {SZ_TIMING_MODE: str(expected)}
 
-            if expected is None:
-                raise exc.InvalidSetModeError(
-                    message,
-                    reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
-                    mode=mode,
-                )
             raise exc.InvalidSetModeError(
-                message,
-                reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
+                f"{self}: For {mode}, {timing_mode} must be None{hint}, not '{length}'",
+                reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
                 mode=mode,
-                timing_mode=expected,
+                **details,
             )
 
         if length is None:
