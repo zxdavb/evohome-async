@@ -259,7 +259,7 @@ async def test_dhw_set_off(
 cli/
   evohome_cli/        # CLI tool (excluded from coverage)
 src/
-  _evohome/           # Shared internals (auth, exceptions, helpers, timezone)
+  _evohome/           # Shared internals (auth, comm tasks, exceptions, helpers, timezone)
   evohomeasync/       # Legacy v1 API client (backward compat)
   evohomeasync2/      # Primary v2 API client — most work happens here
 tests/
