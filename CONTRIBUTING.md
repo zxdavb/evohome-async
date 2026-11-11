@@ -137,7 +137,7 @@ their subclasses) that the library raises has a `reason` (a `RequestErrorReason`
 `ResponseErrorReason` or `ClientStateErrorReason`), so that callers (e.g. HA) need not
 parse its message. Reasons are named `PARAM_PROBLEM` (e.g. `MODE_UNKNOWN`), and their
 values are prefixed `set_` (a request) or `get_` (a response), as are the errors' names,
-or `client_` (e.g. `set_mode_unknown`, `get_schedule_missing`, `client_location_no_tcs`):
+or `cfg_` (e.g. `set_mode_unknown`, `get_schedule_missing`, `cfg_location_no_tcs`):
 so every value is unique.
 Each also has `details`: only the structured values that its message may use as
 placeholders (e.g. for an `InvalidSetModeError`: `mode`, `timing_mode`, `state`,

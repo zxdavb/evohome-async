@@ -110,13 +110,13 @@ def test_reasons_are_prefixed() -> None:
     """Test every reason's value is its name, prefixed as per its enum.
 
     That is: set_ (a request) or get_ (a response), as are the errors' names (e.g.
-    InvalidSetModeError, InvalidGetConfigError), or client_ (the client's state). The
+    InvalidSetModeError, InvalidGetConfigError), or cfg_ (the config/status data). The
     prefixes also keep the values of the enums apart (see above).
     """
 
     assert all(r.value == f"set_{r.name.lower()}" for r in RequestErrorReason)
     assert all(r.value == f"get_{r.name.lower()}" for r in ResponseErrorReason)
-    assert all(r.value == f"client_{r.name.lower()}" for r in ClientStateErrorReason)
+    assert all(r.value == f"cfg_{r.name.lower()}" for r in ClientStateErrorReason)
 
 
 @pytest.mark.parametrize("cls", _CLASSES, ids=lambda c: c.__name__)
