@@ -15,6 +15,7 @@ from .auth import AbstractSessionManager
 from .comm_task import CommTask
 from .entities import ControlSystem, Gateway, HotWater, Location, Zone
 from .exceptions import (
+    ApiCallErrorReason,
     ApiCallFailedError,
     ApiCallRejectedError,
     ApiRateLimitExceededError,
@@ -27,6 +28,7 @@ from .exceptions import (
     ClientStateErrorReason,
     CommTaskFailedError,
     EvohomeError,
+    EvohomeErrorReason,
     InvalidConfigError,
     InvalidGetConfigError,
     InvalidGetScheduleError,
@@ -94,6 +96,7 @@ __all__ = [  # noqa: RUF022
     "TccThermostatMode",
     "TccThermostatModelType",
     #
+    "ApiCallErrorReason",
     "ApiCallFailedError",
     "ApiCallRejectedError",
     "ApiRateLimitExceededError",
@@ -107,6 +110,7 @@ __all__ = [  # noqa: RUF022
     "ClientStateErrorReason",
     "CommTaskFailedError",
     "EvohomeError",
+    "EvohomeErrorReason",
     "InvalidGetConfigError",
     "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)
     "InvalidGetScheduleError",

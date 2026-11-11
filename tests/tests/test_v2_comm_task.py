@@ -11,7 +11,12 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from _evohome.auth import AbstractAuth
-from evohomeasync2 import BadApiResponseError, CommTask, CommTaskFailedError
+from evohomeasync2 import (
+    ApiCallErrorReason,
+    BadApiResponseError,
+    CommTask,
+    CommTaskFailedError,
+)
 from evohomeasync2.const import CommTaskState
 
 from .conftest import FIXTURES_V2 as FIXTURES
@@ -131,6 +136,7 @@ async def test_put_with_bad_response(
     assert exc_info.value.message.startswith(
         f"PUT temperatureZone/{zone.id}/heatSetpoint: response is not a comm task: "
     )
+    assert exc_info.value.reason is ApiCallErrorReason.COMM_TASK_INVALID
 
 
 async def test_get_state(
@@ -232,3 +238,4 @@ async def test_wait_fails(
         f"CommTask(id='{TASK_ID}', put='temperatureZone/1234567/heatSetpoint')"
         ": has failed"
     )
+    assert exc_info.value.reason is ApiCallErrorReason.COMM_TASK_FAILED

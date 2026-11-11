@@ -29,6 +29,7 @@ from .const import (
 )
 from .control_system import ControlSystem
 from .exceptions import (
+    ApiCallErrorReason,
     ApiCallFailedError,
     ApiCallRejectedError,
     ApiRateLimitExceededError,
@@ -41,6 +42,7 @@ from .exceptions import (
     ClientStateErrorReason,
     CommTaskFailedError,
     EvohomeError,
+    EvohomeErrorReason,
     GhostZoneError,
     InvalidConfigError,
     InvalidGetConfigError,
@@ -90,6 +92,7 @@ __all__ = [  # noqa: RUF022
     "ZoneModelType",
     "ZoneType",
     #
+    "ApiCallErrorReason",
     "ApiCallFailedError",
     "ApiCallRejectedError",
     "ApiRateLimitExceededError",
@@ -103,6 +106,7 @@ __all__ = [  # noqa: RUF022
     "ClientStateErrorReason",
     "CommTaskFailedError",
     "EvohomeError",
+    "EvohomeErrorReason",
     "GhostZoneError",
     "InvalidGetConfigError",
     "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)

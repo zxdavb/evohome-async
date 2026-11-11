@@ -132,25 +132,34 @@ aliases, which do not (yet) warn, as they are used by the HA integration: they a
 deprecated in v4.0. Do not use them in this library. `GhostZoneError` is also to be
 deprecated, in favour of the reason of an `InvalidGetConfigError`.
 
-Each `BadApiRequestError`, `BadApiResponseError` and `ClientStateError` (and each of
-their subclasses) that the library raises has a `reason` (a `RequestErrorReason`,
-`ResponseErrorReason` or `ClientStateErrorReason`), so that callers (e.g. HA) need not
-parse its message. Reasons are named `PARAM_PROBLEM` (e.g. `MODE_UNKNOWN`), and their
-values are prefixed `set_` (a request) or `get_` (a response), as are the errors' names,
-or `cfg_` (e.g. `set_mode_unknown`, `get_schedule_missing`, `cfg_location_no_tcs`):
-so every value is unique.
+Every error that the library raises (each `ApiCallFailedError`, `BadApiRequestError`,
+`BadApiResponseError` and `ClientStateError`, and each of their subclasses) has a
+`reason` (an `ApiCallErrorReason`, `RequestErrorReason`, `ResponseErrorReason` or
+`ClientStateErrorReason`), so that callers (e.g. HA) need not parse its message. Reasons
+are named `PARAM_PROBLEM` (e.g. `MODE_UNKNOWN`), and their values are prefixed `api_`
+(the call itself), `set_` (a request) or `get_` (a response), as are the errors' names,
+or `cfg_` (e.g. `api_rate_limited`, `set_mode_unknown`, `get_schedule_missing`,
+`cfg_location_no_tcs`): so every value is unique.
+An `ApiCallErrorReason` is the cause, and the class is its context: e.g. an
+`AuthenticationFailedError` may be `CONNECTION_FAILED`, as may any other call.
+`reason` and `details` are declared on `EvohomeError`, so a caller that catches only it
+can still use them; a bare `EvohomeError` (never raised by the library) has the reason
+`EvohomeErrorReason.ERROR_UNSPECIFIED` (`evo_error_unspecified`).
 Each also has `details`: only the structured values that its message may use as
 placeholders (e.g. for an `InvalidSetModeError`: `mode`, `timing_mode`, `state`,
-`max_duration`). The `reason` is optional only so that the error can still be raised
+`max_duration`), or, for an `ApiCallFailedError`, the vendor's error code (`code`, e.g.
+`DeviceIsLost`), if its response has one. The `reason` is optional only so that the error can still be raised
 with a bare message (e.g. by HA's tests): it is then the class's default (e.g.
 `STATUS_INVALID` for an `InvalidGetStatusError`, or a catch-all such as `MODE_INVALID`
 for an `InvalidSetModeError`), so is never `None`. The library itself always supplies
-the `reason`, even where it is the default.
+the `reason`, even where it is the default, except for an `ApiCallFailedError` (and its
+subclasses): that is given a `reason` only if it is not the class's default (e.g. not
+`RATE_LIMITED`, for an `ApiRateLimitExceededError`).
 
 The reasons' values are public API: renaming or removing one is a breaking change, but
 adding one is not. `tests/tests/test_error_reasons.py` checks that every raise site
-supplies a reason, that every reason is used, and that every value is unique (and
-prefixed). Add any new raise site of an `InvalidSetModeError` to
+supplies a reason (or, for an `ApiCallFailedError`, does not supply its default), that
+every reason is used, and that every value is unique (and prefixed). Add any new raise site of an `InvalidSetModeError` to
 `tests/tests/test_v2_mode_request_reasons.py`.
 
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library

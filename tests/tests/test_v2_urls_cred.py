@@ -129,6 +129,8 @@ async def test_bad1(  # bad credentials (client_id/secret)
             await ec2.setup()  # raises at its first API call
 
         assert err.value.status == HTTPStatus.BAD_REQUEST
+        assert err.value.reason is exc.ApiCallErrorReason.CREDENTIALS_INVALID
+        assert err.value.details == {"code": "invalid_grant"}  # the vendor's code
         assert caplog.record_tuples == [LOG_01, LOG_04, LOG_90]
         assert len(rsp.requests) == 1
 
@@ -164,6 +166,7 @@ async def test_bad2(  # bad access token
             await ec2.setup()  # raises at its first API call
 
         assert err.value.status is None  # Connection refused
+        assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
         assert caplog.record_tuples == [LOG_28, LOG_20, LOG_01, LOG_02, LOG_99]
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
@@ -202,6 +205,7 @@ async def test_bad3(  # bad credentials (refresh token)
             await ec2.setup()  # raises at its first API call
 
         assert err.value.status is None  # Connection refused
+        assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
         assert caplog.record_tuples == [LOG_01, LOG_02, LOG_03, LOG_04, LOG_99]
         assert len(rsp.requests) == 1
 
@@ -256,6 +260,8 @@ async def test_bad4(  # rate limit exceeded (authentication)
 
         assert err.value.status == HTTPStatus.TOO_MANY_REQUESTS
         assert err.value.retry_after == retry_after
+        assert err.value.reason is exc.ApiCallErrorReason.RATE_LIMITED
+        assert err.value.details == {"code": "attempt_limit_exceeded"}
         assert len(rsp.requests) == 1
 
     assert ec2._token_manager.is_token_valid() is False
@@ -292,6 +298,8 @@ async def test_bad5(  # rate limit exceeded (authorization)
 
         assert err.value.status == HTTPStatus.TOO_MANY_REQUESTS
         assert err.value.retry_after == retry_after
+        assert err.value.reason is exc.ApiCallErrorReason.RATE_LIMITED
+        assert err.value.details == {"code": "TooManyRequests"}
         assert len(rsp.requests) == 1
 
         # response 0: Too many requests (the access token is not rejected)
@@ -302,18 +310,38 @@ async def test_bad5(  # rate limit exceeded (authorization)
     ec2._token_manager.clear_access_token()  # is cached; don't leak to next test
 
 
+_REJECTED = exc.ApiCallErrorReason.REQUEST_REJECTED
+_UNAUTHORIZED = exc.ApiCallErrorReason.UNAUTHORIZED
+_5XX = exc.ApiCallErrorReason.SERVER_ERROR
+
+
 @pytest.mark.parametrize(
-    ("method", "status", "expected"),
+    ("method", "status", "expected", "reason"),
     [
-        (HTTPMethod.GET, HTTPStatus.BAD_REQUEST, exc.ApiCallRejectedError),
-        (HTTPMethod.GET, HTTPStatus.FORBIDDEN, exc.ApiCallRejectedError),
-        (HTTPMethod.GET, HTTPStatus.NOT_FOUND, exc.ApiCallRejectedError),
-        (HTTPMethod.GET, HTTPStatus.UNAUTHORIZED, exc.ApiCallFailedError),
-        (HTTPMethod.GET, HTTPStatus.INTERNAL_SERVER_ERROR, exc.ApiCallFailedError),
-        (HTTPMethod.PUT, HTTPStatus.BAD_REQUEST, exc.ApiCallRejectedError),
-        (HTTPMethod.PUT, HTTPStatus.NOT_FOUND, exc.ApiCallRejectedError),
-        (HTTPMethod.PUT, HTTPStatus.UNAUTHORIZED, exc.ApiCallFailedError),
-        (HTTPMethod.PUT, HTTPStatus.SERVICE_UNAVAILABLE, exc.ApiCallFailedError),
+        (HTTPMethod.GET, HTTPStatus.BAD_REQUEST, exc.ApiCallRejectedError, _REJECTED),
+        (HTTPMethod.GET, HTTPStatus.FORBIDDEN, exc.ApiCallRejectedError, _REJECTED),
+        (HTTPMethod.GET, HTTPStatus.NOT_FOUND, exc.ApiCallRejectedError, _REJECTED),
+        (
+            HTTPMethod.GET,
+            HTTPStatus.UNAUTHORIZED,
+            exc.ApiCallFailedError,
+            _UNAUTHORIZED,
+        ),
+        (
+            HTTPMethod.GET,
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            exc.ApiCallFailedError,
+            _5XX,
+        ),
+        (HTTPMethod.PUT, HTTPStatus.BAD_REQUEST, exc.ApiCallRejectedError, _REJECTED),
+        (HTTPMethod.PUT, HTTPStatus.NOT_FOUND, exc.ApiCallRejectedError, _REJECTED),
+        (
+            HTTPMethod.PUT,
+            HTTPStatus.UNAUTHORIZED,
+            exc.ApiCallFailedError,
+            _UNAUTHORIZED,
+        ),
+        (HTTPMethod.PUT, HTTPStatus.SERVICE_UNAVAILABLE, exc.ApiCallFailedError, _5XX),
     ],
     ids=lambda v: str(v.value) if isinstance(v, HTTPStatus) else None,
 )
@@ -322,8 +350,12 @@ async def test_rejected(  # the vendor rejects a request (a 4xx, but not a 401/4
     method: HTTPMethod,
     status: HTTPStatus,
     expected: type[exc.ApiCallFailedError],
+    reason: exc.ApiCallErrorReason,
 ) -> None:
-    """Test a 4xx (other than a 401/429) is an ApiCallRejectedError, GET or PUT."""
+    """Test a 4xx (other than a 401/429) is an ApiCallRejectedError, GET or PUT.
+
+    Also test the reason (by status), and that the vendor's error code is its details.
+    """
 
     # pre-requisite data (a valid access token)
     ec2._token_manager._access_token = _TEST_ACCESS_TOKEN
@@ -350,9 +382,64 @@ async def test_rejected(  # the vendor rejects a request (a 4xx, but not a 401/4
 
         assert type(err.value) is expected
         assert err.value.status == status
+        assert err.value.reason is reason
+        assert err.value.details == {"code": "SystemModeChangeTimeUntilNotSet"}
         assert len(rsp.requests) == 1
 
     ec2._token_manager.clear_access_token()  # is cached; don't leak to next test
+
+
+async def test_response_null(
+    ec2: EvohomeClient,
+) -> None:
+    """Test a response that is (JSON) null is an ApiCallFailedError.
+
+    Its reason is RESPONSE_NOT_JSON, as for a response that is not JSON at all (which
+    the mock cannot send, as its responses are always application/json).
+    """
+
+    # pre-requisite data (a valid access token)
+    ec2._token_manager._access_token = _TEST_ACCESS_TOKEN
+    ec2._token_manager._access_token_expires = dt.now(tz=UTC) + td(minutes=15)
+    ec2._token_manager._refresh_token = _TEST_REFRESH_TOKEN
+
+    try:
+        with aioresponses() as rsp:
+            rsp.get(f"{URL_BASE_V2}/userAccount", status=HTTPStatus.OK, payload=None)
+
+            with pytest.raises(exc.ApiCallFailedError) as err:
+                await ec2.auth.request(HTTPMethod.GET, "userAccount")
+
+        assert type(err.value) is exc.ApiCallFailedError
+        assert err.value.reason is exc.ApiCallErrorReason.RESPONSE_NOT_JSON
+        assert err.value.details == {}
+
+    finally:
+        ec2._token_manager.clear_access_token()  # is cached; don't leak to next test
+
+
+async def test_auth_response_invalid(
+    credentials: tuple[str, str],
+    ec2: EvohomeClient,
+) -> None:
+    """Test an auth response without an access token is AUTH_RESPONSE_INVALID."""
+
+    assert ec2._token_manager.is_token_valid() is False
+
+    with aioresponses() as rsp:
+        rsp.post(
+            URL_CRED_V2,
+            status=HTTPStatus.OK,
+            payload={"token_type": "bearer"},  # no access_token, etc.
+        )
+
+        with pytest.raises(exc.AuthenticationFailedError) as err:
+            await ec2.setup()  # raises at its first API call
+
+        assert type(err.value) is exc.AuthenticationFailedError
+        assert err.value.reason is exc.ApiCallErrorReason.AUTH_RESPONSE_INVALID
+
+    assert ec2._token_manager.is_token_valid() is False
 
 
 async def test_good(  # good credentials
@@ -384,6 +471,7 @@ async def test_good(  # good credentials
             await ec2.setup()  # raises at its first API call
 
         assert err.value.status is None  # Connection refused
+        assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
         assert caplog.record_tuples == [LOG_29]
         assert len(rsp.requests) == 2  # noqa: PLR2004
 

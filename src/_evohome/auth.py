@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt
 from email.utils import parsedate_to_datetime
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import aiohttp
 import probatio as vol
@@ -16,7 +16,7 @@ from aiohttp import hdrs
 
 from . import exceptions as exc
 from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME, ContentType
-from .exceptions import ResponseErrorReason
+from .exceptions import ApiCallErrorReason, ResponseErrorReason
 from .helpers import (
     convert_dtms_to_utc_str,
     convert_keys_to_camel_case,
@@ -26,6 +26,21 @@ from .helpers import (
 )
 
 type _TccResponse = dict[str, Any] | list[dict[str, Any]]
+
+# the keys of the vendor's error code: e.g. [{"code": "DeviceIsLost", ...}] (a request),
+# or {"error": "invalid_grant", ...} (an OAuth token request)
+_SZ_CODE: Final = "code"
+_SZ_ERROR: Final = "error"
+
+
+class _ApiCallDetails(TypedDict, total=False):
+    """The details of an ApiCallFailedError (as a TypedDict, so it is precisely typed).
+
+    So that `**details` cannot be mistaken (e.g. by mypy) for another keyword argument
+    of the exception, such as `reason`.
+    """
+
+    code: str  # the vendor's error code (if any), e.g. "DeviceIsLost"
 
 
 if TYPE_CHECKING:
@@ -53,6 +68,49 @@ async def _payload(rsp: aiohttp.ClientResponse | None) -> str:
         return "<no response>"
 
 
+def _details_of(details: Mapping[str, str]) -> _ApiCallDetails:
+    """Return the details of an ApiCallFailedError (e.g. to pass on to another one)."""
+    return {_SZ_CODE: details[_SZ_CODE]} if _SZ_CODE in details else {}
+
+
+async def _details(rsp: aiohttp.ClientResponse | None) -> _ApiCallDetails:
+    """Return the details of an error response: its vendor's error code (if any).
+
+    The response's body must have already been read (so there is no further I/O).
+    """
+
+    if rsp is None or rsp.content_type != ContentType.JSON:
+        return {}
+
+    try:
+        body = await rsp.json()
+    except (aiohttp.ClientError, json.JSONDecodeError):
+        return {}
+
+    if isinstance(body, list) and body and isinstance(body[0], dict):
+        code = body[0].get(_SZ_CODE)
+    elif isinstance(body, dict):
+        code = body.get(_SZ_CODE, body.get(_SZ_ERROR))
+    else:
+        code = None
+
+    return {_SZ_CODE: code} if isinstance(code, str) else {}  # i.e. _ApiCallDetails
+
+
+def _reason(status: int) -> ApiCallErrorReason:
+    """Return the reason for a response that has an HTTP error status."""
+
+    if status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
+        return ApiCallErrorReason.RATE_LIMITED
+    if status == HTTPStatus.UNAUTHORIZED:  # 401
+        return ApiCallErrorReason.UNAUTHORIZED
+    if HTTPStatus.BAD_REQUEST <= status < HTTPStatus.INTERNAL_SERVER_ERROR:  # a 4xx
+        return ApiCallErrorReason.REQUEST_REJECTED
+    if status >= HTTPStatus.INTERNAL_SERVER_ERROR:  # a 5xx
+        return ApiCallErrorReason.SERVER_ERROR
+    return ApiCallErrorReason.CALL_FAILED
+
+
 def _retry_after(r: aiohttp.ClientResponse | None) -> float | None:
     """Return the period of a response's Retry-After header, in seconds (if any)."""
 
@@ -73,7 +131,10 @@ def _retry_after(r: aiohttp.ClientResponse | None) -> float | None:
 
 
 def _api_call_failed(
-    message: str, status: int, r: aiohttp.ClientResponse | None
+    message: str,
+    status: int,
+    r: aiohttp.ClientResponse | None,
+    details: _ApiCallDetails,
 ) -> exc.ApiCallFailedError:
     """Return the exception for a response that has an HTTP error status.
 
@@ -82,14 +143,15 @@ def _api_call_failed(
     A 401 is left to higher layers (see AbstractAuth.request()).
     """
 
-    if status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
-        return exc.ApiRateLimitExceededError(message, retry_after=_retry_after(r))
-    if (
-        HTTPStatus.BAD_REQUEST <= status < HTTPStatus.INTERNAL_SERVER_ERROR  # a 4xx
-        and status != HTTPStatus.UNAUTHORIZED  # 401
-    ):
-        return exc.ApiCallRejectedError(message, status=status)
-    return exc.ApiCallFailedError(message, status=status)
+    reason = _reason(status)
+
+    if reason is ApiCallErrorReason.RATE_LIMITED:  # 429 (the class's default reason)
+        return exc.ApiRateLimitExceededError(
+            message, status, retry_after=_retry_after(r), **details
+        )
+    if reason is ApiCallErrorReason.REQUEST_REJECTED:  # (the class's default reason)
+        return exc.ApiCallRejectedError(message, status=status, **details)
+    return exc.ApiCallFailedError(message, status=status, reason=reason, **details)
 
 
 class AbstractAuth(ABC):
@@ -238,17 +300,22 @@ class AbstractAuth(ABC):
             # can't assert content_length != 0 with aioresponses, so skip that check
             if rsp.content_type != ContentType.JSON:  # usu. "text/plain", "text/html"
                 raise exc.ApiCallFailedError(
-                    f"{method} {url}: response is not JSON: {await _payload(rsp)}"
+                    f"{method} {url}: response is not JSON: {await _payload(rsp)}",
+                    reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
                 )
 
             raw = await rsp.json()
             if raw is None:  # an unanticipated edge-case
-                raise exc.ApiCallFailedError(f"{method} {url}: response is null")
+                raise exc.ApiCallFailedError(
+                    f"{method} {url}: response is null",
+                    reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
+                )
             response: _TccResponse = raw
 
         except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
             raise exc.ApiCallFailedError(
-                f"{method} {url}: response is not valid JSON: {await _payload(rsp)}"
+                f"{method} {url}: response is not valid JSON: {await _payload(rsp)}",
+                reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
             ) from err
 
         # An invalid access_token / session_id will cause a 401 and we'd need to
@@ -264,13 +331,16 @@ class AbstractAuth(ABC):
             if rsp:
                 msg += f", response={await _payload(rsp)}"
 
-            raise _api_call_failed(f"{method} {url}: {msg}", err.status, rsp) from err
+            raise _api_call_failed(
+                f"{method} {url}: {msg}", err.status, rsp, await _details(rsp)
+            ) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
             self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
 
             raise exc.ApiCallFailedError(
                 f"{method} {url}: {err}",
+                reason=ApiCallErrorReason.CONNECTION_FAILED,
             ) from err
 
         else:

@@ -10,13 +10,14 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import probatio as vol
 
-from _evohome.auth import AbstractAuth
+from _evohome.auth import AbstractAuth, _details_of
 from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
 from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
 from .const import SZ_LATEST_EULA_ACCEPTED, URL_BASE, URL_CRED
+from .exceptions import ApiCallErrorReason
 from .schemas import (
     S1_APPLICATION_ID,
     S1_PASSWORD,
@@ -157,7 +158,11 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
             if TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT not in err.message:
                 raise
             self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
-            raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
+            raise exc.BadUserCredentialsError(
+                f"{err}",
+                status=err.status,
+                **_details_of(err.details),  # e.g. the vendor's error code
+            ) from err
 
         self._was_authenticated = True
 
@@ -197,7 +202,8 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {response}: {err.__class__.__name__}: {err}"
+                f"Authenticator response is invalid: {response}: {err.__class__.__name__}: {err}",
+                reason=ApiCallErrorReason.AUTH_RESPONSE_INVALID,
             ) from err
 
         self._was_authenticated = True  # i.e. the credentials are valid
