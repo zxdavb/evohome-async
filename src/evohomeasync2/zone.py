@@ -158,7 +158,7 @@ class _TccModeMixin:
             )
         return until
 
-    def _validate_requested_timespan(
+    def _validate_requested_timespan(  # noqa: C901
         self,
         mode: SystemMode | ZoneMode,
         mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
@@ -180,143 +180,139 @@ class _TccModeMixin:
         a warning, as the controller extends it to the coming midnight.
         """
 
-        if length is None:
-            self._check_can_be_permanent(mode, mode_entry)
-            return None
+        def check_can_be_permanent(
+            mode: SystemMode | ZoneMode,
+            mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
+            /,
+        ) -> None:
+            """Raise if the mode cannot be permanent (i.e. it requires a timespan)."""
 
-        self._check_timing_mode(mode, mode_entry, timing_mode, length)
-        until = self._when_timespan_ends(mode, timing_mode, length)
-        self._log_if_out_of_spec(mode, mode_entry, timing_mode, length)
+            if not mode_entry[SZ_CAN_BE_PERMANENT]:
+                raise exc.InvalidSetModeError(
+                    f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be given",
+                    reason=RequestErrorReason.TIMESPAN_REQUIRED,
+                    mode=mode,
+                    timing_mode=mode_entry[SZ_TIMING_MODE],
+                )
 
-        return until
+        def check_timing_mode(
+            mode: SystemMode | ZoneMode,
+            mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
+            timing_mode: TimingMode,
+            length: td,
+            /,
+        ) -> None:
+            """Raise if the timing_mode is not the one that the mode's entry expects.
 
-    def _check_can_be_permanent(
-        self,
-        mode: SystemMode | ZoneMode,
-        mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
-        /,
-    ) -> None:
-        """Raise if the mode cannot be permanent (i.e. it requires a timespan)."""
+            An entry without a timing_mode takes no duration/period at all (it can only be
+            permanent, or it takes only an until).
+            """
 
-        if not mode_entry[SZ_CAN_BE_PERMANENT]:
+            if timing_mode is (expected := mode_entry.get(SZ_TIMING_MODE)):
+                return
+
+            if expected is None:
+                raise exc.InvalidSetModeError(
+                    f"{self}: For {mode}, {timing_mode} must be None, not '{length}'",
+                    reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
+                    mode=mode,
+                    timespan=timing_mode,
+                )
             raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be given",
-                reason=RequestErrorReason.TIMESPAN_REQUIRED,
+                f"{self}: For {mode}, {timing_mode} must be None (use {expected}), "
+                f"not '{length}'",
+                reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
                 mode=mode,
-                timing_mode=mode_entry[SZ_TIMING_MODE],
-            )
-
-    def _check_timing_mode(
-        self,
-        mode: SystemMode | ZoneMode,
-        mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
-        timing_mode: TimingMode,
-        length: td,
-        /,
-    ) -> None:
-        """Raise if the timing_mode is not the one that the mode's entry expects.
-
-        An entry without a timing_mode takes no duration/period at all (it can only be
-        permanent, or it takes only an until).
-        """
-
-        if timing_mode is (expected := mode_entry.get(SZ_TIMING_MODE)):
-            return
-
-        if expected is None:
-            raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, {timing_mode} must be None, not '{length}'",
-                reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
-                mode=mode,
+                timing_mode=expected,
                 timespan=timing_mode,
             )
-        raise exc.InvalidSetModeError(
-            f"{self}: For {mode}, {timing_mode} must be None (use {expected}), "
-            f"not '{length}'",
-            reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
-            mode=mode,
-            timing_mode=expected,
-            timespan=timing_mode,
-        )
 
-    def _when_timespan_ends(
-        self,
-        mode: SystemMode | ZoneMode,
-        timing_mode: TimingMode,
-        length: td,
-        /,
-    ) -> dt:
-        """Return when a duration/period ends, if it is in the future (else raise)."""
+        def when_timespan_ends(
+            mode: SystemMode | ZoneMode,
+            timing_mode: TimingMode,
+            length: td,
+            /,
+        ) -> dt:
+            """Return when a duration/period ends, if it is in the future (else raise)."""
 
-        now = self.location.now()
+            now = self.location.now()
 
-        if timing_mode is TimingMode.PERIOD:
-            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
-            start = now.astimezone(UTC)
+            if timing_mode is TimingMode.PERIOD:
+                start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
+                start = now.astimezone(UTC)
 
-        try:  # a huge length (e.g. td.max) overflows a datetime
-            until = start + length
-            has_ended = until.astimezone(UTC) <= now.astimezone(UTC)
-        except OverflowError as err:
-            raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, {timing_mode} is out of range: '{length}'",
-                reason=RequestErrorReason.TIMESPAN_OUT_OF_RANGE,
-                mode=mode,
-                timing_mode=timing_mode,
-            ) from err
+            try:  # a huge length (e.g. td.max) overflows a datetime
+                until = start + length
+                has_ended = until.astimezone(UTC) <= now.astimezone(UTC)
+            except OverflowError as err:
+                raise exc.InvalidSetModeError(
+                    f"{self}: For {mode}, {timing_mode} is out of range: '{length}'",
+                    reason=RequestErrorReason.TIMESPAN_OUT_OF_RANGE,
+                    mode=mode,
+                    timing_mode=timing_mode,
+                ) from err
 
-        # the vendor accepts an until in the past, but the controller ignores it (the
-        # instants are compared, as a period's until is in local time: see above)
-        if has_ended:
-            raise exc.InvalidSetModeError(
-                f"{self}: For {mode}, {timing_mode} must end in the future, "
-                f"not '{length}' (it would end at {until})",
-                reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
-                mode=mode,
-            )
+            # the vendor accepts an until in the past, but the controller ignores it (the
+            # instants are compared, as a period's until is in local time: see above)
+            if has_ended:
+                raise exc.InvalidSetModeError(
+                    f"{self}: For {mode}, {timing_mode} must end in the future, "
+                    f"not '{length}' (it would end at {until})",
+                    reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
+                    mode=mode,
+                )
+
+            return until
+
+        def log_if_out_of_spec(
+            mode: SystemMode | ZoneMode,
+            mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
+            timing_mode: TimingMode,
+            length: td,
+            /,
+        ) -> None:
+            """Log (but do not raise) if a duration/period is not as its entry expects.
+
+            That is, if a period is less than one day (as a warning, as the controller will
+            extend it), or if it is not a (positive) multiple of the timing_resolution, or it
+            exceeds the max_duration (as debug, as the controller honours it). A zero
+            timing_resolution has no multiples, so that check is left to the vendor.
+            """
+
+            logger = self.location.client.logger
+
+            if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
+                logger.warning(
+                    f"{self}: For {mode}, {timing_mode} should be at least one day, not "
+                    f"'{length}' (the controller will extend it to the coming midnight)"
+                )
+
+            # vendor TimeSpans, e.g. "1.00:00:00"
+            max_duration = mode_entry[SZ_MAX_DURATION]
+            timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
+
+            maximum = as_timedelta(max_duration)
+            resolution = as_timedelta(timing_resolution)
+
+            if not (
+                td(0) < length <= maximum
+                and (not resolution or not length % resolution)
+            ):
+                logger.debug(
+                    f"{self}: For {mode}, {timing_mode} should be a multiple of "
+                    f"'{timing_resolution}', and at most '{max_duration}', not '{length}'"
+                )
+
+        if length is None:
+            check_can_be_permanent(mode, mode_entry)
+            return None
+
+        check_timing_mode(mode, mode_entry, timing_mode, length)
+        until = when_timespan_ends(mode, timing_mode, length)
+        log_if_out_of_spec(mode, mode_entry, timing_mode, length)
 
         return until
-
-    def _log_if_out_of_spec(
-        self,
-        mode: SystemMode | ZoneMode,
-        mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
-        timing_mode: TimingMode,
-        length: td,
-        /,
-    ) -> None:
-        """Log (but do not raise) if a duration/period is not as its entry expects.
-
-        That is, if a period is less than one day (as a warning, as the controller will
-        extend it), or if it is not a (positive) multiple of the timing_resolution, or it
-        exceeds the max_duration (as debug, as the controller honours it). A zero
-        timing_resolution has no multiples, so that check is left to the vendor.
-        """
-
-        logger = self.location.client.logger
-
-        if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
-            logger.warning(
-                f"{self}: For {mode}, {timing_mode} should be at least one day, not "
-                f"'{length}' (the controller will extend it to the coming midnight)"
-            )
-
-        max_duration = mode_entry[
-            SZ_MAX_DURATION
-        ]  # vendor TimeSpans, e.g. "1.00:00:00"
-        timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
-
-        maximum = as_timedelta(max_duration)
-        resolution = as_timedelta(timing_resolution)
-
-        if not (
-            td(0) < length <= maximum and (not resolution or not length % resolution)
-        ):
-            logger.debug(
-                f"{self}: For {mode}, {timing_mode} should be a multiple of "
-                f"'{timing_resolution}', and at most '{max_duration}', not '{length}'"
-            )
 
 
 class EntityBase[StatusT]:
