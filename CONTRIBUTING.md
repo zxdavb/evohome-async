@@ -142,7 +142,10 @@ so every value is unique.
 Each also has `details`: only the structured values that its message may use as
 placeholders (e.g. for an `InvalidSetModeError`: `mode`, `timing_mode`, `state`,
 `max_duration`). The `reason` is optional only so that the error can still be raised
-with a bare message (e.g. by HA's tests).
+with a bare message (e.g. by HA's tests): it is then the class's default (e.g.
+`STATUS_INVALID` for an `InvalidGetStatusError`, or a catch-all such as `MODE_INVALID`
+for an `InvalidSetModeError`), so is never `None`. The library itself always supplies
+the `reason`, even where it is the default.
 
 The reasons' values are public API: renaming or removing one is a breaking change, but
 adding one is not. `tests/tests/test_error_reasons.py` checks that every raise site

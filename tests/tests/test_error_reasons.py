@@ -10,6 +10,7 @@ from __future__ import annotations
 import ast
 from functools import cache
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -20,6 +21,9 @@ from _evohome.exceptions import (
     RequestErrorReason,
     ResponseErrorReason,
 )
+
+if TYPE_CHECKING:
+    from enum import StrEnum
 
 _SRC = Path(_evohome.__file__).parent.parent  # incl. evohomeasync, evohomeasync2
 
@@ -119,14 +123,48 @@ def test_reasons_are_prefixed() -> None:
     assert all(r.value == f"cfg_{r.name.lower()}" for r in ClientStateErrorReason)
 
 
+# the default reason of each error (used if it is raised with only a message)
+_DEFAULT_REASONS: dict[type[exc.EvohomeError], StrEnum] = {
+    exc.BadApiRequestError: RequestErrorReason.REQUEST_INVALID,
+    exc.InvalidSetModeError: RequestErrorReason.MODE_INVALID,
+    exc.InvalidSetScheduleError: RequestErrorReason.SCHEDULE_INVALID,
+    exc.BadApiResponseError: ResponseErrorReason.RESPONSE_INVALID,
+    exc.InvalidGetConfigError: ResponseErrorReason.CONFIG_INVALID,
+    exc.GhostZoneError: ResponseErrorReason.ZONE_INVALID,
+    exc.InvalidGetStatusError: ResponseErrorReason.STATUS_INVALID,
+    exc.InvalidGetScheduleError: ResponseErrorReason.SCHEDULE_INVALID,
+    exc.ClientStateError: ClientStateErrorReason.CONFIG_INVALID,
+    exc.NotFetchedError: ClientStateErrorReason.CONFIG_NOT_FETCHED,
+    exc.StaleConfigError: ClientStateErrorReason.CONFIG_STALE,
+}
+
+
+def test_every_error_has_a_default_reason() -> None:
+    """Test every error (that has a reason) is listed above, with its default."""
+    assert set(_DEFAULT_REASONS) == set(_CLASSES)
+
+
 @pytest.mark.parametrize("cls", _CLASSES, ids=lambda c: c.__name__)
 def test_error_without_a_reason(
     cls: type[exc.BadApiRequestError | exc.BadApiResponseError | exc.ClientStateError],
 ) -> None:
-    """Test each error can still be raised with only a message (as before reasons)."""
+    """Test each error can still be raised with only a message (as before reasons).
+
+    Its reason is then its class's default, so is never None.
+    """
 
     err = cls("a message")  # e.g. as HA's tests do
 
     assert err.message == "a message"
-    assert err.reason is None
+    assert err.reason is _DEFAULT_REASONS[cls]
     assert err.details == {}
+
+
+def test_error_with_a_reason() -> None:
+    """Test a reason, if given, is used rather than the class's default."""
+
+    err = exc.InvalidGetConfigError(
+        "a message", reason=ResponseErrorReason.ACCOUNT_INVALID
+    )
+
+    assert err.reason is ResponseErrorReason.ACCOUNT_INVALID

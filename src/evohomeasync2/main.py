@@ -109,12 +109,7 @@ class EvohomeClient:
             self._location_by_id = None
 
         if self._user_locs is None:
-            try:
-                await self._get_config()
-            except exc.BadApiResponseError as err:  # e.g. failed validation
-                raise exc.InvalidGetConfigError(
-                    err.message, reason=ResponseErrorReason.CONFIG_INVALID
-                ) from err
+            await self._get_config()
 
     @deprecated(
         "EvohomeClient.update() is deprecated: use .setup(), then Location.get_status()"
@@ -213,27 +208,33 @@ class EvohomeClient:
         """Ensures the config of the user and their locations.
 
         If required, first retrieves the user information & installation configuration.
+
+        A response that is not as expected is an InvalidGetConfigError.
         """
 
         if not self._tzinfo_initialized:
             await self._async_init_tzinfo()
 
         if self._user_info is None:  # will handle access_token rejection
-            self._user_info = await self._get_user_account()
-
-        if self._user_locs is None:
             try:
-                user_id = self._user_info[SZ_USER_ID]
-            except (KeyError, TypeError) as err:
-                raise exc.BadApiResponseError(
-                    f"No user_id in user_info dict. Received: {self._user_info}",
-                    reason=ResponseErrorReason.ACCOUNT_INVALID,
+                self._user_info = await self._get_user_account()
+            except exc.BadApiResponseError as err:  # e.g. failed validation
+                raise exc.InvalidGetConfigError(
+                    err.message, reason=ResponseErrorReason.ACCOUNT_INVALID
                 ) from err
 
-            self._user_locs = await self.auth.get(
-                URL_USR_LOCATIONS.format(user_id=user_id),
-                schema=SCH_USR_LOCATIONS,
-            )
+        if self._user_locs is None:
+            user_id = self._user_info[SZ_USER_ID]  # its schema requires a user_id
+
+            try:
+                self._user_locs = await self.auth.get(
+                    URL_USR_LOCATIONS.format(user_id=user_id),
+                    schema=SCH_USR_LOCATIONS,
+                )
+            except exc.BadApiResponseError as err:  # e.g. failed validation
+                raise exc.InvalidGetConfigError(
+                    err.message, reason=ResponseErrorReason.CONFIG_INVALID
+                ) from err
 
             assert self._user_locs is not None  # mypy
 

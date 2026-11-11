@@ -101,16 +101,7 @@ class EvohomeClient:
 
         self._user_locs = None  # the locations (config & status) are always re-fetched
 
-        try:
-            user_locs = await self._get_config()
-        except exc.BadApiResponseError as err:  # e.g. failed validation
-            if self._locations is None:  # the entities are yet to be instantiated
-                raise exc.InvalidGetConfigError(
-                    err.message, reason=ResponseErrorReason.CONFIG_INVALID
-                ) from err
-            raise exc.InvalidGetStatusError(
-                err.message, reason=ResponseErrorReason.STATUS_INVALID
-            ) from err
+        user_locs = await self._get_config()
 
         assert self._location_by_id is not None  # mypy
 
@@ -185,64 +176,79 @@ class EvohomeClient:
             self._logger.warning(msg)
         self._stale_config = msg
 
+    async def _get_account_info(self) -> EvoUserAccountInfoDictT:
+        """Get the user's account info, re-authenticating if the session_id is rejected."""
+
+        # if valid, auth.get() sends this id (without yielding), else it fetches another
+        session_id = (
+            self._session_manager.session_id
+            if self._session_manager.is_session_valid()
+            else None
+        )
+
+        try:
+            return await self.auth.get(
+                URL_ACCOUNT_INFO,
+                schema=SCH_GET_ACCOUNT_INFO,
+            )
+
+        except exc.AuthenticationFailedError:  # unable to get a session_id
+            raise
+
+        except exc.ApiCallFailedError as err:  # check if 401 - bad session_id
+            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
+                raise
+
+            # as the accountInfo URL is open to all authenticated users, any 401 is
+            # due the (albeit valid) session_id being rejected by the server
+
+            self._logger.warning(
+                f"The session_id has been rejected (will re-authenticate): {err}"
+            )
+
+            # another task may have since refreshed it, so don't clear the new one
+            if session_id is None or self._session_manager.session_id == session_id:
+                self._session_manager.clear_session_id()
+
+            return await self.auth.get(
+                URL_ACCOUNT_INFO,
+                schema=SCH_GET_ACCOUNT_INFO,
+            )
+
     async def _get_config(self) -> list[EvoTcsInfoDictT]:
         """Ensures the config of the user and their locations.
 
         If required, first retrieves the user information & installation configuration.
+
+        In v1, the config and status of the locations are one GET, so a response that is
+        not as expected is an InvalidGetConfigError until the locations have been
+        instantiated, and an InvalidGetStatusError thereafter.
         """
 
         if self._user_info is None:  # will handle session_id rejection
-            # if valid, auth.get() sends this id (without yielding), else it fetches another
-            session_id = (
-                self._session_manager.session_id
-                if self._session_manager.is_session_valid()
-                else None
-            )
-
             try:
-                self._user_info = await self.auth.get(
-                    URL_ACCOUNT_INFO,
-                    schema=SCH_GET_ACCOUNT_INFO,
-                )
-
-            except exc.AuthenticationFailedError:  # unable to get a session_id
-                raise
-
-            except exc.ApiCallFailedError as err:  # check if 401 - bad session_id
-                if err.status != HTTPStatus.UNAUTHORIZED:  # 401
-                    raise
-
-                # as the accountInfo URL is open to all authenticated users, any 401 is
-                # due the (albeit valid) session_id being rejected by the server
-
-                self._logger.warning(
-                    f"The session_id has been rejected (will re-authenticate): {err}"
-                )
-
-                # another task may have since refreshed it, so don't clear the new one
-                if session_id is None or self._session_manager.session_id == session_id:
-                    self._session_manager.clear_session_id()
-
-                self._user_info = await self.auth.get(
-                    URL_ACCOUNT_INFO,
-                    schema=SCH_GET_ACCOUNT_INFO,
-                )
-
-            assert self._user_info is not None  # mypy
-
-        if self._user_locs is None:
-            try:
-                user_id = self._user_info[SZ_USER_ID]
-            except (KeyError, TypeError) as err:
-                raise exc.BadApiResponseError(
-                    f"No user_id in user_info dict. Received: {self._user_info}",
-                    reason=ResponseErrorReason.ACCOUNT_INVALID,
+                self._user_info = await self._get_account_info()
+            except exc.BadApiResponseError as err:  # e.g. failed validation
+                raise exc.InvalidGetConfigError(
+                    err.message, reason=ResponseErrorReason.ACCOUNT_INVALID
                 ) from err
 
-            self._user_locs = await self.auth.get(
-                URL_LOCATIONS.format(user_id=user_id),
-                schema=SCH_GET_ACCOUNT_LOCS,
-            )
+        if self._user_locs is None:
+            user_id = self._user_info[SZ_USER_ID]  # its schema requires a user_id
+
+            try:
+                self._user_locs = await self.auth.get(
+                    URL_LOCATIONS.format(user_id=user_id),
+                    schema=SCH_GET_ACCOUNT_LOCS,
+                )
+            except exc.BadApiResponseError as err:  # e.g. failed validation
+                if self._locations is None:  # this GET is (also) the config
+                    raise exc.InvalidGetConfigError(
+                        err.message, reason=ResponseErrorReason.CONFIG_INVALID
+                    ) from err
+                raise exc.InvalidGetStatusError(
+                    err.message, reason=ResponseErrorReason.STATUS_INVALID
+                ) from err
 
             assert self._user_locs is not None  # mypy
 

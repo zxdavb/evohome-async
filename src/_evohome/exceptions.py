@@ -32,7 +32,7 @@ from __future__ import annotations
 import warnings
 from enum import EnumCheck, StrEnum, verify
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, ClassVar, Final
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Collection
@@ -141,26 +141,34 @@ class ResponseErrorReason(StrEnum):
     """
 
     RESPONSE_INVALID = "get_response_invalid"  # it failed validation (a GET)
-    ACCOUNT_INVALID = "get_account_invalid"  # e.g. it has no user_id
-    CONFIG_INVALID = "get_config_invalid"  # it failed validation
-    MODEL_TYPE_UNKNOWN = "get_model_type_unknown"  # of a zone (a ghost zone?)
-    ZONE_TYPE_UNKNOWN = "get_zone_type_unknown"  # of a zone (a ghost zone?)
-    STATUS_INVALID = "get_status_invalid"  # it failed validation
-    SCHEDULE_INVALID = "get_schedule_invalid"  # it failed validation
-    SCHEDULE_MISSING = "get_schedule_missing"  # e.g. it is empty
-    SWITCHPOINTS_MISSING = "get_switchpoints_missing"  # e.g. for a day
+
+    ACCOUNT_INVALID = "get_account_invalid"  # it failed validation (e.g. no user_id)
     COMM_TASK_INVALID = "get_comm_task_invalid"  # a PUT's response
     COMM_TASK_MISMATCHED = "get_comm_task_mismatched"  # a GET's response
+    CONFIG_INVALID = "get_config_invalid"  # it failed validation
+    SCHEDULE_INVALID = "get_schedule_invalid"  # it failed validation
+    SCHEDULE_MISSING = "get_schedule_missing"  # e.g. it is empty
+    STATUS_INVALID = "get_status_invalid"  # it failed validation
+    SWITCHPOINTS_MISSING = "get_switchpoints_missing"  # e.g. for a day
     TIMESPAN_INVALID = "get_timespan_invalid"  # e.g. of a max_duration
+    ZONE_INVALID = "get_zone_invalid"  # a catch-all for invalid zones
+    ZONE_MODEL_UNKNOWN = "get_zone_model_unknown"  # of a zone (a ghost zone?)
+    ZONE_TYPE_UNKNOWN = "get_zone_type_unknown"  # of a zone (a ghost zone?)
 
 
 class BadApiResponseError(EvohomeError):  # a base exception
     """The received JSON is not as expected (e.g. missing a required key).
 
     The `reason` attr says why (see ResponseErrorReason), so that callers need not
-    parse the message. This library always supplies a reason, but it is optional (so
-    the reason may be None), so that it can still be raised with only a message.
+    parse the message. This library always supplies a reason, but it is optional, so
+    that the error can still be raised with only a message: then its reason is the
+    class's default (e.g. STATUS_INVALID, for an InvalidGetStatusError), so is never
+    None.
     """
+
+    _default_reason: ClassVar[ResponseErrorReason] = (
+        ResponseErrorReason.RESPONSE_INVALID
+    )
 
     def __init__(
         self,
@@ -170,25 +178,31 @@ class BadApiResponseError(EvohomeError):  # a base exception
         **details: str,
     ) -> None:
         super().__init__(message)
-        self.reason = reason
+        self.reason = reason or self._default_reason  # never None
         self.details: dict[str, str] = details
 
 
 class InvalidGetConfigError(BadApiResponseError):  # config/account JSON is invalid
     """The account/config JSON is not as expected (e.g. an unknown TCS model type)."""
 
+    _default_reason: ClassVar[ResponseErrorReason] = ResponseErrorReason.CONFIG_INVALID
+
 
 # TODO: deprecate in v4.0, in favour of the reason of an InvalidGetConfigError
 class GhostZoneError(InvalidGetConfigError):  # the zone will be ignored
     """The config JSON of a zone has no model type or zone type (is it a ghost zone?).
 
-    Its reason is MODEL_TYPE_UNKNOWN or ZONE_TYPE_UNKNOWN: check the reason of an
-    InvalidGetConfigError instead, as this subclass is to be deprecated.
+    Its reason is usually ZONE_MODEL_UNKNOWN or ZONE_TYPE_UNKNOWN: check the reason
+    of an InvalidGetConfigError instead, as this subclass is to be deprecated.
     """
+
+    _default_reason: ClassVar[ResponseErrorReason] = ResponseErrorReason.ZONE_INVALID
 
 
 class InvalidGetStatusError(BadApiResponseError):  # status JSON is invalid
     """The status JSON is not as expected (e.g. an unknown fault type)."""
+
+    _default_reason: ClassVar[ResponseErrorReason] = ResponseErrorReason.STATUS_INVALID
 
 
 class InvalidGetScheduleError(BadApiResponseError):  # schedule JSON is invalid/missing
@@ -197,6 +211,10 @@ class InvalidGetScheduleError(BadApiResponseError):  # schedule JSON is invalid/
     This is a schedule from the vendor (e.g. via get_schedule()): see
     InvalidSetScheduleError for a schedule supplied by the caller.
     """
+
+    _default_reason: ClassVar[ResponseErrorReason] = (
+        ResponseErrorReason.SCHEDULE_INVALID
+    )
 
 
 # 3. Request failures: the supplied arguments are unusable (e.g. an unsupported zone
@@ -213,7 +231,10 @@ class RequestErrorReason(StrEnum):
     set_, so that they are unique (e.g. MODE_UNKNOWN = set_mode_unknown).
     """
 
+    REQUEST_INVALID = "set_request_invalid"  # a generic catch-all
+
     # the mode of a TCS/zone/DHW (see InvalidSetModeError)
+    MODE_INVALID = "set_mode_invalid"  # a generic catch-all for invalid modes
     MODE_UNKNOWN = "set_mode_unknown"  # the mode is not a valid enum value
     MODE_UNSUPPORTED = "set_mode_unsupported"  # the mode is not among the allowed modes
     TIMESPAN_REQUIRED = "set_timespan_required"  # the mode cannot be permanent
@@ -245,9 +266,12 @@ class BadApiRequestError(EvohomeError):  # a base exception
     the message. The `details` attr holds only the structured values that apply to the
     reason, for use as the placeholders of a (translated) message (see the subclasses).
 
-    This library always supplies a reason, but it is optional (so the reason may be
-    None), so that it can still be raised with only a message (e.g. by a test double).
+    This library always supplies a reason, but it is optional, so that the error can
+    still be raised with only a message (e.g. by a test double): then its reason is the
+    class's default (e.g. MODE_INVALID, for an InvalidSetModeError), so is never None.
     """
+
+    _default_reason: ClassVar[RequestErrorReason] = RequestErrorReason.REQUEST_INVALID
 
     def __init__(
         self,
@@ -257,7 +281,7 @@ class BadApiRequestError(EvohomeError):  # a base exception
         **details: str,
     ) -> None:
         super().__init__(message)
-        self.reason = reason
+        self.reason = reason or self._default_reason  # never None
         self.details: dict[str, str] = details
 
 
@@ -274,6 +298,8 @@ class InvalidSetModeError(BadApiRequestError):  # failed to set a TCS/zone/DHW m
     so a message for a reason may only use the placeholders that its reason supplies.
     """
 
+    _default_reason: ClassVar[RequestErrorReason] = RequestErrorReason.MODE_INVALID
+
 
 class InvalidSetScheduleError(BadApiRequestError):  # failed to set a schedule
     """The supplied schedule JSON is not supported / is invalid.
@@ -281,6 +307,8 @@ class InvalidSetScheduleError(BadApiRequestError):  # failed to set a schedule
     This is a schedule supplied by the caller (e.g. via set_schedule()): see
     InvalidGetScheduleError for a schedule from the vendor.
     """
+
+    _default_reason: ClassVar[RequestErrorReason] = RequestErrorReason.SCHEDULE_INVALID
 
 
 # 4. State failures: the client does not hold the data needed to answer (after/without
@@ -297,9 +325,9 @@ class ClientStateErrorReason(StrEnum):
     cfg_, so that they are unique (e.g. LOCATION_NO_TCS = cfg_location_no_tcs).
     """
 
+    CONFIG_INVALID = "cfg_config_invalid"  # a catch-all for config problems
+
     CONFIG_NOT_FETCHED = "cfg_config_not_fetched"  # call setup()
-    STATUS_NOT_FETCHED = "cfg_status_not_fetched"  # call Location.get_status()
-    SCHEDULE_NOT_FETCHED = "cfg_schedule_not_fetched"  # call get_schedule()
     CONFIG_STALE = "cfg_config_stale"  # e.g. the status lacks a zone of the config
     LOCATION_INACCESSIBLE = "cfg_location_inaccessible"  # e.g. deleted, or unshared
     # TODO: remove in v4.0: only the (deprecated) single-TCS shortcuts raise these, i.e.
@@ -307,15 +335,22 @@ class ClientStateErrorReason(StrEnum):
     # Location.get_temperatures()
     LOCATION_NOT_SINGLE = "cfg_location_not_single"  # the account has 0, or 2+
     LOCATION_NO_TCS = "cfg_location_no_tcs"  # a location has 0 or 1 TCS
+    SCHEDULE_NOT_FETCHED = "cfg_schedule_not_fetched"  # call get_schedule()
+    STATUS_NOT_FETCHED = "cfg_status_not_fetched"  # call Location.get_status()
 
 
 class ClientStateError(EvohomeError):  # a base exception
     """The client's config/status data cannot provide what was asked for.
 
     The `reason` attr says why (see ClientStateErrorReason), so that callers need not
-    parse the message. This library always supplies a reason, but it is optional (so
-    the reason may be None), so that it can still be raised with only a message.
+    parse the message. This library always supplies a reason, but it is optional, so
+    that the error can still be raised with only a message: then its reason is the
+    class's default (e.g. CONFIG_STALE, for a StaleConfigError), so is never None.
     """
+
+    _default_reason: ClassVar[ClientStateErrorReason] = (
+        ClientStateErrorReason.CONFIG_INVALID
+    )
 
     def __init__(
         self,
@@ -325,7 +360,7 @@ class ClientStateError(EvohomeError):  # a base exception
         **details: str,
     ) -> None:
         super().__init__(message)
-        self.reason = reason
+        self.reason = reason or self._default_reason  # never None
         self.details: dict[str, str] = details
 
 
@@ -336,6 +371,10 @@ class NotFetchedError(ClientStateError):
     `Location.get_status()`, `HotWater.get_schedule()` or `Zone.get_schedule()`.
     """
 
+    _default_reason: ClassVar[ClientStateErrorReason] = (
+        ClientStateErrorReason.CONFIG_NOT_FETCHED
+    )
+
 
 class StaleConfigError(ClientStateError):
     """The config JSON is inconsistent with the latest status JSON.
@@ -344,6 +383,10 @@ class StaleConfigError(ClientStateError):
     status, or a location is no longer accessible. This is likely because the
     installation has been changed since the config was fetched.
     """
+
+    _default_reason: ClassVar[ClientStateErrorReason] = (
+        ClientStateErrorReason.CONFIG_STALE
+    )
 
 
 # The previous names of these errors, before they were named after the method (set_*,

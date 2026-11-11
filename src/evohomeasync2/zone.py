@@ -933,7 +933,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         if not self.model or self.model is ZoneModelType.UNKNOWN:
             raise exc.GhostZoneError(
                 f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)",
-                reason=ResponseErrorReason.MODEL_TYPE_UNKNOWN,
+                reason=ResponseErrorReason.ZONE_MODEL_UNKNOWN,
             )
         if not self.type or self.type is ZoneType.UNKNOWN:
             raise exc.GhostZoneError(

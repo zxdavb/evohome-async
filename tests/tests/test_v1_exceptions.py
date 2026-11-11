@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from evohomeasync import EvohomeClient, exceptions as exc
+from evohomeasync.const import SZ_USER_ID
 from tests.common import get_tcs
 
 from .conftest import FIXTURES_V1 as FIXTURES
@@ -56,10 +57,10 @@ async def test_config_not_fetched(
     assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
 
 
-async def test_invalid_config(
+async def test_invalid_account(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test update() raises InvalidGetConfigError if the config fails validation."""
+    """Test get_status() raises InvalidGetConfigError if the account fails validation."""
 
     ec1 = EvohomeClient(credentials_manager)
     error = exc.BadApiResponseError(_ERR_MSG)
@@ -68,10 +69,31 @@ async def test_invalid_config(
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=error)),
         pytest.raises(exc.InvalidGetConfigError) as err,
     ):
-        await ec1.get_status()
+        await ec1.get_status()  # the first GET is of the account
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
+    assert err.value.reason is exc.ResponseErrorReason.ACCOUNT_INVALID
+
+
+async def test_invalid_config(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test get_status() raises InvalidGetConfigError if the config fails validation."""
+
+    ec1 = EvohomeClient(credentials_manager)
+    error = exc.BadApiResponseError(_ERR_MSG)
+    account = {SZ_USER_ID: "1234567"}  # the GET of the account is OK
+
+    with (
+        patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=[account, error])),
+        pytest.raises(exc.InvalidGetConfigError) as err,
+    ):
+        await ec1.get_status()  # the second GET is of the locations (their config)
+
+    assert err.value.message == _ERR_MSG
+    assert err.value.__cause__ is error
+    assert err.value.reason is exc.ResponseErrorReason.CONFIG_INVALID
 
 
 async def test_invalid_status(
@@ -89,6 +111,7 @@ async def test_invalid_status(
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
+    assert err.value.reason is exc.ResponseErrorReason.STATUS_INVALID
 
 
 async def test_unknown_zone(
