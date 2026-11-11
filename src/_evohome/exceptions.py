@@ -302,6 +302,9 @@ class ClientStateErrorReason(StrEnum):
     SCHEDULE_NOT_FETCHED = "client_schedule_not_fetched"  # call get_schedule()
     CONFIG_STALE = "client_config_stale"  # e.g. the status lacks a zone of the config
     LOCATION_INACCESSIBLE = "client_location_inaccessible"  # e.g. deleted, or unshared
+    # TODO: remove in v4.0: only the (deprecated) single-TCS shortcuts raise these, i.e.
+    # EvohomeClient.tcs (a client's TCS, via its single location), and (v1 only)
+    # Location.get_temperatures()
     LOCATION_NOT_SINGLE = "client_location_not_single"  # the account has 0, or 2+
     LOCATION_NO_TCS = "client_location_no_tcs"  # a location has 0 or 1 TCS
 
