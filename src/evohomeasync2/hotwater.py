@@ -282,11 +282,11 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         if until_time is not None:
             dhw_mode[SZ_UNTIL_TIME] = until_time
 
-        response = await self._auth.put(
+        return await CommTask.from_put(
+            self._auth,
             URL_DHW_STATE.format(type=self._TCC_TYPE, id=self.id),
             json=dhw_mode,
         )
-        return CommTask.from_response(self._auth, response)
 
     async def _set_mode(
         self,

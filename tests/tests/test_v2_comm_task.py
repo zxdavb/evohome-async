@@ -81,6 +81,11 @@ async def test_put_returns_comm_task(
     assert task.id == TASK_ID
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
+    # the task knows its PUT (so its errors can say which request has failed)
+    assert str(task) == (
+        f"CommTask(id='{TASK_ID}', put='temperatureZone/{zone.id}/heatSetpoint')"
+    )
+
 
 async def test_set_schedule_returns_comm_task(
     zone: Zone,
@@ -108,7 +113,10 @@ async def test_set_schedule_returns_comm_task(
 async def test_put_with_bad_response(
     zone: Zone,
 ) -> None:
-    """Check a PUT whose response is not a comm task raises BadApiResponseError."""
+    """Check a PUT whose response is not a comm task raises CommTaskFailedError.
+
+    The PUT was accepted, but whether it takes effect cannot be followed.
+    """
 
     with (
         patch(
@@ -116,9 +124,13 @@ async def test_put_with_bad_response(
             new_callable=AsyncMock,
             return_value={"id": "not_a_task_id"},
         ),
-        pytest.raises(BadApiResponseError),
+        pytest.raises(CommTaskFailedError) as exc_info,
     ):
         await zone.reset()
+
+    assert exc_info.value.message.startswith(
+        f"PUT temperatureZone/{zone.id}/heatSetpoint: response is not a comm task: "
+    )
 
 
 async def test_get_state(
@@ -168,20 +180,21 @@ async def test_get_state_unknown(
         assert await task.get_state() == "postponed"
 
 
-async def test_get_state_wrong_task(
+async def test_get_state_other_spelling(
     auth: Auth,
 ) -> None:
-    """Check get_state() raises BadApiResponseError if the vendor returns another task."""
+    """Check get_state() accepts the vendor's normalised id (it is the same task).
 
-    task = CommTask(auth, TASK_ID)
+    The vendor's response has the task's id, normalised: e.g. for a zero-padded id,
+    the id without its zeros. It never has the id of another task.
+    """
 
-    with (
-        patch_request(
-            return_value=_task("Running", task_id="9876543210"),
-        ),
-        pytest.raises(BadApiResponseError),
+    task = CommTask(auth, f"0{TASK_ID}")
+
+    with patch_request(
+        return_value=_task("Running", task_id=TASK_ID),
     ):
-        await task.get_state()
+        assert await task.get_state() == CommTaskState.RUNNING
 
 
 async def test_wait_succeeds(
@@ -203,14 +216,19 @@ async def test_wait_succeeds(
 async def test_wait_fails(
     auth: Auth,
 ) -> None:
-    """Check wait() raises CommTaskFailedError if the task fails."""
+    """Check wait() raises CommTaskFailedError (naming its PUT) if the task fails."""
 
-    task = CommTask(auth, TASK_ID)
+    task = CommTask(auth, TASK_ID, put_url="temperatureZone/1234567/heatSetpoint")
 
     with (
         patch_request(
             side_effect=[_task("Running"), _task("Failed")],
         ),
-        pytest.raises(CommTaskFailedError),
+        pytest.raises(CommTaskFailedError) as exc_info,
     ):
         await task.wait(interval=0)
+
+    assert exc_info.value.message == (
+        f"CommTask(id='{TASK_ID}', put='temperatureZone/1234567/heatSetpoint')"
+        ": has failed"
+    )
