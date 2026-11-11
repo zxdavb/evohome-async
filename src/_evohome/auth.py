@@ -167,7 +167,12 @@ class AbstractAuth(ABC):
         return await self.request(HTTPMethod.PUT, url, json=payload)
 
     async def request(
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+        self,
+        method: HTTPMethod,
+        url: StrOrURL,
+        /,
+        *,
+        json: Mapping[str, object] | None = None,
     ) -> _TccResponse:
         """Make a request to the vendor's RESTful API (which does not use snake_case).
 
@@ -177,13 +182,13 @@ class AbstractAuth(ABC):
         format before putting.
         """
 
-        if "json" in kwargs:
-            kwargs["json"] = convert_dtms_to_utc_str(kwargs["json"])
-            kwargs["json"] = convert_str_enums_to_pascal_case(kwargs["json"])
-            kwargs["json"] = convert_keys_to_camel_case(kwargs["json"])
+        if json is not None:
+            json = convert_dtms_to_utc_str(json)
+            json = convert_str_enums_to_pascal_case(json)
+            json = convert_keys_to_camel_case(json)
 
         try:
-            response = await self._make_request(method, url, **kwargs)
+            response = await self._make_request(method, url, json=json)
         except exc.AuthenticationFailedError:  # was unable to authenticate
             raise
         except exc.ApiCallFailedError as err:
