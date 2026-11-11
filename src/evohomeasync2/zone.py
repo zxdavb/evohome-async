@@ -7,7 +7,7 @@ import math
 from datetime import UTC, datetime as dt, time as tm, timedelta as td
 from functools import cached_property
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final, overload
+from typing import TYPE_CHECKING, Any, Final, NoReturn, overload
 
 from _evohome.const import _ERR_NO_SCHEDULE, _ERR_NO_STATUS
 from _evohome.helpers import (
@@ -180,44 +180,23 @@ class _TccModeMixin:
         a warning, as the controller extends it to the coming midnight.
         """
 
-        def check_can_be_permanent(
-            mode: SystemMode | ZoneMode,
-            mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
-            /,
-        ) -> None:
-            """Raise if the mode cannot be permanent (i.e. it requires a timespan)."""
+        def raise_timespan_required() -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be given",
+                reason=RequestErrorReason.TIMESPAN_REQUIRED,
+                mode=mode,
+                timing_mode=mode_entry[SZ_TIMING_MODE],
+            )
 
-            if not mode_entry[SZ_CAN_BE_PERMANENT]:
-                raise exc.InvalidSetModeError(
-                    f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be given",
-                    reason=RequestErrorReason.TIMESPAN_REQUIRED,
-                    mode=mode,
-                    timing_mode=mode_entry[SZ_TIMING_MODE],
-                )
+        def raise_timespan_not_allowed(length: td) -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, {timing_mode} must be None, not '{length}'",
+                reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
+                mode=mode,
+                timespan=timing_mode,
+            )
 
-        def check_timing_mode(
-            mode: SystemMode | ZoneMode,
-            mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
-            timing_mode: TimingMode,
-            length: td,
-            /,
-        ) -> None:
-            """Raise if the timing_mode is not the one that the mode's entry expects.
-
-            An entry without a timing_mode takes no duration/period at all (it can only be
-            permanent, or it takes only an until).
-            """
-
-            if timing_mode is (expected := mode_entry.get(SZ_TIMING_MODE)):
-                return
-
-            if expected is None:
-                raise exc.InvalidSetModeError(
-                    f"{self}: For {mode}, {timing_mode} must be None, not '{length}'",
-                    reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
-                    mode=mode,
-                    timespan=timing_mode,
-                )
+        def raise_timespan_unsupported(length: td, expected: TimingMode) -> NoReturn:
             raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, {timing_mode} must be None (use {expected}), "
                 f"not '{length}'",
@@ -227,43 +206,21 @@ class _TccModeMixin:
                 timespan=timing_mode,
             )
 
-        def when_timespan_ends(
-            mode: SystemMode | ZoneMode,
-            timing_mode: TimingMode,
-            length: td,
-            /,
-        ) -> dt:
-            """Return when a duration/period ends, if it is in the future (else raise)."""
+        def raise_timespan_out_of_range(length: td, err: OverflowError) -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, {timing_mode} is out of range: '{length}'",
+                reason=RequestErrorReason.TIMESPAN_OUT_OF_RANGE,
+                mode=mode,
+                timing_mode=timing_mode,
+            ) from err
 
-            now = self.location.now()
-
-            if timing_mode is TimingMode.PERIOD:
-                start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-            else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
-                start = now.astimezone(UTC)
-
-            try:  # a huge length (e.g. td.max) overflows a datetime
-                until = start + length
-                has_ended = until.astimezone(UTC) <= now.astimezone(UTC)
-            except OverflowError as err:
-                raise exc.InvalidSetModeError(
-                    f"{self}: For {mode}, {timing_mode} is out of range: '{length}'",
-                    reason=RequestErrorReason.TIMESPAN_OUT_OF_RANGE,
-                    mode=mode,
-                    timing_mode=timing_mode,
-                ) from err
-
-            # the vendor accepts an until in the past, but the controller ignores it (the
-            # instants are compared, as a period's until is in local time: see above)
-            if has_ended:
-                raise exc.InvalidSetModeError(
-                    f"{self}: For {mode}, {timing_mode} must end in the future, "
-                    f"not '{length}' (it would end at {until})",
-                    reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
-                    mode=mode,
-                )
-
-            return until
+        def raise_timespan_not_in_future(length: td, until: dt) -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, {timing_mode} must end in the future, "
+                f"not '{length}' (it would end at {until})",
+                reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
+                mode=mode,
+            )
 
         def log_if_out_of_spec(
             mode: SystemMode | ZoneMode,
@@ -305,11 +262,35 @@ class _TccModeMixin:
                 )
 
         if length is None:
-            check_can_be_permanent(mode, mode_entry)
+            if not mode_entry[SZ_CAN_BE_PERMANENT]:
+                raise_timespan_required()
             return None
 
-        check_timing_mode(mode, mode_entry, timing_mode, length)
-        until = when_timespan_ends(mode, timing_mode, length)
+        # an entry without a timing_mode takes no duration/period at all (it can only be
+        # permanent, or it takes only an until)
+        if timing_mode is not (expected := mode_entry.get(SZ_TIMING_MODE)):
+            if expected is None:
+                raise_timespan_not_allowed(length)
+            raise_timespan_unsupported(length, expected)
+
+        now = self.location.now()
+
+        if timing_mode is TimingMode.PERIOD:
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
+            start = now.astimezone(UTC)
+
+        try:  # a huge length (e.g. td.max) overflows a datetime
+            until = start + length
+            has_ended = until.astimezone(UTC) <= now.astimezone(UTC)
+        except OverflowError as err:
+            raise_timespan_out_of_range(length, err)
+
+        # the vendor accepts an until in the past, but the controller ignores it (the
+        # instants are compared, as a period's until is in local time: see above)
+        if has_ended:
+            raise_timespan_not_in_future(length, until)
+
         log_if_out_of_spec(mode, mode_entry, timing_mode, length)
 
         return until
