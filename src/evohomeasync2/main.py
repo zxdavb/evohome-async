@@ -44,7 +44,7 @@ class EvohomeClient:
     """Provide a client to access the Resideo TCC API."""
 
     _user_info: EvoUsrAccountResponseT | None = None
-    _user_locs: list[EvoLocConfigResponseT] | None = None  # all locations of the user
+    _user_locs: list[EvoLocConfigResponseT] | None = None  # the config of all locs
 
     def __init__(
         self,
@@ -90,26 +90,27 @@ class EvohomeClient:
 
         return self._tzinfo
 
-    async def setup(self, *, _reset_config: bool = False) -> None:
+    async def setup(self) -> None:
         """Retrieve the user information & the configuration of all their locations.
 
         This is usually called only once, before using the client. It does not
         retrieve the status of any location: use `Location.get_status()` for that.
 
         There is one API call for the user info, and a second for the config of all the
-        user's locations. If they have already been retrieved, there are none (unless
-        `_reset_config` is true, for use by the test suite).
+        user's locations. If they have already been retrieved, there are none.
         """
 
-        if _reset_config:
-            self._user_info = None
-            self._user_locs = None
-
-            self._locations = None
-            self._location_by_id = None
-
-        if self._user_locs is None:
+        if self._locations is None:
             await self._get_config()
+
+    def _clear_config(self) -> None:
+        """Clear the user information & the config of their locations."""
+
+        self._user_info = None
+        self._user_locs = None
+
+        self._locations = None
+        self._location_by_id = None
 
     @deprecated(
         "EvohomeClient.update() is deprecated: use .setup(), then Location.get_status()"
@@ -120,7 +121,6 @@ class EvohomeClient:
         *,
         dont_update_status: bool = False,
         raise_on_stale_config: bool = False,
-        _reset_config: bool = False,  # for use by test suite
     ) -> list[EvoLocConfigResponseT]:
         """Retrieve the config of the user's locations, and then their status.
 
@@ -133,9 +133,9 @@ class EvohomeClient:
         `Location.get_status()`).
         """
 
-        is_new_config = _reset_config or self._locations is None
+        is_new_config = self._locations is None
 
-        await self.setup(_reset_config=_reset_config)
+        await self.setup()
 
         if not dont_update_status:  # don't retrieve/update status of location hierarchy
             # only warn once per config refresh (i.e. not on every status update)
@@ -205,11 +205,11 @@ class EvohomeClient:
             )
 
     async def _get_config(self) -> list[EvoLocConfigResponseT]:
-        """Ensures the config of the user and their locations.
-
-        If required, first retrieves the user information & installation configuration.
+        """Retrieve the user information (if required) & the config of their locations.
 
         A response that is not as expected is an InvalidGetConfigError.
+
+        The state is set only once all is retrieved, so a failure leaves none.
         """
 
         if not self._tzinfo_initialized:
@@ -223,31 +223,23 @@ class EvohomeClient:
                     err.message, reason=ResponseErrorReason.ACCOUNT_INVALID
                 ) from err
 
-        if self._user_locs is None:
-            user_id = self._user_info[SZ_USER_ID]  # its schema requires a user_id
+        try:
+            user_locs = await self.auth.get(
+                URL_USR_LOCATIONS.format(user_id=self.user_id),
+                schema=SCH_USR_LOCATIONS,
+            )
+        except exc.BadApiResponseError as err:  # e.g. failed validation
+            raise exc.InvalidGetConfigError(
+                err.message, reason=ResponseErrorReason.CONFIG_INVALID
+            ) from err
 
-            try:
-                self._user_locs = await self.auth.get(
-                    URL_USR_LOCATIONS.format(user_id=user_id),
-                    schema=SCH_USR_LOCATIONS,
-                )
-            except exc.BadApiResponseError as err:  # e.g. failed validation
-                raise exc.InvalidGetConfigError(
-                    err.message, reason=ResponseErrorReason.CONFIG_INVALID
-                ) from err
+        locations = [await create_location(self, config) for config in user_locs]
 
-            assert self._user_locs is not None  # mypy
+        self._user_locs = user_locs
+        self._locations = locations
+        self._location_by_id = {loc.id: loc for loc in locations}
 
-        if self._locations is None:
-            self._locations = []
-            self._location_by_id = {}
-
-            for loc_config in self._user_locs:
-                loc = await create_location(self, loc_config)
-                self._locations.append(loc)
-                self._location_by_id[loc.id] = loc
-
-        return self._user_locs
+        return user_locs
 
     @property
     def user_account(self) -> EvoUsrAccountResponseT:
