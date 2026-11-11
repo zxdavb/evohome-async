@@ -9,8 +9,9 @@ from typing import TYPE_CHECKING, Any, Final
 import aiohttp
 
 from . import exceptions as exc
-from .auth import _payload, _retry_after
+from .auth import _details, _payload, _reason, _retry_after
 from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME, ContentType
+from .exceptions import ApiCallErrorReason
 
 if TYPE_CHECKING:
     import logging
@@ -77,17 +78,25 @@ class CredentialsManagerBase:
             # can't assert content_length != 0 with aioresponses, so skip that check
             if rsp.content_type != ContentType.JSON:  # usu. "text/plain", "text/html"
                 raise exc.AuthenticationFailedError(
-                    f"Authenticator response is not JSON: {await _payload(rsp)}"
+                    f"Authenticator response is not JSON: {await _payload(rsp)}",
+                    reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
+                    response=rsp,
                 )
 
             raw = await rsp.json()
             if raw is None:  # an unanticipated edge-case
-                raise exc.AuthenticationFailedError("Authenticator response is null")
+                raise exc.AuthenticationFailedError(
+                    "Authenticator response is null",
+                    reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
+                    response=rsp,
+                )
             response: dict[str, Any] = raw
 
         except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
             raise exc.AuthenticationFailedError(
-                f"Authenticator response is not valid JSON: {await _payload(rsp)}"
+                f"Authenticator response is not valid JSON: {await _payload(rsp)}",
+                reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
+                response=rsp,
             ) from err
 
         except aiohttp.ClientResponseError as err:
@@ -95,15 +104,23 @@ class CredentialsManagerBase:
                 self._logger.error(hint)  # noqa: TRY400
 
             msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
+            details = await _details(rsp)  # e.g. {"code": "invalid_grant"}
 
             if err.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
                 raise exc.AuthRateLimitExceededError(
                     f"Authenticator response is invalid: {msg}",
+                    err.status,
                     retry_after=_retry_after(rsp),
+                    response=rsp,
+                    **details,
                 ) from err
 
             raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {msg}", status=err.status
+                f"Authenticator response is invalid: {msg}",
+                status=err.status,
+                reason=_reason(err.status),
+                response=rsp,
+                **details,
             ) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
@@ -111,6 +128,8 @@ class CredentialsManagerBase:
 
             raise exc.AuthenticationFailedError(
                 f"Authenticator response is invalid: {err}",
+                reason=ApiCallErrorReason.CONNECTION_FAILED,
+                response=rsp,  # usu. None
             ) from err
 
         else:

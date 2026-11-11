@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from _evohome.exceptions import (
+    ApiCallErrorReason,
     ApiCallFailedError,
     ApiCallRejectedError,
     ApiRateLimitExceededError,
@@ -17,6 +18,7 @@ from _evohome.exceptions import (
     ClientStateErrorReason,
     CommTaskFailedError,
     EvohomeError,
+    EvohomeErrorReason,
     GhostZoneError,
     InvalidConfigError,
     InvalidGetConfigError,
@@ -39,6 +41,7 @@ if TYPE_CHECKING:  # at runtime, they are served by __getattr__() (and warn)
     from _evohome.exceptions import ApiRequestFailedError, InvalidSystemModeError
 
 __all__ = [
+    "ApiCallErrorReason",
     "ApiCallFailedError",
     "ApiCallRejectedError",
     "ApiRateLimitExceededError",
@@ -52,6 +55,7 @@ __all__ = [
     "ClientStateErrorReason",
     "CommTaskFailedError",
     "EvohomeError",
+    "EvohomeErrorReason",
     "GhostZoneError",
     "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)
     "InvalidGetConfigError",

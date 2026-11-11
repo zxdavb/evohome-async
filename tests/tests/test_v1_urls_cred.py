@@ -99,6 +99,8 @@ async def test_bad1(  # bad credentials (client_id/secret)
             await ec1.get_status()
 
         assert err.value.status == HTTPStatus.UNAUTHORIZED
+        assert err.value.reason is exc.ApiCallErrorReason.CREDENTIALS_INVALID
+        assert err.value.details == {"code": "EmailOrPasswordIncorrect"}
 
         assert caplog.record_tuples == [LOG_21, LOG_24, LOG_90]
 

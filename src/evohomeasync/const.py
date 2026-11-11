@@ -13,6 +13,7 @@ URL_BASE: Final = "WebAPI/api"
 
 # GET/PUT resource urls, relative to URL_BASE
 URL_ACCOUNT_INFO: Final = "accountInfo"
+URL_COMM_TASK: Final = "commTasks?commTaskId={comm_task_id}"
 URL_DHW_MODE: Final = "devices/{device_id}/thermostat/changeableValues"
 URL_LOCATIONS: Final = "locations?userId={user_id}&allData=True"
 URL_TCS_MODE: Final = "evoTouchSystems?locationId={location_id}"
@@ -26,7 +27,7 @@ SZ_DEVICE_ID: Final = "device_id"
 SZ_DEVICE_TYPE: Final = "device_type"
 SZ_DEVICES: Final = "devices"
 SZ_GATEWAY_ID: Final = "gateway_id"
-SZ_ID: Final = "id"  # of a time_zone
+SZ_ID: Final = "id"  # of a time_zone, or of a comm task
 SZ_INDOOR_TEMPERATURE: Final = "indoor_temperature"
 SZ_INDOOR_TEMPERATURE_STATUS: Final = "indoor_temperature_status"
 SZ_INSTANCE: Final = "instance"
@@ -41,6 +42,7 @@ SZ_ONE_TOUCH_ACTIONS_SUSPENDED: Final = "one_touch_actions_suspended"
 SZ_ONE_TOUCH_BUTTONS: Final = "one_touch_buttons"
 SZ_PCB_NUMBER: Final = "pcb_number"
 SZ_SERIAL_NUMBER: Final = "serial_number"
+SZ_STATE: Final = "state"  # of a comm task
 SZ_TEMPERATURE: Final = "temperature"
 SZ_THERMOSTAT: Final = "thermostat"
 SZ_THERMOSTAT_MODEL_TYPE: Final = "thermostat_model_type"

@@ -1,8 +1,9 @@
-"""Test that each error raised (that is to have one) has a reason.
+"""Test the reasons of the errors.
 
 The reasons are public API (e.g. HA may map each one to its own translated message).
-They are optional, so that the errors can still be raised with only a message, so mypy
-will not catch the omission of one: these tests do.
+Each error class has a default reason (e.g. RATE_LIMITED, for an
+ApiRateLimitExceededError), so an error is raised with a reason only if it is not its
+class's default (and every reason is never None).
 """
 
 from __future__ import annotations
@@ -17,7 +18,9 @@ import pytest
 import _evohome
 from _evohome import exceptions as exc
 from _evohome.exceptions import (
+    ApiCallErrorReason,
     ClientStateErrorReason,
+    EvohomeErrorReason,
     RequestErrorReason,
     ResponseErrorReason,
 )
@@ -28,9 +31,15 @@ if TYPE_CHECKING:
 _SRC = Path(_evohome.__file__).parent.parent  # incl. evohomeasync, evohomeasync2
 
 # the errors that the library must raise with a reason
-_REASONED = (exc.BadApiRequestError, exc.BadApiResponseError, exc.ClientStateError)
+_REASONED = (exc.EvohomeError,)  # i.e. every error
 
-_ENUMS = (RequestErrorReason, ResponseErrorReason, ClientStateErrorReason)
+_ENUMS = (
+    EvohomeErrorReason,
+    ApiCallErrorReason,
+    RequestErrorReason,
+    ResponseErrorReason,
+    ClientStateErrorReason,
+)
 
 _BY_NAME = {  # incl. the aliases of their previous names (e.g. InvalidModeRequestError)
     n: c
@@ -38,8 +47,11 @@ _BY_NAME = {  # incl. the aliases of their previous names (e.g. InvalidModeReque
     if isinstance(c, type) and issubclass(c, _REASONED)
 }
 
-# the names of the classes (and of their aliases, incl. those served by __getattr__)
-_NAMES = set(_BY_NAME) | {"InvalidSystemModeError"}
+# the deprecated aliases that are served by __getattr__ (so are not in vars(exc))
+_BY_NAME |= {
+    "ApiRequestFailedError": exc.ApiCallFailedError,
+    "InvalidSystemModeError": exc.InvalidSetModeError,
+}
 
 # the errors that have a reason (attr)
 _CLASSES = sorted(set(_BY_NAME.values()), key=lambda c: c.__name__)
@@ -54,32 +66,62 @@ def _modules() -> tuple[tuple[str, ast.Module], ...]:
     )
 
 
-def test_raise_sites_have_a_reason() -> None:
-    """Test every raise of an error that is to have a reason has one."""
+def _name(call: ast.Call) -> str:
+    """Return the name of what is called (e.g. "InvalidSetModeError")."""
 
-    raises: list[str] = []
-    missing: list[str] = []
+    func = call.func
+    if isinstance(func, ast.Attribute):  # e.g. exc.InvalidSetModeError(...)
+        return func.attr
+    return func.id if isinstance(func, ast.Name) else ""
+
+
+def _reason(call: ast.Call) -> ast.expr | None:
+    """Return the reason that is passed (if any)."""
+    return next((k.value for k in call.keywords if k.arg == "reason"), None)
+
+
+def test_errors_omit_their_default() -> None:
+    """Test no error is created with its class's default reason (it is implicit).
+
+    Every call is checked (not only raises), as some are created to be raised later.
+    """
+
+    enums = {e.__name__: e for e in _ENUMS}
+
+    calls: list[str] = []
+    defaults: list[str] = []
 
     for path, module in _modules():
         for node in ast.walk(module):
-            if not isinstance(node, ast.Raise) or not isinstance(node.exc, ast.Call):
+            if (
+                not isinstance(node, ast.Call)
+                or (cls := _BY_NAME.get(_name(node))) is None
+            ):
                 continue
-            func = node.exc.func
-            name = func.attr if isinstance(func, ast.Attribute) else ""
-            name = func.id if isinstance(func, ast.Name) else name
-            if name not in _NAMES:
-                continue
-            raises.append(site := f"{path}:{node.lineno}")
-            if not any(k.arg == "reason" for k in node.exc.keywords):
-                missing.append(site)
+            calls.append(site := f"{path}:{node.lineno}")
 
-    assert raises, "no raise sites were found (has the source moved?)"
-    assert not missing, f"raised without a reason: {missing}"
+            reason = _reason(node)
+            if (  # e.g. reason=ApiCallErrorReason.RATE_LIMITED
+                isinstance(reason, ast.Attribute)
+                and isinstance(reason.value, ast.Name)
+                and (enum := enums.get(reason.value.id)) is not None
+                and enum[reason.attr] is cls._default_reason
+            ):
+                defaults.append(site)
+
+    assert calls, "no calls were found (has the source moved?)"
+    assert not defaults, f"created with its default reason: {defaults}"
 
 
 @pytest.mark.parametrize("enum", _ENUMS, ids=lambda e: e.__name__)
 def test_reasons_are_all_used(
-    enum: type[RequestErrorReason | ResponseErrorReason | ClientStateErrorReason],
+    enum: type[
+        EvohomeErrorReason
+        | ApiCallErrorReason
+        | RequestErrorReason
+        | ResponseErrorReason
+        | ClientStateErrorReason
+    ],
 ) -> None:
     """Test every reason is used by the library (i.e. none is unreachable)."""
 
@@ -114,17 +156,28 @@ def test_reasons_are_prefixed() -> None:
     """Test every reason's value is its name, prefixed as per its enum.
 
     That is: set_ (a request) or get_ (a response), as are the errors' names (e.g.
-    InvalidSetModeError, InvalidGetConfigError), or cfg_ (the config/status data). The
-    prefixes also keep the values of the enums apart (see above).
+    InvalidSetModeError, InvalidGetConfigError), cfg_ (the config/status data), api_
+    (the call itself, e.g. a 429 or no connection), or evo_ (only the default of a bare
+    EvohomeError). The prefixes also keep the values of the enums apart (see above).
     """
 
     assert all(r.value == f"set_{r.name.lower()}" for r in RequestErrorReason)
     assert all(r.value == f"get_{r.name.lower()}" for r in ResponseErrorReason)
     assert all(r.value == f"cfg_{r.name.lower()}" for r in ClientStateErrorReason)
+    assert all(r.value == f"api_{r.name.lower()}" for r in ApiCallErrorReason)
+    assert all(r.value == f"evo_{r.name.lower()}" for r in EvohomeErrorReason)
 
 
 # the default reason of each error (used if it is raised with only a message)
 _DEFAULT_REASONS: dict[type[exc.EvohomeError], StrEnum] = {
+    exc.EvohomeError: EvohomeErrorReason.ERROR_UNSPECIFIED,
+    exc.ApiCallFailedError: ApiCallErrorReason.CALL_FAILED,
+    exc.ApiCallRejectedError: ApiCallErrorReason.REQUEST_REJECTED,
+    exc.ApiRateLimitExceededError: ApiCallErrorReason.RATE_LIMITED,
+    exc.AuthRateLimitExceededError: ApiCallErrorReason.RATE_LIMITED,
+    exc.AuthenticationFailedError: ApiCallErrorReason.AUTHENTICATION_FAILED,
+    exc.BadUserCredentialsError: ApiCallErrorReason.CREDENTIALS_INVALID,
+    exc.CommTaskFailedError: ApiCallErrorReason.COMM_TASK_FAILED,
     exc.BadApiRequestError: RequestErrorReason.REQUEST_INVALID,
     exc.InvalidSetModeError: RequestErrorReason.MODE_INVALID,
     exc.InvalidSetScheduleError: RequestErrorReason.SCHEDULE_INVALID,
@@ -146,7 +199,7 @@ def test_every_error_has_a_default_reason() -> None:
 
 @pytest.mark.parametrize("cls", _CLASSES, ids=lambda c: c.__name__)
 def test_error_without_a_reason(
-    cls: type[exc.BadApiRequestError | exc.BadApiResponseError | exc.ClientStateError],
+    cls: type[exc.EvohomeError],
 ) -> None:
     """Test each error can still be raised with only a message (as before reasons).
 
@@ -168,3 +221,19 @@ def test_error_with_a_reason() -> None:
     )
 
     assert err.reason is ResponseErrorReason.ACCOUNT_INVALID
+
+
+def test_error_caught_as_evohome_error() -> None:
+    """Test the reason of an error caught only as an EvohomeError (e.g. as HA does).
+
+    The caller need not know which kind of error it is to use its reason (e.g. as a
+    translation key).
+    """
+
+    with pytest.raises(exc.EvohomeError) as err:  # i.e. caught as an EvohomeError
+        raise exc.InvalidSetModeError(
+            "a message", reason=RequestErrorReason.MODE_UNKNOWN, mode="Auto"
+        )
+
+    assert err.value.reason is RequestErrorReason.MODE_UNKNOWN
+    assert err.value.details == {"mode": "Auto"}

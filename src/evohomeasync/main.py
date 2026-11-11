@@ -105,9 +105,7 @@ class EvohomeClient:
             try:
                 user_locs = await self._get_user_locs()
             except exc.BadApiResponseError as err:  # e.g. failed validation
-                raise exc.InvalidGetStatusError(
-                    err.message, reason=ResponseErrorReason.STATUS_INVALID
-                ) from err
+                raise exc.InvalidGetStatusError(err.message) from err
 
             self._user_locs = user_locs
 
@@ -240,9 +238,7 @@ class EvohomeClient:
         try:
             user_locs = await self._get_user_locs()
         except exc.BadApiResponseError as err:  # e.g. failed validation
-            raise exc.InvalidGetConfigError(
-                err.message, reason=ResponseErrorReason.CONFIG_INVALID
-            ) from err
+            raise exc.InvalidGetConfigError(err.message) from err
 
         locations = [await create_location(self, entry) for entry in user_locs]
 
@@ -267,7 +263,6 @@ class EvohomeClient:
         if self._user_info is None:
             raise exc.NotFetchedError(
                 _ERR_NO_CONFIG.format("Account information"),
-                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
             )
 
         return self._user_info
@@ -284,7 +279,6 @@ class EvohomeClient:
         if self._locations is None:  # None: never fetched, []: fetched but empty
             raise exc.NotFetchedError(
                 _ERR_NO_CONFIG.format("Installation information"),
-                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
             )
 
         return self._locations
@@ -296,7 +290,6 @@ class EvohomeClient:
         if self._location_by_id is None:  # None: never fetched, {}: fetched but empty
             raise exc.NotFetchedError(
                 _ERR_NO_CONFIG.format("Installation information"),
-                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
             )
 
         return self._location_by_id

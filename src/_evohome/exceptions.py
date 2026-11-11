@@ -37,6 +37,8 @@ from typing import TYPE_CHECKING, ClassVar, Final
 if TYPE_CHECKING:
     from collections.abc import Callable, Collection
 
+    import aiohttp
+
 
 class _EvohomeBaseError(Exception):
     """The base class for all exceptions."""
@@ -46,12 +48,83 @@ class _EvohomeBaseError(Exception):
         self.message = message
 
 
+@verify(EnumCheck.UNIQUE)
+class EvohomeErrorReason(StrEnum):
+    """The reason of an EvohomeError that is none of the below (see EvohomeError).
+
+    This library never raises a bare EvohomeError (each error it raises has a reason
+    of its own kind, below), so this is only the default of one raised by others.
+    """
+
+    ERROR_UNSPECIFIED = "evo_error_unspecified"  # a catch-all
+
+
+# the reason of any EvohomeError (each kind of error has its own enum, below)
+type ErrorReason = (
+    EvohomeErrorReason
+    | ApiCallErrorReason
+    | RequestErrorReason
+    | ResponseErrorReason
+    | ClientStateErrorReason
+)
+
+
 class EvohomeError(_EvohomeBaseError):
-    """The base class for all exceptions."""
+    """The base class for all exceptions.
+
+    Every EvohomeError has a `reason` (so a caller that catches only this class can
+    still map each error to its own, e.g. translated, message), and `details`. Each of
+    the subclasses below has its own kind of reason, and its own default (used if it is
+    raised with only a message), so `reason` is never None.
+    """
+
+    _default_reason: ClassVar[ErrorReason] = EvohomeErrorReason.ERROR_UNSPECIFIED
+
+    reason: ErrorReason
+    details: dict[str, str]
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        reason: ErrorReason | None = None,
+        **details: str,
+    ) -> None:
+        super().__init__(message)
+        self.reason = reason or self._default_reason  # never None
+        self.details = details
 
 
 # 1. Call failures: there was no usable reply (e.g. no connection, rate limit exceeded,
 #    authentication failed); other than for bad credentials, try again later
+
+
+@verify(EnumCheck.UNIQUE)
+class ApiCallErrorReason(StrEnum):
+    """Why an API call failed (see ApiCallFailedError).
+
+    The values are public API, so that callers can map each one to their own (e.g.
+    translated) message: renaming or removing a member is a breaking change, but
+    adding one is not. They are named PARAM_PROBLEM, and their values are prefixed
+    api_, so that they are unique (e.g. RATE_LIMITED = api_rate_limited).
+
+    A reason is the cause, and the class is its context: e.g. an
+    AuthenticationFailedError may be CONNECTION_FAILED, as may any other call.
+    """
+
+    CALL_FAILED = "api_call_failed"  # a catch-all (e.g. an unexpected HTTP status)
+
+    AUTHENTICATION_FAILED = "api_authentication_failed"  # a catch-all for auth
+    AUTH_RESPONSE_INVALID = "api_auth_response_invalid"  # e.g. no access token
+    COMM_TASK_FAILED = "api_comm_task_failed"  # its state is Failed
+    COMM_TASK_INVALID = "api_comm_task_invalid"  # a PUT's response is not a comm task
+    CONNECTION_FAILED = "api_connection_failed"  # no reply (e.g. DNS, timeout)
+    CREDENTIALS_INVALID = "api_credentials_invalid"  # e.g. a wrong password
+    RATE_LIMITED = "api_rate_limited"  # a 429
+    REQUEST_REJECTED = "api_request_rejected"  # a 4xx (other than a 401 or a 429)
+    RESPONSE_NOT_JSON = "api_response_not_json"  # incl. invalid JSON, or null
+    SERVER_ERROR = "api_server_error"  # a 5xx (e.g. 502 Bad Gateway)
+    UNAUTHORIZED = "api_unauthorized"  # a 401 (e.g. an id not the user's)
 
 
 class ApiCallFailedError(EvohomeError):  # a base exception
@@ -59,11 +132,36 @@ class ApiCallFailedError(EvohomeError):  # a base exception
 
     Could be caused by any aiohttp.ClientError, for example: ConnectionError.  If the
     cause was a ClientResponseError, then the `status` attr will have an integer value.
+
+    The `reason` attr says why (see ApiCallErrorReason), so that callers need not parse
+    the message. This library always supplies a reason, but it is optional, so that the
+    error can still be raised with only a message: then its reason is the class's
+    default (e.g. RATE_LIMITED, for an ApiRateLimitExceededError), so is never None.
+
+    If the vendor's response has an error code, then `details["code"]` is that code
+    (e.g. "DeviceIsLost", "CommTaskNotFound", "invalid_grant").
+
+    If there was a response, then the `response` attr is it (else None), e.g. for its
+    headers. Its body has been read (so its json() or text() can still be awaited),
+    but its connection has been released.
     """
 
-    def __init__(self, message: str, status: int | None = None) -> None:
-        super().__init__(message)
+    _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.CALL_FAILED
+
+    reason: ApiCallErrorReason
+
+    def __init__(
+        self,
+        message: str,
+        status: int | None = None,
+        *,
+        reason: ApiCallErrorReason | None = None,
+        response: aiohttp.ClientResponse | None = None,
+        **details: str,
+    ) -> None:
+        super().__init__(message, reason=reason, **details)
         self.status = status  # useful, available if via aiohttp.ClientResponseError
+        self.response = response  # its body has been read, and connection released
 
 
 class ApiRateLimitExceededError(ApiCallFailedError):
@@ -73,14 +171,19 @@ class ApiRateLimitExceededError(ApiCallFailedError):
     attr will have that period, in seconds.
     """
 
+    _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.RATE_LIMITED
+
     def __init__(
         self,
         message: str,
         status: int | None = HTTPStatus.TOO_MANY_REQUESTS,  # 429
         *,
         retry_after: float | None = None,
+        reason: ApiCallErrorReason | None = None,
+        response: aiohttp.ClientResponse | None = None,
+        **details: str,
     ) -> None:
-        super().__init__(message, status)
+        super().__init__(message, status, reason=reason, response=response, **details)
         self.retry_after = retry_after
 
 
@@ -90,6 +193,10 @@ class AuthenticationFailedError(ApiCallFailedError):
     The cause could be any ApiCallFailedError, including ApiRateLimitExceededError.
     """
 
+    _default_reason: ClassVar[ApiCallErrorReason] = (
+        ApiCallErrorReason.AUTHENTICATION_FAILED
+    )
+
 
 class AuthRateLimitExceededError(ApiRateLimitExceededError, AuthenticationFailedError):
     """Unable to authenticate because the vendor's API rate limit was exceeded.
@@ -98,12 +205,18 @@ class AuthRateLimitExceededError(ApiRateLimitExceededError, AuthenticationFailed
     locations are polled.
     """
 
+    _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.RATE_LIMITED
+
 
 class BadUserCredentialsError(AuthenticationFailedError):
     """Unable to authenticate the user credentials (unknown client_id or wrong secret).
 
     Reauthenticating will not help as the user credentials are proven to be invalid.
     """
+
+    _default_reason: ClassVar[ApiCallErrorReason] = (
+        ApiCallErrorReason.CREDENTIALS_INVALID
+    )
 
 
 class ApiCallRejectedError(ApiCallFailedError):
@@ -115,13 +228,18 @@ class ApiCallRejectedError(ApiCallFailedError):
     the arguments passed this library's checks.
     """
 
+    _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.REQUEST_REJECTED
+
 
 class CommTaskFailedError(ApiCallFailedError):
-    """The comm task of a PUT failed (its state is "Failed").
+    """The comm task of a PUT failed, or there is no comm task to follow.
 
-    The PUT was accepted by the vendor, but the change did not reach the system (e.g.
-    the gateway is offline).
+    The PUT was accepted by the vendor, but either its task failed (its state is
+    "Failed"), so the change did not reach the system (e.g. the gateway is offline),
+    or the response was not a comm task, so whether it will is unknown.
     """
+
+    _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.COMM_TASK_FAILED
 
 
 # 2. Response failures: there was a reply, but it is not as expected; trying again will
@@ -143,8 +261,6 @@ class ResponseErrorReason(StrEnum):
     RESPONSE_INVALID = "get_response_invalid"  # it failed validation (a GET)
 
     ACCOUNT_INVALID = "get_account_invalid"  # it failed validation (e.g. no user_id)
-    COMM_TASK_INVALID = "get_comm_task_invalid"  # a PUT's response
-    COMM_TASK_MISMATCHED = "get_comm_task_mismatched"  # a GET's response
     CONFIG_INVALID = "get_config_invalid"  # it failed validation
     SCHEDULE_INVALID = "get_schedule_invalid"  # it failed validation
     SCHEDULE_MISSING = "get_schedule_missing"  # e.g. it is empty
@@ -170,6 +286,8 @@ class BadApiResponseError(EvohomeError):  # a base exception
         ResponseErrorReason.RESPONSE_INVALID
     )
 
+    reason: ResponseErrorReason
+
     def __init__(
         self,
         message: str,
@@ -177,9 +295,7 @@ class BadApiResponseError(EvohomeError):  # a base exception
         reason: ResponseErrorReason | None = None,
         **details: str,
     ) -> None:
-        super().__init__(message)
-        self.reason = reason or self._default_reason  # never None
-        self.details: dict[str, str] = details
+        super().__init__(message, reason=reason, **details)
 
 
 class InvalidGetConfigError(BadApiResponseError):  # config/account JSON is invalid
@@ -273,6 +389,8 @@ class BadApiRequestError(EvohomeError):  # a base exception
 
     _default_reason: ClassVar[RequestErrorReason] = RequestErrorReason.REQUEST_INVALID
 
+    reason: RequestErrorReason
+
     def __init__(
         self,
         message: str,
@@ -280,9 +398,7 @@ class BadApiRequestError(EvohomeError):  # a base exception
         reason: RequestErrorReason | None = None,
         **details: str,
     ) -> None:
-        super().__init__(message)
-        self.reason = reason or self._default_reason  # never None
-        self.details: dict[str, str] = details
+        super().__init__(message, reason=reason, **details)
 
 
 class InvalidSetModeError(BadApiRequestError):  # failed to set a TCS/zone/DHW mode
@@ -352,6 +468,8 @@ class ClientStateError(EvohomeError):  # a base exception
         ClientStateErrorReason.CONFIG_INVALID
     )
 
+    reason: ClientStateErrorReason
+
     def __init__(
         self,
         message: str,
@@ -359,9 +477,7 @@ class ClientStateError(EvohomeError):  # a base exception
         reason: ClientStateErrorReason | None = None,
         **details: str,
     ) -> None:
-        super().__init__(message)
-        self.reason = reason or self._default_reason  # never None
-        self.details: dict[str, str] = details
+        super().__init__(message, reason=reason, **details)
 
 
 class NotFetchedError(ClientStateError):
