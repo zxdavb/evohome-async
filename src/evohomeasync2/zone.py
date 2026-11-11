@@ -188,7 +188,7 @@ class _TccModeMixin:
                 timing_mode=mode_entry[SZ_TIMING_MODE],
             )
 
-        def raise_timespan_not_allowed(length: td) -> NoReturn:
+        def raise_timespan_not_allowed() -> NoReturn:
             raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, {timing_mode} must be None, not '{length}'",
                 reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
@@ -196,7 +196,7 @@ class _TccModeMixin:
                 timespan=timing_mode,
             )
 
-        def raise_timespan_unsupported(length: td, expected: TimingMode) -> NoReturn:
+        def raise_timespan_unsupported(expected: TimingMode) -> NoReturn:
             raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, {timing_mode} must be None (use {expected}), "
                 f"not '{length}'",
@@ -206,7 +206,7 @@ class _TccModeMixin:
                 timespan=timing_mode,
             )
 
-        def raise_timespan_out_of_range(length: td, err: OverflowError) -> NoReturn:
+        def raise_timespan_out_of_range(err: OverflowError) -> NoReturn:
             raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, {timing_mode} is out of range: '{length}'",
                 reason=RequestErrorReason.TIMESPAN_OUT_OF_RANGE,
@@ -214,7 +214,7 @@ class _TccModeMixin:
                 timing_mode=timing_mode,
             ) from err
 
-        def raise_timespan_not_in_future(length: td, until: dt) -> NoReturn:
+        def raise_timespan_not_in_future(until: dt) -> NoReturn:
             raise exc.InvalidSetModeError(
                 f"{self}: For {mode}, {timing_mode} must end in the future, "
                 f"not '{length}' (it would end at {until})",
@@ -222,13 +222,7 @@ class _TccModeMixin:
                 mode=mode,
             )
 
-        def log_if_out_of_spec(
-            mode: SystemMode | ZoneMode,
-            mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
-            timing_mode: TimingMode,
-            length: td,
-            /,
-        ) -> None:
+        def log_if_out_of_spec() -> None:
             """Log (but do not raise) if a duration/period is not as its entry expects.
 
             That is, if a period is less than one day (as a warning, as the controller will
@@ -236,6 +230,8 @@ class _TccModeMixin:
             exceeds the max_duration (as debug, as the controller honours it). A zero
             timing_resolution has no multiples, so that check is left to the vendor.
             """
+
+            assert length is not None  # mypy (it is checked before this is called)
 
             logger = self.location.client.logger
 
@@ -270,8 +266,8 @@ class _TccModeMixin:
         # permanent, or it takes only an until)
         if timing_mode is not (expected := mode_entry.get(SZ_TIMING_MODE)):
             if expected is None:
-                raise_timespan_not_allowed(length)
-            raise_timespan_unsupported(length, expected)
+                raise_timespan_not_allowed()
+            raise_timespan_unsupported(expected)
 
         now = self.location.now()
 
@@ -284,14 +280,14 @@ class _TccModeMixin:
             until = start + length
             has_ended = until.astimezone(UTC) <= now.astimezone(UTC)
         except OverflowError as err:
-            raise_timespan_out_of_range(length, err)
+            raise_timespan_out_of_range(err)
 
         # the vendor accepts an until in the past, but the controller ignores it (the
         # instants are compared, as a period's until is in local time: see above)
         if has_ended:
-            raise_timespan_not_in_future(length, until)
+            raise_timespan_not_in_future(until)
 
-        log_if_out_of_spec(mode, mode_entry, timing_mode, length)
+        log_if_out_of_spec()
 
         return until
 
