@@ -366,12 +366,11 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         if time_until is not None:
             tcs_mode[SZ_TIME_UNTIL] = time_until
 
-        url = URL_TCS_MODE.format(type=self._TCC_TYPE, id=self.id)
-        response = await self._auth.put(
-            url,
+        return await CommTask.from_put(
+            self._auth,
+            URL_TCS_MODE.format(type=self._TCC_TYPE, id=self.id),
             json=tcs_mode,
         )
-        return CommTask.from_response(self._auth, response, url=url)
 
     async def _set_mode(
         self,

@@ -86,6 +86,11 @@ async def test_put_returns_comm_task(
     assert task.id == TASK_ID
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
+    # the task knows its PUT (so its errors can say which request has failed)
+    assert repr(task) == (
+        f"CommTask(id='{TASK_ID}', put='temperatureZone/{zone.id}/heatSetpoint')"
+    )
+
 
 async def test_set_schedule_returns_comm_task(
     zone: Zone,
@@ -194,7 +199,7 @@ async def test_get_state_wrong_task(
         await task.get_state()
 
     assert exc_info.value.message.startswith(
-        f"GET commTasks?commTaskId={TASK_ID}: response is of another comm task: "
+        f"CommTask(id='{TASK_ID}'): its state is of another comm task: "
     )
     assert exc_info.value.reason is ResponseErrorReason.COMM_TASK_MISMATCHED
 
@@ -218,9 +223,9 @@ async def test_wait_succeeds(
 async def test_wait_fails(
     auth: Auth,
 ) -> None:
-    """Check wait() raises CommTaskFailedError if the task fails."""
+    """Check wait() raises CommTaskFailedError (naming its PUT) if the task fails."""
 
-    task = CommTask(auth, TASK_ID)
+    task = CommTask(auth, TASK_ID, put_url="temperatureZone/1234567/heatSetpoint")
 
     with (
         patch_request(
@@ -231,5 +236,23 @@ async def test_wait_fails(
         await task.wait(interval=0)
 
     assert exc_info.value.message == (
-        f"GET commTasks?commTaskId={TASK_ID}: response is of a failed comm task"
+        f"CommTask(id='{TASK_ID}', put='temperatureZone/1234567/heatSetpoint')"
+        ": has failed"
     )
+
+
+async def test_from_response(
+    auth: Auth,
+) -> None:
+    """Check from_response() still creates the task (only, without its PUT)."""
+
+    task = CommTask.from_response(auth, PUT_RESPONSE_V2)
+
+    assert task.id == TASK_ID
+    assert repr(task) == f"CommTask(id='{TASK_ID}')"
+
+    with pytest.raises(BadApiResponseError) as exc_info:
+        CommTask.from_response(auth, {"id": "not_a_task_id"})
+
+    assert exc_info.value.message.startswith("PUT: response is not a comm task: ")
+    assert exc_info.value.reason is ResponseErrorReason.COMM_TASK_INVALID

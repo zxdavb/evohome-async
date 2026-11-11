@@ -15,6 +15,10 @@ from .exceptions import ResponseErrorReason
 from .schemas.account import factory_comm_task_response, factory_task_response
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from aiohttp.typedefs import StrOrURL
+
     from _evohome.auth import AbstractAuth, _TccResponse
     from _evohome.helpers import Validator
 
@@ -33,6 +37,20 @@ SCH_COMM_TASK: Final[Validator[EvoCommTaskResponseT]] = factory_comm_task_respon
 _SCH_TASK: Final[Validator[TccTaskResponseT]] = factory_task_response()
 
 
+def _task_id(response: _TccResponse, request: str) -> str:
+    """Return the id of the comm task in the vendor's response to the request."""
+
+    try:
+        task = _SCH_TASK(response)
+    except vol.Invalid as err:
+        raise exc.BadApiResponseError(
+            f"{request}: response is not a comm task: {response}: {err}",
+            reason=ResponseErrorReason.COMM_TASK_INVALID,
+        ) from err
+
+    return task[SZ_ID]
+
+
 class CommTask:
     """A comm task: what the vendor creates to carry out an accepted PUT.
 
@@ -43,35 +61,52 @@ class CommTask:
     Nothing is polled unless `get_state()` or `wait()` is awaited.
     """
 
-    def __init__(self, auth: AbstractAuth, task_id: str) -> None:
-        """Initialise the comm task (it must already exist)."""
+    def __init__(
+        self, auth: AbstractAuth, task_id: str, *, put_url: str | None = None
+    ) -> None:
+        """Initialise the comm task (it must already exist).
+
+        The put_url is that of the PUT that created the task (if known), so that the
+        task's errors can say which request has failed.
+        """
 
         self._auth: Final = auth
         self._id: Final = task_id
+        self._put_url: Final = put_url
 
     @classmethod
-    def from_response(
-        cls, auth: AbstractAuth, response: _TccResponse, *, url: str | None = None
+    async def from_put(
+        cls,
+        auth: AbstractAuth,
+        url: StrOrURL,
+        /,
+        json: Mapping[str, object],
+        *,
+        schema: Validator[Mapping[str, object]] | None = None,
     ) -> CommTask:
-        """Create the comm task from the vendor's response to a PUT (of the url).
+        """Make the PUT (as for `AbstractAuth.put()`), and return its comm task.
 
-        The response is e.g. {"id": "1668279943"}.
+        The vendor's response is e.g. {"id": "1668279943"}.
         """
 
-        try:
-            task = _SCH_TASK(response)
-        except vol.Invalid as err:
-            put = f"PUT {url}" if url else "PUT"
-            raise exc.BadApiResponseError(
-                f"{put}: response is not a comm task: {response}: {err}",
-                reason=ResponseErrorReason.COMM_TASK_INVALID,
-            ) from err
+        response = await auth.put(url, json, schema=schema)
+        return cls(auth, _task_id(response, f"PUT {url}"), put_url=str(url))
 
-        return cls(auth, task[SZ_ID])
+    @classmethod
+    def from_response(cls, auth: AbstractAuth, response: _TccResponse) -> CommTask:
+        """Create the comm task from the vendor's response to a PUT.
+
+        The response is e.g. {"id": "1668279943"}. Use `from_put()` instead, so that
+        the task (and its errors) knows its PUT.
+        """
+
+        return cls(auth, _task_id(response, "PUT"))
 
     def __repr__(self) -> str:
         """Return an unambiguous string representation of the comm task."""
-        return f"{self.__class__.__name__}(id='{self._id}')"
+
+        put = f", put='{self._put_url}'" if self._put_url else ""
+        return f"{self.__class__.__name__}(id='{self._id}'{put})"
 
     @property
     def id(self) -> str:
@@ -79,8 +114,8 @@ class CommTask:
         return self._id
 
     @property
-    def _url(self) -> str:
-        """Return the URL of the comm task (its state)."""
+    def _state_url(self) -> str:
+        """Return the URL of the comm task's state (not that of its PUT)."""
         return URL_COMM_TASK.format(comm_task_id=self._id)
 
     async def get_state(self) -> CommTaskState | str:
@@ -90,13 +125,13 @@ class CommTask:
         """
 
         task = await self._auth.get(
-            self._url,
+            self._state_url,
             schema=SCH_COMM_TASK,
         )
 
         if task[SZ_COMMTASK_ID] != self._id:
             raise exc.BadApiResponseError(
-                f"GET {self._url}: response is of another comm task: {task}",
+                f"{self}: its state is of another comm task: {task}",
                 reason=ResponseErrorReason.COMM_TASK_MISMATCHED,
             )
 
@@ -115,7 +150,5 @@ class CommTask:
 
         while (state := await self.get_state()) is not CommTaskState.SUCCEEDED:
             if state is CommTaskState.FAILED:
-                raise exc.CommTaskFailedError(
-                    f"GET {self._url}: response is of a failed comm task"
-                )
+                raise exc.CommTaskFailedError(f"{self}: has failed")
             await asyncio.sleep(interval)
