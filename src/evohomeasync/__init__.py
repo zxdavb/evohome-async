@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 from _evohome.exceptions import deprecated_getattr
 
 from .auth import AbstractSessionManager
+from .comm_task import CommTask
 from .entities import ControlSystem, Gateway, HotWater, Location, Zone
 from .exceptions import (
     ApiCallFailedError,
@@ -24,6 +25,7 @@ from .exceptions import (
     BadUserCredentialsError,
     ClientStateError,
     ClientStateErrorReason,
+    CommTaskFailedError,
     EvohomeError,
     InvalidConfigError,
     InvalidGetConfigError,
@@ -80,6 +82,8 @@ __all__ = [  # noqa: RUF022
     "Zone",
     "HotWater",
     #
+    "CommTask",
+    #
     "TccCommTaskState",
     "TccDhwMode",
     "TccEquipmentOutputStatus",
@@ -101,6 +105,7 @@ __all__ = [  # noqa: RUF022
     "BadUserCredentialsError",
     "ClientStateError",
     "ClientStateErrorReason",
+    "CommTaskFailedError",
     "EvohomeError",
     "InvalidGetConfigError",
     "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)
