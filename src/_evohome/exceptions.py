@@ -287,8 +287,43 @@ class InvalidSetScheduleError(BadApiRequestError):  # failed to set a schedule
 #    a successful API call); fetch the data first
 
 
+@verify(EnumCheck.UNIQUE)
+class ClientStateErrorReason(StrEnum):
+    """Why the client cannot provide what was asked for (see ClientStateError).
+
+    The values are public API, so that callers can map each one to their own (e.g.
+    translated) message: renaming or removing a member is a breaking change, but
+    adding one is not. They are named PARAM_PROBLEM, and their values are prefixed
+    client_, so that they are unique (e.g. LOCATION_NO_TCS = client_location_no_tcs).
+    """
+
+    CONFIG_NOT_FETCHED = "client_config_not_fetched"  # call setup()
+    STATUS_NOT_FETCHED = "client_status_not_fetched"  # call Location.get_status()
+    SCHEDULE_NOT_FETCHED = "client_schedule_not_fetched"  # call get_schedule()
+    CONFIG_STALE = "client_config_stale"  # e.g. the status lacks a zone of the config
+    LOCATION_INACCESSIBLE = "client_location_inaccessible"  # e.g. deleted, or unshared
+    LOCATION_NOT_SINGLE = "client_location_not_single"  # the account has 0, or 2+
+    LOCATION_NO_TCS = "client_location_no_tcs"  # a location has 0 or 1 TCS
+
+
 class ClientStateError(EvohomeError):  # a base exception
-    """The client's config/status data cannot provide what was asked for."""
+    """The client's config/status data cannot provide what was asked for.
+
+    The `reason` attr says why (see ClientStateErrorReason), so that callers need not
+    parse the message. This library always supplies a reason, but it is optional (so
+    the reason may be None), so that it can still be raised with only a message.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        reason: ClientStateErrorReason | None = None,
+        **details: str,
+    ) -> None:
+        super().__init__(message)
+        self.reason = reason
+        self.details: dict[str, str] = details
 
 
 class NotFetchedError(ClientStateError):

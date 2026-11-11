@@ -68,7 +68,7 @@ from .const import (
     ZoneModelType,
     ZoneType,
 )
-from .exceptions import RequestErrorReason, ResponseErrorReason
+from .exceptions import ClientStateErrorReason, RequestErrorReason, ResponseErrorReason
 from .schemas.const import TccEntityType
 from .schemas.schedule import factory_zon_schedule
 from .schemas.status import factory_zon_status
@@ -328,7 +328,10 @@ class EntityBase[StatusT]:
     def status(self) -> StatusT:
         """Return the latest status of the entity."""
         if self._status is None:
-            raise exc.NotFetchedError(_ERR_NO_STATUS.format(self))
+            raise exc.NotFetchedError(
+                _ERR_NO_STATUS.format(self),
+                reason=ClientStateErrorReason.STATUS_NOT_FETCHED,
+            )
         return self._status
 
     async def _get_status(self, *, _update: bool = True) -> StatusT:
@@ -585,7 +588,10 @@ class _ScheduleBase[
         """
 
         if self._schedule is None:  # never fetched (successfully)
-            raise exc.NotFetchedError(_ERR_NO_SCHEDULE.format(self))
+            raise exc.NotFetchedError(
+                _ERR_NO_SCHEDULE.format(self),
+                reason=ClientStateErrorReason.SCHEDULE_NOT_FETCHED,
+            )
 
         return self._schedule
 
