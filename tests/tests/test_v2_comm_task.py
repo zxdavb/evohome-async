@@ -239,20 +239,3 @@ async def test_wait_fails(
         f"CommTask(id='{TASK_ID}', put='temperatureZone/1234567/heatSetpoint')"
         ": has failed"
     )
-
-
-async def test_from_response(
-    auth: Auth,
-) -> None:
-    """Check from_response() still creates the task (only, without its PUT)."""
-
-    task = CommTask.from_response(auth, PUT_RESPONSE_V2)
-
-    assert task.id == TASK_ID
-    assert repr(task) == f"CommTask(id='{TASK_ID}')"
-
-    with pytest.raises(BadApiResponseError) as exc_info:
-        CommTask.from_response(auth, {"id": "not_a_task_id"})
-
-    assert exc_info.value.message.startswith("PUT: response is not a comm task: ")
-    assert exc_info.value.reason is ResponseErrorReason.COMM_TASK_INVALID

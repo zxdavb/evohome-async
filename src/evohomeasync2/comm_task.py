@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
     from aiohttp.typedefs import StrOrURL
 
-    from _evohome.auth import AbstractAuth, _TccResponse
+    from _evohome.auth import AbstractAuth
     from _evohome.helpers import Validator
 
     from .schemas.account import TccTaskResponseT
@@ -35,20 +35,6 @@ SCH_COMM_TASK: Final[Validator[EvoCommTaskResponseT]] = factory_comm_task_respon
     Case.PYTHONIC
 )
 _SCH_TASK: Final[Validator[TccTaskResponseT]] = factory_task_response()
-
-
-def _task_id(response: _TccResponse, request: str) -> str:
-    """Return the id of the comm task in the vendor's response to the request."""
-
-    try:
-        task = _SCH_TASK(response)
-    except vol.Invalid as err:
-        raise exc.BadApiResponseError(
-            f"{request}: response is not a comm task: {response}: {err}",
-            reason=ResponseErrorReason.COMM_TASK_INVALID,
-        ) from err
-
-    return task[SZ_ID]
 
 
 class CommTask:
@@ -90,17 +76,16 @@ class CommTask:
         """
 
         response = await auth.put(url, json, schema=schema)
-        return cls(auth, _task_id(response, f"PUT {url}"), put_url=str(url))
 
-    @classmethod
-    def from_response(cls, auth: AbstractAuth, response: _TccResponse) -> CommTask:
-        """Create the comm task from the vendor's response to a PUT.
+        try:
+            task = _SCH_TASK(response)
+        except vol.Invalid as err:
+            raise exc.BadApiResponseError(
+                f"PUT {url}: response is not a comm task: {response}: {err}",
+                reason=ResponseErrorReason.COMM_TASK_INVALID,
+            ) from err
 
-        The response is e.g. {"id": "1668279943"}. Use `from_put()` instead, so that
-        the task (and its errors) knows its PUT.
-        """
-
-        return cls(auth, _task_id(response, "PUT"))
+        return cls(auth, task[SZ_ID], put_url=str(url))
 
     def __repr__(self) -> str:
         """Return an unambiguous string representation of the comm task."""
