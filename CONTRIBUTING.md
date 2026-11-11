@@ -151,15 +151,14 @@ placeholders (e.g. for an `InvalidSetModeError`: `mode`, `timing_mode`, `state`,
 `DeviceIsLost`), if its response has one. The `reason` is optional only so that the error can still be raised
 with a bare message (e.g. by HA's tests): it is then the class's default (e.g.
 `STATUS_INVALID` for an `InvalidGetStatusError`, or a catch-all such as `MODE_INVALID`
-for an `InvalidSetModeError`), so is never `None`. The library itself always supplies
-the `reason`, even where it is the default, except for an `ApiCallFailedError` (and its
-subclasses): that is given a `reason` only if it is not the class's default (e.g. not
-`RATE_LIMITED`, for an `ApiRateLimitExceededError`).
+for an `InvalidSetModeError`), so is never `None`. So the library raises an error with
+a `reason` only if it is not the class's default (e.g. not `RATE_LIMITED`, for an
+`ApiRateLimitExceededError`, nor `STATUS_INVALID`, for an `InvalidGetStatusError`).
 
 The reasons' values are public API: renaming or removing one is a breaking change, but
-adding one is not. `tests/tests/test_error_reasons.py` checks that every raise site
-supplies a reason (or, for an `ApiCallFailedError`, does not supply its default), that
-every reason is used, and that every value is unique (and prefixed). Add any new raise site of an `InvalidSetModeError` to
+adding one is not. `tests/tests/test_error_reasons.py` checks that no error is created
+with its class's default reason, that every reason is used, and that every value is
+unique (and prefixed). Add any new raise site of an `InvalidSetModeError` to
 `tests/tests/test_v2_mode_request_reasons.py`.
 
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library

@@ -85,7 +85,6 @@ class EvohomeClient:
         if not self._tzinfo_initialized:
             raise exc.NotFetchedError(
                 _ERR_NO_CONFIG.format("Timezone information"),
-                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
             )
 
         return self._tzinfo
@@ -229,9 +228,7 @@ class EvohomeClient:
                 schema=SCH_USR_LOCATIONS,
             )
         except exc.BadApiResponseError as err:  # e.g. failed validation
-            raise exc.InvalidGetConfigError(
-                err.message, reason=ResponseErrorReason.CONFIG_INVALID
-            ) from err
+            raise exc.InvalidGetConfigError(err.message) from err
 
         locations = [await create_location(self, config) for config in user_locs]
 
@@ -248,7 +245,6 @@ class EvohomeClient:
         if self._user_info is None:  # None: never fetched, []: fetched but empty
             raise exc.NotFetchedError(
                 _ERR_NO_CONFIG.format("Account information"),
-                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
             )
 
         return self._user_info
@@ -265,7 +261,6 @@ class EvohomeClient:
         if self._locations is None:  # None: never fetched, []: fetched but empty
             raise exc.NotFetchedError(
                 _ERR_NO_CONFIG.format("Installation information"),
-                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
             )
 
         return self._locations
@@ -277,7 +272,6 @@ class EvohomeClient:
         if self._location_by_id is None:  # None: never fetched, []: fetched but empty
             raise exc.NotFetchedError(
                 _ERR_NO_CONFIG.format("Installation information"),
-                reason=ClientStateErrorReason.CONFIG_NOT_FETCHED,
             )
 
         return self._location_by_id

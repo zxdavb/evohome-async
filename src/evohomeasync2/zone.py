@@ -645,7 +645,6 @@ class _ScheduleBase[
         except exc.BadApiResponseError as err:  # the schedule failed validation
             raise exc.InvalidGetScheduleError(
                 f"{self}: Schedule is invalid: {err}",
-                reason=ResponseErrorReason.SCHEDULE_INVALID,
             ) from err
 
         except exc.AuthenticationFailedError:  # e.g. bad credentials are a 400 too
@@ -707,7 +706,6 @@ class _ScheduleBase[
             except (OverflowError, TypeError, ValueError) as err:
                 raise exc.InvalidSetScheduleError(
                     f"{self}: Invalid schedule: {err}",
-                    reason=RequestErrorReason.SCHEDULE_INVALID,
                 ) from err
 
         elif isinstance(schedule, str):
@@ -716,7 +714,6 @@ class _ScheduleBase[
             except json.JSONDecodeError as err:
                 raise exc.InvalidSetScheduleError(
                     f"{self}: Invalid schedule: {err}",
-                    reason=RequestErrorReason.SCHEDULE_INVALID,
                 ) from err
 
             assert isinstance(schedule, list)  # mypy
@@ -724,7 +721,6 @@ class _ScheduleBase[
         else:
             raise exc.InvalidSetScheduleError(
                 f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable",
-                reason=RequestErrorReason.SCHEDULE_INVALID,
             )
 
         schedule_ = {SZ_DAILY_SCHEDULES: schedule}

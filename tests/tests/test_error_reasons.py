@@ -1,12 +1,9 @@
-"""Test that each error raised has the right reason.
+"""Test the reasons of the errors.
 
 The reasons are public API (e.g. HA may map each one to its own translated message).
-They are optional, so that the errors can still be raised with only a message, so mypy
-will not catch the omission of one: these tests do.
-
-An ApiCallFailedError (or a subclass) is raised with a reason only if it is not the
-class's default (e.g. not RATE_LIMITED, for an ApiRateLimitExceededError); every other
-error is always raised with a reason, even where it is the default.
+Each error class has a default reason (e.g. RATE_LIMITED, for an
+ApiRateLimitExceededError), so an error is raised with a reason only if it is not its
+class's default (and every reason is never None).
 """
 
 from __future__ import annotations
@@ -50,13 +47,11 @@ _BY_NAME = {  # incl. the aliases of their previous names (e.g. InvalidModeReque
     if isinstance(c, type) and issubclass(c, _REASONED)
 }
 
-# the names of the classes (and of their aliases, incl. those served by __getattr__)
-_NAMES = set(_BY_NAME) | {"ApiRequestFailedError", "InvalidSystemModeError"}
-
-# the errors that are raised with a reason only if it is not their default
-_API_CALL_NAMES = {
-    n for n, c in _BY_NAME.items() if issubclass(c, exc.ApiCallFailedError)
-} | {"ApiRequestFailedError"}
+# the deprecated aliases that are served by __getattr__ (so are not in vars(exc))
+_BY_NAME |= {
+    "ApiRequestFailedError": exc.ApiCallFailedError,
+    "InvalidSystemModeError": exc.InvalidSetModeError,
+}
 
 # the errors that have a reason (attr)
 _CLASSES = sorted(set(_BY_NAME.values()), key=lambda c: c.__name__)
@@ -85,38 +80,23 @@ def _reason(call: ast.Call) -> ast.expr | None:
     return next((k.value for k in call.keywords if k.arg == "reason"), None)
 
 
-def test_raise_sites_have_a_reason() -> None:
-    """Test every raise of an error has a reason (other than an ApiCallFailedError)."""
-
-    raises: list[str] = []
-    missing: list[str] = []
-
-    for path, module in _modules():
-        for node in ast.walk(module):
-            if not isinstance(node, ast.Raise) or not isinstance(node.exc, ast.Call):
-                continue
-            if (name := _name(node.exc)) not in _NAMES or name in _API_CALL_NAMES:
-                continue
-            raises.append(site := f"{path}:{node.lineno}")
-            if _reason(node.exc) is None:
-                missing.append(site)
-
-    assert raises, "no raise sites were found (has the source moved?)"
-    assert not missing, f"raised without a reason: {missing}"
-
-
-def test_api_call_errors_omit_their_default() -> None:
-    """Test no ApiCallFailedError is created with its class's default reason.
+def test_errors_omit_their_default() -> None:
+    """Test no error is created with its class's default reason (it is implicit).
 
     Every call is checked (not only raises), as some are created to be raised later.
     """
+
+    enums = {e.__name__: e for e in _ENUMS}
 
     calls: list[str] = []
     defaults: list[str] = []
 
     for path, module in _modules():
         for node in ast.walk(module):
-            if not isinstance(node, ast.Call) or _name(node) not in _API_CALL_NAMES:
+            if (
+                not isinstance(node, ast.Call)
+                or (cls := _BY_NAME.get(_name(node))) is None
+            ):
                 continue
             calls.append(site := f"{path}:{node.lineno}")
 
@@ -124,11 +104,10 @@ def test_api_call_errors_omit_their_default() -> None:
             if (  # e.g. reason=ApiCallErrorReason.RATE_LIMITED
                 isinstance(reason, ast.Attribute)
                 and isinstance(reason.value, ast.Name)
-                and reason.value.id == ApiCallErrorReason.__name__
+                and (enum := enums.get(reason.value.id)) is not None
+                and enum[reason.attr] is cls._default_reason
             ):
-                cls = _BY_NAME.get(_name(node), exc.ApiCallFailedError)
-                if ApiCallErrorReason[reason.attr] is cls._default_reason:
-                    defaults.append(site)
+                defaults.append(site)
 
     assert calls, "no calls were found (has the source moved?)"
     assert not defaults, f"created with its default reason: {defaults}"
