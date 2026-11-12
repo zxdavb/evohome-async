@@ -151,6 +151,7 @@ class _TccModeMixin:
                 f"{self}: For {mode}, until must be a TZ-aware datetime, not '{until}'",
                 reason=RequestErrorReason.TIMESPAN_INVALID,
                 mode=mode,
+                timing_mode=SZ_UNTIL,
             ) from err
 
         def raise_timespan_not_in_future(dtm: dt) -> NoReturn:
@@ -158,6 +159,7 @@ class _TccModeMixin:
                 f"{self}: For {mode}, until must be in the future, not '{dtm}'",
                 reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
                 mode=mode,
+                timing_mode=SZ_UNTIL,
             )
 
         try:
@@ -233,6 +235,7 @@ class _TccModeMixin:
                 f"not '{timespan}' (it would end at {until})",
                 reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
                 mode=mode,
+                timing_mode=timing_mode,
             )
 
         def log_timespan_too_short() -> None:
@@ -1179,6 +1182,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             raise exc.InvalidSetModeError(
                 f"{self}: Only one of until or duration may be given",
                 reason=RequestErrorReason.TIMESPAN_CONFLICTING,
+                mode=str(mode),  # as given (it is not yet validated)
             )
 
         return await self._set_mode(mode, temperature=temperature, until=until)

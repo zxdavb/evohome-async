@@ -80,13 +80,13 @@ CASES = [
     pytest.param(
         _Call("tcs", _ECO, {"until": _FUTURE, "duration": td(hours=1)}),
         Reason.TIMESPAN_CONFLICTING,
-        {},
+        {"mode": "auto_with_eco"},
         id="tcs-timespan_conflicting-until",
     ),
     pytest.param(
         _Call("tcs", _AWAY, {"duration": td(hours=1), "period": td(days=1)}),
         Reason.TIMESPAN_CONFLICTING,
-        {},
+        {"mode": "away"},
         id="tcs-timespan_conflicting-duration",
     ),
     pytest.param(
@@ -94,13 +94,13 @@ CASES = [
             "zone", _TEMP, {"temperature": 20.0, "until": _FUTURE, "duration": td(1)}
         ),
         Reason.TIMESPAN_CONFLICTING,
-        {},
+        {"mode": "temporary_override"},
         id="zon-timespan_conflicting",
     ),
     pytest.param(
         _Call("dhw", _TEMP, {"state": _ON, "until": _FUTURE, "duration": td(1)}),
         Reason.TIMESPAN_CONFLICTING,
-        {},
+        {"mode": "temporary_override"},
         id="dhw-timespan_conflicting",
     ),
     #
@@ -156,13 +156,13 @@ CASES = [
     pytest.param(
         _Call("tcs", _AWAY, {"until": _NAIVE}),
         Reason.TIMESPAN_INVALID,
-        {"mode": "away"},
+        {"mode": "away", "timing_mode": "until"},
         id="tcs-timespan_invalid-naive",
     ),
     pytest.param(
         _Call("zone", _TEMP, {"temperature": 20.0, "until": "not-a-datetime"}),
         Reason.TIMESPAN_INVALID,
-        {"mode": "temporary_override"},
+        {"mode": "temporary_override", "timing_mode": "until"},
         id="zon-timespan_invalid-string",
     ),
     pytest.param(
@@ -174,13 +174,13 @@ CASES = [
     pytest.param(
         _Call("tcs", _AWAY, {"until": _PAST}),
         Reason.TIMESPAN_NOT_IN_FUTURE,
-        {"mode": "away"},
+        {"mode": "away", "timing_mode": "until"},
         id="tcs-timespan_not_in_future-until",
     ),
     pytest.param(
         _Call("tcs", _ECO, {"duration": td(0)}),
         Reason.TIMESPAN_NOT_IN_FUTURE,
-        {"mode": "auto_with_eco"},
+        {"mode": "auto_with_eco", "timing_mode": "duration"},
         id="tcs-timespan_not_in_future-duration",
     ),
     #
@@ -214,19 +214,19 @@ CASES = [
     pytest.param(
         _Call("dhw", _FOLLOW, {"state": _ON}),
         Reason.STATE_NOT_ALLOWED,
-        {"mode": "follow_schedule"},
+        {"mode": "follow_schedule", "state": "on"},
         id="dhw-state_not_allowed",
     ),
     pytest.param(
         _Call("dhw", _PERM, {"state": "no_such_state"}),
         Reason.STATE_UNKNOWN,
-        {"state": "no_such_state"},
+        {"mode": "permanent_override", "state": "no_such_state"},
         id="dhw-state_unknown",
     ),
     pytest.param(
         _Call("dhw", _PERM, {"state": _ON}),  # see the patch of allowed_states
         Reason.STATE_UNSUPPORTED,
-        {"state": "on"},
+        {"mode": "permanent_override", "state": "on"},
         id="dhw-state_unsupported",
     ),
 ]

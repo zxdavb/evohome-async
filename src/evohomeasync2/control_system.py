@@ -343,6 +343,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             raise exc.InvalidSetModeError(
                 f"{self}: Only one of until, duration or period may be given",
                 reason=RequestErrorReason.TIMESPAN_CONFLICTING,
+                mode=str(system_mode),  # as given (it is not yet validated)
             )
 
         return await self._set_mode(system_mode, until=until)
@@ -444,6 +445,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
             raise exc.InvalidSetModeError(
                 f"{self}: Only one of duration or period may be given",
                 reason=RequestErrorReason.TIMESPAN_CONFLICTING,
+                mode=str(system_mode),  # as given (it is not yet validated)
             )
 
         system_mode = self._validate_requested_mode(system_mode)
