@@ -30,7 +30,6 @@ class _Call(NamedTuple):
     entity: str  # the name of the entity's fixture: tcs, zone or dhw
     mode: str  # a SystemMode/ZoneMode, or a string that is neither
     kwargs: dict[str, Any]  # some of these are rejected by the overloads
-    method: str = "set_mode"
 
 
 _PAST = dt(2020, 1, 1, tzinfo=UTC)
@@ -110,18 +109,6 @@ CASES = [
         Reason.TIMESPAN_REQUIRED,
         {"mode": "temporary_override", "required_timing_mode": "duration"},
         id="zon-timespan_required",
-    ),
-    pytest.param(  # set_mode() without an until calls _set_tcc_mode(), not this
-        _Call("zone", _TEMP, {"temperature": 20.0}, method="_set_mode"),
-        Reason.TIMESPAN_REQUIRED,
-        {"mode": "temporary_override", "required_timing_mode": "until"},
-        id="zon-timespan_required-until",
-    ),
-    pytest.param(  # set_mode() without an until calls _set_tcc_mode(), not this
-        _Call("dhw", _TEMP, {"state": _ON}, method="_set_mode"),
-        Reason.TIMESPAN_REQUIRED,
-        {"mode": "temporary_override", "required_timing_mode": "until"},
-        id="dhw-timespan_required-until",
     ),
     pytest.param(
         _Call("tcs", _AUTO, {"until": _FUTURE}),
@@ -275,7 +262,7 @@ async def test_mode_request_error_reason(
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock,
         pytest.raises(InvalidSetModeError) as exc_info,
     ):
-        await getattr(entity, call.method)(call.mode, **call.kwargs)
+        await entity.set_mode(call.mode, **call.kwargs)
 
     mock.assert_not_awaited()  # it is rejected before any request is made
 

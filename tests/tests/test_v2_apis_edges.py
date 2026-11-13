@@ -289,10 +289,20 @@ async def test_zon_set_mode_vacation_hold(
     zone: Zone,
     freezer: FrozenDateTimeFactory,
 ) -> None:
-    """Zone.set_mode(VacationHold) should PUT the correct payload when supported."""
+    """Zone.set_mode(VacationHold) should PUT the correct payload when supported.
+
+    An until is allowed only if the mode can be temporary: most fixtures that have
+    VacationHold lack its limits, so they are added to its entry here.
+    """
 
     if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
         pytest.skip("Zone does not support VacationHold mode")
+
+    zone._allowed_modes_table[ZoneMode.VACATION_HOLD] |= {
+        "can_be_temporary": True,
+        "max_duration": "365.23:45:00",
+        "timing_resolution": "00:15:00",
+    }
 
     freezer.move_to("2025-07-10T12:00:00Z")
 
@@ -316,6 +326,25 @@ async def test_zon_set_mode_vacation_hold(
             "time_until": FakeDatetime(2025, 7, 17, 12, 0, tzinfo=UTC),
         },
     )
+
+
+async def test_zon_set_mode_vacation_hold_rejects_until(
+    zone: Zone,
+) -> None:
+    """Zone.set_mode(VacationHold) should reject an until, if it cannot be temporary."""
+
+    if ZoneMode.VACATION_HOLD not in zone.allowed_modes:
+        pytest.skip("Zone does not support VacationHold mode")
+
+    if zone._allowed_modes_table[ZoneMode.VACATION_HOLD]["can_be_temporary"]:
+        pytest.skip("Zone supports a temporary VacationHold mode")
+
+    with pytest.raises(evo2.InvalidSetModeError, match="until must be None"):
+        await zone.set_mode(
+            ZoneMode.VACATION_HOLD,
+            temperature=15.0,
+            until=dt.now(tz=UTC) + td(days=7),
+        )
 
 
 async def test_zon_set_mode_vacation_hold_without_until(

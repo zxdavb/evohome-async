@@ -26,7 +26,6 @@ from .const import (
     SZ_UNTIL_TIME,
     URL_DHW_STATE,
     DhwState,
-    TimingMode,
     ZoneMode,
 )
 from .exceptions import RequestErrorReason
@@ -131,6 +130,99 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
     def allowed_states(self) -> tuple[DhwState, ...]:
         return tuple(self.state_capabilities[SZ_ALLOWED_STATES])
 
+    # Status (state) attrs & methods...
+
+    @property
+    def state_status(self) -> EvoDhwStateStatusT:
+        """
+        "stateStatus": {"state": "Off", "mode": "PermanentOverride"}
+        "stateStatus": {
+            "state": "Off",
+            "mode": "TemporaryOverride",
+            until": "2023-11-30T22:10:00Z"
+        }
+        """
+
+        return self.status[SZ_STATE_STATUS]
+
+    @property
+    def mode(self) -> ZoneMode:
+        return self.state_status[SZ_MODE]
+
+    @property
+    def state(self) -> DhwState:
+        return self.state_status[SZ_STATE]
+
+    @property
+    def until(self) -> dt | None:
+        if (until := self.state_status.get(SZ_UNTIL)) is None:
+            return None
+        return as_local_time(until, self.location.tzinfo)
+
+    #
+
+    @overload
+    async def set_mode(
+        self,
+        mode: ZoneMode | str,
+        /,
+        *,
+        state: DhwState | str | None = None,
+        duration: None = None,
+        until: dt | str | None = None,
+    ) -> CommTask: ...
+
+    @overload
+    async def set_mode(
+        self,
+        mode: ZoneMode | str,
+        /,
+        *,
+        state: DhwState | str | None = None,
+        duration: td | None = None,
+        until: None = None,
+    ) -> CommTask: ...
+
+    async def set_mode(
+        self,
+        mode: ZoneMode | str,
+        /,
+        *,
+        state: DhwState | str | None = None,
+        duration: td | None = None,
+        until: dt | str | None = None,
+    ) -> CommTask:
+        """Set the DHW to a mode, indefinitely, for a duration, or until a given time.
+
+        Will accept a ZoneMode/DhwState or a (snake_case) string for 'mode'/'state'.
+
+        A 'state' is required by the override modes, and is not allowed for
+        FollowSchedule. It must be one of the DHW's allowed_states.
+
+        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
+        but it must be TZ-aware (not naive).
+
+        A 'duration' ends that long from now. It must be positive, and should be a
+        multiple of the DHW's timing_resolution, and not exceed its max_duration (see
+        state_capabilities). If not, the request is sent anyway (the controller
+        honours it). An until is not checked against these, but must be in the
+        future.
+
+        TemporaryOverride requires an until or a duration (only one of them may be
+        given), and the other modes allow neither.
+
+        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
+        """
+
+        mode = self._validate_requested_mode(mode)
+        state = self._validate_requested_state(mode, state)
+
+        until_time = self._validate_requested_timing(
+            mode, until=until, duration=duration
+        )
+
+        return await self._put_mode(mode, state=state, until_time=until_time)
+
     def _validate_requested_state(
         self, mode: ZoneMode, state: DhwState | str | None, /
     ) -> DhwState | None:
@@ -173,104 +265,6 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
         return state
 
-    # Status (state) attrs & methods...
-
-    @property
-    def state_status(self) -> EvoDhwStateStatusT:
-        """
-        "stateStatus": {"state": "Off", "mode": "PermanentOverride"}
-        "stateStatus": {
-            "state": "Off",
-            "mode": "TemporaryOverride",
-            until": "2023-11-30T22:10:00Z"
-        }
-        """
-
-        return self.status[SZ_STATE_STATUS]
-
-    @property
-    def mode(self) -> ZoneMode:
-        return self.state_status[SZ_MODE]
-
-    @property
-    def state(self) -> DhwState:
-        return self.state_status[SZ_STATE]
-
-    @property
-    def until(self) -> dt | None:
-        if (until := self.state_status.get(SZ_UNTIL)) is None:
-            return None
-        return as_local_time(until, self.location.tzinfo)
-
-    @overload
-    async def set_mode(
-        self,
-        mode: ZoneMode | str,
-        /,
-        *,
-        state: DhwState | str | None = None,
-        until: dt | str | None = None,
-        duration: None = None,
-    ) -> CommTask: ...
-
-    @overload
-    async def set_mode(
-        self,
-        mode: ZoneMode | str,
-        /,
-        *,
-        state: DhwState | str | None = None,
-        until: None = None,
-        duration: td | None = None,
-    ) -> CommTask: ...
-
-    async def set_mode(
-        self,
-        mode: ZoneMode | str,
-        /,
-        *,
-        state: DhwState | str | None = None,
-        until: dt | str | None = None,
-        duration: td | None = None,
-    ) -> CommTask:
-        """Set the DHW to a mode, indefinitely, for a duration, or until a given time.
-
-        Will accept a ZoneMode/DhwState or a (snake_case) string for 'mode'/'state'.
-
-        A 'state' is required by the override modes, and is not allowed for
-        FollowSchedule. It must be one of the DHW's allowed_states.
-
-        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
-        but it must be TZ-aware (not naive).
-
-        A 'duration' ends that long from now. It must be positive, and should be a
-        multiple of the DHW's timing_resolution, and not exceed its max_duration (see
-        state_capabilities). If not, the request is sent anyway (the controller
-        honours it). An until is not checked against these, but must be in the
-        future.
-
-        TemporaryOverride requires an until or a duration (only one of them may be
-        given), and the other modes allow neither (except that VacationHold allows an
-        until).
-
-        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
-        """
-
-        mode = self._validate_requested_mode(mode)
-        state = self._validate_requested_state(mode, state)
-
-        if until is None:
-            return await self._set_tcc_mode(mode, state=state, duration=duration)
-
-        if duration is not None:
-            raise exc.InvalidSetModeError(
-                f"{self}: Only one of until or duration may be given",
-                reason=RequestErrorReason.TIMESPAN_CONFLICTING,
-                mode=mode,
-            )
-
-        return await self._set_mode(mode, state=state, until=until)
-
     async def _put_mode(
         self,
         mode: ZoneMode,
@@ -295,79 +289,6 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             URL_DHW_STATE.format(type=self._TCC_TYPE, id=self.id),
             json=dhw_mode,
         )
-
-    async def _set_mode(
-        self,
-        mode: ZoneMode,
-        /,
-        *,
-        state: DhwState | None = None,
-        until: dt | str | None = None,
-    ) -> CommTask:
-        """Set the DHW to a mode, either indefinitely, or for a given time.
-
-        The 'mode' and 'state' must already be validated (see set_mode()).
-
-        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
-        but it must be TZ-aware (not naive), and in the future.
-
-        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
-        """
-
-        if until is None:
-            if mode is ZoneMode.TEMPORARY_OVERRIDE:
-                raise exc.InvalidSetModeError(
-                    f"{self}: For {mode}, until must not be None",
-                    reason=RequestErrorReason.TIMESPAN_REQUIRED,
-                    mode=mode,
-                    required_timing_mode=SZ_UNTIL,
-                )
-
-        else:
-            if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidSetModeError(
-                    f"{self}: For {mode}, until must be None, not '{until}'",
-                    reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
-                    mode=mode,
-                    timing_mode=SZ_UNTIL,
-                )
-
-            until_time = self._validate_requested_until(mode, until)
-
-        return await self._put_mode(mode, state=state, until_time=until_time)
-
-    async def _set_tcc_mode(
-        self,
-        mode: ZoneMode,
-        /,
-        *,
-        state: DhwState | None = None,
-        duration: td | None = None,
-    ) -> CommTask:
-        """Set the DHW to a mode, either indefinitely, or for a duration.
-
-        The 'mode' and 'state' must already be validated (see set_mode()).
-
-        A 'state' is required by the override modes, and is not allowed for
-        FollowSchedule. It must be one of the DHW's allowed_states.
-
-        A 'duration' ends that long from now. It is required by TemporaryOverride, and
-        is not allowed for the other modes. It must be positive, and should be a
-        multiple of the DHW's timing_resolution, and not exceed its max_duration.
-
-        Unlike _set_mode(), the request is checked against the DHW's config (see
-        state_capabilities): if it only breaks a 'should', it is sent anyway.
-
-        VacationHold can only be set indefinitely: for an until, use _set_mode().
-
-        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
-        """
-
-        until_time = self._validate_requested_timespan(
-            mode, TimingMode.DURATION, duration
-        )
-
-        return await self._put_mode(mode, state=state, until_time=until_time)
 
     async def reset(self) -> CommTask:
         """Cancel any override and allow the DHW to follow its schedule."""
