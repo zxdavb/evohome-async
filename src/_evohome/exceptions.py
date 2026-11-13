@@ -167,8 +167,10 @@ class ApiCallFailedError(EvohomeError):  # a base exception
 class ApiRateLimitExceededError(ApiCallFailedError):
     """The API request failed because the vendor's API rate limit was exceeded.
 
-    If the vendor said how long to wait before trying again, then the `retry_after`
-    attr will have that period, in seconds.
+    The `retry_after` attr is how long to wait before trying again, in seconds: that
+    of the response's Retry-After header, else (as the vendor's 429s have had none) a
+    default of 15 minutes, by when its limit on authentication has lifted. It is None
+    only if the error was raised without one (i.e. not by this library).
     """
 
     _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.RATE_LIMITED
