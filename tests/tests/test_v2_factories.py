@@ -1,15 +1,17 @@
-"""Test the v2 schema factories (active faults) and the entity id regex."""
+"""Test the v2 schema factories (active faults, config) and the regexes they use."""
 
 from __future__ import annotations
 
 from datetime import datetime as dt
 from enum import StrEnum
+from typing import Any
 
 import probatio as vol
 import pytest
 
-from _evohome.helpers import Case, camel_to_snake
+from _evohome.helpers import TCC_TIMESPAN_REGEX, Case, camel_to_snake
 from evohomeasync2.const import SZ_FAULT_TYPE, SZ_SINCE, FaultType as EvoFaultType
+from evohomeasync2.schemas.config import factory_system_mode, factory_zon_config
 from evohomeasync2.schemas.const import (
     REGEX_DHW_ID,
     REGEX_GATEWAY_ID,
@@ -115,3 +117,142 @@ def test_regex_entity_ids(
     else:
         with pytest.raises(vol.Invalid):
             schema(value)
+
+
+@pytest.mark.parametrize(
+    ("value", "is_valid"),
+    [
+        ("00:10:00", True),
+        ("01:00:00", True),
+        ("1.00:00:00", True),
+        ("99.00:00:00", True),
+        ("365.23:45:00", True),
+        ("", False),
+        ("1 day", False),
+        ("1.00:00", False),
+        ("24:00:00", False),
+        ("-1.00:00:00", False),  # not expected (nor anything under 5 minutes)
+        ("00:10:00.5", False),  # nor fractional seconds
+        ("00:10:00\n", False),
+    ],
+)
+def test_regex_tcc_timespan(
+    value: str,
+    *,
+    is_valid: bool,
+) -> None:
+    """Test a vendor TimeSpan (e.g. a maxDuration) must be [d.]hh:mm:ss, and nothing else."""
+
+    schema = vol.Schema(vol.Match(TCC_TIMESPAN_REGEX))
+
+    if is_valid:
+        assert schema(value) == value
+    else:
+        with pytest.raises(vol.Invalid):
+            schema(value)
+
+
+def _zon_config(**setpoint_capabilities: Any) -> dict[str, Any]:
+    """Return a zone's config (as per the default fixture), with these capabilities."""
+
+    return {
+        "zoneId": "3432521",
+        "modelType": "HeatingZone",
+        "setpointCapabilities": {
+            "maxHeatSetpoint": 35.0,
+            "minHeatSetpoint": 5.0,
+            "valueResolution": 0.5,
+            "canControlHeat": True,
+            "canControlCool": False,
+            "allowedSetpointModes": [
+                "PermanentOverride",
+                "FollowSchedule",
+                "TemporaryOverride",
+            ],
+            "maxDuration": "1.00:00:00",
+            "timingResolution": "00:10:00",
+        }
+        | setpoint_capabilities,
+        "name": "Dead Zone",
+        "zoneType": "RadiatorZone",
+    }
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [(0.1, 0.1), (0.5, 0.5), (1.0, 1.0), (1, 1.0)],  # JSON may send 1, not 1.0
+)
+def test_factory_zon_config_value_resolution(
+    value: float,
+    expected: float,
+) -> None:
+    """Test a zone's valueResolution is one of 0.1, 0.5 or 1.0."""
+
+    result = factory_zon_config()(_zon_config(valueResolution=value))
+
+    assert result["setpointCapabilities"]["valueResolution"] == expected
+
+
+@pytest.mark.parametrize(
+    "capabilities",
+    [
+        {"valueResolution": 0.25},
+        {"maxDuration": "1 day"},
+        {
+            "vacationHoldCapabilities": {
+                "isChangeable": True,
+                "isCancelable": True,
+                "maxDuration": "1 day",
+            }
+        },
+        {
+            "vacationHoldCapabilities": {
+                "isChangeable": True,
+                "isCancelable": True,
+                "minDuration": "1 day",
+            }
+        },
+    ],
+    ids=[
+        "value_resolution",
+        "max_duration",
+        "vacation_hold_max_duration",
+        "vacation_hold_min_duration",
+    ],
+)
+def test_factory_zon_config_rejects(
+    capabilities: dict[str, Any],
+) -> None:
+    """Test a zone's config is rejected if a setpoint capability is malformed."""
+
+    with pytest.raises(vol.Invalid):
+        factory_zon_config()(_zon_config(**capabilities))
+
+
+@pytest.mark.parametrize(
+    "timespans",
+    [
+        {"maxDuration": "1 day", "timingResolution": "01:00:00"},
+        {"maxDuration": "1.00:00:00", "timingResolution": "1 hour"},
+    ],
+    ids=["max_duration", "timing_resolution"],
+)
+def test_factory_system_mode_rejects(
+    timespans: dict[str, str],
+) -> None:
+    """Test a TCS's allowed system mode is rejected if one of its TimeSpans is malformed."""
+
+    system_mode = {
+        "systemMode": "AutoWithEco",
+        "canBePermanent": True,
+        "canBeTemporary": True,
+        "timingMode": "Duration",
+    }
+
+    schema = factory_system_mode()
+    assert schema(
+        system_mode | {"maxDuration": "1.00:00:00", "timingResolution": "01:00:00"}
+    )
+
+    with pytest.raises(vol.Invalid):
+        schema(system_mode | timespans)
