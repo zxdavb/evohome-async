@@ -92,6 +92,15 @@ if TYPE_CHECKING:
     from evohomeasync2.schemas.status import TccLocStatusResponseT
 
 
+# the body of a 404 (Not Found) of an unknown path: it is HTML (from IIS), not JSON
+# provenance: the old tests_rf (its comments), abridged
+HTML_NOT_FOUND: Final = (
+    '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" ...>'
+    "<html><head><title>404 - File or directory not found.</title></head>"
+    "<body>...</body></html>"
+)
+
+
 # the ids of the (redacted) user and their entities
 USR_ID: Final = "2000001"
 LOC_ID: Final = "2000010"
@@ -348,6 +357,77 @@ LOC_STATUS: Final[TccLocStatusResponseT] = {
                 }
             ],
             "activeFaults": [],
+        }
+    ],
+}
+
+
+# GET /location/{LOC_ID}/status?includeTemperatureControlSystems=True (another time)
+# provenance: as LOC_STATUS, but with each entity overridden (the TCS until midnight, a
+# zone permanently, the DHW temporarily), and a gateway fault as seen by the old
+# tests_rf/test_v2_urls.py (its since is fractional and TZ-naive) (redacted)
+LOC_STATUS_OVERRIDDEN: Final[TccLocStatusResponseT] = {
+    "locationId": LOC_ID,
+    "gateways": [
+        {
+            "gatewayId": GWY_ID,
+            "temperatureControlSystems": [
+                {
+                    "systemId": TCS_ID,
+                    "zones": [
+                        {
+                            "zoneId": ZON_ID,
+                            "temperatureStatus": {
+                                "temperature": 20.5,
+                                "isAvailable": True,
+                            },
+                            "activeFaults": [],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 21.0,
+                                "setpointMode": TccZoneMode.PERMANENT_OVERRIDE,
+                            },
+                            "name": "Main Room",
+                        },
+                        {
+                            "zoneId": ZON_ID_2,
+                            "temperatureStatus": {"isAvailable": False},
+                            "activeFaults": [
+                                {
+                                    "faultType": TccFaultType.ZON_S_CL,
+                                    "since": "2023-10-09T01:45:04",
+                                }
+                            ],
+                            "setpointStatus": {
+                                "targetHeatTemperature": 17.0,
+                                "setpointMode": TccZoneMode.FOLLOW_SCHEDULE,
+                            },
+                            "name": "Front Room",
+                        },
+                    ],
+                    "dhw": {
+                        "dhwId": DHW_ID,
+                        "temperatureStatus": {"temperature": 55.0, "isAvailable": True},
+                        "stateStatus": {
+                            "state": TccDhwState.ON,
+                            "mode": TccZoneMode.TEMPORARY_OVERRIDE,
+                            "until": "2026-11-13T18:00:00Z",
+                        },
+                        "activeFaults": [],
+                    },
+                    "activeFaults": [],
+                    "systemModeStatus": {
+                        "mode": TccSystemMode.AWAY,
+                        "isPermanent": False,
+                        "timeUntil": "2026-11-15T00:00:00Z",
+                    },
+                }
+            ],
+            "activeFaults": [
+                {
+                    "faultType": TccFaultType.GWY_X_CL,
+                    "since": "2025-02-23T22:34:25.04",
+                }
+            ],
         }
     ],
 }
