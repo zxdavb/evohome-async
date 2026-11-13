@@ -10,6 +10,7 @@ from unittest.mock import ANY, AsyncMock, call, patch
 
 import pytest
 
+from _evohome.const import DEFAULT_RETRY_AFTER
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync2 import EvohomeClient, exceptions as exc
 from tests.const import (
@@ -223,10 +224,10 @@ async def test_bad3(  # bad credentials (refresh token)
 @pytest.mark.parametrize(
     ("headers", "retry_after"),
     [
-        (None, None),
+        (None, DEFAULT_RETRY_AFTER),  # as the vendor's 429s have been (no header)
         ({"Retry-After": "120"}, 120.0),  # as delay-seconds
         ({"Retry-After": "Wed, 01 Jan 2025 00:02:00 GMT"}, 120.0),  # as HTTP-date
-        ({"Retry-After": "a while"}, None),
+        ({"Retry-After": "a while"}, DEFAULT_RETRY_AFTER),  # not valid
     ],
 )
 async def test_bad4(  # rate limit exceeded (authentication)
