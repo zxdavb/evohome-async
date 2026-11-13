@@ -12,7 +12,8 @@ omits them (see test_get_device.py).
 The ids are ints (the client keeps them as strs), and are cased inconsistently (e.g.
 userID, locationID, deviceID, but a device's gatewayId). A device's indoorTemperature
 is 128.0 if it has none (its indoorTemperatureStatus is then not Measured): e.g. a lost
-zone (its isAlive is false). Its datetimes (e.g. a nextTime) are the location's local
+zone (its isAlive is false). A device's thermostatModelType is a str (e.g. EMEA_ZONE,
+DOMESTIC_HOT_WATER), but some (e.g. a Honeywell TH9320WF3003) send an int. Its datetimes (e.g. a nextTime) are the location's local
 time, without a Z.
 
 As for any URL (see vendor.py), an id that is not the user's is a 401; an unknown path
