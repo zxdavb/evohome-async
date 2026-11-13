@@ -866,13 +866,6 @@ class _ZoneBase[
 
         return mode
 
-    def _validate_requested_duration(
-        self, mode: ZoneMode, duration: td | None, /
-    ) -> dt | None:
-        """Return when a mode ends (None if indefinitely), if valid for the duration."""
-
-        return self._validate_requested_timespan(mode, TimingMode.DURATION, duration)
-
     # Status (state) attrs & methods...
 
     async def _get_status(self, *, _update: bool = True) -> StatusT:
@@ -1287,7 +1280,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         """
 
         mode = self._validate_requested_mode(mode)
-        until = self._validate_requested_duration(mode, duration)
+        until = self._validate_requested_timespan(mode, TimingMode.DURATION, duration)
         temperature = self._validate_requested_temperature(mode, temperature)
 
         # TODO: self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]

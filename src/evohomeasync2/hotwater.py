@@ -363,7 +363,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         """
 
         mode = self._validate_requested_mode(mode)
-        until = self._validate_requested_duration(mode, duration)
+        until = self._validate_requested_timespan(mode, TimingMode.DURATION, duration)
         state = self._validate_requested_state(mode, state)
 
         return await self._put_mode(mode, state=state, until_time=until)
