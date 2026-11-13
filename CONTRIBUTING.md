@@ -146,9 +146,13 @@ An `ApiCallErrorReason` is the cause, and the class is its context: e.g. an
 can still use them; a bare `EvohomeError` (never raised by the library) has the reason
 `EvohomeErrorReason.ERROR_UNSPECIFIED` (`evo_error_unspecified`).
 Each also has `details`: only the structured values that its message may use as
-placeholders (e.g. for an `InvalidSetModeError`: `mode`, `timing_mode`, `state`,
-`max_duration`), or, for an `ApiCallFailedError`, the vendor's error code (`code`, e.g.
-`DeviceIsLost`), if its response has one. The `reason` is optional only so that the error can still be raised
+placeholders, or, for an `ApiCallFailedError`, the vendor's error code (`code`, e.g.
+`DeviceIsLost`), if its response has one. For an `InvalidSetModeError`, `details` has
+only categorical values (a quantity, such as a temperature, an until or a timespan, is in
+the message only): always the `mode` requested (as given, if it is unknown), and the
+categorical argument that the reason is about (`state`, or the `timing_mode`: `until`,
+`duration` or `period`), and from the config only the constraint that was broken
+(`required_timing_mode`). Nothing is calculated. The `reason` is optional only so that the error can still be raised
 with a bare message (e.g. by HA's tests): it is then the class's default (e.g.
 `STATUS_INVALID` for an `InvalidGetStatusError`, or a catch-all such as `MODE_INVALID`
 for an `InvalidSetModeError`), so is never `None`. So the library raises an error with
@@ -157,7 +161,7 @@ a `reason` only if it is not the class's default (e.g. not `RATE_LIMITED`, for a
 
 The reasons' values are public API: renaming or removing one is a breaking change, but
 adding one is not. So are each reason's `details` keys: a reason has the same keys
-wherever it is raised (e.g. `TIMESPAN_NOT_ALLOWED` always has `mode` and `timespan`), so
+wherever it is raised (e.g. `TIMESPAN_NOT_ALLOWED` always has `mode` and `timing_mode`), so
 that a caller can use them (e.g. as the placeholders of a translated message); a reason
 whose keys would differ is two reasons. The one exception is the vendor's `code`, which
 an `ApiCallFailedError` has only if the vendor's response had one. `tests/tests/test_error_reasons.py` checks that

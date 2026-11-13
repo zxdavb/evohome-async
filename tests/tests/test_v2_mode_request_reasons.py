@@ -30,7 +30,6 @@ class _Call(NamedTuple):
     entity: str  # the name of the entity's fixture: tcs, zone or dhw
     mode: str  # a SystemMode/ZoneMode, or a string that is neither
     kwargs: dict[str, Any]  # some of these are rejected by the overloads
-    method: str = "set_mode"
 
 
 _PAST = dt(2020, 1, 1, tzinfo=UTC)
@@ -80,13 +79,13 @@ CASES = [
     pytest.param(
         _Call("tcs", _ECO, {"until": _FUTURE, "duration": td(hours=1)}),
         Reason.TIMESPAN_CONFLICTING,
-        {},
+        {"mode": "auto_with_eco"},
         id="tcs-timespan_conflicting-until",
     ),
     pytest.param(
         _Call("tcs", _AWAY, {"duration": td(hours=1), "period": td(days=1)}),
         Reason.TIMESPAN_CONFLICTING,
-        {},
+        {"mode": "away"},
         id="tcs-timespan_conflicting-duration",
     ),
     pytest.param(
@@ -94,13 +93,13 @@ CASES = [
             "zone", _TEMP, {"temperature": 20.0, "until": _FUTURE, "duration": td(1)}
         ),
         Reason.TIMESPAN_CONFLICTING,
-        {},
+        {"mode": "temporary_override"},
         id="zon-timespan_conflicting",
     ),
     pytest.param(
         _Call("dhw", _TEMP, {"state": _ON, "until": _FUTURE, "duration": td(1)}),
         Reason.TIMESPAN_CONFLICTING,
-        {},
+        {"mode": "temporary_override"},
         id="dhw-timespan_conflicting",
     ),
     #
@@ -108,61 +107,49 @@ CASES = [
     pytest.param(
         _Call("zone", _TEMP, {"temperature": 20.0}),
         Reason.TIMESPAN_REQUIRED,
-        {"mode": "temporary_override", "timing_mode": "duration"},
+        {"mode": "temporary_override", "required_timing_mode": "duration"},
         id="zon-timespan_required",
-    ),
-    pytest.param(  # set_mode() without an until calls _set_tcc_mode(), not this
-        _Call("zone", _TEMP, {"temperature": 20.0}, method="_set_mode"),
-        Reason.TIMESPAN_REQUIRED,
-        {"mode": "temporary_override", "timing_mode": "until"},
-        id="zon-timespan_required-until",
-    ),
-    pytest.param(  # set_mode() without an until calls _set_tcc_mode(), not this
-        _Call("dhw", _TEMP, {"state": _ON}, method="_set_mode"),
-        Reason.TIMESPAN_REQUIRED,
-        {"mode": "temporary_override", "timing_mode": "until"},
-        id="dhw-timespan_required-until",
     ),
     pytest.param(
         _Call("tcs", _AUTO, {"until": _FUTURE}),
         Reason.TIMESPAN_NOT_ALLOWED,
-        {"mode": "auto", "timespan": "until"},
+        {"mode": "auto", "timing_mode": "until"},
         id="tcs-timespan_not_allowed-until",
     ),
     pytest.param(
         _Call("tcs", _AUTO, {"duration": td(hours=1)}),
         Reason.TIMESPAN_NOT_ALLOWED,
-        {"mode": "auto", "timespan": "duration"},
+        {"mode": "auto", "timing_mode": "duration"},
         id="tcs-timespan_not_allowed-duration",
     ),
     pytest.param(
         _Call("zone", _FOLLOW, {"until": _FUTURE}),
         Reason.TIMESPAN_NOT_ALLOWED,
-        {"mode": "follow_schedule", "timespan": "until"},
+        {"mode": "follow_schedule", "timing_mode": "until"},
         id="zon-timespan_not_allowed-until",
     ),
     pytest.param(
         _Call("dhw", _PERM, {"state": _ON, "until": _FUTURE}),
         Reason.TIMESPAN_NOT_ALLOWED,
-        {"mode": "permanent_override", "timespan": "until"},
+        {"mode": "permanent_override", "timing_mode": "until"},
         id="dhw-timespan_not_allowed-until",
     ),
     pytest.param(
         _Call("tcs", _AWAY, {"duration": td(days=1)}),
         Reason.TIMESPAN_UNSUPPORTED,  # (use a period)
-        {"mode": "away", "timing_mode": "period", "timespan": "duration"},
+        {"mode": "away", "timing_mode": "duration", "required_timing_mode": "period"},
         id="tcs-timespan_unsupported",
     ),
     pytest.param(
         _Call("tcs", _AWAY, {"until": _NAIVE}),
         Reason.TIMESPAN_INVALID,
-        {"mode": "away"},
+        {"mode": "away", "timing_mode": "until"},
         id="tcs-timespan_invalid-naive",
     ),
     pytest.param(
         _Call("zone", _TEMP, {"temperature": 20.0, "until": "not-a-datetime"}),
         Reason.TIMESPAN_INVALID,
-        {"mode": "temporary_override"},
+        {"mode": "temporary_override", "timing_mode": "until"},
         id="zon-timespan_invalid-string",
     ),
     pytest.param(
@@ -174,13 +161,13 @@ CASES = [
     pytest.param(
         _Call("tcs", _AWAY, {"until": _PAST}),
         Reason.TIMESPAN_NOT_IN_FUTURE,
-        {"mode": "away"},
+        {"mode": "away", "timing_mode": "until"},
         id="tcs-timespan_not_in_future-until",
     ),
     pytest.param(
         _Call("tcs", _ECO, {"duration": td(0)}),
         Reason.TIMESPAN_NOT_IN_FUTURE,
-        {"mode": "auto_with_eco"},
+        {"mode": "auto_with_eco", "timing_mode": "duration"},
         id="tcs-timespan_not_in_future-duration",
     ),
     #
@@ -214,19 +201,19 @@ CASES = [
     pytest.param(
         _Call("dhw", _FOLLOW, {"state": _ON}),
         Reason.STATE_NOT_ALLOWED,
-        {"mode": "follow_schedule"},
+        {"mode": "follow_schedule", "state": "on"},
         id="dhw-state_not_allowed",
     ),
     pytest.param(
         _Call("dhw", _PERM, {"state": "no_such_state"}),
         Reason.STATE_UNKNOWN,
-        {"state": "no_such_state"},
+        {"mode": "permanent_override", "state": "no_such_state"},
         id="dhw-state_unknown",
     ),
     pytest.param(
         _Call("dhw", _PERM, {"state": _ON}),  # see the patch of allowed_states
         Reason.STATE_UNSUPPORTED,
-        {"state": "on"},
+        {"mode": "permanent_override", "state": "on"},
         id="dhw-state_unsupported",
     ),
 ]
@@ -275,7 +262,7 @@ async def test_mode_request_error_reason(
         patch("_evohome.auth.AbstractAuth.request", new_callable=AsyncMock) as mock,
         pytest.raises(InvalidSetModeError) as exc_info,
     ):
-        await getattr(entity, call.method)(call.mode, **call.kwargs)
+        await entity.set_mode(call.mode, **call.kwargs)
 
     mock.assert_not_awaited()  # it is rejected before any request is made
 
