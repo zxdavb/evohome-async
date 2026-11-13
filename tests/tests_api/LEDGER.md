@@ -5,15 +5,16 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 2, U1: extend `tests/tests/aioresponses.py` (additively) with a non-JSON
-response (`body=`, `content_type=`), own commit; `pytest tests/tests` must pass.
+Phase 2, U2: `tests_api/__init__.py`, `tests_api/conftest.py` (`client_session` = a real
+`aiohttp.ClientSession`; `mock` = a fresh `AioResponses`), `v2/conftest.py` (`ec2` set up
+via mocked GETs from `v2/vendor.py`; loc/tcs/zone/dhw), `v2/vendor.py` (typed payloads).
 
 ## Status
 
 | Phase | Unit | State |
 | ----- | ---- | ----- |
 | 1 | Audit: inventory, vendor facts, debt, plan | done 2055cf0 (approved 2026-11-13, see Decisions) |
-| 2 | U1 `aioresponses.py`: non-JSON responses (e.g. a 404's HTML), additive, own commit | todo |
+| 2 | U1 `aioresponses.py`: non-JSON responses (e.g. a 404's HTML), additive, own commit | done (this commit) |
 | 2 | U2 `tests_api/conftest.py` (`mock`), `v2/conftest.py` (`ec2`, entities), `v2/vendor.py` | todo |
 | 2 | U3 `v1/conftest.py` (`ec1`, entities), `v1/vendor.py` | todo |
 | 3 | U4 `v2/test_auth.py` (token POST: password & refresh grants; bearer) | todo |
