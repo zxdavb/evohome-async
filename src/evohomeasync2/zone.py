@@ -1191,7 +1191,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         """Set the Zone mode, and return the vendor's comm task.
 
         Heating only; cooling is not exposed by the API. The params are as per the
-        JSON (EvoSetZoneHeatSetpointT), and are not validated.
+        JSON (EvoSetZoneHeatSetpointT), and are not validated here.
         """
 
         zon_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: setpoint_mode}

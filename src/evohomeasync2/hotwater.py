@@ -277,7 +277,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
     ) -> CommTask:
         """Set the DHW mode (state), and return the vendor's comm task.
 
-        The params are as per the JSON (EvoSetDhwStateT), and are not validated.
+        The params are as per the JSON (EvoSetDhwStateT), and are not validated here.
         """
 
         dhw_mode: EvoSetDhwStateT = {SZ_MODE: mode}

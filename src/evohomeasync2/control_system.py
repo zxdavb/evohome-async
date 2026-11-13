@@ -358,7 +358,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
     ) -> CommTask:
         """Set the TCS mode, and return the vendor's comm task.
 
-        The params are as per the JSON (EvoSetSystemModeT), and are not validated.
+        The params are as per the JSON (EvoSetSystemModeT), and are not validated here.
         """
 
         tcs_mode: EvoSetSystemModeT = {
