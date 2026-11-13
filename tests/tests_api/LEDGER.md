@@ -5,11 +5,10 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-v2 is done (bar its LIVE homes, for U19). Phase 3, U12: `v1/test_auth.py`: the session
-POST (form `applicationId/username/password`; 200 `{sessionId, userInfo}`; 401
-EmailOrPasswordIncorrect; 429 TooManyRequests) and the `sessionId` header (bad → 401
-'Unauthorized'). See tests/tests/test_v1_urls_cred.py for how it mocks the POST, and
-src/evohomeasync/auth.py. Add the session payload to v1/vendor.py.
+Phase 3, U13: `v1/test_get.py`: GET accountInfo and locations?userId&allData=True, at
+L0 and L2 (`setup()`/`get_status()`: what they parse, e.g. ids are ints, the lost
+zone, `get_temperatures(dont_update_status=True)`); errors: 401 foreign userId, 404
+HTML (unknown path), 404 JSON (no userId), 400 non-numeric? (body not recorded: skip).
 
 Notes: a test with > 5 params makes them keyword-only (`*,`), for PLR0917. Payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
 (20000xx). `mock` is autouse; client fixtures clear `mock.requests` after setup; each
@@ -31,8 +30,8 @@ fact home with ✓.
 | 3 | U8 `v2/test_tcs_put.py` | done 125e0ca |
 | 3 | U9 `v2/test_zone_put.py` | done ab35949 |
 | 3 | U10 `v2/test_dhw_put.py` | done 97fa5c7 |
-| 3 | U11 `v2/test_schedule.py` | done (this commit) |
-| 3 | U12 `v1/test_auth.py` (session POST; sessionId header) | todo |
+| 3 | U11 `v2/test_schedule.py` | done 28f93fd |
+| 3 | U12 `v1/test_auth.py` (session POST; sessionId header) | done (this commit) |
 | 3 | U13 `v1/test_get.py` (accountInfo, locations?userId) | todo |
 | 3 | U14 `v1/test_get_device.py` (every other GET URL: locations?locationId, gateways, devices, device, thermostat, changeableValues) | todo |
 | 3 | U15 `v1/test_comm_task.py` | todo |
@@ -233,10 +232,10 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
-| _test_bad0 (disabled) | L0 | IP → cert error | — | — | drop: disabled; TLS, not the API |
-| test_bad1 | L0 | bad creds → 401 EmailOrPasswordIncorrect | — | tests/test_v1_urls_cred::test_bad1 | port → v1/test_auth (Q7); live (cred flag) |
-| test_bad2 | L0 | bad sessionId → 401 `[Unauthorized 'Unauthorized']` | — | …::test_bad2 | port → v1/test_auth; live |
-| test_good | L0 | session 200; accountInfo 200 (D17) | — | …::test_good | port → v1/test_auth; live (cred flag) |
+| _test_bad0 (disabled) | L0 | IP → cert error | — | — | ✓ drop: disabled; TLS, not the API |
+| test_bad1 | L0 | bad creds → 401 EmailOrPasswordIncorrect | — | tests/test_v1_urls_cred::test_bad1 | ✓ port → v1/test_auth (Q7); live (cred flag) |
+| test_bad2 | L0 | bad sessionId → 401 `[Unauthorized 'Unauthorized']` | — | …::test_bad2 | ✓ port → v1/test_auth; live |
+| test_good | L0 | session 200; accountInfo 200 (D17) | — | …::test_good | ✓ port → v1/test_auth; live (cred flag) |
 
 ### test_v1_apis.py (all real-only)
 
@@ -303,7 +302,7 @@ homes are planned until their unit is done.
 | V1-16 | DHW changeableValues `{Mode: DHWOn/DHWOff}`; on the test system a non-null Status/NextTime → 400 ForbiddenParameter ("'Status' is forbidden."), `{}`/Mode null → ParameterIsMissing ("'ThermostatMode' is required."), "Off" → ThermostatModeNotAllowed, "Auto" → InvalidInput; nulls & unknown keys ignored; a mode-only PUT is not applied (test system) | v1_urls_auth, memory | T v1/test_dhw_put; D |
 | V1-17 | Hold w/o Value → 400 ParameterIsMissing "'Value' is required."; NoSuchStatus → InvalidInput | v1_urls_auth | T v1/test_zone_put; LIVE |
 | V1-18 | commTasks: `{state, started, finished?, macId, gatewayId, deviceId, activityId}` (no task id; TZ-naive UTC); Succeeded is terminal; 12345678 → 404 CommTaskNotFound; ABC → 400 InvalidInput "The value 'ABC' is not valid for Int32"; '' → 400 InvalidInput (v2: ParameterIsMissing); no query → 404 JSON; zero-padded id = same task; any user's task readable (leaks mac/device ids) | v1_urls, common, memory | T v1/test_comm_task; LIVE |
-| V1-19 | Session POST (form) `applicationId, username, password` → 200 `{sessionId (a GUID), userInfo{userID int, …}}`; bad → 401 `[EmailOrPasswordIncorrect 'The email or password provided is incorrect.']`; rate limit → 429 `[TooManyRequests 'Request count limitation exceeded, please try again later.']`; bad sessionId header → 401 `[Unauthorized 'Unauthorized']` (no full stop) | v1_urls_cred | D v1/vendor.py (tested by tests/test_v1_urls_cred); LIVE |
+| V1-19 | Session POST (form) `applicationId, username, password` → 200 `{sessionId (a GUID), userInfo{userID int, …}}`; bad → 401 `[EmailOrPasswordIncorrect 'The email or password provided is incorrect.']`; rate limit → 429 `[TooManyRequests 'Request count limitation exceeded, please try again later.']`; bad sessionId header → 401 `[Unauthorized 'Unauthorized']` (no full stop) | v1_urls_cred | T v1/test_auth ✓; LIVE (cred flag) |
 | V1-20 | The older client sent PascalCase bodies, this library camelCase: both accepted | v1_urls_auth | T v1/test_*_put (camelCase); D |
 | V1-21 | Honeywell TH9320WF3003 can send thermostatModelType as an int | common | D v1/test_get (or T, if the library handles it) |
 | V1-22 | A v1 comm task once took 29 s (2026-10-07) | const | D tests_live conftest (or drop with `TIMEOUT_COMM_TASK_V1`) |

@@ -82,7 +82,11 @@ from evohomeasync.schemas import (
 )
 
 if TYPE_CHECKING:
-    from evohomeasync.schemas import TccLocationResponseT, TccUserAccountInfoResponseT
+    from evohomeasync.schemas import (
+        TccLocationResponseT,
+        TccSessionResponseT,
+        TccUserAccountInfoResponseT,
+    )
 
 
 # the ids of the (redacted) user and their entities (as are sent: ints)
@@ -95,6 +99,33 @@ DHW_ID: Final = 2000050
 
 # an id that is not the user's
 NOT_THE_USERS_ID: Final = 123456
+
+
+# POST /session (its sessionId is a GUID)
+# provenance: the USER_DATA of the old tests_rf/test_v1_urls_auth.py, and the old
+# tests_rf/test_v1_urls_cred.py (its comments) (redacted)
+SESSION: Final[TccSessionResponseT] = {
+    "sessionId": "BE5F40A6-1234-1234-1234-A708947D6399",
+    "userInfo": {
+        "userID": _UserIdT(USR_ID),
+        "username": "username@email.com",
+        "firstname": "John",
+        "lastname": "Smith",
+        "streetAddress": "1 Main Street",
+        "city": "London",
+        "zipcode": "E1 1AA",
+        "country": "GB",
+        "telephone": "",
+        "userLanguage": "en-GB",
+        "isActivated": True,
+        "deviceCount": 0,
+        "tenantID": 5,
+        "securityQuestion1": "NotUsed",
+        "securityQuestion2": "NotUsed",
+        "securityQuestion3": "NotUsed",
+        "latestEulaAccepted": False,
+    },
+}
 
 
 # GET /accountInfo
