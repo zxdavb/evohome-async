@@ -152,7 +152,9 @@ def test_regex_tcc_timespan(
             schema(value)
 
 
-def _zon_config(**setpoint_capabilities: Any) -> dict[str, Any]:
+def _zon_config(
+    schedule_capabilities: dict[str, Any] | None = None, **setpoint_capabilities: Any
+) -> dict[str, Any]:
     """Return a zone's config (as per the default fixture), with these capabilities."""
 
     return {
@@ -173,6 +175,13 @@ def _zon_config(**setpoint_capabilities: Any) -> dict[str, Any]:
             "timingResolution": "00:10:00",
         }
         | setpoint_capabilities,
+        "scheduleCapabilities": {
+            "maxSwitchpointsPerDay": 6,
+            "minSwitchpointsPerDay": 1,
+            "timingResolution": "00:10:00",
+            "setpointValueResolution": 0.5,
+        }
+        | (schedule_capabilities or {}),
         "name": "Dead Zone",
         "zoneType": "RadiatorZone",
     }
@@ -186,11 +195,14 @@ def test_factory_zon_config_value_resolution(
     value: float,
     expected: float,
 ) -> None:
-    """Test a zone's valueResolution is one of 0.1, 0.5 or 1.0."""
+    """Test a zone's (and its schedule's) value resolution is one of 0.1, 0.5 or 1.0."""
 
-    result = factory_zon_config()(_zon_config(valueResolution=value))
+    result = factory_zon_config()(
+        _zon_config({"setpointValueResolution": value}, valueResolution=value)
+    )
 
     assert result["setpointCapabilities"]["valueResolution"] == expected
+    assert result["scheduleCapabilities"]["setpointValueResolution"] == expected
 
 
 @pytest.mark.parametrize(
@@ -227,6 +239,13 @@ def test_factory_zon_config_rejects(
 
     with pytest.raises(vol.Invalid):
         factory_zon_config()(_zon_config(**capabilities))
+
+
+def test_factory_zon_config_rejects_setpoint_value_resolution() -> None:
+    """Test a zone's config is rejected if its schedule's setpointValueResolution is."""
+
+    with pytest.raises(vol.Invalid):
+        factory_zon_config()(_zon_config({"setpointValueResolution": 0.25}))
 
 
 @pytest.mark.parametrize(

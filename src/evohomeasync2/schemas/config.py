@@ -115,7 +115,7 @@ _MAX_HEAT_SETPOINT_UPPER: Final = 35.0
 _MIN_HEAT_SETPOINT_LOWER: Final = 4.5
 _MIN_HEAT_SETPOINT_UPPER: Final = 21.0
 
-_VALUE_RESOLUTIONS: Final = (0.1, 0.5, 1.0)  # of a zone's setpoint
+_VALUE_RESOLUTIONS: Final = (0.1, 0.5, 1.0)  # of a zone's setpoint (and its schedule's)
 
 _MAX_NUM_ZONES_PER_TCS: Final = 12  # unused; some non-evohome systems supported 16
 _MIN_NUM_ZONES_PER_TCS: Final = 1
@@ -221,7 +221,7 @@ class TccZonScheduleCapabilitiesResponseT(TypedDict):
     maxSwitchpointsPerDay: int
     minSwitchpointsPerDay: int
     timingResolution: str  # #        "00:10:00"
-    setpointValueResolution: float  # 0.5
+    setpointValueResolution: float  # 0.1, 0.5 or 1.0
 
 
 class TccZonSetpointCapabilitiesResponseT(TypedDict):
@@ -463,7 +463,7 @@ def factory_zon_config(case: Case = Case.VENDOR) -> Validator[TccZonConfigRespon
 
     SCH_SCHEDULE_CAPABILITIES = factory_schedule_capabilities_response(case).extend(
         {
-            vol.Required(fnc(S2_SETPOINT_VALUE_RESOLUTION)): float,
+            vol.Required(fnc(S2_SETPOINT_VALUE_RESOLUTION)): vol.All(float, vol.In(_VALUE_RESOLUTIONS)),  # 0.5
         },
         extra=vol.PREVENT_EXTRA,
     )
