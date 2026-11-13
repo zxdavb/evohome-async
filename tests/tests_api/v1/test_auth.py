@@ -137,7 +137,8 @@ async def test_session_rate_limited(
     """Too many attempts are a 429 (TooManyRequests), without a Retry-After.
 
     As probed (2026-11-13, with the user's real credentials): 4 sessions were given, and
-    the 5th POST (all within a second) was a 429, without a Retry-After header.
+    the 5th POST (all within a second) was a 429, without a Retry-After header. Half an
+    hour later, the limit had lifted: 6 were given, and the 7th was a 429.
     """
 
     credentials_manager.clear_session_id()

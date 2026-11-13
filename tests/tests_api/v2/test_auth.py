@@ -227,7 +227,8 @@ async def test_password_grant_rate_limited(
 
     As probed (2026-11-13, with the user's real credentials), after a day of tests: its
     content type was "application/json;charset=UTF-8", and it had no Retry-After header
-    (so the client cannot say when to try again).
+    (so the client cannot say when to try again). Half an hour later, the limit had
+    lifted: 6 tokens were given (within 1.5s), and the 7th POST was a 429.
     """
 
     _clear_tokens(credentials_manager)

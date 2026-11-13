@@ -356,6 +356,10 @@ PUTs whose comm task did not end within 60s.
   Retry-After header.** Recorded in v{1,2}/test_auth.py (and v2/test_get.py's GET 429
   is now marked hypothetical). The old tests/tests::test_bad5 (a GET 429 with a
   Retry-After) is likewise hypothetical.
+- 429s, redone 33 min later (20:31Z): the limits had lifted. v2 token POST: 6 × 200, then
+  a 429 at the 7th (1.5s). v1 session POST (straight after): 6 × 200, then a 429 at the
+  7th (1.2s): so each API has its own limit (a burst of ~6), and a lockout lasts less
+  than ~30 min. Again, no Retry-After header.
 - Not settled: the cred POSTs' 200s (flag off); whether v2 PUTs' tasks succeed (needs
   the gateway online).
 
