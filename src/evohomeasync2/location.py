@@ -51,7 +51,7 @@ if TYPE_CHECKING:
     from _evohome.helpers import Validator
 
     from . import EvohomeClient
-    from .auth import Auth
+    from .auth import AbstractTokenManager, Auth
     from .control_system import ControlSystem
     from .typedefs import (
         EvoLocConfigResponseT,
@@ -98,6 +98,25 @@ async def _create_tzinfo(
     return EvoZoneInfo(
         time_zone_info=time_zone_info, use_dst_switching=use_dst_switching
     )
+
+
+def _access_token_in_use(token_manager: AbstractTokenManager) -> str | None:
+    """Return the access token that the next request will send, if it is valid.
+
+    Else None (as the next request will fetch another).
+    """
+    return token_manager.access_token if token_manager.is_token_valid() else None
+
+
+def _clear_rejected_access_token(
+    token_manager: AbstractTokenManager, rejected: str | None
+) -> None:
+    """Clear the access token that was rejected (so another is fetched).
+
+    Unless another task has since refreshed it, so as not to clear the new one.
+    """
+    if rejected is None or token_manager.access_token == rejected:
+        token_manager.clear_access_token()
 
 
 async def create_location(
@@ -304,6 +323,7 @@ class Location(EntityBase[EvoLocStatusT]):
         *,
         raise_on_stale_config: bool = False,
         _update: bool = True,
+        _is_retry: bool = False,
     ) -> EvoLocStatusResponseT:
         """Get the latest state of the location and optionally update its status attrs.
 
@@ -314,7 +334,13 @@ class Location(EntityBase[EvoLocStatusT]):
 
         Some datetimes are naive (e.g. ActiveFaults.since), and assumed to be in the
         location's TZ.
+
+        A 401 is either because the location is no longer the user's (a
+        StaleConfigError), or because the access token was rejected: then the token is
+        cleared (so another is fetched), and the GET is retried (once).
         """
+
+        access_token = _access_token_in_use(self.client.token_manager)
 
         try:
             status: EvoLocStatusResponseT = await self._auth.get(
@@ -325,19 +351,33 @@ class Location(EntityBase[EvoLocStatusT]):
         except exc.BadApiResponseError as err:  # the status failed validation
             raise exc.InvalidGetStatusError(err.message) from err
 
-        except exc.AuthenticationFailedError:  # unable to get an access_token
-            raise
-
         except exc.ApiCallFailedError as err:  # check if 401 - no access to location
+            # raise it if unable to get an access token, if it is not a 401, if unsure
+            # why it is (e.g. userAccount is a 5xx), or if a new token was rejected too
             if (
-                err.status != HTTPStatus.UNAUTHORIZED  # 401
-                or not await self._is_access_token_accepted()
+                isinstance(err, exc.AuthenticationFailedError)
+                or err.status != HTTPStatus.UNAUTHORIZED  # 401
+                or (is_accepted := await self._is_access_token_accepted()) is None
+                or (not is_accepted and _is_retry)
             ):
                 raise
-            raise exc.StaleConfigError(
-                f"{self}: is no longer accessible (has it been deleted, or unshared?)",
-                reason=ClientStateErrorReason.LOCATION_INACCESSIBLE,
-            ) from err
+
+            if is_accepted:
+                raise exc.StaleConfigError(
+                    f"{self}: is no longer accessible (has it been deleted, or unshared?)",
+                    reason=ClientStateErrorReason.LOCATION_INACCESSIBLE,
+                ) from err
+
+            self._logger.warning(
+                f"The access_token has been rejected (will re-authenticate): {err}"
+            )
+            _clear_rejected_access_token(self.client.token_manager, access_token)
+
+            return await self._get_status(
+                raise_on_stale_config=raise_on_stale_config,
+                _update=_update,
+                _is_retry=True,
+            )
 
         status = convert_dtm_to_local_aware(status, self.tzinfo)
 
@@ -357,15 +397,15 @@ class Location(EntityBase[EvoLocStatusT]):
 
         return status
 
-    async def _is_access_token_accepted(self) -> bool:
-        """Return True only if the vendor's server accepts the access token.
+    async def _is_access_token_accepted(self) -> bool | None:
+        """Return True if the vendor's server accepts the access token, else False.
 
         A 401 from a location's URL is either because the access token was rejected, or
         because the user has no access to that location. As the userAccount URL is open
         to all authenticated users, a 401 from it can only be due to the former.
 
-        Return False if the token is rejected, or if that can't be determined (e.g. no
-        connection, or a 5xx), so that the caller raises its original error (the 401).
+        Return None if that can't be determined (e.g. no connection, or a 5xx), so that
+        the caller raises its original error (the 401).
         """
 
         try:
@@ -377,8 +417,11 @@ class Location(EntityBase[EvoLocStatusT]):
         except exc.AuthenticationFailedError:  # unable to get an access_token
             raise
 
-        except (exc.ApiCallFailedError, exc.BadApiResponseError):  # 401, or unsure
-            return False
+        except exc.ApiCallFailedError as err:
+            return False if err.status == HTTPStatus.UNAUTHORIZED else None  # 401
+
+        except exc.BadApiResponseError:  # unsure
+            return None
 
         return True
 

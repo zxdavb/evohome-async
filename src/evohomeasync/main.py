@@ -249,12 +249,46 @@ class EvohomeClient:
         return user_locs
 
     async def _get_user_locs(self) -> list[EvoTcsInfoDictT]:
-        """GET the config/status of all the user's locations (in v1, they are one)."""
+        """GET the config/status of all the user's locations (in v1, they are one).
 
-        return await self.auth.get(
-            URL_LOCATIONS.format(user_id=self.user_id),
-            schema=SCH_GET_ACCOUNT_LOCS,
+        Re-authenticate (once) if the session_id is rejected.
+        """
+
+        # if valid, auth.get() sends this id (without yielding), else it fetches another
+        session_id = (
+            self._session_manager.session_id
+            if self._session_manager.is_session_valid()
+            else None
         )
+
+        try:
+            return await self.auth.get(
+                URL_LOCATIONS.format(user_id=self.user_id),
+                schema=SCH_GET_ACCOUNT_LOCS,
+            )
+
+        except exc.AuthenticationFailedError:  # unable to get a session_id
+            raise
+
+        except exc.ApiCallFailedError as err:  # check if 401 - bad session_id
+            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
+                raise
+
+            # as the URL is of the user's own locations, any 401 is due the (albeit
+            # valid) session_id being rejected by the server
+
+            self._logger.warning(
+                f"The session_id has been rejected (will re-authenticate): {err}"
+            )
+
+            # another task may have since refreshed it, so don't clear the new one
+            if session_id is None or self._session_manager.session_id == session_id:
+                self._session_manager.clear_session_id()
+
+            return await self.auth.get(
+                URL_LOCATIONS.format(user_id=self.user_id),
+                schema=SCH_GET_ACCOUNT_LOCS,
+            )
 
     @property
     def user_account(self) -> EvoUserAccountInfoDictT:

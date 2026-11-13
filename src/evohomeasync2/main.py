@@ -79,6 +79,11 @@ class EvohomeClient:
         return self._logger
 
     @property
+    def token_manager(self) -> AbstractTokenManager:
+        """Return the token manager (as passed to the client)."""
+        return self._token_manager
+
+    @property
     def tzinfo(self) -> ZoneInfo | None:
         """Return a tzinfo-compliant object for the client's local time."""
 
