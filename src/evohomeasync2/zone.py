@@ -16,6 +16,7 @@ from _evohome.helpers import (
     as_aware_dtm,
     as_local_time,
     as_timedelta,
+    camel_to_snake,
     convert_dtm_to_local_aware,
 )
 
@@ -28,6 +29,7 @@ from .const import (
     SZ_CAN_BE_PERMANENT,
     SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
+    SZ_DAY_OF_WEEK,
     SZ_DHW_STATE,
     SZ_DURATION,
     SZ_FAN_MODE,
@@ -119,6 +121,8 @@ if TYPE_CHECKING:
 
 
 _ONE_DAY = td(days=1)
+
+_DAYS: Final = tuple(DayOfWeek)  # Monday first (as is datetime.weekday())
 
 # for values that the schema passes through, as the vendor's enums are incomplete
 _PLEASE_REPORT = (
@@ -489,10 +493,32 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
 
 
 def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
-    """Return a pair of strings representing the local day of week and time of day."""
+    """Return the local day of week and time of day (to the second, e.g. "06:30:15")."""
     dtm = as_local_time(dtm, tzinfo)
-    day_of_week = list(DayOfWeek)[dtm.weekday()]  # locale-independent
-    return DayOfWeek(day_of_week), dtm.strftime("%H:%M")  # TODO: localize, e.g. Montag?
+    return _DAYS[dtm.weekday()], dtm.strftime("%H:%M:%S")  # locale-independent
+
+
+def _switchpoints_by_day[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT)](
+    schedule: list[DayT],
+) -> dict[DayOfWeek, list[Mapping[str, Any]]]:
+    """Return each day's switchpoints (in order of their time of day), by its day.
+
+    The days are found by their day_of_week, not by their position in the schedule
+    (which may be of other than seven days, or not in order). A day may have none.
+    A schedule that was set via set_schedule() is as given, so its day names may be
+    of another case (e.g. "Monday"): an unknown name is ignored.
+    """
+
+    by_day: dict[DayOfWeek, list[Mapping[str, Any]]] = {d: [] for d in _DAYS}
+
+    for day in schedule:
+        if (name := camel_to_snake(str(day[SZ_DAY_OF_WEEK]))) in by_day:
+            by_day[DayOfWeek(name)] = sorted(
+                day[SZ_SWITCHPOINTS],
+                key=lambda sp: tm.fromisoformat(sp[SZ_TIME_OF_DAY]),
+            )
+
+    return by_day
 
 
 def _wall_to_aware(wall: dt, tzinfo: tzinfo) -> tuple[dt, dt]:
@@ -528,7 +554,12 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
     day_of_week: DayOfWeek,
     time_of_day: str,
 ) -> tuple[Mapping[str, Any], int, Mapping[str, Any], int]:
-    """Find this/next switchpoints for a given day of week and time of day."""
+    """Find this/next switchpoints for a given day of week and time of day.
+
+    Return each with its offset in days from the given day (e.g. -1 if this switchpoint
+    began yesterday). A day without switchpoints is skipped, so an offset may be of
+    more than one day (or of seven: the same switchpoint, a week ago or hence).
+    """
 
     if not schedule:
         raise exc.InvalidGetScheduleError(
@@ -536,49 +567,36 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
             reason=ResponseErrorReason.SCHEDULE_MISSING,
         )
 
-    # assumes 1+ switchpoint per day, which could be this_sp or next_sp only
+    by_day = _switchpoints_by_day(schedule)
 
-    try:
-        day_idx = list(DayOfWeek).index(day_of_week)
-    except ValueError as err:
-        raise TypeError(f"Invalid parameter: {day_of_week}") from err
+    if not any(by_day.values()):
+        raise exc.InvalidGetScheduleError(
+            "No switchpoints for any day",
+            reason=ResponseErrorReason.SWITCHPOINTS_MISSING,
+        )
 
-    this_sp: Mapping[str, Any] | None = None
-    next_sp: Mapping[str, Any] | None = None
+    day_idx = _DAYS.index(day_of_week)
+    now = tm.fromisoformat(time_of_day)  # compare times, as "06:30:00" > "06:30"
 
-    this_offset = 0
-    next_offset = 0
+    def switchpoints(offset: int) -> list[Mapping[str, Any]]:
+        return by_day[_DAYS[(day_idx + offset) % 7]]
 
-    # Check the switchpoints of the given day of week
-    for sp in schedule[day_idx][SZ_SWITCHPOINTS]:
-        if sp[SZ_TIME_OF_DAY] <= time_of_day:
-            this_sp = sp
-            continue
-
-        if sp[SZ_TIME_OF_DAY] > time_of_day:
-            if this_sp is None:
-                if not (prev_day := schedule[(day_idx + 6) % 7][SZ_SWITCHPOINTS]):
-                    raise exc.InvalidGetScheduleError(
-                        "No switchpoints for previous day",
-                        reason=ResponseErrorReason.SWITCHPOINTS_MISSING,
-                    )
-                this_sp = prev_day[-1]
-                this_offset = -1
-
-            next_sp = sp
-            break
-
+    # this is the latest that has started, today or on an earlier day
+    today = switchpoints(0)
+    earlier = [sp for sp in today if tm.fromisoformat(sp[SZ_TIME_OF_DAY]) <= now]
+    if earlier:
+        this_sp, this_offset = earlier[-1], 0
     else:
-        assert this_sp is not None  # mypy
+        this_offset = next(o for o in range(-1, -8, -1) if switchpoints(o))
+        this_sp = switchpoints(this_offset)[-1]
 
-        if next_sp is None:
-            if not (next_day := schedule[(day_idx + 1) % 7][SZ_SWITCHPOINTS]):
-                raise exc.InvalidGetScheduleError(
-                    "No switchpoints for next day",
-                    reason=ResponseErrorReason.SWITCHPOINTS_MISSING,
-                )
-            next_sp = next_day[0]
-            next_offset = +1
+    # next is the soonest that has yet to start, today or on a later day
+    later = [sp for sp in today if tm.fromisoformat(sp[SZ_TIME_OF_DAY]) > now]
+    if later:
+        next_sp, next_offset = later[0], 0
+    else:
+        next_offset = next(o for o in range(1, 8) if switchpoints(o))
+        next_sp = switchpoints(next_offset)[0]
 
     return this_sp, this_offset, next_sp, next_offset
 
@@ -619,8 +637,8 @@ def _find_switchpoint_dtms[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfW
     # switchpoints skipped by the same DST gap all start at its end, when only the last
     # of them becomes active (this_sp is already the last, as it is found by wall-clock)
     next_day = dtm + td(days=next_offset)
-    for sp in schedule[next_day.weekday()][SZ_SWITCHPOINTS]:
-        if sp[SZ_TIME_OF_DAY] <= next_sp[SZ_TIME_OF_DAY]:
+    for sp in _switchpoints_by_day(schedule)[_DAYS[next_day.weekday()]]:
+        if tm.fromisoformat(sp[SZ_TIME_OF_DAY]) <= next_tod:
             continue
         start, _ = _wall_to_aware(
             dt.combine(next_day, tm.fromisoformat(sp[SZ_TIME_OF_DAY])), tzinfo
