@@ -5,10 +5,11 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 3, U7: `v2/test_comm_task.py`: a PUT's 201 `{"id": "..."}` (`CommTask.from_put`,
-via e.g. `zone._put_mode`); GET commTasks?commTaskId= (`CommTask.get_state()`): each
-state; `wait()` → Succeeded, and Failed → CommTaskFailedError (V2-29); 404
-CommTaskNotFound, 400 InvalidInput / ParameterIsMissing; no query → 404 JSON.
+Phase 3, U8: `v2/test_tcs_put.py`: PUT .../mode. L1 `tcs._put_mode()` bodies
+(permanent; temporary with timeUntil); L2 `set_mode()`/`set_*()`/`reset()` wire form
+(a duration & a period → timeUntil); errors: 400 ParameterIsMissing (parameterName:
+B1, schema lacks it), InvalidInput, SystemModeChangeTimeUntilNotSet; 401 foreign id;
+500 for an enum-valid mode the TCS lacks. Docstring: V2-26, V2-31 (TCS parts).
 
 Notes: a test with > 5 params makes them keyword-only (`*,`), for PLR0917. Payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
 (20000xx). `mock` is autouse; client fixtures clear `mock.requests` after setup; each
@@ -25,8 +26,8 @@ fact home with ✓.
 | 2 | U3 `v1/conftest.py` (`ec1`, entities), `v1/vendor.py` | done 2bde958 |
 | 3 | U4 `v2/test_auth.py` (token POST: password & refresh grants; bearer) | done d9344aa |
 | 3 | U5 `v2/test_get.py` (userAccount, installationInfo, location status) | done ff2d9ff |
-| 3 | U6 `v2/test_get_entity.py` (every other GET URL: loc config, gwy/TCS/zone/DHW config & status) | done (this commit) |
-| 3 | U7 `v2/test_comm_task.py` | todo |
+| 3 | U6 `v2/test_get_entity.py` (every other GET URL: loc config, gwy/TCS/zone/DHW config & status) | done 50b100c |
+| 3 | U7 `v2/test_comm_task.py` | done (this commit; also drops a `noqa: S105` from v2/test_auth.py) |
 | 3 | U8 `v2/test_tcs_put.py` | todo |
 | 3 | U9 `v2/test_zone_put.py` | todo |
 | 3 | U10 `v2/test_dhw_put.py` | todo |
@@ -163,7 +164,7 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 | ---- | - | ------- | ---- | ------- | ------- |
 | test_task_id_dhw | L0 | DHW PUT → 201 `{'id': '840367013'}`; Pascal keys ok; swapped values → 400 InvalidInput ×2 (enum & path in message); commTaskId ABC → 400; 12345678 → 404 | real-only | — | merge → v2/test_dhw_put (InvalidInput ×2), v2/test_comm_task |
 | _out_test_task_id_zone (disabled) | — | GETs a zone status, asserts nothing | — | — | drop: disabled, no assertion |
-| test_comm_task_ids | L0 | 12345678 → 404 CommTaskNotFound; ABC → 400 InvalidInput; '' → 400 ParameterIsMissing; no query → 404 JSON; `0{id}` normalised | real-only | tests/test_v2_comm_task (above the wire) | port → v2/test_comm_task; normalisation → live |
+| test_comm_task_ids | L0 | 12345678 → 404 CommTaskNotFound; ABC → 400 InvalidInput; '' → 400 ParameterIsMissing; no query → 404 JSON; `0{id}` normalised | real-only | tests/test_v2_comm_task (above the wire) | ✓ port → v2/test_comm_task; normalisation → live |
 
 ### test_v2_urls_sked.py
 
@@ -256,8 +257,8 @@ homes are planned until their unit is done.
 | V2-1 | Base `https://tccna.resideo.com/WebAPI/emea/api/v1`; token at `/Auth/OAuth/Token` (off the base); its cert is for the hostname only | v2_urls, v2_urls_cred | D v2/vendor.py |
 | V2-2 | Every entity has `installationInfo` & `status`; a TCS's include its zones/DHW; a loc's/gwy's include TCSs iff `includeTemperatureControlSystems=True` | v2_urls | T v2/test_get_entity ✓, D v2/vendor.py ✓; LIVE |
 | V2-3 | An entity's installationInfo/status == the object nested in its parent's | v2_urls | T v2/test_get_entity ✓ (payloads derived by nesting), D ✓; LIVE |
-| V2-4 | GET → 200; PUT → 201 + comm task `{"id": "1668279943"}` (a str) | v2_urls | T v2/test_comm_task |
-| V2-5 | A PUT is sometimes answered with the comm task of an earlier, equivalent PUT (rule unknown) | v2_urls, common | D v2/test_comm_task |
+| V2-4 | GET → 200; PUT → 201 + comm task `{"id": "1668279943"}` (a str) | v2_urls | T v2/test_comm_task ✓ |
+| V2-5 | A PUT is sometimes answered with the comm task of an earlier, equivalent PUT (rule unknown) | v2_urls, common | D v2/test_comm_task ✓ |
 | V2-6 | GET of a PUT-only URL → 405 JSON `{'message': "The requested resource does not support http method 'GET'."}`, except zone heatSetpoint → 404 HTML | v2_urls_auth | D v2/vendor.py; LIVE |
 | V2-7 | Unknown path → 404 HTML (`<!DOCTYPE html PUBLIC …`); no/unknown query key → 404 JSON `{'message': "No HTTP resource was found that matches the request URI '…'."}` | v2_urls_auth | T v2/test_get ✓; LIVE |
 | V2-8 | Responses camelCase; URL path (incl. base) & query keys, and request keys & enum values, case-insensitive (not snake_case: `permanent_override` → InvalidInput) | v2_urls, v2_urls_auth | D v2/vendor.py; LIVE |
@@ -274,14 +275,14 @@ homes are planned until their unit is done.
 | V2-19 | A gateway's fault, e.g. `GatewayCommunicationLost`, `since` "2025-02-23T22:34:25.04" (fractional, TZ-naive) | v2_urls | T v2/test_get ✓ (LOC_STATUS_OVERRIDDEN) |
 | V2-20 | Token POST (form): `grant_type=password, scope="EMEA-V1-Basic EMEA-V1-Anonymous", Username, Password`, Basic app-id header → 200 `{access_token, token_type: bearer, expires_in: 1799, refresh_token, scope?}`; bad → 400 `{"error": "invalid_grant"}`; rate limit → 429 `{"error": "attempt_limit_exceeded"}`; refresh grant likewise | v2_urls_cred | T v2/test_auth ✓; LIVE (cred flag) |
 | V2-21 | Bad/expired bearer → 401 `[{"code": "Unauthorized", "message": "Unauthorized."}]`: differs from a foreign-id 401 only by message | v2_urls_cred, memory | T v2/test_auth ✓, D v2/vendor.py ✓; LIVE |
-| V2-22 | commTasks `?commTaskId={id}` → 200 `{'commtaskId': '840367013', 'state': 'Created'}` (or Running / Succeeded / Failed); unknown numeric → 404 CommTaskNotFound 'Communication task not found.'; non-numeric → 400 InvalidInput 'Invalid Input.'; empty → 400 ParameterIsMissing; no query → 404 JSON; `0{id}` normalised; any user's task readable (no 401) | v2_urls_task, memory | T v2/test_comm_task; LIVE |
+| V2-22 | commTasks `?commTaskId={id}` → 200 `{'commtaskId': '840367013', 'state': 'Created'}` (or Running / Succeeded / Failed); unknown numeric → 404 CommTaskNotFound 'Communication task not found.'; non-numeric → 400 InvalidInput 'Invalid Input.'; empty → 400 ParameterIsMissing; no query → 404 JSON; `0{id}` normalised; any user's task readable (no 401) | v2_urls_task, memory | T v2/test_comm_task ✓ (ParameterIsMissing's message assumed); LIVE |
 | V2-23 | InvalidInput message names the .NET enum & JSON path (one error per bad field), e.g. `Error converting value 'Off' to type 'DomesticHotWater.Enums.EMEADomesticHotWaterSetpointMode'. Path 'mode', line 1, position 44.` | v2_urls_task | T v2/test_dhw_put |
 | V2-24 | Schedule PUT: `null` → 400 ParameterIsMissing (`parameterName: request`); `{}` → 400 DayOfWeekMissing 'One or more days missing.'; valid → 201 | v2_urls_sked | T v2/test_schedule; LIVE |
 | V2-25 | Schedule GET camelCase; `dayOfWeek` a name ("Monday"), not an ordinal; `heatSetpoint` float; `dhwState` On/Off; `timeOfDay` "HH:MM:SS" | v2_urls_sked | T v2/test_schedule; LIVE |
 | V2-26 | An until beyond maxDuration / off timingResolution / ≤ now, or (TCS) not of the mode's timingMode, is accepted; status reports it truncated to the minute | v2_urls_limits | D v2/test_{tcs,zone,dhw}_put (probed 2026-11-04) |
 | V2-27 | A heatSetpointValue outside min/max or off valueResolution is accepted and reported as sent | v2_urls_limits | D v2/test_zone_put |
 | V2-28 | Zone setpointMode enum is 0-3 only (ints accepted); no Advance* mode (→ 400 InvalidInput) | v2_urls_limits, memory | D v2/test_zone_put; LIVE |
-| V2-29 | VacationHold (or 3) on a zone lacking it → 201, but its comm task fails | v2_urls_limits | T v2/test_comm_task; D v2/test_zone_put |
+| V2-29 | VacationHold (or 3) on a zone lacking it → 201, but its comm task fails | v2_urls_limits | T v2/test_comm_task ✓; D v2/test_zone_put |
 | V2-30 | Status reports TCS `timeUntil`, zone `until`, DHW `until` (the DHW request says `untilTime`) | v2_urls_limits | T v2/test_get ✓ |
 | V2-31 | The controller (by hand, 2026-11-04): clamps setpoints to min/max but uses 0.1-resolution values; honours zone/DHW untils beyond max/off res; ends Eco at its until; ignores past untils; runs an Away ending before midnight until midnight; shows >99d as '99d' | v2_urls_limits | D v2/test_{tcs,zone}_put |
 | V1-1 | Base `https://tccna.resideo.com/WebAPI/api`; session at `/session`; its cert is for the hostname only | v1_urls, v1_urls_cred | D v1/vendor.py |
@@ -333,7 +334,10 @@ homes are planned until their unit is done.
 
 ## Bugs found
 
-None yet. Observations to check in Phase 3 (not bugs by the rules here: the library is
+None yet (B1 is to be recorded at U8: `TccFailureResponseT` and
+`factory_failure_response()` lack the vendor's optional `parameterName`, and the
+validator is PREVENT_EXTRA, so it rejects a real ParameterIsMissing body; it is not used
+at runtime by the library, so it is a documentation bug). Observations to check in Phase 3 (not bugs by the rules here: the library is
 based on the older client & vendor docs, not on the test system's quirks):
 
 - O1: v1 `HotWater.set_dhw_auto()` sends `{status: Scheduled, mode: null}`; the test system answers 400 (ParameterIsMissing / ForbiddenParameter).

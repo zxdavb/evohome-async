@@ -73,7 +73,7 @@ if TYPE_CHECKING:
 
 _NOW: Final = "2026-11-13T12:00:00+00:00"
 
-_REFRESH_TOKEN: Final = "-- refresh token --"  # noqa: S105
+_OLD_REFRESH: Final = "-- refresh token --"  # the one the client holds
 
 # provenance: the old tests_rf/test_v2_urls_cred.py (probed 2024-ish; scope is optional)
 _TOKEN: Final[TccOAuthTokenResponseT] = {
@@ -100,7 +100,7 @@ _PASSWORD_GRANT: Final = {
 _REFRESH_GRANT: Final = {
     "grant_type": "refresh_token",
     "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
-    "refresh_token": _REFRESH_TOKEN,
+    "refresh_token": _OLD_REFRESH,
 }
 
 
@@ -151,7 +151,7 @@ async def test_refresh_grant(
 ) -> None:
     """With a refresh token, the client POSTs the refresh grant (it is a 200)."""
 
-    _clear_tokens(credentials_manager, refresh_token=_REFRESH_TOKEN)
+    _clear_tokens(credentials_manager, refresh_token=_OLD_REFRESH)
 
     mock.post(URL_CRED_V2, payload=_TOKEN)
 
@@ -174,7 +174,7 @@ async def test_refresh_grant_invalid(
     The client then falls back to the password grant.
     """
 
-    _clear_tokens(credentials_manager, refresh_token=_REFRESH_TOKEN)
+    _clear_tokens(credentials_manager, refresh_token=_OLD_REFRESH)
 
     mock.post(URL_CRED_V2, status=HTTPStatus.BAD_REQUEST, payload=_INVALID_GRANT)
     mock.post(URL_CRED_V2, payload=_TOKEN)
