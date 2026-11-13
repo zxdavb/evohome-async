@@ -122,7 +122,7 @@ if TYPE_CHECKING:
 
 _ONE_DAY = td(days=1)
 
-_DAYS: Final = tuple(DayOfWeek)  # Monday first (as is datetime.weekday())
+_DAYS: Final = tuple(DayOfWeek)  # 'monday' first (as is datetime.weekday())
 
 # for values that the schema passes through, as the vendor's enums are incomplete
 _PLEASE_REPORT = (
@@ -494,6 +494,7 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
 
 def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
     """Return the local day of week and time of day (to the second, e.g. "06:30:15")."""
+
     dtm = as_local_time(dtm, tzinfo)
     return _DAYS[dtm.weekday()], dtm.strftime("%H:%M:%S")  # locale-independent
 
