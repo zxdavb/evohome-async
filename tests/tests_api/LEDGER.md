@@ -5,10 +5,12 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 3, U13: `v1/test_get.py`: GET accountInfo and locations?userId&allData=True, at
-L0 and L2 (`setup()`/`get_status()`: what they parse, e.g. ids are ints, the lost
-zone, `get_temperatures(dont_update_status=True)`); errors: 401 foreign userId, 404
-HTML (unknown path), 404 JSON (no userId), 400 non-numeric? (body not recorded: skip).
+Phase 3, U14: `v1/test_get_device.py` (Q6: every other v1 GET, via `Auth.request()`, as
+the client has no schemas for them): locations?locationId (a dict), ±allData;
+locations?userId sans allData; gateways?locationId ±allData; devices?locationId ±allData;
+devices/{id}; devices/{id}/thermostat; devices/{id}/thermostat/changeableValues (adds
+*ChangeSource). Payloads derived by nesting from USR_LOCS where possible; the gateway's
+from the old docstring (gatewayID, mac, crc, locationId, isUpgrading, isRedlinkGateway).
 
 Notes: a test with > 5 params makes them keyword-only (`*,`), for PLR0917. Payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
 (20000xx). `mock` is autouse; client fixtures clear `mock.requests` after setup; each
@@ -31,8 +33,8 @@ fact home with ✓.
 | 3 | U9 `v2/test_zone_put.py` | done ab35949 |
 | 3 | U10 `v2/test_dhw_put.py` | done 97fa5c7 |
 | 3 | U11 `v2/test_schedule.py` | done 28f93fd |
-| 3 | U12 `v1/test_auth.py` (session POST; sessionId header) | done (this commit) |
-| 3 | U13 `v1/test_get.py` (accountInfo, locations?userId) | todo |
+| 3 | U12 `v1/test_auth.py` (session POST; sessionId header) | done 6432d56 |
+| 3 | U13 `v1/test_get.py` (accountInfo, locations?userId) | done (this commit) |
 | 3 | U14 `v1/test_get_device.py` (every other GET URL: locations?locationId, gateways, devices, device, thermostat, changeableValues) | todo |
 | 3 | U15 `v1/test_comm_task.py` | todo |
 | 3 | U16 `v1/test_zone_put.py` (heatSetpoint & changeableValues forms) | todo |
@@ -154,7 +156,7 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
-| test_update_v1 | L2 | NotFetchedError before `get_status()` | — | tests/test_client_setup::test_v1_setup | drop: duplicate; wire → v1/test_get |
+| test_update_v1 | L2 | NotFetchedError before `get_status()` | — | tests/test_client_setup::test_v1_setup | ✓ drop: duplicate; wire → v1/test_get |
 | test_update_v2 | L2 | same, via `setup()` | — | …::test_v2_setup | ✓ drop: duplicate; wire → v2/test_get |
 
 ### test_v2_urls_task.py
@@ -217,7 +219,7 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
-| test_usr_locations | L0 | ok; PUT → 404; sans allData ok; 123456 → 401; `'123456'` → 400; `xxxxxxx` → 404 HTML | skips | — | merge → v1/test_get (401, 404 HTML); rest → live |
+| test_usr_locations | L0 | ok; PUT → 404; sans allData ok; 123456 → 401; `'123456'` → 400; `xxxxxxx` → 404 HTML | skips | — | ✓ merge → v1/test_get (401, 404 HTML); rest → live |
 | test_evo_systems | L0 | evoTouchSystems GET & PUT → 404 HTML | real-only | — | merge → v1/test_tcs_put; GET → live |
 | test_zon_heat_setpoint | L0 | Temporary with Pascal & camel keys applied; nextTime == sent sans Z; revert | real-only | — | merge → v1/test_zone_put (bodies; facts in docstring); applied-state checks dropped: need a live gateway |
 | test_dhw_changeable_values | L0 | `{Mode}` and `{mode}` accepted | real-only | — | merge → v1/test_dhw_put |
@@ -241,7 +243,7 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
-| test_usr_apis | L2 | `get_status()`; `get_temperatures(dont_update_status=True)` keys == zone ids | — | tests/test_v1_status (above wire) | merge → v1/test_get |
+| test_usr_apis | L2 | `get_status()`; `get_temperatures(dont_update_status=True)` keys == zone ids | — | tests/test_v1_status (above wire) | ✓ merge → v1/test_get |
 | test_tcs_apis | L2 | `set_auto()` → ApiCallFailedError 404 | — | — | port → v1/test_tcs_put |
 | test_dhw_apis | L2 | set_dhw_on/off(until=), set_dhw_auto() | — | — | port → v1/test_dhw_put |
 | test_zon_apis | L2 | set_temperature(until=), set_temperature(), set_zone_auto() (no Value) | — | tests/test_v1_next_time | port → v1/test_zone_put |
@@ -288,12 +290,12 @@ homes are planned until their unit is done.
 | V1-2 | allData=True adds children: a location's devices, oneTouchButtons (+ weather, contractor if any); a gateway's devices; a device's thermostat, alertSettings | v1_urls | D v1/vendor.py; LIVE |
 | V1-3 | `locations?locationId=` returns a dict (not a list of one) | v1_urls | D v1/vendor.py; LIVE |
 | V1-4 | An entity's own URL == object nested in its parent's, but a device's thermostat lacks changeableValues, and the changeableValues GET adds modeChangeSource / heatSetpointChangeSource `{partnerName: EMEA, changeTag: ""}` (absent for a lost device) | v1_urls | D v1/vendor.py; LIVE |
-| V1-5 | ID key casing is inconsistent: userID, locationID, deviceID, gatewayID (of a gateway), but gatewayId (of a device), locationId (of a gateway); ids are ints; `outdootHumidityAvailable` (sic) | v1_urls | T v1/test_get |
+| V1-5 | ID key casing is inconsistent: userID, locationID, deviceID, gatewayID (of a gateway), but gatewayId (of a device), locationId (of a gateway); ids are ints; `outdootHumidityAvailable` (sic) | v1_urls | T v1/test_get ✓, D v1/vendor.py ✓ |
 | V1-6 | URL path/base/query keys and request keys/enum values case-insensitive | v1_urls_auth | D v1/vendor.py; LIVE |
 | V1-7 | Datetimes are the location's local time: NextTime returned without a Z; a Z sent is ignored | v1_urls, vx_until | T v1/test_zone_put |
 | V1-8 | GET → 200; PUT → 201 + `{"id": 1234567890}` (an int); a list of one allowed by the 2014 client (never seen) | v1_urls, common | T v1/test_comm_task |
 | V1-9 | GET of a PUT-only URL → 404 HTML (not 405), as is any unknown path; PUT of a GET URL (locations) → 404 | v1_urls, v1_urls_auth | T v1/test_tcs_put (404 HTML); LIVE |
-| V1-10 | Foreign userId → 401; non-numeric (`'123456'`) → 400 | v1_urls_auth | T v1/test_get; LIVE |
+| V1-10 | Foreign userId → 401; non-numeric (`'123456'`) → 400 | v1_urls_auth | T v1/test_get ✓ (401: its body assumed), D v1/vendor.py ✓; LIVE |
 | V1-11 | PUT to a device not alive → 400 `[DeviceIsLost 'Device is lost.']`, whatever the body | v1_urls_auth | T v1/test_{zone,dhw}_put; LIVE |
 | V1-12 | A PUT is sometimes answered with an earlier, equivalent PUT's (succeeded) task and not applied (e.g. revert within minutes); bodies need not be identical; detectable by task `started` < sent | v1_urls, common, memory | D v1/test_comm_task |
 | V1-13 | A change appears via GET within ~1s of its task succeeding | v1_urls | D v1/test_comm_task |

@@ -89,6 +89,15 @@ if TYPE_CHECKING:
     )
 
 
+# the body of a 404 (Not Found) of an unknown path: it is HTML (from IIS), not JSON
+# provenance: the old tests_rf (its comments), abridged
+HTML_NOT_FOUND: Final = (
+    '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" ...>'
+    "<html><head><title>404 - File or directory not found.</title></head>"
+    "<body>...</body></html>"
+)
+
+
 # the ids of the (redacted) user and their entities (as are sent: ints)
 USR_ID: Final = 2000001
 LOC_ID: Final = 2000010
