@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Final, Literal, NotRequired, TypedDict, overlo
 
 import probatio as vol
 
-from _evohome.helpers import Case, camel_to_snake, noop, redact
+from _evohome.helpers import TCC_TIMESPAN_REGEX, Case, camel_to_snake, noop, redact
 
 from .const import (
     REGEX_DHW_ID,
@@ -114,6 +114,8 @@ _MAX_HEAT_SETPOINT_UPPER: Final = 35.0
 
 _MIN_HEAT_SETPOINT_LOWER: Final = 4.5
 _MIN_HEAT_SETPOINT_UPPER: Final = 21.0
+
+_VALUE_RESOLUTIONS: Final = (0.1, 0.5, 1.0)  # of a zone's setpoint (and its schedule's)
 
 _MAX_NUM_ZONES_PER_TCS: Final = 12  # unused; some non-evohome systems supported 16
 _MIN_NUM_ZONES_PER_TCS: Final = 1
@@ -219,7 +221,7 @@ class TccZonScheduleCapabilitiesResponseT(TypedDict):
     maxSwitchpointsPerDay: int
     minSwitchpointsPerDay: int
     timingResolution: str  # #        "00:10:00"
-    setpointValueResolution: float  # 0.5
+    setpointValueResolution: float  # 0.1, 0.5 or 1.0
 
 
 class TccZonSetpointCapabilitiesResponseT(TypedDict):
@@ -228,7 +230,7 @@ class TccZonSetpointCapabilitiesResponseT(TypedDict):
     canControlHeat: bool
     maxHeatSetpoint: float
     minHeatSetpoint: float
-    valueResolution: float
+    valueResolution: float  # 0.1, 0.5 or 1.0
     maxDuration: str  # #     "1.00:00:00"
     timingResolution: str  # #  "00:10:00", "00:15:00"
     # following seen on FocusProWifi, not Evohome...
@@ -328,9 +330,9 @@ def factory_system_mode(case: Case = Case.VENDOR) -> Validator[dict[str, object]
                 vol.Required(system_mode): factory_enum(case, TccSystemMode),
                 vol.Required(can_be_permanent): bool,  # only ever seen: vol.In[True]
                 vol.Required(can_be_temporary): bool,
-                vol.Optional(max_duration): str,  # "99.00:00:00"
+                vol.Optional(max_duration): vol.Match(TCC_TIMESPAN_REGEX),  # "99.00:00:00"
                 # a Period mode is whole-day ("1.00:00:00"); a Duration mode is "01:00:00"
-                vol.Optional(timing_resolution): str,
+                vol.Optional(timing_resolution): vol.Match(TCC_TIMESPAN_REGEX),
                 vol.Optional(timing_mode): factory_enum(case, TccTimingMode),
             },
             extra=vol.PREVENT_EXTRA,
@@ -381,7 +383,7 @@ def factory_dhw_config(case: Case = Case.VENDOR) -> Validator[TccDhwConfigRespon
             vol.Required(fnc(S2_ALLOWED_STATES)): [factory_enum(case, TccDhwState)],
             # TODO: list should be a non-empty *subset* of all possible TccZoneMode(s)
             vol.Required(fnc(S2_ALLOWED_MODES)): [factory_enum(case, TccZoneMode)],
-            vol.Required(fnc(S2_MAX_DURATION)): str,  # "1.00:00:00"
+            vol.Required(fnc(S2_MAX_DURATION)): vol.Match(TCC_TIMESPAN_REGEX),  # "1.00:00:00"
             vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),  # "00:10:00"
         },
         extra=vol.PREVENT_EXTRA,
@@ -427,8 +429,8 @@ def factory_zon_config(case: Case = Case.VENDOR) -> Validator[TccZonConfigRespon
         {
             vol.Required(fnc(S2_IS_CHANGEABLE)): bool,
             vol.Required(fnc(S2_IS_CANCELABLE)): bool,
-            vol.Optional(fnc(S2_MAX_DURATION)): str,  # "365.23:45:00"
-            vol.Optional(fnc(S2_MIN_DURATION)): str,  # "1.00:00:00"
+            vol.Optional(fnc(S2_MAX_DURATION)): vol.Match(TCC_TIMESPAN_REGEX),  # "365.23:45:00"
+            vol.Optional(fnc(S2_MIN_DURATION)): vol.Match(TCC_TIMESPAN_REGEX),  # "1.00:00:00"
             vol.Optional(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),  # "00:10:00"
         },
         extra=vol.PREVENT_EXTRA,
@@ -450,8 +452,8 @@ def factory_zon_config(case: Case = Case.VENDOR) -> Validator[TccZonConfigRespon
             vol.Optional(fnc(S2_MIN_COOL_SETPOINT)): float,  # TODO
             # TODO: list should be a non-empty *subset* of all possible TccZoneMode(s)
             vol.Required(fnc(S2_ALLOWED_SETPOINT_MODES)): [factory_enum(case, TccZoneMode)],
-            vol.Required(fnc(S2_VALUE_RESOLUTION)): float,  # 0.5
-            vol.Required(fnc(S2_MAX_DURATION)): str,  # "1.00:00:00"
+            vol.Required(fnc(S2_VALUE_RESOLUTION)): vol.All(float, vol.In(_VALUE_RESOLUTIONS)),  # 0.5
+            vol.Required(fnc(S2_MAX_DURATION)): vol.Match(TCC_TIMESPAN_REGEX),  # "1.00:00:00"
             vol.Required(fnc(S2_TIMING_RESOLUTION)): vol.Datetime(format="00:%M:00"),  # "00:10:00"
             vol.Optional(fnc(S2_VACATION_HOLD_CAPABILITIES)): SCH_VACATION_HOLD_CAPABILITIES,  # non-evohome
             vol.Optional(fnc(S2_SETPOINT_DEADBAND)): float,  # non-evohome
@@ -461,7 +463,7 @@ def factory_zon_config(case: Case = Case.VENDOR) -> Validator[TccZonConfigRespon
 
     SCH_SCHEDULE_CAPABILITIES = factory_schedule_capabilities_response(case).extend(
         {
-            vol.Required(fnc(S2_SETPOINT_VALUE_RESOLUTION)): float,
+            vol.Required(fnc(S2_SETPOINT_VALUE_RESOLUTION)): vol.All(float, vol.In(_VALUE_RESOLUTIONS)),  # 0.5
         },
         extra=vol.PREVENT_EXTRA,
     )

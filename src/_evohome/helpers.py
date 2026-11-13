@@ -43,9 +43,9 @@ TCC_DTM_LOCAL_STRFTIME: Final = "%Y-%m-%dT%H:%M:%S"
 
 # A .NET TimeSpan, as used by the vendor for durations, e.g. "1.00:00:00", "01:00:00"
 # (days capped at 9 digits, as timedelta's limit is 999,999,999 days)
-_TCC_TIMESPAN_REGEX: Final = re.compile(
+TCC_TIMESPAN_REGEX: Final = re.compile(
     r"^(?:(?P<days>\d{1,9})\.)?(?P<hours>[01]?\d|2[0-3])"
-    r":(?P<minutes>[0-5]\d):(?P<seconds>[0-5]\d)$"
+    r":(?P<minutes>[0-5]\d):(?P<seconds>[0-5]\d)\Z"  # $ would allow a trailing \n
 )
 
 _REDACTED_EMAIL_ADDRESS = "no-reply@redacted.xxx"
@@ -158,7 +158,7 @@ def as_timedelta(timespan: str) -> td:
     is the vendor's, e.g. a maxDuration, so it is a bad response, not a bad request).
     """
 
-    if not (match := _TCC_TIMESPAN_REGEX.match(timespan)):
+    if not (match := TCC_TIMESPAN_REGEX.match(timespan)):
         raise BadApiResponseError(
             f"The timespan is invalid: {timespan!r}",
             reason=ResponseErrorReason.TIMESPAN_INVALID,
