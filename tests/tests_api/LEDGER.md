@@ -5,30 +5,34 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 1 (audit) is done: **waiting for the maintainer to approve the plan** (see
-*Plan* and *Decisions / open questions*). Then start Phase 2 at unit U1.
+Phase 2, U1: extend `tests/tests/aioresponses.py` (additively) with a non-JSON
+response (`body=`, `content_type=`), own commit; `pytest tests/tests` must pass.
 
 ## Status
 
 | Phase | Unit | State |
 | ----- | ---- | ----- |
-| 1 | Audit: inventory, vendor facts, debt, plan | done (awaiting approval) |
+| 1 | Audit: inventory, vendor facts, debt, plan | done 2055cf0 (approved 2026-11-13, see Decisions) |
 | 2 | U1 `aioresponses.py`: non-JSON responses (e.g. a 404's HTML), additive, own commit | todo |
 | 2 | U2 `tests_api/conftest.py` (`mock`), `v2/conftest.py` (`ec2`, entities), `v2/vendor.py` | todo |
 | 2 | U3 `v1/conftest.py` (`ec1`, entities), `v1/vendor.py` | todo |
-| 3 | U4 `v2/test_get.py` | todo |
-| 3 | U5 `v2/test_comm_task.py` | todo |
-| 3 | U6 `v2/test_tcs_put.py` | todo |
-| 3 | U7 `v2/test_zone_put.py` | todo |
-| 3 | U8 `v2/test_dhw_put.py` | todo |
-| 3 | U9 `v2/test_schedule.py` | todo |
-| 3 | U10 `v1/test_get.py` | todo |
-| 3 | U11 `v1/test_comm_task.py` | todo |
-| 3 | U12 `v1/test_zone_put.py` | todo |
-| 3 | U13 `v1/test_dhw_put.py` | todo |
-| 3 | U14 `v1/test_tcs_put.py` | todo |
-| 4 | U15 `tests_live/` (conftest, `test_v2.py`, `test_v1.py`); run once; record outcome | todo |
-| 5 | U16 delete `tests_rf/`, the fake's hook in `tests/conftest.py`, unused `_DBG_*`; fold ledger into docstrings; delete ledger | todo |
+| 3 | U4 `v2/test_auth.py` (token POST: password & refresh grants; bearer) | todo |
+| 3 | U5 `v2/test_get.py` (userAccount, installationInfo, location status) | todo |
+| 3 | U6 `v2/test_get_entity.py` (every other GET URL: loc config, gwy/TCS/zone/DHW config & status) | todo |
+| 3 | U7 `v2/test_comm_task.py` | todo |
+| 3 | U8 `v2/test_tcs_put.py` | todo |
+| 3 | U9 `v2/test_zone_put.py` | todo |
+| 3 | U10 `v2/test_dhw_put.py` | todo |
+| 3 | U11 `v2/test_schedule.py` | todo |
+| 3 | U12 `v1/test_auth.py` (session POST; sessionId header) | todo |
+| 3 | U13 `v1/test_get.py` (accountInfo, locations?userId) | todo |
+| 3 | U14 `v1/test_get_device.py` (every other GET URL: locations?locationId, gateways, devices, device, thermostat, changeableValues) | todo |
+| 3 | U15 `v1/test_comm_task.py` | todo |
+| 3 | U16 `v1/test_zone_put.py` (heatSetpoint & changeableValues forms) | todo |
+| 3 | U17 `v1/test_dhw_put.py` | todo |
+| 3 | U18 `v1/test_tcs_put.py` | todo |
+| 4 | U19 `tests_live/` (conftest, `test_v2.py`, `test_v1.py`); run once (with the maintainer's credentials); record outcome | todo |
+| 5 | U20 delete `tests_rf/`, the fake's hook in `tests/conftest.py`, the mypy override (D19), unused `_DBG_*`; update CONTRIBUTING; fold ledger into docstrings; delete ledger | todo |
 
 ## Plan
 
@@ -86,10 +90,10 @@ tests/tests_live/
   test_v1.py          # same for v1
 ```
 
-No `test_auth.py` in `tests_api`: the token/session flows are already tested on the wire
-by `tests/tests/test_v{1,2}_urls_cred.py` (Q8); their vendor facts go in each
-`vendor.py` docstring, and the harmless ones (bad bearer / bad sessionId → 401) in the
-live suite.
+Also (per Q6/Q7): `v2/test_auth.py`, `v2/test_get_entity.py`, `v1/test_auth.py`,
+`v1/test_get_device.py` (see Status). `tests/tests/test_v{1,2}_urls_cred.py` test the
+client's re-auth logic; the new `test_auth.py` modules document the wire contract of
+each POST and its responses.
 
 ### Conventions for the new tests (from §4.2, made concrete)
 
@@ -111,7 +115,7 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
-| test_tcs_urls | L0 | GET userAccount, usr locations, loc status (+ unused: loc/gwy/tcs config & status, without-TCSs variants; nested == standalone); PUT tcs mode Away/temp + Auto; Away with `untilTime` → 400 SystemModeChangeTimeUntilNotSet | — | — | merge → v2/test_get, v2/test_tcs_put; unused GETs → live only (no library method) |
+| test_tcs_urls | L0 | GET userAccount, usr locations, loc status (+ unused: loc/gwy/tcs config & status, without-TCSs variants; nested == standalone); PUT tcs mode Away/temp + Auto; Away with `untilTime` → 400 SystemModeChangeTimeUntilNotSet | — | — | merge → v2/test_get, v2/test_get_entity (unused GETs, Q6), v2/test_tcs_put; live |
 | test_zon_urls | L0 | PUT heatSetpoint Temp/Perm(PascalCase key)/Follow; `untilTime` → 400 HeatSetpointChangeTimeUntilNotSet; GET+PUT zone schedule | — | — | merge → v2/test_zone_put, v2/test_schedule |
 | test_dhw_urls | L0 | PUT dhw state Temp/Perm/Follow; `timeUntil` → 400 DHWUntilTimeNotSet; GET+PUT dhw schedule | — | — | merge → v2/test_dhw_put, v2/test_schedule |
 
@@ -134,10 +138,10 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
 | _test_bad0 (disabled) | L0 | POST to the host's IP → cert error | — | — | drop: disabled; a TLS fact, not of the API (one line in v2/vendor.py docstring) |
-| test_bad1 | L0 | password grant, bad user → 400 invalid_grant | — | tests/test_v2_urls_cred::test_bad1 | drop: duplicate (mocked there); fact → v2/vendor.py docstring |
-| test_bad2 | L0 | bad bearer → 401 `[Unauthorized 'Unauthorized.']` | — | …::test_bad2 | drop (dup); → live |
-| test_bad3 | L0 | refresh grant, bad → 400 (sent as GET: D7) | — | …::test_bad3 | drop (dup, and broken: D7) |
-| test_good | L0 | password grant → 200; bearer ok; refresh → 200 | — | …::test_good | drop (dup); → live, only if `_DBG_TEST_CRED_URLS` |
+| test_bad1 | L0 | password grant, bad user → 400 invalid_grant | — | tests/test_v2_urls_cred::test_bad1 | port → v2/test_auth (Q7); live (cred flag) |
+| test_bad2 | L0 | bad bearer → 401 `[Unauthorized 'Unauthorized.']` | — | …::test_bad2 | port → v2/test_auth; live |
+| test_bad3 | L0 | refresh grant, bad → 400 (sent as GET: D7) | — | …::test_bad3 | port (fixed: a POST, D7) → v2/test_auth; live (cred flag) |
+| test_good | L0 | password grant → 200; bearer ok; refresh → 200 | — | …::test_good | port → v2/test_auth; live (cred flag) |
 
 ### test_setup.py (all real-only)
 
@@ -196,9 +200,9 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
-| test_loc_urls | L0 | accountInfo; locations ±allData; locationId; gateways; devices; device; thermostat; changeableValues (key relations) | — | — | merge → v1/test_get (the 2 URLs the library uses); the rest → live (no library method) |
+| test_loc_urls | L0 | accountInfo; locations ±allData; locationId; gateways; devices; device; thermostat; changeableValues (key relations) | — | — | merge → v1/test_get, v1/test_get_device (the other GETs, Q6); live |
 | test_tcs_urls | L0 | PUT evoTouchSystems → 404 | — | — | port → v1/test_tcs_put |
-| test_zon_urls | L0 | PUT heatSetpoint Scheduled; PUT changeableValues `{Mode, HeatSetpoint}` | — | — | merge → v1/test_zone_put; changeableValues form (unused) → v1/vendor.py docstring |
+| test_zon_urls | L0 | PUT heatSetpoint Scheduled; PUT changeableValues `{Mode, HeatSetpoint}` | — | — | merge → v1/test_zone_put (both forms, Q6) |
 | test_dhw_urls | L0 | PUT changeableValues `{Mode}` | — | — | merge → v1/test_dhw_put |
 | test_comm_task_ids | L0 | 404 CommTaskNotFound; ABC/'' → 400 InvalidInput; no query → 404 JSON | — | tests/test_v1_comm_task (above wire) | port → v1/test_comm_task |
 
@@ -222,9 +226,9 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
 | _test_bad0 (disabled) | L0 | IP → cert error | — | — | drop: disabled; TLS, not the API |
-| test_bad1 | L0 | bad creds → 401 EmailOrPasswordIncorrect | — | tests/test_v1_urls_cred::test_bad1 | drop (dup); fact → v1/vendor.py docstring |
-| test_bad2 | L0 | bad sessionId → 401 `[Unauthorized 'Unauthorized']` | — | …::test_bad2 | drop (dup); → live |
-| test_good | L0 | session 200; accountInfo 200 (D17) | — | …::test_good | drop (dup); → live, only if `_DBG_TEST_CRED_URLS` |
+| test_bad1 | L0 | bad creds → 401 EmailOrPasswordIncorrect | — | tests/test_v1_urls_cred::test_bad1 | port → v1/test_auth (Q7); live (cred flag) |
+| test_bad2 | L0 | bad sessionId → 401 `[Unauthorized 'Unauthorized']` | — | …::test_bad2 | port → v1/test_auth; live |
+| test_good | L0 | session 200; accountInfo 200 (D17) | — | …::test_good | port → v1/test_auth; live (cred flag) |
 
 ### test_v1_apis.py (all real-only)
 
@@ -331,33 +335,23 @@ based on the older client & vendor docs, not on the test system's quirks):
 
 ## Decisions / open questions
 
-- Q1 (live switch): keep `_DBG_USE_REAL_AIOHTTP` in `tests/const.py` as the one opt-in
-  (recommended: the pre-commit `debugs` hook already stops it being committed as True),
-  or an env var (e.g. `EVOHOME_LIVE_TESTS=1`)? Keep `_DBG_TEST_CRED_URLS` for the token
-  POSTs; drop `_DBG_TEST_UNUSED_APIS`, `_DBG_WAIT_FOR_COMM_TASKS` (no waiting: gateway
-  offline) and `_DBG_DISABLE_STRICT_ASSERTS` (nothing left uses them).
-- Q2 (pyproject): deleting `tests_rf` orphans the mypy override for
-  `tests.tests_rf.faked_server.vendor` (D19). May U16 remove it (a pyproject change)? And
-  update CONTRIBUTING's *Project structure* (`tests_rf/`) to `tests_api/` + `tests_live/`?
-- Q3 (cross-API until test): `test_vx_until.py` is the only proof that v1's NextTime is
-  local and v2's timeUntil UTC as one instant. Proposal: each half becomes a v1-only /
-  v2-only test & docstring (the probe of 2026-10-08 is recorded), and the cross-check is
-  dropped (it needs a live gateway anyway, offline since 2026-11-04). Or keep one
-  `tests_live/test_vx_until.py` as an explicit exception to the v1/v2 rule?
-- Q4 (recordings): success payloads come from `faked_server/const.py` (the test account,
-  redacted) and `tests/tests/fixtures_v{1,2}/` (provenance noted per constant); the live
-  run (U15) confirms their shape. The test gateway is offline, so its live status now
-  differs (faults, `isAlive: false`): the live suite checks shape, not values. OK?
-- Q5 (live PUTs): the live suite replays only PUTs that are harmless: rejected ones
-  (400/401/500), FollowSchedule/Auto, and (v1) DeviceIsLost; it never waits for a task.
-  OK?
-- Q6 (unused endpoints): no mocked tests for endpoints the library never calls (gateway /
-  TCS / zone / DHW installationInfo & status, v1 gateways/devices/thermostat): they are
-  documented in each `vendor.py` docstring and replayed by the live suite. But
-  `Location._get_config()` and `Zone/HotWater._get_status()` exist (unused by the
-  client): give them L0/L2 tests, or treat as unused?
-- Q7 (aioresponses): U1 adds, additively, a non-JSON response (`body=` + `content_type=`)
-  for a 404's HTML. Anything else found later gets its own commit.
-- Q8 (credential flows): no `test_auth.py` here, as `tests/tests/test_v{1,2}_urls_cred.py`
-  already test them on the wire; the old real-only cred tests are dropped (dups), and
-  their facts go to `vendor.py` docstrings + the live suite. OK?
+Ruled by the maintainer, 2026-11-13 (answers to the Phase 1 questions):
+
+- Q1: keep `_DBG_USE_REAL_AIOHTTP` as the live switch. Remove `_DBG_TEST_UNUSED_APIS`
+  and `_DBG_DISABLE_STRICT_ASSERTS`. Keep `_DBG_WAIT_FOR_COMM_TASKS` (Q5) and
+  `_DBG_TEST_CRED_URLS` (Q7).
+- Q2: yes: U20 removes the mypy override for `tests.tests_rf.faked_server.vendor`, and
+  updates CONTRIBUTING's *Project structure*.
+- Q3: split `test_vx_until.py` into a v1-only and a v2-only half; drop the cross-check.
+- Q4: record from the fake's payloads and `tests/tests/fixtures_v{1,2}/` for now; the
+  maintainer will give access to the real API for the final validation (U19), or sooner
+  if needed.
+- Q5: the live suite replays **all** PUTs (it ends by resetting the system to Auto /
+  FollowSchedule). With `_DBG_WAIT_FOR_COMM_TASKS`, it polls each PUT's comm task and
+  checks its outcome, especially of those expected to fail (their failure code/message).
+- Q6: test **every known URL** (mocked, at L0, via `Auth.get()`/`put()` with its
+  `TCC_*` validator), and every URL wrapped in a method also at that method (e.g.
+  `Location._get_config()`, `Zone/HotWater._get_status()`).
+- Q7: add mocked auth tests (`v1/test_auth.py`: session; `v2/test_auth.py`: token), and
+  live ones gated by `_DBG_TEST_CRED_URLS` (to avoid an account lockout).
+- Q8 (superseded by Q7): the old real-only cred tests are ported, not dropped.
