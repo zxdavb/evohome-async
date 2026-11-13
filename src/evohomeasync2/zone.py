@@ -1166,6 +1166,9 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
+        mode = self._validate_requested_mode(mode)
+        temperature = self._validate_requested_temperature(mode, temperature)
+
         if until is None:
             return await self._set_tcc_mode(
                 mode, temperature=temperature, duration=duration
@@ -1175,7 +1178,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
             raise exc.InvalidSetModeError(
                 f"{self}: Only one of until or duration may be given",
                 reason=RequestErrorReason.TIMESPAN_CONFLICTING,
-                mode=str(mode),  # as given (it is not yet validated)
+                mode=mode,
             )
 
         return await self._set_mode(mode, temperature=temperature, until=until)
@@ -1208,7 +1211,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
     async def _set_mode(
         self,
-        mode: ZoneMode | str,
+        mode: ZoneMode,
         /,
         *,
         temperature: float | None = None,
@@ -1216,16 +1219,13 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     ) -> CommTask:
         """Set the Zone to a (heating) mode, either indefinitely, or for a given time.
 
-        Will accept a ZoneMode or a (snake_case) string for the 'mode'.
+        The 'mode' and 'temperature' must already be validated (see set_mode()).
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive), and in the future.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
-
-        mode = self._validate_requested_mode(mode)
-        temperature = self._validate_requested_temperature(mode, temperature)
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:
@@ -1253,7 +1253,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
     async def _set_tcc_mode(
         self,
-        mode: ZoneMode | str,
+        mode: ZoneMode,
         /,
         *,
         temperature: float | None = None,
@@ -1261,7 +1261,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     ) -> CommTask:
         """Set the Zone to a (heating) mode, either indefinitely, or for a duration.
 
-        Will accept a ZoneMode or a (snake_case) string for the 'mode'.
+        The 'mode' and 'temperature' must already be validated (see set_mode()).
 
         A 'temperature' is required by the override modes, and is not allowed for
         FollowSchedule. It should be within the zone's min/max_heat_setpoint.
@@ -1279,9 +1279,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        mode = self._validate_requested_mode(mode)
         until = self._validate_requested_timespan(mode, TimingMode.DURATION, duration)
-        temperature = self._validate_requested_temperature(mode, temperature)
 
         # TODO: self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]
         # TODO: self.setpoint_capabilities[SZ_VALUE_RESOLUTION]

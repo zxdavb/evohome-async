@@ -26,6 +26,7 @@ from .const import (
     SZ_UNTIL_TIME,
     URL_DHW_STATE,
     DhwState,
+    TimingMode,
     ZoneMode,
 )
 from .exceptions import RequestErrorReason
@@ -255,6 +256,9 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
+        mode = self._validate_requested_mode(mode)
+        state = self._validate_requested_state(mode, state)
+
         if until is None:
             return await self._set_tcc_mode(mode, state=state, duration=duration)
 
@@ -262,7 +266,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
             raise exc.InvalidSetModeError(
                 f"{self}: Only one of until or duration may be given",
                 reason=RequestErrorReason.TIMESPAN_CONFLICTING,
-                mode=str(mode),  # as given (it is not yet validated)
+                mode=mode,
             )
 
         return await self._set_mode(mode, state=state, until=until)
@@ -294,24 +298,21 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
     async def _set_mode(
         self,
-        mode: ZoneMode | str,
+        mode: ZoneMode,
         /,
         *,
-        state: DhwState | str | None = None,
+        state: DhwState | None = None,
         until: dt | str | None = None,
     ) -> CommTask:
         """Set the DHW to a mode, either indefinitely, or for a given time.
 
-        Will accept a ZoneMode/DhwState or a (snake_case) string for 'mode'/'state'.
+        The 'mode' and 'state' must already be validated (see set_mode()).
 
         Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
         but it must be TZ-aware (not naive), and in the future.
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
-
-        mode = self._validate_requested_mode(mode)
-        state = self._validate_requested_state(mode, state)
 
         if until is None:
             if mode is ZoneMode.TEMPORARY_OVERRIDE:
@@ -337,15 +338,15 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
 
     async def _set_tcc_mode(
         self,
-        mode: ZoneMode | str,
+        mode: ZoneMode,
         /,
         *,
-        state: DhwState | str | None = None,
+        state: DhwState | None = None,
         duration: td | None = None,
     ) -> CommTask:
         """Set the DHW to a mode, either indefinitely, or for a duration.
 
-        Will accept a ZoneMode/DhwState or a (snake_case) string for 'mode'/'state'.
+        The 'mode' and 'state' must already be validated (see set_mode()).
 
         A 'state' is required by the override modes, and is not allowed for
         FollowSchedule. It must be one of the DHW's allowed_states.
@@ -362,9 +363,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        mode = self._validate_requested_mode(mode)
         until = self._validate_requested_timespan(mode, TimingMode.DURATION, duration)
-        state = self._validate_requested_state(mode, state)
 
         return await self._put_mode(mode, state=state, until_time=until)
 
