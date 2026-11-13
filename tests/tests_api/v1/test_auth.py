@@ -138,7 +138,8 @@ async def test_session_rate_limited(
 
     As probed (2026-11-13, with the user's real credentials): 4 sessions were given, and
     the 5th POST (all within a second) was a 429, without a Retry-After header. Half an
-    hour later, the limit had lifted: 6 were given, and the 7th was a 429.
+    hour later, the limit had lifted: 6 were given, and the 7th was a 429. Another
+    429 (20:55Z) had lifted 15 minutes later (the client's default retry_after).
     """
 
     credentials_manager.clear_session_id()

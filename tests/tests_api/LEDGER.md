@@ -360,6 +360,9 @@ PUTs whose comm task did not end within 60s.
   a 429 at the 7th (1.5s). v1 session POST (straight after): 6 × 200, then a 429 at the
   7th (1.2s): so each API has its own limit (a burst of ~6), and a lockout lasts less
   than ~30 min. Again, no Retry-After header.
+- 429s, a 3rd time (with the maintainer's permission): provoked at 20:55:08Z (v2 at the
+  4th POST, v1 at the 3rd), and both were a 200 at 21:10:09Z, i.e. **lifted within 15
+  minutes**. So the library's default retry_after is to be 15 min (PR #306).
 - Not settled: the cred POSTs' 200s (flag off); whether v2 PUTs' tasks succeed (needs
   the gateway online).
 
