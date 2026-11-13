@@ -85,13 +85,20 @@ import pytest
 
 from _evohome import exceptions as exc
 from evohomeasync.auth import Auth
-from evohomeasync.schemas import TCC_GET_USR_INFO, TCC_GET_USR_LOCS, TCC_TASK_RESPONSE
+from evohomeasync.schemas import (
+    S1_CODE,
+    TCC_GET_USR_INFO,
+    TCC_GET_USR_LOCS,
+    TCC_TASK_RESPONSE,
+    TccFailureCode,
+)
 from tests.const import _DBG_USE_REAL_AIOHTTP, _DBG_WAIT_FOR_COMM_TASKS, TEST_LOC_IDX
 
 from .common import (
     is_alive_v1,
     is_dhw_v1,
     is_zone_v1,
+    should_fail_v1,
     skipif_auth_failed,
     status_of_v1,
     task_id_v1,
@@ -678,3 +685,48 @@ async def _wait_for_task(auth: Auth, response: TccTaskResponseT) -> None:
         return
 
     _ = await wait_for_comm_task_v1(auth, task_id_v1(response))
+
+
+@skipif_auth_failed
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_comm_task_ids(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test GET /commTasks?commTaskId={tsk_id}, for ids that are not of a task.
+
+    - a (numeric) id of no task, or of an old one: 404 CommTaskNotFound
+    - an id that is not numeric: 400 InvalidInput ("The value 'ABC' is not valid for
+      Int32", so an id over 2147483647 would not be valid either)
+    - an id that is empty: 400 InvalidInput (not ParameterIsMissing)
+    - no id at all: 404 (no such resource, so is not JSON with a code)
+
+    The state of a task does not include its id, and a zero-padded id is that of the
+    same task.
+
+    NOTE: the vendor returns the state of any (recent) task, not only of the user's own
+    (unlike the other URLs, which 401), including the macId, gatewayId and deviceId of
+    the other user's system. That is not tested here, as it would GET their data.
+    """
+
+    # Create the Auth client (may POST /session)...
+    auth = Auth(
+        credentials_manager,
+        credentials_manager.websession,
+        logger=logging.getLogger(__name__),
+    )
+
+    for tsk_id, status, code in (
+        ("12345678", HTTPStatus.NOT_FOUND, TccFailureCode.COMM_TASK_NOT_FOUND),
+        ("ABC", HTTPStatus.BAD_REQUEST, TccFailureCode.INVALID_INPUT),
+        ("", HTTPStatus.BAD_REQUEST, TccFailureCode.INVALID_INPUT),
+    ):
+        rsp = await should_fail_v1(
+            auth, HTTPMethod.GET, f"commTasks?commTaskId={tsk_id}", status=status
+        )
+        assert isinstance(rsp, list), rsp
+        assert rsp[0][S1_CODE] == code, rsp
+
+    rsp = await should_fail_v1(
+        auth, HTTPMethod.GET, "commTasks", status=HTTPStatus.NOT_FOUND
+    )  # {"message": "No HTTP resource was found that matches the request URI ..."}
+    assert isinstance(rsp, dict), rsp

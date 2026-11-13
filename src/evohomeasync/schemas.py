@@ -231,6 +231,7 @@ class TccEquipmentOutputStatus(StrEnum):  # thermostat.equipmentOutputStatus
 
 @verify(EnumCheck.UNIQUE)
 class TccFailureCode(StrEnum):  # the code of a failed request; NOTE: is incomplete
+    COMM_TASK_NOT_FOUND = "CommTaskNotFound"
     DEVICE_IS_LOST = "DeviceIsLost"
     EMAIL_OR_PASSWORD_INCORRECT = "EmailOrPasswordIncorrect"  # noqa: S105
     FORBIDDEN_PARAMETER = "ForbiddenParameter"
