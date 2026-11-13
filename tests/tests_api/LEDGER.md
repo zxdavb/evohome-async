@@ -104,6 +104,49 @@ Layer: L0 = URL (raw `Auth` request), L1 = `_put_*`, L2 = public method.
 | test_v2_time_until | L0 | v2 timeUntil is UTC; v1 nextTime = sent + offset | — | — | TODO |
 | test_v1_client_until | L2 | v1 `Zone.set_temperature(until=)` sends local NextTime, so v2 until == instant | — | tests/test_v1_next_time | TODO |
 
+### test_v1_urls.py (all real-only)
+
+| Test | L | Asserts | Fake relied on | Overlap | Verdict |
+| ---- | - | ------- | -------------- | ------- | ------- |
+| test_loc_urls | L0 | accountInfo; locations?userId (±allData: adds devices, oneTouchButtons, [contractor, weather]); locations?locationId (a dict, not a list; same keys); gateways?locationId (gatewayID set == devices' gatewayId; allData adds `devices`); devices?locationId (±allData: adds alertSettings, thermostat); devices/{id} == sans-allData; thermostat sans changeableValues; changeableValues adds modeChangeSource/heatSetpointChangeSource | — | — | TODO |
+| test_tcs_urls | L0 | PUT evoTouchSystems → 404 (removed by the vendor; IIS HTML) | — | — | TODO |
+| test_zon_urls | L0 | PUT heatSetpoint Scheduled (no-op); PUT changeableValues `{Mode, HeatSetpoint: {...}}` | — | — | TODO |
+| test_dhw_urls | L0 | PUT changeableValues `{Mode}` (current mode, no-op) | — | — | TODO |
+| test_comm_task_ids | L0 | 12345678 → 404 CommTaskNotFound; ABC → 400 InvalidInput ('not valid for Int32'); '' → 400 **InvalidInput** (v2: ParameterIsMissing); no query → 404 JSON dict | — | tests/test_v1_comm_task | TODO |
+
+### test_v1_urls_auth.py (all real-only; fake has no v1 at all)
+
+| Test | L | Asserts | Fake relied on | Overlap | Verdict |
+| ---- | - | ------- | -------------- | ------- | ------- |
+| test_usr_locations | L0 | locations?userId&allData ok; PUT → **404** (not 405); sans allData ok; userId=123456 → 401; `'123456'` → 400; `xxxxxxx` → 404 HTML | v1_locations NotImplemented → skip | — | TODO |
+| test_evo_systems | L0 | evoTouchSystems GET and PUT → 404 HTML | — | — | TODO |
+| test_zon_heat_setpoint | L0 | Temporary override with Pascal keys and with camel keys, applied (status Temporary); GET nextTime == sent sans Z; revert Scheduled (if not stale) | — | — | TODO |
+| test_dhw_changeable_values | L0 | PUT `{Mode}` and `{mode}` accepted | — | — | TODO |
+| test_dhw_forbidden_params | L0 | (test system) `{}` / `{Mode: null}` → 400 ParameterIsMissing; Status / NextTime (non-null) → 400 ForbiddenParameter; older client's full revert body → ForbiddenParameter (Status); same sans Status → 201; Mode "Off" → ThermostatModeNotAllowed; "Auto" → InvalidInput | — | — | TODO |
+| test_url_case_insensitive | L0 | as v2: path, base path, query keys case-insensitive; controls (no allData → no devices; no userId → 404 JSON; unknown path → 404 HTML) | — | — | TODO |
+| test_case_insensitive | L0 | PUT keys & values case-insensitive (`Hold`/`hold`/`HOLD`; `status`/`Status`/`STATUS`): ParameterIsMissing ('Value' is required); NoSuchStatus → InvalidInput | — | — | TODO |
+| test_zon_lost | L0 | PUT to a lost zone → 400 DeviceIsLost 'Device is lost.' | — | — | TODO |
+| test_dhw_lost | L0 | same for a lost DHW | — | — | TODO |
+| (USER_DATA, FULL_DATA) | — | **unused** module-level payloads (session / location) (D16) | — | — | TODO |
+
+### test_v1_urls_cred.py (all real-only)
+
+| Test | L | Asserts | Fake relied on | Overlap | Verdict |
+| ---- | - | ------- | -------------- | ------- | ------- |
+| _test_bad0 (disabled) | L0 | IP → cert error | — | — | TODO |
+| test_bad1 | L0 | POST session, form `applicationId/username/password`, bad → 401 `[EmailOrPasswordIncorrect 'The email or password provided is incorrect.']` | — | tests/test_v1_urls_cred::test_bad1 | TODO |
+| test_bad2 | L0 | GET accountInfo, bad `sessionId` header → 401 `[Unauthorized 'Unauthorized']` (no full stop; v2 has one) | — | tests/…::test_bad2 | TODO |
+| test_good | L0 | POST session → 200 `{sessionId, userInfo{userID int, …}}`; accountInfo 200 (D17) | `_DBG_TEST_CRED_URLS` | tests/…::test_good | TODO |
+
+### test_v1_apis.py (all real-only)
+
+| Test | L | Asserts | Fake relied on | Overlap | Verdict |
+| ---- | - | ------- | -------------- | ------- | ------- |
+| test_usr_apis | L2 | `get_status()`; SCH_* truthiness (D11); `tcs.get_temperatures(dont_update_status=True)` keys == zone ids; DHW temp float/None | — | tests/test_v1_status, test_v1_installs | TODO |
+| test_tcs_apis | L2 | `tcs.set_auto()` → ApiCallFailedError 404 (evoTouchSystems removed) | — | — | TODO |
+| test_dhw_apis | L2 | set_dhw_on/off(until=) (xfail on ForbiddenParameter), set_dhw_auto() | — | — | TODO |
+| test_zon_apis | L2 | set_temperature(until=), set_temperature(), set_zone_auto() (sends no Value) | — | tests/test_v1_next_time | TODO |
+
 ## Vendor facts
 
 Where: T = a mocked test (module), D = a module docstring, LIVE = the live suite. `?` = not yet placed.
@@ -144,6 +187,29 @@ Where: T = a mocked test (module), D = a module docstring, LIVE = the live suite
 | V2-32 | DHW status reports `until` (the request says `untilTime`); TCS status `timeUntil`; zone status `until` | v2_urls_limits | ? |
 | V2-33 | Controller (by hand, 2026-11-04): clamps setpoint to min/max but uses 0.1-resolution values as is; honours zone/DHW until beyond max/off res; ends Eco at its until to the minute; ignores past untils; runs an Away ending before midnight until midnight; shows >99d as '99d' | v2_urls_limits | ? |
 | V2-34 | A Cool (or other enum-valid, not allowed) systemMode → 500 (see V2-12) | v2_urls_auth | ? |
+| V1-1 | v1 base `https://tccna.resideo.com/WebAPI/api`; session at `/session` | v1_urls | ? |
+| V1-2 | allData=True adds children: a location's devices, oneTouchButtons (+ weather, contractor if any); a gateway's devices; a device's thermostat, alertSettings | v1_urls | ? |
+| V1-3 | `locations?locationId=` returns a dict (not a list of one) | v1_urls | ? |
+| V1-4 | An entity's own URL == object nested in its parent's, except a device's thermostat lacks changeableValues, and changeableValues GET adds modeChangeSource / heatSetpointChangeSource `{partnerName: EMEA, changeTag: ""}` (absent for a lost device) | v1_urls | ? |
+| V1-5 | ID key casing is inconsistent: userID, locationID, deviceID, gatewayID (of a gateway), but gatewayId (of a device), locationId (of a gateway); userID is an int; thermostat key `outdootHumidityAvailable` (sic) | v1_urls | ? |
+| V1-6 | URL path/base/query keys and request keys/enum values case-insensitive (incl. lower-case enum values) | v1_urls_auth | ? |
+| V1-7 | Datetimes are the location's local time: NextTime is returned without a Z; a Z sent is ignored | v1_urls, vx_until | ? |
+| V1-8 | GET → 200; PUT → 201 + `{"id": 1234567890}` (an **int**); the 2014 client allowed a list of one (never seen) | v1_urls, common | ? |
+| V1-9 | GET of a PUT-only URL → 404 HTML (not 405), as is any unknown path; PUT of a GET URL (locations) → 404 | v1_urls, v1_urls_auth | ? |
+| V1-10 | Foreign userId → 401; non-numeric (`'123456'`) → 400 | v1_urls_auth | ? |
+| V1-11 | PUT to a device not alive → 400 `[DeviceIsLost 'Device is lost.']`, whatever the body | v1_urls_auth | ? |
+| V1-12 | A PUT is sometimes answered with an earlier, equivalent PUT's (succeeded) task and not applied (e.g. revert-to-schedule within minutes); bodies need not be identical (casing, null vs absent); detect by task `started` < sent | v1_urls, common, memory | ? |
+| V1-13 | A change appears via GET within ~1s of its task succeeding | v1_urls | ? |
+| V1-14 | `evoTouchSystems?locationId=` (TCS mode) removed: 404 HTML (IIS '404 - File or directory not found') for GET and PUT; no v1 way to set a TCS mode | v1_urls, v1_apis | ? |
+| V1-15 | Zone PUT `.../heatSetpoint`: `{Value, Status: Hold/Temporary/Scheduled, NextTime}`; PUT-only; same via changeableValues `{Mode, HeatSetpoint: {...}}` | v1_urls | ? |
+| V1-16 | DHW PUT changeableValues `{Mode: DHWOn/DHWOff}`; on the test system Status/NextTime (non-null) → 400 ForbiddenParameter ("'Status' is forbidden."); `{}` / Mode null → ParameterIsMissing ("'ThermostatMode' is required."); Mode "Off" → ThermostatModeNotAllowed; "Auto" → InvalidInput; nulls & unknown keys ignored; mode-only PUT not applied (test system) | v1_urls_auth, memory | ? |
+| V1-17 | Zone changeableValues Mode: "Heat"/"Off" ("Allowed modes are Heat, Off.") → ThermostatModeNotAllowed | v1_urls | ? |
+| V1-18 | Hold w/o Value → 400 ParameterIsMissing "'Value' is required."; NoSuchStatus → InvalidInput | v1_urls_auth | ? |
+| V1-19 | commTasks: `{state, started, finished?, macId, gatewayId, deviceId, activityId}` (no task id; TZ-naive; started is UTC); states Succeeded (terminal), Failed?; 12345678 → 404 CommTaskNotFound; ABC → 400 InvalidInput "The value 'ABC' is not valid for Int32" (> 2147483647 invalid too); '' → 400 InvalidInput; no query → 404 JSON; zero-padded id = same task; any user's task readable (leaks mac/device ids) | v1_urls, common, memory | ? |
+| V1-20 | Session POST (form): `applicationId, username, password` → 200 `{sessionId (GUID), userInfo{…}}`; bad → 401 `[EmailOrPasswordIncorrect]`; rate limit → 429 `[TooManyRequests 'Request count limitation exceeded, please try again later.']`; bad `sessionId` header → 401 `[Unauthorized 'Unauthorized']` | v1_urls_cred | ? |
+| V1-21 | Old non-async client sent PascalCase bodies; this library sends camelCase; both accepted | v1_urls_auth | ? |
+| V1-22 | Honeywell TH9320WF3003 can send thermostatModelType as an int | common | ? |
+| V1-23 | A v1 comm task once took 29 s (2026-10-07) | const | ? |
 | VX-1 | v2 timeUntil is UTC; v1 NextTime is local time (Z ignored); v2 status `until` is UTC with Z; v1 `nextTime` is local w/o Z | vx_until | ? |
 | VX-2 | v1 client sent NextTime in UTC between v2.0.0 and v3.0.0 (ended early by the UTC offset) | vx_until | ? |
 
@@ -163,6 +229,10 @@ Where: T = a mocked test (module), D = a module docstring, LIVE = the live suite
 - D12: `_DBG_TEST_UNUSED_APIS` gated code never runs by default (and `_out_test_task_id_zone`, `_test_bad0` are disabled by name).
 - D13: test_tcs on the fake: `tcs.set_mode(AWAY)` hits `tcs_mode` → NotImplementedError → skip; every v2 PUT of a mode is untested in CI by tests_rf.
 - D14: test_vx_until mixes v1 and v2 (against the v1/v2-separation rule).
+- D15: The fake has **no v1 at all** (every `v1_*` handler raises NotImplementedError): all 26 v1 tests are real-only.
+- D16: `USER_DATA`/`FULL_DATA` at the end of test_v1_urls_auth.py are unused.
+- D17: v1 test_good: the comment for accountInfo shows a *locations* list (wrong), and its final assert re-checks `user_auth`, not `user_info`.
+- D18: Of 70 collected tests_rf tests, only 8 run in CI (fake); 62 skip. The fake (`faked_server/`, ~1.4k lines) therefore exists to serve 8 tests, 3 of which only test the fake (D9).
 
 ## Bugs found
 
