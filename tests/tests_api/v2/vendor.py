@@ -433,6 +433,65 @@ LOC_STATUS_OVERRIDDEN: Final[TccLocStatusResponseT] = {
 }
 
 
+# The installationInfo (and status) of each entity is the same object as is nested
+# within that of its parent: so these are taken from the location's (see above)
+
+# GET /location/{LOC_ID}/installationInfo?includeTemperatureControlSystems=True
+LOC_CONFIG: Final = USR_LOCATIONS[0]
+
+# GET /gateway/{GWY_ID}/installationInfo?includeTemperatureControlSystems=True
+GWY_CONFIG: Final = LOC_CONFIG["gateways"][0]
+
+# GET /gateway/{GWY_ID}/status?includeTemperatureControlSystems=True
+GWY_STATUS: Final = LOC_STATUS["gateways"][0]
+
+# GET /temperatureControlSystem/{TCS_ID}/installationInfo (it always has its zones)
+TCS_CONFIG: Final = GWY_CONFIG["temperatureControlSystems"][0]
+
+# GET /temperatureControlSystem/{TCS_ID}/status (it always has its zones)
+TCS_STATUS: Final = GWY_STATUS["temperatureControlSystems"][0]
+
+# GET /temperatureZone/{ZON_ID}/installationInfo
+ZON_CONFIG: Final = TCS_CONFIG["zones"][0]
+
+# GET /temperatureZone/{ZON_ID}/status
+ZON_STATUS: Final = TCS_STATUS["zones"][0]
+
+# GET /domesticHotWater/{DHW_ID}/installationInfo
+DHW_CONFIG: Final = TCS_CONFIG["dhw"]
+
+# GET /domesticHotWater/{DHW_ID}/status
+DHW_STATUS: Final = TCS_STATUS["dhw"]
+
+
+# Without includeTemperatureControlSystems=True, a location's (or a gateway's)
+# installationInfo and status omit its TCSs (there is no TypedDict for these)
+# provenance: the old tests_rf/test_v2_urls.py (which asserted their keys)
+
+# GET /gateway/{GWY_ID}/installationInfo (its only key is gatewayInfo)
+GWY_CONFIG_SANS_TCSS: Final[dict[str, object]] = {
+    "gatewayInfo": GWY_CONFIG["gatewayInfo"],
+}
+
+# GET /gateway/{GWY_ID}/status (its only keys are gatewayId and activeFaults)
+GWY_STATUS_SANS_TCSS: Final[dict[str, object]] = {
+    "gatewayId": GWY_ID,
+    "activeFaults": [],
+}
+
+# GET /location/{LOC_ID}/installationInfo
+LOC_CONFIG_SANS_TCSS: Final[dict[str, object]] = {
+    "locationInfo": LOC_CONFIG["locationInfo"],
+    "gateways": [GWY_CONFIG_SANS_TCSS],
+}
+
+# GET /location/{LOC_ID}/status
+LOC_STATUS_SANS_TCSS: Final[dict[str, object]] = {
+    "locationId": LOC_ID,
+    "gateways": [GWY_STATUS_SANS_TCSS],
+}
+
+
 # GET /temperatureZone/{ZON_ID}/schedule
 # provenance: tests_rf/faked_server/const.py (MOCK_SCHEDULE_ZONE)
 ZON_SCHEDULE: Final[TccZonDailySchedulesT] = {

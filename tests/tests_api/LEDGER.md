@@ -5,13 +5,12 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 3, U6: `v2/test_get_entity.py`: every other v2 GET URL (Q6): loc installationInfo
-(also via `Location._get_config()`), gwy installationInfo & status, TCS installationInfo
-& status, zone installationInfo & status (also via `Zone._get_status()`), DHW
-installationInfo & status (also via `HotWater._get_status()`); and the 400s of an id of
-the wrong type (TemperatureZoneNotFound, DHWNotFound), and of a non-numeric id.
+Phase 3, U7: `v2/test_comm_task.py`: a PUT's 201 `{"id": "..."}` (`CommTask.from_put`,
+via e.g. `zone._put_mode`); GET commTasks?commTaskId= (`CommTask.get_state()`): each
+state; `wait()` → Succeeded, and Failed → CommTaskFailedError (V2-29); 404
+CommTaskNotFound, 400 InvalidInput / ParameterIsMissing; no query → 404 JSON.
 
-Notes: payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
+Notes: a test with > 5 params makes them keyword-only (`*,`), for PLR0917. Payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
 (20000xx). `mock` is autouse; client fixtures clear `mock.requests` after setup; each
 test has its own token cache (tests_api/conftest.py::cache_path). Mark a done verdict /
 fact home with ✓.
@@ -25,8 +24,8 @@ fact home with ✓.
 | 2 | U2 `tests_api/conftest.py` (`mock`), `v2/conftest.py` (`ec2`, entities), `v2/vendor.py` | done 8bd33f0 |
 | 2 | U3 `v1/conftest.py` (`ec1`, entities), `v1/vendor.py` | done 2bde958 |
 | 3 | U4 `v2/test_auth.py` (token POST: password & refresh grants; bearer) | done d9344aa |
-| 3 | U5 `v2/test_get.py` (userAccount, installationInfo, location status) | done (this commit) |
-| 3 | U6 `v2/test_get_entity.py` (every other GET URL: loc config, gwy/TCS/zone/DHW config & status) | todo |
+| 3 | U5 `v2/test_get.py` (userAccount, installationInfo, location status) | done ff2d9ff |
+| 3 | U6 `v2/test_get_entity.py` (every other GET URL: loc config, gwy/TCS/zone/DHW config & status) | done (this commit) |
 | 3 | U7 `v2/test_comm_task.py` | todo |
 | 3 | U8 `v2/test_tcs_put.py` | todo |
 | 3 | U9 `v2/test_zone_put.py` | todo |
@@ -255,8 +254,8 @@ homes are planned until their unit is done.
 | # | Fact | Source | Where |
 | - | ---- | ------ | ----- |
 | V2-1 | Base `https://tccna.resideo.com/WebAPI/emea/api/v1`; token at `/Auth/OAuth/Token` (off the base); its cert is for the hostname only | v2_urls, v2_urls_cred | D v2/vendor.py |
-| V2-2 | Every entity has `installationInfo` & `status`; a TCS's include its zones/DHW; a loc's/gwy's include TCSs iff `includeTemperatureControlSystems=True` | v2_urls | D v2/vendor.py; LIVE |
-| V2-3 | An entity's installationInfo/status == the object nested in its parent's | v2_urls | D v2/vendor.py; LIVE |
+| V2-2 | Every entity has `installationInfo` & `status`; a TCS's include its zones/DHW; a loc's/gwy's include TCSs iff `includeTemperatureControlSystems=True` | v2_urls | T v2/test_get_entity ✓, D v2/vendor.py ✓; LIVE |
+| V2-3 | An entity's installationInfo/status == the object nested in its parent's | v2_urls | T v2/test_get_entity ✓ (payloads derived by nesting), D ✓; LIVE |
 | V2-4 | GET → 200; PUT → 201 + comm task `{"id": "1668279943"}` (a str) | v2_urls | T v2/test_comm_task |
 | V2-5 | A PUT is sometimes answered with the comm task of an earlier, equivalent PUT (rule unknown) | v2_urls, common | D v2/test_comm_task |
 | V2-6 | GET of a PUT-only URL → 405 JSON `{'message': "The requested resource does not support http method 'GET'."}`, except zone heatSetpoint → 404 HTML | v2_urls_auth | D v2/vendor.py; LIVE |
@@ -267,10 +266,10 @@ homes are planned until their unit is done.
 | V2-11 | 400 codes: ParameterIsMissing, InvalidInput, SystemModeChangeTimeUntilNotSet, HeatSetpointChangeTimeUntilNotSet, HeatSetpointChangeTargetTemperatureNotSet ('Target temperature not specified when required'), DHWStateNotSet ('Domestic hot water state is not set when required'), DHWUntilTimeNotSet ('Domestic hot water until time is not set when required') | v2_urls_auth | T v2/test_{tcs,zone,dhw}_put |
 | V2-12 | An enum-valid systemMode the TCS lacks (e.g. Cool), or a setpointMode int ≥ 4 → 500 `{'message': 'An error has occurred.'}` | v2_urls_auth, v2_urls_limits | T v2/test_tcs_put, v2/test_zone_put; LIVE |
 | V2-13 | Any id not the user's (exists or not) → 401 `[{'code': 'Unauthorized', 'message': 'You are not allowed to perform this action.'}]`, any URL, GET or PUT | v2_urls_auth | T v2/test_get ✓ (GET), v2/test_*_put (PUT); LIVE |
-| V2-14 | The user's id of the wrong type → 400 DHWNotFound ('Domestic Hot Water {id} not found.') / TemperatureZoneNotFound ('Temperature Zone {id} not found.') / ScheduleNotFound ('Schedule not found.') | v2_urls_auth | T v2/test_schedule; LIVE |
+| V2-14 | The user's id of the wrong type → 400 DHWNotFound ('Domestic Hot Water {id} not found.') / TemperatureZoneNotFound ('Temperature Zone {id} not found.') / ScheduleNotFound ('Schedule not found.') | v2_urls_auth | T v2/test_get_entity ✓ (DHWNotFound, TemperatureZoneNotFound), v2/test_schedule (ScheduleNotFound); LIVE |
 | V2-15 | A non-numeric id → 400 | v2_urls_auth | D v2/vendor.py; LIVE |
 | V2-16 | `{"setpointMode": "PermanentOverride", "heatSetpointValue": x, "timeUntil": null}` accepted; FollowSchedule with a value (0.0) accepted; value 99 accepted | v2_urls_auth | D v2/test_zone_put |
-| V2-17 | Without includeTemperatureControlSystems: gwy installationInfo keys == `[gatewayInfo]`; gwy status == `[activeFaults, gatewayId]` | v2_urls | LIVE |
+| V2-17 | Without includeTemperatureControlSystems: gwy installationInfo keys == `[gatewayInfo]`; gwy status == `[activeFaults, gatewayId]` | v2_urls | T v2/test_get_entity ✓; LIVE |
 | V2-18 | A location may have no gateways (newly created) | v2_urls | T v2/test_get (if not in tests/tests), else D |
 | V2-19 | A gateway's fault, e.g. `GatewayCommunicationLost`, `since` "2025-02-23T22:34:25.04" (fractional, TZ-naive) | v2_urls | T v2/test_get ✓ (LOC_STATUS_OVERRIDDEN) |
 | V2-20 | Token POST (form): `grant_type=password, scope="EMEA-V1-Basic EMEA-V1-Anonymous", Username, Password`, Basic app-id header → 200 `{access_token, token_type: bearer, expires_in: 1799, refresh_token, scope?}`; bad → 400 `{"error": "invalid_grant"}`; rate limit → 429 `{"error": "attempt_limit_exceeded"}`; refresh grant likewise | v2_urls_cred | T v2/test_auth ✓; LIVE (cred flag) |
