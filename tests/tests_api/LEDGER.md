@@ -5,12 +5,11 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 3 is done: every row/fact has a ✓ home, bar the LIVE ones. Phase 4, U19:
-`tests/tests_live/` (conftest: skip unless `_DBG_USE_REAL_AIOHTTP`; real session & token
-cache; reset to Auto/FollowSchedule at end; `_DBG_WAIT_FOR_COMM_TASKS` polls each PUT's
-task and checks its outcome; `_DBG_TEST_CRED_URLS` gates the auth POSTs), `test_v2.py`,
-`test_v1.py`: replay each recorded request (all PUTs, per Q5); check status, content
-type, and shape (`factory_*`). Then ask the maintainer for credentials to run it once.
+U19: the live suite is built but **not yet run**: waiting for the maintainer to run it
+(or to give access): set `_DBG_USE_REAL_AIOHTTP = True` (locally; never commit it),
+then `TEST_USERNAME=... TEST_PASSWORD=... pytest tests/tests_live -p no:randomly -rs`
+(optionally also `_DBG_WAIT_FOR_COMM_TASKS`, `_DBG_TEST_CRED_URLS`). Record the outcome
+below (*Live run*), fix any recording it shows wrong, then Phase 5 (U20).
 
 Notes: a test with > 5 params makes them keyword-only (`*,`), for PLR0917. Payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
 (20000xx). `mock` is autouse; client fixtures clear `mock.requests` after setup; each
@@ -39,8 +38,8 @@ fact home with ✓.
 | 3 | U15 `v1/test_comm_task.py` | done 0f0dd13 |
 | 3 | U16 `v1/test_zone_put.py` (heatSetpoint & changeableValues forms) | done e3ca56a |
 | 3 | U17 `v1/test_dhw_put.py` | done aa5d013 |
-| 3 | U18 `v1/test_tcs_put.py` | done (this commit) |
-| 4 | U19 `tests_live/` (conftest, `test_v2.py`, `test_v1.py`); run once (with the maintainer's credentials); record outcome | todo |
+| 3 | U18 `v1/test_tcs_put.py` | done e05db7d |
+| 4 | U19 `tests_live/` (conftest, `test_v2.py`, `test_v1.py`); run once (with the maintainer's credentials); record outcome | doing: built (this commit), not yet run |
 | 5 | U20 delete `tests_rf/`, the fake's hook in `tests/conftest.py`, the mypy override (D19), unused `_DBG_*`; update CONTRIBUTING; fold ledger into docstrings; delete ledger | todo |
 
 ## Plan
@@ -310,6 +309,15 @@ homes are planned until their unit is done.
 | V1-22 | A v1 comm task once took 29 s (2026-10-07) | const | D v1/test_comm_task ✓ |
 | VX-1 | v2 timeUntil is UTC (status `until` UTC with Z); v1 NextTime is local (Z ignored; `nextTime` local, no Z) | vx_until | T v1/test_zone_put ✓ & v2/test_zone_put ✓ (each its own half) |
 | VX-2 | The v1 client sent NextTime in UTC between v2.0.0 and v3.0.0 (so ended early by the UTC offset) | vx_until | D v1/test_zone_put ✓ |
+
+## Live run
+
+Not yet run. To record: date, flags, pass/fail/skip counts, and each recording that was
+wrong (and how it was fixed). Unknowns it should settle: the v1 401 body of a foreign
+userId (assumed `[Unauthorized 'Unauthorized']`); the messages of v1 CommTaskNotFound and
+of an empty commTaskId; v2 ParameterIsMissing's message for an empty commTaskId; v1
+ThermostatModeNotAllowed for a DHW; whether a lost v1 device answers DeviceIsLost even
+to a bad body; the v2 429's message.
 
 ## Debt found
 
