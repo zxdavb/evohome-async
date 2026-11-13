@@ -13,11 +13,13 @@ from _evohome.helpers import convert_keys_to_snake_case
 from evohomeasync2 import exceptions as exc
 from evohomeasync2.const import DayOfWeek
 from evohomeasync2.schemas.schedule import TCC_GET_DHW_SCHEDULE, TCC_GET_ZON_SCHEDULE
-from evohomeasync2.zone import _dt_to_dow_and_tod, _find_switchpoints
+from evohomeasync2.zone import Zone, _dt_to_dow_and_tod, _find_switchpoints
 
 from .conftest import JsonObjectType, load_fixture
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from evohomeasync2.typedefs import EvoZonScheduleDayOfWeekT
 
 SCHEDULES_DIR = Path(__file__).parent / "schedules"
@@ -155,13 +157,98 @@ def test_find_switchpoints() -> None:
     )
 
 
-def test_find_switchpoints_invalid_day() -> None:
-    """Test _find_switchpoints with an invalid day_of_week value."""
+def _schedule() -> list[EvoZonScheduleDayOfWeekT]:
+    """Return SCHEDULE's days, as validated by the zone's schema (so typed)."""
+    return Zone.SCH_SCHEDULE(SCHEDULE)["daily_schedules"]
 
-    schedule: list[EvoZonScheduleDayOfWeekT] = SCHEDULE["daily_schedules"]  # type: ignore[assignment]
 
-    with pytest.raises(TypeError, match="Invalid parameter"):
-        _find_switchpoints(schedule, "Montag", "08:00:00")  # type: ignore[arg-type]
+def test_find_switchpoints_within_its_first_minute() -> None:
+    """Test a switchpoint is this one from its start (not from a minute later)."""
+
+    schedule = _schedule()
+
+    for time_of_day in ("08:00:00", "08:00:30", "08:00:59"):
+        assert _find_switchpoints(schedule, DayOfWeek.TUESDAY, time_of_day) == (
+            {"heat_setpoint": 18.2, "time_of_day": "08:00:00"},
+            0,
+            {"heat_setpoint": 19.3, "time_of_day": "17:00:00"},
+            0,
+        ), time_of_day
+
+
+def test_find_switchpoints_days_not_in_order() -> None:
+    """Test the days are found by their day_of_week, not their position."""
+
+    schedule = list(reversed(_schedule()))
+
+    assert _find_switchpoints(schedule, DayOfWeek.TUESDAY, "07:59:59") == (
+        {"heat_setpoint": 19.2, "time_of_day": "06:30:00"},
+        0,
+        {"heat_setpoint": 18.2, "time_of_day": "08:00:00"},
+        0,
+    )
+
+
+@pytest.mark.parametrize(
+    "days",
+    [
+        pytest.param(  # Tuesday is absent
+            lambda d: [x for x in d if x["day_of_week"] != DayOfWeek.TUESDAY],
+            id="absent",
+        ),
+        pytest.param(  # Tuesday has no switchpoints
+            lambda d: [
+                x if x["day_of_week"] != DayOfWeek.TUESDAY else x | {"switchpoints": []}
+                for x in d
+            ],
+            id="empty",
+        ),
+    ],
+)
+def test_find_switchpoints_day_without_switchpoints(
+    days: Callable[[list[EvoZonScheduleDayOfWeekT]], list[EvoZonScheduleDayOfWeekT]],
+) -> None:
+    """Test a day without switchpoints is skipped (this is earlier, next is later)."""
+
+    schedule = days(_schedule())
+
+    assert _find_switchpoints(schedule, DayOfWeek.TUESDAY, "12:00:00") == (
+        {"heat_setpoint": 14.9, "time_of_day": "21:30:00"},  # Monday's last
+        -1,
+        {"heat_setpoint": 19.1, "time_of_day": "06:30:00"},  # Wednesday's first
+        1,
+    )
+
+
+def test_find_switchpoints_one_day_only() -> None:
+    """Test a schedule with switchpoints on only one day (they repeat weekly)."""
+
+    schedule: list[EvoZonScheduleDayOfWeekT] = [
+        {
+            "day_of_week": DayOfWeek.MONDAY,
+            "switchpoints": [{"heat_setpoint": 21.0, "time_of_day": "06:30:00"}],
+        }
+    ]
+
+    assert _find_switchpoints(schedule, DayOfWeek.MONDAY, "05:00:00") == (
+        {"heat_setpoint": 21.0, "time_of_day": "06:30:00"},
+        -7,  # i.e. a week ago
+        {"heat_setpoint": 21.0, "time_of_day": "06:30:00"},
+        0,
+    )
+
+
+def test_find_switchpoints_no_switchpoints() -> None:
+    """Test _find_switchpoints raises InvalidGetScheduleError if no day has any."""
+
+    schedule: list[EvoZonScheduleDayOfWeekT] = [
+        {"day_of_week": d, "switchpoints": []} for d in DayOfWeek
+    ]
+
+    with pytest.raises(exc.InvalidGetScheduleError) as err:
+        _find_switchpoints(schedule, DayOfWeek.MONDAY, "08:00:00")
+
+    assert err.value.reason is exc.ResponseErrorReason.SWITCHPOINTS_MISSING
 
 
 def test_find_switchpoints_empty_schedule() -> None:
@@ -179,35 +266,35 @@ def test_find_switchpoints_empty_schedule() -> None:
             dt(2026, 2, 23, 8, 30, tzinfo=UTC),  # Monday
             UTC,
             DayOfWeek.MONDAY,
-            "08:30",
+            "08:30:00",
         ),
         # Sunday 23:30 UTC -> Monday 00:30 in UTC+1
         (
             dt(2026, 2, 22, 23, 30, tzinfo=UTC),  # Sunday in UTC
             tz(offset=td(hours=1)),  # UTC+1
             DayOfWeek.MONDAY,
-            "00:30",
+            "00:30:00",
         ),
         # Monday 00:30 UTC -> Sunday 23:30 in UTC-1
         (
             dt(2026, 2, 23, 0, 30, tzinfo=UTC),  # Monday in UTC
             tz(offset=td(hours=-1)),  # UTC-1
             DayOfWeek.SUNDAY,
-            "23:30",
+            "23:30:00",
         ),
         # Friday in a named timezone
         (
             dt(2026, 2, 27, 12, 0, tzinfo=UTC),  # Friday
             ZoneInfo("Europe/London"),  # UTC+0 in February
             DayOfWeek.FRIDAY,
-            "12:00",
+            "12:00:00",
         ),
         # Saturday in Berlin (UTC+1 in winter)
         (
             dt(2026, 2, 28, 23, 45, tzinfo=UTC),  # Saturday 23:45 UTC
             ZoneInfo("Europe/Berlin"),  # UTC+1
             DayOfWeek.SUNDAY,
-            "00:45",
+            "00:45:00",
         ),
     ],
 )
