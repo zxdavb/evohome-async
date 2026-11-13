@@ -5,12 +5,14 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 2, U3: `v1/conftest.py` (`ec1`, set up via mocked GETs from `v1/vendor.py`;
-tcs/zone/dhw) and `v1/vendor.py` (typed payloads, redacted ids; endpoint table &
-conventions in its docstring, as v2/vendor.py). Then U4 (`v2/test_auth.py`).
+Phase 3, U4: `v2/test_auth.py`: the token POST (password & refresh grants: exact form
+body & headers; 200, 400 invalid_grant, 429 attempt_limit_exceeded), and a bad bearer
+(401 'Unauthorized.'). See tests/tests/test_v2_urls_cred.py for how it mocks the POST.
 
 Notes for later units: recorded payloads use the Tcc* StrEnums for enum values (mypy
-needs them; same on the wire); ids are redacted (v2: 20000xx). `mock` is autouse.
+needs them; same on the wire), and (v1) the id NewTypes; ids are redacted (20000xx).
+`mock` is autouse; the client fixtures clear `mock.requests` after setup. v1's second
+zone (ZON_ID_2) is lost (isAlive: False), for DeviceIsLost.
 
 ## Status
 
@@ -18,8 +20,8 @@ needs them; same on the wire); ids are redacted (v2: 20000xx). `mock` is autouse
 | ----- | ---- | ----- |
 | 1 | Audit: inventory, vendor facts, debt, plan | done 2055cf0 (approved 2026-11-13, see Decisions) |
 | 2 | U1 `aioresponses.py`: non-JSON responses (e.g. a 404's HTML), additive, own commit | done f06d05d |
-| 2 | U2 `tests_api/conftest.py` (`mock`), `v2/conftest.py` (`ec2`, entities), `v2/vendor.py` | done (this commit) |
-| 2 | U3 `v1/conftest.py` (`ec1`, entities), `v1/vendor.py` | todo |
+| 2 | U2 `tests_api/conftest.py` (`mock`), `v2/conftest.py` (`ec2`, entities), `v2/vendor.py` | done 8bd33f0 |
+| 2 | U3 `v1/conftest.py` (`ec1`, entities), `v1/vendor.py` | done (this commit) |
 | 3 | U4 `v2/test_auth.py` (token POST: password & refresh grants; bearer) | todo |
 | 3 | U5 `v2/test_get.py` (userAccount, installationInfo, location status) | todo |
 | 3 | U6 `v2/test_get_entity.py` (every other GET URL: loc config, gwy/TCS/zone/DHW config & status) | todo |
