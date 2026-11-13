@@ -154,8 +154,8 @@ USR_INFO: Final[TccUserAccountInfoResponseT] = {
 
 
 # GET /locations?userId={USR_ID}&allData=True
-# provenance: tests/tests/fixtures_v1/default/user_locs.json (with its 9 zones cut to 2,
-# and its alertSettings dropped), and the FULL_DATA of tests_rf/test_v1_urls_auth.py
+# provenance: tests/tests/fixtures_v1/default/user_locs.json (with its 9 zones cut to 2),
+# and the FULL_DATA of tests_rf/test_v1_urls_auth.py
 # (for its contractor) (redacted)
 USR_LOCS: Final[list[TccLocationResponseT]] = [
     {
@@ -206,6 +206,24 @@ USR_LOCS: Final[list[TccLocationResponseT]] = [
                     "scheduleHeatSp": 0.0,
                     "scheduleCoolSp": 0.0,
                 },
+                "alertSettings": {
+                    "deviceID": DHW_ID,
+                    "tempHigherThanActive": True,
+                    "tempHigherThan": 30.0,
+                    "tempHigherThanMinutes": 0,
+                    "tempLowerThanActive": True,
+                    "tempLowerThan": 5.0,
+                    "tempLowerThanMinutes": 0,
+                    "faultConditionExistsActive": False,
+                    "faultConditionExistsHours": 0,
+                    "normalConditionsActive": True,
+                    "communicationLostActive": False,
+                    "communicationLostHours": 0,
+                    "communicationFailureActive": True,
+                    "communicationFailureMinutes": 15,
+                    "deviceLostActive": False,
+                    "deviceLostHours": 0,
+                },
                 "isUpgrading": False,
                 "isAlive": True,
                 "thermostatVersion": "02.00.19.33",
@@ -254,6 +272,24 @@ USR_LOCS: Final[list[TccLocationResponseT]] = [
                     "vacationHoldCancelable": False,
                     "scheduleHeatSp": 0.0,
                     "scheduleCoolSp": 0.0,
+                },
+                "alertSettings": {
+                    "deviceID": ZON_ID,
+                    "tempHigherThanActive": True,
+                    "tempHigherThan": 30.0,
+                    "tempHigherThanMinutes": 0,
+                    "tempLowerThanActive": True,
+                    "tempLowerThan": 5.0,
+                    "tempLowerThanMinutes": 0,
+                    "faultConditionExistsActive": False,
+                    "faultConditionExistsHours": 0,
+                    "normalConditionsActive": True,
+                    "communicationLostActive": False,
+                    "communicationLostHours": 0,
+                    "communicationFailureActive": True,
+                    "communicationFailureMinutes": 15,
+                    "deviceLostActive": False,
+                    "deviceLostHours": 0,
                 },
                 "isUpgrading": False,
                 "isAlive": True,
@@ -305,6 +341,24 @@ USR_LOCS: Final[list[TccLocationResponseT]] = [
                     "scheduleHeatSp": 0.0,
                     "scheduleCoolSp": 0.0,
                 },
+                "alertSettings": {
+                    "deviceID": ZON_ID_2,
+                    "tempHigherThanActive": True,
+                    "tempHigherThan": 30.0,
+                    "tempHigherThanMinutes": 0,
+                    "tempLowerThanActive": True,
+                    "tempLowerThan": 5.0,
+                    "tempLowerThanMinutes": 0,
+                    "faultConditionExistsActive": False,
+                    "faultConditionExistsHours": 0,
+                    "normalConditionsActive": True,
+                    "communicationLostActive": False,
+                    "communicationLostHours": 0,
+                    "communicationFailureActive": True,
+                    "communicationFailureMinutes": 15,
+                    "deviceLostActive": False,
+                    "deviceLostHours": 0,
+                },
                 "isUpgrading": False,
                 "isAlive": False,
                 "thermostatVersion": "02.00.19.33",
@@ -342,3 +396,60 @@ USR_LOCS: Final[list[TccLocationResponseT]] = [
         },
     }
 ]
+
+
+# The client GETs only the user's locations (with allData=True); the other GETs return
+# the same objects (as nested within them), with or without their children: so these
+# are taken from USR_LOCS (see above)
+# provenance: the old tests_rf/test_v1_urls.py (which asserted their keys)
+
+# the keys that allData=True adds (a location's weather & contractor, only if it has
+# them), which the other GETs omit without it
+LOC_ALL_DATA_KEYS: Final = ("devices", "oneTouchButtons", "weather", "contractor")
+DEV_ALL_DATA_KEYS: Final = ("thermostat", "alertSettings")
+
+# GET /locations?locationId={LOC_ID}&allData=True (a dict, not a list of one)
+LOCATION: Final = USR_LOCS[0]
+
+# GET /locations?locationId={LOC_ID} (and each of GET /locations?userId={USR_ID})
+LOCATION_SANS_ALL_DATA: Final[dict[str, object]] = {
+    k: v for k, v in LOCATION.items() if k not in LOC_ALL_DATA_KEYS
+}
+
+# GET /devices?locationId={LOC_ID}&allData=True
+DEVICES: Final = LOCATION["devices"]
+
+# GET /devices?locationId={LOC_ID} (and each is as per GET /devices/{dev_id})
+DEVICES_SANS_ALL_DATA: Final[list[dict[str, object]]] = [
+    {k: v for k, v in d.items() if k not in DEV_ALL_DATA_KEYS} for d in DEVICES
+]
+
+# GET /gateways?locationId={LOC_ID} (note gatewayID, but locationId)
+# provenance: the old tests_rf/test_v1_urls.py (its docstring) (redacted)
+GATEWAYS: Final[list[dict[str, object]]] = [
+    {
+        "gatewayID": GWY_ID,
+        "mac": "00D02DEE0000",
+        "crc": "0000",
+        "locationId": LOC_ID,
+        "isUpgrading": False,
+        "isRedlinkGateway": False,
+    }
+]
+
+# GET /gateways?locationId={LOC_ID}&allData=True (it adds the gateway's devices)
+GATEWAYS_ALL_DATA: Final[list[dict[str, object]]] = [GATEWAYS[0] | {"devices": DEVICES}]
+
+# GET /devices/{ZON_ID}/thermostat (it is without its changeableValues)
+ZON_THERMOSTAT: Final[dict[str, object]] = {
+    k: v for k, v in DEVICES[1]["thermostat"].items() if k != "changeableValues"
+}
+
+# GET /devices/{ZON_ID}/thermostat/changeableValues (it adds the source of each change,
+# for a live device; a DHW's has only a modeChangeSource)
+ZON_CHANGEABLE_VALUES: Final[dict[str, object]] = dict(
+    DEVICES[1]["thermostat"]["changeableValues"]
+) | {
+    "modeChangeSource": {"partnerName": "EMEA", "changeTag": ""},
+    "heatSetpointChangeSource": {"partnerName": "EMEA", "changeTag": ""},
+}

@@ -5,12 +5,11 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 3, U14: `v1/test_get_device.py` (Q6: every other v1 GET, via `Auth.request()`, as
-the client has no schemas for them): locations?locationId (a dict), ±allData;
-locations?userId sans allData; gateways?locationId ±allData; devices?locationId ±allData;
-devices/{id}; devices/{id}/thermostat; devices/{id}/thermostat/changeableValues (adds
-*ChangeSource). Payloads derived by nesting from USR_LOCS where possible; the gateway's
-from the old docstring (gatewayID, mac, crc, locationId, isUpgrading, isRedlinkGateway).
+Phase 3, U15: `v1/test_comm_task.py`: a PUT's 201 `{"id": 1234567890}` (an int:
+`CommTask.from_put`); GET commTasks (`CommTask.get_state()`): `{state, started,
+finished?, macId, gatewayId, deviceId, activityId}`; wait(); 404 CommTaskNotFound, 400
+InvalidInput (ABC: 'not valid for Int32'; '' too); no query → 404 JSON. Docstring:
+V1-12 (stale tasks, `started` < sent), V1-13. Read src/evohomeasync/comm_task.py first.
 
 Notes: a test with > 5 params makes them keyword-only (`*,`), for PLR0917. Payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
 (20000xx). `mock` is autouse; client fixtures clear `mock.requests` after setup; each
@@ -34,8 +33,8 @@ fact home with ✓.
 | 3 | U10 `v2/test_dhw_put.py` | done 97fa5c7 |
 | 3 | U11 `v2/test_schedule.py` | done 28f93fd |
 | 3 | U12 `v1/test_auth.py` (session POST; sessionId header) | done 6432d56 |
-| 3 | U13 `v1/test_get.py` (accountInfo, locations?userId) | done (this commit) |
-| 3 | U14 `v1/test_get_device.py` (every other GET URL: locations?locationId, gateways, devices, device, thermostat, changeableValues) | todo |
+| 3 | U13 `v1/test_get.py` (accountInfo, locations?userId) | done c92a88b |
+| 3 | U14 `v1/test_get_device.py` (every other GET URL: locations?locationId, gateways, devices, device, thermostat, changeableValues) | done (this commit) |
 | 3 | U15 `v1/test_comm_task.py` | todo |
 | 3 | U16 `v1/test_zone_put.py` (heatSetpoint & changeableValues forms) | todo |
 | 3 | U17 `v1/test_dhw_put.py` | todo |
@@ -209,7 +208,7 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
-| test_loc_urls | L0 | accountInfo; locations ±allData; locationId; gateways; devices; device; thermostat; changeableValues (key relations) | — | — | merge → v1/test_get, v1/test_get_device (the other GETs, Q6); live |
+| test_loc_urls | L0 | accountInfo; locations ±allData; locationId; gateways; devices; device; thermostat; changeableValues (key relations) | — | — | ✓ merge → v1/test_get, v1/test_get_device (the other GETs, Q6); live |
 | test_tcs_urls | L0 | PUT evoTouchSystems → 404 | — | — | port → v1/test_tcs_put |
 | test_zon_urls | L0 | PUT heatSetpoint Scheduled; PUT changeableValues `{Mode, HeatSetpoint}` | — | — | merge → v1/test_zone_put (both forms, Q6) |
 | test_dhw_urls | L0 | PUT changeableValues `{Mode}` | — | — | merge → v1/test_dhw_put |
@@ -287,9 +286,9 @@ homes are planned until their unit is done.
 | V2-30 | Status reports TCS `timeUntil`, zone `until`, DHW `until` (the DHW request says `untilTime`) | v2_urls_limits | T v2/test_get ✓ |
 | V2-31 | The controller (by hand, 2026-11-04): clamps setpoints to min/max but uses 0.1-resolution values; honours zone/DHW untils beyond max/off res; ends Eco at its until; ignores past untils; runs an Away ending before midnight until midnight; shows >99d as '99d' | v2_urls_limits | D v2/test_tcs_put ✓, v2/test_zone_put ✓ |
 | V1-1 | Base `https://tccna.resideo.com/WebAPI/api`; session at `/session`; its cert is for the hostname only | v1_urls, v1_urls_cred | D v1/vendor.py |
-| V1-2 | allData=True adds children: a location's devices, oneTouchButtons (+ weather, contractor if any); a gateway's devices; a device's thermostat, alertSettings | v1_urls | D v1/vendor.py; LIVE |
-| V1-3 | `locations?locationId=` returns a dict (not a list of one) | v1_urls | D v1/vendor.py; LIVE |
-| V1-4 | An entity's own URL == object nested in its parent's, but a device's thermostat lacks changeableValues, and the changeableValues GET adds modeChangeSource / heatSetpointChangeSource `{partnerName: EMEA, changeTag: ""}` (absent for a lost device) | v1_urls | D v1/vendor.py; LIVE |
+| V1-2 | allData=True adds children: a location's devices, oneTouchButtons (+ weather, contractor if any); a gateway's devices; a device's thermostat, alertSettings | v1_urls | T v1/test_get_device ✓, D v1/vendor.py ✓; LIVE |
+| V1-3 | `locations?locationId=` returns a dict (not a list of one) | v1_urls | T v1/test_get_device ✓, D ✓; LIVE |
+| V1-4 | An entity's own URL == object nested in its parent's, but a device's thermostat lacks changeableValues, and the changeableValues GET adds modeChangeSource / heatSetpointChangeSource `{partnerName: EMEA, changeTag: ""}` (absent for a lost device) | v1_urls | T v1/test_get_device ✓, D ✓; LIVE |
 | V1-5 | ID key casing is inconsistent: userID, locationID, deviceID, gatewayID (of a gateway), but gatewayId (of a device), locationId (of a gateway); ids are ints; `outdootHumidityAvailable` (sic) | v1_urls | T v1/test_get ✓, D v1/vendor.py ✓ |
 | V1-6 | URL path/base/query keys and request keys/enum values case-insensitive | v1_urls_auth | D v1/vendor.py; LIVE |
 | V1-7 | Datetimes are the location's local time: NextTime returned without a Z; a Z sent is ignored | v1_urls, vx_until | T v1/test_zone_put |
