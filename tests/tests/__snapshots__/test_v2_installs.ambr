@@ -18716,32 +18716,32 @@
     ),
     tuple(
       tuple(
-        FakeDatetime(2024, 12, 31, 6, 30, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
-        18.0,
-      ),
-      tuple(
         FakeDatetime(2024, 12, 31, 21, 0, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
         20.0,
       ),
-    ),
-    tuple(
       tuple(
-        FakeDatetime(2024, 12, 31, 6, 30, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
+        FakeDatetime(2025, 1, 1, 6, 30, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
         18.0,
-      ),
-      tuple(
-        FakeDatetime(2024, 12, 31, 21, 0, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
-        19.5,
       ),
     ),
     tuple(
       tuple(
-        FakeDatetime(2024, 12, 31, 6, 30, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
+        FakeDatetime(2024, 12, 31, 21, 0, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
+        19.5,
+      ),
+      tuple(
+        FakeDatetime(2025, 1, 1, 6, 30, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
         18.0,
       ),
+    ),
+    tuple(
       tuple(
         FakeDatetime(2024, 12, 31, 21, 0, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
         19.5,
+      ),
+      tuple(
+        FakeDatetime(2025, 1, 1, 6, 30, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
+        18.0,
       ),
     ),
     tuple(
@@ -18756,12 +18756,12 @@
     ),
     tuple(
       tuple(
-        FakeDatetime(2024, 12, 31, 18, 0, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
-        20.0,
-      ),
-      tuple(
         FakeDatetime(2024, 12, 31, 21, 0, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
         19.0,
+      ),
+      tuple(
+        FakeDatetime(2025, 1, 1, 6, 30, tzinfo=zoneinfo.ZoneInfo(key='America/Buenos_Aires')),
+        18.0,
       ),
     ),
   ])
@@ -46082,9 +46082,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - ''2024-12-31T21:00:00-03:00''
+          - ''2025-01-01T06:30:00-03:00''
   
-          - 20.0
+          - 18.0
   
           '
       schedule: "- day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n\
@@ -46149,9 +46149,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - ''2024-12-31T06:30:00-03:00''
+          - ''2024-12-31T21:00:00-03:00''
   
-          - 18.0
+          - 20.0
   
           '
       type: '!!python/object/apply:evohomeasync2.const.ZoneType
@@ -46210,9 +46210,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - ''2024-12-31T21:00:00-03:00''
+          - ''2025-01-01T06:30:00-03:00''
   
-          - 19.5
+          - 18.0
   
           '
       schedule: "- day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n\
@@ -46275,9 +46275,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - ''2024-12-31T06:30:00-03:00''
+          - ''2024-12-31T21:00:00-03:00''
   
-          - 18.0
+          - 19.5
   
           '
       type: '!!python/object/apply:evohomeasync2.const.ZoneType
@@ -46338,9 +46338,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - ''2024-12-31T21:00:00-03:00''
+          - ''2025-01-01T06:30:00-03:00''
   
-          - 19.5
+          - 18.0
   
           '
       schedule: "- day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n\
@@ -46403,9 +46403,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - ''2024-12-31T06:30:00-03:00''
+          - ''2024-12-31T21:00:00-03:00''
   
-          - 18.0
+          - 19.5
   
           '
       type: '!!python/object/apply:evohomeasync2.const.ZoneType
@@ -46592,9 +46592,9 @@
           '
       next_switchpoint: '!!python/tuple
   
-          - ''2024-12-31T21:00:00-03:00''
+          - ''2025-01-01T06:30:00-03:00''
   
-          - 19.0
+          - 18.0
   
           '
       schedule: "- day_of_week: !!python/object/apply:evohomeasync2.const.DayOfWeek\n\
@@ -46662,9 +46662,9 @@
           '
       this_switchpoint: '!!python/tuple
   
-          - ''2024-12-31T18:00:00-03:00''
+          - ''2024-12-31T21:00:00-03:00''
   
-          - 20.0
+          - 19.0
   
           '
       type: '!!python/object/apply:evohomeasync2.const.ZoneType
