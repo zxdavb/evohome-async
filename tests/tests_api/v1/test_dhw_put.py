@@ -23,7 +23,7 @@ the same DHW as expected.)
 
 The vendor's errors:
 - 400 DeviceIsLost: a DHW that is not alive (i.e. its gateway is offline), whatever
-  the body
+  the body (it is first, followed by any of the errors below, but InvalidInput)
 - 400 ParameterIsMissing: no mode, or a null one ("'ThermostatMode' is required.")
 - 400 ForbiddenParameter: e.g. "'Status' is forbidden." (see above)
 - 400 ThermostatModeNotAllowed: a mode that is valid, but not for a DHW (e.g. Off)
@@ -136,7 +136,7 @@ async def test_put_mode_only(
         pytest.param(  # a ThermostatMode, but not for a DHW
             {"mode": "Off"},
             "ThermostatModeNotAllowed",  # not (yet) a TccFailureCode
-            "...",  # not recorded
+            "Mode Off is not allowed. Allowed modes are DHWOn, DHWOff.",  # 2026-11-13
             id="mode_not_allowed",
         ),
         pytest.param(  # not a ThermostatMode at all (there is no Auto)
@@ -173,8 +173,8 @@ async def test_set_dhw_auto_forbidden(
 ) -> None:
     """On the test system, set_dhw_auto() is a 400 (its status is forbidden).
 
-    Its mode is null too, which would be a ParameterIsMissing: only the first error is
-    recorded (its code is the error's).
+    Its mode is null too, but (with a status) that is not a ParameterIsMissing (probed
+    2026-11-13, of a lost DHW: its errors were DeviceIsLost, then this one).
     """
 
     body: list[TccFailureResponseT] = [

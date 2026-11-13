@@ -16,7 +16,8 @@ not include the task's own id, but does include what it acted upon:
 Its states (as documented by the vendor) are Created, Running, Repeated (running again,
 after an earlier run failed), Succeeded and Failed (the last two are terminal). A task
 has been seen to take 29s (2026-10-07), as the gateway carries out its tasks one at a
-time; a gateway that is offline never completes them.
+time. A PUT to a device of a gateway that is offline is rejected (DeviceIsLost), so has
+no task.
 
 The vendor sometimes answers a PUT with the comm task of an earlier, equivalent PUT
 (one that has already succeeded), and does not carry it out, even if the device's state
@@ -172,7 +173,7 @@ async def test_wait_fails(
             "12345678",
             HTTPStatus.NOT_FOUND,
             TccFailureCode.COMM_TASK_NOT_FOUND,
-            "...",  # not recorded
+            "Communication task was not found.",  # probed 2026-11-13 (v2's differs)
             id="not_found",
         ),
         pytest.param(  # so an id beyond 2147483647 is not valid either
@@ -186,7 +187,7 @@ async def test_wait_fails(
             "",
             HTTPStatus.BAD_REQUEST,
             TccFailureCode.INVALID_INPUT,
-            "...",  # not recorded
+            "A value is required but was not present in the request.",  # 2026-11-13
             id="empty",
         ),
     ],

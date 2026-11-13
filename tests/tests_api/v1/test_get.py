@@ -123,13 +123,16 @@ async def test_get_not_the_users(
 ) -> None:
     """An id that is not the user's is a 401 (Unauthorized).
 
-    The body has not been recorded (only its status): it is assumed to be as for a bad
-    session id (the live suite checks it).
+    Its message differs from that of a bad session id ("Unauthorized").
     """
 
     url = f"locations?userId={NOT_THE_USERS_ID}&allData=True"
+    # provenance: probed 2026-11-13
     body: list[TccFailureResponseT] = [
-        {"code": TccFailureCode.UNAUTHORIZED, "message": "Unauthorized"}
+        {
+            "code": TccFailureCode.UNAUTHORIZED,
+            "message": "You are not allowed to perform this action.",
+        }
     ]
     mock.get(f"{URL_BASE_V1}/{url}", status=HTTPStatus.UNAUTHORIZED, payload=body)
 

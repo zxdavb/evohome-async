@@ -210,7 +210,7 @@ async def test_set_mode(
             [
                 {
                     "code": TccFailureCode.SYSTEM_MODE_CHANGE_TIME_UNTIL_NOT_SET,
-                    "message": "...",  # not recorded
+                    "message": "No message available.",  # probed 2026-11-13
                 }
             ],
             TccFailureCode.SYSTEM_MODE_CHANGE_TIME_UNTIL_NOT_SET,

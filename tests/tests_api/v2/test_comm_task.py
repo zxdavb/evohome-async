@@ -14,8 +14,9 @@ for v1 only.
 A task fails if the gateway (i.e. the controller) can't carry it out: e.g. a zone's
 VacationHold, if the zone has no such mode (only some non-evohome systems do): so the
 PUT of an invalid request may be accepted (201), and its failure seen only via its
-task. Tasks are carried out one at a time, so one may wait behind others; a gateway
-that is offline never completes its tasks.
+task. Tasks are carried out one at a time, so one may wait behind others. The tasks of
+a gateway that is offline are accepted (201), but stay Created, and later fail (as
+probed, 2026-11-13: after more than a minute).
 
 The vendor sometimes answers a PUT with the comm task of an earlier, equivalent PUT
 (which may have already succeeded), and does not carry it out: the rule for this is
@@ -25,7 +26,7 @@ The id is normalised (e.g. a zero-padded id is that of the same task), and the s
 of any (recent) task can be got by any user (not only the user whose task it is: the
 other URLs are a 401 for any id that is not the user's). An id of no task (or of an
 old one) is a 404 (CommTaskNotFound), one that is not numeric is a 400 (InvalidInput),
-one that is empty is a 400 (ParameterIsMissing), and no id at all is a 404 (as JSON,
+one that is empty is a 400 (ParameterIsMissing, with a parameterName), and no id at all is a 404 (as JSON,
 but without a code).
 """
 
@@ -192,13 +193,6 @@ async def test_wait_fails(
             "Invalid Input.",
             id="not_numeric",
         ),
-        pytest.param(  # the message is as for the other ParameterIsMissing errors
-            "",
-            HTTPStatus.BAD_REQUEST,
-            TccFailureCode.PARAMETER_IS_MISSING,
-            "Parameter is missing.",
-            id="empty",
-        ),
     ],
 )
 async def test_get_state_of_bad_id(
@@ -222,6 +216,33 @@ async def test_get_state_of_bad_id(
 
     assert err.value.status == status
     assert err.value.details == {"code": code}
+
+
+async def test_get_state_of_empty_id(
+    ec2: EvohomeClientV2,
+    mock: AioResponses,
+) -> None:
+    """An id that is empty is a 400 (ParameterIsMissing, with its parameterName)."""
+
+    # provenance: probed 2026-11-13; not a list[TccFailureResponseT], as that lacks
+    # parameterName (B1)
+    body = [
+        {
+            "code": "ParameterIsMissing",
+            "parameterName": "commTaskId.String",
+            "message": "A value is required but was not present in the request.",
+        }
+    ]
+    mock.get(
+        f"{URL_BASE_V2}/commTasks?commTaskId=",
+        status=HTTPStatus.BAD_REQUEST,
+        payload=body,
+    )
+
+    with pytest.raises(ApiCallRejectedError) as err:
+        await CommTask(ec2.auth, "").get_state()
+
+    assert err.value.details == {"code": TccFailureCode.PARAMETER_IS_MISSING}
 
 
 async def test_get_without_id(

@@ -5,11 +5,12 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-U19: the live suite is built but **not yet run**: waiting for the maintainer to run it
-(or to give access): set `_DBG_USE_REAL_AIOHTTP = True` (locally; never commit it),
-then `TEST_USERNAME=... TEST_PASSWORD=... pytest tests/tests_live -p no:randomly -rs`
-(optionally also `_DBG_WAIT_FOR_COMM_TASKS`, `_DBG_TEST_CRED_URLS`). Record the outcome
-below (*Live run*), fix any recording it shows wrong, then Phase 5 (U20).
+Phase 5, U20: delete `tests/tests_rf/` (incl. `faked_server/`); drop the fake's import
+from `tests/conftest.py::client_session` (and its `type: ignore`); remove
+`_DBG_TEST_UNUSED_APIS` and `_DBG_DISABLE_STRICT_ASSERTS` from `tests/const.py` (check
+`tests/tests` first); remove the mypy override for `tests.tests_rf.faked_server.vendor`
+from pyproject.toml (approved, Q2); update CONTRIBUTING's *Project structure*; fold the
+ledger's lasting content (Bugs, Observations, Live run) into docstrings; delete ledger.
 
 Notes: a test with > 5 params makes them keyword-only (`*,`), for PLR0917. Payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
 (20000xx). `mock` is autouse; client fixtures clear `mock.requests` after setup; each
@@ -39,7 +40,7 @@ fact home with ✓.
 | 3 | U16 `v1/test_zone_put.py` (heatSetpoint & changeableValues forms) | done e3ca56a |
 | 3 | U17 `v1/test_dhw_put.py` | done aa5d013 |
 | 3 | U18 `v1/test_tcs_put.py` | done e05db7d |
-| 4 | U19 `tests_live/` (conftest, `test_v2.py`, `test_v1.py`); run once (with the maintainer's credentials); record outcome | doing: built (this commit), not yet run |
+| 4 | U19 `tests_live/` (conftest, `test_v2.py`, `test_v1.py`); run once (with the maintainer's credentials); record outcome | done 7c533c1; run 2026-11-13 (this commit fixes its findings) |
 | 5 | U20 delete `tests_rf/`, the fake's hook in `tests/conftest.py`, the mypy override (D19), unused `_DBG_*`; update CONTRIBUTING; fold ledger into docstrings; delete ledger | todo |
 
 ## Plan
@@ -312,12 +313,41 @@ homes are planned until their unit is done.
 
 ## Live run
 
-Not yet run. To record: date, flags, pass/fail/skip counts, and each recording that was
-wrong (and how it was fixed). Unknowns it should settle: the v1 401 body of a foreign
-userId (assumed `[Unauthorized 'Unauthorized']`); the messages of v1 CommTaskNotFound and
-of an empty commTaskId; v2 ParameterIsMissing's message for an empty commTaskId; v1
-ThermostatModeNotAllowed for a DHW; whether a lost v1 device answers DeviceIsLost even
-to a bad body; the v2 429's message.
+2026-11-13, by me with the maintainer's test account (the controller turned on), flags
+`_DBG_USE_REAL_AIOHTTP` + `_DBG_WAIT_FOR_COMM_TASKS` (not `_DBG_TEST_CRED_URLS`):
+**129 passed, 15 skipped, 0 failed** (13 min). Skips: 4 cred tests (flag off); 11 v2
+PUTs whose comm task did not end within 60s.
+
+- The gateway is still offline to the vendor (GatewayCommunicationLost since
+  2026-11-04T19:29; every v1 device `isAlive: false`), though the controller is on: so
+  every v1 PUT took the DeviceIsLost branch, and no v2 task succeeded. A v2 task of the
+  offline gateway stays Created, and later Failed (one did, after > 60s): recorded in
+  v2/test_comm_task.py (it was "never completes").
+- Recordings shown wrong, and fixed (each probed 2026-11-13, then the mocks corrected):
+  - v1 401 of a foreign userId: message "You are not allowed to perform this action."
+    (was assumed "Unauthorized") — v1/test_get.py, v1/vendor.py
+  - v1 CommTaskNotFound: "Communication task was not found." (v2's differs: "...task
+    not found."); v1 empty id: InvalidInput "A value is required but was not present in
+    the request." — v1/test_comm_task.py
+  - v2 empty commTaskId: ParameterIsMissing **with parameterName** "commTaskId.String",
+    "A value is required but was not present in the request." (was assumed 'Parameter is
+    missing.'; another case of B1) — v2/test_comm_task.py
+  - v2 SystemModeChangeTimeUntilNotSet: "No message available."; non-numeric id:
+    InvalidInput "Request was bad formatted or cannot find required ID parameter in the
+    URL." — v2/test_tcs_put.py, v2/vendor.py
+  - v1 zone Hold w/o value: ParameterIsMissing **and ValueOutOfRange** ("Value of field
+    Value is out of range."); zone changeableValues mode Cool: ParameterIsMissing
+    ("'HeatSetpoint' is required.") then ThermostatModeNotAllowed ("Mode Cool is not
+    allowed. Allowed modes are Heat, Off."); InvalidInput's full message names
+    `System.Nullable`1[TrueHome.WebApi.Models.SetpointStatus]` — v1/test_zone_put.py
+  - v1 DHW mode Off: "Mode Off is not allowed. Allowed modes are DHWOn, DHWOff."; a
+    `{status: Scheduled, mode: null}` body is ForbiddenParameter only (not also
+    ParameterIsMissing) — v1/test_dhw_put.py
+- New vendor fact (V1-24): to a lost v1 device, the errors are DeviceIsLost first, then
+  each of the body's validation errors; but a body that can't be deserialised
+  (InvalidInput) has that error alone. — v1/vendor.py, v1/test_{zone,dhw}_put.py
+- Not settled: the v2 429's message (not safely triggerable); the cred POSTs (flag off);
+  whether v2 PUTs' tasks succeed (needs the gateway online).
 
 ## Debt found
 
@@ -349,7 +379,8 @@ to a bad body; the v2 429's message.
   ParameterIsMissing body, e.g. `[{"code": "ParameterIsMissing", "parameterName":
   "SystemMode", "message": "Parameter is missing."}]` (seen for a TCS PUT of `{}`, and a
   schedule PUT of `null`: `parameterName: request`). Not used at runtime by the
-  library. Repro: `TCC_FAILURE_RESPONSE(_PARAMETERS_ARE_MISSING)` raises. Test:
+  library. Also seen (live, 2026-11-13) for an empty commTaskId: `parameterName:
+  commTaskId.String`. Repro: `TCC_FAILURE_RESPONSE(_PARAMETERS_ARE_MISSING)` raises. Test:
   `v2/test_tcs_put.py::test_failure_response_schema` (xfail strict). The v1 schema may
   need the same (check at U17). Fix: `parameterName: NotRequired[str]` + `vol.Optional`.
 
@@ -359,7 +390,7 @@ based on the older client & vendor docs, not on the test system's quirks):
 - O1: v1 `HotWater.set_dhw_auto()` sends `{status: Scheduled, mode: null}`; the test system answers 400 (ParameterIsMissing / ForbiddenParameter).
 - O2: v1 `ControlSystem.set_*()` all PUT the removed `evoTouchSystems` URL, so always fail (404).
 - O3: v1 `ControlSystem.reset()` raises a bare `NotImplementedError` (CONTRIBUTING rule 4).
-- O4: v1 `TccFailureCode` lacks `ThermostatModeNotAllowed` (seen; the enum says it is incomplete).
+- O4: v1 `TccFailureCode` lacks `ThermostatModeNotAllowed` and `ValueOutOfRange` (both seen 2026-11-13; the enum says it is incomplete).
 
 ## Decisions / open questions
 

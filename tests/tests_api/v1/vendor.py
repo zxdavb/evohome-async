@@ -50,9 +50,13 @@ The API is regular:
 And its errors are regular:
 - a failed request is answered with a list of errors, each with a code and a message,
   e.g. [{"code": "DeviceIsLost", "message": "Device is lost."}]
-- an id that is not the user's is a 401 (Unauthorized); an id that is not numeric is a
-  400; a bad session id is a 401 too: [{"code": "Unauthorized", "message":
-  "Unauthorized"}] (without the full stop of the v2 API's)
+- an id that is not the user's is a 401 (Unauthorized, "You are not allowed to perform
+  this action."); an id that is not numeric is a 400; a bad session id is a 401 too,
+  but: [{"code": "Unauthorized", "message": "Unauthorized"}] (without the full stop of
+  the v2 API's)
+- a PUT to a device that is not alive (its gateway is offline) is a 400: its errors
+  are DeviceIsLost, followed by any others of its body (e.g. a ParameterIsMissing),
+  except a body that can't be deserialised (InvalidInput), whose error is alone
 - an unknown path is a 404 whose body is HTML, as is a GET of a PUT-only URL (not a
   405, unlike the v2 API), and a PUT of a GET-only URL (e.g. locations); a known path
   without its required query key (e.g. userId) is a 404 whose body is JSON:

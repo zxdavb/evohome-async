@@ -25,10 +25,12 @@ in BST) an override ended early, by the location's UTC offset.
 
 The vendor's errors:
 - 400 DeviceIsLost: a zone that is not alive (i.e. its gateway is offline), whatever
-  the body
-- 400 ParameterIsMissing: e.g. a Hold without its value ("'Value' is required.")
-- 400 InvalidInput: a status that is not of its enum
-- 400 ThermostatModeNotAllowed: (of changeableValues) a mode that the zone lacks
+  the body (it is first, followed by any of the errors below, but InvalidInput)
+- 400 ParameterIsMissing: e.g. a Hold without its value ("'Value' is required."), with
+  a ValueOutOfRange too ("Value of field Value is out of range.")
+- 400 InvalidInput: a status that is not of its enum (its message names the .NET type)
+- 400 ThermostatModeNotAllowed: (of changeableValues) a mode that the zone lacks ("Mode
+  Cool is not allowed. Allowed modes are Heat, Off.")
 - 401 Unauthorized: an id that is not the user's
 """
 
@@ -210,48 +212,73 @@ async def test_set_zone_auto_device_is_lost(
     assert err.value.details == {"code": TccFailureCode.DEVICE_IS_LOST}
 
 
+# provenance: probed 2026-11-13 (of a lost zone, so each began with a DeviceIsLost,
+# which is omitted here)
 @pytest.mark.parametrize(
-    ("url", "json", "code", "message"),
+    ("url", "json", "body"),
     [
         pytest.param(
             f"devices/{ZON_ID}/thermostat/changeableValues/heatSetpoint",
             {"status": TccSetpointStatus.HOLD},
-            TccFailureCode.PARAMETER_IS_MISSING,
-            "'Value' is required.",
+            [
+                {
+                    "code": TccFailureCode.PARAMETER_IS_MISSING,
+                    "message": "'Value' is required.",
+                },
+                {
+                    "code": "ValueOutOfRange",  # not (yet) a TccFailureCode
+                    "message": "Value of field Value is out of range.",
+                },
+            ],
             id="value_is_missing",
         ),
         pytest.param(
             f"devices/{ZON_ID}/thermostat/changeableValues/heatSetpoint",
             {"status": "NoSuchStatus"},
-            TccFailureCode.INVALID_INPUT,
-            'Error converting value "NoSuchStatus" ...',  # abridged
+            [
+                {
+                    "code": TccFailureCode.INVALID_INPUT,
+                    "message": 'Error converting value "NoSuchStatus" to type '
+                    "'System.Nullable`1[TrueHome.WebApi.Models.SetpointStatus]'. "
+                    "Path 'status', line 1, position 25.",
+                },
+            ],
             id="invalid_input",
         ),
-        pytest.param(
+        pytest.param(  # a ThermostatMode, but not of an evohome zone
             f"devices/{ZON_ID}/thermostat/changeableValues",
-            {"mode": "Cool"},  # a ThermostatMode, but not of an evohome zone
-            "ThermostatModeNotAllowed",  # not (yet) a TccFailureCode
-            "Allowed modes are Heat, Off.",
+            {"mode": "Cool"},
+            [
+                {
+                    "code": TccFailureCode.PARAMETER_IS_MISSING,
+                    "message": "'HeatSetpoint' is required.",
+                },
+                {
+                    "code": "ThermostatModeNotAllowed",  # not (yet) a TccFailureCode
+                    "message": "Mode Cool is not allowed. Allowed modes are Heat, Off.",
+                },
+            ],
             id="mode_not_allowed",
         ),
     ],
 )
 async def test_put_rejected(
-    *,  # keyword-only, as pytest passes them by name
     zone: Zone,
     mock: AioResponses,
     url: str,
     json: dict[str, object],
-    code: str,
-    message: str,
+    body: list[TccFailureResponseT],
 ) -> None:
-    """A bad request is a 400 (via Auth.put(), as the client would not send it)."""
+    """A bad request is a 400, with every error of its body (the first is the code).
 
-    body: list[TccFailureResponseT] = [{"code": code, "message": message}]
+    Via Auth.put(), as the client would not send such a request.
+    """
+
     mock.put(f"{URL_BASE_V1}/{url}", status=HTTPStatus.BAD_REQUEST, payload=body)
 
     with pytest.raises(ApiCallRejectedError) as err:
         await zone._auth.put(url, json)
 
     assert err.value.status == HTTPStatus.BAD_REQUEST
-    assert err.value.details == {"code": code}
+    assert err.value.details == {"code": body[0]["code"]}
+    assert all(e["code"] in err.value.message for e in body)  # all are kept

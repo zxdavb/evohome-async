@@ -50,7 +50,8 @@ And its errors are regular:
 - an id that is not the user's (whether or not it exists, e.g. a deleted zone's) is a
   401 (Unauthorized), for every URL, GET or PUT; an id that is the user's, but of
   another type of entity, is a 400 (e.g. DHWNotFound); an id that is not numeric is a
-  400
+  400 (InvalidInput, "Request was bad formatted or cannot find required ID parameter in
+  the URL.")
 - a bad (or expired) access token is a 401 too, but with a different message:
     [{"code": "Unauthorized", "message": "Unauthorized."}]
 - an unknown path is a 404 whose body is HTML, not JSON; a known path without its
