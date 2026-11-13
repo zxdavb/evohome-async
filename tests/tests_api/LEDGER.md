@@ -5,17 +5,20 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 2, U2: `tests_api/__init__.py`, `tests_api/conftest.py` (`client_session` = a real
-`aiohttp.ClientSession`; `mock` = a fresh `AioResponses`), `v2/conftest.py` (`ec2` set up
-via mocked GETs from `v2/vendor.py`; loc/tcs/zone/dhw), `v2/vendor.py` (typed payloads).
+Phase 2, U3: `v1/conftest.py` (`ec1`, set up via mocked GETs from `v1/vendor.py`;
+tcs/zone/dhw) and `v1/vendor.py` (typed payloads, redacted ids; endpoint table &
+conventions in its docstring, as v2/vendor.py). Then U4 (`v2/test_auth.py`).
+
+Notes for later units: recorded payloads use the Tcc* StrEnums for enum values (mypy
+needs them; same on the wire); ids are redacted (v2: 20000xx). `mock` is autouse.
 
 ## Status
 
 | Phase | Unit | State |
 | ----- | ---- | ----- |
 | 1 | Audit: inventory, vendor facts, debt, plan | done 2055cf0 (approved 2026-11-13, see Decisions) |
-| 2 | U1 `aioresponses.py`: non-JSON responses (e.g. a 404's HTML), additive, own commit | done (this commit) |
-| 2 | U2 `tests_api/conftest.py` (`mock`), `v2/conftest.py` (`ec2`, entities), `v2/vendor.py` | todo |
+| 2 | U1 `aioresponses.py`: non-JSON responses (e.g. a 404's HTML), additive, own commit | done f06d05d |
+| 2 | U2 `tests_api/conftest.py` (`mock`), `v2/conftest.py` (`ec2`, entities), `v2/vendor.py` | done (this commit) |
 | 2 | U3 `v1/conftest.py` (`ec1`, entities), `v1/vendor.py` | todo |
 | 3 | U4 `v2/test_auth.py` (token POST: password & refresh grants; bearer) | todo |
 | 3 | U5 `v2/test_get.py` (userAccount, installationInfo, location status) | todo |
