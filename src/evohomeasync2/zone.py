@@ -1245,10 +1245,10 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
                     timing_mode=SZ_UNTIL,
                 )
 
-            until = self._validate_requested_until(mode, until)
+            time_until = self._validate_requested_until(mode, until)
 
         return await self._put_mode(
-            mode, heat_setpoint_value=temperature, time_until=until
+            mode, heat_setpoint_value=temperature, time_until=time_until
         )
 
     async def _set_tcc_mode(
@@ -1279,13 +1279,15 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        until = self._validate_requested_timespan(mode, TimingMode.DURATION, duration)
+        time_until = self._validate_requested_timespan(
+            mode, TimingMode.DURATION, duration
+        )
 
         # TODO: self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]
         # TODO: self.setpoint_capabilities[SZ_VALUE_RESOLUTION]
 
         return await self._put_mode(
-            mode, heat_setpoint_value=temperature, time_until=until
+            mode, heat_setpoint_value=temperature, time_until=time_until
         )
 
     async def reset(self) -> CommTask:

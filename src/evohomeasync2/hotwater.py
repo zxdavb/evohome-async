@@ -332,9 +332,9 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
                     timing_mode=SZ_UNTIL,
                 )
 
-            until = self._validate_requested_until(mode, until)
+            until_time = self._validate_requested_until(mode, until)
 
-        return await self._put_mode(mode, state=state, until_time=until)
+        return await self._put_mode(mode, state=state, until_time=until_time)
 
     async def _set_tcc_mode(
         self,
@@ -363,9 +363,11 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        until = self._validate_requested_timespan(mode, TimingMode.DURATION, duration)
+        until_time = self._validate_requested_timespan(
+            mode, TimingMode.DURATION, duration
+        )
 
-        return await self._put_mode(mode, state=state, until_time=until)
+        return await self._put_mode(mode, state=state, until_time=until_time)
 
     async def reset(self) -> CommTask:
         """Cancel any override and allow the DHW to follow its schedule."""
