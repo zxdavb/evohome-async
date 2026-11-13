@@ -16,8 +16,12 @@ snake_case, as per OAuth2:
 header of every other request: "bearer {access_token}".
 
 A failed POST is a 400 for bad credentials (a bad password, or a bad or expired
-refresh token), and a 429 for too many attempts, with an OAuth2 error, e.g.:
+refresh token), and a 429 for too many attempts (without a Retry-After header), with
+an OAuth2 error, e.g.:
   {"error": "invalid_grant"}, {"error": "attempt_limit_exceeded"}
+
+Only these POSTs are rate-limited: GETs (e.g. of userAccount, with a valid token) were
+not, at about 70 a second for 5,000 requests (probed 2026-11-13).
 
 A bad (or expired) access token is a 401, whose message differs from that of a 401
 for an id that is not the user's ("You are not allowed to perform this action."):
@@ -219,7 +223,12 @@ async def test_password_grant_rate_limited(
     credentials_manager: TokenCacheManager,
     mock: AioResponses,
 ) -> None:
-    """Too many attempts are a 429 (attempt_limit_exceeded)."""
+    """Too many attempts are a 429 (attempt_limit_exceeded), without a Retry-After.
+
+    As probed (2026-11-13, with the user's real credentials), after a day of tests: its
+    content type was "application/json;charset=UTF-8", and it had no Retry-After header
+    (so the client cannot say when to try again).
+    """
 
     _clear_tokens(credentials_manager)
 
@@ -235,6 +244,7 @@ async def test_password_grant_rate_limited(
     assert err.value.status == HTTPStatus.TOO_MANY_REQUESTS
     assert err.value.reason is ApiCallErrorReason.RATE_LIMITED
     assert err.value.details == {"code": TccOAuthError.ATTEMPT_LIMIT_EXCEEDED}
+    assert err.value.retry_after is None
 
 
 async def test_bearer(

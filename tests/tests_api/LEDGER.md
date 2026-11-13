@@ -346,8 +346,18 @@ PUTs whose comm task did not end within 60s.
 - New vendor fact (V1-24): to a lost v1 device, the errors are DeviceIsLost first, then
   each of the body's validation errors; but a body that can't be deserialised
   (InvalidInput) has that error alone. — v1/vendor.py, v1/test_{zone,dhw}_put.py
-- Not settled: the v2 429's message (not safely triggerable); the cred POSTs (flag off);
-  whether v2 PUTs' tasks succeed (needs the gateway online).
+- 429s (probed 2026-11-13, with the maintainer's permission & real credentials): only the
+  authentication POSTs are rate-limited. GETs with a valid token/session were not (v2
+  userAccount: 5,000 at ~70/s; v1 accountInfo: 600 at ~35/s; all 200). v2 token POST: a
+  429 at the 1st attempt (already limited after the day's tests), content type
+  `application/json;charset=UTF-8`, body `{"error":"attempt_limit_exceeded"}`. v1
+  session POST: 4 × 200, then a 429 at the 5th (within 1s), body `[TooManyRequests
+  'Request count limitation exceeded, please try again later.']`. **Neither had a
+  Retry-After header.** Recorded in v{1,2}/test_auth.py (and v2/test_get.py's GET 429
+  is now marked hypothetical). The old tests/tests::test_bad5 (a GET 429 with a
+  Retry-After) is likewise hypothetical.
+- Not settled: the cred POSTs' 200s (flag off); whether v2 PUTs' tasks succeed (needs
+  the gateway online).
 
 ## Debt found
 

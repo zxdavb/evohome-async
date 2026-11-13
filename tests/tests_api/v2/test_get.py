@@ -23,7 +23,8 @@ As for any URL (see vendor.py):
   the token: the client uses that to tell one 401 from the other
 - an unknown path is a 404 (HTML); a known path without its required query key is a
   404 (JSON, but without a code)
-- too many requests are a 429; the vendor's own failure is a 500
+- the vendor's own failure is a 500; GETs are not rate-limited (only the token POST
+  is: see test_auth.py)
 """
 
 from __future__ import annotations
@@ -322,9 +323,12 @@ async def test_get_rate_limited(
     ec2: EvohomeClientV2,
     mock: AioResponses,
 ) -> None:
-    """Too many requests are a 429 (TooManyRequests), maybe with a Retry-After.
+    """Were a GET a 429, the client would raise an ApiRateLimitExceededError.
 
-    The vendor's message has not been recorded (only its code).
+    This response is hypothetical: only the authentication POSTs have been seen to be
+    rate-limited (a GET of userAccount was not, at about 70 a second for 5,000 requests,
+    probed 2026-11-13). Its body is as for the v1 API's 429 (and the Retry-After, which
+    no 429 has had, shows that the client would use one).
     """
 
     too_many: list[TccFailureResponseT] = [

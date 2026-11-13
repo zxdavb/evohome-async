@@ -7,11 +7,14 @@ this application), username and password. It is answered 200 with a session id (
 GUID), and the user's account:
   {"sessionId": "BE5F40A6-...", "userInfo": {"userID": 2263181, ...}}
 
-The session id is then sent as the sessionId header of every other request. Its
+The session id is then sent as the sessionId header of every other request. Only the
+POST is rate-limited: GETs (e.g. of accountInfo) were not, at about 35 a second for 600
+requests (probed 2026-11-13). Its
 lifetime is not documented, but has been seen to be 15 minutes (the client assumes so).
 
-A failed POST is a 401 for bad credentials, and a 429 for too many attempts, each with
-a list of errors (unlike the v2 API's OAuth2 error), e.g.:
+A failed POST is a 401 for bad credentials, and a 429 for too many attempts (e.g. a 5th
+within a second; without a Retry-After header), each with a list of errors (unlike the
+v2 API's OAuth2 error), e.g.:
   [{"code": "EmailOrPasswordIncorrect",
     "message": "The email or password provided is incorrect."}]
   [{"code": "TooManyRequests",
@@ -131,7 +134,11 @@ async def test_session_rate_limited(
     credentials_manager: TokenCacheManager,
     mock: AioResponses,
 ) -> None:
-    """Too many attempts are a 429 (TooManyRequests)."""
+    """Too many attempts are a 429 (TooManyRequests), without a Retry-After.
+
+    As probed (2026-11-13, with the user's real credentials): 4 sessions were given, and
+    the 5th POST (all within a second) was a 429, without a Retry-After header.
+    """
 
     credentials_manager.clear_session_id()
 
@@ -149,6 +156,7 @@ async def test_session_rate_limited(
     assert err.value.status == HTTPStatus.TOO_MANY_REQUESTS
     assert err.value.reason is ApiCallErrorReason.RATE_LIMITED
     assert err.value.details == {"code": TccFailureCode.TOO_MANY_REQUESTS}
+    assert err.value.retry_after is None
 
 
 async def test_session_id(
