@@ -10,6 +10,9 @@ including that of its gateways, TCSs, zones and DHW). Without
 includeTemperatureControlSystems=True, the vendor omits the TCSs (so the client's
 schemas would reject the response).
 
+A location may have no gateways (e.g. one newly created), so no TCS: its parsing is
+tested in tests/tests (test_client_setup.py, test_v2_location_tcs_none).
+
 The status reports a TCS's until as timeUntil, but a zone's (or a DHW's) as until. Its
 datetimes are UTC (with a Z), except a fault's since, which is TZ-naive (the client
 takes it as the location's local time), and may be fractional.

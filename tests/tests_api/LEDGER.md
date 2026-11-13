@@ -5,11 +5,11 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 3, U11: `v2/test_schedule.py`: GET/PUT .../schedule, zone & DHW. L0 + L2
-`get_schedule()` (camelCase → snake_case; dayOfWeek a name) / `set_schedule()` (exact
-PUT body); errors: 400 DayOfWeekMissing, ParameterIsMissing (`request`; B1), 400
-ScheduleNotFound (a ghost zone / a TCS's id → InvalidGetScheduleError?), DHWNotFound,
-401. Then v2 is done: check every v2 inventory row & V2 fact has a ✓ (or LIVE).
+v2 is done (bar its LIVE homes, for U19). Phase 3, U12: `v1/test_auth.py`: the session
+POST (form `applicationId/username/password`; 200 `{sessionId, userInfo}`; 401
+EmailOrPasswordIncorrect; 429 TooManyRequests) and the `sessionId` header (bad → 401
+'Unauthorized'). See tests/tests/test_v1_urls_cred.py for how it mocks the POST, and
+src/evohomeasync/auth.py. Add the session payload to v1/vendor.py.
 
 Notes: a test with > 5 params makes them keyword-only (`*,`), for PLR0917. Payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
 (20000xx). `mock` is autouse; client fixtures clear `mock.requests` after setup; each
@@ -30,8 +30,8 @@ fact home with ✓.
 | 3 | U7 `v2/test_comm_task.py` | done c217c1d |
 | 3 | U8 `v2/test_tcs_put.py` | done 125e0ca |
 | 3 | U9 `v2/test_zone_put.py` | done ab35949 |
-| 3 | U10 `v2/test_dhw_put.py` | done (this commit) |
-| 3 | U11 `v2/test_schedule.py` | todo |
+| 3 | U10 `v2/test_dhw_put.py` | done 97fa5c7 |
+| 3 | U11 `v2/test_schedule.py` | done (this commit) |
 | 3 | U12 `v1/test_auth.py` (session POST; sessionId header) | todo |
 | 3 | U13 `v1/test_get.py` (accountInfo, locations?userId) | todo |
 | 3 | U14 `v1/test_get_device.py` (every other GET URL: locations?locationId, gateways, devices, device, thermostat, changeableValues) | todo |
@@ -123,9 +123,9 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
-| test_tcs_urls | L0 | GET userAccount, usr locations, loc status (+ unused: loc/gwy/tcs config & status, without-TCSs variants; nested == standalone); PUT tcs mode Away/temp + Auto; Away with `untilTime` → 400 SystemModeChangeTimeUntilNotSet | — | — | merge → v2/test_get, v2/test_get_entity (unused GETs, Q6), v2/test_tcs_put; live |
-| test_zon_urls | L0 | PUT heatSetpoint Temp/Perm(PascalCase key)/Follow; `untilTime` → 400 HeatSetpointChangeTimeUntilNotSet; GET+PUT zone schedule | — | — | merge → v2/test_zone_put, v2/test_schedule |
-| test_dhw_urls | L0 | PUT dhw state Temp/Perm/Follow; `timeUntil` → 400 DHWUntilTimeNotSet; GET+PUT dhw schedule | — | — | merge → v2/test_dhw_put, v2/test_schedule |
+| test_tcs_urls | L0 | GET userAccount, usr locations, loc status (+ unused: loc/gwy/tcs config & status, without-TCSs variants; nested == standalone); PUT tcs mode Away/temp + Auto; Away with `untilTime` → 400 SystemModeChangeTimeUntilNotSet | — | — | ✓ merge → v2/test_get, v2/test_get_entity (unused GETs, Q6), v2/test_tcs_put; live |
+| test_zon_urls | L0 | PUT heatSetpoint Temp/Perm(PascalCase key)/Follow; `untilTime` → 400 HeatSetpointChangeTimeUntilNotSet; GET+PUT zone schedule | — | — | ✓ merge → v2/test_zone_put, v2/test_schedule |
+| test_dhw_urls | L0 | PUT dhw state Temp/Perm/Follow; `timeUntil` → 400 DHWUntilTimeNotSet; GET+PUT dhw schedule | — | — | ✓ merge → v2/test_dhw_put, v2/test_schedule |
 
 ### test_v2_urls_auth.py
 
@@ -137,7 +137,7 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 | test_tcs_status | L0 | GET mode → 405; `{}` → 400 ParameterIsMissing ×2 (SystemMode, Permanent); xxxxx → 400 InvalidInput; Cool (not allowed) → **500**; Auto/Away ok; foreign id → 401; `/systemMode` → 404 HTML | skips | — | ✓ port → v2/test_tcs_put (400/401/500 mapping); 405/404 → live |
 | test_zone_status | L0 | GET heatSetpoint → **404 HTML**; Perm w/o value → 400 …TargetTemperatureNotSet; Perm + `timeUntil: null` ok; 99 ok; Temp w/o until → …TimeUntilNotSet; xxxxx → InvalidInput; Follow + 0.0 ok | skips | — | ✓ port → v2/test_zone_put; GET 404 → live |
 | test_dhw_status | L0 | PUT status → 405; GET state → 405; `{}` → ParameterIsMissing (Mode); bad mode/state → InvalidInput; Perm w/o state → DHWStateNotSet; Temp w/o until → DHWUntilTimeNotSet; Pascal keys ok; foreign id → 401; `/mode` → 404 HTML | skips (no DHW) | — | ✓ port → v2/test_dhw_put; 405/404 → live |
-| test_ids_not_the_users | L0 | foreign id → 401 Unauthorized, every URL, GET & PUT; user's id of wrong type → 400 DHWNotFound / TemperatureZoneNotFound / ScheduleNotFound | skips | — | port → v2/test_get, v2/test_schedule, v2/test_*_put (401); live (GETs only) |
+| test_ids_not_the_users | L0 | foreign id → 401 Unauthorized, every URL, GET & PUT; user's id of wrong type → 400 DHWNotFound / TemperatureZoneNotFound / ScheduleNotFound | skips | — | ✓ port → v2/test_get, v2/test_schedule, v2/test_*_put (401); live (GETs only) |
 | test_url_case_insensitive | L0 | path/base/query keys case-insensitive; controls | real-only | — | port → live |
 | test_case_insensitive | L0 | PUT keys & enum values case-insensitive, not snake_case | real-only | — | port → live (all are rejected PUTs: harmless) |
 
@@ -145,7 +145,7 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
-| _test_bad0 (disabled) | L0 | POST to the host's IP → cert error | — | — | drop: disabled; a TLS fact, not of the API (one line in v2/vendor.py docstring) |
+| _test_bad0 (disabled) | L0 | POST to the host's IP → cert error | — | — | ✓ drop: disabled; a TLS fact, not of the API (one line in v2/vendor.py docstring) |
 | test_bad1 | L0 | password grant, bad user → 400 invalid_grant | — | tests/test_v2_urls_cred::test_bad1 | ✓ port → v2/test_auth (Q7); live (cred flag) |
 | test_bad2 | L0 | bad bearer → 401 `[Unauthorized 'Unauthorized.']` | — | …::test_bad2 | ✓ port → v2/test_auth; live |
 | test_bad3 | L0 | refresh grant, bad → 400 (sent as GET: D7) | — | …::test_bad3 | ✓ port (fixed: a POST, D7) → v2/test_auth; live (cred flag) |
@@ -156,33 +156,33 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
 | test_update_v1 | L2 | NotFetchedError before `get_status()` | — | tests/test_client_setup::test_v1_setup | drop: duplicate; wire → v1/test_get |
-| test_update_v2 | L2 | same, via `setup()` | — | …::test_v2_setup | drop: duplicate; wire → v2/test_get |
+| test_update_v2 | L2 | same, via `setup()` | — | …::test_v2_setup | ✓ drop: duplicate; wire → v2/test_get |
 
 ### test_v2_urls_task.py
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
 | test_task_id_dhw | L0 | DHW PUT → 201 `{'id': '840367013'}`; Pascal keys ok; swapped values → 400 InvalidInput ×2 (enum & path in message); commTaskId ABC → 400; 12345678 → 404 | real-only | — | ✓ merge → v2/test_dhw_put (InvalidInput ×2), v2/test_comm_task |
-| _out_test_task_id_zone (disabled) | — | GETs a zone status, asserts nothing | — | — | drop: disabled, no assertion |
+| _out_test_task_id_zone (disabled) | — | GETs a zone status, asserts nothing | — | — | ✓ drop: disabled, no assertion |
 | test_comm_task_ids | L0 | 12345678 → 404 CommTaskNotFound; ABC → 400 InvalidInput; '' → 400 ParameterIsMissing; no query → 404 JSON; `0{id}` normalised | real-only | tests/test_v2_comm_task (above the wire) | ✓ port → v2/test_comm_task; normalisation → live |
 
 ### test_v2_urls_sked.py
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
-| test_schedule_put | L0 | PUT `null` → 400 ParameterIsMissing (`request`); `{}` → 400 DayOfWeekMissing; valid → 201 | runs (D8) | — | port → v2/test_schedule (400 mapping, 201); bad bodies → live |
-| test_schedule_tsk | L0 | PUT a changed schedule; GET shows it; restore | runs (tests the fake: D9) | — | drop: tests the fake; a real round trip needs a live gateway (offline), and changes state |
-| test_schedule_get_schema_zon | L0 | GET keys camelCase; dayOfWeek a name; types | runs (D9) | tests/test_schedules (snake side) | merge → v2/test_schedule (parse) + live (shape) |
-| test_schedule_get_schema_dhw | L0 | same for DHW | skips | — | merge → v2/test_schedule + live |
+| test_schedule_put | L0 | PUT `null` → 400 ParameterIsMissing (`request`); `{}` → 400 DayOfWeekMissing; valid → 201 | runs (D8) | — | ✓ port → v2/test_schedule (400 mapping, 201); bad bodies → live |
+| test_schedule_tsk | L0 | PUT a changed schedule; GET shows it; restore | runs (tests the fake: D9) | — | ✓ drop: tests the fake; a real round trip needs a live gateway (offline), and changes state |
+| test_schedule_get_schema_zon | L0 | GET keys camelCase; dayOfWeek a name; types | runs (D9) | tests/test_schedules (snake side) | ✓ merge → v2/test_schedule (parse) + live (shape) |
+| test_schedule_get_schema_dhw | L0 | same for DHW | skips | — | ✓ merge → v2/test_schedule + live |
 
 ### test_v2_urls_limits.py (all real-only; each PUT waits for its task, then GETs status)
 
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
-| test_tcs_until_outside_config[×5] | L0 | out-of-spec untils accepted; until reported to the minute | — | tests/test_v2_apis (client side) | drop: needs a live gateway (offline since 2026-11-04) and changes state; facts (probed 2026-11-04) → v2/test_tcs_put docstring |
-| test_zon_setpoint_outside_config[×6] | L0 | same for zone setpoints/untils | — | same | drop: as above; facts → v2/test_zone_put docstring |
+| test_tcs_until_outside_config[×5] | L0 | out-of-spec untils accepted; until reported to the minute | — | tests/test_v2_apis (client side) | ✓ drop: needs a live gateway (offline since 2026-11-04) and changes state; facts (probed 2026-11-04) → v2/test_tcs_put docstring |
+| test_zon_setpoint_outside_config[×6] | L0 | same for zone setpoints/untils | — | same | ✓ drop: as above; facts → v2/test_zone_put docstring |
 | test_zon_setpoint_rejected | L0 | Temp w/o until → 400; Advance* → 400 InvalidInput; int 4 → 500 | — | — | ✓ merge → v2/test_zone_put (400 & 500 mapping) + live (all rejected: harmless) |
-| test_zon_vacation_hold_task_fails | L0 | VacationHold on a zone lacking it → 201, task fails | — | tests/test_v2_apis_edges | merge → v2/test_comm_task (Failed → CommTaskFailedError); fact → v2/test_zone_put docstring |
+| test_zon_vacation_hold_task_fails | L0 | VacationHold on a zone lacking it → 201, task fails | — | tests/test_v2_apis_edges | ✓ merge → v2/test_comm_task (Failed → CommTaskFailedError); fact → v2/test_zone_put docstring |
 | test_dhw_until_outside_config[×3] | L0 | DHW untils accepted; status `until`; w/o untilTime → 400 | — | — | ✓ merge → v2/test_dhw_put (400); rest drop as above, facts → docstring |
 
 ### test_v2_apis.py
@@ -191,9 +191,9 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 | ---- | - | ------- | ---- | ------- | ------- |
 | test_usr_apis | L2 | `setup()` + `get_status()`; SCH_* truthiness (D11) | runs | tests/test_client_setup, test_v2_installs (above wire) | ✓ merge → v2/test_get (L2, with the exact GETs) |
 | test_tcs | L2 | set_mode Away / Eco +1h / Away 1-day period / restore | skips | tests/test_v2_apis (above wire) | ✓ port → v2/test_tcs_put (L2: the wire form of a duration & a period) |
-| test_dhw_apis | L2 | dhw get_schedule/set_schedule | skips | — | port → v2/test_schedule |
+| test_dhw_apis | L2 | dhw get_schedule/set_schedule | skips | — | ✓ port → v2/test_schedule |
 | test_dhw_mode | L2 | set_off, set_mode Temp+duration, reset | skips | tests/test_v2_apis | ✓ port → v2/test_dhw_put |
-| test_zon_apis | L2 | zone get/set_schedule; ghost zone → InvalidGetScheduleError | runs (ghost branch dead: D10) | tests/test_v2_exceptions::test_ghost_zone (above wire) | port → v2/test_schedule (incl. the ghost zone's 400 ScheduleNotFound) |
+| test_zon_apis | L2 | zone get/set_schedule; ghost zone → InvalidGetScheduleError | runs (ghost branch dead: D10) | tests/test_v2_exceptions::test_ghost_zone (above wire) | ✓ port → v2/test_schedule (incl. the ghost zone's 400 ScheduleNotFound) |
 | test_zon_mode | L2 | set_temperature(min), set_mode Temp+duration, reset | skips | tests/test_v2_apis | ✓ port → v2/test_zone_put |
 
 ### test_vx_until.py (real-only; uses BOTH v1 and v2: D14)
@@ -254,31 +254,31 @@ homes are planned until their unit is done.
 
 | # | Fact | Source | Where |
 | - | ---- | ------ | ----- |
-| V2-1 | Base `https://tccna.resideo.com/WebAPI/emea/api/v1`; token at `/Auth/OAuth/Token` (off the base); its cert is for the hostname only | v2_urls, v2_urls_cred | D v2/vendor.py |
+| V2-1 | Base `https://tccna.resideo.com/WebAPI/emea/api/v1`; token at `/Auth/OAuth/Token` (off the base); its cert is for the hostname only | v2_urls, v2_urls_cred | D v2/vendor.py ✓ |
 | V2-2 | Every entity has `installationInfo` & `status`; a TCS's include its zones/DHW; a loc's/gwy's include TCSs iff `includeTemperatureControlSystems=True` | v2_urls | T v2/test_get_entity ✓, D v2/vendor.py ✓; LIVE |
 | V2-3 | An entity's installationInfo/status == the object nested in its parent's | v2_urls | T v2/test_get_entity ✓ (payloads derived by nesting), D ✓; LIVE |
 | V2-4 | GET → 200; PUT → 201 + comm task `{"id": "1668279943"}` (a str) | v2_urls | T v2/test_comm_task ✓ |
 | V2-5 | A PUT is sometimes answered with the comm task of an earlier, equivalent PUT (rule unknown) | v2_urls, common | D v2/test_comm_task ✓ |
-| V2-6 | GET of a PUT-only URL → 405 JSON `{'message': "The requested resource does not support http method 'GET'."}`, except zone heatSetpoint → 404 HTML | v2_urls_auth | D v2/vendor.py; LIVE |
+| V2-6 | GET of a PUT-only URL → 405 JSON `{'message': "The requested resource does not support http method 'GET'."}`, except zone heatSetpoint → 404 HTML | v2_urls_auth | D v2/vendor.py ✓, v2/test_zone_put ✓; LIVE |
 | V2-7 | Unknown path → 404 HTML (`<!DOCTYPE html PUBLIC …`); no/unknown query key → 404 JSON `{'message': "No HTTP resource was found that matches the request URI '…'."}` | v2_urls_auth | T v2/test_get ✓; LIVE |
-| V2-8 | Responses camelCase; URL path (incl. base) & query keys, and request keys & enum values, case-insensitive (not snake_case: `permanent_override` → InvalidInput) | v2_urls, v2_urls_auth | D v2/vendor.py; LIVE |
+| V2-8 | Responses camelCase; URL path (incl. base) & query keys, and request keys & enum values, case-insensitive (not snake_case: `permanent_override` → InvalidInput) | v2_urls, v2_urls_auth | D v2/vendor.py ✓; LIVE |
 | V2-9 | TCS/zone TemporaryOverride needs `timeUntil`, DHW `untilTime` (the other key → 400 *TimeUntilNotSet / DHWUntilTimeNotSet) | v2_urls | T v2/test_tcs_put ✓, v2/test_zone_put ✓, v2/test_dhw_put ✓ |
 | V2-10 | A 400 body is a list of `{code, message}` (+ `parameterName`, PascalCase, e.g. SystemMode, Permanent, Mode) | v2_urls_auth, common | T v2/test_tcs_put ✓ (and B1) |
 | V2-11 | 400 codes: ParameterIsMissing, InvalidInput, SystemModeChangeTimeUntilNotSet, HeatSetpointChangeTimeUntilNotSet, HeatSetpointChangeTargetTemperatureNotSet ('Target temperature not specified when required'), DHWStateNotSet ('Domestic hot water state is not set when required'), DHWUntilTimeNotSet ('Domestic hot water until time is not set when required') | v2_urls_auth | T v2/test_tcs_put ✓, v2/test_zone_put ✓, v2/test_dhw_put ✓ |
 | V2-12 | An enum-valid systemMode the TCS lacks (e.g. Cool), or a setpointMode int ≥ 4 → 500 `{'message': 'An error has occurred.'}` | v2_urls_auth, v2_urls_limits | T v2/test_tcs_put ✓, v2/test_zone_put ✓; LIVE |
 | V2-13 | Any id not the user's (exists or not) → 401 `[{'code': 'Unauthorized', 'message': 'You are not allowed to perform this action.'}]`, any URL, GET or PUT | v2_urls_auth | T v2/test_get ✓ (GET), v2/test_*_put (PUT); LIVE |
-| V2-14 | The user's id of the wrong type → 400 DHWNotFound ('Domestic Hot Water {id} not found.') / TemperatureZoneNotFound ('Temperature Zone {id} not found.') / ScheduleNotFound ('Schedule not found.') | v2_urls_auth | T v2/test_get_entity ✓ (DHWNotFound, TemperatureZoneNotFound), v2/test_schedule (ScheduleNotFound); LIVE |
-| V2-15 | A non-numeric id → 400 | v2_urls_auth | D v2/vendor.py; LIVE |
+| V2-14 | The user's id of the wrong type → 400 DHWNotFound ('Domestic Hot Water {id} not found.') / TemperatureZoneNotFound ('Temperature Zone {id} not found.') / ScheduleNotFound ('Schedule not found.') | v2_urls_auth | T v2/test_get_entity ✓ (DHWNotFound, TemperatureZoneNotFound), v2/test_schedule ✓ (ScheduleNotFound); LIVE |
+| V2-15 | A non-numeric id → 400 | v2_urls_auth | D v2/vendor.py ✓; LIVE |
 | V2-16 | `{"setpointMode": "PermanentOverride", "heatSetpointValue": x, "timeUntil": null}` accepted; FollowSchedule with a value (0.0) accepted; value 99 accepted | v2_urls_auth | D v2/test_zone_put ✓ |
 | V2-17 | Without includeTemperatureControlSystems: gwy installationInfo keys == `[gatewayInfo]`; gwy status == `[activeFaults, gatewayId]` | v2_urls | T v2/test_get_entity ✓; LIVE |
-| V2-18 | A location may have no gateways (newly created) | v2_urls | T v2/test_get (if not in tests/tests), else D |
+| V2-18 | A location may have no gateways (newly created) | v2_urls | D v2/test_get ✓ (parsed by tests/tests/test_client_setup::test_v2_location_tcs_none) |
 | V2-19 | A gateway's fault, e.g. `GatewayCommunicationLost`, `since` "2025-02-23T22:34:25.04" (fractional, TZ-naive) | v2_urls | T v2/test_get ✓ (LOC_STATUS_OVERRIDDEN) |
 | V2-20 | Token POST (form): `grant_type=password, scope="EMEA-V1-Basic EMEA-V1-Anonymous", Username, Password`, Basic app-id header → 200 `{access_token, token_type: bearer, expires_in: 1799, refresh_token, scope?}`; bad → 400 `{"error": "invalid_grant"}`; rate limit → 429 `{"error": "attempt_limit_exceeded"}`; refresh grant likewise | v2_urls_cred | T v2/test_auth ✓; LIVE (cred flag) |
 | V2-21 | Bad/expired bearer → 401 `[{"code": "Unauthorized", "message": "Unauthorized."}]`: differs from a foreign-id 401 only by message | v2_urls_cred, memory | T v2/test_auth ✓, D v2/vendor.py ✓; LIVE |
 | V2-22 | commTasks `?commTaskId={id}` → 200 `{'commtaskId': '840367013', 'state': 'Created'}` (or Running / Succeeded / Failed); unknown numeric → 404 CommTaskNotFound 'Communication task not found.'; non-numeric → 400 InvalidInput 'Invalid Input.'; empty → 400 ParameterIsMissing; no query → 404 JSON; `0{id}` normalised; any user's task readable (no 401) | v2_urls_task, memory | T v2/test_comm_task ✓ (ParameterIsMissing's message assumed); LIVE |
 | V2-23 | InvalidInput message names the .NET enum & JSON path (one error per bad field), e.g. `Error converting value 'Off' to type 'DomesticHotWater.Enums.EMEADomesticHotWaterSetpointMode'. Path 'mode', line 1, position 44.` | v2_urls_task | T v2/test_dhw_put ✓ |
-| V2-24 | Schedule PUT: `null` → 400 ParameterIsMissing (`parameterName: request`); `{}` → 400 DayOfWeekMissing 'One or more days missing.'; valid → 201 | v2_urls_sked | T v2/test_schedule; LIVE |
-| V2-25 | Schedule GET camelCase; `dayOfWeek` a name ("Monday"), not an ordinal; `heatSetpoint` float; `dhwState` On/Off; `timeOfDay` "HH:MM:SS" | v2_urls_sked | T v2/test_schedule; LIVE |
+| V2-24 | Schedule PUT: `null` → 400 ParameterIsMissing (`parameterName: request`); `{}` → 400 DayOfWeekMissing 'One or more days missing.'; valid → 201 | v2_urls_sked | T v2/test_schedule ✓; LIVE |
+| V2-25 | Schedule GET camelCase; `dayOfWeek` a name ("Monday"), not an ordinal; `heatSetpoint` float; `dhwState` On/Off; `timeOfDay` "HH:MM:SS" | v2_urls_sked | T v2/test_schedule ✓; LIVE |
 | V2-26 | An until beyond maxDuration / off timingResolution / ≤ now, or (TCS) not of the mode's timingMode, is accepted; status reports it truncated to the minute | v2_urls_limits | D v2/test_tcs_put ✓, v2/test_zone_put ✓, v2/test_dhw_put ✓ (probed 2026-11-04) |
 | V2-27 | A heatSetpointValue outside min/max or off valueResolution is accepted and reported as sent | v2_urls_limits | D v2/test_zone_put ✓ |
 | V2-28 | Zone setpointMode enum is 0-3 only (ints accepted); no Advance* mode (→ 400 InvalidInput) | v2_urls_limits, memory | T v2/test_zone_put ✓ (InvalidInput, 500), D ✓; LIVE |
