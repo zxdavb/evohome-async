@@ -5,14 +5,14 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 3, U4: `v2/test_auth.py`: the token POST (password & refresh grants: exact form
-body & headers; 200, 400 invalid_grant, 429 attempt_limit_exceeded), and a bad bearer
-(401 'Unauthorized.'). See tests/tests/test_v2_urls_cred.py for how it mocks the POST.
+Phase 3, U5: `v2/test_get.py`: GET userAccount, installationInfo?userId, location
+status, at L0 (`Auth.get`) and L2 (`setup()`, `Location.get_status()`: what they parse);
+errors: 401 foreign id (V2-13), 404 HTML (V2-7), 404 JSON, 429 (TooManyRequests), 500.
 
-Notes for later units: recorded payloads use the Tcc* StrEnums for enum values (mypy
-needs them; same on the wire), and (v1) the id NewTypes; ids are redacted (20000xx).
-`mock` is autouse; the client fixtures clear `mock.requests` after setup. v1's second
-zone (ZON_ID_2) is lost (isAlive: False), for DeviceIsLost.
+Notes: payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
+(20000xx). `mock` is autouse; client fixtures clear `mock.requests` after setup; each
+test has its own token cache (tests_api/conftest.py::cache_path). Mark a done verdict /
+fact home with ✓.
 
 ## Status
 
@@ -21,8 +21,8 @@ zone (ZON_ID_2) is lost (isAlive: False), for DeviceIsLost.
 | 1 | Audit: inventory, vendor facts, debt, plan | done 2055cf0 (approved 2026-11-13, see Decisions) |
 | 2 | U1 `aioresponses.py`: non-JSON responses (e.g. a 404's HTML), additive, own commit | done f06d05d |
 | 2 | U2 `tests_api/conftest.py` (`mock`), `v2/conftest.py` (`ec2`, entities), `v2/vendor.py` | done 8bd33f0 |
-| 2 | U3 `v1/conftest.py` (`ec1`, entities), `v1/vendor.py` | done (this commit) |
-| 3 | U4 `v2/test_auth.py` (token POST: password & refresh grants; bearer) | todo |
+| 2 | U3 `v1/conftest.py` (`ec1`, entities), `v1/vendor.py` | done 2bde958 |
+| 3 | U4 `v2/test_auth.py` (token POST: password & refresh grants; bearer) | done (this commit) |
 | 3 | U5 `v2/test_get.py` (userAccount, installationInfo, location status) | todo |
 | 3 | U6 `v2/test_get_entity.py` (every other GET URL: loc config, gwy/TCS/zone/DHW config & status) | todo |
 | 3 | U7 `v2/test_comm_task.py` | todo |
@@ -144,10 +144,10 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
 | _test_bad0 (disabled) | L0 | POST to the host's IP → cert error | — | — | drop: disabled; a TLS fact, not of the API (one line in v2/vendor.py docstring) |
-| test_bad1 | L0 | password grant, bad user → 400 invalid_grant | — | tests/test_v2_urls_cred::test_bad1 | port → v2/test_auth (Q7); live (cred flag) |
-| test_bad2 | L0 | bad bearer → 401 `[Unauthorized 'Unauthorized.']` | — | …::test_bad2 | port → v2/test_auth; live |
-| test_bad3 | L0 | refresh grant, bad → 400 (sent as GET: D7) | — | …::test_bad3 | port (fixed: a POST, D7) → v2/test_auth; live (cred flag) |
-| test_good | L0 | password grant → 200; bearer ok; refresh → 200 | — | …::test_good | port → v2/test_auth; live (cred flag) |
+| test_bad1 | L0 | password grant, bad user → 400 invalid_grant | — | tests/test_v2_urls_cred::test_bad1 | ✓ port → v2/test_auth (Q7); live (cred flag) |
+| test_bad2 | L0 | bad bearer → 401 `[Unauthorized 'Unauthorized.']` | — | …::test_bad2 | ✓ port → v2/test_auth; live |
+| test_bad3 | L0 | refresh grant, bad → 400 (sent as GET: D7) | — | …::test_bad3 | ✓ port (fixed: a POST, D7) → v2/test_auth; live (cred flag) |
+| test_good | L0 | password grant → 200; bearer ok; refresh → 200 | — | …::test_good | ✓ port → v2/test_auth; live (cred flag) |
 
 ### test_setup.py (all real-only)
 
@@ -271,8 +271,8 @@ homes are planned until their unit is done.
 | V2-17 | Without includeTemperatureControlSystems: gwy installationInfo keys == `[gatewayInfo]`; gwy status == `[activeFaults, gatewayId]` | v2_urls | LIVE |
 | V2-18 | A location may have no gateways (newly created) | v2_urls | T v2/test_get (if not in tests/tests), else D |
 | V2-19 | A gateway's fault, e.g. `GatewayCommunicationLost`, `since` "2025-02-23T22:34:25.04" (fractional, TZ-naive) | v2_urls | D/payload v2/vendor.py |
-| V2-20 | Token POST (form): `grant_type=password, scope="EMEA-V1-Basic EMEA-V1-Anonymous", Username, Password`, Basic app-id header → 200 `{access_token, token_type: bearer, expires_in: 1799, refresh_token, scope?}`; bad → 400 `{"error": "invalid_grant"}`; rate limit → 429 `{"error": "attempt_limit_exceeded"}`; refresh grant likewise | v2_urls_cred | D v2/vendor.py (tested by tests/test_v2_urls_cred); LIVE (cred flag) |
-| V2-21 | Bad/expired bearer → 401 `[{"code": "Unauthorized", "message": "Unauthorized."}]`: differs from a foreign-id 401 only by message | v2_urls_cred, memory | D v2/vendor.py; LIVE |
+| V2-20 | Token POST (form): `grant_type=password, scope="EMEA-V1-Basic EMEA-V1-Anonymous", Username, Password`, Basic app-id header → 200 `{access_token, token_type: bearer, expires_in: 1799, refresh_token, scope?}`; bad → 400 `{"error": "invalid_grant"}`; rate limit → 429 `{"error": "attempt_limit_exceeded"}`; refresh grant likewise | v2_urls_cred | T v2/test_auth ✓; LIVE (cred flag) |
+| V2-21 | Bad/expired bearer → 401 `[{"code": "Unauthorized", "message": "Unauthorized."}]`: differs from a foreign-id 401 only by message | v2_urls_cred, memory | T v2/test_auth ✓, D v2/vendor.py ✓; LIVE |
 | V2-22 | commTasks `?commTaskId={id}` → 200 `{'commtaskId': '840367013', 'state': 'Created'}` (or Running / Succeeded / Failed); unknown numeric → 404 CommTaskNotFound 'Communication task not found.'; non-numeric → 400 InvalidInput 'Invalid Input.'; empty → 400 ParameterIsMissing; no query → 404 JSON; `0{id}` normalised; any user's task readable (no 401) | v2_urls_task, memory | T v2/test_comm_task; LIVE |
 | V2-23 | InvalidInput message names the .NET enum & JSON path (one error per bad field), e.g. `Error converting value 'Off' to type 'DomesticHotWater.Enums.EMEADomesticHotWaterSetpointMode'. Path 'mode', line 1, position 44.` | v2_urls_task | T v2/test_dhw_put |
 | V2-24 | Schedule PUT: `null` → 400 ParameterIsMissing (`parameterName: request`); `{}` → 400 DayOfWeekMissing 'One or more days missing.'; valid → 201 | v2_urls_sked | T v2/test_schedule; LIVE |
@@ -355,8 +355,9 @@ Ruled by the maintainer, 2026-11-13 (answers to the Phase 1 questions):
 - Q5: the live suite replays **all** PUTs (it ends by resetting the system to Auto /
   FollowSchedule). With `_DBG_WAIT_FOR_COMM_TASKS`, it polls each PUT's comm task and
   checks its outcome, especially of those expected to fail (their failure code/message).
-- Q6: test **every known URL** (mocked, at L0, via `Auth.get()`/`put()` with its
-  `TCC_*` validator), and every URL wrapped in a method also at that method (e.g.
+- Q6: test **every known URL** (mocked, at L0, via `Auth.get()`/`put()`; NB:
+  `Auth.get()` snake_cases the response before validating it, so its schema is the
+  client's `SCH_*`/`factory_*(Case.PYTHONIC)`, not the vendor's `TCC_*`), and every URL wrapped in a method also at that method (e.g.
   `Location._get_config()`, `Zone/HotWater._get_status()`).
 - Q7: add mocked auth tests (`v1/test_auth.py`: session; `v2/test_auth.py`: token), and
   live ones gated by `_DBG_TEST_CRED_URLS` (to avoid an account lockout).

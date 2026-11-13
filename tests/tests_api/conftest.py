@@ -10,6 +10,7 @@ client, and then clear its record of requests: so a test sees only its own reque
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 import aiohttp
@@ -19,15 +20,34 @@ from tests.tests.aioresponses import AioResponses
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Generator
+    from pathlib import Path
+
+    from evohome_cli.auth import CacheDataT
 
 
 @pytest.fixture(scope="session")
 def use_real_aiohttp() -> bool:
     """Return False: these tests never reach the vendor (see `mock`).
 
-    So the token cache is a temporary one (see cache_path in tests/conftest.py).
+    So the token cache is a temporary one (see cache_path).
     """
     return False
+
+
+@pytest.fixture
+def cache_path(
+    cache_data_valid: CacheDataT,
+    tmp_path: Path,
+) -> Path:
+    """Return the path to a token cache of the test's own (with unexpired tokens).
+
+    It is not shared, as the client saves its tokens to it (e.g. after a test of
+    authentication has cleared them), so no test depends on another.
+    """
+
+    cache_path = tmp_path / ".evo-cache.tst"
+    cache_path.write_text(json.dumps(cache_data_valid))
+    return cache_path
 
 
 @pytest.fixture
