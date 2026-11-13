@@ -5,11 +5,11 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 3, U8: `v2/test_tcs_put.py`: PUT .../mode. L1 `tcs._put_mode()` bodies
-(permanent; temporary with timeUntil); L2 `set_mode()`/`set_*()`/`reset()` wire form
-(a duration & a period → timeUntil); errors: 400 ParameterIsMissing (parameterName:
-B1, schema lacks it), InvalidInput, SystemModeChangeTimeUntilNotSet; 401 foreign id;
-500 for an enum-valid mode the TCS lacks. Docstring: V2-26, V2-31 (TCS parts).
+Phase 3, U9: `v2/test_zone_put.py`: PUT .../heatSetpoint. L1 `zone._put_mode()` bodies
+(Follow; Perm + value; Temp + value + timeUntil); L2 `set_mode()`/`set_temperature()`/
+`reset()` (a duration → timeUntil); errors: 400 HeatSetpointChangeTargetTemperatureNotSet,
+HeatSetpointChangeTimeUntilNotSet, InvalidInput; 401; 500 (int setpointMode 4: via
+`Auth.put`). Docstring: V2-16, V2-26..V2-28, V2-31 (zone parts), VX-1 (v2 half).
 
 Notes: a test with > 5 params makes them keyword-only (`*,`), for PLR0917. Payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
 (20000xx). `mock` is autouse; client fixtures clear `mock.requests` after setup; each
@@ -27,8 +27,8 @@ fact home with ✓.
 | 3 | U4 `v2/test_auth.py` (token POST: password & refresh grants; bearer) | done d9344aa |
 | 3 | U5 `v2/test_get.py` (userAccount, installationInfo, location status) | done ff2d9ff |
 | 3 | U6 `v2/test_get_entity.py` (every other GET URL: loc config, gwy/TCS/zone/DHW config & status) | done 50b100c |
-| 3 | U7 `v2/test_comm_task.py` | done (this commit; also drops a `noqa: S105` from v2/test_auth.py) |
-| 3 | U8 `v2/test_tcs_put.py` | todo |
+| 3 | U7 `v2/test_comm_task.py` | done c217c1d |
+| 3 | U8 `v2/test_tcs_put.py` | done (this commit) |
 | 3 | U9 `v2/test_zone_put.py` | todo |
 | 3 | U10 `v2/test_dhw_put.py` | todo |
 | 3 | U11 `v2/test_schedule.py` | todo |
@@ -134,7 +134,7 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 | test_usr_account | L0 | GET ok; PUT → 405 JSON; `userXxxxxxx` → 404 HTML | runs | — | ✓ merge → v2/test_get (ok; 404 HTML); 405 → live |
 | test_usr_locations | L0 | ok; PUT → 405; no query → 404 JSON; userId=1230000 → 401; =xxxxxxx → 400; unknown key → 404 | runs | — | ✓ merge → v2/test_get (401); 405/400/404 → live |
 | test_loc_status | L0 | ok; PUT → 405; `location/{id}` → 404 HTML; 1230000 → 401; xxxxxxx → 400; `/{id}/xxxxxxx` → 404 HTML | runs | — | ✓ merge → v2/test_get; 405/400/404 → live |
-| test_tcs_status | L0 | GET mode → 405; `{}` → 400 ParameterIsMissing ×2 (SystemMode, Permanent); xxxxx → 400 InvalidInput; Cool (not allowed) → **500**; Auto/Away ok; foreign id → 401; `/systemMode` → 404 HTML | skips | — | port → v2/test_tcs_put (400/401/500 mapping); 405/404 → live |
+| test_tcs_status | L0 | GET mode → 405; `{}` → 400 ParameterIsMissing ×2 (SystemMode, Permanent); xxxxx → 400 InvalidInput; Cool (not allowed) → **500**; Auto/Away ok; foreign id → 401; `/systemMode` → 404 HTML | skips | — | ✓ port → v2/test_tcs_put (400/401/500 mapping); 405/404 → live |
 | test_zone_status | L0 | GET heatSetpoint → **404 HTML**; Perm w/o value → 400 …TargetTemperatureNotSet; Perm + `timeUntil: null` ok; 99 ok; Temp w/o until → …TimeUntilNotSet; xxxxx → InvalidInput; Follow + 0.0 ok | skips | — | port → v2/test_zone_put; GET 404 → live |
 | test_dhw_status | L0 | PUT status → 405; GET state → 405; `{}` → ParameterIsMissing (Mode); bad mode/state → InvalidInput; Perm w/o state → DHWStateNotSet; Temp w/o until → DHWUntilTimeNotSet; Pascal keys ok; foreign id → 401; `/mode` → 404 HTML | skips (no DHW) | — | port → v2/test_dhw_put; 405/404 → live |
 | test_ids_not_the_users | L0 | foreign id → 401 Unauthorized, every URL, GET & PUT; user's id of wrong type → 400 DHWNotFound / TemperatureZoneNotFound / ScheduleNotFound | skips | — | port → v2/test_get, v2/test_schedule, v2/test_*_put (401); live (GETs only) |
@@ -190,7 +190,7 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 | Test | L | Asserts | Fake | Overlap | Verdict |
 | ---- | - | ------- | ---- | ------- | ------- |
 | test_usr_apis | L2 | `setup()` + `get_status()`; SCH_* truthiness (D11) | runs | tests/test_client_setup, test_v2_installs (above wire) | ✓ merge → v2/test_get (L2, with the exact GETs) |
-| test_tcs | L2 | set_mode Away / Eco +1h / Away 1-day period / restore | skips | tests/test_v2_apis (above wire) | port → v2/test_tcs_put (L2: the wire form of a duration & a period) |
+| test_tcs | L2 | set_mode Away / Eco +1h / Away 1-day period / restore | skips | tests/test_v2_apis (above wire) | ✓ port → v2/test_tcs_put (L2: the wire form of a duration & a period) |
 | test_dhw_apis | L2 | dhw get_schedule/set_schedule | skips | — | port → v2/test_schedule |
 | test_dhw_mode | L2 | set_off, set_mode Temp+duration, reset | skips | tests/test_v2_apis | port → v2/test_dhw_put |
 | test_zon_apis | L2 | zone get/set_schedule; ghost zone → InvalidGetScheduleError | runs (ghost branch dead: D10) | tests/test_v2_exceptions::test_ghost_zone (above wire) | port → v2/test_schedule (incl. the ghost zone's 400 ScheduleNotFound) |
@@ -262,10 +262,10 @@ homes are planned until their unit is done.
 | V2-6 | GET of a PUT-only URL → 405 JSON `{'message': "The requested resource does not support http method 'GET'."}`, except zone heatSetpoint → 404 HTML | v2_urls_auth | D v2/vendor.py; LIVE |
 | V2-7 | Unknown path → 404 HTML (`<!DOCTYPE html PUBLIC …`); no/unknown query key → 404 JSON `{'message': "No HTTP resource was found that matches the request URI '…'."}` | v2_urls_auth | T v2/test_get ✓; LIVE |
 | V2-8 | Responses camelCase; URL path (incl. base) & query keys, and request keys & enum values, case-insensitive (not snake_case: `permanent_override` → InvalidInput) | v2_urls, v2_urls_auth | D v2/vendor.py; LIVE |
-| V2-9 | TCS/zone TemporaryOverride needs `timeUntil`, DHW `untilTime` (the other key → 400 *TimeUntilNotSet / DHWUntilTimeNotSet) | v2_urls | T v2/test_{tcs,zone,dhw}_put |
-| V2-10 | A 400 body is a list of `{code, message}` (+ `parameterName`, PascalCase, e.g. SystemMode, Permanent, Mode) | v2_urls_auth, common | T v2/test_tcs_put |
-| V2-11 | 400 codes: ParameterIsMissing, InvalidInput, SystemModeChangeTimeUntilNotSet, HeatSetpointChangeTimeUntilNotSet, HeatSetpointChangeTargetTemperatureNotSet ('Target temperature not specified when required'), DHWStateNotSet ('Domestic hot water state is not set when required'), DHWUntilTimeNotSet ('Domestic hot water until time is not set when required') | v2_urls_auth | T v2/test_{tcs,zone,dhw}_put |
-| V2-12 | An enum-valid systemMode the TCS lacks (e.g. Cool), or a setpointMode int ≥ 4 → 500 `{'message': 'An error has occurred.'}` | v2_urls_auth, v2_urls_limits | T v2/test_tcs_put, v2/test_zone_put; LIVE |
+| V2-9 | TCS/zone TemporaryOverride needs `timeUntil`, DHW `untilTime` (the other key → 400 *TimeUntilNotSet / DHWUntilTimeNotSet) | v2_urls | T v2/test_tcs_put ✓, v2/test_{zone,dhw}_put |
+| V2-10 | A 400 body is a list of `{code, message}` (+ `parameterName`, PascalCase, e.g. SystemMode, Permanent, Mode) | v2_urls_auth, common | T v2/test_tcs_put ✓ (and B1) |
+| V2-11 | 400 codes: ParameterIsMissing, InvalidInput, SystemModeChangeTimeUntilNotSet, HeatSetpointChangeTimeUntilNotSet, HeatSetpointChangeTargetTemperatureNotSet ('Target temperature not specified when required'), DHWStateNotSet ('Domestic hot water state is not set when required'), DHWUntilTimeNotSet ('Domestic hot water until time is not set when required') | v2_urls_auth | T v2/test_tcs_put ✓, v2/test_{zone,dhw}_put |
+| V2-12 | An enum-valid systemMode the TCS lacks (e.g. Cool), or a setpointMode int ≥ 4 → 500 `{'message': 'An error has occurred.'}` | v2_urls_auth, v2_urls_limits | T v2/test_tcs_put ✓, v2/test_zone_put; LIVE |
 | V2-13 | Any id not the user's (exists or not) → 401 `[{'code': 'Unauthorized', 'message': 'You are not allowed to perform this action.'}]`, any URL, GET or PUT | v2_urls_auth | T v2/test_get ✓ (GET), v2/test_*_put (PUT); LIVE |
 | V2-14 | The user's id of the wrong type → 400 DHWNotFound ('Domestic Hot Water {id} not found.') / TemperatureZoneNotFound ('Temperature Zone {id} not found.') / ScheduleNotFound ('Schedule not found.') | v2_urls_auth | T v2/test_get_entity ✓ (DHWNotFound, TemperatureZoneNotFound), v2/test_schedule (ScheduleNotFound); LIVE |
 | V2-15 | A non-numeric id → 400 | v2_urls_auth | D v2/vendor.py; LIVE |
@@ -279,12 +279,12 @@ homes are planned until their unit is done.
 | V2-23 | InvalidInput message names the .NET enum & JSON path (one error per bad field), e.g. `Error converting value 'Off' to type 'DomesticHotWater.Enums.EMEADomesticHotWaterSetpointMode'. Path 'mode', line 1, position 44.` | v2_urls_task | T v2/test_dhw_put |
 | V2-24 | Schedule PUT: `null` → 400 ParameterIsMissing (`parameterName: request`); `{}` → 400 DayOfWeekMissing 'One or more days missing.'; valid → 201 | v2_urls_sked | T v2/test_schedule; LIVE |
 | V2-25 | Schedule GET camelCase; `dayOfWeek` a name ("Monday"), not an ordinal; `heatSetpoint` float; `dhwState` On/Off; `timeOfDay` "HH:MM:SS" | v2_urls_sked | T v2/test_schedule; LIVE |
-| V2-26 | An until beyond maxDuration / off timingResolution / ≤ now, or (TCS) not of the mode's timingMode, is accepted; status reports it truncated to the minute | v2_urls_limits | D v2/test_{tcs,zone,dhw}_put (probed 2026-11-04) |
+| V2-26 | An until beyond maxDuration / off timingResolution / ≤ now, or (TCS) not of the mode's timingMode, is accepted; status reports it truncated to the minute | v2_urls_limits | D v2/test_tcs_put ✓, v2/test_{zone,dhw}_put (probed 2026-11-04) |
 | V2-27 | A heatSetpointValue outside min/max or off valueResolution is accepted and reported as sent | v2_urls_limits | D v2/test_zone_put |
 | V2-28 | Zone setpointMode enum is 0-3 only (ints accepted); no Advance* mode (→ 400 InvalidInput) | v2_urls_limits, memory | D v2/test_zone_put; LIVE |
 | V2-29 | VacationHold (or 3) on a zone lacking it → 201, but its comm task fails | v2_urls_limits | T v2/test_comm_task ✓; D v2/test_zone_put |
 | V2-30 | Status reports TCS `timeUntil`, zone `until`, DHW `until` (the DHW request says `untilTime`) | v2_urls_limits | T v2/test_get ✓ |
-| V2-31 | The controller (by hand, 2026-11-04): clamps setpoints to min/max but uses 0.1-resolution values; honours zone/DHW untils beyond max/off res; ends Eco at its until; ignores past untils; runs an Away ending before midnight until midnight; shows >99d as '99d' | v2_urls_limits | D v2/test_{tcs,zone}_put |
+| V2-31 | The controller (by hand, 2026-11-04): clamps setpoints to min/max but uses 0.1-resolution values; honours zone/DHW untils beyond max/off res; ends Eco at its until; ignores past untils; runs an Away ending before midnight until midnight; shows >99d as '99d' | v2_urls_limits | D v2/test_tcs_put ✓, v2/test_zone_put |
 | V1-1 | Base `https://tccna.resideo.com/WebAPI/api`; session at `/session`; its cert is for the hostname only | v1_urls, v1_urls_cred | D v1/vendor.py |
 | V1-2 | allData=True adds children: a location's devices, oneTouchButtons (+ weather, contractor if any); a gateway's devices; a device's thermostat, alertSettings | v1_urls | D v1/vendor.py; LIVE |
 | V1-3 | `locations?locationId=` returns a dict (not a list of one) | v1_urls | D v1/vendor.py; LIVE |
@@ -334,10 +334,17 @@ homes are planned until their unit is done.
 
 ## Bugs found
 
-None yet (B1 is to be recorded at U8: `TccFailureResponseT` and
-`factory_failure_response()` lack the vendor's optional `parameterName`, and the
-validator is PREVENT_EXTRA, so it rejects a real ParameterIsMissing body; it is not used
-at runtime by the library, so it is a documentation bug). Observations to check in Phase 3 (not bugs by the rules here: the library is
+- B1 (documentation; not severe): `TccFailureResponseT` and `factory_failure_response()`
+  (`src/evohomeasync2/schemas/account.py`) lack the vendor's optional `parameterName`,
+  and the validator is PREVENT_EXTRA, so `TCC_FAILURE_RESPONSE` rejects a real
+  ParameterIsMissing body, e.g. `[{"code": "ParameterIsMissing", "parameterName":
+  "SystemMode", "message": "Parameter is missing."}]` (seen for a TCS PUT of `{}`, and a
+  schedule PUT of `null`: `parameterName: request`). Not used at runtime by the
+  library. Repro: `TCC_FAILURE_RESPONSE(_PARAMETERS_ARE_MISSING)` raises. Test:
+  `v2/test_tcs_put.py::test_failure_response_schema` (xfail strict). The v1 schema may
+  need the same (check at U17). Fix: `parameterName: NotRequired[str]` + `vol.Optional`.
+
+Observations to check in Phase 3 (not bugs by the rules here: the library is
 based on the older client & vendor docs, not on the test system's quirks):
 
 - O1: v1 `HotWater.set_dhw_auto()` sends `{status: Scheduled, mode: null}`; the test system answers 400 (ParameterIsMissing / ForbiddenParameter).
