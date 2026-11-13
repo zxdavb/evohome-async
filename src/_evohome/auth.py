@@ -15,7 +15,13 @@ import probatio as vol
 from aiohttp import hdrs
 
 from . import exceptions as exc
-from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME, ContentType
+from .const import (
+    DEFAULT_RETRY_AFTER,
+    ERR_MSG_LOOKUP_BASE,
+    HINT_CHECK_NETWORK,
+    HOSTNAME,
+    ContentType,
+)
 from .exceptions import ApiCallErrorReason
 from .helpers import (
     convert_dtms_to_utc_str,
@@ -111,11 +117,15 @@ def _reason(status: int) -> ApiCallErrorReason:
     return ApiCallErrorReason.CALL_FAILED
 
 
-def _retry_after(rsp: aiohttp.ClientResponse | None) -> float | None:
-    """Return the period of a response's Retry-After header, in seconds (if any)."""
+def _retry_after(rsp: aiohttp.ClientResponse | None) -> float:
+    """Return how long to wait before trying again, in seconds (e.g. after a 429).
+
+    That is the period of the response's Retry-After header, else (if it has none, or
+    it is not valid) DEFAULT_RETRY_AFTER: the vendor's 429s have not had one.
+    """
 
     if rsp is None or (value := rsp.headers.get(hdrs.RETRY_AFTER)) is None:
-        return None
+        return DEFAULT_RETRY_AFTER
 
     if value.strip().isdecimal():  # is delay-seconds
         return float(value)
@@ -123,7 +133,7 @@ def _retry_after(rsp: aiohttp.ClientResponse | None) -> float | None:
     try:  # is HTTP-date
         dtm = parsedate_to_datetime(value)
     except ValueError:
-        return None
+        return DEFAULT_RETRY_AFTER
 
     if dtm.tzinfo is None:  # e.g. a zone of -0000
         dtm = dtm.replace(tzinfo=UTC)

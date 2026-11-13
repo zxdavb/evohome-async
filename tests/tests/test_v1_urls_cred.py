@@ -10,6 +10,7 @@ from unittest.mock import ANY, AsyncMock, patch
 
 import pytest
 
+from _evohome.const import DEFAULT_RETRY_AFTER
 from evohomeasync import EvohomeClient, exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
 from tests.const import (
@@ -150,6 +151,36 @@ async def test_bad2(  # bad session ID
         rsp.assert_called_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
     assert ec1._session_manager.is_session_valid() is False
+
+
+async def test_bad3_without_retry_after(  # rate limit exceeded (authentication)
+    credentials: tuple[str, str],
+    ec1: EvohomeClient,
+) -> None:
+    """Test a 429 without a Retry-After header (as the vendor's have been).
+
+    Its retry_after is the default (15 minutes), by when the vendor's limit has lifted.
+    """
+
+    ec1._session_manager.clear_session_id()
+
+    with aioresponses() as rsp:
+        rsp.post(
+            URL_CRED_V1,
+            status=HTTPStatus.TOO_MANY_REQUESTS,
+            payload=[
+                {
+                    "code": "TooManyRequests",
+                    "message": "Request count limitation exceeded, please try again "
+                    "later.",
+                }
+            ],
+        )
+
+        with pytest.raises(exc.AuthRateLimitExceededError) as err:
+            await ec1.get_status()
+
+    assert err.value.retry_after == DEFAULT_RETRY_AFTER
 
 
 async def test_bad3(  # rate limit exceeded (authentication)

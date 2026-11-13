@@ -14,6 +14,10 @@ _DBG_DONT_REDACT_SECRETS = False  # default is to redact sensitive JSON in debug
 
 HOSTNAME: Final = "tccna.resideo.com"
 
+# how long to wait after a 429 that has no (valid) Retry-After header (none has had one):
+# the vendor's limit on authentication (the only one seen) lifts within this (as probed)
+DEFAULT_RETRY_AFTER: Final = 15 * 60  # seconds
+
 # the messages of NotFetchedError
 _ERR_NO_CONFIG: Final = "{} not available until after EvohomeClient.setup() is called"
 _ERR_NO_STATUS: Final = (
