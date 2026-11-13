@@ -5,11 +5,14 @@ end (Phase 5), once its lasting content is in module docstrings.
 
 ## Next step
 
-Phase 3, U15: `v1/test_comm_task.py`: a PUT's 201 `{"id": 1234567890}` (an int:
-`CommTask.from_put`); GET commTasks (`CommTask.get_state()`): `{state, started,
-finished?, macId, gatewayId, deviceId, activityId}`; wait(); 404 CommTaskNotFound, 400
-InvalidInput (ABC: 'not valid for Int32'; '' too); no query → 404 JSON. Docstring:
-V1-12 (stale tasks, `started` < sent), V1-13. Read src/evohomeasync/comm_task.py first.
+Phase 3, U16: `v1/test_zone_put.py`: PUT .../heatSetpoint: L1 `zone._set_heat_setpoint()`
+bodies (Hold + value; Temporary + value + nextTime in LOCAL time, no Z; Scheduled); L2
+`set_temperature()` (± until), `set_zone_auto()`; the changeableValues form (Q6: via
+`Auth.put`); errors: 400 DeviceIsLost (lost zone), ParameterIsMissing ("'Value' is
+required."), InvalidInput, ThermostatModeNotAllowed. Docstring: V1-7, V1-15, V1-20,
+VX-1 (v1 half), VX-2. v1 tzinfo is a fixed offset (`_fixed_offset_tzinfo`): check how
+NextTime is made (`as_local_str`) and test a non-zero offset (patch `currentOffsetMinutes`
+via a payload variant, not freezegun).
 
 Notes: a test with > 5 params makes them keyword-only (`*,`), for PLR0917. Payloads use the Tcc* StrEnums (and, v1, the id NewTypes); ids redacted
 (20000xx). `mock` is autouse; client fixtures clear `mock.requests` after setup; each
@@ -34,8 +37,8 @@ fact home with ✓.
 | 3 | U11 `v2/test_schedule.py` | done 28f93fd |
 | 3 | U12 `v1/test_auth.py` (session POST; sessionId header) | done 6432d56 |
 | 3 | U13 `v1/test_get.py` (accountInfo, locations?userId) | done c92a88b |
-| 3 | U14 `v1/test_get_device.py` (every other GET URL: locations?locationId, gateways, devices, device, thermostat, changeableValues) | done (this commit) |
-| 3 | U15 `v1/test_comm_task.py` | todo |
+| 3 | U14 `v1/test_get_device.py` (every other GET URL: locations?locationId, gateways, devices, device, thermostat, changeableValues) | done a5dfe23 |
+| 3 | U15 `v1/test_comm_task.py` | done (this commit) |
 | 3 | U16 `v1/test_zone_put.py` (heatSetpoint & changeableValues forms) | todo |
 | 3 | U17 `v1/test_dhw_put.py` | todo |
 | 3 | U18 `v1/test_tcs_put.py` | todo |
@@ -212,7 +215,7 @@ new home; *drop*: reason. "live" = the request is replayed by `tests_live`.
 | test_tcs_urls | L0 | PUT evoTouchSystems → 404 | — | — | port → v1/test_tcs_put |
 | test_zon_urls | L0 | PUT heatSetpoint Scheduled; PUT changeableValues `{Mode, HeatSetpoint}` | — | — | merge → v1/test_zone_put (both forms, Q6) |
 | test_dhw_urls | L0 | PUT changeableValues `{Mode}` | — | — | merge → v1/test_dhw_put |
-| test_comm_task_ids | L0 | 404 CommTaskNotFound; ABC/'' → 400 InvalidInput; no query → 404 JSON | — | tests/test_v1_comm_task (above wire) | port → v1/test_comm_task |
+| test_comm_task_ids | L0 | 404 CommTaskNotFound; ABC/'' → 400 InvalidInput; no query → 404 JSON | — | tests/test_v1_comm_task (above wire) | ✓ port → v1/test_comm_task |
 
 ### test_v1_urls_auth.py (all real-only; the fake has no v1)
 
@@ -292,21 +295,21 @@ homes are planned until their unit is done.
 | V1-5 | ID key casing is inconsistent: userID, locationID, deviceID, gatewayID (of a gateway), but gatewayId (of a device), locationId (of a gateway); ids are ints; `outdootHumidityAvailable` (sic) | v1_urls | T v1/test_get ✓, D v1/vendor.py ✓ |
 | V1-6 | URL path/base/query keys and request keys/enum values case-insensitive | v1_urls_auth | D v1/vendor.py; LIVE |
 | V1-7 | Datetimes are the location's local time: NextTime returned without a Z; a Z sent is ignored | v1_urls, vx_until | T v1/test_zone_put |
-| V1-8 | GET → 200; PUT → 201 + `{"id": 1234567890}` (an int); a list of one allowed by the 2014 client (never seen) | v1_urls, common | T v1/test_comm_task |
+| V1-8 | GET → 200; PUT → 201 + `{"id": 1234567890}` (an int); a list of one allowed by the 2014 client (never seen) | v1_urls, common | T v1/test_comm_task ✓ |
 | V1-9 | GET of a PUT-only URL → 404 HTML (not 405), as is any unknown path; PUT of a GET URL (locations) → 404 | v1_urls, v1_urls_auth | T v1/test_tcs_put (404 HTML); LIVE |
 | V1-10 | Foreign userId → 401; non-numeric (`'123456'`) → 400 | v1_urls_auth | T v1/test_get ✓ (401: its body assumed), D v1/vendor.py ✓; LIVE |
 | V1-11 | PUT to a device not alive → 400 `[DeviceIsLost 'Device is lost.']`, whatever the body | v1_urls_auth | T v1/test_{zone,dhw}_put; LIVE |
-| V1-12 | A PUT is sometimes answered with an earlier, equivalent PUT's (succeeded) task and not applied (e.g. revert within minutes); bodies need not be identical; detectable by task `started` < sent | v1_urls, common, memory | D v1/test_comm_task |
-| V1-13 | A change appears via GET within ~1s of its task succeeding | v1_urls | D v1/test_comm_task |
+| V1-12 | A PUT is sometimes answered with an earlier, equivalent PUT's (succeeded) task and not applied (e.g. revert within minutes); bodies need not be identical; detectable by task `started` < sent | v1_urls, common, memory | D v1/test_comm_task ✓ |
+| V1-13 | A change appears via GET within ~1s of its task succeeding | v1_urls | D v1/test_comm_task ✓ |
 | V1-14 | `evoTouchSystems?locationId=` (TCS mode) removed: 404 HTML (IIS '404 - File or directory not found') for GET and PUT | v1_urls, v1_apis | T v1/test_tcs_put; LIVE |
 | V1-15 | Zone `.../heatSetpoint`: `{Value, Status: Hold/Temporary/Scheduled, NextTime}`, PUT-only; or via changeableValues `{Mode: Heat/Off, HeatSetpoint: {...}}` ("Allowed modes are Heat, Off." → ThermostatModeNotAllowed) | v1_urls | T v1/test_zone_put; D (changeableValues form) |
 | V1-16 | DHW changeableValues `{Mode: DHWOn/DHWOff}`; on the test system a non-null Status/NextTime → 400 ForbiddenParameter ("'Status' is forbidden."), `{}`/Mode null → ParameterIsMissing ("'ThermostatMode' is required."), "Off" → ThermostatModeNotAllowed, "Auto" → InvalidInput; nulls & unknown keys ignored; a mode-only PUT is not applied (test system) | v1_urls_auth, memory | T v1/test_dhw_put; D |
 | V1-17 | Hold w/o Value → 400 ParameterIsMissing "'Value' is required."; NoSuchStatus → InvalidInput | v1_urls_auth | T v1/test_zone_put; LIVE |
-| V1-18 | commTasks: `{state, started, finished?, macId, gatewayId, deviceId, activityId}` (no task id; TZ-naive UTC); Succeeded is terminal; 12345678 → 404 CommTaskNotFound; ABC → 400 InvalidInput "The value 'ABC' is not valid for Int32"; '' → 400 InvalidInput (v2: ParameterIsMissing); no query → 404 JSON; zero-padded id = same task; any user's task readable (leaks mac/device ids) | v1_urls, common, memory | T v1/test_comm_task; LIVE |
+| V1-18 | commTasks: `{state, started, finished?, macId, gatewayId, deviceId, activityId}` (no task id; TZ-naive UTC); Succeeded is terminal; 12345678 → 404 CommTaskNotFound; ABC → 400 InvalidInput "The value 'ABC' is not valid for Int32"; '' → 400 InvalidInput (v2: ParameterIsMissing); no query → 404 JSON; zero-padded id = same task; any user's task readable (leaks mac/device ids) | v1_urls, common, memory | T v1/test_comm_task ✓ (404/'' messages not recorded); LIVE |
 | V1-19 | Session POST (form) `applicationId, username, password` → 200 `{sessionId (a GUID), userInfo{userID int, …}}`; bad → 401 `[EmailOrPasswordIncorrect 'The email or password provided is incorrect.']`; rate limit → 429 `[TooManyRequests 'Request count limitation exceeded, please try again later.']`; bad sessionId header → 401 `[Unauthorized 'Unauthorized']` (no full stop) | v1_urls_cred | T v1/test_auth ✓; LIVE (cred flag) |
 | V1-20 | The older client sent PascalCase bodies, this library camelCase: both accepted | v1_urls_auth | T v1/test_*_put (camelCase); D |
 | V1-21 | Honeywell TH9320WF3003 can send thermostatModelType as an int | common | D v1/test_get (or T, if the library handles it) |
-| V1-22 | A v1 comm task once took 29 s (2026-10-07) | const | D tests_live conftest (or drop with `TIMEOUT_COMM_TASK_V1`) |
+| V1-22 | A v1 comm task once took 29 s (2026-10-07) | const | D v1/test_comm_task ✓ |
 | VX-1 | v2 timeUntil is UTC (status `until` UTC with Z); v1 NextTime is local (Z ignored; `nextTime` local, no Z) | vx_until | T v1/test_zone_put & v2/test_zone_put (each its own half, no cross-reference) |
 | VX-2 | The v1 client sent NextTime in UTC between v2.0.0 and v3.0.0 (so ended early by the UTC offset) | vx_until | D v1/test_zone_put |
 
