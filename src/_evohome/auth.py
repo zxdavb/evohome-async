@@ -40,8 +40,8 @@ _SZ_ERROR: Final = "error"
 
 # the other keys of each error of a list (only some v2 errors have a parameterName)
 _SZ_MESSAGE: Final = "message"
-_SZ_PARAMETER_NAME: Final = "parameter_name"  # as in VendorErrorT
 _S2_PARAMETER_NAME: Final = "parameterName"  # as in the v2 vendor's JSON
+_SZ_PARAMETER_NAME: Final = "parameter_name"  # as in VendorErrorT (a literal, as a key)
 
 
 class _ApiCallDetails(TypedDict, total=False):
