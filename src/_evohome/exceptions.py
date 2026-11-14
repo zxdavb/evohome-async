@@ -32,10 +32,10 @@ from __future__ import annotations
 import warnings
 from enum import EnumCheck, StrEnum, verify
 from http import HTTPStatus
-from typing import TYPE_CHECKING, ClassVar, Final
+from typing import TYPE_CHECKING, ClassVar, Final, NotRequired, TypedDict
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Collection
+    from collections.abc import Callable, Collection, Sequence
 
     import aiohttp
 
@@ -127,6 +127,17 @@ class ApiCallErrorReason(StrEnum):
     UNAUTHORIZED = "api_unauthorized"  # a 401 (e.g. an id not the user's)
 
 
+class VendorErrorT(TypedDict):
+    """One of the errors in the body of a response to a failed request (v1 or v2).
+
+    Its keys are as the vendor's, but in snake_case (e.g. parameterName).
+    """
+
+    code: str  # e.g. "ParameterIsMissing", "DeviceIsLost"
+    message: str  # e.g. "Parameter is missing."
+    parameter_name: NotRequired[str]  # e.g. "SystemMode" (only some v2 errors)
+
+
 class ApiCallFailedError(EvohomeError):  # a base exception
     """The API request failed for some reason (no/invalid/unexpected response).
 
@@ -140,6 +151,10 @@ class ApiCallFailedError(EvohomeError):  # a base exception
 
     If the vendor's response has an error code, then `details["code"]` is that code
     (e.g. "DeviceIsLost", "CommTaskNotFound", "invalid_grant").
+
+    If the vendor's response lists its errors (e.g. a 400 of a PUT with missing
+    parameters), then the `errors` attr is all of them, in order (else it is empty).
+    So `details["code"]` is the code of the first one.
 
     If there was a response, then the `response` attr is it (else None), e.g. for its
     headers. Its body has been read (so its json() or text() can still be awaited),
@@ -157,11 +172,13 @@ class ApiCallFailedError(EvohomeError):  # a base exception
         *,
         reason: ApiCallErrorReason | None = None,
         response: aiohttp.ClientResponse | None = None,
+        errors: Sequence[VendorErrorT] = (),
         **details: str,
     ) -> None:
         super().__init__(message, reason=reason, **details)
         self.status = status  # useful, available if via aiohttp.ClientResponseError
         self.response = response  # its body has been read, and connection released
+        self.errors: tuple[VendorErrorT, ...] = tuple(errors)  # the vendor's (if any)
 
 
 class ApiRateLimitExceededError(ApiCallFailedError):
@@ -183,9 +200,17 @@ class ApiRateLimitExceededError(ApiCallFailedError):
         retry_after: float | None = None,
         reason: ApiCallErrorReason | None = None,
         response: aiohttp.ClientResponse | None = None,
+        errors: Sequence[VendorErrorT] = (),
         **details: str,
     ) -> None:
-        super().__init__(message, status, reason=reason, response=response, **details)
+        super().__init__(
+            message,
+            status,
+            reason=reason,
+            response=response,
+            errors=errors,
+            **details,
+        )
         self.retry_after = retry_after
 
 
