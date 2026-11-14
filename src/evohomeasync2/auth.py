@@ -333,7 +333,6 @@ class Auth(AbstractAuth):
         super().__init__(websession, logger=logger, _hostname=_hostname)
 
         self._token_manager: Final = token_manager
-        self._access_token = token_manager.get_access_token
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
@@ -341,7 +340,7 @@ class Auth(AbstractAuth):
 
         headers = HEADERS_BASE | (headers or {})
         return headers | {
-            hdrs.AUTHORIZATION: "bearer " + await self._access_token(),
+            hdrs.AUTHORIZATION: "bearer " + await self._token_manager.get_access_token()
         }
 
     def _credential_in_use(self) -> str | None:

@@ -280,7 +280,6 @@ class Auth(AbstractAuth):
         super().__init__(websession, logger=logger, _hostname=_hostname)
 
         self._session_manager: Final = session_manager
-        self._session_id = session_manager.get_session_id
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
@@ -288,7 +287,7 @@ class Auth(AbstractAuth):
 
         headers = HEADERS_BASE | (headers or {})
         return headers | {
-            S1_SESSION_ID: await self._session_id(),
+            S1_SESSION_ID: await self._session_manager.get_session_id(),
         }
 
     def _credential_in_use(self) -> str | None:
