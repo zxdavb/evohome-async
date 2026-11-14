@@ -242,8 +242,7 @@ async def test_put_mode_parameter_is_missing(
 ) -> None:
     """A body without a mode is a 400 (ParameterIsMissing, with its parameterName)."""
 
-    # NOTE: not a list[TccFailureResponseT], as that lacks parameterName (B1)
-    body = [
+    body: list[TccFailureResponseT] = [
         {
             "code": "ParameterIsMissing",
             "parameterName": "Mode",

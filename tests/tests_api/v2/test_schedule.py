@@ -237,8 +237,7 @@ async def test_put_schedule_null(
 ) -> None:
     """A null body is a 400 (ParameterIsMissing, with its parameterName: request)."""
 
-    # NOTE: not a list[TccFailureResponseT], as that lacks parameterName (B1)
-    body = [
+    body: list[TccFailureResponseT] = [
         {
             "code": "ParameterIsMissing",
             "parameterName": "request",
