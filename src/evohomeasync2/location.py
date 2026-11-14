@@ -9,7 +9,7 @@ import logging
 from datetime import UTC, datetime as dt, tzinfo
 from functools import cached_property
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 from warnings import deprecated
 
 from aiozoneinfo import async_get_time_zone
@@ -36,11 +36,9 @@ from .const import (
     SZ_ZONES,
     URL_LOC_CONFIG,
     URL_LOC_STATUS,
-    URL_USR_ACCOUNT,
 )
 from .exceptions import ClientStateErrorReason
 from .gateway import Gateway
-from .schemas.account import factory_usr_account
 from .schemas.config import factory_loc_config
 from .schemas.const import TccEntityType
 from .schemas.status import factory_loc_status
@@ -58,16 +56,10 @@ if TYPE_CHECKING:
         EvoLocConfigT,
         EvoLocStatusResponseT,
         EvoTimeZoneT,
-        EvoUsrAccountResponseT,
     )
 
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
-
-# the userAccount URL is open to all authenticated users, so is used to check the token
-_SCH_USR_ACCOUNT: Final[Validator[EvoUsrAccountResponseT]] = factory_usr_account(
-    Case.PYTHONIC
-)
 
 
 async def _create_tzinfo(
@@ -329,10 +321,9 @@ class Location(EntityBase[EvoLocStatusT]):
             raise
 
         except exc.ApiCallFailedError as err:  # check if 401 - no access to location
-            if (
-                err.status != HTTPStatus.UNAUTHORIZED  # 401
-                or not await self._is_access_token_accepted()
-            ):
+            # Auth re-authenticates if the access token is rejected, so a 401 is
+            # because the user has no access to the location
+            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                 raise
             raise exc.StaleConfigError(
                 f"{self}: is no longer accessible (has it been deleted, or unshared?)",
@@ -356,31 +347,6 @@ class Location(EntityBase[EvoLocStatusT]):
             self._stale_config = None
 
         return status
-
-    async def _is_access_token_accepted(self) -> bool:
-        """Return True only if the vendor's server accepts the access token.
-
-        A 401 from a location's URL is either because the access token was rejected, or
-        because the user has no access to that location. As the userAccount URL is open
-        to all authenticated users, a 401 from it can only be due to the former.
-
-        Return False if the token is rejected, or if that can't be determined (e.g. no
-        connection, or a 5xx), so that the caller raises its original error (the 401).
-        """
-
-        try:
-            await self._auth.get(
-                URL_USR_ACCOUNT,
-                schema=_SCH_USR_ACCOUNT,
-            )
-
-        except exc.AuthenticationFailedError:  # unable to get an access_token
-            raise
-
-        except (exc.ApiCallFailedError, exc.BadApiResponseError):  # 401, or unsure
-            return False
-
-        return True
 
     def _missing_from_status(self, status: EvoLocStatusResponseT) -> list[str]:
         """Return the known (i.e. configured) entities that are absent from the status.

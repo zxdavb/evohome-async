@@ -219,55 +219,25 @@ async def test_status_unknown_entity_is_tolerated(
 _UNAUTHORIZED = exc.ApiCallFailedError(
     "GET url: 401 Unauthorized", status=HTTPStatus.UNAUTHORIZED
 )
-_NO_CONNECTION = exc.ApiCallFailedError("GET url: Connection refused")
-_SERVER_ERROR = exc.ApiCallFailedError(
-    "GET url: 500 Internal Server Error", status=HTTPStatus.INTERNAL_SERVER_ERROR
-)
-_BAD_RESPONSE = exc.BadApiResponseError("GET url: response failed validation: ...")
 
 
-@pytest.mark.parametrize(
-    ("account_error", "expected"),
-    [
-        (None, exc.StaleConfigError),  # the access token is OK, so: no such location
-        (_UNAUTHORIZED, exc.ApiCallFailedError),  # the access token was rejected
-        (_NO_CONNECTION, exc.ApiCallFailedError),  # can't tell
-        (_SERVER_ERROR, exc.ApiCallFailedError),  # can't tell
-        (_BAD_RESPONSE, exc.ApiCallFailedError),  # can't tell
-    ],
-    ids=[
-        "location_absent",
-        "token_rejected",
-        "no_connection",
-        "server_error",
-        "bad_response",
-    ],
-)
 async def test_location_absent(
     ec2: EvohomeClient,
-    account_error: exc.EvohomeError | None,
-    expected: type[exc.EvohomeError],
 ) -> None:
-    """A 401 from the location's status is StaleConfigError, if the token is OK.
+    """A 401 from the location's status is a StaleConfigError.
 
-    Otherwise (the token was rejected, or that can't be determined), it is the 401.
+    Auth re-authenticates if the access token is rejected (see
+    test_v2_auth_rejected.py), so a 401 that it raises is because the location is no
+    longer the user's.
     """
 
     loc = get_loc(ec2)
 
-    def get(url: str, schema: object) -> object:
-        if url != "userAccount":  # i.e. is the location's status
-            raise _UNAUTHORIZED
-        if account_error:
-            raise account_error
-        return {}
-
     with (
-        patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=get)),
-        pytest.raises(expected) as err,
+        patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=_UNAUTHORIZED)),
+        pytest.raises(exc.StaleConfigError) as err,
     ):
         await loc.get_status()
 
-    assert type(err.value) is expected
-    if expected is not exc.StaleConfigError:
-        assert err.value is _UNAUTHORIZED  # the original 401, not the probe's error
+    assert err.value.reason is exc.ClientStateErrorReason.LOCATION_INACCESSIBLE
+    assert err.value.__cause__ is _UNAUTHORIZED

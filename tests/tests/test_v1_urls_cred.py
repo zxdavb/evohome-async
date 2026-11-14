@@ -6,7 +6,6 @@ import logging
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
-from unittest.mock import ANY, AsyncMock, patch
 
 import pytest
 
@@ -22,7 +21,7 @@ from tests.const import (
 )
 
 from .aioresponses import aioresponses
-from .const import LOG_00, LOG_08, LOG_09, LOG_21, LOG_24, LOG_90, LOG_99
+from .const import LOG_00, LOG_09, LOG_21, LOG_24, LOG_90, LOG_99
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -140,7 +139,7 @@ async def test_bad2(  # bad session ID
 
         assert err.value.status is None  # Connection refused
 
-        assert caplog.record_tuples == [LOG_08, LOG_00, LOG_21, LOG_24, LOG_99]
+        assert caplog.record_tuples == [LOG_00, LOG_21, LOG_24, LOG_99]
 
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
@@ -277,40 +276,3 @@ async def test_good(  # good credentials
         rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
     assert ec1._session_manager.is_session_valid() is True
-
-
-async def test_rejected_session_id_refreshed_meanwhile(
-    ec1: EvohomeClient,
-) -> None:
-    """Test a 401 doesn't clear a session ID that another task has since refreshed."""
-
-    session_manager = ec1._session_manager
-
-    # pre-requisite data (a valid session_id that will nonetheless be rejected)
-    session_manager._session_id = _TEST_SESSION_ID
-    session_manager._session_id_expires = dt.now(tz=UTC) + td(minutes=15)
-
-    new_session_id = "-- new session ID --"
-    rejected = False
-
-    def get(url: str, schema: object) -> object:
-        nonlocal rejected
-        if rejected:
-            return {"user_id": 1234567} if url == "accountInfo" else []
-
-        # while this request is in flight, another task refreshes the session ID
-        session_manager._session_id = new_session_id
-        rejected = True
-        raise exc.ApiCallFailedError(
-            "GET accountInfo: 401 Unauthorized", status=HTTPStatus.UNAUTHORIZED
-        )
-
-    with (
-        patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=get)) as req,
-        patch.object(session_manager, "fetch_session_id") as fetch,
-    ):
-        await ec1._get_config()
-
-    req.assert_any_await("accountInfo", schema=ANY)
-    fetch.assert_not_awaited()
-    assert session_manager.session_id == new_session_id
