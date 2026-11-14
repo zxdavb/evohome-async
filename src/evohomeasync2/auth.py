@@ -315,7 +315,7 @@ class Auth(AbstractAuth):
     """A class for interacting with the v2 Resideo TCC API."""
 
     _URL_PROBE = URL_USR_ACCOUNT
-    _CREDENTIAL = "access_token"
+    _CREDENTIAL = SZ_ACCESS_TOKEN
 
     def __init__(
         self,

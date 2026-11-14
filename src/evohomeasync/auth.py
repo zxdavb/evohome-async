@@ -262,7 +262,7 @@ class Auth(AbstractAuth):
     """A class for interacting with the v1 Resideo TCC API."""
 
     _URL_PROBE = URL_ACCOUNT_INFO
-    _CREDENTIAL = "session_id"
+    _CREDENTIAL = SZ_SESSION_ID
 
     def __init__(
         self,

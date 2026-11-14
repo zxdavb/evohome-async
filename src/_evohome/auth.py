@@ -179,7 +179,7 @@ class AbstractAuth(ABC):
 
     # a URL that is open to any authenticated user: so its 401 is of the credential
     _URL_PROBE: ClassVar[str]
-    _CREDENTIAL: ClassVar[str]  # its name, e.g. "access_token" (for log messages)
+    _CREDENTIAL: ClassVar[str]  # its name, e.g. SZ_ACCESS_TOKEN (for log messages)
 
     def __init__(
         self,
