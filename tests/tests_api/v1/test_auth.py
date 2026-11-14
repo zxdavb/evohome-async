@@ -24,8 +24,8 @@ A bad (or expired) session id is a 401 (without the full stop of the v2 API's):
   [{"code": "Unauthorized", "message": "Unauthorized"}]
 
 The client's handling of these (e.g. re-authenticating when a session id is rejected)
-is tested in tests/tests (see its test_v1_urls_cred.py and test_v1_auth.py); these
-tests document the wire contract.
+is tested in tests/tests (see its test_v1_auth_rejected.py, test_v1_urls_cred.py and
+test_v1_auth.py); these tests document the wire contract.
 """
 
 from __future__ import annotations
@@ -37,6 +37,7 @@ from typing import TYPE_CHECKING, Final
 
 import pytest
 
+from _evohome.const import DEFAULT_RETRY_AFTER
 from evohomeasync import (
     ApiCallErrorReason,
     ApiCallFailedError,
@@ -158,7 +159,7 @@ async def test_session_rate_limited(
     assert err.value.status == HTTPStatus.TOO_MANY_REQUESTS
     assert err.value.reason is ApiCallErrorReason.RATE_LIMITED
     assert err.value.details == {"code": TccFailureCode.TOO_MANY_REQUESTS}
-    assert err.value.retry_after is None
+    assert err.value.retry_after == DEFAULT_RETRY_AFTER  # as it had no header
 
 
 async def test_session_id(
@@ -187,17 +188,30 @@ async def test_session_id_invalid(
     client_session: aiohttp.ClientSession,
     mock: AioResponses,
 ) -> None:
-    """A bad (or expired) session id is a 401 (Unauthorized, 'Unauthorized')."""
+    """A bad (or expired) session id is a 401 (Unauthorized, 'Unauthorized').
+
+    The client then fetches another session id (once), and makes the request again: if
+    that is a 401 too, it is an ApiCallFailedError (not an AuthenticationFailedError).
+    """
 
     auth = Auth(credentials_manager, client_session)
+    old_session_id = credentials_manager.session_id
 
     body: list[TccFailureResponseT] = [
         {"code": TccFailureCode.UNAUTHORIZED, "message": "Unauthorized"}
     ]
     mock.get(f"{URL_BASE_V1}/accountInfo", status=HTTPStatus.UNAUTHORIZED, payload=body)
+    mock.post(URL_CRED_V1, payload=SESSION)
+    mock.get(f"{URL_BASE_V1}/accountInfo", status=HTTPStatus.UNAUTHORIZED, payload=body)
 
     with pytest.raises(ApiCallFailedError) as err:
         await auth.get("accountInfo", schema=SCH_GET_ACCOUNT_INFO)
+
+    gets = mock.requests[HTTPMethod.GET, f"{URL_BASE_V1}/accountInfo"]
+    assert [g["headers"]["sessionId"] for g in gets] == [
+        old_session_id,
+        SESSION["sessionId"],
+    ]
 
     assert not isinstance(err.value, AuthenticationFailedError)
     assert err.value.status == HTTPStatus.UNAUTHORIZED

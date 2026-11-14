@@ -84,7 +84,10 @@ from evohomeasync2.schemas.const import (
 )
 
 if TYPE_CHECKING:
-    from evohomeasync2.schemas.account import TccUsrAccountResponseT
+    from evohomeasync2.schemas.account import (
+        TccOAuthTokenResponseT,
+        TccUsrAccountResponseT,
+    )
     from evohomeasync2.schemas.config import TccLocConfigResponseT
     from evohomeasync2.schemas.schedule import (
         TccDhwDailySchedulesT,
@@ -631,4 +634,14 @@ DHW_SCHEDULE: Final[TccDhwDailySchedulesT] = {
             ],
         },
     ]
+}
+
+
+# provenance: the old tests_rf/test_v2_urls_cred.py (probed 2024-ish; scope is optional)
+TOKEN: Final[TccOAuthTokenResponseT] = {
+    "access_token": "HojUMRvmn...",
+    "token_type": "bearer",
+    "expires_in": 1799,
+    "refresh_token": "vdBdHjxK...",
+    "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
 }

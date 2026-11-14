@@ -123,7 +123,8 @@ async def test_get_not_the_users(
 ) -> None:
     """An id that is not the user's is a 401 (Unauthorized).
 
-    Its message differs from that of a bad session id ("Unauthorized").
+    Its message differs from that of a bad session id ("Unauthorized"). The client
+    probes accountInfo, to tell it from a 401 of the session id.
     """
 
     url = f"locations?userId={NOT_THE_USERS_ID}&allData=True"
@@ -135,6 +136,7 @@ async def test_get_not_the_users(
         }
     ]
     mock.get(f"{URL_BASE_V1}/{url}", status=HTTPStatus.UNAUTHORIZED, payload=body)
+    mock.get(URL_ACCOUNT_INFO, payload=USR_INFO)  # the client's probe
 
     with pytest.raises(ApiCallFailedError) as err:
         await ec1.auth.get(url, schema=SCH_GET_ACCOUNT_LOCS)

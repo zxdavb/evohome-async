@@ -29,7 +29,8 @@ for an id that is not the user's ("You are not allowed to perform this action.")
 
 The client's handling of these (e.g. re-authenticating when a token is rejected, or
 sharing one fetch between concurrent callers) is tested in tests/tests (see its
-test_v2_urls_cred.py and test_v2_auth.py); these tests document the wire contract.
+test_v2_auth_rejected.py, test_v2_urls_cred.py and test_v2_auth.py); these tests
+document the wire contract.
 """
 
 from __future__ import annotations
@@ -41,6 +42,7 @@ from typing import TYPE_CHECKING, Final
 
 import pytest
 
+from _evohome.const import DEFAULT_RETRY_AFTER
 from evohomeasync2 import (
     ApiCallErrorReason,
     ApiCallFailedError,
@@ -60,7 +62,7 @@ from tests.const import (
     URL_CRED_V2,
 )
 
-from .vendor import USR_ACCOUNT, USR_ID
+from .vendor import TOKEN, USR_ACCOUNT, USR_ID
 
 if TYPE_CHECKING:
     import aiohttp
@@ -70,7 +72,6 @@ if TYPE_CHECKING:
     from evohomeasync2.schemas.account import (
         TccFailureResponseT,
         TccOAuthErrorResponseT,
-        TccOAuthTokenResponseT,
     )
     from tests.tests.aioresponses import AioResponses
 
@@ -78,15 +79,6 @@ if TYPE_CHECKING:
 _NOW: Final = "2026-11-13T12:00:00+00:00"
 
 _OLD_REFRESH: Final = "-- refresh token --"  # the one the client holds
-
-# provenance: the old tests_rf/test_v2_urls_cred.py (probed 2024-ish; scope is optional)
-_TOKEN: Final[TccOAuthTokenResponseT] = {
-    "access_token": "HojUMRvmn...",
-    "token_type": "bearer",
-    "expires_in": 1799,
-    "refresh_token": "vdBdHjxK...",
-    "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
-}
 
 _INVALID_GRANT: Final[TccOAuthErrorResponseT] = {"error": TccOAuthError.INVALID_GRANT}
 
@@ -134,7 +126,7 @@ async def test_password_grant(
     freezer.move_to(_NOW)
     _clear_tokens(credentials_manager)
 
-    mock.post(URL_CRED_V2, payload=_TOKEN)
+    mock.post(URL_CRED_V2, payload=TOKEN)
 
     await credentials_manager.fetch_access_token()
 
@@ -142,8 +134,8 @@ async def test_password_grant(
         URL_CRED_V2, HTTPMethod.POST, headers=HEADERS_CRED_V2, data=_PASSWORD_GRANT
     )
 
-    assert credentials_manager.access_token == _TOKEN["access_token"]
-    assert credentials_manager.refresh_token == _TOKEN["refresh_token"]
+    assert credentials_manager.access_token == TOKEN["access_token"]
+    assert credentials_manager.refresh_token == TOKEN["refresh_token"]
     assert credentials_manager.access_token_expires == dt.fromisoformat(_NOW) + td(
         seconds=1799
     )
@@ -157,7 +149,7 @@ async def test_refresh_grant(
 
     _clear_tokens(credentials_manager, refresh_token=_OLD_REFRESH)
 
-    mock.post(URL_CRED_V2, payload=_TOKEN)
+    mock.post(URL_CRED_V2, payload=TOKEN)
 
     await credentials_manager.fetch_access_token()
 
@@ -165,8 +157,8 @@ async def test_refresh_grant(
         URL_CRED_V2, HTTPMethod.POST, headers=HEADERS_CRED_V2, data=_REFRESH_GRANT
     )
 
-    assert credentials_manager.access_token == _TOKEN["access_token"]
-    assert credentials_manager.refresh_token == _TOKEN["refresh_token"]
+    assert credentials_manager.access_token == TOKEN["access_token"]
+    assert credentials_manager.refresh_token == TOKEN["refresh_token"]
 
 
 async def test_refresh_grant_invalid(
@@ -181,7 +173,7 @@ async def test_refresh_grant_invalid(
     _clear_tokens(credentials_manager, refresh_token=_OLD_REFRESH)
 
     mock.post(URL_CRED_V2, status=HTTPStatus.BAD_REQUEST, payload=_INVALID_GRANT)
-    mock.post(URL_CRED_V2, payload=_TOKEN)
+    mock.post(URL_CRED_V2, payload=TOKEN)
 
     await credentials_manager.fetch_access_token()
 
@@ -189,7 +181,7 @@ async def test_refresh_grant_invalid(
         {"headers": HEADERS_CRED_V2, "data": _REFRESH_GRANT},
         {"headers": HEADERS_CRED_V2, "data": _PASSWORD_GRANT},
     ]
-    assert credentials_manager.access_token == _TOKEN["access_token"]
+    assert credentials_manager.access_token == TOKEN["access_token"]
 
 
 async def test_password_grant_invalid(
@@ -246,7 +238,7 @@ async def test_password_grant_rate_limited(
     assert err.value.status == HTTPStatus.TOO_MANY_REQUESTS
     assert err.value.reason is ApiCallErrorReason.RATE_LIMITED
     assert err.value.details == {"code": TccOAuthError.ATTEMPT_LIMIT_EXCEEDED}
-    assert err.value.retry_after is None
+    assert err.value.retry_after == DEFAULT_RETRY_AFTER  # as it had no header
 
 
 async def test_bearer(
@@ -282,15 +274,18 @@ async def test_bearer_invalid(
 ) -> None:
     """A bad (or expired) access token is a 401 (Unauthorized, 'Unauthorized.').
 
-    It is an ApiCallFailedError (not an AuthenticationFailedError): the caller can't
-    tell it from a 401 of an id that is not the user's, except by the message.
+    The client then fetches another token (once), and makes the request again: if that
+    is a 401 too, it is an ApiCallFailedError (not an AuthenticationFailedError).
     """
 
     auth = Auth(credentials_manager, client_session)
+    old_bearer = credentials_manager.access_token
 
     body: list[TccFailureResponseT] = [
         {"code": TccFailureCode.UNAUTHORIZED, "message": "Unauthorized."}
     ]
+    mock.get(f"{URL_BASE_V2}/userAccount", status=HTTPStatus.UNAUTHORIZED, payload=body)
+    mock.post(URL_CRED_V2, payload=TOKEN)
     mock.get(f"{URL_BASE_V2}/userAccount", status=HTTPStatus.UNAUTHORIZED, payload=body)
 
     with pytest.raises(ApiCallFailedError) as err:
@@ -300,3 +295,9 @@ async def test_bearer_invalid(
     assert err.value.status == HTTPStatus.UNAUTHORIZED
     assert err.value.reason is ApiCallErrorReason.UNAUTHORIZED
     assert err.value.details == {"code": TccFailureCode.UNAUTHORIZED}
+
+    gets = mock.requests[HTTPMethod.GET, f"{URL_BASE_V2}/userAccount"]
+    assert [g["headers"]["Authorization"] for g in gets] == [
+        f"bearer {old_bearer}",
+        f"bearer {TOKEN['access_token']}",
+    ]

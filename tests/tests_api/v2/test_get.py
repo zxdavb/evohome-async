@@ -50,16 +50,18 @@ from evohomeasync2 import (
 )
 from evohomeasync2.main import SCH_USR_ACCOUNT, SCH_USR_LOCATIONS
 from evohomeasync2.schemas.const import TccFailureCode
-from tests.const import HEADERS_BASE, URL_BASE_V2
+from tests.const import HEADERS_BASE, URL_BASE_V2, URL_CRED_V2
 
 from .vendor import (
     DHW_ID,
     GWY_ID,
     HTML_NOT_FOUND,
     LOC_ID,
+    LOC_STATUS,
     LOC_STATUS_OVERRIDDEN,
     NOT_THE_USERS_ID,
     TCS_ID,
+    TOKEN,
     USR_ACCOUNT,
     USR_ID,
     USR_LOCATIONS,
@@ -219,10 +221,11 @@ async def test_get_status_token_rejected(
     loc: Location,
     mock: AioResponses,
 ) -> None:
-    """A 401 of a location's status, and of userAccount too, is raised as is.
+    """A 401 of a location's status, and of userAccount too, is of the access token.
 
-    That is, the access token was rejected (and not that the location is not the
-    user's): the 401 of a bad token has a different message.
+    That is, the token was rejected (and not that the location is not the user's: the
+    401 of a bad token has a different message). So the client fetches another token,
+    and gets the status again.
     """
 
     rejected: list[TccFailureResponseT] = [
@@ -230,13 +233,18 @@ async def test_get_status_token_rejected(
     ]
     mock.get(URL_LOC_STATUS, status=HTTPStatus.UNAUTHORIZED, payload=rejected)
     mock.get(URL_USR_ACCOUNT, status=HTTPStatus.UNAUTHORIZED, payload=rejected)
+    mock.post(URL_CRED_V2, payload=TOKEN)
+    mock.get(URL_LOC_STATUS, payload=LOC_STATUS)
 
-    with pytest.raises(ApiCallFailedError) as err:
-        await loc.get_status()
+    await loc.get_status()
 
-    assert err.value.status == HTTPStatus.UNAUTHORIZED
-    assert err.value.reason is ApiCallErrorReason.UNAUTHORIZED
-    assert err.value.details == {"code": TccFailureCode.UNAUTHORIZED}
+    assert list(mock.requests) == [  # in this order
+        (HTTPMethod.GET, URL_LOC_STATUS),
+        (HTTPMethod.GET, URL_USR_ACCOUNT),
+        (HTTPMethod.POST, URL_CRED_V2),
+    ]
+    *_, again = mock.requests[HTTPMethod.GET, URL_LOC_STATUS]
+    assert again["headers"]["Authorization"] == f"bearer {TOKEN['access_token']}"
 
 
 async def test_get_not_the_users(
@@ -246,6 +254,7 @@ async def test_get_not_the_users(
     """An id that is not the user's is a 401 (Unauthorized).
 
     The vendor does not say if the id exists (e.g. another user's, or a deleted one's).
+    So the client probes userAccount, to tell it from a 401 of the access token.
     """
 
     url = (
@@ -261,6 +270,7 @@ async def test_get_not_the_users(
     mock.get(
         f"{URL_BASE_V2}/{url}", status=HTTPStatus.UNAUTHORIZED, payload=unauthorized
     )
+    mock.get(URL_USR_ACCOUNT, payload=USR_ACCOUNT)  # the client's probe
 
     with pytest.raises(ApiCallFailedError) as err:
         await ec2.auth.get(url, schema=SCH_USR_LOCATIONS)

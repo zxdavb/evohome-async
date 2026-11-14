@@ -46,7 +46,14 @@ from evohomeasync2 import (
 from evohomeasync2.schemas.const import TccFailureCode
 from tests.const import URL_BASE_V2
 
-from .vendor import DHW_ID, DHW_SCHEDULE, NOT_THE_USERS_ID, ZON_ID, ZON_SCHEDULE
+from .vendor import (
+    DHW_ID,
+    DHW_SCHEDULE,
+    NOT_THE_USERS_ID,
+    USR_ACCOUNT,
+    ZON_ID,
+    ZON_SCHEDULE,
+)
 
 if TYPE_CHECKING:
     from evohomeasync2 import HotWater, Zone
@@ -175,7 +182,10 @@ async def test_get_schedule_not_the_users(
     zone: Zone,
     mock: AioResponses,
 ) -> None:
-    """An id that is not the user's is a 401: it is raised as is."""
+    """An id that is not the user's is a 401: it is raised as is.
+
+    So the client probes userAccount, to tell it from a 401 of the access token.
+    """
 
     url = f"temperatureZone/{NOT_THE_USERS_ID}/schedule"
     body: list[TccFailureResponseT] = [
@@ -186,6 +196,8 @@ async def test_get_schedule_not_the_users(
     ]
     mock.get(f"{URL_BASE_V2}/{url}", status=HTTPStatus.UNAUTHORIZED, payload=body)
     mock.put(f"{URL_BASE_V2}/{url}", status=HTTPStatus.UNAUTHORIZED, payload=body)
+    mock.get(f"{URL_BASE_V2}/userAccount", payload=USR_ACCOUNT)  # the client's probe
+    mock.get(f"{URL_BASE_V2}/userAccount", payload=USR_ACCOUNT)  # and for the PUT
 
     with pytest.raises(ApiCallFailedError) as err:
         await zone._auth.get(url, schema=zone.SCH_SCHEDULE)

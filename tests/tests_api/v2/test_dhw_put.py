@@ -39,7 +39,7 @@ from evohomeasync2 import ApiCallFailedError, ApiCallRejectedError, DhwState, Zo
 from evohomeasync2.schemas.const import TccFailureCode
 from tests.const import URL_BASE_V2
 
-from .vendor import DHW_ID, NOT_THE_USERS_ID
+from .vendor import DHW_ID, NOT_THE_USERS_ID, USR_ACCOUNT
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -264,7 +264,10 @@ async def test_put_mode_not_the_users(
     dhw: HotWater,
     mock: AioResponses,
 ) -> None:
-    """An id that is not the user's is a 401 (as for every URL, GET or PUT)."""
+    """An id that is not the user's is a 401 (as for every URL, GET or PUT).
+
+    So the client probes userAccount, to tell it from a 401 of the access token.
+    """
 
     url = f"domesticHotWater/{NOT_THE_USERS_ID}/state"
     body: list[TccFailureResponseT] = [
@@ -274,6 +277,7 @@ async def test_put_mode_not_the_users(
         }
     ]
     mock.put(f"{URL_BASE_V2}/{url}", status=HTTPStatus.UNAUTHORIZED, payload=body)
+    mock.get(f"{URL_BASE_V2}/userAccount", payload=USR_ACCOUNT)  # the client's probe
 
     with pytest.raises(ApiCallFailedError) as err:
         await dhw._auth.put(url, {"mode": ZoneMode.FOLLOW_SCHEDULE})

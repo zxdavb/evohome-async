@@ -362,7 +362,7 @@ PUTs whose comm task did not end within 60s.
   than ~30 min. Again, no Retry-After header.
 - 429s, a 3rd time (with the maintainer's permission): provoked at 20:55:08Z (v2 at the
   4th POST, v1 at the 3rd), and both were a 200 at 21:10:09Z, i.e. **lifted within 15
-  minutes**. So the library's default retry_after is to be 15 min (PR #306).
+  minutes**. So the library's default retry_after is 15 min (#306, merged).
 - Not settled: the cred POSTs' 200s (flag off); whether v2 PUTs' tasks succeed (needs
   the gateway online).
 
@@ -432,3 +432,12 @@ Ruled by the maintainer, 2026-11-13 (answers to the Phase 1 questions):
 - Q7: add mocked auth tests (`v1/test_auth.py`: session; `v2/test_auth.py`: token), and
   live ones gated by `_DBG_TEST_CRED_URLS` (to avoid an account lockout).
 - Q8 (superseded by Q7): the old real-only cred tests are ported, not dropped.
+
+After dev was merged in (2026-11-14; #304, #305, #306):
+
+- #305: `Auth` now handles a 401 itself: it probes userAccount (v2) / accountInfo (v1),
+  and if that is a 401 too, it fetches another credential and makes the request again
+  (once). So a mocked 401 of an id that is not the user's also registers the probe's
+  200, and the tests of a rejected token / session id register the cred POST (and what
+  follows). A shared `TOKEN` is in v2/vendor.py.
+- #306: a 429 without a Retry-After has `retry_after == DEFAULT_RETRY_AFTER` (not None).

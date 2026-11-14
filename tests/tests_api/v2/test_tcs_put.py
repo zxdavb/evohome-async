@@ -46,7 +46,7 @@ from evohomeasync2.schemas.account import TCC_FAILURE_RESPONSE
 from evohomeasync2.schemas.const import TccFailureCode
 from tests.const import URL_BASE_V2
 
-from .vendor import NOT_THE_USERS_ID, TCS_ID
+from .vendor import NOT_THE_USERS_ID, TCS_ID, USR_ACCOUNT
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -239,7 +239,10 @@ async def test_put_mode_not_the_users(
     tcs: ControlSystem,
     mock: AioResponses,
 ) -> None:
-    """An id that is not the user's is a 401 (as for every URL, GET or PUT)."""
+    """An id that is not the user's is a 401 (as for every URL, GET or PUT).
+
+    So the client probes userAccount, to tell it from a 401 of the access token.
+    """
 
     url = f"temperatureControlSystem/{NOT_THE_USERS_ID}/mode"
     body: list[TccFailureResponseT] = [
@@ -249,6 +252,7 @@ async def test_put_mode_not_the_users(
         }
     ]
     mock.put(f"{URL_BASE_V2}/{url}", status=HTTPStatus.UNAUTHORIZED, payload=body)
+    mock.get(f"{URL_BASE_V2}/userAccount", payload=USR_ACCOUNT)  # the client's probe
 
     with pytest.raises(ApiCallFailedError) as err:
         await tcs._auth.put(url, {"system_mode": SystemMode.AUTO, "permanent": True})
