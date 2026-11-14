@@ -224,7 +224,6 @@ async def test_get_state_of_empty_id(
 ) -> None:
     """An id that is empty is a 400 (ParameterIsMissing, with its parameterName)."""
 
-    # provenance: probed 2026-11-13
     body: list[TccFailureResponseT] = [
         {
             "code": "ParameterIsMissing",
