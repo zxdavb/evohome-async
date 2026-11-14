@@ -116,6 +116,7 @@ S2_NAME: Final = "name"
 
 S2_OFFSET_MINUTES: Final = "offsetMinutes"
 
+S2_PARAMETER_NAME: Final = "parameterName"  # e.g. of a ParameterIsMissing
 S2_PERIOD: Final = "period"  # c.f. StrEnum val, TccTimingMode.PERIOD
 S2_PERMANENT: Final = "permanent"
 S2_POSTCODE: Final = "postcode"

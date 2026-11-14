@@ -64,9 +64,8 @@ TASK: Final[TccTaskResponseT] = {"id": "1668279943"}
 
 URL_TCS_MODE: Final = f"{URL_BASE_V2}/temperatureControlSystem/{TCS_ID}/mode"
 
-# NOTE: not a list[TccFailureResponseT], as that lacks parameterName (B1)
 # provenance: the old tests_rf/test_v2_urls_auth.py (a PUT of {})
-_PARAMETERS_ARE_MISSING: Final = [
+_PARAMETERS_ARE_MISSING: Final[list[TccFailureResponseT]] = [
     {
         "code": "ParameterIsMissing",
         "parameterName": "SystemMode",
@@ -289,10 +288,7 @@ async def test_put_mode_not_the_tcss(
     assert err.value.reason is ApiCallErrorReason.SERVER_ERROR
 
 
-@pytest.mark.xfail(
-    strict=True, reason="B1: TCC_FAILURE_RESPONSE rejects the vendor's parameterName"
-)
 def test_failure_response_schema() -> None:
     """The schema of a failed request accepts the vendor's ParameterIsMissing errors."""
 
-    TCC_FAILURE_RESPONSE(_PARAMETERS_ARE_MISSING)
+    assert TCC_FAILURE_RESPONSE(_PARAMETERS_ARE_MISSING) == _PARAMETERS_ARE_MISSING

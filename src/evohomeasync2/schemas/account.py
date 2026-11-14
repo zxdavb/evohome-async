@@ -34,6 +34,7 @@ from .const import (
     S2_LANGUAGE,
     S2_LASTNAME,
     S2_MESSAGE,
+    S2_PARAMETER_NAME,
     S2_POSTCODE,
     S2_STATE,
     S2_STREET_ADDRESS,
@@ -111,9 +112,15 @@ def factory_oauth_error_response(case: Case = Case.VENDOR) -> Validator[TccOAuth
 
 # Failed GETs / PUTs respond with a code/message structure
 class TccFailureResponseT(TypedDict):
-    """Typed dict for responses from the vendor servers for failed GETs / PUTs."""
+    """Typed dict for responses from the vendor servers for failed GETs / PUTs.
+
+    A response is a list of these (one per error), e.g. a PUT of {} to a TCS's mode:
+      [{"code": "ParameterIsMissing", "parameterName": "SystemMode", ...},
+       {"code": "ParameterIsMissing", "parameterName": "Permanent", ...}]
+    """
 
     code: TccFailureCode | str  # e.g. "InvalidInput"; enum is incomplete, so allow str
+    parameterName: NotRequired[str]  # e.g. "SystemMode" (PascalCase), of some errors
     message: str
 
 
@@ -184,6 +191,7 @@ def factory_failure_response(case: Case = Case.VENDOR) -> Validator[list[TccFail
     entry_schema = vol.Schema(
         {
             vol.Required(fnc(S2_CODE)): str,
+            vol.Optional(fnc(S2_PARAMETER_NAME)): str,
             vol.Required(fnc(S2_MESSAGE)): str,
         },
         extra=vol.PREVENT_EXTRA,

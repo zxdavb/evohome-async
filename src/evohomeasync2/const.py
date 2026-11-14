@@ -129,6 +129,7 @@ SZ_NAME: Final = "name"
 
 SZ_OFFSET_MINUTES: Final = "offset_minutes"
 
+SZ_PARAMETER_NAME: Final = "parameter_name"  # e.g. of a ParameterIsMissing
 SZ_PERIOD: Final = "period"  # c.f. StrEnum val, TimingMode.PERIOD
 SZ_PERMANENT: Final = "permanent"
 SZ_POSTCODE: Final = "postcode"
