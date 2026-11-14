@@ -9,14 +9,67 @@ from typing import TYPE_CHECKING, Any, Final
 import aiohttp
 
 from . import exceptions as exc
-from .auth import _details, _errors, _payload, _reason, _retry_after
-from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME, ContentType
+from .auth import _SZ_CODE, _details, _errors, _payload, _reason, _retry_after
+from .const import (
+    ERR_MSG_LOOKUP_BASE,
+    HINT_BAD_CREDS,
+    HINT_CHECK_NETWORK,
+    HOSTNAME,
+    ContentType,
+)
 from .exceptions import ApiCallErrorReason
 
 if TYPE_CHECKING:
     import logging
 
     from aiohttp.typedefs import StrOrURL
+
+
+async def _failed_auth_error(
+    err: aiohttp.ClientResponseError,
+    rsp: aiohttp.ClientResponse | None,
+    /,
+    *,
+    bad_credentials: str | None,
+) -> exc.AuthenticationFailedError:
+    """Return the error of a failed authentication request (v1 or v2), by its response.
+
+    It is a BadUserCredentialsError if the vendor's error code is bad_credentials (which
+    differs by API, and by request), e.g. v1's EmailOrPasswordIncorrect (a 401), or
+    v2's invalid_grant (a 400) of a password grant.
+    """
+
+    msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
+    details = await _details(rsp)  # e.g. {"code": "invalid_grant"}
+    errors = await _errors(rsp)  # v1: e.g. [{"code": "TooManyRequests", ...}]
+
+    if err.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
+        return exc.AuthRateLimitExceededError(
+            f"Authenticator response is invalid: {msg}",
+            err.status,
+            retry_after=_retry_after(rsp),
+            response=rsp,
+            errors=errors,
+            **details,
+        )
+
+    if bad_credentials is not None and details.get(_SZ_CODE) == bad_credentials:
+        return exc.BadUserCredentialsError(
+            f"Authenticator response is invalid: {msg}",
+            status=err.status,
+            response=rsp,
+            errors=errors,
+            **details,
+        )
+
+    return exc.AuthenticationFailedError(
+        f"Authenticator response is invalid: {msg}",
+        status=err.status,
+        reason=_reason(err.status),
+        response=rsp,
+        errors=errors,
+        **details,
+    )
 
 
 class CredentialsManagerBase:
@@ -60,10 +113,14 @@ class CredentialsManagerBase:
         """Return the hostname used for HTTP authentication."""
         return self._hostname
 
-    async def _post_request(self, url: StrOrURL, /, **kwargs: Any) -> dict[str, Any]:
+    async def _post_request(
+        self, url: StrOrURL, /, *, bad_credentials: str | None = None, **kwargs: Any
+    ) -> dict[str, Any]:
         """POST an authentication request and return the response (a dict).
 
-        Will raise an exception if the authentication is not successful.
+        Will raise an exception if the authentication is not successful. If the vendor's
+        error code is bad_credentials (it differs by API, and by request), that will be
+        a BadUserCredentialsError.
         """
 
         rsp: aiohttp.ClientResponse | None = None  # to prevent unbound error
@@ -100,31 +157,16 @@ class CredentialsManagerBase:
             ) from err
 
         except aiohttp.ClientResponseError as err:
-            if hint := ERR_MSG_LOOKUP_BASE.get(err.status):
+            error = await _failed_auth_error(err, rsp, bad_credentials=bad_credentials)
+
+            if isinstance(error, exc.BadUserCredentialsError):
+                hint: str | None = HINT_BAD_CREDS
+            else:
+                hint = ERR_MSG_LOOKUP_BASE.get(err.status)
+            if hint:
                 self._logger.error(hint)  # noqa: TRY400
 
-            msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
-            details = await _details(rsp)  # e.g. {"code": "invalid_grant"}
-            errors = await _errors(rsp)  # v1: e.g. [{"code": "TooManyRequests", ...}]
-
-            if err.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
-                raise exc.AuthRateLimitExceededError(
-                    f"Authenticator response is invalid: {msg}",
-                    err.status,
-                    retry_after=_retry_after(rsp),
-                    response=rsp,
-                    errors=errors,
-                    **details,
-                ) from err
-
-            raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {msg}",
-                status=err.status,
-                reason=_reason(err.status),
-                response=rsp,
-                errors=errors,
-                **details,
-            ) from err
+            raise error from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
             self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400

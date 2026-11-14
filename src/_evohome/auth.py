@@ -79,11 +79,6 @@ async def _payload(rsp: aiohttp.ClientResponse | None) -> str:
         return "<no response>"
 
 
-def _details_of(details: Mapping[str, str]) -> _ApiCallDetails:
-    """Return the details of an ApiCallFailedError (e.g. to pass on to another one)."""
-    return {_SZ_CODE: details[_SZ_CODE]} if _SZ_CODE in details else {}
-
-
 async def _details(rsp: aiohttp.ClientResponse | None) -> _ApiCallDetails:
     """Return the details of an error response: its vendor's error code (if any).
 

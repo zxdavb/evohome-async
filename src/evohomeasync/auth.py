@@ -10,19 +10,13 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 
 import probatio as vol
 
-from _evohome.auth import AbstractAuth, _details_of
-from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
+from _evohome.auth import AbstractAuth
+from _evohome.const import HEADERS_BASE, HEADERS_CRED
 from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
-from .const import (
-    SZ_CODE,
-    SZ_LATEST_EULA_ACCEPTED,
-    URL_ACCOUNT_INFO,
-    URL_BASE,
-    URL_CRED,
-)
+from .const import SZ_LATEST_EULA_ACCEPTED, URL_ACCOUNT_INFO, URL_BASE, URL_CRED
 from .exceptions import ApiCallErrorReason
 from .schemas import (
     S1_APPLICATION_ID,
@@ -157,20 +151,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
             S1_PASSWORD: self._secret,
         }
 
-        try:  # check here if the user credentials are invalid...
-            await self._fetch_session_id(credentials)
-
-        except exc.AuthenticationFailedError as err:
-            if err.details.get(SZ_CODE) != TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT:
-                raise
-            self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
-            raise exc.BadUserCredentialsError(
-                f"{err}",
-                status=err.status,
-                response=err.response,
-                errors=err.errors,
-                **_details_of(err.details),  # e.g. the vendor's error code
-            ) from err
+        await self._fetch_session_id(credentials)  # BadUserCredentialsError if invalid
 
         self._was_authenticated = True
 
@@ -182,13 +163,15 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         """Obtain an session ID using the supplied credentials.
 
         The credentials are the user's client_id/secret.
-        Will raise AuthenticationFailedError if unable to obtain a session ID.
+        Will raise BadUserCredentialsError if they are invalid, or (otherwise)
+        AuthenticationFailedError if unable to obtain a session ID.
         """
 
         url = f"https://{self.hostname}/{URL_CRED}"
 
         response: TccSessionResponseT = await self._post_session_id_request(
             url,
+            bad_credentials=TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT,
             headers=HEADERS_CRED,
             data=credentials,  # NOTE: is camelCase
         )
