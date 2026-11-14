@@ -20,6 +20,7 @@ URL_TCS_MODE: Final = "evoTouchSystems?locationId={location_id}"
 URL_ZON_MODE: Final = "devices/{device_id}/thermostat/changeableValues/heatSetpoint"
 
 SZ_ALLOWED_MODES: Final = "allowed_modes"
+SZ_CODE: Final = "code"  # e.g. of an ApiCallFailedError's details
 SZ_COUNTRY: Final = "country"
 SZ_CURRENT_OFFSET_MINUTES: Final = "current_offset_minutes"
 SZ_DAYLIGHT_SAVING_TIME_ENABLED: Final = "daylight_saving_time_enabled"

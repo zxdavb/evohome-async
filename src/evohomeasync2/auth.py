@@ -19,7 +19,7 @@ from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
-from .const import URL_BASE, URL_CRED, URL_USR_ACCOUNT
+from .const import SZ_CODE, URL_BASE, URL_CRED, URL_USR_ACCOUNT
 from .exceptions import ApiCallErrorReason
 from .schemas.account import TCC_POST_OAUTH_TOKEN
 from .schemas.const import (
@@ -206,7 +206,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
                 await self._fetch_access_token(CREDS_USER_PASSWORD | credentials)
 
             except exc.AuthenticationFailedError as err:
-                if TccOAuthError.INVALID_GRANT not in err.message:
+                if err.details.get(SZ_CODE) != TccOAuthError.INVALID_GRANT:
                     raise
                 self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
                 # status will be: HTTPStatus.BAD_REQUEST, 400
