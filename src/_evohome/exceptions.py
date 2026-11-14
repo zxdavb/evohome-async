@@ -128,14 +128,14 @@ class ApiCallErrorReason(StrEnum):
 
 
 class VendorErrorT(TypedDict):
-    """One of the errors in the body of a response to a failed request.
+    """One of the errors in the body of a response to a failed request (v1 or v2).
 
     Its keys are as the vendor's, but in snake_case (e.g. parameterName).
     """
 
     code: str  # e.g. "ParameterIsMissing", "DeviceIsLost"
     message: str  # e.g. "Parameter is missing."
-    parameter_name: NotRequired[str]  # e.g. "SystemMode" (not every API gives one)
+    parameter_name: NotRequired[str]  # e.g. "SystemMode" (only some v2 errors)
 
 
 class ApiCallFailedError(EvohomeError):  # a base exception

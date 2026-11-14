@@ -105,7 +105,7 @@ class CredentialsManagerBase:
 
             msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
             details = await _details(rsp)  # e.g. {"code": "invalid_grant"}
-            errors = await _errors(rsp)  # e.g. [{"code": "TooManyRequests", ...}]
+            errors = await _errors(rsp)  # v1: e.g. [{"code": "TooManyRequests", ...}]
 
             if err.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
                 raise exc.AuthRateLimitExceededError(

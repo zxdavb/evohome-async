@@ -38,7 +38,7 @@ type _TccResponse = dict[str, Any] | list[dict[str, Any]]
 _SZ_CODE: Final = "code"
 _SZ_ERROR: Final = "error"
 
-# the other keys of each error of a list (only some errors have a parameterName)
+# the other keys of each error of a list (only some v2 errors have a parameterName)
 _SZ_MESSAGE: Final = "message"
 _SZ_PARAMETER_NAME: Final = "parameter_name"  # as in VendorErrorT
 _S_PARAMETER_NAME: Final = "parameterName"  # as in the vendor's JSON
@@ -111,9 +111,14 @@ async def _details(rsp: aiohttp.ClientResponse | None) -> _ApiCallDetails:
 async def _errors(rsp: aiohttp.ClientResponse | None) -> tuple[exc.VendorErrorT, ...]:
     """Return the errors listed in an error response (if any), in order.
 
-    That is, of a body such as [{"code": "ParameterIsMissing", "message": "..."}, ...]
-    (an OAuth error, e.g. {"error": "invalid_grant"}, is not a list, so has none). The
-    response's body must have already been read (so there is no further I/O).
+    For both the v1 and v2 APIs (incl. the v1 session POST): their error responses are
+    a list of errors, e.g. [{"code": "ParameterIsMissing", "message": "..."}, ...].
+    Only some v2 errors also have a parameterName (e.g. "SystemMode"); v1 names a field
+    in its message instead (e.g. "'Value' is required.").
+
+    A body that is not such a list has none: e.g. an OAuth error of the v2 token POST
+    ({"error": "invalid_grant"}), or a 404's HTML. The response's body must have
+    already been read (so there is no further I/O).
     """
 
     if rsp is None or rsp.content_type != ContentType.JSON:
