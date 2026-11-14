@@ -9,7 +9,7 @@ import logging
 from datetime import UTC, datetime as dt, tzinfo
 from functools import cached_property
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 from warnings import deprecated
 
 from aiozoneinfo import async_get_time_zone
@@ -36,11 +36,9 @@ from .const import (
     SZ_ZONES,
     URL_LOC_CONFIG,
     URL_LOC_STATUS,
-    URL_USR_ACCOUNT,
 )
 from .exceptions import ClientStateErrorReason
 from .gateway import Gateway
-from .schemas.account import factory_usr_account
 from .schemas.config import factory_loc_config
 from .schemas.const import TccEntityType
 from .schemas.status import factory_loc_status
@@ -51,23 +49,17 @@ if TYPE_CHECKING:
     from _evohome.helpers import Validator
 
     from . import EvohomeClient
-    from .auth import AbstractTokenManager, Auth
+    from .auth import Auth
     from .control_system import ControlSystem
     from .typedefs import (
         EvoLocConfigResponseT,
         EvoLocConfigT,
         EvoLocStatusResponseT,
         EvoTimeZoneT,
-        EvoUsrAccountResponseT,
     )
 
 
 _LOGGER = logging.getLogger(__name__.rpartition(".")[0])
-
-# the userAccount URL is open to all authenticated users, so is used to check the token
-_SCH_USR_ACCOUNT: Final[Validator[EvoUsrAccountResponseT]] = factory_usr_account(
-    Case.PYTHONIC
-)
 
 
 async def _create_tzinfo(
@@ -98,25 +90,6 @@ async def _create_tzinfo(
     return EvoZoneInfo(
         time_zone_info=time_zone_info, use_dst_switching=use_dst_switching
     )
-
-
-def _access_token_in_use(token_manager: AbstractTokenManager) -> str | None:
-    """Return the access token that the next request will send, if it is valid.
-
-    Else None (as the next request will fetch another).
-    """
-    return token_manager.access_token if token_manager.is_token_valid() else None
-
-
-def _clear_rejected_access_token(
-    token_manager: AbstractTokenManager, rejected: str | None
-) -> None:
-    """Clear the access token that was rejected (so another is fetched).
-
-    Unless another task has since refreshed it, so as not to clear the new one.
-    """
-    if rejected is None or token_manager.access_token == rejected:
-        token_manager.clear_access_token()
 
 
 async def create_location(
@@ -323,7 +296,6 @@ class Location(EntityBase[EvoLocStatusT]):
         *,
         raise_on_stale_config: bool = False,
         _update: bool = True,
-        _is_retry: bool = False,
     ) -> EvoLocStatusResponseT:
         """Get the latest state of the location and optionally update its status attrs.
 
@@ -334,13 +306,7 @@ class Location(EntityBase[EvoLocStatusT]):
 
         Some datetimes are naive (e.g. ActiveFaults.since), and assumed to be in the
         location's TZ.
-
-        A 401 is either because the location is no longer the user's (a
-        StaleConfigError), or because the access token was rejected: then the token is
-        cleared (so another is fetched), and the GET is retried (once).
         """
-
-        access_token = _access_token_in_use(self.client.token_manager)
 
         try:
             status: EvoLocStatusResponseT = await self._auth.get(
@@ -351,33 +317,18 @@ class Location(EntityBase[EvoLocStatusT]):
         except exc.BadApiResponseError as err:  # the status failed validation
             raise exc.InvalidGetStatusError(err.message) from err
 
+        except exc.AuthenticationFailedError:  # unable to get an access_token
+            raise
+
         except exc.ApiCallFailedError as err:  # check if 401 - no access to location
-            # raise it if unable to get an access token, if it is not a 401, if unsure
-            # why it is (e.g. userAccount is a 5xx), or if a new token was rejected too
-            if (
-                isinstance(err, exc.AuthenticationFailedError)
-                or err.status != HTTPStatus.UNAUTHORIZED  # 401
-                or (is_accepted := await self._is_access_token_accepted()) is None
-                or (not is_accepted and _is_retry)
-            ):
+            # Auth re-authenticates if the access token is rejected, so a 401 is
+            # because the user has no access to the location
+            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
                 raise
-
-            if is_accepted:
-                raise exc.StaleConfigError(
-                    f"{self}: is no longer accessible (has it been deleted, or unshared?)",
-                    reason=ClientStateErrorReason.LOCATION_INACCESSIBLE,
-                ) from err
-
-            self._logger.warning(
-                f"The access_token has been rejected (will re-authenticate): {err}"
-            )
-            _clear_rejected_access_token(self.client.token_manager, access_token)
-
-            return await self._get_status(
-                raise_on_stale_config=raise_on_stale_config,
-                _update=_update,
-                _is_retry=True,
-            )
+            raise exc.StaleConfigError(
+                f"{self}: is no longer accessible (has it been deleted, or unshared?)",
+                reason=ClientStateErrorReason.LOCATION_INACCESSIBLE,
+            ) from err
 
         status = convert_dtm_to_local_aware(status, self.tzinfo)
 
@@ -396,34 +347,6 @@ class Location(EntityBase[EvoLocStatusT]):
             self._stale_config = None
 
         return status
-
-    async def _is_access_token_accepted(self) -> bool | None:
-        """Return True if the vendor's server accepts the access token, else False.
-
-        A 401 from a location's URL is either because the access token was rejected, or
-        because the user has no access to that location. As the userAccount URL is open
-        to all authenticated users, a 401 from it can only be due to the former.
-
-        Return None if that can't be determined (e.g. no connection, or a 5xx), so that
-        the caller raises its original error (the 401).
-        """
-
-        try:
-            await self._auth.get(
-                URL_USR_ACCOUNT,
-                schema=_SCH_USR_ACCOUNT,
-            )
-
-        except exc.AuthenticationFailedError:  # unable to get an access_token
-            raise
-
-        except exc.ApiCallFailedError as err:
-            return False if err.status == HTTPStatus.UNAUTHORIZED else None  # 401
-
-        except exc.BadApiResponseError:  # unsure
-            return None
-
-        return True
 
     def _missing_from_status(self, status: EvoLocStatusResponseT) -> list[str]:
         """Return the known (i.e. configured) entities that are absent from the status.

@@ -6,7 +6,6 @@ import logging
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
-from unittest.mock import ANY, AsyncMock, call, patch
 
 import pytest
 
@@ -22,17 +21,7 @@ from tests.const import (
 )
 
 from .aioresponses import aioresponses
-from .const import (
-    LOG_01,
-    LOG_02,
-    LOG_03,
-    LOG_04,
-    LOG_20,
-    LOG_28,
-    LOG_29,
-    LOG_90,
-    LOG_99,
-)
+from .const import LOG_01, LOG_02, LOG_03, LOG_04, LOG_20, LOG_29, LOG_90, LOG_99
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -170,7 +159,7 @@ async def test_bad2(  # bad access token
 
         assert err.value.status is None  # Connection refused
         assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
-        assert caplog.record_tuples == [LOG_28, LOG_20, LOG_01, LOG_02, LOG_99]
+        assert caplog.record_tuples == [LOG_20, LOG_01, LOG_02, LOG_99]
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
         # response 0: Unauthorized (bad access token)
@@ -358,6 +347,9 @@ async def test_rejected(  # the vendor rejects a request (a 4xx, but not a 401/4
     """Test a 4xx (other than a 401/429) is an ApiCallRejectedError, GET or PUT.
 
     Also test the reason (by status), and that the vendor's error code is its details.
+
+    A 401 is raised only if the access token is accepted (so it is first checked, via
+    userAccount): see test_v2_auth_rejected.py for when it is not.
     """
 
     # pre-requisite data (a valid access token)
@@ -373,6 +365,10 @@ async def test_rejected(  # the vendor rejects a request (a 4xx, but not a 401/4
             rsp.get(f"{URL_BASE_V2}/{url}", status=status, payload=payload)
         else:
             rsp.put(f"{URL_BASE_V2}/{url}", status=status, payload=payload)
+
+        is_401 = status == HTTPStatus.UNAUTHORIZED
+        if is_401:  # the access token is then checked (here, it is accepted)
+            rsp.get(f"{URL_BASE_V2}/userAccount", payload={})
 
         with pytest.raises(exc.ApiCallFailedError) as err:
             await ec2.auth.request(
@@ -391,7 +387,7 @@ async def test_rejected(  # the vendor rejects a request (a 4xx, but not a 401/4
         assert (response := err.value.response) is not None  # the vendor's response
         assert response.status == status
         assert await response.json() == payload  # its body has been read
-        assert len(rsp.requests) == 1
+        assert len(rsp.requests) == 1 + is_401
 
     ec2._token_manager.clear_access_token()  # is cached; don't leak to next test
 
@@ -490,40 +486,3 @@ async def test_good(  # good credentials
         rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
     assert ec2._token_manager.is_token_valid() is True
-
-
-async def test_rejected_token_refreshed_meanwhile(
-    ec2: EvohomeClient,
-) -> None:
-    """Test a 401 doesn't clear an access token that another task has since refreshed."""
-
-    token_manager = ec2._token_manager
-
-    # pre-requisite data (a valid access token that will nonetheless be rejected)
-    token_manager._access_token = _TEST_ACCESS_TOKEN
-    token_manager._access_token_expires = dt.now(tz=UTC) + td(minutes=15)
-
-    refreshed = "-- refreshed --"
-    rejected = False
-
-    def get(url: str, schema: object) -> object:
-        nonlocal rejected
-        if rejected:
-            return {}
-
-        # while this request is in flight, another task refreshes the access token
-        token_manager._access_token = refreshed
-        rejected = True
-        raise exc.ApiCallFailedError(
-            "GET userAccount: 401 Unauthorized", status=HTTPStatus.UNAUTHORIZED
-        )
-
-    with (
-        patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=get)) as req,
-        patch.object(token_manager, "fetch_access_token") as fetch,
-    ):
-        await ec2._get_user_account()
-
-    assert req.await_args_list == [call("userAccount", schema=ANY)] * 2
-    fetch.assert_not_awaited()
-    assert token_manager.access_token == refreshed

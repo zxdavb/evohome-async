@@ -19,7 +19,7 @@ from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
-from .const import URL_BASE, URL_CRED
+from .const import URL_BASE, URL_CRED, URL_USR_ACCOUNT
 from .exceptions import ApiCallErrorReason
 from .schemas.account import TCC_POST_OAUTH_TOKEN
 from .schemas.const import (
@@ -314,6 +314,9 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 class Auth(AbstractAuth):
     """A class for interacting with the v2 Resideo TCC API."""
 
+    _URL_PROBE = URL_USR_ACCOUNT
+    _CREDENTIAL = "access_token"
+
     def __init__(
         self,
         token_manager: AbstractTokenManager,
@@ -329,6 +332,7 @@ class Auth(AbstractAuth):
 
         super().__init__(websession, logger=logger, _hostname=_hostname)
 
+        self._token_manager: Final = token_manager
         self._access_token = token_manager.get_access_token
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
 
@@ -339,3 +343,16 @@ class Auth(AbstractAuth):
         return headers | {
             hdrs.AUTHORIZATION: "bearer " + await self._access_token(),
         }
+
+    def _credential_in_use(self) -> str | None:
+        """Return the access token that the next request will send, if it is valid."""
+
+        if not self._token_manager.is_token_valid():
+            return None
+        return self._token_manager.access_token
+
+    def _clear_rejected_credential(self, rejected: str | None) -> None:
+        """Clear the access token that was rejected, unless since refreshed."""
+
+        if rejected is None or self._token_manager.access_token == rejected:
+            self._token_manager.clear_access_token()
