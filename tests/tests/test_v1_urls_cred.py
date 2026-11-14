@@ -6,10 +6,10 @@ import logging
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
-from unittest.mock import ANY, AsyncMock, patch
 
 import pytest
 
+from _evohome.const import DEFAULT_RETRY_AFTER
 from evohomeasync import EvohomeClient, exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
 from tests.const import (
@@ -21,7 +21,7 @@ from tests.const import (
 )
 
 from .aioresponses import aioresponses
-from .const import LOG_00, LOG_08, LOG_09, LOG_21, LOG_24, LOG_90, LOG_99
+from .const import LOG_00, LOG_09, LOG_21, LOG_24, LOG_90, LOG_99
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -139,7 +139,7 @@ async def test_bad2(  # bad session ID
 
         assert err.value.status is None  # Connection refused
 
-        assert caplog.record_tuples == [LOG_08, LOG_00, LOG_21, LOG_24, LOG_99]
+        assert caplog.record_tuples == [LOG_00, LOG_21, LOG_24, LOG_99]
 
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
@@ -150,6 +150,36 @@ async def test_bad2(  # bad session ID
         rsp.assert_called_with(POST_CREDS[0], POST_CREDS[1], **POST_CREDS[2])
 
     assert ec1._session_manager.is_session_valid() is False
+
+
+async def test_bad3_without_retry_after(  # rate limit exceeded (authentication)
+    credentials: tuple[str, str],
+    ec1: EvohomeClient,
+) -> None:
+    """Test a 429 without a Retry-After header (as the vendor's have been).
+
+    Its retry_after is the default (15 minutes), by when the vendor's limit has lifted.
+    """
+
+    ec1._session_manager.clear_session_id()
+
+    with aioresponses() as rsp:
+        rsp.post(
+            URL_CRED_V1,
+            status=HTTPStatus.TOO_MANY_REQUESTS,
+            payload=[
+                {
+                    "code": "TooManyRequests",
+                    "message": "Request count limitation exceeded, please try again "
+                    "later.",
+                }
+            ],
+        )
+
+        with pytest.raises(exc.AuthRateLimitExceededError) as err:
+            await ec1.get_status()
+
+    assert err.value.retry_after == DEFAULT_RETRY_AFTER
 
 
 async def test_bad3(  # rate limit exceeded (authentication)
@@ -246,40 +276,3 @@ async def test_good(  # good credentials
         rsp.assert_called_with(GET_ACCOUNT[0], GET_ACCOUNT[1], **GET_ACCOUNT[2])
 
     assert ec1._session_manager.is_session_valid() is True
-
-
-async def test_rejected_session_id_refreshed_meanwhile(
-    ec1: EvohomeClient,
-) -> None:
-    """Test a 401 doesn't clear a session ID that another task has since refreshed."""
-
-    session_manager = ec1._session_manager
-
-    # pre-requisite data (a valid session_id that will nonetheless be rejected)
-    session_manager._session_id = _TEST_SESSION_ID
-    session_manager._session_id_expires = dt.now(tz=UTC) + td(minutes=15)
-
-    new_session_id = "-- new session ID --"
-    rejected = False
-
-    def get(url: str, schema: object) -> object:
-        nonlocal rejected
-        if rejected:
-            return {"user_id": 1234567} if url == "accountInfo" else []
-
-        # while this request is in flight, another task refreshes the session ID
-        session_manager._session_id = new_session_id
-        rejected = True
-        raise exc.ApiCallFailedError(
-            "GET accountInfo: 401 Unauthorized", status=HTTPStatus.UNAUTHORIZED
-        )
-
-    with (
-        patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=get)) as req,
-        patch.object(session_manager, "fetch_session_id") as fetch,
-    ):
-        await ec1._get_config()
-
-    req.assert_any_await("accountInfo", schema=ANY)
-    fetch.assert_not_awaited()
-    assert session_manager.session_id == new_session_id

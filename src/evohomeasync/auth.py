@@ -16,7 +16,7 @@ from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
-from .const import SZ_LATEST_EULA_ACCEPTED, URL_BASE, URL_CRED
+from .const import SZ_LATEST_EULA_ACCEPTED, URL_ACCOUNT_INFO, URL_BASE, URL_CRED
 from .exceptions import ApiCallErrorReason
 from .schemas import (
     S1_APPLICATION_ID,
@@ -261,6 +261,9 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 class Auth(AbstractAuth):
     """A class for interacting with the v1 Resideo TCC API."""
 
+    _URL_PROBE = URL_ACCOUNT_INFO
+    _CREDENTIAL = SZ_SESSION_ID
+
     def __init__(
         self,
         session_manager: AbstractSessionManager,
@@ -276,7 +279,7 @@ class Auth(AbstractAuth):
 
         super().__init__(websession, logger=logger, _hostname=_hostname)
 
-        self._session_id = session_manager.get_session_id
+        self._session_manager: Final = session_manager
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
@@ -284,5 +287,18 @@ class Auth(AbstractAuth):
 
         headers = HEADERS_BASE | (headers or {})
         return headers | {
-            S1_SESSION_ID: await self._session_id(),
+            S1_SESSION_ID: await self._session_manager.get_session_id(),
         }
+
+    def _credential_in_use(self) -> str | None:
+        """Return the session id that the next request will send, if it is valid."""
+
+        if not self._session_manager.is_session_valid():
+            return None
+        return self._session_manager.session_id
+
+    def _clear_rejected_credential(self, rejected: str | None) -> None:
+        """Clear the session id that was rejected, unless since refreshed."""
+
+        if rejected is None or self._session_manager.session_id == rejected:
+            self._session_manager.clear_session_id()

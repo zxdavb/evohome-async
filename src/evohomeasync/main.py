@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 from warnings import deprecated
 
@@ -179,43 +178,12 @@ class EvohomeClient:
         self._stale_config = msg
 
     async def _get_account_info(self) -> EvoUserAccountInfoDictT:
-        """Get the user's account info, re-authenticating if the session_id is rejected."""
+        """Get the user's account info (Auth re-authenticates if the id is rejected)."""
 
-        # if valid, auth.get() sends this id (without yielding), else it fetches another
-        session_id = (
-            self._session_manager.session_id
-            if self._session_manager.is_session_valid()
-            else None
+        return await self.auth.get(
+            URL_ACCOUNT_INFO,
+            schema=SCH_GET_ACCOUNT_INFO,
         )
-
-        try:
-            return await self.auth.get(
-                URL_ACCOUNT_INFO,
-                schema=SCH_GET_ACCOUNT_INFO,
-            )
-
-        except exc.AuthenticationFailedError:  # unable to get a session_id
-            raise
-
-        except exc.ApiCallFailedError as err:  # check if 401 - bad session_id
-            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
-                raise
-
-            # as the accountInfo URL is open to all authenticated users, any 401 is
-            # due the (albeit valid) session_id being rejected by the server
-
-            self._logger.warning(
-                f"The session_id has been rejected (will re-authenticate): {err}"
-            )
-
-            # another task may have since refreshed it, so don't clear the new one
-            if session_id is None or self._session_manager.session_id == session_id:
-                self._session_manager.clear_session_id()
-
-            return await self.auth.get(
-                URL_ACCOUNT_INFO,
-                schema=SCH_GET_ACCOUNT_INFO,
-            )
 
     async def _get_config(self) -> list[EvoTcsInfoDictT]:
         """Retrieve the user information (if required) & the config of their locations.

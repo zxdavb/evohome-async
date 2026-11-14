@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 from warnings import deprecated
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -165,43 +164,12 @@ class EvohomeClient:
             self._tzinfo_initialized = True
 
     async def _get_user_account(self) -> EvoUsrAccountResponseT:
-        """Get the user's account, re-authenticating if the access_token is rejected."""
+        """Get the user's account (Auth re-authenticates if the token is rejected)."""
 
-        # if valid, auth.get() sends this token (without yielding), else it fetches another
-        access_token = (
-            self._token_manager.access_token
-            if self._token_manager.is_token_valid()
-            else None
+        return await self.auth.get(
+            URL_USR_ACCOUNT,
+            schema=SCH_USR_ACCOUNT,
         )
-
-        try:
-            return await self.auth.get(
-                URL_USR_ACCOUNT,
-                schema=SCH_USR_ACCOUNT,
-            )
-
-        except exc.AuthenticationFailedError:  # unable to get an access_token
-            raise
-
-        except exc.ApiCallFailedError as err:  # check if 401 - bad access_token
-            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
-                raise
-
-            # as the userAccount URL is open to all authenticated users, any 401 is
-            # due the (albeit valid) access_token being rejected by the server
-
-            self._logger.warning(
-                f"The access_token has been rejected (will re-authenticate): {err}"
-            )
-
-            # another task may have since refreshed it, so don't clear the new one
-            if access_token is None or self._token_manager.access_token == access_token:
-                self._token_manager.clear_access_token()
-
-            return await self.auth.get(
-                URL_USR_ACCOUNT,
-                schema=SCH_USR_ACCOUNT,
-            )
 
     async def _get_config(self) -> list[EvoLocConfigResponseT]:
         """Retrieve the user information (if required) & the config of their locations.

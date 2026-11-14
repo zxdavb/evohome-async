@@ -8,14 +8,20 @@ from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt
 from email.utils import parsedate_to_datetime
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, Final, TypedDict
+from typing import TYPE_CHECKING, Any, ClassVar, Final, TypedDict
 
 import aiohttp
 import probatio as vol
 from aiohttp import hdrs
 
 from . import exceptions as exc
-from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME, ContentType
+from .const import (
+    DEFAULT_RETRY_AFTER,
+    ERR_MSG_LOOKUP_BASE,
+    HINT_CHECK_NETWORK,
+    HOSTNAME,
+    ContentType,
+)
 from .exceptions import ApiCallErrorReason
 from .helpers import (
     convert_dtms_to_utc_str,
@@ -111,11 +117,15 @@ def _reason(status: int) -> ApiCallErrorReason:
     return ApiCallErrorReason.CALL_FAILED
 
 
-def _retry_after(rsp: aiohttp.ClientResponse | None) -> float | None:
-    """Return the period of a response's Retry-After header, in seconds (if any)."""
+def _retry_after(rsp: aiohttp.ClientResponse | None) -> float:
+    """Return how long to wait before trying again, in seconds (e.g. after a 429).
+
+    That is the period of the response's Retry-After header, else (if it has none, or
+    it is not valid) DEFAULT_RETRY_AFTER: the vendor's 429s have not had one.
+    """
 
     if rsp is None or (value := rsp.headers.get(hdrs.RETRY_AFTER)) is None:
-        return None
+        return DEFAULT_RETRY_AFTER
 
     if value.strip().isdecimal():  # is delay-seconds
         return float(value)
@@ -123,7 +133,7 @@ def _retry_after(rsp: aiohttp.ClientResponse | None) -> float | None:
     try:  # is HTTP-date
         dtm = parsedate_to_datetime(value)
     except ValueError:
-        return None
+        return DEFAULT_RETRY_AFTER
 
     if dtm.tzinfo is None:  # e.g. a zone of -0000
         dtm = dtm.replace(tzinfo=UTC)
@@ -157,9 +167,19 @@ def _api_call_failed(
 
 
 class AbstractAuth(ABC):
-    """A class to provide to access the Resideo TCC API."""
+    """A class to provide to access the Resideo TCC API.
+
+    It manages the credential (an access token, or a session id) of its requests: if
+    the vendor rejects one that should be valid (a 401), it is cleared (so another is
+    fetched), and the request is made again (once). So a 401 that is raised means that
+    the request was not allowed (e.g. an id that is not the user's).
+    """
 
     _url_base: StrOrURL
+
+    # a URL that is open to any authenticated user: so its 401 is of the credential
+    _URL_PROBE: ClassVar[str]
+    _CREDENTIAL: ClassVar[str]  # its name, e.g. SZ_ACCESS_TOKEN (for log messages)
 
     def __init__(
         self,
@@ -250,19 +270,29 @@ class AbstractAuth(ABC):
             json = convert_str_enums_to_pascal_case(json)
             json = convert_keys_to_camel_case(json)
 
+        # if valid, this is the credential that is sent (without yielding first)
+        credential = self._credential_in_use()
+
         try:
             response = await self._make_request(method, url, json=json)
         except exc.AuthenticationFailedError:  # was unable to authenticate
             raise
         except exc.ApiCallFailedError as err:
-            if err.status == HTTPStatus.UNAUTHORIZED:  # 401
-                # leave it up to higher layers to handle 401s as they can either be
-                # - authentication errors: bad access_token, bad session_id
-                # - authorization errors:  bad URL (e.g. no access to that loc_id)
-                self._logger.debug(
-                    f"The access_token/session_id may be invalid (it shouldn't be): {err}"
-                )
-            raise
+            # a 401 is either of the credential (it was rejected), or of the request
+            # (e.g. no access to that loc_id): if the latter, raise it
+            if (
+                err.status != HTTPStatus.UNAUTHORIZED  # 401
+                or not await self._is_credential_rejected(url)
+            ):
+                raise
+
+            self._logger.warning(
+                f"The {self._CREDENTIAL} has been rejected (will re-authenticate): {err}"
+            )
+            self._clear_rejected_credential(credential)
+
+            # with another credential, a 401 is of the request (or it was rejected too)
+            response = await self._make_request(method, url, json=json)
 
         if self._logger.isEnabledFor(logging.DEBUG):
             self._logger.debug(
@@ -277,6 +307,44 @@ class AbstractAuth(ABC):
 
         This could take the form of an access token, or a session ID.
         """
+
+    @abstractmethod
+    def _credential_in_use(self) -> str | None:
+        """Return the credential that the next request will send, if it is valid.
+
+        Else None (as the next request will fetch another).
+        """
+
+    @abstractmethod
+    def _clear_rejected_credential(self, rejected: str | None) -> None:
+        """Clear the credential that was rejected (so another is fetched).
+
+        Unless another task has since refreshed it, so as not to clear the new one.
+        """
+
+    async def _is_credential_rejected(self, url: StrOrURL) -> bool:
+        """Return True if a 401 of a URL was because the credential was rejected.
+
+        A 401 is either because the credential was rejected, or because the user has no
+        access to that URL (e.g. to that location). As the probe URL is open to all
+        authenticated users, a 401 from it can only be due to the former.
+
+        If that can't be determined (e.g. the probe is a 5xx), raise the probe's error.
+        """
+
+        if url == self._URL_PROBE:
+            return True
+
+        try:
+            await self._make_request(HTTPMethod.GET, self._URL_PROBE)
+        except exc.AuthenticationFailedError:  # was unable to authenticate
+            raise
+        except exc.ApiCallFailedError as err:
+            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
+                raise
+            return True
+
+        return False
 
     async def _make_request(
         self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
