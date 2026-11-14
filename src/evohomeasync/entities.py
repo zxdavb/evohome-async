@@ -89,12 +89,31 @@ if TYPE_CHECKING:
         EvoLocInfoDictT,
         EvoTcsDictT,
         EvoTcsInfoDictT,
+        EvoThermostatInfoDictT,
         EvoTimeZoneInfoDictT,
         EvoWeatherDictT,
     )
 
 
 _TEMP_IS_NA: Final = 128
+
+
+def _temperature_status(thermostat: EvoThermostatInfoDictT) -> EvoTemperatureStatusT:
+    """Return the temperature status of a thermostat (i.e. of a zone, or the DHW).
+
+    Its temperature is available only if it was measured, and is not 128 (the vendor's
+    value for none). Otherwise (e.g. NotAvailable, or SensorFault), there is none.
+    """
+
+    temp = thermostat[SZ_INDOOR_TEMPERATURE]
+
+    if (
+        thermostat[SZ_INDOOR_TEMPERATURE_STATUS] != TccSensorStatus.MEASURED
+        or temp == _TEMP_IS_NA
+    ):
+        return {SZ_IS_AVAILABLE: False}
+    return {SZ_IS_AVAILABLE: True, SZ_TEMPERATURE: temp}
+
 
 # e.g. EMEA_ZONE, but any such prefixed type is a zone (c.f. TccThermostatModelType)
 _ZONE_MODEL_TYPE_PREFIX: Final = "EMEA_"
@@ -200,21 +219,11 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
     def temperature_status(self) -> EvoTemperatureStatusT:
         """Expose the temperature_status as per the v2 API."""
 
-        temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
-        temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
-
-        is_available = temp_status == TccSensorStatus.MEASURED
-        if temp == _TEMP_IS_NA:
-            return {SZ_IS_AVAILABLE: is_available}
-        return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
+        return _temperature_status(self._status[SZ_THERMOSTAT])
 
     @property
     def temperature(self) -> float | None:
-        if not (status := self.temperature_status)[SZ_IS_AVAILABLE]:
-            return None
-
-        assert SZ_TEMPERATURE in status  # mypy hint
-        return status[SZ_TEMPERATURE]
+        return self.temperature_status.get(SZ_TEMPERATURE)  # None if not available
 
     async def _set_dhw(
         self,
@@ -320,21 +329,11 @@ class Zone(_DeviceBase):  # Zone version of a Device
     def temperature_status(self) -> EvoTemperatureStatusT:
         """Expose the temperature_status as per the v2 API."""
 
-        temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
-        temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
-
-        is_available = temp_status == TccSensorStatus.MEASURED
-        if temp == _TEMP_IS_NA:
-            return {SZ_IS_AVAILABLE: is_available}
-        return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
+        return _temperature_status(self._status[SZ_THERMOSTAT])
 
     @property
     def temperature(self) -> float | None:
-        if not (status := self.temperature_status)[SZ_IS_AVAILABLE]:
-            return None
-
-        assert SZ_TEMPERATURE in status  # mypy hint
-        return status[SZ_TEMPERATURE]
+        return self.temperature_status.get(SZ_TEMPERATURE)  # None if not available
 
     async def _set_heat_setpoint(
         self,

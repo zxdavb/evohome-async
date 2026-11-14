@@ -34,6 +34,7 @@ from _evohome.exceptions import (
     RequestErrorReason,
     ResponseErrorReason,
     StaleConfigError,
+    VendorErrorT,
     deprecated_getattr,
 )
 
@@ -72,6 +73,7 @@ __all__ = [
     "RequestErrorReason",
     "ResponseErrorReason",
     "StaleConfigError",
+    "VendorErrorT",
 ]
 
 # hidden from type checkers, which would otherwise accept any name in this module

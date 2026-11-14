@@ -38,6 +38,11 @@ type _TccResponse = dict[str, Any] | list[dict[str, Any]]
 _SZ_CODE: Final = "code"
 _SZ_ERROR: Final = "error"
 
+# the other keys of each error of a list (only some errors have a parameterName)
+_SZ_MESSAGE: Final = "message"
+_SZ_PARAMETER_NAME: Final = "parameter_name"  # as in VendorErrorT
+_S_PARAMETER_NAME: Final = "parameterName"  # as in the vendor's JSON
+
 
 class _ApiCallDetails(TypedDict, total=False):
     """The details of an ApiCallFailedError (as a TypedDict, so it is precisely typed).
@@ -103,6 +108,40 @@ async def _details(rsp: aiohttp.ClientResponse | None) -> _ApiCallDetails:
     return {_SZ_CODE: code} if isinstance(code, str) else {}  # i.e. _ApiCallDetails
 
 
+async def _errors(rsp: aiohttp.ClientResponse | None) -> tuple[exc.VendorErrorT, ...]:
+    """Return the errors listed in an error response (if any), in order.
+
+    That is, of a body such as [{"code": "ParameterIsMissing", "message": "..."}, ...]
+    (an OAuth error, e.g. {"error": "invalid_grant"}, is not a list, so has none). The
+    response's body must have already been read (so there is no further I/O).
+    """
+
+    if rsp is None or rsp.content_type != ContentType.JSON:
+        return ()
+
+    try:
+        body = await rsp.json()
+    except (aiohttp.ClientError, json.JSONDecodeError):
+        return ()
+
+    if not isinstance(body, list):
+        return ()
+
+    errors: list[exc.VendorErrorT] = []
+    for entry in body:
+        if not isinstance(entry, dict):
+            continue
+        code, message = entry.get(_SZ_CODE), entry.get(_SZ_MESSAGE)
+        if not isinstance(code, str) or not isinstance(message, str):
+            continue
+        error: exc.VendorErrorT = {_SZ_CODE: code, _SZ_MESSAGE: message}
+        if isinstance(name := entry.get(_S_PARAMETER_NAME), str):
+            error[_SZ_PARAMETER_NAME] = name
+        errors.append(error)
+
+    return tuple(errors)
+
+
 def _reason(status: int) -> ApiCallErrorReason:
     """Return the reason for a response that has an HTTP error status."""
 
@@ -145,6 +184,8 @@ def _api_call_failed(
     status: int,
     rsp: aiohttp.ClientResponse | None,
     details: _ApiCallDetails,
+    *,
+    errors: tuple[exc.VendorErrorT, ...],
 ) -> exc.ApiCallFailedError:
     """Return the exception for a response that has an HTTP error status.
 
@@ -157,12 +198,19 @@ def _api_call_failed(
 
     if reason is ApiCallErrorReason.RATE_LIMITED:  # 429 (the class's default reason)
         return exc.ApiRateLimitExceededError(
-            message, status, retry_after=_retry_after(rsp), response=rsp, **details
+            message,
+            status,
+            retry_after=_retry_after(rsp),
+            response=rsp,
+            errors=errors,
+            **details,
         )
     if reason is ApiCallErrorReason.REQUEST_REJECTED:  # (the class's default reason)
-        return exc.ApiCallRejectedError(message, status=status, response=rsp, **details)
+        return exc.ApiCallRejectedError(
+            message, status=status, response=rsp, errors=errors, **details
+        )
     return exc.ApiCallFailedError(
-        message, status=status, reason=reason, response=rsp, **details
+        message, status=status, reason=reason, response=rsp, errors=errors, **details
     )
 
 
@@ -404,7 +452,11 @@ class AbstractAuth(ABC):
                 msg += f", response={await _payload(rsp)}"
 
             raise _api_call_failed(
-                f"{method} {url}: {msg}", err.status, rsp, await _details(rsp)
+                f"{method} {url}: {msg}",
+                err.status,
+                rsp,
+                await _details(rsp),
+                errors=await _errors(rsp),
             ) from err
 
         except aiohttp.ClientError as err:  # e.g. ClientConnectionError
