@@ -390,7 +390,7 @@ PUTs whose comm task did not end within 60s.
 
 ## Bugs found
 
-- B1 — **fixed in #308** (2026-11-14: the strict xfail is now a plain test; v1 has no
+- B1 — **fixed in #310** (2026-11-14: the strict xfail is now a plain test; v1 has no
   parameterName, it names a field in its message): `TccFailureResponseT` and `factory_failure_response()`
   (`src/evohomeasync2/schemas/account.py`) lack the vendor's optional `parameterName`,
   and the validator is PREVENT_EXTRA, so `TCC_FAILURE_RESPONSE` rejects a real
