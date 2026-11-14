@@ -214,6 +214,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
                     f"{err}",
                     status=err.status,
                     response=err.response,
+                    errors=err.errors,
                     **_details_of(err.details),  # e.g. the vendor's error code
                 ) from err
 

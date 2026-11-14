@@ -30,6 +30,7 @@ from _evohome.exceptions import (
     NotFetchedError,
     RequestErrorReason,
     ResponseErrorReason,
+    VendorErrorT,
     deprecated_getattr,
 )
 
@@ -63,6 +64,7 @@ __all__ = [
     "NotFetchedError",
     "RequestErrorReason",
     "ResponseErrorReason",
+    "VendorErrorT",
 ]
 
 # hidden from type checkers, which would otherwise accept any name in this module

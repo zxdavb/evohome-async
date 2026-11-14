@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Final
 import aiohttp
 
 from . import exceptions as exc
-from .auth import _details, _payload, _reason, _retry_after
+from .auth import _details, _errors, _payload, _reason, _retry_after
 from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME, ContentType
 from .exceptions import ApiCallErrorReason
 
@@ -105,6 +105,7 @@ class CredentialsManagerBase:
 
             msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
             details = await _details(rsp)  # e.g. {"code": "invalid_grant"}
+            errors = await _errors(rsp)  # v1: e.g. [{"code": "TooManyRequests", ...}]
 
             if err.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
                 raise exc.AuthRateLimitExceededError(
@@ -112,6 +113,7 @@ class CredentialsManagerBase:
                     err.status,
                     retry_after=_retry_after(rsp),
                     response=rsp,
+                    errors=errors,
                     **details,
                 ) from err
 
@@ -120,6 +122,7 @@ class CredentialsManagerBase:
                 status=err.status,
                 reason=_reason(err.status),
                 response=rsp,
+                errors=errors,
                 **details,
             ) from err
 

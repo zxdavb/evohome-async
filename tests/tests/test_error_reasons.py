@@ -114,7 +114,7 @@ def test_errors_omit_their_default() -> None:
 
 
 # the keyword arguments of an error that are not its details
-_NOT_DETAILS = {"message", "reason", "response", "retry_after", "status"}
+_NOT_DETAILS = {"errors", "message", "reason", "response", "retry_after", "status"}
 
 
 def test_reasons_have_fixed_details() -> None:
