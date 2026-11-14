@@ -715,7 +715,13 @@ type _TccResponse = Mapping[str, object]
 
 
 class TccFailureResponseT(TypedDict):
-    """Typed dict for code/message responses from the vendor servers."""
+    """Typed dict for code/message responses from the vendor servers.
+
+    A response is a list of these (one per error). A field is named only in its
+    message, e.g. a PUT of {} to a zone's heatSetpoint (probed 2026-11-14):
+      [{"code": "ParameterIsMissing", "message": "'Value' is required."},
+       {"code": "ParameterIsMissing", "message": "'Status' is required."}, ...]
+    """
 
     code: TccFailureCode | str  # e.g. "InvalidInput"; enum is incomplete, so allow str
     message: str
