@@ -16,6 +16,7 @@ import pytest
 from _evohome.const import HINT_BAD_CREDS
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync2 import exceptions as exc
+from evohomeasync2.schemas.const import TccOAuthError
 from tests.const import HEADERS_CRED_V2, URL_CRED_V2
 
 from .aioresponses import aioresponses
@@ -303,8 +304,10 @@ async def test_concurrent_get_access_token_failure(
     async def _fetch_access_token(credentials: dict[str, str]) -> None:
         for _ in range(3):  # yield, so that the other callers queue behind this one
             await asyncio.sleep(0)
-        raise exc.AuthenticationFailedError(
-            '{"error": "invalid_grant"}', status=HTTPStatus.BAD_REQUEST
+        raise exc.AuthenticationFailedError(  # as _post_request() would raise it
+            '{"error": "invalid_grant"}',
+            status=HTTPStatus.BAD_REQUEST,
+            code=TccOAuthError.INVALID_GRANT,
         )
 
     with (
