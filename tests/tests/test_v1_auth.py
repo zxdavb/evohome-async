@@ -15,6 +15,7 @@ import pytest
 from _evohome.const import HINT_BAD_CREDS
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync import exceptions as exc
+from evohomeasync.schemas import TccFailureCode
 from tests.const import URL_CRED_V1
 
 from .aioresponses import aioresponses
@@ -248,8 +249,10 @@ async def test_concurrent_get_session_id_failure(
     async def _fetch_session_id(credentials: dict[str, str]) -> None:
         for _ in range(3):  # yield, so that the other callers queue behind this one
             await asyncio.sleep(0)
-        raise exc.AuthenticationFailedError(
-            '[{"code": "EmailOrPasswordIncorrect"}]', status=HTTPStatus.UNAUTHORIZED
+        raise exc.AuthenticationFailedError(  # as _post_request() would raise it
+            '[{"code": "EmailOrPasswordIncorrect"}]',
+            status=HTTPStatus.UNAUTHORIZED,
+            code=TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT,
         )
 
     with (
