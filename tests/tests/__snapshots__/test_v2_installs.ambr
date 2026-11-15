@@ -26986,8 +26986,7 @@
         lastname: '********'
         user_id: '4001020'
         username: no-reply@redacted.xxx
-      location_type: !!python/object/apply:evohomeasync2.const.LocationType
-      - residential
+      location_type: no_such_location_type
       name: My Home
       postcode: '********'
       street_address: '********'

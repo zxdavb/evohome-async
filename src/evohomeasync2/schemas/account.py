@@ -140,7 +140,7 @@ def factory_task_response(case: Case = Case.VENDOR) -> Validator[TccTaskResponse
         {
             vol.Required(fnc(S2_ID)): vol.Match(REGEX_TASK_ID),
         },
-        extra=vol.PREVENT_EXTRA,
+        extra=vol.ALLOW_EXTRA,  # an extra key would otherwise fail a PUT that succeeded
     )
 
 
@@ -241,7 +241,7 @@ def factory_usr_account(
     return vol.Schema(
         {
             vol.Required(fnc(S2_USER_ID)): str,
-            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), redact),
+            vol.Required(fnc(S2_USERNAME)): vol.All(str, redact),  # not vol.Email(): it is stricter than the vendor
             vol.Required(fnc(S2_FIRSTNAME)): str,
             vol.Required(fnc(S2_LASTNAME)): vol.All(str, redact),
             vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, redact),

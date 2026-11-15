@@ -129,7 +129,7 @@ class EvoLocationInfoT(TypedDict):
     city: str
     country: str
     postcode: str
-    location_type: LocationType
+    location_type: LocationType | str  # enum may be incomplete, so allow str
     use_daylight_save_switching: bool
     time_zone: EvoTimeZoneT
     location_owner: EvoLocationOwnerT

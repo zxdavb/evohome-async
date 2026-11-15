@@ -147,7 +147,7 @@ class TccLocConfigEntryT(TypedDict):
     city: str
     country: str
     postcode: str
-    locationType: TccLocationType
+    locationType: TccLocationType | str  # enum may be incomplete, so allow str
     useDaylightSaveSwitching: bool
     timeZone: TccTimeZoneInfoT
     locationOwner: TccLocationOwnerInfoT
@@ -588,7 +588,7 @@ def factory_loc_config(case: Case = Case.VENDOR) -> Validator[TccLocConfigRespon
     SCH_LOCATION_OWNER: Final = vol.Schema(
         {
             vol.Required(fnc(S2_USER_ID)): str,
-            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), redact),
+            vol.Required(fnc(S2_USERNAME)): vol.All(str, redact),  # not vol.Email(): it is stricter than the vendor
             vol.Required(fnc(S2_FIRSTNAME)): str,
             vol.Required(fnc(S2_LASTNAME)): vol.All(str, redact),
         },
@@ -603,7 +603,7 @@ def factory_loc_config(case: Case = Case.VENDOR) -> Validator[TccLocConfigRespon
             vol.Required(fnc(S2_CITY)): vol.All(str, redact),
             vol.Required(fnc(S2_COUNTRY)): str,
             vol.Required(fnc(S2_POSTCODE)): vol.All(str, redact),
-            vol.Required(fnc(S2_LOCATION_TYPE)): factory_enum(case, TccLocationType),  # "Residential"
+            vol.Required(fnc(S2_LOCATION_TYPE)): factory_enum_or_str(case, TccLocationType),  # "Residential"
             vol.Required(fnc(S2_USE_DAYLIGHT_SAVE_SWITCHING)): bool,
             vol.Required(fnc(S2_TIME_ZONE)): factory_time_zone(case),
             vol.Required(fnc(S2_LOCATION_OWNER)): SCH_LOCATION_OWNER,
