@@ -8,7 +8,7 @@ import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final, TypedDict
+from typing import TYPE_CHECKING, Any, Final, TypedDict, override
 
 import probatio as vol
 from aiohttp import hdrs
@@ -31,9 +31,12 @@ from .schemas.const import (
     OAUTH_SCOPE,
     OAUTH_TOKEN_TYPE,
     OAUTH_USERNAME,
+    TccOAuthError,
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
@@ -253,6 +256,18 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         # TODO: determine if this API support this 'feature'
         # if response.get("latest_eula_accepted") is False:
         #     self._logger.warning("The latest EULA has not been accepted by the user")
+
+    @override
+    def _is_bad_credentials(self, data: Mapping[str, str], code: str | None) -> bool:
+        """Return True if a failed request was refused for the user's credentials.
+
+        Only a password grant has them: an invalid_grant of a refresh token means only
+        that the refresh token is invalid (so the client_id/secret are used instead).
+        """
+        return (
+            code == TccOAuthError.INVALID_GRANT
+            and data.get(OAUTH_GRANT_TYPE) == CREDS_USER_PASSWORD[OAUTH_GRANT_TYPE]
+        )
 
     async def _post_access_token_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from abc import ABC, abstractmethod
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 
@@ -32,13 +33,6 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from aiohttp.typedefs import StrOrURL
-
-
-# the vendor's values that say a request was refused for the user's credentials
-_S1_BAD_CREDENTIALS: Final = "EmailOrPasswordIncorrect"  # v1: its error code
-_S2_INVALID_GRANT: Final = "invalid_grant"  # v2: its (OAuth) error code
-_S2_GRANT_TYPE: Final = "grant_type"  # v2: a key of its request's (form) data
-_S2_CREDENTIALS_GRANT: Final = "password"  # v2: the grant type of a client_id/secret
 
 
 async def _failed_auth_error(
@@ -88,7 +82,7 @@ async def _failed_auth_error(
     )
 
 
-class CredentialsManagerBase:
+class CredentialsManagerBase(ABC):
     """A base class for managing the credentials used for HTTP authentication."""
 
     def __init__(
@@ -129,22 +123,15 @@ class CredentialsManagerBase:
         """Return the hostname used for HTTP authentication."""
         return self._hostname
 
+    @abstractmethod
     def _is_bad_credentials(self, data: Mapping[str, str], code: str | None) -> bool:
-        """Return True if a failed request (v1 or v2) was refused for the user's credentials.
+        """Return True if a failed request was refused for the user's credentials.
 
-        Not overridden per API: one manager may serve both (e.g. the CLI's, or HA's).
-
-        v1: its only request is with the user's client_id/secret, so its code is enough.
-        v2: only a password grant has them; an invalid_grant of a refresh token means only
-        that the refresh token is invalid (so the client_id/secret are used instead).
+        Given the request's data (e.g. v2's grant type) and the vendor's error code (if
+        any). Each API's manager overrides this for its own requests; a manager of both
+        APIs (e.g. the CLI's TokenCacheManager) must override it for both, as only one
+        of the two would apply (the first in its MRO).
         """
-
-        if (
-            code == _S2_INVALID_GRANT
-            and data.get(_S2_GRANT_TYPE) == _S2_CREDENTIALS_GRANT
-        ):
-            return True
-        return code == _S1_BAD_CREDENTIALS
 
     async def _post_request(self, url: StrOrURL, /, **kwargs: Any) -> dict[str, Any]:
         """POST an authentication request and return the response (a dict).

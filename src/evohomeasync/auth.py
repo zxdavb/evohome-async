@@ -6,7 +6,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
-from typing import TYPE_CHECKING, Any, Final, TypedDict
+from typing import TYPE_CHECKING, Any, Final, TypedDict, override
 
 import probatio as vol
 
@@ -24,9 +24,12 @@ from .schemas import (
     S1_SESSION_ID,
     S1_USERNAME,
     TCC_POST_USR_SESSION,
+    TccFailureCode,
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
@@ -203,6 +206,11 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         ):
             self._eula_warned = True
             self._logger.info("The latest EULA has not been accepted by the user")
+
+    @override
+    def _is_bad_credentials(self, data: Mapping[str, str], code: str | None) -> bool:
+        """Return True if a failed request was refused for the user's credentials."""
+        return code == TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT
 
     async def _post_session_id_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any
