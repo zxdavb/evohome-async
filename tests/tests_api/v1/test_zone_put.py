@@ -226,7 +226,7 @@ async def test_set_zone_auto_device_is_lost(
                     "message": "'Value' is required.",
                 },
                 {
-                    "code": "ValueOutOfRange",  # not (yet) a TccFailureCode
+                    "code": TccFailureCode.VALUE_OUT_OF_RANGE,
                     "message": "Value of field Value is out of range.",
                 },
             ],

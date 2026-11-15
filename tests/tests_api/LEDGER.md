@@ -408,7 +408,7 @@ based on the older client & vendor docs, not on the test system's quirks):
 - O1: v1 `HotWater.set_dhw_auto()` sends `{status: Scheduled, mode: null}`; the test system answers 400 (ParameterIsMissing / ForbiddenParameter).
 - O2: v1 `ControlSystem.set_*()` all PUT the removed `evoTouchSystems` URL, so always fail (404).
 - O3: v1 `ControlSystem.reset()` raises a bare `NotImplementedError` (CONTRIBUTING rule 4).
-- O4: v1 `TccFailureCode` lacks `ThermostatModeNotAllowed` and `ValueOutOfRange` (both seen 2026-11-13; the enum says it is incomplete).
+- O4 — **fixed in #320**: v1 `TccFailureCode` lacked `ThermostatModeNotAllowed` and `ValueOutOfRange` (both seen 2026-11-13; the enum says it is incomplete).
 
 ## Decisions / open questions
 
