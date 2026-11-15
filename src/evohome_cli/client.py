@@ -9,6 +9,7 @@ import logging
 import sys
 from typing import TYPE_CHECKING, Final, TypedDict
 
+import aiofiles
 import aiohttp
 import asyncclick as click
 
@@ -34,7 +35,6 @@ from .auth import (
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
-    from io import TextIOWrapper
 
 # all _DBG_* flags are only for dev/test and should be False for published code
 _DBG_DEBUG_CLI = False  # for debugging of click
@@ -44,6 +44,7 @@ DEBUG_PORT: Final = 5679
 
 _CLEANUP: Final = "cleanup"
 _EC2: Final = "ec2"
+_STDIO: Final = "-"  # as a file name, stdin (input) or stdout (output)
 
 
 class _ApiCtxObjT(TypedDict):
@@ -160,9 +161,9 @@ def _output_file_option[FC: Callable[..., object]](f: FC) -> FC:
     return click.option(
         "--output-file",
         "-o",
-        type=click.File("w"),
-        default="-",
-        help="The output file.",
+        type=str,  # not click.File/Path: their checks are sync I/O
+        default=_STDIO,
+        help="The output file (default: stdout).",
     )(f)
 
 
@@ -171,9 +172,41 @@ def _input_file_option[FC: Callable[..., object]](f: FC) -> FC:
     return click.option(
         "--input-file",
         "-i",
-        type=click.File(),
-        help="The input file.",
+        type=str,  # not click.File/Path: their checks are sync I/O
+        required=True,
+        help="The input file (- for stdin).",
     )(f)
+
+
+async def _read_input(input_file: str) -> str:
+    """Return the content of the input file (stdin, if it is '-')."""
+
+    if input_file == _STDIO:
+        return await asyncio.to_thread(sys.stdin.read)
+
+    try:
+        async with aiofiles.open(input_file) as fp:
+            content = await fp.read()
+    except OSError as err:
+        raise click.FileError(input_file, hint=err.strerror) from err
+
+    return content
+
+
+async def _write_output(output_file: str, data: object) -> None:
+    """Write the data, as JSON, to the output file (stdout, if it is '-')."""
+
+    content = json.dumps(data, indent=4) + "\n"
+
+    if output_file == _STDIO:
+        click.echo(content, nl=False)
+        return
+
+    try:
+        async with aiofiles.open(output_file, "w") as fp:
+            await fp.write(content)
+    except OSError as err:
+        raise click.FileError(output_file, hint=err.strerror) from err
 
 
 async def _setup(ec2: EvohomeClient) -> None:
@@ -281,9 +314,7 @@ async def cli(
 @_loc_idx_option
 @_output_file_option
 @click.pass_context
-async def get_system_mode(
-    ctx: click.Context, loc_idx: int, output_file: TextIOWrapper
-) -> None:
+async def get_system_mode(ctx: click.Context, loc_idx: int, output_file: str) -> None:
     """Retrieve the system mode."""
 
     obj: _ApiCtxObjT = ctx.obj
@@ -294,7 +325,7 @@ async def get_system_mode(
 
         tcs = _get_tcs(ec2, loc_idx)
         result = tcs.system_mode_status
-        output_file.write(json.dumps(result, indent=4) + "\n")
+        await _write_output(output_file, result)
 
     finally:
         await obj[_CLEANUP]()
@@ -304,9 +335,7 @@ async def get_system_mode(
 @_loc_idx_option
 @_output_file_option
 @click.pass_context
-async def dump_location(
-    ctx: click.Context, loc_idx: int, output_file: TextIOWrapper
-) -> None:
+async def dump_location(ctx: click.Context, loc_idx: int, output_file: str) -> None:
     """Download all the global config and the location status."""
 
     obj: _ApiCtxObjT = ctx.obj
@@ -320,7 +349,7 @@ async def dump_location(
             "status": await ec2.locations[loc_idx].get_status(),
         }
 
-        output_file.write(json.dumps(result, indent=4) + "\n")
+        await _write_output(output_file, result)
 
     finally:
         await obj[_CLEANUP]()
@@ -336,7 +365,7 @@ async def dump_location(
 @_output_file_option
 @click.pass_context
 async def get_schedule(
-    ctx: click.Context, zone_id: str, loc_idx: int, output_file: TextIOWrapper
+    ctx: click.Context, zone_id: str, loc_idx: int, output_file: str
 ) -> None:
     """Download the schedule of a zone of a TCS (WIP)."""
 
@@ -362,7 +391,7 @@ async def get_schedule(
 
         schedule = {zon.id: {SZ_NAME: zon.name, SZ_SCHEDULE: await zon.get_schedule()}}
 
-        output_file.write(json.dumps(schedule, indent=4) + "\n")
+        await _write_output(output_file, schedule)
 
     finally:
         await obj[_CLEANUP]()
@@ -372,9 +401,7 @@ async def get_schedule(
 @_loc_idx_option
 @_output_file_option
 @click.pass_context
-async def get_schedules(
-    ctx: click.Context, loc_idx: int, output_file: TextIOWrapper
-) -> None:
+async def get_schedules(ctx: click.Context, loc_idx: int, output_file: str) -> None:
     """Download all the schedules from a TCS."""
 
     obj: _ApiCtxObjT = ctx.obj
@@ -387,7 +414,7 @@ async def get_schedules(
 
         schedules = await tcs.get_schedules()
 
-        output_file.write(json.dumps(schedules, indent=4) + "\n")
+        await _write_output(output_file, schedules)
 
     finally:
         await obj[_CLEANUP]()
@@ -397,9 +424,7 @@ async def get_schedules(
 @_loc_idx_option
 @_input_file_option
 @click.pass_context
-async def set_schedules(
-    ctx: click.Context, loc_idx: int, input_file: TextIOWrapper
-) -> None:
+async def set_schedules(ctx: click.Context, loc_idx: int, input_file: str) -> None:
     """Upload schedules to a TCS."""
 
     obj: _ApiCtxObjT = ctx.obj
@@ -408,7 +433,7 @@ async def set_schedules(
     try:
         tcs = _get_tcs(ec2, loc_idx)
 
-        content = input_file.read()
+        content = await _read_input(input_file)
 
         click.echo("Uploading TCS schedules...", err=True)
 
