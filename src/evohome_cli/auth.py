@@ -210,7 +210,7 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
         """Return True if a failed request (v1 or v2) was refused for the user's credentials.
 
         This manager serves both APIs, so it must check for both (else only the first
-        base class's override, v2's, would apply).
+        base class's override (here, its v2's) would apply).
         """
 
         if (
