@@ -32,23 +32,43 @@ class _MockResponse:
         status: int,
         payload: Any,
         headers: dict[str, str] | None = None,
+        *,
+        body: str | None = None,
+        content_type: str = "application/json",
     ) -> None:
         self.method = method
         self.url = URL(url)
         self.status = status
         self._payload = payload
-        self.content_type = "application/json"
+        self._body = body  # if not None, the raw body (e.g. HTML), and not the payload
+        self.content_type = content_type
         self.headers: CIMultiDictProxy[str] = CIMultiDictProxy(
             CIMultiDict(headers or {})
         )
 
     async def read(self) -> bytes:
-        return json.dumps(self._payload).encode()
+        return (await self.text()).encode()
 
     async def json(self, *, content_type: str | None = "application/json") -> Any:
+        if content_type is not None and self.content_type != content_type:
+            raise aiohttp.ContentTypeError(  # as would aiohttp
+                aiohttp.RequestInfo(
+                    url=self.url,
+                    method=self.method,
+                    headers=CIMultiDictProxy(CIMultiDict()),
+                    real_url=self.url,
+                ),
+                history=(),
+                status=self.status,
+                message=f"Attempt to decode JSON with mimetype: {self.content_type}",
+            )
+        if self._body is not None:
+            return json.loads(self._body)
         return self._payload
 
     async def text(self) -> str:
+        if self._body is not None:
+            return self._body
         return json.dumps(self._payload)
 
     def release(self) -> None:
@@ -72,7 +92,8 @@ class _MockResponse:
 class AioResponses:
     """Minimal aioresponses-compatible context manager.
 
-    Usage mirrors the real aioresponses library:
+    Usage mirrors the real aioresponses library (a non-JSON response, e.g. a 404's
+    HTML, is registered with body= and content_type=, as there):
 
         with aioresponses() as rsp:
             rsp.post(url, status=200, payload={...})
@@ -124,10 +145,20 @@ class AioResponses:
         status: int | HTTPStatus = HTTPStatus.OK,
         payload: Any = None,
         headers: dict[str, str] | None = None,
+        body: str | None = None,
+        content_type: str = "application/json",
     ) -> None:
         key = self._key(method, url)
         self._registered[key].append(
-            _MockResponse(method.upper(), url, int(status), payload, headers)
+            _MockResponse(
+                method.upper(),
+                url,
+                int(status),
+                payload,
+                headers,
+                body=body,
+                content_type=content_type,
+            )
         )
 
     def get(
@@ -137,8 +168,18 @@ class AioResponses:
         status: int | HTTPStatus = HTTPStatus.OK,
         payload: Any = None,
         headers: dict[str, str] | None = None,
+        body: str | None = None,
+        content_type: str = "application/json",
     ) -> None:
-        self._register("GET", url, status=status, payload=payload, headers=headers)
+        self._register(
+            "GET",
+            url,
+            status=status,
+            payload=payload,
+            headers=headers,
+            body=body,
+            content_type=content_type,
+        )
 
     def put(
         self,
@@ -147,8 +188,18 @@ class AioResponses:
         status: int | HTTPStatus = HTTPStatus.OK,
         payload: Any = None,
         headers: dict[str, str] | None = None,
+        body: str | None = None,
+        content_type: str = "application/json",
     ) -> None:
-        self._register("PUT", url, status=status, payload=payload, headers=headers)
+        self._register(
+            "PUT",
+            url,
+            status=status,
+            payload=payload,
+            headers=headers,
+            body=body,
+            content_type=content_type,
+        )
 
     def post(
         self,
@@ -157,8 +208,18 @@ class AioResponses:
         status: int | HTTPStatus = HTTPStatus.OK,
         payload: Any = None,
         headers: dict[str, str] | None = None,
+        body: str | None = None,
+        content_type: str = "application/json",
     ) -> None:
-        self._register("POST", url, status=status, payload=payload, headers=headers)
+        self._register(
+            "POST",
+            url,
+            status=status,
+            payload=payload,
+            headers=headers,
+            body=body,
+            content_type=content_type,
+        )
 
     def _call_matches(self, actual: dict[str, Any], expected: dict[str, Any]) -> bool:
         return all(actual.get(k) == v for k, v in expected.items())

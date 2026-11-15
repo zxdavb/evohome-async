@@ -169,7 +169,7 @@ async def _test_zon_apis(
     if ghost := zone.tcs.zone_by_id.get(faked.GHOST_ZONE_ID):
         try:
             schedule = await ghost.get_schedule()
-        except evo2.InvalidScheduleError:
+        except evo2.InvalidGetScheduleError:
             pass
         else:
             pytest.fail("Did not raise expected exception")

@@ -29,6 +29,7 @@ from .const import (
 )
 from .control_system import ControlSystem
 from .exceptions import (
+    ApiCallErrorReason,
     ApiCallFailedError,
     ApiCallRejectedError,
     ApiRateLimitExceededError,
@@ -38,15 +39,24 @@ from .exceptions import (
     BadApiResponseError,
     BadUserCredentialsError,
     ClientStateError,
+    ClientStateErrorReason,
     CommTaskFailedError,
     EvohomeError,
+    EvohomeErrorReason,
     GhostZoneError,
     InvalidConfigError,
+    InvalidGetConfigError,
+    InvalidGetScheduleError,
+    InvalidGetStatusError,
     InvalidModeRequestError,
     InvalidScheduleError,
     InvalidScheduleRequestError,
+    InvalidSetModeError,
+    InvalidSetScheduleError,
     InvalidStatusError,
     NotFetchedError,
+    RequestErrorReason,
+    ResponseErrorReason,
     StaleConfigError,
 )
 from .gateway import Gateway
@@ -82,6 +92,7 @@ __all__ = [  # noqa: RUF022
     "ZoneModelType",
     "ZoneType",
     #
+    "ApiCallErrorReason",
     "ApiCallFailedError",
     "ApiCallRejectedError",
     "ApiRateLimitExceededError",
@@ -92,16 +103,25 @@ __all__ = [  # noqa: RUF022
     "BadApiResponseError",
     "BadUserCredentialsError",
     "ClientStateError",
+    "ClientStateErrorReason",
     "CommTaskFailedError",
     "EvohomeError",
+    "EvohomeErrorReason",
     "GhostZoneError",
-    "InvalidConfigError",
-    "InvalidModeRequestError",
-    "InvalidScheduleError",
-    "InvalidScheduleRequestError",
-    "InvalidStatusError",
-    "InvalidSystemModeError",  # deprecated alias for InvalidModeRequestError
+    "InvalidGetConfigError",
+    "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)
+    "InvalidSetModeError",
+    "InvalidModeRequestError",  # TODO: deprecate in v4.0 (an alias of InvalidSetModeError)
+    "InvalidGetScheduleError",
+    "InvalidScheduleError",  # TODO: deprecate in v4.0 (an alias of InvalidGetScheduleError)
+    "InvalidSetScheduleError",
+    "InvalidScheduleRequestError",  # TODO: deprecate in v4.0 (an alias of InvalidSetScheduleError)
+    "InvalidGetStatusError",
+    "InvalidStatusError",  # TODO: deprecate in v4.0 (an alias of InvalidGetStatusError)
+    "InvalidSystemModeError",  # deprecated alias for InvalidSetModeError
     "NotFetchedError",
+    "RequestErrorReason",
+    "ResponseErrorReason",
     "StaleConfigError",
 ]
 

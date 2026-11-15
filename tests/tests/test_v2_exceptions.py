@@ -11,16 +11,18 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from _evohome import exceptions as _exc
 from evohomeasync2 import ControlSystem, EvohomeClient, Zone, exceptions as exc
 from evohomeasync2.const import (
     SZ_GATEWAYS,
     SZ_MODEL_TYPE,
     SZ_TEMPERATURE_CONTROL_SYSTEMS,
+    SZ_USER_ID,
     SZ_ZONE_ID,
     SZ_ZONES,
     ZoneModelType,
 )
-from tests.common import get_dhw, get_loc, get_tcs, get_zon
+from tests.common import exceptions_constructed, get_dhw, get_loc, get_tcs, get_zon
 from tests.const import TEST_LOC_IDX
 
 from .conftest import FIXTURES_V2 as FIXTURES, auth_get
@@ -57,16 +59,21 @@ async def test_config_not_fetched(
 
     ec2 = EvohomeClient(credentials_manager)
 
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec2.tzinfo
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec2.user_account
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec2.user_id
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec2.locations
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec2.location_by_id
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
 
 
 async def test_schedule_not_fetched(
@@ -76,12 +83,15 @@ async def test_schedule_not_fetched(
 
     assert zone._schedule_last_fetched is None
 
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = zone.schedule
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = zone.this_switchpoint
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = zone.next_switchpoint
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
 
 
 async def test_status_not_fetched(
@@ -99,61 +109,86 @@ async def test_status_not_fetched(
     # status (so nothing would raise), whereas this client has fetched only the config
     tcs = get_tcs(ec2)
 
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = tcs.status
+    assert exc_info.value.reason is exc.ClientStateErrorReason.STATUS_NOT_FETCHED
     zone = get_zon(ec2)
     assert zone is not None  # the default/ fixture has zones
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = zone.status
+    assert exc_info.value.reason is exc.ClientStateErrorReason.STATUS_NOT_FETCHED
     if dhw := get_dhw(ec2):  # not the dhw fixture (see above)
-        with pytest.raises(exc.NotFetchedError):
+        with pytest.raises(exc.NotFetchedError) as exc_info:
             _ = dhw.status
+        assert exc_info.value.reason is exc.ClientStateErrorReason.STATUS_NOT_FETCHED
 
 
-async def test_invalid_config(
+async def test_invalid_account(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test update() raises InvalidConfigError if the config fails validation."""
+    """Test setup() raises InvalidGetConfigError if the account fails validation."""
 
     ec2 = EvohomeClient(credentials_manager)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
-        pytest.raises(exc.InvalidConfigError) as err,
+        pytest.raises(exc.InvalidGetConfigError) as err,
     ):
-        await ec2.setup()
+        await ec2.setup()  # the first GET is of the account
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
+    assert err.value.reason is exc.ResponseErrorReason.ACCOUNT_INVALID
+
+
+async def test_invalid_config(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test setup() raises InvalidGetConfigError if the config fails validation."""
+
+    ec2 = EvohomeClient(credentials_manager)
+    error = exc.BadApiResponseError(_ERR_MSG)
+    account = {SZ_USER_ID: "1234567"}  # the GET of the account is OK
+
+    with (
+        patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=[account, error])),
+        pytest.raises(exc.InvalidGetConfigError) as err,
+    ):
+        await ec2.setup()  # the second GET is of the locations (their config)
+
+    assert err.value.message == _ERR_MSG
+    assert err.value.__cause__ is error
+    assert err.value.reason is exc.ResponseErrorReason.CONFIG_INVALID
 
 
 async def test_invalid_status(
     ec2: EvohomeClient,
 ) -> None:
-    """Test update() raises InvalidStatusError if the status fails validation."""
+    """Test update() raises InvalidGetStatusError if the status fails validation."""
 
     loc = get_loc(ec2)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
-        pytest.raises(exc.InvalidStatusError) as err,
+        pytest.raises(exc.InvalidGetStatusError) as err,
     ):
         await loc.get_status()
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
+    assert err.value.reason is exc.ResponseErrorReason.STATUS_INVALID
 
 
 @pytest.mark.parametrize(
     ("error", "expected"),
     [
         # the schedule failed validation, or there is no schedule
-        (exc.BadApiResponseError(_ERR_MSG), exc.InvalidScheduleError),
+        (exc.BadApiResponseError(_ERR_MSG), exc.InvalidGetScheduleError),
         (
             exc.ApiCallFailedError(_ERR_MSG, status=HTTPStatus.BAD_REQUEST),
-            exc.InvalidScheduleError,
+            exc.InvalidGetScheduleError,
         ),
         # all other failures are not about the schedule, and so are left as they are
         (
@@ -173,7 +208,7 @@ async def test_get_schedule_failures(
     error: exc.EvohomeError,
     expected: type[exc.EvohomeError],
 ) -> None:
-    """Test get_schedule() raises InvalidScheduleError only for a bad schedule."""
+    """Test get_schedule() raises InvalidGetScheduleError only for a bad schedule."""
 
     with (
         patch("evohomeasync2.auth.Auth.get", AsyncMock(side_effect=error)),
@@ -230,11 +265,11 @@ async def test_invalid_schedule_not_stored(
         patch.object(
             Zone,
             "_find_switchpoints",
-            side_effect=exc.InvalidScheduleError("No switchpoints for next day"),
+            side_effect=exc.InvalidGetScheduleError("No switchpoints for next day"),
         ),
     ):
         for zone in (fetched, unfetched):
-            with pytest.raises(exc.InvalidScheduleError):
+            with pytest.raises(exc.InvalidGetScheduleError):
                 await zone.get_schedule()
 
     assert fetched.schedule == schedule
@@ -242,12 +277,15 @@ async def test_invalid_schedule_not_stored(
     assert fetched._schedule_last_fetched == last_fetched
 
     assert unfetched._schedule_last_fetched is None
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = unfetched.schedule
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = unfetched.this_switchpoint
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = unfetched.next_switchpoint
+    assert exc_info.value.reason is exc.ClientStateErrorReason.SCHEDULE_NOT_FETCHED
 
 
 async def test_set_schedule_before_get(
@@ -275,6 +313,22 @@ async def test_set_schedule_before_get(
     assert zone.this_switchpoint[0] < zone.next_switchpoint[0]
 
 
+async def test_switchpoints_error_names_the_entity(
+    zone: Zone,
+) -> None:
+    """Test an invalid schedule's error names its zone, whichever the path to it.
+
+    The switchpoints are found by a module-level function (so its messages have no
+    entity), via get_schedule() or the this/next_switchpoint properties.
+    """
+
+    with pytest.raises(exc.InvalidGetScheduleError) as exc_info:
+        zone._find_switchpoints([], dt.now(tz=UTC))  # no daily schedules
+
+    assert exc_info.value.message.startswith(f"{zone}: Schedule is invalid: ")
+    assert exc_info.value.reason is exc.ResponseErrorReason.SCHEDULE_MISSING
+
+
 async def test_ghost_zone(
     zone: Zone,
 ) -> None:
@@ -283,8 +337,10 @@ async def test_ghost_zone(
     config = zone._config.copy()
     config[SZ_MODEL_TYPE] = ZoneModelType.UNKNOWN
 
-    with pytest.raises(exc.GhostZoneError):
+    with pytest.raises(exc.GhostZoneError) as exc_info:
         Zone(zone.tcs, config)
+
+    assert exc_info.value.reason is exc.ResponseErrorReason.ZONE_MODEL_UNKNOWN
 
 
 async def test_ghost_zone_skipped(
@@ -313,19 +369,34 @@ async def test_ghost_zone_other_errors(
     ec2: EvohomeClient,
     tcs: ControlSystem,
 ) -> None:
-    """Test a TCS skips only a GhostZoneError: any other InvalidConfigError is raised."""
+    """Test a TCS skips only a GhostZoneError: any other InvalidGetConfigError is raised."""
 
     assert ec2._user_locs is not None  # mypy
 
     config = ec2._user_locs[TEST_LOC_IDX][SZ_GATEWAYS][0][
         SZ_TEMPERATURE_CONTROL_SYSTEMS
     ][0]
-    error = exc.InvalidConfigError("Not a ghost zone")
+    error = exc.InvalidGetConfigError("Not a ghost zone")
 
     with (
         patch("evohomeasync2.control_system.Zone", side_effect=error),
-        pytest.raises(exc.InvalidConfigError) as err,
+        pytest.raises(exc.InvalidGetConfigError) as err,
     ):
         ControlSystem(tcs.gateway, config)
 
     assert err.value is error
+
+
+def test_exceptions_are_exported() -> None:
+    """Test every exception the client can raise is exported by its exceptions module.
+
+    That is, any that its code (or the shared code) constructs, as the very same class,
+    so a consumer can catch it as evohomeasync2.exceptions.<name>.
+    """
+
+    constructed = exceptions_constructed("_evohome", "evohomeasync2")
+    assert "BadUserCredentialsError" in constructed  # i.e. the scan finds them
+
+    assert not (missing := constructed - set(exc.__all__)), f"not exported: {missing}"
+    for name in constructed:
+        assert getattr(exc, name) is getattr(_exc, name)

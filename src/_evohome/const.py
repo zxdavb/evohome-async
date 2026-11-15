@@ -3,13 +3,22 @@
 from __future__ import annotations
 
 import re
+from enum import StrEnum
 from http import HTTPStatus
 from typing import Final
+
+from aiohttp import hdrs
 
 # all _DBG_* flags are only for dev/test and should be False for published code
 _DBG_DONT_REDACT_SECRETS = False  # default is to redact sensitive JSON in debug output
 
 HOSTNAME: Final = "tccna.resideo.com"
+
+# how long to wait after a 429 that has no (valid) Retry-After header (none has had one):
+# the vendor's limit on authentication (the only one seen) lifts within this (probed
+# 2026-11-13: the token & session POSTs were each a 429, then a 200 15 minutes later;
+# 2026-11-15: usually a 200 within 5 minutes, but once still a 429 after 10 minutes)
+DEFAULT_RETRY_AFTER: Final = 15 * 60  # seconds
 
 # the messages of NotFetchedError
 _ERR_NO_CONFIG: Final = "{} not available until after EvohomeClient.setup() is called"
@@ -23,19 +32,26 @@ REGEX_EMAIL_ADDRESS = re.compile(
 )
 
 
-# No need to indicate "Content-Type" as default is "charset=utf-8", with:
-# - POST: "Content-Type": "application/json"                  (default)
-# - GETs: "Content-Type": "application/x-www-form-urlencoded" (not required)
-# - PUTs: "Content-Type": "application/json"                  (as used here)
+class ContentType(StrEnum):
+    """The media types of a request/response (the stdlib has no such constants)."""
+
+    JSON = "application/json"
+    TEXT_HTML = "text/html"
+    TEXT_PLAIN = "text/plain"
+
+
+# No need for a Content-Type header, as aiohttp sets it from the body:
+# - POSTs: data=  -> application/x-www-form-urlencoded (the auth requests)
+# - PUTs:  json=  -> application/json
+# - GETs:  (no body)
 
 HEADERS_BASE = {
-    "Accept": "application/json",
-    "Connection": "Keep-Alive",
-    # "Content-Type": "application/json",
+    hdrs.ACCEPT: ContentType.JSON,
+    hdrs.CONNECTION: "Keep-Alive",  # TODO: remove: HTTP/1.1 keeps alive by default
 }
 HEADERS_CRED = HEADERS_BASE | {
-    "Cache-Control": "no-cache, no-store",
-    "Pragma": "no-cache",
+    hdrs.CACHE_CONTROL: "no-cache, no-store",
+    hdrs.PRAGMA: "no-cache",  # TODO: remove: HTTP/1.0 only, so Cache-Control suffices
 }
 
 HINT_CHECK_NETWORK = (

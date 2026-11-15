@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from _evohome.exceptions import (
+    ApiCallErrorReason,
     ApiCallFailedError,
     ApiCallRejectedError,
     ApiRateLimitExceededError,
@@ -14,12 +15,22 @@ from _evohome.exceptions import (
     BadApiResponseError,
     BadUserCredentialsError,
     ClientStateError,
+    ClientStateErrorReason,
+    CommTaskFailedError,
     EvohomeError,
+    EvohomeErrorReason,
     InvalidConfigError,
+    InvalidGetConfigError,
+    InvalidGetScheduleError,
+    InvalidGetStatusError,
     InvalidScheduleError,
     InvalidScheduleRequestError,
+    InvalidSetScheduleError,
     InvalidStatusError,
     NotFetchedError,
+    RequestErrorReason,
+    ResponseErrorReason,
+    VendorErrorT,
     deprecated_getattr,
 )
 
@@ -27,6 +38,7 @@ if TYPE_CHECKING:  # at runtime, they are served by __getattr__() (and warn)
     from _evohome.exceptions import ApiRequestFailedError
 
 __all__ = [
+    "ApiCallErrorReason",
     "ApiCallFailedError",
     "ApiCallRejectedError",
     "ApiRateLimitExceededError",
@@ -37,12 +49,22 @@ __all__ = [
     "BadApiResponseError",
     "BadUserCredentialsError",
     "ClientStateError",
+    "ClientStateErrorReason",
+    "CommTaskFailedError",
     "EvohomeError",
-    "InvalidConfigError",
-    "InvalidScheduleError",
-    "InvalidScheduleRequestError",
-    "InvalidStatusError",
+    "EvohomeErrorReason",
+    "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)
+    "InvalidGetConfigError",
+    "InvalidGetScheduleError",
+    "InvalidGetStatusError",
+    "InvalidScheduleError",  # TODO: deprecate in v4.0 (an alias of InvalidGetScheduleError)
+    "InvalidScheduleRequestError",  # TODO: deprecate in v4.0 (an alias of InvalidSetScheduleError)
+    "InvalidSetScheduleError",
+    "InvalidStatusError",  # TODO: deprecate in v4.0 (an alias of InvalidGetStatusError)
     "NotFetchedError",
+    "RequestErrorReason",
+    "ResponseErrorReason",
+    "VendorErrorT",
 ]
 
 # hidden from type checkers, which would otherwise accept any name in this module

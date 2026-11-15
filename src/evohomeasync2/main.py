@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 from warnings import deprecated
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -15,7 +14,8 @@ from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .auth import AbstractTokenManager, Auth
-from .const import SZ_USER_ID
+from .const import SZ_USER_ID, URL_USR_ACCOUNT, URL_USR_LOCATIONS
+from .exceptions import ClientStateErrorReason, ResponseErrorReason
 from .location import Location, create_location
 from .schemas.account import factory_usr_account
 from .schemas.config import factory_usr_locations
@@ -43,7 +43,7 @@ class EvohomeClient:
     """Provide a client to access the Resideo TCC API."""
 
     _user_info: EvoUsrAccountResponseT | None = None
-    _user_locs: list[EvoLocConfigResponseT] | None = None  # all locations of the user
+    _user_locs: list[EvoLocConfigResponseT] | None = None  # the config of all locs
 
     def __init__(
         self,
@@ -82,33 +82,33 @@ class EvohomeClient:
         """Return a tzinfo-compliant object for the client's local time."""
 
         if not self._tzinfo_initialized:
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Timezone information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Timezone information"),
+            )
 
         return self._tzinfo
 
-    async def setup(self, *, _reset_config: bool = False) -> None:
+    async def setup(self) -> None:
         """Retrieve the user information & the configuration of all their locations.
 
         This is usually called only once, before using the client. It does not
         retrieve the status of any location: use `Location.get_status()` for that.
 
         There is one API call for the user info, and a second for the config of all the
-        user's locations. If they have already been retrieved, there are none (unless
-        `_reset_config` is true, for use by the test suite).
+        user's locations. If they have already been retrieved, there are none.
         """
 
-        if _reset_config:
-            self._user_info = None
-            self._user_locs = None
+        if self._locations is None:
+            await self._get_config()
 
-            self._locations = None
-            self._location_by_id = None
+    def _clear_config(self) -> None:
+        """Clear the user information & the config of their locations."""
 
-        if self._user_locs is None:
-            try:
-                await self._get_config()
-            except exc.BadApiResponseError as err:  # e.g. failed validation
-                raise exc.InvalidConfigError(err.message) from err
+        self._user_info = None
+        self._user_locs = None
+
+        self._locations = None
+        self._location_by_id = None
 
     @deprecated(
         "EvohomeClient.update() is deprecated: use .setup(), then Location.get_status()"
@@ -119,7 +119,6 @@ class EvohomeClient:
         *,
         dont_update_status: bool = False,
         raise_on_stale_config: bool = False,
-        _reset_config: bool = False,  # for use by test suite
     ) -> list[EvoLocConfigResponseT]:
         """Retrieve the config of the user's locations, and then their status.
 
@@ -132,9 +131,9 @@ class EvohomeClient:
         `Location.get_status()`).
         """
 
-        is_new_config = _reset_config or self._locations is None
+        is_new_config = self._locations is None
 
-        await self.setup(_reset_config=_reset_config)
+        await self.setup()
 
         if not dont_update_status:  # don't retrieve/update status of location hierarchy
             # only warn once per config refresh (i.e. not on every status update)
@@ -165,83 +164,56 @@ class EvohomeClient:
             self._tzinfo_initialized = True
 
     async def _get_user_account(self) -> EvoUsrAccountResponseT:
-        """Get the user's account, re-authenticating if the access_token is rejected."""
+        """Get the user's account (Auth re-authenticates if the token is rejected)."""
 
-        url = "userAccount"
-
-        # if valid, auth.get() sends this token (without yielding), else it fetches another
-        access_token = (
-            self._token_manager.access_token
-            if self._token_manager.is_token_valid()
-            else None
+        return await self.auth.get(
+            URL_USR_ACCOUNT,
+            schema=SCH_USR_ACCOUNT,
         )
 
-        try:
-            return await self.auth.get(url, schema=SCH_USR_ACCOUNT)
-
-        except exc.AuthenticationFailedError:  # unable to get an access_token
-            raise
-
-        except exc.ApiCallFailedError as err:  # check if 401 - bad access_token
-            if err.status != HTTPStatus.UNAUTHORIZED:  # 401
-                raise
-
-            # as the userAccount URL is open to all authenticated users, any 401 is
-            # due the (albeit valid) access_token being rejected by the server
-
-            self._logger.warning(
-                f"The access_token has been rejected (will re-authenticate): {err}"
-            )
-
-            # another task may have since refreshed it, so don't clear the new one
-            if access_token is None or self._token_manager.access_token == access_token:
-                self._token_manager.clear_access_token()
-            return await self.auth.get(url, schema=SCH_USR_ACCOUNT)
-
     async def _get_config(self) -> list[EvoLocConfigResponseT]:
-        """Ensures the config of the user and their locations.
+        """Retrieve the user information (if required) & the config of their locations.
 
-        If required, first retrieves the user information & installation configuration.
+        A response that is not as expected is an InvalidGetConfigError.
+
+        The state is set only once all is retrieved, so a failure leaves none.
         """
 
         if not self._tzinfo_initialized:
             await self._async_init_tzinfo()
 
         if self._user_info is None:  # will handle access_token rejection
-            self._user_info = await self._get_user_account()
-
-        if self._user_locs is None:
             try:
-                user_id = self._user_info[SZ_USER_ID]
-            except (KeyError, TypeError) as err:
-                raise exc.BadApiResponseError(
-                    f"No user_id in user_info dict. Received: {self._user_info}"
+                self._user_info = await self._get_user_account()
+            except exc.BadApiResponseError as err:  # e.g. failed validation
+                raise exc.InvalidGetConfigError(
+                    err.message, reason=ResponseErrorReason.ACCOUNT_INVALID
                 ) from err
 
-            self._user_locs = await self.auth.get(
-                f"location/installationInfo?userId={user_id}&includeTemperatureControlSystems=True",
+        try:
+            user_locs = await self.auth.get(
+                URL_USR_LOCATIONS.format(user_id=self.user_id),
                 schema=SCH_USR_LOCATIONS,
             )
+        except exc.BadApiResponseError as err:  # e.g. failed validation
+            raise exc.InvalidGetConfigError(err.message) from err
 
-            assert self._user_locs is not None  # mypy
+        locations = [await create_location(self, config) for config in user_locs]
 
-        if self._locations is None:
-            self._locations = []
-            self._location_by_id = {}
+        self._user_locs = user_locs
+        self._locations = locations
+        self._location_by_id = {loc.id: loc for loc in locations}
 
-            for loc_config in self._user_locs:
-                loc = await create_location(self, loc_config)
-                self._locations.append(loc)
-                self._location_by_id[loc.id] = loc
-
-        return self._user_locs
+        return user_locs
 
     @property
     def user_account(self) -> EvoUsrAccountResponseT:
         """Return the (config) information of the user account."""
 
         if self._user_info is None:  # None: never fetched, []: fetched but empty
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Account information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Account information"),
+            )
 
         return self._user_info
 
@@ -255,7 +227,9 @@ class EvohomeClient:
         """Return the list of location entities (may be empty)."""
 
         if self._locations is None:  # None: never fetched, []: fetched but empty
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Installation information"),
+            )
 
         return self._locations
 
@@ -264,7 +238,9 @@ class EvohomeClient:
         """Return the location entities by id (may be empty)."""
 
         if self._location_by_id is None:  # None: never fetched, []: fetched but empty
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Installation information"),
+            )
 
         return self._location_by_id
 
@@ -278,10 +254,14 @@ class EvohomeClient:
 
         if len(locs := self.locations) != 1:
             raise exc.ClientStateError(
-                "There is not a single location (only) for this account"
+                "There is not a single location (only) for this account",
+                reason=ClientStateErrorReason.LOCATION_NOT_SINGLE,
             )
 
         if (tcs := locs[0].tcs) is None:
-            raise exc.ClientStateError("The location of this account has no TCS")
+            raise exc.ClientStateError(
+                "The location of this account has no TCS",
+                reason=ClientStateErrorReason.LOCATION_NO_TCS,
+            )
 
         return tcs

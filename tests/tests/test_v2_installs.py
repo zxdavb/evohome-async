@@ -77,7 +77,7 @@ async def test_system_snapshot(
                 for z in tcs.zones:  # is 1-12
                     try:  # the schedule is needed for serializable_attrs(z), below
                         await z.get_schedule()
-                    except exc.InvalidScheduleError as err:  # e.g. system_006
+                    except exc.InvalidGetScheduleError as err:  # e.g. system_006
                         errors[z.id] = str(err)
                 if errors:
                     assert errors == snapshot(name=f"loc_{loc.id}_zon_err")
@@ -115,7 +115,7 @@ async def test_system_schedules(
 
     data = []
     for z in tcs.zones:
-        with contextlib.suppress(exc.InvalidScheduleError):  # e.g. system_006
+        with contextlib.suppress(exc.InvalidGetScheduleError):  # e.g. system_006
             data.append((z.this_switchpoint, z.next_switchpoint))
     if dhw := tcs.hotwater:
         data.append((dhw.this_switchpoint, dhw.next_switchpoint))

@@ -6,19 +6,30 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
-from typing import TYPE_CHECKING, Any, Final, TypedDict
+from typing import TYPE_CHECKING, Any, Final, TypedDict, override
 
 import probatio as vol
 
 from _evohome.auth import AbstractAuth
-from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
+from _evohome.const import HEADERS_BASE, HEADERS_CRED
 from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
-from .schemas import S1_SESSION_ID, TCC_POST_USR_SESSION
+from .const import SZ_LATEST_EULA_ACCEPTED, URL_ACCOUNT_INFO, URL_BASE, URL_CRED
+from .exceptions import ApiCallErrorReason
+from .schemas import (
+    S1_APPLICATION_ID,
+    S1_PASSWORD,
+    S1_SESSION_ID,
+    S1_USERNAME,
+    TCC_POST_USR_SESSION,
+    TccFailureCode,
+)
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
@@ -37,12 +48,6 @@ SZ_USER_INFO: Final = "user_info"
 
 # this is not documented, but testing indicates is 15 minutes
 SESSION_ID_LIFETIME: Final = td(minutes=15)
-
-# POST authentication url (i.e. /WebAPI/api/session)
-URL_CRED: Final = "WebAPI/api/session"
-
-# GET/PUT resource url (i.e. /WebAPI/api/...)
-URL_BASE: Final = "WebAPI/api"
 
 
 class SessionIdEntryT(TypedDict):
@@ -143,19 +148,12 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         self._logger.debug(" - authenticating with client_id/secret")
 
         credentials = {
-            "applicationId": _APPLICATION_ID,
-            "username": self._client_id,
-            "password": self._secret,
+            S1_APPLICATION_ID: _APPLICATION_ID,
+            S1_USERNAME: self._client_id,
+            S1_PASSWORD: self._secret,
         }
 
-        try:  # check here if the user credentials are invalid...
-            await self._fetch_session_id(credentials)
-
-        except exc.AuthenticationFailedError as err:
-            if "EmailOrPasswordIncorrect" not in err.message:
-                raise
-            self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
-            raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
+        await self._fetch_session_id(credentials)
 
         self._was_authenticated = True
 
@@ -167,7 +165,8 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         """Obtain an session ID using the supplied credentials.
 
         The credentials are the user's client_id/secret.
-        Will raise AuthenticationFailedError if unable to obtain a session ID.
+        Will raise AuthenticationFailedError if unable to obtain a session ID
+        (BadUserCredentialsError if the credentials are invalid).
         """
 
         url = f"https://{self.hostname}/{URL_CRED}"
@@ -195,17 +194,23 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {response}: {err.__class__.__name__}: {err}"
+                f"Authenticator response is invalid: {response}: {err.__class__.__name__}: {err}",
+                reason=ApiCallErrorReason.AUTH_RESPONSE_INVALID,
             ) from err
 
         self._was_authenticated = True  # i.e. the credentials are valid
 
         if (
             not self._eula_warned
-            and self._user_info.get("latest_eula_accepted") is False
+            and self._user_info.get(SZ_LATEST_EULA_ACCEPTED) is False
         ):
             self._eula_warned = True
             self._logger.info("The latest EULA has not been accepted by the user")
+
+    @override
+    def _is_bad_credentials(self, data: Mapping[str, str], code: str | None) -> bool:
+        """Return True if a failed request was refused for the user's credentials."""
+        return code == TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT
 
     async def _post_session_id_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any
@@ -252,6 +257,9 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
 class Auth(AbstractAuth):
     """A class for interacting with the v1 Resideo TCC API."""
 
+    _URL_PROBE = URL_ACCOUNT_INFO
+    _CREDENTIAL = SZ_SESSION_ID
+
     def __init__(
         self,
         session_manager: AbstractSessionManager,
@@ -267,7 +275,7 @@ class Auth(AbstractAuth):
 
         super().__init__(websession, logger=logger, _hostname=_hostname)
 
-        self._session_id = session_manager.get_session_id
+        self._session_manager: Final = session_manager
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
@@ -275,5 +283,18 @@ class Auth(AbstractAuth):
 
         headers = HEADERS_BASE | (headers or {})
         return headers | {
-            S1_SESSION_ID: await self._session_id(),
+            S1_SESSION_ID: await self._session_manager.get_session_id(),
         }
+
+    def _credential_in_use(self) -> str | None:
+        """Return the session id that the next request will send, if it is valid."""
+
+        if not self._session_manager.is_session_valid():
+            return None
+        return self._session_manager.session_id
+
+    def _clear_rejected_credential(self, rejected: str | None) -> None:
+        """Clear the session id that was rejected, unless since refreshed."""
+
+        if rejected is None or self._session_manager.session_id == rejected:
+            self._session_manager.clear_session_id()

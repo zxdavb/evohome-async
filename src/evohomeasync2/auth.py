@@ -8,23 +8,60 @@ import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final, TypedDict
+from typing import TYPE_CHECKING, Any, Final, TypedDict, override
 
 import probatio as vol
+from aiohttp import hdrs
 
 from _evohome.auth import AbstractAuth
-from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
+from _evohome.const import HEADERS_BASE, HEADERS_CRED
 from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
+from .const import URL_BASE, URL_CRED, URL_USR_ACCOUNT
+from .exceptions import ApiCallErrorReason
+from .schemas.account import TCC_POST_OAUTH_TOKEN
+from .schemas.const import (
+    OAUTH_ACCESS_TOKEN,
+    OAUTH_EXPIRES_IN,
+    OAUTH_GRANT_TYPE,
+    OAUTH_PASSWORD,
+    OAUTH_REFRESH_TOKEN,
+    OAUTH_SCOPE,
+    OAUTH_TOKEN_TYPE,
+    OAUTH_USERNAME,
+    TccOAuthError,
+)
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
     from .schemas.account import TccOAuthTokenResponseT
     from .typedefs import EvoAuthTokensResponseT
+
+
+_APPLICATION_ID: Final = base64.b64encode(
+    b"4a231089-d2b6-41bd-a5eb-16a0a422b999:"
+    b"1a15cdb8-42de-407b-add0-059f92c530cb"
+).decode("utf-8")  # fmt: off
+
+_SCOPE: Final = "EMEA-V1-Basic EMEA-V1-Anonymous"
+
+
+# TODO: deprecate, then remove in v4: use the OAUTH_* equivalents
+SZ_EXPIRES_IN: Final = OAUTH_EXPIRES_IN
+SZ_SCOPE: Final = OAUTH_SCOPE
+SZ_TOKEN_TYPE: Final = OAUTH_TOKEN_TYPE
+
+
+# the keys of the (serialized) token cache, EvoAccessTokenEntryT (not the vendor's)
+SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
+SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"  # noqa: S105
+SZ_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
 
 
 class EvoAccessTokenEntryT(TypedDict):
@@ -35,49 +72,21 @@ class EvoAccessTokenEntryT(TypedDict):
     refresh_token: str
 
 
-_APPLICATION_ID: Final = base64.b64encode(
-    b"4a231089-d2b6-41bd-a5eb-16a0a422b999:"
-    b"1a15cdb8-42de-407b-add0-059f92c530cb"
-).decode("utf-8")  # fmt: off
-
-
-SZ_ACCESS_TOKEN: Final = "access_token"  # noqa: S105
-SZ_ACCESS_TOKEN_EXPIRES: Final = "access_token_expires"  # noqa: S105
-SZ_EXPIRES_IN: Final = "expires_in"
-SZ_REFRESH_TOKEN: Final = "refresh_token"  # noqa: S105
-SZ_SCOPE: Final = "scope"
-SZ_TOKEN_TYPE: Final = "token_type"  # noqa: S105
-
-
-SCH_OAUTH_TOKEN: Final = vol.Schema(
-    {
-        vol.Required(SZ_ACCESS_TOKEN): vol.All(str, redact),
-        vol.Required(SZ_EXPIRES_IN): int,  # 1800 seconds
-        vol.Required(SZ_REFRESH_TOKEN): vol.All(str, redact),
-        vol.Required(SZ_TOKEN_TYPE): str,
-        vol.Optional(SZ_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
-    }
-)
+# TODO: deprecate, then remove in v4: use schemas.account.TCC_POST_OAUTH_TOKEN
+SCH_OAUTH_TOKEN: Final = TCC_POST_OAUTH_TOKEN  # not used internally
 
 CREDS_REFRESH_TOKEN: Final = {
-    "grant_type": "refresh_token",
-    "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",
-    "refresh_token": "",
+    OAUTH_GRANT_TYPE: "refresh_token",
+    OAUTH_SCOPE: _SCOPE,
+    OAUTH_REFRESH_TOKEN: "",
 }
 
 CREDS_USER_PASSWORD: Final = {
-    "grant_type": "password",
-    "scope": "EMEA-V1-Basic EMEA-V1-Anonymous",  # EMEA-V1-Get-Current-User-Account",
-    "Username": "",
-    "Password": "",
+    OAUTH_GRANT_TYPE: "password",
+    OAUTH_SCOPE: _SCOPE,  # EMEA-V1-Get-Current-User-Account
+    OAUTH_USERNAME: "",
+    OAUTH_PASSWORD: "",
 }
-
-
-# POST authentication url (i.e. /Auth/OAuth/Token)
-URL_CRED: Final = "Auth/OAuth/Token"
-
-# GET/PUT resource url (e.g. /WebAPI/emea/api/v1/...)
-URL_BASE: Final = "WebAPI/emea/api/v1"
 
 
 class AbstractTokenManager(CredentialsManagerBase, ABC):
@@ -175,7 +184,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         if self._refresh_token:
             self._logger.debug(" - authenticating with the refresh_token")
 
-            credentials = {SZ_REFRESH_TOKEN: self._refresh_token}
+            credentials = {OAUTH_REFRESH_TOKEN: self._refresh_token}
 
             try:
                 await self._fetch_access_token(CREDS_REFRESH_TOKEN | credentials)
@@ -191,20 +200,11 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
             self._logger.debug(" - authenticating with client_id/secret")
 
             credentials = {
-                # NOTE: the keys are case-sensitive: 'Username' and 'Password'
-                "Username": self._client_id,
-                "Password": self._secret,
+                OAUTH_USERNAME: self._client_id,
+                OAUTH_PASSWORD: self._secret,
             }
 
-            try:  # check here if the user credentials are invalid...
-                await self._fetch_access_token(CREDS_USER_PASSWORD | credentials)
-
-            except exc.AuthenticationFailedError as err:
-                if "invalid_grant" not in err.message:
-                    raise
-                self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
-                # status will be: HTTPStatus.BAD_REQUEST, 400
-                raise exc.BadUserCredentialsError(f"{err}", status=err.status) from err
+            await self._fetch_access_token(CREDS_USER_PASSWORD | credentials)
 
             self._was_authenticated = True
 
@@ -216,20 +216,21 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """Obtain an access token using the supplied credentials.
 
         The credentials are either a refresh token or the user's client_id/secret.
-        Will raise AuthenticationFailedError if unable to obtain an access token.
+        Will raise AuthenticationFailedError if unable to obtain an access token
+        (BadUserCredentialsError if the client_id/secret are invalid).
         """
 
         url = f"https://{self.hostname}/{URL_CRED}"
 
         response: TccOAuthTokenResponseT = await self._post_access_token_request(
             url,
-            headers=HEADERS_CRED | {"Authorization": "Basic " + _APPLICATION_ID},
-            data=credentials,  # NOTE: is snake_case
+            headers=HEADERS_CRED | {hdrs.AUTHORIZATION: "Basic " + _APPLICATION_ID},
+            data=credentials,  # NOTE: is form-encoded, so its keys are as-is
         )
 
         try:  # the dict _should_ be the expected schema...
             self._logger.debug(
-                f"POST {url}: {SCH_OAUTH_TOKEN(response)}"  # secrets are redacted via validator
+                f"POST {url}: {TCC_POST_OAUTH_TOKEN(response)}"  # secrets are redacted via validator
             )
 
         except vol.Invalid as err:
@@ -238,15 +239,16 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         tokens: EvoAuthTokensResponseT = convert_keys_to_snake_case(response)
 
         try:
-            self._access_token = tokens[SZ_ACCESS_TOKEN]
+            self._access_token = tokens[OAUTH_ACCESS_TOKEN]
             self._access_token_expires = dt.now(tz=UTC) + td(
-                seconds=tokens[SZ_EXPIRES_IN]
+                seconds=tokens[OAUTH_EXPIRES_IN]
             )
-            self._refresh_token = tokens[SZ_REFRESH_TOKEN]
+            self._refresh_token = tokens[OAUTH_REFRESH_TOKEN]
 
         except (KeyError, TypeError) as err:
             raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {response}: {err.__class__.__name__}: {err}"
+                f"Authenticator response is invalid: {response}: {err.__class__.__name__}: {err}",
+                reason=ApiCallErrorReason.AUTH_RESPONSE_INVALID,
             ) from err
 
         self._was_authenticated = True  # i.e. the credentials are valid
@@ -254,6 +256,18 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         # TODO: determine if this API support this 'feature'
         # if response.get("latest_eula_accepted") is False:
         #     self._logger.warning("The latest EULA has not been accepted by the user")
+
+    @override
+    def _is_bad_credentials(self, data: Mapping[str, str], code: str | None) -> bool:
+        """Return True if a failed request was refused for the user's credentials.
+
+        Only a password grant has them: an invalid_grant of a refresh token means only
+        that the refresh token is invalid (so the client_id/secret are used instead).
+        """
+        return (
+            code == TccOAuthError.INVALID_GRANT
+            and data.get(OAUTH_GRANT_TYPE) == CREDS_USER_PASSWORD[OAUTH_GRANT_TYPE]
+        )
 
     async def _post_access_token_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any
@@ -302,6 +316,9 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
 class Auth(AbstractAuth):
     """A class for interacting with the v2 Resideo TCC API."""
 
+    _URL_PROBE = URL_USR_ACCOUNT
+    _CREDENTIAL = SZ_ACCESS_TOKEN
+
     def __init__(
         self,
         token_manager: AbstractTokenManager,
@@ -317,7 +334,7 @@ class Auth(AbstractAuth):
 
         super().__init__(websession, logger=logger, _hostname=_hostname)
 
-        self._access_token = token_manager.get_access_token
+        self._token_manager: Final = token_manager
         self._url_base = f"https://{self.hostname}/{URL_BASE}"
 
     async def _headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
@@ -325,5 +342,18 @@ class Auth(AbstractAuth):
 
         headers = HEADERS_BASE | (headers or {})
         return headers | {
-            "Authorization": "bearer " + await self._access_token(),
+            hdrs.AUTHORIZATION: "bearer " + await self._token_manager.get_access_token()
         }
+
+    def _credential_in_use(self) -> str | None:
+        """Return the access token that the next request will send, if it is valid."""
+
+        if not self._token_manager.is_token_valid():
+            return None
+        return self._token_manager.access_token
+
+    def _clear_rejected_credential(self, rejected: str | None) -> None:
+        """Clear the access token that was rejected, unless since refreshed."""
+
+        if rejected is None or self._token_manager.access_token == rejected:
+            self._token_manager.clear_access_token()

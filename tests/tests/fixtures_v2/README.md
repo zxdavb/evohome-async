@@ -22,7 +22,8 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 `gatewayInfo` always includes `mac`, `crc`, and `isWiFi` (synthesised to `"000000000000"`,
 `"0000"`, `false` when not in original source data).
 
-`locationInfo` always includes `locationType: "Residential"` and `useDaylightSaveSwitching`.
+`locationInfo` always includes `locationType` (`"Residential"`, except in `enums_no_such/`) and
+`useDaylightSaveSwitching`.
 
 ## Subdirectories
 
@@ -57,7 +58,7 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 | `hass_179414/` | 5508661 | AUSEastern | HA core issue [#179414](https://github.com/home-assistant/core/issues/179414) (`Saratoga`, fan mode `Circulate`, `fanMode` in schedules) |
 | `system_007/` | 4001001 | GMT | Synthesised schema coverage: 2 locations (maximal, minimal) |
 | `system_009/` | 2738909 | GMT | Captured from a real (dummy) account; 3 locations, one with no gateway |
-| `enums_no_such/` | 4001021 | GMT | Synthesised enum values that are not members: TCS/zone `modelType`, `zoneType`, `faultType`, `fanMode` |
+| `enums_no_such/` | 4001021 | GMT | Synthesised enum values that are not members: `locationType`, TCS/zone `modelType`, `zoneType`, `faultType`, `fanMode` |
 | `enums_unknown/` | 4001031 | GMT | Synthesised `Unknown` enum values: zone `modelType`, `zoneType` (ghost zones) |
 | `null_system_0/` | n/a | n/a | Synthesised null installation: 0 locations (formerly `system_008/`) |
 | `null_system_1/` | 4001005 | GMT | Synthesised null installation: 1 location, no gateways |

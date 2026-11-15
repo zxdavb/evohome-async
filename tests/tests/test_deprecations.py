@@ -6,6 +6,7 @@ The deprecated methods (the `update()`s) are tested in test_client_setup.py.
 from __future__ import annotations
 
 import importlib
+import warnings
 
 import pytest
 
@@ -23,9 +24,50 @@ ALIASES = [
         "evohomeasync2.exceptions",
     )
 ] + [
-    (module, "InvalidSystemModeError", exc.InvalidModeRequestError)
+    (module, "InvalidSystemModeError", exc.InvalidSetModeError)
     for module in ("_evohome.exceptions", "evohomeasync2", "evohomeasync2.exceptions")
 ]
+
+
+# (module, previous name, its new name): the previous names are still used (e.g. by HA),
+# so they are aliases that do not (yet) warn; they are to be deprecated in v4.0
+_RENAMED = {
+    "InvalidConfigError": exc.InvalidGetConfigError,
+    "InvalidModeRequestError": exc.InvalidSetModeError,  # v1 has never exported it
+    "InvalidScheduleError": exc.InvalidGetScheduleError,
+    "InvalidScheduleRequestError": exc.InvalidSetScheduleError,
+    "InvalidStatusError": exc.InvalidGetStatusError,
+}
+RENAMED = [
+    (module, name, new)
+    for module in (
+        "_evohome.exceptions",
+        "evohomeasync",
+        "evohomeasync.exceptions",
+        "evohomeasync2",
+        "evohomeasync2.exceptions",
+    )
+    for name, new in _RENAMED.items()
+    if module.split(".")[0] != "evohomeasync" or name != "InvalidModeRequestError"
+]
+
+
+@pytest.mark.parametrize(("module", "name", "new"), RENAMED)
+def test_previous_name_is_an_alias(
+    module: str,
+    name: str,
+    new: type[exc.EvohomeError],
+) -> None:
+    """Test a previous name is its new name, and does not warn (not yet deprecated)."""
+
+    mod = importlib.import_module(module)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        alias = getattr(mod, name)
+
+    assert alias is new
+    assert module == "_evohome.exceptions" or name in mod.__all__
 
 
 @pytest.mark.parametrize(("module", "name", "new"), ALIASES)

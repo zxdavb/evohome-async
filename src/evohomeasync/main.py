@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from http import HTTPStatus
 from typing import TYPE_CHECKING, Final
 from warnings import deprecated
 
@@ -12,8 +11,9 @@ from _evohome.helpers import Case
 
 from . import exceptions as exc
 from .auth import AbstractSessionManager, Auth
-from .const import SZ_LOCATION_ID, SZ_USER_ID
+from .const import SZ_LOCATION_ID, SZ_USER_ID, URL_ACCOUNT_INFO, URL_LOCATIONS
 from .entities import Location, create_location
+from .exceptions import ClientStateErrorReason, ResponseErrorReason
 from .schemas import factory_location_response_list, factory_user_account_info_response
 
 if TYPE_CHECKING:
@@ -38,7 +38,7 @@ class EvohomeClient:
     """Provide a client to access the Resideo TCC API."""
 
     _user_info: EvoUserAccountInfoDictT | None = None
-    _user_locs: list[EvoTcsInfoDictT] | None = None  # all locations of the user
+    _user_locs: list[EvoTcsInfoDictT] | None = None  # latest config/status of all locs
 
     def __init__(
         self,
@@ -73,39 +73,40 @@ class EvohomeClient:
     def logger(self) -> logging.Logger:
         return self._logger
 
-    async def setup(self, *, _reset_config: bool = False) -> None:
+    async def setup(self) -> None:
         """Retrieve the user information & the configuration of all their locations.
 
         This is usually called only once, before using the client. In v1, the config
-        and status of a location are one GET, so this also retrieves their status.
+        and status of a location are one GET, so this also retrieves their status. If
+        they have already been retrieved, there are no API calls.
         """
 
-        await self.get_status(_reset_config=_reset_config)
+        if self._locations is None:
+            await self.get_status()
 
-    async def get_status(self, *, _reset_config: bool = False) -> list[EvoTcsInfoDictT]:
+    async def get_status(self) -> list[EvoTcsInfoDictT]:
         """Retrieve the latest state of the user's locations.
 
-        If required (or when `_reset_config` is true, for use by the test suite), first
-        retrieves the user information.
+        If required, first retrieves the user information and the config of their
+        locations.
 
-        There is one API call for the user info, and a second for the config/status of
-        all the user's locations (in v1, these are one GET).
+        There is one API call for the user info (only if required), and a second for
+        the config/status of all the user's locations (in v1, these are one GET).
 
         Logs a warning if the locations are not those of the config (the status of the
         known locations is updated).
         """
 
-        if _reset_config:
-            self._clear_config()
-
-        self._user_locs = None  # the locations (config & status) are always re-fetched
-
-        try:
+        if self._locations is None:  # this GET is (also) of the config
             user_locs = await self._get_config()
-        except exc.BadApiResponseError as err:  # e.g. failed validation
-            if self._locations is None:  # the entities are yet to be instantiated
-                raise exc.InvalidConfigError(err.message) from err
-            raise exc.InvalidStatusError(err.message) from err
+
+        else:
+            try:
+                user_locs = await self._get_user_locs()
+            except exc.BadApiResponseError as err:  # e.g. failed validation
+                raise exc.InvalidGetStatusError(err.message) from err
+
+            self._user_locs = user_locs
 
         assert self._location_by_id is not None  # mypy
 
@@ -127,7 +128,6 @@ class EvohomeClient:
         /,
         *,
         dont_update_status: bool = False,
-        _reset_config: bool = False,  # for use by test suite
     ) -> list[EvoTcsInfoDictT]:
         """Retrieve the latest state of the user's locations.
 
@@ -136,9 +136,6 @@ class EvohomeClient:
         If `dont_update_status` is true, does nothing if the config has already been
         retrieved (otherwise, is the same as `get_status()`).
         """
-
-        if _reset_config:
-            self._clear_config()
 
         if dont_update_status and self._user_locs is not None:
             return self._user_locs
@@ -180,80 +177,61 @@ class EvohomeClient:
             self._logger.warning(msg)
         self._stale_config = msg
 
-    async def _get_config(self) -> list[EvoTcsInfoDictT]:
-        """Ensures the config of the user and their locations.
+    async def _get_account_info(self) -> EvoUserAccountInfoDictT:
+        """Get the user's account info (Auth re-authenticates if the id is rejected)."""
 
-        If required, first retrieves the user information & installation configuration.
+        return await self.auth.get(
+            URL_ACCOUNT_INFO,
+            schema=SCH_GET_ACCOUNT_INFO,
+        )
+
+    async def _get_config(self) -> list[EvoTcsInfoDictT]:
+        """Retrieve the user information (if required) & the config of their locations.
+
+        In v1, the config and status of the locations are one GET, so this also
+        retrieves their status. A response that is not as expected is an
+        InvalidGetConfigError.
+
+        The state is set only once all is retrieved, so a failure leaves none.
         """
 
         if self._user_info is None:  # will handle session_id rejection
-            url = "accountInfo"
-
-            # if valid, auth.get() sends this id (without yielding), else it fetches another
-            session_id = (
-                self._session_manager.session_id
-                if self._session_manager.is_session_valid()
-                else None
-            )
-
             try:
-                self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
-
-            except exc.AuthenticationFailedError:  # unable to get a session_id
-                raise
-
-            except exc.ApiCallFailedError as err:  # check if 401 - bad session_id
-                if err.status != HTTPStatus.UNAUTHORIZED:  # 401
-                    raise
-
-                # as the accountInfo URL is open to all authenticated users, any 401 is
-                # due the (albeit valid) session_id being rejected by the server
-
-                self._logger.warning(
-                    f"The session_id has been rejected (will re-authenticate): {err}"
-                )
-
-                # another task may have since refreshed it, so don't clear the new one
-                if session_id is None or self._session_manager.session_id == session_id:
-                    self._session_manager.clear_session_id()
-                self._user_info = await self.auth.get(url, schema=SCH_GET_ACCOUNT_INFO)
-
-            assert self._user_info is not None  # mypy
-
-        if self._user_locs is None:
-            try:
-                user_id = self._user_info[SZ_USER_ID]
-            except (KeyError, TypeError) as err:
-                raise exc.BadApiResponseError(
-                    f"No user_id in user_info dict. Received: {self._user_info}"
+                self._user_info = await self._get_account_info()
+            except exc.BadApiResponseError as err:  # e.g. failed validation
+                raise exc.InvalidGetConfigError(
+                    err.message, reason=ResponseErrorReason.ACCOUNT_INVALID
                 ) from err
 
-            self._user_locs = await self.auth.get(
-                f"locations?userId={user_id}&allData=True", schema=SCH_GET_ACCOUNT_LOCS
-            )
+        try:
+            user_locs = await self._get_user_locs()
+        except exc.BadApiResponseError as err:  # e.g. failed validation
+            raise exc.InvalidGetConfigError(err.message) from err
 
-            assert self._user_locs is not None  # mypy
+        locations = [await create_location(self, entry) for entry in user_locs]
 
-        if self._locations is None:
-            self._locations = []
-            self._location_by_id = {}
+        self._user_locs = user_locs
+        self._locations = locations
+        self._location_by_id = {loc.id: loc for loc in locations}
 
-            for loc_entry in self._user_locs:  # each entry is both config & status
-                loc = await create_location(self, loc_entry)
-                self._locations.append(loc)
-                self._location_by_id[loc.id] = loc
+        return user_locs
 
-            #
-            #
+    async def _get_user_locs(self) -> list[EvoTcsInfoDictT]:
+        """GET the config/status of all the user's locations (in v1, they are one)."""
 
-        return self._user_locs
+        return await self.auth.get(
+            URL_LOCATIONS.format(user_id=self.user_id),
+            schema=SCH_GET_ACCOUNT_LOCS,
+        )
 
     @property
     def user_account(self) -> EvoUserAccountInfoDictT:
         """Return the information of the user account."""
 
         if self._user_info is None:
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Account information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Account information"),
+            )
 
         return self._user_info
 
@@ -267,7 +245,9 @@ class EvohomeClient:
         """Return the list of locations."""
 
         if self._locations is None:  # None: never fetched, []: fetched but empty
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Installation information"),
+            )
 
         return self._locations
 
@@ -276,7 +256,9 @@ class EvohomeClient:
         """Return the list of locations."""
 
         if self._location_by_id is None:  # None: never fetched, {}: fetched but empty
-            raise exc.NotFetchedError(_ERR_NO_CONFIG.format("Installation information"))
+            raise exc.NotFetchedError(
+                _ERR_NO_CONFIG.format("Installation information"),
+            )
 
         return self._location_by_id
 
@@ -290,10 +272,14 @@ class EvohomeClient:
 
         if len(locs := self.locations) != 1:
             raise exc.ClientStateError(
-                "There is not a single location (only) for this account"
+                "There is not a single location (only) for this account",
+                reason=ClientStateErrorReason.LOCATION_NOT_SINGLE,
             )
 
         if (tcs := locs[0].tcs) is None:
-            raise exc.ClientStateError("The location of this account has no TCS")
+            raise exc.ClientStateError(
+                "The location of this account has no TCS",
+                reason=ClientStateErrorReason.LOCATION_NO_TCS,
+            )
 
         return tcs

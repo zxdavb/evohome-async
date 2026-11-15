@@ -7,7 +7,7 @@ import logging
 import os
 from datetime import UTC, datetime as dt, timedelta as td
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, override
 
 import aiofiles
 import keyring
@@ -19,13 +19,19 @@ from evohomeasync.auth import (
     SZ_SESSION_ID_EXPIRES,
     AbstractSessionManager,
 )
+from evohomeasync.schemas import TccFailureCode
 from evohomeasync2.auth import (
+    CREDS_USER_PASSWORD,
     SZ_ACCESS_TOKEN,
     SZ_ACCESS_TOKEN_EXPIRES,
+    SZ_REFRESH_TOKEN,
     AbstractTokenManager,
 )
+from evohomeasync2.schemas.const import OAUTH_GRANT_TYPE, TccOAuthError
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from evohomeasync.auth import SessionIdEntryT
     from evohomeasync2.auth import EvoAccessTokenEntryT
 
@@ -153,7 +159,11 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
 
     @staticmethod
     def _clean_cache(old_cache: CacheDataT) -> CacheDataT:
-        """Return a copy of a cache with any expired data removed."""
+        """Return a copy of a cache with any expired data removed.
+
+        An expired access token is kept if it has a refresh token, as that can be used
+        to get a new one, rather than the user's password (whose logins are limited).
+        """
 
         new_cache: CacheDataT = {}
 
@@ -162,9 +172,9 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
         for user_id, entry in old_cache.items():
             user_data: UserEntryT = {}
 
-            if (t := entry.get(SZ_ACCESS_TOKEN)) and t[
-                SZ_ACCESS_TOKEN_EXPIRES
-            ] > dt_now:
+            if (t := entry.get(SZ_ACCESS_TOKEN)) and (
+                t[SZ_ACCESS_TOKEN_EXPIRES] > dt_now or t.get(SZ_REFRESH_TOKEN)
+            ):
                 user_data[SZ_ACCESS_TOKEN] = t
 
             # session_id is not used by evohomeasync2
@@ -199,6 +209,21 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
         fd = os.open(self.cache_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         async with aiofiles.open(fd, "w", closefd=True) as fp:
             await fp.write(content)
+
+    @override
+    def _is_bad_credentials(self, data: Mapping[str, str], code: str | None) -> bool:
+        """Return True if a failed request (v1 or v2) was refused for the user's credentials.
+
+        This manager serves both APIs, so it must check for both (else only the first
+        base class's override (here, its v2's) would apply).
+        """
+
+        if (
+            code == TccOAuthError.INVALID_GRANT
+            and data.get(OAUTH_GRANT_TYPE) == CREDS_USER_PASSWORD[OAUTH_GRANT_TYPE]
+        ):
+            return True
+        return code == TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT
 
     async def load_from_cache(self) -> None:
         """Load the user entry from the cache."""

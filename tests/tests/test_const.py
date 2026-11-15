@@ -16,6 +16,8 @@ NON_TCC_SZ = {"SZ_ID", "SZ_SCHEDULE", "SZ_SETPOINT", "SZ_THERMOSTAT"}
 # Tcc* enums that intentionally have no user-facing counterpart
 EXCLUDED_TCC_ENUMS = {
     "TccEntityType",  # values are URL path segments, not user-visible
+    "TccFailureCode",  # vendor error codes, not user-visible
+    "TccOAuthError",  # vendor error codes, not user-visible
 }
 
 

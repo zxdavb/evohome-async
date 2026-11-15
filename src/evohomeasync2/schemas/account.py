@@ -18,6 +18,11 @@ import probatio as vol
 from _evohome.helpers import Case, camel_to_snake, noop, redact
 
 from .const import (
+    OAUTH_ACCESS_TOKEN,
+    OAUTH_EXPIRES_IN,
+    OAUTH_REFRESH_TOKEN,
+    OAUTH_SCOPE,
+    OAUTH_TOKEN_TYPE,
     REGEX_TASK_ID,
     S2_CITY,
     S2_CODE,
@@ -29,22 +34,19 @@ from .const import (
     S2_LANGUAGE,
     S2_LASTNAME,
     S2_MESSAGE,
+    S2_PARAMETER_NAME,
     S2_POSTCODE,
     S2_STATE,
     S2_STREET_ADDRESS,
     S2_USER_ID,
     S2_USERNAME,
-    SZ_ACCESS_TOKEN,
-    SZ_EXPIRES_IN,
-    SZ_REFRESH_TOKEN,
-    SZ_SCOPE,
-    SZ_TOKEN_TYPE,
     TccCommTaskState,
 )
 from .helpers import factory_enum_or_str
 
 if TYPE_CHECKING:
     from _evohome.helpers import Validator
+    from evohomeasync2.schemas.const import TccFailureCode, TccOAuthError
     from evohomeasync2.typedefs import EvoCommTaskResponseT, EvoUsrAccountResponseT
 
 
@@ -74,11 +76,11 @@ def factory_post_oauth_token(_: Case = Case.VENDOR) -> Validator[TccOAuthTokenRe
 
     return vol.Schema(
         {
-            vol.Required(SZ_ACCESS_TOKEN): vol.All(str, redact),
-            vol.Required(SZ_EXPIRES_IN): vol.Range(min=1770, max=1800),  # usu. 179x
-            vol.Required(SZ_REFRESH_TOKEN): vol.All(str, redact),
-            vol.Optional(SZ_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
-            vol.Required(SZ_TOKEN_TYPE): str,
+            vol.Required(OAUTH_ACCESS_TOKEN): vol.All(str, redact),
+            vol.Required(OAUTH_EXPIRES_IN): int,  # seconds, usu. 1800 (or just under)
+            vol.Required(OAUTH_REFRESH_TOKEN): vol.All(str, redact),
+            vol.Optional(OAUTH_SCOPE): str,  # "EMEA-V1-Basic EMEA-V1-Anonymous"
+            vol.Required(OAUTH_TOKEN_TYPE): str,
         }
     )
 
@@ -87,7 +89,7 @@ def factory_post_oauth_token(_: Case = Case.VENDOR) -> Validator[TccOAuthTokenRe
 class TccOAuthErrorResponseT(TypedDict):
     """Typed dict for responses from the vendor servers for failed authentication."""
 
-    error: str  # e.g. "attempt_limit_exceeded" or "invalid_grant"
+    error: TccOAuthError | str  # e.g. "invalid_grant"; enum is incomplete, so allow str
 
 
 def factory_oauth_error_response(case: Case = Case.VENDOR) -> Validator[TccOAuthErrorResponseT]:
@@ -110,9 +112,15 @@ def factory_oauth_error_response(case: Case = Case.VENDOR) -> Validator[TccOAuth
 
 # Failed GETs / PUTs respond with a code/message structure
 class TccFailureResponseT(TypedDict):
-    """Typed dict for responses from the vendor servers for failed GETs / PUTs."""
+    """Typed dict for responses from the vendor servers for failed GETs / PUTs.
 
-    code: str
+    A response is a list of these (one per error), e.g. a PUT of {} to a TCS's mode:
+      [{"code": "ParameterIsMissing", "parameterName": "SystemMode", ...},
+       {"code": "ParameterIsMissing", "parameterName": "Permanent", ...}]
+    """
+
+    code: TccFailureCode | str  # e.g. "InvalidInput"; enum is incomplete, so allow str
+    parameterName: NotRequired[str]  # e.g. "SystemMode" (PascalCase), of some errors
     message: str
 
 
@@ -132,7 +140,7 @@ def factory_task_response(case: Case = Case.VENDOR) -> Validator[TccTaskResponse
         {
             vol.Required(fnc(S2_ID)): vol.Match(REGEX_TASK_ID),
         },
-        extra=vol.PREVENT_EXTRA,
+        extra=vol.ALLOW_EXTRA,  # an extra key would otherwise fail a PUT that succeeded
     )
 
 
@@ -183,6 +191,7 @@ def factory_failure_response(case: Case = Case.VENDOR) -> Validator[list[TccFail
     entry_schema = vol.Schema(
         {
             vol.Required(fnc(S2_CODE)): str,
+            vol.Optional(fnc(S2_PARAMETER_NAME)): str,
             vol.Required(fnc(S2_MESSAGE)): str,
         },
         extra=vol.PREVENT_EXTRA,
@@ -232,7 +241,7 @@ def factory_usr_account(
     return vol.Schema(
         {
             vol.Required(fnc(S2_USER_ID)): str,
-            vol.Required(fnc(S2_USERNAME)): vol.All(vol.Email(), redact),
+            vol.Required(fnc(S2_USERNAME)): vol.All(str, redact),  # not vol.Email(): it is stricter than the vendor
             vol.Required(fnc(S2_FIRSTNAME)): str,
             vol.Required(fnc(S2_LASTNAME)): vol.All(str, redact),
             vol.Required(fnc(S2_STREET_ADDRESS)): vol.All(str, redact),

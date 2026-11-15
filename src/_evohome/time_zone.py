@@ -11,7 +11,9 @@ if TYPE_CHECKING:
     from evohomeasync2.typedefs import EvoTimeZoneT
 
 SZ_CURRENT_OFFSET_MINUTES: Final = "current_offset_minutes"
+SZ_DISPLAY_NAME: Final = "display_name"
 SZ_OFFSET_MINUTES: Final = "offset_minutes"
+SZ_SUPPORTS_DAYLIGHT_SAVING: Final = "supports_daylight_saving"
 SZ_TIME_ZONE_ID: Final = "time_zone_id"
 
 
@@ -23,10 +25,10 @@ def iana_tz_from_windows_tz(time_zone: str) -> str:
 # it is ostensibly optional to provide this data to the EvoZoneInfo class
 _DEFAULT_TIME_ZONE_INFO: EvoTimeZoneT = {
     SZ_TIME_ZONE_ID: "GMTStandardTime",
-    "display_name": "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
+    SZ_DISPLAY_NAME: "(UTC+00:00) Dublin, Edinburgh, Lisbon, London",
     SZ_OFFSET_MINUTES: 0,
     SZ_CURRENT_OFFSET_MINUTES: 0,
-    "supports_daylight_saving": False,
+    SZ_SUPPORTS_DAYLIGHT_SAVING: False,
 }
 
 

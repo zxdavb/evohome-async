@@ -7,7 +7,7 @@ import json
 import uuid
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -233,6 +233,14 @@ async def test_concurrent_get_session_id_fetches_once(
     save.assert_awaited_once()
 
 
+_EMAIL_OR_PASSWORD_INCORRECT: Final = [
+    {
+        "code": "EmailOrPasswordIncorrect",
+        "message": "The email or password provided is incorrect.",
+    }
+]
+
+
 async def test_concurrent_get_session_id_failure(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
@@ -245,14 +253,15 @@ async def test_concurrent_get_session_id_failure(
         *credentials, client_session, cache_path=cache_path
     )
 
+    real_fetch = session_manager._fetch_session_id
+
     async def _fetch_session_id(credentials: dict[str, str]) -> None:
         for _ in range(3):  # yield, so that the other callers queue behind this one
             await asyncio.sleep(0)
-        raise exc.AuthenticationFailedError(
-            '[{"code": "EmailOrPasswordIncorrect"}]', status=HTTPStatus.UNAUTHORIZED
-        )
+        await real_fetch(credentials)  # the real request, so _post_request() raises
 
     with (
+        aioresponses() as rsp,
         patch.object(
             session_manager, "_fetch_session_id", side_effect=_fetch_session_id
         ) as fetch,
@@ -260,6 +269,12 @@ async def test_concurrent_get_session_id_failure(
             session_manager, "save_session_id", new_callable=AsyncMock
         ) as save,
     ):
+        rsp.post(
+            URL_CRED_V1,
+            status=HTTPStatus.UNAUTHORIZED,
+            payload=_EMAIL_OR_PASSWORD_INCORRECT,
+        )
+
         results = await asyncio.gather(
             *(session_manager.get_session_id() for _ in range(5)),
             return_exceptions=True,
@@ -272,6 +287,11 @@ async def test_concurrent_get_session_id_failure(
 
         # a failure is shared only with the callers queued behind it, not later ones
         fetch.reset_mock()
+        rsp.post(
+            URL_CRED_V1,
+            status=HTTPStatus.UNAUTHORIZED,
+            payload=_EMAIL_OR_PASSWORD_INCORRECT,
+        )
         with pytest.raises(exc.BadUserCredentialsError):
             await session_manager.get_session_id()
 

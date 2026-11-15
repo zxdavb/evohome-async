@@ -8,8 +8,10 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from _evohome import exceptions as _exc
 from evohomeasync import EvohomeClient, exceptions as exc
-from tests.common import get_tcs
+from evohomeasync.const import SZ_USER_ID
+from tests.common import exceptions_constructed, get_tcs
 
 from .conftest import FIXTURES_V1 as FIXTURES
 
@@ -42,49 +44,75 @@ async def test_config_not_fetched(
 
     ec1 = EvohomeClient(credentials_manager)
 
-    with pytest.raises(exc.NotFetchedError):
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec1.user_account
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec1.user_id
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec1.locations
-    with pytest.raises(exc.NotFetchedError):
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
+    with pytest.raises(exc.NotFetchedError) as exc_info:
         _ = ec1.location_by_id
+    assert exc_info.value.reason is exc.ClientStateErrorReason.CONFIG_NOT_FETCHED
 
 
-async def test_invalid_config(
+async def test_invalid_account(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test update() raises InvalidConfigError if the config fails validation."""
+    """Test get_status() raises InvalidGetConfigError if the account fails validation."""
 
     ec1 = EvohomeClient(credentials_manager)
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=error)),
-        pytest.raises(exc.InvalidConfigError) as err,
+        pytest.raises(exc.InvalidGetConfigError) as err,
     ):
-        await ec1.get_status()
+        await ec1.get_status()  # the first GET is of the account
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
+    assert err.value.reason is exc.ResponseErrorReason.ACCOUNT_INVALID
+
+
+async def test_invalid_config(
+    credentials_manager: TokenCacheManager,
+) -> None:
+    """Test get_status() raises InvalidGetConfigError if the config fails validation."""
+
+    ec1 = EvohomeClient(credentials_manager)
+    error = exc.BadApiResponseError(_ERR_MSG)
+    account = {SZ_USER_ID: "1234567"}  # the GET of the account is OK
+
+    with (
+        patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=[account, error])),
+        pytest.raises(exc.InvalidGetConfigError) as err,
+    ):
+        await ec1.get_status()  # the second GET is of the locations (their config)
+
+    assert err.value.message == _ERR_MSG
+    assert err.value.__cause__ is error
+    assert err.value.reason is exc.ResponseErrorReason.CONFIG_INVALID
 
 
 async def test_invalid_status(
     ec1: EvohomeClient,
 ) -> None:
-    """Test update() raises InvalidStatusError if the status fails validation."""
+    """Test update() raises InvalidGetStatusError if the status fails validation."""
 
     error = exc.BadApiResponseError(_ERR_MSG)
 
     with (
         patch("evohomeasync.auth.Auth.get", AsyncMock(side_effect=error)),
-        pytest.raises(exc.InvalidStatusError) as err,
+        pytest.raises(exc.InvalidGetStatusError) as err,
     ):
         await ec1.get_status()  # the entities exist, so this is a status update
 
     assert err.value.message == _ERR_MSG
     assert err.value.__cause__ is error
+    assert err.value.reason is exc.ResponseErrorReason.STATUS_INVALID
 
 
 async def test_unknown_zone(
@@ -94,5 +122,22 @@ async def test_unknown_zone(
 
     tcs = get_tcs(ec1)
 
-    with pytest.raises(exc.BadApiRequestError):
+    with pytest.raises(exc.BadApiRequestError) as exc_info:
         tcs._get_zone("no such zone")
+
+    assert exc_info.value.reason is exc.RequestErrorReason.ZONE_UNKNOWN
+
+
+def test_exceptions_are_exported() -> None:
+    """Test every exception the client can raise is exported by its exceptions module.
+
+    That is, any that its code (or the shared code) constructs, as the very same class,
+    so a consumer can catch it as evohomeasync.exceptions.<name>.
+    """
+
+    constructed = exceptions_constructed("_evohome", "evohomeasync")
+    assert "BadUserCredentialsError" in constructed  # i.e. the scan finds them
+
+    assert not (missing := constructed - set(exc.__all__)), f"not exported: {missing}"
+    for name in constructed:
+        assert getattr(exc, name) is getattr(_exc, name)

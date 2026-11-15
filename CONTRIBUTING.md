@@ -106,14 +106,14 @@ EvohomeError
 │   └── CommTaskFailedError           # A PUT was accepted, but its comm task failed
 │
 ├── BadApiRequestError                # The arguments are unusable (no API call attempted)
-│   ├── InvalidModeRequestError
-│   └── InvalidScheduleRequestError
+│   ├── InvalidSetModeError
+│   └── InvalidSetScheduleError
 │
 ├── BadApiResponseError               # The reply is not as expected: report it
-│   ├── InvalidConfigError
+│   ├── InvalidGetConfigError
 │   │   └── GhostZoneError            # a corrupt zone (delete it?)
-│   ├── InvalidStatusError
-│   └── InvalidScheduleError
+│   ├── InvalidGetStatusError
+│   └── InvalidGetScheduleError
 │
 └── ClientStateError                  # The client lacks the data: fetch it first
     ├── NotFetchedError               # - config, status or schedule data absent
@@ -121,9 +121,53 @@ EvohomeError
 ```
 
 `ApiRequestFailedError` and `InvalidSystemModeError` are deprecated aliases (used by
-the HA integration), for `ApiCallFailedError` and `InvalidModeRequestError`. Accessing
+the HA integration), for `ApiCallFailedError` and `InvalidSetModeError`. Accessing
 either emits a `DeprecationWarning` (they are served by a module `__getattr__()`, from
 `deprecated_getattr()` in `_evohome/exceptions.py`).
+
+The request/response subclasses are named after the method that raises them (`set_*`,
+`get_*`). Their previous names (`InvalidConfigError`, `InvalidModeRequestError`,
+`InvalidScheduleError`, `InvalidScheduleRequestError`, `InvalidStatusError`) are still
+aliases, which do not (yet) warn, as they are used by the HA integration: they are to be
+deprecated in v4.0. Do not use them in this library. `GhostZoneError` is also to be
+deprecated, in favour of the reason of an `InvalidGetConfigError`.
+
+Every error that the library raises (each `ApiCallFailedError`, `BadApiRequestError`,
+`BadApiResponseError` and `ClientStateError`, and each of their subclasses) has a
+`reason` (an `ApiCallErrorReason`, `RequestErrorReason`, `ResponseErrorReason` or
+`ClientStateErrorReason`), so that callers (e.g. HA) need not parse its message. Reasons
+are named `PARAM_PROBLEM` (e.g. `MODE_UNKNOWN`), and their values are prefixed `api_`
+(the call itself), `set_` (a request) or `get_` (a response), as are the errors' names,
+or `cfg_` (e.g. `api_rate_limited`, `set_mode_unknown`, `get_schedule_missing`,
+`cfg_location_no_tcs`): so every value is unique.
+An `ApiCallErrorReason` is the cause, and the class is its context: e.g. an
+`AuthenticationFailedError` may be `CONNECTION_FAILED`, as may any other call.
+`reason` and `details` are declared on `EvohomeError`, so a caller that catches only it
+can still use them; a bare `EvohomeError` (never raised by the library) has the reason
+`EvohomeErrorReason.ERROR_UNSPECIFIED` (`evo_error_unspecified`).
+Each also has `details`: only the structured values that its message may use as
+placeholders, or, for an `ApiCallFailedError`, the vendor's error code (`code`, e.g.
+`DeviceIsLost`), if its response has one. For an `InvalidSetModeError`, `details` has
+only categorical values (a quantity, such as a temperature, an until or a timespan, is in
+the message only): always the `mode` requested (as given, if it is unknown), and the
+categorical argument that the reason is about (`state`, or the `timing_mode`: `until`,
+`duration` or `period`), and from the config only the constraint that was broken
+(`required_timing_mode`). Nothing is calculated. The `reason` is optional only so that the error can still be raised
+with a bare message (e.g. by HA's tests): it is then the class's default (e.g.
+`STATUS_INVALID` for an `InvalidGetStatusError`, or a catch-all such as `MODE_INVALID`
+for an `InvalidSetModeError`), so is never `None`. So the library raises an error with
+a `reason` only if it is not the class's default (e.g. not `RATE_LIMITED`, for an
+`ApiRateLimitExceededError`, nor `STATUS_INVALID`, for an `InvalidGetStatusError`).
+
+The reasons' values are public API: renaming or removing one is a breaking change, but
+adding one is not. So are each reason's `details` keys: a reason has the same keys
+wherever it is raised (e.g. `TIMESPAN_NOT_ALLOWED` always has `mode` and `timing_mode`), so
+that a caller can use them (e.g. as the placeholders of a translated message); a reason
+whose keys would differ is two reasons. The one exception is the vendor's `code`, which
+an `ApiCallFailedError` has only if the vendor's response had one. `tests/tests/test_error_reasons.py` checks that
+no error is created with its class's default reason, that each reason's `details` keys
+are fixed, that every reason is used, and that every value is unique (and prefixed). Add any new raise site of an `InvalidSetModeError` to
+`tests/tests/test_v2_mode_request_reasons.py`.
 
 - Do **not** raise generic `Exception`, `RuntimeError`, or `ValueError` in library
   code - instead, raise exceptions based upon `EvohomeError`.
@@ -231,7 +275,7 @@ async def test_dhw_set_off(
 cli/
   evohome_cli/        # CLI tool (excluded from coverage)
 src/
-  _evohome/           # Shared internals (auth, exceptions, helpers, timezone)
+  _evohome/           # Shared internals (auth, comm tasks, exceptions, helpers, timezone)
   evohomeasync/       # Legacy v1 API client (backward compat)
   evohomeasync2/      # Primary v2 API client — most work happens here
 tests/

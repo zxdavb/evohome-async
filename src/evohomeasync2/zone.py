@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 from datetime import UTC, datetime as dt, time as tm, timedelta as td
 from functools import cached_property
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final, overload
+from typing import TYPE_CHECKING, Any, Final, NoReturn, overload
 
 from _evohome.const import _ERR_NO_SCHEDULE, _ERR_NO_STATUS
 from _evohome.helpers import (
@@ -15,6 +16,7 @@ from _evohome.helpers import (
     as_aware_dtm,
     as_local_time,
     as_timedelta,
+    camel_to_snake,
     convert_dtm_to_local_aware,
 )
 
@@ -27,7 +29,9 @@ from .const import (
     SZ_CAN_BE_PERMANENT,
     SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
+    SZ_DAY_OF_WEEK,
     SZ_DHW_STATE,
+    SZ_DURATION,
     SZ_FAN_MODE,
     SZ_FAULT_TYPE,
     SZ_HEAT_SETPOINT,
@@ -39,6 +43,7 @@ from .const import (
     SZ_MODE,
     SZ_MODEL_TYPE,
     SZ_NAME,
+    SZ_PERIOD,
     SZ_SCHEDULE_CAPABILITIES,
     SZ_SETPOINT_CAPABILITIES,
     SZ_SETPOINT_MODE,
@@ -56,6 +61,9 @@ from .const import (
     SZ_VACATION_HOLD_CAPABILITIES,
     SZ_ZONE_ID,
     SZ_ZONE_TYPE,
+    URL_HEAT_SETPOINT,
+    URL_SCHEDULE,
+    URL_STATUS,
     DayOfWeek,
     FanMode,
     FaultType,
@@ -65,13 +73,13 @@ from .const import (
     ZoneModelType,
     ZoneType,
 )
+from .exceptions import ClientStateErrorReason, RequestErrorReason, ResponseErrorReason
 from .schemas.const import TccEntityType
 from .schemas.schedule import factory_zon_schedule
 from .schemas.status import factory_zon_status
 from .typedefs import EvoZonScheduleDayOfWeekT, EvoZonStatusResponseT, EvoZonStatusT
 
 if TYPE_CHECKING:
-    import logging
     from collections.abc import Iterable, Mapping
     from datetime import tzinfo
     from typing import NotRequired, TypedDict
@@ -114,6 +122,8 @@ if TYPE_CHECKING:
 
 _ONE_DAY = td(days=1)
 
+_DAYS: Final = tuple(DayOfWeek)  # 'monday' first (as is datetime.weekday())
+
 # for values that the schema passes through, as the vendor's enums are incomplete
 _PLEASE_REPORT = (
     "is unknown, please report it at https://github.com/zxdavb/evohome-async/issues"
@@ -125,38 +135,123 @@ class _TccModeMixin:
 
     location: Location  # used to get now(), and the logger
 
+    if TYPE_CHECKING:  # each entity has its own (cached) property, keyed by its modes
+
+        @property
+        def _allowed_modes_table(
+            self,
+        ) -> Mapping[Any, EvoAllowedSystemModesT | _AllowedModesT]: ...
+
+    def _validate_requested_timing(
+        self,
+        mode: SystemMode | ZoneMode,
+        /,
+        *,
+        until: dt | str | None = None,
+        duration: td | None = None,
+        period: td | None = None,
+    ) -> dt | None:
+        """Return when a mode ends (None if indefinitely), if valid for its entry.
+
+        Only one of until, duration or period may be given. An until is checked only
+        against whether the mode can be temporary (and that it is in the future), but
+        a duration/period is checked against the mode's entry in the entity's table of
+        allowed modes (as is having none of the three).
+        """
+
+        def raise_timespan_conflicting(given: list[str]) -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: Only one of {', '.join(given[:-1])} or {given[-1]} "
+                "may be given",
+                reason=RequestErrorReason.TIMESPAN_CONFLICTING,
+                mode=mode,
+            )
+
+        given = [
+            name
+            for name, value in (
+                (SZ_UNTIL, until),
+                (SZ_DURATION, duration),
+                (SZ_PERIOD, period),
+            )
+            if value is not None
+        ]
+        if len(given) > 1:
+            raise_timespan_conflicting(given)
+
+        if until is not None:
+            return self._validate_requested_until(mode, until)
+
+        if period is not None:
+            return self._validate_requested_timespan(mode, TimingMode.PERIOD, period)
+
+        return self._validate_requested_timespan(mode, TimingMode.DURATION, duration)
+
     def _validate_requested_until(
         self, mode: SystemMode | ZoneMode, until: dt | str, /
     ) -> dt:
-        """Return the until (as an aware datetime), if it is in the future.
+        """Return the until (as an aware datetime), if it is valid for the mode.
+
+        An until is allowed only if the mode can be temporary (see its entry in the
+        entity's table of allowed modes), but is not checked against the entry's limits.
 
         The vendor accepts an until that has passed (and reports the mode as in effect),
         but the controller ignores it, so it is rejected (as for a duration/period).
+        A naive until (or a string that is not an ISO 8601 datetime) is rejected.
         """
+
+        def raise_timespan_not_allowed() -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, until must be None, not '{until}'",
+                reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
+                mode=mode,
+                timing_mode=SZ_UNTIL,
+            )
+
+        def raise_timespan_invalid(err: exc.BadApiRequestError) -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, until must be a TZ-aware datetime, not '{until}'",
+                reason=RequestErrorReason.TIMESPAN_INVALID,
+                mode=mode,
+                timing_mode=SZ_UNTIL,
+            ) from err
+
+        def raise_timespan_not_in_future(dtm: dt) -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, until must be in the future, not '{dtm}'",
+                reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
+                mode=mode,
+                timing_mode=SZ_UNTIL,
+            )
+
+        if not self._allowed_modes_table[mode][SZ_CAN_BE_TEMPORARY]:
+            raise_timespan_not_allowed()
+
+        try:
+            dtm = as_aware_dtm(until)
+        except exc.BadApiRequestError as err:
+            raise_timespan_invalid(err)
 
         # compare instants: with a shared tzinfo, Python compares by wall clock, which
         # is wrong in the hour repeated when DST ends (it ignores fold)
-        until = as_aware_dtm(until)
-        if until.astimezone(UTC) <= self.location.now().astimezone(UTC):
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, until must be in the future, not '{until}'"
-            )
-        return until
+        if dtm.astimezone(UTC) <= self.location.now().astimezone(UTC):
+            raise_timespan_not_in_future(dtm)
 
-    def _validate_requested_timespan(
+        return dtm
+
+    def _validate_requested_timespan(  # noqa: C901
         self,
         mode: SystemMode | ZoneMode,
-        mode_entry: EvoAllowedSystemModesT | _AllowedModesT,
         timing_mode: TimingMode,
-        length: td | None,
+        timespan: td | None,
         /,
     ) -> dt | None:
         """Return when a mode ends (None if indefinitely), if valid for its entry.
 
-        The entry is the mode's row in the entity's table of allowed modes. The length
+        The entry is the mode's row in the entity's table of allowed modes. The timespan
         is of the timing_mode requested: a duration ends that long from now, and a
         period that long after the start of today (in the location's local time), so a
-        period of one day ends at the coming midnight. A length that would end now, or in
+        period of one day ends at the coming midnight. A timespan that would end now, or in
         the past, is rejected.
 
         The vendor accepts a duration/period that is not a multiple of the entry's
@@ -165,38 +260,74 @@ class _TccModeMixin:
         a warning, as the controller extends it to the coming midnight.
         """
 
-        def is_valid_length(
-            timespan: td,
-            /,
-            *,
-            max_duration: str,
-            timing_resolution: str,
-        ) -> bool:
-            """Return True if a duration (or a period) is within its limits.
-
-            That is, if it is a (positive) multiple of the timing_resolution, and does not
-            exceed the max_duration (both are vendor TimeSpan strings, e.g. "1.00:00:00").
-            A zero timing_resolution has no multiples, so that check is left to the vendor.
-            """
-
-            resolution = as_timedelta(timing_resolution)
-            maximum = as_timedelta(max_duration)
-
-            return td(0) < timespan <= maximum and (
-                not resolution or not timespan % resolution
+        def raise_timespan_required(required_timing_mode: TimingMode) -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, until or {required_timing_mode} must be given",
+                reason=RequestErrorReason.TIMESPAN_REQUIRED,
+                mode=mode,
+                required_timing_mode=required_timing_mode,
             )
 
-        if length is None:
+        def raise_timespan_not_allowed() -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, {timing_mode} must be None, not '{timespan}'",
+                reason=RequestErrorReason.TIMESPAN_NOT_ALLOWED,
+                mode=mode,
+                timing_mode=timing_mode,
+            )
+
+        def raise_timespan_unsupported(required_timing_mode: TimingMode) -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, {timing_mode} must be None"
+                f" (use {required_timing_mode}), not '{timespan}'",
+                reason=RequestErrorReason.TIMESPAN_UNSUPPORTED,
+                mode=mode,
+                timing_mode=timing_mode,
+                required_timing_mode=required_timing_mode,
+            )
+
+        def raise_timespan_out_of_range(err: OverflowError) -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, {timing_mode} is out of range: '{timespan}'",
+                reason=RequestErrorReason.TIMESPAN_OUT_OF_RANGE,
+                mode=mode,
+                timing_mode=timing_mode,
+            ) from err
+
+        def raise_timespan_not_in_future(until: dt) -> NoReturn:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, {timing_mode} must end in the future, "
+                f"not '{timespan}' (it would end at {until})",
+                reason=RequestErrorReason.TIMESPAN_NOT_IN_FUTURE,
+                mode=mode,
+                timing_mode=timing_mode,
+            )
+
+        def log_timespan_too_short() -> None:
+            self.location.client.logger.warning(
+                f"{self}: For {mode}, {timing_mode} should be at least one day, not "
+                f"'{timespan}' (the controller will extend it to the coming midnight)"
+            )
+
+        def log_timespan_out_of_spec(max_duration: str, timing_resolution: str) -> None:
+            self.location.client.logger.debug(
+                f"{self}: For {mode}, {timing_mode} should be a multiple of "
+                f"'{timing_resolution}', and at most '{max_duration}', not '{timespan}'"
+            )
+
+        mode_entry = self._allowed_modes_table[mode]
+
+        if timespan is None:
             if not mode_entry[SZ_CAN_BE_PERMANENT]:
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, until or {mode_entry[SZ_TIMING_MODE]} must be given"
-                )
+                raise_timespan_required(mode_entry[SZ_TIMING_MODE])
             return None
 
-        if timing_mode is not mode_entry.get(SZ_TIMING_MODE):
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {timing_mode} must be None, not '{length}'"
-            )
+        # an entry without a timing_mode takes no duration/period at all (it can only be
+        # permanent, or it takes only an until)
+        if timing_mode is not (required_timing_mode := mode_entry.get(SZ_TIMING_MODE)):
+            if required_timing_mode is None:
+                raise_timespan_not_allowed()
+            raise_timespan_unsupported(required_timing_mode)
 
         now = self.location.now()
 
@@ -205,42 +336,41 @@ class _TccModeMixin:
         else:  # in UTC, as local arithmetic is wall-clock (wrong if it spans DST)
             start = now.astimezone(UTC)
 
-        try:  # a huge length (e.g. td.max) overflows a datetime
-            until = start + length
+        try:  # a huge timespan (e.g. td.max) overflows a datetime
+            until = start + timespan
             has_ended = until.astimezone(UTC) <= now.astimezone(UTC)
         except OverflowError as err:
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {timing_mode} is out of range: '{length}'"
-            ) from err
+            raise_timespan_out_of_range(err)
 
         # the vendor accepts an until in the past, but the controller ignores it (the
         # instants are compared, as a period's until is in local time: see above)
         if has_ended:
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, {timing_mode} must end in the future, "
-                f"not '{length}' (it would end at {until})"
-            )
+            raise_timespan_not_in_future(until)
 
-        logger = self.location.client.logger
-
-        if timing_mode is TimingMode.PERIOD and length < _ONE_DAY:
-            logger.warning(
-                f"{self}: For {mode}, {timing_mode} should be at least one day, not "
-                f"'{length}' (the controller will extend it to the coming midnight)"
-            )
-
-        max_duration = mode_entry[SZ_MAX_DURATION]
-        timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
-
-        if not is_valid_length(
-            length,
-            max_duration=max_duration,
-            timing_resolution=timing_resolution,
+        # the controller extends a period of less than one day to the coming midnight
+        if (
+            self.location.client.logger.isEnabledFor(logging.WARNING)
+            and timing_mode is TimingMode.PERIOD
+            and timespan < _ONE_DAY
         ):
-            logger.debug(
-                f"{self}: For {mode}, {timing_mode} should be a multiple of "
-                f"'{timing_resolution}', and at most '{max_duration}', not '{length}'"
-            )
+            log_timespan_too_short()
+
+        # the vendor accepts a timespan that is not a (positive) multiple of the entry's
+        # timing_resolution, or that exceeds its max_duration, and the controller honours
+        # it (a zero timing_resolution has no multiples, so that check is left to it)
+        if self.location.client.logger.isEnabledFor(logging.DEBUG):
+            # both are vendor TimeSpans, e.g. "1.00:00:00"
+            max_duration = mode_entry[SZ_MAX_DURATION]
+            timing_resolution = mode_entry[SZ_TIMING_RESOLUTION]
+
+            maximum = as_timedelta(max_duration)
+            resolution = as_timedelta(timing_resolution)
+
+            if not (
+                td(0) < timespan <= maximum
+                and (not resolution or not timespan % resolution)
+            ):
+                log_timespan_out_of_spec(max_duration, timing_resolution)
 
         return until
 
@@ -277,7 +407,10 @@ class EntityBase[StatusT]:
     def status(self) -> StatusT:
         """Return the latest status of the entity."""
         if self._status is None:
-            raise exc.NotFetchedError(_ERR_NO_STATUS.format(self))
+            raise exc.NotFetchedError(
+                _ERR_NO_STATUS.format(self),
+                reason=ClientStateErrorReason.STATUS_NOT_FETCHED,
+            )
         return self._status
 
     async def _get_status(self, *, _update: bool = True) -> StatusT:
@@ -330,13 +463,18 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
             )
             del self._last_logged[hash_(fault)]
 
+        # A safeguard: should the vendor list a fault more than once (not seen), it is
+        # one fault (else, when it is cleared, each copy would be, and the second would
+        # raise a KeyError); equal faults have the same hash_() (it has both fields)
+        faults = list({hash_(f): f for f in active_faults}.values())
+
         # Remove resolved (non-active) faults
-        for fault in [f for f in self._active_faults if f not in active_faults]:
+        for fault in [f for f in self._active_faults if f not in faults]:
             log_as_resolved(fault)
             self._active_faults.remove(fault)
 
         # Add new (active) faults
-        for fault in [f for f in active_faults if f not in self._active_faults]:
+        for fault in [f for f in faults if f not in self._active_faults]:
             log_as_active(fault)
             self._active_faults.append(fault)
 
@@ -360,10 +498,33 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
 
 
 def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
-    """Return a pair of strings representing the local day of week and time of day."""
+    """Return the local day of week and time of day (to the second, e.g. "06:30:15")."""
+
     dtm = as_local_time(dtm, tzinfo)
-    day_of_week = list(DayOfWeek)[dtm.weekday()]  # locale-independent
-    return DayOfWeek(day_of_week), dtm.strftime("%H:%M")  # TODO: localize, e.g. Montag?
+    return _DAYS[dtm.weekday()], dtm.strftime("%H:%M:%S")  # locale-independent
+
+
+def _switchpoints_by_day[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT)](
+    schedule: list[DayT],
+) -> dict[DayOfWeek, list[Mapping[str, Any]]]:
+    """Return each day's switchpoints (in order of their time of day), by its day.
+
+    The days are found by their day_of_week, not by their position in the schedule
+    (which may be of other than seven days, or not in order). A day may have none.
+    A schedule that was set via set_schedule() is as given, so its day names may be
+    of another case (e.g. "Monday"): an unknown name is ignored.
+    """
+
+    by_day: dict[DayOfWeek, list[Mapping[str, Any]]] = {d: [] for d in _DAYS}
+
+    for day in schedule:
+        if (name := camel_to_snake(str(day[SZ_DAY_OF_WEEK]))) in by_day:
+            by_day[DayOfWeek(name)] = sorted(
+                day[SZ_SWITCHPOINTS],
+                key=lambda sp: tm.fromisoformat(sp[SZ_TIME_OF_DAY]),
+            )
+
+    return by_day
 
 
 def _wall_to_aware(wall: dt, tzinfo: tzinfo) -> tuple[dt, dt]:
@@ -399,48 +560,49 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
     day_of_week: DayOfWeek,
     time_of_day: str,
 ) -> tuple[Mapping[str, Any], int, Mapping[str, Any], int]:
-    """Find this/next switchpoints for a given day of week and time of day."""
+    """Find this/next switchpoints for a given day of week and time of day.
+
+    Return each with its offset in days from the given day (e.g. -1 if this switchpoint
+    began yesterday). A day without switchpoints is skipped, so an offset may be of
+    more than one day (or of seven: the same switchpoint, a week ago or hence).
+    """
 
     if not schedule:
-        raise exc.InvalidScheduleError("No schedule (daily schedules are empty)")
+        raise exc.InvalidGetScheduleError(
+            "No schedule (daily schedules are empty)",
+            reason=ResponseErrorReason.SCHEDULE_MISSING,
+        )
 
-    # assumes 1+ switchpoint per day, which could be this_sp or next_sp only
+    by_day = _switchpoints_by_day(schedule)
 
-    try:
-        day_idx = list(DayOfWeek).index(day_of_week)
-    except ValueError as err:
-        raise TypeError(f"Invalid parameter: {day_of_week}") from err
+    if not any(by_day.values()):
+        raise exc.InvalidGetScheduleError(
+            "No switchpoints for any day",
+            reason=ResponseErrorReason.SWITCHPOINTS_MISSING,
+        )
 
-    this_sp: Mapping[str, Any] | None = None
-    next_sp: Mapping[str, Any] | None = None
+    day_idx = _DAYS.index(day_of_week)
+    now = tm.fromisoformat(time_of_day)  # compare times, as "06:30:00" > "06:30"
 
-    this_offset = 0
-    next_offset = 0
+    def switchpoints(offset: int) -> list[Mapping[str, Any]]:
+        return by_day[_DAYS[(day_idx + offset) % 7]]
 
-    # Check the switchpoints of the given day of week
-    for sp in schedule[day_idx][SZ_SWITCHPOINTS]:
-        if sp[SZ_TIME_OF_DAY] <= time_of_day:
-            this_sp = sp
-            continue
-
-        if sp[SZ_TIME_OF_DAY] > time_of_day:
-            if this_sp is None:
-                if not (prev_day := schedule[(day_idx + 6) % 7][SZ_SWITCHPOINTS]):
-                    raise exc.InvalidScheduleError("No switchpoints for previous day")
-                this_sp = prev_day[-1]
-                this_offset = -1
-
-            next_sp = sp
-            break
-
+    # this is the latest that has started, today or on an earlier day
+    today = switchpoints(0)
+    earlier = [sp for sp in today if tm.fromisoformat(sp[SZ_TIME_OF_DAY]) <= now]
+    if earlier:
+        this_sp, this_offset = earlier[-1], 0
     else:
-        assert this_sp is not None  # mypy
+        this_offset = next(o for o in range(-1, -8, -1) if switchpoints(o))
+        this_sp = switchpoints(this_offset)[-1]
 
-        if next_sp is None:
-            if not (next_day := schedule[(day_idx + 1) % 7][SZ_SWITCHPOINTS]):
-                raise exc.InvalidScheduleError("No switchpoints for next day")
-            next_sp = next_day[0]
-            next_offset = +1
+    # next is the soonest that has yet to start, today or on a later day
+    later = [sp for sp in today if tm.fromisoformat(sp[SZ_TIME_OF_DAY]) > now]
+    if later:
+        next_sp, next_offset = later[0], 0
+    else:
+        next_offset = next(o for o in range(1, 8) if switchpoints(o))
+        next_sp = switchpoints(next_offset)[0]
 
     return this_sp, this_offset, next_sp, next_offset
 
@@ -481,8 +643,8 @@ def _find_switchpoint_dtms[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfW
     # switchpoints skipped by the same DST gap all start at its end, when only the last
     # of them becomes active (this_sp is already the last, as it is found by wall-clock)
     next_day = dtm + td(days=next_offset)
-    for sp in schedule[next_day.weekday()][SZ_SWITCHPOINTS]:
-        if sp[SZ_TIME_OF_DAY] <= next_sp[SZ_TIME_OF_DAY]:
+    for sp in _switchpoints_by_day(schedule)[_DAYS[next_day.weekday()]]:
+        if tm.fromisoformat(sp[SZ_TIME_OF_DAY]) <= next_tod:
             continue
         start, _ = _wall_to_aware(
             dt.combine(next_day, tm.fromisoformat(sp[SZ_TIME_OF_DAY])), tzinfo
@@ -525,7 +687,10 @@ class _ScheduleBase[
         """
 
         if self._schedule is None:  # never fetched (successfully)
-            raise exc.NotFetchedError(_ERR_NO_SCHEDULE.format(self))
+            raise exc.NotFetchedError(
+                _ERR_NO_SCHEDULE.format(self),
+                reason=ClientStateErrorReason.SCHEDULE_NOT_FETCHED,
+            )
 
         return self._schedule
 
@@ -555,7 +720,7 @@ class _ScheduleBase[
         """Return the this/next switchpoints, or None if there is no schedule.
 
         Raise NotFetchedError if the schedule has not been fetched, and
-        InvalidScheduleError if the switchpoints can't be found in the schedule.
+        InvalidGetScheduleError if the switchpoints can't be found in the schedule.
         """
 
         if not (schedule := self.schedule):
@@ -572,13 +737,13 @@ class _ScheduleBase[
 
         try:
             response: _DailySchedulesT[DayT] = await self._auth.get(
-                f"{self._TCC_TYPE}/{self.id}/schedule",
+                URL_SCHEDULE.format(type=self._TCC_TYPE, id=self.id),
                 schema=self.SCH_SCHEDULE,
             )
 
         except exc.BadApiResponseError as err:  # the schedule failed validation
-            raise exc.InvalidScheduleError(
-                f"{self}: Schedule is invalid: {err}"
+            raise exc.InvalidGetScheduleError(
+                f"{self}: Schedule is invalid: {err}",
             ) from err
 
         except exc.AuthenticationFailedError:  # e.g. bad credentials are a 400 too
@@ -586,20 +751,16 @@ class _ScheduleBase[
 
         except exc.ApiCallFailedError as err:
             if err.status == HTTPStatus.BAD_REQUEST:  # 400
-                raise exc.InvalidScheduleError(
-                    f"{self}: No Schedule, or is invalid"
+                raise exc.InvalidGetScheduleError(
+                    f"{self}: No Schedule, or is invalid",
+                    reason=ResponseErrorReason.SCHEDULE_MISSING,
                 ) from err
             raise
 
         schedule = response[SZ_DAILY_SCHEDULES]  # is [] if there is no schedule
 
-        try:  # check the switchpoints can be found, before storing the schedule
-            if schedule:
-                self._find_switchpoints(schedule, dt.now(tz=UTC))
-        except exc.InvalidScheduleError as err:
-            raise exc.InvalidScheduleError(
-                f"{self}: Schedule is invalid: {err}"
-            ) from err
+        if schedule:  # check the switchpoints can be found, before storing it
+            self._find_switchpoints(schedule, dt.now(tz=UTC))
 
         self._schedule = schedule
         self._schedule_last_fetched = dt.now(tz=UTC)
@@ -619,7 +780,13 @@ class _ScheduleBase[
             "next_sp_temp": 18.6,
         }
         """
-        return _find_switchpoint_dtms(schedule, dtm, self.location.tzinfo)
+
+        try:
+            return _find_switchpoint_dtms(schedule, dtm, self.location.tzinfo)
+        except exc.InvalidGetScheduleError as err:  # its message has no entity
+            raise exc.InvalidGetScheduleError(
+                f"{self}: Schedule is invalid: {err}", reason=err.reason
+            ) from err
 
     async def set_schedule(
         self,
@@ -636,32 +803,36 @@ class _ScheduleBase[
             try:
                 json.dumps(schedule)
             except (OverflowError, TypeError, ValueError) as err:
-                raise exc.InvalidScheduleRequestError(
-                    f"{self}: Invalid schedule: {err}"
+                raise exc.InvalidSetScheduleError(
+                    f"{self}: Invalid schedule: {err}",
                 ) from err
 
         elif isinstance(schedule, str):
             try:
                 schedule = json.loads(schedule)
             except json.JSONDecodeError as err:
-                raise exc.InvalidScheduleRequestError(
-                    f"{self}: Invalid schedule: {err}"
+                raise exc.InvalidSetScheduleError(
+                    f"{self}: Invalid schedule: {err}",
                 ) from err
 
             assert isinstance(schedule, list)  # mypy
 
         else:
-            raise exc.InvalidScheduleRequestError(
-                f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable"
+            raise exc.InvalidSetScheduleError(
+                f"{self}: Invalid schedule: {type(schedule)} is not JSON serializable",
             )
 
         schedule_ = {SZ_DAILY_SCHEDULES: schedule}
 
-        url = f"{self._TCC_TYPE}/{self.id}/schedule"
-        response = await self._auth.put(url, json=schedule_, schema=self.SCH_SCHEDULE)
+        comm_task = await CommTask.from_put(
+            self._auth,
+            URL_SCHEDULE.format(type=self._TCC_TYPE, id=self.id),
+            json=schedule_,
+            schema=self.SCH_SCHEDULE,
+        )
 
         self._schedule = schedule  # NOTE: the comm task may yet fail
-        return CommTask.from_response(self._auth, response)
+        return comm_task
 
 
 class _ZoneBase[
@@ -765,22 +936,20 @@ class _ZoneBase[
         try:
             mode = ZoneMode(mode)
         except ValueError as err:
-            raise exc.InvalidModeRequestError(f"{self}: Unknown mode: {mode}") from err
+            raise exc.InvalidSetModeError(
+                f"{self}: Unknown mode: {mode}",
+                reason=RequestErrorReason.MODE_UNKNOWN,
+                mode=str(mode),
+            ) from err
 
         if mode not in self.allowed_modes:
-            raise exc.InvalidModeRequestError(f"{self}: Unsupported mode: {mode}")
+            raise exc.InvalidSetModeError(
+                f"{self}: Unsupported mode: {mode}",
+                reason=RequestErrorReason.MODE_UNSUPPORTED,
+                mode=mode,
+            )
 
         return mode
-
-    def _validate_requested_duration(
-        self, mode: ZoneMode, duration: td | None, /
-    ) -> dt | None:
-        """Return when a mode ends (None if indefinitely), if valid for the duration."""
-
-        mode_entry = self._allowed_modes_table[mode]
-        return self._validate_requested_timespan(
-            mode, mode_entry, TimingMode.DURATION, duration
-        )
 
     # Status (state) attrs & methods...
 
@@ -796,7 +965,7 @@ class _ZoneBase[
         )
 
         status: StatusT = await self._auth.get(
-            f"{self._TCC_TYPE}/{self.id}/status",
+            URL_STATUS.format(type=self._TCC_TYPE, id=self.id),
             schema=self.SCH_STATUS,
         )
 
@@ -849,11 +1018,13 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         if not self.model or self.model is ZoneModelType.UNKNOWN:
             raise exc.GhostZoneError(
-                f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)"
+                f"{self}: Invalid model type '{self.model}' (is it a ghost zone?)",
+                reason=ResponseErrorReason.ZONE_MODEL_UNKNOWN,
             )
         if not self.type or self.type is ZoneType.UNKNOWN:
             raise exc.GhostZoneError(
-                f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)"
+                f"{self}: Invalid Zone type '{self.type}' (is it a ghost zone?)",
+                reason=ResponseErrorReason.ZONE_TYPE_UNKNOWN,
             )
 
         if self.model not in ZoneModelType:
@@ -951,40 +1122,6 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         # consider: if not self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]: return None
         return self.setpoint_capabilities[SZ_MIN_HEAT_SETPOINT]
 
-    def _validate_requested_temperature(
-        self, mode: ZoneMode, temperature: float | None, /
-    ) -> float | None:
-        """Return the temperature, if it is valid for the mode."""
-
-        if temperature is None:
-            if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, temperature must not be None"
-                )
-            return None
-
-        if mode is ZoneMode.FOLLOW_SCHEDULE:
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, temperature must be None, not '{temperature}'"
-            )
-
-        # NaN/infinity is not a valid JSON number (nor can the controller clamp it)
-        if not math.isfinite(temperature):
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {mode}, temperature must be a finite number, "
-                f"not '{temperature}'"
-            )
-
-        # the vendor accepts (and stores) such a temperature, but the controller clamps it
-        if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
-            self._logger.warning(
-                f"{self}: For {mode}, temperature should be from {self.min_heat_setpoint} "
-                f"to {self.max_heat_setpoint}, not {temperature} (the controller will "
-                "clamp it)"
-            )
-
-        return temperature
-
     # Status (state) attrs & methods...
 
     @property
@@ -1026,8 +1163,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         /,
         *,
         temperature: float | None = None,
-        until: dt | str | None = None,
         duration: None = None,
+        until: dt | str | None = None,
     ) -> CommTask: ...
 
     @overload
@@ -1047,8 +1184,8 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         /,
         *,
         temperature: float | None = None,
-        until: dt | str | None = None,
         duration: td | None = None,
+        until: dt | str | None = None,
     ) -> CommTask:
         """Set the Zone to a (heating) mode, indefinitely, for a duration, or until a time.
 
@@ -1069,22 +1206,64 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
 
         TemporaryOverride requires an until or a duration (only one of them may be
         given), and the other modes allow neither (except that VacationHold allows an
-        until).
+        until, if the zone has limits for it: see its vacation_hold_capabilities).
 
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if until is None:
-            return await self._set_tcc_mode(
-                mode, temperature=temperature, duration=duration
+        mode = self._validate_requested_mode(mode)
+        temperature = self._validate_requested_temperature(mode, temperature)
+
+        time_until = self._validate_requested_timing(
+            mode, until=until, duration=duration
+        )
+
+        # TODO: self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]
+        # TODO: self.setpoint_capabilities[SZ_VALUE_RESOLUTION]
+
+        return await self._put_mode(
+            mode, heat_setpoint_value=temperature, time_until=time_until
+        )
+
+    def _validate_requested_temperature(
+        self, mode: ZoneMode, temperature: float | None, /
+    ) -> float | None:
+        """Return the temperature, if it is valid for the mode."""
+
+        if temperature is None:
+            if mode in (ZoneMode.PERMANENT_OVERRIDE, ZoneMode.TEMPORARY_OVERRIDE):
+                raise exc.InvalidSetModeError(
+                    f"{self}: For {mode}, temperature must not be None",
+                    reason=RequestErrorReason.TEMPERATURE_REQUIRED,
+                    mode=mode,
+                )
+            return None
+
+        if mode is ZoneMode.FOLLOW_SCHEDULE:
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, temperature must be None, not '{temperature}'",
+                reason=RequestErrorReason.TEMPERATURE_NOT_ALLOWED,
+                mode=mode,
             )
 
-        if duration is not None:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Only one of until or duration may be given"
+        # NaN/infinity is not a valid JSON number (nor can the controller clamp it)
+        if not math.isfinite(temperature):
+            raise exc.InvalidSetModeError(
+                f"{self}: For {mode}, temperature must be a finite number, "
+                f"not '{temperature}'",
+                reason=RequestErrorReason.TEMPERATURE_INVALID,
+                mode=mode,
             )
 
-        return await self._set_mode(mode, temperature=temperature, until=until)
+        # the vendor accepts (and stores) such a temperature, but the controller clamps it
+        if not self.min_heat_setpoint <= temperature <= self.max_heat_setpoint:
+            self._logger.warning(
+                f"{self}: For {mode}, temperature should be from {self.min_heat_setpoint} "
+                f"to {self.max_heat_setpoint}, not {temperature} (the controller will "
+                "clamp it)"
+            )
+
+        return temperature
 
     async def _put_mode(
         self,
@@ -1097,7 +1276,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         """Set the Zone mode, and return the vendor's comm task.
 
         Heating only; cooling is not exposed by the API. The params are as per the
-        JSON (EvoSetZoneHeatSetpointT), and are not validated.
+        JSON (EvoSetZoneHeatSetpointT), and are not validated here.
         """
 
         zon_mode: EvoSetZoneHeatSetpointT = {SZ_SETPOINT_MODE: setpoint_mode}
@@ -1106,86 +1285,10 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
         if time_until is not None:
             zon_mode[SZ_TIME_UNTIL] = time_until
 
-        url = f"{self._TCC_TYPE}/{self.id}/heatSetpoint"
-        response = await self._auth.put(url, json=zon_mode)
-        return CommTask.from_response(self._auth, response)
-
-    async def _set_mode(
-        self,
-        mode: ZoneMode | str,
-        /,
-        *,
-        temperature: float | None = None,
-        until: dt | str | None = None,
-    ) -> CommTask:
-        """Set the Zone to a (heating) mode, either indefinitely, or for a given time.
-
-        Will accept a ZoneMode or a (snake_case) string for the 'mode'.
-
-        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
-        but it must be TZ-aware (not naive), and in the future.
-
-        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
-        """
-
-        mode = self._validate_requested_mode(mode)
-        temperature = self._validate_requested_temperature(mode, temperature)
-
-        if until is None:
-            if mode is ZoneMode.TEMPORARY_OVERRIDE:
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, until must not be None"
-                )
-
-        else:
-            if mode in (ZoneMode.FOLLOW_SCHEDULE, ZoneMode.PERMANENT_OVERRIDE):
-                raise exc.InvalidModeRequestError(
-                    f"{self}: For {mode}, until must be None, not '{until}'"
-                )
-
-            until = self._validate_requested_until(mode, until)
-
-        return await self._put_mode(
-            mode, heat_setpoint_value=temperature, time_until=until
-        )
-
-    async def _set_tcc_mode(
-        self,
-        mode: ZoneMode | str,
-        /,
-        *,
-        temperature: float | None = None,
-        duration: td | None = None,
-    ) -> CommTask:
-        """Set the Zone to a (heating) mode, either indefinitely, or for a duration.
-
-        Will accept a ZoneMode or a (snake_case) string for the 'mode'.
-
-        A 'temperature' is required by the override modes, and is not allowed for
-        FollowSchedule. It should be within the zone's min/max_heat_setpoint.
-
-        A 'duration' ends that long from now. It is required by TemporaryOverride, and
-        is not allowed for the other modes. It must be positive, and should be a
-        multiple of the zone's timing_resolution, and not exceed its max_duration.
-
-        Unlike _set_mode(), the request is checked against the zone's config (see
-        setpoint_capabilities): if it only breaks a 'should', it is sent anyway (with a
-        warning, if the controller will not do as asked).
-
-        VacationHold can only be set indefinitely: for an until, use _set_mode().
-
-        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
-        """
-
-        mode = self._validate_requested_mode(mode)
-        until = self._validate_requested_duration(mode, duration)
-        temperature = self._validate_requested_temperature(mode, temperature)
-
-        # TODO: self.setpoint_capabilities[SZ_CAN_CONTROL_HEAT]
-        # TODO: self.setpoint_capabilities[SZ_VALUE_RESOLUTION]
-
-        return await self._put_mode(
-            mode, heat_setpoint_value=temperature, time_until=until
+        return await CommTask.from_put(
+            self._auth,
+            URL_HEAT_SETPOINT.format(type=self._TCC_TYPE, id=self.id),
+            json=zon_mode,
         )
 
     async def reset(self) -> CommTask:

@@ -82,6 +82,7 @@ _TaskIdT = NewType("_TaskIdT", int)  # an int, unlike the v2 API (where it is a 
 S1_ACTIVITY_ID: Final = "activityId"
 S1_ALERT_SETTINGS: Final = "alertSettings"
 S1_ALLOWED_MODES: Final = "allowedModes"
+S1_APPLICATION_ID: Final = "applicationId"
 
 S1_CAN_SEARCH_FOR_CONTRACTORS: Final = "canSearchForContractors"
 S1_CHANGEABLE_VALUES: Final = "changeableValues"
@@ -157,6 +158,7 @@ S1_OUTDOOR_TEMPERATURE_AVAILABLE: Final = "outdoorTemperatureAvailable"
 S1_OUTDOOR_TEMPERATURE_STATUS: Final = "outdoorTemperatureStatus"
 S1_OUTDOOT_HUMIDITY_AVAILABLE: Final = "outdootHumidityAvailable"  # NOTE: not a typo
 
+S1_PASSWORD: Final = "password"  # noqa: S105
 S1_PCB_NUMBER: Final = "pcbNumber"
 
 S1_QUICK_ACTION: Final = "quickAction"
@@ -225,6 +227,21 @@ class TccEquipmentOutputStatus(StrEnum):  # thermostat.equipmentOutputStatus
     COOLING = "Cooling"
     HEATING = "Heating"
     OFF = "Off"
+
+
+@verify(EnumCheck.UNIQUE)
+class TccFailureCode(StrEnum):  # the code of a failed request; NOTE: is incomplete
+    COMM_TASK_NOT_FOUND = "CommTaskNotFound"
+    DEVICE_IS_LOST = "DeviceIsLost"
+    EMAIL_OR_PASSWORD_INCORRECT = "EmailOrPasswordIncorrect"  # noqa: S105
+    FORBIDDEN_PARAMETER = "ForbiddenParameter"
+    INVALID_INPUT = "InvalidInput"
+    PARAMETER_IS_MISSING = "ParameterIsMissing"
+    SCHEDULE_NOT_SUPPORTED = "ScheduleNotSupported"
+    THERMOSTAT_MODE_NOT_ALLOWED = "ThermostatModeNotAllowed"  # e.g. Off, for a DHW
+    TOO_MANY_REQUESTS = "TooManyRequests"
+    UNAUTHORIZED = "Unauthorized"
+    VALUE_OUT_OF_RANGE = "ValueOutOfRange"  # e.g. heatSetpoint's value
 
 
 @verify(EnumCheck.UNIQUE)
@@ -320,7 +337,7 @@ def factory_failure_response(
 
     entry = vol.Schema(
         {
-            vol.Required(fnc(S1_CODE)): str,
+            vol.Required(fnc(S1_CODE)): vol.Any(vol.In(TccFailureCode), str),
             vol.Required(fnc(S1_MESSAGE)): str,
         },
         extra=vol.PREVENT_EXTRA,
@@ -357,7 +374,7 @@ def factory_task_response(
         {
             vol.Required(fnc(S1_ID)): int,
         },
-        extra=vol.PREVENT_EXTRA,
+        extra=vol.ALLOW_EXTRA,  # an extra key would otherwise fail a PUT that succeeded
     )
 
 
@@ -516,8 +533,12 @@ def _factory_thermostat_response(
     return vol.Schema(
         {
             vol.Required(fnc(S1_INDOOR_TEMPERATURE)): float,
-            vol.Required(fnc(S1_INDOOR_TEMPERATURE_STATUS)): str,  # Measured, etc.
-            vol.Required(fnc(S1_ALLOWED_MODES)): [str],  # ThermostatMode
+            vol.Required(fnc(S1_INDOOR_TEMPERATURE_STATUS)): vol.Any(
+                vol.In(TccSensorStatus), str
+            ),
+            vol.Required(fnc(S1_ALLOWED_MODES)): [  # a zone's, or a DHW's
+                vol.Any(vol.In(TccThermostatMode), vol.In(TccDhwMode), str)
+            ],
             vol.Required(fnc(S1_MAX_HEAT_SETPOINT)): float,
             vol.Required(fnc(S1_MIN_HEAT_SETPOINT)): float,
             vol.Optional(fnc(S1_UNITS)): str,
@@ -526,9 +547,15 @@ def _factory_thermostat_response(
             vol.Optional(fnc(S1_OUTDOOR_HUMIDITY)): float,
             vol.Optional(fnc(S1_OUTDOOT_HUMIDITY_AVAILABLE)): bool,  # NOTE: not a typo
             vol.Optional(fnc(S1_INDOOR_HUMIDITY)): float,
-            vol.Optional(fnc(S1_INDOOR_HUMIDITY_STATUS)): str,
-            vol.Optional(fnc(S1_OUTDOOR_TEMPERATURE_STATUS)): str,
-            vol.Optional(fnc(S1_OUTDOOR_HUMIDITY_STATUS)): str,
+            vol.Optional(fnc(S1_INDOOR_HUMIDITY_STATUS)): vol.Any(
+                vol.In(TccSensorStatus), str
+            ),
+            vol.Optional(fnc(S1_OUTDOOR_TEMPERATURE_STATUS)): vol.Any(
+                vol.In(TccSensorStatus), str
+            ),
+            vol.Optional(fnc(S1_OUTDOOR_HUMIDITY_STATUS)): vol.Any(
+                vol.In(TccSensorStatus), str
+            ),
             vol.Optional(fnc(S1_IS_COMMERCIAL)): bool,
             vol.Optional(fnc(S1_DEADBAND)): float,
             vol.Optional(fnc(S1_MIN_COOL_SETPOINT)): float,
@@ -537,7 +564,9 @@ def _factory_thermostat_response(
             vol.Optional(fnc(S1_HEAT_RATE)): float,  # is NotRequired
             vol.Optional(fnc(S1_IS_PRE_COOL_CAPABLE)): bool,
             vol.Optional(fnc(S1_CHANGEABLE_VALUES)): {str: object},
-            vol.Optional(fnc(S1_EQUIPMENT_OUTPUT_STATUS)): str,
+            vol.Optional(fnc(S1_EQUIPMENT_OUTPUT_STATUS)): vol.Any(
+                vol.In(TccEquipmentOutputStatus), str
+            ),
             vol.Optional(fnc(S1_SCHEDULE_CAPABLE)): bool,
             vol.Optional(fnc(S1_VACATION_HOLD_CHANGEABLE)): bool,
             vol.Optional(fnc(S1_VACATION_HOLD_CANCELABLE)): bool,
@@ -560,7 +589,9 @@ def _factory_device_response(
             vol.Required(fnc(S1_DEVICE_ID)): int,  # is ID, not Id
             vol.Required(fnc(S1_GATEWAY_ID)): int,
             # NOTE: is an int for the Honeywell TH9320WF3003 (c.f. DOMESTIC_HOT_WATER)
-            vol.Required(fnc(S1_THERMOSTAT_MODEL_TYPE)): vol.Any(str, int),
+            vol.Required(fnc(S1_THERMOSTAT_MODEL_TYPE)): vol.Any(
+                vol.In(TccThermostatModelType), str, int
+            ),
             vol.Required(fnc(S1_NAME)): str,  # is "" for DHW
             vol.Required(fnc(S1_INSTANCE)): int,  # is the zone idx
             vol.Required(fnc(S1_MAC_ID)): str,  # is ID, not Id
@@ -601,7 +632,8 @@ def _factory_location_response(
             vol.Optional(fnc(S1_STATE)): str,
             vol.Required(fnc(S1_COUNTRY)): vol.All(str, vol.Length(min=2)),  # GB
             vol.Optional(fnc(S1_ZIPCODE)): str,
-            vol.Optional(fnc(S1_TYPE)): vol.In(TccLocationType),
+            # the enum may be incomplete, so allow str
+            vol.Optional(fnc(S1_TYPE)): vol.Any(vol.In(TccLocationType), str),
             vol.Optional(fnc(S1_HAS_STATION)): bool,
             vol.Required(fnc(S1_DEVICES)): [_factory_device_response(fnc)],
             vol.Optional(fnc(S1_ONE_TOUCH_BUTTONS)): list,
@@ -700,9 +732,15 @@ type _TccResponse = Mapping[str, object]
 
 
 class TccFailureResponseT(TypedDict):
-    """Typed dict for code/message responses from the vendor servers."""
+    """Typed dict for code/message responses from the vendor servers.
 
-    code: str
+    A response is a list of these (one per error). A field is named only in its
+    message, e.g. a PUT of {} to a zone's heatSetpoint (probed 2026-11-14):
+      [{"code": "ParameterIsMissing", "message": "'Value' is required."},
+       {"code": "ParameterIsMissing", "message": "'Status' is required."}, ...]
+    """
+
+    code: TccFailureCode | str  # e.g. "InvalidInput"; enum is incomplete, so allow str
     message: str
 
 
@@ -773,7 +811,7 @@ class TccLocationResponseT(TypedDict):
     state: str
     country: str
     zipcode: str
-    type: TccLocationType
+    type: TccLocationType | str  # enum may be incomplete, so allow str
     hasStation: bool
     devices: list[TccDeviceResponseT]
     weather: NotRequired[TccWeatherResponseT]  # WeatherResponse, if hasStation is True
@@ -825,12 +863,12 @@ class TccThermostatResponseT(TypedDict):
     outdoorHumidity: float
     outdootHumidityAvailable: bool  # NOTE: not a typo
     indoorHumidity: float
-    indoorTemperatureStatus: TccSensorStatus
-    indoorHumidityStatus: TccSensorStatus
-    outdoorTemperatureStatus: TccSensorStatus
-    outdoorHumidityStatus: TccSensorStatus
+    indoorTemperatureStatus: TccSensorStatus | str  # enum may be incomplete
+    indoorHumidityStatus: TccSensorStatus | str
+    outdoorTemperatureStatus: TccSensorStatus | str
+    outdoorHumidityStatus: TccSensorStatus | str
     isCommercial: bool
-    allowedModes: list[TccThermostatMode] | list[TccDhwMode]  # a zone | a DHW
+    allowedModes: list[TccThermostatMode | str] | list[TccDhwMode | str]  # zone | DHW
     deadband: float
     minHeatSetpoint: float
     maxHeatSetpoint: float
@@ -841,7 +879,7 @@ class TccThermostatResponseT(TypedDict):
     isPreCoolCapable: NotRequired[bool]
     # the Dhw variant is sent for a DOMESTIC_HOT_WATER device, else the Zone variant
     changeableValues: TccZoneChangeableValuesT | TccDhwChangeableValuesT
-    equipmentOutputStatus: NotRequired[TccEquipmentOutputStatus]
+    equipmentOutputStatus: NotRequired[TccEquipmentOutputStatus | str]
     scheduleCapable: bool
     vacationHoldChangeable: bool
     vacationHoldCancelable: bool

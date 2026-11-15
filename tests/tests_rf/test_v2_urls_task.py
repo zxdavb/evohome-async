@@ -19,13 +19,18 @@ import pytest
 import evohomeasync2 as evo2
 from _evohome.helpers import camel_to_pascal
 from evohomeasync2.schemas.const import (
+    S2_CODE,
+    S2_COMMTASK_ID,
     S2_MODE,
+    S2_SETPOINT_MODE,
+    S2_SETPOINT_STATUS,
     S2_STATE,
     S2_STATE_STATUS,
     S2_UNTIL,
     S2_UNTIL_TIME,
     TCC_DTM_STRFTIME,
     TccDhwState,
+    TccFailureCode,
     TccZoneMode,
 )
 from evohomeasync2.schemas.status import TCC_GET_DHW_STATUS, TCC_GET_LOC_STATUS
@@ -260,3 +265,62 @@ async def _out_test_task_id_zone(
         if not _DBG_USE_REAL_AIOHTTP:
             raise
         pytest.skip("Unable to authenticate")
+
+
+@skipif_auth_failed
+@pytest.mark.skipif(not _DBG_USE_REAL_AIOHTTP, reason="requires vendor's webserver")
+async def test_comm_task_ids(
+    ec2: EvohomeClientV2,
+    zone: evo2.Zone,
+) -> None:
+    """Test GET /commTasks?commTaskId={task_id}, for each kind of id.
+
+    - the id of a (recent) task: its state, with its id, as normalised (e.g. without
+      the leading zeros of a zero-padded id), so the id is never that of another task
+    - a (numeric) id of no task, or of an old one: 404 CommTaskNotFound
+    - an id that is not numeric: 400 InvalidInput
+    - an id that is empty: 400 ParameterIsMissing
+    - no id at all: 404 (no such resource, so is not JSON with a code)
+
+    NOTE: the vendor returns the state of any (recent) task, not only of the user's own
+    (unlike the other URLs, which 401). That is not tested here, as it would GET the
+    data of another user.
+    """
+
+    #
+    # PART 1: an id that is not that of any task...
+    for task_id, status, code in (
+        ("12345678", HTTPStatus.NOT_FOUND, TccFailureCode.COMM_TASK_NOT_FOUND),
+        ("ABC", HTTPStatus.BAD_REQUEST, TccFailureCode.INVALID_INPUT),
+        ("", HTTPStatus.BAD_REQUEST, TccFailureCode.PARAMETER_IS_MISSING),
+    ):
+        rsp = await should_fail_v2(
+            ec2.auth, HTTPMethod.GET, f"commTasks?commTaskId={task_id}", status=status
+        )
+        assert isinstance(rsp, list), rsp
+        assert rsp[0][S2_CODE] == code, rsp
+
+    rsp = await should_fail_v2(
+        ec2.auth, HTTPMethod.GET, "commTasks", status=HTTPStatus.NOT_FOUND
+    )  # {"message": "No HTTP resource was found that matches the request URI ..."}
+    assert isinstance(rsp, dict), rsp
+
+    #
+    # PART 2: the id of the user's own task, zero-padded (a no-op PUT, for its id)...
+    zon_status = await should_work_v2(
+        ec2.auth, HTTPMethod.GET, f"{zone._TCC_TYPE}/{zone.id}/status"
+    )
+    assert isinstance(zon_status, dict)  # mypy
+
+    if zon_status[S2_SETPOINT_STATUS][S2_SETPOINT_MODE] != TccZoneMode.FOLLOW_SCHEDULE:
+        pytest.skip(
+            "The zone is not following its schedule (so the PUT is not a no-op)"
+        )
+
+    task = await zone.reset()  # NOTE: may be a stale task (still, it is the user's)
+
+    rsp = await should_work_v2(
+        ec2.auth, HTTPMethod.GET, f"commTasks?commTaskId=0{task.id}"
+    )
+    assert isinstance(rsp, dict), rsp
+    assert rsp[S2_COMMTASK_ID] == task.id, rsp  # i.e. without the leading zero

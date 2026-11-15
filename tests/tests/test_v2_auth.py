@@ -8,7 +8,7 @@ import logging
 import uuid
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -16,6 +16,13 @@ import pytest
 from _evohome.const import HINT_BAD_CREDS
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync2 import exceptions as exc
+from evohomeasync2.auth import (
+    CREDS_REFRESH_TOKEN,
+    SZ_ACCESS_TOKEN,
+    SZ_ACCESS_TOKEN_EXPIRES,
+    SZ_REFRESH_TOKEN,
+)
+from evohomeasync2.schemas.const import OAUTH_GRANT_TYPE, OAUTH_REFRESH_TOKEN
 from tests.const import HEADERS_CRED_V2, URL_CRED_V2
 
 from .aioresponses import aioresponses
@@ -288,6 +295,9 @@ async def test_concurrent_get_access_token_fetches_once(
     save.assert_awaited_once()
 
 
+_INVALID_GRANT: Final = {"error": "invalid_grant"}
+
+
 async def test_concurrent_get_access_token_failure(
     client_session: aiohttp.ClientSession,
     credentials: tuple[str, str],
@@ -300,14 +310,15 @@ async def test_concurrent_get_access_token_failure(
         *credentials, client_session, cache_path=cache_path
     )
 
+    real_fetch = token_manager._fetch_access_token
+
     async def _fetch_access_token(credentials: dict[str, str]) -> None:
         for _ in range(3):  # yield, so that the other callers queue behind this one
             await asyncio.sleep(0)
-        raise exc.AuthenticationFailedError(
-            '{"error": "invalid_grant"}', status=HTTPStatus.BAD_REQUEST
-        )
+        await real_fetch(credentials)  # the real request, so _post_request() raises
 
     with (
+        aioresponses() as rsp,
         patch.object(
             token_manager, "_fetch_access_token", side_effect=_fetch_access_token
         ) as fetch,
@@ -315,6 +326,8 @@ async def test_concurrent_get_access_token_failure(
             token_manager, "save_access_token", new_callable=AsyncMock
         ) as save,
     ):
+        rsp.post(URL_CRED_V2, status=HTTPStatus.BAD_REQUEST, payload=_INVALID_GRANT)
+
         results = await asyncio.gather(
             *(token_manager.get_access_token() for _ in range(5)),
             return_exceptions=True,
@@ -327,6 +340,7 @@ async def test_concurrent_get_access_token_failure(
 
         # a failure is shared only with the callers queued behind it, not later ones
         fetch.reset_mock()
+        rsp.post(URL_CRED_V2, status=HTTPStatus.BAD_REQUEST, payload=_INVALID_GRANT)
         with pytest.raises(exc.BadUserCredentialsError):
             await token_manager.get_access_token()
 
@@ -372,3 +386,118 @@ def test_access_token_round_trip(
     assert manager.is_token_valid() is True
 
     assert manager.export_access_token() == tokens
+
+
+async def test_rejected_refresh_token_is_not_bad_credentials(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    cache_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test an invalid_grant of a refresh token is not one of the user's credentials.
+
+    Only the client_id/secret are user credentials, so the token manager falls back to
+    them (it is not a BadUserCredentialsError, and there is no hint to check them).
+    """
+
+    token_manager = TokenCacheManager(
+        *credentials, client_session, cache_path=cache_path
+    )
+    token_manager.import_access_token(
+        {
+            "access_token": "-- expired access token --",
+            "access_token_expires": (dt.now(tz=UTC) - td(minutes=1)).isoformat(),
+            "refresh_token": "-- rejected refresh token --",
+        }
+    )
+
+    with (
+        aioresponses() as rsp,
+        patch.object(token_manager, "save_access_token", new_callable=AsyncMock),
+    ):
+        rsp.post(URL_CRED_V2, status=HTTPStatus.BAD_REQUEST, payload=_INVALID_GRANT)
+        rsp.post(
+            URL_CRED_V2,
+            payload={
+                "access_token": "-- access token --",
+                "token_type": "bearer",
+                "expires_in": 1800,
+                "refresh_token": "-- refresh token --",
+            },
+        )
+
+        assert await token_manager.get_access_token() == "-- access token --"
+
+    assert HINT_BAD_CREDS not in [r.message for r in caplog.records]
+
+
+async def test_cache_keeps_a_refresh_token(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    tmp_path: Path,
+) -> None:
+    """Test the cache keeps an expired access token that has a refresh token.
+
+    So the next run refreshes it, rather than logging in with the password (the
+    vendor limits those logins, but not refreshes).
+    """
+
+    cache_path = tmp_path / ".evo-cache.tst"
+
+    token_manager = TokenCacheManager(
+        *credentials, client_session, cache_path=cache_path
+    )
+    token_manager.import_access_token(
+        {
+            SZ_ACCESS_TOKEN: "-- expired access token --",
+            SZ_ACCESS_TOKEN_EXPIRES: (dt.now(tz=UTC) - td(minutes=1)).isoformat(),
+            SZ_REFRESH_TOKEN: "-- refresh token --",
+        }
+    )
+    await token_manager.save_access_token()  # was: removed, as expired
+
+    token_manager = TokenCacheManager(  # e.g. the CLI, when next run
+        *credentials, client_session, cache_path=cache_path
+    )
+    await token_manager.load_from_cache()
+    assert token_manager.is_token_valid() is False
+
+    with (
+        patch(
+            "evohomeasync2.auth.AbstractTokenManager._post_access_token_request",
+            new_callable=AsyncMock,
+        ) as req,
+        patch.object(token_manager, "save_access_token", new_callable=AsyncMock),
+    ):
+        req.return_value = {
+            "access_token": "-- new access token --",
+            "expires_in": 1800,
+            "refresh_token": "-- new refresh token --",
+            "token_type": "bearer",
+        }
+        assert await token_manager.get_access_token() == "-- new access token --"
+
+    req.assert_called_once()
+    data = req.call_args.kwargs["data"]
+    assert (
+        data[OAUTH_GRANT_TYPE] == CREDS_REFRESH_TOKEN[OAUTH_GRANT_TYPE]
+    )  # not password
+    assert data[OAUTH_REFRESH_TOKEN] == "-- refresh token --"
+
+
+def test_cache_drops_an_expired_access_token_without_a_refresh_token() -> None:
+    """Test the cache removes an expired access token if it has no refresh token."""
+
+    expired = (dt.now(tz=UTC) - td(minutes=1)).isoformat()
+
+    cache: CacheDataT = {
+        "username@email.com": {
+            SZ_ACCESS_TOKEN: {
+                SZ_ACCESS_TOKEN: "-- expired access token --",
+                SZ_ACCESS_TOKEN_EXPIRES: expired,
+                SZ_REFRESH_TOKEN: "",
+            }
+        }
+    }
+
+    assert TokenCacheManager._clean_cache(cache) == {}

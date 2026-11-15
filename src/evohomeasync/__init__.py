@@ -12,8 +12,10 @@ from typing import TYPE_CHECKING
 from _evohome.exceptions import deprecated_getattr
 
 from .auth import AbstractSessionManager
+from .comm_task import CommTask
 from .entities import ControlSystem, Gateway, HotWater, Location, Zone
 from .exceptions import (
+    ApiCallErrorReason,
     ApiCallFailedError,
     ApiCallRejectedError,
     ApiRateLimitExceededError,
@@ -23,12 +25,21 @@ from .exceptions import (
     BadApiResponseError,
     BadUserCredentialsError,
     ClientStateError,
+    ClientStateErrorReason,
+    CommTaskFailedError,
     EvohomeError,
+    EvohomeErrorReason,
     InvalidConfigError,
+    InvalidGetConfigError,
+    InvalidGetScheduleError,
+    InvalidGetStatusError,
     InvalidScheduleError,
     InvalidScheduleRequestError,
+    InvalidSetScheduleError,
     InvalidStatusError,
     NotFetchedError,
+    RequestErrorReason,
+    ResponseErrorReason,
 )
 from .main import EvohomeClient
 from .schemas import (  # noqa: F401
@@ -73,6 +84,8 @@ __all__ = [  # noqa: RUF022
     "Zone",
     "HotWater",
     #
+    "CommTask",
+    #
     "TccCommTaskState",
     "TccDhwMode",
     "TccEquipmentOutputStatus",
@@ -83,6 +96,7 @@ __all__ = [  # noqa: RUF022
     "TccThermostatMode",
     "TccThermostatModelType",
     #
+    "ApiCallErrorReason",
     "ApiCallFailedError",
     "ApiCallRejectedError",
     "ApiRateLimitExceededError",
@@ -93,12 +107,21 @@ __all__ = [  # noqa: RUF022
     "BadApiResponseError",
     "BadUserCredentialsError",
     "ClientStateError",
+    "ClientStateErrorReason",
+    "CommTaskFailedError",
     "EvohomeError",
-    "InvalidConfigError",
-    "InvalidScheduleError",
-    "InvalidScheduleRequestError",
-    "InvalidStatusError",
+    "EvohomeErrorReason",
+    "InvalidGetConfigError",
+    "InvalidConfigError",  # TODO: deprecate in v4.0 (an alias of InvalidGetConfigError)
+    "InvalidGetScheduleError",
+    "InvalidScheduleError",  # TODO: deprecate in v4.0 (an alias of InvalidGetScheduleError)
+    "InvalidSetScheduleError",
+    "InvalidScheduleRequestError",  # TODO: deprecate in v4.0 (an alias of InvalidSetScheduleError)
+    "InvalidGetStatusError",
+    "InvalidStatusError",  # TODO: deprecate in v4.0 (an alias of InvalidGetStatusError)
     "NotFetchedError",
+    "RequestErrorReason",
+    "ResponseErrorReason",
 ]
 
 # hidden from type checkers, which would otherwise accept any name in this module

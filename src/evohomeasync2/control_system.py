@@ -14,7 +14,6 @@ from .comm_task import CommTask
 from .const import (
     SZ_ACTIVE_FAULTS,
     SZ_ALLOWED_SYSTEM_MODES,
-    SZ_CAN_BE_TEMPORARY,
     SZ_DAILY_SCHEDULES,
     SZ_DHW,
     SZ_DHW_ID,
@@ -29,10 +28,11 @@ from .const import (
     SZ_TIME_UNTIL,
     SZ_ZONE_ID,
     SZ_ZONES,
+    URL_TCS_MODE,
     SystemMode,
     TcsModelType,
-    TimingMode,
 )
+from .exceptions import RequestErrorReason, ResponseErrorReason
 from .hotwater import HotWater
 from .schemas.const import TccEntityType
 from .schemas.status import factory_tcs_status
@@ -61,6 +61,13 @@ if TYPE_CHECKING:
         EvoTcsStatusResponseT,
         EvoZonScheduleDayOfWeekT,
     )
+
+
+# a zone with either of these is a ghost zone, and is ignored (with a warning)
+_GHOST_ZONE_REASONS: Final = (
+    ResponseErrorReason.ZONE_MODEL_UNKNOWN,
+    ResponseErrorReason.ZONE_TYPE_UNKNOWN,
+)
 
 
 def _sched_id(schedule: Mapping[str, Any]) -> str:
@@ -108,7 +115,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         for zon_entry in config[SZ_ZONES]:
             try:
                 zone = Zone(self, zon_entry)
-            except exc.GhostZoneError as err:
+            except exc.InvalidGetConfigError as err:
+                if err.reason not in _GHOST_ZONE_REASONS:
+                    raise
                 self._logger.warning(
                     f"{self}: zone_id='{zon_entry[SZ_ZONE_ID]}' ignored: {err}"
                 )
@@ -176,23 +185,6 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         """Return the allowed_system_modes, keyed by system_mode."""
         return {d[SZ_SYSTEM_MODE]: d for d in self.allowed_system_modes}
 
-    def _validate_requested_mode(self, system_mode: SystemMode | str, /) -> SystemMode:
-        """Return the mode (as a SystemMode), if it is allowed for this entity."""
-
-        try:
-            system_mode = SystemMode(system_mode)
-        except ValueError as err:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Unknown system_mode: {system_mode}"
-            ) from err
-
-        if system_mode not in self.allowed_modes:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Unsupported system_mode: {system_mode}"
-            )
-
-        return system_mode
-
     # Status (state) attrs & methods...
 
     def _update_status(self, status: EvoTcsStatusResponseT) -> None:
@@ -237,29 +229,31 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
         return self.status[SZ_SYSTEM_MODE_STATUS]
 
-    @property  # could have a setter in future
+    @property
     def is_permanent(self) -> bool:
         return self.system_mode_status[SZ_IS_PERMANENT]
 
-    @property  # could have a setter in future
+    @property
     def mode(self) -> SystemMode:
         return self.system_mode_status[SZ_MODE]
 
-    @property  # could have a setter in future
+    @property
     def until(self) -> dt | None:  # aka timeUntil
         if (until := self.system_mode_status.get(SZ_TIME_UNTIL)) is None:
             return None
         return as_local_time(until, self.location.tzinfo)
 
+    #
+
     @overload
     async def set_mode(
         self,
         system_mode: SystemMode | str,
         /,
         *,
-        until: dt | str | None = None,
         duration: None = None,
         period: None = None,
+        until: dt | str | None = None,
     ) -> CommTask: ...
 
     @overload
@@ -268,9 +262,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         system_mode: SystemMode | str,
         /,
         *,
-        until: None = None,
         duration: td | None = None,
         period: None = None,
+        until: None = None,
     ) -> CommTask: ...
 
     @overload
@@ -279,9 +273,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         system_mode: SystemMode | str,
         /,
         *,
-        until: None = None,
         duration: None = None,
         period: td | None = None,
+        until: None = None,
     ) -> CommTask: ...
 
     async def set_mode(
@@ -289,9 +283,9 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         system_mode: SystemMode | str,
         /,
         *,
-        until: dt | str | None = None,
         duration: td | None = None,
         period: td | None = None,
+        until: dt | str | None = None,
     ) -> CommTask:
         """Set the TCS to a mode, indefinitely, for a duration/period, or until a time.
 
@@ -318,17 +312,36 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         Return the vendor's comm task, which can be awaited (see CommTask.wait()).
         """
 
-        if until is None:
-            return await self._set_tcc_mode(
-                system_mode, duration=duration, period=period
+        system_mode = self._validate_requested_mode(system_mode)
+
+        time_until = self._validate_requested_timing(
+            system_mode, until=until, duration=duration, period=period
+        )
+
+        return await self._put_mode(
+            system_mode, permanent=time_until is None, time_until=time_until
+        )
+
+    def _validate_requested_mode(self, system_mode: SystemMode | str, /) -> SystemMode:
+        """Return the mode (as a SystemMode), if it is allowed for this entity."""
+
+        try:
+            system_mode = SystemMode(system_mode)
+        except ValueError as err:
+            raise exc.InvalidSetModeError(
+                f"{self}: Unknown system_mode: {system_mode}",
+                reason=RequestErrorReason.MODE_UNKNOWN,
+                mode=str(system_mode),
+            ) from err
+
+        if system_mode not in self.allowed_modes:
+            raise exc.InvalidSetModeError(
+                f"{self}: Unsupported system_mode: {system_mode}",
+                reason=RequestErrorReason.MODE_UNSUPPORTED,
+                mode=system_mode,
             )
 
-        if duration is not None or period is not None:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Only one of until, duration or period may be given"
-            )
-
-        return await self._set_mode(system_mode, until=until)
+        return system_mode
 
     async def _put_mode(
         self,
@@ -340,7 +353,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
     ) -> CommTask:
         """Set the TCS mode, and return the vendor's comm task.
 
-        The params are as per the JSON (EvoSetSystemModeT), and are not validated.
+        The params are as per the JSON (EvoSetSystemModeT), and are not validated here.
         """
 
         tcs_mode: EvoSetSystemModeT = {
@@ -350,92 +363,10 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         if time_until is not None:
             tcs_mode[SZ_TIME_UNTIL] = time_until
 
-        url = f"{self._TCC_TYPE}/{self.id}/mode"
-        response = await self._auth.put(url, json=tcs_mode)
-        return CommTask.from_response(self._auth, response)
-
-    async def _set_mode(
-        self,
-        system_mode: SystemMode | str,
-        /,
-        *,
-        until: dt | str | None = None,
-    ) -> CommTask:
-        """Set the TCS to a mode, either indefinitely, or for a given time.
-
-        Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
-
-        Will accept a datetime object or an ISO 8601 string for the 'until' parameter,
-        but it must be TZ-aware (not naive), and in the future.
-
-        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
-        """
-
-        system_mode = self._validate_requested_mode(system_mode)
-        mode_entry = self._allowed_modes_table[system_mode]
-
-        if until is None:  # all known modes can be permanent
-            return await self._put_mode(system_mode, permanent=True)
-
-        if not mode_entry[SZ_CAN_BE_TEMPORARY]:
-            raise exc.InvalidModeRequestError(
-                f"{self}: For {system_mode}, until must be None, not '{until}'"
-            )
-
-        return await self._put_mode(  # NOTE: TIME_UNTIL, not UNTIL_TIME
-            system_mode,
-            permanent=False,
-            time_until=self._validate_requested_until(system_mode, until),
-        )
-
-    async def _set_tcc_mode(
-        self,
-        system_mode: SystemMode | str,
-        /,
-        *,
-        duration: td | None = None,
-        period: td | None = None,
-    ) -> CommTask:
-        """Set the TCS to a mode, either indefinitely, or for a duration/period.
-
-        Will accept a SystemMode or a (snake_case) string for the 'system_mode'.
-
-        A 'duration' (usu. of hours) ends that long from now. A 'period' (usu. of
-        days) ends at that long after the start of the current day (in the location's
-        local time), so a period of one day ends at the coming midnight.
-
-        Which of the two (if either) is allowed depends upon the mode's timing_mode
-        (see allowed_system_modes). Without either, the mode is set indefinitely, if
-        it can_be_permanent.
-
-        A duration must be positive, and a period must end in the future. Either should
-        be a multiple of the mode's timing_resolution, and not exceed its max_duration.
-
-        Unlike _set_mode(), the request is checked against the TCS's config: if it only
-        breaks a 'should', it is sent anyway (with a warning, if the controller will not
-        do as asked).
-
-        Return the vendor's comm task, which can be awaited (see CommTask.wait()).
-        """
-
-        if duration is not None and period is not None:
-            raise exc.InvalidModeRequestError(
-                f"{self}: Only one of duration or period may be given"
-            )
-
-        system_mode = self._validate_requested_mode(system_mode)
-        mode_entry = self._allowed_modes_table[system_mode]
-
-        if period is None:
-            timing_mode, length = TimingMode.DURATION, duration
-        else:
-            timing_mode, length = TimingMode.PERIOD, period
-
-        until = self._validate_requested_timespan(
-            system_mode, mode_entry, timing_mode, length
-        )
-        return await self._put_mode(
-            system_mode, permanent=until is None, time_until=until
+        return await CommTask.from_put(
+            self._auth,
+            URL_TCS_MODE.format(type=self._TCC_TYPE, id=self.id),
+            json=tcs_mode,
         )
 
     @deprecated("ControlSystem.set_system_mode() is deprecated: use .set_mode()")
@@ -451,7 +382,16 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
 
         Deprecated: use set_mode(), which also takes these arguments.
         """
-        return await self._set_tcc_mode(system_mode, duration=duration, period=period)
+
+        system_mode = self._validate_requested_mode(system_mode)
+
+        time_until = self._validate_requested_timing(
+            system_mode, duration=duration, period=period
+        )
+
+        return await self._put_mode(
+            system_mode, permanent=time_until is None, time_until=time_until
+        )
 
     # most, but not all, TCC-compatible systems support these modes...
 
@@ -559,7 +499,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
         ) -> list[EvoDhwScheduleDayOfWeekT] | list[EvoZonScheduleDayOfWeekT]:
             try:
                 return await child.get_schedule()
-            except exc.InvalidScheduleError:
+            except exc.InvalidGetScheduleError:
                 self._logger.warning(
                     f"Ignoring {child.id} ({child.name}): missing/invalid schedule"
                 )

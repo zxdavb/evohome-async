@@ -115,10 +115,12 @@ async def test_multi_location_warning_once_per_config_load(
             await ec2.update()  # status update only: don't warn again
         assert warnings() == []
 
+        ec2._clear_config()  # i.e. the config will be reloaded
+
         with pytest.warns(
             DeprecationWarning, match=r"use \.setup\(\), then Location\.get_status\(\)"
         ):
-            await ec2.update(_reset_config=True)  # config reloaded: warn again
+            await ec2.update()  # config reloaded: warn again
         assert warnings() == [warning]
 
         # test no warnings are given when status updates are skipped

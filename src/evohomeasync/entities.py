@@ -25,6 +25,7 @@ from _evohome.time_zone import iana_tz_from_windows_tz
 
 from . import exceptions as exc
 from .auth import Auth
+from .comm_task import CommTask
 from .const import (
     SZ_ALLOWED_MODES,
     SZ_COUNTRY,
@@ -51,7 +52,11 @@ from .const import (
     SZ_THERMOSTAT_MODEL_TYPE,
     SZ_TIME_ZONE,
     SZ_WEATHER,
+    URL_DHW_MODE,
+    URL_TCS_MODE,
+    URL_ZON_MODE,
 )
+from .exceptions import ClientStateErrorReason, RequestErrorReason
 from .schemas import (
     S1_MODE,
     S1_NEXT_TIME,
@@ -73,7 +78,8 @@ if TYPE_CHECKING:
     import logging
     from datetime import datetime as dt, tzinfo
 
-    # NOTE: the .temperature_status method intentionally emulate the v2 API...
+    # NOTE: a deliberate exception to keeping v1 & v2 apart: .temperature_status returns
+    # the very same structure as v2's (so a consumer can treat the two alike)
     from evohomeasync2.typedefs import EvoTemperatureStatusT
 
     from . import EvohomeClient
@@ -90,6 +96,7 @@ if TYPE_CHECKING:
 
 
 _TEMP_IS_NA: Final = 128
+
 
 # e.g. EMEA_ZONE, but any such prefixed type is a zone (c.f. TccThermostatModelType)
 _ZONE_MODEL_TYPE_PREFIX: Final = "EMEA_"
@@ -159,6 +166,27 @@ class _DeviceBase(_EntityBase):
     def _logger(self) -> logging.Logger:
         return self.location.client.logger
 
+    # Status (state) attrs & methods...
+
+    @property  # emulate the v2 API...
+    def temperature_status(self) -> EvoTemperatureStatusT:
+        """Return the temperature status of a thermostat (i.e. of a zone, or the DHW).
+
+        Its temperature is available only if it was measured, and is not 128 (the vendor's
+        value for none). Otherwise (e.g. NotAvailable, or SensorFault), there is none.
+        """
+
+        temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
+        temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
+
+        if temp_status != TccSensorStatus.MEASURED or temp == _TEMP_IS_NA:
+            return {SZ_IS_AVAILABLE: False}
+        return {SZ_IS_AVAILABLE: True, SZ_TEMPERATURE: temp}
+
+    @property
+    def temperature(self) -> float | None:
+        return self.temperature_status.get(SZ_TEMPERATURE)  # None if not available
+
     def _update_status(self, status: EvoDevInfoDictT) -> None:
         """Update the device's status."""
         self._status = status
@@ -191,32 +219,12 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
 
     # Status (state) attrs & methods...
 
-    @property  # emulate the v2 API...
-    def temperature_status(self) -> EvoTemperatureStatusT:
-        """Expose the temperature_status as per the v2 API."""
-
-        temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
-        temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
-
-        is_available = temp_status == TccSensorStatus.MEASURED
-        if temp == _TEMP_IS_NA:
-            return {SZ_IS_AVAILABLE: is_available}
-        return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
-
-    @property
-    def temperature(self) -> float | None:
-        if not (status := self.temperature_status)[SZ_IS_AVAILABLE]:
-            return None
-
-        assert SZ_TEMPERATURE in status  # mypy hint
-        return status[SZ_TEMPERATURE]
-
     async def _set_dhw(
         self,
         status: TccSetpointStatus,  # Scheduled | Hold
         mode: TccDhwMode | None = None,
         next_time: dt | None = None,  # sent as local time: "%Y-%m-%dT%H:%M:%S"
-    ) -> None:
+    ) -> CommTask:
         """Set DHW to Auto, or On/Off, either indefinitely, or until a set time."""
 
         dhw_mode: TccSetDhwModeT = {
@@ -230,35 +238,45 @@ class HotWater(_DeviceBase):  # Hotwater version of a Device
         if next_time:  # the vendor treats it as the location's local time
             dhw_mode |= {S1_NEXT_TIME: as_local_str(next_time, self.location.tzinfo)}
 
-        url = f"devices/{self.id}/thermostat/changeableValues"
-        _ = await self._auth.put(url, json=dhw_mode)
+        return await CommTask.from_put(
+            self._auth,
+            URL_DHW_MODE.format(device_id=self.id),
+            json=dhw_mode,
+        )
 
-    async def set_dhw_on(self, until: dt | None = None) -> None:
+    async def set_dhw_on(self, until: dt | None = None) -> CommTask:
         """Set DHW to On, either indefinitely, or until a specified time.
 
         When On, the DHW controller will work to keep its target temperature at/above
         its target temperature.  After the specified time, it will revert to its
         scheduled behaviour.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
         """
 
-        await self._set_dhw(
+        return await self._set_dhw(
             status=TccSetpointStatus.HOLD, mode=TccDhwMode.DHW_ON, next_time=until
         )
 
-    async def set_dhw_off(self, until: dt | None = None) -> None:
+    async def set_dhw_off(self, until: dt | None = None) -> CommTask:
         """Set DHW to Off, either indefinitely, or until a specified time.
 
         When Off, the DHW controller will ignore its target temperature. After the
         specified time, it will revert to its scheduled behaviour.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
         """
 
-        await self._set_dhw(
+        return await self._set_dhw(
             status=TccSetpointStatus.HOLD, mode=TccDhwMode.DHW_OFF, next_time=until
         )
 
-    async def set_dhw_auto(self) -> None:
-        """Allow DHW to switch between On and Off, according to its schedule."""
-        await self._set_dhw(status=TccSetpointStatus.SCHEDULED)
+    async def set_dhw_auto(self) -> CommTask:
+        """Allow DHW to switch between On and Off, according to its schedule.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
+        """
+        return await self._set_dhw(status=TccSetpointStatus.SCHEDULED)
 
 
 class Zone(_DeviceBase):  # Zone version of a Device
@@ -301,32 +319,12 @@ class Zone(_DeviceBase):  # Zone version of a Device
 
     # Status (state) attrs & methods...
 
-    @property  # emulate the v2 API...
-    def temperature_status(self) -> EvoTemperatureStatusT:
-        """Expose the temperature_status as per the v2 API."""
-
-        temp = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE]
-        temp_status = self._status[SZ_THERMOSTAT][SZ_INDOOR_TEMPERATURE_STATUS]
-
-        is_available = temp_status == TccSensorStatus.MEASURED
-        if temp == _TEMP_IS_NA:
-            return {SZ_IS_AVAILABLE: is_available}
-        return {SZ_IS_AVAILABLE: is_available, SZ_TEMPERATURE: temp}
-
-    @property
-    def temperature(self) -> float | None:
-        if not (status := self.temperature_status)[SZ_IS_AVAILABLE]:
-            return None
-
-        assert SZ_TEMPERATURE in status  # mypy hint
-        return status[SZ_TEMPERATURE]
-
     async def _set_heat_setpoint(
         self,
         status: TccSetpointStatus,  # Scheduled | Temporary | Hold
         value: float | None = None,
         next_time: dt | None = None,  # sent as local time: "%Y-%m-%dT%H:%M:%S"
-    ) -> None:
+    ) -> CommTask:
         """Set zone setpoint, either indefinitely, or until a set time."""
 
         zon_mode: TccSetZonModeT = {S1_STATUS: status}
@@ -336,24 +334,32 @@ class Zone(_DeviceBase):  # Zone version of a Device
         if next_time is not None:  # the vendor treats it as the location's local time
             zon_mode[S1_NEXT_TIME] = as_local_str(next_time, self.location.tzinfo)
 
-        url = f"devices/{self.id}/thermostat/changeableValues/heatSetpoint"
-        _ = await self._auth.put(url, json=zon_mode)
+        return await CommTask.from_put(
+            self._auth,
+            URL_ZON_MODE.format(device_id=self.id),
+            json=zon_mode,
+        )
 
     async def set_temperature(
         self, temperature: float, until: dt | None = None
-    ) -> None:
-        """Override the setpoint of a zone, for a period of time, or indefinitely."""
+    ) -> CommTask:
+        """Override the setpoint of a zone, for a period of time, or indefinitely.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
+        """
 
         if until:
-            await self._set_heat_setpoint(
+            return await self._set_heat_setpoint(
                 TccSetpointStatus.TEMPORARY, value=temperature, next_time=until
             )
-        else:
-            await self._set_heat_setpoint(TccSetpointStatus.HOLD, value=temperature)
+        return await self._set_heat_setpoint(TccSetpointStatus.HOLD, value=temperature)
 
-    async def set_zone_auto(self) -> None:
-        """Set a zone to follow its schedule."""
-        await self._set_heat_setpoint(status=TccSetpointStatus.SCHEDULED)
+    async def set_zone_auto(self) -> CommTask:
+        """Set a zone to follow its schedule.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
+        """
+        return await self._set_heat_setpoint(status=TccSetpointStatus.SCHEDULED)
 
 
 class ControlSystem(_EntityBase):
@@ -448,11 +454,14 @@ class ControlSystem(_EntityBase):
     def one_touch_buttons(self) -> tuple[str, ...]:
         return tuple(self.status.get(SZ_ONE_TOUCH_BUTTONS, ()))
 
-    async def _put_mode(self, tcs_mode: TccSetTcsModeT) -> None:
+    async def _put_mode(self, tcs_mode: TccSetTcsModeT) -> CommTask:
         """Set the TCS mode."""
 
-        url = f"evoTouchSystems?locationId={self.id}"
-        _ = await self._auth.put(url, json=tcs_mode)
+        return await CommTask.from_put(
+            self._auth,
+            URL_TCS_MODE.format(location_id=self.id),
+            json=tcs_mode,
+        )
 
     async def reset(self) -> None:
         """Set the TCS to auto mode (and DHW/all zones to FollowSchedule mode)."""
@@ -461,38 +470,41 @@ class ControlSystem(_EntityBase):
 
     async def set_mode(
         self, mode: TccSystemMode, /, *, until: dt | None = None
-    ) -> None:
-        """Set the TCS to a mode, either indefinitely, or for a set time."""
+    ) -> CommTask:
+        """Set the TCS to a mode, either indefinitely, or for a set time.
+
+        Return the PUT's comm task (await its `wait()` to wait for the change to take effect).
+        """
 
         request: TccSetTcsModeT = {S1_QUICK_ACTION: mode}
         if until:  # the vendor treats it as the location's local time
             request[S1_QUICK_ACTION_NEXT_TIME] = as_local_str(until, self.tzinfo)
 
-        await self._put_mode(request)
+        return await self._put_mode(request)
 
-    async def set_auto(self) -> None:
+    async def set_auto(self) -> CommTask:
         """Set the TCS to normal mode."""
-        await self.set_mode(TccSystemMode.AUTO)
+        return await self.set_mode(TccSystemMode.AUTO)
 
-    async def set_away(self, /, *, until: dt | None = None) -> None:
+    async def set_away(self, /, *, until: dt | None = None) -> CommTask:
         """Set the TCS to away mode."""
-        await self.set_mode(TccSystemMode.AWAY, until=until)
+        return await self.set_mode(TccSystemMode.AWAY, until=until)
 
-    async def set_custom(self, /, *, until: dt | None = None) -> None:
+    async def set_custom(self, /, *, until: dt | None = None) -> CommTask:
         """Set the TCS to custom mode."""
-        await self.set_mode(TccSystemMode.CUSTOM, until=until)
+        return await self.set_mode(TccSystemMode.CUSTOM, until=until)
 
-    async def set_dayoff(self, /, *, until: dt | None = None) -> None:
+    async def set_dayoff(self, /, *, until: dt | None = None) -> CommTask:
         """Set the TCS to dayoff mode."""
-        await self.set_mode(TccSystemMode.DAY_OFF, until=until)
+        return await self.set_mode(TccSystemMode.DAY_OFF, until=until)
 
-    async def set_eco(self, /, *, until: dt | None = None) -> None:
+    async def set_eco(self, /, *, until: dt | None = None) -> CommTask:
         """Set the TCS to economy mode."""
-        await self.set_mode(TccSystemMode.AUTO_WITH_ECO, until=until)
+        return await self.set_mode(TccSystemMode.AUTO_WITH_ECO, until=until)
 
-    async def set_heatingoff(self, /, *, until: dt | None = None) -> None:
+    async def set_heatingoff(self, /, *, until: dt | None = None) -> CommTask:
         """Set the system to heating off mode."""
-        await self.set_mode(TccSystemMode.HEATING_OFF, until=until)
+        return await self.set_mode(TccSystemMode.HEATING_OFF, until=until)
 
     def _get_zone(self, zon_id: int | str) -> Zone:
         """Return the TCS's zone by its id, idx or name."""
@@ -509,7 +521,10 @@ class ControlSystem(_EntityBase):
             dev = self.zone_by_name.get(zon_id)
 
         if dev is None:
-            raise exc.BadApiRequestError(f"no zone {zon_id} in {self}")
+            raise exc.BadApiRequestError(
+                f"no zone {zon_id} in {self}",
+                reason=RequestErrorReason.ZONE_UNKNOWN,
+            )
 
         return dev
 
@@ -688,7 +703,10 @@ class Location(_EntityBase):
         """Return the high-precision temperatures of the location's TCS, or raise."""
 
         if (tcs := self.tcs) is None:
-            raise exc.ClientStateError(f"{self}: This location has no TCS")
+            raise exc.ClientStateError(
+                f"{self}: This location has no TCS",
+                reason=ClientStateErrorReason.LOCATION_NO_TCS,
+            )
 
         return await tcs.get_temperatures(dont_update_status=dont_update_status)
 
