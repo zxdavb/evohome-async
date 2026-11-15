@@ -32,17 +32,17 @@ if TYPE_CHECKING:
 
 def _dhw_id(url: _urlT) -> str:
     """Extract a DHW id from a URL."""
-    return url.split(f"{sch.S2_DOMESTIC_HOT_WATER}/")[1].split("/")[0]
+    return url.split(f"{sch.TccEntityType.DHW}/")[1].split("/")[0]
 
 
 def _loc_id(url: _urlT) -> str:
     """Extract a Location id from a URL."""
-    return url.split(f"{sch.S2_LOCATION}/")[1].split("/")[0]
+    return url.split(f"{sch.TccEntityType.LOC}/")[1].split("/")[0]
 
 
 def _tcs_id(url: _urlT) -> str:
     """Extract a TCS id from a URL."""
-    return url.split(f"{sch.S2_TEMPERATURE_CONTROL_SYSTEM}/")[1].split("/")[0]
+    return url.split(f"{sch.TccEntityType.TCS}/")[1].split("/")[0]
 
 
 def _usr_id(url: _urlT) -> str:
@@ -52,7 +52,7 @@ def _usr_id(url: _urlT) -> str:
 
 def _zon_id(url: _urlT) -> str:
     """Extract a Zone id from a URL."""
-    return url.split(f"{sch.S2_TEMPERATURE_ZONE}/")[1].split("/")[0]
+    return url.split(f"{sch.TccEntityType.ZON}/")[1].split("/")[0]
 
 
 S = TypeVar("S", bound="FakedServerBase")

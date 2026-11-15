@@ -166,22 +166,24 @@ S2_ZONES: Final = "zones"
 
 
 # Vendor API strings — URL path components use camelCase
-# - these are not JSON keys; they appear only in URL construction
-
-S2_DOMESTIC_HOT_WATER: Final = "domesticHotWater"
-S2_GATEWAY: Final = "gateway"
-S2_LOCATION: Final = "location"
-S2_TEMPERATURE_CONTROL_SYSTEM: Final = "temperatureControlSystem"
-S2_TEMPERATURE_ZONE: Final = "temperatureZone"
+# - these are not JSON keys; they appear only in URL construction (as TccEntityType)
 
 
 @verify(EnumCheck.UNIQUE)
 class TccEntityType(StrEnum):
-    LOC = S2_LOCATION
-    GWY = S2_GATEWAY
-    TCS = S2_TEMPERATURE_CONTROL_SYSTEM
-    ZON = S2_TEMPERATURE_ZONE
-    DHW = S2_DOMESTIC_HOT_WATER
+    LOC = "location"
+    GWY = "gateway"
+    TCS = "temperatureControlSystem"
+    ZON = "temperatureZone"
+    DHW = "domesticHotWater"
+
+
+# TODO: deprecate, then remove in v4: use the TccEntityType equivalents (not used internally)
+S2_DOMESTIC_HOT_WATER: Final = TccEntityType.DHW.value
+S2_GATEWAY: Final = TccEntityType.GWY.value
+S2_LOCATION: Final = TccEntityType.LOC.value
+S2_TEMPERATURE_CONTROL_SYSTEM: Final = TccEntityType.TCS.value
+S2_TEMPERATURE_ZONE: Final = TccEntityType.ZON.value
 
 
 # Vendor StrEnum classes - StrEnums use PascalCase
