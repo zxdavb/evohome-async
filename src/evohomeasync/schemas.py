@@ -238,8 +238,10 @@ class TccFailureCode(StrEnum):  # the code of a failed request; NOTE: is incompl
     INVALID_INPUT = "InvalidInput"
     PARAMETER_IS_MISSING = "ParameterIsMissing"
     SCHEDULE_NOT_SUPPORTED = "ScheduleNotSupported"
+    THERMOSTAT_MODE_NOT_ALLOWED = "ThermostatModeNotAllowed"  # e.g. Off, for a DHW
     TOO_MANY_REQUESTS = "TooManyRequests"
     UNAUTHORIZED = "Unauthorized"
+    VALUE_OUT_OF_RANGE = "ValueOutOfRange"  # e.g. heatSetpoint's value
 
 
 @verify(EnumCheck.UNIQUE)

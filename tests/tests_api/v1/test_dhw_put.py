@@ -135,7 +135,7 @@ async def test_put_mode_only(
         ),
         pytest.param(  # a ThermostatMode, but not for a DHW
             {"mode": "Off"},
-            "ThermostatModeNotAllowed",  # not (yet) a TccFailureCode
+            TccFailureCode.THERMOSTAT_MODE_NOT_ALLOWED,
             "Mode Off is not allowed. Allowed modes are DHWOn, DHWOff.",  # 2026-11-13
             id="mode_not_allowed",
         ),
