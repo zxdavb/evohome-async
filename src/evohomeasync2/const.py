@@ -174,6 +174,14 @@ SZ_ZONE_ID: Final = "zone_id"
 SZ_ZONE_TYPE: Final = "zone_type"
 SZ_ZONES: Final = "zones"
 
+# TODO: deprecate, then remove in v4: snake_case twins of URL path components (the
+# S2_* equivalents of TccEntityType), which are not JSON keys (not used internally)
+SZ_DOMESTIC_HOT_WATER: Final = "domestic_hot_water"
+SZ_GATEWAY: Final = "gateway"
+SZ_LOCATION: Final = "location"
+SZ_TEMPERATURE_CONTROL_SYSTEM: Final = "temperature_control_system"
+SZ_TEMPERATURE_ZONE: Final = "temperature_zone"
+
 
 # These keys are not in the vendor's schema.
 SZ_ID: Final = "id"

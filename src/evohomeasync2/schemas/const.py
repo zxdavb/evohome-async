@@ -178,6 +178,14 @@ class TccEntityType(StrEnum):
     DHW = "domesticHotWater"
 
 
+# TODO: deprecate, then remove in v4: use the TccEntityType equivalents (not used internally)
+S2_DOMESTIC_HOT_WATER: Final = TccEntityType.DHW.value
+S2_GATEWAY: Final = TccEntityType.GWY.value
+S2_LOCATION: Final = TccEntityType.LOC.value
+S2_TEMPERATURE_CONTROL_SYSTEM: Final = TccEntityType.TCS.value
+S2_TEMPERATURE_ZONE: Final = TccEntityType.ZON.value
+
+
 # Vendor StrEnum classes - StrEnums use PascalCase
 
 
