@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+import ast
+import importlib
+import inspect
+from pathlib import Path
 from typing import TYPE_CHECKING, overload
 
+from _evohome import exceptions as _exc
 from tests.const import TEST_LOC_IDX
 
 if TYPE_CHECKING:
@@ -78,3 +83,34 @@ def get_zon(
         z for gwy in get_loc(ec2).gateways for tcs in gwy.systems for z in tcs.zones
     ]
     return zones[idx] if idx < len(zones) else None
+
+
+def exceptions_constructed(*packages: str) -> set[str]:
+    """Return the names of the library's exceptions that the packages' code constructs.
+
+    Any call of one (whether raised there, or returned to be raised elsewhere) in the
+    source of the packages (e.g. "_evohome", and an API's package).
+    """
+
+    errors = {
+        name
+        for name, obj in vars(_exc).items()
+        if inspect.isclass(obj) and issubclass(obj, BaseException)
+    }
+
+    found: set[str] = set()
+    for package in packages:
+        src = Path(importlib.import_module(package).__file__ or "").parent
+        for path in src.rglob("*.py"):
+            for node in ast.walk(ast.parse(path.read_text(), str(path))):
+                if not isinstance(node, ast.Call):
+                    continue
+                func = node.func
+                name = (
+                    func.attr
+                    if isinstance(func, ast.Attribute)
+                    else getattr(func, "id", "")
+                )
+                if name in errors:
+                    found.add(name)
+    return found
