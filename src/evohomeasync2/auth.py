@@ -31,7 +31,6 @@ from .schemas.const import (
     OAUTH_SCOPE,
     OAUTH_TOKEN_TYPE,
     OAUTH_USERNAME,
-    TccOAuthError,
 )
 
 if TYPE_CHECKING:
@@ -202,10 +201,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
                 OAUTH_PASSWORD: self._secret,
             }
 
-            await self._fetch_access_token(  # BadUserCredentialsError if invalid
-                CREDS_USER_PASSWORD | credentials,
-                bad_credentials=TccOAuthError.INVALID_GRANT,  # only of this grant
-            )
+            await self._fetch_access_token(CREDS_USER_PASSWORD | credentials)
 
             self._was_authenticated = True
 
@@ -213,22 +209,18 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         self._logger.debug(f" - access_token = {redact(self.access_token)}")
         self._logger.debug(f" - access_token_expires = {self.access_token_expires}")
 
-    async def _fetch_access_token(
-        self, credentials: dict[str, str], /, *, bad_credentials: str | None = None
-    ) -> None:
+    async def _fetch_access_token(self, credentials: dict[str, str]) -> None:
         """Obtain an access token using the supplied credentials.
 
         The credentials are either a refresh token or the user's client_id/secret.
-        Will raise BadUserCredentialsError if the vendor's error code is bad_credentials
-        (only the client_id/secret are user credentials), or (otherwise)
-        AuthenticationFailedError if unable to obtain an access token.
+        Will raise AuthenticationFailedError if unable to obtain an access token
+        (BadUserCredentialsError if the client_id/secret are invalid).
         """
 
         url = f"https://{self.hostname}/{URL_CRED}"
 
         response: TccOAuthTokenResponseT = await self._post_access_token_request(
             url,
-            bad_credentials=bad_credentials,
             headers=HEADERS_CRED | {hdrs.AUTHORIZATION: "Basic " + _APPLICATION_ID},
             data=credentials,  # NOTE: is form-encoded, so its keys are as-is
         )

@@ -305,14 +305,10 @@ async def test_concurrent_get_access_token_failure(
 
     real_fetch = token_manager._fetch_access_token
 
-    async def _fetch_access_token(
-        credentials: dict[str, str], /, *, bad_credentials: str | None = None
-    ) -> None:
+    async def _fetch_access_token(credentials: dict[str, str]) -> None:
         for _ in range(3):  # yield, so that the other callers queue behind this one
             await asyncio.sleep(0)
-        await real_fetch(
-            credentials, bad_credentials=bad_credentials
-        )  # the real request, so _post_request() raises
+        await real_fetch(credentials)  # the real request, so _post_request() raises
 
     with (
         aioresponses() as rsp,

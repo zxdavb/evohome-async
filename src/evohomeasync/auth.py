@@ -24,7 +24,6 @@ from .schemas import (
     S1_SESSION_ID,
     S1_USERNAME,
     TCC_POST_USR_SESSION,
-    TccFailureCode,
 )
 
 if TYPE_CHECKING:
@@ -151,7 +150,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
             S1_PASSWORD: self._secret,
         }
 
-        await self._fetch_session_id(credentials)  # BadUserCredentialsError if invalid
+        await self._fetch_session_id(credentials)
 
         self._was_authenticated = True
 
@@ -163,15 +162,14 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         """Obtain an session ID using the supplied credentials.
 
         The credentials are the user's client_id/secret.
-        Will raise BadUserCredentialsError if they are invalid, or (otherwise)
-        AuthenticationFailedError if unable to obtain a session ID.
+        Will raise AuthenticationFailedError if unable to obtain a session ID
+        (BadUserCredentialsError if the credentials are invalid).
         """
 
         url = f"https://{self.hostname}/{URL_CRED}"
 
         response: TccSessionResponseT = await self._post_session_id_request(
             url,
-            bad_credentials=TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT,
             headers=HEADERS_CRED,
             data=credentials,  # NOTE: is camelCase
         )

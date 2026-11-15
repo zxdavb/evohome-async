@@ -9,7 +9,15 @@ from typing import TYPE_CHECKING, Any, Final
 import aiohttp
 
 from . import exceptions as exc
-from .auth import _SZ_CODE, _details, _errors, _payload, _reason, _retry_after
+from .auth import (
+    _SZ_CODE,
+    _ApiCallDetails,
+    _details,
+    _errors,
+    _payload,
+    _reason,
+    _retry_after,
+)
 from .const import (
     ERR_MSG_LOOKUP_BASE,
     HINT_BAD_CREDS,
@@ -21,26 +29,34 @@ from .exceptions import ApiCallErrorReason
 
 if TYPE_CHECKING:
     import logging
+    from collections.abc import Mapping
 
     from aiohttp.typedefs import StrOrURL
+
+
+# the vendor's values that say a request was refused for the user's credentials
+_S1_BAD_CREDENTIALS: Final = "EmailOrPasswordIncorrect"  # v1: its error code
+_S2_INVALID_GRANT: Final = "invalid_grant"  # v2: its (OAuth) error code
+_S2_GRANT_TYPE: Final = "grant_type"  # v2: a key of its request's (form) data
+_S2_CREDENTIALS_GRANT: Final = "password"  # v2: the grant type of a client_id/secret
 
 
 async def _failed_auth_error(
     err: aiohttp.ClientResponseError,
     rsp: aiohttp.ClientResponse | None,
+    details: _ApiCallDetails,
     /,
     *,
-    bad_credentials: str | None,
+    bad_credentials: bool,
 ) -> exc.AuthenticationFailedError:
     """Return the error of a failed authentication request (v1 or v2), by its response.
 
-    It is a BadUserCredentialsError if the vendor's error code is bad_credentials (which
-    differs by API, and by request), e.g. v1's EmailOrPasswordIncorrect (a 401), or
-    v2's invalid_grant (a 400) of a password grant.
+    It is a BadUserCredentialsError if the request was refused for the user's
+    credentials, e.g. v1's EmailOrPasswordIncorrect (a 401), or v2's invalid_grant (a
+    400) of a password grant (but not of a refresh token).
     """
 
     msg = f"{err.status} {err.message}, response={await _payload(rsp)}"
-    details = await _details(rsp)  # e.g. {"code": "invalid_grant"}
     errors = await _errors(rsp)  # v1: e.g. [{"code": "TooManyRequests", ...}]
 
     if err.status == HTTPStatus.TOO_MANY_REQUESTS:  # 429
@@ -53,7 +69,7 @@ async def _failed_auth_error(
             **details,
         )
 
-    if bad_credentials is not None and details.get(_SZ_CODE) == bad_credentials:
+    if bad_credentials:
         return exc.BadUserCredentialsError(
             f"Authenticator response is invalid: {msg}",
             status=err.status,
@@ -113,14 +129,28 @@ class CredentialsManagerBase:
         """Return the hostname used for HTTP authentication."""
         return self._hostname
 
-    async def _post_request(
-        self, url: StrOrURL, /, *, bad_credentials: str | None = None, **kwargs: Any
-    ) -> dict[str, Any]:
+    def _is_bad_credentials(self, data: Mapping[str, str], code: str | None) -> bool:
+        """Return True if a failed request (v1 or v2) was refused for the user's credentials.
+
+        Not overridden per API: one manager may serve both (e.g. the CLI's, or HA's).
+
+        v1: its only request is with the user's client_id/secret, so its code is enough.
+        v2: only a password grant has them; an invalid_grant of a refresh token means only
+        that the refresh token is invalid (so the client_id/secret are used instead).
+        """
+
+        if (
+            code == _S2_INVALID_GRANT
+            and data.get(_S2_GRANT_TYPE) == _S2_CREDENTIALS_GRANT
+        ):
+            return True
+        return code == _S1_BAD_CREDENTIALS
+
+    async def _post_request(self, url: StrOrURL, /, **kwargs: Any) -> dict[str, Any]:
         """POST an authentication request and return the response (a dict).
 
-        Will raise an exception if the authentication is not successful. If the vendor's
-        error code is bad_credentials (it differs by API, and by request), that will be
-        a BadUserCredentialsError.
+        Will raise an exception if the authentication is not successful (a
+        BadUserCredentialsError if it was refused for the user's credentials).
         """
 
         rsp: aiohttp.ClientResponse | None = None  # to prevent unbound error
@@ -157,7 +187,13 @@ class CredentialsManagerBase:
             ) from err
 
         except aiohttp.ClientResponseError as err:
-            error = await _failed_auth_error(err, rsp, bad_credentials=bad_credentials)
+            details = await _details(rsp)  # e.g. {"code": "invalid_grant"}
+            bad_creds = self._is_bad_credentials(
+                kwargs.get("data", {}), details.get(_SZ_CODE)
+            )
+            error = await _failed_auth_error(
+                err, rsp, details, bad_credentials=bad_creds
+            )
 
             if isinstance(error, exc.BadUserCredentialsError):
                 hint: str | None = HINT_BAD_CREDS
