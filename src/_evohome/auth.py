@@ -459,11 +459,12 @@ class AbstractAuth(ABC):
                 errors=await _errors(rsp),
             ) from err
 
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+        # e.g. ClientConnectionError, or a TimeoutError (not all are a ClientError)
+        except (aiohttp.ClientError, TimeoutError) as err:
             self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
 
             raise exc.ApiCallFailedError(
-                f"{method} {url}: {err}",
+                f"{method} {url}: {str(err) or type(err).__name__}",  # str(TimeoutError()) is ''
                 reason=ApiCallErrorReason.CONNECTION_FAILED,
                 response=rsp,  # usu. None
             ) from err

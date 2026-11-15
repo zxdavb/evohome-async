@@ -191,11 +191,12 @@ class CredentialsManagerBase(ABC):
 
             raise error from err
 
-        except aiohttp.ClientError as err:  # e.g. ClientConnectionError
+        # e.g. ClientConnectionError, or a TimeoutError (not all are a ClientError)
+        except (aiohttp.ClientError, TimeoutError) as err:
             self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
 
             raise exc.AuthenticationFailedError(
-                f"Authenticator response is invalid: {err}",
+                f"Authenticator response is invalid: {str(err) or type(err).__name__}",
                 reason=ApiCallErrorReason.CONNECTION_FAILED,
                 response=rsp,  # usu. None
             ) from err
