@@ -8,18 +8,18 @@ import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final, TypedDict
+from typing import TYPE_CHECKING, Any, Final, TypedDict, override
 
 import probatio as vol
 from aiohttp import hdrs
 
-from _evohome.auth import AbstractAuth, _details_of
-from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
+from _evohome.auth import AbstractAuth
+from _evohome.const import HEADERS_BASE, HEADERS_CRED
 from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
-from .const import SZ_CODE, URL_BASE, URL_CRED, URL_USR_ACCOUNT
+from .const import URL_BASE, URL_CRED, URL_USR_ACCOUNT
 from .exceptions import ApiCallErrorReason
 from .schemas.account import TCC_POST_OAUTH_TOKEN
 from .schemas.const import (
@@ -35,6 +35,8 @@ from .schemas.const import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
@@ -202,21 +204,7 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
                 OAUTH_PASSWORD: self._secret,
             }
 
-            try:  # check here if the user credentials are invalid...
-                await self._fetch_access_token(CREDS_USER_PASSWORD | credentials)
-
-            except exc.AuthenticationFailedError as err:
-                if err.details.get(SZ_CODE) != TccOAuthError.INVALID_GRANT:
-                    raise
-                self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
-                # status will be: HTTPStatus.BAD_REQUEST, 400
-                raise exc.BadUserCredentialsError(
-                    f"{err}",
-                    status=err.status,
-                    response=err.response,
-                    errors=err.errors,
-                    **_details_of(err.details),  # e.g. the vendor's error code
-                ) from err
+            await self._fetch_access_token(CREDS_USER_PASSWORD | credentials)
 
             self._was_authenticated = True
 
@@ -228,7 +216,8 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         """Obtain an access token using the supplied credentials.
 
         The credentials are either a refresh token or the user's client_id/secret.
-        Will raise AuthenticationFailedError if unable to obtain an access token.
+        Will raise AuthenticationFailedError if unable to obtain an access token
+        (BadUserCredentialsError if the client_id/secret are invalid).
         """
 
         url = f"https://{self.hostname}/{URL_CRED}"
@@ -267,6 +256,18 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         # TODO: determine if this API support this 'feature'
         # if response.get("latest_eula_accepted") is False:
         #     self._logger.warning("The latest EULA has not been accepted by the user")
+
+    @override
+    def _is_bad_credentials(self, data: Mapping[str, str], code: str | None) -> bool:
+        """Return True if a failed request was refused for the user's credentials.
+
+        Only a password grant has them: an invalid_grant of a refresh token means only
+        that the refresh token is invalid (so the client_id/secret are used instead).
+        """
+        return (
+            code == TccOAuthError.INVALID_GRANT
+            and data.get(OAUTH_GRANT_TYPE) == CREDS_USER_PASSWORD[OAUTH_GRANT_TYPE]
+        )
 
     async def _post_access_token_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any

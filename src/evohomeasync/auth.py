@@ -6,23 +6,17 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
-from typing import TYPE_CHECKING, Any, Final, TypedDict
+from typing import TYPE_CHECKING, Any, Final, TypedDict, override
 
 import probatio as vol
 
-from _evohome.auth import AbstractAuth, _details_of
-from _evohome.const import HEADERS_BASE, HEADERS_CRED, HINT_BAD_CREDS
+from _evohome.auth import AbstractAuth
+from _evohome.const import HEADERS_BASE, HEADERS_CRED
 from _evohome.credentials import CredentialsManagerBase
 from _evohome.helpers import convert_keys_to_snake_case, redact
 
 from . import exceptions as exc
-from .const import (
-    SZ_CODE,
-    SZ_LATEST_EULA_ACCEPTED,
-    URL_ACCOUNT_INFO,
-    URL_BASE,
-    URL_CRED,
-)
+from .const import SZ_LATEST_EULA_ACCEPTED, URL_ACCOUNT_INFO, URL_BASE, URL_CRED
 from .exceptions import ApiCallErrorReason
 from .schemas import (
     S1_APPLICATION_ID,
@@ -34,6 +28,8 @@ from .schemas import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     import aiohttp
     from aiohttp.typedefs import StrOrURL
 
@@ -157,20 +153,7 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
             S1_PASSWORD: self._secret,
         }
 
-        try:  # check here if the user credentials are invalid...
-            await self._fetch_session_id(credentials)
-
-        except exc.AuthenticationFailedError as err:
-            if err.details.get(SZ_CODE) != TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT:
-                raise
-            self._logger.error(HINT_BAD_CREDS)  # noqa: TRY400
-            raise exc.BadUserCredentialsError(
-                f"{err}",
-                status=err.status,
-                response=err.response,
-                errors=err.errors,
-                **_details_of(err.details),  # e.g. the vendor's error code
-            ) from err
+        await self._fetch_session_id(credentials)
 
         self._was_authenticated = True
 
@@ -182,7 +165,8 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         """Obtain an session ID using the supplied credentials.
 
         The credentials are the user's client_id/secret.
-        Will raise AuthenticationFailedError if unable to obtain a session ID.
+        Will raise AuthenticationFailedError if unable to obtain a session ID
+        (BadUserCredentialsError if the credentials are invalid).
         """
 
         url = f"https://{self.hostname}/{URL_CRED}"
@@ -222,6 +206,11 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         ):
             self._eula_warned = True
             self._logger.info("The latest EULA has not been accepted by the user")
+
+    @override
+    def _is_bad_credentials(self, data: Mapping[str, str], code: str | None) -> bool:
+        """Return True if a failed request was refused for the user's credentials."""
+        return code == TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT
 
     async def _post_session_id_request(  # dev/test wrapper (also typing)
         self, url: StrOrURL, /, **kwargs: Any
