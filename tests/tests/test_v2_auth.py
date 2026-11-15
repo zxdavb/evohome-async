@@ -16,6 +16,13 @@ import pytest
 from _evohome.const import HINT_BAD_CREDS
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync2 import exceptions as exc
+from evohomeasync2.auth import (
+    CREDS_REFRESH_TOKEN,
+    SZ_ACCESS_TOKEN,
+    SZ_ACCESS_TOKEN_EXPIRES,
+    SZ_REFRESH_TOKEN,
+)
+from evohomeasync2.schemas.const import OAUTH_GRANT_TYPE, OAUTH_REFRESH_TOKEN
 from tests.const import HEADERS_CRED_V2, URL_CRED_V2
 
 from .aioresponses import aioresponses
@@ -422,3 +429,75 @@ async def test_rejected_refresh_token_is_not_bad_credentials(
         assert await token_manager.get_access_token() == "-- access token --"
 
     assert HINT_BAD_CREDS not in [r.message for r in caplog.records]
+
+
+async def test_cache_keeps_a_refresh_token(
+    client_session: aiohttp.ClientSession,
+    credentials: tuple[str, str],
+    tmp_path: Path,
+) -> None:
+    """Test the cache keeps an expired access token that has a refresh token.
+
+    So the next run refreshes it, rather than logging in with the password (the
+    vendor limits those logins, but not refreshes).
+    """
+
+    cache_path = tmp_path / ".evo-cache.tst"
+
+    token_manager = TokenCacheManager(
+        *credentials, client_session, cache_path=cache_path
+    )
+    token_manager.import_access_token(
+        {
+            SZ_ACCESS_TOKEN: "-- expired access token --",
+            SZ_ACCESS_TOKEN_EXPIRES: (dt.now(tz=UTC) - td(minutes=1)).isoformat(),
+            SZ_REFRESH_TOKEN: "-- refresh token --",
+        }
+    )
+    await token_manager.save_access_token()  # was: removed, as expired
+
+    token_manager = TokenCacheManager(  # e.g. the CLI, when next run
+        *credentials, client_session, cache_path=cache_path
+    )
+    await token_manager.load_from_cache()
+    assert token_manager.is_token_valid() is False
+
+    with (
+        patch(
+            "evohomeasync2.auth.AbstractTokenManager._post_access_token_request",
+            new_callable=AsyncMock,
+        ) as req,
+        patch.object(token_manager, "save_access_token", new_callable=AsyncMock),
+    ):
+        req.return_value = {
+            "access_token": "-- new access token --",
+            "expires_in": 1800,
+            "refresh_token": "-- new refresh token --",
+            "token_type": "bearer",
+        }
+        assert await token_manager.get_access_token() == "-- new access token --"
+
+    req.assert_called_once()
+    data = req.call_args.kwargs["data"]
+    assert (
+        data[OAUTH_GRANT_TYPE] == CREDS_REFRESH_TOKEN[OAUTH_GRANT_TYPE]
+    )  # not password
+    assert data[OAUTH_REFRESH_TOKEN] == "-- refresh token --"
+
+
+def test_cache_drops_an_expired_access_token_without_a_refresh_token() -> None:
+    """Test the cache removes an expired access token if it has no refresh token."""
+
+    expired = (dt.now(tz=UTC) - td(minutes=1)).isoformat()
+
+    cache: CacheDataT = {
+        "username@email.com": {
+            SZ_ACCESS_TOKEN: {
+                SZ_ACCESS_TOKEN: "-- expired access token --",
+                SZ_ACCESS_TOKEN_EXPIRES: expired,
+                SZ_REFRESH_TOKEN: "",
+            }
+        }
+    }
+
+    assert TokenCacheManager._clean_cache(cache) == {}

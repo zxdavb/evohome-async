@@ -24,6 +24,7 @@ from evohomeasync2.auth import (
     CREDS_USER_PASSWORD,
     SZ_ACCESS_TOKEN,
     SZ_ACCESS_TOKEN_EXPIRES,
+    SZ_REFRESH_TOKEN,
     AbstractTokenManager,
 )
 from evohomeasync2.schemas.const import OAUTH_GRANT_TYPE, TccOAuthError
@@ -158,7 +159,11 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
 
     @staticmethod
     def _clean_cache(old_cache: CacheDataT) -> CacheDataT:
-        """Return a copy of a cache with any expired data removed."""
+        """Return a copy of a cache with any expired data removed.
+
+        An expired access token is kept if it has a refresh token, as that can be used
+        to get a new one, rather than the user's password (whose logins are limited).
+        """
 
         new_cache: CacheDataT = {}
 
@@ -167,9 +172,9 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
         for user_id, entry in old_cache.items():
             user_data: UserEntryT = {}
 
-            if (t := entry.get(SZ_ACCESS_TOKEN)) and t[
-                SZ_ACCESS_TOKEN_EXPIRES
-            ] > dt_now:
+            if (t := entry.get(SZ_ACCESS_TOKEN)) and (
+                t[SZ_ACCESS_TOKEN_EXPIRES] > dt_now or t.get(SZ_REFRESH_TOKEN)
+            ):
                 user_data[SZ_ACCESS_TOKEN] = t
 
             # session_id is not used by evohomeasync2
