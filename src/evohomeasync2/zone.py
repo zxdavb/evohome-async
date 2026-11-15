@@ -463,9 +463,9 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
             )
             del self._last_logged[hash_(fault)]
 
-        # The vendor may list a fault more than once: it is one fault (else, when it
-        # is cleared, each copy would be, and the second would raise a KeyError);
-        # equal faults have the same hash_() (it has both of their fields)
+        # A safeguard: should the vendor list a fault more than once (not seen), it is
+        # one fault (else, when it is cleared, each copy would be, and the second would
+        # raise a KeyError); equal faults have the same hash_() (it has both fields)
         faults = list({hash_(f): f for f in active_faults}.values())
 
         # Remove resolved (non-active) faults
