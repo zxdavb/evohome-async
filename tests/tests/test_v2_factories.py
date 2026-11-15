@@ -11,6 +11,7 @@ import pytest
 
 from _evohome.helpers import TCC_TIMESPAN_REGEX, Case, camel_to_snake
 from evohomeasync2.const import SZ_FAULT_TYPE, SZ_SINCE, FaultType as EvoFaultType
+from evohomeasync2.schemas.account import factory_usr_account
 from evohomeasync2.schemas.config import factory_system_mode, factory_zon_config
 from evohomeasync2.schemas.const import (
     REGEX_DHW_ID,
@@ -185,6 +186,35 @@ def _zon_config(
         "name": "Dead Zone",
         "zoneType": "RadiatorZone",
     }
+
+
+@pytest.mark.parametrize(
+    "username",
+    ["user@example.com", "user@bücher.de", "user@localhost"],
+    ids=["ascii", "idn", "no_tld"],
+)
+def test_factory_usr_account_username(
+    username: str,
+) -> None:
+    """Test a username is not validated as an email address.
+
+    The vendor has already accepted it, and vol.Email() would reject some (e.g. an IDN),
+    so failing the user's account (and so the client's setup).
+    """
+
+    factory_usr_account()(
+        {
+            "userId": "2512649",
+            "username": username,
+            "firstname": "John",
+            "lastname": "Smith",
+            "streetAddress": "1 Main Street",
+            "city": "London",
+            "postcode": "E1 1AA",
+            "country": "UnitedKingdom",
+            "language": "enGB",
+        }
+    )
 
 
 @pytest.mark.parametrize(

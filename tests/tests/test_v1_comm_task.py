@@ -126,6 +126,26 @@ async def test_put_returns_comm_task(
     assert str(task) == f"CommTask(id='{TASK_ID}', put='{url}')"
 
 
+async def test_put_with_extra_key(
+    ec1: EvohomeClientV1,
+) -> None:
+    """Check a PUT's response with an unexpected key is still a comm task.
+
+    Otherwise, a PUT that succeeded would raise CommTaskFailedError.
+    """
+
+    zone = get_tcs(ec1).zones[0]
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE | {"noSuchKey": "value"},
+    ):
+        task = await zone.set_zone_auto()
+
+    assert task.id == TASK_ID
+
+
 async def test_put_with_bad_response(
     ec1: EvohomeClientV1,
 ) -> None:

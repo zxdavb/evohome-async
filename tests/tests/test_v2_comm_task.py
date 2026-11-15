@@ -115,6 +115,24 @@ async def test_set_schedule_returns_comm_task(
     mock_request.assert_awaited_once()  # the PUT only (no GET of the task's state)
 
 
+async def test_put_with_extra_key(
+    zone: Zone,
+) -> None:
+    """Check a PUT's response with an unexpected key is still a comm task.
+
+    Otherwise, a PUT that succeeded would raise CommTaskFailedError.
+    """
+
+    with patch(
+        "_evohome.auth.AbstractAuth.request",
+        new_callable=AsyncMock,
+        return_value=PUT_RESPONSE_V2 | {"noSuchKey": "value"},
+    ):
+        task = await zone.reset()
+
+    assert task.id == TASK_ID
+
+
 async def test_put_with_bad_response(
     zone: Zone,
 ) -> None:

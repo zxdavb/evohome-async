@@ -7,7 +7,7 @@
             "city": "London",
             "country": "UnitedKingdom",
             "postcode": "E1 2AA",
-            "locationType": "Residential",
+            "locationType": "NoSuchLocationType",
             "useDaylightSaveSwitching": true,
             "timeZone": {
                 "timeZoneId": "GMTStandardTime",

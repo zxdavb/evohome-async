@@ -18,6 +18,7 @@ such value for each of the enums that tolerate them (via `factory_enum_or_str()`
 
 | Enum | Entity | Field | Value |
 |------|--------|-------|-------|
+| `TccLocationType` | location 4001021 | `locationType` | `NoSuchLocationType` |
 | `TccTcsModelType` | TCS 4001023 | `modelType` | `NoSuchModelType` |
 | `TccZoneModelType` | zone 4001024 | `modelType` | `NoSuchModelType` |
 | `TccZoneType` | zone 4001024 | `zoneType` | `NoSuchZoneType` |
