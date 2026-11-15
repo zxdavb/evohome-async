@@ -78,7 +78,8 @@ if TYPE_CHECKING:
     import logging
     from datetime import datetime as dt, tzinfo
 
-    # NOTE: the .temperature_status method intentionally emulate the v2 API...
+    # NOTE: a deliberate exception to keeping v1 & v2 apart: .temperature_status returns
+    # the very same structure as v2's (so a consumer can treat the two alike)
     from evohomeasync2.typedefs import EvoTemperatureStatusT
 
     from . import EvohomeClient
