@@ -8,9 +8,10 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from _evohome import exceptions as _exc
 from evohomeasync import EvohomeClient, exceptions as exc
 from evohomeasync.const import SZ_USER_ID
-from tests.common import get_tcs
+from tests.common import exceptions_constructed, get_tcs
 
 from .conftest import FIXTURES_V1 as FIXTURES
 
@@ -125,3 +126,18 @@ async def test_unknown_zone(
         tcs._get_zone("no such zone")
 
     assert exc_info.value.reason is exc.RequestErrorReason.ZONE_UNKNOWN
+
+
+def test_exceptions_are_exported() -> None:
+    """Test every exception the client can raise is exported by its exceptions module.
+
+    That is, any that its code (or the shared code) constructs, as the very same class,
+    so a consumer can catch it as evohomeasync.exceptions.<name>.
+    """
+
+    constructed = exceptions_constructed("_evohome", "evohomeasync")
+    assert "BadUserCredentialsError" in constructed  # i.e. the scan finds them
+
+    assert not (missing := constructed - set(exc.__all__)), f"not exported: {missing}"
+    for name in constructed:
+        assert getattr(exc, name) is getattr(_exc, name)
