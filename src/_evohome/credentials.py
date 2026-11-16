@@ -133,7 +133,9 @@ class CredentialsManagerBase(ABC):
         of the two would apply (the first in its MRO).
         """
 
-    async def _post_request(self, url: StrOrURL, /, **kwargs: Any) -> dict[str, Any]:
+    async def _post_request(
+        self, url: StrOrURL, /, **kwargs: Any
+    ) -> Mapping[str, object]:
         """POST an authentication request and return the response (a dict).
 
         Will raise an exception if the authentication is not successful (a
@@ -164,7 +166,7 @@ class CredentialsManagerBase(ABC):
                     reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
                     response=rsp,
                 )
-            response: dict[str, Any] = raw
+            response: Mapping[str, object] = raw
 
         except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
             raise exc.AuthenticationFailedError(

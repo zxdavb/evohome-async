@@ -92,6 +92,7 @@ if TYPE_CHECKING:
         EvoActiveFaultT,
         EvoAllowedSystemModesT,
         EvoDhwScheduleDayOfWeekT,
+        EvoDhwScheduleSwitchpointT,
         EvoDhwStatusResponseT,
         EvoSetZoneHeatSetpointT,
         EvoTemperatureStatusT,
@@ -100,11 +101,13 @@ if TYPE_CHECKING:
         EvoZonConfigT,
         EvoZonScheduleCapabilitiesT,
         EvoZonScheduleResponseT,
+        EvoZonScheduleSwitchpointT,
         EvoZonSetpointCapabilitiesT,
         EvoZonSetpointStatusT,
     )
 
     _SwitchPoint = tuple[dt, float | str]
+    type _ScheduleSwitchpoint = EvoDhwScheduleSwitchpointT | EvoZonScheduleSwitchpointT
 
     class _DailySchedulesT[DayT](TypedDict):
         daily_schedules: list[DayT]
@@ -506,7 +509,7 @@ def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
 
 def _switchpoints_by_day[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT)](
     schedule: list[DayT],
-) -> dict[DayOfWeek, list[Mapping[str, Any]]]:
+) -> dict[DayOfWeek, list[_ScheduleSwitchpoint]]:
     """Return each day's switchpoints (in order of their time of day), by its day.
 
     The days are found by their day_of_week, not by their position in the schedule
@@ -515,7 +518,7 @@ def _switchpoints_by_day[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWee
     of another case (e.g. "Monday"): an unknown name is ignored.
     """
 
-    by_day: dict[DayOfWeek, list[Mapping[str, Any]]] = {d: [] for d in _DAYS}
+    by_day: dict[DayOfWeek, list[_ScheduleSwitchpoint]] = {d: [] for d in _DAYS}
 
     for day in schedule:
         if (name := camel_to_snake(str(day[SZ_DAY_OF_WEEK]))) in by_day:
@@ -559,7 +562,7 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
     schedule: list[DayT],
     day_of_week: DayOfWeek,
     time_of_day: str,
-) -> tuple[Mapping[str, Any], int, Mapping[str, Any], int]:
+) -> tuple[_ScheduleSwitchpoint, int, _ScheduleSwitchpoint, int]:
     """Find this/next switchpoints for a given day of week and time of day.
 
     Return each with its offset in days from the given day (e.g. -1 if this switchpoint
@@ -584,7 +587,7 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
     day_idx = _DAYS.index(day_of_week)
     now = tm.fromisoformat(time_of_day)  # compare times, as "06:30:00" > "06:30"
 
-    def switchpoints(offset: int) -> list[Mapping[str, Any]]:
+    def switchpoints(offset: int) -> list[_ScheduleSwitchpoint]:
         return by_day[_DAYS[(day_idx + offset) % 7]]
 
     # this is the latest that has started, today or on an earlier day

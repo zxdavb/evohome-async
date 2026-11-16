@@ -267,6 +267,11 @@ V2_SCHEMAS: dict[str, tuple[Callable[[Case], object], object, object]] = {
         config.TccTcsConfigResponseT,
         evo2.EvoTcsConfigResponseT,
     ),
+    "system_mode": (
+        config.factory_system_mode,
+        config.TccAllowedSystemModeResponseT,
+        evo2.EvoAllowedSystemModesT,
+    ),
     "zon_config": (
         config.factory_zon_config,
         config.TccZonConfigResponseT,

@@ -28,7 +28,12 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping
 
     from _evohome.helpers import Validator
-    from evohomeasync.schemas import TccCommTaskResponseT, TccDeviceResponseT
+    from evohomeasync.schemas import (
+        TccCommTaskResponseT,
+        TccDeviceResponseT,
+        TccDhwChangeableValuesT,
+        TccZoneChangeableValuesT,
+    )
 
 if _DBG_USE_REAL_AIOHTTP:
     import aiohttp
@@ -239,10 +244,35 @@ def status_of_v1(
     A zone's is under changeableValues.heatSetpoint, a DHW's under changeableValues.
     """
 
-    values: dict[str, Any] = dict(dev["thermostat"].get("changeableValues", {}))
-    if not is_dhw_v1(dev):
-        values = values.get("heatSetpoint", {})
-    return None if (status := values.get("status")) is None else str(status)
+    values = dev["thermostat"].get("changeableValues")
+    if values is None:
+        return None
+    status = (
+        values["heatSetpoint"].get("status")  # a zone
+        if "heatSetpoint" in values
+        else values.get("status")  # a DHW
+    )
+    return None if status is None else str(status)
+
+
+def zon_values_v1(
+    dev: TccDeviceResponseT,
+) -> TccZoneChangeableValuesT:
+    """Return the changeableValues of a (vendor-cased) v1 zone."""
+
+    values = dev["thermostat"]["changeableValues"]
+    assert "heatSetpoint" in values, values  # i.e. is not a DHW
+    return values
+
+
+def dhw_values_v1(
+    dev: TccDeviceResponseT,
+) -> TccDhwChangeableValuesT:
+    """Return the changeableValues of a (vendor-cased) v1 DHW."""
+
+    values = dev["thermostat"]["changeableValues"]
+    assert "heatSetpoint" not in values, values  # i.e. is not a zone
+    return values
 
 
 def task_id_v1(
