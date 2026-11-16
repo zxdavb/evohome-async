@@ -7,7 +7,7 @@ import logging
 import os
 from datetime import UTC, datetime as dt, timedelta as td
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, override
+from typing import TYPE_CHECKING, Final, NotRequired, TypedDict, override
 
 import aiofiles
 import keyring
@@ -31,6 +31,8 @@ from evohomeasync2.schemas.const import OAUTH_GRANT_TYPE, TccOAuthError
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+    import aiohttp
 
     from evohomeasync.auth import SessionIdEntryT
     from evohomeasync2.auth import EvoAccessTokenEntryT
@@ -141,14 +143,25 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
     """A credentials manager that uses a file to cache the tokens."""
 
     def __init__(
-        self, *args: Any, cache_path: Path = _CACHE_PATH, **kwargs: Any
+        self,
+        client_id: str,
+        secret: str,
+        websession: aiohttp.ClientSession,
+        /,
+        *,
+        cache_path: Path = _CACHE_PATH,
+        logger: logging.Logger | None = None,
+        _hostname: str | None = None,
     ) -> None:
         """Initialise the credentials manager (for access_token & session_id)."""
 
-        # ensure default logger as we've merged the two ABCs
-        kwargs["logger"] = kwargs.get("logger") or logging.getLogger(__name__)
-
-        super().__init__(*args, **kwargs)
+        super().__init__(
+            client_id,
+            secret,
+            websession,
+            logger=logger or logging.getLogger(__name__),  # a default, for the CLI
+            _hostname=_hostname,
+        )
 
         self._cache_path: Final = cache_path
 

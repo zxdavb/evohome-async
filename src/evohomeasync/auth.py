@@ -6,7 +6,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
-from typing import TYPE_CHECKING, Any, Final, TypedDict, override
+from typing import TYPE_CHECKING, Final, TypedDict, override
 
 import probatio as vol
 
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     import aiohttp
-    from aiohttp.typedefs import StrOrURL
+    from aiohttp.typedefs import LooseHeaders, StrOrURL
 
     from .schemas import TccSessionResponseT
     from .typedefs import EvoSessionDictT, EvoUserAccountDictT
@@ -213,10 +213,15 @@ class AbstractSessionManager(CredentialsManagerBase, ABC):
         return code == TccFailureCode.EMAIL_OR_PASSWORD_INCORRECT
 
     async def _post_session_id_request(  # dev/test wrapper (also typing)
-        self, url: StrOrURL, /, **kwargs: Any
+        self,
+        url: StrOrURL,
+        /,
+        *,
+        headers: LooseHeaders,
+        data: Mapping[str, str],
     ) -> TccSessionResponseT:
         """Wrap the POST request to the vendor's TCC RESTful API."""
-        return await self._post_request(url, **kwargs)  # type: ignore[return-value]
+        return await self._post_request(url, headers=headers, data=data)  # type: ignore[return-value]
 
     @abstractmethod
     async def save_session_id(self) -> None:

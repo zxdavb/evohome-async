@@ -8,7 +8,8 @@ from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt
 from email.utils import parsedate_to_datetime
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, ClassVar, Final, TypedDict
+from json import JSONDecodeError
+from typing import TYPE_CHECKING, ClassVar, Final, TypedDict
 
 import aiohttp
 import probatio as vol
@@ -57,7 +58,7 @@ class _ApiCallDetails(TypedDict, total=False):
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from aiohttp.typedefs import StrOrURL
+    from aiohttp.typedefs import LooseHeaders, StrOrURL
 
     from .helpers import Validator
 
@@ -90,7 +91,7 @@ async def _details(rsp: aiohttp.ClientResponse | None) -> _ApiCallDetails:
 
     try:
         body = await rsp.json()
-    except (aiohttp.ClientError, json.JSONDecodeError):
+    except (aiohttp.ClientError, JSONDecodeError):
         return {}
 
     if isinstance(body, list) and body and isinstance(body[0], dict):
@@ -121,7 +122,7 @@ async def _errors(rsp: aiohttp.ClientResponse | None) -> tuple[exc.VendorErrorT,
 
     try:
         body = await rsp.json()
-    except (aiohttp.ClientError, json.JSONDecodeError):
+    except (aiohttp.ClientError, JSONDecodeError):
         return ()
 
     if not isinstance(body, list):
@@ -395,7 +396,12 @@ class AbstractAuth(ABC):
         return False
 
     async def _make_request(
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+        self,
+        method: HTTPMethod,
+        url: StrOrURL,
+        /,
+        *,
+        json: Mapping[str, object] | None = None,
     ) -> _TccResponse:
         """Make a GET/PUT request and return the response (a dict or a list).
 
@@ -405,10 +411,10 @@ class AbstractAuth(ABC):
         rsp: aiohttp.ClientResponse | None = None  # to prevent unbound error
 
         url = f"{self.url_base}/{url}"
-        headers = await self._headers(kwargs.pop("headers", {}))
+        headers = await self._headers({})
 
         try:
-            rsp = await self._request(method, url, headers=headers, **kwargs)
+            rsp = await self._request(method, url, headers=headers, json=json)
             assert rsp is not None  # mypy hint
 
             await rsp.read()  # so we can use rsp.json()/rsp.text(), below
@@ -431,7 +437,7 @@ class AbstractAuth(ABC):
                 )
             response: _TccResponse = raw
 
-        except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
+        except (aiohttp.ContentTypeError, JSONDecodeError) as err:
             raise exc.ApiCallFailedError(
                 f"{method} {url}: response is not valid JSON: {await _payload(rsp)}",
                 reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
@@ -477,7 +483,13 @@ class AbstractAuth(ABC):
                 rsp.release()
 
     async def _request(  # dev/test wrapper
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+        self,
+        method: HTTPMethod,
+        url: StrOrURL,
+        /,
+        *,
+        headers: LooseHeaders,
+        json: Mapping[str, object] | None = None,
     ) -> aiohttp.ClientResponse:
         """Wrap the request to the ClientSession (useful for dev/test)."""
-        return await self.websession.request(method, url, **kwargs)
+        return await self.websession.request(method, url, headers=headers, json=json)
