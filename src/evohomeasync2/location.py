@@ -14,7 +14,7 @@ from warnings import deprecated
 
 from aiozoneinfo import async_get_time_zone
 
-from _evohome.helpers import Case, convert_dtm_to_local_aware
+from _evohome.helpers import Case, convert_dtms_to_local_aware
 from _evohome.time_zone import EvoZoneInfo, iana_tz_from_windows_tz
 
 from . import exceptions as exc
@@ -330,7 +330,7 @@ class Location(EntityBase[EvoLocStatusT]):
                 reason=ClientStateErrorReason.LOCATION_INACCESSIBLE,
             ) from err
 
-        status = convert_dtm_to_local_aware(status, self.tzinfo)
+        status = convert_dtms_to_local_aware(status, self.tzinfo)
 
         if not _update:
             return status
