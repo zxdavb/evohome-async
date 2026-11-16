@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from _evohome.helpers import as_local_time
+from _evohome.helpers import as_local_dtm
 from _evohome.time_zone import EvoZoneInfo
 from evohomeasync2.const import DayOfWeek
 from evohomeasync2.zone import _find_switchpoint_dtms, _wall_to_aware
@@ -169,7 +169,7 @@ def test_evo_zone_info_astimezone() -> None:
 
     assert dtm.isoformat() == "2026-07-01T13:00:00+01:00"
     assert dtm.dst() == td(hours=1)
-    assert as_local_time("2026-07-01T12:00:00Z", tzinfo) == dtm
+    assert as_local_dtm("2026-07-01T12:00:00Z", tzinfo) == dtm
 
     (this_dtm, _), (next_dtm, _) = _find_switchpoint_dtms(SCHEDULE, dtm, tzinfo)
     assert this_dtm.isoformat() == "2026-07-01T06:30:00+01:00"

@@ -14,7 +14,7 @@ from _evohome.const import _ERR_NO_SCHEDULE, _ERR_NO_STATUS
 from _evohome.helpers import (
     Case,
     as_aware_dtm,
-    as_local_time,
+    as_local_dtm,
     as_timedelta,
     camel_to_snake,
     convert_dtm_to_local_aware,
@@ -503,7 +503,7 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
 def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
     """Return the local day of week and time of day (to the second, e.g. "06:30:15")."""
 
-    dtm = as_local_time(dtm, tzinfo)
+    dtm = as_local_dtm(dtm, tzinfo)
     return _DAYS[dtm.weekday()], dtm.strftime("%H:%M:%S")  # locale-independent
 
 
@@ -622,7 +622,7 @@ def _find_switchpoint_dtms[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfW
     # get the instant first: converting a repeated time may lose its fold (e.g. as with
     # freezegun's FakeDatetime), and so the instant, but not its wall-clock fields
     now = (dtm if dtm.tzinfo else dtm.replace(tzinfo=tzinfo)).astimezone(UTC)
-    dtm = as_local_time(dtm, tzinfo)
+    dtm = as_local_dtm(dtm, tzinfo)
 
     this_sp, this_offset, next_sp, next_offset = _find_switchpoints(
         schedule, *_dt_to_dow_and_tod(dtm, tzinfo)
@@ -1155,7 +1155,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     def until(self) -> dt | None:
         if (until := self.setpoint_status.get(SZ_UNTIL)) is None:
             return None
-        return as_local_time(until, self.location.tzinfo)
+        return as_local_dtm(until, self.location.tzinfo)
 
     # NOTE: no provision for cooling (not supported by this API)
 
