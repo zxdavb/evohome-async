@@ -41,9 +41,7 @@ from .zone import ActiveFaultsBase, Zone, _TccModeMixin
 
 if TYPE_CHECKING:
     import logging
-    from collections.abc import Mapping
     from datetime import datetime as dt, timedelta as td
-    from typing import Any
 
     from _evohome.helpers import Validator
 
@@ -70,15 +68,12 @@ _GHOST_ZONE_REASONS: Final = (
 )
 
 
-def _sched_id(schedule: Mapping[str, Any]) -> str:
+def _sched_id(schedule: EvoScheduleDhwT | EvoScheduleZoneT) -> str:
     """Return the zone_id or dhw_id from a schedule."""
 
-    zone_id: str | None = schedule.get(SZ_ZONE_ID)
-    if zone_id is not None:
-        return zone_id
-
-    dhw_id: str = schedule[SZ_DHW_ID]
-    return dhw_id
+    if SZ_ZONE_ID in schedule:
+        return schedule[SZ_ZONE_ID]
+    return schedule[SZ_DHW_ID]
 
 
 class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):

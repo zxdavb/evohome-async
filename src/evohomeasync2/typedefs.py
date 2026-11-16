@@ -38,7 +38,7 @@ These are not part of the vendor's schema, but useful to the library:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NotRequired, TypedDict
+from typing import TYPE_CHECKING, NotRequired, TypedDict, final
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
@@ -398,6 +398,7 @@ class EvoDhwScheduleResponseT(TypedDict):
     daily_schedules: list[EvoDhwScheduleDayOfWeekT]
 
 
+@final  # so that mypy can narrow a union of these by key (via in)
 class EvoScheduleDhwT(EvoDhwScheduleResponseT):  # for export/import to/from file
     """Schedule for a DHW, for export/import to/from file."""
 
@@ -414,6 +415,7 @@ class EvoDayOfWeekDhwT(EvoDhwScheduleDayOfWeekT):
     """A shim for compatibility with HA, that is to be deprecated."""
 
 
+@final  # so that mypy can narrow a union of these by key (via in)
 class EvoDhwScheduleSwitchpointT(TypedDict):
     dhw_state: DhwState
     time_of_day: str
@@ -426,6 +428,7 @@ class EvoZonScheduleResponseT(TypedDict):
     daily_schedules: list[EvoZonScheduleDayOfWeekT]
 
 
+@final  # so that mypy can narrow a union of these by key (via in)
 class EvoScheduleZoneT(EvoZonScheduleResponseT):  # for export/import to/from file
     """Schedule for a zone, for export/import to/from file."""
 
@@ -438,6 +441,7 @@ class EvoZonScheduleDayOfWeekT(TypedDict):
     switchpoints: list[EvoZonScheduleSwitchpointT]
 
 
+@final  # so that mypy can narrow a union of these by key (via in)
 class EvoZonScheduleSwitchpointT(TypedDict):
     cool_setpoint: NotRequired[float]  # not ever seen in the wild; included defensively
     heat_setpoint: float

@@ -31,7 +31,7 @@ from .helpers import (
     redact_secrets,
 )
 
-type _TccResponse = dict[str, Any] | list[dict[str, Any]]
+type _TccResponse = Mapping[str, object] | list[Mapping[str, object]]
 
 # the keys of the vendor's error code: e.g. [{"code": "DeviceIsLost", ...}] (a request),
 # or {"error": "invalid_grant", ...} (an OAuth token request)

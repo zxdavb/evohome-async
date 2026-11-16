@@ -7,7 +7,7 @@ import json
 from datetime import datetime as dt
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 import yaml
@@ -24,7 +24,7 @@ def assert_schema(folder: Path, schema: Validator[object], file_name: str) -> No
         pytest.skip(f"No {file_name} in: {folder.name}")
 
     with Path(folder).joinpath(file_name).open() as f:
-        data: dict[str, Any] = json.load(f)  # is camelCase, as per vendor's schema
+        data: dict[str, object] = json.load(f)  # is camelCase, as per vendor's schema
 
     _ = schema(data)
 

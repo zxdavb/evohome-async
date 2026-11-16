@@ -138,7 +138,7 @@ async def _get_list(auth: Auth, url: str) -> list[dict[str, Any]]:
 
     rsp = await auth._make_request(HTTPMethod.GET, url)
     assert isinstance(rsp, list), rsp
-    return rsp
+    return [dict(r) for r in rsp]
 
 
 #######################################################################################
@@ -598,7 +598,7 @@ async def test_zon_urls(
     if zone is None:
         pytest.skip("No live zone found that is following its schedule")
 
-    json: dict[str, Any]
+    json: dict[str, object]
 
     #
     # PUT /devices/{zon_id}/thermostat/changeableValues/heatSetpoint
