@@ -71,7 +71,7 @@ The vendor limits only **authentication**: requests made with a valid access tok
 
 - a few **password** logins in quick succession (a v2 access token via the user's username/password, or a v1 session ID) are refused with a `429 Too Many Requests`: sometimes after as few as one or two, as the allowance takes hours to recover after earlier logins
 - **refreshing** a v2 access token (via its refresh token) has not been limited, even while password logins were being refused
-- the vendor's 429s have no `Retry-After` header, so `AuthRateLimitExceededError.retry_after` is a default of 15 minutes; a lockout usually lifts within 5 minutes, but has lasted longer than 10
+- the vendor's 429s have no `Retry-After` header, so `AuthRateLimitExceededError.retry_after` is a default of 15 minutes; a lockout usually lifts within 5 minutes (often within 2½), but one lasted almost 18 minutes while it was retried every 30 seconds, so don't retry before then
 
 So, save the access token (and refresh token) or session ID, and load it when you start, rather than logging in with the password each time (as in the example above, and as the CLI does), and wait `retry_after` seconds after a 429 before logging in again.
 
