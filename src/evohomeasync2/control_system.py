@@ -7,7 +7,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
 from warnings import deprecated
 
-from _evohome.helpers import Case, as_local_time
+from _evohome.helpers import Case, as_local_dtm
 
 from . import exceptions as exc
 from .comm_task import CommTask
@@ -236,7 +236,7 @@ class ControlSystem(_TccModeMixin, ActiveFaultsBase[EvoTcsStatusT]):
     def until(self) -> dt | None:  # aka timeUntil
         if (until := self.system_mode_status.get(SZ_TIME_UNTIL)) is None:
             return None
-        return as_local_time(until, self.location.tzinfo)
+        return as_local_dtm(until, self.location.tzinfo)
 
     #
 

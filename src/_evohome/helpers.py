@@ -185,7 +185,7 @@ def as_local_str(dtm: dt, tzinfo: tzinfo) -> str:
     return dtm.astimezone(tzinfo).strftime(TCC_DTM_LOCAL_STRFTIME)
 
 
-def as_local_time(dtm: dt | str, tzinfo: tzinfo) -> dt:
+def as_local_dtm(dtm: dt | str, tzinfo: tzinfo) -> dt:
     """Convert a datetime into a aware datetime in the given TZ.
 
     If the datetime is naive, assume it is in the same timezone as tzinfo.
@@ -233,7 +233,7 @@ def convert_dtms_to_utc_str[T](data: T) -> T:
 
 def convert_dtm_to_local_aware[T](data: T, tzinfo: tzinfo) -> T:
     """Recursively convert all datetimes to TZ-aware datetimes in the given TZ."""
-    return _recurse_dtm_vals(data, lambda d: as_local_time(d, tzinfo))
+    return _recurse_dtm_vals(data, lambda d: as_local_dtm(d, tzinfo))
 
 
 _STEP_1 = re.compile(r"(.)([A-Z][a-z]+)")
