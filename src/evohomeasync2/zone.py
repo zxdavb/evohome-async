@@ -17,7 +17,7 @@ from _evohome.helpers import (
     as_local_dtm,
     as_timedelta,
     camel_to_snake,
-    convert_dtm_to_local_aware,
+    convert_dtms_to_local_aware,
 )
 
 from . import exceptions as exc
@@ -972,7 +972,7 @@ class _ZoneBase[
             schema=self.SCH_STATUS,
         )
 
-        status = convert_dtm_to_local_aware(status, self.location.tzinfo)
+        status = convert_dtms_to_local_aware(status, self.location.tzinfo)
 
         if _update:
             self._update_status(status)

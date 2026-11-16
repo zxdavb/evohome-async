@@ -35,11 +35,9 @@ class Case(StrEnum):
 TCC_DTM_STRFTIME: Final = "%Y-%m-%dT%H:%M:%SZ"
 # ...but the v1 API's is the location's local time (so is without a Z)
 TCC_DTM_LOCAL_STRFTIME: Final = "%Y-%m-%dT%H:%M:%S"
-# _TCC_DTM_REGEX: Final = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
 
 # However, the 'since' datetime used for Faults is naive, and has milliseconds
 # NOTE: "2023-05-04T18:47:36.7727046" (7, not 6 digits) seen with gateway fault
-# _TCC_SINCE_DTM: Final = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,}$"
 
 # A .NET TimeSpan, as used by the vendor for durations, e.g. "1.00:00:00", "01:00:00"
 # (days capped at 9 digits, as timedelta's limit is 999,999,999 days)
@@ -66,135 +64,17 @@ _REDACTED_KEYS = (  # also keys with 'name' in them
 )
 
 
-# These are used after retrieving (or before sending) JSON via the vendor API.
+# Datetimes (and TimeSpans)...
 
 
-def _recurse_keys[T](data: T, fnc: Callable[[str], str]) -> T:
-    """Recursively convert JSON keys as per some function.
+def _raise_if_naive(dtm: dt) -> None:
+    """Raise BadApiRequestError if the datetime is naive (has no tzinfo)."""
 
-    For example, converts all string keys to snake_case, or CamelCase, etc.
-    """
-
-    def recurse(data_: Any) -> Any:
-        if isinstance(data_, Mapping):
-            return {fnc(k): recurse(v) for k, v in data_.items()}
-
-        if isinstance(data_, list):
-            return [recurse(i) for i in data_]
-
-        return data_
-
-    return recurse(data)  # type: ignore[no-any-return]
-
-
-def _recurse_str_vals[T](data: T, fnc: Callable[[str], str]) -> T:
-    """Recursively convert JSON string values as per some function.
-
-    For example, converts all isoformat string values to TZ-aware format.
-    """
-
-    def recurse(data_: Any) -> Any:
-        if isinstance(data_, Mapping):
-            return {k: recurse(v) for k, v in data_.items()}
-
-        if isinstance(data_, list):
-            return [recurse(i) for i in data_]
-
-        if not isinstance(data_, str):
-            return data_
-
-        return fnc(data_)
-
-    return recurse(data)  # type: ignore[no-any-return]
-
-
-def _recurse_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
-    """Recursively convert JSON StrEnum values as per some function."""
-    return _recurse_str_vals(data, lambda s: fnc(s) if isinstance(s, StrEnum) else s)
-
-
-def _recurse_dtm_vals[T](data: T, fnc: Callable[[dt], dt | str]) -> T:
-    """Recursively convert JSON datetime objects as per some function.
-
-    For example, converts all datetimes to local TZ.
-    """
-
-    def recurse(data_: Any) -> Any:
-        if isinstance(data_, Mapping):
-            return {k: recurse(v) for k, v in data_.items()}
-
-        if isinstance(data_, list):
-            return [recurse(i) for i in data_]
-
-        if not isinstance(data_, dt):
-            return data_
-
-        return fnc(data_)
-
-    return recurse(data)  # type: ignore[no-any-return]
-
-
-def as_utc_str(dtm: dt) -> str:
-    """Return a vendor (ISO 8601, UTC) datetime string from an aware datetime.
-
-    The datetime is converted to UTC before formatting, so the trailing 'Z' in
-    TCC_DTM_STRFTIME is truthful (an aware non-UTC datetime is sent as the correct UTC
-    instant, not its wall-clock fields relabelled as UTC). A naive datetime is rejected.
-    """
-
-    if dtm.tzinfo is None:  # else astimezone() would assume the local TZ
+    if dtm.tzinfo is None:
         raise BadApiRequestError(
             f"Datetime must be TZ-aware (not naive): {dtm!r}",
             reason=RequestErrorReason.TIMEZONE_REQUIRED,
         )
-
-    return dtm.astimezone(UTC).strftime(TCC_DTM_STRFTIME)
-
-
-def as_timedelta(timespan: str) -> td:
-    """Return a timedelta from a vendor TimeSpan string (e.g. "99.00:00:00").
-
-    Raise BadApiResponseError if the string is not in the expected format (the string
-    is the vendor's, e.g. a maxDuration, so it is a bad response, not a bad request).
-    """
-
-    if not (match := TCC_TIMESPAN_REGEX.match(timespan)):
-        raise BadApiResponseError(
-            f"The timespan is invalid: {timespan!r}",
-            reason=ResponseErrorReason.TIMESPAN_INVALID,
-        )
-
-    return td(**{k: int(v or 0) for k, v in match.groupdict().items()})
-
-
-def as_local_str(dtm: dt, tzinfo: tzinfo) -> str:
-    """Return a vendor (ISO 8601) datetime string, in a location's local time (no Z).
-
-    The v1 API treats a datetime that is sent to it (e.g. a NextTime) as the location's
-    local time, and ignores any Z. So, an aware datetime is converted to the location's
-    TZ before formatting (and so is sent as the correct instant). A naive datetime is
-    rejected, as with as_utc_str().
-    """
-
-    if dtm.tzinfo is None:  # else astimezone() would assume the local TZ
-        raise BadApiRequestError(
-            f"Datetime must be TZ-aware (not naive): {dtm!r}",
-            reason=RequestErrorReason.TIMEZONE_REQUIRED,
-        )
-
-    return dtm.astimezone(tzinfo).strftime(TCC_DTM_LOCAL_STRFTIME)
-
-
-def as_local_dtm(dtm: dt | str, tzinfo: tzinfo) -> dt:
-    """Convert a datetime into a aware datetime in the given TZ.
-
-    If the datetime is naive, assume it is in the same timezone as tzinfo.
-    """
-
-    if isinstance(dtm, str):
-        dtm = dt.fromisoformat(dtm)
-
-    return dtm.replace(tzinfo=tzinfo) if dtm.tzinfo is None else dtm.astimezone(tzinfo)
 
 
 def as_aware_dtm(dtm: dt | str) -> dt:
@@ -214,27 +94,64 @@ def as_aware_dtm(dtm: dt | str) -> dt:
                 reason=RequestErrorReason.DATETIME_INVALID,
             ) from err
 
-    if dtm.tzinfo is None:
-        raise BadApiRequestError(
-            f"Datetime must be TZ-aware (not naive): {dtm!r}",
-            reason=RequestErrorReason.TIMEZONE_REQUIRED,
-        )
-
+    _raise_if_naive(dtm)
     return dtm
 
 
-# These are used after retrieving (or before sending) JSON via the vendor API.
+def as_local_dtm(dtm: dt | str, tzinfo: tzinfo) -> dt:
+    """Convert a datetime into an aware datetime in the given TZ.
+
+    If the datetime is naive, assume it is in the same timezone as tzinfo.
+    """
+
+    if isinstance(dtm, str):
+        dtm = dt.fromisoformat(dtm)
+
+    return dtm.replace(tzinfo=tzinfo) if dtm.tzinfo is None else dtm.astimezone(tzinfo)
 
 
-def convert_dtms_to_utc_str[T](data: T) -> T:
-    """Recursively convert JSON datetime objects to ISO 8601 UTC strings."""
-    return _recurse_dtm_vals(data, as_utc_str)
+def as_local_str(dtm: dt, tzinfo: tzinfo) -> str:
+    """Return a vendor (ISO 8601) datetime string, in a location's local time (no Z).
+
+    The v1 API treats a datetime that is sent to it (e.g. a NextTime) as the location's
+    local time, and ignores any Z. So, an aware datetime is converted to the location's
+    TZ before formatting (and so is sent as the correct instant). A naive datetime is
+    rejected, as with as_utc_str().
+    """
+
+    _raise_if_naive(dtm)  # else astimezone() would assume the local TZ
+    return dtm.astimezone(tzinfo).strftime(TCC_DTM_LOCAL_STRFTIME)
 
 
-def convert_dtm_to_local_aware[T](data: T, tzinfo: tzinfo) -> T:
-    """Recursively convert all datetimes to TZ-aware datetimes in the given TZ."""
-    return _recurse_dtm_vals(data, lambda d: as_local_dtm(d, tzinfo))
+def as_timedelta(timespan: str) -> td:
+    """Return a timedelta from a vendor TimeSpan string (e.g. "99.00:00:00").
 
+    Raise BadApiResponseError if the string is not in the expected format (the string
+    is the vendor's, e.g. a maxDuration, so it is a bad response, not a bad request).
+    """
+
+    if not (match := TCC_TIMESPAN_REGEX.match(timespan)):
+        raise BadApiResponseError(
+            f"The timespan is invalid: {timespan!r}",
+            reason=ResponseErrorReason.TIMESPAN_INVALID,
+        )
+
+    return td(**{k: int(v or 0) for k, v in match.groupdict().items()})
+
+
+def as_utc_str(dtm: dt) -> str:
+    """Return a vendor (ISO 8601, UTC) datetime string from an aware datetime.
+
+    The datetime is converted to UTC before formatting, so the trailing 'Z' in
+    TCC_DTM_STRFTIME is truthful (an aware non-UTC datetime is sent as the correct UTC
+    instant, not its wall-clock fields relabelled as UTC). A naive datetime is rejected.
+    """
+
+    _raise_if_naive(dtm)  # else astimezone() would assume the local TZ
+    return dtm.astimezone(UTC).strftime(TCC_DTM_STRFTIME)
+
+
+# Case conversion (of a single string)...
 
 _STEP_1 = re.compile(r"(.)([A-Z][a-z]+)")
 _STEP_2 = re.compile(r"([a-z0-9])([A-Z])")
@@ -242,7 +159,7 @@ _STEP_3 = re.compile(r"([a-zA-Z])([0-9])")  # e.g. securityQuestion1 -> ..._ques
 
 
 def camel_to_pascal(s: str) -> str:
-    """Return a string convert (from camelCase) to PascalCase."""
+    """Return a string converted (from camelCase) to PascalCase."""
     if " " in s:
         raise ValueError("Input string should not contain spaces")
     return s[:1].upper() + s[1:]
@@ -283,6 +200,84 @@ def noop[T](s: T) -> T:
     return s
 
 
+# These are used after retrieving (or before sending) JSON via the vendor API...
+
+
+def _recurse_keys[T](data: T, fnc: Callable[[str], str]) -> T:
+    """Recursively convert JSON keys as per some function.
+
+    For example, converts all string keys to snake_case, or CamelCase, etc.
+    """
+
+    def recurse(data_: Any) -> Any:
+        if isinstance(data_, Mapping):
+            return {fnc(k): recurse(v) for k, v in data_.items()}
+
+        if isinstance(data_, list):
+            return [recurse(i) for i in data_]
+
+        return data_
+
+    return recurse(data)  # type: ignore[no-any-return]
+
+
+def _recurse_dtm_vals[T](data: T, fnc: Callable[[dt], dt | str]) -> T:
+    """Recursively convert JSON datetime objects as per some function.
+
+    For example, converts all datetimes to local TZ.
+    """
+
+    def recurse(data_: Any) -> Any:
+        if isinstance(data_, Mapping):
+            return {k: recurse(v) for k, v in data_.items()}
+
+        if isinstance(data_, list):
+            return [recurse(i) for i in data_]
+
+        if not isinstance(data_, dt):
+            return data_
+
+        return fnc(data_)
+
+    return recurse(data)  # type: ignore[no-any-return]
+
+
+def _recurse_enum_vals[T](data: T, fnc: Callable[[str], str]) -> T:
+    """Recursively convert JSON StrEnum values as per some function."""
+    return _recurse_str_vals(data, lambda s: fnc(s) if isinstance(s, StrEnum) else s)
+
+
+def _recurse_str_vals[T](data: T, fnc: Callable[[str], str]) -> T:
+    """Recursively convert JSON string values as per some function.
+
+    For example, converts all StrEnum values to PascalCase (see _recurse_enum_vals).
+    """
+
+    def recurse(data_: Any) -> Any:
+        if isinstance(data_, Mapping):
+            return {k: recurse(v) for k, v in data_.items()}
+
+        if isinstance(data_, list):
+            return [recurse(i) for i in data_]
+
+        if not isinstance(data_, str):
+            return data_
+
+        return fnc(data_)
+
+    return recurse(data)  # type: ignore[no-any-return]
+
+
+def convert_dtms_to_local_aware[T](data: T, tzinfo: tzinfo) -> T:
+    """Recursively convert all datetimes to TZ-aware datetimes in the given TZ."""
+    return _recurse_dtm_vals(data, lambda d: as_local_dtm(d, tzinfo))
+
+
+def convert_dtms_to_utc_str[T](data: T) -> T:
+    """Recursively convert JSON datetime objects to ISO 8601 UTC strings."""
+    return _recurse_dtm_vals(data, as_utc_str)
+
+
 def convert_keys_to_camel_case[T](data: T) -> T:
     """Recursively convert all dict keys from snake_case to camelCase."""
     return _recurse_keys(data, snake_to_camel)
@@ -300,6 +295,9 @@ def convert_str_enums_to_pascal_case[T](data: T) -> T:
     plain strings (names, datetimes, etc.) are left unchanged.
     """
     return _recurse_enum_vals(data, snake_to_pascal)
+
+
+# Redaction (of secrets, when logging)...
 
 
 @overload
