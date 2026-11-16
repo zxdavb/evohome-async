@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from abc import ABC, abstractmethod
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 
 import aiohttp
 
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     import logging
     from collections.abc import Mapping
 
-    from aiohttp.typedefs import StrOrURL
+    from aiohttp.typedefs import LooseHeaders, StrOrURL
 
 
 async def _failed_auth_error(
@@ -134,7 +134,12 @@ class CredentialsManagerBase(ABC):
         """
 
     async def _post_request(
-        self, url: StrOrURL, /, **kwargs: Any
+        self,
+        url: StrOrURL,
+        /,
+        *,
+        headers: LooseHeaders,
+        data: Mapping[str, str],
     ) -> Mapping[str, object]:
         """POST an authentication request and return the response (a dict).
 
@@ -145,7 +150,7 @@ class CredentialsManagerBase(ABC):
         rsp: aiohttp.ClientResponse | None = None  # to prevent unbound error
 
         try:
-            rsp = await self._request(HTTPMethod.POST, url, **kwargs)
+            rsp = await self._request(HTTPMethod.POST, url, headers=headers, data=data)
             assert rsp is not None  # mypy hint
 
             await rsp.read()  # so we can use rsp.json()/rsp.text(), below
@@ -177,9 +182,7 @@ class CredentialsManagerBase(ABC):
 
         except aiohttp.ClientResponseError as err:
             details = await _details(rsp)  # e.g. {"code": "invalid_grant"}
-            bad_creds = self._is_bad_credentials(
-                kwargs.get("data", {}), details.get(_SZ_CODE)
-            )
+            bad_creds = self._is_bad_credentials(data, details.get(_SZ_CODE))
             error = await _failed_auth_error(
                 err, rsp, details, bad_credentials=bad_creds
             )
@@ -211,7 +214,13 @@ class CredentialsManagerBase(ABC):
                 rsp.release()
 
     async def _request(  # dev/test wrapper
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+        self,
+        method: HTTPMethod,
+        url: StrOrURL,
+        /,
+        *,
+        headers: LooseHeaders,
+        data: Mapping[str, str],
     ) -> aiohttp.ClientResponse:
         """Wrap the request to the ClientSession (useful for dev/test)."""
-        return await self.websession.request(method, url, **kwargs)
+        return await self.websession.request(method, url, headers=headers, data=data)

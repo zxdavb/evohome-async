@@ -431,8 +431,8 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
 
     location: Location  # used to get tzinfo
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, entity_id: str) -> None:
+        super().__init__(entity_id)
 
         self._active_faults: list[EvoActiveFaultT] = []
         self._last_logged: dict[str, dt] = {}  # OK to use a tz=UTC datetimes

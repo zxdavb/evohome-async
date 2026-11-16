@@ -8,7 +8,7 @@ import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final, TypedDict, override
+from typing import TYPE_CHECKING, Final, TypedDict, override
 
 import probatio as vol
 from aiohttp import hdrs
@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     import aiohttp
-    from aiohttp.typedefs import StrOrURL
+    from aiohttp.typedefs import LooseHeaders, StrOrURL
 
     from .schemas.account import TccOAuthTokenResponseT
     from .typedefs import EvoAuthTokensResponseT
@@ -270,10 +270,15 @@ class AbstractTokenManager(CredentialsManagerBase, ABC):
         )
 
     async def _post_access_token_request(  # dev/test wrapper (also typing)
-        self, url: StrOrURL, /, **kwargs: Any
+        self,
+        url: StrOrURL,
+        /,
+        *,
+        headers: LooseHeaders,
+        data: Mapping[str, str],
     ) -> TccOAuthTokenResponseT:
         """Wrap the POST request to the vendor's TCC RESTful API."""
-        return await self._post_request(url, **kwargs)  # type: ignore[return-value]
+        return await self._post_request(url, headers=headers, data=data)  # type: ignore[return-value]
 
     @abstractmethod
     async def save_access_token(self) -> None:
