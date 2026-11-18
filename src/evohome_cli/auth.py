@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final, NotRequired, TypedDict, override
 
 import aiofiles
+import aiofiles.os
 import keyring
 from keyring.backends.fail import Keyring as FailKeyring
 from keyring.errors import KeyringError
@@ -43,6 +44,11 @@ KEYRING_SERVICE_KEY: Final = "evohome-client"
 KEYRING_USERNAME_KEY: Final = "username"
 
 _LOGGER: Final = logging.getLogger(__name__)
+
+
+def _open_private(path: str, flags: int) -> int:
+    """Open a file that only its owner can read/write (an opener for open())."""
+    return os.open(path, flags, 0o600)
 
 
 # Keyring functions are synchronous: but this is CLI, not library code, so is OK.
@@ -216,11 +222,9 @@ class TokenCacheManager(AbstractTokenManager, AbstractSessionManager):
 
         content = json.dumps(cache, indent=4)
 
-        if not self.cache_path.parent.exists():
-            self.cache_path.parent.mkdir(mode=0o700, parents=True)
+        await aiofiles.os.makedirs(self.cache_path.parent, mode=0o700, exist_ok=True)
 
-        fd = os.open(self.cache_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        async with aiofiles.open(fd, "w", closefd=True) as fp:
+        async with aiofiles.open(self.cache_path, "w", opener=_open_private) as fp:
             await fp.write(content)
 
     @override
