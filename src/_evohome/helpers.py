@@ -8,6 +8,7 @@ from datetime import UTC, datetime as dt, timedelta as td
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Final, overload
 
+from .const import _DBG_DONT_REDACT_SECRETS
 from .exceptions import (
     BadApiRequestError,
     BadApiResponseError,
@@ -18,9 +19,6 @@ from .exceptions import (
 if TYPE_CHECKING:
     from datetime import tzinfo
 
-
-# all _DBG_* flags are only for dev/test and should be False for published code
-_DBG_DONT_REDACT_SECRETS = False  # default is to redact sensitive JSON in debug output
 
 REGEX_EMAIL_ADDRESS = re.compile(
     r"^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,63})$"

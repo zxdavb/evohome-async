@@ -8,6 +8,9 @@ from typing import Final
 
 from aiohttp import hdrs
 
+# all _DBG_* flags are only for dev/test and should be False for published code
+_DBG_DONT_REDACT_SECRETS = False  # default is to redact sensitive JSON in debug output
+
 HOSTNAME: Final = "tccna.resideo.com"
 
 # the message of a NotFetchedError of the config (the others are with their users)
