@@ -21,7 +21,7 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -38,6 +38,7 @@ from tests.const import (
 )
 
 from .common import (
+    dhw_values_v1,
     error_codes,
     is_alive_v1,
     is_dhw_v1,
@@ -49,6 +50,7 @@ from .common import (
     status_of_v1,
     task_id_v1,
     wait_for_comm_task_v1,
+    zon_values_v1,
 )
 
 if TYPE_CHECKING:
@@ -300,9 +302,7 @@ async def _get_next_time(
     """Return the NextTime of a zone's setpoint (via v1, so local time, without a Z)."""
 
     dev = next(d for d in await _get_devices(ec1) if d["deviceID"] == dev_id)
-    values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
-    next_time: str | None = values["heatSetpoint"].get("nextTime")
-    return next_time
+    return zon_values_v1(dev)["heatSetpoint"].get("nextTime")
 
 
 async def _test_zon_heat_setpoint(
@@ -328,8 +328,7 @@ async def _test_zon_heat_setpoint(
     dev = await _find_scheduled_zone(ec1)
     dev_id: int = dev["deviceID"]
 
-    values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
-    setpoint: float = values["heatSetpoint"]["value"]
+    setpoint: float = zon_values_v1(dev)["heatSetpoint"]["value"]
 
     url = f"devices/{dev_id}/thermostat/changeableValues/heatSetpoint"
 
@@ -377,8 +376,7 @@ async def _test_dhw_changeable_values(
     if dev is None:
         pytest.skip("No live DHW found")
 
-    values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
-    mode: str = values["mode"]
+    mode: str = dhw_values_v1(dev)["mode"]
     assert mode in _DHW_MODES, mode
 
     url = f"devices/{dev['deviceID']}/thermostat/changeableValues"
@@ -406,7 +404,7 @@ async def _test_dhw_forbidden_params(
     if dev is None:
         pytest.skip("No live DHW found")
 
-    values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
+    values = dhw_values_v1(dev)
     mode: str = values["mode"]
     until = (dt.now(tz=UTC) + td(hours=1)).strftime(TCC_DTM_STRFTIME)
 
@@ -520,8 +518,7 @@ async def _test_lost_device(
 
     if is_dhw:
         url = f"devices/{dev['deviceID']}/thermostat/changeableValues"
-        values: dict[str, Any] = dict(dev["thermostat"]["changeableValues"])
-        json = {"Mode": values["mode"]}
+        json = {"Mode": dhw_values_v1(dev)["mode"]}
     else:
         url = f"devices/{dev['deviceID']}/thermostat/changeableValues/heatSetpoint"
         json = _ZON_REVERT

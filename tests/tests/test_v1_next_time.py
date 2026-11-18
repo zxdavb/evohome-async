@@ -14,7 +14,7 @@ import copy
 import logging
 from datetime import UTC, datetime as dt, timedelta as td
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, patch
 from zoneinfo import ZoneInfo
 
@@ -45,12 +45,12 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     metafunc.parametrize("fixture_folder", folders, ids=(p.name for p in folders))
 
 
-def _put_json(mock: AsyncMockT) -> dict[str, Any]:
+def _put_json(mock: AsyncMockT) -> dict[str, object]:
     """Return the JSON of the (only) PUT, as sent to the vendor."""
 
     mock.assert_awaited_once()
     assert mock.await_args is not None  # mypy
-    json: dict[str, Any] = mock.await_args.kwargs["json"]
+    json: dict[str, object] = mock.await_args.kwargs["json"]
     return json
 
 

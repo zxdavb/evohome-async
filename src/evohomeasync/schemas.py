@@ -39,6 +39,7 @@ from typing import (
     NewType,
     NotRequired,
     TypedDict,
+    final,
     overload,
 )
 
@@ -852,7 +853,7 @@ class TccDeviceResponseT(TypedDict):
     serialNumber: NotRequired[str]
     pcbNumber: NotRequired[str]
     drEvents: NotRequired[list[Any]]
-    systemConfiguration: NotRequired[dict[str, Any]]
+    systemConfiguration: NotRequired[_TccResponse]
 
 
 class TccThermostatResponseT(TypedDict):
@@ -877,8 +878,9 @@ class TccThermostatResponseT(TypedDict):
     coolRate: NotRequired[float]
     heatRate: NotRequired[float]
     isPreCoolCapable: NotRequired[bool]
-    # the Dhw variant is sent for a DOMESTIC_HOT_WATER device, else the Zone variant
-    changeableValues: TccZoneChangeableValuesT | TccDhwChangeableValuesT
+    # the Dhw variant is sent for a DOMESTIC_HOT_WATER device, else the Zone variant;
+    # is absent from GET /devices/{dev_id}/thermostat (c.f. with allData=True)
+    changeableValues: NotRequired[TccZoneChangeableValuesT | TccDhwChangeableValuesT]
     equipmentOutputStatus: NotRequired[TccEquipmentOutputStatus | str]
     scheduleCapable: bool
     vacationHoldChangeable: bool
@@ -889,6 +891,7 @@ class TccThermostatResponseT(TypedDict):
     pcbNumber: NotRequired[str]
 
 
+@final  # so that mypy can narrow a union of these by key (via in)
 class TccZoneChangeableValuesT(TypedDict):
     """The changeableValues of a zone (c.f. TccDhwChangeableValuesT).
 
@@ -905,6 +908,7 @@ class TccZoneChangeableValuesT(TypedDict):
     nextTime: NotRequired[str]  # documented, not seen (a local time)
 
 
+@final  # so that mypy can narrow a union of these by key (via in)
 class TccDhwChangeableValuesT(TypedDict):
     """The changeableValues of a DHW (c.f. TccZoneChangeableValuesT).
 

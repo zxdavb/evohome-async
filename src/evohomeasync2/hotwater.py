@@ -7,7 +7,7 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING, Final, overload
 
-from _evohome.helpers import Case, as_local_time
+from _evohome.helpers import Case, as_local_dtm
 
 from . import exceptions as exc
 from .comm_task import CommTask
@@ -157,7 +157,7 @@ class HotWater(_ZoneBase[EvoDhwStatusT, EvoDhwScheduleDayOfWeekT]):
     def until(self) -> dt | None:
         if (until := self.state_status.get(SZ_UNTIL)) is None:
             return None
-        return as_local_time(until, self.location.tzinfo)
+        return as_local_dtm(until, self.location.tzinfo)
 
     #
 

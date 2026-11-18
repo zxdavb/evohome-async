@@ -5,6 +5,8 @@ They are grouped by what the caller can do about them:
   EvohomeError
   │
   ├── ApiCallFailedError                  # no usable reply: fix issue/try again later
+  │   ├── ApiConnectionFailedError        # no reply at all (e.g. DNS, timeout)
+  │   │   ├── AuthConnectionFailedError   # - is also an AuthenticationFailedError
   │   ├── ApiRateLimitExceededError       # here, try again later
   │   │   ├── AuthRateLimitExceededError  # - is also an AuthenticationFailedError
   │   ├── AuthenticationFailedError
@@ -30,9 +32,13 @@ They are grouped by what the caller can do about them:
 from __future__ import annotations
 
 import warnings
+from datetime import UTC, datetime as dt
+from email.utils import parsedate_to_datetime
 from enum import EnumCheck, StrEnum, verify
 from http import HTTPStatus
 from typing import TYPE_CHECKING, ClassVar, Final, NotRequired, TypedDict
+
+from aiohttp import hdrs
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Collection, Sequence
@@ -138,6 +144,40 @@ class VendorErrorT(TypedDict):
     parameter_name: NotRequired[str]  # e.g. "SystemMode" (only some v2 errors)
 
 
+# how long to wait after a 429 of an authentication request that has no (valid)
+# Retry-After header (none has had one), i.e. the default of AuthRateLimitExceededError;
+# other errors have no default (no other request has been seen to be a 429): the
+# vendor's limit on authentication lifts within this (probed
+# 2026-11-13: the token & session POSTs were each a 429, then a 200 15 minutes later;
+# 2026-11-15: usually a 200 within 5 minutes, often within 2.5, but a lockout that was
+# retried every 30 seconds lasted 17.7 minutes; a client that waits retry_after sends
+# nothing during the lockout)
+DEFAULT_RETRY_AFTER: Final = 15 * 60.0  # seconds
+
+
+def _retry_after(rsp: aiohttp.ClientResponse | None) -> float | None:
+    """Return the period of a response's Retry-After header, in seconds (else None).
+
+    Its value is either delay-seconds (e.g. "120"), or an HTTP-date. It is None if
+    there is no response, or no header, or the header is not valid.
+    """
+
+    if rsp is None or (value := rsp.headers.get(hdrs.RETRY_AFTER)) is None:
+        return None
+
+    if value.strip().isdecimal():  # is delay-seconds
+        return float(value)
+
+    try:  # is HTTP-date
+        dtm = parsedate_to_datetime(value)
+    except ValueError:
+        return None
+
+    if dtm.tzinfo is None:  # e.g. a zone of -0000
+        dtm = dtm.replace(tzinfo=UTC)
+    return max(0.0, (dtm - dt.now(tz=UTC)).total_seconds())
+
+
 class ApiCallFailedError(EvohomeError):  # a base exception
     """The API request failed for some reason (no/invalid/unexpected response).
 
@@ -159,9 +199,15 @@ class ApiCallFailedError(EvohomeError):  # a base exception
     If there was a response, then the `response` attr is it (else None), e.g. for its
     headers. Its body has been read (so its json() or text() can still be awaited),
     but its connection has been released.
+
+    The `retry_after` attr is how long to wait before trying again, in seconds: the
+    one given (if any), else that of the response's Retry-After header (e.g. of a 429
+    or 503), else the class's default. Only an AuthRateLimitExceededError has a default
+    (15 minutes), so for any other error it is None unless the vendor said otherwise.
     """
 
     _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.CALL_FAILED
+    _default_retry_after: ClassVar[float | None] = None  # seconds
 
     reason: ApiCallErrorReason
 
@@ -173,6 +219,7 @@ class ApiCallFailedError(EvohomeError):  # a base exception
         reason: ApiCallErrorReason | None = None,
         response: aiohttp.ClientResponse | None = None,
         errors: Sequence[VendorErrorT] = (),
+        retry_after: float | None = None,
         **details: str,
     ) -> None:
         super().__init__(message, reason=reason, **details)
@@ -180,14 +227,30 @@ class ApiCallFailedError(EvohomeError):  # a base exception
         self.response = response  # its body has been read, and connection released
         self.errors: tuple[VendorErrorT, ...] = tuple(errors)  # the vendor's (if any)
 
+        if retry_after is None:  # else, it was given
+            retry_after = _retry_after(response)  # its Retry-After (if any)
+        self.retry_after = (
+            self._default_retry_after if retry_after is None else retry_after
+        )
+
+
+class ApiConnectionFailedError(ApiCallFailedError):
+    """The API request failed because there was no reply (e.g. DNS, or a timeout).
+
+    The vendor's server could not be reached, or did not reply in time, so there is no
+    response (nor a status). Its cause is the aiohttp.ClientError (e.g. a
+    ClientConnectorError), or the TimeoutError.
+    """
+
+    _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.CONNECTION_FAILED
+
 
 class ApiRateLimitExceededError(ApiCallFailedError):
     """The API request failed because the vendor's API rate limit was exceeded.
 
     The `retry_after` attr is how long to wait before trying again, in seconds: that
-    of the response's Retry-After header, else (as the vendor's 429s have had none) a
-    default of 15 minutes, by when its limit on authentication has lifted. It is None
-    only if the error was raised without one (i.e. not by this library).
+    of the response's Retry-After header, else None (other than for authentication:
+    see AuthRateLimitExceededError). No GET has been seen to be a 429.
     """
 
     _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.RATE_LIMITED
@@ -209,9 +272,9 @@ class ApiRateLimitExceededError(ApiCallFailedError):
             reason=reason,
             response=response,
             errors=errors,
+            retry_after=retry_after,
             **details,
         )
-        self.retry_after = retry_after
 
 
 class AuthenticationFailedError(ApiCallFailedError):
@@ -225,14 +288,29 @@ class AuthenticationFailedError(ApiCallFailedError):
     )
 
 
+class AuthConnectionFailedError(ApiConnectionFailedError, AuthenticationFailedError):
+    """Unable to authenticate because there was no reply (e.g. DNS, or a timeout).
+
+    So, a failure to reach the vendor's server is an ApiConnectionFailedError, whether
+    or not it was of an authentication request.
+    """
+
+    _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.CONNECTION_FAILED
+
+
 class AuthRateLimitExceededError(ApiRateLimitExceededError, AuthenticationFailedError):
     """Unable to authenticate because the vendor's API rate limit was exceeded.
 
     The limit is on how often the user is authenticated, and not on how often their
     locations are polled.
+
+    The `retry_after` attr is that of the response's Retry-After header, else (as the
+    vendor's 429s have had none) a default of 15 minutes, by when its limit on
+    authentication has lifted. So it is never None (even if raised without a response).
     """
 
     _default_reason: ClassVar[ApiCallErrorReason] = ApiCallErrorReason.RATE_LIMITED
+    _default_retry_after: ClassVar[float | None] = DEFAULT_RETRY_AFTER
 
 
 class BadUserCredentialsError(AuthenticationFailedError):

@@ -99,8 +99,11 @@ from .const import (
 from .helpers import factory_enum, factory_enum_or_str
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from _evohome.helpers import Validator
     from evohomeasync2.typedefs import (
+        EvoAllowedSystemModesT,
         EvoDhwConfigResponseT,
         EvoGwyConfigResponseT,
         EvoLocConfigResponseT,
@@ -283,7 +286,23 @@ class TccDhwConfigEntryT(TccDhwConfigResponseT):
 # - used to validate / coerce data at runtime
 
 
-def factory_system_mode(case: Case = Case.VENDOR) -> Validator[dict[str, object]]:
+@overload
+def factory_system_mode(case: Literal[Case.VENDOR] = ...) -> Validator[TccAllowedSystemModeResponseT]: ...
+
+
+@overload
+def factory_system_mode(case: Literal[Case.PYTHONIC]) -> Validator[EvoAllowedSystemModesT]: ...
+
+
+@overload
+def factory_system_mode(
+    case: Case,
+) -> Validator[TccAllowedSystemModeResponseT] | Validator[EvoAllowedSystemModesT]: ...
+
+
+def factory_system_mode(
+    case: Case = Case.VENDOR,
+) -> Validator[TccAllowedSystemModeResponseT] | Validator[EvoAllowedSystemModesT]:
     """Factory for the allowed system mode schema.
 
     The duration-related keys are required when canBeTemporary is True, and must be
@@ -310,12 +329,12 @@ def factory_system_mode(case: Case = Case.VENDOR) -> Validator[dict[str, object]
     timing_resolution = fnc(S2_TIMING_RESOLUTION)
     timing_mode = fnc(S2_TIMING_MODE)
 
-    def check_can_be_one_of(config: dict[str, object]) -> dict[str, object]:
+    def check_can_be_one_of[T: Mapping[str, object]](config: T) -> T:
         if not (config[can_be_permanent] or config[can_be_temporary]):
             raise vol.Invalid(f"at least one of {can_be_permanent}, {can_be_temporary} must be true")
         return config
 
-    def check_duration_keys(config: dict[str, object]) -> dict[str, object]:
+    def check_duration_keys[T: Mapping[str, object]](config: T) -> T:
         duration_keys = (max_duration, timing_resolution, timing_mode)
         if config[can_be_temporary]:
             if missing := [k for k in duration_keys if k not in config]:

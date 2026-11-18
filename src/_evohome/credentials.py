@@ -5,20 +5,12 @@ from __future__ import annotations
 import json
 from abc import ABC, abstractmethod
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 
 import aiohttp
 
 from . import exceptions as exc
-from .auth import (
-    _SZ_CODE,
-    _ApiCallDetails,
-    _details,
-    _errors,
-    _payload,
-    _reason,
-    _retry_after,
-)
+from .auth import _SZ_CODE, _ApiCallDetails, _details, _errors, _payload, _reason
 from .const import (
     ERR_MSG_LOOKUP_BASE,
     HINT_BAD_CREDS,
@@ -32,7 +24,7 @@ if TYPE_CHECKING:
     import logging
     from collections.abc import Mapping
 
-    from aiohttp.typedefs import StrOrURL
+    from aiohttp.typedefs import LooseHeaders, StrOrURL
 
 
 async def _failed_auth_error(
@@ -57,7 +49,6 @@ async def _failed_auth_error(
         return exc.AuthRateLimitExceededError(
             f"Authenticator response is invalid: {msg}",
             err.status,
-            retry_after=_retry_after(rsp),
             response=rsp,
             errors=errors,
             **details,
@@ -133,7 +124,14 @@ class CredentialsManagerBase(ABC):
         of the two would apply (the first in its MRO).
         """
 
-    async def _post_request(self, url: StrOrURL, /, **kwargs: Any) -> dict[str, Any]:
+    async def _post_request(
+        self,
+        url: StrOrURL,
+        /,
+        *,
+        headers: LooseHeaders,
+        data: Mapping[str, str],
+    ) -> Mapping[str, object]:
         """POST an authentication request and return the response (a dict).
 
         Will raise an exception if the authentication is not successful (a
@@ -143,7 +141,7 @@ class CredentialsManagerBase(ABC):
         rsp: aiohttp.ClientResponse | None = None  # to prevent unbound error
 
         try:
-            rsp = await self._request(HTTPMethod.POST, url, **kwargs)
+            rsp = await self._request(HTTPMethod.POST, url, headers=headers, data=data)
             assert rsp is not None  # mypy hint
 
             await rsp.read()  # so we can use rsp.json()/rsp.text(), below
@@ -164,7 +162,7 @@ class CredentialsManagerBase(ABC):
                     reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
                     response=rsp,
                 )
-            response: dict[str, Any] = raw
+            response: Mapping[str, object] = raw
 
         except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
             raise exc.AuthenticationFailedError(
@@ -175,9 +173,7 @@ class CredentialsManagerBase(ABC):
 
         except aiohttp.ClientResponseError as err:
             details = await _details(rsp)  # e.g. {"code": "invalid_grant"}
-            bad_creds = self._is_bad_credentials(
-                kwargs.get("data", {}), details.get(_SZ_CODE)
-            )
+            bad_creds = self._is_bad_credentials(data, details.get(_SZ_CODE))
             error = await _failed_auth_error(
                 err, rsp, details, bad_credentials=bad_creds
             )
@@ -195,9 +191,8 @@ class CredentialsManagerBase(ABC):
         except (aiohttp.ClientError, TimeoutError) as err:
             self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
 
-            raise exc.AuthenticationFailedError(
+            raise exc.AuthConnectionFailedError(
                 f"Authenticator response is invalid: {str(err) or type(err).__name__}",
-                reason=ApiCallErrorReason.CONNECTION_FAILED,
                 response=rsp,  # usu. None
             ) from err
 
@@ -209,7 +204,13 @@ class CredentialsManagerBase(ABC):
                 rsp.release()
 
     async def _request(  # dev/test wrapper
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+        self,
+        method: HTTPMethod,
+        url: StrOrURL,
+        /,
+        *,
+        headers: LooseHeaders,
+        data: Mapping[str, str],
     ) -> aiohttp.ClientResponse:
         """Wrap the request to the ClientSession (useful for dev/test)."""
-        return await self.websession.request(method, url, **kwargs)
+        return await self.websession.request(method, url, headers=headers, data=data)
