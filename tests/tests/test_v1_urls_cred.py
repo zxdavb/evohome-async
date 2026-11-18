@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from _evohome.const import DEFAULT_RETRY_AFTER
+from _evohome.exceptions import DEFAULT_RETRY_AFTER
 from evohomeasync import EvohomeClient, exceptions as exc
 from evohomeasync.auth import _APPLICATION_ID
 from tests.const import (

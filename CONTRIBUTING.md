@@ -98,8 +98,10 @@ about them:
 EvohomeError
 │
 ├── ApiCallFailedError                # No usable reply: fix issue/try again later
-│   ├── ApiRateLimitExceededError     # HTTP 429; has a retry_after attr: here, try again later
-│   │   ├── AuthRateLimitExceededError    # - is also an AuthenticationFailedError
+│   ├── ApiConnectionFailedError      # No reply at all (e.g. DNS, timeout)
+│   │   ├── AuthConnectionFailedError     # - is also an AuthenticationFailedError
+│   ├── ApiRateLimitExceededError     # HTTP 429: try again later
+│   │   ├── AuthRateLimitExceededError    # - is also an AuthenticationFailedError; retry_after defaults to 15 min
 │   ├── AuthenticationFailedError
 │   │   └── BadUserCredentialsError   # correct credentials before trying again
 │   ├── ApiCallRejectedError          # A 4xx (not a 401/429): trying again will not help

@@ -37,7 +37,7 @@ from typing import TYPE_CHECKING, Final
 
 import pytest
 
-from _evohome.const import DEFAULT_RETRY_AFTER
+from _evohome.exceptions import DEFAULT_RETRY_AFTER
 from evohomeasync import (
     ApiCallErrorReason,
     ApiCallFailedError,

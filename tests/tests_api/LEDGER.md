@@ -442,3 +442,5 @@ After dev was merged in (2026-11-14; #304, #305, #306):
   200, and the tests of a rejected token / session id register the cred POST (and what
   follows). A shared `TOKEN` is in v2/vendor.py.
 - #306: a 429 without a Retry-After has `retry_after == DEFAULT_RETRY_AFTER` (not None).
+  Since narrowed (2026-11-18): only an authentication 429 has that default; any other
+  (e.g. a hypothetical GET 429) without a Retry-After has `retry_after is None`.

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from _evohome.const import DEFAULT_RETRY_AFTER
+from _evohome.exceptions import DEFAULT_RETRY_AFTER
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync2 import EvohomeClient, exceptions as exc
 from tests.const import (
@@ -157,6 +157,7 @@ async def test_bad2(  # bad access token
         with pytest.raises(exc.AuthenticationFailedError) as err:
             await ec2.setup()  # raises at its first API call
 
+        assert type(err.value) is exc.AuthConnectionFailedError
         assert err.value.status is None  # Connection refused
         assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
         assert caplog.record_tuples == [LOG_20, LOG_01, LOG_02, LOG_99]
@@ -196,6 +197,7 @@ async def test_bad3(  # bad credentials (refresh token)
         with pytest.raises(exc.AuthenticationFailedError) as err:
             await ec2.setup()  # raises at its first API call
 
+        assert type(err.value) is exc.AuthConnectionFailedError
         assert err.value.status is None  # Connection refused
         assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
         assert caplog.record_tuples == [LOG_01, LOG_02, LOG_03, LOG_04, LOG_99]
@@ -392,6 +394,102 @@ async def test_rejected(  # the vendor rejects a request (a 4xx, but not a 401/4
     ec2._token_manager.clear_access_token()  # is cached; don't leak to next test
 
 
+@pytest.mark.parametrize(
+    ("status", "headers", "expected", "retry_after"),
+    [
+        (
+            HTTPStatus.SERVICE_UNAVAILABLE,
+            {"Retry-After": "120"},
+            exc.ApiCallFailedError,
+            120.0,
+        ),
+        (HTTPStatus.SERVICE_UNAVAILABLE, None, exc.ApiCallFailedError, None),
+        (
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            {"Retry-After": "a while"},  # not valid
+            exc.ApiCallFailedError,
+            None,
+        ),
+        (
+            HTTPStatus.BAD_REQUEST,
+            {"Retry-After": "60"},
+            exc.ApiCallRejectedError,
+            60.0,
+        ),
+        (HTTPStatus.BAD_REQUEST, None, exc.ApiCallRejectedError, None),
+        (HTTPStatus.TOO_MANY_REQUESTS, None, exc.ApiRateLimitExceededError, None),
+    ],
+    ids=["503-header", "503", "500-invalid", "400-header", "400", "429"],
+)
+async def test_retry_after(  # a response may have a Retry-After
+    ec2: EvohomeClient,
+    status: HTTPStatus,
+    headers: dict[str, str] | None,
+    expected: type[exc.ApiCallFailedError],
+    retry_after: float | None,
+) -> None:
+    """Test the retry_after of an error response that is not of authentication.
+
+    It is that of the response's Retry-After header (e.g. of a 503), else None, even
+    for a 429: only a 429 of authentication has a default (DEFAULT_RETRY_AFTER).
+    """
+
+    # pre-requisite data (a valid access token)
+    ec2._token_manager._access_token = _TEST_ACCESS_TOKEN
+    ec2._token_manager._access_token_expires = dt.now(tz=UTC) + td(minutes=15)
+    ec2._token_manager._refresh_token = _TEST_REFRESH_TOKEN
+
+    try:
+        with aioresponses() as rsp:
+            rsp.get(f"{URL_BASE_V2}/userAccount", status=status, headers=headers)
+
+            with pytest.raises(exc.ApiCallFailedError) as err:
+                await ec2.auth.request(HTTPMethod.GET, "userAccount")
+
+        assert type(err.value) is expected
+        assert err.value.status == status
+        assert err.value.retry_after == retry_after
+
+    finally:
+        ec2._token_manager.clear_access_token()  # is cached; don't leak to next test
+
+
+@pytest.mark.parametrize(
+    ("headers", "retry_after"),
+    [({"Retry-After": "120"}, 120.0), (None, None)],
+    ids=["header", "no-header"],
+)
+async def test_retry_after_of_authentication(  # e.g. a 503 of the token POST
+    credentials: tuple[str, str],
+    ec2: EvohomeClient,
+    headers: dict[str, str] | None,
+    retry_after: float | None,
+) -> None:
+    """Test the retry_after of a failed authentication that is not a 429."""
+
+    # pre-requisite data (no access token)
+    ec2._token_manager.clear_access_token()
+
+    with aioresponses() as rsp:
+        rsp.post(
+            URL_CRED_V2,
+            status=HTTPStatus.SERVICE_UNAVAILABLE,
+            body="Service Unavailable",
+            content_type="text/plain",
+            headers=headers,
+        )
+
+        with pytest.raises(exc.AuthenticationFailedError) as err:
+            await ec2.setup()  # raises at its first API call
+
+        assert type(err.value) is exc.AuthenticationFailedError
+        assert err.value.status == HTTPStatus.SERVICE_UNAVAILABLE
+        assert err.value.reason is exc.ApiCallErrorReason.SERVER_ERROR
+        assert err.value.retry_after == retry_after
+
+    assert ec2._token_manager.is_token_valid() is False
+
+
 async def test_response_null(
     ec2: EvohomeClient,
 ) -> None:
@@ -473,9 +571,11 @@ async def test_good(  # good credentials
         with pytest.raises(exc.ApiCallFailedError) as err:
             await ec2.setup()  # raises at its first API call
 
+        assert type(err.value) is exc.ApiConnectionFailedError
         assert err.value.status is None  # Connection refused
         assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
         assert err.value.response is None  # there was no response
+        assert err.value.retry_after is None
         assert caplog.record_tuples == [LOG_29]
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
