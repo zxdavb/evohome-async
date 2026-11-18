@@ -2,28 +2,16 @@
 
 from __future__ import annotations
 
-import re
 from enum import StrEnum
 from http import HTTPStatus
 from typing import Final
 
 from aiohttp import hdrs
 
-# all _DBG_* flags are only for dev/test and should be False for published code
-_DBG_DONT_REDACT_SECRETS = False  # default is to redact sensitive JSON in debug output
-
 HOSTNAME: Final = "tccna.resideo.com"
 
-# the messages of NotFetchedError
+# the message of a NotFetchedError of the config (the others are with their users)
 _ERR_NO_CONFIG: Final = "{} not available until after EvohomeClient.setup() is called"
-_ERR_NO_STATUS: Final = (
-    "{} has no state, has it been fetched via Location.get_status()?"
-)
-_ERR_NO_SCHEDULE: Final = "{} has no schedule, has it been fetched via .get_schedule()?"
-
-REGEX_EMAIL_ADDRESS = re.compile(
-    r"^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,63})$"
-)
 
 
 class ContentType(StrEnum):
@@ -55,10 +43,6 @@ HINT_CHECK_NETWORK = (
 HINT_WAIT_A_WHILE = (
     "You have exceeded the server's API rate limit. Wait a while "
     "and try again (consider reducing your polling interval)."
-)
-HINT_BAD_CREDS = (
-    "Failed to authenticate. Check the username/password. Note that some "
-    "special characters accepted via the vendor's website are not valid here."
 )
 
 ERR_MSG_LOOKUP_BASE: dict[int, str] = {  # common to authentication / authorization

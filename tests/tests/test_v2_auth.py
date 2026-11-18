@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from _evohome.const import HINT_BAD_CREDS
+from _evohome.credentials import HINT_BAD_CREDS
 from evohome_cli.auth import TokenCacheManager
 from evohomeasync2 import exceptions as exc
 from evohomeasync2.auth import (

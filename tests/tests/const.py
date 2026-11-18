@@ -6,7 +6,8 @@ import logging
 from pathlib import Path
 from typing import Final
 
-from _evohome.const import HINT_BAD_CREDS, HINT_CHECK_NETWORK
+from _evohome.const import HINT_CHECK_NETWORK
+from _evohome.credentials import HINT_BAD_CREDS
 
 TEST_DIR = Path(__file__).resolve().parent
 FIXTURES_DIR = TEST_DIR / "fixtures"

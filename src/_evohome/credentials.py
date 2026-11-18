@@ -11,13 +11,7 @@ import aiohttp
 
 from . import exceptions as exc
 from .auth import _SZ_CODE, _ApiCallDetails, _details, _errors, _payload, _reason
-from .const import (
-    ERR_MSG_LOOKUP_BASE,
-    HINT_BAD_CREDS,
-    HINT_CHECK_NETWORK,
-    HOSTNAME,
-    ContentType,
-)
+from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME, ContentType
 from .exceptions import ApiCallErrorReason
 
 if TYPE_CHECKING:
@@ -25,6 +19,12 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from aiohttp.typedefs import LooseHeaders, StrOrURL
+
+
+HINT_BAD_CREDS: Final = (
+    "Failed to authenticate. Check the username/password. Note that some "
+    "special characters accepted via the vendor's website are not valid here."
+)
 
 
 async def _failed_auth_error(

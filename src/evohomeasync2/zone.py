@@ -10,7 +10,6 @@ from functools import cached_property
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Final, NoReturn, overload
 
-from _evohome.const import _ERR_NO_SCHEDULE, _ERR_NO_STATUS
 from _evohome.helpers import (
     Case,
     as_aware_dtm,
@@ -124,6 +123,12 @@ if TYPE_CHECKING:
 
 
 _ONE_DAY = td(days=1)
+
+# the messages of a NotFetchedError of the status, and of a schedule
+_ERR_NO_STATUS: Final = (
+    "{} has no state, has it been fetched via Location.get_status()?"
+)
+_ERR_NO_SCHEDULE: Final = "{} has no schedule, has it been fetched via .get_schedule()?"
 
 _DAYS: Final = tuple(DayOfWeek)  # 'monday' first (as is datetime.weekday())
 
