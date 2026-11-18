@@ -10,15 +10,7 @@ from typing import TYPE_CHECKING, Final
 import aiohttp
 
 from . import exceptions as exc
-from .auth import (
-    _SZ_CODE,
-    _ApiCallDetails,
-    _details,
-    _errors,
-    _payload,
-    _reason,
-    _retry_after,
-)
+from .auth import _SZ_CODE, _ApiCallDetails, _details, _errors, _payload, _reason
 from .const import (
     ERR_MSG_LOOKUP_BASE,
     HINT_BAD_CREDS,
@@ -57,7 +49,6 @@ async def _failed_auth_error(
         return exc.AuthRateLimitExceededError(
             f"Authenticator response is invalid: {msg}",
             err.status,
-            retry_after=_retry_after(rsp),
             response=rsp,
             errors=errors,
             **details,
@@ -200,9 +191,8 @@ class CredentialsManagerBase(ABC):
         except (aiohttp.ClientError, TimeoutError) as err:
             self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
 
-            raise exc.AuthenticationFailedError(
+            raise exc.AuthConnectionFailedError(
                 f"Authenticator response is invalid: {str(err) or type(err).__name__}",
-                reason=ApiCallErrorReason.CONNECTION_FAILED,
                 response=rsp,  # usu. None
             ) from err
 

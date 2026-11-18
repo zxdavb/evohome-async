@@ -39,7 +39,10 @@ def cache_path(
 async def test_timeout_of_authentication(
     credentials_manager: TokenCacheManager,
 ) -> None:
-    """Test a timeout of the session POST is an AuthenticationFailedError."""
+    """Test a timeout of the session POST is an AuthConnectionFailedError.
+
+    So it is both an AuthenticationFailedError and an ApiConnectionFailedError.
+    """
 
     timeout = TimeoutError()
 
@@ -52,6 +55,8 @@ async def test_timeout_of_authentication(
     ):
         await credentials_manager.fetch_session_id()
 
+    assert type(err.value) is exc.AuthConnectionFailedError
+    assert isinstance(err.value, exc.ApiConnectionFailedError)
     assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
     assert err.value.status is None  # there was no response
     assert err.value.__cause__ is timeout
@@ -62,7 +67,7 @@ async def test_timeout_of_api_call(
     credentials_manager: TokenCacheManager,
     client_session: aiohttp.ClientSession,
 ) -> None:
-    """Test a timeout of a GET (with a valid session ID) is an ApiCallFailedError."""
+    """Test a timeout of a GET (with a valid session) is an ApiConnectionFailedError."""
 
     credentials_manager.import_session_id(
         {
@@ -80,7 +85,8 @@ async def test_timeout_of_api_call(
     ):
         await auth.request(HTTPMethod.GET, URL)
 
-    assert type(err.value) is exc.ApiCallFailedError  # not an AuthenticationFailedError
+    # it is not an AuthenticationFailedError (the credential was valid)
+    assert type(err.value) is exc.ApiConnectionFailedError
     assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
     assert err.value.status is None  # there was no response
     assert err.value.__cause__ is timeout

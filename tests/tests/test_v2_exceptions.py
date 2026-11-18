@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from _evohome import exceptions as _exc
+from _evohome.exceptions import DEFAULT_RETRY_AFTER
 from evohomeasync2 import ControlSystem, EvohomeClient, Zone, exceptions as exc
 from evohomeasync2.const import (
     SZ_GATEWAYS,
@@ -400,3 +401,54 @@ def test_exceptions_are_exported() -> None:
     assert not (missing := constructed - set(exc.__all__)), f"not exported: {missing}"
     for name in constructed:
         assert getattr(exc, name) is getattr(_exc, name)
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        exc.ApiConnectionFailedError(_ERR_MSG),
+        exc.AuthConnectionFailedError(_ERR_MSG),
+    ],
+    ids=lambda e: type(e).__name__,
+)
+def test_connection_failed_is_an_api_call_failure(
+    error: exc.ApiConnectionFailedError,
+) -> None:
+    """Test a connection failure is caught as before (as an ApiCallFailedError).
+
+    So it can be caught by its own class, or by the handlers that already exist.
+    """
+
+    with pytest.raises(exc.ApiCallFailedError) as err:
+        raise error
+
+    assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
+    assert err.value.status is None
+    assert err.value.retry_after is None
+
+    if isinstance(error, exc.AuthConnectionFailedError):  # as AuthRateLimitExceeded
+        assert isinstance(error, exc.AuthenticationFailedError)
+
+
+def test_retry_after_of_api_call_failures() -> None:
+    """Test every ApiCallFailedError has a retry_after: the one given, else a default.
+
+    The default is None, other than for an AuthRateLimitExceededError (even if it is
+    raised without a response, as HA's tests do).
+    """
+
+    retry_after = 120.0
+
+    assert exc.ApiCallFailedError(_ERR_MSG).retry_after is None
+    rejected = exc.ApiCallRejectedError(_ERR_MSG, retry_after=retry_after)
+    assert rejected.retry_after == retry_after
+
+    err = exc.ApiRateLimitExceededError(_ERR_MSG, retry_after=retry_after)
+    assert err.retry_after == retry_after
+    assert err.status == HTTPStatus.TOO_MANY_REQUESTS
+
+    assert exc.ApiRateLimitExceededError(_ERR_MSG).retry_after is None
+
+    assert exc.AuthRateLimitExceededError(_ERR_MSG).retry_after == DEFAULT_RETRY_AFTER
+    err = exc.AuthRateLimitExceededError(_ERR_MSG, retry_after=retry_after)
+    assert err.retry_after == retry_after
