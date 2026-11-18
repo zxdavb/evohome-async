@@ -154,8 +154,8 @@ def test_regex_tcc_timespan(
 
 
 def _zon_config(
-    schedule_capabilities: dict[str, Any] | None = None, **setpoint_capabilities: Any
-) -> dict[str, Any]:
+    schedule_capabilities: dict[str, object] | None = None, **setpoint_capabilities: Any
+) -> dict[str, object]:
     """Return a zone's config (as per the default fixture), with these capabilities."""
 
     return {

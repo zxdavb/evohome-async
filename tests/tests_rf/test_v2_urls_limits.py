@@ -51,7 +51,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 
 import pytest
 
@@ -282,7 +282,7 @@ async def test_zon_setpoint_rejected(
 
     auth = zone._auth
     url = f"{zone._TCC_TYPE}/{zone.id}/heatSetpoint"
-    body: dict[str, Any]
+    body: dict[str, object]
 
     # a TemporaryOverride requires a timeUntil
     body = {

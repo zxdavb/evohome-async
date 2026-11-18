@@ -11,6 +11,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, NotRequired, TypedDict
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from .schemas import _DhwIdT, _GatewayIdT, _LocationIdT, _UserIdT, _ZoneIdT
 
 
@@ -94,7 +96,7 @@ class EvoLocInfoDictT(TypedDict):  # c.f. TccLocationResponseT
     location_owner_name: NotRequired[str]
     location_owner_user_name: NotRequired[str]
     can_search_for_contractors: NotRequired[bool]
-    contractor: NotRequired[dict[str, Any]]  # ContractorResponse
+    contractor: NotRequired[Mapping[str, object]]  # ContractorResponse
 
 
 class EvoGwyInfoDictT(TypedDict):  # c.f. TccDeviceResponseT
@@ -127,11 +129,11 @@ class EvoDevInfoDictT(EvoGwyInfoDictT):
     schedule_capable: NotRequired[bool]
     hold_until_capable: NotRequired[bool]
     thermostat: EvoThermostatInfoDictT
-    humidifier: NotRequired[dict[str, Any]]  # HumidifierResponse
-    dehumidifier: NotRequired[dict[str, Any]]  # DehumidifierResponse
-    fan: NotRequired[dict[str, Any]]  # FanResponse
-    schedule: NotRequired[dict[str, Any]]  # ScheduleResponse
-    alert_settings: NotRequired[dict[str, Any]]  # AlertSettingsResponse
+    humidifier: NotRequired[Mapping[str, object]]  # HumidifierResponse
+    dehumidifier: NotRequired[Mapping[str, object]]  # DehumidifierResponse
+    fan: NotRequired[Mapping[str, object]]  # FanResponse
+    schedule: NotRequired[Mapping[str, object]]  # ScheduleResponse
+    alert_settings: NotRequired[Mapping[str, object]]  # AlertSettingsResponse
     is_upgrading: NotRequired[bool]
     is_alive: NotRequired[bool]
     thermostat_version: NotRequired[str]
@@ -140,7 +142,7 @@ class EvoDevInfoDictT(EvoGwyInfoDictT):
     serial_number: NotRequired[str]
     pcb_number: NotRequired[str]
     dr_events: NotRequired[list[Any]]
-    system_configuration: NotRequired[dict[str, Any]]
+    system_configuration: NotRequired[Mapping[str, object]]
 
 
 class EvoThermostatInfoDictT(TypedDict):

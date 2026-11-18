@@ -33,7 +33,7 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPMethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -52,12 +52,14 @@ from .common import (
     status_of_v1,
     task_id_v1,
     wait_for_comm_task_v1,
+    zon_values_v1,
 )
 
 if TYPE_CHECKING:
     from evohomeasync import EvohomeClient as EvohomeClientV1
     from evohomeasync.schemas import TccDeviceResponseT, TccLocationResponseT
     from evohomeasync2 import EvohomeClient as EvohomeClientV2
+    from evohomeasync2.schemas.status import TccZonSetpointStatusResponseT
 
 
 _LOCAL_STRFTIME = "%Y-%m-%dT%H:%M:%S"  # as a v1 nextTime (i.e. without a Z)
@@ -122,8 +124,7 @@ async def _setup(
     if zone is None:
         pytest.skip("No live zone found that is following its schedule")
 
-    values: dict[str, Any] = dict(zone["thermostat"]["changeableValues"])
-    setpoint: float = values["heatSetpoint"]["value"]
+    setpoint: float = zon_values_v1(zone)["heatSetpoint"]["value"]
 
     # the current setpoint is used, so the override is a no-op in practice, but it may be
     # out of range (e.g. 99.0, after another test's PermanentOverride of 99), and so would
@@ -143,17 +144,14 @@ async def _get_next_time(
 ) -> str | None:
     """Return the nextTime of a zone's override, via v1 (it is without a Z)."""
 
-    values: dict[str, Any] = dict(
-        (await _get_zone(ec1, zon_id))["thermostat"]["changeableValues"]
-    )
-    next_time: str | None = values["heatSetpoint"].get("nextTime")
-    return next_time
+    values = zon_values_v1(await _get_zone(ec1, zon_id))
+    return values["heatSetpoint"].get("nextTime")
 
 
 async def _get_setpoint_status(
     ec2: EvohomeClientV2,
     zon_id: int,
-) -> dict[str, Any]:
+) -> TccZonSetpointStatusResponseT:
     """Return the setpointStatus of a zone, via v2."""
 
     url = f"temperatureZone/{zon_id}/status"
@@ -161,7 +159,7 @@ async def _get_setpoint_status(
         ec2.auth, HTTPMethod.GET, url, schema=TCC_GET_ZON_STATUS
     )
 
-    return dict(status["setpointStatus"])
+    return status["setpointStatus"]
 
 
 async def _get_until(
@@ -170,8 +168,7 @@ async def _get_until(
 ) -> str | None:
     """Return the until of a zone's override, via v2 (it is UTC, with a Z)."""
 
-    until: str | None = (await _get_setpoint_status(ec2, zon_id)).get("until")
-    return until
+    return (await _get_setpoint_status(ec2, zon_id)).get("until")
 
 
 async def _wait_for_until(

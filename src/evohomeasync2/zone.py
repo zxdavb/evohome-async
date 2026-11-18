@@ -14,10 +14,10 @@ from _evohome.const import _ERR_NO_SCHEDULE, _ERR_NO_STATUS
 from _evohome.helpers import (
     Case,
     as_aware_dtm,
-    as_local_time,
+    as_local_dtm,
     as_timedelta,
     camel_to_snake,
-    convert_dtm_to_local_aware,
+    convert_dtms_to_local_aware,
 )
 
 from . import exceptions as exc
@@ -92,6 +92,7 @@ if TYPE_CHECKING:
         EvoActiveFaultT,
         EvoAllowedSystemModesT,
         EvoDhwScheduleDayOfWeekT,
+        EvoDhwScheduleSwitchpointT,
         EvoDhwStatusResponseT,
         EvoSetZoneHeatSetpointT,
         EvoTemperatureStatusT,
@@ -100,11 +101,13 @@ if TYPE_CHECKING:
         EvoZonConfigT,
         EvoZonScheduleCapabilitiesT,
         EvoZonScheduleResponseT,
+        EvoZonScheduleSwitchpointT,
         EvoZonSetpointCapabilitiesT,
         EvoZonSetpointStatusT,
     )
 
     _SwitchPoint = tuple[dt, float | str]
+    type _ScheduleSwitchpoint = EvoDhwScheduleSwitchpointT | EvoZonScheduleSwitchpointT
 
     class _DailySchedulesT[DayT](TypedDict):
         daily_schedules: list[DayT]
@@ -428,8 +431,8 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
 
     location: Location  # used to get tzinfo
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, entity_id: str) -> None:
+        super().__init__(entity_id)
 
         self._active_faults: list[EvoActiveFaultT] = []
         self._last_logged: dict[str, dt] = {}  # OK to use a tz=UTC datetimes
@@ -500,13 +503,13 @@ class ActiveFaultsBase[StatusT](EntityBase[StatusT]):
 def _dt_to_dow_and_tod(dtm: dt, tzinfo: tzinfo) -> tuple[DayOfWeek, str]:
     """Return the local day of week and time of day (to the second, e.g. "06:30:15")."""
 
-    dtm = as_local_time(dtm, tzinfo)
+    dtm = as_local_dtm(dtm, tzinfo)
     return _DAYS[dtm.weekday()], dtm.strftime("%H:%M:%S")  # locale-independent
 
 
 def _switchpoints_by_day[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT)](
     schedule: list[DayT],
-) -> dict[DayOfWeek, list[Mapping[str, Any]]]:
+) -> dict[DayOfWeek, list[_ScheduleSwitchpoint]]:
     """Return each day's switchpoints (in order of their time of day), by its day.
 
     The days are found by their day_of_week, not by their position in the schedule
@@ -515,7 +518,7 @@ def _switchpoints_by_day[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWee
     of another case (e.g. "Monday"): an unknown name is ignored.
     """
 
-    by_day: dict[DayOfWeek, list[Mapping[str, Any]]] = {d: [] for d in _DAYS}
+    by_day: dict[DayOfWeek, list[_ScheduleSwitchpoint]] = {d: [] for d in _DAYS}
 
     for day in schedule:
         if (name := camel_to_snake(str(day[SZ_DAY_OF_WEEK]))) in by_day:
@@ -559,7 +562,7 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
     schedule: list[DayT],
     day_of_week: DayOfWeek,
     time_of_day: str,
-) -> tuple[Mapping[str, Any], int, Mapping[str, Any], int]:
+) -> tuple[_ScheduleSwitchpoint, int, _ScheduleSwitchpoint, int]:
     """Find this/next switchpoints for a given day of week and time of day.
 
     Return each with its offset in days from the given day (e.g. -1 if this switchpoint
@@ -584,7 +587,7 @@ def _find_switchpoints[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfWeekT
     day_idx = _DAYS.index(day_of_week)
     now = tm.fromisoformat(time_of_day)  # compare times, as "06:30:00" > "06:30"
 
-    def switchpoints(offset: int) -> list[Mapping[str, Any]]:
+    def switchpoints(offset: int) -> list[_ScheduleSwitchpoint]:
         return by_day[_DAYS[(day_idx + offset) % 7]]
 
     # this is the latest that has started, today or on an earlier day
@@ -619,7 +622,7 @@ def _find_switchpoint_dtms[DayT: (EvoZonScheduleDayOfWeekT, EvoDhwScheduleDayOfW
     # get the instant first: converting a repeated time may lose its fold (e.g. as with
     # freezegun's FakeDatetime), and so the instant, but not its wall-clock fields
     now = (dtm if dtm.tzinfo else dtm.replace(tzinfo=tzinfo)).astimezone(UTC)
-    dtm = as_local_time(dtm, tzinfo)
+    dtm = as_local_dtm(dtm, tzinfo)
 
     this_sp, this_offset, next_sp, next_offset = _find_switchpoints(
         schedule, *_dt_to_dow_and_tod(dtm, tzinfo)
@@ -969,7 +972,7 @@ class _ZoneBase[
             schema=self.SCH_STATUS,
         )
 
-        status = convert_dtm_to_local_aware(status, self.location.tzinfo)
+        status = convert_dtms_to_local_aware(status, self.location.tzinfo)
 
         if _update:
             self._update_status(status)
@@ -1152,7 +1155,7 @@ class Zone(_ZoneBase[EvoZonStatusT, EvoZonScheduleDayOfWeekT]):
     def until(self) -> dt | None:
         if (until := self.setpoint_status.get(SZ_UNTIL)) is None:
             return None
-        return as_local_time(until, self.location.tzinfo)
+        return as_local_dtm(until, self.location.tzinfo)
 
     # NOTE: no provision for cooling (not supported by this API)
 

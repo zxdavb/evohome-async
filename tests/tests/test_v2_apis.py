@@ -1328,7 +1328,6 @@ TEMPERATURE_WARNS = [
 ]
 
 
-@pytest.mark.freeze_time("2025-07-10T12:00:00Z")  # so the until is in the future
 @pytest.mark.parametrize(("temperature", "match"), TEMPERATURE_WARNS)
 @pytest.mark.parametrize(
     "kwargs",
@@ -1341,6 +1340,8 @@ TEMPERATURE_WARNS = [
 async def test_zon_set_mode_warns_temperature(
     zone: Zone,
     caplog: pytest.LogCaptureFixture,
+    freezer: FrozenDateTimeFactory,
+    *,
     kwargs: dict[str, Any],  # some of these are rejected by the overloads
     temperature: float,
     match: str,
@@ -1349,6 +1350,10 @@ async def test_zon_set_mode_warns_temperature(
 
     The vendor accepts (and stores) such a temperature, but the controller clamps it.
     """
+
+    # not @pytest.mark.freeze_time, which freezes the clock before the fixtures are
+    # set up: a session-scoped one (e.g. cache_data_valid) would then be of that time
+    freezer.move_to("2025-07-10T12:00:00Z")  # so the until is in the future
 
     mode = ZoneMode.PERMANENT_OVERRIDE if not kwargs else ZoneMode.TEMPORARY_OVERRIDE
 

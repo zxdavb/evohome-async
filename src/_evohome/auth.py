@@ -5,23 +5,15 @@ from __future__ import annotations
 import json
 import logging
 from abc import ABC, abstractmethod
-from datetime import UTC, datetime as dt
-from email.utils import parsedate_to_datetime
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, ClassVar, Final, TypedDict
+from json import JSONDecodeError
+from typing import TYPE_CHECKING, ClassVar, Final, TypedDict
 
 import aiohttp
 import probatio as vol
-from aiohttp import hdrs
 
 from . import exceptions as exc
-from .const import (
-    DEFAULT_RETRY_AFTER,
-    ERR_MSG_LOOKUP_BASE,
-    HINT_CHECK_NETWORK,
-    HOSTNAME,
-    ContentType,
-)
+from .const import ERR_MSG_LOOKUP_BASE, HINT_CHECK_NETWORK, HOSTNAME, ContentType
 from .exceptions import ApiCallErrorReason
 from .helpers import (
     convert_dtms_to_utc_str,
@@ -31,7 +23,7 @@ from .helpers import (
     redact_secrets,
 )
 
-type _TccResponse = dict[str, Any] | list[dict[str, Any]]
+type _TccResponse = Mapping[str, object] | list[Mapping[str, object]]
 
 # the keys of the vendor's error code: e.g. [{"code": "DeviceIsLost", ...}] (a request),
 # or {"error": "invalid_grant", ...} (an OAuth token request)
@@ -57,7 +49,7 @@ class _ApiCallDetails(TypedDict, total=False):
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from aiohttp.typedefs import StrOrURL
+    from aiohttp.typedefs import LooseHeaders, StrOrURL
 
     from .helpers import Validator
 
@@ -90,7 +82,7 @@ async def _details(rsp: aiohttp.ClientResponse | None) -> _ApiCallDetails:
 
     try:
         body = await rsp.json()
-    except (aiohttp.ClientError, json.JSONDecodeError):
+    except (aiohttp.ClientError, JSONDecodeError):
         return {}
 
     if isinstance(body, list) and body and isinstance(body[0], dict):
@@ -121,7 +113,7 @@ async def _errors(rsp: aiohttp.ClientResponse | None) -> tuple[exc.VendorErrorT,
 
     try:
         body = await rsp.json()
-    except (aiohttp.ClientError, json.JSONDecodeError):
+    except (aiohttp.ClientError, JSONDecodeError):
         return ()
 
     if not isinstance(body, list):
@@ -156,29 +148,6 @@ def _reason(status: int) -> ApiCallErrorReason:
     return ApiCallErrorReason.CALL_FAILED
 
 
-def _retry_after(rsp: aiohttp.ClientResponse | None) -> float:
-    """Return how long to wait before trying again, in seconds (e.g. after a 429).
-
-    That is the period of the response's Retry-After header, else (if it has none, or
-    it is not valid) DEFAULT_RETRY_AFTER: the vendor's 429s have not had one.
-    """
-
-    if rsp is None or (value := rsp.headers.get(hdrs.RETRY_AFTER)) is None:
-        return DEFAULT_RETRY_AFTER
-
-    if value.strip().isdecimal():  # is delay-seconds
-        return float(value)
-
-    try:  # is HTTP-date
-        dtm = parsedate_to_datetime(value)
-    except ValueError:
-        return DEFAULT_RETRY_AFTER
-
-    if dtm.tzinfo is None:  # e.g. a zone of -0000
-        dtm = dtm.replace(tzinfo=UTC)
-    return max(0.0, (dtm - dt.now(tz=UTC)).total_seconds())
-
-
 def _api_call_failed(
     message: str,
     status: int,
@@ -200,7 +169,6 @@ def _api_call_failed(
         return exc.ApiRateLimitExceededError(
             message,
             status,
-            retry_after=_retry_after(rsp),
             response=rsp,
             errors=errors,
             **details,
@@ -395,7 +363,12 @@ class AbstractAuth(ABC):
         return False
 
     async def _make_request(
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+        self,
+        method: HTTPMethod,
+        url: StrOrURL,
+        /,
+        *,
+        json: Mapping[str, object] | None = None,
     ) -> _TccResponse:
         """Make a GET/PUT request and return the response (a dict or a list).
 
@@ -405,10 +378,10 @@ class AbstractAuth(ABC):
         rsp: aiohttp.ClientResponse | None = None  # to prevent unbound error
 
         url = f"{self.url_base}/{url}"
-        headers = await self._headers(kwargs.pop("headers", {}))
+        headers = await self._headers({})
 
         try:
-            rsp = await self._request(method, url, headers=headers, **kwargs)
+            rsp = await self._request(method, url, headers=headers, json=json)
             assert rsp is not None  # mypy hint
 
             await rsp.read()  # so we can use rsp.json()/rsp.text(), below
@@ -431,7 +404,7 @@ class AbstractAuth(ABC):
                 )
             response: _TccResponse = raw
 
-        except (aiohttp.ContentTypeError, json.JSONDecodeError) as err:
+        except (aiohttp.ContentTypeError, JSONDecodeError) as err:
             raise exc.ApiCallFailedError(
                 f"{method} {url}: response is not valid JSON: {await _payload(rsp)}",
                 reason=ApiCallErrorReason.RESPONSE_NOT_JSON,
@@ -463,9 +436,8 @@ class AbstractAuth(ABC):
         except (aiohttp.ClientError, TimeoutError) as err:
             self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
 
-            raise exc.ApiCallFailedError(
+            raise exc.ApiConnectionFailedError(
                 f"{method} {url}: {str(err) or type(err).__name__}",  # str(TimeoutError()) is ''
-                reason=ApiCallErrorReason.CONNECTION_FAILED,
                 response=rsp,  # usu. None
             ) from err
 
@@ -477,7 +449,13 @@ class AbstractAuth(ABC):
                 rsp.release()
 
     async def _request(  # dev/test wrapper
-        self, method: HTTPMethod, url: StrOrURL, /, **kwargs: Any
+        self,
+        method: HTTPMethod,
+        url: StrOrURL,
+        /,
+        *,
+        headers: LooseHeaders,
+        json: Mapping[str, object] | None = None,
     ) -> aiohttp.ClientResponse:
         """Wrap the request to the ClientSession (useful for dev/test)."""
-        return await self.websession.request(method, url, **kwargs)
+        return await self.websession.request(method, url, headers=headers, json=json)

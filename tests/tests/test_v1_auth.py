@@ -7,7 +7,7 @@ import json
 import uuid
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -38,7 +38,7 @@ async def test_get_session_id(
 ) -> None:
     """Test .get_session_id() and .is_session_valid() methods."""
 
-    def server_response() -> dict[str, dict[str, Any] | str]:
+    def server_response() -> dict[str, dict[str, object] | str]:
         """Return the server response to a valid authorization request."""
         # "payload may be invalid: required key not provided at 'userInfo.xxx'"
         return {"sessionId": str(uuid.uuid4()), "userInfo": {}}
