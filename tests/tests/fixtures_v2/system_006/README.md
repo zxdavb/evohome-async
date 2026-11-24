@@ -24,6 +24,9 @@ Synthesised fixture — minimal single-zone system (Belgium).
 ## Notes
 
 - Placeholder IDs (0001, 0002, 0003, 0004) — this is a minimal test system.
+- Its `allowedSystemModes` are the fewest seen in the wild for an `EvoTouch`: `Auto`,
+  `AutoWithEco`, `Away` and `HeatingOff` (copied from `hass_139945/`). It once had only
+  `Auto`, but no system lacking an off mode has been seen (see the next section).
 - Original `user_locations.json` had `-REDACTED-` placeholder values for mac, crc, and
   locationOwner; replaced with synthesised values per PII policy.
 - The zone schedule has a `heatSetpoint` of 4.0 (Monday, 08:00), below the schema's

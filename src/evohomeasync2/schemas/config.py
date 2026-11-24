@@ -188,7 +188,7 @@ class TccGwyConfigEntryT(TypedDict):
 class TccTcsConfigEntryT(TypedDict):
     systemId: str
     modelType: TccTcsModelType | str  # enum may be incomplete, so allow str
-    allowedSystemModes: list[TccAllowedSystemModeResponseT]
+    allowedSystemModes: list[TccAllowedSystemModeResponseT]  # see: TccSystemMode
 
 
 class TccAllowedSystemModeResponseT(TypedDict):
@@ -307,6 +307,9 @@ def factory_system_mode(
 
     The duration-related keys are required when canBeTemporary is True, and must be
     absent when it is False.
+
+    This validates one entry of the list, not the list as a whole: it does not check
+    which modes a TCS offers (see TccSystemMode for the sets that have been seen).
 
     An example:
         "allowedSystemModes": [
