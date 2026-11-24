@@ -66,6 +66,19 @@ Keys are camelCase/PascalCase as returned by the vendor API.
 
 Config-only dirs (no status file, xfail in tests): `hass_099625/`, `hass_102815/`
 
+## Synthesised fixtures
+
+A synthesised fixture should describe a system that could exist: the vendor's API is
+undocumented, so the fixtures are evidence of its shape, and an implausible one misleads.
+Where possible, copy a fragment from a fixture of a real system rather than invent one.
+
+For example, every TCS seen in the wild offers a system mode to follow its schedule
+(`Auto` or `Heat`) and one to be off (`HeatingOff` or `Off`). The schema does not check
+this, but `test_user_locations_system_modes()` in `test_v2_schemas.py` does.
+
+Data that is deliberately unlike the vendor's goes in a fixture named for it (e.g.
+`enums_no_such/`, `enums_unknown/`), so it is not mistaken for evidence.
+
 ## PII policy
 
 - Names → `"John"` / `"Smith"`; usernames → `"user_{userId}@gmail.com"`

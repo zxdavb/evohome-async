@@ -53649,6 +53649,12 @@
       !!python/tuple
       - !!python/object/apply:evohomeasync2.const.SystemMode
         - auto
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
   
     ''',
     'allowed_system_modes': '''
@@ -53657,6 +53663,26 @@
         can_be_temporary: false
         system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
         - auto
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
   
     ''',
     'config': '''
@@ -53665,6 +53691,26 @@
         can_be_temporary: false
         system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
         - auto
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
       model_type: !!python/object/apply:evohomeasync2.const.TcsModelType
       - evo_touch
       system_id: '0003'
@@ -53917,6 +53963,12 @@
       !!python/tuple
       - !!python/object/apply:evohomeasync2.const.SystemMode
         - auto
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+      - !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
   
     ''',
     'allowed_system_modes': '''
@@ -53925,6 +53977,26 @@
         can_be_temporary: false
         system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
         - auto
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
   
     ''',
     'config': '''
@@ -53933,6 +54005,26 @@
         can_be_temporary: false
         system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
         - auto
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 1.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - auto_with_eco
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - duration
+        timing_resolution: 01:00:00
+      - can_be_permanent: true
+        can_be_temporary: true
+        max_duration: 99.00:00:00
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - away
+        timing_mode: !!python/object/apply:evohomeasync2.const.TimingMode
+        - period
+        timing_resolution: 1.00:00:00
+      - can_be_permanent: true
+        can_be_temporary: false
+        system_mode: !!python/object/apply:evohomeasync2.const.SystemMode
+        - heating_off
       model_type: !!python/object/apply:evohomeasync2.const.TcsModelType
       - evo_touch
       system_id: '0003'

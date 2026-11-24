@@ -279,6 +279,20 @@ class TccOAuthError(StrEnum):  # the error of a failed POST; NOTE: is incomplete
 
 @verify(EnumCheck.UNIQUE)
 class TccSystemMode(StrEnum):
+    """The vendor's system modes of a TCS, as listed in its allowedSystemModes.
+
+    Which modes a TCS offers depends upon its model (and, for evohome, its config), but
+    every TCS seen in the wild offers a mode to follow its schedule, and one to be off:
+    - EvoTouch (evohome): at least Auto, AutoWithEco, Away and HeatingOff, and maybe
+      some or all of AutoWithReset, Custom and DayOff
+    - all others (FocusProWifiRetail, Saratoga, Sydney, VisionProWifiRetail): Off and
+      Heat, and maybe Cool
+
+    A mode that is not a member fails validation, and so does the config that lists it.
+    The schema does not check which modes are offered, so a TCS lacking (say) an off
+    mode would pass validation, although none has been seen.
+    """
+
     AUTO = "Auto"
     AUTO_WITH_ECO = "AutoWithEco"
     AUTO_WITH_RESET = "AutoWithReset"
