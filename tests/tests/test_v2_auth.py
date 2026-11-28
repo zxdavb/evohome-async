@@ -319,6 +319,7 @@ async def test_concurrent_get_access_token_failure(
 
     with (
         aioresponses() as rsp,
+        caplog.at_level(logging.DEBUG),  # the hint is logged at DEBUG
         patch.object(
             token_manager, "_fetch_access_token", side_effect=_fetch_access_token
         ) as fetch,
@@ -413,6 +414,7 @@ async def test_rejected_refresh_token_is_not_bad_credentials(
 
     with (
         aioresponses() as rsp,
+        caplog.at_level(logging.DEBUG),  # the hint would be logged at DEBUG
         patch.object(token_manager, "save_access_token", new_callable=AsyncMock),
     ):
         rsp.post(URL_CRED_V2, status=HTTPStatus.BAD_REQUEST, payload=_INVALID_GRANT)

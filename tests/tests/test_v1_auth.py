@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import uuid
 from datetime import UTC, datetime as dt, timedelta as td
 from http import HTTPStatus
@@ -262,6 +263,7 @@ async def test_concurrent_get_session_id_failure(
 
     with (
         aioresponses() as rsp,
+        caplog.at_level(logging.DEBUG),  # the hint is logged at DEBUG
         patch.object(
             session_manager, "_fetch_session_id", side_effect=_fetch_session_id
         ) as fetch,

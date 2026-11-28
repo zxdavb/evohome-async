@@ -37,11 +37,9 @@ LOG_04 = ("evohome_cli.auth", logging.DEBUG, " - authenticating with client_id/s
 LOG_21 = ("evohome_cli.auth", logging.DEBUG, "Fetching session_id...")
 LOG_24 = ("evohome_cli.auth", logging.DEBUG, " - authenticating with client_id/secret")  # fmt: off
 
-LOG_90 = ("evohome_cli.auth", logging.ERROR, HINT_BAD_CREDS)
-LOG_99 = ("evohome_cli.auth", logging.ERROR, HINT_CHECK_NETWORK)
+LOG_90 = ("evohome_cli.auth", logging.DEBUG, HINT_BAD_CREDS)
+LOG_99 = ("evohome_cli.auth", logging.DEBUG, HINT_CHECK_NETWORK)
 
 LOG_00 = ("evohomeasync.auth", logging.WARNING, MSG_INVALID_SESSION)
-LOG_09 = ("evohomeasync.auth", logging.ERROR, HINT_CHECK_NETWORK)
 
 LOG_20 = ("evohomeasync2.auth", logging.WARNING, MSG_INVALID_TOKEN)
-LOG_29 = ("evohomeasync2.auth", logging.ERROR, HINT_CHECK_NETWORK)
