@@ -418,7 +418,7 @@ class AbstractAuth(ABC):
 
         except aiohttp.ClientResponseError as err:
             if hint := ERR_MSG_LOOKUP_BASE.get(err.status):
-                self._logger.error(hint)  # noqa: TRY400
+                self._logger.debug(hint)
 
             msg = f"{err.status} {err.message}"
             if rsp:
@@ -434,7 +434,7 @@ class AbstractAuth(ABC):
 
         # e.g. ClientConnectionError, or a TimeoutError (not all are a ClientError)
         except (aiohttp.ClientError, TimeoutError) as err:
-            self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
+            self._logger.debug(HINT_CHECK_NETWORK)
 
             raise exc.ApiConnectionFailedError(
                 f"{method} {url}: {str(err) or type(err).__name__}",  # str(TimeoutError()) is ''

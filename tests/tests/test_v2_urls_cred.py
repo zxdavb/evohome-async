@@ -21,7 +21,7 @@ from tests.const import (
 )
 
 from .aioresponses import aioresponses
-from .const import LOG_01, LOG_02, LOG_03, LOG_04, LOG_20, LOG_29, LOG_90, LOG_99
+from .const import LOG_01, LOG_02, LOG_03, LOG_04, LOG_20, LOG_90, LOG_99
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -576,7 +576,7 @@ async def test_good(  # good credentials
         assert err.value.reason is exc.ApiCallErrorReason.CONNECTION_FAILED
         assert err.value.response is None  # there was no response
         assert err.value.retry_after is None
-        assert caplog.record_tuples == [LOG_29]
+        assert caplog.record_tuples == []  # the hint is logged at DEBUG
         assert len(rsp.requests) == 2  # noqa: PLR2004
 
         # response 0: Successful authentication

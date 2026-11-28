@@ -183,13 +183,13 @@ class CredentialsManagerBase(ABC):
             else:
                 hint = ERR_MSG_LOOKUP_BASE.get(err.status)
             if hint:
-                self._logger.error(hint)  # noqa: TRY400
+                self._logger.debug(hint)
 
             raise error from err
 
         # e.g. ClientConnectionError, or a TimeoutError (not all are a ClientError)
         except (aiohttp.ClientError, TimeoutError) as err:
-            self._logger.error(HINT_CHECK_NETWORK)  # noqa: TRY400
+            self._logger.debug(HINT_CHECK_NETWORK)
 
             raise exc.AuthConnectionFailedError(
                 f"Authenticator response is invalid: {str(err) or type(err).__name__}",
